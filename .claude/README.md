@@ -26,13 +26,17 @@ This Claude Code setup provides:
 │   ├── build-compile.md
 │   ├── code-quality.md
 │   ├── feature-implement.md
-│   └── debug-troubleshoot.md
+│   ├── debug-troubleshoot.md
+│   ├── task-decomposition.md
+│   ├── agent-coordination.md
+│   └── parallel-execution.md
 ├── agents/                # Specialized sub-agents
 │   ├── test-runner.md
 │   ├── code-reviewer.md
 │   ├── feature-implementer.md
 │   ├── refactorer.md
-│   └── debugger.md
+│   ├── debugger.md
+│   └── goap-agent.md
 └── commands/              # Slash commands
     ├── test.md
     ├── build.md
@@ -65,6 +69,11 @@ Skills are reusable knowledge modules that provide detailed guidance for specifi
 - **code-quality**: Code quality tools and standards
 - **feature-implement**: Systematic feature implementation
 - **debug-troubleshoot**: Debug runtime issues
+
+### Planning & Coordination
+- **task-decomposition**: Break down complex tasks into atomic, actionable goals
+- **agent-coordination**: Coordinate multiple agents through various execution strategies
+- **parallel-execution**: Manage parallel agent execution with synchronization
 
 ## Agents
 
@@ -142,6 +151,35 @@ Specialized agents handle complex, multi-step tasks autonomously.
 - Diagnose root cause
 - Apply and verify fixes
 
+### GOAP Agent (Goal-Oriented Action Planning)
+**Purpose**: Intelligent task planning and multi-agent coordination
+
+**Usage**: Invoke when you need to:
+- Plan and coordinate complex multi-step tasks
+- Optimize execution through parallel/sequential/swarm strategies
+- Manage multiple specialized agents for comprehensive workflows
+- Dynamic task distribution and resource optimization
+
+**Capabilities**:
+- **Goal Decomposition**: Break complex tasks into atomic, actionable goals
+- **Dependency Mapping**: Identify task relationships and optimal execution sequences
+- **Multi-Agent Coordination**: Orchestrate specialized agents through parallel, sequential, swarm, or hybrid execution
+- **Quality Assurance**: Implement validation checkpoints and success criteria monitoring
+- **Dynamic Optimization**: Adjust plans based on real-time execution feedback
+- **Result Synthesis**: Aggregate outputs from multiple agents into comprehensive deliverables
+
+**Coordination Strategies**:
+- **Parallel Execution**: Independent tasks run simultaneously for maximum throughput
+- **Sequential Execution**: Dependent tasks with proper handoffs and quality gates
+- **Swarm Coordination**: Multiple perspectives for complex problem solving
+- **Hybrid Execution**: Mixed strategies optimized for complex workflows
+
+**Example Invocations**:
+- "Plan and coordinate implementation of batch update feature with full testing and documentation"
+- "Organize a comprehensive pre-release quality audit using multiple agents"
+- "Coordinate debugging and fixing of performance degradation across the system"
+- "Plan and execute phased refactoring of storage layer with minimal disruption"
+
 ## Slash Commands
 
 Quick commands for common workflows.
@@ -162,6 +200,22 @@ Quick commands for common workflows.
 - `/review-code [path]` - Review code changes
 
 ## Common Workflows
+
+### Complex Multi-Step Tasks with GOAP Agent
+
+```bash
+# Use GOAP agent for complex tasks requiring coordination
+User: "Implement comprehensive caching system with performance benchmarks, tests, and documentation"
+
+# GOAP agent will:
+# 1. Decompose task into atomic goals
+# 2. Map dependencies and create execution plan
+# 3. Coordinate multiple agents (feature-implementer, test-runner, code-reviewer)
+# 4. Execute in optimal strategy (hybrid: parallel analysis → sequential implementation → parallel validation)
+# 5. Aggregate results and provide comprehensive report
+
+The GOAP agent handles the entire coordination autonomously.
+```
 
 ### Starting a New Feature
 

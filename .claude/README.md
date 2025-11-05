@@ -27,9 +27,12 @@ This Claude Code setup provides:
 │   ├── code-quality.md
 │   ├── feature-implement.md
 │   ├── debug-troubleshoot.md
-│   ├── task-decomposition.md
-│   ├── agent-coordination.md
-│   └── parallel-execution.md
+│   ├── task-decomposition/
+│   │   └── SKILL.md
+│   ├── agent-coordination/
+│   │   └── SKILL.md
+│   └── parallel-execution/
+│       └── SKILL.md
 ├── agents/                # Specialized sub-agents
 │   ├── test-runner.md
 │   ├── code-reviewer.md
@@ -52,6 +55,16 @@ This Claude Code setup provides:
 ## Skills
 
 Skills are reusable knowledge modules that provide detailed guidance for specific tasks.
+
+**Format**: Skills are organized as directories containing a `SKILL.md` file with YAML frontmatter:
+```yaml
+---
+name: skill-name
+description: What this skill does and when to use it
+---
+```
+
+Claude autonomously invokes skills based on the description when relevant to the task.
 
 ### Episode Management
 - **episode-start**: Start a new learning episode
@@ -77,7 +90,19 @@ Skills are reusable knowledge modules that provide detailed guidance for specifi
 
 ## Agents
 
-Specialized agents handle complex, multi-step tasks autonomously.
+Specialized agents handle complex, multi-step tasks autonomously. Each agent operates in its own context window with a custom system prompt and tool access.
+
+**Format**: Agents are Markdown files with YAML frontmatter:
+```yaml
+---
+name: agent-name
+description: When to invoke this agent
+tools: Tool1, Tool2, Tool3  # Optional, inherits all tools if omitted
+model: sonnet  # Optional
+---
+```
+
+Agents are invoked explicitly using the Task tool when their specialized capabilities are needed.
 
 ### Test Runner Agent
 **Purpose**: Execute tests and fix failures

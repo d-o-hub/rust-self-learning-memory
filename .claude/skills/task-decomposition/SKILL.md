@@ -1,8 +1,9 @@
+---
+name: task-decomposition
+description: Break down complex tasks into atomic, actionable goals with clear dependencies and success criteria. Use this skill when you need to plan multi-step projects, coordinate agents, or decompose complex user requests into manageable sub-tasks.
+---
+
 # Task Decomposition
-
-Break down complex tasks into atomic, actionable goals with clear dependencies and success criteria.
-
-## Purpose
 
 Enable effective planning and execution by decomposing high-level objectives into manageable, testable sub-tasks.
 
@@ -270,28 +271,10 @@ Analysis: Medium complexity, multiple components
 
 Decomposition:
 1. Design cache strategy
-   - Decide cache key structure
-   - Define cache invalidation rules
-   - Choose cache storage (redb)
-
 2. Implement cache layer
-   - Create cache interface
-   - Implement cache operations
-   - Add cache invalidation
-
 3. Integrate with retrieval
-   - Check cache before DB
-   - Populate cache on miss
-   - Handle cache errors gracefully
-
 4. Add tests
-   - Cache hit/miss scenarios
-   - Invalidation tests
-   - Error handling tests
-
 5. Measure performance
-   - Benchmark before/after
-   - Validate improvement
 
 Dependencies:
 - 1 → 2 → 3 (sequential)
@@ -316,36 +299,6 @@ Major Components:
 5. Migration utilities
 6. Testing infrastructure
 7. Documentation
-
-Decomposition:
-
-Phase 1: Design (Sequential)
-├─ 1.1: Define storage trait/interface
-├─ 1.2: Design backend abstraction
-└─ 1.3: Plan migration strategy
-
-Phase 2: Foundation (Parallel)
-├─ 2.1: Implement storage trait
-├─ 2.2: Create backend factory
-└─ 2.3: Setup test infrastructure
-
-Phase 3: Backend Implementation (Parallel)
-├─ 3.1: Refactor Turso to use trait
-└─ 3.2: Refactor redb to use trait
-
-Phase 4: Integration (Sequential)
-├─ 4.1: Wire up factory
-├─ 4.2: Update calling code
-└─ 4.3: Add migration utilities
-
-Phase 5: Validation (Parallel)
-├─ 5.1: Run full test suite
-├─ 5.2: Performance benchmarking
-└─ 5.3: Integration testing
-
-Phase 6: Documentation (Sequential)
-├─ 6.1: Update API docs
-└─ 6.2: Write migration guide
 
 Strategy: Multi-phase hybrid execution
 Coordination: GOAP agent + multiple specialized agents
@@ -414,58 +367,6 @@ The GOAP agent uses task decomposition as its first phase:
 - Identify truly independent tasks
 - Break dependencies where possible
 - Consider resource constraints
-
-## Examples by Domain
-
-### For Memory System (This Project)
-
-**Pattern Updates**:
-```
-1. Update pattern schema (if needed)
-2. Implement extraction logic
-3. Store in Turso
-4. Cache in redb
-5. Test extraction + storage
-6. Document pattern format
-```
-
-**Episode Management**:
-```
-1. Define episode lifecycle
-2. Implement start_episode
-3. Implement log_step
-4. Implement complete_episode
-5. Add persistence (Turso + redb)
-6. Test full workflow
-7. Document API
-```
-
-**Retrieval System**:
-```
-1. Design retrieval strategy
-2. Implement query building
-3. Add filtering/ranking
-4. Integrate embeddings (optional)
-5. Cache frequent queries
-6. Test retrieval quality
-7. Benchmark performance
-```
-
-## Measuring Decomposition Quality
-
-**Metrics**:
-- Task clarity: Can agent understand and execute?
-- Dependency accuracy: Are dependencies correct?
-- Coverage: Are all requirements addressed?
-- Granularity: Appropriate level of detail?
-- Testability: Can success be verified?
-
-**Validation**:
-- Review decomposition before execution
-- Adjust based on execution feedback
-- Learn patterns for future decompositions
-
----
 
 ## Summary
 

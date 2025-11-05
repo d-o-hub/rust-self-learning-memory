@@ -31,7 +31,9 @@ This Claude Code setup provides:
 │   │   └── SKILL.md
 │   ├── agent-coordination/
 │   │   └── SKILL.md
-│   └── parallel-execution/
+│   ├── parallel-execution/
+│   │   └── SKILL.md
+│   └── skill-creator/
 │       └── SKILL.md
 ├── agents/                # Specialized sub-agents
 │   ├── test-runner.md
@@ -39,7 +41,8 @@ This Claude Code setup provides:
 │   ├── feature-implementer.md
 │   ├── refactorer.md
 │   ├── debugger.md
-│   └── goap-agent.md
+│   ├── goap-agent.md
+│   └── agent-creator.md
 └── commands/              # Slash commands
     ├── test.md
     ├── build.md
@@ -87,6 +90,9 @@ Claude autonomously invokes skills based on the description when relevant to the
 - **task-decomposition**: Break down complex tasks into atomic, actionable goals
 - **agent-coordination**: Coordinate multiple agents through various execution strategies
 - **parallel-execution**: Manage parallel agent execution with synchronization
+
+### Meta Development
+- **skill-creator**: Create new Claude Code skills with proper format and structure
 
 ## Agents
 
@@ -205,6 +211,36 @@ Agents are invoked explicitly using the Task tool when their specialized capabil
 - "Coordinate debugging and fixing of performance degradation across the system"
 - "Plan and execute phased refactoring of storage layer with minimal disruption"
 
+### Agent Creator
+**Purpose**: Create new Claude Code agents with proper format and structure
+
+**Usage**: Invoke when you need to:
+- Build a new specialized sub-agent
+- Create autonomous task executors
+- Extend Claude Code capabilities
+- Design agents with custom system prompts and tool access
+
+**Capabilities**:
+- **Proper Formatting**: Creates agents with correct YAML frontmatter (name, description, tools)
+- **System Prompt Design**: Writes comprehensive, focused system prompts
+- **Tool Selection**: Recommends appropriate tool access based on agent purpose
+- **Template Library**: Provides templates for execution, analysis, and coordination agents
+- **Integration Guidance**: Documents how agent works with skills and other agents
+- **Validation**: Ensures agent follows all naming and format conventions
+
+**When to Create an Agent**:
+- Task requires complex multi-step execution
+- Need isolated context window separate from main agent
+- Task benefits from custom system prompt and specialized focus
+- Different tool access requirements than main agent
+- Autonomous execution provides significant value
+
+**Example Invocations**:
+- "Create a new agent for deploying Rust applications to production"
+- "Build an agent specialized in GraphQL API integration and testing"
+- "Design a security audit agent for reviewing code vulnerabilities"
+- "Create a documentation generation agent for Rust projects"
+
 ## Slash Commands
 
 Quick commands for common workflows.
@@ -225,6 +261,30 @@ Quick commands for common workflows.
 - `/review-code [path]` - Review code changes
 
 ## Common Workflows
+
+### Creating New Claude Code Agents and Skills
+
+```bash
+# Creating a new skill
+User: "I need a skill for GraphQL schema validation"
+
+# Claude will use skill-creator skill to:
+# 1. Create proper directory structure (.claude/skills/graphql-schema-validation/)
+# 2. Generate SKILL.md with YAML frontmatter
+# 3. Write comprehensive content with examples
+# 4. Validate format and naming conventions
+
+# Creating a new agent
+User: "Create an agent for managing Docker deployments"
+
+# Invoke agent-creator explicitly:
+# 1. Define agent purpose and scope
+# 2. Generate YAML frontmatter (name, description, tools)
+# 3. Write focused system prompt
+# 4. Include templates and examples
+# 5. Document integrations with other agents/skills
+# 6. Validate format and test agent
+```
 
 ### Complex Multi-Step Tasks with GOAP Agent
 

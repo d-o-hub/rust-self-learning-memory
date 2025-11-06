@@ -172,16 +172,16 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov
 
       - name: Generate coverage
-        run: cargo tarpaulin --out xml --all-features
+        run: cargo llvm-cov --lcov --all-features --workspace --output-path lcov.info
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./cobertura.xml
+          file: ./lcov.info
           fail_ci_if_error: false
 ```
 
@@ -587,34 +587,30 @@ steps:
 
 ## Code Coverage
 
-### Using cargo-tarpaulin
-```yaml
-- name: Install tarpaulin
-  run: cargo install cargo-tarpaulin
-
-- name: Generate coverage
-  run: |
-    cargo tarpaulin \
-      --out xml \
-      --output-dir ./coverage \
-      --all-features \
-      --workspace \
-      --timeout 300
-
-- name: Upload to Codecov
-  uses: codecov/codecov-action@v4
-  with:
-    files: ./coverage/cobertura.xml
-    token: ${{ secrets.CODECOV_TOKEN }}
-```
-
-### Using cargo-llvm-cov
+### Using cargo-llvm-cov (Recommended)
 ```yaml
 - name: Install llvm-cov
   run: cargo install cargo-llvm-cov
 
 - name: Generate coverage
   run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+
+- name: Upload to Codecov
+  uses: codecov/codecov-action@v4
+  with:
+    files: lcov.info
+    token: ${{ secrets.CODECOV_TOKEN }}
+```
+
+### Alternative: Generate multiple formats
+```yaml
+- name: Install llvm-cov
+  run: cargo install cargo-llvm-cov
+
+- name: Generate coverage (HTML + LCOV)
+  run: |
+    cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+    cargo llvm-cov --all-features --workspace --html --output-dir coverage
 
 - name: Upload to Codecov
   uses: codecov/codecov-action@v4

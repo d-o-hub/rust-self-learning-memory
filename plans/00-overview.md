@@ -162,7 +162,7 @@ cargo bench --no-run
 cargo audit
 
 # Coverage reporting
-cargo tarpaulin --out Html
+cargo llvm-cov --html
 ```
 
 ## Next Steps

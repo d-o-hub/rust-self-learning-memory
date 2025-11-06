@@ -207,14 +207,14 @@ pub async fn create_test_memory() -> SelfLearningMemory {
 
 ### Check Coverage
 ```bash
-# Install tarpaulin
-cargo install cargo-tarpaulin
+# Install llvm-cov
+cargo install cargo-llvm-cov
 
 # Run with coverage
-cargo tarpaulin --out Html --output-dir coverage
+cargo llvm-cov --html --output-dir coverage
 
 # View coverage report
-open coverage/index.html
+open coverage/html/index.html
 ```
 
 ### Coverage Goals

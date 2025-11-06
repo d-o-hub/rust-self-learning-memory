@@ -46,13 +46,13 @@ RUST_LOG=debug cargo test
 
 ### Generate coverage report
 ```bash
-cargo install cargo-tarpaulin
-cargo tarpaulin --out Html --output-dir coverage
+cargo install cargo-llvm-cov
+cargo llvm-cov --html --output-dir coverage
 ```
 
 ### View coverage report
 ```bash
-open coverage/index.html
+open coverage/html/index.html
 ```
 
 ### Coverage targets
@@ -226,7 +226,7 @@ criterion_main!(benches);
 - Avoid shared mutable state
 
 ### Coverage gaps
-- Run `cargo tarpaulin --out Html --output-dir coverage`
+- Run `cargo llvm-cov --html --output-dir coverage`
 - Review uncovered lines in HTML report
 - Add tests for edge cases
 

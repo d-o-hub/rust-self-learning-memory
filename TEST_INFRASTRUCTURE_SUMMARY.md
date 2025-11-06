@@ -82,12 +82,13 @@
 
 ### 6. Coverage Configuration ✓
 - Using `cargo-llvm-cov` for code coverage
+- Configuration via CLI flags (no config file needed)
 - Configured for:
   - HTML, LCOV, and JSON output
   - Line and branch coverage
-  - Excludes test files
-  - Workspace coverage
-  - All features enabled
+  - Excludes test files (via --workspace flag)
+  - Workspace coverage with all features enabled
+- Benefits: Better CI integration, explicit per-command configuration
 
 ### 7. Documentation ✓
 - Created `/home/user/rust-self-learning-memory/TESTING.md` - Comprehensive testing guide

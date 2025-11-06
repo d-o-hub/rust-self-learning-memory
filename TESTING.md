@@ -60,6 +60,26 @@ open coverage/html/index.html
 - Branch coverage: >85%
 - All public APIs must be tested
 
+### Configuration
+
+**Note on Configuration:** Unlike `cargo-tarpaulin` which used `tarpaulin.toml`, `cargo-llvm-cov` is designed to work primarily through command-line flags. This approach offers:
+- Better integration with CI/CD pipelines
+- More flexible configuration per workflow
+- No additional config files to maintain
+- Explicit configuration in each command
+
+Common options:
+```bash
+# Generate multiple output formats
+cargo llvm-cov --html --lcov --json --output-dir coverage
+
+# Coverage for all workspace crates
+cargo llvm-cov --all-features --workspace
+
+# Show coverage summary only
+cargo llvm-cov --summary-only
+```
+
 ## Benchmarks
 
 ### Run all benchmarks

@@ -6,13 +6,24 @@ use tempfile::TempDir;
 
 async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
     let dir = TempDir::new()?;
-    let db_path = dir.path().join("test.db");
 
-    // Create Turso storage with local file database
-    let url = format!("file://{}", db_path.to_str().unwrap());
-    let storage = TursoStorage::new(&url, "").await?;
-    storage.initialize_schema().await?;
-    Ok((storage, dir))
+    // Check for environment variables for remote Turso connection
+    if let (Ok(url), Ok(token)) = (
+        std::env::var("TEST_TURSO_URL"),
+        std::env::var("TEST_TURSO_TOKEN"),
+    ) {
+        // Use remote Turso database
+        let storage = TursoStorage::new(&url, &token).await?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    } else {
+        // Fallback to local file database
+        let db_path = dir.path().join("test.db");
+        let url = format!("file://{}", db_path.to_str().unwrap());
+        let storage = TursoStorage::new(&url, "").await?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    }
 }
 
 #[tokio::test]

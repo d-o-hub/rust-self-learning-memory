@@ -18,9 +18,13 @@ allow = [
     "MIT",
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
     "BSD-3-Clause",
     "ISC",
     "Unicode-DFS-2016",
+    "Zlib",
+    "0BSD",
+    "MPL-2.0",
 ]
 deny = [
     "GPL-3.0",

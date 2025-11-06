@@ -1,0 +1,49 @@
+# cargo-deny configuration for supply chain security
+# https://embarkstudios.github.io/cargo-deny/
+
+# Note: All fields are optional, this is the default configuration
+
+[advisories]
+# The advisories section is for detecting security vulnerabilities
+vulnerability = "deny"
+unmaintained = "warn"
+yanked = "deny"
+notice = "warn"
+ignore = []
+
+[licenses]
+# The licenses section is for detecting incompatible licenses
+unlicensed = "deny"
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+]
+deny = [
+    "GPL-3.0",
+]
+copyleft = "warn"
+allow-osi-fsf-free = "both"
+default = "deny"
+
+[bans]
+# The bans section is for detecting multiple versions of the same crate
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+deny = [
+    # Deny old unmaintained crates
+    { name = "chrono", version = "<0.4" },
+]
+
+[sources]
+# The sources section is for detecting where dependencies come from
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

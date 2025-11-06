@@ -9,6 +9,7 @@ on:
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
 
 jobs:
   format:
@@ -107,3 +108,45 @@ jobs:
       - uses: rustsec/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  supply-chain:
+    name: Supply Chain Security (cargo-deny)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+      - name: Run cargo-deny
+        run: cargo deny check
+      - name: Upload deny report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-deny-report
+          path: target/deny.log
+          retention-days: 7
+
+  unsafe-code-check:
+    name: Unsafe Code Detection (cargo-geiger)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install cargo-geiger
+        run: cargo install cargo-geiger --locked
+      - name: Run cargo-geiger
+        run: cargo geiger --output-format GitHubMarkdown | tee unsafe-report.md
+      - name: Upload unsafe code report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsafe-code-report
+          path: unsafe-report.md
+          retention-days: 7

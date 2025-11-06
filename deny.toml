@@ -5,15 +5,16 @@
 
 [advisories]
 # The advisories section is for detecting security vulnerabilities
-vulnerability = "deny"
+# Use version 2 for new configuration format
+version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
-notice = "warn"
 ignore = []
 
 [licenses]
 # The licenses section is for detecting incompatible licenses
-unlicensed = "deny"
+# Use version 2 for new configuration format
+version = 2
 allow = [
     "MIT",
     "Apache-2.0",
@@ -22,12 +23,7 @@ allow = [
     "ISC",
     "Unicode-DFS-2016",
 ]
-deny = [
-    "GPL-3.0",
-]
-copyleft = "warn"
-allow-osi-fsf-free = "both"
-default = "deny"
+# Note: In version 2, all licenses not in 'allow' list are automatically denied
 
 [bans]
 # The bans section is for detecting multiple versions of the same crate

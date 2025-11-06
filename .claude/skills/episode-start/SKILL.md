@@ -1,3 +1,8 @@
+---
+name: episode-start
+description: Start a new learning episode in the self-learning memory system with proper context. Use this skill when beginning a new task that should be tracked for learning from execution patterns.
+---
+
 # Episode Start
 
 Start a new learning episode in the self-learning memory system.

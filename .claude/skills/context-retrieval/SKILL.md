@@ -1,3 +1,8 @@
+---
+name: context-retrieval
+description: Retrieve relevant episodic context from memory for informed decision-making. Use when you need past episodes, patterns, or solutions to similar tasks.
+---
+
 # Context Retrieval
 
 Retrieve relevant episodic context from memory for informed decision-making.

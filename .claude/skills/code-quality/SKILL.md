@@ -1,3 +1,8 @@
+---
+name: code-quality
+description: Maintain high code quality through formatting, linting, and static analysis using rustfmt, clippy, and cargo audit. Use to ensure consistent code style and catch common mistakes.
+---
+
 # Code Quality
 
 Maintain high code quality through formatting, linting, and static analysis.

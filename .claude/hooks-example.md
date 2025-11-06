@@ -180,7 +180,15 @@ ls migrations/*.sql | sort | md5sum --check .migrations-checksum 2>/dev/null || 
 Ensure minimum test coverage:
 
 ```bash
-cargo llvm-cov --summary-only | grep -E "^TOTAL" | awk '{if ($10 < 80.0) exit 1}'
+# Check that total line coverage is at least 80%
+cargo llvm-cov --summary-only 2>/dev/null | grep "TOTAL" | grep -oP '\d+\.\d+%' | head -1 | grep -oP '\d+\.\d+' | awk '{if ($1 < 80.0) exit 1}'
+```
+
+Alternative using `--json` output (more reliable):
+
+```bash
+# Requires jq installed
+cargo llvm-cov --json --summary-only | jq -e '.data[0].totals.lines.percent >= 80'
 ```
 
 ## Advanced Hooks

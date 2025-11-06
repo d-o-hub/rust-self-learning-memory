@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path' | grep -q '\\.rs$'; then cargo check --quiet 2>&1 || (echo '❌ Rust syntax error detected' && exit 1); fi",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if echo \"$file_path\" | grep -q '\\.rs$'; then cargo check --quiet 2>&1 || (echo 'Rust syntax error detected' && exit 1); fi",
             "timeout": 60
           }
         ]
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ \\.rs$ ]]; then cargo fmt -- \"$file_path\" && echo \"✓ Formatted $file_path\"; fi",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if echo \"$file_path\" | grep -q '\\.rs$'; then cargo fmt -- \"$file_path\" && echo \"Formatted $file_path\"; fi",
             "timeout": 30
           }
         ]
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ \\.rs$ ]]; then cargo clippy --quiet -- -D warnings 2>&1 || (echo '⚠️  Clippy warnings found' && exit 1); fi",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if echo \"$file_path\" | grep -q '\\.rs$'; then cargo clippy --quiet -- -D warnings 2>&1 || (echo 'Clippy warnings found' && exit 1); fi",
             "timeout": 120
           }
         ]
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ src/.*\\.rs$ ]]; then cargo test --quiet 2>&1 || echo '⚠️  Some tests failed'; fi",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if echo \"$file_path\" | grep -q '^src/.*\\.rs$'; then cargo test --quiet 2>&1 || echo 'Some tests failed'; fi",
             "timeout": 300,
             "run_in_background": true
           }
@@ -77,7 +77,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ Cargo\\.(toml|lock)$ ]]; then cargo audit --quiet || echo '⚠️  Security vulnerabilities detected'; fi",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if echo \"$file_path\" | grep -qE 'Cargo\\.(toml|lock)$'; then cargo audit --quiet || echo 'Security vulnerabilities detected'; fi",
             "timeout": 60
           }
         ]

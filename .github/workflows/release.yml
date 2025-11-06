@@ -50,6 +50,9 @@ jobs:
             fi
           done
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:

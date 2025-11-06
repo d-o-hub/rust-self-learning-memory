@@ -68,6 +68,9 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Build all crates with timing
         run: cargo build --all --release --timings
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Upload build timing report
         if: always()
         uses: actions/upload-artifact@v5
@@ -75,6 +78,7 @@ jobs:
           name: build-timings
           path: target/cargo-timings/cargo-timing.html
           retention-days: 7
+          if-no-files-found: warn
 
   coverage:
     name: Code Coverage
@@ -122,6 +126,9 @@ jobs:
         run: cargo install cargo-deny --locked
       - name: Run cargo-deny
         run: cargo deny check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Upload deny report
         if: always()
         uses: actions/upload-artifact@v5
@@ -129,6 +136,7 @@ jobs:
           name: cargo-deny-report
           path: target/deny.log
           retention-days: 7
+          if-no-files-found: warn
 
   unsafe-code-check:
     name: Unsafe Code Detection (cargo-geiger)
@@ -143,6 +151,9 @@ jobs:
         run: cargo install cargo-geiger --locked
       - name: Run cargo-geiger
         run: cargo geiger --output-format GitHubMarkdown | tee unsafe-report.md
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Upload unsafe code report
         if: always()
         uses: actions/upload-artifact@v5
@@ -150,3 +161,4 @@ jobs:
           name: unsafe-code-report
           path: unsafe-report.md
           retention-days: 7
+          if-no-files-found: warn

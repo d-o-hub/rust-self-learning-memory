@@ -69,11 +69,15 @@ jobs:
       - name: Generate coverage
         run: cargo tarpaulin --out xml --output-dir coverage --all-features --workspace
       
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Upload coverage results
         uses: actions/upload-artifact@v5
         with:
           name: coverage-report
           path: coverage/
+          if-no-files-found: warn
 
   build:
     name: Build

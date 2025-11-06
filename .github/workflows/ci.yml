@@ -103,6 +103,9 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -110,7 +113,7 @@ jobs:
           node-version: '20'
       - uses: rustsec/audit-check@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
 
   supply-chain:
     name: Supply Chain Security (cargo-deny)

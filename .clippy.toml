@@ -1,0 +1,3 @@
+# Clippy configuration
+msrv = "1.70"
+warn-on-all-wildcard-imports = true

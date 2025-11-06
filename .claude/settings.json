@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "name": "Protect Sensitive Files",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/protect-secrets.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "name": "Validate Rust Syntax",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path' | grep -q '\\.rs$'; then cargo check --quiet 2>&1 || (echo '❌ Rust syntax error detected' && exit 1); fi",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "name": "Pre-Commit Security Check",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.command' | grep -q '^git commit'; then bash .claude/hooks/pre-commit-security.sh; fi",
+            "timeout": 180
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "name": "Auto-format Rust Code",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ \\.rs$ ]]; then cargo fmt -- \"$file_path\" && echo \"✓ Formatted $file_path\"; fi",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "name": "Run Clippy Lints",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ \\.rs$ ]]; then cargo clippy --quiet -- -D warnings 2>&1 || (echo '⚠️  Clippy warnings found' && exit 1); fi",
+            "timeout": 120
+          }
+        ]
+      },
+      {
+        "name": "Run Tests for Modified Files",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ src/.*\\.rs$ ]]; then cargo test --quiet 2>&1 || echo '⚠️  Some tests failed'; fi",
+            "timeout": 300,
+            "run_in_background": true
+          }
+        ]
+      },
+      {
+        "name": "Security Audit",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path'); if [[ \"$file_path\" =~ Cargo\\.(toml|lock)$ ]]; then cargo audit --quiet || echo '⚠️  Security vulnerabilities detected'; fi",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "name": "Final Verification",
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/final-check.sh",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

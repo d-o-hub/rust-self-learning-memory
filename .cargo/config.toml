@@ -1,0 +1,27 @@
+# Cargo configuration for rust-self-learning-memory
+# Security hardening and custom aliases
+
+[build]
+# Enable overflow checks in release mode for security
+# This catches integer overflows that could lead to vulnerabilities
+jobs = 4
+
+[profile.release]
+overflow-checks = true
+lto = true
+codegen-units = 1
+
+[target.x86_64-unknown-linux-gnu]
+# Security hardening flags
+# -Wl,-z,relro: Read-only relocations (RELRO)
+# -Wl,-z,now: Bind all symbols at load time (BIND_NOW)
+rustflags = [
+    "-C", "link-arg=-Wl,-z,relro,-z,now",
+]
+
+[alias]
+# Custom cargo commands for development workflow
+security-check = "audit && deny check"
+full-test = "test --all-features --all-targets"
+coverage = "llvm-cov --all-features --workspace --lcov --output-path lcov.info"
+quality = "clippy --all-targets --all-features -- -D warnings"

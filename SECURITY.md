@@ -174,6 +174,7 @@ cargo geiger --version
 
 ## References
 
+- [SECURITY.md](./.github/SECURITY.md) - GitHub Security Policy 
 - [AGENTS.md](./AGENTS.md) - Project overview and guidelines
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
 - [.claude/CLAUDE.md](./.claude/CLAUDE.md) - Claude Code workflow
@@ -198,12 +199,6 @@ All security-relevant events should be logged:
 - Security scan results (CI artifacts)
 - Vulnerability fixes (CHANGELOG entries)
 - Policy changes (git history)
-
-## Contact
-
-For security concerns, contact:
-- Security Team: [security email]
-- Project Maintainers: [maintainer contact]
 
 ---
 

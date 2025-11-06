@@ -168,7 +168,7 @@ cargo fmt -- --check
 cargo clippy -- -D warnings
 
 # Coverage
-cargo tarpaulin --out Html
+cargo llvm-cov --html
 
 # Security
 cargo audit

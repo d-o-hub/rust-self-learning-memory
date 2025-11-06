@@ -180,7 +180,7 @@ ls migrations/*.sql | sort | md5sum --check .migrations-checksum 2>/dev/null || 
 Ensure minimum test coverage:
 
 ```bash
-cargo tarpaulin --out Stdout | grep "Coverage: " | awk '{if ($2 < 80) exit 1}'
+cargo llvm-cov --summary-only | grep -E "^TOTAL" | awk '{if ($10 < 80.0) exit 1}'
 ```
 
 ## Advanced Hooks

@@ -6,7 +6,7 @@
 [advisories]
 # The advisories section is for detecting security vulnerabilities
 vulnerability = "deny"
-unmaintained = "warn"
+unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
 notice = "warn"
 ignore = []

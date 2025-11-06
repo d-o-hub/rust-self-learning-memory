@@ -70,7 +70,7 @@ jobs:
         run: cargo build --all --release --timings
       - name: Upload build timing report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-timings
           path: target/cargo-timings/cargo-timing.html
@@ -124,7 +124,7 @@ jobs:
         run: cargo deny check
       - name: Upload deny report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cargo-deny-report
           path: target/deny.log
@@ -145,7 +145,7 @@ jobs:
         run: cargo geiger --output-format GitHubMarkdown | tee unsafe-report.md
       - name: Upload unsafe code report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: unsafe-code-report
           path: unsafe-report.md

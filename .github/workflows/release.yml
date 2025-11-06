@@ -1,5 +1,9 @@
 name: Release
 
+# Automated release workflow
+# Triggers on version tags (v*.*.*)
+# Builds binaries for multiple platforms and creates GitHub release
+
 on:
   push:
     tags:

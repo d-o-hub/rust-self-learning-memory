@@ -1,3 +1,8 @@
+---
+name: build-compile
+description: Build Rust code with proper error handling and optimization for development, testing, and production. Use when compiling the self-learning memory project or troubleshooting build errors.
+---
+
 # Build and Compile
 
 Build Rust code with proper error handling and optimization.

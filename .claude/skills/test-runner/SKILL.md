@@ -1,3 +1,8 @@
+---
+name: test-runner
+description: Execute and manage Rust tests including unit tests, integration tests, and doc tests. Use when running tests to ensure code quality and correctness.
+---
+
 # Test Runner
 
 Execute and manage Rust tests for the self-learning memory project.

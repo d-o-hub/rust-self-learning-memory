@@ -1,3 +1,8 @@
+---
+name: episode-log-steps
+description: Log execution steps during episode execution for detailed tracking and learning. Use when recording tool usage, decision points, errors, or milestones during task execution.
+---
+
 # Episode Log Steps
 
 Log execution steps during episode execution for detailed tracking and learning.

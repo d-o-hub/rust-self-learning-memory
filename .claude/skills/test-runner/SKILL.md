@@ -214,7 +214,7 @@ cargo install cargo-llvm-cov
 cargo llvm-cov --html --output-dir coverage
 
 # View coverage report
-open coverage/html/index.html
+open coverage/index.html
 ```
 
 ### Coverage Goals

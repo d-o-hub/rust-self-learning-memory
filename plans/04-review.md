@@ -286,6 +286,14 @@ mod nfr_tests {
             ci_workflow.contains("--html") && ci_workflow.contains("--lcov"),
             "CI workflow should generate both HTML and LCOV coverage reports"
         );
+        assert!(
+            ci_workflow.contains("cargo llvm-cov --version"),
+            "CI workflow should verify cargo-llvm-cov installation"
+        );
+        assert!(
+            ci_workflow.contains("Verify coverage reports"),
+            "CI workflow should verify coverage report generation"
+        );
     }
 
     #[tokio::test]

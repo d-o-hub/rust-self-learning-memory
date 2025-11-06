@@ -179,6 +179,10 @@ ls migrations/*.sql | sort | md5sum --check .migrations-checksum 2>/dev/null || 
 
 Ensure minimum test coverage:
 
+> **⚠️ DEPRECATION NOTICE**: This project has migrated from `cargo-tarpaulin` to `cargo-llvm-cov` for code coverage.
+> If you have existing hooks or scripts using `cargo tarpaulin`, please update them to use `cargo llvm-cov` instead.
+> The `tarpaulin.toml` configuration file has been removed as `cargo-llvm-cov` uses CLI flags for configuration.
+
 ```bash
 # Check that total line coverage is at least 80%
 cargo llvm-cov --summary-only 2>/dev/null | grep "TOTAL" | grep -oP '\d+\.\d+%' | head -1 | grep -oP '\d+\.\d+' | awk '{if ($1 < 80.0) exit 1}'
@@ -190,6 +194,12 @@ Alternative using `--json` output (more reliable):
 # Requires jq installed
 cargo llvm-cov --json --summary-only | jq -e '.data[0].totals.lines.percent >= 80'
 ```
+
+**Migration from cargo-tarpaulin:**
+- Replace `cargo tarpaulin` with `cargo llvm-cov`
+- Remove references to `tarpaulin.toml` (no longer needed)
+- Update `--out Html` to `--html --output-dir coverage`
+- HTML report is now at `coverage/index.html` (not `tarpaulin-report.html`)
 
 ## Advanced Hooks
 

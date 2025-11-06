@@ -52,7 +52,7 @@ cargo llvm-cov --html --output-dir coverage
 
 ### View coverage report
 ```bash
-open coverage/html/index.html
+open coverage/index.html
 ```
 
 ### Coverage targets

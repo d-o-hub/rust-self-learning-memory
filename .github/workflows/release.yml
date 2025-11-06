@@ -6,22 +6,74 @@ on:
       - 'v*.*.*'
 
 jobs:
+  build-release:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary-suffix: ''
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary-suffix: ''
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary-suffix: ''
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary-suffix: .exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }} --all
+
+      - name: Package binaries
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          for bin in target/${{ matrix.target }}/release/*${{ matrix.binary-suffix }}; do
+            if [ -f "$bin" ] && [ -x "$bin" ]; then
+              cp "$bin" "artifacts/$(basename $bin)"
+            fi
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.target }}
+          path: artifacts/*
+          if-no-files-found: warn
+
   create-release:
     name: Create Release
+    needs: build-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
 
-      - name: Build release binaries
-        run: cargo build --release --all
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: |
-            target/release/memory-*
+          files: artifacts/**/*
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

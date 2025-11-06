@@ -1,0 +1,23 @@
+[config]
+# Output configuration
+out = ["Html", "Lcov", "Json"]
+output-dir = "coverage"
+
+# Coverage options
+line = true
+branch = true
+count = true
+
+# Exclude patterns
+exclude-files = [
+    "*/tests/*",
+    "*/benches/*",
+    "*/examples/*",
+]
+
+# Test configuration
+all-features = true
+timeout = "300s"
+
+# Reporting
+verbose = true

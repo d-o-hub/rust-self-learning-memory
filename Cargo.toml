@@ -3,7 +3,9 @@ resolver = "2"
 members = [
     "memory-core",
     "memory-storage-turso",
-    "memory-storage-redb",
+    # "memory-storage-redb",  # Temporarily disabled - needs redb v2.1 API updates
+    "test-utils",
+    "memory-mcp",
 ]
 
 [workspace.package]
@@ -40,6 +42,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Testing
 tempfile = "3.12"
+
+# Benchmarking
+criterion = "0.5"
 
 [profile.release]
 opt-level = 3

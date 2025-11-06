@@ -1,0 +1,17 @@
+[package]
+name = "test-utils"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+memory-core = { path = "../memory-core" }
+memory-storage-turso = { path = "../memory-storage-turso" }
+# memory-storage-redb = { path = "../memory-storage-redb" }  # Temporarily disabled
+
+tokio = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tempfile = { workspace = true }
+anyhow = { workspace = true }

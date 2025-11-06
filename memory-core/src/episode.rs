@@ -3,9 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::types::{
-    ExecutionResult, Reflection, RewardScore, TaskContext, TaskOutcome, TaskType,
-};
+use crate::types::{ExecutionResult, Reflection, RewardScore, TaskContext, TaskOutcome, TaskType};
 
 /// Unique identifier for patterns
 pub type PatternId = Uuid;
@@ -168,11 +166,7 @@ mod tests {
     #[test]
     fn test_episode_completion() {
         let context = TaskContext::default();
-        let mut episode = Episode::new(
-            "Test task".to_string(),
-            context,
-            TaskType::Testing,
-        );
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Testing);
 
         assert!(!episode.is_complete());
 
@@ -190,7 +184,8 @@ mod tests {
 
     #[test]
     fn test_execution_step() {
-        let mut step = ExecutionStep::new(1, "read_file".to_string(), "Read source file".to_string());
+        let mut step =
+            ExecutionStep::new(1, "read_file".to_string(), "Read source file".to_string());
 
         assert!(!step.is_success());
 
@@ -204,11 +199,7 @@ mod tests {
     #[test]
     fn test_add_steps() {
         let context = TaskContext::default();
-        let mut episode = Episode::new(
-            "Test task".to_string(),
-            context,
-            TaskType::Analysis,
-        );
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
         for i in 0..3 {
             let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());

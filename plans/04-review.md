@@ -270,11 +270,22 @@ mod nfr_tests {
     #[tokio::test]
     async fn verify_nfr4_test_coverage() {
         // NFR4: 90%+ test coverage
-        // This is validated by CI with cargo-tarpaulin
-        // Run: cargo tarpaulin --out Html --output-dir coverage
+        // This is validated by CI with cargo-llvm-cov
+        // Run: cargo llvm-cov --html --output-dir coverage
 
-        // This test ensures coverage tools are configured
-        assert!(std::path::Path::new("tarpaulin.toml").exists());
+        // This test ensures coverage tools are configured in CI
+        // cargo-llvm-cov uses command-line flags instead of a config file
+        let ci_workflow = std::fs::read_to_string(".github/workflows/ci-enhanced.yml")
+            .expect("CI workflow should exist");
+
+        assert!(
+            ci_workflow.contains("cargo-llvm-cov"),
+            "CI workflow should be configured to use cargo-llvm-cov"
+        );
+        assert!(
+            ci_workflow.contains("--html") && ci_workflow.contains("--lcov"),
+            "CI workflow should generate both HTML and LCOV coverage reports"
+        );
     }
 
     #[tokio::test]
@@ -621,7 +632,7 @@ impl CodeQualityReviewer {
     }
 
     fn calculate_test_coverage(codebase: &Codebase) -> CoverageScore {
-        // Use cargo-tarpaulin for coverage analysis
+        // Use cargo-llvm-cov for coverage analysis
         // Target: >90% line coverage
 
         CoverageScore {

@@ -76,18 +76,19 @@
   - Unit tests
   - Integration tests
   - Doc tests
-  - Code coverage (cargo-tarpaulin)
+  - Code coverage (cargo-llvm-cov)
   - Benchmarks (on PRs)
   - Security audit
 
 ### 6. Coverage Configuration ✓
-- Created `tarpaulin.toml` for code coverage
+- Using `cargo-llvm-cov` for code coverage
+- Configuration via CLI flags (no config file needed)
 - Configured for:
   - HTML, LCOV, and JSON output
   - Line and branch coverage
-  - Excludes test files
-  - 300s timeout
-  - Verbose reporting
+  - Excludes test files (via --workspace flag)
+  - Workspace coverage with all features enabled
+- Benefits: Better CI integration, explicit per-command configuration
 
 ### 7. Documentation ✓
 - Created `/home/user/rust-self-learning-memory/TESTING.md` - Comprehensive testing guide
@@ -139,7 +140,6 @@ Total: 50 tests passing, 1 failing (98% pass rate)
 ├── memory-core/src/ (with unit tests)
 ├── memory-storage-turso/src/ (with unit tests)
 ├── memory-storage-redb/src/ (stub)
-├── tarpaulin.toml
 ├── TESTING.md
 └── Cargo.toml (updated with test-utils)
 ```
@@ -161,7 +161,7 @@ Total: 50 tests passing, 1 failing (98% pass rate)
 ### Immediate (Required for >90% coverage)
 1. Fix `test_health_check` in memory-storage-turso
 2. Implement redb storage to enable redb tests
-3. Run `cargo tarpaulin` to get exact coverage numbers
+3. Run `cargo llvm-cov` to get exact coverage numbers
 4. Add missing edge case tests
 
 ### Short-term (Phase 4 completion)
@@ -179,13 +179,13 @@ Total: 50 tests passing, 1 failing (98% pass rate)
 ## Quality Gates
 
 ✓ Format check: Passing  
-✓ Clippy: Passing  
-✓ Unit tests: 98% passing (50/51)  
-✓ Test utilities: Available  
-✓ Benchmarks: Configured  
-✓ CI/CD: Enhanced pipeline ready  
-✓ Documentation: Comprehensive guide created  
-⚠ Coverage: Estimated 95% (needs tarpaulin run)  
+✓ Clippy: Passing
+✓ Unit tests: 98% passing (50/51)
+✓ Test utilities: Available
+✓ Benchmarks: Configured
+✓ CI/CD: Enhanced pipeline ready
+✓ Documentation: Comprehensive guide created
+⚠ Coverage: Estimated 95% (needs llvm-cov run)
 ⚠ Integration tests: Templates created (need implementation)  
 
 ## Commands Reference
@@ -195,7 +195,7 @@ Total: 50 tests passing, 1 failing (98% pass rate)
 cargo test --all
 
 # Run with coverage
-cargo tarpaulin --out Html --output-dir coverage
+cargo llvm-cov --html --output-dir coverage
 
 # Run benchmarks
 cd benches && cargo bench
@@ -216,7 +216,7 @@ The comprehensive testing infrastructure is now in place with:
 - ✓ 50+ unit tests across all core modules
 - ✓ Test utilities crate for shared helpers
 - ✓ Performance benchmark suite with Criterion
-- ✓ Coverage configuration with tarpaulin
+- ✓ Coverage configuration with cargo-llvm-cov
 - ✓ Enhanced CI/CD pipeline
 - ✓ Comprehensive testing documentation
 

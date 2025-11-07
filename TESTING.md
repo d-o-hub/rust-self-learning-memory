@@ -46,19 +46,39 @@ RUST_LOG=debug cargo test
 
 ### Generate coverage report
 ```bash
-cargo install cargo-tarpaulin
-cargo tarpaulin --out Html --output-dir coverage
+cargo install cargo-llvm-cov
+cargo llvm-cov --html --output-dir coverage
 ```
 
 ### View coverage report
 ```bash
-open coverage/index.html
+open coverage/html/index.html
 ```
 
 ### Coverage targets
 - Line coverage: >90%
 - Branch coverage: >85%
 - All public APIs must be tested
+
+### Configuration
+
+**Note on Configuration:** Unlike `cargo-tarpaulin` which used `tarpaulin.toml`, `cargo-llvm-cov` is designed to work primarily through command-line flags. This approach offers:
+- Better integration with CI/CD pipelines
+- More flexible configuration per workflow
+- No additional config files to maintain
+- Explicit configuration in each command
+
+Common options:
+```bash
+# Generate multiple output formats
+cargo llvm-cov --html --lcov --json --output-dir coverage
+
+# Coverage for all workspace crates
+cargo llvm-cov --all-features --workspace
+
+# Show coverage summary only
+cargo llvm-cov --summary-only
+```
 
 ## Benchmarks
 
@@ -226,7 +246,7 @@ criterion_main!(benches);
 - Avoid shared mutable state
 
 ### Coverage gaps
-- Run `cargo tarpaulin --out Html --output-dir coverage`
+- Run `cargo llvm-cov --html --output-dir coverage`
 - Review uncovered lines in HTML report
 - Add tests for edge cases
 

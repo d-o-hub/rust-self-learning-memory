@@ -112,16 +112,16 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install cargo-tarpaulin
-        run: cargo install cargo-tarpaulin
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov
 
       - name: Generate coverage
-        run: cargo tarpaulin --out xml --all-features
+        run: cargo llvm-cov --lcov --all-features --workspace --output-path lcov.info
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./cobertura.xml
+          file: ./lcov.info
           fail_ci_if_error: false
 ```
 
@@ -279,15 +279,30 @@ See **[caching-strategies.md](caching-strategies.md)** for detailed caching opti
 
 ### Lint and Format
 
+### Using cargo-llvm-cov (Recommended)
 ```yaml
-# Check formatting
-- run: cargo fmt -- --check
+- name: Install llvm-cov
+  run: cargo install cargo-llvm-cov
 
-# Format code
-- run: cargo fmt
+- name: Generate coverage
+  run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
 
-# Run clippy
-- run: cargo clippy --all-targets -- -D warnings
+- name: Upload to Codecov
+  uses: codecov/codecov-action@v4
+  with:
+    files: lcov.info
+    token: ${{ secrets.CODECOV_TOKEN }}
+```
+
+### Alternative: Generate multiple formats
+```yaml
+- name: Install llvm-cov
+  run: cargo install cargo-llvm-cov
+
+- name: Generate coverage (HTML + LCOV)
+  run: |
+    cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+    cargo llvm-cov --all-features --workspace --html --output-dir coverage
 
 # Run clippy with fix
 - run: cargo clippy --fix

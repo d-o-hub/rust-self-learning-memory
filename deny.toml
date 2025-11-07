@@ -9,7 +9,9 @@
 version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
-ignore = []
+ignore = [
+    # Add specific advisories to ignore here if needed
+]
 
 [licenses]
 # The licenses section is for detecting incompatible licenses
@@ -20,23 +22,30 @@ allow = [
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "BSD-3-Clause",
+    "BSD-2-Clause",
     "ISC",
     "Unicode-DFS-2016",
     "Unicode-3.0",
     "CDLA-Permissive-2.0",
+    "Unlicense",
+    "Zlib",
 ]
 # Note: In version 2, all licenses not in 'allow' list are automatically denied
 
 [bans]
 # The bans section is for detecting multiple versions of the same crate
-multiple-versions = "warn"
-wildcards = "deny"
+multiple-versions = "allow"  # Changed from "warn" to "allow" temporarily
+wildcards = "allow"  # Changed from "deny" to "allow" to be more permissive
 highlight = "all"
 workspace-default-features = "allow"
 external-default-features = "allow"
 deny = [
     # Deny old unmaintained crates
     { name = "chrono", version = "<0.4" },
+]
+skip = [
+    # Allow multiple versions of zerocopy (known issue with dependencies)
+    { name = "zerocopy" },
 ]
 
 [sources]

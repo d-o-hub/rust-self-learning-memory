@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, beta]
+        rust: [stable]
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master

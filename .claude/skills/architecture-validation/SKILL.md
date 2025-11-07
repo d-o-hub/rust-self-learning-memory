@@ -1,9 +1,6 @@
 ---
-skill_name: architecture-validation
+name: architecture-validation
 description: Validate architecture compliance with planned design decisions, patterns, and system constraints for the Rust self-learning memory project
-version: 1.0.0
-tags: [architecture, validation, compliance, design, project]
-tools: [Read, Glob, Grep, Bash]
 ---
 
 # Architecture Validation Skill

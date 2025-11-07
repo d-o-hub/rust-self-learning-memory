@@ -1,9 +1,6 @@
 ---
-skill_name: plan-gap-analysis
+name: plan-gap-analysis
 description: Analyze gaps between implementation plans and actual codebase implementation for the Rust self-learning memory project
-version: 1.0.0
-tags: [analysis, planning, gap-detection, project]
-tools: [Read, Glob, Grep, Bash]
 ---
 
 # Plan Gap Analysis Skill

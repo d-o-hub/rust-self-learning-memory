@@ -1,9 +1,6 @@
 ---
-skill_name: rust-code-quality
+name: rust-code-quality
 description: Perform comprehensive Rust code quality reviews against best practices for async Rust, error handling, testing, and project structure
-version: 1.0.0
-tags: [rust, code-quality, best-practices, review, project]
-tools: [Read, Glob, Grep, Bash]
 ---
 
 # Rust Code Quality Review Skill

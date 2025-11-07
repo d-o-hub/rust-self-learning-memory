@@ -7,6 +7,10 @@ description: Invoke for complex multi-step tasks requiring intelligent planning 
 
 Enable intelligent planning and execution of complex multi-step tasks through systematic decomposition, dependency mapping, and coordinated multi-agent execution.
 
+## Quick Reference
+
+- **[Execution Strategies](execution-strategies.md)** - Detailed guide on parallel, sequential, swarm, and hybrid execution patterns
+
 ## When to Use This Skill
 
 Use this skill when facing:
@@ -35,35 +39,30 @@ Use this skill when facing:
 
 ### Initial Assessment
 
-Ask yourself these key questions:
-
 ```markdown
 ## Task Analysis
 
-**What is the primary goal?**
-- [Clear statement of what success looks like]
+**Primary Goal**: [Clear statement of what success looks like]
 
-**What are the constraints?**
+**Constraints**:
 - Time: [Urgent / Normal / Flexible]
 - Resources: [Available agents, tools, data]
 - Dependencies: [External systems, prerequisites]
 
-**What is the complexity level?**
+**Complexity Level**:
 - Simple: Single agent, <3 steps
 - Medium: 2-3 agents, some dependencies
 - Complex: 4+ agents, mixed execution modes
 - Very Complex: Multiple phases, many dependencies
 
-**What are the quality requirements?**
+**Quality Requirements**:
 - Testing: [Unit / Integration / E2E]
 - Standards: [AGENTS.md compliance, formatting, linting]
 - Documentation: [API docs, examples, guides]
-- Performance: [Speed, memory, scalability requirements]
+- Performance: [Speed, memory, scalability]
 ```
 
 ### Context Gathering
-
-Before planning, gather relevant context:
 
 1. **Codebase Understanding**: Use Explore agent to understand relevant code
 2. **Past Patterns**: Check if similar tasks have been done before
@@ -74,8 +73,6 @@ Before planning, gather relevant context:
 
 Use the **task-decomposition** skill to break down the goal:
 
-### Decomposition Template
-
 ```markdown
 ## Task Decomposition: [Task Name]
 
@@ -83,145 +80,77 @@ Use the **task-decomposition** skill to break down the goal:
 [Clear statement of primary objective]
 
 ### Sub-Goals
-1. [Component 1] - Priority: [P0/P1/P2]
-   - Success Criteria: [How to verify completion]
+1. [Component 1] - Priority: P0
+   - Success Criteria: [How to verify]
    - Dependencies: [Prerequisites]
    - Complexity: [Low/Medium/High]
 
-2. [Component 2] - Priority: [P0/P1/P2]
-   - Success Criteria: [How to verify completion]
-   - Dependencies: [Prerequisites]
+2. [Component 2] - Priority: P1
+   - Success Criteria: [How to verify]
+   - Dependencies: [Component 1]
    - Complexity: [Low/Medium/High]
 
 ### Atomic Tasks
 **Component 1: [Name]**
-- Task 1.1: [Action] (Agent: [type], Deps: [list])
-- Task 1.2: [Action] (Agent: [type], Deps: [list])
-
-**Component 2: [Name]**
-- Task 2.1: [Action] (Agent: [type], Deps: [list])
-- Task 2.2: [Action] (Agent: [type], Deps: [list])
+- Task 1.1: [Action] (Agent: type, Deps: none)
+- Task 1.2: [Action] (Agent: type, Deps: 1.1)
 
 ### Dependency Graph
 ```
-[Visual representation of task dependencies]
-Task A ──┐
-Task B ──┼──> Task D
-Task C ──┘
+Task 1.1 → Task 1.2 → Task 2.1
+                  ↘
+Task 1.3 (parallel) → Task 2.2
 ```
 ```
 
 ### Key Decomposition Principles
-
-✓ **Atomic Tasks**: Each task is a single, clear action
-✓**Testable**: Completion can be verified objectively
-✓ **Bounded**: Tasks have clear start and end points
-✓ **Assignable**: Each task maps to an agent capability
-✓ **Independent**: Minimize unnecessary dependencies
+- **Atomic**: Each task is indivisible and clear
+- **Testable**: Can verify completion
+- **Independent where possible**: Minimize dependencies
+- **Assigned**: Each task maps to an agent capability
 
 ## Phase 3: Strategy Selection
 
-Use the **agent-coordination** skill to choose the right strategy:
+Choose execution strategy based on task characteristics. See **[execution-strategies.md](execution-strategies.md)** for detailed guide.
 
-### Parallel Execution Strategy
+### Quick Strategy Guide
 
-**Use When**:
-- Tasks have no dependencies
-- All tasks can run simultaneously
-- Goal is to maximize speed
+| Strategy | When to Use | Speed | Complexity |
+|----------|-------------|-------|------------|
+| **Parallel** | Independent tasks, time-critical | Nx | High |
+| **Sequential** | Dependent tasks, order matters | 1x | Low |
+| **Swarm** | Many similar tasks | ~Nx | Medium |
+| **Hybrid** | Mixed requirements | 2-4x | Very High |
 
-**Implementation**:
-```markdown
-Phase: [Name] - Parallel Execution
-├─ Agent: test-runner | Task: Run test suite
-├─ Agent: code-reviewer | Task: Review code quality
-└─ Agent: debugger | Task: Profile performance
-
-Execution: Single message with 3 Task tool calls
+### Decision Tree
 ```
-
-### Sequential Execution Strategy
-
-**Use When**:
-- Strong dependencies between tasks
-- Each task needs previous output
-- Order matters for correctness
-
-**Implementation**:
-```markdown
-Phase: [Name] - Sequential Chain
-└─ Step 1: feature-implementer → Implement core logic
-   └─ Step 2: test-runner → Test implementation
-      └─ Step 3: code-reviewer → Review quality
-
-Execution: Chain with validation gates
-```
-
-### Swarm Coordination Strategy
-
-**Use When**:
-- Complex problem needs multiple perspectives
-- Investigation before solution
-- Parallel exploration benefits the task
-
-**Implementation**:
-```markdown
-Phase 1: Parallel Investigation
-├─ Agent: debugger | Task: Profile performance
-├─ Agent: code-reviewer | Task: Analyze code
-└─ Agent: test-runner | Task: Run benchmarks
-
-Phase 2: Synthesis
-└─ GOAP: Combine findings, identify root cause
-
-Phase 3: Coordinated Resolution
-└─ Agent: refactorer | Task: Apply fix based on findings
-
-Execution: Investigate → Synthesize → Fix
-```
-
-### Hybrid Execution Strategy
-
-**Use When**:
-- Mix of dependent and independent tasks
-- Multi-phase work with varying parallelism
-- Complex workflows with validation checkpoints
-
-**Implementation**:
-```markdown
-Phase 1: Assessment [Parallel]
-├─ Agent: code-reviewer | Task: Assess current state
-└─ Agent: test-runner | Task: Baseline tests
-
-Phase 2: Implementation [Sequential]
-└─ Agent: feature-implementer | Task: Build feature
-
-Phase 3: Validation [Parallel]
-├─ Agent: test-runner | Task: Test new feature
-└─ Agent: code-reviewer | Task: Final review
-
-Execution: Parallel → Sequential → Parallel
+Is time critical?
+  ├─ Yes → Can tasks run in parallel?
+  │   ├─ Yes → PARALLEL
+  │   └─ No → SEQUENTIAL (prioritize critical path)
+  └─ No → Are tasks similar?
+      ├─ Yes (many similar) → SWARM
+      ├─ No (mixed) → HYBRID
+      └─ Simple linear → SEQUENTIAL
 ```
 
 ## Phase 4: Agent Assignment
 
 ### Agent Capability Matrix
 
-| Agent | Specialization | Best For | Outputs |
-|-------|---------------|----------|---------|
-| **test-runner** | Testing, debugging | Test execution, coverage, failure diagnosis | Test results, diagnostics |
-| **code-reviewer** | Quality, standards | Code review, quality audit, compliance | Review reports, recommendations |
-| **feature-implementer** | Feature development | New functionality, module creation | Code, tests, docs |
-| **refactorer** | Code improvement | Performance, maintainability, cleanup | Refactored code, optimizations |
-| **debugger** | Issue diagnosis | Runtime issues, performance, async bugs | Root cause, fixes |
-| **Explore** | Code exploration | Understanding codebase, finding patterns | Code analysis, summaries |
+| Agent Type | Capabilities | Best For |
+|------------|--------------|----------|
+| feature-implementer | Design, implement, test features | New functionality |
+| debugger | Diagnose, fix runtime issues | Bug fixes, performance |
+| test-runner | Execute tests, diagnose failures | Test validation |
+| refactorer | Improve code quality, structure | Code improvements |
+| code-reviewer | Review quality, compliance | Quality assurance |
 
 ### Assignment Principles
-
-1. **Match Expertise**: Assign tasks to agents with relevant specialization
-2. **Balance Load**: Distribute work evenly across available agents
-3. **Minimize Handoffs**: Group related tasks with same agent when possible
-4. **Consider Dependencies**: Ensure agents have needed inputs from previous tasks
+1. Match agent capabilities to task requirements
+2. Balance workload across agents
+3. Consider agent specialization
+4. Plan for quality validation
 
 ## Phase 5: Execution Planning
 
@@ -231,87 +160,67 @@ Execution: Parallel → Sequential → Parallel
 ## Execution Plan: [Task Name]
 
 ### Overview
-- **Objective**: [Clear goal statement]
-- **Strategy**: [Parallel/Sequential/Swarm/Hybrid]
-- **Estimated Duration**: [Time estimate]
-- **Key Risks**: [Potential blockers]
+- Strategy: [Parallel/Sequential/Swarm/Hybrid]
+- Total Tasks: [N]
+- Estimated Duration: [Time]
+- Quality Gates: [N checkpoints]
 
 ### Phase 1: [Phase Name]
-**Mode**: [Parallel/Sequential]
-**Quality Gate**: [Validation criteria before next phase]
+**Tasks**:
+- Task 1: [Description] (Agent: type)
+- Task 2: [Description] (Agent: type)
 
-| Agent | Task | Dependencies | Success Criteria |
-|-------|------|--------------|------------------|
-| [agent-1] | [task description] | [deps or "none"] | [how to verify] |
-| [agent-2] | [task description] | [deps or "none"] | [how to verify] |
+**Quality Gate**: [Validation criteria]
 
 ### Phase 2: [Phase Name]
-[Repeat structure]
+**Tasks**:
+- Task 3: [Description] (Agent: type)
+
+**Quality Gate**: [Validation criteria]
 
 ### Overall Success Criteria
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-- [ ] [Criterion 3]
+- [ ] All tasks complete
+- [ ] Quality gates passed
+- [ ] Tests passing
+- [ ] Documentation updated
 
 ### Contingency Plans
-- **If [Risk 1] occurs**: [Recovery action]
-- **If [Risk 2] occurs**: [Recovery action]
-```
-
-### Quality Gates
-
-Define validation checkpoints between phases:
-
-```markdown
-## Quality Gate: Phase 1 → Phase 2
-
-### Validation Criteria
-- [ ] All Phase 1 tasks completed
-- [ ] Output artifacts present and valid
-- [ ] Success criteria met for each task
-- [ ] No blocking errors or failures
-
-### Decision
-- ✓ Pass → Proceed to Phase 2
-- ✗ Fail → [Recovery action]
+- If Phase 1 fails → [Recovery plan]
+- If tests fail → [Diagnostic approach]
 ```
 
 ## Phase 6: Coordinated Execution
 
 ### Parallel Execution
 
-**How to Execute**:
-```
-Send single message with multiple Task tool calls:
+```markdown
+**Launching parallel agents:**
+- Agent 1 (feature-implementer) → Task A
+- Agent 2 (feature-implementer) → Task B
+- Agent 3 (test-runner) → Task C
 
-Task 1: task-decomposition skill
-Task 2: agent-coordination skill
-Task 3: parallel-execution skill
-
-All launch simultaneously, results collected
+**Coordination**:
+- All agents work simultaneously
+- Monitor progress independently
+- Aggregate results when all complete
 ```
 
 ### Sequential Execution
 
-**How to Execute**:
-```
-Message 1: Task tool → Agent A
-[Wait for completion, validate output]
-
-Message 2: Task tool → Agent B
-[Pass Agent A results, wait for completion]
-
-Message 3: Task tool → Agent C
-[Pass Agent B results, wait for completion]
+```markdown
+**Launching sequential agents:**
+Phase 1: Agent 1 (debugger) → Diagnose issue
+  ↓ Quality Gate: Root cause identified
+Phase 2: Agent 2 (refactorer) → Apply fix
+  ↓ Quality Gate: Tests pass
+Phase 3: Agent 3 (code-reviewer) → Validate
 ```
 
 ### Monitoring During Execution
-
-Track for each agent:
-- **Status**: pending / in_progress / completed / failed
-- **Progress**: Percentage or current milestone
-- **Blockers**: Any issues preventing completion
-- **Quality**: Output meeting criteria?
+- Track agent progress
+- Monitor for failures
+- Validate intermediate results
+- Adjust plan if needed
 
 ## Phase 7: Result Synthesis
 
@@ -321,301 +230,226 @@ Track for each agent:
 ## Execution Summary: [Task Name]
 
 ### ✓ Completed Tasks
-1. [Task 1] - Agent: [name] - Outcome: [description]
-2. [Task 2] - Agent: [name] - Outcome: [description]
+- [Task 1]: Success
+- [Task 2]: Success
 
 ### 📦 Deliverables
-- [Deliverable 1]: [location] - [description]
-- [Deliverable 2]: [location] - [description]
+- [File/Feature 1]
+- [File/Feature 2]
 
 ### ✅ Quality Validation
-- [Criterion 1]: ✓ Met
-- [Criterion 2]: ✓ Met
-- [Criterion 3]: ✓ Met
+- Tests: [Pass/Fail] ([coverage]%)
+- Linting: [Pass/Fail]
+- Standards: [Compliant]
 
 ### 📊 Performance Metrics
-- Total Duration: [time]
-- Tasks Completed: [count]
-- Quality Gate Pass Rate: [percentage]
+- Duration: [actual vs estimated]
+- Efficiency: [parallel speedup if applicable]
 
 ### 💡 Recommendations
-- [Future improvement 1]
-- [Future improvement 2]
+- [Improvement 1]
+- [Improvement 2]
 
 ### 🎓 Lessons Learned
-- [Pattern or insight discovered]
 - [What worked well]
-- [What to improve next time]
+- [What to improve]
 ```
 
 ## Common GOAP Patterns
 
 ### Pattern 1: Research → Implement → Validate
+```
+Phase 1 (Sequential): Research
+  - Explore agent → Understand codebase
+  - Quality Gate: Architecture documented
 
-**Use Case**: New feature development
+Phase 2 (Parallel): Implement
+  - feature-implementer (A) → Module 1
+  - feature-implementer (B) → Module 2
+  - Quality Gate: Implementations complete
 
-```markdown
-Phase 1: Research [Parallel]
-├─ Explore: Understand existing code
-└─ code-reviewer: Assess integration points
-
-Phase 2: Implement [Sequential]
-└─ feature-implementer: Build feature
-
-Phase 3: Validate [Parallel]
-├─ test-runner: Execute tests
-└─ code-reviewer: Quality review
+Phase 3 (Sequential): Validate
+  - test-runner → All tests
+  - code-reviewer → Final review
+  - Quality Gate: Ready for merge
 ```
 
 ### Pattern 2: Investigate → Diagnose → Fix → Verify
+```
+Phase 1: Investigate
+  - debugger → Reproduce issue
+  - Quality Gate: Issue reproduced
 
-**Use Case**: Bug fixing and debugging
+Phase 2: Diagnose
+  - debugger → Root cause analysis
+  - Quality Gate: Root cause identified
 
-```markdown
-Phase 1: Investigate [Swarm]
-├─ debugger: Profile and reproduce
-├─ code-reviewer: Analyze related code
-└─ test-runner: Test edge cases
+Phase 3: Fix
+  - refactorer → Apply fix
+  - Quality Gate: Fix implemented
 
-Phase 2: Diagnose [Synthesis]
-└─ GOAP: Combine findings, identify root cause
-
-Phase 3: Fix [Sequential]
-└─ refactorer: Apply fix
-
-Phase 4: Verify [Parallel]
-├─ test-runner: Verify fix works
-└─ code-reviewer: Ensure quality maintained
+Phase 4: Verify
+  - test-runner → Regression tests
+  - Quality Gate: Tests pass
 ```
 
 ### Pattern 3: Audit → Improve → Validate
+```
+Phase 1: Audit
+  - code-reviewer → Quality audit
+  - Quality Gate: Issues identified
 
-**Use Case**: Code quality improvement
+Phase 2 (Swarm): Improve
+  - Multiple refactorer agents
+  - Work queue: [issue list]
+  - Quality Gate: All issues addressed
 
-```markdown
-Phase 1: Audit [Parallel]
-├─ code-reviewer: Code quality analysis
-├─ test-runner: Test coverage audit
-└─ refactorer: Performance analysis
-
-Phase 2: Improve [Prioritized Sequential]
-└─ For each high-priority issue:
-   refactorer: Apply improvement
-
-Phase 3: Validate [Parallel]
-├─ test-runner: Verify all tests pass
-└─ code-reviewer: Confirm improvements
+Phase 3: Validate
+  - test-runner → Full test suite
+  - code-reviewer → Final check
+  - Quality Gate: Quality targets met
 ```
 
 ## Error Handling & Recovery
 
 ### Agent Failure Recovery
-
-**If agent fails**:
-1. Analyze failure message and reason
-2. Determine if retry appropriate (transient errors)
-3. Consider alternative agent or approach
-4. Adjust plan if fundamental blocker
-5. Log failure for learning
+```markdown
+**If agent fails:**
+1. Log failure reason
+2. Check quality gate status
+3. Options:
+   - Retry same agent (transient error)
+   - Assign to different agent (agent issue)
+   - Modify task (requirements issue)
+   - Escalate to user (blocking issue)
+```
 
 ### Quality Gate Failure
-
-**If quality gate fails**:
-1. STOP execution of dependent tasks
-2. Diagnose what didn't meet criteria
-3. Determine fix approach
-4. Re-execute failed phase
-5. Re-validate quality gate
+```markdown
+**If quality gate fails:**
+1. Identify failing criteria
+2. Diagnose root cause
+3. Options:
+   - Re-run previous phase with fixes
+   - Adjust quality criteria (if appropriate)
+   - Change strategy (e.g., parallel → sequential for debugging)
+```
 
 ### Blocked Dependencies
-
-**If dependency is blocked**:
-1. Identify what's blocking
-2. Check if can work around
-3. Consider reordering tasks
-4. Communicate to user if critical blocker
+```markdown
+**If dependency blocks progress:**
+1. Identify blocking task
+2. Prioritize unblocking
+3. Options:
+   - Execute dependency first (re-order)
+   - Remove dependency (refactor plan)
+   - Parallel work on independent tasks
+```
 
 ## Best Practices
 
 ### DO:
-✓ Always analyze before planning
-✓ Create explicit execution plans for complex tasks
-✓ Use parallel execution for independent tasks
-✓ Validate at quality gates before proceeding
-✓ Provide clear context to agents
-✓ Monitor progress during execution
-✓ Handle errors gracefully with recovery plans
-✓ Aggregate and synthesize results comprehensively
-✓ Learn from execution patterns
+✓ Break tasks into atomic, testable units
+✓ Define clear quality gates between phases
+✓ Match agent capabilities to task requirements
+✓ Monitor progress and validate incrementally
+✓ Document decisions and rationale
+✓ Learn from execution for future planning
+✓ Use parallel execution where safe
+✓ Validate dependencies before execution
 
 ### DON'T:
-✗ Skip analysis and jump straight to execution
-✗ Force parallel execution when dependencies exist
-✗ Ignore quality validation checkpoints
-✗ Continue with failed subtasks
-✗ Assign tasks to wrong agents
-✗ Provide insufficient context
-✗ Skip result synthesis
+✗ Create monolithic tasks (break them down)
+✗ Skip quality gates (leads to cascading failures)
+✗ Assume tasks are independent (verify carefully)
+✗ Ignore agent failures (address immediately)
+✗ Over-complicate simple tasks (use sequential)
+✗ Under-estimate coordination overhead
+✗ Forget to aggregate and synthesize results
 
 ## Integration with Other Skills
 
-The GOAP agent skill orchestrates other skills:
+- **task-decomposition**: Use for Phase 2 (breaking down complex goals)
+- **agent-coordination**: Use for Phase 6 (coordinating multiple agents)
+- **parallel-execution**: Use for parallel strategy implementation
+- All specialized agents (feature-implementer, debugger, test-runner, etc.)
 
-- **task-decomposition**: For breaking down complex goals
-- **agent-coordination**: For choosing execution strategies
-- **parallel-execution**: For managing concurrent agents
-- **episode-start/log-steps/complete**: For learning from coordination
-- **storage-sync**: When memory consistency needed
-- **context-retrieval**: To learn from past similar tasks
-
-## Example GOAP Sessions
-
-### Example 1: Implement Batch Pattern Update Feature
+## Quick Example
 
 ```markdown
-## GOAP Plan: Batch Pattern Update Feature
+Task: Implement authentication system
 
-### Phase 1: Analysis
-**What**: Complex feature requiring storage layer changes
-**Complexity**: High (multiple components, quality-critical)
-**Strategy**: Hybrid (parallel research + sequential implementation)
+## GOAP Plan
 
-### Phase 2: Decomposition
-Main Goal: Enable efficient batch updates of patterns
+### Phase 1: Analysis (Sequential)
+- goap-agent → Define requirements
+- Quality Gate: Requirements clear
 
-Sub-Goals:
-1. Design batch schema (P0)
-2. Implement Turso batch operations (P0)
-3. Implement redb batch caching (P0)
-4. Add comprehensive tests (P0)
-5. Write API documentation (P1)
+### Phase 2: Implementation (Parallel)
+- Agent A → User model + database
+- Agent B → Auth middleware
+- Agent C → API endpoints
+- Quality Gate: All components implemented
 
-### Phase 3: Execution Plan
+### Phase 3: Integration (Sequential)
+- feature-implementer → Wire components together
+- test-runner → Integration tests
+- Quality Gate: Tests pass
 
-**Phase 1: Research & Assessment** [Parallel]
-- Explore: Analyze existing pattern storage code
-- test-runner: Run baseline tests
-
-**Phase 2: Design** [Sequential]
-- feature-implementer: Design batch schema
-
-**Phase 3: Implementation** [Parallel]
-- feature-implementer: Implement Turso batch ops (depends on Phase 2)
-- feature-implementer: Implement redb batch ops (depends on Phase 2)
-
-**Phase 4: Validation** [Parallel]
-- test-runner: Execute all tests
-- code-reviewer: Quality review
-
-### Phase 4: Execution
-[Execute with monitoring...]
-
-### Phase 5: Synthesis
-✓ Batch pattern update implemented
-✓ 15 new tests added, all passing
-✓ Performance: 10x faster for bulk operations
-✓ Code quality: passes fmt, clippy, standards
-```
-
-### Example 2: Debug Performance Issue
-
-```markdown
-## GOAP Plan: Diagnose Slow Episode Retrieval
-
-### Phase 1: Analysis
-**What**: Performance degradation in episode queries
-**Complexity**: Medium (investigation + fix)
-**Strategy**: Swarm investigation → Sequential fix
-
-### Phase 2: Execution Plan
-
-**Phase 1: Parallel Investigation** [Swarm]
-- debugger: Profile runtime, identify bottlenecks
-- code-reviewer: Review query patterns and indexes
-- test-runner: Run performance benchmarks
-
-**Phase 2: Synthesis**
-- GOAP: Combine findings, identify root cause
-
-**Phase 3: Resolution** [Sequential]
-- refactorer: Apply optimizations
-
-**Phase 4: Verification** [Parallel]
-- test-runner: Verify performance improvement
-- code-reviewer: Ensure quality maintained
-
-### Phase 3: Execution
-[Execute with findings aggregation...]
-
-### Phase 4: Results
-Root Cause: Missing database index on timestamp
-Fix: Added index, implemented caching
-Performance: 850ms → 45ms (95% improvement)
-✓ Quality maintained
+### Phase 4: Validation (Sequential)
+- code-reviewer → Security review
+- Quality Gate: Approved for deployment
 ```
 
 ## Success Metrics
 
-Track effectiveness of GOAP planning:
-
 ### Planning Quality
-- **Accuracy**: Actual execution matches plan (target: >90%)
-- **Completeness**: All requirements covered (target: 100%)
-- **Efficiency**: Optimal use of parallelization
+- Clear decomposition with measurable tasks
+- Realistic time estimates
+- Appropriate strategy selection
+- Well-defined quality gates
 
 ### Execution Quality
-- **Success Rate**: Tasks completed successfully (target: >95%)
-- **Quality Gate Pass**: All gates passed (target: 100%)
-- **Time Efficiency**: Faster than sequential baseline
+- Tasks completed as planned
+- Quality gates passed
+- Minimal re-work required
+- Efficient resource utilization
 
 ### Learning
-- **Pattern Extraction**: Successful strategies logged
-- **Heuristic Development**: Agent assignment rules refined
-- **Continuous Improvement**: Each execution improves next
+- Document what worked well
+- Identify improvement areas
+- Update patterns for future use
+- Share knowledge with team
 
 ## Advanced Topics
 
 ### Dynamic Re-Planning
+If during execution:
+- Dependencies change
+- Requirements clarified
+- Blockers discovered
+- Performance issues found
 
-**When to re-plan**:
-- Major blocker discovered
-- Requirements change mid-execution
-- Agent failure can't be recovered
-- Better approach identified
-
-**How to re-plan**:
+Then:
 1. Pause execution
-2. Reassess remaining work
-3. Update plan with new information
-4. Communicate changes to user
-5. Resume with adjusted plan
+2. Re-analyze with new information
+3. Adjust plan (tasks, dependencies, strategy)
+4. Resume with updated plan
 
 ### Optimization Techniques
-
-**Reduce Handoff Overhead**:
-- Batch related tasks to same agent
-- Minimize context transfer
-
-**Maximize Parallelism**:
-- Identify more independent tasks
-- Consider speculative execution
-
-**Critical Path Optimization**:
-- Focus resources on longest dependency chain
-- Parallelize non-critical tasks
+- **Critical path optimization**: Parallelize non-critical-path tasks
+- **Resource pooling**: Share agents across similar tasks
+- **Incremental delivery**: Complete and validate phases incrementally
+- **Adaptive strategy**: Switch strategies based on progress
 
 ## Summary
 
-The GOAP Agent Skill enables intelligent, systematic planning and execution of complex multi-step tasks:
+GOAP enables systematic planning and execution of complex tasks through:
+1. **Structured Analysis**: Understand goals, constraints, and context
+2. **Intelligent Decomposition**: Break into atomic, testable tasks
+3. **Strategic Execution**: Choose optimal execution pattern
+4. **Quality Assurance**: Validate at checkpoints
+5. **Coordinated Agents**: Leverage specialized capabilities
+6. **Continuous Learning**: Improve from each execution
 
-1. **Analyze** task complexity and requirements
-2. **Decompose** into atomic, testable tasks
-3. **Strategize** optimal execution pattern
-4. **Coordinate** specialized agents
-5. **Execute** with quality gates
-6. **Synthesize** results and validate
-7. **Learn** from execution patterns
-
-Use this skill when complexity demands structured planning, when multiple agents provide value, or when quality-critical work requires validation checkpoints.
-
-The GOAP methodology transforms overwhelming complexity into manageable, coordinated execution.
+Use GOAP when facing complex, multi-step challenges requiring coordination, optimization, and quality assurance.

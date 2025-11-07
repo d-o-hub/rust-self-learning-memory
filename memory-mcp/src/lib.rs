@@ -101,6 +101,9 @@ pub use error::{Error, Result};
 pub use sandbox::CodeSandbox;
 pub use server::MemoryMCPServer;
 pub use types::{
-    ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig,
+    ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, ResourceLimits, SandboxConfig,
     SecurityViolationType, Tool,
 };
+
+// Re-export security modules
+pub use sandbox::{FileSystemRestrictions, IsolationConfig, NetworkRestrictions};

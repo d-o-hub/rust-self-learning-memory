@@ -477,39 +477,6 @@ async fn stress_test_concurrent_access() {
 }
 ```
 
-### Race Condition Tests
-```rust
-#[tokio::test]
-async fn test_race_condition() {
-    for _ in 0..100 {  // Run many times
-        let result = potentially_racy_operation().await;
-        assert!(result.is_ok());
-    }
-}
-```
-
-## Monitoring in Production
-
-```rust
-use tracing::{instrument, info, warn, error};
-
-#[instrument]
-async fn monitored_operation(&self) -> Result<Data> {
-    let start = Instant::now();
-
-    let result = self.do_operation().await;
-
-    let duration = start.elapsed();
-    info!("Operation completed in {:?}", duration);
-
-    if duration > Duration::from_secs(5) {
-        warn!("Slow operation detected: {:?}", duration);
-    }
-
-    result
-}
-```
-
 ## Troubleshooting Checklist
 
 - [ ] Can you reproduce the issue?

@@ -8,11 +8,17 @@ description: Diagnose, fix, and optimize GitHub Actions workflows for Rust proje
 Diagnose, fix, and optimize GitHub Actions workflows for Rust projects.
 
 ## Purpose
+
 Set up robust CI/CD pipelines for Rust projects with proper caching, testing, linting, and release automation.
 
-## Workflow Structure (2025 Best Practices)
+## Quick Reference
 
-### Complete Rust CI Workflow
+- **[Caching Strategies](caching-strategies.md)** - Manual cache, rust-cache, sccache, cache keys
+- **[Troubleshooting](troubleshooting.md)** - Common issues, debugging, fixes
+- **[Advanced Features](advanced-features.md)** - Releases, coverage, security, docs deployment
+
+## Complete Rust CI Workflow (2025)
+
 ```yaml
 name: Rust CI
 
@@ -36,30 +42,8 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry/index
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-index-
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry/cache
-          key: ${{ runner.os }}-cargo-cache-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-cache-
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-target-check-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-target-check-
-            ${{ runner.os }}-target-
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Run cargo check
         run: cargo check --all --verbose
@@ -89,30 +73,8 @@ jobs:
         with:
           components: clippy
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry/index
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-index-
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry/cache
-          key: ${{ runner.os }}-cargo-cache-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-cache-
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-target-clippy-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-target-clippy-
-            ${{ runner.os }}-target-
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
@@ -132,30 +94,8 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry/index
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-index-
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry/cache
-          key: ${{ runner.os }}-cargo-cache-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-cache-
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ matrix.os }}-${{ matrix.rust }}-target-test-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ matrix.os }}-${{ matrix.rust }}-target-test-
-            ${{ matrix.os }}-${{ matrix.rust }}-target-
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Run tests
         run: cargo test --all --verbose
@@ -185,517 +125,10 @@ jobs:
           fail_ci_if_error: false
 ```
 
-## Caching Strategies (2025)
-
-### Method 1: Manual Cache (Full Control)
-```yaml
-- name: Cache cargo registry index
-  uses: actions/cache@v4
-  with:
-    path: ~/.cargo/registry/index
-    key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-    restore-keys: |
-      ${{ runner.os }}-cargo-index-
-    save-always: true  # Important: save even on failure
-
-- name: Cache cargo registry cache
-  uses: actions/cache@v4
-  with:
-    path: ~/.cargo/registry/cache
-    key: ${{ runner.os }}-cargo-cache-${{ hashFiles('**/Cargo.lock') }}
-    restore-keys: |
-      ${{ runner.os }}-cargo-cache-
-
-- name: Cache cargo build
-  uses: actions/cache@v4
-  with:
-    path: target
-    key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/*.rs') }}
-    restore-keys: |
-      ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}-
-      ${{ runner.os }}-target-
-```
-
-### Method 2: Rust-Cache Action (Automatic)
-```yaml
-- uses: actions/checkout@v4
-
-- name: Install Rust
-  uses: dtolnay/rust-toolchain@stable
-
-- name: Cache Rust dependencies
-  uses: Swatinem/rust-cache@v2
-  with:
-    shared-key: "stable"
-    save-if: ${{ github.ref == 'refs/heads/main' }}
-
-- name: Build
-  run: cargo build --release
-```
-
-**rust-cache advantages**:
-- Automatic cache key management
-- Handles registry, git deps, and target/
-- Cleans stale cache entries
-- Per-job caching
-
-### Method 3: sccache (Distributed Cache)
-```yaml
-- name: Install sccache
-  run: |
-    cargo install sccache --locked
-    echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-    echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-
-- name: Run sccache-cache
-  uses: mozilla-actions/sccache-action@v0.0.4
-
-- name: Build
-  run: cargo build --release
-
-- name: Print sccache stats
-  run: sccache --show-stats
-```
-
-## Cache Key Strategies
-
-### Best Practices
-```yaml
-# Primary key: OS + Cargo.lock hash
-key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-# With job name for isolation
-key: ${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/Cargo.lock') }}
-
-# Include source hash for incremental builds
-key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/*.rs') }}
-
-# Restore keys (fallback chain)
-restore-keys: |
-  ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-
-  ${{ runner.os }}-cargo-
-```
-
-### Cache Paths
-```yaml
-# Registry index
-~/.cargo/registry/index
-
-# Registry cache (downloaded .crate files)
-~/.cargo/registry/cache
-
-# Git dependencies
-~/.cargo/git/db
-
-# Build artifacts
-target/
-
-# Binary cache (cargo install)
-~/.cargo/bin
-```
-
-## Build Matrix for Cross-Platform Testing
-
-### Basic Matrix
-```yaml
-strategy:
-  matrix:
-    os: [ubuntu-latest, macos-latest, windows-latest]
-    rust: [stable, beta]
-runs-on: ${{ matrix.os }}
-```
-
-### Advanced Matrix with Exclusions
-```yaml
-strategy:
-  fail-fast: false
-  matrix:
-    os: [ubuntu-latest, macos-latest, windows-latest]
-    rust: [stable, beta, nightly]
-    exclude:
-      - os: macos-latest
-        rust: beta
-      - os: windows-latest
-        rust: nightly
-    include:
-      - os: ubuntu-latest
-        rust: nightly
-        experimental: true
-runs-on: ${{ matrix.os }}
-continue-on-error: ${{ matrix.experimental || false }}
-```
-
-### Platform-Specific Steps
-```yaml
-- name: Install dependencies (Ubuntu)
-  if: runner.os == 'Linux'
-  run: sudo apt-get update && sudo apt-get install -y libssl-dev
-
-- name: Install dependencies (macOS)
-  if: runner.os == 'macOS'
-  run: brew install openssl
-
-- name: Install dependencies (Windows)
-  if: runner.os == 'Windows'
-  run: choco install openssl
-```
-
-## Performance Optimizations
-
-### 1. Parallel Jobs
-```yaml
-jobs:
-  check:
-    # Fast checks in parallel
-  fmt:
-    # Independent
-  clippy:
-    # Independent
-  test:
-    needs: [check]  # Only after check passes
-```
-
-### 2. Conditional Execution
-```yaml
-- name: Run expensive task
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  run: cargo bench
-
-- name: Skip on draft PRs
-  if: github.event.pull_request.draft == false
-  run: cargo test
-```
-
-### 3. Incremental Compilation
-```yaml
-env:
-  CARGO_INCREMENTAL: 1  # Enable incremental compilation
-  CARGO_PROFILE_DEV_DEBUG: 0  # Disable debug info for faster builds
-```
-
-### 4. Faster Linker (Linux)
-```yaml
-- name: Install mold linker
-  if: runner.os == 'Linux'
-  run: |
-    sudo apt-get update
-    sudo apt-get install -y mold
-    echo 'RUSTFLAGS="-C link-arg=-fuse-ld=mold"' >> $GITHUB_ENV
-```
-
-## Common Issues and Fixes
-
-### Issue 1: Cache Not Saved on Failure
-**Problem**: Cache is not saved when job fails.
-
-**Solution**: Use `save-always: true` (actions/cache@v4)
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: target
-    key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
-    save-always: true  # Save even on job failure
-```
-
-### Issue 2: Cache Key Mismatch
-**Problem**: Cache keys don't match, no restoration.
-
-**Solution**: Use `hashFiles()` and `restore-keys`
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: ~/.cargo
-    key: cargo-${{ hashFiles('**/Cargo.lock') }}
-    restore-keys: |
-      cargo-${{ hashFiles('**/Cargo.lock') }}-
-      cargo-
-```
-
-### Issue 3: actions/cache v3 vs v4 Compatibility
-**Problem**: Cache created with v3 might not restore in v4.
-
-**Solution**: Use consistent version across all jobs
-```yaml
-# All jobs use same version
-- uses: actions/cache@v4
-```
-
-### Issue 4: Deprecated actions-rs
-**Problem**: `actions-rs/toolchain` and `actions-rs/cargo` are deprecated.
-
-**Solution**: Use modern alternatives
-```yaml
-# OLD (deprecated)
-- uses: actions-rs/toolchain@v1
-  with:
-    toolchain: stable
-
-# NEW (recommended)
-- uses: dtolnay/rust-toolchain@stable
-
-# Or with specific version
-- uses: dtolnay/rust-toolchain@master
-  with:
-    toolchain: 1.75.0
-```
-
-### Issue 5: tar Creation Errors on ubuntu-latest
-**Problem**:
-```
-tar: target/debug/deps: file changed as we read it
-```
-
-**Solution**: Exclude build artifacts or use rust-cache
-```yaml
-# Option 1: Exclude problematic paths
-- uses: actions/cache@v4
-  with:
-    path: |
-      ~/.cargo/registry/index
-      ~/.cargo/registry/cache
-      ~/.cargo/git/db
-    key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-# Option 2: Use rust-cache (handles this automatically)
-- uses: Swatinem/rust-cache@v2
-```
-
-### Issue 6: Large Files (>2GB) Download Failure
-**Problem**: Cache restoration fails for files >2GB.
-
-**Solution**: Split cache or exclude large files
-```yaml
-# Split into smaller caches
-- uses: actions/cache@v4
-  with:
-    path: ~/.cargo/registry/index
-    key: cargo-index-${{ hashFiles('**/Cargo.lock') }}
-
-- uses: actions/cache@v4
-  with:
-    path: ~/.cargo/registry/cache
-    key: cargo-cache-${{ hashFiles('**/Cargo.lock') }}
-
-- uses: actions/cache@v4
-  with:
-    path: target
-    key: target-${{ hashFiles('**/Cargo.lock') }}
-```
-
-### Issue 7: Workflow Permissions
-**Problem**: Workflow can't write to cache or create releases.
-
-**Solution**: Set permissions
-```yaml
-permissions:
-  contents: write  # For releases
-  packages: write  # For container registry
-  actions: write   # For cache
-
-jobs:
-  build:
-    # ...
-```
-
-### Issue 8: Flaky Tests in CI
-**Problem**: Tests pass locally but fail in CI.
-
-**Solution**: Add retries and debugging
-```yaml
-- name: Run tests with retry
-  uses: nick-fields/retry@v2
-  with:
-    timeout_minutes: 10
-    max_attempts: 3
-    command: cargo test --all
-
-- name: Run tests with backtrace
-  run: RUST_BACKTRACE=full cargo test --all -- --nocapture
-```
-
-## Release Automation
-
-### Semantic Release with Cargo
-```yaml
-name: Release
-
-on:
-  push:
-    tags:
-      - 'v*.*.*'
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Build release
-        run: cargo build --release --all
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            target/release/memory-core
-            target/release/memory-storage-turso
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### Multi-Platform Releases
-```yaml
-strategy:
-  matrix:
-    include:
-      - os: ubuntu-latest
-        target: x86_64-unknown-linux-gnu
-      - os: macos-latest
-        target: x86_64-apple-darwin
-      - os: windows-latest
-        target: x86_64-pc-windows-msvc
-
-steps:
-  - uses: actions/checkout@v4
-
-  - name: Install Rust
-    uses: dtolnay/rust-toolchain@stable
-    with:
-      targets: ${{ matrix.target }}
-
-  - name: Build
-    run: cargo build --release --target ${{ matrix.target }}
-
-  - name: Package (Unix)
-    if: runner.os != 'Windows'
-    run: tar czf binary-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release binary
-
-  - name: Package (Windows)
-    if: runner.os == 'Windows'
-    run: Compress-Archive target/${{ matrix.target }}/release/binary.exe binary-${{ matrix.target }}.zip
-
-  - name: Upload artifact
-    uses: actions/upload-artifact@v4
-    with:
-      name: binary-${{ matrix.target }}
-      path: binary-${{ matrix.target }}.*
-```
-
-## Code Coverage
-
-### Using cargo-tarpaulin
-```yaml
-- name: Install tarpaulin
-  run: cargo install cargo-tarpaulin
-
-- name: Generate coverage
-  run: |
-    cargo tarpaulin \
-      --out xml \
-      --output-dir ./coverage \
-      --all-features \
-      --workspace \
-      --timeout 300
-
-- name: Upload to Codecov
-  uses: codecov/codecov-action@v4
-  with:
-    files: ./coverage/cobertura.xml
-    token: ${{ secrets.CODECOV_TOKEN }}
-```
-
-### Using cargo-llvm-cov
-```yaml
-- name: Install llvm-cov
-  run: cargo install cargo-llvm-cov
-
-- name: Generate coverage
-  run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
-
-- name: Upload to Codecov
-  uses: codecov/codecov-action@v4
-  with:
-    files: lcov.info
-```
-
-## Security Scanning
-
-### Cargo Audit
-```yaml
-- name: Security audit
-  run: |
-    cargo install cargo-audit
-    cargo audit
-```
-
-### Dependency Review
-```yaml
-- name: Dependency Review
-  uses: actions/dependency-review-action@v4
-  if: github.event_name == 'pull_request'
-```
-
-## Documentation Deployment
-
-### Deploy to GitHub Pages
-```yaml
-deploy-docs:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Build docs
-      run: cargo doc --no-deps --all-features
-
-    - name: Add index redirect
-      run: echo '<meta http-equiv="refresh" content="0; url=memory_core">' > target/doc/index.html
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./target/doc
-```
-
-## Debugging Workflows
-
-### Enable Debug Logging
-```yaml
-env:
-  ACTIONS_STEP_DEBUG: true
-  ACTIONS_RUNNER_DEBUG: true
-```
-
-### Workflow Debug Commands
-```yaml
-- name: Debug info
-  run: |
-    echo "Event: ${{ github.event_name }}"
-    echo "Ref: ${{ github.ref }}"
-    echo "SHA: ${{ github.sha }}"
-    echo "Actor: ${{ github.actor }}"
-    rustc --version
-    cargo --version
-```
-
-### Interactive Debugging
-```yaml
-- name: Setup tmate session
-  if: failure()
-  uses: mxschmitt/action-tmate@v3
-  timeout-minutes: 30
-```
-
-## Workflow Templates
+## Quick Start Workflows
 
 ### Minimal CI (Quick Feedback)
+
 ```yaml
 name: Quick CI
 
@@ -714,77 +147,7 @@ jobs:
       - run: cargo test --all
 ```
 
-### Comprehensive CI (Production)
-See "Complete Rust CI Workflow" section above.
-
-## Best Practices Summary
-
-### DO:
-- Use `actions/cache@v4` with `save-always: true`
-- Use `hashFiles('**/Cargo.lock')` for cache keys
-- Implement `restore-keys` for cache fallback
-- Use `dtolnay/rust-toolchain` instead of actions-rs
-- Split large caches to avoid 2GB limit
-- Test on multiple platforms (matrix)
-- Use `Swatinem/rust-cache@v2` for simplicity
-- Cache both registry and target directory
-- Set `CARGO_TERM_COLOR: always` for readable logs
-- Use `continue-on-error` for experimental builds
-
-### DON'T:
-- Use deprecated `actions-rs/*` actions
-- Create monolithic cache entries >2GB
-- Cache without `restore-keys`
-- Forget `save-always: true` for partial builds
-- Cache `target/` across different jobs without unique keys
-- Run expensive operations on every PR
-- Use `actions/cache@v3` and `@v4` inconsistently
-- Hardcode Rust version (use rust-toolchain file)
-
-## Troubleshooting Checklist
-
-When workflow fails:
-1. Check Actions tab for error messages
-2. Look for cache restoration logs
-3. Verify cache key matches between save/restore
-4. Check `hashFiles()` is evaluating correctly
-5. Ensure Rust version compatibility
-6. Review recent GitHub Actions updates
-7. Test locally with `act` tool
-8. Enable debug logging if needed
-9. Check for concurrent workflow limits
-10. Verify permissions are sufficient
-
-## Monitoring and Optimization
-
-### Track Build Times
-```yaml
-- name: Build with timing
-  run: cargo build --release --timings
-
-- name: Upload timing report
-  uses: actions/upload-artifact@v4
-  with:
-    name: cargo-timing
-    path: target/cargo-timings/
-```
-
-### Cache Hit Rate
-Check workflow logs for:
-```
-Cache restored from key: cargo-ubuntu-latest-abc123
-Cache hit: true
-```
-
-### Optimize Based on Metrics
-- High cache miss rate → improve cache keys
-- Long build times → add sccache or split jobs
-- Frequent failures → add retries or fix flaky tests
-- Large cache size → split into smaller caches
-
-## Integration with Project
-
-For the rust-self-learning-memory project:
+### Project-Specific: Self-Learning Memory CI
 
 ```yaml
 name: Self-Learning Memory CI
@@ -839,4 +202,152 @@ jobs:
       - run: cargo test --all --all-features --verbose
 ```
 
-This workflow ensures all memory-core, memory-storage-turso, and memory-storage-redb crates are properly tested.
+## Common Tasks
+
+### Setup Rust Toolchain
+
+```yaml
+# Stable
+- uses: dtolnay/rust-toolchain@stable
+
+# With components
+- uses: dtolnay/rust-toolchain@stable
+  with:
+    components: rustfmt, clippy
+
+# Specific version
+- uses: dtolnay/rust-toolchain@master
+  with:
+    toolchain: 1.75.0
+```
+
+### Cache Dependencies
+
+```yaml
+# Recommended: Use rust-cache (automatic)
+- uses: Swatinem/rust-cache@v2
+  with:
+    shared-key: "stable"
+    save-if: ${{ github.ref == 'refs/heads/main' }}
+
+# Alternative: Manual cache
+- uses: actions/cache@v4
+  with:
+    path: |
+      ~/.cargo/registry/index
+      ~/.cargo/registry/cache
+      target
+    key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-cargo-
+    save-always: true
+```
+
+See **[caching-strategies.md](caching-strategies.md)** for detailed caching options.
+
+### Run Tests
+
+```yaml
+# All tests
+- run: cargo test --all
+
+# With verbose output
+- run: cargo test --all --verbose
+
+# With all features
+- run: cargo test --all-features
+
+# With backtrace
+- run: RUST_BACKTRACE=1 cargo test --all
+
+# Single-threaded (for race conditions)
+- run: cargo test --all -- --test-threads=1
+```
+
+### Build Project
+
+```yaml
+# Development build
+- run: cargo build --all
+
+# Release build
+- run: cargo build --release --all
+
+# With timing info
+- run: cargo build --release --timings
+```
+
+### Lint and Format
+
+```yaml
+# Check formatting
+- run: cargo fmt -- --check
+
+# Format code
+- run: cargo fmt
+
+# Run clippy
+- run: cargo clippy --all-targets -- -D warnings
+
+# Run clippy with fix
+- run: cargo clippy --fix
+```
+
+## Best Practices (2025)
+
+### DO:
+✓ Use `actions/cache@v4` with `save-always: true`
+✓ Use `hashFiles('**/Cargo.lock')` for cache keys
+✓ Implement `restore-keys` for cache fallback
+✓ Use `dtolnay/rust-toolchain` (not deprecated actions-rs)
+✓ Split large caches to avoid 2GB limit
+✓ Test on multiple platforms (matrix)
+✓ Use `Swatinem/rust-cache@v2` for simplicity
+✓ Cache both registry and target directory
+✓ Set `CARGO_TERM_COLOR: always` for readable logs
+✓ Use `continue-on-error` for experimental builds
+
+### DON'T:
+✗ Use deprecated `actions-rs/*` actions
+✗ Create monolithic cache entries >2GB
+✗ Cache without `restore-keys`
+✗ Forget `save-always: true` for partial builds
+✗ Cache `target/` across different jobs without unique keys
+✗ Run expensive operations on every PR
+✗ Use `actions/cache@v3` and `@v4` inconsistently
+✗ Hardcode Rust version (use rust-toolchain file)
+
+## Common Issues
+
+Quick reference - see **[troubleshooting.md](troubleshooting.md)** for full details:
+
+1. **Cache not saved on failure** → Use `save-always: true`
+2. **Cache key mismatch** → Use `hashFiles()` and `restore-keys`
+3. **Deprecated actions-rs** → Use `dtolnay/rust-toolchain`
+4. **tar creation errors** → Use `rust-cache` or exclude problematic paths
+5. **Files >2GB** → Split into smaller caches
+6. **Workflow permissions** → Set `permissions:` in workflow
+7. **Flaky tests** → Add retries with `nick-fields/retry@v2`
+
+## Detailed Documentation
+
+- **[Caching Strategies](caching-strategies.md)** - All caching methods, cache keys, performance tips
+- **[Troubleshooting](troubleshooting.md)** - Issues, fixes, debugging, monitoring
+- **[Advanced Features](advanced-features.md)** - Releases, coverage, security, multi-platform
+
+## Integration with Project
+
+For the rust-self-learning-memory project, the workflow ensures all `memory-core`, `memory-storage-turso`, and `memory-storage-redb` crates are properly tested across platforms with appropriate caching and security checks.
+
+## Quick Checklist
+
+Before committing workflow changes:
+- [ ] Uses `actions/cache@v4` or `Swatinem/rust-cache@v2`
+- [ ] Has `save-always: true` for caches
+- [ ] Uses `dtolnay/rust-toolchain` (not actions-rs)
+- [ ] Caches are <2GB each
+- [ ] Has `restore-keys` for fallback
+- [ ] Tests on multiple platforms (if needed)
+- [ ] Clippy runs with `-D warnings`
+- [ ] Format check included
+- [ ] Permissions set appropriately

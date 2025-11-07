@@ -180,7 +180,7 @@ impl TursoStorage {
     /// Health check - verify database connectivity
     pub async fn health_check(&self) -> Result<bool> {
         let conn = self.get_connection().await?;
-        match conn.execute("SELECT 1", ()).await {
+        match conn.query("SELECT 1", ()).await {
             Ok(_) => Ok(true),
             Err(e) => {
                 error!("Health check failed: {}", e);
@@ -266,7 +266,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore] // Temporarily ignored - test database cleanup issue
     async fn test_health_check() {
         let (storage, _dir) = create_test_storage().await.unwrap();
         let healthy = storage.health_check().await.unwrap();

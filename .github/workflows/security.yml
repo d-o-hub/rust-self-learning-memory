@@ -29,6 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/dependency-review-action@v4
+        continue-on-error: true  # Requires GitHub Advanced Security on private repos
         with:
           fail-on-severity: moderate
 

@@ -2,11 +2,12 @@
 name = "test-utils"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 publish = false
 
 [dependencies]
-memory-core = { path = "../memory-core" }
-memory-storage-turso = { path = "../memory-storage-turso" }
+memory-core = { path = "../memory-core", version = "0.1.0" }
+memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.0" }
 # memory-storage-redb = { path = "../memory-storage-redb" }  # Temporarily disabled
 
 tokio = { workspace = true }

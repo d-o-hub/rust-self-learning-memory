@@ -8,7 +8,7 @@ repository.workspace = true
 
 [dependencies]
 # Core dependencies
-memory-core = { path = "../memory-core" }
+memory-core = { path = "../memory-core", version = "0.1.0" }
 
 # Async runtime
 tokio = { workspace = true }

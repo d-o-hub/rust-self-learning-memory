@@ -1,9 +1,6 @@
 ---
-skill_name: architecture-validation
+name: architecture-validation
 description: Validate architecture compliance with planned design decisions, patterns, and system constraints for the Rust self-learning memory project
-version: 1.0.0
-tags: [architecture, validation, compliance, design, project]
-tools: [Read, Glob, Grep, Bash]
 ---
 
 # Architecture Validation Skill
@@ -24,430 +21,93 @@ Ensure the implementation adheres to:
 ## Architecture Dimensions
 
 ### 1. System Architecture Overview
+Planned: Self-Learning Memory System with Learning Core, MCP Integration, and Storage Layer (Turso + redb)
 
-**Planned Architecture** (from plans/02-plan.md):
-```
-┌─────────────────────────────────────────────────────────┐
-│              Self-Learning Memory System                │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │   Learning   │  │    MCP       │  │   Storage    │ │
-│  │     Core     │  │  Integration │  │    Layer     │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘ │
-│         │                 │                 │         │
-│         └─────────────────┴─────────────────┘         │
-│                           │                           │
-│              ┌────────────┴────────────┐              │
-│              ▼                         ▼              │
-│    ┌──────────────────┐      ┌──────────────────┐    │
-│    │ Turso (Durable)  │      │ redb (Cache)     │    │
-│    │ - Episodes       │      │ - Hot Episodes   │    │
-│    │ - Patterns       │      │ - Patterns       │    │
-│    │ - Heuristics     │      │ - Embeddings     │    │
-│    └──────────────────┘      └──────────────────┘    │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Validation Checks**:
-- [ ] Crate boundaries match planned components
-- [ ] Dependencies flow in correct direction (no cycles)
-- [ ] Core business logic separated from infrastructure
-- [ ] Storage abstraction properly implemented
+**Validation**:
+- Crate boundaries match planned components
+- Dependencies flow correctly (no cycles)
+- Core business logic separated from infrastructure
 
 ### 2. Crate Architecture & Dependencies
+Planned: `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-mcp`, `test-utils`
 
-**Planned Crate Structure**:
-```
-rust-self-learning-memory/
-├── memory-core           # Core business logic
-├── memory-storage-turso  # Turso storage backend
-├── memory-storage-redb   # redb cache layer
-├── memory-mcp            # MCP server and sandbox
-├── test-utils            # Shared test utilities
-└── benches              # Performance benchmarks
-```
-
-**Dependency Rules** (from AGENTS.md):
+**Validation**:
 - Core has NO dependency on storage implementations
 - Storage implementations depend on core types
-- MCP depends on core for memory integration
 - No circular dependencies
 
-**Validation**:
-```bash
-# Check Cargo.toml dependencies
-cat memory-core/Cargo.toml | grep -A 20 "\[dependencies\]"
-
-# Verify core doesn't depend on storage
-! grep "memory-storage" memory-core/Cargo.toml
-
-# Check dependency graph
-cargo tree --package memory-core
-```
-
-**Compliance Checks**:
-- [ ] memory-core is dependency-free of storage crates
-- [ ] Storage crates depend only on memory-core
-- [ ] MCP depends on memory-core
-- [ ] No circular dependencies exist
-- [ ] test-utils is dev-dependency only
-
 ### 3. Storage Layer Architecture
+Planned: Hybrid Storage (Turso durable + redb cache)
 
-**Planned Design** (Hybrid Storage):
-
-**Decision**: Use Turso (durable) + redb (cache)
-
-**Turso Responsibilities**:
-- Durable persistence (source of truth)
-- Complex analytical queries
-- Episode history and analytics
-- Pattern aggregation
-
-**redb Responsibilities**:
-- Hot-path cache for fast reads
-- Recent episode caching (LRU eviction)
-- Pattern lookup optimization
-- Embedding storage
-
-**Synchronization Strategy**:
-- Write to Turso first (durable)
-- Async cache update to redb
-- Periodic sync for reconciliation
-- Conflict resolution: Turso wins
-
-**Validation Checks**:
-```bash
-# Verify Turso tables
-rg "CREATE TABLE" memory-storage-turso/src/schema.rs
-
-# Verify redb tables
-rg "TableDefinition" memory-storage-redb/src/lib.rs
-
-# Check sync implementation
-rg "sync|synchronize" memory-core/src/ -A 5
-```
-
-**Compliance**:
-- [ ] Turso has tables: episodes, patterns, heuristics
-- [ ] redb has tables: episodes, patterns, embeddings, metadata
-- [ ] Sync mechanism exists (memory-core/src/sync.rs)
-- [ ] Turso is primary source of truth
-- [ ] redb operates as cache with eviction
+**Validation**:
+- Turso: episodes, patterns, heuristics tables
+- redb: episodes, patterns, embeddings, metadata tables
+- Sync mechanism exists
+- Turso is source of truth
 
 ### 4. Learning Cycle Architecture
-
-**Planned 5-Phase Cycle** (from plans/00-overview.md):
-
-1. **Pre-Task**: Context gathering and memory retrieval
-2. **Execution**: Step-by-step action logging
-3. **Post-Task**: Outcome analysis and scoring
-4. **Learning**: Pattern extraction and heuristic updates
-5. **Retrieval**: Context-aware episode lookup
-
-**Implementation Validation**:
-```rust
-// Expected API in memory-core
-impl SelfLearningMemory {
-    // Phase 1: Pre-Task
-    async fn start_episode(...) -> Uuid;
-
-    // Phase 2: Execution
-    async fn log_step(episode_id, step) -> Result<()>;
-
-    // Phase 3: Post-Task
-    async fn complete_episode(episode_id, outcome) -> Result<Episode>;
-
-    // Phase 4: Learning (within complete_episode)
-    // - RewardCalculator::calculate_reward
-    // - ReflectionGenerator::generate_reflection
-    // - PatternExtractor::extract_patterns
-
-    // Phase 5: Retrieval
-    async fn retrieve_relevant_context(...) -> Result<Vec<Episode>>;
-}
-```
+Planned: 5-Phase Cycle (Pre-Task, Execution, Post-Task, Learning, Retrieval)
 
 **Validation**:
-```bash
-# Check memory.rs API
-rg "pub async fn (start_episode|log_step|complete_episode|retrieve)" memory-core/src/memory.rs
-
-# Verify reward calculation
-test -f memory-core/src/reward.rs && echo "✓ Reward module exists"
-
-# Verify reflection generation
-test -f memory-core/src/reflection.rs && echo "✓ Reflection module exists"
-
-# Verify pattern extraction
-test -f memory-core/src/extraction.rs && echo "✓ Extraction module exists"
-```
-
-**Compliance**:
-- [ ] start_episode creates episode with unique ID
-- [ ] log_step appends to episode.steps
-- [ ] complete_episode triggers reward, reflection, patterns
-- [ ] retrieve_relevant_context queries by similarity
-- [ ] All 5 phases implemented
+- start_episode, log_step, complete_episode, retrieve APIs exist
+- Reward calculation, reflection generation, pattern extraction implemented
 
 ### 5. Pattern Extraction Architecture
-
-**Planned Pattern Types** (from plans/01-understand.md):
-```rust
-pub enum Pattern {
-    ToolSequence {
-        tools: Vec<String>,
-        context: TaskContext,
-        success_rate: f32,
-        avg_latency: Duration,
-    },
-    DecisionPoint {
-        condition: String,
-        action: String,
-        outcome_stats: OutcomeStats,
-    },
-    ErrorRecovery {
-        error_type: String,
-        recovery_steps: Vec<String>,
-        success_rate: f32,
-    },
-    ContextPattern {
-        context_features: Vec<String>,
-        recommended_approach: String,
-        evidence: Vec<EpisodeId>,
-    },
-}
-```
-
-**Extraction Strategy** (Hybrid from plans/02-plan.md):
-- Phase 1: Rule-based extraction (tool sequences, decision points)
-- Phase 2: Embedding-based similarity (semantic patterns)
+Planned: 4 Pattern Types (ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern)
 
 **Validation**:
-```bash
-# Check Pattern definition
-rg "pub enum Pattern" memory-core/src/pattern.rs -A 30
-
-# Check extractor implementations
-rg "impl.*PatternExtractor" memory-core/src/extraction.rs -A 10
-
-# Verify pattern types
-rg "ToolSequence|DecisionPoint|ErrorRecovery|ContextPattern" memory-core/src/
-```
-
-**Compliance**:
-- [ ] Pattern enum has all 4 planned variants
-- [ ] PatternExtractor trait exists
-- [ ] Rule-based extractors implemented
-- [ ] Pattern storage in both Turso and redb
-- [ ] Pattern similarity scoring exists
+- Pattern enum has all 4 variants
+- PatternExtractor trait exists
+- Pattern storage in both Turso and redb
 
 ### 6. MCP Integration Architecture
-
-**Planned Architecture** (from plans/03-execute.md):
-
-**Components**:
-- MCP Server (JSON-RPC 2.0)
-- Tool Definitions (query_memory, execute_agent_code, analyze_patterns)
-- Secure Sandbox (TypeScript/JavaScript execution)
-- Progressive Tool Disclosure
-
-**Security Layers**:
-1. Input Validation
-2. Process Isolation
-3. Resource Limits (CPU, memory, timeout)
-4. Filesystem Restrictions
-5. Network Access Control
+Planned: MCP Server + Sandbox with security layers
 
 **Validation**:
-```bash
-# Check MCP server
-test -f memory-mcp/src/server.rs && echo "✓ MCP server exists"
-
-# Check sandbox
-test -f memory-mcp/src/sandbox.rs && echo "✓ Sandbox exists"
-
-# Verify security config
-rg "SandboxConfig|SecurityConfig" memory-mcp/src/ -A 10
-
-# Check resource limits
-rg "max_.*|timeout|limit" memory-mcp/src/types.rs
-```
-
-**Compliance**:
-- [ ] MemoryMCPServer implemented
-- [ ] Tool definitions include query_memory, execute_agent_code
-- [ ] CodeSandbox with security config
-- [ ] Resource limits enforced (timeout, memory)
-- [ ] Malicious code detection implemented
+- MemoryMCPServer implemented
+- Tool definitions (query_memory, execute_agent_code)
+- CodeSandbox with security config
+- Resource limits enforced
 
 ### 7. Data Model Architecture
-
-**Core Types** (from plans/01-understand.md):
-
-```rust
-// Episode structure
-pub struct Episode {
-    episode_id: Uuid,
-    task_type: TaskType,
-    task_description: String,
-    context: TaskContext,
-    start_time: DateTime<Utc>,
-    end_time: Option<DateTime<Utc>>,
-    steps: Vec<ExecutionStep>,
-    outcome: Option<TaskOutcome>,
-    reward: Option<RewardScore>,
-    reflection: Option<Reflection>,
-    patterns: Vec<PatternId>,
-    metadata: HashMap<String, String>,
-}
-
-// ExecutionStep structure
-pub struct ExecutionStep {
-    step_number: usize,
-    timestamp: DateTime<Utc>,
-    tool: String,
-    action: String,
-    parameters: serde_json::Value,
-    result: Option<ExecutionResult>,
-    latency_ms: u64,
-    tokens_used: Option<u64>,
-    metadata: HashMap<String, String>,
-}
-```
+Planned: Episode and ExecutionStep structures with specific fields
 
 **Validation**:
-```bash
-# Check Episode definition
-rg "pub struct Episode" memory-core/src/episode.rs -A 15
-
-# Check ExecutionStep
-rg "pub struct ExecutionStep" memory-core/src/episode.rs -A 10
-
-# Verify all fields exist
-rg "episode_id|task_type|task_description|context|start_time|end_time|steps|outcome|reward|reflection|patterns|metadata" memory-core/src/episode.rs
-```
-
-**Compliance**:
-- [ ] Episode has all planned fields
-- [ ] ExecutionStep has all planned fields
-- [ ] TaskContext includes language, domain, tags
-- [ ] RewardScore structure implemented
-- [ ] Reflection structure implemented
-- [ ] Pattern references stored (Vec<PatternId>)
+- Episode has all planned fields (episode_id, task_type, steps, outcome, reward, reflection, patterns)
+- ExecutionStep has all planned fields
 
 ### 8. Performance Architecture
-
-**Planned Targets** (from plans/00-overview.md):
-
-| Metric | Target | Validation Method |
-|--------|--------|-------------------|
-| Retrieval Latency (P95) | <100ms | Benchmark test |
-| Episode Creation | <50ms | Benchmark test |
-| Step Logging | <20ms | Benchmark test |
-| Pattern Extraction | <1000ms | Benchmark test |
-| Storage Capacity | 10,000+ episodes | Load test |
-| Concurrent Ops | 1000+ ops/s | Stress test |
-| Memory Usage | <500MB for 10K | Memory profiling |
+Planned: Retrieval <100ms, Episode creation <50ms, etc.
 
 **Validation**:
-```bash
-# Check benchmarks exist
-ls benches/*.rs
-
-# Run benchmarks
-cargo bench --no-run
-
-# Check for performance tests
-rg "bench|criterion" benches/ -l
-```
-
-**Compliance**:
-- [ ] Retrieval benchmark exists
-- [ ] Episode lifecycle benchmark exists
-- [ ] Pattern extraction benchmark exists
-- [ ] Performance targets documented in code
-- [ ] Profiling infrastructure exists
+- Benchmarks exist for key operations
+- Performance targets documented
 
 ### 9. Security Architecture
-
-**Planned Defense-in-Depth** (from plans/05-secure.md):
-
-**Attack Surface Coverage**:
-1. MCP Code Execution
-2. Database Injection
-3. Memory Exhaustion
-4. Deserialization Attacks
-5. Network Interception
-
-**Mitigations Required**:
-- Parameterized SQL queries (no string interpolation)
-- Input validation and size limits
-- Sandbox with process isolation
-- Resource limits (CPU, memory, timeout)
-- TLS enforcement for Turso
+Planned: Defense-in-depth (parameterized SQL, input validation, sandbox isolation, resource limits, TLS)
 
 **Validation**:
-```bash
-# Check for SQL parameterization
-rg "execute\(.*params!" memory-storage-turso/src/
-
-# Check for input validation
-rg "validate|check.*size|limit" memory-core/src/ memory-mcp/src/
-
-# Verify sandbox security
-rg "SecurityConfig|validate.*code|malicious" memory-mcp/src/sandbox.rs
-
-# Check resource limits
-rg "ResourceLimit|max_memory|timeout" memory-mcp/src/
-```
-
-**Compliance**:
-- [ ] All SQL uses parameterized queries
-- [ ] Input size validation exists
-- [ ] Sandbox has security configuration
-- [ ] Resource limits enforced
-- [ ] Malicious code detection implemented
-- [ ] No hardcoded secrets in code
+- All SQL uses parameterized queries
+- Input validation exists
+- Sandbox has security configuration
+- No hardcoded secrets
 
 ### 10. Error Handling Architecture
-
-**Planned Strategy** (Rust best practices):
-- Custom Error enum with thiserror
-- Result<T> for all fallible operations
-- Error propagation with ? operator
-- Specific error variants for each failure mode
-- Error context with helpful messages
+Planned: Custom Error enum with thiserror, Result<T> for fallible operations
 
 **Validation**:
-```bash
-# Check Error enum
-rg "pub enum Error" memory-core/src/error.rs -A 20
-
-# Verify thiserror usage
-rg "#\[derive.*Error\]" memory-core/src/error.rs
-
-# Check Result type alias
-rg "pub type Result" memory-core/src/error.rs
-
-# Verify error variants
-rg "Storage|EpisodeNotFound|InvalidInput|Timeout" memory-core/src/error.rs
-```
-
-**Compliance**:
-- [ ] Custom Error enum with thiserror
-- [ ] Result<T> type alias defined
-- [ ] Error variants cover all failure modes
-- [ ] Storage errors wrapped properly
-- [ ] Error messages are descriptive
+- Custom Error enum exists
+- Result<T> type alias defined
+- Error variants cover all failure modes
 
 ## Validation Workflow
 
 ### Phase 1: Architecture Document Review
-1. Read all architecture decisions from plans/02-plan.md
-2. Extract key architectural patterns and constraints
-3. Document expected component structure
+```bash
+# Read architecture decisions
+cat plans/02-plan.md
+cat plans/03-execute.md
+```
 
 ### Phase 2: Code Structure Analysis
 ```bash
@@ -469,9 +129,6 @@ find . -name "lib.rs" -o -name "mod.rs" | xargs cat
 # Verify storage depends on core
 grep "memory-core" memory-storage-turso/Cargo.toml
 grep "memory-core" memory-storage-redb/Cargo.toml
-
-# Check MCP integration
-grep "memory-core" memory-mcp/Cargo.toml
 ```
 
 ### Phase 4: Data Flow Validation
@@ -486,7 +143,7 @@ grep "memory-core" memory-mcp/Cargo.toml
 rg "pub (async )?fn" memory-core/src/memory.rs
 
 # Check type definitions
-rg "pub struct|pub enum" memory-core/src/types.rs memory-core/src/episode.rs memory-core/src/pattern.rs
+rg "pub struct|pub enum" memory-core/src/types.rs memory-core/src/episode.rs
 ```
 
 ### Phase 6: Performance Target Validation
@@ -510,18 +167,18 @@ rg "execute\(|query\(" memory-storage-turso/src/ -A 2
 
 ## Compliance Matrix
 
-| Architecture Dimension | Planned | Implemented | Status |
-|------------------------|---------|-------------|--------|
-| Crate Structure | 6 crates | ? | ? |
-| Dependency Flow | Core → Storage | ? | ? |
-| Storage Layer | Turso + redb | ? | ? |
-| Learning Cycle | 5 phases | ? | ? |
-| Pattern Types | 4 variants | ? | ? |
-| MCP Integration | Server + Sandbox | ? | ? |
-| Data Model | Episode + Step | ? | ? |
-| Performance Targets | 7 metrics | ? | ? |
-| Security Mitigations | 5 attack surfaces | ? | ? |
-| Error Handling | Custom Error enum | ? | ? |
+| Architecture Dimension | Planned | Status |
+|------------------------|---------|--------|
+| Crate Structure | 6 crates | Check |
+| Dependency Flow | Core → Storage | Check |
+| Storage Layer | Turso + redb | Check |
+| Learning Cycle | 5 phases | Check |
+| Pattern Types | 4 variants | Check |
+| MCP Integration | Server + Sandbox | Check |
+| Data Model | Episode + Step | Check |
+| Performance Targets | 7 metrics | Check |
+| Security Mitigations | 5 attack surfaces | Check |
+| Error Handling | Custom Error enum | Check |
 
 ## Output Format
 
@@ -548,106 +205,34 @@ rg "execute\(|query\(" memory-storage-turso/src/ -A 2
 - ✅ Turso storage implemented
 - ✅ redb cache implemented
 - ❌ Sync mechanism incomplete
-  - **Missing**: Two-phase commit (plans/06-feedback-loop.md)
+  - **Missing**: Two-phase commit
   - **Impact**: Data consistency risk
   - **Priority**: High
-
-### 3. Learning Cycle: ✅ COMPLIANT
-- All 5 phases implemented
-- Episode lifecycle complete
-- Pattern extraction functional
-
-### 4. MCP Integration: ⚠️ PARTIAL
-- ✅ MCP server implemented
-- ✅ Sandbox basic security
-- ⚠️ Progressive disclosure not fully implemented
-- ❌ Resource limits not enforced
-  - **Missing**: Memory limit enforcement
-  - **Plan**: plans/05-secure.md:35-50
 
 ## Detailed Findings
 
 ### Critical Violations
-None detected.
+[List any critical violations found]
 
 ### Architecture Drift
-
-#### 1. Sync Mechanism Incomplete
-**Planned** (plans/02-plan.md):
-- Two-phase commit for consistency
-- Conflict resolution (Turso wins)
-- Periodic reconciliation
-
-**Actual**:
-- Basic sync exists in memory-core/src/sync.rs
-- Two-phase commit not implemented
-- No conflict resolution strategy
-
-**Impact**: Data inconsistency between Turso and redb possible
-
-**Recommendation**:
-Implement two-phase commit as documented in plans/06-feedback-loop.md:125-158
-
-#### 2. Resource Limits Not Enforced
-**Planned** (plans/05-secure.md):
-```rust
-pub struct SandboxSecurityConfig {
-    pub max_memory_mb: usize,  // 128MB default
-    pub max_cpu_percent: f32,   // 50% default
-}
-```
-
-**Actual**:
-- Timeout implemented
-- Memory limits defined but not enforced
-- CPU limits not implemented
-
-**Impact**: DoS risk via resource exhaustion
-
-**Recommendation**:
-Implement resource enforcement in memory-mcp/src/sandbox.rs
+[List areas where implementation differs from plan]
 
 ### Partial Implementations
-
-#### 1. Pattern Extraction
-**Planned**: Hybrid (Rule-based + Embeddings)
-**Actual**: Rule-based only
-
-**Status**: Acceptable (Phase 1 complete, Phase 2 optional)
-
-#### 2. Progressive Tool Disclosure
-**Planned**: Context-aware tool filtering
-**Actual**: All tools always available
-
-**Status**: Enhancement opportunity
+[List features partially implemented]
 
 ## Recommendations
 
 ### High Priority
-1. **Implement two-phase commit** for storage sync
-   - File: memory-core/src/sync.rs
-   - Effort: 2-3 days
-   - Reference: plans/06-feedback-loop.md:125-158
-
-2. **Enforce resource limits** in sandbox
-   - File: memory-mcp/src/sandbox.rs
-   - Effort: 1-2 days
-   - Reference: plans/05-secure.md:35-50
+1. **Issue**: [Description]
+   - File: [file path]
+   - Effort: [estimate]
+   - Reference: [plan reference]
 
 ### Medium Priority
-1. **Add progressive tool disclosure** to MCP server
-   - File: memory-mcp/src/server.rs
-   - Effort: 1-2 days
-
-2. **Implement pattern extraction queue** for async processing
-   - File: memory-core/src/extraction.rs
-   - Effort: 2-3 days
-   - Reference: plans/06-feedback-loop.md:60-117
+[List medium priority recommendations]
 
 ### Low Priority
-1. Add embedding-based pattern extraction (Phase 2 feature)
-2. Implement advanced reflection generation
-3. Add distributed tracing
+[List low priority recommendations]
 
 ## Architecture Decision Compliance
 
@@ -666,3 +251,72 @@ Implement resource enforcement in memory-mcp/src/sandbox.rs
 2. Create tickets for missing implementations
 3. Update architecture documentation if intentional changes made
 4. Schedule architecture review session
+```
+
+## Validation Checklist
+
+Quick checklist for architecture validation:
+
+**Crate Structure**:
+- [ ] All planned crates exist
+- [ ] Dependencies flow correctly
+- [ ] No circular dependencies
+
+**Storage Layer**:
+- [ ] Turso tables match schema
+- [ ] redb tables defined
+- [ ] Sync mechanism implemented
+
+**Learning Cycle**:
+- [ ] All 5 phases implemented
+- [ ] Episode lifecycle complete
+- [ ] Pattern extraction functional
+
+**MCP Integration**:
+- [ ] MCP server implemented
+- [ ] Sandbox with security
+- [ ] Resource limits enforced
+
+**Data Model**:
+- [ ] Episode structure complete
+- [ ] ExecutionStep structure complete
+- [ ] All required fields present
+
+**Performance**:
+- [ ] Benchmarks exist
+- [ ] Targets documented
+- [ ] Profiling available
+
+**Security**:
+- [ ] Parameterized SQL
+- [ ] Input validation
+- [ ] No hardcoded secrets
+- [ ] Resource limits enforced
+
+**Error Handling**:
+- [ ] Custom Error enum
+- [ ] Result<T> usage
+- [ ] Error variants complete
+
+## Integration with Plans
+
+This skill validates implementation against:
+- `plans/00-overview.md` - Project summary and metrics
+- `plans/01-understand.md` - Requirements and components
+- `plans/02-plan.md` - Architecture decisions and roadmap
+- `plans/03-execute.md` - Implementation details
+- `plans/04-review.md` - Quality requirements
+- `plans/05-secure.md` - Security requirements
+- `plans/06-feedback-loop.md` - Refinements
+
+## Example Usage
+
+When invoked, this skill will:
+1. Read architecture decisions from plans/
+2. Analyze codebase structure
+3. Validate component boundaries
+4. Check data flow patterns
+5. Verify API compliance
+6. Assess performance targets
+7. Validate security architecture
+8. Generate compliance report with recommendations

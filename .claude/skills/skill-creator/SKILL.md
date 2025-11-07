@@ -7,6 +7,10 @@ description: Create new Claude Code skills with proper directory structure, SKIL
 
 Create new Claude Code skills following the official format and best practices.
 
+## Quick Reference
+
+- **[Templates and Examples](templates-and-examples.md)** - Skill templates and complete creation examples
+
 ## When to Use
 
 - Creating a new reusable knowledge module
@@ -170,151 +174,18 @@ EOF
 
 ## Skill Templates
 
-### Template 1: Process Skill
+See **[templates-and-examples.md](templates-and-examples.md)** for complete templates including:
 
-```markdown
----
-name: process-name
-description: [Action] [what] [when to use]
----
+### Available Templates
+1. **Process Skill** - Step-by-step workflows
+2. **Knowledge Skill** - Domain expertise and concepts
+3. **Tool Skill** - Tool usage and best practices
 
-# Process Name
-
-Brief description of what this process achieves.
-
-## When to Use
-
-- Scenario 1
-- Scenario 2
-
-## Prerequisites
-
-- Requirement 1
-- Requirement 2
-
-## Process Steps
-
-### Step 1: [Action]
-Instructions for step 1
-
-### Step 2: [Action]
-Instructions for step 2
-
-## Quality Checklist
-
-- [ ] Check 1
-- [ ] Check 2
-
-## Examples
-
-### Example 1: [Scenario]
-[Concrete example]
-
-## Best Practices
-
-✓ Do this
-✗ Don't do this
-
-## Integration
-
-How this skill works with other skills/agents.
-```
-
-### Template 2: Knowledge Skill
-
-```markdown
----
-name: domain-knowledge
-description: [Topic] knowledge and guidance for [use case]
----
-
-# Domain Knowledge
-
-Overview of knowledge domain.
-
-## Core Concepts
-
-### Concept 1
-Explanation
-
-### Concept 2
-Explanation
-
-## Guidelines
-
-### Guideline 1
-Details
-
-## Patterns
-
-### Pattern 1: [Name]
-**Use When**: [scenario]
-**Implementation**: [how-to]
-
-## Anti-Patterns
-
-### Anti-Pattern 1: [Name]
-**Problem**: [what's wrong]
-**Solution**: [correct approach]
-
-## References
-
-- Related skill 1
-- Related skill 2
-```
-
-### Template 3: Tool Skill
-
-```markdown
----
-name: tool-usage
-description: Use [tool] for [purpose]. Invoke when [scenarios]
----
-
-# Tool Usage: [Tool Name]
-
-Guide for effectively using [tool].
-
-## When to Use
-
-- Use case 1
-- Use case 2
-
-## Basic Usage
-
-### Command Structure
-```
-tool [options] [arguments]
-```
-
-### Common Operations
-
-#### Operation 1
-```
-tool command1
-```
-
-#### Operation 2
-```
-tool command2
-```
-
-## Advanced Usage
-
-### Advanced Operation 1
-Details and examples
-
-## Troubleshooting
-
-### Issue 1
-**Symptom**: [what happens]
-**Solution**: [how to fix]
-
-## Best Practices
-
-✓ Recommendation 1
-✓ Recommendation 2
-```
+Each template includes:
+- Full YAML frontmatter
+- Recommended sections
+- Example content
+- Best practices structure
 
 ## Integration with Agent Creator
 
@@ -345,162 +216,6 @@ When creating skills that work with agents:
 - Reference AGENTS.md standards
 - Include examples using project structure
 - Consider self-learning memory tracking
-
-## Examples
-
-### Example 1: Creating a Deployment Skill
-
-```bash
-# 1. Create directory
-mkdir -p .claude/skills/production-deploy
-
-# 2. Create SKILL.md
-cat > .claude/skills/production-deploy/SKILL.md << 'EOF'
----
-name: production-deploy
-description: Deploy Rust applications to production safely with pre-deployment checks, rollback procedures, and monitoring. Use when deploying to production environments.
----
-
-# Production Deployment
-
-Guide for safe production deployments of Rust applications.
-
-## When to Use
-
-- Deploying new releases to production
-- Updating production systems
-- Rolling back problematic deployments
-
-## Pre-Deployment Checklist
-
-- [ ] All tests passing
-- [ ] Code reviewed and approved
-- [ ] Changelog updated
-- [ ] Database migrations tested
-- [ ] Rollback plan prepared
-
-## Deployment Process
-
-### Step 1: Pre-Deployment Checks
-```bash
-cargo test --all
-cargo clippy -- -D warnings
-cargo build --release
-```
-
-### Step 2: Deploy
-```bash
-# Deploy to staging first
-./deploy.sh staging
-
-# Verify staging
-./verify.sh staging
-
-# Deploy to production
-./deploy.sh production
-```
-
-### Step 3: Post-Deployment Verification
-- Monitor error rates
-- Check key metrics
-- Verify functionality
-
-## Rollback Procedure
-
-If deployment fails:
-```bash
-./rollback.sh production
-```
-
-## Best Practices
-
-✓ Always deploy to staging first
-✓ Monitor during and after deployment
-✓ Have rollback plan ready
-✗ Never skip pre-deployment checks
-✗ Don't deploy on Friday afternoon
-EOF
-```
-
-### Example 2: Creating a Testing Skill
-
-```bash
-mkdir -p .claude/skills/property-testing
-
-cat > .claude/skills/property-testing/SKILL.md << 'EOF'
----
-name: property-testing
-description: Write property-based tests using QuickCheck or proptest for Rust code. Use when you need to test properties that should hold for many inputs rather than specific examples.
----
-
-# Property-Based Testing
-
-Guide for writing effective property-based tests in Rust.
-
-## When to Use
-
-- Testing properties that should hold universally
-- Discovering edge cases automatically
-- Testing complex logic with many input combinations
-- Replacing large test suites with property tests
-
-## Core Concepts
-
-### Properties vs Examples
-
-**Example-based test**:
-```rust
-assert_eq!(reverse(vec![1, 2, 3]), vec![3, 2, 1]);
-```
-
-**Property-based test**:
-```rust
-// Property: reverse(reverse(x)) == x
-proptest! {
-    fn reverse_involution(vec: Vec<i32>) {
-        let reversed_twice = reverse(reverse(vec.clone()));
-        assert_eq!(vec, reversed_twice);
-    }
-}
-```
-
-## Implementation
-
-### Setup
-```toml
-[dev-dependencies]
-proptest = "1.0"
-```
-
-### Writing Properties
-```rust
-use proptest::prelude::*;
-
-proptest! {
-    #[test]
-    fn property_name(input: InputType) {
-        // Test property
-        prop_assert!(condition);
-    }
-}
-```
-
-## Common Properties
-
-1. **Idempotence**: `f(f(x)) == f(x)`
-2. **Involution**: `f(f(x)) == x`
-3. **Commutativity**: `f(x, y) == f(y, x)`
-4. **Associativity**: `f(f(x, y), z) == f(x, f(y, z))`
-
-## Best Practices
-
-✓ Test properties, not implementations
-✓ Use shrinking to find minimal failing cases
-✓ Combine with example-based tests
-✗ Don't test trivial properties
-✗ Don't make properties too specific
-EOF
-```
 
 ## Skill Maintenance
 
@@ -555,6 +270,70 @@ head -n 5 .claude/skills/skill-name/SKILL.md | grep "^name:" && echo "✓ YAML v
 [[ $(grep "^name:" .claude/skills/skill-name/SKILL.md | cut -d' ' -f2) =~ ^[a-z0-9-]+$ ]] && echo "✓ Name format correct"
 ```
 
+## Quick Creation Script
+
+```bash
+#!/bin/bash
+# create-skill.sh
+
+SKILL_NAME=$1
+DESCRIPTION=$2
+
+if [ -z "$SKILL_NAME" ] || [ -z "$DESCRIPTION" ]; then
+    echo "Usage: ./create-skill.sh skill-name \"Skill description\""
+    exit 1
+fi
+
+# Validate name format
+if ! [[ "$SKILL_NAME" =~ ^[a-z0-9-]+$ ]]; then
+    echo "Error: Skill name must be lowercase with hyphens only"
+    exit 1
+fi
+
+# Create directory
+mkdir -p ".claude/skills/$SKILL_NAME"
+
+# Create SKILL.md
+cat > ".claude/skills/$SKILL_NAME/SKILL.md" <<EOF
+---
+name: $SKILL_NAME
+description: $DESCRIPTION
+---
+
+# ${SKILL_NAME^}
+
+[Skill content goes here]
+
+## When to Use
+
+- [Scenario 1]
+- [Scenario 2]
+
+## Process
+
+### Step 1: [Action]
+[Instructions]
+
+### Step 2: [Action]
+[Instructions]
+
+## Examples
+
+### Example 1: [Name]
+\`\`\`
+[Example code or workflow]
+\`\`\`
+
+## Best Practices
+
+✓ [Do this]
+✗ [Don't do this]
+EOF
+
+echo "✓ Created skill: $SKILL_NAME"
+echo "✓ Edit: .claude/skills/$SKILL_NAME/SKILL.md"
+```
+
 ## Summary
 
 Creating effective skills:
@@ -566,3 +345,5 @@ Creating effective skills:
 6. **Testing**: Validate structure and use the skill
 
 Skills are the foundation of Claude Code's knowledge. Well-designed skills make Claude more effective at autonomous task execution.
+
+For complete templates and detailed examples, see **[templates-and-examples.md](templates-and-examples.md)**.

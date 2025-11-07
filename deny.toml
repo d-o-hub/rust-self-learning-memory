@@ -23,6 +23,7 @@ allow = [
     "ISC",
     "Unicode-DFS-2016",
     "Unicode-3.0",
+    "CDLA-Permissive-2.0",
 ]
 # Note: In version 2, all licenses not in 'allow' list are automatically denied
 

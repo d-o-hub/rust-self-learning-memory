@@ -230,7 +230,7 @@ impl PatternClusterer {
 
         let context_dist = 1.0 - self.context_distance(&episode.context, &centroid.context);
 
-        let steps_dist = (episode.steps.len() as f32 - centroid.avg_steps as f32).abs()
+        let steps_dist = (episode.steps.len() as f32 - centroid.avg_steps).abs()
             / centroid.avg_steps.max(1.0);
 
         let outcome_dist = if episode.outcome.is_some() == centroid.has_outcome {

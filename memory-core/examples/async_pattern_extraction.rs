@@ -4,8 +4,8 @@
 //! and how to use the queue system.
 
 use memory_core::{
-    ExecutionResult, ExecutionStep, QueueConfig, SelfLearningMemory, TaskContext,
-    TaskOutcome, TaskType,
+    ExecutionResult, ExecutionStep, QueueConfig, SelfLearningMemory, TaskContext, TaskOutcome,
+    TaskType,
 };
 use std::sync::Arc;
 use std::time::Instant;
@@ -89,10 +89,7 @@ async fn main() {
 }
 
 /// Helper to create and complete an episode
-async fn create_and_complete_episode(
-    memory: &SelfLearningMemory,
-    description: &str,
-) -> uuid::Uuid {
+async fn create_and_complete_episode(memory: &SelfLearningMemory, description: &str) -> uuid::Uuid {
     let context = TaskContext::default();
     let episode_id = memory
         .start_episode(description.to_string(), context, TaskType::Testing)

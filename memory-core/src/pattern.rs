@@ -368,6 +368,7 @@ fn sequence_similarity(seq1: &[String], seq2: &[String]) -> f32 {
 }
 
 /// Calculate edit distance (Levenshtein) between two sequences
+#[allow(clippy::needless_range_loop)]
 fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     let len1 = seq1.len();
     let len2 = seq2.len();
@@ -421,6 +422,7 @@ fn string_similarity(s1: &str, s2: &str) -> f32 {
 }
 
 /// Calculate edit distance for character sequences
+#[allow(clippy::needless_range_loop)]
 fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
     let len1 = chars1.len();
     let len2 = chars2.len();

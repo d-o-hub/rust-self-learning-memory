@@ -497,8 +497,3 @@ storage.save_batch(items).await?;  // 1 database call
 ```
 
 ## Examples
-
-See existing modules for reference:
-- `src/storage/` - Storage patterns
-- `src/patterns/` - Pattern extraction
-- `src/retrieval/` - Retrieval logic

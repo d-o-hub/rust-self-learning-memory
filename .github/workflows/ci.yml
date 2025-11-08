@@ -106,6 +106,21 @@ jobs:
           cargo llvm-cov --all-features --workspace --html --output-dir coverage
         env:
           RUST_LOG: debug
+      - name: Check coverage threshold (>90%)
+        run: |
+          COVERAGE=$(cargo llvm-cov --all-features --workspace --summary-only 2>/dev/null | grep -oP '\d+\.\d+(?=%|/)' | head -1)
+          echo "Coverage: ${COVERAGE}%"
+          if [ -z "$COVERAGE" ]; then
+            echo "::error::Could not determine coverage percentage"
+            exit 1
+          fi
+          THRESHOLD=90
+          COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
+          if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then
+            echo "::error::Coverage ${COVERAGE}% is below ${THRESHOLD}% threshold"
+            exit 1
+          fi
+          echo "Coverage check passed: ${COVERAGE}% >= ${THRESHOLD}%"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:

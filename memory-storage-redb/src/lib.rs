@@ -21,11 +21,12 @@
 //! # }
 //! ```
 
-use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result};
-use redb::{Database, TableDefinition};
+use async_trait::async_trait;
+use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result, StorageBackend};
+use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition};
 use std::path::Path;
 use std::sync::Arc;
-use tracing::{debug, info};
+use tracing::info;
 use uuid::Uuid;
 
 mod storage;
@@ -193,29 +194,89 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
 
             {
-                let episodes = write_txn
+                // Clear episodes table
+                let mut episodes = write_txn
                     .open_table(EPISODES_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
-                let patterns = write_txn
+                let keys: Vec<String> = episodes
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate episodes: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    episodes.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove episode key: {}", e))
+                    })?;
+                }
+                drop(episodes);
+
+                // Clear patterns table
+                let mut patterns = write_txn
                     .open_table(PATTERNS_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open patterns table: {}", e)))?;
-                let heuristics = write_txn.open_table(HEURISTICS_TABLE).map_err(|e| {
+                let keys: Vec<String> = patterns
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate patterns: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    patterns.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove pattern key: {}", e))
+                    })?;
+                }
+                drop(patterns);
+
+                // Clear heuristics table
+                let mut heuristics = write_txn.open_table(HEURISTICS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open heuristics table: {}", e))
                 })?;
-                let embeddings = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
+                let keys: Vec<String> = heuristics
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate heuristics: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    heuristics.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove heuristic key: {}", e))
+                    })?;
+                }
+                drop(heuristics);
+
+                // Clear embeddings table
+                let mut embeddings = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open embeddings table: {}", e))
                 })?;
-                let metadata = write_txn
+                let keys: Vec<String> = embeddings
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    embeddings.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove embedding key: {}", e))
+                    })?;
+                }
+                drop(embeddings);
+
+                // Clear metadata table
+                let mut metadata = write_txn
                     .open_table(METADATA_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open metadata table: {}", e)))?;
-
-                // TODO: Implement clear using redb v2.1 API
-                // The drain() method is not available in redb v2.1
-                // Need to iterate and remove each key individually
-                drop(episodes);
-                drop(patterns);
-                drop(heuristics);
-                drop(embeddings);
+                let keys: Vec<String> = metadata
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate metadata: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    metadata.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove metadata key: {}", e))
+                    })?;
+                }
                 drop(metadata);
             }
 
@@ -239,6 +300,41 @@ pub struct StorageStatistics {
     pub episode_count: usize,
     pub pattern_count: usize,
     pub heuristic_count: usize,
+}
+
+/// Implement the unified StorageBackend trait for RedbStorage
+#[async_trait]
+impl StorageBackend for RedbStorage {
+    async fn store_episode(&self, episode: &Episode) -> Result<()> {
+        self.store_episode(episode).await
+    }
+
+    async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
+        self.get_episode(id).await
+    }
+
+    async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
+        self.store_pattern(pattern).await
+    }
+
+    async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>> {
+        self.get_pattern(id).await
+    }
+
+    async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
+        self.store_heuristic(heuristic).await
+    }
+
+    async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
+        self.get_heuristic(id).await
+    }
+
+    async fn query_episodes_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<Episode>> {
+        self.query_episodes_since(since).await
+    }
 }
 
 #[cfg(test)]

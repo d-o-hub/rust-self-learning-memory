@@ -29,3 +29,6 @@ tracing = { workspace = true }
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
+memory-storage-turso = { path = "../memory-storage-turso" }
+memory-storage-redb = { path = "../memory-storage-redb" }
+libsql = { workspace = true }

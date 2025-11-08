@@ -21,8 +21,9 @@
 //! # }
 //! ```
 
+use async_trait::async_trait;
 use libsql::{Builder, Connection, Database};
-use memory_core::{Error, Result};
+use memory_core::{Error, Result, StorageBackend};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, warn};
@@ -81,6 +82,32 @@ impl TursoStorage {
     /// ```
     pub async fn new(url: &str, token: &str) -> Result<Self> {
         Self::with_config(url, token, TursoConfig::default()).await
+    }
+
+    /// Create a Turso storage instance from an existing Database
+    ///
+    /// This is useful for testing with local file-based databases.
+    ///
+    /// # Arguments
+    ///
+    /// * `db` - libSQL Database instance
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_turso::TursoStorage;
+    /// # use libsql::Builder;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let db = Builder::new_local("test.db").build().await?;
+    /// let storage = TursoStorage::from_database(db)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn from_database(db: libsql::Database) -> Result<Self> {
+        Ok(Self {
+            db: Arc::new(db),
+            config: TursoConfig::default(),
+        })
     }
 
     /// Create a new Turso storage instance with custom configuration
@@ -233,6 +260,44 @@ pub struct StorageStatistics {
     pub episode_count: usize,
     pub pattern_count: usize,
     pub heuristic_count: usize,
+}
+
+/// Implement the unified StorageBackend trait for TursoStorage
+#[async_trait]
+impl StorageBackend for TursoStorage {
+    async fn store_episode(&self, episode: &memory_core::Episode) -> Result<()> {
+        self.store_episode(episode).await
+    }
+
+    async fn get_episode(&self, id: uuid::Uuid) -> Result<Option<memory_core::Episode>> {
+        self.get_episode(id).await
+    }
+
+    async fn store_pattern(&self, pattern: &memory_core::Pattern) -> Result<()> {
+        self.store_pattern(pattern).await
+    }
+
+    async fn get_pattern(
+        &self,
+        id: memory_core::episode::PatternId,
+    ) -> Result<Option<memory_core::Pattern>> {
+        self.get_pattern(id).await
+    }
+
+    async fn store_heuristic(&self, heuristic: &memory_core::Heuristic) -> Result<()> {
+        self.store_heuristic(heuristic).await
+    }
+
+    async fn get_heuristic(&self, id: uuid::Uuid) -> Result<Option<memory_core::Heuristic>> {
+        self.get_heuristic(id).await
+    }
+
+    async fn query_episodes_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<memory_core::Episode>> {
+        self.query_episodes_since(since).await
+    }
 }
 
 #[cfg(test)]

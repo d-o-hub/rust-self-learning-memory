@@ -180,6 +180,46 @@ impl TursoStorage {
         Ok(episodes)
     }
 
+    /// Query episodes modified since a given timestamp
+    ///
+    /// Returns all episodes where start_time is >= the given timestamp.
+    /// This is used for incremental synchronization.
+    pub async fn query_episodes_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<Episode>> {
+        debug!("Querying episodes since {}", since);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT episode_id, task_type, task_description, context,
+                   start_time, end_time, steps, outcome, reward,
+                   reflection, patterns, metadata
+            FROM episodes
+            WHERE start_time >= ?
+            ORDER BY start_time DESC
+        "#;
+
+        let since_timestamp = since.timestamp();
+
+        let mut rows = conn
+            .query(sql, params![since_timestamp])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
+
+        let mut episodes = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+        {
+            episodes.push(self.row_to_episode(&row)?);
+        }
+
+        info!("Found {} episodes modified since {}", episodes.len(), since);
+        Ok(episodes)
+    }
+
     /// Delete an episode
     pub async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
         debug!("Deleting episode: {}", episode_id);

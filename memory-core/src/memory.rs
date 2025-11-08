@@ -53,6 +53,7 @@ use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::pattern::Pattern;
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
+use crate::storage::StorageBackend;
 use crate::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -60,13 +61,7 @@ use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
-/// In-memory storage for episodes (will be replaced with actual storage later)
-type EpisodeStore = Arc<RwLock<HashMap<Uuid, Episode>>>;
-
-/// In-memory storage for patterns (will be replaced with actual storage later)
-type PatternStore = Arc<RwLock<HashMap<PatternId, Pattern>>>;
-
-/// Main self-learning memory system
+/// Main self-learning memory system with storage backends
 #[derive(Clone)]
 pub struct SelfLearningMemory {
     /// Configuration
@@ -78,10 +73,14 @@ pub struct SelfLearningMemory {
     reflection_generator: ReflectionGenerator,
     /// Pattern extractor
     pattern_extractor: PatternExtractor,
-    /// Episodes storage (in-memory for now)
-    episodes: EpisodeStore,
-    /// Patterns storage (in-memory for now)
-    patterns: PatternStore,
+    /// Durable storage backend (Turso)
+    turso_storage: Option<Arc<dyn StorageBackend>>,
+    /// Cache storage backend (redb)
+    cache_storage: Option<Arc<dyn StorageBackend>>,
+    /// In-memory fallback for episodes (used when no storage configured)
+    episodes_fallback: Arc<RwLock<HashMap<Uuid, Episode>>>,
+    /// In-memory fallback for patterns (used when no storage configured)
+    patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,
     /// Async pattern extraction queue (optional)
     pattern_queue: Option<Arc<PatternExtractionQueue>>,
 }
@@ -93,12 +92,12 @@ impl Default for SelfLearningMemory {
 }
 
 impl SelfLearningMemory {
-    /// Create a new self-learning memory system with default configuration
+    /// Create a new self-learning memory system with default configuration (in-memory only)
     pub fn new() -> Self {
         Self::with_config(MemoryConfig::default())
     }
 
-    /// Create a memory system with custom configuration
+    /// Create a memory system with custom configuration (in-memory only)
     pub fn with_config(config: MemoryConfig) -> Self {
         let pattern_extractor =
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
@@ -108,8 +107,57 @@ impl SelfLearningMemory {
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
-            episodes: Arc::new(RwLock::new(HashMap::new())),
-            patterns: Arc::new(RwLock::new(HashMap::new())),
+            turso_storage: None,
+            cache_storage: None,
+            episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
+            patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
+            pattern_queue: None,
+        }
+    }
+
+    /// Create a memory system with storage backends
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - Memory configuration
+    /// * `turso` - Durable storage backend (typically Turso)
+    /// * `cache` - Cache storage backend (typically redb)
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use memory_core::{SelfLearningMemory, MemoryConfig};
+    /// use std::sync::Arc;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// // Assuming turso and cache are already created StorageBackend implementations
+    /// # let turso: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+    /// # let cache: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+    /// let memory = SelfLearningMemory::with_storage(
+    ///     MemoryConfig::default(),
+    ///     turso,
+    ///     cache,
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn with_storage(
+        config: MemoryConfig,
+        turso: Arc<dyn StorageBackend>,
+        cache: Arc<dyn StorageBackend>,
+    ) -> Self {
+        let pattern_extractor =
+            PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
+
+        Self {
+            config,
+            reward_calculator: RewardCalculator::new(),
+            reflection_generator: ReflectionGenerator::new(),
+            pattern_extractor,
+            turso_storage: Some(turso),
+            cache_storage: Some(cache),
+            episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
+            patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
             pattern_queue: None,
         }
     }
@@ -169,7 +217,21 @@ impl SelfLearningMemory {
             "Started new episode"
         );
 
-        let mut episodes = self.episodes.write().await;
+        // Store in cache first (fast), then Turso (durable)
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!("Failed to store episode in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!("Failed to store episode in Turso: {}", e);
+            }
+        }
+
+        // Always store in fallback for in-memory access
+        let mut episodes = self.episodes_fallback.write().await;
         episodes.insert(episode_id, episode);
 
         episode_id
@@ -190,7 +252,7 @@ impl SelfLearningMemory {
     /// Returns `Error::NotFound` if the episode doesn't exist
     #[instrument(skip(self, step), fields(episode_id = %episode_id, step_number = step.step_number))]
     pub async fn log_step(&self, episode_id: Uuid, step: ExecutionStep) {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
 
         if let Some(episode) = episodes.get_mut(&episode_id) {
             debug!(
@@ -199,6 +261,19 @@ impl SelfLearningMemory {
                 "Logged execution step"
             );
             episode.add_step(step);
+
+            // Update in storage backends
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_episode(episode).await {
+                    warn!("Failed to update episode in cache: {}", e);
+                }
+            }
+
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_episode(episode).await {
+                    warn!("Failed to update episode in Turso: {}", e);
+                }
+            }
         } else {
             warn!("Attempted to log step for non-existent episode");
         }
@@ -223,7 +298,7 @@ impl SelfLearningMemory {
     /// Returns `Error::NotFound` if the episode doesn't exist
     #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
     pub async fn complete_episode(&self, episode_id: Uuid, outcome: TaskOutcome) -> Result<()> {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
 
         let episode = episodes
             .get_mut(&episode_id)
@@ -255,6 +330,19 @@ impl SelfLearningMemory {
             "Generated reflection"
         );
 
+        // Store updated episode in backends
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to store completed episode in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(episode).await {
+                warn!("Failed to store completed episode in Turso: {}", e);
+            }
+        }
+
         // Release the write lock before pattern extraction
         drop(episodes);
 
@@ -282,7 +370,7 @@ impl SelfLearningMemory {
     ///
     /// Used when async extraction is not enabled.
     async fn extract_patterns_sync(&self, episode_id: Uuid) -> Result<()> {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
         let episode = episodes
             .get_mut(&episode_id)
             .ok_or(Error::NotFound(episode_id))?;
@@ -296,16 +384,43 @@ impl SelfLearningMemory {
         );
 
         // Store patterns and link to episode
-        let mut patterns = self.patterns.write().await;
+        let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
 
         for pattern in extracted_patterns {
             let pattern_id = pattern.id();
             pattern_ids.push(pattern_id);
+
+            // Store in backends
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in cache: {}", e);
+                }
+            }
+
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in Turso: {}", e);
+                }
+            }
+
             patterns.insert(pattern_id, pattern);
         }
 
         episode.patterns = pattern_ids;
+
+        // Update episode with pattern IDs
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in Turso: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -328,21 +443,48 @@ impl SelfLearningMemory {
         episode_id: Uuid,
         extracted_patterns: Vec<Pattern>,
     ) -> Result<()> {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
         let episode = episodes
             .get_mut(&episode_id)
             .ok_or(Error::NotFound(episode_id))?;
 
-        let mut patterns = self.patterns.write().await;
+        let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
 
         for pattern in extracted_patterns {
             let pattern_id = pattern.id();
             pattern_ids.push(pattern_id);
+
+            // Store in backends
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in cache: {}", e);
+                }
+            }
+
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in Turso: {}", e);
+                }
+            }
+
             patterns.insert(pattern_id, pattern);
         }
 
         episode.patterns = pattern_ids;
+
+        // Update episode with pattern IDs
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in Turso: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -380,7 +522,7 @@ impl SelfLearningMemory {
         context: TaskContext,
         limit: usize,
     ) -> Vec<Episode> {
-        let episodes = self.episodes.read().await;
+        let episodes = self.episodes_fallback.read().await;
 
         debug!(
             total_episodes = episodes.len(),
@@ -436,7 +578,7 @@ impl SelfLearningMemory {
         context: &TaskContext,
         limit: usize,
     ) -> Vec<Pattern> {
-        let patterns = self.patterns.read().await;
+        let patterns = self.patterns_fallback.read().await;
 
         debug!(
             total_patterns = patterns.len(),
@@ -477,7 +619,7 @@ impl SelfLearningMemory {
     ///
     /// Returns `Error::NotFound` if the episode doesn't exist
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Episode> {
-        let episodes = self.episodes.read().await;
+        let episodes = self.episodes_fallback.read().await;
         episodes
             .get(&episode_id)
             .cloned()
@@ -490,8 +632,8 @@ impl SelfLearningMemory {
     ///
     /// Tuple of (total episodes, completed episodes, total patterns)
     pub async fn get_stats(&self) -> (usize, usize, usize) {
-        let episodes = self.episodes.read().await;
-        let patterns = self.patterns.read().await;
+        let episodes = self.episodes_fallback.read().await;
+        let patterns = self.patterns_fallback.read().await;
 
         let total_episodes = episodes.len();
         let completed_episodes = episodes.values().filter(|e| e.is_complete()).count();

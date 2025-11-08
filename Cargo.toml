@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "memory-core",
     "memory-storage-turso",
-    # "memory-storage-redb",  # Temporarily disabled - needs redb v2.1 API updates
+    "memory-storage-redb",
     "test-utils",
     "memory-mcp",
 ]

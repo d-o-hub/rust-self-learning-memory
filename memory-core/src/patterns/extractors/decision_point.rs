@@ -138,7 +138,7 @@ mod tests {
         let mut episode = create_test_episode();
 
         // Add multiple decision steps
-        let decision_keywords = vec!["Check if", "Verify that", "Validate"];
+        let decision_keywords = ["Check if", "Verify that", "Validate"];
         for (i, keyword) in decision_keywords.iter().enumerate() {
             let mut step = ExecutionStep::new(
                 i + 1,

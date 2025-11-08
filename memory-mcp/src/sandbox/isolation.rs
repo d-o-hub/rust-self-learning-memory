@@ -111,7 +111,7 @@ pub fn apply_isolation(mut cmd: Command, config: &IsolationConfig) -> Result<Com
             debug!("Dropping privileges to UID: {}", uid);
 
             // Copy GID to owned value for closure
-            let gid = config.drop_to_gid;
+            let _gid = config.drop_to_gid;
 
             unsafe {
                 cmd.pre_exec(move || {
@@ -121,7 +121,7 @@ pub fn apply_isolation(mut cmd: Command, config: &IsolationConfig) -> Result<Com
                         use libc::{setgid, setuid};
 
                         // Drop GID first if specified
-                        if let Some(gid_val) = gid {
+                        if let Some(gid_val) = _gid {
                             if setgid(gid_val) != 0 {
                                 return Err(std::io::Error::last_os_error());
                             }

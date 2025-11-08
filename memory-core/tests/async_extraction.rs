@@ -8,8 +8,8 @@
 //! - Performance characteristics
 
 use memory_core::{
-    Episode, ExecutionResult, ExecutionStep, PatternExtractionQueue, QueueConfig,
-    SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+    ExecutionResult, ExecutionStep, QueueConfig, SelfLearningMemory, TaskContext, TaskOutcome,
+    TaskType,
 };
 use std::sync::Arc;
 use std::time::Duration;
@@ -223,7 +223,7 @@ async fn test_error_recovery_in_worker() {
 
     // Create an incomplete episode (should fail extraction)
     let context = TaskContext::default();
-    let incomplete_id = memory
+    let _incomplete_id = memory
         .start_episode("Incomplete".to_string(), context, TaskType::Testing)
         .await;
 

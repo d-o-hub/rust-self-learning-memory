@@ -40,6 +40,18 @@
 //! }
 //! ```
 
+// Security submodules
+pub mod fs;
+pub mod isolation;
+pub mod network;
+
+pub use fs::{FileSystemRestrictions, SecurityError as FsSecurityError};
+pub use isolation::{
+    apply_isolation, current_gid, current_uid, is_running_as_root, recommend_safe_uid,
+    IsolationConfig,
+};
+pub use network::{NetworkRestrictions, NetworkSecurityError};
+
 use crate::types::{
     ErrorType, ExecutionContext, ExecutionResult, SandboxConfig, SecurityViolationType,
 };

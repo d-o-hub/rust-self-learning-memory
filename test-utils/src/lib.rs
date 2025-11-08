@@ -144,6 +144,8 @@ pub fn create_test_reward(total: f32) -> RewardScore {
         base: total * 0.7,
         efficiency: 1.2,
         complexity_bonus: 1.1,
+        learning_bonus: 1.0,
+        quality_multiplier: 1.0,
     }
 }
 

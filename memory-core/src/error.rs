@@ -33,6 +33,9 @@ pub enum Error {
     #[error("Invalid input: {0}")]
     InvalidInput(String),
 
+    #[error("Invalid state: {0}")]
+    InvalidState(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -50,6 +53,7 @@ impl Error {
             Error::ExecutionTimeout => true,
             Error::CircuitBreakerOpen => true,
             Error::InvalidInput(_) => false,
+            Error::InvalidState(_) => false,
             Error::Io(_) => true,
         }
     }

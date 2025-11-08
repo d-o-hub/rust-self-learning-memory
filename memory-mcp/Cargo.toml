@@ -18,6 +18,10 @@ tracing = { workspace = true }
 # MCP-specific dependencies
 async-trait = "0.1"
 parking_lot = "0.12"
+url = "2.5"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [dev-dependencies]
 tempfile = { workspace = true }

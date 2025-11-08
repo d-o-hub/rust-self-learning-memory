@@ -1106,6 +1106,9 @@ dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
+ "libsql",
+ "memory-storage-redb",
+ "memory-storage-turso",
  "serde",
  "serde_json",
  "tempfile",
@@ -1122,6 +1125,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "libc",
+ "memory-core",
  "parking_lot",
  "serde",
  "serde_json",
@@ -1134,10 +1138,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "memory-storage-redb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bincode",
+ "chrono",
+ "memory-core",
+ "redb",
+ "serde",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "memory-storage-turso"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "libsql",
  "memory-core",
@@ -1422,6 +1445,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom 0.2.16",
+]
+
+[[package]]
+name = "redb"
+version = "2.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eca1e9d98d5a7e9002d0013e18d5a9b000aee942eb134883a82f06ebffb6c01"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

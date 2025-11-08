@@ -12,6 +12,7 @@ memory-core = { path = "../memory-core" }
 
 # Async runtime
 tokio = { workspace = true }
+async-trait = { workspace = true }
 
 # Error handling
 anyhow = { workspace = true }

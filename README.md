@@ -17,6 +17,31 @@ This project provides a production-grade memory system designed for AI agents th
 - **Retrieve intelligently**: Semantic and context-based pattern retrieval
 - **Verify security**: Zero-trust validation with comprehensive security checks
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Quick Start](#quick-start)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
+- [Code Coverage](#code-coverage)
+- [Storage](#storage)
+- [Security](#security)
+- [Development](#development)
+  - [Code Style](#code-style)
+  - [CI Pipeline](#ci-pipeline)
+  - [Testing](#testing)
+  - [Pre-commit Hooks](#pre-commit-hooks)
+- [Dependencies](#dependencies)
+- [Contributing](#contributing)
+- [License](#license)
+- [Resources](#resources)
+- [Contact](#contact)
+
 ## Architecture
 
 ```
@@ -60,22 +85,118 @@ This project provides a production-grade memory system designed for AI agents th
 - **Comprehensive Testing**: >90% code coverage with unit and integration tests
 - **Monitoring**: Tracing support with structured logging
 
-## Quick Start
+## Prerequisites
 
-### Build
+Before you begin, ensure you have the following installed:
 
-```bash
-# Install Rust (if not already installed)
-rustup override set stable
+- **Rust**: Version 1.70 or higher
+  ```bash
+  rustup --version  # Verify installation
+  rustup override set stable
+  ```
 
-# Build all crates
-cargo build --all
+- **Cargo**: Comes with Rust (verify with `cargo --version`)
 
-# Run tests
-cargo test --all
+- **System Requirements**:
+  - Linux, macOS, or Windows
+  - Minimum 4GB RAM (8GB recommended)
+  - 500MB disk space for dependencies
+
+- **Optional**:
+  - **Turso Account**: Required for production deployments with durable storage
+    - Sign up at [turso.tech](https://turso.tech)
+    - Create a database and obtain credentials
+  - **libSQL CLI**: For local Turso/libSQL database testing
+    ```bash
+    # Install libSQL CLI
+    brew install tursodatabase/tap/turso  # macOS
+    # or download from https://github.com/tursodatabase/libsql
+    ```
+
+## Installation
+
+### As a Library
+
+Add this crate to your `Cargo.toml`:
+
+```toml
+[dependencies]
+memory-core = "0.1"
+memory-storage-turso = "0.1"
+memory-storage-redb = "0.1"
 ```
 
-### Basic Usage
+Or use `cargo add`:
+
+```bash
+cargo add memory-core memory-storage-turso memory-storage-redb
+```
+
+## Configuration
+
+### Environment Variables
+
+The memory system requires the following environment variables for Turso/libSQL connectivity:
+
+```bash
+# Required for production Turso deployments
+export TURSO_DATABASE_URL="libsql://your-database.turso.io"
+export TURSO_AUTH_TOKEN="your-auth-token-here"
+
+# Optional: Local libSQL file (for development/testing)
+export LIBSQL_DATABASE_PATH="./data/memory.db"
+
+# Optional: redb cache configuration
+export REDB_CACHE_PATH="./data/cache.redb"
+export REDB_MAX_CACHE_SIZE="1000"  # Maximum episodes to cache
+```
+
+### Example `.env` File
+
+Create a `.env` file in your project root:
+
+```env
+# Turso Configuration (Production)
+TURSO_DATABASE_URL=libsql://my-memory-db.turso.io
+TURSO_AUTH_TOKEN=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...
+
+# Local Development (Alternative to Turso)
+# LIBSQL_DATABASE_PATH=./data/memory.db
+
+# redb Cache
+REDB_CACHE_PATH=./data/cache.redb
+REDB_MAX_CACHE_SIZE=1000
+
+# Logging
+RUST_LOG=info,memory_core=debug
+```
+
+**Important**: Never commit `.env` files to version control. Add `.env` to your `.gitignore`.
+
+### Configuration Options
+
+When initializing `SelfLearningMemory`, you can configure:
+
+```rust
+use memory_core::{SelfLearningMemory, MemoryConfig};
+
+let config = MemoryConfig {
+    turso_url: std::env::var("TURSO_DATABASE_URL")?,
+    turso_token: std::env::var("TURSO_AUTH_TOKEN")?,
+    redb_path: std::env::var("REDB_CACHE_PATH")
+        .unwrap_or_else(|_| "./data/cache.redb".to_string()),
+    max_cache_size: std::env::var("REDB_MAX_CACHE_SIZE")
+        .unwrap_or_else(|_| "1000".to_string())
+        .parse()?,
+    ..Default::default()
+};
+
+let memory = SelfLearningMemory::new(config).await?;
+```
+
+## Quick Start
+
+### Basic Usage Example
 
 ```rust
 use memory_core::SelfLearningMemory;
@@ -130,6 +251,24 @@ async fn main() -> anyhow::Result<()> {
     println!("Found {} relevant episodes", relevant.len());
     Ok(())
 }
+```
+
+## API Documentation
+
+Comprehensive API documentation is available at:
+
+- **[docs.rs/memory-core](https://docs.rs/memory-core)** - Core memory system API
+- **[docs.rs/memory-storage-turso](https://docs.rs/memory-storage-turso)** - Turso storage backend
+- **[docs.rs/memory-storage-redb](https://docs.rs/memory-storage-redb)** - redb cache backend
+
+You can also generate and view the documentation locally:
+
+```bash
+# Generate and open documentation for all crates
+cargo doc --all --open
+
+# Generate documentation with private items
+cargo doc --all --document-private-items --open
 ```
 
 ## Project Structure
@@ -206,6 +345,28 @@ See [SECURITY.md](SECURITY.md) for detailed security guidelines including:
 - RBAC and access control
 
 ## Development
+
+### Development Setup
+
+To set up the project for development and contribution:
+
+```bash
+# Clone the repository
+git clone https://github.com/d-o-hub/rust-self-learning-memory.git
+cd rust-self-learning-memory
+
+# Ensure you're using stable Rust
+rustup override set stable
+
+# Build all crates
+cargo build --all
+
+# Run the test suite
+cargo test --all
+
+# Run with debug logging
+RUST_LOG=debug cargo test --all -- --nocapture
+```
 
 ### Code Style
 

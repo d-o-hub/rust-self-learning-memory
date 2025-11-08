@@ -5,6 +5,10 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Turso/libSQL storage backend for the memory-core episodic learning system"
+keywords = ["turso", "libsql", "storage", "database", "ai-memory"]
+categories = ["database"]
+documentation = "https://docs.rs/memory-storage-turso"
 
 [dependencies]
 # Core dependencies

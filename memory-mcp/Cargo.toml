@@ -5,6 +5,10 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Model Context Protocol (MCP) server with secure code execution sandbox for AI agents"
+keywords = ["mcp", "sandbox", "code-execution", "ai", "security"]
+categories = ["development-tools", "web-programming"]
+documentation = "https://docs.rs/memory-mcp"
 
 [dependencies]
 # Workspace dependencies
@@ -16,7 +20,7 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 
 # Local dependencies
-memory-core = { path = "../memory-core" }
+memory-core = { path = "../memory-core", version = "0.1.0" }
 
 # MCP-specific dependencies
 async-trait = "0.1"

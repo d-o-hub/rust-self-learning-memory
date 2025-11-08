@@ -5,10 +5,14 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "redb embedded storage backend for memory-core episodic learning system (cache layer)"
+keywords = ["redb", "storage", "cache", "embedded-db", "ai-memory"]
+categories = ["database", "caching"]
+documentation = "https://docs.rs/memory-storage-redb"
 
 [dependencies]
 # Core dependencies
-memory-core = { path = "../memory-core" }
+memory-core = { path = "../memory-core", version = "0.1.0" }
 
 # Async runtime
 tokio = { workspace = true }

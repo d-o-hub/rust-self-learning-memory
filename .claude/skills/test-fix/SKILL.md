@@ -321,4 +321,4 @@ If unable to fix after reasonable effort:
 1. Document findings in issue
 2. Add `#[ignore]` with reason
 3. Create detailed bug report
-4. Request help from team
+4. Request help from goap-agent

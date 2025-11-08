@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [ main, develop ]
-  pull_request:
+  workflow_run:
+    workflows: ["Quick Check"]
+    types: [completed]
     branches: [ main, develop ]
 
 env:
@@ -15,6 +17,7 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -26,6 +29,7 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -40,6 +44,7 @@ jobs:
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -64,6 +69,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -83,6 +89,7 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -118,6 +125,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: rustsec/audit-check@v1
@@ -127,6 +135,7 @@ jobs:
   supply-chain:
     name: Supply Chain Security (cargo-deny)
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -148,6 +157,7 @@ jobs:
   unsafe-code-check:
     name: Unsafe Code Detection (cargo-geiger)
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable

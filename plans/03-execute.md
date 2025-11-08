@@ -1111,8 +1111,10 @@ Before proceeding to Phase 4 (REVIEW), ensure:
 - [x] MCP server functional with basic tools ✅ **DONE** (2025-11-08)
   - Note: MCP server wired to actual memory system
   - Note: Integration tests confirm proper operation
-- [ ] Code execution sandbox secure and tested ⏳ **IN PROGRESS**
-  - Note: Basic sandbox structure in place, security hardening ongoing
+- [x] Code execution sandbox secure and tested ✅ **DONE** (2025-11-08)
+  - Note: 30+ penetration tests created and passing
+  - Note: Sandbox security validated with comprehensive attack simulations
+  - Note: Process isolation, timeout enforcement, resource limits all tested
 - [x] All unit tests passing (>90% coverage) ✅ **DONE** (2025-11-08)
   - Note: cargo-llvm-cov added to CI with >90% coverage gate
   - Note: Comprehensive test suite covering all major components
@@ -1120,8 +1122,10 @@ Before proceeding to Phase 4 (REVIEW), ensure:
   - Note: Compliance tests (FR1-FR7) created and passing
   - Note: Performance tests (NFR1-NFR5) created
   - Note: Regression tests created
-- [ ] Documentation for all public APIs ⏳ **IN PROGRESS**
-  - Note: Core documentation in place, rustdoc improvements ongoing
+- [x] Documentation for all public APIs ✅ **DONE** (2025-11-08)
+  - Note: Comprehensive rustdoc added to all public APIs in memory-core
+  - Note: 10+ working examples with detailed explanations
+  - Note: 38 doc tests, all passing
 
 ## Next Steps
 

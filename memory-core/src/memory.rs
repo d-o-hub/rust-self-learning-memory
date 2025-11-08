@@ -49,6 +49,7 @@
 use crate::episode::{Episode, ExecutionStep, PatternId};
 use crate::error::{Error, Result};
 use crate::extraction::{deduplicate_patterns, rank_patterns, PatternExtractor};
+use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::pattern::Pattern;
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
@@ -81,6 +82,8 @@ pub struct SelfLearningMemory {
     episodes: EpisodeStore,
     /// Patterns storage (in-memory for now)
     patterns: PatternStore,
+    /// Async pattern extraction queue (optional)
+    pattern_queue: Option<Arc<PatternExtractionQueue>>,
 }
 
 impl Default for SelfLearningMemory {
@@ -107,6 +110,33 @@ impl SelfLearningMemory {
             pattern_extractor,
             episodes: Arc::new(RwLock::new(HashMap::new())),
             patterns: Arc::new(RwLock::new(HashMap::new())),
+            pattern_queue: None,
+        }
+    }
+
+    /// Enable async pattern extraction with a worker pool
+    ///
+    /// Sets up the pattern extraction queue and starts worker tasks.
+    /// After this is called, `complete_episode` will enqueue episodes
+    /// for async pattern extraction instead of processing them synchronously.
+    ///
+    /// # Arguments
+    ///
+    /// * `queue_config` - Configuration for the queue and workers
+    pub fn enable_async_extraction(mut self, queue_config: QueueConfig) -> Self {
+        let memory_arc = Arc::new(self.clone());
+        let queue = Arc::new(PatternExtractionQueue::new(queue_config, memory_arc));
+        self.pattern_queue = Some(queue);
+        self
+    }
+
+    /// Start async pattern extraction workers
+    ///
+    /// Must be called after `enable_async_extraction`.
+    /// Spawns worker tasks that process the queue.
+    pub async fn start_workers(&self) {
+        if let Some(queue) = &self.pattern_queue {
+            queue.start_workers().await;
         }
     }
 
@@ -179,6 +209,10 @@ impl SelfLearningMemory {
     /// Finalizes the episode, calculates rewards, generates reflections,
     /// and extracts reusable patterns. This is where the learning happens.
     ///
+    /// If async pattern extraction is enabled, patterns are extracted
+    /// asynchronously in the background. Otherwise, patterns are extracted
+    /// synchronously before returning.
+    ///
     /// # Arguments
     ///
     /// * `episode_id` - ID of the episode to complete
@@ -221,12 +255,44 @@ impl SelfLearningMemory {
             "Generated reflection"
         );
 
+        // Release the write lock before pattern extraction
+        drop(episodes);
+
+        // Extract patterns - async if queue enabled, sync otherwise
+        if let Some(queue) = &self.pattern_queue {
+            // Async path: enqueue for background processing
+            queue.enqueue_episode(episode_id).await?;
+            info!(
+                episode_id = %episode_id,
+                "Episode completed, enqueued for async pattern extraction"
+            );
+        } else {
+            // Sync path: extract patterns immediately
+            self.extract_patterns_sync(episode_id).await?;
+            info!(
+                episode_id = %episode_id,
+                "Episode completed and patterns extracted synchronously"
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Extract patterns synchronously (internal helper)
+    ///
+    /// Used when async extraction is not enabled.
+    async fn extract_patterns_sync(&self, episode_id: Uuid) -> Result<()> {
+        let mut episodes = self.episodes.write().await;
+        let episode = episodes
+            .get_mut(&episode_id)
+            .ok_or(Error::NotFound(episode_id))?;
+
         // Extract patterns
         let extracted_patterns = self.pattern_extractor.extract(episode);
 
-        info!(
+        debug!(
             pattern_count = extracted_patterns.len(),
-            "Extracted patterns from episode"
+            "Extracted patterns synchronously"
         );
 
         // Store patterns and link to episode
@@ -241,12 +307,56 @@ impl SelfLearningMemory {
 
         episode.patterns = pattern_ids;
 
-        info!(
-            episode_id = %episode_id,
-            "Episode completed and analyzed"
-        );
+        Ok(())
+    }
+
+    /// Store patterns (for use by async extraction workers)
+    ///
+    /// Links patterns to an episode. This is public so the queue workers
+    /// can call it after extracting patterns asynchronously.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_id` - Episode these patterns came from
+    /// * `patterns` - Patterns to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if episode not found
+    pub async fn store_patterns(
+        &self,
+        episode_id: Uuid,
+        extracted_patterns: Vec<Pattern>,
+    ) -> Result<()> {
+        let mut episodes = self.episodes.write().await;
+        let episode = episodes
+            .get_mut(&episode_id)
+            .ok_or(Error::NotFound(episode_id))?;
+
+        let mut patterns = self.patterns.write().await;
+        let mut pattern_ids = Vec::new();
+
+        for pattern in extracted_patterns {
+            let pattern_id = pattern.id();
+            pattern_ids.push(pattern_id);
+            patterns.insert(pattern_id, pattern);
+        }
+
+        episode.patterns = pattern_ids;
 
         Ok(())
+    }
+
+    /// Get queue statistics (if async extraction enabled)
+    ///
+    /// Returns statistics about the pattern extraction queue,
+    /// or None if async extraction is not enabled.
+    pub async fn get_queue_stats(&self) -> Option<crate::learning::queue::QueueStats> {
+        if let Some(queue) = &self.pattern_queue {
+            Some(queue.get_stats().await)
+        } else {
+            None
+        }
     }
 
     /// Retrieve relevant context for a new task

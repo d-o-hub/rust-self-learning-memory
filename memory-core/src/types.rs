@@ -104,6 +104,10 @@ pub struct RewardScore {
     pub efficiency: f32,
     /// Complexity bonus multiplier
     pub complexity_bonus: f32,
+    /// Quality multiplier (based on code quality, test coverage)
+    pub quality_multiplier: f32,
+    /// Learning bonus (for discovering patterns, improvements)
+    pub learning_bonus: f32,
 }
 
 /// Reflection on episode execution

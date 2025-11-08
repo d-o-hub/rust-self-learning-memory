@@ -75,6 +75,57 @@ pub enum SecurityViolationType {
     MaliciousCode,
 }
 
+/// Enhanced resource limits for sandbox
+#[derive(Debug, Clone)]
+pub struct ResourceLimits {
+    /// Maximum CPU percentage (0-100)
+    pub max_cpu_percent: f32,
+    /// Maximum memory in megabytes
+    pub max_memory_mb: usize,
+    /// Maximum execution time in milliseconds
+    pub max_execution_time_ms: u64,
+    /// Maximum file operations (0 = deny all)
+    pub max_file_operations: usize,
+    /// Maximum network requests (0 = deny all)
+    pub max_network_requests: usize,
+}
+
+impl Default for ResourceLimits {
+    fn default() -> Self {
+        Self {
+            max_cpu_percent: 50.0,
+            max_memory_mb: 128,
+            max_execution_time_ms: 5000,
+            max_file_operations: 0,
+            max_network_requests: 0,
+        }
+    }
+}
+
+impl ResourceLimits {
+    /// Create restrictive resource limits
+    pub fn restrictive() -> Self {
+        Self {
+            max_cpu_percent: 30.0,
+            max_memory_mb: 64,
+            max_execution_time_ms: 3000,
+            max_file_operations: 0,
+            max_network_requests: 0,
+        }
+    }
+
+    /// Create permissive resource limits (for trusted code)
+    pub fn permissive() -> Self {
+        Self {
+            max_cpu_percent: 80.0,
+            max_memory_mb: 256,
+            max_execution_time_ms: 10000,
+            max_file_operations: 100,
+            max_network_requests: 10,
+        }
+    }
+}
+
 /// Configuration for code sandbox
 #[derive(Debug, Clone)]
 pub struct SandboxConfig {
@@ -94,19 +145,29 @@ pub struct SandboxConfig {
     pub allow_filesystem: bool,
     /// Enable subprocess execution
     pub allow_subprocesses: bool,
+    /// Resource limits
+    pub resource_limits: ResourceLimits,
+    /// Process UID for privilege dropping (None = no change)
+    pub process_uid: Option<u32>,
+    /// Read-only file system mode
+    pub read_only_mode: bool,
 }
 
 impl Default for SandboxConfig {
     fn default() -> Self {
+        let limits = ResourceLimits::default();
         Self {
-            max_execution_time_ms: 5000, // 5 seconds
-            max_memory_mb: 128,
-            max_cpu_percent: 50,
+            max_execution_time_ms: limits.max_execution_time_ms,
+            max_memory_mb: limits.max_memory_mb,
+            max_cpu_percent: limits.max_cpu_percent as u8,
             allowed_paths: vec![],
             allowed_network: vec![],
             allow_network: false,
             allow_filesystem: false,
             allow_subprocesses: false,
+            resource_limits: limits,
+            process_uid: None,
+            read_only_mode: true,
         }
     }
 }
@@ -114,29 +175,37 @@ impl Default for SandboxConfig {
 impl SandboxConfig {
     /// Create a restrictive configuration for untrusted code
     pub fn restrictive() -> Self {
+        let limits = ResourceLimits::restrictive();
         Self {
-            max_execution_time_ms: 3000,
-            max_memory_mb: 64,
-            max_cpu_percent: 30,
+            max_execution_time_ms: limits.max_execution_time_ms,
+            max_memory_mb: limits.max_memory_mb,
+            max_cpu_percent: limits.max_cpu_percent as u8,
             allowed_paths: vec![],
             allowed_network: vec![],
             allow_network: false,
             allow_filesystem: false,
             allow_subprocesses: false,
+            resource_limits: limits,
+            process_uid: None,
+            read_only_mode: true,
         }
     }
 
     /// Create a permissive configuration for trusted code
     pub fn permissive() -> Self {
+        let limits = ResourceLimits::permissive();
         Self {
-            max_execution_time_ms: 10000,
-            max_memory_mb: 256,
-            max_cpu_percent: 80,
+            max_execution_time_ms: limits.max_execution_time_ms,
+            max_memory_mb: limits.max_memory_mb,
+            max_cpu_percent: limits.max_cpu_percent as u8,
             allowed_paths: vec!["/tmp".to_string()],
             allowed_network: vec![],
             allow_network: false,
             allow_filesystem: true,
             allow_subprocesses: false,
+            resource_limits: limits,
+            process_uid: None,
+            read_only_mode: false,
         }
     }
 }

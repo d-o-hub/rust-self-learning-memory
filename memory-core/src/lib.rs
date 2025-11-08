@@ -50,8 +50,10 @@
 pub mod episode;
 pub mod error;
 pub mod extraction;
+pub mod learning;
 pub mod memory;
 pub mod pattern;
+pub mod patterns;
 pub mod reflection;
 pub mod reward;
 pub mod types;
@@ -60,8 +62,13 @@ pub mod types;
 pub use episode::{Episode, ExecutionStep, PatternId};
 pub use error::{Error, Result};
 pub use extraction::PatternExtractor;
+pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
 pub use memory::SelfLearningMemory;
 pub use pattern::{Heuristic, Pattern};
+pub use patterns::{
+    ClusterCentroid, ClusteringConfig, EffectivenessTracker, EpisodeCluster, PatternClusterer,
+    PatternMetrics, PatternUsage, PatternValidator, UsageStats, ValidationConfig,
+};
 pub use reflection::ReflectionGenerator;
 pub use reward::RewardCalculator;
 pub use types::{

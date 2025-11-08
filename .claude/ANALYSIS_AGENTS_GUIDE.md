@@ -441,24 +441,3 @@ ls -la .claude/skills/plan-gap-analysis/
 4. **Re-validate**: Run agents again after major changes
 5. **Maintain**: Keep running regularly to prevent drift
 
-## Contributing
-
-When modifying these agents:
-1. Update both the agent and skill files
-2. Test with actual codebase
-3. Update this guide with new features
-4. Document any new output formats
-
-## Support
-
-For issues or questions:
-- Check agent execution logs
-- Review skill documentation
-- Verify plan files are up to date
-- Ensure codebase structure matches expectations
-
----
-
-**Last Updated**: 2025-11-06
-**Version**: 1.0.0
-**Maintained By**: Claude Code Agent System

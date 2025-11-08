@@ -1,6 +1,6 @@
 //! Integration tests for redb storage
 
-use memory_core::{Episode, Heuristic, Pattern, TaskContext, TaskType};
+use memory_core::{Episode, TaskContext, TaskType};
 use memory_storage_redb::{RedbQuery, RedbStorage};
 use tempfile::TempDir;
 

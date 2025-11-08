@@ -124,7 +124,7 @@ fn create_tool_sequence_episode() -> Episode {
     );
 
     // Sequential tool usage
-    let tools = vec!["analyzer", "designer", "builder", "tester"];
+    let tools = ["analyzer", "designer", "builder", "tester"];
     for (i, tool) in tools.iter().enumerate() {
         let mut step = ExecutionStep::new(i + 1, tool.to_string(), format!("{} step", tool));
         step.result = Some(ExecutionResult::Success {
@@ -684,7 +684,7 @@ async fn regression_no_duplicate_patterns() {
         memory.log_step(episode_id, create_test_step(i)).await;
     }
 
-    let completed = memory
+    memory
         .complete_episode(
             episode_id,
             TaskOutcome::Success {

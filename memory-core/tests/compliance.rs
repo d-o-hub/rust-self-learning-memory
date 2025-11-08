@@ -471,7 +471,7 @@ async fn verify_fr5_retrieval_limits() {
     let memory = setup_test_memory();
 
     // Create 50 episodes
-    for i in 0..50 {
+    for _i in 0..50 {
         create_test_episode_with_domain(&memory, "test-domain").await;
     }
 

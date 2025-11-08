@@ -420,7 +420,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ExecutionStep, TaskContext, TaskType};
+    use crate::{TaskContext, TaskType};
 
     #[test]
     fn test_two_phase_commit_new() {

@@ -68,15 +68,26 @@ impl TursoStorage {
     ///
     /// # Arguments
     ///
-    /// * `url` - Database URL (e.g., "libsql://localhost:8080" or file path)
-    /// * `token` - Authentication token (empty string for local files)
+    /// * `url` - Database URL (only `libsql://`, `file:`, or `:memory:` protocols allowed)
+    /// * `token` - Authentication token (required for `libsql://`, empty for local files)
+    ///
+    /// # Security
+    ///
+    /// This method enforces secure connections:
+    /// - Remote connections must use `libsql://` protocol with a valid token
+    /// - HTTP/HTTPS protocols are rejected to prevent insecure connections
+    /// - Local `file:` and `:memory:` databases are allowed without tokens
     ///
     /// # Example
     ///
     /// ```no_run
     /// # use memory_storage_turso::TursoStorage;
     /// # async fn example() -> anyhow::Result<()> {
+    /// // Remote connection with authentication
     /// let storage = TursoStorage::new("libsql://localhost:8080", "my-token").await?;
+    ///
+    /// // Local file database
+    /// let local = TursoStorage::new("file:local.db", "").await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -111,8 +122,36 @@ impl TursoStorage {
     }
 
     /// Create a new Turso storage instance with custom configuration
+    ///
+    /// # Security
+    ///
+    /// This method enforces the following security requirements:
+    /// - Only `libsql://`, `file:`, and `:memory:` protocols are allowed
+    /// - Remote connections (libsql://) require a non-empty authentication token
+    /// - Local file and memory databases do not require tokens
+    ///
+    /// These checks prevent accidental use of insecure protocols and ensure
+    /// proper authentication for remote Turso databases.
     pub async fn with_config(url: &str, token: &str, config: TursoConfig) -> Result<Self> {
         info!("Connecting to Turso database at {}", url);
+
+        // SECURITY: Enforce TLS for remote connections
+        if !url.starts_with("libsql://")
+            && !url.starts_with("file:")
+            && !url.starts_with(":memory:")
+        {
+            return Err(Error::Security(format!(
+                "Insecure database URL: {}. Only libsql://, file:, or :memory: protocols are allowed",
+                url
+            )));
+        }
+
+        // SECURITY: Validate token is provided for remote connections
+        if url.starts_with("libsql://") && token.trim().is_empty() {
+            return Err(Error::Security(
+                "Authentication token required for remote Turso connections".to_string(),
+            ));
+        }
 
         let builder = Builder::new_remote(url.to_string(), token.to_string());
 

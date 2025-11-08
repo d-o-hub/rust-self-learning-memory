@@ -61,7 +61,87 @@ use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
-/// Main self-learning memory system with storage backends
+/// Main self-learning memory system orchestrating the complete learning cycle.
+///
+/// `SelfLearningMemory` is the primary interface for episodic learning. It manages:
+/// - **Episode lifecycle**: Create, track, and complete task executions
+/// - **Learning analysis**: Calculate rewards, generate reflections, extract patterns
+/// - **Pattern storage**: Persist learnings to durable (Turso) and cache (redb) storage
+/// - **Context retrieval**: Find relevant past episodes for new tasks
+///
+/// # Architecture
+///
+/// The system uses a dual-storage approach:
+/// - **Turso (libSQL)**: Durable, queryable storage for long-term retention
+/// - **redb**: Fast embedded cache for hot data and quick lookups
+/// - **In-memory**: Fallback when external storage is not configured
+///
+/// # Learning Cycle
+///
+/// 1. **Start Episode** - [`start_episode()`](SelfLearningMemory::start_episode) creates a new task record
+/// 2. **Log Steps** - [`log_step()`](SelfLearningMemory::log_step) tracks execution steps
+/// 3. **Complete** - [`complete_episode()`](SelfLearningMemory::complete_episode) finalizes and analyzes
+/// 4. **Retrieve** - [`retrieve_relevant_context()`](SelfLearningMemory::retrieve_relevant_context) queries for similar episodes
+///
+/// # Examples
+///
+/// ## Basic Usage (In-Memory)
+///
+/// ```
+/// use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome, ExecutionStep, ExecutionResult};
+///
+/// # async fn example() {
+/// let memory = SelfLearningMemory::new();
+///
+/// // Start tracking a task
+/// let episode_id = memory.start_episode(
+///     "Implement file parser".to_string(),
+///     TaskContext::default(),
+///     TaskType::CodeGeneration,
+/// ).await;
+///
+/// // Log execution steps
+/// let mut step = ExecutionStep::new(1, "parser".to_string(), "Parse TOML file".to_string());
+/// step.result = Some(ExecutionResult::Success {
+///     output: "Parsed successfully".to_string(),
+/// });
+/// memory.log_step(episode_id, step).await;
+///
+/// // Complete and learn
+/// memory.complete_episode(
+///     episode_id,
+///     TaskOutcome::Success {
+///         verdict: "Parser implemented with tests".to_string(),
+///         artifacts: vec!["parser.rs".to_string()],
+///     },
+/// ).await.unwrap();
+///
+/// // Later: retrieve for similar tasks
+/// let relevant = memory.retrieve_relevant_context(
+///     "Parse JSON file".to_string(),
+///     TaskContext::default(),
+///     5,
+/// ).await;
+/// # }
+/// ```
+///
+/// ## With External Storage
+///
+/// ```no_run
+/// use memory_core::{SelfLearningMemory, MemoryConfig};
+/// use std::sync::Arc;
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// # let turso_backend: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+/// # let redb_backend: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+/// let memory = SelfLearningMemory::with_storage(
+///     MemoryConfig::default(),
+///     turso_backend,   // Durable storage
+///     redb_backend,    // Fast cache
+/// );
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct SelfLearningMemory {
     /// Configuration
@@ -188,19 +268,54 @@ impl SelfLearningMemory {
         }
     }
 
-    /// Start a new episode
+    /// Start a new episode to track a task execution.
     ///
-    /// Creates and stores a new episode for task tracking.
+    /// Creates a new episode record and stores it in all configured backends
+    /// (cache, durable storage, and in-memory). This marks the beginning of
+    /// the learning cycle for a task.
+    ///
+    /// The episode is created with a unique ID and current timestamp. Initially,
+    /// it has no steps, outcome, or analysis. Steps should be logged as the
+    /// task executes, and the episode should be completed when finished.
     ///
     /// # Arguments
     ///
-    /// * `task_description` - Human-readable description of the task
-    /// * `context` - Task context including language, domain, complexity, tags
-    /// * `task_type` - Type of task being performed
+    /// * `task_description` - Clear, human-readable description of what needs to be done
+    /// * `context` - Contextual metadata (language, domain, framework, etc.) used for retrieval
+    /// * `task_type` - Classification of task (CodeGeneration, Debugging, etc.)
     ///
     /// # Returns
     ///
-    /// The unique episode ID for this task
+    /// Unique episode ID that should be used for subsequent [`log_step()`](SelfLearningMemory::log_step)
+    /// and [`complete_episode()`](SelfLearningMemory::complete_episode) calls.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Start tracking a code generation task
+    /// let context = TaskContext {
+    ///     language: Some("rust".to_string()),
+    ///     framework: Some("tokio".to_string()),
+    ///     complexity: ComplexityLevel::Moderate,
+    ///     domain: "async-io".to_string(),
+    ///     tags: vec!["networking".to_string(), "http".to_string()],
+    /// };
+    ///
+    /// let episode_id = memory.start_episode(
+    ///     "Implement async HTTP client with retry logic".to_string(),
+    ///     context,
+    ///     TaskType::CodeGeneration,
+    /// ).await;
+    ///
+    /// // Use episode_id to log steps and complete the episode
+    /// println!("Started episode: {}", episode_id);
+    /// # }
+    /// ```
     #[instrument(skip(self), fields(task_type = %task_type))]
     pub async fn start_episode(
         &self,
@@ -237,19 +352,64 @@ impl SelfLearningMemory {
         episode_id
     }
 
-    /// Log an execution step for an episode
+    /// Log an execution step for an ongoing episode.
     ///
-    /// Records a single step in the task execution. Steps should be logged
-    /// as they occur to maintain accurate timing and sequence information.
+    /// Records a single discrete action or operation performed during task execution.
+    /// Steps should be logged sequentially as they occur to maintain accurate timing,
+    /// ordering, and execution trace information.
+    ///
+    /// Each step captures what was done, which tool did it, what the result was,
+    /// and how long it took. This detailed trace enables pattern extraction and
+    /// learning from successful execution sequences.
     ///
     /// # Arguments
     ///
-    /// * `episode_id` - ID of the episode to add the step to
-    /// * `step` - Execution step details
+    /// * `episode_id` - ID of the episode to add the step to (from [`start_episode()`](SelfLearningMemory::start_episode))
+    /// * `step` - Execution step details including tool, action, result, timing
     ///
-    /// # Errors
+    /// # Behavior
     ///
-    /// Returns `Error::NotFound` if the episode doesn't exist
+    /// - Updates all storage backends (cache, durable, in-memory)
+    /// - Logs warning (doesn't error) if episode not found
+    /// - Updates persisted episode immediately (not buffered)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use memory_core::{ExecutionStep, ExecutionResult};
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let episode_id = memory.start_episode(
+    ///     "Parse configuration file".to_string(),
+    ///     TaskContext::default(),
+    ///     TaskType::CodeGeneration,
+    /// ).await;
+    ///
+    /// // Log each step as it happens
+    /// let mut step1 = ExecutionStep::new(1, "file_reader".to_string(), "Read config.toml".to_string());
+    /// step1.parameters = serde_json::json!({ "path": "config.toml" });
+    /// step1.result = Some(ExecutionResult::Success {
+    ///     output: "File read: 1024 bytes".to_string(),
+    /// });
+    /// step1.latency_ms = 5;
+    /// memory.log_step(episode_id, step1).await;
+    ///
+    /// let mut step2 = ExecutionStep::new(2, "toml_parser".to_string(), "Parse TOML".to_string());
+    /// step2.result = Some(ExecutionResult::Success {
+    ///     output: "Parsed successfully".to_string(),
+    /// });
+    /// step2.latency_ms = 12;
+    /// memory.log_step(episode_id, step2).await;
+    ///
+    /// // Verify steps were logged
+    /// let episode = memory.get_episode(episode_id).await.unwrap();
+    /// assert_eq!(episode.steps.len(), 2);
+    /// assert_eq!(episode.successful_steps_count(), 2);
+    /// # }
+    /// ```
     #[instrument(skip(self, step), fields(episode_id = %episode_id, step_number = step.step_number))]
     pub async fn log_step(&self, episode_id: Uuid, step: ExecutionStep) {
         let mut episodes = self.episodes_fallback.write().await;
@@ -279,23 +439,77 @@ impl SelfLearningMemory {
         }
     }
 
-    /// Complete an episode and perform learning analysis
+    /// Complete an episode and trigger learning analysis.
     ///
-    /// Finalizes the episode, calculates rewards, generates reflections,
-    /// and extracts reusable patterns. This is where the learning happens.
+    /// Finalizes the episode by recording the outcome, then performs the learning
+    /// cycle:
+    /// 1. **Marks complete** - Sets end time and outcome
+    /// 2. **Calculates reward** - Scores based on success, efficiency, complexity
+    /// 3. **Generates reflection** - Identifies successes, improvements, insights
+    /// 4. **Extracts patterns** - Finds reusable patterns from execution steps
+    /// 5. **Stores everything** - Persists to all storage backends
     ///
-    /// If async pattern extraction is enabled, patterns are extracted
-    /// asynchronously in the background. Otherwise, patterns are extracted
-    /// synchronously before returning.
+    /// This is the core learning step. Patterns extracted here become available
+    /// for future task retrieval.
+    ///
+    /// # Pattern Extraction Modes
+    ///
+    /// - **Synchronous** (default): Patterns extracted before returning
+    /// - **Asynchronous**: If [`enable_async_extraction()`](SelfLearningMemory::enable_async_extraction)
+    ///   was called, patterns are extracted in background workers
     ///
     /// # Arguments
     ///
-    /// * `episode_id` - ID of the episode to complete
-    /// * `outcome` - Final outcome of the task
+    /// * `episode_id` - ID returned from [`start_episode()`](SelfLearningMemory::start_episode)
+    /// * `outcome` - Final outcome describing success/failure and artifacts
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` on success, or an error if the episode doesn't exist.
     ///
     /// # Errors
     ///
-    /// Returns `Error::NotFound` if the episode doesn't exist
+    /// Returns [`Error::NotFound`] if the episode ID doesn't exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome};
+    /// use memory_core::{ExecutionStep, ExecutionResult};
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Start episode
+    /// let episode_id = memory.start_episode(
+    ///     "Fix authentication bug".to_string(),
+    ///     TaskContext::default(),
+    ///     TaskType::Debugging,
+    /// ).await;
+    ///
+    /// // Log debugging steps
+    /// let mut step = ExecutionStep::new(1, "debugger".to_string(), "Identify issue".to_string());
+    /// step.result = Some(ExecutionResult::Success {
+    ///     output: "Found null pointer in auth handler".to_string(),
+    /// });
+    /// memory.log_step(episode_id, step).await;
+    ///
+    /// // Complete with success
+    /// memory.complete_episode(
+    ///     episode_id,
+    ///     TaskOutcome::Success {
+    ///         verdict: "Bug fixed, tests added".to_string(),
+    ///         artifacts: vec!["auth_fix.patch".to_string(), "auth_test.rs".to_string()],
+    ///     },
+    /// ).await?;
+    ///
+    /// // Episode now has reward, reflection, and patterns
+    /// let episode = memory.get_episode(episode_id).await?;
+    /// assert!(episode.reward.is_some());
+    /// assert!(episode.reflection.is_some());
+    /// # Ok(())
+    /// # }
+    /// ```
     #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
     pub async fn complete_episode(&self, episode_id: Uuid, outcome: TaskOutcome) -> Result<()> {
         let mut episodes = self.episodes_fallback.write().await;
@@ -501,20 +715,78 @@ impl SelfLearningMemory {
         }
     }
 
-    /// Retrieve relevant context for a new task
+    /// Retrieve relevant past episodes for a new task.
     ///
-    /// Searches for similar episodes and patterns that can inform
-    /// the execution of a new task.
+    /// Searches the memory for episodes similar to the given task, enabling
+    /// the system to learn from past experience. Similarity is determined by:
+    /// - **Domain match**: Same problem domain
+    /// - **Language/framework**: Same technology stack
+    /// - **Tags**: Overlapping tags
+    /// - **Description**: Common keywords in task descriptions
+    ///
+    /// Results are ranked by a relevance score combining context match (40%),
+    /// reward quality (30%), and description similarity (30%).
+    ///
+    /// # Search Strategy
+    ///
+    /// 1. Filters to completed episodes only
+    /// 2. Matches on context fields (domain, language, framework, tags)
+    /// 3. Performs basic text matching on descriptions
+    /// 4. Scores and ranks by relevance
+    /// 5. Returns top N results
     ///
     /// # Arguments
     ///
-    /// * `task_description` - Description of the new task
-    /// * `context` - Context of the new task
-    /// * `limit` - Maximum number of results to return
+    /// * `task_description` - Description of the new task you're about to perform
+    /// * `context` - Context for the new task (same structure as when starting episodes)
+    /// * `limit` - Maximum number of episodes to return
     ///
     /// # Returns
     ///
-    /// Vector of relevant episodes, sorted by relevance
+    /// Vector of episodes sorted by relevance (highest first), limited to `limit` items.
+    /// Returns empty vector if no relevant episodes found.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Query for relevant past episodes
+    /// let context = TaskContext {
+    ///     language: Some("rust".to_string()),
+    ///     framework: Some("axum".to_string()),
+    ///     complexity: ComplexityLevel::Moderate,
+    ///     domain: "web-api".to_string(),
+    ///     tags: vec!["rest".to_string(), "authentication".to_string()],
+    /// };
+    ///
+    /// let relevant_episodes = memory.retrieve_relevant_context(
+    ///     "Implement OAuth2 authentication".to_string(),
+    ///     context,
+    ///     5,  // Get top 5 most relevant
+    /// ).await;
+    ///
+    /// // Use retrieved episodes to inform approach
+    /// for episode in relevant_episodes {
+    ///     println!("Similar task: {}", episode.task_description);
+    ///     println!("Reward: {:?}", episode.reward);
+    ///
+    ///     if let Some(reflection) = episode.reflection {
+    ///         println!("Key insights:");
+    ///         for insight in reflection.insights {
+    ///             println!("  - {}", insight);
+    ///         }
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// # See Also
+    ///
+    /// - [`retrieve_relevant_patterns()`](SelfLearningMemory::retrieve_relevant_patterns) - Get patterns instead of full episodes
     #[instrument(skip(self))]
     pub async fn retrieve_relevant_context(
         &self,

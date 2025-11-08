@@ -36,6 +36,9 @@ pub enum Error {
     #[error("Invalid state: {0}")]
     InvalidState(String),
 
+    #[error("Security validation failed: {0}")]
+    Security(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -54,6 +57,7 @@ impl Error {
             Error::CircuitBreakerOpen => true,
             Error::InvalidInput(_) => false,
             Error::InvalidState(_) => false,
+            Error::Security(_) => false,
             Error::Io(_) => true,
         }
     }

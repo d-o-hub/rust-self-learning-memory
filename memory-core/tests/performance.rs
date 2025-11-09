@@ -1,7 +1,18 @@
-//! Performance tests for non-functional requirements NFR1-NFR5
+//! BDD-style performance tests for non-functional requirements NFR1-NFR5
 //!
-//! This test suite validates that the memory system meets performance,
-//! scalability, and reliability targets from plans/04-review.md.
+//! Tests verify that the memory system meets performance, scalability,
+//! and reliability targets from plans/04-review.md.
+//!
+//! ## Test Coverage
+//! - NFR1: Retrieval latency (<100ms P95) with 100-10K episodes
+//! - NFR2: Storage capacity (1K-10K episodes without degradation)
+//! - NFR3: Pattern recognition accuracy (>70%)
+//! - NFR4: Test coverage (>90%)
+//! - NFR5: Memory leak prevention under continuous operation
+//! - Concurrent performance (episode creation, completion, retrieval)
+//! - Step logging and completion performance
+//!
+//! All tests follow the Given-When-Then pattern for clarity.
 
 use memory_core::memory::SelfLearningMemory;
 use memory_core::{
@@ -132,13 +143,12 @@ fn get_current_memory_usage() -> usize {
 // ============================================================================
 
 #[tokio::test]
-async fn verify_nfr1_retrieval_latency_100_episodes() {
-    // NFR1: <100ms retrieval latency (P95) with 100 episodes
+async fn should_retrieve_episodes_under_100ms_p95_with_100_episodes() {
+    // Given: Memory system with 100 episodes
     let memory = setup_memory_with_n_episodes(100).await;
-
     let mut latencies = Vec::new();
 
-    // Run 100 retrieval queries
+    // When: Running 100 retrieval queries across different domains
     for i in 0..100 {
         let context = TaskContext {
             domain: format!("domain_{}", i % 10),
@@ -152,6 +162,7 @@ async fn verify_nfr1_retrieval_latency_100_episodes() {
         latencies.push(start.elapsed());
     }
 
+    // Then: P95 latency should be under 100ms (NFR1)
     latencies.sort();
     let p95_index = (latencies.len() as f32 * 0.95) as usize;
     let p95 = latencies[p95_index];
@@ -166,14 +177,13 @@ async fn verify_nfr1_retrieval_latency_100_episodes() {
 }
 
 #[tokio::test]
-#[ignore] // Long-running test
-async fn verify_nfr1_retrieval_latency_10k_episodes() {
-    // NFR1: <100ms retrieval latency (P95) with 10K episodes
+#[ignore = "Long-running test - run with --include-ignored for full validation"]
+async fn should_retrieve_episodes_under_100ms_p95_with_10k_episodes() {
+    // Given: Memory system with 10K episodes
     let memory = setup_memory_with_n_episodes(10000).await;
-
     let mut latencies = Vec::new();
 
-    // Run 100 retrieval queries
+    // When: Running 100 retrieval queries across different domains
     for i in 0..100 {
         let context = TaskContext {
             domain: format!("domain_{}", i % 10),
@@ -187,6 +197,7 @@ async fn verify_nfr1_retrieval_latency_10k_episodes() {
         latencies.push(start.elapsed());
     }
 
+    // Then: P95 latency should remain under 100ms even with large dataset (NFR1)
     latencies.sort();
     let p95_index = (latencies.len() as f32 * 0.95) as usize;
     let p95 = latencies[p95_index];
@@ -201,11 +212,12 @@ async fn verify_nfr1_retrieval_latency_10k_episodes() {
 }
 
 #[tokio::test]
-async fn verify_nfr1_retrieval_latency_statistics() {
+async fn should_maintain_consistent_retrieval_latency_across_percentiles() {
+    // Given: Memory system with 500 episodes
     let memory = setup_memory_with_n_episodes(500).await;
-
     let mut latencies = Vec::new();
 
+    // When: Running 100 retrieval queries
     for _ in 0..100 {
         let start = Instant::now();
         memory
@@ -214,8 +226,8 @@ async fn verify_nfr1_retrieval_latency_statistics() {
         latencies.push(start.elapsed());
     }
 
+    // Then: All percentiles should show acceptable performance
     latencies.sort();
-
     let p50 = latencies[50];
     let p90 = latencies[90];
     let p95 = latencies[95];
@@ -227,7 +239,7 @@ async fn verify_nfr1_retrieval_latency_statistics() {
     println!("  P95: {:?}", p95);
     println!("  P99: {:?}", p99);
 
-    assert!(p95.as_millis() < 100);
+    assert!(p95.as_millis() < 100, "P95 should be under 100ms");
 }
 
 // ============================================================================
@@ -235,12 +247,12 @@ async fn verify_nfr1_retrieval_latency_statistics() {
 // ============================================================================
 
 #[tokio::test]
-async fn verify_nfr2_storage_capacity_1k() {
-    // NFR2: Support 1,000 episodes without degradation
+async fn should_store_1000_episodes_without_performance_degradation() {
+    // Given: Memory system
     let memory = setup_test_memory();
-
     let start = Instant::now();
 
+    // When: Storing 1,000 episodes (NFR2 capacity target)
     for i in 0..1000 {
         let episode_id = memory
             .start_episode(
@@ -268,7 +280,7 @@ async fn verify_nfr2_storage_capacity_1k() {
     let storage_time = start.elapsed();
     println!("Stored 1K episodes in {:?}", storage_time);
 
-    // Verify retrieval still fast
+    // Then: Retrieval should remain fast despite large dataset
     let retrieval_start = Instant::now();
     let results = memory
         .retrieve_relevant_context("test".to_string(), test_context(), 10)
@@ -284,13 +296,13 @@ async fn verify_nfr2_storage_capacity_1k() {
 }
 
 #[tokio::test]
-#[ignore] // Long-running test
-async fn verify_nfr2_storage_capacity_10k() {
-    // NFR2: Support 10,000 episodes without degradation
+#[ignore = "Long-running test - run with --include-ignored for full validation"]
+async fn should_store_10000_episodes_without_performance_degradation() {
+    // Given: Memory system
     let memory = setup_test_memory();
-
     let start = Instant::now();
 
+    // When: Storing 10,000 episodes (NFR2 extended capacity test)
     for i in 0..10000 {
         if i % 1000 == 0 {
             println!("Progress: {}/10000 episodes", i);
@@ -322,7 +334,7 @@ async fn verify_nfr2_storage_capacity_10k() {
     let storage_time = start.elapsed();
     println!("Stored 10K episodes in {:?}", storage_time);
 
-    // Verify retrieval still fast
+    // Then: Retrieval should remain fast even with very large dataset
     let retrieval_start = Instant::now();
     let results = memory
         .retrieve_relevant_context("test".to_string(), test_context(), 10)
@@ -338,11 +350,12 @@ async fn verify_nfr2_storage_capacity_10k() {
 }
 
 #[tokio::test]
-async fn verify_nfr2_episode_creation_performance() {
+async fn should_create_episodes_very_quickly() {
+    // Given: Memory system
     let memory = setup_test_memory();
-
     let mut creation_times = Vec::new();
 
+    // When: Creating 100 episodes
     for i in 0..100 {
         let start = Instant::now();
         memory
@@ -355,11 +368,11 @@ async fn verify_nfr2_episode_creation_performance() {
         creation_times.push(start.elapsed());
     }
 
+    // Then: Average creation time should be very fast (<10ms)
     let avg_time: Duration = creation_times.iter().sum::<Duration>() / creation_times.len() as u32;
 
     println!("Average episode creation time: {:?}", avg_time);
 
-    // Should be very fast (< 10ms)
     assert!(
         avg_time.as_millis() < 10,
         "Average creation time {}ms too slow",
@@ -372,10 +385,13 @@ async fn verify_nfr2_episode_creation_performance() {
 // ============================================================================
 
 #[tokio::test]
-#[ignore] // Requires pattern accuracy measurement
-async fn verify_nfr3_pattern_accuracy() {
+#[ignore = "Requires pattern accuracy measurement infrastructure"]
+async fn should_achieve_70_percent_pattern_recognition_accuracy() {
     // NFR3: >70% pattern recognition accuracy
     // This test would:
+    // Given: Episodes with known patterns
+    // When: Extracting patterns automatically
+    // Then: Accuracy should exceed 70%
     // 1. Create episodes with known patterns
     // 2. Extract patterns
     // 3. Compare against expected patterns
@@ -387,10 +403,13 @@ async fn verify_nfr3_pattern_accuracy() {
 // ============================================================================
 
 #[tokio::test]
-async fn verify_nfr4_test_coverage() {
+async fn should_maintain_90_percent_test_coverage() {
     // NFR4: 90%+ test coverage
+    // Given: CI configuration with coverage reporting enabled
+    // When: Running tests with coverage analysis
+    // Then: Coverage should exceed 90%
     // This is validated by CI with cargo-llvm-cov
-    // This test just verifies CI configuration exists
+    // This test verifies CI configuration exists
 
     #[cfg(not(target_os = "windows"))]
     {
@@ -418,14 +437,13 @@ async fn verify_nfr4_test_coverage() {
 // ============================================================================
 
 #[tokio::test]
-async fn verify_nfr5_no_memory_leaks_short() {
-    // NFR5: Zero memory leaks under continuous operation (short test)
+async fn should_not_leak_memory_under_continuous_operation() {
+    // Given: Memory system with initial memory baseline
     let memory = Arc::new(setup_test_memory());
-
     let initial_memory = get_current_memory_usage();
     println!("Initial memory: {} bytes", initial_memory);
 
-    // Run 100 iterations
+    // When: Running 100 episode creation/completion cycles
     for i in 0..100 {
         let mem = memory.clone();
         let episode_id = mem
@@ -447,6 +465,7 @@ async fn verify_nfr5_no_memory_leaks_short() {
         .unwrap();
     }
 
+    // Then: Memory growth should be minimal (NFR5: no leaks)
     let final_memory = get_current_memory_usage();
     println!("Final memory: {} bytes", final_memory);
 
@@ -464,13 +483,13 @@ async fn verify_nfr5_no_memory_leaks_short() {
 }
 
 #[tokio::test]
-#[ignore] // Long-running test
-async fn verify_nfr5_no_memory_leaks_long() {
-    // NFR5: Zero memory leaks under continuous operation (1000 iterations)
+#[ignore = "Long-running test - run with --include-ignored for full validation"]
+async fn should_not_leak_memory_over_1000_iterations() {
+    // Given: Memory system with initial memory baseline
     let memory = Arc::new(setup_test_memory());
-
     let initial_memory = get_current_memory_usage();
 
+    // When: Running 1000 episode creation/completion cycles
     for i in 0..1000 {
         let mem = memory.clone();
         let episode_id = mem
@@ -491,7 +510,7 @@ async fn verify_nfr5_no_memory_leaks_long() {
         .await
         .unwrap();
 
-        // Check memory periodically
+        // Then: Check memory periodically to detect leaks early
         if i % 100 == 0 && initial_memory > 0 {
             let current_memory = get_current_memory_usage();
             let growth = (current_memory as f32 - initial_memory as f32) / initial_memory as f32;
@@ -509,8 +528,8 @@ async fn verify_nfr5_no_memory_leaks_long() {
 }
 
 #[tokio::test]
-async fn verify_nfr5_episode_cleanup() {
-    // Verify episodes don't leak when using custom config
+async fn should_cleanup_cache_when_exceeding_limits() {
+    // Given: Memory system with limited cache (100 episodes max)
     let config = MemoryConfig {
         storage: memory_core::StorageConfig {
             max_episodes_cache: 100,
@@ -518,10 +537,9 @@ async fn verify_nfr5_episode_cleanup() {
         },
         ..Default::default()
     };
-
     let memory = setup_memory_with_config(config);
 
-    // Create 200 episodes (more than cache limit)
+    // When: Creating 200 episodes (exceeding cache limit)
     for i in 0..200 {
         let episode_id = memory
             .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
@@ -539,7 +557,7 @@ async fn verify_nfr5_episode_cleanup() {
             .unwrap();
     }
 
-    // Should still function correctly
+    // Then: System should function correctly without memory leaks
     let (total, completed, _) = memory.get_stats().await;
     assert_eq!(total, 200);
     assert_eq!(completed, 200);
@@ -550,12 +568,12 @@ async fn verify_nfr5_episode_cleanup() {
 // ============================================================================
 
 #[tokio::test]
-async fn verify_concurrent_episode_creation() {
+async fn should_create_episodes_concurrently_without_conflicts() {
+    // Given: Shared memory system
     let memory = Arc::new(setup_test_memory());
-
     let start = Instant::now();
 
-    // Create 100 episodes concurrently
+    // When: Creating 100 episodes concurrently from multiple tasks
     let mut handles = vec![];
     for i in 0..100 {
         let mem = memory.clone();
@@ -583,9 +601,10 @@ async fn verify_concurrent_episode_creation() {
         100.0 / elapsed.as_secs_f32()
     );
 
+    // Then: All episodes should be created successfully
     assert_eq!(ids.len(), 100);
 
-    // Should be faster than sequential (< 1 second for 100 episodes)
+    // Then: Concurrent execution should be fast (<1 second)
     assert!(
         elapsed.as_secs() < 1,
         "Concurrent creation took {}ms",
@@ -594,11 +613,11 @@ async fn verify_concurrent_episode_creation() {
 }
 
 #[tokio::test]
-async fn verify_concurrent_episode_completion() {
+async fn should_complete_episodes_concurrently_without_conflicts() {
+    // Given: Shared memory system with 50 episodes
     let memory = Arc::new(setup_test_memory());
-
-    // Create episodes first
     let mut episode_ids = vec![];
+
     for i in 0..50 {
         let id = memory
             .start_episode(
@@ -612,7 +631,7 @@ async fn verify_concurrent_episode_completion() {
 
     let start = Instant::now();
 
-    // Complete all concurrently
+    // When: Completing all episodes concurrently from multiple tasks
     let mut handles = vec![];
     for episode_id in episode_ids {
         let mem = memory.clone();
@@ -637,17 +656,18 @@ async fn verify_concurrent_episode_completion() {
 
     println!("Completed 50 episodes concurrently in {:?}", elapsed);
 
+    // Then: All episodes should be completed successfully
     let (_, completed, _) = memory.get_stats().await;
     assert_eq!(completed, 50);
 }
 
 #[tokio::test]
-async fn verify_concurrent_retrieval() {
+async fn should_handle_concurrent_retrievals_efficiently() {
+    // Given: Memory system with 100 episodes
     let memory = Arc::new(setup_memory_with_n_episodes(100).await);
-
     let start = Instant::now();
 
-    // Run 50 concurrent retrievals
+    // When: Running 50 concurrent retrieval queries
     let mut handles = vec![];
     for i in 0..50 {
         let mem = memory.clone();
@@ -658,6 +678,7 @@ async fn verify_concurrent_retrieval() {
         handles.push(handle);
     }
 
+    // Then: All retrievals should complete successfully
     for handle in handles {
         let results = handle.await.unwrap();
         assert!(results.len() <= 10);
@@ -667,7 +688,7 @@ async fn verify_concurrent_retrieval() {
 
     println!("Executed 50 concurrent retrievals in {:?}", elapsed);
 
-    // Should be fast (< 500ms)
+    // Then: Concurrent retrievals should be fast (<500ms)
     assert!(
         elapsed.as_millis() < 500,
         "Concurrent retrievals took {}ms",
@@ -680,16 +701,16 @@ async fn verify_concurrent_retrieval() {
 // ============================================================================
 
 #[tokio::test]
-async fn verify_step_logging_performance() {
+async fn should_log_steps_very_quickly() {
+    // Given: Memory system with an active episode
     let memory = setup_test_memory();
-
     let episode_id = memory
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await;
 
     let mut step_times = vec![];
 
-    // Log 100 steps
+    // When: Logging 100 execution steps
     for i in 1..=100 {
         let step = create_test_step(i);
         let start = Instant::now();
@@ -697,11 +718,11 @@ async fn verify_step_logging_performance() {
         step_times.push(start.elapsed());
     }
 
+    // Then: Average step logging should be very fast (<5ms)
     let avg_time: Duration = step_times.iter().sum::<Duration>() / step_times.len() as u32;
 
     println!("Average step logging time: {:?}", avg_time);
 
-    // Should be very fast (< 5ms)
     assert!(
         avg_time.as_millis() < 5,
         "Step logging too slow: {}ms",
@@ -710,11 +731,12 @@ async fn verify_step_logging_performance() {
 }
 
 #[tokio::test]
-async fn verify_episode_completion_performance() {
+async fn should_complete_episodes_quickly_with_pattern_extraction() {
+    // Given: Memory system
     let memory = setup_test_memory();
-
     let mut completion_times = vec![];
 
+    // When: Creating and completing 50 episodes with steps
     for i in 0..50 {
         let episode_id = memory
             .start_episode(
@@ -743,12 +765,12 @@ async fn verify_episode_completion_performance() {
         completion_times.push(start.elapsed());
     }
 
+    // Then: Average completion time should be fast (<100ms including pattern extraction)
     let avg_time: Duration =
         completion_times.iter().sum::<Duration>() / completion_times.len() as u32;
 
     println!("Average episode completion time: {:?}", avg_time);
 
-    // Should complete in reasonable time (< 100ms with pattern extraction)
     assert!(
         avg_time.as_millis() < 100,
         "Episode completion too slow: {}ms",

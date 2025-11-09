@@ -1,4 +1,9 @@
-//! Integration tests for storage synchronization
+//! BDD-style integration tests for storage synchronization between Turso and redb
+//!
+//! Tests verify that the memory system correctly synchronizes episodes, patterns,
+//! and heuristics between durable storage (Turso) and cache (redb).
+//!
+//! All tests follow the Given-When-Then pattern for clarity.
 
 use memory_core::sync::{ConflictResolution, StorageSynchronizer, SyncConfig};
 use memory_core::{Episode, TaskContext, TaskType};
@@ -34,38 +39,38 @@ async fn create_test_redb() -> anyhow::Result<(RedbStorage, TempDir)> {
 }
 
 #[tokio::test]
-async fn test_sync_episode_to_cache() {
+async fn should_sync_single_episode_from_turso_to_redb_cache() {
+    // Given: A synchronizer with Turso and redb storage
     let (turso, _turso_dir) = create_test_turso().await.unwrap();
     let (redb, _redb_dir) = create_test_redb().await.unwrap();
-
-    // Create synchronizer
     let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb));
 
-    // Create and store an episode in Turso
+    // Given: An episode stored in Turso
     let context = TaskContext::default();
     let episode = Episode::new("Test task".to_string(), context, TaskType::Testing);
     let episode_id = episode.episode_id;
-
     sync.turso.store_episode(&episode).await.unwrap();
 
-    // Sync to cache
+    // When: Syncing the episode to cache
     let result = sync.sync_episode_to_cache(episode_id).await;
+
+    // Then: Sync should succeed
     assert!(result.is_ok(), "Sync should succeed");
 
-    // Verify it's in cache
+    // Then: Episode should be available in redb cache
     let cached = sync.redb.get_episode(episode_id).await.unwrap();
     assert!(cached.is_some(), "Episode should be in cache");
     assert_eq!(cached.unwrap().episode_id, episode_id);
 }
 
 #[tokio::test]
-async fn test_sync_all_recent_episodes() {
+async fn should_sync_all_recent_episodes_in_batch() {
+    // Given: A synchronizer with Turso and redb storage
     let (turso, _turso_dir) = create_test_turso().await.unwrap();
     let (redb, _redb_dir) = create_test_redb().await.unwrap();
-
     let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb));
 
-    // Create multiple episodes in Turso
+    // Given: Multiple episodes stored in Turso
     let context = TaskContext::default();
     let mut episode_ids = Vec::new();
 
@@ -79,15 +84,15 @@ async fn test_sync_all_recent_episodes() {
         sync.turso.store_episode(&episode).await.unwrap();
     }
 
-    // Sync all recent episodes (since 1 hour ago)
+    // When: Syncing all recent episodes (since 1 hour ago)
     let since = chrono::Utc::now() - chrono::Duration::hours(1);
     let stats = sync.sync_all_recent_episodes(since).await.unwrap();
 
-    // Verify all episodes were synced
+    // Then: All episodes should be synced successfully
     assert_eq!(stats.episodes_synced, 5, "Should sync all 5 episodes");
     assert_eq!(stats.errors, 0, "Should have no errors");
 
-    // Verify they're all in cache
+    // Then: All episodes should be available in cache
     for episode_id in episode_ids {
         let cached = sync.redb.get_episode(episode_id).await.unwrap();
         assert!(
@@ -99,26 +104,27 @@ async fn test_sync_all_recent_episodes() {
 }
 
 #[tokio::test]
-async fn test_sync_state_tracking() {
+async fn should_track_sync_state_and_statistics() {
+    // Given: A synchronizer with Turso and redb storage
     let (turso, _turso_dir) = create_test_turso().await.unwrap();
     let (redb, _redb_dir) = create_test_redb().await.unwrap();
-
     let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb));
 
-    // Initial state
+    // Then: Initial state should have zero syncs
     let state = sync.get_sync_state().await;
     assert_eq!(state.sync_count, 0);
     assert!(state.last_sync.is_none());
 
-    // Create and sync an episode
+    // Given: An episode stored in Turso
     let context = TaskContext::default();
     let episode = Episode::new("Test task".to_string(), context, TaskType::Testing);
     sync.turso.store_episode(&episode).await.unwrap();
 
+    // When: Syncing all recent episodes
     let since = chrono::Utc::now() - chrono::Duration::hours(1);
     sync.sync_all_recent_episodes(since).await.unwrap();
 
-    // Check state was updated
+    // Then: Sync state should be updated with accurate statistics
     let state = sync.get_sync_state().await;
     assert_eq!(state.sync_count, 1);
     assert!(state.last_sync.is_some());
@@ -126,32 +132,30 @@ async fn test_sync_state_tracking() {
 }
 
 #[tokio::test]
-async fn test_periodic_sync() {
+async fn should_run_periodic_background_sync_automatically() {
+    // Given: A synchronizer with Turso and redb storage
     let (turso, _turso_dir) = create_test_turso().await.unwrap();
     let (redb, _redb_dir) = create_test_redb().await.unwrap();
-
     let sync = Arc::new(StorageSynchronizer::new(Arc::new(turso), Arc::new(redb)));
 
-    // Create an episode
+    // Given: An episode stored in Turso
     let context = TaskContext::default();
     let episode = Episode::new("Test task".to_string(), context, TaskType::Testing);
     let episode_id = episode.episode_id;
     sync.turso.store_episode(&episode).await.unwrap();
 
-    // Start periodic sync with short interval (100ms for testing)
+    // When: Starting periodic sync with short interval (100ms for testing)
     let handle = sync.clone().start_periodic_sync(Duration::from_millis(100));
 
-    // Wait for a couple of sync cycles
+    // When: Waiting for a couple of sync cycles
     tokio::time::sleep(Duration::from_millis(300)).await;
-
-    // Abort the background task
     handle.abort();
 
-    // Verify the episode was synced
+    // Then: The episode should be automatically synced to cache
     let cached = sync.redb.get_episode(episode_id).await.unwrap();
     assert!(cached.is_some(), "Episode should be synced to cache");
 
-    // Verify sync state
+    // Then: Sync state should reflect multiple syncs
     let state = sync.get_sync_state().await;
     assert!(
         state.sync_count > 0,
@@ -160,21 +164,23 @@ async fn test_periodic_sync() {
 }
 
 #[tokio::test]
-async fn test_sync_with_missing_episode() {
+async fn should_handle_missing_episode_gracefully() {
+    // Given: A synchronizer with Turso and redb storage
     let (turso, _turso_dir) = create_test_turso().await.unwrap();
     let (redb, _redb_dir) = create_test_redb().await.unwrap();
-
     let sync = StorageSynchronizer::new(Arc::new(turso), Arc::new(redb));
 
-    // Try to sync a non-existent episode
+    // When: Attempting to sync a non-existent episode
     let fake_id = uuid::Uuid::new_v4();
     let result = sync.sync_episode_to_cache(fake_id).await;
 
+    // Then: Should return an error for missing episode
     assert!(result.is_err(), "Should fail for missing episode");
 }
 
 #[test]
-fn test_conflict_resolution_turso_wins() {
+fn should_resolve_conflicts_with_turso_wins_strategy() {
+    // Given: Two episodes with same ID but different content
     let context = TaskContext::default();
     let episode1 = Episode::new(
         "Task from Turso".to_string(),
@@ -182,18 +188,22 @@ fn test_conflict_resolution_turso_wins() {
         TaskType::Testing,
     );
     let mut episode2 = Episode::new("Task from redb".to_string(), context, TaskType::Testing);
-    episode2.episode_id = episode1.episode_id; // Same ID, different content
+    episode2.episode_id = episode1.episode_id;
 
+    // When: Resolving conflict with TursoWins strategy
     let resolved = memory_core::sync::resolve_episode_conflict(
         &episode1,
         &episode2,
         ConflictResolution::TursoWins,
     );
+
+    // Then: Turso version should be selected
     assert_eq!(resolved.task_description, "Task from Turso");
 }
 
 #[test]
-fn test_conflict_resolution_redb_wins() {
+fn should_resolve_conflicts_with_redb_wins_strategy() {
+    // Given: Two episodes with same ID but different content
     let context = TaskContext::default();
     let episode1 = Episode::new(
         "Task from Turso".to_string(),
@@ -203,31 +213,34 @@ fn test_conflict_resolution_redb_wins() {
     let mut episode2 = Episode::new("Task from redb".to_string(), context, TaskType::Testing);
     episode2.episode_id = episode1.episode_id;
 
+    // When: Resolving conflict with RedbWins strategy
     let resolved = memory_core::sync::resolve_episode_conflict(
         &episode1,
         &episode2,
         ConflictResolution::RedbWins,
     );
+
+    // Then: Redb version should be selected
     assert_eq!(resolved.task_description, "Task from redb");
 }
 
 #[test]
-fn test_conflict_resolution_most_recent() {
+fn should_resolve_conflicts_with_most_recent_strategy() {
+    // Given: Two episodes with same ID but different timestamps
     let context = TaskContext::default();
-
-    // Create two episodes with different timestamps
     let episode1 = Episode::new("Older task".to_string(), context.clone(), TaskType::Testing);
     let mut episode2 = Episode::new("Newer task".to_string(), context, TaskType::Testing);
     episode2.episode_id = episode1.episode_id;
-
-    // Make episode2 newer by setting end_time
     episode2.end_time = Some(chrono::Utc::now());
 
+    // When: Resolving conflict with MostRecent strategy
     let resolved = memory_core::sync::resolve_episode_conflict(
         &episode1,
         &episode2,
         ConflictResolution::MostRecent,
     );
+
+    // Then: The newer episode should be selected
     assert_eq!(
         resolved.task_description, "Newer task",
         "Should choose the newer episode"
@@ -235,8 +248,11 @@ fn test_conflict_resolution_most_recent() {
 }
 
 #[test]
-fn test_sync_config_default() {
+fn should_provide_sensible_default_sync_configuration() {
+    // Given: Default sync configuration
     let config = SyncConfig::default();
+
+    // Then: Should have reasonable default values
     assert_eq!(config.sync_interval, Duration::from_secs(300));
     assert_eq!(config.batch_size, 100);
     assert!(config.sync_patterns);

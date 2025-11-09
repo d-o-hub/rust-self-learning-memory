@@ -43,7 +43,10 @@ impl Default for IsolationConfig {
 }
 
 /// Apply process isolation to a command
-pub fn apply_isolation(mut cmd: Command, config: &IsolationConfig) -> Result<Command> {
+pub fn apply_isolation(
+    #[cfg_attr(not(unix), allow(unused_mut))] mut cmd: Command,
+    config: &IsolationConfig,
+) -> Result<Command> {
     // On Unix systems, we can apply resource limits and privilege dropping
     #[cfg(unix)]
     {
@@ -155,6 +158,7 @@ pub fn apply_isolation(mut cmd: Command, config: &IsolationConfig) -> Result<Com
 }
 
 /// Escape shell arguments for safe inclusion in commands
+#[cfg(unix)]
 fn shell_escape(arg: &str) -> String {
     // Simple shell escaping - wrap in single quotes and escape embedded quotes
     format!("'{}'", arg.replace('\'', "'\\''"))
@@ -225,6 +229,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)]
     fn test_shell_escape() {
         assert_eq!(shell_escape("simple"), "'simple'");
         assert_eq!(shell_escape("with spaces"), "'with spaces'");

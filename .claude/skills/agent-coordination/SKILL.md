@@ -1,6 +1,6 @@
 ---
 name: agent-coordination
-description: Coordinate multiple specialized agents through parallel, sequential, swarm, or hybrid execution strategies. Use this when orchestrating multi-agent workflows, managing dependencies between agents, or optimizing complex task execution with quality gates and validation checkpoints.
+description: Coordinate multiple specialized Skills and Task Agents through parallel, sequential, swarm, or hybrid execution strategies. CRITICAL - Skills use Skill tool (rust-code-quality, architecture-validation, plan-gap-analysis), Task Agents use Task tool (code-reviewer, test-runner, debugger). Use this when orchestrating multi-worker workflows, managing dependencies, or optimizing complex task execution with quality gates.
 ---
 
 # Agent Coordination
@@ -53,18 +53,31 @@ Execution: Sequential messages with context transfer
 **Use When**: Complex problem needs multiple perspectives
 
 **Implementation**:
-- Phase 1: Parallel investigation (multiple agents)
+- Phase 1: Parallel investigation (multiple Skills or Agents)
 - Phase 2: Synthesis (combine findings)
 - Phase 3: Coordinated resolution
 
-**Example**:
+**Example A - Skill-Based Swarm** (Analysis/Review):
+```markdown
+Task: "Validate v0.1.0 implementation quality"
+
+Phase 1 [Parallel Skills]:
+├─ Skill(command="rust-code-quality")
+├─ Skill(command="architecture-validation")
+└─ Skill(command="plan-gap-analysis")
+
+Phase 2: Synthesize findings → identify gaps and issues
+Phase 3: Create prioritized action plan
+```
+
+**Example B - Agent-Based Swarm** (Execution/Testing):
 ```markdown
 Task: "Diagnose performance degradation"
 
-Phase 1 [Parallel]:
-├─ debugger: Profile runtime
-├─ code-reviewer: Analyze code efficiency
-└─ test-runner: Run benchmarks
+Phase 1 [Parallel Agents]:
+├─ Task(subagent_type="debugger", prompt="Profile runtime performance")
+├─ Task(subagent_type="code-reviewer", prompt="Analyze code efficiency")
+└─ Task(subagent_type="test-runner", prompt="Run performance benchmarks")
 
 Phase 2: Synthesize findings → identify root cause
 Phase 3: Apply coordinated fix
@@ -95,17 +108,91 @@ Phase 3 [Parallel]: Validation
 └─ code-reviewer: Final quality check
 ```
 
-## Available Agents
+## CRITICAL: Understanding Skills vs Task Agents
 
-### Agent Capabilities
+**There are TWO different types of workers you can coordinate:**
+
+### Skills (invoked via `Skill` tool)
+Skills are **instruction sets** that guide Claude directly. They provide specialized knowledge and workflows.
+
+**How to invoke**: `Skill(command="skill-name")`
+
+**Available Skills**:
+- `rust-code-quality` - Comprehensive Rust code quality review
+- `architecture-validation` - Validate implementation vs architecture plans
+- `plan-gap-analysis` - Compare plans vs actual implementation
+- `analysis-swarm` - Multi-perspective code analysis (RYAN, FLASH, SOCRATES)
+- `test-fix` - Systematic test debugging and fixing
+- `build-compile` - Build and compilation management
+- `debug-troubleshoot` - Debug async Rust issues
+- `feature-implement` - Feature implementation workflow
+- `storage-sync` - Storage synchronization between Turso and redb
+- `task-decomposition` - Break down complex tasks
+
+### Task Agents (invoked via `Task` tool)
+Task Agents are **autonomous sub-processes** that execute tasks independently using tools.
+
+**How to invoke**: `Task(subagent_type="agent-name", prompt="...", description="...")`
+
+**Available Task Agents**:
 
 | Agent | Best For | Inputs | Outputs |
 |-------|----------|--------|---------|
-| **test-runner** | Testing, verification | Code to test | Test results, coverage |
 | **code-reviewer** | Quality, standards | Code changes | Review report, issues |
+| **test-runner** | Testing, verification | Code to test | Test results, coverage |
 | **feature-implementer** | New functionality | Requirements | Implementation, tests |
 | **refactorer** | Code improvement | Code to refactor | Improved code |
 | **debugger** | Issue diagnosis | Issue description | Root cause, fix |
+| **agent-creator** | Create new agents | Agent requirements | New agent file |
+| **goap-agent** | Complex multi-step tasks | Task description | Coordinated execution |
+| **analysis-swarm** | Multi-perspective analysis | Code/design to analyze | Consensus analysis |
+
+### When to Use Which?
+
+**Use Skills when**:
+- You need specialized knowledge/workflow guidance
+- The task requires deep domain expertise (Rust quality, architecture validation)
+- You want to follow a proven methodology
+- Examples: Code quality review, gap analysis, architecture validation
+
+**Use Task Agents when**:
+- You need autonomous task execution
+- The task requires tool usage (Read, Edit, Bash, etc.)
+- You want parallel/independent execution
+- Examples: Running tests, implementing features, debugging
+
+### Common Coordination Patterns
+
+**Pattern 1: Skill-Based Swarm** (for analysis tasks)
+```
+Phase 1 [Parallel Skills]:
+├─ Skill(command="rust-code-quality")
+├─ Skill(command="architecture-validation")
+└─ Skill(command="plan-gap-analysis")
+
+Phase 2: Synthesize findings
+Phase 3: Create action plan
+```
+
+**Pattern 2: Agent-Based Swarm** (for execution tasks)
+```
+Phase 1 [Parallel Agents]:
+├─ Task(subagent_type="code-reviewer", ...)
+├─ Task(subagent_type="test-runner", ...)
+└─ Task(subagent_type="debugger", ...)
+
+Phase 2: Aggregate results
+Phase 3: Apply fixes
+```
+
+**Pattern 3: Hybrid Coordination** (combine Skills and Agents)
+```
+Phase 1: Skill(command="task-decomposition")  # Plan the work
+Phase 2 [Parallel Agents]:                     # Execute in parallel
+├─ Task(subagent_type="feature-implementer", ...)
+└─ Task(subagent_type="test-runner", ...)
+Phase 3: Skill(command="rust-code-quality")   # Validate quality
+```
 
 ## Coordination Workflow
 
@@ -226,20 +313,24 @@ Success criteria: [how to validate]"
 ## Best Practices
 
 ### DO:
+✓ Use **Skill tool** for analysis/review tasks (rust-code-quality, architecture-validation, plan-gap-analysis)
+✓ Use **Task tool** for execution tasks (code-reviewer, test-runner, feature-implementer)
 ✓ Choose appropriate strategy for task dependencies
-✓ Match agents to tasks based on capabilities
+✓ Match workers (Skills/Agents) to tasks based on capabilities
 ✓ Validate at quality gates before proceeding
-✓ Provide clear context in agent handoffs
+✓ Provide clear context in handoffs
 ✓ Monitor progress during execution
 ✓ Handle errors gracefully with recovery
 ✓ Aggregate results comprehensively
 
 ### DON'T:
+✗ **Use Task tool with skill names** (e.g., Task(subagent_type="rust-code-quality") → ERROR!)
+✗ **Use Skill tool with agent names** (e.g., Skill(command="code-reviewer") → May not work as expected)
 ✗ Force parallel execution when dependencies exist
-✗ Assign tasks to inappropriate agents
+✗ Assign tasks to inappropriate workers
 ✗ Skip quality validation
 ✗ Proceed after failed quality gates
-✗ Provide insufficient context to agents
+✗ Provide insufficient context
 
 ## Coordination Metrics
 
@@ -263,11 +354,60 @@ The GOAP agent uses this skill as its core coordination engine:
 4. Execute coordination (this skill + parallel-execution skill)
 5. Validate and report (this skill)
 
+## Troubleshooting Common Errors
+
+### Error: "Agent type 'X' not found"
+
+**Cause**: Trying to use a **Skill name** with the **Task tool**
+
+**Example of Error**:
+```
+Task(subagent_type="rust-code-quality", ...)
+→ ERROR: Agent type 'rust-code-quality' not found
+```
+
+**Solution**: Use the **Skill tool** instead:
+```
+Skill(command="rust-code-quality")
+→ SUCCESS
+```
+
+**Available Task Agents ONLY**:
+- code-reviewer
+- test-runner
+- feature-implementer
+- refactorer
+- debugger
+- agent-creator
+- goap-agent
+- analysis-swarm
+
+**Everything else is a Skill** - use `Skill(command="...")`
+
+### Quick Reference: Which Tool to Use?
+
+| Task Type | Tool | Example |
+|-----------|------|---------|
+| Rust code quality review | **Skill** | `Skill(command="rust-code-quality")` |
+| Architecture validation | **Skill** | `Skill(command="architecture-validation")` |
+| Plan gap analysis | **Skill** | `Skill(command="plan-gap-analysis")` |
+| Multi-perspective analysis | **Skill** | `Skill(command="analysis-swarm")` |
+| Run tests | **Task** | `Task(subagent_type="test-runner", ...)` |
+| Review code changes | **Task** | `Task(subagent_type="code-reviewer", ...)` |
+| Implement feature | **Task** | `Task(subagent_type="feature-implementer", ...)` |
+| Debug issues | **Task** | `Task(subagent_type="debugger", ...)` |
+| Refactor code | **Task** | `Task(subagent_type="refactorer", ...)` |
+
+### Mnemonic
+- **Skills** = Knowledge/Methodology (invoked with `Skill` tool)
+- **Agents** = Autonomous Executors (invoked with `Task` tool)
+
 ## Summary
 
 Effective agent coordination requires:
+- **Right tool** (Skill vs Task) for the worker type
 - **Right strategy** for the task structure
-- **Right agents** for each sub-task
+- **Right workers** (Skills/Agents) for each sub-task
 - **Clear communication** and context transfer
 - **Quality validation** at key checkpoints
 - **Graceful error handling** and recovery

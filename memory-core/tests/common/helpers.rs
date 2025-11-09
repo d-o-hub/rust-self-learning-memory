@@ -1,8 +1,8 @@
 //! Helper functions for common test operations
 
 use memory_core::{
-    memory::SelfLearningMemory, ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig,
-    Pattern, TaskContext, TaskOutcome, TaskType,
+    memory::SelfLearningMemory, ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext,
+    TaskOutcome, TaskType,
 };
 use uuid::Uuid;
 
@@ -33,6 +33,7 @@ pub fn setup_test_memory() -> SelfLearningMemory {
 /// };
 /// let memory = setup_memory_with_config(config);
 /// ```
+#[allow(dead_code)]
 pub fn setup_memory_with_config(config: MemoryConfig) -> SelfLearningMemory {
     SelfLearningMemory::with_config(config)
 }
@@ -193,6 +194,7 @@ pub fn create_test_step(step_number: usize) -> ExecutionStep {
 /// ```ignore
 /// let episode_id = create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
 /// ```
+#[allow(dead_code)]
 pub async fn create_completed_episode_with_pattern(
     memory: &SelfLearningMemory,
     pattern_type: PatternType,
@@ -205,6 +207,7 @@ pub async fn create_completed_episode_with_pattern(
 }
 
 /// Pattern type for test episode creation
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PatternType {
     ErrorRecovery,
@@ -213,6 +216,7 @@ pub enum PatternType {
 }
 
 /// Create an episode with error recovery pattern
+#[allow(dead_code)]
 async fn create_error_recovery_episode(memory: &SelfLearningMemory) -> Uuid {
     let context = ContextBuilder::new("error-handling")
         .language("rust")
@@ -254,6 +258,7 @@ async fn create_error_recovery_episode(memory: &SelfLearningMemory) -> Uuid {
 }
 
 /// Create an episode with tool sequence pattern
+#[allow(dead_code)]
 async fn create_tool_sequence_episode(memory: &SelfLearningMemory) -> Uuid {
     let context = ContextBuilder::new("api-testing")
         .language("rust")
@@ -302,17 +307,12 @@ async fn create_tool_sequence_episode(memory: &SelfLearningMemory) -> Uuid {
 }
 
 /// Create an episode with decision point pattern
+#[allow(dead_code)]
 async fn create_decision_point_episode(memory: &SelfLearningMemory) -> Uuid {
-    let context = ContextBuilder::new("api-testing")
-        .language("rust")
-        .build();
+    let context = ContextBuilder::new("api-testing").language("rust").build();
 
     let episode_id = memory
-        .start_episode(
-            "Check cache".to_string(),
-            context,
-            TaskType::CodeGeneration,
-        )
+        .start_episode("Check cache".to_string(), context, TaskType::CodeGeneration)
         .await;
 
     memory

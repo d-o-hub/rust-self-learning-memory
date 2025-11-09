@@ -131,7 +131,8 @@ async fn should_handle_large_inputs_without_data_loss() {
 
         // When: We add many steps
         for i in 0..test_case.step_count {
-            let mut step_builder = StepBuilder::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
+            let mut step_builder =
+                StepBuilder::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
 
             // Add large JSON parameters if needed
             if test_case.json_params_count > 0 && i == 0 {
@@ -257,11 +258,7 @@ async fn should_handle_special_characters_and_edge_cases_gracefully() {
 
         // When: We log steps with special characters (if applicable)
         if test_case.should_test_in_step {
-            let mut step = ExecutionStep::new(
-                1,
-                test_case.tool.clone(),
-                test_case.action.clone(),
-            );
+            let mut step = ExecutionStep::new(1, test_case.tool.clone(), test_case.action.clone());
             step.result = Some(ExecutionResult::Success {
                 output: format!("Output for {}", test_case.name),
             });

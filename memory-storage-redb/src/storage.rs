@@ -24,6 +24,8 @@ impl RedbStorage {
         let episode_bytes = bincode::serialize(episode)
             .map_err(|e| Error::Storage(format!("Failed to serialize episode: {}", e)))?;
 
+        let byte_size = episode_bytes.len();
+
         tokio::task::spawn_blocking(move || {
             let write_txn = db
                 .begin_write()
@@ -48,6 +50,11 @@ impl RedbStorage {
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
 
+        // Record cache miss (new item being added)
+        self.cache
+            .record_access(episode.episode_id, false, Some(byte_size))
+            .await;
+
         info!("Successfully cached episode: {}", episode.episode_id);
         Ok(())
     }
@@ -58,7 +65,7 @@ impl RedbStorage {
         let db = Arc::clone(&self.db);
         let episode_id_str = episode_id.to_string();
 
-        tokio::task::spawn_blocking(move || {
+        let result = tokio::task::spawn_blocking(move || {
             let read_txn = db
                 .begin_read()
                 .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
@@ -76,13 +83,19 @@ impl RedbStorage {
                     let episode: Episode = bincode::deserialize(bytes).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize episode: {}", e))
                     })?;
-                    Ok(Some(episode))
+                    Ok::<Option<Episode>, Error>(Some(episode))
                 }
-                None => Ok(None),
+                None => Ok::<Option<Episode>, Error>(None),
             }
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+
+        // Record cache access (hit if found, miss if not)
+        let is_hit = result.is_some();
+        self.cache.record_access(episode_id, is_hit, None).await;
+
+        Ok(result)
     }
 
     /// Get all episodes from cache (with optional limit)
@@ -156,6 +169,9 @@ impl RedbStorage {
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+
+        // Remove from cache tracking
+        self.cache.remove(episode_id).await;
 
         info!("Deleted episode from cache: {}", episode_id);
         Ok(())

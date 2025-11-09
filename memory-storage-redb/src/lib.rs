@@ -29,9 +29,11 @@ use std::sync::Arc;
 use tracing::info;
 use uuid::Uuid;
 
+mod cache;
 mod storage;
 mod tables;
 
+pub use cache::{CacheConfig, CacheMetrics, LRUCache};
 pub use storage::RedbQuery;
 
 // Table definitions
@@ -46,10 +48,11 @@ pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition:
 /// redb storage backend for fast caching
 pub struct RedbStorage {
     pub(crate) db: Arc<Database>,
+    pub(crate) cache: LRUCache,
 }
 
 impl RedbStorage {
-    /// Create a new redb storage instance
+    /// Create a new redb storage instance with default cache configuration
     ///
     /// # Arguments
     ///
@@ -66,6 +69,33 @@ impl RedbStorage {
     /// # }
     /// ```
     pub async fn new(path: &Path) -> Result<Self> {
+        Self::new_with_cache_config(path, CacheConfig::default()).await
+    }
+
+    /// Create a new redb storage instance with custom cache configuration
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Path to the redb database file
+    /// * `cache_config` - Cache configuration settings
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_redb::{RedbStorage, CacheConfig};
+    /// # use std::path::Path;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let config = CacheConfig {
+    ///     max_size: 500,
+    ///     default_ttl_secs: 1800,
+    ///     cleanup_interval_secs: 600,
+    ///     enable_background_cleanup: true,
+    /// };
+    /// let storage = RedbStorage::new_with_cache_config(Path::new("./memory.redb"), config).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn new_with_cache_config(path: &Path, cache_config: CacheConfig) -> Result<Self> {
         info!("Opening redb database at {}", path.display());
 
         // Use spawn_blocking for synchronous redb initialization
@@ -77,12 +107,16 @@ impl RedbStorage {
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
 
-        let storage = Self { db: Arc::new(db) };
+        let cache = LRUCache::new(cache_config);
+        let storage = Self {
+            db: Arc::new(db),
+            cache,
+        };
 
         // Initialize tables
         storage.initialize_tables().await?;
 
-        info!("Successfully opened redb database");
+        info!("Successfully opened redb database with LRU cache");
         Ok(storage)
     }
 
@@ -183,9 +217,45 @@ impl RedbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
     }
 
+    /// Get cache metrics
+    ///
+    /// Returns current cache performance metrics including hit rate, miss rate,
+    /// eviction count, and size statistics.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_redb::RedbStorage;
+    /// # use std::path::Path;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// # let storage = RedbStorage::new(Path::new("./memory.redb")).await?;
+    /// let metrics = storage.get_cache_metrics().await;
+    /// println!("Cache hit rate: {:.2}%", metrics.hit_rate * 100.0);
+    /// println!("Cache size: {} items, {} bytes", metrics.item_count, metrics.total_size_bytes);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_cache_metrics(&self) -> CacheMetrics {
+        self.cache.get_metrics().await
+    }
+
+    /// Manually trigger cache cleanup to remove expired entries
+    ///
+    /// Returns the number of expired entries removed.
+    ///
+    /// This is useful for testing or when you want to force cleanup
+    /// without waiting for the background task.
+    pub async fn cleanup_cache(&self) -> usize {
+        self.cache.cleanup_expired().await
+    }
+
     /// Clear all cached data (use with caution!)
     pub async fn clear_all(&self) -> Result<()> {
         info!("Clearing all cached data from redb");
+
+        // Clear the LRU cache metadata
+        self.cache.clear().await;
+
         let db = Arc::clone(&self.db);
 
         tokio::task::spawn_blocking(move || {

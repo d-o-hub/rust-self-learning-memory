@@ -6,9 +6,7 @@ use test_utils::*;
 
 fn benchmark_episode_creation(c: &mut Criterion) {
     c.bench_function("episode_creation", |b| {
-        b.iter(|| {
-            create_test_episode(black_box("Benchmark task"))
-        });
+        b.iter(|| create_test_episode(black_box("Benchmark task")));
     });
 }
 
@@ -16,7 +14,7 @@ fn benchmark_add_step(c: &mut Criterion) {
     c.bench_function("add_execution_step", |b| {
         let mut episode = create_test_episode("Test");
         let mut counter = 0;
-        
+
         b.iter(|| {
             counter += 1;
             let step = create_test_step(counter);
@@ -43,21 +41,19 @@ fn benchmark_episode_completion(c: &mut Criterion) {
 
 fn benchmark_reward_calculation(c: &mut Criterion) {
     let episode = create_completed_episode("Test", true);
-    
+    let calculator = memory_core::reward::RewardCalculator::new();
+
     c.bench_function("reward_calculation", |b| {
-        b.iter(|| {
-            compute_reward_score(black_box(&episode))
-        });
+        b.iter(|| calculator.calculate(black_box(&episode)));
     });
 }
 
 fn benchmark_reflection_generation(c: &mut Criterion) {
     let episode = create_completed_episode("Test", true);
-    
+    let generator = memory_core::reflection::ReflectionGenerator::new();
+
     c.bench_function("reflection_generation", |b| {
-        b.iter(|| {
-            generate_reflection(black_box(&episode))
-        });
+        b.iter(|| generator.generate(black_box(&episode)));
     });
 }
 

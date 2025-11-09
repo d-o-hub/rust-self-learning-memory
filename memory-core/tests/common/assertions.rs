@@ -1,6 +1,6 @@
 //! Assertion helpers for common test validations
 
-use memory_core::{Episode, Pattern, RewardScore};
+use memory_core::{Episode, RewardScore};
 
 /// Assert that an episode has been completed
 ///
@@ -116,6 +116,7 @@ pub fn assert_reward_is_failure(reward: &RewardScore) {
 /// let reward = episode.reward.unwrap();
 /// assert_reward_is_partial(&reward);
 /// ```
+#[allow(dead_code)]
 pub fn assert_reward_is_partial(reward: &RewardScore) {
     assert!(
         reward.base > 0.0 && reward.base < 1.0,
@@ -136,6 +137,7 @@ pub fn assert_reward_is_partial(reward: &RewardScore) {
 /// let episode = memory.get_episode(episode_id).await.unwrap();
 /// assert_has_patterns(&episode);
 /// ```
+#[allow(dead_code)]
 pub fn assert_has_patterns(episode: &Episode) {
     assert!(
         !episode.patterns.is_empty(),
@@ -156,6 +158,7 @@ pub fn assert_has_patterns(episode: &Episode) {
 /// let episode = memory.get_episode(episode_id).await.unwrap();
 /// assert_min_patterns(&episode, 2);
 /// ```
+#[allow(dead_code)]
 pub fn assert_min_patterns(episode: &Episode, min_count: usize) {
     assert!(
         episode.patterns.len() >= min_count,
@@ -213,9 +216,9 @@ pub fn assert_min_steps(episode: &Episode, min_count: usize) {
 
 #[cfg(test)]
 mod tests {
+    use super::super::fixtures::test_context;
     use super::*;
     use memory_core::{Episode, TaskType};
-    use super::super::fixtures::test_context;
 
     #[tokio::test]
     async fn test_assert_episode_completed() {
@@ -286,11 +289,7 @@ mod tests {
 
     #[test]
     fn test_assert_step_count() {
-        let mut episode = Episode::new(
-            "test".to_string(),
-            test_context(),
-            TaskType::Testing,
-        );
+        let mut episode = Episode::new("test".to_string(), test_context(), TaskType::Testing);
 
         episode.add_step(super::super::helpers::create_test_step(1));
         episode.add_step(super::super::helpers::create_test_step(2));

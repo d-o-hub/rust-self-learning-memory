@@ -595,11 +595,13 @@ fn should_extract_patterns_by_type_with_minimum_accuracy() {
         // Filter extracted patterns by type
         let extracted_by_type: Vec<_> = all_extracted
             .iter()
-            .filter(|p| match (pattern_name, p) {
-                ("ToolSequence", Pattern::ToolSequence { .. }) => true,
-                ("DecisionPoint", Pattern::DecisionPoint { .. }) => true,
-                ("ErrorRecovery", Pattern::ErrorRecovery { .. }) => true,
-                _ => false,
+            .filter(|p| {
+                matches!(
+                    (pattern_name, p),
+                    ("ToolSequence", Pattern::ToolSequence { .. })
+                        | ("DecisionPoint", Pattern::DecisionPoint { .. })
+                        | ("ErrorRecovery", Pattern::ErrorRecovery { .. })
+                )
             })
             .cloned()
             .collect();

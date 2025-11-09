@@ -99,6 +99,7 @@ fn benchmark_concurrent_writes(c: &mut Criterion) {
     let mut group = c.benchmark_group("concurrent_writes");
 
     // Only testing single write for now due to SQLite write locking limitations in local benchmarks
+    #[allow(clippy::single_element_loop)]
     for concurrency in [1].iter() {
         let (storage, _dir) = create_bench_storage();
         let storage = std::sync::Arc::new(storage);

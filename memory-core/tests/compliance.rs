@@ -219,7 +219,8 @@ async fn should_score_partial_success_between_failure_and_success() {
 async fn should_extract_patterns_from_completed_episodes() {
     // Given: A memory system with a completed episode containing clear patterns
     let memory = setup_test_memory();
-    let episode_id = create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
+    let episode_id =
+        create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
 
     // When: We retrieve the completed episode
     let episode = memory.get_episode(episode_id).await.unwrap();
@@ -344,9 +345,7 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
     // Given: A memory system with episodes in different languages
     let memory3 = setup_test_memory();
     for lang in ["rust", "python", "typescript"] {
-        let context = ContextBuilder::new("code-gen")
-            .language(lang)
-            .build();
+        let context = ContextBuilder::new("code-gen").language(lang).build();
 
         for _ in 0..5 {
             let episode_id = memory3
@@ -371,9 +370,7 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
     }
 
     // When: We query for rust-specific episodes
-    let rust_context = ContextBuilder::new("code-gen")
-        .language("rust")
-        .build();
+    let rust_context = ContextBuilder::new("code-gen").language("rust").build();
     let results = memory3
         .retrieve_relevant_context("task".to_string(), rust_context, 10)
         .await;

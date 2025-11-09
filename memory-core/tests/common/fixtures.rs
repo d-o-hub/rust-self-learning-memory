@@ -1,6 +1,6 @@
 //! Test fixtures and builder patterns for common test data structures
 
-use memory_core::{ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext, TaskType};
+use memory_core::{ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext};
 use serde_json::json;
 use std::collections::HashMap;
 
@@ -62,12 +62,6 @@ impl ContextBuilder {
         self
     }
 
-    /// Set all tags at once
-    pub fn tags(mut self, tags: Vec<String>) -> Self {
-        self.tags = tags;
-        self
-    }
-
     /// Build the TaskContext
     pub fn build(self) -> TaskContext {
         TaskContext {
@@ -105,11 +99,7 @@ pub struct StepBuilder {
 
 impl StepBuilder {
     /// Create a new StepBuilder
-    pub fn new(
-        step_number: usize,
-        tool: impl Into<String>,
-        action: impl Into<String>,
-    ) -> Self {
+    pub fn new(step_number: usize, tool: impl Into<String>, action: impl Into<String>) -> Self {
         Self {
             step_number,
             tool: tool.into(),
@@ -179,7 +169,7 @@ impl StepBuilder {
 }
 
 /// Pre-configured test contexts for common scenarios
-
+///
 /// Standard Rust/Tokio test context
 pub fn rust_context() -> TaskContext {
     ContextBuilder::new("testing")

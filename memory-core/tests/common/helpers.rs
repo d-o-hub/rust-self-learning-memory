@@ -1,8 +1,8 @@
 //! Helper functions for common test operations
 
 use memory_core::{
-    memory::SelfLearningMemory, ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig,
-    Pattern, TaskContext, TaskOutcome, TaskType,
+    memory::SelfLearningMemory, ComplexityLevel, ExecutionStep, TaskContext, TaskOutcome,
+    TaskType,
 };
 use uuid::Uuid;
 
@@ -17,24 +17,6 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 /// ```
 pub fn setup_test_memory() -> SelfLearningMemory {
     SelfLearningMemory::new()
-}
-
-/// Create a memory instance with custom configuration
-///
-/// # Examples
-///
-/// ```ignore
-/// let config = MemoryConfig {
-///     storage: StorageConfig {
-///         max_episodes_cache: 500,
-///         ..Default::default()
-///     },
-///     ..Default::default()
-/// };
-/// let memory = setup_memory_with_config(config);
-/// ```
-pub fn setup_memory_with_config(config: MemoryConfig) -> SelfLearningMemory {
-    SelfLearningMemory::with_config(config)
 }
 
 /// Create a memory instance pre-populated with N episodes
@@ -186,13 +168,23 @@ pub fn create_test_step(step_number: usize) -> ExecutionStep {
     .build()
 }
 
-/// Create a completed episode with a clear error recovery pattern
+/// Pattern type for test episode creation
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
+pub enum PatternType {
+    ErrorRecovery,
+    ToolSequence,
+    DecisionPoint,
+}
+
+/// Create a completed episode with a clear pattern
 ///
 /// # Examples
 ///
 /// ```ignore
 /// let episode_id = create_completed_episode_with_pattern(&memory, PatternType::ErrorRecovery).await;
 /// ```
+#[allow(dead_code)]
 pub async fn create_completed_episode_with_pattern(
     memory: &SelfLearningMemory,
     pattern_type: PatternType,
@@ -204,15 +196,8 @@ pub async fn create_completed_episode_with_pattern(
     }
 }
 
-/// Pattern type for test episode creation
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PatternType {
-    ErrorRecovery,
-    ToolSequence,
-    DecisionPoint,
-}
-
 /// Create an episode with error recovery pattern
+#[allow(dead_code)]
 async fn create_error_recovery_episode(memory: &SelfLearningMemory) -> Uuid {
     let context = ContextBuilder::new("error-handling")
         .language("rust")
@@ -254,6 +239,7 @@ async fn create_error_recovery_episode(memory: &SelfLearningMemory) -> Uuid {
 }
 
 /// Create an episode with tool sequence pattern
+#[allow(dead_code)]
 async fn create_tool_sequence_episode(memory: &SelfLearningMemory) -> Uuid {
     let context = ContextBuilder::new("api-testing")
         .language("rust")
@@ -302,17 +288,12 @@ async fn create_tool_sequence_episode(memory: &SelfLearningMemory) -> Uuid {
 }
 
 /// Create an episode with decision point pattern
+#[allow(dead_code)]
 async fn create_decision_point_episode(memory: &SelfLearningMemory) -> Uuid {
-    let context = ContextBuilder::new("api-testing")
-        .language("rust")
-        .build();
+    let context = ContextBuilder::new("api-testing").language("rust").build();
 
     let episode_id = memory
-        .start_episode(
-            "Check cache".to_string(),
-            context,
-            TaskType::CodeGeneration,
-        )
+        .start_episode("Check cache".to_string(), context, TaskType::CodeGeneration)
         .await;
 
     memory

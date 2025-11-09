@@ -1,6 +1,6 @@
 //! Assertion helpers for common test validations
 
-use memory_core::{Episode, Pattern, RewardScore};
+use memory_core::{Episode, RewardScore};
 
 /// Assert that an episode has been completed
 ///
@@ -104,26 +104,6 @@ pub fn assert_reward_is_failure(reward: &RewardScore) {
     );
 }
 
-/// Assert that a reward score is for a partial success
-///
-/// # Panics
-///
-/// Panics if the reward base score is not between 0.0 and 1.0 (exclusive)
-///
-/// # Examples
-///
-/// ```ignore
-/// let reward = episode.reward.unwrap();
-/// assert_reward_is_partial(&reward);
-/// ```
-pub fn assert_reward_is_partial(reward: &RewardScore) {
-    assert!(
-        reward.base > 0.0 && reward.base < 1.0,
-        "Reward base score should be between 0.0 and 1.0 for partial success, got {}",
-        reward.base
-    );
-}
-
 /// Assert that an episode has extracted patterns
 ///
 /// # Panics
@@ -136,33 +116,12 @@ pub fn assert_reward_is_partial(reward: &RewardScore) {
 /// let episode = memory.get_episode(episode_id).await.unwrap();
 /// assert_has_patterns(&episode);
 /// ```
+#[allow(dead_code)]
 pub fn assert_has_patterns(episode: &Episode) {
     assert!(
         !episode.patterns.is_empty(),
         "Episode {} should have extracted patterns",
         episode.episode_id
-    );
-}
-
-/// Assert that an episode has a minimum number of patterns
-///
-/// # Panics
-///
-/// Panics if the episode has fewer than the minimum number of patterns
-///
-/// # Examples
-///
-/// ```ignore
-/// let episode = memory.get_episode(episode_id).await.unwrap();
-/// assert_min_patterns(&episode, 2);
-/// ```
-pub fn assert_min_patterns(episode: &Episode, min_count: usize) {
-    assert!(
-        episode.patterns.len() >= min_count,
-        "Episode {} should have at least {} patterns, found {}",
-        episode.episode_id,
-        min_count,
-        episode.patterns.len()
     );
 }
 
@@ -213,9 +172,9 @@ pub fn assert_min_steps(episode: &Episode, min_count: usize) {
 
 #[cfg(test)]
 mod tests {
+    use super::super::fixtures::test_context;
     use super::*;
     use memory_core::{Episode, TaskType};
-    use super::super::fixtures::test_context;
 
     #[tokio::test]
     async fn test_assert_episode_completed() {
@@ -286,11 +245,7 @@ mod tests {
 
     #[test]
     fn test_assert_step_count() {
-        let mut episode = Episode::new(
-            "test".to_string(),
-            test_context(),
-            TaskType::Testing,
-        );
+        let mut episode = Episode::new("test".to_string(), test_context(), TaskType::Testing);
 
         episode.add_step(super::super::helpers::create_test_step(1));
         episode.add_step(super::super::helpers::create_test_step(2));

@@ -8,6 +8,5 @@ pub mod fixtures;
 pub mod helpers;
 
 // Re-export commonly used items for convenience
-pub use assertions::*;
 pub use fixtures::*;
 pub use helpers::*;

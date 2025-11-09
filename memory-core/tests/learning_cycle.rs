@@ -7,9 +7,8 @@
 mod common;
 
 use common::{
-    api_context, assert_episode_completed, assert_has_patterns, assert_min_patterns,
-    assert_reward_in_range, create_success_step, create_test_context, rust_context,
-    setup_memory_with_n_episodes, setup_test_memory, ContextBuilder, StepBuilder,
+    assertions::{assert_episode_completed, assert_has_patterns, assert_reward_in_range},
+    create_success_step, create_test_context, setup_test_memory, ContextBuilder, StepBuilder,
 };
 use memory_core::memory::SelfLearningMemory;
 use memory_core::{

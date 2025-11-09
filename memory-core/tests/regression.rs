@@ -1,52 +1,22 @@
-//! Regression tests to ensure system doesn't degrade over time
+//! BDD-style regression tests to prevent system degradation
 //!
-//! This test suite validates that:
-//! - Pattern extraction accuracy remains consistent
-//! - Retrieval performance doesn't degrade
-//! - API compatibility is maintained
-//! - Previously fixed bugs don't reoccur
+//! Tests verify that the memory system maintains quality and compatibility over time.
+//!
+//! ## Test Coverage
+//! - Pattern extraction accuracy and type coverage
+//! - Retrieval performance and quality with large datasets
+//! - API and data structure backward compatibility
+//! - Bug regression prevention (duplicate patterns, idempotency, edge cases)
 
-use memory_core::memory::SelfLearningMemory;
+mod common;
+
+use common::{create_test_step, setup_test_memory, test_context};
 use memory_core::{
-    ComplexityLevel, ExecutionResult, ExecutionStep, Pattern, TaskContext, TaskOutcome, TaskType,
+    memory::SelfLearningMemory, ComplexityLevel, ExecutionResult, ExecutionStep, Pattern,
+    TaskContext, TaskOutcome, TaskType,
 };
 use std::time::{Duration, Instant};
 use uuid::Uuid;
-
-// ============================================================================
-// Test Utilities
-// ============================================================================
-
-/// Create test memory
-fn setup_test_memory() -> SelfLearningMemory {
-    SelfLearningMemory::new()
-}
-
-/// Standard test context
-fn test_context() -> TaskContext {
-    TaskContext {
-        language: Some("rust".to_string()),
-        framework: Some("tokio".to_string()),
-        complexity: ComplexityLevel::Moderate,
-        domain: "testing".to_string(),
-        tags: vec!["regression".to_string()],
-    }
-}
-
-/// Create test step
-fn create_test_step(step_number: usize) -> ExecutionStep {
-    let mut step = ExecutionStep::new(
-        step_number,
-        format!("tool_{}", step_number),
-        format!("Action {}", step_number),
-    );
-    step.latency_ms = 10;
-    step.tokens_used = Some(50);
-    step.result = Some(ExecutionResult::Success {
-        output: "Done".to_string(),
-    });
-    step
-}
 
 /// Load or create historical test episodes
 fn load_historical_test_episodes() -> Vec<Episode> {
@@ -336,13 +306,13 @@ async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {
 // ============================================================================
 
 #[tokio::test]
-async fn regression_pattern_extraction_accuracy() {
-    // Ensure pattern extraction doesn't degrade over time
+async fn should_maintain_pattern_extraction_accuracy_over_time() {
+    // Given: Historical test episodes with known patterns
     let test_episodes = load_historical_test_episodes();
     let memory = setup_test_memory();
 
+    // When: Storing episodes and extracting patterns
     for episode in &test_episodes {
-        // Store episode (in real impl)
         let episode_id = memory
             .start_episode(
                 episode.task_description.clone(),
@@ -365,11 +335,11 @@ async fn regression_pattern_extraction_accuracy() {
 
     let reference_patterns = load_reference_patterns();
 
-    // Get patterns by querying relevant context
     let patterns = memory
         .retrieve_relevant_patterns(&TaskContext::default(), 10)
         .await;
 
+    // Then: Pattern extraction accuracy should meet minimum threshold
     let accuracy = calculate_pattern_similarity(&patterns, &reference_patterns);
 
     println!(
@@ -380,18 +350,17 @@ async fn regression_pattern_extraction_accuracy() {
     );
 
     assert!(
-        accuracy > 0.5, // Lower threshold since we're using simplified test
+        accuracy > 0.5,
         "Pattern extraction accuracy degraded to {:.1}%",
         accuracy * 100.0
     );
 }
 
 #[tokio::test]
-async fn regression_pattern_types_coverage() {
-    // Ensure all pattern types can still be extracted
+async fn should_extract_all_pattern_types_correctly() {
+    // Given: Memory system and an episode that should produce ErrorRecovery pattern
     let memory = setup_test_memory();
 
-    // Create episode that should produce ErrorRecovery pattern
     let episode_id = memory
         .start_episode(
             "Error handling".to_string(),
@@ -403,6 +372,7 @@ async fn regression_pattern_types_coverage() {
         )
         .await;
 
+    // When: Logging an error followed by successful recovery
     let mut error_step = ExecutionStep::new(1, "attempt".to_string(), "Try".to_string());
     error_step.result = Some(ExecutionResult::Error {
         message: "Failed".to_string(),
@@ -426,9 +396,9 @@ async fn regression_pattern_types_coverage() {
         .await
         .unwrap();
 
+    // Then: Pattern should be extracted from error recovery episode
     let completed = memory.get_episode(episode_id).await.unwrap();
 
-    // Should have extracted pattern
     assert!(
         !completed.patterns.is_empty(),
         "No patterns extracted from error recovery episode"
@@ -440,12 +410,13 @@ async fn regression_pattern_types_coverage() {
 // ============================================================================
 
 #[tokio::test]
-#[ignore] // Long-running test
-async fn regression_retrieval_performance() {
-    // Ensure memory retrieval remains performant
+#[ignore = "Long-running performance test - run with --include-ignored for full validation"]
+async fn should_maintain_fast_retrieval_with_large_dataset() {
+    // Given: Memory system with 10K episodes and standard test queries
     let memory = setup_memory_with_10k_episodes().await;
     let test_queries = load_standard_test_queries();
 
+    // When: Executing retrieval queries
     let mut total_time = Duration::from_millis(0);
 
     for query in &test_queries {
@@ -460,6 +431,7 @@ async fn regression_retrieval_performance() {
 
     println!("Average retrieval time with 10K episodes: {:?}", avg_time);
 
+    // Then: Average retrieval time should remain under 100ms
     assert!(
         avg_time.as_millis() < 100,
         "Average retrieval time degraded to {}ms",
@@ -468,11 +440,11 @@ async fn regression_retrieval_performance() {
 }
 
 #[tokio::test]
-async fn regression_retrieval_quality() {
-    // Ensure retrieval returns relevant results
+async fn should_retrieve_relevant_episodes_by_domain() {
+    // Given: Memory with episodes in two different domains
     let memory = setup_test_memory();
 
-    // Create episodes in specific domain
+    // Given: 10 web-api episodes with authentication tag
     for i in 0..10 {
         let context = TaskContext {
             domain: "web-api".to_string(),
@@ -500,7 +472,7 @@ async fn regression_retrieval_quality() {
             .unwrap();
     }
 
-    // Create episodes in different domain
+    // Given: 10 data-processing episodes with batch tag
     for i in 0..10 {
         let context = TaskContext {
             domain: "data-processing".to_string(),
@@ -528,7 +500,7 @@ async fn regression_retrieval_quality() {
             .unwrap();
     }
 
-    // Query for web-api domain
+    // When: Querying for web-api domain authentication
     let context = TaskContext {
         domain: "web-api".to_string(),
         ..Default::default()
@@ -538,9 +510,10 @@ async fn regression_retrieval_quality() {
         .retrieve_relevant_context("authentication".to_string(), context, 10)
         .await;
 
+    // Then: Should return results
     assert!(!results.is_empty());
 
-    // Should prioritize web-api episodes
+    // Then: At least 50% of results should match the queried domain
     let web_api_count = results
         .iter()
         .filter(|e| e.context.domain == "web-api")
@@ -559,20 +532,22 @@ async fn regression_retrieval_quality() {
 // ============================================================================
 
 #[tokio::test]
-async fn regression_api_compatibility() {
-    // This test ensures that the public API hasn't changed unexpectedly
-    // It should compile without errors if API is compatible
-
+async fn should_maintain_backward_compatible_public_api() {
+    // Given: Memory system instance
     let memory = setup_test_memory();
 
-    // Test that all public methods are still available
+    // When/Then: All public API methods should be available and functional
+
+    // Then: start_episode should work
     let episode_id = memory
         .start_episode("test".to_string(), test_context(), TaskType::Testing)
         .await;
 
+    // Then: log_step should work
     let step = create_test_step(1);
     memory.log_step(episode_id, step).await;
 
+    // Then: complete_episode should work
     let completed = memory
         .complete_episode(
             episode_id,
@@ -582,29 +557,28 @@ async fn regression_api_compatibility() {
             },
         )
         .await;
-
     assert!(completed.is_ok());
 
+    // Then: retrieve_relevant_context should work
     let results = memory
         .retrieve_relevant_context("test".to_string(), test_context(), 10)
         .await;
+    assert!(results.is_empty() || !results.is_empty());
 
-    assert!(results.is_empty() || !results.is_empty()); // Just check it works
-
-    // Test get_episode
+    // Then: get_episode should work
     let episode = memory.get_episode(episode_id).await;
     assert!(episode.is_ok());
 
-    // Test get_stats
+    // Then: get_stats should work
     let (_total, _completed, _patterns) = memory.get_stats().await;
 
-    // Test retrieve_relevant_patterns
+    // Then: retrieve_relevant_patterns should work
     let _patterns = memory.retrieve_relevant_patterns(&test_context(), 10).await;
 }
 
 #[tokio::test]
-async fn regression_episode_structure() {
-    // Ensure Episode structure hasn't changed
+async fn should_maintain_data_structure_compatibility() {
+    // Given: Memory system and test episode
     let memory = setup_test_memory();
 
     let episode_id = memory
@@ -613,7 +587,7 @@ async fn regression_episode_structure() {
 
     let episode = memory.get_episode(episode_id).await.unwrap();
 
-    // Check all expected fields exist
+    // When/Then: Episode structure should have all expected fields
     let _ = episode.episode_id;
     let _ = episode.task_type;
     let _ = episode.task_description;
@@ -627,19 +601,15 @@ async fn regression_episode_structure() {
     let _ = episode.patterns;
     let _ = episode.metadata;
 
-    // Check methods exist
+    // Then: Episode methods should be available
     assert!(!episode.is_complete());
     let _ = episode.duration();
     let _ = episode.successful_steps_count();
     let _ = episode.failed_steps_count();
-}
 
-#[tokio::test]
-async fn regression_execution_step_structure() {
-    // Ensure ExecutionStep structure hasn't changed
+    // When/Then: ExecutionStep structure should have all expected fields
     let step = create_test_step(1);
 
-    // Check all expected fields exist
     let _ = step.step_number;
     let _ = step.timestamp;
     let _ = step.tool;
@@ -650,16 +620,12 @@ async fn regression_execution_step_structure() {
     let _ = step.tokens_used;
     let _ = step.metadata;
 
-    // Check methods exist
+    // Then: ExecutionStep methods should be available
     let _ = step.is_success();
-}
 
-#[tokio::test]
-async fn regression_task_context_structure() {
-    // Ensure TaskContext structure hasn't changed
+    // When/Then: TaskContext structure should have all expected fields
     let context = test_context();
 
-    // Check all expected fields exist
     let _ = context.language;
     let _ = context.framework;
     let _ = context.complexity;
@@ -672,19 +638,21 @@ async fn regression_task_context_structure() {
 // ============================================================================
 
 #[tokio::test]
-async fn regression_no_duplicate_patterns() {
-    // Regression test: Ensure patterns aren't duplicated
-    let memory = setup_test_memory();
+async fn should_prevent_previously_fixed_bugs_from_recurring() {
+    // Bug 1: No duplicate pattern IDs
 
-    let episode_id = memory
+    // Given: Memory system with completed episode containing patterns
+    let memory1 = setup_test_memory();
+
+    let episode_id = memory1
         .start_episode("Test".to_string(), test_context(), TaskType::CodeGeneration)
         .await;
 
     for i in 1..=5 {
-        memory.log_step(episode_id, create_test_step(i)).await;
+        memory1.log_step(episode_id, create_test_step(i)).await;
     }
 
-    memory
+    memory1
         .complete_episode(
             episode_id,
             TaskOutcome::Success {
@@ -695,8 +663,8 @@ async fn regression_no_duplicate_patterns() {
         .await
         .unwrap();
 
-    // Check for duplicate pattern IDs
-    let completed = memory.get_episode(episode_id).await.unwrap();
+    // When/Then: Checking for duplicate pattern IDs
+    let completed = memory1.get_episode(episode_id).await.unwrap();
 
     let mut seen = std::collections::HashSet::new();
     for pattern_id in &completed.patterns {
@@ -706,14 +674,13 @@ async fn regression_no_duplicate_patterns() {
             pattern_id
         );
     }
-}
 
-#[tokio::test]
-async fn regression_episode_completion_idempotent() {
-    // Regression test: Completing an already completed episode should not cause issues
-    let memory = setup_test_memory();
+    // Bug 2: Episode completion is idempotent
 
-    let episode_id = memory
+    // Given: Memory system and completed episode
+    let memory2 = setup_test_memory();
+
+    let episode_id2 = memory2
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await;
 
@@ -722,31 +689,28 @@ async fn regression_episode_completion_idempotent() {
         artifacts: vec![],
     };
 
-    // Complete once
-    let result1 = memory.complete_episode(episode_id, outcome.clone()).await;
+    // When: Completing episode twice
+    let result1 = memory2.complete_episode(episode_id2, outcome.clone()).await;
     assert!(result1.is_ok());
 
-    // Complete again - should not panic
-    let result2 = memory.complete_episode(episode_id, outcome).await;
+    let result2 = memory2.complete_episode(episode_id2, outcome).await;
 
-    // Behavior: either succeed idempotently or return error
-    // Should not panic or corrupt state
+    // Then: Should either succeed idempotently or return error (not panic)
     assert!(result1.is_ok() || result2.is_err());
-}
 
-#[tokio::test]
-async fn regression_empty_episode_completion() {
-    // Regression test: Can complete episode with no steps
-    let memory = setup_test_memory();
+    // Bug 3: Can complete episode with no steps
 
-    let episode_id = memory
+    // Given: Memory system and episode without steps
+    let memory3 = setup_test_memory();
+
+    let episode_id3 = memory3
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await;
 
-    // Complete without adding any steps
-    let result = memory
+    // When: Completing episode without adding any steps
+    let result = memory3
         .complete_episode(
-            episode_id,
+            episode_id3,
             TaskOutcome::Success {
                 verdict: "Done".to_string(),
                 artifacts: vec![],
@@ -754,60 +718,28 @@ async fn regression_empty_episode_completion() {
         )
         .await;
 
+    // Then: Should succeed and episode should be complete with 0 steps
     assert!(result.is_ok());
 
-    let episode = memory.get_episode(episode_id).await.unwrap();
+    let episode = memory3.get_episode(episode_id3).await.unwrap();
     assert!(episode.is_complete());
     assert_eq!(episode.steps.len(), 0);
 }
 
-#[tokio::test]
-async fn regression_concurrent_step_logging() {
-    // Regression test: Concurrent step logging maintains order
-    use tokio::task::JoinSet;
-
-    let memory = std::sync::Arc::new(setup_test_memory());
-
-    let episode_id = memory
-        .start_episode("Test".to_string(), test_context(), TaskType::Testing)
-        .await;
-
-    let mut set = JoinSet::new();
-
-    // Log steps concurrently (might arrive out of order)
-    for i in 1..=10 {
-        let mem = memory.clone();
-        set.spawn(async move {
-            let step = create_test_step(i);
-            mem.log_step(episode_id, step).await;
-        });
-    }
-
-    while set.join_next().await.is_some() {}
-
-    let episode = memory.get_episode(episode_id).await.unwrap();
-
-    // All steps should be recorded
-    assert_eq!(episode.steps.len(), 10);
-
-    // Steps should have their step_numbers preserved
-    for step in &episode.steps {
-        assert!(step.step_number >= 1 && step.step_number <= 10);
-    }
-}
+// Note: Concurrent step logging test is covered in learning_cycle.rs
 
 // ============================================================================
 // Performance Regression
 // ============================================================================
 
 #[tokio::test]
-async fn regression_no_performance_degradation() {
-    // Baseline performance check
+async fn should_maintain_baseline_episode_creation_performance() {
+    // Given: Memory system and performance baseline
     let memory = setup_test_memory();
 
     let start = Instant::now();
 
-    // Create 100 episodes with completion
+    // When: Creating 100 episodes with 3 steps each
     for i in 0..100 {
         let episode_id = memory
             .start_episode(
@@ -841,7 +773,7 @@ async fn regression_no_performance_degradation() {
         100.0 / elapsed.as_secs_f32()
     );
 
-    // Should complete in reasonable time (< 5 seconds)
+    // Then: Should complete in reasonable time (< 5 seconds)
     assert!(
         elapsed.as_secs() < 5,
         "Performance degraded: took {}ms for 100 episodes",

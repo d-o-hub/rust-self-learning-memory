@@ -190,3 +190,58 @@ jobs:
           name: unsafe-code-report
           path: unsafe-report.md
           retention-days: 7
+
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    needs: [format, clippy, test, coverage, security-audit]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install required tools
+        run: |
+          cargo install cargo-llvm-cov || true
+          cargo install cargo-audit || true
+      - name: Run Quality Gates
+        run: cargo test --test quality_gates -- --nocapture
+        env:
+          RUST_LOG: info
+          QUALITY_GATE_COVERAGE_THRESHOLD: "90"
+          QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"
+          QUALITY_GATE_COMPLEXITY_THRESHOLD: "10"
+          QUALITY_GATE_SECURITY_THRESHOLD: "0"
+      - name: Generate Quality Report
+        if: always()
+        run: |
+          echo "# Quality Gates Report" > quality-report.md
+          echo "" >> quality-report.md
+          echo "**Date:** $(date)" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## Configuration" >> quality-report.md
+          echo "- Coverage Threshold: ${QUALITY_GATE_COVERAGE_THRESHOLD}%" >> quality-report.md
+          echo "- Pattern Accuracy Threshold: ${QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD}%" >> quality-report.md
+          echo "- Complexity Threshold: ${QUALITY_GATE_COMPLEXITY_THRESHOLD}" >> quality-report.md
+          echo "- Security Vuln Threshold: ${QUALITY_GATE_SECURITY_THRESHOLD}" >> quality-report.md
+          echo "" >> quality-report.md
+        env:
+          QUALITY_GATE_COVERAGE_THRESHOLD: "90"
+          QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"
+          QUALITY_GATE_COMPLEXITY_THRESHOLD: "10"
+          QUALITY_GATE_SECURITY_THRESHOLD: "0"
+      - name: Upload quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gates-report
+          path: quality-report.md
+          retention-days: 30

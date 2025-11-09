@@ -5,6 +5,8 @@
 //! This allows the memory system to work with different storage implementations
 //! transparently, supporting both durable (Turso) and cache (redb) layers.
 
+pub mod circuit_breaker;
+
 use crate::episode::PatternId;
 use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;

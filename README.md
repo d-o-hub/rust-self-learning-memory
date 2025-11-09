@@ -30,6 +30,7 @@ This project provides a production-grade memory system designed for AI agents th
 - [Project Structure](#project-structure)
 - [Code Coverage](#code-coverage)
 - [Storage](#storage)
+- [Performance](#performance)
 - [Security](#security)
 - [Development](#development)
   - [Code Style](#code-style)
@@ -334,6 +335,45 @@ cargo llvm-cov --all-features --workspace --summary-only
 - Tables: `episodes`, `patterns`, `embeddings`, `metadata`
 - Synchronous operations (wrapped in spawn_blocking)
 - Reconciliation with Turso via sync_memories()
+
+## Performance
+
+This project maintains strict performance baselines and tracks regressions via automated benchmarks. All operations significantly exceed target performance requirements.
+
+### Baseline Metrics (P95)
+
+| Operation | Actual | Target | Status |
+|-----------|--------|--------|--------|
+| Episode Creation | 2.56 µs | < 50ms | 19,531x faster ✓ |
+| Step Logging | 1.13 µs | < 20ms | 17,699x faster ✓ |
+| Episode Completion | 3.82 µs | < 500ms | 130,890x faster ✓ |
+| Pattern Extraction | 10.43 µs | < 1000ms | 95,880x faster ✓ |
+| Memory Retrieval | 721 µs | < 100ms | 138x faster ✓ |
+| Storage (Write) | 13.22 ms | < 50ms | 3.8x faster ✓ |
+
+See [PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md) for detailed metrics and analysis.
+
+### Running Benchmarks
+
+```bash
+# Run all benchmarks
+cargo bench --package memory-benches
+
+# View detailed reports
+open target/criterion/report/index.html
+
+# Check for regressions
+./scripts/check_performance_regression.sh
+```
+
+### CI Performance Tracking
+
+Benchmarks run automatically on:
+- Every push to main branch
+- All pull requests
+- Weekly schedule (Mondays)
+
+Performance regressions >10% trigger automatic alerts. See `.github/workflows/benchmarks.yml` for configuration.
 
 ## Security
 

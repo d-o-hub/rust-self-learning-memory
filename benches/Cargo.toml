@@ -13,15 +13,19 @@ criterion = { version = "0.5", features = ["async_tokio", "html_reports"] }
 tokio = { workspace = true }
 tempfile = { workspace = true }
 uuid = { workspace = true }
+libsql = { workspace = true }
 
 [[bench]]
 name = "episode_lifecycle"
+path = "episode_lifecycle.rs"
 harness = false
 
 [[bench]]
 name = "pattern_extraction"
+path = "pattern_extraction.rs"
 harness = false
 
 [[bench]]
 name = "storage_operations"
+path = "storage_operations.rs"
 harness = false

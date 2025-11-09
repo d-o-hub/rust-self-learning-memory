@@ -273,8 +273,13 @@ const elapsed = Date.now() - start;
 
 ### Short-term Improvements
 
-1. **Add VM2 or Isolated-VM**: More robust JavaScript isolation
-2. **Enforce Resource Limits**: Use cgroups or containers
+1. **✅ Current (v0.1.0)**: VM2-style process isolation implemented
+   - Custom Rust process spawning with tokio::process::Command
+   - OS-level resource limits via Unix ulimit
+   - Privilege dropping with setuid/setgid
+   - Pattern-based malicious code detection
+   - **Future Enhancement**: Consider actual VM2/isolated-vm library for additional JavaScript-level isolation
+2. **✅ Partial**: Resource limits enforced via ulimit (consider cgroups/containers for production)
 3. **Output Sanitization**: Scan for sensitive data patterns
 4. **Rate Limiting**: Limit executions per time period
 5. **Audit Logging**: Log all executions with code hash

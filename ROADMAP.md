@@ -37,7 +37,7 @@ This roadmap tracks the implementation status of the Self-Learning Memory System
 - [x] Storage metrics and statistics
 
 **Security (MCP)**
-- [x] Comprehensive VM2 sandbox with resource limits (Priority 1)
+- [x] VM2-style process isolation sandbox with resource limits (Priority 1)
 - [x] File system restrictions (whitelist, read-only mode)
 - [x] Network access control (domain whitelist, HTTPS-only)
 - [x] Process isolation and privilege dropping
@@ -214,8 +214,8 @@ pub struct ReflectionGenerator {
 
 **Implemented Features**:
 
-- [x] **VM2 Sandbox with Resource Limits**
-  - ✅ Process isolation (isolated-vm with v8 context)
+- [x] **VM2-Style Process Isolation Sandbox with Resource Limits**
+  - ✅ Custom Rust process isolation (tokio::process::Command with Unix ulimit)
   - ✅ CPU limit enforcement (configurable max CPU)
   - ✅ Memory limit enforcement (configurable max memory)
   - ✅ Execution timeout (configurable, 5s default)
@@ -652,9 +652,9 @@ Long-term enhancements for scalability and advanced capabilities.
 - [ ] Learning effectiveness metrics (1.2)
 
 #### Weeks 5-6: MCP Security Hardening
-- [ ] VM2 sandbox implementation (1.3)
-- [ ] Resource limit enforcement (1.3)
-- [ ] File system restrictions (1.3)
+- [x] VM2-style process isolation implementation (1.3)
+- [x] Resource limit enforcement (1.3)
+- [x] File system restrictions (1.3)
 - [ ] Network access control (1.3)
 
 #### Week 7: Security Testing
@@ -701,12 +701,13 @@ Long-term enhancements for scalability and advanced capabilities.
 - **Phase 2**: Add embeddings (future enhancement)
 - **Reference**: plans/02-plan.md (lines 36-49)
 
-#### Decision: Node.js + VM2 for Sandbox
+#### Decision: VM2-Style Process Isolation for Sandbox
 - **Date**: 2025-11-06
-- **Status**: Accepted 🚧 Partially Implemented (no VM2 yet)
-- **Rationale**: Good ecosystem, adequate security with proper isolation
-- **Critical**: VM2 implementation is HIGH PRIORITY
-- **Reference**: plans/02-plan.md (lines 51-67)
+- **Status**: Accepted ✅ Fully Implemented
+- **Implementation**: Custom Rust-based process isolation (not actual VM2 library)
+- **Rationale**: Memory-safe Rust implementation with OS-level isolation provides superior security to JavaScript-based VM2
+- **Technology**: tokio::process::Command + Unix ulimit + privilege dropping
+- **Reference**: plans/02-plan.md (lines 51-67), memory-mcp/src/sandbox/
 
 ---
 
@@ -790,9 +791,9 @@ Long-term enhancements for scalability and advanced capabilities.
    - Create pattern validation framework
 
 3. **Security audit preparation** (Priority 1.3)
-   - Review current MCP implementation
-   - Identify security gaps
-   - Plan VM2 integration
+   - ✅ Review current MCP implementation
+   - ✅ Identify security gaps
+   - ✅ VM2-style process isolation implemented
 
 ### This Month (Weeks 1-4)
 

@@ -15,3 +15,12 @@ target
 
 # Node modules
 node_modules/
+
+# Generated reports and summaries (keep PERFORMANCE_BASELINES.md)
+*SUMMARY.md
+*ENHANCEMENTS.md
+*REPORT*.md
+*STATUS.md
+GOAP_EXECUTION_PLAN.md
+IMPLEMENTATION_STATUS.md
+CARGO_AUDIT_REPORT.txt

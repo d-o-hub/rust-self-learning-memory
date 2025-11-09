@@ -24,7 +24,9 @@ Use for:
 
 ### Test Naming: `test_<function>_<scenario>_<expected_behavior>`
 
-Examples:
+Use descriptive three-part names for most tests. Well-named two-part names are acceptable for very simple tests:
+
+**Preferred (three-part):**
 ```rust
 #[test]
 fn test_process_payment_insufficient_funds_returns_error()
@@ -36,9 +38,20 @@ fn test_calculate_discount_new_customer_returns_zero()
 async fn test_withdraw_valid_amount_decreases_balance()
 ```
 
+**Acceptable for simple tests (two-part):**
+```rust
+#[test]
+fn test_new_account_initializes_fields()  // When behavior is obvious
+
+#[test]
+fn test_default_context_values()  // When scenario is implicit
+```
+
 ### AAA Pattern: Arrange-Act-Assert
 
-Always structure tests with clear sections:
+Structure tests with clear sections. AAA comments are **recommended for complex tests** (>10 lines, multiple setup steps, async operations), **optional for simple tests**:
+
+**Complex test (AAA comments recommended):**
 ```rust
 #[test]
 fn test_account_withdraw_valid_amount_decreases_balance() {
@@ -51,6 +64,15 @@ fn test_account_withdraw_valid_amount_decreases_balance() {
     // Assert - Verify outcome
     assert!(result.is_ok());
     assert_eq!(account.balance(), 70);
+}
+```
+
+**Simple test (AAA comments optional):**
+```rust
+#[test]
+fn test_new_account_starts_with_zero_balance() {
+    let account = Account::new(0);
+    assert_eq!(account.balance(), 0);
 }
 ```
 
@@ -79,9 +101,61 @@ For detailed information on specific topics, see:
 
 ## Test Quality Analysis
 
+### Installation
+
+The analysis script requires Python 3.8+ and optionally the `tomli` library for TOML configuration support:
+
+```bash
+# Install dependencies (optional but recommended)
+pip install -r scripts/requirements.txt
+
+# Or install manually
+pip install tomli  # Only needed for Python < 3.11
+```
+
+**Note**: Python 3.11+ includes `tomllib` in the standard library, so no dependencies are needed. For earlier versions, install `tomli` to use TOML configuration files.
+
+### Usage
+
 To analyze test file quality:
 ```bash
-python scripts/analyze-test-quality.py crates/memory-core/src/lib.rs
+# Basic analysis
+python scripts/analyze-test-quality.py memory-core/src/lib.rs
+
+# Lenient mode (recommended for existing codebases)
+python scripts/analyze-test-quality.py memory-core/src/lib.rs --lenient
+
+# With specific options
+python scripts/analyze-test-quality.py memory-core/src/lib.rs \
+    --allow-two-part-names \
+    --max-assertions 7
+
+# Using config file (requires tomli for Python < 3.11)
+python scripts/analyze-test-quality.py memory-core/src/lib.rs \
+    --config=.test-quality.toml
+```
+
+### Configuration Options
+
+Create `.test-quality.toml` in your project root:
+```toml
+# Test quality analysis configuration
+[naming]
+require_three_parts = false  # Allow two-part names for simple tests
+min_parts = 2
+
+[structure]
+require_aaa_comments = "complex"  # "always", "complex", or "never"
+complex_test_threshold = 10  # Lines count for "complex"
+
+[focus]
+max_assertions = 7  # Warning threshold
+max_assertions_error = 10  # Error threshold
+
+[severity]
+naming_violation = "medium"  # "high", "medium", or "low"
+missing_aaa_simple = "low"
+missing_aaa_complex = "medium"
 ```
 
 ## Templates

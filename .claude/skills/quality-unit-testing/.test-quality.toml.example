@@ -1,0 +1,100 @@
+# Test Quality Analysis Configuration Example
+#
+# Copy this file to your project root as `.test-quality.toml` and customize.
+#
+# Usage:
+#   python analyze-test-quality.py path/to/test.rs --config=.test-quality.toml
+
+[naming]
+# Require three-part test names (test_<function>_<scenario>_<expected>)
+require_three_parts = false  # Set to true for strict enforcement
+
+# Minimum number of parts in test name
+min_parts = 2
+
+# Allow two-part names for simple tests (auto-detected: <10 lines, not async)
+allow_two_part_simple = true
+
+[structure]
+# When to require AAA (Arrange-Act-Assert) comments
+# Options: "always", "complex", "never"
+#   "always"  - All tests must have AAA comments
+#   "complex" - Only complex tests (>10 lines or async) need AAA comments
+#   "never"   - Don't check for AAA comments
+require_aaa_comments = "complex"
+
+# Line count threshold for "complex" tests
+complex_test_threshold = 10
+
+[focus]
+# Maximum assertions before warning
+max_assertions = 7
+
+# Maximum assertions before error (test is too broad)
+max_assertions_error = 10
+
+[severity]
+# Severity levels for different issue types: "high", "medium", or "low"
+# These affect the quality score deduction:
+#   high:   -10 points
+#   medium: -5 points
+#   low:    -2 points
+
+naming_violation = "medium"      # Test name doesn't follow convention
+missing_aaa_simple = "low"       # Simple test missing AAA comments
+missing_aaa_complex = "medium"   # Complex test missing AAA comments
+too_many_assertions = "medium"   # Test has too many assertions
+
+# Recommended presets:
+
+## Strict (for new projects):
+# [naming]
+# require_three_parts = true
+# min_parts = 3
+# allow_two_part_simple = false
+#
+# [structure]
+# require_aaa_comments = "always"
+#
+# [focus]
+# max_assertions = 5
+# max_assertions_error = 8
+#
+# [severity]
+# naming_violation = "high"
+# missing_aaa_complex = "high"
+
+## Balanced (recommended default):
+# [naming]
+# require_three_parts = false
+# min_parts = 3
+# allow_two_part_simple = true
+#
+# [structure]
+# require_aaa_comments = "complex"
+#
+# [focus]
+# max_assertions = 5
+# max_assertions_error = 10
+#
+# [severity]
+# naming_violation = "medium"
+# missing_aaa_complex = "medium"
+
+## Lenient (for legacy codebases):
+# [naming]
+# require_three_parts = false
+# min_parts = 2
+# allow_two_part_simple = true
+#
+# [structure]
+# require_aaa_comments = "complex"
+#
+# [focus]
+# max_assertions = 7
+# max_assertions_error = 12
+#
+# [severity]
+# naming_violation = "low"
+# missing_aaa_simple = "low"
+# missing_aaa_complex = "medium"

@@ -1,0 +1,8 @@
+# Python dependencies for test quality analysis script
+# Install with: pip install -r requirements.txt
+
+# TOML configuration file support (optional but recommended)
+tomli>=2.0.0; python_version < '3.11'
+
+# Note: Python 3.11+ includes tomllib in the standard library
+# For Python 3.11+, no additional dependencies are needed

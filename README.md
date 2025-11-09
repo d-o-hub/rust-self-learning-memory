@@ -429,7 +429,6 @@ Jobs:
   - coverage:         Code coverage with >90% gate
   - security-audit:   Vulnerability scanning (cargo audit)
   - supply-chain:     License & advisory checks (cargo-deny)
-  - unsafe-code:      Unsafe code detection (cargo-geiger)
 ```
 
 ### Testing

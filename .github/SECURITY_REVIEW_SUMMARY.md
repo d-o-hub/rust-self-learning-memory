@@ -34,7 +34,6 @@ The zero-trust security architecture for rust-self-learning-memory has been **su
 | Dependency Review | security.yml | ✅ GitHub action |
 | Vulnerability Audit | ci.yml, security.yml | ✅ cargo-audit |
 | Supply Chain | ci.yml | ✅ cargo-deny |
-| Unsafe Code Detection | ci.yml | ✅ cargo-geiger |
 | Code Formatting | ci.yml, ci-enhanced.yml | ✅ rustfmt |
 | Linting | ci.yml, ci-enhanced.yml | ✅ clippy |
 | Test Coverage | ci.yml, ci-enhanced.yml | ✅ Multi-platform |
@@ -184,7 +183,6 @@ gh run list --workflow=ci.yml
 **Tools Integrated**:
 - ✅ cargo-audit (vulnerability scanning)
 - ✅ cargo-deny (policy enforcement)
-- ✅ cargo-geiger (unsafe code detection)
 
 ---
 

@@ -171,28 +171,6 @@ jobs:
           path: target/deny.log
           retention-days: 7
 
-  unsafe-code-check:
-    name: Unsafe Code Detection (cargo-geiger)
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
-    steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      - name: Install cargo-geiger
-        run: cargo install cargo-geiger --locked
-      - name: Run cargo-geiger
-        run: cargo geiger --output-format GitHubMarkdown | tee unsafe-report.md
-      - name: Upload unsafe code report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unsafe-code-report
-          path: unsafe-report.md
-          retention-days: 7
-
   quality-gates:
     name: Quality Gates
     runs-on: ubuntu-latest

@@ -48,7 +48,35 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          cargo bench --package memory-benches -- --output-format bencher | tee bench_results.txt
+          cargo bench --package memory-benches
+
+      - name: Convert Criterion output to bencher format
+        run: |
+          # Parse Criterion JSON output and convert to bencher format
+          # Criterion stores results in target/criterion/<benchmark_name>/base/estimates.json
+          find target/criterion -type f -name "estimates.json" | while read -r json_file; do
+            # Extract benchmark name from path
+            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | sed 's|/base/estimates.json||' | sed 's|/|-|g')
+
+            # Extract mean time in nanoseconds from JSON
+            # Criterion stores time in nanoseconds as point_estimate
+            mean_ns=$(grep -o '"point_estimate":[0-9.]*' "$json_file" | head -1 | cut -d: -f2 | cut -d. -f1)
+
+            if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
+              echo "test $bench_name ... bench: $mean_ns ns/iter"
+            fi
+          done > bench_results.txt
+
+          # Verify we have results
+          if [ ! -s bench_results.txt ]; then
+            echo "Warning: No benchmark results found!"
+            echo "Listing criterion output directory:"
+            find target/criterion -type f -name "*.json" | head -20
+            exit 1
+          fi
+
+          echo "Generated benchmark results:"
+          cat bench_results.txt
 
       - name: Download previous benchmark results
         uses: actions/cache@v4

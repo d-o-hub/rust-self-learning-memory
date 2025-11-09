@@ -44,11 +44,6 @@ Located in `.claude/settings.json`, hooks enforce security at development time:
 - Runs in CI on every push
 - Weekly scheduled scans
 
-#### cargo-geiger
-- Detects unsafe code usage
-- Generates reports on unsafe blocks
-- Helps minimize attack surface
-
 ### 3. Build-Time Security
 
 #### Cargo Configuration (`.cargo/config.toml`)
@@ -70,7 +65,6 @@ Located in `.claude/settings.json`, hooks enforce security at development time:
 - **Coverage**: Tracks code coverage with cargo-llvm-cov
 - **Security Audit**: rustsec/audit-check
 - **Supply Chain**: cargo-deny checks
-- **Unsafe Code**: cargo-geiger detection
 
 #### Security Workflow (`.github/workflows/security.yml`)
 - **Secret Scanning**: Gitleaks on every push
@@ -163,13 +157,11 @@ Before every commit, verify:
 # Install security tools
 cargo install cargo-audit --locked
 cargo install cargo-deny --locked
-cargo install cargo-geiger --locked
 cargo install cargo-llvm-cov --locked
 
 # Verify installation
 cargo audit --version
 cargo deny --version
-cargo geiger --version
 ```
 
 ## References

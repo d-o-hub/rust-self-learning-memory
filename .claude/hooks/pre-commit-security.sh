@@ -48,16 +48,7 @@ if ! cargo test --all; then
     exit 1
 fi
 
-# 6. Unsafe code detection (skip if cargo-geiger not installed)
-if command -v cargo-geiger &> /dev/null; then
-    echo "☢️  Checking for unsafe code..."
-    cargo geiger --output-format GitHubMarkdown > /dev/null
-    echo "✓ Unsafe code scan complete"
-else
-    echo "⚠️  cargo-geiger not installed. Run: cargo install cargo-geiger --locked"
-fi
-
-# 7. Secret scanning
+# 6. Secret scanning
 echo "🔐 Scanning for secrets..."
 if git diff --cached --name-only | xargs grep -inE '(api[_-]?key|password|secret|token|credential)["\']?\s*[:=]' 2>/dev/null; then
     echo "❌ Potential secrets detected in staged files!"

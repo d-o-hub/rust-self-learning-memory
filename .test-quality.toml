@@ -1,0 +1,22 @@
+# Test Quality Analysis Configuration for rust-self-learning-memory
+#
+# Balanced configuration suitable for this project
+
+[naming]
+require_three_parts = false
+min_parts = 3
+allow_two_part_simple = true  # Allow simple tests to have two-part names
+
+[structure]
+require_aaa_comments = "complex"  # Only require AAA for complex tests
+complex_test_threshold = 10
+
+[focus]
+max_assertions = 5
+max_assertions_error = 10
+
+[severity]
+naming_violation = "medium"
+missing_aaa_simple = "low"
+missing_aaa_complex = "medium"
+too_many_assertions = "medium"

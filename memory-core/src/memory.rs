@@ -1055,7 +1055,8 @@ mod tests {
 
         let episode_id = memory
             .start_episode("Test task".to_string(), context.clone(), TaskType::Testing)
-            .await;
+            .await
+            .unwrap();
 
         // Verify episode was created
         let episode = memory.get_episode(episode_id).await.unwrap();
@@ -1074,7 +1075,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Log some steps
         for i in 0..3 {
@@ -1100,7 +1102,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Log a step
         let mut step = ExecutionStep::new(1, "test_tool".to_string(), "Run tests".to_string());
@@ -1144,7 +1147,8 @@ mod tests {
 
             let episode_id = memory
                 .start_episode(format!("API task {}", i), context, TaskType::CodeGeneration)
-                .await;
+                .await
+                .unwrap();
 
             let mut step = ExecutionStep::new(1, "builder".to_string(), "Build API".to_string());
             step.result = Some(ExecutionResult::Success {
@@ -1179,7 +1183,8 @@ mod tests {
                 different_context.clone(),
                 TaskType::Analysis,
             )
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(
@@ -1229,7 +1234,8 @@ mod tests {
                 context.clone(),
                 TaskType::CodeGeneration,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Add multiple successful steps to generate patterns
         for i in 0..4 {
@@ -1275,7 +1281,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         let (total, completed, _) = memory.get_stats().await;
         assert_eq!(total, 1);
@@ -1288,7 +1295,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(

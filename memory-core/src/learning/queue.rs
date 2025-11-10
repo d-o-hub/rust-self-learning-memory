@@ -493,7 +493,8 @@ mod tests {
         let context = TaskContext::default();
         let episode_id = memory
             .start_episode("Test task".to_string(), context, TaskType::Testing)
-            .await;
+            .await
+        .unwrap();
 
         // Add steps and complete
         let mut step = ExecutionStep::new(1, "tool1".to_string(), "Action".to_string());
@@ -545,7 +546,8 @@ mod tests {
             let context = TaskContext::default();
             let episode_id = memory
                 .start_episode(format!("Task {}", i), context, TaskType::Testing)
-                .await;
+                .await
+        .unwrap();
 
             let mut step = ExecutionStep::new(1, "tool".to_string(), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
@@ -630,7 +632,8 @@ mod tests {
         let context = TaskContext::default();
         let episode_id = memory
             .start_episode("Incomplete".to_string(), context, TaskType::Testing)
-            .await;
+            .await
+        .unwrap();
 
         let extractor = PatternExtractor::new();
         let result =

@@ -16,7 +16,10 @@ jobs:
   benchmark:
     name: Run Benchmarks
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write  # Required for auto-push of benchmark results
+      actions: write   # Required for caching
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

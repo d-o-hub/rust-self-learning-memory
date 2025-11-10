@@ -289,6 +289,10 @@ impl SelfLearningMemory {
     /// Unique episode ID that should be used for subsequent [`log_step()`](SelfLearningMemory::log_step)
     /// and [`complete_episode()`](SelfLearningMemory::complete_episode) calls.
     ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidInput`] if the task description exceeds [`MAX_DESCRIPTION_LEN`](crate::types::MAX_DESCRIPTION_LEN).
+    ///
     /// # Examples
     ///
     /// ```
@@ -322,7 +326,16 @@ impl SelfLearningMemory {
         task_description: String,
         context: TaskContext,
         task_type: TaskType,
-    ) -> Uuid {
+    ) -> Result<Uuid> {
+        // Validate input to prevent DoS attacks via unbounded inputs
+        if task_description.len() > crate::types::MAX_DESCRIPTION_LEN {
+            return Err(Error::InvalidInput(format!(
+                "Task description too long: {} bytes > {} bytes (MAX_DESCRIPTION_LEN)",
+                task_description.len(),
+                crate::types::MAX_DESCRIPTION_LEN
+            )));
+        }
+
         let episode = Episode::new(task_description.clone(), context, task_type);
         let episode_id = episode.episode_id;
 
@@ -349,7 +362,7 @@ impl SelfLearningMemory {
         let mut episodes = self.episodes_fallback.write().await;
         episodes.insert(episode_id, episode);
 
-        episode_id
+        Ok(episode_id)
     }
 
     /// Log an execution step for an ongoing episode.
@@ -1042,7 +1055,8 @@ mod tests {
 
         let episode_id = memory
             .start_episode("Test task".to_string(), context.clone(), TaskType::Testing)
-            .await;
+            .await
+            .unwrap();
 
         // Verify episode was created
         let episode = memory.get_episode(episode_id).await.unwrap();
@@ -1061,7 +1075,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Log some steps
         for i in 0..3 {
@@ -1087,7 +1102,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Log a step
         let mut step = ExecutionStep::new(1, "test_tool".to_string(), "Run tests".to_string());
@@ -1131,7 +1147,8 @@ mod tests {
 
             let episode_id = memory
                 .start_episode(format!("API task {}", i), context, TaskType::CodeGeneration)
-                .await;
+                .await
+                .unwrap();
 
             let mut step = ExecutionStep::new(1, "builder".to_string(), "Build API".to_string());
             step.result = Some(ExecutionResult::Success {
@@ -1166,7 +1183,8 @@ mod tests {
                 different_context.clone(),
                 TaskType::Analysis,
             )
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(
@@ -1216,7 +1234,8 @@ mod tests {
                 context.clone(),
                 TaskType::CodeGeneration,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Add multiple successful steps to generate patterns
         for i in 0..4 {
@@ -1262,7 +1281,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         let (total, completed, _) = memory.get_stats().await;
         assert_eq!(total, 1);
@@ -1275,7 +1295,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(
@@ -1322,5 +1343,44 @@ mod tests {
 
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), Error::NotFound(_)));
+    }
+
+    #[tokio::test]
+    async fn test_start_episode_rejects_oversized_description() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a task description that exceeds MAX_DESCRIPTION_LEN (10KB)
+        let oversized_description = "x".repeat(crate::types::MAX_DESCRIPTION_LEN + 1);
+
+        let result = memory
+            .start_episode(
+                oversized_description,
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Should return InvalidInput error
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), Error::InvalidInput(_)));
+    }
+
+    #[tokio::test]
+    async fn test_start_episode_accepts_max_size_description() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a task description exactly at MAX_DESCRIPTION_LEN (10KB)
+        let max_size_description = "x".repeat(crate::types::MAX_DESCRIPTION_LEN);
+
+        let result = memory
+            .start_episode(
+                max_size_description,
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Should succeed
+        assert!(result.is_ok());
     }
 }

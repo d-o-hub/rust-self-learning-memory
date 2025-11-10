@@ -30,7 +30,8 @@ async fn create_test_episode(
     let context = TaskContext::default();
     let episode_id = memory
         .start_episode(description.to_string(), context, TaskType::Testing)
-        .await;
+        .await
+        .unwrap();
 
     // Add execution steps
     for i in 0..step_count {

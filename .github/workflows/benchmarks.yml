@@ -166,21 +166,21 @@ jobs:
           script: |
             const fs = require('fs');
             const results = fs.readFileSync('bench_results.txt', 'utf8');
-            
+
             const body = `## Performance Benchmark Results
-            
+
             <details>
             <summary>Click to expand benchmark results</summary>
-            
+
             \`\`\`
             ${results}
             \`\`\`
-            
+
             </details>
-            
+
             See [PERFORMANCE_BASELINES.md](https://github.com/${{ github.repository }}/blob/main/PERFORMANCE_BASELINES.md) for baseline comparison.
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

@@ -1344,4 +1344,43 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), Error::NotFound(_)));
     }
+
+    #[tokio::test]
+    async fn test_start_episode_rejects_oversized_description() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a task description that exceeds MAX_DESCRIPTION_LEN (10KB)
+        let oversized_description = "x".repeat(crate::types::MAX_DESCRIPTION_LEN + 1);
+
+        let result = memory
+            .start_episode(
+                oversized_description,
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Should return InvalidInput error
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), Error::InvalidInput(_)));
+    }
+
+    #[tokio::test]
+    async fn test_start_episode_accepts_max_size_description() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a task description exactly at MAX_DESCRIPTION_LEN (10KB)
+        let max_size_description = "x".repeat(crate::types::MAX_DESCRIPTION_LEN);
+
+        let result = memory
+            .start_episode(
+                max_size_description,
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Should succeed
+        assert!(result.is_ok());
+    }
 }

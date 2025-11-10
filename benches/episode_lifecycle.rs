@@ -38,10 +38,7 @@ fn benchmark_string_processing(c: &mut Criterion) {
     c.bench_function("string_processing", |b| {
         b.iter(|| {
             let words: Vec<&str> = text.split_whitespace().collect();
-            let filtered: Vec<_> = words
-                .iter()
-                .filter(|word| word.len() > 3)
-                .collect();
+            let filtered: Vec<_> = words.iter().filter(|word| word.len() > 3).collect();
             black_box(filtered.len());
         });
     });

@@ -39,18 +39,15 @@ fn benchmark_pattern_search(c: &mut Criterion) {
     for size in [100, 1000, 10000].iter() {
         let haystack: String = (0..*size).map(|i| format!("word{} ", i)).collect();
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            size,
-            |b, _| {
-                b.iter(|| {
-                    let count = haystack.split_whitespace()
-                        .filter(|word| word.contains("5"))
-                        .count();
-                    black_box(count);
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, _| {
+            b.iter(|| {
+                let count = haystack
+                    .split_whitespace()
+                    .filter(|word| word.contains("5"))
+                    .count();
+                black_box(count);
+            });
+        });
     }
 
     group.finish();

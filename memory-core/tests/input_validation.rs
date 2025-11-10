@@ -314,7 +314,7 @@ async fn should_handle_deeply_nested_json_structures() {
     let id = memory
         .start_episode("Test".to_string(), TaskContext::default(), TaskType::Other)
         .await
-            .unwrap();
+        .unwrap();
 
     let step = StepBuilder::new(1, "tool", "action")
         .parameters(nested.clone())
@@ -365,7 +365,7 @@ async fn should_provide_type_safe_uuid_handling() {
             TaskType::Other,
         )
         .await
-            .unwrap();
+        .unwrap();
 
     let episode = memory.get_episode(real_id).await;
 

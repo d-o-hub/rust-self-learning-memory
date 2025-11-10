@@ -30,7 +30,7 @@ async fn should_create_episodes_with_unique_ids_and_timestamps() {
     let episode_id = memory
         .start_episode("Test task".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // Then: The episode should have a unique ID and valid timestamp
     let episode = memory.get_episode(episode_id).await.unwrap();
@@ -75,7 +75,7 @@ async fn should_log_execution_steps_with_ordering_and_metadata() {
     let episode_id = memory
         .start_episode("Test task".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // When: We log a step with tool usage and metadata
     let step = StepBuilder::new(1, "test_tool", "Test action")
@@ -142,7 +142,7 @@ async fn should_complete_episodes_with_reward_scoring_and_reflection() {
     let episode_id = memory
         .start_episode("Test task".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // When: We complete the episode with a successful outcome
     let outcome = TaskOutcome::Success {
@@ -174,7 +174,7 @@ async fn should_handle_failed_episodes_with_improvements() {
     let episode_id = memory
         .start_episode("Test task".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // When: We complete the episode with a failure outcome
     let outcome = TaskOutcome::Failure {
@@ -200,7 +200,7 @@ async fn should_score_partial_success_between_failure_and_success() {
     let episode_id = memory
         .start_episode("Test task".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // When: We complete the episode with a partial success outcome
     let outcome = TaskOutcome::PartialSuccess {
@@ -267,7 +267,7 @@ async fn should_extract_different_pattern_types_based_on_episode_structure() {
             TaskType::CodeGeneration,
         )
         .await
-            .unwrap();
+        .unwrap();
 
     // And: Add sequential steps
     for i in 1..=3 {
@@ -362,7 +362,7 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
                     TaskType::CodeGeneration,
                 )
                 .await
-            .unwrap();
+                .unwrap();
 
             memory3
                 .complete_episode(
@@ -431,7 +431,7 @@ async fn should_maintain_episode_integrity_after_completion() {
     let episode_id = memory
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
     memory
         .complete_episode(
             episode_id,

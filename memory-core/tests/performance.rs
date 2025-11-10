@@ -715,7 +715,7 @@ async fn should_log_steps_very_quickly() {
     let episode_id = memory
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     let mut step_times = vec![];
 

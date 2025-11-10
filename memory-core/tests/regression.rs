@@ -373,7 +373,7 @@ async fn should_extract_all_pattern_types_correctly() {
             TaskType::CodeGeneration,
         )
         .await
-            .unwrap();
+        .unwrap();
 
     // When: Logging an error followed by successful recovery
     let mut error_step = ExecutionStep::new(1, "attempt".to_string(), "Try".to_string());
@@ -547,7 +547,7 @@ async fn should_maintain_backward_compatible_public_api() {
     let episode_id = memory
         .start_episode("test".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // Then: log_step should work
     let step = create_test_step(1);
@@ -590,7 +590,7 @@ async fn should_maintain_data_structure_compatibility() {
     let episode_id = memory
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     let episode = memory.get_episode(episode_id).await.unwrap();
 
@@ -654,7 +654,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
     let episode_id = memory1
         .start_episode("Test".to_string(), test_context(), TaskType::CodeGeneration)
         .await
-            .unwrap();
+        .unwrap();
 
     for i in 1..=5 {
         memory1.log_step(episode_id, create_test_step(i)).await;
@@ -691,7 +691,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
     let episode_id2 = memory2
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     let outcome = TaskOutcome::Success {
         verdict: "Done".to_string(),
@@ -715,7 +715,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
     let episode_id3 = memory3
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
         .await
-            .unwrap();
+        .unwrap();
 
     // When: Completing episode without adding any steps
     let result = memory3

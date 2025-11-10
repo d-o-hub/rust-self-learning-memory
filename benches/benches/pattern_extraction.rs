@@ -6,17 +6,15 @@ use test_utils::*;
 
 fn benchmark_extract_patterns(c: &mut Criterion) {
     let episode = create_completed_episode("Test task with patterns", true);
-    
+
     c.bench_function("extract_patterns_single_episode", |b| {
-        b.iter(|| {
-            extract_patterns_from_episode(black_box(&episode))
-        });
+        b.iter(|| extract_patterns_from_episode(black_box(&episode)));
     });
 }
 
 fn benchmark_extract_patterns_varying_steps(c: &mut Criterion) {
     let mut group = c.benchmark_group("pattern_extraction_by_step_count");
-    
+
     for step_count in [5, 10, 20, 50].iter() {
         let mut episode = create_test_episode("Test");
         for i in 0..*step_count {
@@ -26,29 +24,25 @@ fn benchmark_extract_patterns_varying_steps(c: &mut Criterion) {
             verdict: "Done".to_string(),
             artifacts: vec![],
         });
-        
+
         group.bench_with_input(
             BenchmarkId::from_parameter(step_count),
             step_count,
             |b, _| {
-                b.iter(|| {
-                    extract_patterns_from_episode(black_box(&episode))
-                });
+                b.iter(|| extract_patterns_from_episode(black_box(&episode)));
             },
         );
     }
-    
+
     group.finish();
 }
 
 fn benchmark_pattern_relevance_check(c: &mut Criterion) {
     let pattern = create_test_pattern("tool_sequence", 0.9);
     let context = create_test_context("web-api", Some("rust"));
-    
+
     c.bench_function("pattern_relevance_check", |b| {
-        b.iter(|| {
-            pattern.is_relevant_to(black_box(&context))
-        });
+        b.iter(|| pattern.is_relevant_to(black_box(&context)));
     });
 }
 

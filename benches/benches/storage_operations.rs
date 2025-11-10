@@ -61,11 +61,7 @@ fn benchmark_context_filtering(c: &mut Criterion) {
         .map(|i| {
             let domain = if i % 2 == 0 { "web-api" } else { "cli-tool" };
             let context = create_test_context(domain, Some("rust"));
-            create_test_episode_with_context(
-                &format!("Task {}", i),
-                context,
-                TaskType::Testing,
-            )
+            create_test_episode_with_context(&format!("Task {}", i), context, TaskType::Testing)
         })
         .collect();
 

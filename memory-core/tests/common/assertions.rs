@@ -228,7 +228,8 @@ mod tests {
 
         let episode_id = memory
             .start_episode("test".to_string(), test_context(), TaskType::Testing)
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(

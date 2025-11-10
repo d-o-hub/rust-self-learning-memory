@@ -101,7 +101,8 @@ async fn should_handle_large_inputs_without_data_loss() {
         // When: We create an episode with large data
         let id = memory
             .start_episode(description.clone(), context.clone(), TaskType::Other)
-            .await;
+            .await
+            .unwrap();
 
         // Then: Large description should be stored completely
         if test_case.description_size > 100 {
@@ -246,7 +247,8 @@ async fn should_handle_special_characters_and_edge_cases_gracefully() {
                 TaskContext::default(),
                 TaskType::Other,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Then: The description should be preserved exactly
         let episode = memory.get_episode(id).await.unwrap();
@@ -311,7 +313,8 @@ async fn should_handle_deeply_nested_json_structures() {
     // When: We create an episode with deeply nested JSON parameters
     let id = memory
         .start_episode("Test".to_string(), TaskContext::default(), TaskType::Other)
-        .await;
+        .await
+        .unwrap();
 
     let step = StepBuilder::new(1, "tool", "action")
         .parameters(nested.clone())
@@ -361,7 +364,8 @@ async fn should_provide_type_safe_uuid_handling() {
             TaskContext::default(),
             TaskType::Other,
         )
-        .await;
+        .await
+        .unwrap();
 
     let episode = memory.get_episode(real_id).await;
 

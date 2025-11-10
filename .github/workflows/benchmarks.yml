@@ -53,19 +53,27 @@ jobs:
       - name: Convert Criterion output to bencher format
         run: |
           # Parse Criterion JSON output and convert to bencher format
-          # Criterion stores results in target/criterion/<benchmark_name>/base/estimates.json
-          find target/criterion -type f -name "estimates.json" | while read -r json_file; do
-            # Extract benchmark name from path
-            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | sed 's|/base/estimates.json||' | sed 's|/|-|g')
+          # Criterion stores results in target/criterion/<benchmark_name>/new/estimates.json
+          # We only process the 'new' directory to avoid duplicates
+          find target/criterion -type f -path "*/new/estimates.json" | while read -r json_file; do
+            # Extract benchmark name from path (remove target/criterion/ prefix and /new/estimates.json suffix)
+            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | sed 's|/new/estimates.json||')
 
             # Extract mean time in nanoseconds from JSON
-            # Criterion stores time in nanoseconds as point_estimate
-            mean_ns=$(grep -o '"point_estimate":[0-9.]*' "$json_file" | head -1 | cut -d: -f2 | cut -d. -f1)
+            # Criterion stores time in nanoseconds as point_estimate in the "mean" section
+            mean_ns=$(grep -A 3 '"mean"' "$json_file" | grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+
+            # Extract standard deviation for variance
+            std_dev=$(grep -A 3 '"std_dev"' "$json_file" | grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
 
             if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
-              echo "test $bench_name ... bench: $mean_ns ns/iter"
+              if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
+                echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)"
+              else
+                echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)"
+              fi
             fi
-          done > bench_results.txt
+          done | sort > bench_results.txt
 
           # Verify we have results
           if [ ! -s bench_results.txt ]; then

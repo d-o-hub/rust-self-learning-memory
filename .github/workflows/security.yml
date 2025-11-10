@@ -38,6 +38,8 @@ jobs:
   supply-chain-audit:
     name: Supply Chain Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable

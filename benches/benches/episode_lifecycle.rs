@@ -43,20 +43,22 @@ fn benchmark_episode_completion(c: &mut Criterion) {
 
 fn benchmark_reward_calculation(c: &mut Criterion) {
     let episode = create_completed_episode("Test", true);
-    
+    let calculator = memory_core::reward::RewardCalculator::new();
+
     c.bench_function("reward_calculation", |b| {
         b.iter(|| {
-            compute_reward_score(black_box(&episode))
+            calculator.calculate(black_box(&episode))
         });
     });
 }
 
 fn benchmark_reflection_generation(c: &mut Criterion) {
     let episode = create_completed_episode("Test", true);
-    
+    let generator = memory_core::reflection::ReflectionGenerator::new();
+
     c.bench_function("reflection_generation", |b| {
         b.iter(|| {
-            generate_reflection(black_box(&episode))
+            generator.generate(black_box(&episode))
         });
     });
 }

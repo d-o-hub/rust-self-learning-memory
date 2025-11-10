@@ -6,6 +6,7 @@ members = [
     # "memory-storage-redb",  # Temporarily disabled - needs redb v2.1 API updates
     "test-utils",
     "memory-mcp",
+    "benches",
 ]
 
 [workspace.package]

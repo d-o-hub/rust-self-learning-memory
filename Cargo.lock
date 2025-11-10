@@ -412,7 +412,6 @@ dependencies = [
  "ciborium",
  "clap",
  "criterion-plot",
- "futures",
  "is-terminal",
  "itertools",
  "num-traits",
@@ -425,7 +424,6 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "tinytemplate",
- "tokio",
  "walkdir",
 ]
 
@@ -1271,13 +1269,7 @@ name = "memory-benches"
 version = "0.1.0"
 dependencies = [
  "criterion",
- "libsql",
- "memory-core",
- "memory-storage-turso",
- "tempfile",
- "test-utils",
- "tokio",
- "uuid",
+ "regex",
 ]
 
 [[package]]

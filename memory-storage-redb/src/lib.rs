@@ -21,16 +21,19 @@
 //! # }
 //! ```
 
-use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result};
-use redb::{Database, TableDefinition};
+use async_trait::async_trait;
+use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result, StorageBackend};
+use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition};
 use std::path::Path;
 use std::sync::Arc;
-use tracing::{debug, info};
+use tracing::info;
 use uuid::Uuid;
 
+mod cache;
 mod storage;
 mod tables;
 
+pub use cache::{CacheConfig, CacheMetrics, LRUCache};
 pub use storage::RedbQuery;
 
 // Table definitions
@@ -45,10 +48,11 @@ pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition:
 /// redb storage backend for fast caching
 pub struct RedbStorage {
     pub(crate) db: Arc<Database>,
+    pub(crate) cache: LRUCache,
 }
 
 impl RedbStorage {
-    /// Create a new redb storage instance
+    /// Create a new redb storage instance with default cache configuration
     ///
     /// # Arguments
     ///
@@ -65,6 +69,33 @@ impl RedbStorage {
     /// # }
     /// ```
     pub async fn new(path: &Path) -> Result<Self> {
+        Self::new_with_cache_config(path, CacheConfig::default()).await
+    }
+
+    /// Create a new redb storage instance with custom cache configuration
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Path to the redb database file
+    /// * `cache_config` - Cache configuration settings
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_redb::{RedbStorage, CacheConfig};
+    /// # use std::path::Path;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let config = CacheConfig {
+    ///     max_size: 500,
+    ///     default_ttl_secs: 1800,
+    ///     cleanup_interval_secs: 600,
+    ///     enable_background_cleanup: true,
+    /// };
+    /// let storage = RedbStorage::new_with_cache_config(Path::new("./memory.redb"), config).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn new_with_cache_config(path: &Path, cache_config: CacheConfig) -> Result<Self> {
         info!("Opening redb database at {}", path.display());
 
         // Use spawn_blocking for synchronous redb initialization
@@ -76,12 +107,16 @@ impl RedbStorage {
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
 
-        let storage = Self { db: Arc::new(db) };
+        let cache = LRUCache::new(cache_config);
+        let storage = Self {
+            db: Arc::new(db),
+            cache,
+        };
 
         // Initialize tables
         storage.initialize_tables().await?;
 
-        info!("Successfully opened redb database");
+        info!("Successfully opened redb database with LRU cache");
         Ok(storage)
     }
 
@@ -182,9 +217,45 @@ impl RedbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
     }
 
+    /// Get cache metrics
+    ///
+    /// Returns current cache performance metrics including hit rate, miss rate,
+    /// eviction count, and size statistics.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_redb::RedbStorage;
+    /// # use std::path::Path;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// # let storage = RedbStorage::new(Path::new("./memory.redb")).await?;
+    /// let metrics = storage.get_cache_metrics().await;
+    /// println!("Cache hit rate: {:.2}%", metrics.hit_rate * 100.0);
+    /// println!("Cache size: {} items, {} bytes", metrics.item_count, metrics.total_size_bytes);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_cache_metrics(&self) -> CacheMetrics {
+        self.cache.get_metrics().await
+    }
+
+    /// Manually trigger cache cleanup to remove expired entries
+    ///
+    /// Returns the number of expired entries removed.
+    ///
+    /// This is useful for testing or when you want to force cleanup
+    /// without waiting for the background task.
+    pub async fn cleanup_cache(&self) -> usize {
+        self.cache.cleanup_expired().await
+    }
+
     /// Clear all cached data (use with caution!)
     pub async fn clear_all(&self) -> Result<()> {
         info!("Clearing all cached data from redb");
+
+        // Clear the LRU cache metadata
+        self.cache.clear().await;
+
         let db = Arc::clone(&self.db);
 
         tokio::task::spawn_blocking(move || {
@@ -193,29 +264,89 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
 
             {
-                let episodes = write_txn
+                // Clear episodes table
+                let mut episodes = write_txn
                     .open_table(EPISODES_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
-                let patterns = write_txn
+                let keys: Vec<String> = episodes
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate episodes: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    episodes.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove episode key: {}", e))
+                    })?;
+                }
+                drop(episodes);
+
+                // Clear patterns table
+                let mut patterns = write_txn
                     .open_table(PATTERNS_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open patterns table: {}", e)))?;
-                let heuristics = write_txn.open_table(HEURISTICS_TABLE).map_err(|e| {
+                let keys: Vec<String> = patterns
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate patterns: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    patterns.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove pattern key: {}", e))
+                    })?;
+                }
+                drop(patterns);
+
+                // Clear heuristics table
+                let mut heuristics = write_txn.open_table(HEURISTICS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open heuristics table: {}", e))
                 })?;
-                let embeddings = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
+                let keys: Vec<String> = heuristics
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate heuristics: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    heuristics.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove heuristic key: {}", e))
+                    })?;
+                }
+                drop(heuristics);
+
+                // Clear embeddings table
+                let mut embeddings = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open embeddings table: {}", e))
                 })?;
-                let metadata = write_txn
+                let keys: Vec<String> = embeddings
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    embeddings.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove embedding key: {}", e))
+                    })?;
+                }
+                drop(embeddings);
+
+                // Clear metadata table
+                let mut metadata = write_txn
                     .open_table(METADATA_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open metadata table: {}", e)))?;
-
-                // TODO: Implement clear using redb v2.1 API
-                // The drain() method is not available in redb v2.1
-                // Need to iterate and remove each key individually
-                drop(episodes);
-                drop(patterns);
-                drop(heuristics);
-                drop(embeddings);
+                let keys: Vec<String> = metadata
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate metadata: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    metadata.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove metadata key: {}", e))
+                    })?;
+                }
                 drop(metadata);
             }
 
@@ -239,6 +370,41 @@ pub struct StorageStatistics {
     pub episode_count: usize,
     pub pattern_count: usize,
     pub heuristic_count: usize,
+}
+
+/// Implement the unified StorageBackend trait for RedbStorage
+#[async_trait]
+impl StorageBackend for RedbStorage {
+    async fn store_episode(&self, episode: &Episode) -> Result<()> {
+        self.store_episode(episode).await
+    }
+
+    async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
+        self.get_episode(id).await
+    }
+
+    async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
+        self.store_pattern(pattern).await
+    }
+
+    async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>> {
+        self.get_pattern(id).await
+    }
+
+    async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
+        self.store_heuristic(heuristic).await
+    }
+
+    async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
+        self.get_heuristic(id).await
+    }
+
+    async fn query_episodes_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<Episode>> {
+        self.query_episodes_since(since).await
+    }
 }
 
 #[cfg(test)]

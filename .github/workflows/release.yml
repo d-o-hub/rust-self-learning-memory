@@ -9,6 +9,9 @@ jobs:
   build-release:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      actions: write  # Required for uploading artifacts
     strategy:
       fail-fast: false
       matrix:
@@ -61,6 +64,9 @@ jobs:
     name: Create Release
     needs: build-release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write      # Required for creating releases
+      actions: read        # Required for downloading artifacts
     steps:
       - uses: actions/checkout@v5
 

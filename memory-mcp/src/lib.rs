@@ -25,14 +25,17 @@
 //! ## Example
 //!
 //! ```no_run
+//! use memory_core::SelfLearningMemory;
 //! use memory_mcp::server::MemoryMCPServer;
 //! use memory_mcp::types::{SandboxConfig, ExecutionContext};
 //! use serde_json::json;
+//! use std::sync::Arc;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
-//!     // Create server with restrictive sandbox
-//!     let server = MemoryMCPServer::new(SandboxConfig::restrictive()).await?;
+//!     // Create memory and server with restrictive sandbox
+//!     let memory = Arc::new(SelfLearningMemory::new());
+//!     let server = MemoryMCPServer::new(SandboxConfig::restrictive(), memory).await?;
 //!
 //!     // List available tools
 //!     let tools = server.list_tools().await;

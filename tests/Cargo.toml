@@ -1,0 +1,11 @@
+[package]
+name = "quality-gates"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[[test]]
+name = "quality_gates"
+path = "quality_gates.rs"
+harness = true

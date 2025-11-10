@@ -1,22 +1,33 @@
-//! Integration tests for the complete learning cycle
+//! BDD-style integration tests for the complete learning cycle
+//!
+//! These tests verify end-to-end learning workflows from episode creation
+//! through completion, pattern extraction, and retrieval.
+//! All tests follow the Given-When-Then pattern for clarity.
 
+mod common;
+
+use common::{
+    assert_episode_completed, assert_has_patterns, assert_reward_in_range, create_success_step,
+    create_test_context, setup_test_memory, ContextBuilder, StepBuilder,
+};
 use memory_core::memory::SelfLearningMemory;
 use memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };
 
 #[tokio::test]
-async fn test_complete_learning_cycle() {
-    let memory = SelfLearningMemory::new();
+async fn should_execute_complete_learning_cycle_end_to_end() {
+    // Given: A memory system
+    let memory = setup_test_memory();
 
-    // Phase 1: Start Episode
-    let context = TaskContext {
-        language: Some("rust".to_string()),
-        framework: Some("tokio".to_string()),
-        complexity: ComplexityLevel::Moderate,
-        domain: "async-web-api".to_string(),
-        tags: vec!["concurrency".to_string(), "rest".to_string()],
-    };
+    // When: We start an episode with context
+    let context = ContextBuilder::new("async-web-api")
+        .language("rust")
+        .framework("tokio")
+        .complexity(ComplexityLevel::Moderate)
+        .tag("concurrency")
+        .tag("rest")
+        .build();
 
     let episode_id = memory
         .start_episode(
@@ -24,38 +35,32 @@ async fn test_complete_learning_cycle() {
             context.clone(),
             TaskType::CodeGeneration,
         )
-        .await;
+        .await
+        .unwrap();
 
-    // Verify episode was created
+    // Then: The episode should be created and incomplete
     let episode = memory.get_episode(episode_id).await.unwrap();
     assert!(!episode.is_complete());
     assert_eq!(episode.task_type, TaskType::CodeGeneration);
 
-    // Phase 2: Log Execution Steps
+    // When: We log execution steps
     let steps = [
-        ("analyzer", "Analyze requirements", true),
-        ("designer", "Design API structure", true),
-        ("builder", "Build endpoint handler", true),
-        ("validator", "Validate request/response", true),
-        ("tester", "Run integration tests", true),
+        ("analyzer", "Analyze requirements"),
+        ("designer", "Design API structure"),
+        ("builder", "Build endpoint handler"),
+        ("validator", "Validate request/response"),
+        ("tester", "Run integration tests"),
     ];
 
-    for (i, (tool, action, success)) in steps.iter().enumerate() {
-        let mut step = ExecutionStep::new(i + 1, tool.to_string(), action.to_string());
-        step.latency_ms = 100 + (i as u64 * 50);
-        step.result = Some(if *success {
-            ExecutionResult::Success {
-                output: format!("{} completed", action),
-            }
-        } else {
-            ExecutionResult::Error {
-                message: format!("{} failed", action),
-            }
-        });
+    for (i, (tool, action)) in steps.iter().enumerate() {
+        let step = StepBuilder::new(i + 1, *tool, *action)
+            .latency_ms(100 + (i as u64 * 50))
+            .success(format!("{} completed", action))
+            .build();
         memory.log_step(episode_id, step).await;
     }
 
-    // Phase 3: Complete Episode
+    // When: We complete the episode
     let outcome = TaskOutcome::Success {
         verdict: "REST API endpoint implemented successfully".to_string(),
         artifacts: vec!["api/handlers.rs".to_string(), "api/routes.rs".to_string()],
@@ -63,17 +68,15 @@ async fn test_complete_learning_cycle() {
 
     memory.complete_episode(episode_id, outcome).await.unwrap();
 
-    // Verify episode completion and learning
+    // Then: The episode should be complete with learning artifacts
     let completed_episode = memory.get_episode(episode_id).await.unwrap();
-    assert!(completed_episode.is_complete());
-    assert!(completed_episode.reward.is_some());
-    assert!(completed_episode.reflection.is_some());
-    assert!(!completed_episode.patterns.is_empty());
+    assert_episode_completed(&completed_episode);
+    assert_has_patterns(&completed_episode);
 
     // Check reward
     let reward = completed_episode.reward.unwrap();
     assert_eq!(reward.base, 1.0); // Success
-    assert!(reward.total > 0.0);
+    assert_reward_in_range(&reward, 1.0, 3.0); // Reasonable range for rewards
     assert_eq!(reward.complexity_bonus, 1.1); // Moderate complexity
 
     // Check reflection
@@ -81,7 +84,7 @@ async fn test_complete_learning_cycle() {
     assert!(!reflection.successes.is_empty());
     assert!(!reflection.insights.is_empty());
 
-    // Phase 4: Retrieve Relevant Context
+    // When: We retrieve context for a similar task
     let similar_context = TaskContext {
         language: Some("rust".to_string()),
         framework: Some("tokio".to_string()),
@@ -98,10 +101,10 @@ async fn test_complete_learning_cycle() {
         )
         .await;
 
+    // Then: The system should return relevant past episodes and patterns
     assert!(!relevant.is_empty());
     assert_eq!(relevant[0].episode_id, episode_id);
 
-    // Retrieve patterns
     let patterns = memory
         .retrieve_relevant_patterns(&similar_context, 10)
         .await;
@@ -109,18 +112,17 @@ async fn test_complete_learning_cycle() {
 }
 
 #[tokio::test]
-async fn test_multiple_episodes_learning() {
-    let memory = SelfLearningMemory::new();
+async fn should_learn_from_multiple_episodes_in_same_domain() {
+    // Given: A memory system
+    let memory = setup_test_memory();
 
-    // Create multiple episodes in the same domain
+    // When: We create multiple episodes in the same domain
     for i in 0..3 {
-        let context = TaskContext {
-            language: Some("rust".to_string()),
-            framework: None,
-            complexity: ComplexityLevel::Simple,
-            domain: "data-processing".to_string(),
-            tags: vec!["batch".to_string()],
-        };
+        let context = ContextBuilder::new("data-processing")
+            .language("rust")
+            .complexity(ComplexityLevel::Simple)
+            .tag("batch")
+            .build();
 
         let episode_id = memory
             .start_episode(
@@ -128,18 +130,12 @@ async fn test_multiple_episodes_learning() {
                 context,
                 TaskType::CodeGeneration,
             )
-            .await;
+            .await
+            .unwrap();
 
-        // Add steps
+        // Add steps - using create_success_step helper
         for j in 0..3 {
-            let mut step = ExecutionStep::new(
-                j + 1,
-                format!("processor_{}", j),
-                "Process data".to_string(),
-            );
-            step.result = Some(ExecutionResult::Success {
-                output: "Processed".to_string(),
-            });
+            let step = create_success_step(j + 1, &format!("processor_{}", j), "Process data");
             memory.log_step(episode_id, step).await;
         }
 
@@ -156,44 +152,39 @@ async fn test_multiple_episodes_learning() {
             .unwrap();
     }
 
-    // Check statistics
+    // Then: Statistics should reflect all episodes
     let (total, completed, patterns) = memory.get_stats().await;
     assert_eq!(total, 3);
     assert_eq!(completed, 3);
     assert!(patterns > 0);
 
-    // Retrieve context should return all relevant episodes
-    let context = TaskContext {
-        domain: "data-processing".to_string(),
-        ..Default::default()
-    };
-
+    // And: Retrieval should return all relevant episodes
+    let context = create_test_context("data-processing", Some("rust"));
     let relevant = memory
         .retrieve_relevant_context("Process new batch".to_string(), context, 10)
         .await;
-
     assert_eq!(relevant.len(), 3);
 }
 
 #[tokio::test]
-async fn test_failure_episode_learning() {
+async fn should_learn_from_failed_episodes_with_improvement_insights() {
+    // Given: A memory system and a complex task context
     let memory = SelfLearningMemory::new();
-
     let context = TaskContext {
         complexity: ComplexityLevel::Complex,
         domain: "distributed-systems".to_string(),
         ..Default::default()
     };
 
+    // When: We create an episode with failing steps
     let episode_id = memory
         .start_episode(
             "Implement distributed consensus".to_string(),
             context,
             TaskType::CodeGeneration,
         )
-        .await;
-
-    // Add steps with failures
+        .await
+        .unwrap();
     let mut step1 = ExecutionStep::new(1, "raft_impl".to_string(), "Implement Raft".to_string());
     step1.result = Some(ExecutionResult::Error {
         message: "Network partition".to_string(),
@@ -206,7 +197,7 @@ async fn test_failure_episode_learning() {
     });
     memory.log_step(episode_id, step2).await;
 
-    // Complete with failure
+    // When: We complete with failure outcome
     memory
         .complete_episode(
             episode_id,
@@ -218,7 +209,7 @@ async fn test_failure_episode_learning() {
         .await
         .unwrap();
 
-    // Verify failure is recorded
+    // Then: The failure should be recorded with improvement suggestions
     let episode = memory.get_episode(episode_id).await.unwrap();
     assert!(episode.is_complete());
 
@@ -234,10 +225,11 @@ async fn test_failure_episode_learning() {
 }
 
 #[tokio::test]
-async fn test_concurrent_episode_handling() {
+async fn should_handle_concurrent_episode_operations_safely() {
+    // Given: A shared memory system
     let memory = SelfLearningMemory::new();
 
-    // Start multiple episodes concurrently
+    // When: We create and complete multiple episodes concurrently
     let mut handles = vec![];
 
     for i in 0..5 {
@@ -250,7 +242,8 @@ async fn test_concurrent_episode_handling() {
 
             let episode_id = mem
                 .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
-                .await;
+                .await
+                .unwrap();
 
             // Add step
             let mut step = ExecutionStep::new(1, "worker".to_string(), "Work".to_string());
@@ -282,18 +275,19 @@ async fn test_concurrent_episode_handling() {
         episode_ids.push(id);
     }
 
-    // Verify all episodes were created and completed
+    // Then: All episodes should be created and completed safely
     assert_eq!(episode_ids.len(), 5);
-
     let (total, completed, _) = memory.get_stats().await;
     assert_eq!(total, 5);
     assert_eq!(completed, 5);
 }
 
 #[tokio::test]
-async fn test_pattern_extraction_accuracy() {
+async fn should_extract_patterns_accurately_from_error_recovery_episodes() {
+    // Given: A memory system
     let memory = SelfLearningMemory::new();
 
+    // When: We create an error recovery episode
     let context = TaskContext {
         language: Some("rust".to_string()),
         domain: "error-handling".to_string(),
@@ -307,7 +301,8 @@ async fn test_pattern_extraction_accuracy() {
             context.clone(),
             TaskType::CodeGeneration,
         )
-        .await;
+        .await
+        .unwrap();
 
     // Simulate error recovery pattern
     let mut error_step = ExecutionStep::new(
@@ -341,10 +336,10 @@ async fn test_pattern_extraction_accuracy() {
         .await
         .unwrap();
 
-    // Retrieve patterns
+    // When: We retrieve patterns for the same context
     let patterns = memory.retrieve_relevant_patterns(&context, 10).await;
 
-    // Should have extracted error recovery pattern
+    // Then: An error recovery pattern should have been extracted
     assert!(patterns
         .iter()
         .any(|p| matches!(p, memory_core::Pattern::ErrorRecovery { .. })));

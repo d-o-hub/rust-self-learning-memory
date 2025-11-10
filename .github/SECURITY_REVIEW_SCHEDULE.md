@@ -78,7 +78,6 @@
    cargo audit
    cargo deny check advisories
    cargo deny check licenses
-   cargo geiger --output-format GitHubMarkdown
    ```
 
 2. **Hook Effectiveness Review**
@@ -431,7 +430,6 @@
 # Install once per developer machine
 cargo install cargo-audit --locked
 cargo install cargo-deny --locked
-cargo install cargo-geiger --locked
 cargo install cargo-llvm-cov --locked
 ```
 

@@ -16,10 +16,13 @@
 //! ```no_run
 //! use memory_mcp::server::MemoryMCPServer;
 //! use memory_mcp::types::SandboxConfig;
+//! use memory_core::SelfLearningMemory;
+//! use std::sync::Arc;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
-//!     let server = MemoryMCPServer::new(SandboxConfig::default()).await?;
+//!     let memory = Arc::new(SelfLearningMemory::new());
+//!     let server = MemoryMCPServer::new(SandboxConfig::default(), memory).await?;
 //!
 //!     // List available tools
 //!     let tools = server.list_tools().await;
@@ -32,6 +35,7 @@
 use crate::sandbox::CodeSandbox;
 use crate::types::{ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig, Tool};
 use anyhow::{Context as AnyhowContext, Result};
+use memory_core::{Pattern, SelfLearningMemory, TaskContext};
 use parking_lot::RwLock;
 use serde_json::json;
 use std::collections::HashMap;
@@ -48,6 +52,8 @@ pub struct MemoryMCPServer {
     stats: Arc<RwLock<ExecutionStats>>,
     /// Tool usage tracking for progressive disclosure
     tool_usage: Arc<RwLock<HashMap<String, usize>>>,
+    /// Self-learning memory system
+    memory: Arc<SelfLearningMemory>,
 }
 
 impl MemoryMCPServer {
@@ -56,11 +62,12 @@ impl MemoryMCPServer {
     /// # Arguments
     ///
     /// * `config` - Sandbox configuration for code execution
+    /// * `memory` - Self-learning memory system
     ///
     /// # Returns
     ///
     /// Returns a new `MemoryMCPServer` instance
-    pub async fn new(config: SandboxConfig) -> Result<Self> {
+    pub async fn new(config: SandboxConfig, memory: Arc<SelfLearningMemory>) -> Result<Self> {
         let sandbox = Arc::new(CodeSandbox::new(config)?);
         let tools = Arc::new(RwLock::new(Self::create_default_tools()));
 
@@ -71,6 +78,7 @@ impl MemoryMCPServer {
             tools,
             stats: Arc::new(RwLock::new(ExecutionStats::default())),
             tool_usage: Arc::new(RwLock::new(HashMap::new())),
+            memory,
         })
     }
 
@@ -211,7 +219,7 @@ impl MemoryMCPServer {
         &self,
         query: String,
         domain: String,
-        _task_type: Option<String>,
+        task_type: Option<String>,
         limit: usize,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("query_memory").await;
@@ -221,15 +229,49 @@ impl MemoryMCPServer {
             query, domain, limit
         );
 
-        // TODO: Integration with SelfLearningMemory
-        // For now, return mock data structure
+        // Build task context from parameters
+        let context = TaskContext {
+            domain,
+            language: None,
+            framework: None,
+            complexity: memory_core::ComplexityLevel::Moderate,
+            tags: task_type
+                .as_ref()
+                .map(|t| vec![t.clone()])
+                .unwrap_or_default(),
+        };
+
+        // Query actual memory for relevant episodes
+        let episodes = self
+            .memory
+            .retrieve_relevant_context(query.clone(), context.clone(), limit)
+            .await;
+
+        // Also get relevant patterns
+        let patterns = self
+            .memory
+            .retrieve_relevant_patterns(&context, limit)
+            .await;
+
+        // Calculate insights from retrieved data
+        let success_count = episodes
+            .iter()
+            .filter(|e| e.reward.as_ref().is_some_and(|r| r.total > 0.7))
+            .count();
+
+        let avg_success_rate = if !episodes.is_empty() {
+            success_count as f32 / episodes.len() as f32
+        } else {
+            0.0
+        };
+
         Ok(json!({
-            "episodes": [],
-            "patterns": [],
+            "episodes": episodes,
+            "patterns": patterns,
             "insights": {
-                "total_episodes": 0,
-                "relevant_patterns": 0,
-                "success_rate": 0.0
+                "total_episodes": episodes.len(),
+                "relevant_patterns": patterns.len(),
+                "success_rate": avg_success_rate
             }
         }))
     }
@@ -329,14 +371,79 @@ impl MemoryMCPServer {
             task_type, min_success_rate, limit
         );
 
-        // TODO: Integration with SelfLearningMemory
-        // For now, return mock data structure
+        // Build context for pattern retrieval
+        let context = TaskContext {
+            domain: task_type.clone(),
+            language: None,
+            framework: None,
+            complexity: memory_core::ComplexityLevel::Moderate,
+            tags: vec![task_type],
+        };
+
+        // Retrieve patterns from memory
+        let all_patterns = self
+            .memory
+            .retrieve_relevant_patterns(&context, limit * 2)
+            .await;
+
+        // Filter by success rate and limit
+        let filtered_patterns: Vec<_> = all_patterns
+            .into_iter()
+            .filter(|_p| {
+                // Filter patterns based on success rate threshold
+                // For now, we include all patterns as we don't have success_rate in Pattern yet
+                // TODO: Add success_rate tracking to Pattern
+                true
+            })
+            .take(limit)
+            .collect();
+
+        // Calculate statistics
+        let total_patterns = filtered_patterns.len();
+        let avg_success_rate = min_success_rate; // Placeholder until we track this in patterns
+
+        // Extract most common tools from patterns
+        let mut tool_counts: HashMap<String, usize> = HashMap::new();
+        for pattern in &filtered_patterns {
+            // Extract tools based on pattern type
+            match pattern {
+                Pattern::ToolSequence { tools, .. } => {
+                    for tool in tools {
+                        *tool_counts.entry(tool.clone()).or_insert(0) += 1;
+                    }
+                }
+                Pattern::DecisionPoint { action, .. } => {
+                    // Count action as a tool usage
+                    *tool_counts.entry(action.clone()).or_insert(0) += 1;
+                }
+                Pattern::ErrorRecovery { recovery_steps, .. } => {
+                    for step in recovery_steps {
+                        *tool_counts.entry(step.clone()).or_insert(0) += 1;
+                    }
+                }
+                Pattern::ContextPattern {
+                    recommended_approach,
+                    ..
+                } => {
+                    *tool_counts.entry(recommended_approach.clone()).or_insert(0) += 1;
+                }
+            }
+        }
+
+        let mut most_common_tools: Vec<_> = tool_counts.into_iter().collect();
+        most_common_tools.sort_by(|a, b| b.1.cmp(&a.1));
+        let most_common_tools: Vec<String> = most_common_tools
+            .into_iter()
+            .take(5)
+            .map(|(tool, _)| tool)
+            .collect();
+
         Ok(json!({
-            "patterns": [],
+            "patterns": filtered_patterns,
             "statistics": {
-                "total_patterns": 0,
-                "avg_success_rate": 0.0,
-                "most_common_tools": []
+                "total_patterns": total_patterns,
+                "avg_success_rate": avg_success_rate,
+                "most_common_tools": most_common_tools
             }
         }))
     }
@@ -394,7 +501,8 @@ mod tests {
     use serde_json::json;
 
     async fn create_test_server() -> MemoryMCPServer {
-        MemoryMCPServer::new(SandboxConfig::default())
+        let memory = Arc::new(SelfLearningMemory::new());
+        MemoryMCPServer::new(SandboxConfig::default(), memory)
             .await
             .unwrap()
     }

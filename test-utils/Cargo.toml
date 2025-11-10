@@ -4,6 +4,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
+description = "Testing utilities and helpers for memory-core and storage backends"
+keywords = ["testing", "test-utils", "ai-memory"]
+categories = ["development-tools::testing"]
+documentation = "https://docs.rs/test-utils"
 
 [dependencies]
 memory-core = { path = "../memory-core", version = "0.1.0" }

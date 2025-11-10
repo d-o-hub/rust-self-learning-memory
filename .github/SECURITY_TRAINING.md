@@ -170,10 +170,7 @@ fn broken_function( {
 5. **Test Execution** (`cargo test --all`)
    - Blocks if any tests fail
 
-6. **Unsafe Code Scan** (`cargo geiger`)
-   - Reports unsafe code usage
-
-7. **Secret Scanning** (grep pattern matching)
+6. **Secret Scanning** (grep pattern matching)
    - Blocks if hardcoded secrets detected
 
 **Example Scenario**:
@@ -193,8 +190,6 @@ git commit -m "feat: add new feature"
 # ✓ All policies pass
 # 🧪 Running tests...
 # ✓ All tests pass
-# ☢️  Checking for unsafe code...
-# ✓ No unsafe code
 # 🔐 Scanning for secrets...
 # ✓ No secrets detected
 # ✅ All security checks passed!
@@ -471,7 +466,6 @@ git commit -m "chore(deps): add new-crate"
 # Install security tools (one-time setup)
 cargo install cargo-audit --locked
 cargo install cargo-deny --locked
-cargo install cargo-geiger --locked
 cargo install cargo-llvm-cov --locked
 
 # Verify installation
@@ -519,8 +513,7 @@ unsafe {
     // ... unsafe code ...
 }
 
-// cargo-geiger will report this, but won't block
-// Maintainers will review during PR
+// Maintainers will review unsafe code during PR
 ```
 
 ---

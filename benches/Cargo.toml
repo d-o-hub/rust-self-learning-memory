@@ -2,6 +2,7 @@
 name = "memory-benches"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 publish = false
 
 [dependencies]
@@ -10,12 +11,15 @@ regex = "1.10"
 
 [[bench]]
 name = "episode_lifecycle"
+path = "episode_lifecycle.rs"
 harness = false
 
 [[bench]]
 name = "pattern_extraction"
+path = "pattern_extraction.rs"
 harness = false
 
 [[bench]]
 name = "storage_operations"
+path = "storage_operations.rs"
 harness = false

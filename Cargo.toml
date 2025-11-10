@@ -3,10 +3,11 @@ resolver = "2"
 members = [
     "memory-core",
     "memory-storage-turso",
-    # "memory-storage-redb",  # Temporarily disabled - needs redb v2.1 API updates
+    "memory-storage-redb",
     "test-utils",
     "memory-mcp",
     "benches",
+    "tests",
 ]
 
 [workspace.package]
@@ -52,3 +53,7 @@ criterion = "0.5"
 opt-level = 3
 lto = true
 codegen-units = 1
+
+# Coverage configuration for cargo-llvm-cov
+[workspace.metadata.coverage]
+exclude-from-coverage = ["tests", "benches"]

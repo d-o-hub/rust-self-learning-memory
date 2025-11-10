@@ -36,6 +36,15 @@ pub enum Error {
     #[error("Invalid state: {0}")]
     InvalidState(String),
 
+    #[error("Security validation failed: {0}")]
+    Security(String),
+
+    #[error("Quota exceeded: {0}")]
+    QuotaExceeded(String),
+
+    #[error("Rate limit exceeded: {0}")]
+    RateLimitExceeded(String),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -54,6 +63,9 @@ impl Error {
             Error::CircuitBreakerOpen => true,
             Error::InvalidInput(_) => false,
             Error::InvalidState(_) => false,
+            Error::Security(_) => false,
+            Error::QuotaExceeded(_) => false,
+            Error::RateLimitExceeded(_) => true, // Can retry after backoff
             Error::Io(_) => true,
         }
     }

@@ -56,6 +56,8 @@ pub mod pattern;
 pub mod patterns;
 pub mod reflection;
 pub mod reward;
+pub mod storage;
+pub mod sync;
 pub mod types;
 
 // Re-export commonly used types
@@ -71,6 +73,7 @@ pub use patterns::{
 };
 pub use reflection::ReflectionGenerator;
 pub use reward::RewardCalculator;
+pub use storage::StorageBackend;
 pub use types::{
     ComplexityLevel, Evidence, ExecutionResult, MemoryConfig, OutcomeStats, Reflection,
     RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,

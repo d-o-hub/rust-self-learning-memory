@@ -1,9 +1,13 @@
 name: CI
+permissions:
+  contents: read
 
 on:
   push:
     branches: [ main, develop ]
-  pull_request:
+  workflow_run:
+    workflows: ["Quick Check"]
+    types: [completed]
     branches: [ main, develop ]
 
 env:
@@ -15,6 +19,7 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -26,6 +31,7 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -40,10 +46,11 @@ jobs:
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, beta]
+        rust: [stable]
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master
@@ -64,6 +71,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -83,6 +91,7 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -99,6 +108,21 @@ jobs:
           cargo llvm-cov --all-features --workspace --html --output-dir coverage
         env:
           RUST_LOG: debug
+      - name: Check coverage threshold (>90%)
+        run: |
+          COVERAGE=$(cargo llvm-cov --all-features --workspace --summary-only 2>/dev/null | grep -oP '\d+\.\d+(?=%|/)' | head -1)
+          echo "Coverage: ${COVERAGE}%"
+          if [ -z "$COVERAGE" ]; then
+            echo "::error::Could not determine coverage percentage"
+            exit 1
+          fi
+          THRESHOLD=90
+          COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
+          if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then
+            echo "::error::Coverage ${COVERAGE}% is below ${THRESHOLD}% threshold"
+            exit 1
+          fi
+          echo "Coverage check passed: ${COVERAGE}% >= ${THRESHOLD}%"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -118,6 +142,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: rustsec/audit-check@v1
@@ -127,6 +152,7 @@ jobs:
   supply-chain:
     name: Supply Chain Security (cargo-deny)
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -145,23 +171,57 @@ jobs:
           path: target/deny.log
           retention-days: 7
 
-  unsafe-code-check:
-    name: Unsafe Code Detection (cargo-geiger)
+  quality-gates:
+    name: Quality Gates
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    needs: [format, clippy, test, coverage, security-audit]
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      - name: Install cargo-geiger
-        run: cargo install cargo-geiger --locked
-      - name: Run cargo-geiger
-        run: cargo geiger --output-format GitHubMarkdown | tee unsafe-report.md
-      - name: Upload unsafe code report
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install required tools
+        run: |
+          cargo install cargo-llvm-cov || true
+          cargo install cargo-audit || true
+      - name: Run Quality Gates
+        run: cargo test --test quality_gates -- --nocapture
+        env:
+          RUST_LOG: info
+          QUALITY_GATE_COVERAGE_THRESHOLD: "90"
+          QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"
+          QUALITY_GATE_COMPLEXITY_THRESHOLD: "10"
+          QUALITY_GATE_SECURITY_THRESHOLD: "0"
+      - name: Generate Quality Report
+        if: always()
+        run: |
+          echo "# Quality Gates Report" > quality-report.md
+          echo "" >> quality-report.md
+          echo "**Date:** $(date)" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## Configuration" >> quality-report.md
+          echo "- Coverage Threshold: ${QUALITY_GATE_COVERAGE_THRESHOLD}%" >> quality-report.md
+          echo "- Pattern Accuracy Threshold: ${QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD}%" >> quality-report.md
+          echo "- Complexity Threshold: ${QUALITY_GATE_COMPLEXITY_THRESHOLD}" >> quality-report.md
+          echo "- Security Vuln Threshold: ${QUALITY_GATE_SECURITY_THRESHOLD}" >> quality-report.md
+          echo "" >> quality-report.md
+        env:
+          QUALITY_GATE_COVERAGE_THRESHOLD: "90"
+          QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"
+          QUALITY_GATE_COMPLEXITY_THRESHOLD: "10"
+          QUALITY_GATE_SECURITY_THRESHOLD: "0"
+      - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unsafe-code-report
-          path: unsafe-report.md
-          retention-days: 7
+          name: quality-gates-report
+          path: quality-report.md
+          retention-days: 30

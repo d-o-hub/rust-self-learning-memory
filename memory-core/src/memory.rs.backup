@@ -53,6 +53,7 @@ use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::pattern::Pattern;
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
+use crate::storage::StorageBackend;
 use crate::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -60,13 +61,87 @@ use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
-/// In-memory storage for episodes (will be replaced with actual storage later)
-type EpisodeStore = Arc<RwLock<HashMap<Uuid, Episode>>>;
-
-/// In-memory storage for patterns (will be replaced with actual storage later)
-type PatternStore = Arc<RwLock<HashMap<PatternId, Pattern>>>;
-
-/// Main self-learning memory system
+/// Main self-learning memory system orchestrating the complete learning cycle.
+///
+/// `SelfLearningMemory` is the primary interface for episodic learning. It manages:
+/// - **Episode lifecycle**: Create, track, and complete task executions
+/// - **Learning analysis**: Calculate rewards, generate reflections, extract patterns
+/// - **Pattern storage**: Persist learnings to durable (Turso) and cache (redb) storage
+/// - **Context retrieval**: Find relevant past episodes for new tasks
+///
+/// # Architecture
+///
+/// The system uses a dual-storage approach:
+/// - **Turso (libSQL)**: Durable, queryable storage for long-term retention
+/// - **redb**: Fast embedded cache for hot data and quick lookups
+/// - **In-memory**: Fallback when external storage is not configured
+///
+/// # Learning Cycle
+///
+/// 1. **Start Episode** - [`start_episode()`](SelfLearningMemory::start_episode) creates a new task record
+/// 2. **Log Steps** - [`log_step()`](SelfLearningMemory::log_step) tracks execution steps
+/// 3. **Complete** - [`complete_episode()`](SelfLearningMemory::complete_episode) finalizes and analyzes
+/// 4. **Retrieve** - [`retrieve_relevant_context()`](SelfLearningMemory::retrieve_relevant_context) queries for similar episodes
+///
+/// # Examples
+///
+/// ## Basic Usage (In-Memory)
+///
+/// ```
+/// use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome, ExecutionStep, ExecutionResult};
+///
+/// # async fn example() {
+/// let memory = SelfLearningMemory::new();
+///
+/// // Start tracking a task
+/// let episode_id = memory.start_episode(
+///     "Implement file parser".to_string(),
+///     TaskContext::default(),
+///     TaskType::CodeGeneration,
+/// ).await;
+///
+/// // Log execution steps
+/// let mut step = ExecutionStep::new(1, "parser".to_string(), "Parse TOML file".to_string());
+/// step.result = Some(ExecutionResult::Success {
+///     output: "Parsed successfully".to_string(),
+/// });
+/// memory.log_step(episode_id, step).await;
+///
+/// // Complete and learn
+/// memory.complete_episode(
+///     episode_id,
+///     TaskOutcome::Success {
+///         verdict: "Parser implemented with tests".to_string(),
+///         artifacts: vec!["parser.rs".to_string()],
+///     },
+/// ).await.unwrap();
+///
+/// // Later: retrieve for similar tasks
+/// let relevant = memory.retrieve_relevant_context(
+///     "Parse JSON file".to_string(),
+///     TaskContext::default(),
+///     5,
+/// ).await;
+/// # }
+/// ```
+///
+/// ## With External Storage
+///
+/// ```no_run
+/// use memory_core::{SelfLearningMemory, MemoryConfig};
+/// use std::sync::Arc;
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// # let turso_backend: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+/// # let redb_backend: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+/// let memory = SelfLearningMemory::with_storage(
+///     MemoryConfig::default(),
+///     turso_backend,   // Durable storage
+///     redb_backend,    // Fast cache
+/// );
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct SelfLearningMemory {
     /// Configuration
@@ -78,10 +153,14 @@ pub struct SelfLearningMemory {
     reflection_generator: ReflectionGenerator,
     /// Pattern extractor
     pattern_extractor: PatternExtractor,
-    /// Episodes storage (in-memory for now)
-    episodes: EpisodeStore,
-    /// Patterns storage (in-memory for now)
-    patterns: PatternStore,
+    /// Durable storage backend (Turso)
+    turso_storage: Option<Arc<dyn StorageBackend>>,
+    /// Cache storage backend (redb)
+    cache_storage: Option<Arc<dyn StorageBackend>>,
+    /// In-memory fallback for episodes (used when no storage configured)
+    episodes_fallback: Arc<RwLock<HashMap<Uuid, Episode>>>,
+    /// In-memory fallback for patterns (used when no storage configured)
+    patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,
     /// Async pattern extraction queue (optional)
     pattern_queue: Option<Arc<PatternExtractionQueue>>,
 }
@@ -93,12 +172,12 @@ impl Default for SelfLearningMemory {
 }
 
 impl SelfLearningMemory {
-    /// Create a new self-learning memory system with default configuration
+    /// Create a new self-learning memory system with default configuration (in-memory only)
     pub fn new() -> Self {
         Self::with_config(MemoryConfig::default())
     }
 
-    /// Create a memory system with custom configuration
+    /// Create a memory system with custom configuration (in-memory only)
     pub fn with_config(config: MemoryConfig) -> Self {
         let pattern_extractor =
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
@@ -108,8 +187,57 @@ impl SelfLearningMemory {
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
-            episodes: Arc::new(RwLock::new(HashMap::new())),
-            patterns: Arc::new(RwLock::new(HashMap::new())),
+            turso_storage: None,
+            cache_storage: None,
+            episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
+            patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
+            pattern_queue: None,
+        }
+    }
+
+    /// Create a memory system with storage backends
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - Memory configuration
+    /// * `turso` - Durable storage backend (typically Turso)
+    /// * `cache` - Cache storage backend (typically redb)
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use memory_core::{SelfLearningMemory, MemoryConfig};
+    /// use std::sync::Arc;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// // Assuming turso and cache are already created StorageBackend implementations
+    /// # let turso: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+    /// # let cache: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+    /// let memory = SelfLearningMemory::with_storage(
+    ///     MemoryConfig::default(),
+    ///     turso,
+    ///     cache,
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn with_storage(
+        config: MemoryConfig,
+        turso: Arc<dyn StorageBackend>,
+        cache: Arc<dyn StorageBackend>,
+    ) -> Self {
+        let pattern_extractor =
+            PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
+
+        Self {
+            config,
+            reward_calculator: RewardCalculator::new(),
+            reflection_generator: ReflectionGenerator::new(),
+            pattern_extractor,
+            turso_storage: Some(turso),
+            cache_storage: Some(cache),
+            episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
+            patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
             pattern_queue: None,
         }
     }
@@ -140,26 +268,74 @@ impl SelfLearningMemory {
         }
     }
 
-    /// Start a new episode
+    /// Start a new episode to track a task execution.
     ///
-    /// Creates and stores a new episode for task tracking.
+    /// Creates a new episode record and stores it in all configured backends
+    /// (cache, durable storage, and in-memory). This marks the beginning of
+    /// the learning cycle for a task.
+    ///
+    /// The episode is created with a unique ID and current timestamp. Initially,
+    /// it has no steps, outcome, or analysis. Steps should be logged as the
+    /// task executes, and the episode should be completed when finished.
     ///
     /// # Arguments
     ///
-    /// * `task_description` - Human-readable description of the task
-    /// * `context` - Task context including language, domain, complexity, tags
-    /// * `task_type` - Type of task being performed
+    /// * `task_description` - Clear, human-readable description of what needs to be done
+    /// * `context` - Contextual metadata (language, domain, framework, etc.) used for retrieval
+    /// * `task_type` - Classification of task (CodeGeneration, Debugging, etc.)
     ///
     /// # Returns
     ///
-    /// The unique episode ID for this task
+    /// Unique episode ID that should be used for subsequent [`log_step()`](SelfLearningMemory::log_step)
+    /// and [`complete_episode()`](SelfLearningMemory::complete_episode) calls.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidInput`] if the task description exceeds [`MAX_DESCRIPTION_LEN`](crate::types::MAX_DESCRIPTION_LEN).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Start tracking a code generation task
+    /// let context = TaskContext {
+    ///     language: Some("rust".to_string()),
+    ///     framework: Some("tokio".to_string()),
+    ///     complexity: ComplexityLevel::Moderate,
+    ///     domain: "async-io".to_string(),
+    ///     tags: vec!["networking".to_string(), "http".to_string()],
+    /// };
+    ///
+    /// let episode_id = memory.start_episode(
+    ///     "Implement async HTTP client with retry logic".to_string(),
+    ///     context,
+    ///     TaskType::CodeGeneration,
+    /// ).await;
+    ///
+    /// // Use episode_id to log steps and complete the episode
+    /// println!("Started episode: {}", episode_id);
+    /// # }
+    /// ```
     #[instrument(skip(self), fields(task_type = %task_type))]
     pub async fn start_episode(
         &self,
         task_description: String,
         context: TaskContext,
         task_type: TaskType,
-    ) -> Uuid {
+    ) -> Result<Uuid> {
+        // Validate input to prevent DoS attacks via unbounded inputs
+        if task_description.len() > crate::types::MAX_DESCRIPTION_LEN {
+            return Err(Error::InvalidInput(format!(
+                "Task description too long: {} bytes > {} bytes (MAX_DESCRIPTION_LEN)",
+                task_description.len(),
+                crate::types::MAX_DESCRIPTION_LEN
+            )));
+        }
+
         let episode = Episode::new(task_description.clone(), context, task_type);
         let episode_id = episode.episode_id;
 
@@ -169,28 +345,87 @@ impl SelfLearningMemory {
             "Started new episode"
         );
 
-        let mut episodes = self.episodes.write().await;
+        // Store in cache first (fast), then Turso (durable)
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(&episode).await {
+                warn!("Failed to store episode in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(&episode).await {
+                warn!("Failed to store episode in Turso: {}", e);
+            }
+        }
+
+        // Always store in fallback for in-memory access
+        let mut episodes = self.episodes_fallback.write().await;
         episodes.insert(episode_id, episode);
 
-        episode_id
+        Ok(episode_id)
     }
 
-    /// Log an execution step for an episode
+    /// Log an execution step for an ongoing episode.
     ///
-    /// Records a single step in the task execution. Steps should be logged
-    /// as they occur to maintain accurate timing and sequence information.
+    /// Records a single discrete action or operation performed during task execution.
+    /// Steps should be logged sequentially as they occur to maintain accurate timing,
+    /// ordering, and execution trace information.
+    ///
+    /// Each step captures what was done, which tool did it, what the result was,
+    /// and how long it took. This detailed trace enables pattern extraction and
+    /// learning from successful execution sequences.
     ///
     /// # Arguments
     ///
-    /// * `episode_id` - ID of the episode to add the step to
-    /// * `step` - Execution step details
+    /// * `episode_id` - ID of the episode to add the step to (from [`start_episode()`](SelfLearningMemory::start_episode))
+    /// * `step` - Execution step details including tool, action, result, timing
     ///
-    /// # Errors
+    /// # Behavior
     ///
-    /// Returns `Error::NotFound` if the episode doesn't exist
+    /// - Updates all storage backends (cache, durable, in-memory)
+    /// - Logs warning (doesn't error) if episode not found
+    /// - Updates persisted episode immediately (not buffered)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use memory_core::{ExecutionStep, ExecutionResult};
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let episode_id = memory.start_episode(
+    ///     "Parse configuration file".to_string(),
+    ///     TaskContext::default(),
+    ///     TaskType::CodeGeneration,
+    /// ).await;
+    ///
+    /// // Log each step as it happens
+    /// let mut step1 = ExecutionStep::new(1, "file_reader".to_string(), "Read config.toml".to_string());
+    /// step1.parameters = serde_json::json!({ "path": "config.toml" });
+    /// step1.result = Some(ExecutionResult::Success {
+    ///     output: "File read: 1024 bytes".to_string(),
+    /// });
+    /// step1.latency_ms = 5;
+    /// memory.log_step(episode_id, step1).await;
+    ///
+    /// let mut step2 = ExecutionStep::new(2, "toml_parser".to_string(), "Parse TOML".to_string());
+    /// step2.result = Some(ExecutionResult::Success {
+    ///     output: "Parsed successfully".to_string(),
+    /// });
+    /// step2.latency_ms = 12;
+    /// memory.log_step(episode_id, step2).await;
+    ///
+    /// // Verify steps were logged
+    /// let episode = memory.get_episode(episode_id).await.unwrap();
+    /// assert_eq!(episode.steps.len(), 2);
+    /// assert_eq!(episode.successful_steps_count(), 2);
+    /// # }
+    /// ```
     #[instrument(skip(self, step), fields(episode_id = %episode_id, step_number = step.step_number))]
     pub async fn log_step(&self, episode_id: Uuid, step: ExecutionStep) {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
 
         if let Some(episode) = episodes.get_mut(&episode_id) {
             debug!(
@@ -199,31 +434,98 @@ impl SelfLearningMemory {
                 "Logged execution step"
             );
             episode.add_step(step);
+
+            // Update in storage backends
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_episode(episode).await {
+                    warn!("Failed to update episode in cache: {}", e);
+                }
+            }
+
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_episode(episode).await {
+                    warn!("Failed to update episode in Turso: {}", e);
+                }
+            }
         } else {
             warn!("Attempted to log step for non-existent episode");
         }
     }
 
-    /// Complete an episode and perform learning analysis
+    /// Complete an episode and trigger learning analysis.
     ///
-    /// Finalizes the episode, calculates rewards, generates reflections,
-    /// and extracts reusable patterns. This is where the learning happens.
+    /// Finalizes the episode by recording the outcome, then performs the learning
+    /// cycle:
+    /// 1. **Marks complete** - Sets end time and outcome
+    /// 2. **Calculates reward** - Scores based on success, efficiency, complexity
+    /// 3. **Generates reflection** - Identifies successes, improvements, insights
+    /// 4. **Extracts patterns** - Finds reusable patterns from execution steps
+    /// 5. **Stores everything** - Persists to all storage backends
     ///
-    /// If async pattern extraction is enabled, patterns are extracted
-    /// asynchronously in the background. Otherwise, patterns are extracted
-    /// synchronously before returning.
+    /// This is the core learning step. Patterns extracted here become available
+    /// for future task retrieval.
+    ///
+    /// # Pattern Extraction Modes
+    ///
+    /// - **Synchronous** (default): Patterns extracted before returning
+    /// - **Asynchronous**: If [`enable_async_extraction()`](SelfLearningMemory::enable_async_extraction)
+    ///   was called, patterns are extracted in background workers
     ///
     /// # Arguments
     ///
-    /// * `episode_id` - ID of the episode to complete
-    /// * `outcome` - Final outcome of the task
+    /// * `episode_id` - ID returned from [`start_episode()`](SelfLearningMemory::start_episode)
+    /// * `outcome` - Final outcome describing success/failure and artifacts
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` on success, or an error if the episode doesn't exist.
     ///
     /// # Errors
     ///
-    /// Returns `Error::NotFound` if the episode doesn't exist
+    /// Returns [`Error::NotFound`] if the episode ID doesn't exist.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome};
+    /// use memory_core::{ExecutionStep, ExecutionResult};
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Start episode
+    /// let episode_id = memory.start_episode(
+    ///     "Fix authentication bug".to_string(),
+    ///     TaskContext::default(),
+    ///     TaskType::Debugging,
+    /// ).await;
+    ///
+    /// // Log debugging steps
+    /// let mut step = ExecutionStep::new(1, "debugger".to_string(), "Identify issue".to_string());
+    /// step.result = Some(ExecutionResult::Success {
+    ///     output: "Found null pointer in auth handler".to_string(),
+    /// });
+    /// memory.log_step(episode_id, step).await;
+    ///
+    /// // Complete with success
+    /// memory.complete_episode(
+    ///     episode_id,
+    ///     TaskOutcome::Success {
+    ///         verdict: "Bug fixed, tests added".to_string(),
+    ///         artifacts: vec!["auth_fix.patch".to_string(), "auth_test.rs".to_string()],
+    ///     },
+    /// ).await?;
+    ///
+    /// // Episode now has reward, reflection, and patterns
+    /// let episode = memory.get_episode(episode_id).await?;
+    /// assert!(episode.reward.is_some());
+    /// assert!(episode.reflection.is_some());
+    /// # Ok(())
+    /// # }
+    /// ```
     #[instrument(skip(self, outcome), fields(episode_id = %episode_id))]
     pub async fn complete_episode(&self, episode_id: Uuid, outcome: TaskOutcome) -> Result<()> {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
 
         let episode = episodes
             .get_mut(&episode_id)
@@ -255,6 +557,19 @@ impl SelfLearningMemory {
             "Generated reflection"
         );
 
+        // Store updated episode in backends
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to store completed episode in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(episode).await {
+                warn!("Failed to store completed episode in Turso: {}", e);
+            }
+        }
+
         // Release the write lock before pattern extraction
         drop(episodes);
 
@@ -282,7 +597,7 @@ impl SelfLearningMemory {
     ///
     /// Used when async extraction is not enabled.
     async fn extract_patterns_sync(&self, episode_id: Uuid) -> Result<()> {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
         let episode = episodes
             .get_mut(&episode_id)
             .ok_or(Error::NotFound(episode_id))?;
@@ -296,16 +611,43 @@ impl SelfLearningMemory {
         );
 
         // Store patterns and link to episode
-        let mut patterns = self.patterns.write().await;
+        let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
 
         for pattern in extracted_patterns {
             let pattern_id = pattern.id();
             pattern_ids.push(pattern_id);
+
+            // Store in backends
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in cache: {}", e);
+                }
+            }
+
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in Turso: {}", e);
+                }
+            }
+
             patterns.insert(pattern_id, pattern);
         }
 
         episode.patterns = pattern_ids;
+
+        // Update episode with pattern IDs
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in Turso: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -328,21 +670,48 @@ impl SelfLearningMemory {
         episode_id: Uuid,
         extracted_patterns: Vec<Pattern>,
     ) -> Result<()> {
-        let mut episodes = self.episodes.write().await;
+        let mut episodes = self.episodes_fallback.write().await;
         let episode = episodes
             .get_mut(&episode_id)
             .ok_or(Error::NotFound(episode_id))?;
 
-        let mut patterns = self.patterns.write().await;
+        let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
 
         for pattern in extracted_patterns {
             let pattern_id = pattern.id();
             pattern_ids.push(pattern_id);
+
+            // Store in backends
+            if let Some(cache) = &self.cache_storage {
+                if let Err(e) = cache.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in cache: {}", e);
+                }
+            }
+
+            if let Some(turso) = &self.turso_storage {
+                if let Err(e) = turso.store_pattern(&pattern).await {
+                    warn!("Failed to store pattern in Turso: {}", e);
+                }
+            }
+
             patterns.insert(pattern_id, pattern);
         }
 
         episode.patterns = pattern_ids;
+
+        // Update episode with pattern IDs
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in cache: {}", e);
+            }
+        }
+
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_episode(episode).await {
+                warn!("Failed to update episode with patterns in Turso: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -359,20 +728,78 @@ impl SelfLearningMemory {
         }
     }
 
-    /// Retrieve relevant context for a new task
+    /// Retrieve relevant past episodes for a new task.
     ///
-    /// Searches for similar episodes and patterns that can inform
-    /// the execution of a new task.
+    /// Searches the memory for episodes similar to the given task, enabling
+    /// the system to learn from past experience. Similarity is determined by:
+    /// - **Domain match**: Same problem domain
+    /// - **Language/framework**: Same technology stack
+    /// - **Tags**: Overlapping tags
+    /// - **Description**: Common keywords in task descriptions
+    ///
+    /// Results are ranked by a relevance score combining context match (40%),
+    /// reward quality (30%), and description similarity (30%).
+    ///
+    /// # Search Strategy
+    ///
+    /// 1. Filters to completed episodes only
+    /// 2. Matches on context fields (domain, language, framework, tags)
+    /// 3. Performs basic text matching on descriptions
+    /// 4. Scores and ranks by relevance
+    /// 5. Returns top N results
     ///
     /// # Arguments
     ///
-    /// * `task_description` - Description of the new task
-    /// * `context` - Context of the new task
-    /// * `limit` - Maximum number of results to return
+    /// * `task_description` - Description of the new task you're about to perform
+    /// * `context` - Context for the new task (same structure as when starting episodes)
+    /// * `limit` - Maximum number of episodes to return
     ///
     /// # Returns
     ///
-    /// Vector of relevant episodes, sorted by relevance
+    /// Vector of episodes sorted by relevance (highest first), limited to `limit` items.
+    /// Returns empty vector if no relevant episodes found.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Query for relevant past episodes
+    /// let context = TaskContext {
+    ///     language: Some("rust".to_string()),
+    ///     framework: Some("axum".to_string()),
+    ///     complexity: ComplexityLevel::Moderate,
+    ///     domain: "web-api".to_string(),
+    ///     tags: vec!["rest".to_string(), "authentication".to_string()],
+    /// };
+    ///
+    /// let relevant_episodes = memory.retrieve_relevant_context(
+    ///     "Implement OAuth2 authentication".to_string(),
+    ///     context,
+    ///     5,  // Get top 5 most relevant
+    /// ).await;
+    ///
+    /// // Use retrieved episodes to inform approach
+    /// for episode in relevant_episodes {
+    ///     println!("Similar task: {}", episode.task_description);
+    ///     println!("Reward: {:?}", episode.reward);
+    ///
+    ///     if let Some(reflection) = episode.reflection {
+    ///         println!("Key insights:");
+    ///         for insight in reflection.insights {
+    ///             println!("  - {}", insight);
+    ///         }
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// # See Also
+    ///
+    /// - [`retrieve_relevant_patterns()`](SelfLearningMemory::retrieve_relevant_patterns) - Get patterns instead of full episodes
     #[instrument(skip(self))]
     pub async fn retrieve_relevant_context(
         &self,
@@ -380,7 +807,7 @@ impl SelfLearningMemory {
         context: TaskContext,
         limit: usize,
     ) -> Vec<Episode> {
-        let episodes = self.episodes.read().await;
+        let episodes = self.episodes_fallback.read().await;
 
         debug!(
             total_episodes = episodes.len(),
@@ -436,7 +863,7 @@ impl SelfLearningMemory {
         context: &TaskContext,
         limit: usize,
     ) -> Vec<Pattern> {
-        let patterns = self.patterns.read().await;
+        let patterns = self.patterns_fallback.read().await;
 
         debug!(
             total_patterns = patterns.len(),
@@ -477,7 +904,7 @@ impl SelfLearningMemory {
     ///
     /// Returns `Error::NotFound` if the episode doesn't exist
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Episode> {
-        let episodes = self.episodes.read().await;
+        let episodes = self.episodes_fallback.read().await;
         episodes
             .get(&episode_id)
             .cloned()
@@ -490,8 +917,8 @@ impl SelfLearningMemory {
     ///
     /// Tuple of (total episodes, completed episodes, total patterns)
     pub async fn get_stats(&self) -> (usize, usize, usize) {
-        let episodes = self.episodes.read().await;
-        let patterns = self.patterns.read().await;
+        let episodes = self.episodes_fallback.read().await;
+        let patterns = self.patterns_fallback.read().await;
 
         let total_episodes = episodes.len();
         let completed_episodes = episodes.values().filter(|e| e.is_complete()).count();
@@ -628,7 +1055,8 @@ mod tests {
 
         let episode_id = memory
             .start_episode("Test task".to_string(), context.clone(), TaskType::Testing)
-            .await;
+            .await
+            .unwrap();
 
         // Verify episode was created
         let episode = memory.get_episode(episode_id).await.unwrap();
@@ -647,7 +1075,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Log some steps
         for i in 0..3 {
@@ -673,7 +1102,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Log a step
         let mut step = ExecutionStep::new(1, "test_tool".to_string(), "Run tests".to_string());
@@ -717,7 +1147,8 @@ mod tests {
 
             let episode_id = memory
                 .start_episode(format!("API task {}", i), context, TaskType::CodeGeneration)
-                .await;
+                .await
+                .unwrap();
 
             let mut step = ExecutionStep::new(1, "builder".to_string(), "Build API".to_string());
             step.result = Some(ExecutionResult::Success {
@@ -752,7 +1183,8 @@ mod tests {
                 different_context.clone(),
                 TaskType::Analysis,
             )
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(
@@ -802,7 +1234,8 @@ mod tests {
                 context.clone(),
                 TaskType::CodeGeneration,
             )
-            .await;
+            .await
+            .unwrap();
 
         // Add multiple successful steps to generate patterns
         for i in 0..4 {
@@ -848,7 +1281,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         let (total, completed, _) = memory.get_stats().await;
         assert_eq!(total, 1);
@@ -861,7 +1295,8 @@ mod tests {
                 TaskContext::default(),
                 TaskType::Testing,
             )
-            .await;
+            .await
+            .unwrap();
 
         memory
             .complete_episode(
@@ -908,5 +1343,44 @@ mod tests {
 
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), Error::NotFound(_)));
+    }
+
+    #[tokio::test]
+    async fn test_start_episode_rejects_oversized_description() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a task description that exceeds MAX_DESCRIPTION_LEN (10KB)
+        let oversized_description = "x".repeat(crate::types::MAX_DESCRIPTION_LEN + 1);
+
+        let result = memory
+            .start_episode(
+                oversized_description,
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Should return InvalidInput error
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), Error::InvalidInput(_)));
+    }
+
+    #[tokio::test]
+    async fn test_start_episode_accepts_max_size_description() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a task description exactly at MAX_DESCRIPTION_LEN (10KB)
+        let max_size_description = "x".repeat(crate::types::MAX_DESCRIPTION_LEN);
+
+        let result = memory
+            .start_episode(
+                max_size_description,
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Should succeed
+        assert!(result.is_ok());
     }
 }

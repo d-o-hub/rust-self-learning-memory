@@ -21,20 +21,26 @@
 //! # }
 //! ```
 
+use async_trait::async_trait;
 use libsql::{Builder, Connection, Database};
-use memory_core::{Error, Result};
+use memory_core::{Error, Result, StorageBackend};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, warn};
 
+pub mod pool;
+mod resilient;
 mod schema;
 mod storage;
 
+pub use pool::{ConnectionPool, PoolConfig, PoolStatistics};
+pub use resilient::ResilientStorage;
 pub use storage::{EpisodeQuery, PatternQuery};
 
 /// Turso storage backend for durable persistence
 pub struct TursoStorage {
     db: Arc<Database>,
+    pool: Option<Arc<ConnectionPool>>,
     config: TursoConfig,
 }
 
@@ -67,15 +73,26 @@ impl TursoStorage {
     ///
     /// # Arguments
     ///
-    /// * `url` - Database URL (e.g., "libsql://localhost:8080" or file path)
-    /// * `token` - Authentication token (empty string for local files)
+    /// * `url` - Database URL (only `libsql://`, `file:`, or `:memory:` protocols allowed)
+    /// * `token` - Authentication token (required for `libsql://`, empty for local files)
+    ///
+    /// # Security
+    ///
+    /// This method enforces secure connections:
+    /// - Remote connections must use `libsql://` protocol with a valid token
+    /// - HTTP/HTTPS protocols are rejected to prevent insecure connections
+    /// - Local `file:` and `:memory:` databases are allowed without tokens
     ///
     /// # Example
     ///
     /// ```no_run
     /// # use memory_storage_turso::TursoStorage;
     /// # async fn example() -> anyhow::Result<()> {
+    /// // Remote connection with authentication
     /// let storage = TursoStorage::new("libsql://localhost:8080", "my-token").await?;
+    ///
+    /// // Local file database
+    /// let local = TursoStorage::new("file:local.db", "").await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -83,9 +100,64 @@ impl TursoStorage {
         Self::with_config(url, token, TursoConfig::default()).await
     }
 
+    /// Create a Turso storage instance from an existing Database
+    ///
+    /// This is useful for testing with local file-based databases.
+    ///
+    /// # Arguments
+    ///
+    /// * `db` - libSQL Database instance
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_turso::TursoStorage;
+    /// # use libsql::Builder;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let db = Builder::new_local("test.db").build().await?;
+    /// let storage = TursoStorage::from_database(db)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn from_database(db: libsql::Database) -> Result<Self> {
+        Ok(Self {
+            db: Arc::new(db),
+            pool: None,
+            config: TursoConfig::default(),
+        })
+    }
+
     /// Create a new Turso storage instance with custom configuration
+    ///
+    /// # Security
+    ///
+    /// This method enforces the following security requirements:
+    /// - Only `libsql://`, `file:`, and `:memory:` protocols are allowed
+    /// - Remote connections (libsql://) require a non-empty authentication token
+    /// - Local file and memory databases do not require tokens
+    ///
+    /// These checks prevent accidental use of insecure protocols and ensure
+    /// proper authentication for remote Turso databases.
     pub async fn with_config(url: &str, token: &str, config: TursoConfig) -> Result<Self> {
         info!("Connecting to Turso database at {}", url);
+
+        // SECURITY: Enforce TLS for remote connections
+        if !url.starts_with("libsql://")
+            && !url.starts_with("file:")
+            && !url.starts_with(":memory:")
+        {
+            return Err(Error::Security(format!(
+                "Insecure database URL: {}. Only libsql://, file:, or :memory: protocols are allowed",
+                url
+            )));
+        }
+
+        // SECURITY: Validate token is provided for remote connections
+        if url.starts_with("libsql://") && token.trim().is_empty() {
+            return Err(Error::Security(
+                "Authentication token required for remote Turso connections".to_string(),
+            ));
+        }
 
         let builder = Builder::new_remote(url.to_string(), token.to_string());
 
@@ -94,10 +166,105 @@ impl TursoStorage {
             .await
             .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?;
 
+        let db = Arc::new(db);
+
+        // Create connection pool if enabled
+        let pool = if config.enable_pooling {
+            let pool_config = PoolConfig::default();
+            let max_conn = pool_config.max_connections;
+            let pool = ConnectionPool::new(Arc::clone(&db), pool_config).await?;
+            info!("Connection pool enabled with {} max connections", max_conn);
+            Some(Arc::new(pool))
+        } else {
+            info!("Connection pooling disabled");
+            None
+        };
+
+        info!("Successfully connected to Turso database");
+
+        Ok(Self { db, pool, config })
+    }
+
+    /// Create a new Turso storage instance with custom pool configuration
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - Database URL
+    /// * `token` - Authentication token
+    /// * `config` - Turso configuration
+    /// * `pool_config` - Connection pool configuration
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use memory_storage_turso::{TursoStorage, TursoConfig, PoolConfig};
+    /// use std::time::Duration;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let config = TursoConfig::default();
+    /// let pool_config = PoolConfig {
+    ///     max_connections: 20,
+    ///     connection_timeout: Duration::from_secs(10),
+    ///     enable_health_check: true,
+    ///     health_check_timeout: Duration::from_secs(2),
+    /// };
+    ///
+    /// let storage = TursoStorage::new_with_pool_config(
+    ///     "libsql://localhost:8080",
+    ///     "token",
+    ///     config,
+    ///     pool_config
+    /// ).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn new_with_pool_config(
+        url: &str,
+        token: &str,
+        config: TursoConfig,
+        pool_config: PoolConfig,
+    ) -> Result<Self> {
+        info!("Connecting to Turso database at {}", url);
+
+        // SECURITY: Enforce TLS for remote connections
+        if !url.starts_with("libsql://")
+            && !url.starts_with("file:")
+            && !url.starts_with(":memory:")
+        {
+            return Err(Error::Security(format!(
+                "Insecure database URL: {}. Only libsql://, file:, or :memory: protocols are allowed",
+                url
+            )));
+        }
+
+        // SECURITY: Validate token is provided for remote connections
+        if url.starts_with("libsql://") && token.trim().is_empty() {
+            return Err(Error::Security(
+                "Authentication token required for remote Turso connections".to_string(),
+            ));
+        }
+
+        let builder = Builder::new_remote(url.to_string(), token.to_string());
+
+        let db = builder
+            .build()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?;
+
+        let db = Arc::new(db);
+
+        // Create connection pool
+        let pool = ConnectionPool::new(Arc::clone(&db), pool_config.clone()).await?;
+        info!(
+            "Connection pool enabled with {} max connections",
+            pool_config.max_connections
+        );
+
         info!("Successfully connected to Turso database");
 
         Ok(Self {
-            db: Arc::new(db),
+            db,
+            pool: Some(Arc::new(pool)),
             config,
         })
     }
@@ -135,10 +302,38 @@ impl TursoStorage {
     }
 
     /// Get a database connection
+    ///
+    /// If connection pooling is enabled, this will use a pooled connection.
+    /// Otherwise, it creates a new connection each time.
     async fn get_connection(&self) -> Result<Connection> {
-        self.db
-            .connect()
-            .map_err(|e| Error::Storage(format!("Failed to get connection: {}", e)))
+        if let Some(ref pool) = self.pool {
+            // Use connection pool
+            let pooled_conn = pool.get().await?;
+            Ok(pooled_conn.into_inner())
+        } else {
+            // Create direct connection (legacy mode)
+            self.db
+                .connect()
+                .map_err(|e| Error::Storage(format!("Failed to get connection: {}", e)))
+        }
+    }
+
+    /// Get pool statistics if pooling is enabled
+    pub async fn pool_statistics(&self) -> Option<PoolStatistics> {
+        if let Some(ref pool) = self.pool {
+            Some(pool.statistics().await)
+        } else {
+            None
+        }
+    }
+
+    /// Get pool utilization if pooling is enabled
+    pub async fn pool_utilization(&self) -> Option<f32> {
+        if let Some(ref pool) = self.pool {
+            Some(pool.utilization().await)
+        } else {
+            None
+        }
     }
 
     /// Execute a SQL statement with retry logic
@@ -235,6 +430,44 @@ pub struct StorageStatistics {
     pub heuristic_count: usize,
 }
 
+/// Implement the unified StorageBackend trait for TursoStorage
+#[async_trait]
+impl StorageBackend for TursoStorage {
+    async fn store_episode(&self, episode: &memory_core::Episode) -> Result<()> {
+        self.store_episode(episode).await
+    }
+
+    async fn get_episode(&self, id: uuid::Uuid) -> Result<Option<memory_core::Episode>> {
+        self.get_episode(id).await
+    }
+
+    async fn store_pattern(&self, pattern: &memory_core::Pattern) -> Result<()> {
+        self.store_pattern(pattern).await
+    }
+
+    async fn get_pattern(
+        &self,
+        id: memory_core::episode::PatternId,
+    ) -> Result<Option<memory_core::Pattern>> {
+        self.get_pattern(id).await
+    }
+
+    async fn store_heuristic(&self, heuristic: &memory_core::Heuristic) -> Result<()> {
+        self.store_heuristic(heuristic).await
+    }
+
+    async fn get_heuristic(&self, id: uuid::Uuid) -> Result<Option<memory_core::Heuristic>> {
+        self.get_heuristic(id).await
+    }
+
+    async fn query_episodes_since(
+        &self,
+        since: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<memory_core::Episode>> {
+        self.query_episodes_since(since).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -252,6 +485,7 @@ mod tests {
 
         let storage = TursoStorage {
             db: Arc::new(db),
+            pool: None,
             config: TursoConfig::default(),
         };
 

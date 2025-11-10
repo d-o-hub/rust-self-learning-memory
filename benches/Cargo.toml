@@ -6,7 +6,7 @@ license = "MIT"
 publish = false
 
 [dependencies]
-criterion = "0.5"
+criterion = "0.7"
 regex = "1.10"
 
 [[bench]]

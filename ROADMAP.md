@@ -7,14 +7,15 @@
 
 This roadmap tracks the implementation status of the Self-Learning Memory System against the comprehensive 6-phase implementation plans. The v0.1.0 release includes all critical features for production deployment with sophisticated learning intelligence, enterprise-grade security, and comprehensive quality gates.
 
-**Current Status**: v0.1.0 Complete (~95% of planned features)
+**Current Status**: v0.1.0 Complete (~85% of planned features)
 **Next Milestone**: v0.2.0 - Distributed Memory & Embeddings (Optional Phase 3+ features)
+**Known Gaps**: Pattern accuracy at ~20% baseline (target: >70%), embedding features not yet implemented
 
 ---
 
 ## Implementation Status Overview
 
-### ✅ v0.1.0 Completed Features (~95%)
+### ✅ v0.1.0 Completed Features (~85%)
 
 **Core System**
 - [x] Core data structures (Episode, Pattern, TaskContext, ExecutionStep)
@@ -46,9 +47,9 @@ This roadmap tracks the implementation status of the Self-Learning Memory System
 - [x] 27 security validation tests
 - [x] 10 SQL injection prevention tests
 
-**Quality & Testing (405 tests passing)**
+**Quality & Testing (347 tests passing)**
 - [x] Automated quality gates (7/8 passing - coverage excluded due to disk constraints)
-- [x] Pattern accuracy validation (>70% target)
+- [x] Pattern accuracy validation framework (baseline ~20%, target >70%)
 - [x] Performance regression tests
 - [x] Code complexity gates (avg < 10)
 - [x] Security vulnerability scanning (0 vulnerabilities)
@@ -102,7 +103,7 @@ All critical features for production deployment have been implemented and tested
   - ✅ Precision/recall/F1 score calculation
   - ✅ Pattern effectiveness tracking with decay
   - ✅ Confidence scoring system
-  - ✅ Achieved: >70% pattern recognition accuracy
+  - ⚠️ Current baseline: ~20% (Target: >70%, aspirational)
   - Location: `memory-core/src/patterns/validation.rs`
 
 **Implementation Notes**:
@@ -302,6 +303,7 @@ All production resilience features implemented with comprehensive testing.
 **Implemented Features**:
 
 - [x] **Two-Phase Commit for Critical Operations**
+  - ✅ Simplified 2PC pattern for coordination (not full distributed transaction coordinator)
   - ✅ Prepare phase (write to both storages)
   - ✅ Commit phase (atomic marking)
   - ✅ Rollback on failure
@@ -723,8 +725,8 @@ Long-term enhancements for scalability and advanced capabilities.
 | Pattern Extraction | <1000ms | ❓ Need benchmarks | 🔴 Unknown | plans/02-plan.md:78 |
 | Concurrent Ops | >100 eps/s | ❓ Need benchmarks | 🔴 Unknown | plans/02-plan.md:82 |
 | **Quality** |
-| Pattern Accuracy | >70% | ❓ No validation yet | 🔴 Unknown | plans/00-overview.md:25 |
-| Test Coverage | >90% | ~60% (estimate) | 🟡 Partial | plans/00-overview.md:26 |
+| Pattern Accuracy | >70% | ~20% baseline | 🔴 Below Target | plans/00-overview.md:25 |
+| Test Coverage | >90% | 347 tests passing | 🟡 Partial | plans/00-overview.md:26 |
 | Avg Complexity | <10 | ❓ Need analysis | 🔴 Unknown | plans/00-overview.md:29 |
 | **Capacity** |
 | Episode Capacity | 10,000+ | ❓ Not tested | 🔴 Unknown | plans/00-overview.md:22 |
@@ -743,7 +745,7 @@ Long-term enhancements for scalability and advanced capabilities.
 
 | Risk | Impact | Likelihood | Mitigation | Status |
 |------|--------|------------|------------|--------|
-| **Pattern accuracy below 70%** | High | Medium | Multiple extractors, A/B testing | 🔴 Not started |
+| **Pattern accuracy below 70%** | High | High | Multiple extractors, A/B testing | 🔴 Currently at ~20%, needs improvement |
 | **MCP sandbox escape** | Critical | Low | Defense-in-depth, security audits | 🔴 Security tests needed |
 | **Performance bottlenecks** | High | Medium | Early benchmarking, profiling | 🔴 Benchmarks needed |
 | **Storage sync issues** | Medium | Medium | Conflict resolution, reconciliation | 🟡 Basic sync works |

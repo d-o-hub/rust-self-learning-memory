@@ -288,8 +288,7 @@ async fn test_memory_integration_with_data() {
             context.clone(),
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     // Add some steps
     let mut step = ExecutionStep::new(1, "planner".to_string(), "Plan API structure".to_string());

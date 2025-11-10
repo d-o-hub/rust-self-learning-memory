@@ -567,7 +567,10 @@ mod tests {
         let result = memory.get_episode(fake_id).await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), crate::error::Error::NotFound(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            crate::error::Error::NotFound(_)
+        ));
     }
 
     #[tokio::test]
@@ -586,6 +589,9 @@ mod tests {
             .await;
 
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), crate::error::Error::NotFound(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            crate::error::Error::NotFound(_)
+        ));
     }
 }

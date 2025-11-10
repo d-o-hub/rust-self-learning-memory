@@ -76,7 +76,9 @@ impl ReflectionGenerator {
 
         // Add sophisticated analysis
         successes.extend(success_analyzer::analyze_success_patterns(episode));
-        improvements.extend(improvement_analyzer::analyze_improvement_opportunities(episode));
+        improvements.extend(improvement_analyzer::analyze_improvement_opportunities(
+            episode,
+        ));
         insights.extend(insight_generator::generate_contextual_insights(episode));
 
         // Limit to max items after combining all sources

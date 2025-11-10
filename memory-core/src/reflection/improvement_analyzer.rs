@@ -163,8 +163,7 @@ fn identify_bottlenecks(episode: &Episode) -> Option<String> {
 }
 
 fn identify_redundancy(episode: &Episode) -> Option<String> {
-    let mut tool_counts: std::collections::HashMap<&str, usize> =
-        std::collections::HashMap::new();
+    let mut tool_counts: std::collections::HashMap<&str, usize> = std::collections::HashMap::new();
 
     for step in &episode.steps {
         *tool_counts.entry(step.tool.as_str()).or_insert(0) += 1;
@@ -220,7 +219,10 @@ fn identify_optimization_opportunities(episode: &Episode) -> Option<String> {
             .collect();
 
         if consecutive_same_type.len() >= 2 {
-            Some("Potential for parallelization: consecutive similar operations detected".to_string())
+            Some(
+                "Potential for parallelization: consecutive similar operations detected"
+                    .to_string(),
+            )
         } else {
             None
         }

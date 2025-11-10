@@ -289,6 +289,10 @@ impl SelfLearningMemory {
     /// Unique episode ID that should be used for subsequent [`log_step()`](SelfLearningMemory::log_step)
     /// and [`complete_episode()`](SelfLearningMemory::complete_episode) calls.
     ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidInput`] if the task description exceeds [`MAX_DESCRIPTION_LEN`](crate::types::MAX_DESCRIPTION_LEN).
+    ///
     /// # Examples
     ///
     /// ```
@@ -322,7 +326,16 @@ impl SelfLearningMemory {
         task_description: String,
         context: TaskContext,
         task_type: TaskType,
-    ) -> Uuid {
+    ) -> Result<Uuid> {
+        // Validate input to prevent DoS attacks via unbounded inputs
+        if task_description.len() > crate::types::MAX_DESCRIPTION_LEN {
+            return Err(Error::InvalidInput(format!(
+                "Task description too long: {} bytes > {} bytes (MAX_DESCRIPTION_LEN)",
+                task_description.len(),
+                crate::types::MAX_DESCRIPTION_LEN
+            )));
+        }
+
         let episode = Episode::new(task_description.clone(), context, task_type);
         let episode_id = episode.episode_id;
 
@@ -349,7 +362,7 @@ impl SelfLearningMemory {
         let mut episodes = self.episodes_fallback.write().await;
         episodes.insert(episode_id, episode);
 
-        episode_id
+        Ok(episode_id)
     }
 
     /// Log an execution step for an ongoing episode.

@@ -414,7 +414,7 @@ dependencies = [
  "criterion-plot",
  "futures",
  "is-terminal",
- "itertools 0.10.5",
+ "itertools",
  "num-traits",
  "once_cell",
  "oorandom",
@@ -436,7 +436,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b50826342786a51a89e2da3a28f1c32b06e387201bc2d19791f622c673706b1"
 dependencies = [
  "cast",
- "itertools 0.10.5",
+ "itertools",
 ]
 
 [[package]]
@@ -1033,15 +1033,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1087,9 +1078,9 @@ dependencies = [
 
 [[package]]
 name = "libsql"
-version = "0.9.24"
+version = "0.9.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a76ffc6aaaac50c1362ebd22f7db457336ab4ee72ee115aaea11f47edf9d7720"
+checksum = "1872c72dd9f50f53c83100066da9f81584c5702e5e806d243468ad986ba2c8a6"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -1127,9 +1118,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-ffi"
-version = "0.9.24"
+version = "0.9.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aaaa869a3c33a125231e8963f7890dae9c6de1ce4133e68121467203896203a0"
+checksum = "8cf139ef358790f799b325cc3801888f11f0077599bab284aff63f5b96669f91"
 dependencies = [
  "bindgen",
  "cc",
@@ -1139,9 +1130,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-hrana"
-version = "0.9.24"
+version = "0.9.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28d0a122bc4af29ffe51a4bb27f7d1b61cf2a4ef5131dad3fecdf1f5fbc6329a"
+checksum = "ab426df906aba5854034d6e6d79a46c70c185c0f4c39ac01f2c7a56c2a21f184"
 dependencies = [
  "base64",
  "bytes",
@@ -1151,9 +1142,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-rusqlite"
-version = "0.9.24"
+version = "0.9.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c2e7739b3828a547d21834779ea699a3b46c3dcfafba75da103d36adcb7c0ab"
+checksum = "a2c8d9f78d60f52776614925724defd1e89130589250ea28d7bf1053f044bdea"
 dependencies = [
  "bitflags 2.10.0",
  "fallible-iterator 0.2.0",
@@ -1183,9 +1174,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-sys"
-version = "0.9.24"
+version = "0.9.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b075329f2ea5a8dc2c61b0d92ec095f823505954e1413c0a5220b40b0e4b0083"
+checksum = "eaadd08c5c2c3bfee29b5f10b6d5175bf0233fc1e7f9d0ed33fa35c254da6601"
 dependencies = [
  "bytes",
  "libsql-ffi",
@@ -1197,9 +1188,9 @@ dependencies = [
 
 [[package]]
 name = "libsql_replication"
-version = "0.9.24"
+version = "0.9.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b47841eedbf05399c552048a11529dcf1fe3d43c1ccc77de55209ba2769d44b"
+checksum = "e1482f709048fdf07266f09f46e8bba1c16a4ee1a6db3d61b86806caa64de8c5"
 dependencies = [
  "aes",
  "async-stream",
@@ -1622,7 +1613,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn",

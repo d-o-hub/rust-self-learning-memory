@@ -8,15 +8,11 @@
 
 use anyhow::Result;
 use std::process::Command;
+#[allow(unused_imports)]
+use tracing::{debug, warn};
 
 #[cfg(unix)]
 use std::process::Stdio;
-
-#[cfg(unix)]
-use tracing::debug;
-
-#[cfg(not(unix))]
-use tracing::warn;
 
 /// Process isolation configuration
 #[derive(Debug, Clone)]

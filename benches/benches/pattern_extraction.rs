@@ -8,7 +8,7 @@ fn benchmark_regex_matching(c: &mut Criterion) {
     use regex::Regex;
 
     let pattern = Regex::new(r"test_\d+").unwrap();
-    let text = "This contains test_123 and test_456 and other content. " .repeat(100);
+    let text = "This contains test_123 and test_456 and other content. ".repeat(100);
 
     c.bench_function("regex_matching", |b| {
         b.iter(|| {
@@ -39,18 +39,15 @@ fn benchmark_pattern_search(c: &mut Criterion) {
     for size in [100, 1000, 10000].iter() {
         let haystack: String = (0..*size).map(|i| format!("word{} ", i)).collect();
 
-        group.bench_with_input(
-            BenchmarkId::from_parameter(size),
-            size,
-            |b, _| {
-                b.iter(|| {
-                    let count = haystack.split_whitespace()
-                        .filter(|word| word.contains("5"))
-                        .count();
-                    black_box(count);
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, _| {
+            b.iter(|| {
+                let count = haystack
+                    .split_whitespace()
+                    .filter(|word| word.contains("5"))
+                    .count();
+                black_box(count);
+            });
+        });
     }
 
     group.finish();

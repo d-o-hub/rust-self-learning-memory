@@ -36,11 +36,7 @@ fn benchmark_vector_operations(c: &mut Criterion) {
 
     c.bench_function("vector_filtering", |b| {
         b.iter(|| {
-            let filtered: Vec<_> = data
-                .iter()
-                .filter(|&&x| x % 2 == 0)
-                .take(100)
-                .collect();
+            let filtered: Vec<_> = data.iter().filter(|&&x| x % 2 == 0).take(100).collect();
             black_box(filtered.len());
         });
     });

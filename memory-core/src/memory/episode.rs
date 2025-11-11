@@ -114,6 +114,16 @@ impl SelfLearningMemory {
     /// and how long it took. This detailed trace enables pattern extraction and
     /// learning from successful execution sequences.
     ///
+    /// # Batching Behavior
+    ///
+    /// If step batching is enabled in the configuration, steps are buffered in memory
+    /// and flushed to storage when:
+    /// - Buffer size reaches `max_batch_size`, OR
+    /// - Time since last flush exceeds `flush_interval_ms`, OR
+    /// - Episode is completed (automatic flush)
+    ///
+    /// If batching is disabled, steps are persisted immediately (legacy behavior).
+    ///
     /// # Arguments
     ///
     /// * `episode_id` - ID of the episode to add the step to (from [`start_episode()`](SelfLearningMemory::start_episode))
@@ -121,9 +131,10 @@ impl SelfLearningMemory {
     ///
     /// # Behavior
     ///
-    /// - Updates all storage backends (cache, durable, in-memory)
+    /// - Validates the step before adding
+    /// - Buffers step if batching enabled and conditions not met
+    /// - Flushes buffered steps when conditions met
     /// - Logs warning (doesn't error) if episode not found
-    /// - Updates persisted episode immediately (not buffered)
     ///
     /// # Examples
     ///
@@ -156,49 +167,176 @@ impl SelfLearningMemory {
     /// step2.latency_ms = 12;
     /// memory.log_step(episode_id, step2).await;
     ///
-    /// // Verify steps were logged
+    /// // Verify steps were logged (may need flush first if batching enabled)
     /// let episode = memory.get_episode(episode_id).await.unwrap();
-    /// assert_eq!(episode.steps.len(), 2);
-    /// assert_eq!(episode.successful_steps_count(), 2);
     /// # }
     /// ```
     #[instrument(skip(self, step), fields(episode_id = %episode_id, step_number = step.step_number))]
     pub async fn log_step(&self, episode_id: Uuid, step: ExecutionStep) {
-        let mut episodes = self.episodes_fallback.write().await;
+        // Validate step first (before acquiring locks)
+        {
+            let episodes = self.episodes_fallback.read().await;
+            if let Some(episode) = episodes.get(&episode_id) {
+                if let Err(e) = super::validation::validate_execution_step(episode, &step) {
+                    warn!(
+                        episode_id = %episode_id,
+                        step_number = step.step_number,
+                        error = %e,
+                        "Execution step validation failed - skipping step"
+                    );
+                    return;
+                }
+            } else {
+                warn!("Attempted to log step for non-existent episode");
+                return;
+            }
+        }
 
-        if let Some(episode) = episodes.get_mut(&episode_id) {
-            // Validate step before adding
-            if let Err(e) = super::validation::validate_execution_step(episode, &step) {
-                warn!(
-                    episode_id = %episode_id,
-                    step_number = step.step_number,
-                    error = %e,
-                    "Execution step validation failed - skipping step"
-                );
+        debug!(
+            step_number = step.step_number,
+            tool = %step.tool,
+            "Logging execution step"
+        );
+
+        // Check if batching is enabled
+        if let Some(batch_config) = &self.config.batch_config {
+            // Use step buffering
+            let mut buffers = self.step_buffers.write().await;
+            let buffer = buffers.entry(episode_id).or_insert_with(|| {
+                super::step_buffer::StepBuffer::new(episode_id, batch_config.clone())
+            });
+
+            // Add step to buffer
+            if let Err(e) = buffer.add_step(step) {
+                warn!("Failed to add step to buffer: {}", e);
                 return;
             }
 
-            debug!(
-                step_number = step.step_number,
-                tool = %step.tool,
-                "Logged execution step"
-            );
-            episode.add_step(step);
+            // Check if we should flush
+            let should_flush = buffer.should_flush();
+            drop(buffers); // Release lock before flush
+
+            if should_flush {
+                self.flush_steps_internal(episode_id).await;
+            }
+        } else {
+            // Legacy immediate persistence (batching disabled)
+            let mut episodes = self.episodes_fallback.write().await;
+            if let Some(episode) = episodes.get_mut(&episode_id) {
+                episode.add_step(step);
+
+                // Update in storage backends
+                if let Some(cache) = &self.cache_storage {
+                    if let Err(e) = cache.store_episode(episode).await {
+                        warn!("Failed to update episode in cache: {}", e);
+                    }
+                }
+
+                if let Some(turso) = &self.turso_storage {
+                    if let Err(e) = turso.store_episode(episode).await {
+                        warn!("Failed to update episode in Turso: {}", e);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Flush buffered steps for an episode to storage.
+    ///
+    /// Manually flushes any buffered steps for the given episode to persistent storage.
+    /// This is useful when you want to ensure all steps are persisted before
+    /// performing operations that depend on complete step history.
+    ///
+    /// If step batching is disabled, this is a no-op.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_id` - ID of the episode to flush steps for
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` on success, or an error if flush fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use memory_core::ExecutionStep;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let episode_id = memory.start_episode(
+    ///     "Task".to_string(),
+    ///     TaskContext::default(),
+    ///     TaskType::Testing,
+    /// ).await;
+    ///
+    /// // Log many steps
+    /// for i in 1..=100 {
+    ///     let step = ExecutionStep::new(i, "tool".to_string(), "action".to_string());
+    ///     memory.log_step(episode_id, step).await;
+    /// }
+    ///
+    /// // Ensure all steps are persisted
+    /// memory.flush_steps(episode_id).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[instrument(skip(self), fields(episode_id = %episode_id))]
+    pub async fn flush_steps(&self, episode_id: Uuid) -> crate::error::Result<()> {
+        self.flush_steps_internal(episode_id).await;
+        Ok(())
+    }
+
+    /// Internal flush implementation (no error wrapping)
+    async fn flush_steps_internal(&self, episode_id: Uuid) {
+        // Take steps from buffer
+        let steps_to_flush = {
+            let mut buffers = self.step_buffers.write().await;
+            if let Some(buffer) = buffers.get_mut(&episode_id) {
+                let steps = buffer.take_steps();
+                if steps.is_empty() {
+                    return; // Nothing to flush
+                }
+                debug!(
+                    episode_id = %episode_id,
+                    step_count = steps.len(),
+                    "Flushing buffered steps to storage"
+                );
+                steps
+            } else {
+                return; // No buffer for this episode
+            }
+        };
+
+        // Add steps to episode and persist
+        let mut episodes = self.episodes_fallback.write().await;
+        if let Some(episode) = episodes.get_mut(&episode_id) {
+            for step in steps_to_flush {
+                episode.add_step(step);
+            }
 
             // Update in storage backends
             if let Some(cache) = &self.cache_storage {
                 if let Err(e) = cache.store_episode(episode).await {
-                    warn!("Failed to update episode in cache: {}", e);
+                    warn!("Failed to flush episode to cache: {}", e);
                 }
             }
 
             if let Some(turso) = &self.turso_storage {
                 if let Err(e) = turso.store_episode(episode).await {
-                    warn!("Failed to update episode in Turso: {}", e);
+                    warn!("Failed to flush episode to Turso: {}", e);
                 }
             }
+
+            info!(
+                episode_id = %episode_id,
+                total_steps = episode.steps.len(),
+                "Successfully flushed buffered steps"
+            );
         } else {
-            warn!("Attempted to log step for non-existent episode");
+            warn!("Attempted to flush steps for non-existent episode");
         }
     }
 

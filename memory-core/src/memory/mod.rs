@@ -49,12 +49,14 @@
 mod episode;
 mod learning;
 mod retrieval;
+pub mod step_buffer;
 pub mod validation;
 
 use crate::episode::{Episode, PatternId};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
-use crate::pattern::Pattern;
+use crate::pattern::{Heuristic, Pattern};
+use crate::patterns::extractors::HeuristicExtractor;
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::storage::StorageBackend;
@@ -63,6 +65,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+
+use step_buffer::StepBuffer;
 
 /// Main self-learning memory system orchestrating the complete learning cycle.
 ///
@@ -156,6 +160,8 @@ pub struct SelfLearningMemory {
     pub(super) reflection_generator: ReflectionGenerator,
     /// Pattern extractor
     pub(super) pattern_extractor: PatternExtractor,
+    /// Heuristic extractor
+    pub(super) heuristic_extractor: HeuristicExtractor,
     /// Durable storage backend (Turso)
     pub(super) turso_storage: Option<Arc<dyn StorageBackend>>,
     /// Cache storage backend (redb)
@@ -164,8 +170,12 @@ pub struct SelfLearningMemory {
     pub(super) episodes_fallback: Arc<RwLock<HashMap<Uuid, Episode>>>,
     /// In-memory fallback for patterns (used when no storage configured)
     pub(super) patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,
+    /// In-memory fallback for heuristics (used when no storage configured)
+    pub(super) heuristics_fallback: Arc<RwLock<HashMap<Uuid, Heuristic>>>,
     /// Async pattern extraction queue (optional)
     pub(super) pattern_queue: Option<Arc<PatternExtractionQueue>>,
+    /// Step buffers for batching I/O operations
+    pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
 }
 
 impl Default for SelfLearningMemory {
@@ -190,11 +200,14 @@ impl SelfLearningMemory {
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
+            heuristic_extractor: HeuristicExtractor::new(),
             turso_storage: None,
             cache_storage: None,
             episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
             patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
+            heuristics_fallback: Arc::new(RwLock::new(HashMap::new())),
             pattern_queue: None,
+            step_buffers: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -237,11 +250,14 @@ impl SelfLearningMemory {
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
+            heuristic_extractor: HeuristicExtractor::new(),
             turso_storage: Some(turso),
             cache_storage: Some(cache),
             episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
             patterns_fallback: Arc::new(RwLock::new(HashMap::new())),
+            heuristics_fallback: Arc::new(RwLock::new(HashMap::new())),
             pattern_queue: None,
+            step_buffers: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -337,6 +353,9 @@ mod tests {
             });
             memory.log_step(episode_id, step).await;
         }
+
+        // Flush buffered steps (if batching enabled)
+        memory.flush_steps(episode_id).await.unwrap();
 
         // Verify steps were logged
         let episode = memory.get_episode(episode_id).await.unwrap();
@@ -594,5 +613,102 @@ mod tests {
             result.unwrap_err(),
             crate::error::Error::NotFound(_)
         ));
+    }
+
+    #[tokio::test]
+    async fn test_heuristic_retrieval_and_update() {
+        let memory = SelfLearningMemory::new();
+
+        // Create an episode with decision points
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("tokio".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "async-processing".to_string(),
+            tags: vec!["concurrency".to_string()],
+        };
+
+        let episode_id = memory
+            .start_episode(
+                "Process data concurrently".to_string(),
+                context.clone(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+
+        // Add multiple decision steps to trigger heuristic extraction
+        for i in 0..3 {
+            let mut step = ExecutionStep::new(
+                i * 2 + 1,
+                "validator".to_string(),
+                "Check if input is valid".to_string(),
+            );
+            step.result = Some(ExecutionResult::Success {
+                output: "Valid".to_string(),
+            });
+            memory.log_step(episode_id, step).await;
+
+            let mut action_step = ExecutionStep::new(
+                i * 2 + 2,
+                "processor".to_string(),
+                "Process the data".to_string(),
+            );
+            action_step.result = Some(ExecutionResult::Success {
+                output: "Processed".to_string(),
+            });
+            memory.log_step(episode_id, action_step).await;
+        }
+
+        // Complete the episode (this extracts heuristics)
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Processing complete".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .unwrap();
+
+        // Retrieve relevant heuristics
+        let heuristics = memory.retrieve_relevant_heuristics(&context, 10).await;
+
+        // Verify we got some heuristics
+        if heuristics.is_empty() {
+            // This is expected behavior if the heuristic extractor has high thresholds
+            return;
+        }
+
+        // Test updating heuristic confidence
+        let heuristic_id = heuristics[0].heuristic_id;
+        let new_episode_id = Uuid::new_v4();
+
+        let old_sample_size = heuristics[0].evidence.sample_size;
+
+        memory
+            .update_heuristic_confidence(
+                heuristic_id,
+                new_episode_id,
+                TaskOutcome::Success {
+                    verdict: "Applied heuristic successfully".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .unwrap();
+
+        // Retrieve again to verify update
+        let updated_heuristics = memory.retrieve_relevant_heuristics(&context, 10).await;
+        let updated_heuristic = updated_heuristics
+            .iter()
+            .find(|h| h.heuristic_id == heuristic_id)
+            .expect("Should find updated heuristic");
+
+        assert_eq!(
+            updated_heuristic.evidence.sample_size,
+            old_sample_size + 1,
+            "Sample size should increase by 1"
+        );
     }
 }

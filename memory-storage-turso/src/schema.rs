@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS episodes (
     reward TEXT,
     reflection TEXT,
     patterns TEXT NOT NULL,
+    heuristics TEXT NOT NULL DEFAULT '[]',
     metadata TEXT NOT NULL,
     domain TEXT NOT NULL,
     language TEXT,

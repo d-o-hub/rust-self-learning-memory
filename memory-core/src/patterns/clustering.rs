@@ -532,6 +532,7 @@ mod tests {
             reward: None,
             reflection: None,
             patterns: Vec::new(),
+            heuristics: Vec::new(),
             metadata: std::collections::HashMap::new(),
         };
 

@@ -37,8 +37,8 @@ impl TursoStorage {
             INSERT OR REPLACE INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
-                reflection, patterns, metadata, domain, language
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                reflection, patterns, heuristics, metadata, domain, language
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         let context_json = serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
@@ -63,6 +63,8 @@ impl TursoStorage {
             .map_err(Error::Serialization)?;
         let patterns_json =
             serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
+        let heuristics_json =
+            serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
         let metadata_json =
             serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
 
@@ -80,6 +82,7 @@ impl TursoStorage {
                 reward_json,
                 reflection_json,
                 patterns_json,
+                heuristics_json,
                 metadata_json,
                 episode.context.domain.clone(),
                 episode.context.language.clone(),
@@ -100,7 +103,7 @@ impl TursoStorage {
         let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, metadata
+                   reflection, patterns, heuristics, metadata
             FROM episodes WHERE episode_id = ?
         "#;
 
@@ -130,7 +133,7 @@ impl TursoStorage {
             r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, metadata
+                   reflection, patterns, heuristics, metadata
             FROM episodes WHERE 1=1
         "#,
         );
@@ -194,7 +197,7 @@ impl TursoStorage {
         let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, metadata
+                   reflection, patterns, heuristics, metadata
             FROM episodes
             WHERE start_time >= ?
             ORDER BY start_time DESC
@@ -505,8 +508,11 @@ impl TursoStorage {
         let patterns_json: String = row
             .get(10)
             .map_err(|e| Error::Storage(format!("Failed to get patterns: {}", e)))?;
-        let metadata_json: String = row
+        let heuristics_json: String = row
             .get(11)
+            .map_err(|e| Error::Storage(format!("Failed to get heuristics: {}", e)))?;
+        let metadata_json: String = row
+            .get(12)
             .map_err(|e| Error::Storage(format!("Failed to get metadata: {}", e)))?;
 
         Ok(Episode {
@@ -538,6 +544,7 @@ impl TursoStorage {
                 .transpose()
                 .map_err(Error::Serialization)?,
             patterns: serde_json::from_str(&patterns_json).map_err(Error::Serialization)?,
+            heuristics: serde_json::from_str(&heuristics_json).map_err(Error::Serialization)?,
             metadata: serde_json::from_str(&metadata_json).map_err(Error::Serialization)?,
         })
     }

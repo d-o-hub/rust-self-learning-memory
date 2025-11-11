@@ -83,6 +83,9 @@ async fn should_log_execution_steps_with_ordering_and_metadata() {
         .build();
     memory.log_step(episode_id, step).await;
 
+    // Flush buffered steps before checking
+    memory.flush_steps(episode_id).await.unwrap();
+
     // Then: The step should be recorded with all metadata
     let episode = memory.get_episode(episode_id).await.unwrap();
     assert_eq!(episode.steps.len(), 1);
@@ -98,6 +101,9 @@ async fn should_log_execution_steps_with_ordering_and_metadata() {
             .build();
         memory.log_step(episode_id, step).await;
     }
+
+    // Flush buffered steps before checking
+    memory.flush_steps(episode_id).await.unwrap();
 
     // Then: Steps should be ordered correctly
     let episode = memory.get_episode(episode_id).await.unwrap();
@@ -115,6 +121,9 @@ async fn should_log_execution_steps_with_ordering_and_metadata() {
         .success("OK")
         .build();
     memory.log_step(episode_id, metadata_step).await;
+
+    // Flush buffered steps before checking
+    memory.flush_steps(episode_id).await.unwrap();
 
     // Then: All metadata should be preserved
     let episode = memory.get_episode(episode_id).await.unwrap();

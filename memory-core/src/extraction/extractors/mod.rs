@@ -53,10 +53,7 @@ pub fn extract_error_recovery(
 }
 
 /// Extract context-based patterns from an episode
-pub fn extract_context_pattern(
-    extractor: &PatternExtractor,
-    episode: &Episode,
-) -> Option<Pattern> {
+pub fn extract_context_pattern(extractor: &PatternExtractor, episode: &Episode) -> Option<Pattern> {
     // Extract context pattern even for episodes without steps
     // This helps capture high-level patterns about task contexts
 

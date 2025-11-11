@@ -11,11 +11,67 @@ Diagnose, fix, and optimize GitHub Actions workflows for Rust projects.
 
 Set up robust CI/CD pipelines for Rust projects with proper caching, testing, linting, and release automation.
 
+## Before Making Changes: Verify Current State
+
+**ALWAYS start by checking the current workflow configuration before making any changes:**
+
+### 1. Get Repository Information
+
+```bash
+# Get current repo info (owner, name)
+gh repo view --json nameWithOwner,owner,name
+
+# Example output: {"name":"rust-self-learning-memory","nameWithOwner":"d-o-hub/rust-self-learning-memory","owner":"d-o-hub"}
+```
+
+### 2. List Existing Workflows
+
+```bash
+# List all workflows
+gh workflow list
+
+# View workflow details
+gh workflow view <workflow-name>
+```
+
+### 3. Check Recent Workflow Runs
+
+```bash
+# List recent runs
+gh run list --limit 10
+
+# View specific run details
+gh run view <run-id>
+
+# View run logs
+gh run view <run-id> --log
+```
+
+### 4. Check Existing Workflow Files
+
+```bash
+# List workflow files
+ls -la .github/workflows/
+
+# Review each workflow
+cat .github/workflows/*.yml
+```
+
+### 5. Check for Existing Issues
+
+```bash
+# Check for workflow-related issues
+gh issue list --label ci --label github-actions --label workflow
+```
+
+**Only after understanding the current state should you suggest changes or additions.**
+
 ## Quick Reference
 
 - **[Caching Strategies](caching-strategies.md)** - Manual cache, rust-cache, sccache, cache keys
 - **[Troubleshooting](troubleshooting.md)** - Common issues, debugging, fixes
-- **[Advanced Features](advanced-features.md)** - Releases, coverage, security, docs deployment
+- **[Advanced Features](advanced-features.md)** - Coverage, security, benchmarking, quality gates, docs deployment
+- **[Release Management](release-management.md)** - Automated releases, versioning, changelog generation, crates.io publishing
 
 ## Complete Rust CI Workflow (2025)
 
@@ -352,7 +408,17 @@ Quick reference - see **[troubleshooting.md](troubleshooting.md)** for full deta
 
 ## Integration with Project
 
-For the rust-self-learning-memory project, the workflow ensures all `memory-core`, `memory-storage-turso`, and `memory-storage-redb` crates are properly tested across platforms with appropriate caching and security checks.
+**Before suggesting workflow changes:**
+1. Run `gh repo view --json nameWithOwner,owner,name` to get actual repo info
+2. Use the actual owner/repo names in all workflow examples
+3. Check existing workflows with `gh workflow list`
+4. Review current workflow files in `.github/workflows/`
+
+**For this project (d-o-hub/rust-self-learning-memory):**
+- The workflows ensure all `memory-core`, `memory-storage-turso`, and `memory-storage-redb` crates are tested across platforms
+- Quality gates enforce 90% code coverage threshold
+- Benchmarks track performance regressions
+- Supply chain security with cargo-deny and cargo-audit
 
 ## Quick Checklist
 

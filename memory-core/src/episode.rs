@@ -246,6 +246,8 @@ pub struct Episode {
     pub reflection: Option<Reflection>,
     /// Extracted pattern IDs
     pub patterns: Vec<PatternId>,
+    /// Extracted heuristic IDs
+    pub heuristics: Vec<Uuid>,
     /// Additional metadata
     pub metadata: HashMap<String, String>,
 }
@@ -302,6 +304,7 @@ impl Episode {
             reward: None,
             reflection: None,
             patterns: Vec::new(),
+            heuristics: Vec::new(),
             metadata: HashMap::new(),
         }
     }

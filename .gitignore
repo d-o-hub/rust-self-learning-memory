@@ -22,3 +22,4 @@ node_modules/
 *_REPORT.*
 *_IMPLEMENTATION.md
 *_ENHANCEMENT*.md
+*.log

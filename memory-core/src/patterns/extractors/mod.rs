@@ -12,6 +12,7 @@ mod clustering;
 mod context_pattern;
 mod decision_point;
 mod error_recovery;
+mod heuristic;
 mod hybrid;
 mod tool_sequence;
 
@@ -19,6 +20,7 @@ pub use clustering::{cluster_similar_patterns, deduplicate_patterns};
 pub use context_pattern::ContextPatternExtractor;
 pub use decision_point::DecisionPointExtractor;
 pub use error_recovery::ErrorRecoveryExtractor;
+pub use heuristic::HeuristicExtractor;
 pub use hybrid::HybridPatternExtractor;
 pub use tool_sequence::ToolSequenceExtractor;
 

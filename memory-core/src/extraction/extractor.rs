@@ -16,6 +16,7 @@ pub struct PatternExtractor {
     /// Minimum success rate threshold
     pub(crate) success_threshold: f32,
     /// Minimum sequence length
+    #[allow(dead_code)]
     pub(crate) min_sequence_len: usize,
     /// Maximum sequence length
     pub(crate) max_sequence_len: usize,

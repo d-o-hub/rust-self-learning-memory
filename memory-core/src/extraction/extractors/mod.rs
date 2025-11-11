@@ -60,7 +60,7 @@ pub fn extract_context_pattern(extractor: &PatternExtractor, episode: &Episode) 
     // Calculate success rate
     let success_rate = if episode.steps.is_empty() {
         // If no steps but episode completed successfully, assume 100% success
-        if episode.is_complete() && episode.reward.as_ref().map_or(false, |r| r.total > 0.0) {
+        if episode.is_complete() && episode.reward.as_ref().is_some_and(|r| r.total > 0.0) {
             1.0
         } else {
             return None;

@@ -91,6 +91,9 @@ impl SelfLearningMemory {
         // Mark episode as complete
         episode.complete(outcome);
 
+        // Validate total episode size before processing
+        super::validation::validate_episode_size(episode)?;
+
         // Calculate reward score
         let reward = self.reward_calculator.calculate(episode);
         episode.reward = Some(reward.clone());

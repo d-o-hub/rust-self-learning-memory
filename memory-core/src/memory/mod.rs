@@ -49,6 +49,7 @@
 mod episode;
 mod learning;
 mod retrieval;
+pub mod validation;
 
 use crate::episode::{Episode, PatternId};
 use crate::extraction::PatternExtractor;

@@ -64,6 +64,17 @@ impl SelfLearningMemory {
         context: TaskContext,
         task_type: TaskType,
     ) -> Uuid {
+        // Validate task description length
+        // Note: Validation warnings are logged but don't prevent episode creation
+        // to maintain backward compatibility with existing API
+        if let Err(e) = super::validation::validate_task_description(&task_description) {
+            warn!(
+                error = %e,
+                description_len = task_description.len(),
+                "Task description validation failed - creating episode anyway for backward compatibility"
+            );
+        }
+
         let episode = Episode::new(task_description.clone(), context, task_type);
         let episode_id = episode.episode_id;
 
@@ -156,6 +167,17 @@ impl SelfLearningMemory {
         let mut episodes = self.episodes_fallback.write().await;
 
         if let Some(episode) = episodes.get_mut(&episode_id) {
+            // Validate step before adding
+            if let Err(e) = super::validation::validate_execution_step(episode, &step) {
+                warn!(
+                    episode_id = %episode_id,
+                    step_number = step.step_number,
+                    error = %e,
+                    "Execution step validation failed - skipping step"
+                );
+                return;
+            }
+
             debug!(
                 step_number = step.step_number,
                 tool = %step.tool,

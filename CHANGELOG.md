@@ -221,4 +221,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Concurrent semaphore limiting for resource-intensive operations
 - Episode retention policies with archival support
 
-[0.1.0]: https://github.com/yourusername/rust-self-learning-memory/releases/tag/v0.1.0
+[0.1.0]: https://github.com/d-o-hub/rust-self-learning-memory/releases/tag/v0.1.0

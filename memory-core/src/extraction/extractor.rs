@@ -6,8 +6,7 @@ use chrono::Duration;
 use tracing::{debug, instrument};
 
 use super::extractors::{
-    extract_context_pattern, extract_decision_points, extract_error_recovery,
-    extract_tool_sequence,
+    extract_context_pattern, extract_decision_points, extract_error_recovery, extract_tool_sequence,
 };
 use super::{MAX_SEQUENCE_LENGTH, MIN_PATTERN_SUCCESS_RATE, MIN_SEQUENCE_LENGTH};
 

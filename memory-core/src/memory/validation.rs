@@ -7,8 +7,7 @@
 use crate::episode::{Episode, ExecutionStep};
 use crate::error::{Error, Result};
 use crate::types::{
-    MAX_ARTIFACT_SIZE, MAX_DESCRIPTION_LEN, MAX_EPISODE_SIZE, MAX_OBSERVATION_LEN,
-    MAX_STEP_COUNT,
+    MAX_ARTIFACT_SIZE, MAX_DESCRIPTION_LEN, MAX_EPISODE_SIZE, MAX_OBSERVATION_LEN, MAX_STEP_COUNT,
 };
 
 /// Validate task description length.

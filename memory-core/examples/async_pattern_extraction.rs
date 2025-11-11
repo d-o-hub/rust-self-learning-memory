@@ -93,8 +93,7 @@ async fn create_and_complete_episode(memory: &SelfLearningMemory, description: &
     let context = TaskContext::default();
     let episode_id = memory
         .start_episode(description.to_string(), context, TaskType::Testing)
-        .await
-        .unwrap();
+        .await;
 
     // Add some execution steps
     for i in 0..5 {

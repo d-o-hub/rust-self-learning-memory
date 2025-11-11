@@ -35,8 +35,7 @@ async fn should_execute_complete_learning_cycle_end_to_end() {
             context.clone(),
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     // Then: The episode should be created and incomplete
     let episode = memory.get_episode(episode_id).await.unwrap();
@@ -130,8 +129,7 @@ async fn should_learn_from_multiple_episodes_in_same_domain() {
                 context,
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         // Add steps - using create_success_step helper
         for j in 0..3 {
@@ -183,8 +181,7 @@ async fn should_learn_from_failed_episodes_with_improvement_insights() {
             context,
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
     let mut step1 = ExecutionStep::new(1, "raft_impl".to_string(), "Implement Raft".to_string());
     step1.result = Some(ExecutionResult::Error {
         message: "Network partition".to_string(),
@@ -242,8 +239,7 @@ async fn should_handle_concurrent_episode_operations_safely() {
 
             let episode_id = mem
                 .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
-                .await
-                .unwrap();
+                .await;
 
             // Add step
             let mut step = ExecutionStep::new(1, "worker".to_string(), "Work".to_string());
@@ -301,8 +297,7 @@ async fn should_extract_patterns_accurately_from_error_recovery_episodes() {
             context.clone(),
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     // Simulate error recovery pattern
     let mut error_step = ExecutionStep::new(

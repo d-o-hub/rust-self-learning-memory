@@ -55,8 +55,7 @@ async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
 
         let episode_id = memory
             .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
-            .await
-            .unwrap();
+            .await;
 
         // Add 3-5 steps per episode
         let step_count = 3 + (i % 3);
@@ -261,8 +260,7 @@ async fn should_store_1000_episodes_without_performance_degradation() {
                 test_context(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         let step = create_test_step(1);
         memory.log_step(episode_id, step).await;
@@ -316,8 +314,7 @@ async fn should_store_10000_episodes_without_performance_degradation() {
                 test_context(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         let step = create_test_step(1);
         memory.log_step(episode_id, step).await;
@@ -367,8 +364,7 @@ async fn should_create_episodes_very_quickly() {
                 test_context(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
         creation_times.push(start.elapsed());
     }
 
@@ -452,8 +448,7 @@ async fn should_not_leak_memory_under_continuous_operation() {
         let mem = memory.clone();
         let episode_id = mem
             .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
-            .await
-            .unwrap();
+            .await;
 
         for j in 0..5 {
             mem.log_step(episode_id, create_test_step(j + 1)).await;
@@ -499,8 +494,7 @@ async fn should_not_leak_memory_over_1000_iterations() {
         let mem = memory.clone();
         let episode_id = mem
             .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
-            .await
-            .unwrap();
+            .await;
 
         for j in 0..5 {
             mem.log_step(episode_id, create_test_step(j + 1)).await;
@@ -549,8 +543,7 @@ async fn should_cleanup_cache_when_exceeding_limits() {
     for i in 0..200 {
         let episode_id = memory
             .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
-            .await
-            .unwrap();
+            .await;
 
         memory
             .complete_episode(
@@ -632,8 +625,7 @@ async fn should_complete_episodes_concurrently_without_conflicts() {
                 test_context(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
         episode_ids.push(id);
     }
 
@@ -714,8 +706,7 @@ async fn should_log_steps_very_quickly() {
     let memory = setup_test_memory();
     let episode_id = memory
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
-        .await
-        .unwrap();
+        .await;
 
     let mut step_times = vec![];
 
@@ -753,8 +744,7 @@ async fn should_complete_episodes_quickly_with_pattern_extraction() {
                 test_context(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         // Add a few steps
         for j in 1..=3 {

@@ -65,8 +65,7 @@ pub async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
 
         let episode_id = memory
             .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
-            .await
-            .unwrap();
+            .await;
 
         // Add 3-5 steps per episode
         let step_count = 3 + (i % 3);
@@ -231,8 +230,7 @@ async fn create_error_recovery_episode(memory: &SelfLearningMemory) -> Uuid {
             context,
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     // Create error recovery pattern
     let error_step = StepBuilder::new(1, "initial_attempt", "Try operation")
@@ -273,8 +271,7 @@ async fn create_tool_sequence_episode(memory: &SelfLearningMemory) -> Uuid {
             context,
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     memory
         .log_step(
@@ -316,8 +313,7 @@ async fn create_decision_point_episode(memory: &SelfLearningMemory) -> Uuid {
 
     let episode_id = memory
         .start_episode("Check cache".to_string(), context, TaskType::CodeGeneration)
-        .await
-        .unwrap();
+        .await;
 
     memory
         .log_step(
@@ -362,8 +358,7 @@ pub async fn create_test_episode_with_domain(memory: &SelfLearningMemory, domain
             context,
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     let step = create_test_step(1);
     memory.log_step(episode_id, step).await;

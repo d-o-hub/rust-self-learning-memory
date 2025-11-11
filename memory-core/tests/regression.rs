@@ -284,8 +284,7 @@ async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {
 
         let episode_id = memory
             .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
-            .await
-            .unwrap();
+            .await;
 
         memory
             .complete_episode(
@@ -320,8 +319,7 @@ async fn should_maintain_pattern_extraction_accuracy_over_time() {
                 episode.context.clone(),
                 episode.task_type,
             )
-            .await
-            .unwrap();
+            .await;
 
         for step in &episode.steps {
             memory.log_step(episode_id, step.clone()).await;
@@ -372,8 +370,7 @@ async fn should_extract_all_pattern_types_correctly() {
             },
             TaskType::CodeGeneration,
         )
-        .await
-        .unwrap();
+        .await;
 
     // When: Logging an error followed by successful recovery
     let mut error_step = ExecutionStep::new(1, "attempt".to_string(), "Try".to_string());
@@ -461,8 +458,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
                 context,
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         memory
             .complete_episode(
@@ -490,8 +486,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
                 context,
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         memory
             .complete_episode(
@@ -546,8 +541,7 @@ async fn should_maintain_backward_compatible_public_api() {
     // Then: start_episode should work
     let episode_id = memory
         .start_episode("test".to_string(), test_context(), TaskType::Testing)
-        .await
-        .unwrap();
+        .await;
 
     // Then: log_step should work
     let step = create_test_step(1);
@@ -589,8 +583,7 @@ async fn should_maintain_data_structure_compatibility() {
 
     let episode_id = memory
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
-        .await
-        .unwrap();
+        .await;
 
     let episode = memory.get_episode(episode_id).await.unwrap();
 
@@ -653,8 +646,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
 
     let episode_id = memory1
         .start_episode("Test".to_string(), test_context(), TaskType::CodeGeneration)
-        .await
-        .unwrap();
+        .await;
 
     for i in 1..=5 {
         memory1.log_step(episode_id, create_test_step(i)).await;
@@ -690,8 +682,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
 
     let episode_id2 = memory2
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
-        .await
-        .unwrap();
+        .await;
 
     let outcome = TaskOutcome::Success {
         verdict: "Done".to_string(),
@@ -714,8 +705,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
 
     let episode_id3 = memory3
         .start_episode("Test".to_string(), test_context(), TaskType::Testing)
-        .await
-        .unwrap();
+        .await;
 
     // When: Completing episode without adding any steps
     let result = memory3
@@ -757,8 +747,7 @@ async fn should_maintain_baseline_episode_creation_performance() {
                 test_context(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .unwrap();
+            .await;
 
         for j in 1..=3 {
             memory.log_step(episode_id, create_test_step(j)).await;

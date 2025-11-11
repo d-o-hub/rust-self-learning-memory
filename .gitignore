@@ -15,3 +15,10 @@ target
 
 # Node modules
 node_modules/
+
+
+*_SUMMARAY.md
+*_DETAILS.md
+*_REPORT.*
+*_IMPLEMENTATION.md
+*_ENHANCEMENT*.md

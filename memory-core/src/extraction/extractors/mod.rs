@@ -44,12 +44,62 @@ pub fn extract_decision_points(_extractor: &PatternExtractor, _episode: &Episode
 }
 
 /// Extract error recovery patterns from an episode
-pub fn extract_error_recovery(
-    _extractor: &PatternExtractor,
-    _episode: &Episode,
-) -> Option<Pattern> {
-    // TODO: Implement error recovery extraction
-    None
+pub fn extract_error_recovery(extractor: &PatternExtractor, episode: &Episode) -> Option<Pattern> {
+    use crate::types::ExecutionResult;
+
+    // Need at least 2 steps to have error -> recovery
+    if episode.steps.len() < 2 {
+        return None;
+    }
+
+    // Look for error -> success patterns
+    let mut error_type = None;
+    let mut recovery_steps = Vec::new();
+
+    for i in 0..episode.steps.len().saturating_sub(1) {
+        let current = &episode.steps[i];
+        let next = &episode.steps[i + 1];
+
+        // Found an error followed by success
+        if !current.is_success() && next.is_success() {
+            // Extract error type
+            if error_type.is_none() {
+                error_type = Some(
+                    if let Some(ExecutionResult::Error { message }) = &current.result {
+                        message.clone()
+                    } else {
+                        "Unknown error".to_string()
+                    },
+                );
+            }
+
+            // Extract recovery step
+            recovery_steps.push(format!("{}: {}", next.tool, next.action));
+        }
+    }
+
+    // Need at least one recovery to create a pattern
+    if error_type.is_none() || recovery_steps.is_empty() {
+        return None;
+    }
+
+    // Calculate success rate
+    let success_rate = extractor.calculate_step_success_rate(episode);
+
+    // For error recovery patterns, we use a lower threshold (0.3) since they
+    // represent valuable learning from failures even when overall success rate is moderate
+    // The key is that we recovered from the error, not that all steps succeeded
+    if success_rate < 0.3 {
+        return None;
+    }
+
+    Some(Pattern::ErrorRecovery {
+        id: PatternId::new_v4(),
+        error_type: error_type.unwrap(),
+        recovery_steps,
+        context: episode.context.clone(),
+        success_rate,
+    })
 }
 
 /// Extract context-based patterns from an episode

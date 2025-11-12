@@ -7,6 +7,8 @@ description: Invoke for complex multi-step tasks requiring intelligent planning 
 
 Enable intelligent planning and execution of complex multi-step tasks through systematic decomposition, dependency mapping, and coordinated multi-agent execution.
 
+Always use the plans/ folder for all files.
+
 ## Quick Reference
 
 - **[Execution Strategies](execution-strategies.md)** - Detailed guide on parallel, sequential, swarm, and hybrid execution patterns

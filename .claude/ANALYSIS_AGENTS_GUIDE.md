@@ -10,7 +10,7 @@ Three comprehensive analysis capabilities have been added to validate implementa
 |-------|-------|---------|
 | **plan-gap-analyzer** | plan-gap-analysis | Compare Phase 1-6 plans with actual implementation |
 | **rust-quality-reviewer** | rust-code-quality | Review Rust code quality and best practices |
-| **architecture-validator** | architecture-validation | Validate architecture compliance with design |
+
 
 ## 1. Plan Gap Analyzer
 

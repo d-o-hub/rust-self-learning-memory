@@ -522,6 +522,110 @@ impl Default for StorageConfig {
     }
 }
 
+/// Configuration for step batching behavior.
+///
+/// Controls when buffered execution steps are flushed to storage.
+/// Step batching reduces I/O overhead for episodes with many steps.
+///
+/// # Examples
+///
+/// ```
+/// use memory_core::BatchConfig;
+///
+/// // Default: 50 steps, 5 second interval
+/// let config = BatchConfig::default();
+///
+/// // Custom configuration
+/// let custom = BatchConfig {
+///     max_batch_size: 100,
+///     flush_interval_ms: 10000,
+///     auto_flush: true,
+/// };
+/// ```
+#[derive(Debug, Clone)]
+pub struct BatchConfig {
+    /// Maximum number of steps to buffer before auto-flush (default: 50)
+    pub max_batch_size: usize,
+    /// Time interval in milliseconds between auto-flushes (default: 5000)
+    pub flush_interval_ms: u64,
+    /// Whether to enable automatic flushing (default: true)
+    pub auto_flush: bool,
+}
+
+impl Default for BatchConfig {
+    fn default() -> Self {
+        Self {
+            max_batch_size: 50,
+            flush_interval_ms: 5000,
+            auto_flush: true,
+        }
+    }
+}
+
+impl BatchConfig {
+    /// Create a new batch configuration with custom values.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_batch_size` - Maximum steps to buffer before flush
+    /// * `flush_interval_ms` - Milliseconds between time-based flushes
+    /// * `auto_flush` - Enable automatic flushing on thresholds
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::BatchConfig;
+    ///
+    /// let config = BatchConfig::new(100, 10000, true);
+    /// assert_eq!(config.max_batch_size, 100);
+    /// assert_eq!(config.flush_interval_ms, 10000);
+    /// assert!(config.auto_flush);
+    /// ```
+    pub fn new(max_batch_size: usize, flush_interval_ms: u64, auto_flush: bool) -> Self {
+        Self {
+            max_batch_size,
+            flush_interval_ms,
+            auto_flush,
+        }
+    }
+
+    /// Create a configuration for high-frequency episodes.
+    ///
+    /// Uses smaller buffer (20 steps) and shorter interval (2 seconds)
+    /// for episodes where steps are logged rapidly.
+    pub fn high_frequency() -> Self {
+        Self {
+            max_batch_size: 20,
+            flush_interval_ms: 2000,
+            auto_flush: true,
+        }
+    }
+
+    /// Create a configuration for low-frequency episodes.
+    ///
+    /// Uses larger buffer (100 steps) and longer interval (10 seconds)
+    /// for episodes where steps are logged slowly.
+    pub fn low_frequency() -> Self {
+        Self {
+            max_batch_size: 100,
+            flush_interval_ms: 10000,
+            auto_flush: true,
+        }
+    }
+
+    /// Create a configuration with manual flush only.
+    ///
+    /// Disables all automatic flushing. Steps are only persisted
+    /// when explicitly flushed or when the episode completes.
+    pub fn manual_only() -> Self {
+        Self {
+            max_batch_size: usize::MAX,
+            flush_interval_ms: u64::MAX,
+            auto_flush: false,
+        }
+    }
+}
+
 /// Main configuration for the self-learning memory system.
 ///
 /// Controls all aspects of memory behavior including storage, pattern

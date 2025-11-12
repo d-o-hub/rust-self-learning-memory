@@ -140,23 +140,20 @@ impl FileSystemRestrictions {
 
     /// Check if a path is within allowed paths
     fn is_path_allowed(&self, path: &Path) -> Result<bool> {
+        // Always canonicalize the path being checked for consistent comparison
+        let canonical_path = canonicalize_path(path)?;
+
         for allowed_path in &self.allowed_paths {
-            // Canonicalize allowed path
-            let canonical_allowed = if allowed_path.exists() {
-                allowed_path
-                    .canonicalize()
-                    .context("Failed to canonicalize allowed path")?
-            } else {
-                allowed_path.clone()
-            };
+            // Canonicalize allowed path for consistent comparison
+            let canonical_allowed = canonicalize_path(allowed_path)?;
 
             // Check if path starts with allowed path
-            if path.starts_with(&canonical_allowed) {
+            if canonical_path.starts_with(&canonical_allowed) {
                 return Ok(true);
             }
 
             // Also check if they're the same path
-            if path == canonical_allowed {
+            if canonical_path == canonical_allowed {
                 return Ok(true);
             }
         }

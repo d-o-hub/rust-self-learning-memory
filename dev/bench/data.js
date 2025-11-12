@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762976837443,
+  "lastUpdate": 1762976975670,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -1101,6 +1101,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/a65524fc6f9da5bef4d914697743420c2fa35e8f"
         },
         "date": 1762976836810,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "70b7372c8cad7668844b2b3002c2564ee45173a4",
+          "message": "docs: Update plans folder with GOAP gap analysis and production readiness plan (#93)\n\nComplete comprehensive GOAP (Goal-Oriented Action Planning) analysis of project\ngaps and create production readiness roadmap for v0.1.0 release.\n\n## Added\n- plans/10-production-readiness.md - Complete production deployment roadmap\n  - 4-phase plan with detailed checklists\n  - Timeline: 2 weeks to v0.1.0 release\n  - Success criteria and risk mitigation\n\n## Updated\n- plans/09-goap-gap-analysis.md - Comprehensive gap analysis\n  - Identified 8 critical gaps (P0/P1/P2 prioritized)\n  - Execution strategy with quality gates\n  - Effort estimates: 45-60 hours to v0.1.0\n- plans/README.md - Fixed file references and updated status\n  - Removed outdated file links\n  - Updated implementation status\n  - Added Phase 9 and Phase 10 documentation\n- plans/07-p0-security-improvements.md - Updated with current status\n  - Marked implementation complete\n  - Cross-referenced new plans for pending documentation tasks\n\n## Removed\n- plans/08-github-actions-analysis.md - Analysis complete, superseded by CI passing\n- plans/ANALYSIS_QUICK_REFERENCE.md - Outdated information\n- plans/PHASE1_IMPLEMENTATION_PLAN.md - Phase 1 complete\n\n## Key Findings\n\n### P0 - Blocking Issues (13-16.5 hours):\n- Build failures (duplicate modules) - 30 minutes\n- Missing integration tests - 4-6 hours\n- Missing production documentation - 8-10 hours\n\n### P1 - Required for v0.1.0 (18-26 hours):\n- Embedding integration for semantic search\n- Complete performance benchmarking\n- Heuristic system completion\n\n### Timeline\nWeek 1: Fix blockers & core features (P0 + P1)\nWeek 2: Production hardening & release (v0.1.0)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-12T20:46:16+01:00",
+          "tree_id": "069a50344a4529ae95f30e7e85aa25aeb903adbd",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/70b7372c8cad7668844b2b3002c2564ee45173a4"
+        },
+        "date": 1762976974933,
         "tool": "cargo",
         "benches": [
           {

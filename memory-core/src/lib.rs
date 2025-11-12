@@ -65,6 +65,7 @@ pub use episode::{Episode, ExecutionStep, PatternId};
 pub use error::{Error, Result};
 pub use extraction::PatternExtractor;
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
+pub use memory::step_buffer::BatchConfig;
 pub use memory::SelfLearningMemory;
 pub use pattern::{Heuristic, Pattern};
 pub use patterns::{
@@ -75,6 +76,6 @@ pub use reflection::ReflectionGenerator;
 pub use reward::RewardCalculator;
 pub use storage::StorageBackend;
 pub use types::{
-    BatchConfig, ComplexityLevel, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
-    Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, Evidence, ExecutionResult, MemoryConfig, OutcomeStats, Reflection,
+    RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
 };

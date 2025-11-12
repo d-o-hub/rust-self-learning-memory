@@ -3,8 +3,11 @@
 //! Buffers execution steps in memory and flushes to storage when conditions are met,
 //! reducing I/O overhead for episodes with many steps.
 
+mod config;
+
+pub use config::BatchConfig;
+
 use crate::episode::ExecutionStep;
-use crate::types::BatchConfig;
 use anyhow::Result;
 use std::time::{Duration, Instant};
 use tracing::{debug, trace};

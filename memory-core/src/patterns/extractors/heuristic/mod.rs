@@ -3,6 +3,10 @@
 //! Extracts condition→action heuristic rules from successful decision points in episodes.
 //! Heuristics represent learned guidelines that can improve future task execution.
 
+mod extraction;
+
+pub use extraction::{extract_action, extract_condition, is_decision_action};
+
 use crate::episode::Episode;
 use crate::pattern::Heuristic;
 use crate::types::{Evidence, TaskOutcome};
@@ -128,15 +132,15 @@ impl HeuristicExtractor {
 
         // Find decision points in steps
         for (idx, step) in episode.steps.iter().enumerate() {
-            if !Self::is_decision_action(&step.action) || !step.is_success() {
+            if !is_decision_action(&step.action) || !step.is_success() {
                 continue;
             }
 
             // Extract condition (the decision context)
-            let condition = self.extract_condition(episode, step, idx)?;
+            let condition = extract_condition(episode, step, idx)?;
 
             // Extract action (what was done after the decision)
-            let action = self.extract_action(episode, step, idx)?;
+            let action = extract_action(episode, step, idx)?;
 
             // Group by condition→action pair
             decision_map
@@ -186,65 +190,6 @@ impl HeuristicExtractor {
         }
 
         Ok(heuristics)
-    }
-
-    /// Check if an action indicates a decision point
-    fn is_decision_action(action: &str) -> bool {
-        let action_lower = action.to_lowercase();
-        action_lower.contains("if ")
-            || action_lower.contains("when ")
-            || action_lower.contains("check ")
-            || action_lower.contains("verify ")
-            || action_lower.contains("validate ")
-            || action_lower.contains("ensure ")
-            || action_lower.starts_with("decide ")
-            || action_lower.starts_with("determine ")
-    }
-
-    /// Extract the condition from a decision point
-    ///
-    /// Combines the episode context with the decision step to form the condition
-    fn extract_condition(
-        &self,
-        episode: &Episode,
-        step: &crate::episode::ExecutionStep,
-        _idx: usize,
-    ) -> Result<String> {
-        // Combine context information with the decision action
-        let mut condition_parts = Vec::new();
-
-        // Add domain context
-        if !episode.context.domain.is_empty() {
-            condition_parts.push(format!("In {} domain", episode.context.domain));
-        }
-
-        // Add language context if available
-        if let Some(lang) = &episode.context.language {
-            condition_parts.push(format!("using {}", lang));
-        }
-
-        // Add the decision action itself
-        condition_parts.push(step.action.clone());
-
-        Ok(condition_parts.join(", "))
-    }
-
-    /// Extract the action taken after a decision point
-    ///
-    /// Uses the next step as the action, or the current tool if no next step exists
-    fn extract_action(
-        &self,
-        episode: &Episode,
-        step: &crate::episode::ExecutionStep,
-        idx: usize,
-    ) -> Result<String> {
-        // Try to use the next step as the action
-        if let Some(next_step) = episode.steps.get(idx + 1) {
-            Ok(format!("Use {} to {}", next_step.tool, next_step.action))
-        } else {
-            // Fall back to using the current step's tool
-            Ok(format!("Apply {}", step.tool))
-        }
     }
 }
 
@@ -502,19 +447,17 @@ mod tests {
 
     #[tokio::test]
     async fn test_decision_action_detection() {
-        assert!(HeuristicExtractor::is_decision_action("Check if valid"));
-        assert!(HeuristicExtractor::is_decision_action("Verify the input"));
-        assert!(HeuristicExtractor::is_decision_action(
-            "Validate parameters"
-        ));
-        assert!(HeuristicExtractor::is_decision_action("When ready"));
-        assert!(HeuristicExtractor::is_decision_action("Ensure safety"));
-        assert!(HeuristicExtractor::is_decision_action("Decide on approach"));
-        assert!(HeuristicExtractor::is_decision_action("Determine the path"));
+        assert!(is_decision_action("Check if valid"));
+        assert!(is_decision_action("Verify the input"));
+        assert!(is_decision_action("Validate parameters"));
+        assert!(is_decision_action("When ready"));
+        assert!(is_decision_action("Ensure safety"));
+        assert!(is_decision_action("Decide on approach"));
+        assert!(is_decision_action("Determine the path"));
 
-        assert!(!HeuristicExtractor::is_decision_action("Read file"));
-        assert!(!HeuristicExtractor::is_decision_action("Write data"));
-        assert!(!HeuristicExtractor::is_decision_action("Process input"));
+        assert!(!is_decision_action("Read file"));
+        assert!(!is_decision_action("Write data"));
+        assert!(!is_decision_action("Process input"));
     }
 
     #[tokio::test]

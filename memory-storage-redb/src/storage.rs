@@ -138,7 +138,8 @@ impl RedbStorage {
                     .with_limit(MAX_EPISODE_SIZE)
                     .with_fixint_encoding()
                     .allow_trailing_bytes();
-                let episode: Episode = config.deserialize(bytes_guard.value())
+                let episode: Episode = config
+                    .deserialize(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 episodes.push(episode);
@@ -294,7 +295,8 @@ impl RedbStorage {
                     .with_limit(MAX_PATTERN_SIZE)
                     .with_fixint_encoding()
                     .allow_trailing_bytes();
-                let pattern: Pattern = config.deserialize(bytes_guard.value())
+                let pattern: Pattern = config
+                    .deserialize(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize pattern: {}", e)))?;
 
                 patterns.push(pattern);
@@ -537,7 +539,8 @@ impl RedbStorage {
                     .with_limit(MAX_EPISODE_SIZE)
                     .with_fixint_encoding()
                     .allow_trailing_bytes();
-                let episode: Episode = config.deserialize(bytes_guard.value())
+                let episode: Episode = config
+                    .deserialize(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 // Filter by timestamp

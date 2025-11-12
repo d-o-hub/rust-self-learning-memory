@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762959629346,
+  "lastUpdate": 1762964230692,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -831,6 +831,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/60dfc1a1b3ad3d024a14a3a53943ebaa8ca680f2"
         },
         "date": 1762959628714,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a2fab715ace308f63cfbe8b1a94ee318097a77d6",
+          "message": "fix(doctests): Make heuristic module public to fix failing doctests (#90)\n\n* fix(doctests): Make heuristic module public to fix failing doctests\n\nFixed 2 failing doctests in CI by making the heuristic module public.\nThe doctests were trying to access internal types but the module was\ndeclared as private.\n\nChanges:\n- Changed 'mod heuristic;' to 'pub mod heuristic;' in extractors/mod.rs\n\nThis fixes:\n- patterns::extractors::heuristic::HeuristicExtractor doctest\n- patterns::extractors::heuristic::extraction::is_decision_action doctest\n\nAll tests now pass (485+ tests, 62 doctests).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix(ci): Rename workflow jobs to match branch protection requirements\n\nUpdated job names in CI workflow to match branch protection check names:\n- \"Test Suite\" → \"Test\" (creates \"Test (ubuntu-latest, stable)\" etc.)\n- \"Code Coverage\" → \"Coverage\"\n- Updated coverage artifact name for consistency\n\nThis ensures the required status checks are properly recognized by\nGitHub branch protection rules.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix(sandbox): Fix path canonicalization for macOS compatibility\n\nFixed test failure on macOS by ensuring consistent path canonicalization\nin the is_path_allowed method. The issue was that when follow_symlinks\nwas false, the test path wasn't canonicalized but the allowed path was,\ncausing mismatches on macOS where /var is symlinked to /private/var.\n\nChanges:\n- Use canonicalize_path() for both paths in is_path_allowed()\n- This ensures consistent canonical form for path comparison\n- Handles non-existent paths correctly via the existing canonicalize_path helper\n\nFixes:\n- test_whitelist_allows_subdirectories on macOS\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix(ci): Add .gitattributes to enforce Unix line endings (LF)\n\nFixes Windows CI failure due to inconsistent line endings. The quality\ngates test was failing because some files had CRLF endings on Windows.\n\nThis ensures all text files use LF (Unix-style) line endings across\nall platforms, preventing formatting check failures on Windows CI.\n\nAffected files will be normalized by Git automatically.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-12T17:13:49+01:00",
+          "tree_id": "30d12e3bf0c1b8bec36b171c8b0de9077bb3f520",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/a2fab715ace308f63cfbe8b1a94ee318097a77d6"
+        },
+        "date": 1762964230065,
         "tool": "cargo",
         "benches": [
           {

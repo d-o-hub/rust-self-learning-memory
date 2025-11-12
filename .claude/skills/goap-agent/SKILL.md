@@ -1,6 +1,6 @@
 ---
 name: goap-agent
-description: Invoke for complex multi-step tasks requiring intelligent planning and multi-agent coordination. Use when tasks need decomposition, dependency mapping, parallel/sequential/swarm execution strategies, or coordination of multiple specialized agents with quality gates and dynamic optimization.
+description: Invoke for complex multi-step tasks requiring intelligent planning and multi-agent coordination. Use when tasks need decomposition, dependency mapping, parallel/sequential/swarm/iterative execution strategies, or coordination of multiple specialized agents with quality gates and dynamic optimization.
 ---
 
 # GOAP Agent Skill: Goal-Oriented Action Planning
@@ -11,7 +11,7 @@ Always use the plans/ folder for all files.
 
 ## Quick Reference
 
-- **[Execution Strategies](execution-strategies.md)** - Detailed guide on parallel, sequential, swarm, and hybrid execution patterns
+- **[Execution Strategies](execution-strategies.md)** - Detailed guide on parallel, sequential, swarm, hybrid, and iterative execution patterns
 
 ## When to Use This Skill
 
@@ -31,7 +31,7 @@ Use this skill when facing:
 ```
 1. ANALYZE → Understand goals, constraints, resources
 2. DECOMPOSE → Break into atomic tasks with dependencies
-3. STRATEGIZE → Choose execution pattern (parallel/sequential/swarm/hybrid)
+3. STRATEGIZE → Choose execution pattern (parallel/sequential/swarm/hybrid/iterative)
 4. COORDINATE → Assign tasks to specialized agents
 5. EXECUTE → Run with monitoring and quality gates
 6. SYNTHESIZE → Aggregate results and validate success
@@ -123,17 +123,20 @@ Choose execution strategy based on task characteristics. See **[execution-strate
 | **Sequential** | Dependent tasks, order matters | 1x | Low |
 | **Swarm** | Many similar tasks | ~Nx | Medium |
 | **Hybrid** | Mixed requirements | 2-4x | Very High |
+| **Iterative** | Progressive refinement, convergence | Varies | Medium |
 
 ### Decision Tree
 ```
-Is time critical?
-  ├─ Yes → Can tasks run in parallel?
-  │   ├─ Yes → PARALLEL
-  │   └─ No → SEQUENTIAL (prioritize critical path)
-  └─ No → Are tasks similar?
-      ├─ Yes (many similar) → SWARM
-      ├─ No (mixed) → HYBRID
-      └─ Simple linear → SEQUENTIAL
+Needs iterative refinement?
+  ├─ Yes (until criteria met or converged) → ITERATIVE
+  └─ No → Is time critical?
+      ├─ Yes → Can tasks run in parallel?
+      │   ├─ Yes → PARALLEL
+      │   └─ No → SEQUENTIAL (prioritize critical path)
+      └─ No → Are tasks similar?
+          ├─ Yes (many similar) → SWARM
+          ├─ No (mixed) → HYBRID
+          └─ Simple linear → SEQUENTIAL
 ```
 
 ## Phase 4: Agent Assignment
@@ -147,6 +150,7 @@ Is time critical?
 | test-runner | Execute tests, diagnose failures | Test validation |
 | refactorer | Improve code quality, structure | Code improvements |
 | code-reviewer | Review quality, compliance | Quality assurance |
+| loop-agent | Iterative refinement, convergence detection | Progressive improvements |
 
 ### Assignment Principles
 1. Match agent capabilities to task requirements
@@ -162,7 +166,7 @@ Is time critical?
 ## Execution Plan: [Task Name]
 
 ### Overview
-- Strategy: [Parallel/Sequential/Swarm/Hybrid]
+- Strategy: [Parallel/Sequential/Swarm/Hybrid/Iterative]
 - Total Tasks: [N]
 - Estimated Duration: [Time]
 - Quality Gates: [N checkpoints]
@@ -374,6 +378,7 @@ Phase 3: Validate
 - **task-decomposition**: Use for Phase 2 (breaking down complex goals)
 - **agent-coordination**: Use for Phase 6 (coordinating multiple agents)
 - **parallel-execution**: Use for parallel strategy implementation
+- **loop-agent**: Use for iterative refinement strategy implementation
 - All specialized agents (feature-implementer, debugger, test-runner, etc.)
 
 ## Quick Example

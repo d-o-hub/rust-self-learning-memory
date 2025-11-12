@@ -111,10 +111,8 @@ impl FileSystemRestrictions {
         }
 
         // Resolve symlinks if needed (and allowed)
-        let resolved = if self.follow_symlinks && sanitized.exists() {
-            sanitized
-                .canonicalize()
-                .context("Failed to canonicalize path")?
+        let resolved = if self.follow_symlinks {
+            canonicalize_path(&sanitized)?
         } else {
             sanitized.clone()
         };
@@ -214,6 +212,52 @@ fn sanitize_path(path: &Path) -> Result<PathBuf> {
     }
 
     Ok(sanitized)
+}
+
+/// Canonicalize a path, handling non-existent paths by canonicalizing the first existing ancestor
+fn canonicalize_path(path: &Path) -> Result<PathBuf> {
+    // If the path exists, canonicalize it directly
+    if path.exists() {
+        return path
+            .canonicalize()
+            .context("Failed to canonicalize existing path");
+    }
+
+    // Otherwise, find the first existing ancestor and canonicalize that
+    let mut current = path.to_path_buf();
+    let mut missing_components = Vec::new();
+
+    loop {
+        if current.exists() {
+            // Found an existing ancestor, canonicalize it
+            let canonical_base = current
+                .canonicalize()
+                .context("Failed to canonicalize ancestor path")?;
+
+            // Rebuild the path with the missing components
+            let mut result = canonical_base;
+            for component in missing_components.iter().rev() {
+                result.push(component);
+            }
+
+            return Ok(result);
+        }
+
+        // Try the parent
+        if let Some(file_name) = current.file_name() {
+            missing_components.push(file_name.to_os_string());
+            if let Some(parent) = current.parent() {
+                current = parent.to_path_buf();
+            } else {
+                // No parent - this shouldn't happen with absolute paths
+                // Just return the original path
+                return Ok(path.to_path_buf());
+            }
+        } else {
+            // No file name - we're at the root
+            return Ok(path.to_path_buf());
+        }
+    }
 }
 
 /// Check if a filename is suspicious

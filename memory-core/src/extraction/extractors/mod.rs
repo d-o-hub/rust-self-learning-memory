@@ -52,12 +52,12 @@ pub fn extract_decision_points(extractor: &PatternExtractor, episode: &Episode) 
     for step in &episode.steps {
         // Check if the action looks like a decision/condition
         let action_lower = step.action.to_lowercase();
-        if action_lower.contains("check") 
-            || action_lower.contains("verify") 
+        if action_lower.contains("check")
+            || action_lower.contains("verify")
             || action_lower.contains("validate")
             || action_lower.contains("is")
-            || action_lower.contains("has") {
-            
+            || action_lower.contains("has")
+        {
             // Calculate outcome stats (simplified - assume success since episode succeeded)
             let outcome_stats = OutcomeStats {
                 success_count: 1,

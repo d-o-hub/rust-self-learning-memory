@@ -1,6 +1,6 @@
 ---
 name: agent-coordination
-description: Coordinate multiple specialized Skills and Task Agents through parallel, sequential, swarm, or hybrid execution strategies. CRITICAL - Skills use Skill tool (rust-code-quality, architecture-validation, plan-gap-analysis), Task Agents use Task tool (code-reviewer, test-runner, debugger). Use this when orchestrating multi-worker workflows, managing dependencies, or optimizing complex task execution with quality gates.
+description: Coordinate multiple specialized Skills and Task Agents through parallel, sequential, swarm, hybrid, or iterative execution strategies. CRITICAL - Skills use Skill tool (rust-code-quality, architecture-validation, plan-gap-analysis), Task Agents use Task tool (code-reviewer, test-runner, debugger, loop-agent). Use this when orchestrating multi-worker workflows, managing dependencies, or optimizing complex task execution with quality gates.
 ---
 
 # Agent Coordination
@@ -108,6 +108,34 @@ Phase 3 [Parallel]: Validation
 └─ code-reviewer: Final quality check
 ```
 
+### 5. Iterative/Loop Coordination
+
+**Use When**: Tasks require progressive refinement until criteria met
+
+**Implementation**:
+- Repeat agent execution with feedback from previous iteration
+- Track progress across iterations
+- Terminate when success criteria met or convergence detected
+- Use loop-agent for orchestration
+
+**Example**:
+```markdown
+Task: "Iteratively improve code quality until standards met"
+
+Loop Configuration:
+- Max Iterations: 5
+- Success: All clippy warnings resolved + tests pass
+- Agent: refactorer
+
+Execution: loop-agent orchestrates iterations
+Iteration 1: refactorer → 15 issues → Continue
+Iteration 2: refactorer → 3 issues → Continue
+Iteration 3: refactorer → 0 issues ✓ → Success
+
+Use loop-agent for: test-fix-retest cycles, performance optimization loops,
+progressive quality improvements, convergence-based refinement
+```
+
 ## CRITICAL: Understanding Skills vs Task Agents
 
 **There are TWO different types of workers you can coordinate:**
@@ -145,6 +173,7 @@ Task Agents are **autonomous sub-processes** that execute tasks independently us
 | **debugger** | Issue diagnosis | Issue description | Root cause, fix |
 | **agent-creator** | Create new agents | Agent requirements | New agent file |
 | **goap-agent** | Complex multi-step tasks | Task description | Coordinated execution |
+| **loop-agent** | Iterative refinement | Initial state + criteria | Refined result |
 | **analysis-swarm** | Multi-perspective analysis | Code/design to analyze | Consensus analysis |
 
 ### When to Use Which?
@@ -203,6 +232,7 @@ Phase 3: Skill(command="rust-code-quality")   # Validate quality
 - Strong dependencies + Order matters → **Sequential**
 - Complex problem + Multiple perspectives → **Swarm**
 - Multi-phase + Mixed dependencies → **Hybrid**
+- Progressive refinement + Convergence needed → **Iterative/Loop**
 
 ### Phase 2: Agent Assignment
 
@@ -380,6 +410,7 @@ Skill(command="rust-code-quality")
 - debugger
 - agent-creator
 - goap-agent
+- loop-agent
 - analysis-swarm
 
 **Everything else is a Skill** - use `Skill(command="...")`
@@ -397,6 +428,7 @@ Skill(command="rust-code-quality")
 | Implement feature | **Task** | `Task(subagent_type="feature-implementer", ...)` |
 | Debug issues | **Task** | `Task(subagent_type="debugger", ...)` |
 | Refactor code | **Task** | `Task(subagent_type="refactorer", ...)` |
+| Iterative refinement | **Task** | `Task(subagent_type="loop-agent", ...)` |
 
 ### Mnemonic
 - **Skills** = Knowledge/Methodology (invoked with `Skill` tool)

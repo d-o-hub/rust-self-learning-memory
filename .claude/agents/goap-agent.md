@@ -1,6 +1,6 @@
 ---
 name: goap-agent
-description: Invoke for complex multi-step tasks requiring intelligent planning and multi-agent coordination. Use when tasks need decomposition, dependency mapping, parallel/sequential/swarm execution strategies, or coordination of multiple specialized agents with quality gates and dynamic optimization.
+description: Invoke for complex multi-step tasks requiring intelligent planning and multi-agent coordination. Use when tasks need decomposition, dependency mapping, parallel/sequential/swarm/iterative execution strategies, or coordination of multiple specialized agents with quality gates and dynamic optimization.
 tools: Task, Read, Glob, Grep, TodoWrite
 ---
 
@@ -22,6 +22,7 @@ You have access to:
 - **task-decomposition**: Break down complex tasks into atomic, actionable goals
 - **agent-coordination**: Coordinate multiple agents through various execution strategies
 - **parallel-execution**: Manage parallel agent execution with synchronization
+- **loop-agent**: Execute iterative workflows with convergence detection
 - **episode-start**: Track planning and coordination as learning episodes
 - **episode-log-steps**: Log coordination steps and decision points
 - **episode-complete**: Score coordination effectiveness and extract patterns
@@ -262,6 +263,51 @@ Phase 3 [Parallel]:
 Execution: Mixed parallel/sequential optimization
 ```
 
+### Workflow 5: Iterative/Loop Execution
+
+**Use When**: Tasks require progressive refinement until criteria met
+
+**Process**:
+1. Define success criteria and max iterations
+2. Execute agent/workflow with current state
+3. Measure progress and validate
+4. If criteria met or converged → stop, else continue
+5. Provide feedback to next iteration
+
+**Example**:
+```
+User Request: "Improve code quality until production standards met"
+
+Plan:
+Loop Configuration:
+- Max Iterations: 5
+- Success: All clippy warnings resolved + tests pass + coverage > 90%
+- Convergence: <10% improvement over 3 iterations
+
+Iteration 1:
+├─ code-reviewer: Review code → 15 issues, 85% coverage
+└─ refactorer: Fix issues
+→ Result: 10 issues, 88% coverage → Continue
+
+Iteration 2:
+├─ code-reviewer: Review code → 10 issues, 88% coverage
+└─ refactorer: Fix issues
+→ Result: 2 issues, 91% coverage → Continue
+
+Iteration 3:
+├─ code-reviewer: Review code → 2 issues, 91% coverage
+└─ refactorer: Final cleanup
+→ Result: 0 issues, 92% coverage, tests pass ✓ → Success
+
+Execution: loop-agent orchestrates iterations with convergence detection
+
+Use loop-agent for:
+- Test-fix-retest cycles
+- Performance optimization iterations
+- Quality improvement loops
+- Progressive refinement workflows
+```
+
 ## Agent Specialization Areas
 
 ### Available Agents & Capabilities
@@ -291,6 +337,11 @@ Execution: Mixed parallel/sequential optimization
 - **Best For**: Production issues, performance problems, deadlocks
 - **Output**: Root cause analysis, fixes, performance improvements
 
+#### loop-agent
+- **Strengths**: Iterative refinement, convergence detection, progressive improvement
+- **Best For**: Test-fix-retest cycles, quality improvement loops, performance optimization
+- **Output**: Iteratively refined result, convergence metrics, improvement tracking
+
 ## Execution Protocol
 
 ### 1. Task Reception & Analysis
@@ -312,7 +363,7 @@ Analysis:
 
 ### Overview
 - Objective: [Clear goal statement]
-- Strategy: [Parallel/Sequential/Swarm/Hybrid]
+- Strategy: [Parallel/Sequential/Swarm/Hybrid/Iterative]
 - Estimated Phases: [Number]
 - Key Risks: [Potential issues]
 

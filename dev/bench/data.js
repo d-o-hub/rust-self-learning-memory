@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762964405223,
+  "lastUpdate": 1762976837443,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -1011,6 +1011,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/e06ab34e58c10dd60aa89f0fa625d5e3c996e870"
         },
         "date": 1762964404933,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a65524fc6f9da5bef4d914697743420c2fa35e8f",
+          "message": "ci: add disk space cleanup to coverage and quality-gates jobs (#92)\n\n- Add disk space cleanup steps to prevent 'No space left on device' errors\n- Remove hosted toolcache and dotnet directories to free up space\n- Add GOAP gap analysis document for project planning\n\nFixes disk space issues in CI that were causing build failures during\ncoverage-enabled testing and quality gate execution.\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>",
+          "timestamp": "2025-11-12T20:43:57+01:00",
+          "tree_id": "04120ee312992393231d9c19f4ca58464978d931",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/a65524fc6f9da5bef4d914697743420c2fa35e8f"
+        },
+        "date": 1762976836810,
         "tool": "cargo",
         "benches": [
           {

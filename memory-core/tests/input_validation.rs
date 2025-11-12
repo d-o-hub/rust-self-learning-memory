@@ -154,6 +154,9 @@ async fn should_handle_large_inputs_without_data_loss() {
             memory.log_step(id, step).await;
         }
 
+        // Flush any buffered steps
+        memory.flush_steps(id).await.unwrap();
+
         // Then: All steps should be stored
         let episode = memory.get_episode(id).await.unwrap();
         assert_eq!(
@@ -271,6 +274,9 @@ async fn should_handle_special_characters_and_edge_cases_gracefully() {
 
             memory.log_step(id, step).await;
 
+            // Flush any buffered steps
+            memory.flush_steps(id).await.unwrap();
+
             // Then: Special characters should be preserved in steps
             let updated = memory.get_episode(id).await.unwrap();
             assert_eq!(updated.steps[0].tool, test_case.tool);
@@ -318,6 +324,9 @@ async fn should_handle_deeply_nested_json_structures() {
         .success("OK")
         .build();
     memory.log_step(id, step).await;
+
+    // Flush any buffered steps
+    memory.flush_steps(id).await.unwrap();
 
     // Then: The nested JSON should be preserved
     let episode = memory.get_episode(id).await.unwrap();

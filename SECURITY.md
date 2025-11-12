@@ -130,6 +130,32 @@ Session-end verification:
 - Must not have known security advisories
 - Must not be yanked or unmaintained
 
+### Input Validation & Bounds
+
+**Implemented P0 Security Improvements:**
+
+#### Input Size Limits
+- **Task Description**: Max 10KB (10,000 characters)
+- **Execution Step Observation**: Max 10KB (10,000 characters)
+- **Execution Step Parameters**: Max 1MB (1,000,000 characters)
+- **Episode Artifacts**: Max 1MB (1,000,000 characters)
+- **Episode Steps**: Max 1,000 steps per episode
+
+#### Bincode Deserialization Limits
+- **Episode Size**: Max 10MB for deserialization
+- **Pattern Size**: Max 1MB for deserialization
+- **Heuristic Size**: Max 100KB for deserialization
+
+#### Error Types
+- **QuotaExceeded**: For resource limit enforcement
+- **RateLimitExceeded**: For rate limiting with backoff
+
+#### Validation Logic
+- All input validation occurs at API boundaries
+- Validation errors are logged but don't prevent episode creation (backward compatibility)
+- Size limits prevent DoS attacks via oversized inputs
+- Bincode limits prevent OOM attacks during deserialization
+
 ## Reporting Security Vulnerabilities
 
 If you discover a security vulnerability:

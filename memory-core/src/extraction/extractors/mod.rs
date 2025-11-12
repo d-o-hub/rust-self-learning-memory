@@ -56,8 +56,8 @@ pub fn extract_decision_points(extractor: &PatternExtractor, episode: &Episode) 
             || action_lower.contains("verify")
             || action_lower.contains("validate")
             || action_lower.contains("is")
-            || action_lower.contains("has")
-        {
+            || action_lower.contains("has") {
+
             // Calculate outcome stats (simplified - assume success since episode succeeded)
             let outcome_stats = OutcomeStats {
                 success_count: 1,

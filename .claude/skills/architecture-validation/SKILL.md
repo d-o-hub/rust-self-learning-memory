@@ -1,322 +1,614 @@
 ---
 name: architecture-validation
-description: Validate architecture compliance with planned design decisions, patterns, and system constraints for the Rust self-learning memory project
+description: Generic architecture validation that validates implementations against any plan files in the plans/ folder
+version: 2.0.0
 ---
 
 # Architecture Validation Skill
 
-Systematically validate that the implemented architecture matches the planned architecture decisions, design patterns, and system constraints documented in the project plans.
+Dynamically validate that the implemented codebase matches the architectural decisions, design patterns, and system constraints documented in ANY plan files found in the `plans/` directory.
 
 ## Purpose
 
-Ensure the implementation adheres to:
-- **Architectural decisions** from plans/02-plan.md
-- **Component boundaries** and separation of concerns
-- **Data flow patterns** (episode lifecycle, pattern extraction)
-- **Storage architecture** (Hybrid Turso + redb)
-- **Integration patterns** (MCP protocol, sandbox)
-- **Performance targets** and resource constraints
-- **Security architecture** and defense-in-depth
+This skill provides a **generic, adaptive framework** for architecture validation that:
+- **Discovers** all plan files in `plans/` directory
+- **Extracts** architectural requirements, decisions, and constraints dynamically
+- **Validates** implementation compliance without hardcoded assumptions
+- **Reports** gaps, drift, and violations with actionable recommendations
 
-## Architecture Dimensions
+**Key Principle**: Be architecture-agnostic. Work with ANY project structure and ANY set of plans.
 
-### 1. System Architecture Overview
-Planned: Self-Learning Memory System with Learning Core, MCP Integration, and Storage Layer (Turso + redb)
+## When to Use This Skill
 
-**Validation**:
-- Crate boundaries match planned components
-- Dependencies flow correctly (no cycles)
-- Core business logic separated from infrastructure
+Use this skill when:
+- Validating that implementation matches planning documents
+- Checking for architecture drift after development
+- Ensuring design decisions are being followed
+- Identifying missing or incomplete implementations
+- Auditing compliance with documented constraints
+- Preparing for architecture reviews
+- Verifying refactoring didn't break architectural boundaries
 
-### 2. Crate Architecture & Dependencies
-Planned: `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-mcp`, `test-utils`
+## Validation Dimensions
 
-**Validation**:
-- Core has NO dependency on storage implementations
-- Storage implementations depend on core types
+The skill validates across multiple dimensions, **dynamically discovered from plan files**:
+
+### 1. **Component/Module Structure**
+- Planned crates, packages, modules exist
+- Directory organization matches plans
+- Component boundaries are maintained
+
+### 2. **Dependency Architecture**
+- Dependency rules are followed
 - No circular dependencies
+- Proper abstraction layers
+- No unwanted dependencies
 
-### 3. Storage Layer Architecture
-Planned: Hybrid Storage (Turso durable + redb cache)
+### 3. **Data Models**
+- Structs, enums, types match plans
+- Required fields present
+- Schemas implemented correctly
 
-**Validation**:
-- Turso: episodes, patterns, heuristics tables
-- redb: episodes, patterns, embeddings, metadata tables
-- Sync mechanism exists
-- Turso is source of truth
+### 4. **APIs and Interfaces**
+- Public APIs match planned signatures
+- Required functions exist
+- Traits/interfaces implemented
 
-### 4. Learning Cycle Architecture
-Planned: 5-Phase Cycle (Pre-Task, Execution, Post-Task, Learning, Retrieval)
+### 5. **Performance Architecture**
+- Benchmarks exist for targets
+- Performance requirements documented
+- Resource limits implemented
 
-**Validation**:
-- start_episode, log_step, complete_episode, retrieve APIs exist
-- Reward calculation, reflection generation, pattern extraction implemented
-
-### 5. Pattern Extraction Architecture
-Planned: 4 Pattern Types (ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern)
-
-**Validation**:
-- Pattern enum has all 4 variants
-- PatternExtractor trait exists
-- Pattern storage in both Turso and redb
-
-### 6. MCP Integration Architecture
-Planned: MCP Server + Sandbox with security layers
-
-**Validation**:
-- MemoryMCPServer implemented
-- Tool definitions (query_memory, execute_agent_code)
-- CodeSandbox with security config
-- Resource limits enforced
-
-### 7. Data Model Architecture
-Planned: Episode and ExecutionStep structures with specific fields
-
-**Validation**:
-- Episode has all planned fields (episode_id, task_type, steps, outcome, reward, reflection, patterns)
-- ExecutionStep has all planned fields
-
-### 8. Performance Architecture
-Planned: Retrieval <100ms, Episode creation <50ms, etc.
-
-**Validation**:
-- Benchmarks exist for key operations
-- Performance targets documented
-
-### 9. Security Architecture
-Planned: Defense-in-depth (parameterized SQL, input validation, sandbox isolation, resource limits, TLS)
-
-**Validation**:
-- All SQL uses parameterized queries
-- Input validation exists
-- Sandbox has security configuration
+### 6. **Security Architecture**
+- Security measures implemented
+- Attack surfaces addressed
+- Input validation present
 - No hardcoded secrets
 
-### 10. Error Handling Architecture
-Planned: Custom Error enum with thiserror, Result<T> for fallible operations
+### 7. **Testing Strategy**
+- Test types match plan
+- Coverage requirements met
+- Test infrastructure present
 
-**Validation**:
-- Custom Error enum exists
-- Result<T> type alias defined
-- Error variants cover all failure modes
+### 8. **Integration Patterns**
+- External integrations match design
+- Communication patterns correct
+- Protocol implementations compliant
 
 ## Validation Workflow
 
-### Phase 1: Architecture Document Review
+### Phase 1: Plan Discovery
 ```bash
-# Read architecture decisions
-cat plans/02-plan.md
-cat plans/03-execute.md
+# Find all plan files
+ls -1 plans/*.md
+
+# Read plan index
+cat plans/README.md
 ```
 
-### Phase 2: Code Structure Analysis
+**Output**: List of all plan files to analyze
+
+### Phase 2: Architecture Extraction
 ```bash
-# Analyze crate structure
+# Extract components/crates
+grep -rh "crate\|component\|module" plans/ | sort -u
+
+# Extract dependencies
+grep -rh "depend\|flow\|import" plans/ | sort -u
+
+# Extract performance targets
+grep -rh "target\|metric\|<.*ms\|P[0-9]" plans/ | sort -u
+
+# Extract security requirements
+grep -rh "security\|threat\|attack" plans/ -i | sort -u
+
+# Extract data models
+grep -rh "struct\|enum\|type\|schema" plans/ | sort -u
+```
+
+**Output**: Structured list of architectural elements
+
+### Phase 3: Codebase Analysis
+```bash
+# Analyze project structure
+find . -name "Cargo.toml" -not -path "*/target/*"
 tree -L 2 -I target
 
-# Check dependencies
+# Analyze dependencies
 cargo tree --depth 1
+cargo tree --duplicates
 
-# Verify module organization
-find . -name "lib.rs" -o -name "mod.rs" | xargs cat
+# Analyze code
+rg "pub (async )?fn|pub struct|pub enum" --type rust
 ```
 
-### Phase 3: Component Boundary Validation
-```bash
-# Check core doesn't depend on impl
-! grep "memory-storage-turso\|memory-storage-redb" memory-core/Cargo.toml
+**Output**: Actual implementation state
 
-# Verify storage depends on core
-grep "memory-core" memory-storage-turso/Cargo.toml
-grep "memory-core" memory-storage-redb/Cargo.toml
-```
+### Phase 4: Compliance Validation
+For each discovered architectural element:
+1. Check if it exists in codebase
+2. Validate it matches specification
+3. Assess compliance level
+4. Document findings
 
-### Phase 4: Data Flow Validation
-1. Trace episode lifecycle through code
-2. Verify storage sync mechanism
-3. Check pattern extraction pipeline
-4. Validate retrieval query flow
+**Output**: Compliance matrix
 
-### Phase 5: API Compliance Check
-```bash
-# Verify public API matches plan
-rg "pub (async )?fn" memory-core/src/memory.rs
+### Phase 5: Gap Analysis
+Identify:
+- **Missing**: Planned but not implemented
+- **Drift**: Implemented differently than planned
+- **Extra**: Implemented but not documented
 
-# Check type definitions
-rg "pub struct|pub enum" memory-core/src/types.rs memory-core/src/episode.rs
-```
+**Output**: Gap report with priorities
 
-### Phase 6: Performance Target Validation
-```bash
-# Check benchmarks
-ls benches/
-cat benches/*.rs | rg "target|criterion"
+### Phase 6: Report Generation
+Generate comprehensive report with:
+- Executive summary
+- Detailed findings per dimension
+- Specific recommendations
+- Action items with priorities
 
-# Verify performance constants
-rg "const.*TIMEOUT|const.*LIMIT|const.*MAX" memory-core/src/ memory-mcp/src/
-```
+## Extraction Patterns
 
-### Phase 7: Security Architecture Validation
-```bash
-# Check security implementations
-rg "SecurityConfig|validate|sanitize" memory-mcp/src/
+### Components/Crates
+Look for:
+- "crate", "component", "module", "package"
+- Directory tree structures in code blocks
+- Architecture diagrams
+- Component lists
 
-# Verify SQL safety
-rg "execute\(|query\(" memory-storage-turso/src/ -A 2
-```
+### Dependencies
+Look for:
+- "depends on", "imports", "requires"
+- "must not depend", "should not import"
+- "flow:", "→", "-->", "⇒"
+- Dependency rules and constraints
 
-## Compliance Matrix
+### Performance
+Look for:
+- "target:", "metric:", "goal:"
+- "<Xms", "P95", "P99", "latency", "throughput"
+- Performance requirements tables
+- Benchmark specifications
 
-| Architecture Dimension | Planned | Status |
-|------------------------|---------|--------|
-| Crate Structure | 6 crates | Check |
-| Dependency Flow | Core → Storage | Check |
-| Storage Layer | Turso + redb | Check |
-| Learning Cycle | 5 phases | Check |
-| Pattern Types | 4 variants | Check |
-| MCP Integration | Server + Sandbox | Check |
-| Data Model | Episode + Step | Check |
-| Performance Targets | 7 metrics | Check |
-| Security Mitigations | 5 attack surfaces | Check |
-| Error Handling | Custom Error enum | Check |
+### Security
+Look for:
+- "security", "threat", "attack", "vulnerability"
+- "sanitize", "validate", "authenticate"
+- Security requirement lists
+- Attack surface descriptions
 
-## Output Format
+### Data Models
+Look for:
+- "struct", "enum", "type", "interface"
+- "table", "schema", "field", "column"
+- Data model diagrams
+- Type definitions
+
+### APIs
+Look for:
+- "pub fn", "public function", "API"
+- "endpoint", "method", "operation"
+- Function signatures
+- Interface definitions
+
+## Compliance Levels
+
+### ✅ Compliant
+- Architectural element fully implemented as planned
+- No deviations
+- All requirements met
+
+### ⚠️ Partial
+- Element exists but incomplete
+- Some requirements met, others missing
+- Functional but not fully compliant
+
+### ❌ Non-Compliant
+- Element missing entirely
+- Significant violations
+- Major architectural drift
+
+## Report Format
 
 ```markdown
 # Architecture Validation Report
-**Generated**: [Date]
-**Project**: rust-self-learning-memory
-**Validation Against**: plans/02-plan.md
+**Date**: [Date]
+**Project**: [Name]
+**Plans**: [List of plan files]
 
 ## Executive Summary
-- **Overall Compliance**: X% (Y/Z dimensions)
-- **Critical Violations**: N
-- **Architecture Drift**: M areas
-- **Recommendations**: P action items
+- Overall Compliance: X%
+- Critical Issues: N
+- Warnings: M
+- Info: K
 
-## Compliance Score by Dimension
+## Plans Analyzed
+1. plans/00-overview.md - Project overview
+2. plans/01-understand.md - Requirements
+...
 
-### 1. System Architecture: ✅ COMPLIANT
-- Crate boundaries match planned structure
-- Component separation properly implemented
-- No architectural violations detected
+## Architectural Elements Discovered
+[Dynamic list based on plan extraction]
 
-### 2. Storage Layer: ⚠️ PARTIAL
-- ✅ Turso storage implemented
-- ✅ redb cache implemented
-- ❌ Sync mechanism incomplete
-  - **Missing**: Two-phase commit
-  - **Impact**: Data consistency risk
-  - **Priority**: High
+### Components
+- Component A: ✅ Implemented
+- Component B: ⚠️ Partial
+- Component C: ❌ Missing
+
+### Dependencies
+- Rule 1: ✅ Compliant
+- Rule 2: ❌ Violated
+
+### Performance
+- Target 1 (<100ms): ⚠️ Untested
+- Target 2 (>1000 ops/s): ✅ Met
+
+### Security
+- Requirement 1: ✅ Implemented
+- Requirement 2: ⚠️ Partial
 
 ## Detailed Findings
 
-### Critical Violations
-[List any critical violations found]
+### ✅ Fully Compliant
+[List compliant aspects]
 
-### Architecture Drift
-[List areas where implementation differs from plan]
+### ⚠️ Partial Compliance
+[List partial implementations with details]
 
-### Partial Implementations
-[List features partially implemented]
+### ❌ Non-Compliant
+[List violations with:
+- Plan reference (file:line)
+- Expected vs Actual
+- Impact assessment
+- Priority
+- Recommended action]
+
+## Architecture Drift
+[List intentional or unintentional deviations]
 
 ## Recommendations
-
 ### High Priority
-1. **Issue**: [Description]
-   - File: [file path]
-   - Effort: [estimate]
-   - Reference: [plan reference]
+[Critical items]
 
 ### Medium Priority
-[List medium priority recommendations]
+[Important items]
 
 ### Low Priority
-[List low priority recommendations]
-
-## Architecture Decision Compliance
-
-| Decision | Status | Notes |
-|----------|--------|-------|
-| Hybrid Storage (Turso + redb) | ✅ | Fully implemented |
-| Node.js + VM2 Sandbox | ✅ | Implemented |
-| Rule-based Pattern Extraction | ✅ | Phase 1 complete |
-| Circuit Breakers | ✅ | Implemented in Turso |
-| Feature Flags | ❌ | Not implemented |
-| Telemetry with tracing | ✅ | Basic implementation |
+[Nice to have items]
 
 ## Next Steps
-
-1. Review and prioritize architecture drift items
-2. Create tickets for missing implementations
-3. Update architecture documentation if intentional changes made
-4. Schedule architecture review session
+[Actionable next steps]
 ```
-
-## Validation Checklist
-
-Quick checklist for architecture validation:
-
-**Crate Structure**:
-- [ ] All planned crates exist
-- [ ] Dependencies flow correctly
-- [ ] No circular dependencies
-
-**Storage Layer**:
-- [ ] Turso tables match schema
-- [ ] redb tables defined
-- [ ] Sync mechanism implemented
-
-**Learning Cycle**:
-- [ ] All 5 phases implemented
-- [ ] Episode lifecycle complete
-- [ ] Pattern extraction functional
-
-**MCP Integration**:
-- [ ] MCP server implemented
-- [ ] Sandbox with security
-- [ ] Resource limits enforced
-
-**Data Model**:
-- [ ] Episode structure complete
-- [ ] ExecutionStep structure complete
-- [ ] All required fields present
-
-**Performance**:
-- [ ] Benchmarks exist
-- [ ] Targets documented
-- [ ] Profiling available
-
-**Security**:
-- [ ] Parameterized SQL
-- [ ] Input validation
-- [ ] No hardcoded secrets
-- [ ] Resource limits enforced
-
-**Error Handling**:
-- [ ] Custom Error enum
-- [ ] Result<T> usage
-- [ ] Error variants complete
-
-## Integration with Plans
-
-This skill validates implementation against:
-- `plans/00-overview.md` - Project summary and metrics
-- `plans/01-understand.md` - Requirements and components
-- `plans/02-plan.md` - Architecture decisions and roadmap
-- `plans/03-execute.md` - Implementation details
-- `plans/04-review.md` - Quality requirements
-- `plans/05-secure.md` - Security requirements
-- `plans/06-feedback-loop.md` - Refinements
 
 ## Example Usage
 
-When invoked, this skill will:
-1. Read architecture decisions from plans/
-2. Analyze codebase structure
-3. Validate component boundaries
-4. Check data flow patterns
-5. Verify API compliance
-6. Assess performance targets
-7. Validate security architecture
-8. Generate compliance report with recommendations
+### Scenario 1: Initial Validation
+```bash
+# After reading all plan files
+# Extract 50+ architectural elements
+# Validate against codebase
+# Generate report: 75% compliance, 5 critical issues
+```
+
+### Scenario 2: Post-Refactoring
+```bash
+# Re-validate after major changes
+# Check for new violations
+# Verify planned improvements implemented
+# Generate diff report
+```
+
+### Scenario 3: Architecture Review Prep
+```bash
+# Comprehensive validation
+# Document all drift
+# Prepare justifications
+# Generate presentation-ready report
+```
+
+## Integration with Agent
+
+This skill is used by the `architecture-validator` agent to:
+1. Provide validation patterns and utilities
+2. Define report formats
+3. Establish compliance criteria
+4. Guide systematic validation process
+
+## Validation Commands
+
+### Discovery
+```bash
+# Find all plans
+ls -1 plans/*.md | wc -l
+
+# Check plan structure
+head -20 plans/README.md
+```
+
+### Extraction
+```bash
+# Extract all architectural keywords
+for file in plans/*.md; do
+  echo "=== $file ==="
+  grep -i "decision:\|requirement:\|target:\|constraint:" "$file"
+done
+```
+
+### Analysis
+```bash
+# Compare planned vs actual
+echo "Planned crates:" && grep -rh "crate" plans/ | wc -l
+echo "Actual crates:" && find . -name "Cargo.toml" | wc -l
+```
+
+### Validation
+```bash
+# Check specific requirement
+grep -r "requirement X" plans/
+rg "implementation of X" --type rust
+```
+
+## Best Practices
+
+1. **Start with README**: Read `plans/README.md` first to understand structure
+2. **Read all plans**: Don't skip any plan files
+3. **Extract systematically**: Use consistent patterns across all files
+4. **Be specific**: Always reference exact file and line numbers
+5. **Assess impact**: Explain why violations matter
+6. **Provide solutions**: Give clear remediation steps
+7. **Track evolution**: Compare current vs previous validations
+
+## Edge Cases
+
+- **No plans folder**: Report that validation cannot proceed
+- **Empty plans**: Report insufficient documentation
+- **Conflicting plans**: Flag conflicts for resolution
+- **Outdated plans**: Note discrepancies and suggest updates
+- **Ambiguous plans**: Request clarification
+- **Multiple architectures**: Validate each separately
+
+## Metrics
+
+Track validation quality:
+- **Plan Coverage**: % of plan files analyzed
+- **Element Coverage**: % of architectural elements checked
+- **Validation Depth**: How thoroughly each element validated
+- **Finding Quality**: Specificity and actionability of findings
+- **Report Completeness**: All sections filled out
+
+## Self-Learning Framework
+
+This skill enables **self-learning and continuous improvement** by learning from validation results.
+
+### Learning Cycle
+
+```
+Validate → Identify Issues → Analyze Root Cause → Update Documentation → Re-validate
+    ↑                                                                            ↓
+    └────────────────────────── Feedback Loop ──────────────────────────────────┘
+```
+
+### Learning Triggers
+
+**Trigger 1: Repeated Violations**
+- Same violation appears 3+ times
+- May indicate plan is outdated or unrealistic
+- Action: Review and potentially update plan
+
+**Trigger 2: False Positives**
+- Validator reports violations for correct code
+- Indicates validation logic needs refinement
+- Action: Update agent/skill validation patterns
+
+**Trigger 3: New Patterns Emerge**
+- Implementation uses patterns not documented
+- Patterns appear beneficial
+- Action: Document new patterns in plans
+
+**Trigger 4: Plan-Reality Mismatch**
+- Consistent drift between plan and implementation
+- Implementation is actually better
+- Action: Update plan to reflect reality
+
+### Self-Update Protocol
+
+#### Phase 1: Detect Learning Opportunity
+```bash
+# After validation, analyze:
+# - Number of violations by type
+# - Pattern frequency
+# - False positive rate
+# - User feedback on findings
+
+# If thresholds exceeded, trigger learning
+```
+
+#### Phase 2: Root Cause Analysis
+```bash
+# Determine root cause:
+# - Is the plan outdated? → Update plan
+# - Is validation incomplete? → Update agent/skill
+# - Is implementation wrong? → Report to user
+# - Is this a new valid pattern? → Document pattern
+```
+
+#### Phase 3: Update Documentation
+```bash
+# Update appropriate files:
+
+# Option A: Update Plans
+# - plans/00-overview.md: If project scope changed
+# - plans/01-understand.md: If requirements changed
+# - plans/02-plan.md: If architecture evolved
+# - plans/03-execute.md: If implementation patterns changed
+# - plans/04-review.md: If quality criteria changed
+# - plans/05-secure.md: If security model changed
+# - plans/06-feedback-loop.md: Document the learning
+
+# Option B: Update Agent/Skill
+# - .claude/agents/architecture-validator.md: Update validation logic
+# - .claude/skills/architecture-validation/SKILL.md: Update patterns
+
+# Option C: Update Other Claude Files
+# - .claude/CLAUDE.md: If workflow changes
+# - Related skill files: If validation changes affect them
+```
+
+#### Phase 4: Verification
+```bash
+# After updates:
+# 1. Re-run validation
+# 2. Confirm issue resolved
+# 3. Check for new issues
+# 4. Document learning
+```
+
+### Learning Examples
+
+**Example 1: Outdated Dependency Rule**
+```
+Violation: "Core depends on storage implementation"
+Frequency: 10 occurrences
+Analysis: Dependency is intentional and beneficial
+Learning: Rule too strict for current architecture
+Action:
+  1. Edit plans/02-plan.md: Update dependency rules
+  2. Document rationale: "Direct dependency acceptable for X reason"
+  3. Edit architecture-validator.md: Remove overly strict check
+  4. Document in plans/06-feedback-loop.md
+```
+
+**Example 2: Missing Validation Pattern**
+```
+Issue: New async pattern not validated
+Frequency: 5 instances found manually
+Analysis: Validation extraction patterns incomplete
+Learning: Need to check for async patterns
+Action:
+  1. Edit architecture-validator.md: Add async pattern checks
+  2. Edit SKILL.md: Document async validation
+  3. Re-run validation: Confirm new patterns detected
+```
+
+**Example 3: New Architecture Pattern**
+```
+Discovery: Code uses Circuit Breaker pattern
+Status: Not documented in plans
+Analysis: Pattern is beneficial, should be standard
+Learning: Update plans to include pattern
+Action:
+  1. Edit plans/02-plan.md: Add Circuit Breaker section
+  2. Edit plans/03-execute.md: Document implementation
+  3. Edit architecture-validator.md: Validate circuit breakers
+  4. Document in plans/06-feedback-loop.md
+```
+
+### Files to Update
+
+**Plans (plans/)**:
+- Update when architecture evolves
+- Document new patterns
+- Revise constraints
+- Add learnings to 06-feedback-loop.md
+
+**Agent (.claude/agents/architecture-validator.md)**:
+- Update validation logic
+- Add new extraction patterns
+- Refine reporting
+- Document self-learning improvements
+
+**Skill (.claude/skills/architecture-validation/SKILL.md)**:
+- Update validation dimensions
+- Add new patterns
+- Refine workflows
+- Document examples
+
+**Other Claude Files (.claude/)**:
+- CLAUDE.md: Update if workflow changes
+- Related skills: Update if validation changes affect them
+- Agent coordination files: Update if dependencies change
+
+### Learning Metrics
+
+Track learning effectiveness:
+- **Learning Rate**: Updates per week
+- **False Positive Reduction**: % decrease over time
+- **Coverage Improvement**: New patterns detected
+- **Plan Accuracy**: Plan-reality alignment
+- **Validation Quality**: User satisfaction with findings
+
+### Learning History Format
+
+In `plans/06-feedback-loop.md`:
+```markdown
+## Architecture Validator Learnings
+
+### [Date]: Dependency Rule Refinement
+**Issue**: Core-Storage dependency flagged incorrectly
+**Analysis**: Rule too strict, dependency is intentional
+**Action**: Updated plans/02-plan.md lines 45-50
+**Result**: False positives reduced from 10 to 0
+**Status**: ✅ Verified
+
+### [Date]: New Pattern Recognition
+**Issue**: Circuit Breaker pattern not validated
+**Analysis**: Pattern is widely used, should validate
+**Action**: Updated architecture-validator.md, added extraction
+**Result**: Now detects 5 instances of pattern
+**Status**: ✅ Verified
+```
+
+### Continuous Improvement
+
+**Weekly Review**:
+- Review validation results
+- Identify improvement opportunities
+- Update documentation
+- Refine validation logic
+
+**Monthly Retrospective**:
+- Assess learning metrics
+- Major architecture changes
+- Plan substantial updates
+- Validate learning effectiveness
+
+**Quarterly Audit**:
+- Comprehensive review of plans
+- Major agent/skill updates
+- Architecture evolution assessment
+- Long-term pattern analysis
+
+## Updates and Versioning
+
+**Version 2.0.0 Changes**:
+- Made validation fully generic and plan-driven
+- Removed hardcoded architectural assumptions
+- Added dynamic element extraction
+- Enhanced pattern matching capabilities
+- Improved report generation
+- Added comprehensive edge case handling
+- **Added self-learning and adaptation framework**
+- **Integrated feedback loop for continuous improvement**
+- **Enabled automatic plan and agent updates**
+
+## Related Skills
+
+- `plan-gap-analysis`: Analyzes gaps between plans and implementation
+- `rust-code-quality`: Validates Rust-specific code quality
+- `code-reviewer`: Reviews code changes for quality
+- `episode-complete`: For recording validation learnings in memory system
+
+## Resources
+
+- Agent: `.claude/agents/architecture-validator.md`
+- Plans: `plans/*.md`
+- Project guidelines: `AGENTS.md`, `CLAUDE.md`
+- Learning history: `plans/06-feedback-loop.md`
+
+---
+
+**Last Updated**: 2025-11-12
+**Status**: Active
+**Maintenance**: Self-updating based on validation learnings
+**Learning Enabled**: Yes

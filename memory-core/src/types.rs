@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::memory::step_buffer::BatchConfig;
+
 // ============================================================================
 // Validation Constants
 // ============================================================================

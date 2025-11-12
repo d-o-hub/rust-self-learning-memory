@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762936161136,
+  "lastUpdate": 1762939281883,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -381,6 +381,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/7bb046dad35f1922f8c7b94357332cc20bf2dc47"
         },
         "date": 1762936160889,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a16a56d5ad024a3193495df9510fa1412e9b81e5",
+          "message": "feat: Complete Phase 1 implementation and organize project files (#84)\n\n* feat: complete Phase 1 implementation and organize project files\n\n- Organize plans: Move 3 analysis files to plans/ folder with numbered prefixes\n- Fix build errors: Remove duplicate BatchConfig and heuristic module definitions\n- Implement error recovery: Add pattern extraction for error->recovery sequences\n- Clean up: Remove 5 outdated implementation summary files from root\n- Document status: Add IMPLEMENTATION_STATUS.md with complete Phase 1 details\n\nPhase 1 Features (100% Complete):\n- Heuristic Learning Mechanism (755 LOC tests)\n- Step Batching (711 LOC tests)\n- Error Recovery Pattern Extraction (50 LOC implementation)\n\nTest Results:\n- All 24 compliance tests passing\n- All 23 heuristic learning tests passing\n- Build successful with zero clippy warnings\n- Code formatted with rustfmt\n\nFiles Modified:\n- memory-core/src/extraction/extractors/mod.rs (error recovery extraction)\n- memory-core/src/types.rs (removed duplicate BatchConfig)\n- memory-core/src/lib.rs (fixed duplicate exports)\n\nFiles Organized:\n- PHASE1_IMPLEMENTATION_PLAN.md → plans/08-phase1-implementation-plan.md\n- GOAP_GAP_ANALYSIS.md → plans/09-goap-gap-analysis.md\n- EPISODE_MANAGEMENT_ANALYSIS.md → plans/10-episode-management-analysis.md\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* docs: update plans/README with Phase 1 completion status\n\n- Add Phase 1 Implementation Plan section\n- Add GOAP Gap Analysis section\n- Add Episode Management Analysis section\n- Document completion status with test results\n- Update plan version to 1.1 and status to \"Phase 1 Complete\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-12T10:17:59+01:00",
+          "tree_id": "48274d560c46f3f59dfca4e2550e39f0490a8fde",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/a16a56d5ad024a3193495df9510fa1412e9b81e5"
+        },
+        "date": 1762939281199,
         "tool": "cargo",
         "benches": [
           {

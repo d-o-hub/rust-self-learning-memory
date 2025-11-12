@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762945846753,
+  "lastUpdate": 1762947361587,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -561,6 +561,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/1aa6763371d47fe1d7091866c64574be40daa72a"
         },
         "date": 1762945846319,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "043ff4d3385a13ba45174ecb9fa9142703e534e6",
+          "message": "feat: Complete P0 security improvements (#86)\n\n* feat: Complete P0 security improvements\n\n- Add bincode deserialization size limits to prevent OOM attacks\n- Update SECURITY.md with input validation bounds documentation\n- Update AGENTS.md with quota management guidance\n- Fix input validation tests to work with step batching\n- Add MAX_EMBEDDING_SIZE constant for embedding deserialization\n- Reorganize project files and update documentation\n\nSecurity improvements:\n- Episode deserialization: 10MB limit\n- Pattern deserialization: 1MB limit\n- Heuristic deserialization: 100KB limit\n- Embedding deserialization: 1MB limit\n- All limits prevent malicious oversized bincode payloads\n\nTests: All input validation tests passing\n\n* fix: format code to pass CI checks\n\n* fix: enable CI workflow to run on pull requests\n\nThe main CI workflow was only running on push to main/develop branches,\nbut not on pull requests. This caused PRs to miss critical checks like\ntests, coverage, and security audit.\n\nAdded pull_request trigger to ensure full CI runs on PRs before merge.\n\n* fix: enable all CI jobs to run on pull requests\n\nUpdated all job conditions to include pull_request events so that\ntests, coverage, security audit, and quality gates run on PRs before\nmerge, not just on push to main/develop.\n\n* feat: Implement decision point pattern extraction\n\n- Add extract_decision_points function to identify decision points from episode steps\n- Extract patterns from steps with decision-like actions (check, verify, validate, etc.)\n- Fixes failing pattern_accuracy tests by providing expected decision point patterns\n- Maintains backward compatibility and follows existing pattern extraction patterns\n\n* style: Fix rustfmt formatting in decision point extraction\n\n* style: Fix brace placement in decision point extraction\n\n* style: Match CI rustfmt expectations for brace placement\n\n* style: Remove extra blank line after opening brace\n\n* ci: Skip optional quality gates in CI to avoid coverage tool dependency\n\n* fix: Correct YAML indentation in CI workflow to fix syntax error\n\nThe CI workflow had incorrect indentation on line 68 causing a YAML syntax error\nthat prevented the workflow from running on pull requests. Fixed the indentation\nfor the 'Setup Node.js' and 'Run tests' steps to align properly.\n\n---------\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>",
+          "timestamp": "2025-11-12T12:32:43+01:00",
+          "tree_id": "1f5aa3e766cefb22fbeca478b87e1183c11eb4bc",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/043ff4d3385a13ba45174ecb9fa9142703e534e6"
+        },
+        "date": 1762947361331,
         "tool": "cargo",
         "benches": [
           {

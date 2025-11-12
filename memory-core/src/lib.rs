@@ -76,6 +76,6 @@ pub use reflection::ReflectionGenerator;
 pub use reward::RewardCalculator;
 pub use storage::StorageBackend;
 pub use types::{
-    BatchConfig, ComplexityLevel, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
-    Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, Evidence, ExecutionResult, MemoryConfig, OutcomeStats, Reflection,
+    RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
 };

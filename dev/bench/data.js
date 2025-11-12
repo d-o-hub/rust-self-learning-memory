@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762939281883,
+  "lastUpdate": 1762945846753,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -471,6 +471,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/a16a56d5ad024a3193495df9510fa1412e9b81e5"
         },
         "date": 1762939281199,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1aa6763371d47fe1d7091866c64574be40daa72a",
+          "message": "Create Claude code agent and skill (#87)\n\n* feat: add loop-agent for iterative workflow execution\n\nAdd new LoopAgent and corresponding skill for executing workflows\niteratively with intelligent termination conditions.\n\nFeatures:\n- Iterative execution with progress tracking\n- Multiple termination modes (fixed iterations, criteria-based,\n  convergence detection, hybrid)\n- Support for code refinement loops, test-fix-validate cycles,\n  performance optimization, and quality improvement workflows\n- Built-in convergence detection to avoid unnecessary iterations\n- Comprehensive error handling and no-progress detection\n\nAgent file: .claude/agents/loop-agent.md\nSkill file: .claude/skills/loop-agent/SKILL.md\n\nUse cases:\n- Code quality improvement loops\n- Test-fix-retest cycles\n- Performance optimization iterations\n- Documentation refinement\n- Progressive enhancements\n- Convergence-based workflows\n\n* chore: integrate loop-agent into coordination frameworks\n\nUpdate existing agents and skills to reference the new loop-agent\nfor iterative workflow coordination.\n\nChanges:\n- agent-coordination skill: Add loop-agent as 5th coordination strategy\n  - Added to Available Task Agents table\n  - Added to agent list and Quick Reference\n  - Added Iterative/Loop Coordination section with examples\n  - Updated Decision Matrix to include iterative strategy\n  - Updated description to mention iterative execution\n\n- goap-agent (agent): Add loop-agent support\n  - Added loop-agent to Skills list\n  - Added Workflow 5: Iterative/Loop Execution with detailed example\n  - Added loop-agent to Available Agents & Capabilities\n  - Updated Strategy options to include Iterative\n  - Updated description to mention iterative strategies\n\n- goap-agent (skill): Add loop-agent integration\n  - Added loop-agent to Integration with Other Skills\n  - Added loop-agent to Agent Capability Matrix\n  - Updated Quick Strategy Guide with Iterative strategy\n  - Updated Decision Tree to prioritize iterative refinement\n  - Updated execution plan template Strategy options\n  - Updated Quick Reference and GOAP Planning Cycle\n\nThe loop-agent is now fully integrated into the multi-agent\ncoordination framework for iterative refinement workflows.\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-12T12:07:29+01:00",
+          "tree_id": "cae3faeadaba4465a93f61f31a2d37d5eeaef597",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/1aa6763371d47fe1d7091866c64574be40daa72a"
+        },
+        "date": 1762945846319,
         "tool": "cargo",
         "benches": [
           {

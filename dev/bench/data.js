@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762933757470,
+  "lastUpdate": 1762936161136,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -291,6 +291,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/8d531cab2c56b6ed5e297ec1447504f1ffeed327"
         },
         "date": 1762933756847,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7bb046dad35f1922f8c7b94357332cc20bf2dc47",
+          "message": "feat: make architecture-validator generic and self-learning (#85)\n\nUpdated architecture-validator agent and skill to be fully generic and adaptive:\n\nKey Changes:\n- Made validation plan-driven: dynamically discovers and parses ALL files in plans/ folder\n- Removed hardcoded architectural assumptions\n- Added dynamic extraction of architectural elements from any plan structure\n- Enhanced pattern matching for components, dependencies, performance, security, etc.\n\nSelf-Learning Capabilities:\n- Learns from validation failures and false positives\n- Updates its own agent/skill files when validation logic needs improvement\n- Updates plan files when architecture evolves\n- Updates other .claude/ files when workflows change\n- Documents learnings in plans/06-feedback-loop.md\n- Implements feedback loop for continuous improvement\n\nThe validator now works with ANY project architecture and ANY set of plans,\nmaking it truly generic and reusable. It can also improve itself over time\nby learning from validation results.\n\nVersion: 2.0.0\nFiles modified:\n- .claude/agents/architecture-validator.md\n- .claude/skills/architecture-validation/SKILL.md\n\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-12T09:26:11+01:00",
+          "tree_id": "869eccb541ad027bf0b9c007ec619b688c127152",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/7bb046dad35f1922f8c7b94357332cc20bf2dc47"
+        },
+        "date": 1762936160889,
         "tool": "cargo",
         "benches": [
           {

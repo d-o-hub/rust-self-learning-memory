@@ -12,7 +12,7 @@ mod clustering;
 mod context_pattern;
 mod decision_point;
 mod error_recovery;
-mod heuristic;
+pub mod heuristic;
 mod hybrid;
 mod tool_sequence;
 

@@ -3,6 +3,7 @@
 use crate::episode::{Episode, PatternId};
 use crate::extraction::extractor::PatternExtractor;
 use crate::pattern::Pattern;
+use crate::types::OutcomeStats;
 
 /// Extract tool sequence patterns from an episode
 pub fn extract_tool_sequence(extractor: &PatternExtractor, episode: &Episode) -> Option<Pattern> {
@@ -38,9 +39,44 @@ pub fn extract_tool_sequence(extractor: &PatternExtractor, episode: &Episode) ->
 }
 
 /// Extract decision point patterns from an episode
-pub fn extract_decision_points(_extractor: &PatternExtractor, _episode: &Episode) -> Vec<Pattern> {
-    // TODO: Implement decision point extraction
-    vec![]
+pub fn extract_decision_points(extractor: &PatternExtractor, episode: &Episode) -> Vec<Pattern> {
+    let mut patterns = Vec::new();
+
+    // Check success rate threshold
+    let success_rate = extractor.calculate_step_success_rate(episode);
+    if success_rate < extractor.success_threshold {
+        return patterns;
+    }
+
+    // Look for steps that appear to be decision points
+    for step in &episode.steps {
+        // Check if the action looks like a decision/condition
+        let action_lower = step.action.to_lowercase();
+        if action_lower.contains("check") 
+            || action_lower.contains("verify") 
+            || action_lower.contains("validate")
+            || action_lower.contains("is")
+            || action_lower.contains("has") {
+            
+            // Calculate outcome stats (simplified - assume success since episode succeeded)
+            let outcome_stats = OutcomeStats {
+                success_count: 1,
+                failure_count: 0,
+                total_count: 1,
+                avg_duration_secs: step.latency_ms as f32 / 1000.0,
+            };
+
+            patterns.push(Pattern::DecisionPoint {
+                id: PatternId::new_v4(),
+                condition: step.action.clone(),
+                action: step.tool.clone(),
+                outcome_stats,
+                context: episode.context.clone(),
+            });
+        }
+    }
+
+    patterns
 }
 
 /// Extract error recovery patterns from an episode

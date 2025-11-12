@@ -93,6 +93,7 @@ cargo test --all
 * Backup strategy: periodically export episodes (SST/ JSONL) from Turso for long-term archival.
 * Monitoring: emit telemetry with `tracing` and expose metrics (episode creation rate, retrieval latency, pattern update failures).
 * Rolling upgrades: support schema migrations with SQL migration files and keep backward compatibility for older episode JSON shapes.
+* Quota management: Monitor episode creation rates and implement rate limiting for production deployments. Handle `QuotaExceeded` and `RateLimitExceeded` errors gracefully with backoff strategies.
 
 ## Maintenance & extensibility
 

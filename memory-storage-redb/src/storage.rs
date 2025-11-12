@@ -1,8 +1,10 @@
 //! Storage operations for redb
 
 use crate::{
-    RedbStorage, EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE, PATTERNS_TABLE,
+    RedbStorage, EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, MAX_EMBEDDING_SIZE,
+    MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE, METADATA_TABLE, PATTERNS_TABLE,
 };
+use bincode::Options;
 use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result};
 use redb::ReadableTable;
 use std::sync::Arc;
@@ -80,7 +82,11 @@ impl RedbStorage {
             {
                 Some(bytes_guard) => {
                     let bytes = bytes_guard.value();
-                    let episode: Episode = bincode::deserialize(bytes).map_err(|e| {
+                    let config = bincode::options()
+                        .with_limit(MAX_EPISODE_SIZE)
+                        .with_fixint_encoding()
+                        .allow_trailing_bytes();
+                    let episode: Episode = config.deserialize(bytes).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize episode: {}", e))
                     })?;
                     Ok::<Option<Episode>, Error>(Some(episode))
@@ -128,7 +134,12 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
-                let episode: Episode = bincode::deserialize(bytes_guard.value())
+                let config = bincode::options()
+                    .with_limit(MAX_EPISODE_SIZE)
+                    .with_fixint_encoding()
+                    .allow_trailing_bytes();
+                let episode: Episode = config
+                    .deserialize(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 episodes.push(episode);
@@ -234,7 +245,11 @@ impl RedbStorage {
             {
                 Some(bytes_guard) => {
                     let bytes = bytes_guard.value();
-                    let pattern: Pattern = bincode::deserialize(bytes).map_err(|e| {
+                    let config = bincode::options()
+                        .with_limit(MAX_PATTERN_SIZE)
+                        .with_fixint_encoding()
+                        .allow_trailing_bytes();
+                    let pattern: Pattern = config.deserialize(bytes).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize pattern: {}", e))
                     })?;
                     Ok(Some(pattern))
@@ -276,7 +291,12 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read pattern entry: {}", e)))?;
 
-                let pattern: Pattern = bincode::deserialize(bytes_guard.value())
+                let config = bincode::options()
+                    .with_limit(MAX_PATTERN_SIZE)
+                    .with_fixint_encoding()
+                    .allow_trailing_bytes();
+                let pattern: Pattern = config
+                    .deserialize(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize pattern: {}", e)))?;
 
                 patterns.push(pattern);
@@ -345,7 +365,11 @@ impl RedbStorage {
             {
                 Some(bytes_guard) => {
                     let bytes = bytes_guard.value();
-                    let heuristic: Heuristic = bincode::deserialize(bytes).map_err(|e| {
+                    let config = bincode::options()
+                        .with_limit(MAX_HEURISTIC_SIZE)
+                        .with_fixint_encoding()
+                        .allow_trailing_bytes();
+                    let heuristic: Heuristic = config.deserialize(bytes).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize heuristic: {}", e))
                     })?;
                     Ok(Some(heuristic))
@@ -388,8 +412,12 @@ impl RedbStorage {
                     Error::Storage(format!("Failed to read heuristic entry: {}", e))
                 })?;
 
+                let config = bincode::options()
+                    .with_limit(MAX_HEURISTIC_SIZE)
+                    .with_fixint_encoding()
+                    .allow_trailing_bytes();
                 let heuristic: Heuristic =
-                    bincode::deserialize(bytes_guard.value()).map_err(|e| {
+                    config.deserialize(bytes_guard.value()).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize heuristic: {}", e))
                     })?;
 
@@ -458,7 +486,11 @@ impl RedbStorage {
             {
                 Some(bytes_guard) => {
                     let bytes = bytes_guard.value();
-                    let embedding: Vec<f32> = bincode::deserialize(bytes).map_err(|e| {
+                    let config = bincode::options()
+                        .with_limit(MAX_EMBEDDING_SIZE)
+                        .with_fixint_encoding()
+                        .allow_trailing_bytes();
+                    let embedding: Vec<f32> = config.deserialize(bytes).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize embedding: {}", e))
                     })?;
                     Ok(Some(embedding))
@@ -503,7 +535,12 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
-                let episode: Episode = bincode::deserialize(bytes_guard.value())
+                let config = bincode::options()
+                    .with_limit(MAX_EPISODE_SIZE)
+                    .with_fixint_encoding()
+                    .allow_trailing_bytes();
+                let episode: Episode = config
+                    .deserialize(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 // Filter by timestamp

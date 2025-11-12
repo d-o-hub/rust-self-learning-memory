@@ -201,6 +201,22 @@ cargo bench
 cargo doc --open
 ```
 
+## Additional Analysis Documents
+
+This directory also contains comprehensive analysis documents generated during implementation:
+
+### Implementation Analysis
+- **[ANALYSIS_QUICK_REFERENCE.md](./ANALYSIS_QUICK_REFERENCE.md)** - Executive summary (167 lines)
+- **[PHASE1_IMPLEMENTATION_PLAN.md](./PHASE1_IMPLEMENTATION_PLAN.md)** - Phase 1 details
+
+### Security & Quality
+- **[07-p0-security-improvements.md](./07-p0-security-improvements.md)** - Critical security fixes
+- **[08-github-actions-analysis.md](./08-github-actions-analysis.md)** - CI/CD health report
+- **[PERFORMANCE_BASELINES.md](./PERFORMANCE_BASELINES.md)** - Performance targets
+
+### Project Management
+- **[RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)** - Pre-release validation
+
 ## Contributing
 
 See [../CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines.

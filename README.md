@@ -1,10 +1,5 @@
 # Rust Self-Learning Memory
 
-[![CI](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/d-o-hub/rust-self-learning-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/d-o-hub/rust-self-learning-memory)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Rust Version](https://img.shields.io/badge/rust-stable-orange)](https://www.rust-lang.org/)
-
 A zero-trust episodic memory backend for AI agents, written in Rust. This system maintains a durable, verifiable record of agent execution while extracting and learning from patterns to improve future decision-making.
 
 ## Overview
@@ -486,7 +481,3 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 - [SECURITY.md](SECURITY.md) - Security guidelines and threat model
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [ROADMAP.md](ROADMAP.md) - Project roadmap and future features
-
-## Contact
-
-For questions or issues, please open a GitHub issue or check the project's issue tracker.

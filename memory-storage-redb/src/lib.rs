@@ -36,6 +36,31 @@ mod tables;
 pub use cache::{CacheConfig, CacheMetrics, LRUCache};
 pub use storage::RedbQuery;
 
+// ============================================================================
+// Deserialization Limits (Security)
+// ============================================================================
+
+/// Maximum size for episode deserialization (10MB).
+///
+/// Prevents OOM attacks from maliciously large bincode payloads.
+pub const MAX_EPISODE_SIZE: u64 = 10_000_000;
+
+/// Maximum size for pattern deserialization (1MB).
+///
+/// Limits pattern data size to prevent resource exhaustion.
+pub const MAX_PATTERN_SIZE: u64 = 1_000_000;
+
+/// Maximum size for heuristic deserialization (100KB).
+///
+/// Restricts heuristic data size for security.
+pub const MAX_HEURISTIC_SIZE: u64 = 100_000;
+
+/// Maximum size for embedding deserialization (1MB).
+///
+/// Limits embedding vector size to prevent resource exhaustion.
+/// Typical embedding dimensions (384-1536) * 4 bytes/f32 = ~1.5KB-6KB.
+pub const MAX_EMBEDDING_SIZE: u64 = 1_000_000;
+
 // Table definitions
 pub(crate) const EPISODES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("episodes");
 pub(crate) const PATTERNS_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("patterns");

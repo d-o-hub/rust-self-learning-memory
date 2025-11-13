@@ -46,7 +46,7 @@ The rust-self-learning-memory system consists of:
 export TURSO_DATABASE_URL="libsql://your-database-name.turso.io"
 
 # REQUIRED: Turso authentication token
-export TURSO_AUTH_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9..."
+export TURSO_AUTH_TOKEN="your-auth-token-here" # gitleaks:allow
 ```
 
 **Security Note**: The `libsql://` protocol enforces TLS encryption. HTTP/HTTPS protocols are explicitly rejected. See [SECURITY.md](SECURITY.md) for details.

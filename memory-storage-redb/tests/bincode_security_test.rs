@@ -529,12 +529,12 @@ fn test_security_constants_are_correct() {
         "MAX_HEURISTIC_SIZE should be 100KB"
     );
 
-    // Verify they are in the correct order
-    assert!(
+    // Verify they are in the correct order (compile-time checks)
+    const _: () = assert!(
         MAX_HEURISTIC_SIZE < MAX_PATTERN_SIZE,
         "Heuristic limit should be less than pattern limit"
     );
-    assert!(
+    const _: () = assert!(
         MAX_PATTERN_SIZE < MAX_EPISODE_SIZE,
         "Pattern limit should be less than episode limit"
     );

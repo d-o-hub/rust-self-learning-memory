@@ -3,13 +3,13 @@ name: YAML Lint
 
 "on":
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - '**.yml'
       - '**.yaml'
       - '.github/workflows/**'
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - '**.yml'
       - '**.yaml'
@@ -35,7 +35,8 @@ jobs:
 
       - name: Run yamllint
         run: |
-          yamllint -d "{extends: default, rules: {line-length: {max: 120}, indentation: {spaces: 2}, comments: {min-spaces-from-content: 1}}}" \
+          yamllint -d \
+            "{extends: default, rules: {line-length: {max: 120}, indentation: {spaces: 2}}}" \
             .github/ || (echo "❌ YAML lint failed" && exit 1)
 
   actionlint:

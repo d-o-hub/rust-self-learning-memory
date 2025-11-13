@@ -1,6 +1,7 @@
+---
 name: Performance Benchmarks
 
-on:
+"on":
   push:
     branches:
       - main

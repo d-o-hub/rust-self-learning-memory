@@ -3,7 +3,7 @@ name: Quick Check
 
 "on":
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
   CARGO_TERM_COLOR: always

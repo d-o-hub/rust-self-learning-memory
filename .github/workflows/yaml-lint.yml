@@ -1,6 +1,7 @@
+---
 name: YAML Lint
 
-on:
+"on":
   push:
     branches: [ main, develop ]
     paths:
@@ -46,6 +47,5 @@ jobs:
       - name: Run actionlint
         uses: reviewdog/action-actionlint@v1
         with:
-          fail_on_error: true
+          fail_level: error
           filter_mode: nofilter
-          level: error

@@ -1,6 +1,7 @@
+---
 name: Release
 
-on:
+"on":
   push:
     tags:
       - 'v*.*.*'
@@ -49,7 +50,7 @@ jobs:
           mkdir -p artifacts
           for bin in target/${{ matrix.target }}/release/*${{ matrix.binary-suffix }}; do
             if [ -f "$bin" ] && [ -x "$bin" ]; then
-              cp "$bin" "artifacts/$(basename $bin)"
+              cp "$bin" "artifacts/$(basename "$bin")"
             fi
           done
 

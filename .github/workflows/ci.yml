@@ -1,16 +1,17 @@
+---
 name: CI
 permissions:
   contents: read
 
-on:
+"on":
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_run:
     workflows: ["Quick Check"]
     types: [completed]
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
   RUST_BACKTRACE: 1
@@ -21,7 +22,12 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -33,7 +39,12 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -48,7 +59,12 @@ jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os }}
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -94,7 +110,12 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     steps:
       - name: Free disk space
         run: |
@@ -153,7 +174,12 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     steps:
       - uses: actions/checkout@v5
       - uses: rustsec/audit-check@v1
@@ -163,7 +189,12 @@ jobs:
   supply-chain:
     name: Supply Chain Security (cargo-deny)
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -186,7 +217,12 @@ jobs:
   quality-gates:
     name: Quality Gates
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     needs: [format, clippy, test, coverage, security-audit]
     steps:
       - name: Free disk space
@@ -223,16 +259,18 @@ jobs:
       - name: Generate Quality Report
         if: always()
         run: |
-          echo "# Quality Gates Report" > quality-report.md
-          echo "" >> quality-report.md
-          echo "**Date:** $(date)" >> quality-report.md
-          echo "" >> quality-report.md
-          echo "## Configuration" >> quality-report.md
-          echo "- Coverage Threshold: ${QUALITY_GATE_COVERAGE_THRESHOLD}%" >> quality-report.md
-          echo "- Pattern Accuracy Threshold: ${QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD}%" >> quality-report.md
-          echo "- Complexity Threshold: ${QUALITY_GATE_COMPLEXITY_THRESHOLD}" >> quality-report.md
-          echo "- Security Vuln Threshold: ${QUALITY_GATE_SECURITY_THRESHOLD}" >> quality-report.md
-          echo "" >> quality-report.md
+          {
+            echo "# Quality Gates Report"
+            echo ""
+            echo "**Date:** $(date)"
+            echo ""
+            echo "## Configuration"
+            echo "- Coverage Threshold: ${QUALITY_GATE_COVERAGE_THRESHOLD}%"
+            echo "- Pattern Accuracy Threshold: ${QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD}%"
+            echo "- Complexity Threshold: ${QUALITY_GATE_COMPLEXITY_THRESHOLD}"
+            echo "- Security Vuln Threshold: ${QUALITY_GATE_SECURITY_THRESHOLD}"
+            echo ""
+          } > quality-report.md
         env:
           QUALITY_GATE_COVERAGE_THRESHOLD: "90"
           QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"

@@ -84,6 +84,12 @@ fn quality_gate_test_coverage() {
         return;
     }
 
+    // Clean up llvm-cov-target directory to free disk space
+    println!("Cleaning up previous coverage artifacts...");
+    let _ = Command::new("cargo")
+        .args(["llvm-cov", "clean", "--workspace"])
+        .output();
+
     // Run coverage analysis
     println!("Running coverage analysis...");
     let output = Command::new("cargo")

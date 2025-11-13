@@ -70,11 +70,13 @@ jobs:
             bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | sed 's|/new/estimates.json||')
 
             # Extract mean time in nanoseconds from JSON
-            # Criterion stores time in nanoseconds as point_estimate in the "mean" section
-            mean_ns=$(grep -A 3 '"mean"' "$json_file" | grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+            # Criterion stores time in nanoseconds as point_estimate
+            mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
+              grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
 
             # Extract standard deviation for variance
-            std_dev=$(grep -A 3 '"std_dev"' "$json_file" | grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+            std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
+              grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
 
             if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
               if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
@@ -181,7 +183,9 @@ jobs:
 
             </details>
 
-            See [PERFORMANCE_BASELINES.md](https://github.com/${{ github.repository }}/blob/main/PERFORMANCE_BASELINES.md) for baseline comparison.
+            See [PERFORMANCE_BASELINES.md](\
+            https://github.com/${{ github.repository }}/blob/main/PERFORMANCE_BASELINES.md) \
+            for baseline comparison.
             `;
 
             github.rest.issues.createComment({

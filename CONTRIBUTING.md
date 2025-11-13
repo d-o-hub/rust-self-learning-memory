@@ -63,4 +63,4 @@ Closes #42
 - At least 1 approval required
 - All CI checks must pass
 - Conversations must be resolved
-- Maintainers will review within 48 hours
+

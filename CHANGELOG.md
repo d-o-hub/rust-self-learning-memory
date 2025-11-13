@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2025-11-08
+## [0.1.0] - 2025-11-13
 
 ### Added
 
@@ -118,6 +118,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Input validation bypass attempts
   - Cryptographic vulnerability checks
   - Access control violations
+
+#### Bincode Deserialization Security (Post-Release Enhancement)
+- Added size limits for bincode deserialization to prevent OOM attacks:
+  - Episode deserialization: 10MB limit
+  - Pattern deserialization: 1MB limit
+  - Heuristic deserialization: 100KB limit
+  - Embedding deserialization: 1MB limit
+- Comprehensive bincode security tests for redb storage layer
+- Input validation bounds documentation in SECURITY.md
+- Quota management guidance added to AGENTS.md
 
 #### Performance Benchmarks
 - Benchmarks for episode lifecycle operations (start, log, complete)

@@ -23,7 +23,10 @@ async fn create_test_pool() -> (Arc<ConnectionPool>, TempDir) {
 }
 
 #[tokio::test]
-#[cfg_attr(target_os = "windows", ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION")]
+#[cfg_attr(
+    target_os = "windows",
+    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
+)]
 async fn test_pool_performance_concurrent_operations() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -71,7 +74,10 @@ async fn test_pool_performance_concurrent_operations() {
 }
 
 #[tokio::test]
-#[cfg_attr(target_os = "windows", ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION")]
+#[cfg_attr(
+    target_os = "windows",
+    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
+)]
 async fn test_pool_with_turso_storage() {
     let dir = TempDir::new().unwrap();
     let db_path = dir.path().join("test.db");
@@ -99,7 +105,10 @@ async fn test_pool_with_turso_storage() {
 }
 
 #[tokio::test]
-#[cfg_attr(target_os = "windows", ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION")]
+#[cfg_attr(
+    target_os = "windows",
+    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
+)]
 async fn test_pool_utilization_tracking() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -124,7 +133,10 @@ async fn test_pool_utilization_tracking() {
 }
 
 #[tokio::test]
-#[cfg_attr(target_os = "windows", ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION")]
+#[cfg_attr(
+    target_os = "windows",
+    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
+)]
 async fn test_pool_health_checks() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -139,7 +151,10 @@ async fn test_pool_health_checks() {
 }
 
 #[tokio::test]
-#[cfg_attr(target_os = "windows", ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION")]
+#[cfg_attr(
+    target_os = "windows",
+    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
+)]
 async fn test_pool_graceful_shutdown() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -158,7 +173,10 @@ async fn test_pool_graceful_shutdown() {
 }
 
 #[tokio::test]
-#[cfg_attr(target_os = "windows", ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION")]
+#[cfg_attr(
+    target_os = "windows",
+    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
+)]
 async fn test_pool_statistics_accuracy() {
     let (pool, _dir) = create_test_pool().await;
 

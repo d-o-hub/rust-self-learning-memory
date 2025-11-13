@@ -48,7 +48,22 @@ if ! cargo test --all; then
     exit 1
 fi
 
-# 6. Secret scanning
+# 6. YAML validation
+echo "📝 Validating YAML files..."
+if command -v yamllint &> /dev/null; then
+    if git diff --cached --name-only | grep -E '\.(yml|yaml)$' | xargs -r yamllint -d "{extends: default, rules: {line-length: {max: 120}, indentation: {spaces: 2}}}" 2>/dev/null; then
+        echo "✓ YAML files validated"
+    else
+        echo "❌ YAML validation failed!"
+        echo "Fix YAML syntax errors or install yamllint: pip install yamllint"
+        exit 1
+    fi
+else
+    echo "⚠️  yamllint not installed. Skipping YAML validation."
+    echo "Install with: pip install yamllint"
+fi
+
+# 7. Secret scanning
 echo "🔐 Scanning for secrets..."
 if git diff --cached --name-only | xargs grep -inE '(api[_-]?key|password|secret|token|credential)["\']?\s*[:=]' 2>/dev/null; then
     echo "❌ Potential secrets detected in staged files!"

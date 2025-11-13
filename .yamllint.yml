@@ -1,0 +1,61 @@
+---
+# yamllint configuration for rust-self-learning-memory
+# Prevents YAML syntax errors in GitHub workflows and config files
+
+extends: default
+
+rules:
+  # Indentation: enforce 2 spaces (GitHub Actions standard)
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Line length: allow up to 120 characters (for readability)
+  line-length:
+    max: 120
+    level: warning
+
+  # Comments: require at least 1 space from content
+  comments:
+    min-spaces-from-content: 1
+
+  # Trailing spaces: disallow
+  trailing-spaces: enable
+
+  # Empty lines: allow reasonable spacing
+  empty-lines:
+    max: 2
+    max-start: 0
+    max-end: 1
+
+  # Document start: not required (optional ---)
+  document-start: disable
+
+  # Truthy values: allow yes/no/on/off in addition to true/false
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: false
+
+  # Brackets: consistent spacing
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Braces: consistent spacing for objects
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Key duplicates: disallow (prevents overwriting)
+  key-duplicates: enable
+
+  # Octal values: forbid implicit octal (0644 should be "0644")
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+
+ignore: |
+  .opencode/node_modules/
+  target/
+  .git/

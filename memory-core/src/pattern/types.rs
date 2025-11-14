@@ -78,7 +78,7 @@ impl Pattern {
     }
 
     /// Get the sample size (number of occurrences) for this pattern
-    pub(super) fn sample_size(&self) -> usize {
+    pub fn sample_size(&self) -> usize {
         match self {
             Pattern::ToolSequence {
                 occurrence_count, ..

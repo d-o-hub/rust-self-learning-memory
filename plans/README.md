@@ -87,6 +87,56 @@ The implementation is divided into 6 distinct phases, each building upon the pre
 - Phase 4: Release preparation (1 day)
 - Timeline and success criteria
 
+### 🗺️ [Phase 14: v0.2.0 Roadmap](./14-v0.2.0-roadmap.md)
+**Future features and enhancements (Q2 2025)**
+- Semantic intelligence with embeddings
+- Advanced pattern composition
+- Operational excellence (observability)
+- Ecosystem integrations (LangChain, LlamaIndex)
+- Enterprise features (multi-tenancy, compliance)
+- 20-week implementation timeline
+
+### 🔭 [Phase 15: Long-Term Vision](./15-long-term-vision.md)
+**Strategic vision for v1.0 and beyond (2027)**
+- Product evolution roadmap (v0.1.0 → v1.0)
+- Technology evolution (storage, AI/ML, deployment)
+- Market strategy and competitive differentiation
+- Research agenda and publication strategy
+- Community and governance model
+- Financial sustainability
+
+### 📊 [Phase 16: Observability Implementation](./16-observability-implementation.md)
+**Production monitoring and operations (P0)**
+- Prometheus metrics collection
+- OpenTelemetry distributed tracing
+- Structured logging with tracing crate
+- Health check endpoints
+- Alerting rules and Grafana dashboards
+- Complete observability stack setup
+
+### 📖 [Phase 17: Operational Runbooks](./17-operational-runbooks.md)
+**Day-2 operations procedures (P0)**
+- Service startup and deployment
+- Graceful shutdown and maintenance
+- Backup, restore, and disaster recovery
+- Incident response procedures (RB-001 to RB-007)
+- Performance troubleshooting
+- Scaling and capacity planning
+- Upgrade and migration procedures
+
+### 🏛️ [Phase 21: Architecture Decision Records](./21-architecture-decision-records.md)
+**Documented architectural decisions (P1)**
+- ADR-001: Hybrid Storage (Turso + redb)
+- ADR-002: Async Pattern Extraction
+- ADR-003: Circuit Breaker Pattern
+- ADR-004: Step Batching
+- ADR-005: Heuristic Learning
+- ADR-006: MCP Sandbox (VM2)
+- ADR-007: Bincode Serialization
+- ADR-008: Connection Pooling
+- ADR-009: Episode-Centric Data Model
+- ADR-010: Four Pattern Types
+
 ## Quick Navigation
 
 **For Developers:**
@@ -212,13 +262,21 @@ This directory contains operational and reference documents for production deplo
 ### Planning & Analysis
 - **[09-goap-gap-analysis.md](./09-goap-gap-analysis.md)** - Comprehensive gap analysis and task prioritization
 - **[10-production-readiness.md](./10-production-readiness.md)** - Production deployment roadmap
+- **[14-v0.2.0-roadmap.md](./14-v0.2.0-roadmap.md)** - v0.2.0 feature roadmap and timeline
+- **[15-long-term-vision.md](./15-long-term-vision.md)** - Long-term vision (v1.0 and beyond)
 
 ### Security & Performance
 - **[07-p0-security-improvements.md](./07-p0-security-improvements.md)** - Critical security enhancements
 - **[PERFORMANCE_BASELINES.md](./PERFORMANCE_BASELINES.md)** - Benchmark results and targets
 
+### Operations & Architecture
+- **[16-observability-implementation.md](./16-observability-implementation.md)** - Observability and monitoring setup
+- **[17-operational-runbooks.md](./17-operational-runbooks.md)** - Day-2 operations procedures
+- **[21-architecture-decision-records.md](./21-architecture-decision-records.md)** - Architectural decision history
+
 ### Release Management
 - **[RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)** - Pre-release validation checklist
+- **[13-v0.1.0-release-status.md](./13-v0.1.0-release-status.md)** - v0.1.0 release comprehensive assessment
 
 ## Contributing
 

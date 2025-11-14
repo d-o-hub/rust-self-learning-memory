@@ -1283,7 +1283,7 @@ dependencies = [
 
 [[package]]
 name = "memory-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1302,7 +1302,7 @@ dependencies = [
 
 [[package]]
 name = "memory-mcp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1321,7 +1321,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-redb"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1340,7 +1340,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-turso"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2058,7 +2058,7 @@ dependencies = [
 
 [[package]]
 name = "test-utils"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "chrono",

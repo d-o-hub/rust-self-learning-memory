@@ -71,16 +71,12 @@ jobs:
         rust: [stable]
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
       - name: Run tests
         run: cargo test --all-features --workspace
         env:
@@ -90,7 +86,12 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -101,7 +102,7 @@ jobs:
         run: cargo build --all --release --timings
       - name: Upload build timing report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: build-timings
           path: target/cargo-timings/cargo-timing.html
@@ -163,14 +164,14 @@ jobs:
         env:
           RUST_LOG: debug
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.5.1
         with:
           files: lcov.info
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: coverage-report
           path: lcov.info
@@ -212,7 +213,7 @@ jobs:
         run: cargo deny check
       - name: Upload deny report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: cargo-deny-report
           path: target/deny.log
@@ -245,10 +246,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
       - name: Install required tools
         uses: taiki-e/install-action@v2
         with:
@@ -283,7 +280,7 @@ jobs:
           QUALITY_GATE_SECURITY_THRESHOLD: "0"
       - name: Upload quality report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: quality-gates-report
           path: quality-report.md

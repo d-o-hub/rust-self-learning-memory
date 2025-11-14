@@ -33,7 +33,15 @@ Create well-designed, properly formatted opencode agents that:
 ### Agent File Structure
 
 ```markdown
----description: Clear description of when to invoke this agent and what it does (max 1024 chars)mode: subagenttools:  write: true  edit: true  read: true---
+---
+name: agent-name
+description: Clear description of when to invoke this agent and what it does (max 1024 chars)
+mode: subagent
+tools:
+  write: true
+  edit: true
+  read: true
+---
 # Agent Name
 
 System prompt for the agent.

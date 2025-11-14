@@ -29,7 +29,9 @@ pub fn rank_patterns(mut patterns: Vec<Pattern>, context: &TaskContext) -> Vec<P
         let score_b = calculate_pattern_score(b, context);
 
         // Sort in descending order (higher score first)
-        score_b.partial_cmp(&score_a).unwrap_or(std::cmp::Ordering::Equal)
+        score_b
+            .partial_cmp(&score_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     patterns

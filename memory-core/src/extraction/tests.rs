@@ -1,7 +1,7 @@
 //! Tests for pattern extraction
 
 use super::*;
-use crate::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType, pattern::Pattern};
+use crate::{pattern::Pattern, Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 use chrono::Duration;
 
 #[test]
@@ -52,7 +52,6 @@ fn test_extract_from_complete_episode() {
 mod utils_tests {
     use super::*;
 
-
     #[test]
     fn test_deduplicate_patterns_no_duplicates() {
         let patterns = vec![
@@ -92,10 +91,10 @@ mod utils_tests {
         let pattern2 = Pattern::ToolSequence {
             id: uuid::Uuid::new_v4(),
             tools: vec!["tool1".to_string(), "tool2".to_string()], // Same tools
-            context: TaskContext::default(), // Same context
-            success_rate: 0.8, // Different success rate
-            avg_latency: Duration::milliseconds(200), // Different latency
-            occurrence_count: 3, // Different count
+            context: TaskContext::default(),                       // Same context
+            success_rate: 0.8,                                     // Different success rate
+            avg_latency: Duration::milliseconds(200),              // Different latency
+            occurrence_count: 3,                                   // Different count
         };
 
         let patterns = vec![pattern1, pattern2];
@@ -130,20 +129,26 @@ mod utils_tests {
         assert_eq!(ranked.len(), 2);
         // Higher success rate should come first
         match &ranked[0] {
-            Pattern::ToolSequence { success_rate, .. } => assert!((*success_rate - 0.9).abs() < 0.01),
+            Pattern::ToolSequence { success_rate, .. } => {
+                assert!((*success_rate - 0.9).abs() < 0.01)
+            }
             _ => panic!("Expected ToolSequence"),
         }
     }
 
     #[test]
     fn test_rank_patterns_by_context_relevance() {
-        let mut context1 = TaskContext::default();
-        context1.language = Some("rust".to_string());
-        context1.domain = "web-api".to_string();
+        let context1 = TaskContext {
+            language: Some("rust".to_string()),
+            domain: "web-api".to_string(),
+            ..Default::default()
+        };
 
-        let mut context2 = TaskContext::default();
-        context2.language = Some("python".to_string());
-        context2.domain = "data-science".to_string();
+        let context2 = TaskContext {
+            language: Some("python".to_string()),
+            domain: "data-science".to_string(),
+            ..Default::default()
+        };
 
         let patterns = vec![
             Pattern::ToolSequence {

@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional: for premium features
@@ -31,7 +31,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v4.8.2
         continue-on-error: true  # Requires GitHub Advanced Security on private repos
         with:
           fail-on-severity: moderate
@@ -50,7 +50,7 @@ jobs:
         run: cargo audit --json | tee audit-report.json
       - name: Upload audit report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: audit-report
           path: audit-report.json

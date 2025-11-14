@@ -134,22 +134,24 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate coverage reports (HTML + LCOV)
+      - name: Generate coverage reports and check threshold
         run: |
           cargo llvm-cov clean --workspace
           cargo llvm-cov --all-features --workspace --html --output-dir coverage --ignore-run-fail
+
+          # Generate LCOV report for Codecov
           cargo llvm-cov report --lcov --output-path lcov.info
-        env:
-          RUST_LOG: debug
-      - name: Check coverage threshold (>90%)
-        run: |
-          # Get human-readable coverage report (not LCOV format)
+
+          # Get coverage percentage from summary (must be in same step as coverage generation)
           COVERAGE=$(cargo llvm-cov report --summary-only | grep -oP 'lines.*?\K\d+\.\d+(?=%)' || echo "0")
           echo "Coverage: ${COVERAGE}%"
+
+          # Check coverage threshold
           if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
             echo "::error::Could not determine coverage percentage"
             exit 1
           fi
+
           THRESHOLD=90
           COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
           if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then
@@ -157,6 +159,8 @@ jobs:
             exit 1
           fi
           echo "Coverage check passed: ${COVERAGE}% >= ${THRESHOLD}%"
+        env:
+          RUST_LOG: debug
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:

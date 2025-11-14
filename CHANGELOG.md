@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-11-14
+
+### Added
+
+#### Production Deployment Guide
+- Comprehensive DEPLOYMENT.md with production deployment procedures
+- Performance tuning guidelines for connection pools, caching, and batching
+- Monitoring setup with key metrics and health checks
+- Disaster recovery procedures for Turso and redb restoration
+- Systemd service configuration and Docker deployment examples
+- Backup strategies and operational troubleshooting guides
+
+#### Bincode Deserialization Security
+- Added size limits for bincode deserialization to prevent OOM attacks:
+  - Episode deserialization: 10MB limit
+  - Pattern deserialization: 1MB limit
+  - Heuristic deserialization: 100KB limit
+  - Embedding deserialization: 1MB limit
+- Comprehensive bincode security tests for redb storage layer
+- Input validation bounds documentation in SECURITY.md
+- Quota management guidance added to AGENTS.md
+
 ## [0.1.0] - 2025-11-13
 
 ### Added
@@ -118,16 +140,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Input validation bypass attempts
   - Cryptographic vulnerability checks
   - Access control violations
-
-#### Bincode Deserialization Security (Post-Release Enhancement)
-- Added size limits for bincode deserialization to prevent OOM attacks:
-  - Episode deserialization: 10MB limit
-  - Pattern deserialization: 1MB limit
-  - Heuristic deserialization: 100KB limit
-  - Embedding deserialization: 1MB limit
-- Comprehensive bincode security tests for redb storage layer
-- Input validation bounds documentation in SECURITY.md
-- Quota management guidance added to AGENTS.md
 
 #### Performance Benchmarks
 - Benchmarks for episode lifecycle operations (start, log, complete)

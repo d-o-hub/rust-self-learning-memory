@@ -143,9 +143,10 @@ jobs:
           RUST_LOG: debug
       - name: Check coverage threshold (>90%)
         run: |
-          COVERAGE=$(cargo llvm-cov report --lcov --output-path - | grep -oP '\d+\.\d+(?=%|/)' | head -1 || echo "0")
+          # Get human-readable coverage report (not LCOV format)
+          COVERAGE=$(cargo llvm-cov report --summary-only | grep -oP 'lines.*?\K\d+\.\d+(?=%)' || echo "0")
           echo "Coverage: ${COVERAGE}%"
-          if [ -z "$COVERAGE" ]; then
+          if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
             echo "::error::Could not determine coverage percentage"
             exit 1
           fi

@@ -78,7 +78,7 @@ This project provides a production-grade memory system designed for AI agents th
 - **Dual Storage**: Durable Turso/libSQL + fast redb cache
 - **Security**: Zero-trust validation, sanitization, parameterized queries
 - **MCP Support**: Model Context Protocol integration for Claude integration
-- **Comprehensive Testing**: >90% code coverage with unit and integration tests
+- **Comprehensive Testing**: >80% code coverage (currently 84.70%) with unit and integration tests
 - **Monitoring**: Tracing support with structured logging
 
 ## Prerequisites
@@ -294,7 +294,7 @@ cargo doc --all --document-private-items --open
 
 ## Code Coverage
 
-This project enforces **>90% code coverage** on the main branch via cargo-llvm-cov in the CI pipeline.
+This project enforces **>80% code coverage** on the main branch via cargo-llvm-cov in the CI pipeline. Current coverage: **84.70%**.
 
 - Coverage reports generated as HTML and LCOV format
 - Uploaded to Codecov for tracking and analysis
@@ -421,7 +421,7 @@ Jobs:
   - clippy:           Lint checks (cargo clippy -D warnings)
   - test:             Test suite (multiple OS, stable Rust)
   - build:            Release build with timing
-  - coverage:         Code coverage with >90% gate
+  - coverage:         Code coverage with >80% gate (currently 84.70%)
   - security-audit:   Vulnerability scanning (cargo audit)
   - supply-chain:     License & advisory checks (cargo-deny)
 ```

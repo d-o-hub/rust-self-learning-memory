@@ -65,6 +65,14 @@ fn skip_optional_gates() -> bool {
 fn quality_gate_test_coverage() {
     println!("\n=== Quality Gate: Test Coverage ===");
 
+    // Skip if already running under coverage instrumentation (prevents nested llvm-cov)
+    // cargo-llvm-cov sets CARGO_LLVM_COV=1 when running
+    if env::var("CARGO_LLVM_COV").is_ok() {
+        println!("⏭️  Skipping coverage gate (already running under coverage instrumentation)");
+        println!("   This test would conflict with the outer coverage run.");
+        return;
+    }
+
     let threshold = coverage_threshold();
     println!("Threshold: {}%", threshold);
 
@@ -83,6 +91,12 @@ fn quality_gate_test_coverage() {
         println!("Skipping coverage gate (QUALITY_GATE_SKIP_OPTIONAL=true)");
         return;
     }
+
+    // Clean up llvm-cov-target directory to free disk space
+    println!("Cleaning up previous coverage artifacts...");
+    let _ = Command::new("cargo")
+        .args(["llvm-cov", "clean", "--workspace"])
+        .output();
 
     // Run coverage analysis
     println!("Running coverage analysis...");

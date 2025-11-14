@@ -1,0 +1,52 @@
+---
+name: YAML Lint
+
+"on":
+  push:
+    branches: [main, develop]
+    paths:
+      - '**.yml'
+      - '**.yaml'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '**.yml'
+      - '**.yaml'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  yamllint:
+    name: YAML Syntax Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
+        run: |
+          yamllint -d \
+            "{extends: default, rules: {line-length: {max: 120}, indentation: {spaces: 2}}}" \
+            .github/ || (echo "❌ YAML lint failed" && exit 1)
+
+  actionlint:
+    name: GitHub Actions Workflow Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run actionlint
+        uses: reviewdog/action-actionlint@v1
+        with:
+          fail_level: error
+          filter_mode: nofilter

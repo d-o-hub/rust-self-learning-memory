@@ -60,7 +60,7 @@ Using the Goal-Oriented Action Planning framework from `.claude/skills/goap-agen
 
 5. **CI/CD** - 95% Complete
    - ✅ GitHub Actions workflows (5 workflows)
-   - ✅ Multi-OS testing (Ubuntu, macOS, Windows)
+   - ✅ Multi-OS testing (Ubuntu, macOS)
    - ✅ Security scanning (gitleaks, cargo-audit, cargo-deny)
    - ✅ Performance baselines established
    - ✅ Automated quality gates

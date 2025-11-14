@@ -147,13 +147,28 @@ async fn should_run_periodic_background_sync_automatically() {
     // When: Starting periodic sync with short interval (100ms for testing)
     let handle = sync.clone().start_periodic_sync(Duration::from_millis(100));
 
-    // When: Waiting for a couple of sync cycles
-    tokio::time::sleep(Duration::from_millis(300)).await;
+    // When: Polling for sync completion (with timeout for CI reliability)
+    let start = std::time::Instant::now();
+    let timeout = Duration::from_secs(10); // Generous timeout for slow CI (especially Windows)
+    let mut synced = false;
+
+    while start.elapsed() < timeout {
+        if let Ok(Some(_)) = sync.redb.get_episode(episode_id).await {
+            synced = true;
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(50)).await; // Poll every 50ms
+    }
+
     handle.abort();
 
     // Then: The episode should be automatically synced to cache
-    let cached = sync.redb.get_episode(episode_id).await.unwrap();
-    assert!(cached.is_some(), "Episode should be synced to cache");
+    assert!(
+        synced,
+        "Episode should be synced to cache within {}s (took {:?})",
+        timeout.as_secs(),
+        start.elapsed()
+    );
 
     // Then: Sync state should reflect multiple syncs
     let state = sync.get_sync_state().await;

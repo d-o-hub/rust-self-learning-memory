@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763119506069,
+  "lastUpdate": 1763119527187,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -1461,6 +1461,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/12c6d033ad39cdcf2a0a77c7b8ab511eccbe2c21"
         },
         "date": 1763119505810,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d-o-hub",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c2f3efaba68ac01bba523132ca7e9471e8f66e9e",
+          "message": "feat: update testing documentation and adjust code coverage requirement to >80% (#98)\n\n* feat: update testing documentation and adjust code coverage requirement to >80%\n\nfeat: add Perplexity Researcher Pro agent for complex research and analysis\n\nfeat: introduce Perplexity Researcher Reasoning Pro agent for advanced reasoning tasks\n\nfeat: create opencode configuration file for Perplexity models and tools\n\ndocs: add GitHub Release Best Practices Analysis for 2025 with comprehensive recommendations\n\n* .gitignore\n\n---------\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>",
+          "timestamp": "2025-11-14T12:20:07+01:00",
+          "tree_id": "7934113b7ef83cc56539e8ce4bb99e205fb06cb0",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/c2f3efaba68ac01bba523132ca7e9471e8f66e9e"
+        },
+        "date": 1763119526905,
         "tool": "cargo",
         "benches": [
           {

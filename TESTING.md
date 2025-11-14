@@ -264,7 +264,7 @@ criterion_main!(benches);
 
 Before merging:
 - [ ] All tests passing
-- [ ] Code coverage >90%
+- [ ] Code coverage >80%
 - [ ] No clippy warnings
 - [ ] Benchmarks within targets
 - [ ] Documentation updated

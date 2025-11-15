@@ -94,7 +94,9 @@ jobs:
            # Process all benchmark results
            find target/criterion -type f -path "*/new/estimates.json" | while read -r json_file; do
              # Extract benchmark name from path
-             bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
+             # Extract benchmark name from path (shortened for line length)
+            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | \
+              sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
 
              # Extract mean time in nanoseconds
              mean_ns=$(grep -A 3 '"mean"' "$json_file" | \

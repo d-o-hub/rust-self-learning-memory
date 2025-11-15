@@ -8,9 +8,28 @@
 This roadmap tracks the implementation status of the Self-Learning Memory System against the comprehensive 6-phase implementation plans. The v0.1.1 patch release includes production deployment documentation and enhanced security testing.
 
 **Current Status**: v0.1.1 RELEASED - Production deployment guide and bincode security tests complete
-**Release Blockers**: NONE ✅
+**Next Patch**: v0.1.2 - Code quality improvements (MCP warnings cleanup)
 **Next Milestone**: v0.2.0 - Advanced features (Embeddings, Pattern Composition, etc.)
 **Test Status**: 347+ tests passing, 7/8 quality gates pass, 0 vulnerabilities
+
+### 🔧 v0.1.2 Patch Release - Code Quality Improvements
+
+**Target Date**: December 2025
+**Status**: PLANNED
+**Priority**: LOW (Quality of Life)
+
+#### Issues to Address
+- **MCP Server Warnings**: Clean up compiler warnings in MCP server binary
+  - Remove unused `jsonrpc` field in `JsonRpcRequest` struct
+  - Remove unused `InitializeParams` struct
+  - Fix unused import `RewardScore` in integration example
+- **Test Code Quality**: Address unused Result handling in integration tests
+- **Documentation**: Update examples with proper error handling
+
+#### Impact
+- **Code Quality**: Eliminate compiler warnings for cleaner codebase
+- **Developer Experience**: Reduce noise in build output
+- **Maintenance**: Easier future development with clean code
 
 ---
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+#### MCP Server Code Quality Improvements (v0.1.2)
+- **Removed unused import**: Fixed `RewardScore` unused import warning in `memory_mcp_integration.rs` example
+- **Fixed unused Result handling**: Properly handled Result return values in database integration tests
+- **Cleaned up unused code**: Removed unused `jsonrpc` field and `InitializeParams` struct in MCP server binary
+- **Improved code hygiene**: Eliminated compiler warnings for better code quality and maintainability
+
 ## [0.1.1] - 2025-11-14
 
 ### Added

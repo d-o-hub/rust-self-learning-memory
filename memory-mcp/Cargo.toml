@@ -41,3 +41,11 @@ libc = "0.2"
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
+
+[[example]]
+name = "memory_mcp_integration"
+path = "examples/memory_mcp_integration.rs"
+
+[[test]]
+name = "simple_integration_tests"
+path = "tests/simple_integration_tests.rs"

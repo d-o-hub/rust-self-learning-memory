@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory MCP Todo List</title>
+    <meta name="description" content="A Progressive Web App todo list with local storage integration">
+    <meta name="theme-color" content="#2563eb">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        .todo-app {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .input-section {
+            padding: 25px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #todo-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #todo-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 2px solid #e2e8f0;
+            color: #6b7280;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        .todo-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.3s;
+        }
+
+        .todo-item:hover {
+            background: #f8fafc;
+        }
+
+        .todo-item.completed {
+            background: #f0fdf4;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .stats {
+            padding: 20px 25px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-text {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 2px solid #dc2626;
+            color: #dc2626;
+        }
+
+        .clear-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+
+        .install-prompt.show {
+            display: block;
+        }
+
+        .install-prompt .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .filters {
+                justify-content: center;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📝 Memory MCP Todo</h1>
+            <p>Progressive Web App with Local Storage</p>
+        </header>
+
+        <div class="todo-app">
+            <div class="input-section">
+                <div class="input-group">
+                    <input type="text" id="todo-input" placeholder="Add a new todo..." maxlength="100">
+                    <button class="btn btn-primary" id="add-btn">Add Todo</button>
+                </div>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="active">Active</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                </div>
+            </div>
+
+            <div class="todo-list" id="todo-list">
+                <!-- Todos will be inserted here -->
+            </div>
+
+            <div class="stats">
+                <div class="stats-text" id="stats-text">0 items total</div>
+                <button class="btn btn-secondary clear-btn" id="clear-completed">Clear Completed</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="install-prompt" id="install-prompt">
+        <div>
+            <strong>Install Memory MCP Todo</strong>
+            <p>Add this app to your home screen for the best experience!</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-secondary" id="install-cancel">Not Now</button>
+            <button class="btn btn-primary" id="install-confirm">Install</button>
+        </div>
+    </div>
+
+    <script>
+        class TodoApp {
+            constructor() {
+                this.todos = [];
+                this.currentFilter = 'all';
+                this.deferredPrompt = null;
+
+                this.init();
+                this.loadTodos();
+                this.setupPWA();
+            }
+
+            init() {
+                // DOM elements
+                this.todoInput = document.getElementById('todo-input');
+                this.addBtn = document.getElementById('add-btn');
+                this.todoList = document.getElementById('todo-list');
+                this.statsText = document.getElementById('stats-text');
+                this.clearCompletedBtn = document.getElementById('clear-completed');
+                this.filterBtns = document.querySelectorAll('.filter-btn');
+                this.installPrompt = document.getElementById('install-prompt');
+                this.installConfirm = document.getElementById('install-confirm');
+                this.installCancel = document.getElementById('install-cancel');
+
+                // Event listeners
+                this.addBtn.addEventListener('click', () => this.addTodo());
+                this.todoInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTodo();
+                });
+                this.clearCompletedBtn.addEventListener('click', () => this.clearCompleted());
+                this.filterBtns.forEach(btn => {
+                    btn.addEventListener('click', () => this.setFilter(btn.dataset.filter));
+                });
+
+                // PWA install events
+                this.installConfirm.addEventListener('click', () => this.installPWA());
+                this.installCancel.addEventListener('click', () => this.hideInstallPrompt());
+            }
+
+            setupPWA() {
+                // PWA install prompt
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    this.showInstallPrompt();
+                });
+
+                // App installed
+                window.addEventListener('appinstalled', () => {
+                    this.hideInstallPrompt();
+                    console.log('PWA was installed');
+                });
+
+                // Service worker registration
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('sw.js')
+                        .then(registration => {
+                            console.log('Service Worker registered:', registration);
+                        })
+                        .catch(error => {
+                            console.log('Service Worker registration failed:', error);
+                        });
+                }
+            }
+
+            showInstallPrompt() {
+                this.installPrompt.classList.add('show');
+            }
+
+            hideInstallPrompt() {
+                this.installPrompt.classList.remove('show');
+            }
+
+            installPWA() {
+                if (this.deferredPrompt) {
+                    this.deferredPrompt.prompt();
+                    this.deferredPrompt.userChoice.then(choice => {
+                        if (choice.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        this.deferredPrompt = null;
+                        this.hideInstallPrompt();
+                    });
+                }
+            }
+
+            addTodo() {
+                const text = this.todoInput.value.trim();
+                if (text === '') return;
+
+                const todo = {
+                    id: Date.now().toString(),
+                    text: text,
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                this.todos.push(todo);
+                this.saveTodos();
+                this.renderTodos();
+                this.updateStats();
+
+                this.todoInput.value = '';
+                this.todoInput.focus();
+            }
+
+            toggleTodo(id) {
+                const todo = this.todos.find(t => t.id === id);
+                if (todo) {
+                    todo.completed = !todo.completed;
+                    todo.updatedAt = new Date().toISOString();
+                    this.saveTodos();
+                    this.renderTodos();
+                    this.updateStats();
+                }
+            }
+
+            deleteTodo(id) {
+                this.todos = this.todos.filter(t => t.id !== id);
+                this.saveTodos();
+                this.renderTodos();
+                this.updateStats();
+            }
+
+            editTodo(id) {
+                const todo = this.todos.find(t => t.id === id);
+                if (!todo) return;
+
+                const newText = prompt('Edit todo:', todo.text);
+                if (newText && newText.trim() !== '') {
+                    todo.text = newText.trim();
+                    todo.updatedAt = new Date().toISOString();
+                    this.saveTodos();
+                    this.renderTodos();
+                }
+            }
+
+            clearCompleted() {
+                this.todos = this.todos.filter(t => !t.completed);
+                this.saveTodos();
+                this.renderTodos();
+                this.updateStats();
+            }
+
+            setFilter(filter) {
+                this.currentFilter = filter;
+                this.filterBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                });
+                this.renderTodos();
+            }
+
+            renderTodos() {
+                const filteredTodos = this.todos.filter(todo => {
+                    switch (this.currentFilter) {
+                        case 'active': return !todo.completed;
+                        case 'completed': return todo.completed;
+                        default: return true;
+                    }
+                });
+
+                this.todoList.innerHTML = filteredTodos.map(todo => `
+                    <div class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
+                        <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
+                        <div class="todo-text">${this.escapeHtml(todo.text)}</div>
+                        <div class="todo-actions">
+                            <button class="btn btn-secondary btn-small" onclick="app.editTodo('${todo.id}')">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="app.deleteTodo('${todo.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add event listeners for checkboxes
+                this.todoList.querySelectorAll('.todo-checkbox').forEach((checkbox, index) => {
+                    checkbox.addEventListener('change', () => {
+                        const todoId = filteredTodos[index].id;
+                        this.toggleTodo(todoId);
+                    });
+                });
+            }
+
+            updateStats() {
+                const total = this.todos.length;
+                const completed = this.todos.filter(t => t.completed).length;
+                const active = total - completed;
+
+                this.statsText.textContent = `${total} items total (${active} active, ${completed} completed)`;
+                this.clearCompletedBtn.style.display = completed > 0 ? 'block' : 'none';
+            }
+
+            saveTodos() {
+                try {
+                    localStorage.setItem('memory-mcp-todos', JSON.stringify(this.todos));
+                    console.log('Todos saved to localStorage');
+                } catch (error) {
+                    console.error('Failed to save todos:', error);
+                    alert('Failed to save todos. Storage might be full.');
+                }
+            }
+
+            loadTodos() {
+                try {
+                    const saved = localStorage.getItem('memory-mcp-todos');
+                    if (saved) {
+                        this.todos = JSON.parse(saved);
+                        console.log('Todos loaded from localStorage:', this.todos.length);
+                    }
+                } catch (error) {
+                    console.error('Failed to load todos:', error);
+                    this.todos = [];
+                }
+
+                this.renderTodos();
+                this.updateStats();
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the app
+        const app = new TodoApp();
+
+        // Make app globally available for onclick handlers
+        window.app = app;
+    </script>
+</body>
+</html>

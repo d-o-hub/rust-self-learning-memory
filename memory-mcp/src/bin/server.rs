@@ -1,0 +1,444 @@
+//! MCP Server Binary
+//!
+//! This binary implements the Model Context Protocol (MCP) server for the
+//! self-learning memory system. It communicates over stdio using JSON-RPC.
+
+use memory_core::SelfLearningMemory;
+use memory_mcp::{MemoryMCPServer, SandboxConfig};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use std::io::{self, BufRead, Write};
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use tracing::{error, info, warn};
+
+/// JSON-RPC request structure
+#[derive(Debug, Deserialize)]
+struct JsonRpcRequest {
+    jsonrpc: String,
+    id: Option<Value>,
+    method: String,
+    params: Option<Value>,
+}
+
+/// JSON-RPC response structure
+#[derive(Debug, Serialize)]
+struct JsonRpcResponse {
+    jsonrpc: String,
+    id: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    result: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<JsonRpcError>,
+}
+
+/// JSON-RPC error structure
+#[derive(Debug, Serialize)]
+struct JsonRpcError {
+    code: i32,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    data: Option<Value>,
+}
+
+/// MCP Initialize request parameters
+#[derive(Debug, Deserialize)]
+struct InitializeParams {
+    protocol_version: String,
+    capabilities: Value,
+    client_info: Value,
+}
+
+/// MCP Initialize response
+#[derive(Debug, Serialize)]
+struct InitializeResult {
+    protocol_version: String,
+    capabilities: Value,
+    server_info: Value,
+}
+
+/// MCP Tool structure for listing
+#[derive(Debug, Serialize)]
+struct McpTool {
+    name: String,
+    description: String,
+    input_schema: Value,
+}
+
+/// MCP ListTools response
+#[derive(Debug, Serialize)]
+struct ListToolsResult {
+    tools: Vec<McpTool>,
+}
+
+/// MCP CallTool request parameters
+#[derive(Debug, Deserialize)]
+struct CallToolParams {
+    name: String,
+    arguments: Option<Value>,
+}
+
+/// MCP CallTool response
+#[derive(Debug, Serialize)]
+struct CallToolResult {
+    content: Vec<Content>,
+}
+
+/// MCP Content structure
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+enum Content {
+    #[serde(rename = "text")]
+    Text { text: String },
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Initialize tracing
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
+
+    info!("Starting Memory MCP Server");
+
+    // Initialize memory system
+    let memory = Arc::new(SelfLearningMemory::new());
+
+    // Create MCP server with restrictive sandbox
+    let sandbox_config = SandboxConfig::restrictive();
+    let mcp_server = Arc::new(Mutex::new(
+        MemoryMCPServer::new(sandbox_config, memory).await?
+    ));
+
+    info!("MCP Server initialized successfully");
+
+    // Main message loop
+    let stdin = io::stdin();
+    let mut stdout = io::stdout();
+    let mut handle = stdin.lock();
+
+    loop {
+        let mut line = String::new();
+        match handle.read_line(&mut line) {
+            Ok(0) => {
+                // EOF reached
+                info!("Received EOF, shutting down");
+                break;
+            }
+            Ok(_) => {
+                let line = line.trim();
+                if line.is_empty() {
+                    continue;
+                }
+
+                // Parse JSON-RPC request
+                match serde_json::from_str::<JsonRpcRequest>(line) {
+                    Ok(request) => {
+                        let response = handle_request(request, &mcp_server).await;
+
+                        // Send response
+                        if let Some(response_json) = response {
+                            let response_str = serde_json::to_string(&response_json)?;
+                            writeln!(stdout, "{}", response_str)?;
+                            stdout.flush()?;
+                        }
+                    }
+                    Err(e) => {
+                        error!("Failed to parse JSON-RPC request: {}", e);
+                        // Send error response
+                        let error_response = JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: None, // We don't have an ID if parsing failed
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32700,
+                                message: "Parse error".to_string(),
+                                data: Some(json!({"details": e.to_string()})),
+                            }),
+                        };
+                        let response_str = serde_json::to_string(&error_response)?;
+                        writeln!(stdout, "{}", response_str)?;
+                        stdout.flush()?;
+                    }
+                }
+            }
+            Err(e) => {
+                error!("Error reading from stdin: {}", e);
+                break;
+            }
+        }
+    }
+
+    info!("Memory MCP Server shutting down");
+    Ok(())
+}
+
+/// Handle a JSON-RPC request
+async fn handle_request(
+    request: JsonRpcRequest,
+    mcp_server: &Arc<Mutex<MemoryMCPServer>>,
+) -> Option<JsonRpcResponse> {
+    match request.method.as_str() {
+        "initialize" => {
+            handle_initialize(request).await
+        }
+        "tools/list" => {
+            handle_list_tools(request, mcp_server).await
+        }
+        "tools/call" => {
+            handle_call_tool(request, mcp_server).await
+        }
+        "shutdown" => {
+            handle_shutdown(request).await
+        }
+        _ => {
+            warn!("Unknown method: {}", request.method);
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32601,
+                    message: "Method not found".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    }
+}
+
+/// Handle initialize request
+async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
+    info!("Handling initialize request");
+
+    let result = InitializeResult {
+        protocol_version: "2024-11-05".to_string(),
+        capabilities: json!({
+            "tools": {
+                "listChanged": false
+            }
+        }),
+        server_info: json!({
+            "name": "memory-mcp-server",
+            "version": env!("CARGO_PKG_VERSION")
+        }),
+    };
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(serde_json::to_value(result).unwrap()),
+        error: None,
+    })
+}
+
+/// Handle tools/list request
+async fn handle_list_tools(
+    request: JsonRpcRequest,
+    mcp_server: &Arc<Mutex<MemoryMCPServer>>,
+) -> Option<JsonRpcResponse> {
+    info!("Handling tools/list request");
+
+    let server = mcp_server.lock().await;
+    let tools = server.list_tools().await;
+
+    let mcp_tools: Vec<McpTool> = tools
+        .into_iter()
+        .map(|tool| McpTool {
+            name: tool.name,
+            description: tool.description,
+            input_schema: tool.input_schema,
+        })
+        .collect();
+
+    let result = ListToolsResult { tools: mcp_tools };
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(serde_json::to_value(result).unwrap()),
+        error: None,
+    })
+}
+
+/// Handle tools/call request
+async fn handle_call_tool(
+    request: JsonRpcRequest,
+    mcp_server: &Arc<Mutex<MemoryMCPServer>>,
+) -> Option<JsonRpcResponse> {
+    let params: CallToolParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                });
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            });
+        }
+    };
+
+    info!("Handling tools/call request for tool: {}", params.name);
+
+    let mut server = mcp_server.lock().await;
+    let result = match params.name.as_str() {
+        "query_memory" => {
+            handle_query_memory(&mut server, params.arguments).await
+        }
+        "execute_agent_code" => {
+            handle_execute_code(&mut server, params.arguments).await
+        }
+        "analyze_patterns" => {
+            handle_analyze_patterns(&mut server, params.arguments).await
+        }
+        _ => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32601,
+                    message: "Tool not found".to_string(),
+                    data: Some(json!({"tool": params.name})),
+                }),
+            });
+        }
+    };
+
+    match result {
+        Ok(content) => {
+            let result = CallToolResult { content };
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(serde_json::to_value(result).unwrap()),
+                error: None,
+            })
+        }
+        Err(e) => {
+            error!("Tool execution failed: {}", e);
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32000,
+                    message: "Tool execution failed".to_string(),
+                    data: Some(json!({"details": e.to_string()})),
+                }),
+            })
+        }
+    }
+}
+
+/// Handle query_memory tool
+async fn handle_query_memory(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let query = args.get("query")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let domain = args.get("domain")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let task_type = args.get("task_type").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+
+    let result = server.query_memory(query, domain, task_type, limit).await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+
+    Ok(content)
+}
+
+/// Handle execute_agent_code tool
+async fn handle_execute_code(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::ExecutionContext;
+
+    let args: Value = arguments.unwrap_or(json!({}));
+    let code = args.get("code")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'code' parameter"))?
+        .to_string();
+
+    let context_obj = args.get("context")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'context' parameter"))?;
+
+    let task = context_obj.get("task")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'task' in context"))?
+        .to_string();
+
+    let input = context_obj.get("input").cloned().unwrap_or(json!({}));
+
+    let context = ExecutionContext::new(task, input);
+
+    let result = server.execute_agent_code(code, context).await?;
+
+    let content = vec![Content::Text {
+        text: format!("Execution Result: {:?}", result),
+    }];
+
+    Ok(content)
+}
+
+/// Handle analyze_patterns tool
+async fn handle_analyze_patterns(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let task_type = args.get("task_type")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'task_type' parameter"))?
+        .to_string();
+    let min_success_rate = args.get("min_success_rate")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.7) as f32;
+    let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(20) as usize;
+
+    let result = server.analyze_patterns(task_type, min_success_rate, limit).await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+
+    Ok(content)
+}
+
+/// Handle shutdown request
+async fn handle_shutdown(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
+    info!("Handling shutdown request");
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(json!(null)),
+        error: None,
+    })
+}

@@ -35,5 +35,15 @@
         },
       }
     }
+  },
+  "mcp": {
+    "memory-mcp": {
+      "type": "local",
+      "command": ["cargo", "run", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
+      "enabled": true,
+      "environment": {
+        "RUST_LOG": "info"
+      }
+    }
   }
 }

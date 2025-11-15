@@ -12,6 +12,10 @@ keywords = ["mcp", "sandbox", "code-execution", "ai", "security"]
 categories = ["development-tools", "web-programming"]
 documentation = "https://docs.rs/memory-mcp"
 
+[[bin]]
+name = "memory-mcp-server"
+path = "src/bin/server.rs"
+
 [dependencies]
 # Workspace dependencies
 tokio = { workspace = true }
@@ -28,6 +32,7 @@ memory-core = { path = "../memory-core", version = "0.1.0" }
 async-trait = "0.1"
 parking_lot = "0.12"
 url = "2.5"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

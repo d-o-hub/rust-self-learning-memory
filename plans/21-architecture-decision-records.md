@@ -920,12 +920,12 @@ Four pattern types:
 ## ADR Template (For Future Decisions)
 
 ```markdown
-## ADR-XXX: [Title]
+## ADR-011: [Future ADR Template]
 
-**Status**: [PROPOSED | ACCEPTED | DEPRECATED | SUPERSEDED]
-**Date**: YYYY-MM-DD
-**Deciders**: [List]
-**Related**: [Tags]
+**Status**: TEMPLATE
+**Date**: N/A
+**Deciders**: [Future Contributors]
+**Related**: [template, documentation]
 
 ### Context
 [Describe the problem and constraints]

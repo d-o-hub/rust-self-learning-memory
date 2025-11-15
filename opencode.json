@@ -27,23 +27,19 @@
             "search_language_filter": ["en"]
           }
         },
-        "sonar-reasoning-pro": {
-          "name": "Perplexity Sonar Reasoning Pro",
-          "options": {
-            "search_language_filter": ["en", "de"]
-          }
-        },
       }
     }
   },
-  "mcp": {
-    "memory-mcp": {
-      "type": "local",
-      "command": ["cargo", "run", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
-      "enabled": true,
-      "environment": {
-        "RUST_LOG": "info"
-      }
-    }
-  }
+   "mcp": {
+     "memory-mcp": {
+       "type": "local",
+       "command": ["cargo", "run", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
+       "enabled": true,
+        "environment": {
+          "RUST_LOG": "info",
+          "REDB_CACHE_PATH": "../data/cache.redb",
+          "REDB_MAX_CACHE_SIZE": "1000"
+        }
+     }
+   }
 }

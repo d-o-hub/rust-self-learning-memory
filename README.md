@@ -426,7 +426,9 @@ Jobs:
   - supply-chain:     License & advisory checks (cargo-deny)
 ```
 
-### Testing
+### Testing & Benchmarking
+
+#### Unit & Integration Tests
 
 ```bash
 # Run all tests with debug logging
@@ -437,6 +439,125 @@ cargo test --all memory::tests::test_start_episode
 
 # Run with coverage
 cargo llvm-cov --all-features --workspace
+```
+
+#### Comprehensive Benchmarking
+
+The project includes a comprehensive benchmark suite covering:
+
+- **Concurrent Operations**: YCSB-like workloads with configurable read/write ratios
+- **Memory Pressure Testing**: Memory usage monitoring under various scenarios
+- **Scalability Analysis**: Performance scaling across dataset sizes, users, and query complexity
+- **Multi-Backend Comparison**: Performance comparison between redb and Turso/libSQL
+
+##### Running All Benchmarks
+
+```bash
+# Run the complete benchmark suite (recommended)
+./scripts/run_comprehensive_benchmarks.sh
+
+# Or run individual benchmark suites
+./scripts/run_comprehensive_benchmarks.sh run concurrent_operations
+./scripts/run_comprehensive_benchmarks.sh run memory_pressure
+./scripts/run_comprehensive_benchmarks.sh run scalability
+./scripts/run_comprehensive_benchmarks.sh run multi_backend_comparison
+
+# List available benchmark suites
+./scripts/run_comprehensive_benchmarks.sh list
+```
+
+##### Running Specific Benchmarks with Criterion
+
+```bash
+# Run individual benchmark suites directly
+cargo bench -p memory-benches --bench concurrent_operations
+cargo bench -p memory-benches --bench memory_pressure
+cargo bench -p memory-benches --bench scalability
+cargo bench -p memory-benches --bench multi_backend_comparison
+
+# Run all benchmarks (may take considerable time)
+cargo bench -p memory-benches
+```
+
+##### Benchmark Results & Analysis
+
+Results are stored in `target/criterion/` with:
+
+- **HTML Reports**: Interactive charts and detailed statistics
+- **JSON Data**: Raw benchmark measurements for analysis
+- **Comparative Analysis**: Historical performance tracking
+
+Key benchmark categories:
+
+1. **Concurrent Operations** (`concurrent_operations.rs`)
+   - YCSB Workload A-F patterns (Update Heavy, Read Mostly, etc.)
+   - Configurable concurrency levels (1, 4, 8, 16 threads)
+   - Measures throughput and latency under concurrent load
+
+2. **Memory Pressure** (`memory_pressure.rs`)
+   - Steady state, burst load, and gradual growth scenarios
+   - Real-time memory monitoring with sysinfo
+   - Peak memory usage and variance analysis
+
+3. **Scalability** (`scalability.rs`)
+   - Dataset size scaling (100 to 5000+ episodes)
+   - Concurrent user scaling (1 to 50+ users)
+   - Query complexity and batch operation analysis
+
+4. **Multi-Backend Comparison** (`multi_backend_comparison.rs`)
+   - Performance comparison between redb and Turso/libSQL
+   - Write performance, read performance, bulk operations
+   - Concurrent performance across backends
+
+##### CI/CD Integration
+
+Benchmarks run automatically on:
+
+- **Main branch pushes**: Full benchmark suite with result storage
+- **Pull requests**: Performance regression detection
+- **Weekly schedule**: Long-term performance trend analysis
+
+Performance regressions trigger:
+
+- ❌ **Alert**: >110% performance degradation
+- 📊 **PR Comments**: Benchmark result summaries
+- 📈 **Historical Tracking**: Performance trend visualization
+
+##### Interpreting Results
+
+**Performance Targets** (from `plans/PERFORMANCE_BASELINES.md`):
+
+- Episode Creation: < 50ms (currently ~2.5µs - 19,531x faster)
+- Step Logging: < 20ms (currently ~1.1µs - 17,699x faster)
+- Episode Completion: < 500ms (currently ~3.8µs - 130,890x faster)
+- Pattern Extraction: < 1000ms (currently ~10µs - 98,768x faster)
+- Memory Retrieval: < 100ms (currently ~720µs - 138x faster)
+
+**Key Metrics to Monitor**:
+
+- **Throughput**: Operations per second under various loads
+- **Latency P95**: 95th percentile response times
+- **Memory Usage**: Peak and average memory consumption
+- **Scalability Factor**: How performance changes with load
+- **Backend Efficiency**: Storage size vs. operation count
+
+##### Troubleshooting Benchmarks
+
+**Common Issues**:
+
+1. **Timeout Errors**: Increase `BENCH_TIMEOUT` in the runner script
+2. **Memory Issues**: Reduce concurrency or dataset sizes
+3. **Inconsistent Results**: Run benchmarks multiple times for statistical significance
+4. **Missing Dependencies**: Ensure all benchmark dependencies are installed
+
+**Debug Mode**:
+
+```bash
+# Run with debug output
+RUST_LOG=debug cargo bench -p memory-benches --bench concurrent_operations
+
+# Run single benchmark iteration for debugging
+cargo bench -p memory-benches --bench concurrent_operations -- --verbose
 ```
 
 ### Pre-commit Hooks

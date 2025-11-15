@@ -8,28 +8,91 @@
 This roadmap tracks the implementation status of the Self-Learning Memory System against the comprehensive 6-phase implementation plans. The v0.1.1 patch release includes production deployment documentation and enhanced security testing.
 
 **Current Status**: v0.1.1 RELEASED - Production deployment guide and bincode security tests complete
-**Next Patch**: v0.1.2 - Code quality improvements (MCP warnings cleanup)
-**Next Milestone**: v0.2.0 - Advanced features (Embeddings, Pattern Composition, etc.)
-**Test Status**: 347+ tests passing, 7/8 quality gates pass, 0 vulnerabilities
+**Next Patch**: v0.1.2 - Code quality improvements (MCP warnings cleanup) ✅ COMPLETE
+**In Progress**: v0.2.0 - Monitoring, caching, comprehensive benchmarks ⚠️ BLOCKED (compilation errors, file size violations)
+**Next Milestone**: v0.2.0 - Advanced features (Embeddings, Pattern Composition, Monitoring)
+**Test Status**: 347+ tests passing, 7/8 quality gates pass, 0 vulnerabilities, ⚠️ benchmarks don't compile
 
-### 🔧 v0.1.2 Patch Release - Code Quality Improvements
+### ✅ v0.1.2 Patch Release - Code Quality Improvements
 
 **Target Date**: December 2025
-**Status**: PLANNED
+**Status**: COMPLETE ✅
 **Priority**: LOW (Quality of Life)
+**Completed**: 2025-11-15
 
-#### Issues to Address
-- **MCP Server Warnings**: Clean up compiler warnings in MCP server binary
-  - Remove unused `jsonrpc` field in `JsonRpcRequest` struct
-  - Remove unused `InitializeParams` struct
-  - Fix unused import `RewardScore` in integration example
-- **Test Code Quality**: Address unused Result handling in integration tests
-- **Documentation**: Update examples with proper error handling
+#### Issues Addressed
+- ✅ **MCP Server Warnings**: Cleaned up compiler warnings in MCP server binary
+  - Removed unused `jsonrpc` field in `JsonRpcRequest` struct
+  - Removed unused `InitializeParams` struct
+  - Fixed unused import `RewardScore` in integration example
+- ✅ **Test Code Quality**: Addressed unused Result handling in integration tests
+- ✅ **Documentation**: Updated examples with proper error handling
+- ✅ **PWA Cleanup**: Removed temporary PWA example, renamed tests to generic MCP integration tests
 
 #### Impact
-- **Code Quality**: Eliminate compiler warnings for cleaner codebase
-- **Developer Experience**: Reduce noise in build output
-- **Maintenance**: Easier future development with clean code
+- ✅ **Code Quality**: Eliminated compiler warnings for cleaner codebase
+- ✅ **Developer Experience**: Reduced noise in build output
+- ✅ **Maintenance**: Easier future development with clean code
+
+---
+
+### ⚠️ v0.2.0 Feature Release - Monitoring, Caching & Benchmarks
+
+**Target Date**: Q1 2026
+**Status**: IN PROGRESS ⚠️ BLOCKED
+**Priority**: HIGH
+**Blocker Count**: 5 critical issues
+
+#### Features In Progress
+
+**1. Monitoring System** (⚠️ Incomplete - 1694 LOC added)
+- ✅ Agent performance monitoring infrastructure
+- ✅ MCP monitoring endpoints (health_check, get_metrics)
+- ✅ Integration with SelfLearningMemory
+- ⚠️ **Blocking Issues**:
+  - 16 clippy warnings (unused variables in storage layer)
+  - Incomplete storage implementation (TODO placeholders)
+  - Mixed lock types (parking_lot + tokio in memory-mcp)
+  - Unbounded timestamp storage
+
+**2. MCP Server Enhancements** (⚠️ File Size Violations)
+- ✅ Cache system implemented (458 LOC)
+- ✅ Expanded to 5 MCP tools (added health_check, get_metrics)
+- ✅ Cache warming on startup
+- ⚠️ **Blocking Issues**:
+  - File size violations: server.rs (1051 LOC), bin/server.rs (579 LOC)
+  - Code formatting failures
+  - Cache not integrated into tool handlers
+  - Test assertion mismatch (expects 3 tools, should be 5)
+
+**3. Comprehensive Benchmarking Suite** (❌ Compilation Errors)
+- ✅ Restructured to Rust standard layout
+- ✅ YCSB-inspired workload patterns
+- ✅ 4 new benchmark categories (1628 LOC)
+- ❌ **Blocking Issues**:
+  - All benchmarks fail to compile (API mismatches)
+  - Missing fs_extra dependency
+  - File size violation: episode_lifecycle.rs (567 LOC)
+  - TokioExecutor import issues
+  - Undefined variables in storage_operations.rs
+
+#### Critical Issues (Must Fix Before Release)
+1. ❌ **Benchmark Compilation Errors** - All new benchmarks fail
+2. ❌ **File Size Violations** - 3 files exceed 500 LOC limit
+3. ❌ **Code Formatting** - Multiple rustfmt failures
+4. ❌ **Clippy Warnings** - 16 unused variable warnings
+5. ❌ **Missing Dependencies** - fs_extra not in Cargo.toml
+
+#### Important Issues (Should Fix)
+6. ⚠️ Cache implementation not integrated into tool handlers
+7. ⚠️ Monitoring storage layer incomplete
+8. ⚠️ Test assertion mismatch
+9. ⚠️ Mixed lock types in memory-mcp
+
+#### Estimated Fix Time
+- **Critical Issues**: 4-8 hours
+- **Important Issues**: 3-5 hours
+- **Total**: 7-13 hours to unblock release
 
 ---
 

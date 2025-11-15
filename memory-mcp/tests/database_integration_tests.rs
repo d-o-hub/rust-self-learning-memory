@@ -3,8 +3,8 @@
 //! These tests verify that the MCP server correctly integrates with the memory system
 //! and that all database operations work as expected.
 
-use memory_core::{SelfLearningMemory, TaskContext, TaskType, TaskOutcome, ComplexityLevel};
-use memory_mcp::{MemoryMCPServer, SandboxConfig, ExecutionContext};
+use memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -15,7 +15,11 @@ mod integration_tests {
     async fn setup_test_environment() -> (Arc<SelfLearningMemory>, Arc<MemoryMCPServer>) {
         let memory = Arc::new(SelfLearningMemory::new());
         let sandbox_config = SandboxConfig::restrictive();
-        let mcp_server = Arc::new(MemoryMCPServer::new(sandbox_config, memory.clone()).await.unwrap());
+        let mcp_server = Arc::new(
+            MemoryMCPServer::new(sandbox_config, memory.clone())
+                .await
+                .unwrap(),
+        );
         (memory, mcp_server)
     }
 
@@ -47,22 +51,30 @@ mod integration_tests {
                 complexity: ComplexityLevel::Simple,
                 tags: vec!["test".to_string()],
             },
-            TaskType::CodeGeneration
+            TaskType::CodeGeneration,
         );
 
         // Complete the episode
-        memory.complete_episode(episode_id, TaskOutcome::Success {
-            verdict: "Test episode completed".to_string(),
-            artifacts: vec!["test.rs".to_string()],
-        }).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Test episode completed".to_string(),
+                    artifacts: vec!["test.rs".to_string()],
+                },
+            )
+            .await;
 
         // Test MCP memory query
-        let result = mcp_server.query_memory(
-            "database test".to_string(),
-            "database".to_string(),
-            None,
-            10
-        ).await.unwrap();
+        let result = mcp_server
+            .query_memory(
+                "database test".to_string(),
+                "database".to_string(),
+                None,
+                10,
+            )
+            .await
+            .unwrap();
 
         let episodes = result["episodes"].as_array().unwrap();
         assert_eq!(episodes.len(), 1);
@@ -77,18 +89,15 @@ mod integration_tests {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Perform some tool operations
-        let _ = mcp_server.query_memory(
-            "test".to_string(),
-            "test".to_string(),
-            None,
-            5
-        ).await.unwrap();
+        let _ = mcp_server
+            .query_memory("test".to_string(), "test".to_string(), None, 5)
+            .await
+            .unwrap();
 
-        let _ = mcp_server.analyze_patterns(
-            "test".to_string(),
-            0.7,
-            5
-        ).await.unwrap();
+        let _ = mcp_server
+            .analyze_patterns("test".to_string(), 0.7, 5)
+            .await
+            .unwrap();
 
         // Verify tool usage tracking
         let usage = mcp_server.get_tool_usage().await;
@@ -103,10 +112,12 @@ mod integration_tests {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Execute some code (may fail, but should be tracked)
-        let _ = mcp_server.execute_agent_code(
-            "return 42;".to_string(),
-            ExecutionContext::new("test".to_string(), json!({}))
-        ).await;
+        let _ = mcp_server
+            .execute_agent_code(
+                "return 42;".to_string(),
+                ExecutionContext::new("test".to_string(), json!({})),
+            )
+            .await;
 
         // Verify execution statistics are tracked
         let stats = mcp_server.get_stats().await;
@@ -128,25 +139,32 @@ mod integration_tests {
                 complexity: ComplexityLevel::Simple,
                 tags: vec!["pattern".to_string(), "test".to_string()],
             },
-            TaskType::CodeGeneration
+            TaskType::CodeGeneration,
         );
 
-        memory.complete_episode(episode_id, TaskOutcome::Success {
-            verdict: "Pattern test completed".to_string(),
-            artifacts: vec!["pattern.rs".to_string()],
-        }).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Pattern test completed".to_string(),
+                    artifacts: vec!["pattern.rs".to_string()],
+                },
+            )
+            .await;
 
         // Test pattern retrieval
-        let patterns = memory.retrieve_relevant_patterns(
-            &TaskContext {
-                domain: "patterns".to_string(),
-                language: None,
-                framework: None,
-                complexity: ComplexityLevel::Simple,
-                tags: vec!["pattern".to_string()],
-            },
-            10
-        ).await;
+        let patterns = memory
+            .retrieve_relevant_patterns(
+                &TaskContext {
+                    domain: "patterns".to_string(),
+                    language: None,
+                    framework: None,
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec!["pattern".to_string()],
+                },
+                10,
+            )
+            .await;
 
         // Patterns may be empty initially, but the query should work
         assert!(patterns.len() >= 0); // At minimum, should return empty vec
@@ -180,22 +198,30 @@ mod integration_tests {
                 complexity: ComplexityLevel::Simple,
                 tags: vec!["test".to_string()],
             },
-            TaskType::CodeGeneration
+            TaskType::CodeGeneration,
         );
 
         // Complete the episode
-        memory.complete_episode(episode_id, TaskOutcome::Success {
-            verdict: "Test episode completed".to_string(),
-            artifacts: vec!["test.rs".to_string()],
-        }).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Test episode completed".to_string(),
+                    artifacts: vec!["test.rs".to_string()],
+                },
+            )
+            .await;
 
         // Test MCP memory query
-        let result = mcp_server.query_memory(
-            "database test".to_string(),
-            "database".to_string(),
-            None,
-            10
-        ).await.unwrap();
+        let result = mcp_server
+            .query_memory(
+                "database test".to_string(),
+                "database".to_string(),
+                None,
+                10,
+            )
+            .await
+            .unwrap();
 
         let episodes = result["episodes"].as_array().unwrap();
         assert_eq!(episodes.len(), 1);
@@ -210,18 +236,15 @@ mod integration_tests {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Perform some tool operations
-        let _ = mcp_server.query_memory(
-            "test".to_string(),
-            "test".to_string(),
-            None,
-            5
-        ).await.unwrap();
+        let _ = mcp_server
+            .query_memory("test".to_string(), "test".to_string(), None, 5)
+            .await
+            .unwrap();
 
-        let _ = mcp_server.analyze_patterns(
-            "test".to_string(),
-            0.7,
-            5
-        ).await.unwrap();
+        let _ = mcp_server
+            .analyze_patterns("test".to_string(), 0.7, 5)
+            .await
+            .unwrap();
 
         // Verify tool usage tracking
         let usage = mcp_server.get_tool_usage().await;
@@ -236,10 +259,12 @@ mod integration_tests {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Execute some code (may fail, but should be tracked)
-        let _ = mcp_server.execute_agent_code(
-            "return 42;".to_string(),
-            ExecutionContext::new("test".to_string(), json!({}))
-        ).await;
+        let _ = mcp_server
+            .execute_agent_code(
+                "return 42;".to_string(),
+                ExecutionContext::new("test".to_string(), json!({})),
+            )
+            .await;
 
         // Verify execution statistics are tracked
         let stats = mcp_server.get_stats().await;
@@ -261,25 +286,32 @@ mod integration_tests {
                 complexity: ComplexityLevel::Simple,
                 tags: vec!["pattern".to_string(), "test".to_string()],
             },
-            TaskType::CodeGeneration
+            TaskType::CodeGeneration,
         );
 
-        memory.complete_episode(episode_id, TaskOutcome::Success {
-            verdict: "Pattern test completed".to_string(),
-            artifacts: vec!["pattern.rs".to_string()],
-        }).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Pattern test completed".to_string(),
+                    artifacts: vec!["pattern.rs".to_string()],
+                },
+            )
+            .await;
 
         // Test pattern retrieval
-        let patterns = memory.retrieve_relevant_patterns(
-            &TaskContext {
-                domain: "patterns".to_string(),
-                language: None,
-                framework: None,
-                complexity: ComplexityLevel::Simple,
-                tags: vec!["pattern".to_string()],
-            },
-            10
-        ).await;
+        let patterns = memory
+            .retrieve_relevant_patterns(
+                &TaskContext {
+                    domain: "patterns".to_string(),
+                    language: None,
+                    framework: None,
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec!["pattern".to_string()],
+                },
+                10,
+            )
+            .await;
 
         // Patterns may be empty initially, but the query should work
         assert!(patterns.len() >= 0); // At minimum, should return empty vec
@@ -313,22 +345,30 @@ mod integration_tests {
                 complexity: ComplexityLevel::Simple,
                 tags: vec!["test".to_string()],
             },
-            TaskType::CodeGeneration
+            TaskType::CodeGeneration,
         );
 
         // Complete the episode
-        memory.complete_episode(episode_id, TaskOutcome::Success {
-            verdict: "Test episode completed".to_string(),
-            artifacts: vec!["test.rs".to_string()],
-        }).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Test episode completed".to_string(),
+                    artifacts: vec!["test.rs".to_string()],
+                },
+            )
+            .await;
 
         // Test MCP memory query
-        let result = mcp_server.query_memory(
-            "database test".to_string(),
-            "database".to_string(),
-            None,
-            10
-        ).await.unwrap();
+        let result = mcp_server
+            .query_memory(
+                "database test".to_string(),
+                "database".to_string(),
+                None,
+                10,
+            )
+            .await
+            .unwrap();
 
         let episodes = result["episodes"].as_array().unwrap();
         assert_eq!(episodes.len(), 1);
@@ -343,16 +383,19 @@ mod integration_tests {
         let (memory, mcp_server) = setup_test_environment().await;
 
         // Start episode
-        let episode_id = memory.start_episode(
-            "Test API implementation".to_string(),
-            TaskContext {
-                domain: "web-api".to_string(),
-                language: Some("rust".to_string()),
-                framework: Some("axum".to_string()),
-                complexity: ComplexityLevel::Simple,
-                tags: vec!["test".to_string(), "api".to_string()],
-            }
-        ).await.unwrap();
+        let episode_id = memory
+            .start_episode(
+                "Test API implementation".to_string(),
+                TaskContext {
+                    domain: "web-api".to_string(),
+                    language: Some("rust".to_string()),
+                    framework: Some("axum".to_string()),
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec!["test".to_string(), "api".to_string()],
+                },
+            )
+            .await
+            .unwrap();
 
         // Log execution steps
         let steps = vec![
@@ -394,17 +437,20 @@ mod integration_tests {
         memory.complete_episode(episode_id, outcome).await.unwrap();
 
         // Verify database entries
-        let episodes = memory.retrieve_relevant_context(
-            "test API".to_string(),
-            TaskContext {
-                domain: "web-api".to_string(),
-                language: None,
-                framework: None,
-                complexity: ComplexityLevel::Simple,
-                tags: vec![],
-            },
-            10
-        ).await.unwrap();
+        let episodes = memory
+            .retrieve_relevant_context(
+                "test API".to_string(),
+                TaskContext {
+                    domain: "web-api".to_string(),
+                    language: None,
+                    framework: None,
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec![],
+                },
+                10,
+            )
+            .await
+            .unwrap();
 
         assert_eq!(episodes.len(), 1);
         let episode = &episodes[0];
@@ -419,18 +465,15 @@ mod integration_tests {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Perform some tool operations
-        let _ = mcp_server.query_memory(
-            "test".to_string(),
-            "test".to_string(),
-            None,
-            5
-        ).await.unwrap();
+        let _ = mcp_server
+            .query_memory("test".to_string(), "test".to_string(), None, 5)
+            .await
+            .unwrap();
 
-        let _ = mcp_server.analyze_patterns(
-            "test".to_string(),
-            0.7,
-            5
-        ).await.unwrap();
+        let _ = mcp_server
+            .analyze_patterns("test".to_string(), 0.7, 5)
+            .await
+            .unwrap();
 
         // Verify tool usage tracking
         let usage = mcp_server.get_tool_usage().await;
@@ -445,10 +488,12 @@ mod integration_tests {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Execute some code (may fail, but should be tracked)
-        let _ = mcp_server.execute_agent_code(
-            "return 42;".to_string(),
-            ExecutionContext::new("test".to_string(), json!({}))
-        ).await;
+        let _ = mcp_server
+            .execute_agent_code(
+                "return 42;".to_string(),
+                ExecutionContext::new("test".to_string(), json!({})),
+            )
+            .await;
 
         // Verify execution statistics are tracked
         let stats = mcp_server.get_stats().await;
@@ -470,25 +515,32 @@ mod integration_tests {
                 complexity: ComplexityLevel::Simple,
                 tags: vec!["pattern".to_string(), "test".to_string()],
             },
-            TaskType::CodeGeneration
+            TaskType::CodeGeneration,
         );
 
-        memory.complete_episode(episode_id, TaskOutcome::Success {
-            verdict: "Pattern test completed".to_string(),
-            artifacts: vec!["pattern.rs".to_string()],
-        }).await;
+        memory
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Pattern test completed".to_string(),
+                    artifacts: vec!["pattern.rs".to_string()],
+                },
+            )
+            .await;
 
         // Test pattern retrieval
-        let patterns = memory.retrieve_relevant_patterns(
-            &TaskContext {
-                domain: "patterns".to_string(),
-                language: None,
-                framework: None,
-                complexity: ComplexityLevel::Simple,
-                tags: vec!["pattern".to_string()],
-            },
-            10
-        ).await;
+        let patterns = memory
+            .retrieve_relevant_patterns(
+                &TaskContext {
+                    domain: "patterns".to_string(),
+                    language: None,
+                    framework: None,
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec!["pattern".to_string()],
+                },
+                10,
+            )
+            .await;
 
         // Patterns may be empty initially, but the query should work
         assert!(patterns.len() >= 0); // At minimum, should return empty vec

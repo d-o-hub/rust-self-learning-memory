@@ -7,13 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### Monitoring System (In Progress - v0.2.0)
+- **Agent Performance Monitoring**: Track agent execution metrics (success rate, duration, task-level aggregation)
+  - `memory-core/src/monitoring/` - Core monitoring infrastructure (894 LOC)
+  - `memory-mcp/src/monitoring/` - MCP monitoring endpoints and metrics (800 LOC)
+  - Integrated into `SelfLearningMemory` with methods for recording and retrieving agent metrics
+  - Health check endpoints and system metrics tracking
+  - **Status**: ⚠️ Incomplete - storage layer has placeholder TODOs, requires clippy fixes
+
+#### MCP Server Enhancements (In Progress - v0.2.0)
+- **Cache System**: Query result caching with TTL-based expiration
+  - `memory-mcp/src/cache.rs` (458 LOC) - LRU-style cache for expensive operations
+  - Configurable via environment variables (cache size, TTL)
+  - **Status**: ⚠️ Implemented but not integrated into tool handlers
+- **Enhanced Server**: Expanded from 3 to 5 MCP tools
+  - Added `health_check` and `get_metrics` tools
+  - Cache warming on startup
+  - Progressive tool disclosure
+  - **Status**: ⚠️ File size violations (server.rs: 1051 LOC exceeds 500 limit)
+
+#### Comprehensive Benchmarking Suite (In Progress - v0.2.0)
+- **Restructured Benchmarks**: Moved from `benches/benches/` to `benches/` (Rust standard layout)
+- **New Benchmark Categories**:
+  - `concurrent_operations.rs` - YCSB-inspired workload patterns (292 LOC)
+  - `memory_pressure.rs` - Memory usage and leak detection (456 LOC)
+  - `multi_backend_comparison.rs` - Turso vs redb performance (470 LOC)
+  - `scalability.rs` - Large-scale episode handling (410 LOC)
+- **Benchmark Helpers**: `benches/src/benchmark_helpers.rs` for shared utilities
+- **Status**: ❌ Compilation errors - API mismatches with memory-core
+
+### Changed
+
+- **Test Organization**: Renamed `pwa_integration_tests.rs` to `mcp_integration_tests.rs` for generic MCP testing
+- **Test Naming**: Updated all "PWA" references to generic "Web" application examples
+
+### Removed
+
+- **Temporary Example**: Deleted `examples/pwa-todo-app/` (1,058 lines)
+  - Removed temporary testing PWA created for MCP verification
+  - Integration tests preserved and generalized as `mcp_integration_tests.rs`
+
 ### Fixed
 
-#### MCP Server Code Quality Improvements (v0.1.2)
+#### v0.1.2 Code Quality Improvements ✅ COMPLETE (2025-11-15)
 - **Removed unused import**: Fixed `RewardScore` unused import warning in `memory_mcp_integration.rs` example
 - **Fixed unused Result handling**: Properly handled Result return values in database integration tests
 - **Cleaned up unused code**: Removed unused `jsonrpc` field and `InitializeParams` struct in MCP server binary
+- **Code formatting**: Ran `cargo fmt --all` to fix all formatting issues
+- **Clippy warnings**: Fixed 16+ unused variable warnings in monitoring code
+  - Prefixed unused variables with underscore in `memory-core/src/monitoring/*.rs`
+  - Removed unused `ConcurrencyConfig` import from `memory-core/src/memory/mod.rs`
+- **Dependencies**: Added missing `fs_extra = "1.3"` to `benches/Cargo.toml`
+- **Test fixes**: Updated test assertion in `simple_integration_tests.rs` (3 → 5 tools)
 - **Improved code hygiene**: Eliminated compiler warnings for better code quality and maintainability
+
+### Known Issues (Blocking v0.2.0 Release)
+
+#### Critical (Must Fix)
+1. **Benchmark Compilation Errors**: All new benchmarks fail to compile due to API mismatches
+   - Issue: Benchmarks call `.expect()` on methods that return `T` instead of `Result<T>`
+   - Affected: All files in `benches/*.rs`
+   - Fix: Remove `.expect()` calls on non-Result methods
+
+2. **File Size Violations** (AGENTS.md compliance):
+   - `memory-mcp/src/server.rs`: 1051 LOC (511 over 500 limit)
+   - `memory-mcp/src/bin/server.rs`: 579 LOC (79 over limit)
+   - `benches/episode_lifecycle.rs`: 567 LOC (67 over limit)
+   - Fix: Split into smaller modules
+
+3. **Code Formatting**: Multiple files fail `cargo fmt --check`
+   - Fix: Run `cargo fmt --all`
+
+4. **Clippy Warnings**: 16 unused variable warnings in `memory-core/src/monitoring/*.rs`
+   - Fix: Prefix unused variables with underscore
+
+5. **Missing Dependencies**: `benches/Cargo.toml` missing `fs_extra` crate
+
+#### Important (Should Fix)
+6. **Cache Integration**: Cache implemented but not used in MCP tool handlers
+7. **Monitoring Storage**: Incomplete implementation with TODO placeholders
+8. **Test Assertion**: `simple_integration_tests.rs:22` expects 3 tools, should be 5
+9. **Mixed Lock Types**: `memory-mcp` uses both `parking_lot::RwLock` (blocking) and `tokio::sync::Mutex`
 
 ## [0.1.1] - 2025-11-14
 

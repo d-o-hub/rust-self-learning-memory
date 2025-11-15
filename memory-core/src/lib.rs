@@ -52,6 +52,7 @@ pub mod error;
 pub mod extraction;
 pub mod learning;
 pub mod memory;
+pub mod monitoring;
 pub mod pattern;
 pub mod patterns;
 pub mod reflection;
@@ -67,6 +68,7 @@ pub use extraction::PatternExtractor;
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
 pub use memory::step_buffer::BatchConfig;
 pub use memory::SelfLearningMemory;
+pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use pattern::{Heuristic, Pattern};
 pub use patterns::{
     ClusterCentroid, ClusteringConfig, EffectivenessTracker, EpisodeCluster, PatternClusterer,
@@ -76,6 +78,6 @@ pub use reflection::ReflectionGenerator;
 pub use reward::RewardCalculator;
 pub use storage::StorageBackend;
 pub use types::{
-    ComplexityLevel, Evidence, ExecutionResult, MemoryConfig, OutcomeStats, Reflection,
-    RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
+    Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
 };

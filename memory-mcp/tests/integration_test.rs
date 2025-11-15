@@ -332,3 +332,63 @@ async fn test_memory_integration_with_data() {
     // Verify insights
     assert!(data["insights"]["total_episodes"].as_u64().unwrap() > 0);
 }
+
+#[tokio::test]
+async fn test_jsonrpc_response_format_execute_code() {
+    use memory_core::SelfLearningMemory;
+    use memory_mcp::{MemoryMCPServer, SandboxConfig};
+    use serde_json::json;
+    use std::sync::Arc;
+
+    // Create server
+    let server = MemoryMCPServer::new(
+        SandboxConfig::default(),
+        Arc::new(SelfLearningMemory::new()),
+    )
+    .await
+    .unwrap();
+
+    // Test execute_agent_code directly to verify the result format
+    let code = "return { success: true, value: 42 };";
+    let context =
+        memory_mcp::ExecutionContext::new("test execution".to_string(), json!({ "test": "data" }));
+
+    let result = server
+        .execute_agent_code(code.to_string(), context)
+        .await
+        .unwrap();
+
+    // Verify the result can be serialized to JSON
+    let serialized = serde_json::to_string(&result).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&serialized).unwrap();
+
+    // Verify it has the expected structure for ExecutionResult::Success
+    assert!(parsed.get("Success").is_some());
+    let success_data = &parsed["Success"];
+    assert_eq!(
+        success_data["output"],
+        json!("{\"success\":true,\"value\":42}")
+    );
+    assert!(success_data["execution_time_ms"].is_number());
+    assert!(success_data["stdout"].is_string());
+    assert!(success_data["stderr"].is_string());
+
+    // Test error case
+    let error_code = "throw new Error('test error');";
+    let error_context = memory_mcp::ExecutionContext::new("test error".to_string(), json!({}));
+
+    let error_result = server
+        .execute_agent_code(error_code.to_string(), error_context)
+        .await
+        .unwrap();
+
+    let error_serialized = serde_json::to_string(&error_result).unwrap();
+    let error_parsed: serde_json::Value = serde_json::from_str(&error_serialized).unwrap();
+
+    // Should be an Error variant
+    assert!(error_parsed.get("Error").is_some());
+    let error_data = &error_parsed["Error"];
+    assert!(error_data["message"].is_string());
+    assert!(error_data["stdout"].is_string());
+    assert!(error_data["stderr"].is_string());
+}

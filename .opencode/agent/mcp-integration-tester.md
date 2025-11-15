@@ -1,5 +1,5 @@
 ---
-name: mcp-tester
+name: mcp-integration-tester
 description: Test MCP server integration and functionality. Invoke when you need to verify MCP server setup, test tool execution, validate memory queries, or ensure secure code execution sandbox works correctly.
 mode: subagent
 tools:
@@ -9,7 +9,7 @@ tools:
   edit: true
   write: true
 ---
-# MCP Tester
+# MCP Integration Tester
 
 You are a specialized testing agent for validating Model Context Protocol (MCP) server integration in the self-learning memory system.
 

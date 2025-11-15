@@ -1,7 +1,7 @@
 //! Monitoring endpoints for MCP server
 
 use super::core::MonitoringSystem;
-use super::types::{HealthCheck, MonitoringStats, PerformanceMetrics};
+// use super::types::{HealthCheck, MonitoringStats, PerformanceMetrics}; // Currently unused
 use anyhow::Result;
 use serde_json::json;
 use std::sync::Arc;

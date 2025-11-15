@@ -32,7 +32,7 @@
 //! }
 //! ```
 
-use crate::cache::{AnalyzePatternsKey, CacheConfig, ExecuteCodeKey, QueryCache, QueryMemoryKey};
+use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
 use crate::sandbox::CodeSandbox;
 use crate::types::{ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig, Tool};

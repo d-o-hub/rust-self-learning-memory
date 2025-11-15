@@ -63,7 +63,8 @@ async fn test_memory_query_with_episode() {
                 artifacts: vec!["test.rs".to_string()],
             },
         )
-        .await;
+        .await
+        .unwrap();
 
     // Test MCP memory query
     let result = mcp_server

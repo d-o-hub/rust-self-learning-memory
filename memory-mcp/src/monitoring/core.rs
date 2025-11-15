@@ -4,13 +4,12 @@ use super::types::{
     ComponentHealth, HealthCheck, HealthStatus, MonitoringConfig, MonitoringStats,
     PerformanceMetrics, RequestMetrics, SystemPerformance, ToolPerformance,
 };
-use anyhow::Result;
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use tokio::sync::Mutex;
-use tracing::{debug, info, warn};
+use tracing::debug;
 
 /// Core monitoring system
 pub struct MonitoringSystem {

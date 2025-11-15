@@ -208,7 +208,7 @@ async fn test_comprehensive_database_operations() {
         json!({"test": "web-functionality"}),
     );
 
-    let exec_result = mcp_server
+    let _exec_result = mcp_server
         .execute_agent_code(code.to_string(), context)
         .await;
 

@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763145733213,
+  "lastUpdate": 1763205829353,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -1911,6 +1911,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/47ae0c4dcbb3d8692ce94946baa6c7506d4aa83d"
         },
         "date": 1763145732770,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "36066f8e3c367427ddf0625ae721c0cac65053a2",
+          "message": "oc github action (#104)\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>",
+          "timestamp": "2025-11-15T12:20:41+01:00",
+          "tree_id": "bdf4baa5b2b99116d1149736247778097adbf36a",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/36066f8e3c367427ddf0625ae721c0cac65053a2"
+        },
+        "date": 1763205829011,
         "tool": "cargo",
         "benches": [
           {

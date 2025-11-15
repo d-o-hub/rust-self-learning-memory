@@ -124,7 +124,7 @@ impl MonitoringSystem {
                 let tool_perf = perf
                     .tool_metrics
                     .entry(metrics.tool_name.clone())
-                    .or_insert_with(ToolPerformance::default);
+                    .or_default();
 
                 tool_perf.total_calls += 1;
                 if success {

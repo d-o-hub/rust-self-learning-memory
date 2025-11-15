@@ -206,6 +206,12 @@ pub struct ComponentHealth {
     pub last_check: u64,
 }
 
+impl Default for MonitoringStats {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MonitoringStats {
     /// Create new monitoring stats
     pub fn new() -> Self {

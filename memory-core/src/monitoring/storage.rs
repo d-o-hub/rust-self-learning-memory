@@ -7,6 +7,7 @@ use std::sync::Arc;
 ///
 /// Handles persistence of monitoring metrics to durable storage (Turso)
 /// and fast cache (redb) for analysis and retrieval.
+#[allow(dead_code)]
 pub struct MonitoringStorage {
     /// Durable storage backend (Turso)
     durable_storage: Option<Arc<dyn StorageBackend>>,
@@ -14,6 +15,7 @@ pub struct MonitoringStorage {
     cache_storage: Option<Arc<dyn StorageBackend>>,
 }
 
+#[allow(dead_code)]
 impl MonitoringStorage {
     /// Create a new monitoring storage instance
     pub fn new() -> Self {
@@ -147,6 +149,7 @@ impl MonitoringStorage {
 }
 
 /// Aggregated analytics data for monitoring dashboards
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct MonitoringAnalytics {
     /// Total executions across all agents

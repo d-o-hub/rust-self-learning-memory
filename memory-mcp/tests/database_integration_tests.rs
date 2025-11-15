@@ -3,7 +3,10 @@
 //! These tests verify that the MCP server correctly integrates with the memory system
 //! and that all database operations work as expected.
 
-use memory_core::{ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType, ExecutionResult};
+use memory_core::{
+    ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
+    TaskType,
+};
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
@@ -44,17 +47,19 @@ mod integration_tests {
         let (memory, mcp_server) = setup_test_environment().await;
 
         // Create a test episode
-        let episode_id = memory.start_episode(
-            "Database test episode".to_string(),
-            TaskContext {
-                domain: "database".to_string(),
-                language: Some("rust".to_string()),
-                framework: Some("sqlx".to_string()),
-                complexity: ComplexityLevel::Simple,
-                tags: vec!["test".to_string()],
-            },
-            TaskType::CodeGeneration,
-        ).await;
+        let episode_id = memory
+            .start_episode(
+                "Database test episode".to_string(),
+                TaskContext {
+                    domain: "database".to_string(),
+                    language: Some("rust".to_string()),
+                    framework: Some("sqlx".to_string()),
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec!["test".to_string()],
+                },
+                TaskType::CodeGeneration,
+            )
+            .await;
 
         // Complete the episode
         memory
@@ -133,17 +138,19 @@ mod integration_tests {
         let (memory, _mcp_server) = setup_test_environment().await;
 
         // Create a test episode
-        let episode_id = memory.start_episode(
-            "Pattern test episode".to_string(),
-            TaskContext {
-                domain: "patterns".to_string(),
-                language: Some("rust".to_string()),
-                framework: Some("tokio".to_string()),
-                complexity: ComplexityLevel::Simple,
-                tags: vec!["pattern".to_string(), "test".to_string()],
-            },
-            TaskType::CodeGeneration,
-        ).await;
+        let episode_id = memory
+            .start_episode(
+                "Pattern test episode".to_string(),
+                TaskContext {
+                    domain: "patterns".to_string(),
+                    language: Some("rust".to_string()),
+                    framework: Some("tokio".to_string()),
+                    complexity: ComplexityLevel::Simple,
+                    tags: vec!["pattern".to_string(), "test".to_string()],
+                },
+                TaskType::CodeGeneration,
+            )
+            .await;
 
         memory
             .complete_episode(
@@ -200,8 +207,9 @@ mod integration_tests {
         });
         step1.latency_ms = 100;
         step1.tokens_used = Some(25);
-        
-        let mut step2 = ExecutionStep::new(2, "rust_analyzer".to_string(), "implement API".to_string());
+
+        let mut step2 =
+            ExecutionStep::new(2, "rust_analyzer".to_string(), "implement API".to_string());
         step2.result = Some(ExecutionResult::Success {
             output: "API implemented".to_string(),
         });

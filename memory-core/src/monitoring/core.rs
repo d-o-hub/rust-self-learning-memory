@@ -25,6 +25,12 @@ pub struct AgentMonitor {
     storage: Option<Arc<dyn StorageBackend>>,
 }
 
+impl Default for AgentMonitor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AgentMonitor {
     /// Create a new agent monitor with default configuration
     pub fn new() -> Self {

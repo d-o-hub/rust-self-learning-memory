@@ -132,6 +132,12 @@ pub struct QueryCache {
     execute_code_cache: RwLock<HashMap<ExecuteCodeKey, CacheEntry<super::ExecutionResult>>>,
 }
 
+impl Default for QueryCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl QueryCache {
     /// Create a new query cache with default configuration
     pub fn new() -> Self {

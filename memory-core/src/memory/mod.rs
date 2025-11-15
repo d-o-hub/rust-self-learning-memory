@@ -202,6 +202,7 @@ pub struct SelfLearningMemory {
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
+    #[allow(dead_code)]
     pub(super) cache_semaphore: Arc<Semaphore>,
 }
 

@@ -49,3 +49,7 @@ path = "examples/memory_mcp_integration.rs"
 [[test]]
 name = "simple_integration_tests"
 path = "tests/simple_integration_tests.rs"
+
+[[test]]
+name = "pwa_integration_tests"
+path = "tests/pwa_integration_tests.rs"

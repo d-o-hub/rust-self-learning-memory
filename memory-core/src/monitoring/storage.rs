@@ -41,6 +41,16 @@ impl MonitoringStorage {
         }
     }
 
+    /// Check if durable storage backend is configured
+    pub fn has_durable_storage(&self) -> bool {
+        self.durable_storage.is_some()
+    }
+
+    /// Check if cache storage backend is configured
+    pub fn has_cache_storage(&self) -> bool {
+        self.cache_storage.is_some()
+    }
+
     /// Store an execution record
     ///
     /// Persists the execution record to durable storage and updates cache.

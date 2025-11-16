@@ -25,7 +25,7 @@
 //!     monitor.record_execution("feature-implementer", true, duration).await;
 //!
 //!     // Get metrics
-//!     let metrics = monitor.get_agent_metrics("feature-implementer").await;
+//!     let metrics = monitor.get_agent_metrics("feature-implementer").await.unwrap();
 //!     println!("Success rate: {:.2}", metrics.success_rate());
 //!
 //!     Ok(())

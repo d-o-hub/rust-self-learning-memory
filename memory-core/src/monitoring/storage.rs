@@ -146,6 +146,17 @@ impl MonitoringStorage {
             recent_failures: Vec::new(),
         })
     }
+
+    // Test helper methods
+    #[cfg(test)]
+    pub fn has_durable_storage(&self) -> bool {
+        self.durable_storage.is_some()
+    }
+
+    #[cfg(test)]
+    pub fn has_cache_storage(&self) -> bool {
+        self.cache_storage.is_some()
+    }
 }
 
 /// Aggregated analytics data for monitoring dashboards

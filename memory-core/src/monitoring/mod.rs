@@ -10,7 +10,7 @@
 //!
 //! ## Example
 //!
-//! ```no_run
+//! ```
 //! use memory_core::monitoring::{AgentMonitor, AgentMetrics, TaskMetrics};
 //!
 //! #[tokio::main]
@@ -25,7 +25,8 @@
 //!     monitor.record_execution("feature-implementer", true, duration).await;
 //!
 //!     // Get metrics
-//!     let metrics = monitor.get_agent_metrics("feature-implementer").await.unwrap();
+//!     let metrics = monitor.get_agent_metrics("feature-implementer").await
+//!         .expect("Agent metrics should exist after recording execution");
 //!     println!("Success rate: {:.2}", metrics.success_rate());
 //!
 //!     Ok(())
@@ -37,6 +38,7 @@ mod storage;
 mod types;
 
 pub use core::{AgentMonitor, MonitoringSummary};
+pub use storage::{MonitoringStorage, MonitoringAnalytics};
 pub use types::{AgentMetrics, ExecutionRecord, MonitoringConfig, TaskMetrics};
 
 // Re-export for convenience

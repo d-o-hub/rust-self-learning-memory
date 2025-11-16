@@ -159,6 +159,12 @@ impl MonitoringStorage {
     }
 }
 
+impl Default for MonitoringStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Aggregated analytics data for monitoring dashboards
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

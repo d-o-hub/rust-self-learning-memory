@@ -38,7 +38,7 @@ mod storage;
 mod types;
 
 pub use core::{AgentMonitor, MonitoringSummary};
-pub use storage::{MonitoringStorage, MonitoringAnalytics};
+pub use storage::{MonitoringAnalytics, MonitoringStorage};
 pub use types::{AgentMetrics, ExecutionRecord, MonitoringConfig, TaskMetrics};
 
 // Re-export for convenience

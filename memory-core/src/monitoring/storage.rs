@@ -148,14 +148,70 @@ impl MonitoringStorage {
     }
 
     // Test helper methods
-    #[cfg(test)]
     pub fn has_durable_storage(&self) -> bool {
         self.durable_storage.is_some()
     }
 
-    #[cfg(test)]
     pub fn has_cache_storage(&self) -> bool {
         self.cache_storage.is_some()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::monitoring::types::ExecutionRecord;
+    use std::time::Duration;
+
+    #[tokio::test]
+    async fn test_monitoring_storage_creation() {
+        // Test default creation
+        let storage = MonitoringStorage::new();
+        assert!(!storage.has_durable_storage());
+        assert!(!storage.has_cache_storage());
+
+        // Test with durable storage (mock)
+        // Note: In real usage, this would be an actual StorageBackend
+        // For testing, we just verify the structure
+        let storage = MonitoringStorage {
+            durable_storage: None, // Mock as None for this test
+            cache_storage: None,
+        };
+        assert!(!storage.has_durable_storage());
+        assert!(!storage.has_cache_storage());
+    }
+
+    #[tokio::test]
+    async fn test_store_execution_record() {
+        let storage = MonitoringStorage::new();
+        let record = ExecutionRecord::new(
+            "test-agent".to_string(),
+            crate::monitoring::types::AgentType::FeatureImplementer,
+            true,
+            Duration::from_secs(1),
+            None,
+            None,
+        );
+
+        // Should not panic even though it's a placeholder implementation
+        let result = storage.store_execution_record(&record).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_get_analytics() {
+        let storage = MonitoringStorage::new();
+
+        // Should return default analytics
+        let analytics = storage.get_analytics().await;
+        assert!(analytics.is_ok());
+
+        let analytics = analytics.unwrap();
+        assert_eq!(analytics.total_executions, 0);
+        assert_eq!(analytics.success_rate, 0.0);
+        assert_eq!(analytics.avg_duration_secs, 0.0);
+        assert!(analytics.top_performing_agents.is_empty());
+        assert!(analytics.recent_failures.is_empty());
     }
 }
 

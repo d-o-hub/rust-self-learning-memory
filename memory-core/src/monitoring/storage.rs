@@ -15,6 +15,12 @@ pub struct MonitoringStorage {
     cache_storage: Option<Arc<dyn StorageBackend>>,
 }
 
+impl Default for MonitoringStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[allow(dead_code)]
 impl MonitoringStorage {
     /// Create a new monitoring storage instance

@@ -2,7 +2,7 @@
 
 use super::types::{
     ComponentHealth, HealthCheck, HealthStatus, MonitoringConfig, MonitoringStats,
-    PerformanceMetrics, RequestMetrics, SystemPerformance, ToolPerformance,
+    PerformanceMetrics, RequestMetrics, SystemPerformance,
 };
 use parking_lot::RwLock;
 use std::collections::HashMap;

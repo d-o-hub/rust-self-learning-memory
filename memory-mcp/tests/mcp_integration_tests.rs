@@ -60,7 +60,7 @@ mod mcp_integration_tests {
         println!("\n2. Development Steps Logging");
         println!("----------------------------");
 
-        let steps = vec![
+        let steps = [
             (
                 "create_html",
                 "Create HTML structure with modern JavaScript",
@@ -85,7 +85,7 @@ mod mcp_integration_tests {
         ];
 
         for (i, (tool, action)) in steps.iter().enumerate() {
-            let step = ExecutionStep::new((i + 1) as usize, tool.to_string(), action.to_string());
+            let step = ExecutionStep::new(i + 1, tool.to_string(), action.to_string());
             memory.log_step(episode_id, step).await;
             println!("✅ Step {}: {} - {}", i + 1, tool, action);
         }

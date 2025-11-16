@@ -1,7 +1,7 @@
 //! Benchmarks for storage operations
 
 use criterion::{
-    async_executor::TokioExecutor, black_box, criterion_group, criterion_main, BenchmarkId,
+    async_executor::FuturesExecutor, black_box, criterion_group, criterion_main, BenchmarkId,
     Criterion,
 };
 use memory_benches::benchmark_helpers::{
@@ -11,7 +11,6 @@ use memory_benches::benchmark_helpers::{
 use memory_core::types::{TaskOutcome, TaskType};
 use memory_storage_redb::RedbStorage;
 use std::collections::HashMap;
-use tempfile::TempDir;
 use uuid::Uuid;
 
 fn benchmark_hashmap_storage(c: &mut Criterion) {
@@ -63,7 +62,7 @@ fn benchmark_bulk_episode_operations(c: &mut Criterion) {
             BenchmarkId::from_parameter(episode_count),
             episode_count,
             |b, &count| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
                     let mut episode_ids = Vec::new();
@@ -76,15 +75,11 @@ fn benchmark_bulk_episode_operations(c: &mut Criterion) {
                                 context.clone(),
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         let steps = generate_execution_steps(2);
                         for step in steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                            memory.log_step(episode_id, step).await;
                         }
 
                         memory
@@ -147,6 +142,7 @@ fn benchmark_redb_episode_retrieval(c: &mut Criterion) {
     c.bench_function("redb_episode_retrieval", |b| {
         b.iter(|| {
             rt.block_on(async {
+                let (memory, _temp_dir) = setup_temp_memory().await;
                 let context = create_benchmark_context();
                 let results = memory
                     .retrieve_relevant_context(
@@ -154,8 +150,7 @@ fn benchmark_redb_episode_retrieval(c: &mut Criterion) {
                         context,
                         black_box(10),
                     )
-                    .await
-                    .expect("Failed to retrieve episodes");
+                    .await;
 
                 black_box(results.len());
             });

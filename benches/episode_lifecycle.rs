@@ -9,7 +9,7 @@
 //! - Pattern extraction and scoring performance
 
 use criterion::{
-    async_executor::TokioExecutor, black_box, criterion_group, criterion_main, Criterion,
+    async_executor::FuturesExecutor, black_box, criterion_group, criterion_main, Criterion,
 };
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
@@ -17,7 +17,6 @@ use memory_benches::benchmark_helpers::{
     setup_temp_turso_memory,
 };
 use memory_core::types::{TaskOutcome, TaskType};
-use uuid::Uuid;
 
 /// Benchmark episode creation performance (start_episode)
 ///
@@ -32,7 +31,7 @@ fn benchmark_episode_creation(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(batch_size),
             batch_size,
             |b, &size| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -43,8 +42,7 @@ fn benchmark_episode_creation(c: &mut Criterion) {
                                 context.clone(),
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         black_box(episode_id);
                     }
@@ -69,7 +67,7 @@ fn benchmark_step_logging(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -79,15 +77,11 @@ fn benchmark_step_logging(c: &mut Criterion) {
                             context,
                             TaskType::CodeGeneration,
                         )
-                        .await
-                        .expect("Failed to create episode");
+                        .await;
 
                     let steps = generate_execution_steps(count);
                     for step in steps {
-                        memory
-                            .log_step(episode_id, step)
-                            .await
-                            .expect("Failed to log step");
+                        memory.log_step(episode_id, step).await;
                     }
 
                     black_box(episode_id);
@@ -112,7 +106,7 @@ fn benchmark_episode_completion(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -122,15 +116,11 @@ fn benchmark_episode_completion(c: &mut Criterion) {
                             context,
                             TaskType::CodeGeneration,
                         )
-                        .await
-                        .expect("Failed to create episode");
+                        .await;
 
                     let steps = generate_execution_steps(count);
                     for step in steps {
-                        memory
-                            .log_step(episode_id, step)
-                            .await
-                            .expect("Failed to log step");
+                        memory.log_step(episode_id, step).await;
                     }
 
                     memory
@@ -174,26 +164,22 @@ fn benchmark_full_lifecycle(c: &mut Criterion) {
             ),
             &(episode_count, steps_per_episode),
             |b, &(episodes, steps)| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
                     for i in 0..*episodes {
                         let episode_id = memory
                             .start_episode(
-                                generate_large_episode_description(i),
+                                generate_large_episode_description(0),
                                 context.clone(),
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
-                        let execution_steps = generate_execution_steps(*steps);
-                        for step in execution_steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                        let steps = generate_execution_steps(*steps);
+                        for step in &steps {
+                            memory.log_step(episode_id, step.clone()).await;
                         }
 
                         memory
@@ -202,7 +188,8 @@ fn benchmark_full_lifecycle(c: &mut Criterion) {
                                 TaskOutcome::Success {
                                     verdict: format!(
                                         "Episode {} completed with {} steps",
-                                        i, steps
+                                        i,
+                                        steps.len()
                                     ),
                                     artifacts: vec![format!("episode_{}_result.txt", i)],
                                 },
@@ -229,14 +216,13 @@ fn benchmark_episode_retrieval(c: &mut Criterion) {
     group.sample_size(50);
 
     // Pre-populate memory with episodes for retrieval testing
-    let rt = tokio::runtime::Runtime::new().unwrap();
 
     for total_episodes in [10, 50, 100, 500].iter() {
         group.bench_with_input(
             criterion::BenchmarkId::from_parameter(total_episodes),
             total_episodes,
             |b, &episode_count| {
-                b.to_async(TokioExecutor).iter_custom(|iters| async move {
+                b.to_async(FuturesExecutor).iter_custom(|iters| async move {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -248,15 +234,11 @@ fn benchmark_episode_retrieval(c: &mut Criterion) {
                                 context.clone(),
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         let steps = generate_execution_steps(5);
                         for step in steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                            memory.log_step(episode_id, step).await;
                         }
 
                         memory
@@ -280,8 +262,7 @@ fn benchmark_episode_retrieval(c: &mut Criterion) {
                                 context.clone(),
                                 black_box(10),
                             )
-                            .await
-                            .expect("Failed to retrieve episodes");
+                            .await;
 
                         black_box(results);
                     }
@@ -307,7 +288,7 @@ fn benchmark_scoring_and_patterns(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -317,15 +298,11 @@ fn benchmark_scoring_and_patterns(c: &mut Criterion) {
                             context,
                             TaskType::CodeGeneration,
                         )
-                        .await
-                        .expect("Failed to create episode");
+                        .await;
 
-                    let steps = generate_many_execution_steps(count);
+                    let steps = generate_execution_steps(count);
                     for step in steps {
-                        memory
-                            .log_step(episode_id, step)
-                            .await
-                            .expect("Failed to log step");
+                        memory.log_step(episode_id, step).await;
                     }
 
                     // This will trigger scoring, reflection, and pattern extraction
@@ -366,7 +343,7 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(concurrent_episodes),
             concurrent_episodes,
             |b, &count| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -383,15 +360,11 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                                     context_clone,
                                     TaskType::CodeGeneration,
                                 )
-                                .await
-                                .expect("Failed to create episode");
+                                .await;
 
                             let steps = generate_execution_steps(10);
-                            for step in steps {
-                                memory_clone
-                                    .log_step(episode_id, step)
-                                    .await
-                                    .expect("Failed to log step");
+                            for step in &steps {
+                                memory_clone.log_step(episode_id, step.clone()).await;
                             }
 
                             memory_clone
@@ -431,7 +404,7 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
     group.sample_size(10);
 
     group.bench_function("large_episode_lifecycle", |b| {
-        b.to_async(TokioExecutor).iter(|| async {
+        b.to_async(FuturesExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 
@@ -441,16 +414,12 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
                     context,
                     TaskType::CodeGeneration,
                 )
-                .await
-                .expect("Failed to create episode");
+                .await;
 
             // Generate a very large number of steps
             let steps = generate_many_execution_steps(500);
             for step in steps {
-                memory
-                    .log_step(episode_id, step)
-                    .await
-                    .expect("Failed to log step");
+                memory.log_step(episode_id, step).await;
             }
 
             memory
@@ -485,7 +454,7 @@ fn benchmark_storage_backends(c: &mut Criterion) {
 
     // Benchmark redb storage
     group.bench_function("redb_lifecycle", |b| {
-        b.to_async(TokioExecutor).iter(|| async {
+        b.to_async(FuturesExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 
@@ -495,15 +464,11 @@ fn benchmark_storage_backends(c: &mut Criterion) {
                     context,
                     TaskType::CodeGeneration,
                 )
-                .await
-                .expect("Failed to create episode");
+                .await;
 
             let steps = generate_execution_steps(10);
             for step in steps {
-                memory
-                    .log_step(episode_id, step)
-                    .await
-                    .expect("Failed to log step");
+                memory.log_step(episode_id, step).await;
             }
 
             memory
@@ -523,7 +488,7 @@ fn benchmark_storage_backends(c: &mut Criterion) {
 
     // Benchmark Turso storage (if available)
     group.bench_function("turso_lifecycle", |b| {
-        b.to_async(TokioExecutor).iter(|| async {
+        b.to_async(FuturesExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_turso_memory().await;
             let context = create_benchmark_context();
 
@@ -533,15 +498,11 @@ fn benchmark_storage_backends(c: &mut Criterion) {
                     context,
                     TaskType::CodeGeneration,
                 )
-                .await
-                .expect("Failed to create episode");
+                .await;
 
             let steps = generate_execution_steps(10);
             for step in steps {
-                memory
-                    .log_step(episode_id, step)
-                    .await
-                    .expect("Failed to log step");
+                memory.log_step(episode_id, step).await;
             }
 
             memory

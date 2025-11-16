@@ -6,7 +6,7 @@ license = "MIT"
 publish = false
 
 [dependencies]
-criterion = { version = "0.5", features = ["async_tokio"] }
+criterion = { version = "0.5", features = ["async_tokio", "async_futures"] }
 regex = "1.10"
 memory-core = { path = "../memory-core" }
 memory-storage-redb = { path = "../memory-storage-redb" }

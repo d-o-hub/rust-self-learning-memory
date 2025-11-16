@@ -81,7 +81,7 @@ async fn test_comprehensive_database_operations() {
             output: format!("Step {} completed successfully", i + 1),
         });
         step.latency_ms = (i as u64 + 1) * 100;
-        step.tokens_used = Some((i as usize + 1) * 50);
+        step.tokens_used = Some((i + 1) * 50);
 
         memory.log_step(episode_id, step).await;
     }

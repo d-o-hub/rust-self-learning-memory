@@ -7,7 +7,7 @@
 //! - Peak memory usage under concurrent load
 
 use criterion::{
-    async_executor::TokioExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
+    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
 };
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
@@ -58,6 +58,7 @@ struct MemoryMonitor {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct MemoryMeasurement {
     timestamp: std::time::Instant,
     memory_bytes: u64,
@@ -146,15 +147,11 @@ async fn run_memory_pressure_scenario(
                         context.clone(),
                         TaskType::CodeGeneration,
                     )
-                    .await
-                    .expect("Failed to create episode");
+                    .await;
 
                 let steps = generate_execution_steps(2);
                 for step in steps {
-                    memory
-                        .log_step(episode_id, step)
-                        .await
-                        .expect("Failed to log step");
+                    memory.log_step(episode_id, step).await;
                 }
 
                 memory
@@ -188,15 +185,11 @@ async fn run_memory_pressure_scenario(
                                 context,
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         let steps = generate_execution_steps(3);
                         for step in steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                            memory.log_step(episode_id, step).await;
                         }
 
                         memory
@@ -240,15 +233,11 @@ async fn run_memory_pressure_scenario(
                                 context,
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         let steps = generate_execution_steps(2 + (rand::random::<usize>() % 3));
                         for step in steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                            memory.log_step(episode_id, step).await;
                         }
 
                         memory
@@ -289,15 +278,11 @@ async fn run_memory_pressure_scenario(
                                 context.clone(),
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         let steps = generate_execution_steps(2);
                         for step in steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                            memory.log_step(episode_id, step).await;
                         }
 
                         memory
@@ -340,14 +325,14 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
             BenchmarkId::new(scenario.name(), scenario.description()),
             &scenario,
             |b, scenario| {
-                b.to_async(TokioExecutor).iter_custom(|iters| async move {
+                b.to_async(FuturesExecutor).iter_custom(|iters| async move {
                     let mut total_time = std::time::Duration::ZERO;
 
                     for _ in 0..iters {
                         let (memory, _temp_dir) = setup_temp_memory().await;
                         let memory = Arc::new(memory);
 
-                        let mut monitor = MemoryMonitor::new();
+                        let monitor = MemoryMonitor::new();
 
                         // Start monitoring
                         let monitor_handle = tokio::spawn(async move {
@@ -363,8 +348,9 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
                         });
 
                         // Run the memory pressure scenario
+                        let scenario_clone = scenario.clone();
                         let scenario_handle = tokio::spawn(async move {
-                            run_memory_pressure_scenario(memory, scenario.clone(), 25).await;
+                            run_memory_pressure_scenario(memory, scenario_clone, 25).await;
                         });
 
                         let (monitor, _) = tokio::join!(monitor_handle, scenario_handle);
@@ -372,8 +358,8 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
 
                         // Record memory statistics
                         let peak_memory = monitor.get_peak_memory_mb();
-                        let avg_memory = monitor.get_average_memory_mb();
-                        let memory_variance = monitor.get_memory_variance();
+                        let _avg_memory = monitor.get_average_memory_mb();
+                        let _memory_variance = monitor.get_memory_variance();
 
                         // Use peak memory as the primary metric for comparison
                         total_time += std::time::Duration::from_secs_f32(peak_memory);
@@ -394,7 +380,7 @@ fn benchmark_memory_fragmentation(c: &mut Criterion) {
 
     // Test memory fragmentation by creating/deleting many small episodes
     group.bench_function("fragmentation_test", |b| {
-        b.to_async(TokioExecutor).iter(|| async {
+        b.to_async(FuturesExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 
@@ -408,15 +394,11 @@ fn benchmark_memory_fragmentation(c: &mut Criterion) {
                         context.clone(),
                         TaskType::CodeGeneration,
                     )
-                    .await
-                    .expect("Failed to create episode");
+                    .await;
 
                 let steps = generate_execution_steps(1);
                 for step in steps {
-                    memory
-                        .log_step(episode_id, step)
-                        .await
-                        .expect("Failed to log step");
+                    memory.log_step(episode_id, step).await;
                 }
 
                 memory
@@ -442,8 +424,7 @@ fn benchmark_memory_fragmentation(c: &mut Criterion) {
             // Final retrieval to test fragmentation impact
             let _results = memory
                 .retrieve_relevant_context("Fragmentation test query".to_string(), context, 50)
-                .await
-                .expect("Failed to retrieve context");
+                .await;
         });
     });
 

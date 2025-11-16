@@ -164,7 +164,7 @@ mod integration_tests {
             .unwrap();
 
         // Test pattern retrieval
-        let patterns = memory
+        let _patterns = memory
             .retrieve_relevant_patterns(
                 &TaskContext {
                     domain: "patterns".to_string(),

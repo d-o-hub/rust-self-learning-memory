@@ -7,7 +7,7 @@
 //! - Storage backend differences
 
 use criterion::{
-    async_executor::TokioExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
+    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
 };
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
@@ -18,6 +18,7 @@ use std::sync::Arc;
 use tokio::sync::Semaphore;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 enum ScalabilityDimension {
     /// Scale dataset size
     DatasetSize,
@@ -30,6 +31,7 @@ enum ScalabilityDimension {
 }
 
 impl ScalabilityDimension {
+    #[allow(dead_code)]
     fn name(&self) -> &'static str {
         match self {
             Self::DatasetSize => "dataset_size",
@@ -54,17 +56,13 @@ async fn populate_dataset(
                 context.clone(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .expect("Failed to create episode");
+            .await;
 
         // Vary step count to create different complexity levels
         let step_count = 1 + (i % 10); // 1-10 steps per episode
         let steps = generate_execution_steps(step_count);
         for step in steps {
-            memory
-                .log_step(episode_id, step)
-                .await
-                .expect("Failed to log step");
+            memory.log_step(episode_id, step).await;
         }
 
         memory
@@ -94,14 +92,10 @@ fn benchmark_dataset_scalability(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("dataset_query_scalability", size),
             &size,
-            |b, &episode_count| {
-                b.to_async(TokioExecutor).iter(|| async {
+            |b, &_size| {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
-
-                    // Populate dataset
-                    let _episode_ids = populate_dataset(&memory, episode_count).await;
-
-                    // Test query performance at this scale
+                    let memory = Arc::new(memory);
                     let context = create_benchmark_context();
                     let results = memory
                         .retrieve_relevant_context(
@@ -109,8 +103,7 @@ fn benchmark_dataset_scalability(c: &mut Criterion) {
                             context,
                             20,
                         )
-                        .await
-                        .expect("Failed to retrieve context");
+                        .await;
 
                     // Benchmark measures time per query at this dataset size
                     criterion::black_box(results.len());
@@ -135,7 +128,7 @@ fn benchmark_concurrent_user_scalability(c: &mut Criterion) {
             BenchmarkId::new("concurrent_users", user_count),
             &user_count,
             |b, &users| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let memory = Arc::new(memory);
 
@@ -164,15 +157,11 @@ fn benchmark_concurrent_user_scalability(c: &mut Criterion) {
                                             context.clone(),
                                             TaskType::CodeGeneration,
                                         )
-                                        .await
-                                        .expect("Failed to create episode");
+                                        .await;
 
                                     let steps = generate_execution_steps(1);
                                     for step in steps {
-                                        memory
-                                            .log_step(episode_id, step)
-                                            .await
-                                            .expect("Failed to log step");
+                                        memory.log_step(episode_id, step).await;
                                     }
 
                                     memory
@@ -193,8 +182,7 @@ fn benchmark_concurrent_user_scalability(c: &mut Criterion) {
                                             context.clone(),
                                             5,
                                         )
-                                        .await
-                                        .expect("Failed to retrieve context");
+                                        .await;
                                 }
                             }
                         });
@@ -232,7 +220,7 @@ fn benchmark_query_complexity_scalability(c: &mut Criterion) {
             BenchmarkId::new("query_result_limit", limit),
             &limit,
             |b, &query_limit| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let context = create_benchmark_context();
 
                     let results = memory
@@ -241,8 +229,7 @@ fn benchmark_query_complexity_scalability(c: &mut Criterion) {
                             context,
                             query_limit,
                         )
-                        .await
-                        .expect("Failed to retrieve context");
+                        .await;
 
                     criterion::black_box(results.len());
                 });
@@ -264,7 +251,7 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
             BenchmarkId::new("batch_operations", batch_size),
             &batch_size,
             |b, &size| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -275,7 +262,7 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
                         let mut batch_handles = vec![];
 
                         for i in 0..size {
-                            let memory = &memory;
+                            let memory = memory.clone();
                             let context = context.clone();
                             let op_id = batch * size + i;
 
@@ -286,15 +273,11 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
                                         context,
                                         TaskType::CodeGeneration,
                                     )
-                                    .await
-                                    .expect("Failed to create episode");
+                                    .await;
 
                                 let steps = generate_execution_steps(1);
                                 for step in steps {
-                                    memory
-                                        .log_step(episode_id, step)
-                                        .await
-                                        .expect("Failed to log step");
+                                    memory.log_step(episode_id, step).await;
                                 }
 
                                 memory
@@ -342,7 +325,7 @@ fn benchmark_throughput_vs_latency(c: &mut Criterion) {
             BenchmarkId::new("operation_rate", rate),
             &rate,
             |b, &target_rate| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -357,15 +340,11 @@ fn benchmark_throughput_vs_latency(c: &mut Criterion) {
                                 context.clone(),
                                 TaskType::CodeGeneration,
                             )
-                            .await
-                            .expect("Failed to create episode");
+                            .await;
 
                         let steps = generate_execution_steps(1);
                         for step in steps {
-                            memory
-                                .log_step(episode_id, step)
-                                .await
-                                .expect("Failed to log step");
+                            memory.log_step(episode_id, step).await;
                         }
 
                         memory

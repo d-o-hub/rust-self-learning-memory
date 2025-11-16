@@ -8,24 +8,28 @@
 //! Following patterns from rust-storage-bench for fair comparisons.
 
 use criterion::{
-    async_executor::TokioExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
+    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
 };
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
 };
-use memory_core::types::{StorageConfig, TaskOutcome, TaskType};
+use memory_core::{
+    types::{TaskOutcome, TaskType},
+    StorageBackend,
+};
 use memory_storage_redb::RedbStorage;
 use memory_storage_turso::TursoStorage;
-use std::path::Path;
+
+use std::sync::Arc;
 use tempfile::TempDir;
 
 #[derive(Debug, Clone)]
-enum StorageBackend {
+enum BackendType {
     Redb,
     Turso,
 }
 
-impl StorageBackend {
+impl BackendType {
     fn name(&self) -> &'static str {
         match self {
             Self::Redb => "redb",
@@ -35,56 +39,57 @@ impl StorageBackend {
 
     async fn setup_memory(&self) -> (memory_core::memory::SelfLearningMemory, TempDir) {
         let temp_dir = TempDir::new().expect("Failed to create temp directory");
+        let memory_config = memory_core::types::MemoryConfig::default();
 
-        let storage_config = match self {
+        let memory = match self {
             Self::Redb => {
                 let db_path = temp_dir.path().join("comparison.redb");
-                StorageConfig::Redb {
-                    path: db_path.to_string_lossy().to_string(),
-                }
+                let turso = RedbStorage::new(&db_path)
+                    .await
+                    .expect("Failed to create redb storage");
+                let cache = RedbStorage::new(&db_path)
+                    .await
+                    .expect("Failed to create redb storage");
+
+                memory_core::memory::SelfLearningMemory::with_storage(
+                    memory_config,
+                    Arc::new(turso) as Arc<dyn StorageBackend>,
+                    Arc::new(cache) as Arc<dyn StorageBackend>,
+                )
             }
             Self::Turso => {
                 // For comparison, use a local SQLite file to simulate Turso
                 // In production, this would use actual Turso connection
                 let db_path = temp_dir.path().join("comparison.db");
-                StorageConfig::Turso {
-                    url: format!("file:{}", db_path.to_string_lossy()),
-                    auth_token: None,
-                }
-            }
-        };
+                let turso = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
+                    .await
+                    .expect("Failed to create turso storage");
+                turso
+                    .initialize_schema()
+                    .await
+                    .expect("Failed to initialize schema");
 
-        let memory_config = memory_core::types::MemoryConfig {
-            storage: storage_config,
-            ..Default::default()
-        };
+                let cache = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
+                    .await
+                    .expect("Failed to create turso storage");
+                // Schema already initialized
 
-        let storage: Box<dyn memory_core::storage::StorageBackend> = match self {
-            Self::Redb => {
-                let db_path = temp_dir.path().join("comparison.redb");
-                Box::new(RedbStorage::new(&db_path).expect("Failed to create redb storage"))
-            }
-            Self::Turso => {
-                let db_path = temp_dir.path().join("comparison.db");
-                Box::new(
-                    TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), None)
-                        .await
-                        .expect("Failed to create turso storage"),
+                memory_core::memory::SelfLearningMemory::with_storage(
+                    memory_config,
+                    Arc::new(turso) as Arc<dyn StorageBackend>,
+                    Arc::new(cache) as Arc<dyn StorageBackend>,
                 )
             }
         };
-
-        let memory = memory_core::memory::SelfLearningMemory::with_storage(storage, memory_config)
-            .await
-            .expect("Failed to create memory");
 
         (memory, temp_dir)
     }
 }
 
+#[allow(dead_code)]
 async fn run_backend_comparison(
-    backend: StorageBackend,
-    operation: &str,
+    backend: BackendType,
+    _operation: &str,
     operation_fn: impl Fn(
         memory_core::memory::SelfLearningMemory,
     ) -> futures::future::BoxFuture<'static, ()>,
@@ -97,14 +102,14 @@ fn benchmark_backend_write_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_write_performance");
     group.sample_size(20);
 
-    let backends = vec![StorageBackend::Redb, StorageBackend::Turso];
+    let backends = vec![BackendType::Redb, BackendType::Turso];
 
     for backend in backends {
         group.bench_with_input(
             BenchmarkId::new("single_episode_write", backend.name()),
             &backend,
             |b, backend| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = backend.setup_memory().await;
                     let context = create_benchmark_context();
 
@@ -114,15 +119,11 @@ fn benchmark_backend_write_performance(c: &mut Criterion) {
                             context,
                             TaskType::CodeGeneration,
                         )
-                        .await
-                        .expect("Failed to create episode");
+                        .await;
 
                     let steps = generate_execution_steps(3);
                     for step in steps {
-                        memory
-                            .log_step(episode_id, step)
-                            .await
-                            .expect("Failed to log step");
+                        memory.log_step(episode_id, step).await;
                     }
 
                     memory
@@ -147,14 +148,14 @@ fn benchmark_backend_read_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_read_performance");
     group.sample_size(20);
 
-    let backends = vec![StorageBackend::Redb, StorageBackend::Turso];
+    let backends = vec![BackendType::Redb, BackendType::Turso];
 
     for backend in backends {
         group.bench_with_input(
             BenchmarkId::new("episode_retrieval", backend.name()),
             &backend,
             |b, backend| {
-                b.to_async(TokioExecutor).iter_custom(|iters| async move {
+                b.to_async(FuturesExecutor).iter_custom(|iters| async move {
                     let mut total_time = std::time::Duration::ZERO;
 
                     for _ in 0..iters {
@@ -169,15 +170,11 @@ fn benchmark_backend_read_performance(c: &mut Criterion) {
                                     context.clone(),
                                     TaskType::CodeGeneration,
                                 )
-                                .await
-                                .expect("Failed to create episode");
+                                .await;
 
                             let steps = generate_execution_steps(2);
                             for step in steps {
-                                memory
-                                    .log_step(episode_id, step)
-                                    .await
-                                    .expect("Failed to log step");
+                                memory.log_step(episode_id, step).await;
                             }
 
                             memory
@@ -200,8 +197,7 @@ fn benchmark_backend_read_performance(c: &mut Criterion) {
                                 context,
                                 5,
                             )
-                            .await
-                            .expect("Failed to retrieve context");
+                            .await;
 
                         total_time += start.elapsed();
                         criterion::black_box(results.len());
@@ -221,7 +217,7 @@ fn benchmark_backend_bulk_operations(c: &mut Criterion) {
     group.sample_size(10);
     group.measurement_time(std::time::Duration::from_secs(30));
 
-    let backends = vec![StorageBackend::Redb, StorageBackend::Turso];
+    let backends = vec![BackendType::Redb, BackendType::Turso];
     let bulk_sizes = vec![10, 50, 100];
 
     for backend in backends {
@@ -229,30 +225,26 @@ fn benchmark_backend_bulk_operations(c: &mut Criterion) {
             group.bench_with_input(
                 BenchmarkId::new(format!("bulk_write_{}", bulk_size), backend.name()),
                 &(backend.clone(), bulk_size),
-                |b, (backend, &size)| {
-                    b.to_async(TokioExecutor).iter(|| async {
+                |b, (backend, size)| {
+                    b.to_async(FuturesExecutor).iter(|| async {
                         let (memory, _temp_dir) = backend.setup_memory().await;
                         let context = create_benchmark_context();
 
                         // Bulk write operations
                         let mut episode_ids = vec![];
 
-                        for i in 0..size {
+                        for i in 0..*size {
                             let episode_id = memory
                                 .start_episode(
                                     generate_episode_description(i),
                                     context.clone(),
                                     TaskType::CodeGeneration,
                                 )
-                                .await
-                                .expect("Failed to create episode");
+                                .await;
 
                             let steps = generate_execution_steps(2);
                             for step in steps {
-                                memory
-                                    .log_step(episode_id, step)
-                                    .await
-                                    .expect("Failed to log step");
+                                memory.log_step(episode_id, step).await;
                             }
 
                             memory
@@ -284,7 +276,7 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
     group.sample_size(5);
     group.measurement_time(std::time::Duration::from_secs(45));
 
-    let backends = vec![StorageBackend::Redb, StorageBackend::Turso];
+    let backends = vec![BackendType::Redb, BackendType::Turso];
     let concurrency_levels = vec![2, 4, 8];
 
     for backend in backends {
@@ -292,8 +284,8 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
             group.bench_with_input(
                 BenchmarkId::new(format!("concurrent_{}", concurrency), backend.name()),
                 &(backend.clone(), concurrency),
-                |b, (backend, &concurrency)| {
-                    b.to_async(TokioExecutor).iter(|| async {
+                |b, (backend, concurrency)| {
+                    b.to_async(FuturesExecutor).iter(|| async {
                         let (memory, _temp_dir) = backend.setup_memory().await;
                         let memory = std::sync::Arc::new(memory);
 
@@ -306,15 +298,11 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
                                     context.clone(),
                                     TaskType::CodeGeneration,
                                 )
-                                .await
-                                .expect("Failed to create episode");
+                                .await;
 
                             let steps = generate_execution_steps(1);
                             for step in steps {
-                                memory
-                                    .log_step(episode_id, step)
-                                    .await
-                                    .expect("Failed to log step");
+                                memory.log_step(episode_id, step).await;
                             }
 
                             memory
@@ -332,7 +320,7 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
                         // Run concurrent operations
                         let mut handles = vec![];
 
-                        for thread_id in 0..concurrency {
+                        for thread_id in 0..*concurrency {
                             let memory = memory.clone();
                             let context = context.clone();
 
@@ -346,17 +334,15 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
                                                 context.clone(),
                                                 3,
                                             )
-                                            .await
-                                            .expect("Failed to retrieve context");
+                                            .await;
                                     } else {
                                         let episode_id = memory
                                             .start_episode(
-                                                format!("Concurrent write {}:{}", thread_id, i),
+                                                generate_episode_description(i),
                                                 context.clone(),
                                                 TaskType::CodeGeneration,
                                             )
-                                            .await
-                                            .expect("Failed to create episode");
+                                            .await;
 
                                         memory
                                             .complete_episode(
@@ -393,7 +379,7 @@ fn benchmark_backend_storage_efficiency(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_storage_efficiency");
     group.sample_size(10);
 
-    let backends = vec![StorageBackend::Redb, StorageBackend::Turso];
+    let backends = vec![BackendType::Redb, BackendType::Turso];
     let dataset_sizes = vec![100, 500];
 
     for backend in backends {
@@ -401,8 +387,8 @@ fn benchmark_backend_storage_efficiency(c: &mut Criterion) {
             group.bench_with_input(
                 BenchmarkId::new(format!("storage_efficiency_{}", size), backend.name()),
                 &(backend.clone(), size),
-                |b, (backend, &dataset_size)| {
-                    b.to_async(TokioExecutor).iter_custom(|iters| async move {
+                |b, (backend, dataset_size)| {
+                    b.to_async(FuturesExecutor).iter_custom(|iters| async move {
                         let mut total_bytes = 0u64;
 
                         for _ in 0..iters {
@@ -410,22 +396,18 @@ fn benchmark_backend_storage_efficiency(c: &mut Criterion) {
                             let context = create_benchmark_context();
 
                             // Create dataset
-                            for i in 0..dataset_size {
+                            for i in 0..*dataset_size {
                                 let episode_id = memory
                                     .start_episode(
                                         generate_episode_description(i),
                                         context.clone(),
                                         TaskType::CodeGeneration,
                                     )
-                                    .await
-                                    .expect("Failed to create episode");
+                                    .await;
 
                                 let steps = generate_execution_steps(2);
                                 for step in steps {
-                                    memory
-                                        .log_step(episode_id, step)
-                                        .await
-                                        .expect("Failed to log step");
+                                    memory.log_step(episode_id, step).await;
                                 }
 
                                 memory
@@ -441,7 +423,7 @@ fn benchmark_backend_storage_efficiency(c: &mut Criterion) {
                             }
 
                             // Force flush/sync
-                            memory.sync().await.expect("Failed to sync");
+                            // Note: sync method not available in current API
 
                             // Measure storage size
                             let storage_size =

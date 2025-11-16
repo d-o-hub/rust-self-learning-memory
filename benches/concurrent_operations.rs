@@ -4,7 +4,7 @@
 //! following patterns from rust-storage-bench and YCSB workloads.
 
 use criterion::{
-    async_executor::TokioExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
+    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
 };
 use futures::future::join_all;
 use memory_benches::benchmark_helpers::{
@@ -68,15 +68,11 @@ async fn setup_concurrent_benchmark_data(
                 context.clone(),
                 TaskType::CodeGeneration,
             )
-            .await
-            .expect("Failed to create episode");
+            .await;
 
         let steps = generate_execution_steps(3);
         for step in steps {
-            memory
-                .log_step(episode_id, step)
-                .await
-                .expect("Failed to log step");
+            memory.log_step(episode_id, step).await;
         }
 
         memory
@@ -112,7 +108,7 @@ async fn run_concurrent_workload(
         if choice < pattern.read_ratio() {
             // Read operation
             let random_idx = rng.gen_range(0..episode_ids.len());
-            let episode_id = episode_ids[random_idx];
+            let _episode_id = episode_ids[random_idx];
 
             let _result = memory
                 .retrieve_relevant_context(
@@ -120,8 +116,7 @@ async fn run_concurrent_workload(
                     context.clone(),
                     5,
                 )
-                .await
-                .expect("Failed to retrieve context");
+                .await;
         } else {
             // Write operation
             let episode_id = memory
@@ -134,22 +129,18 @@ async fn run_concurrent_workload(
                     context.clone(),
                     TaskType::CodeGeneration,
                 )
-                .await
-                .expect("Failed to create episode");
+                .await;
 
             let steps = generate_execution_steps(2);
             for step in steps {
-                memory
-                    .log_step(episode_id, step)
-                    .await
-                    .expect("Failed to log step");
+                memory.log_step(episode_id, step).await;
             }
 
             memory
                 .complete_episode(
                     episode_id,
                     TaskOutcome::Success {
-                        verdict: format!("Concurrent write completed"),
+                        verdict: "Concurrent write completed".to_string(),
                         artifacts: vec![],
                     },
                 )
@@ -160,8 +151,6 @@ async fn run_concurrent_workload(
 }
 
 fn benchmark_concurrent_operations(c: &mut Criterion) {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-
     let mut group = c.benchmark_group("concurrent_operations");
     group.sample_size(10); // Reduce sample size for concurrent benchmarks
     group.measurement_time(std::time::Duration::from_secs(30)); // Longer measurement time
@@ -186,7 +175,7 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                 ),
                 &(pattern.clone(), *concurrency),
                 |b, (pattern, concurrency)| {
-                    b.to_async(TokioExecutor).iter(|| async {
+                    b.to_async(FuturesExecutor).iter(|| async {
                         let (memory, _temp_dir) = setup_temp_memory().await;
                         let memory = Arc::new(memory);
 
@@ -239,15 +228,16 @@ fn benchmark_async_throughput(c: &mut Criterion) {
             BenchmarkId::from_parameter(operations),
             operations,
             |b, &count| {
-                b.to_async(TokioExecutor).iter(|| async {
+                b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
+                    let memory = Arc::new(memory);
                     let context = create_benchmark_context();
 
                     // Run multiple async operations concurrently
                     let mut handles = vec![];
 
                     for i in 0..count {
-                        let memory = &memory;
+                        let memory = memory.clone();
                         let context = context.clone();
 
                         let handle = tokio::spawn(async move {
@@ -257,15 +247,11 @@ fn benchmark_async_throughput(c: &mut Criterion) {
                                     context,
                                     TaskType::CodeGeneration,
                                 )
-                                .await
-                                .expect("Failed to create episode");
+                                .await;
 
                             let steps = generate_execution_steps(1);
                             for step in steps {
-                                memory
-                                    .log_step(episode_id, step)
-                                    .await
-                                    .expect("Failed to log step");
+                                memory.log_step(episode_id, step).await;
                             }
 
                             memory

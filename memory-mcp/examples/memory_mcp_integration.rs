@@ -76,8 +76,6 @@ async fn main() -> anyhow::Result<()> {
         ExecutionStep::new(3, "cargo".to_string(), "add_dependencies".to_string()),
     ];
 
-    let episode_id = episode_id;
-
     for (i, mut step) in steps.into_iter().enumerate() {
         // Set additional step properties
         step.parameters = json!({

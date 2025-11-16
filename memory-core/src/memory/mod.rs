@@ -55,15 +55,17 @@ pub mod validation;
 use crate::episode::{Episode, PatternId};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
+use crate::monitoring::{AgentMetrics, AgentMonitor, MonitoringConfig};
 use crate::pattern::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::storage::StorageBackend;
 use crate::types::MemoryConfig;
+use crate::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, Semaphore};
 use uuid::Uuid;
 
 use step_buffer::StepBuffer;
@@ -75,6 +77,7 @@ use step_buffer::StepBuffer;
 /// - **Learning analysis**: Calculate rewards, generate reflections, extract patterns
 /// - **Pattern storage**: Persist learnings to durable (Turso) and cache (redb) storage
 /// - **Context retrieval**: Find relevant past episodes for new tasks
+/// - **Agent monitoring**: Track agent utilization, performance, and task completion rates
 ///
 /// # Architecture
 ///
@@ -89,6 +92,7 @@ use step_buffer::StepBuffer;
 /// 2. **Log Steps** - [`log_step()`](SelfLearningMemory::log_step) tracks execution steps
 /// 3. **Complete** - [`complete_episode()`](SelfLearningMemory::complete_episode) finalizes and analyzes
 /// 4. **Retrieve** - [`retrieve_relevant_context()`](SelfLearningMemory::retrieve_relevant_context) queries for similar episodes
+/// 5. **Monitor** - [`record_agent_execution()`](SelfLearningMemory::record_agent_execution) tracks agent performance
 ///
 /// # Examples
 ///
@@ -149,6 +153,25 @@ use step_buffer::StepBuffer;
 /// # Ok(())
 /// # }
 /// ```
+///
+/// ## Agent Monitoring
+///
+/// ```no_run
+/// use memory_core::SelfLearningMemory;
+/// use std::time::Instant;
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// let memory = SelfLearningMemory::new();
+///
+/// // Track agent execution
+/// let start = Instant::now();
+/// // ... agent work ...
+/// let duration = start.elapsed();
+///
+/// memory.record_agent_execution("feature-implementer", true, duration).await?;
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct SelfLearningMemory {
     /// Configuration
@@ -162,6 +185,8 @@ pub struct SelfLearningMemory {
     pub(super) pattern_extractor: PatternExtractor,
     /// Heuristic extractor
     pub(super) heuristic_extractor: HeuristicExtractor,
+    /// Agent monitoring system
+    pub(super) agent_monitor: AgentMonitor,
     /// Durable storage backend (Turso)
     pub(super) turso_storage: Option<Arc<dyn StorageBackend>>,
     /// Cache storage backend (redb)
@@ -176,6 +201,9 @@ pub struct SelfLearningMemory {
     pub(super) pattern_queue: Option<Arc<PatternExtractionQueue>>,
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
+    /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
+    #[allow(dead_code)]
+    pub(super) cache_semaphore: Arc<Semaphore>,
 }
 
 impl Default for SelfLearningMemory {
@@ -196,11 +224,12 @@ impl SelfLearningMemory {
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
 
         Self {
-            config,
+            config: config.clone(),
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
             heuristic_extractor: HeuristicExtractor::new(),
+            agent_monitor: AgentMonitor::new(),
             turso_storage: None,
             cache_storage: None,
             episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
@@ -208,6 +237,7 @@ impl SelfLearningMemory {
             heuristics_fallback: Arc::new(RwLock::new(HashMap::new())),
             pattern_queue: None,
             step_buffers: Arc::new(RwLock::new(HashMap::new())),
+            cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
         }
     }
 
@@ -245,12 +275,17 @@ impl SelfLearningMemory {
         let pattern_extractor =
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
 
+        // Configure agent monitor with storage backends
+        let monitoring_config = MonitoringConfig::default();
+        let agent_monitor = AgentMonitor::with_storage(monitoring_config, turso.clone());
+
         Self {
-            config,
+            config: config.clone(),
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
             heuristic_extractor: HeuristicExtractor::new(),
+            agent_monitor,
             turso_storage: Some(turso),
             cache_storage: Some(cache),
             episodes_fallback: Arc::new(RwLock::new(HashMap::new())),
@@ -258,6 +293,7 @@ impl SelfLearningMemory {
             heuristics_fallback: Arc::new(RwLock::new(HashMap::new())),
             pattern_queue: None,
             step_buffers: Arc::new(RwLock::new(HashMap::new())),
+            cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
         }
     }
 
@@ -301,6 +337,106 @@ impl SelfLearningMemory {
         let total_patterns = patterns.len();
 
         (total_episodes, completed_episodes, total_patterns)
+    }
+
+    /// Record an agent execution for monitoring
+    ///
+    /// Tracks agent utilization, performance, and task completion rates.
+    /// This is the main entry point for agent monitoring.
+    ///
+    /// # Arguments
+    ///
+    /// * `agent_name` - Name/identifier of the agent
+    /// * `success` - Whether the execution was successful
+    /// * `duration` - How long the execution took
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use memory_core::SelfLearningMemory;
+    /// use std::time::Instant;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let start = Instant::now();
+    /// // ... agent execution logic ...
+    /// let duration = start.elapsed();
+    ///
+    /// memory.record_agent_execution("feature-implementer", true, duration).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn record_agent_execution(
+        &self,
+        agent_name: &str,
+        success: bool,
+        duration: std::time::Duration,
+    ) -> Result<()> {
+        self.agent_monitor
+            .record_execution(agent_name, success, duration)
+            .await
+    }
+
+    /// Record detailed agent execution information
+    ///
+    /// Extended version that includes task description and error details.
+    ///
+    /// # Arguments
+    ///
+    /// * `agent_name` - Name/identifier of the agent
+    /// * `success` - Whether the execution was successful
+    /// * `duration` - How long the execution took
+    /// * `task_description` - Optional description of the task performed
+    /// * `error_message` - Optional error message if execution failed
+    pub async fn record_agent_execution_detailed(
+        &self,
+        agent_name: &str,
+        success: bool,
+        duration: std::time::Duration,
+        task_description: Option<String>,
+        error_message: Option<String>,
+    ) -> Result<()> {
+        self.agent_monitor
+            .record_execution_detailed(
+                agent_name,
+                success,
+                duration,
+                task_description,
+                error_message,
+            )
+            .await
+    }
+
+    /// Get performance metrics for a specific agent
+    ///
+    /// Returns aggregated statistics including success rates, execution times,
+    /// and utilization patterns.
+    ///
+    /// # Arguments
+    ///
+    /// * `agent_name` - Name of the agent to get metrics for
+    ///
+    /// # Returns
+    ///
+    /// AgentMetrics if the agent has been tracked, None otherwise
+    pub async fn get_agent_metrics(&self, agent_name: &str) -> Option<AgentMetrics> {
+        self.agent_monitor.get_agent_metrics(agent_name).await
+    }
+
+    /// Get metrics for all tracked agents
+    ///
+    /// Returns performance data for all agents that have been monitored.
+    pub async fn get_all_agent_metrics(&self) -> std::collections::HashMap<String, AgentMetrics> {
+        self.agent_monitor.get_all_agent_metrics().await
+    }
+
+    /// Get monitoring system summary statistics
+    ///
+    /// Returns system-wide analytics including total executions, success rates,
+    /// and performance metrics across all agents.
+    pub async fn get_monitoring_summary(&self) -> crate::monitoring::MonitoringSummary {
+        self.agent_monitor.get_summary_stats().await
     }
 }
 

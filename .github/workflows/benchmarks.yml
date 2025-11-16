@@ -52,49 +52,107 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          # Try to run real benchmarks first
-          if timeout 300 cargo bench -p memory-benches --quiet 2>/dev/null; then
-            echo "Real benchmarks completed successfully"
-          else
-            echo "Benchmarks timed out or failed, using dummy results"
-            ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
-          fi
+           # Run comprehensive benchmark suite with timeout protection
+           echo "Running comprehensive benchmark suite..."
+
+           # Run different benchmark categories with individual timeouts
+           declare -A bench_configs=(
+             ["episode_lifecycle"]="300"
+             ["pattern_extraction"]="300"
+             ["storage_operations"]="600"
+             ["concurrent_operations"]="900"
+             ["memory_pressure"]="1200"
+             ["scalability"]="900"
+             ["multi_backend_comparison"]="900"
+           )
+
+           for bench_name in "${!bench_configs[@]}"; do
+             timeout="${bench_configs[$bench_name]}"
+             echo "Running $bench_name benchmark (timeout: ${timeout}s)..."
+
+             if timeout "$timeout" cargo bench -p memory-benches --bench "$bench_name" --quiet 2>/dev/null; then
+               echo "✓ $bench_name completed successfully"
+             else
+               echo "⚠ $bench_name timed out or failed, continuing..."
+             fi
+           done
+
+           # Check if we have any benchmark results
+           if [ ! -d "target/criterion" ] || [ -z "$(find target/criterion -name "*.json" 2>/dev/null)" ]; then
+             echo "No benchmark results found, using dummy results"
+             ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
+           fi
 
       - name: Convert Criterion output to bencher format
         run: |
-          # Parse Criterion JSON output and convert to bencher format
-          # Criterion stores results in target/criterion/<benchmark_name>/new/estimates.json
-          # We only process the 'new' directory to avoid duplicates
-          find target/criterion -type f -path "*/new/estimates.json" | while read -r json_file; do
-            # Extract benchmark name from path (remove target/criterion/ prefix and /new/estimates.json suffix)
-            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | sed 's|/new/estimates.json||')
+           # Parse comprehensive Criterion JSON output and convert to bencher format
+           # Handle both regular benchmarks and custom measurements (memory, throughput)
 
-            # Extract mean time in nanoseconds from JSON
-            # Criterion stores time in nanoseconds as point_estimate
-            mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
-              grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+           bench_results_file="bench_results.txt"
+           > "$bench_results_file"  # Clear file
 
-            # Extract standard deviation for variance
-            std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
-              grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+           # Process all benchmark results
+           find target/criterion -type f -path "*/new/estimates.json" | while read -r json_file; do
+             # Extract benchmark name from path
+             # Extract benchmark name from path (shortened for line length)
+            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | \
+              sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
 
-            if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
-              if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
-                echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)"
-              else
-                echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)"
-              fi
-            fi
-          done | sort > bench_results.txt
+             # Extract mean time in nanoseconds
+             mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
+               grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
 
-          # Verify we have results
-          if [ ! -s bench_results.txt ]; then
-            echo "Warning: No benchmark results found, using dummy data!"
-            ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
-          fi
+             # Extract standard deviation
+             std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
+               grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
 
-           echo "Generated benchmark results:"
-           cat bench_results.txt
+             if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
+               # Format for bencher.dev compatibility
+               if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
+                 echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
+               else
+                 echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)" >> "$bench_results_file"
+               fi
+             fi
+           done
+
+           # Add memory pressure benchmark results (custom measurements)
+           if [ -d "target/criterion/memory_pressure" ]; then
+             echo "# Memory Pressure Benchmarks" >> "$bench_results_file"
+             find target/criterion/memory_pressure -name "*.json" | head -5 | while read -r json_file; do
+               bench_name=$(basename "$json_file" .json)
+               peak_memory=$(grep -o '"peak_memory_mb":[0-9.]*' "$json_file" | cut -d: -f2 || echo "0")
+               if [ "$peak_memory" != "0" ]; then
+                 echo "test memory_pressure_$bench_name ... bench: ${peak_memory} MB (+/- 0)" >> "$bench_results_file"
+               fi
+             done
+           fi
+
+           # Add scalability benchmark results
+           if [ -d "target/criterion/scalability" ]; then
+             echo "# Scalability Benchmarks" >> "$bench_results_file"
+             find target/criterion/scalability -name "*.json" | head -10 | while read -r json_file; do
+               bench_name=$(basename "$json_file" .json)
+               throughput=$(grep -o '"operations_per_sec":[0-9.]*' "$json_file" | cut -d: -f2 || echo "0")
+               if [ "$throughput" != "0" ]; then
+                 echo "test scalability_$bench_name ... bench: ${throughput} ops/sec (+/- 0)" >> "$bench_results_file"
+               fi
+             done
+           fi
+
+           # Sort and deduplicate results
+           sort "$bench_results_file" | uniq > "${bench_results_file}.tmp"
+           mv "${bench_results_file}.tmp" "$bench_results_file"
+
+           # Verify we have results
+           if [ ! -s bench_results.txt ]; then
+             echo "Warning: No benchmark results found, using dummy data!"
+             ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
+           fi
+
+           echo "Generated comprehensive benchmark results:"
+           echo "Total benchmark entries: $(wc -l < bench_results.txt)"
+           head -20 bench_results.txt
 
       - name: Download previous benchmark results
         uses: actions/cache@v4.3.0

@@ -23,3 +23,4 @@ node_modules/
 *_IMPLEMENTATION.md
 *_ENHANCEMENT*.md
 *.log
+memory-mcp/data/cache.redb

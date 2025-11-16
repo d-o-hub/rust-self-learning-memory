@@ -1,4 +1,6 @@
 //! Benchmark suite for the self-learning memory system
 
-// This is a dummy lib.rs file required for the benchmark package
-// All actual benchmark code is in the individual bench files
+pub mod benchmark_helpers;
+
+// This crate provides benchmark infrastructure for the memory system
+// Individual benchmark implementations are in the bench files

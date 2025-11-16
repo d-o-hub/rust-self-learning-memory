@@ -523,25 +523,68 @@ impl Default for StorageConfig {
 // BatchConfig is defined in memory::step_buffer and re-exported here
 pub use crate::memory::step_buffer::BatchConfig;
 
-/// Main configuration for the self-learning memory system.
+/// Configuration for concurrency control to prevent cache contention.
 ///
-/// Controls all aspects of memory behavior including storage, pattern
-/// extraction, and optional features like embeddings.
+/// Limits concurrent cache operations to prevent blocking the async runtime
+/// when many operations occur simultaneously (e.g., from MCP server).
 ///
 /// # Examples
 ///
 /// ```
-/// use memory_core::{MemoryConfig, StorageConfig, BatchConfig};
+/// use memory_core::ConcurrencyConfig;
+///
+/// // Default configuration (moderate concurrency)
+/// let config = ConcurrencyConfig::default();
+///
+/// // High concurrency for busy systems
+/// let high_concurrency = ConcurrencyConfig {
+///     max_concurrent_cache_ops: 20,
+/// };
+///
+/// // Low concurrency for resource-constrained environments
+/// let low_concurrency = ConcurrencyConfig {
+///     max_concurrent_cache_ops: 5,
+/// };
+/// ```
+#[derive(Debug, Clone)]
+pub struct ConcurrencyConfig {
+    /// Maximum number of concurrent cache operations allowed.
+    ///
+    /// Limits how many redb operations can run simultaneously to prevent
+    /// overwhelming the async runtime with blocking tasks. Default is 10.
+    pub max_concurrent_cache_ops: usize,
+}
+
+impl Default for ConcurrencyConfig {
+    fn default() -> Self {
+        Self {
+            max_concurrent_cache_ops: 10,
+        }
+    }
+}
+
+/// Main configuration for the self-learning memory system.
+///
+/// Controls all aspects of memory behavior including storage, pattern
+/// extraction, concurrency control, and optional features like embeddings.
+///
+/// # Examples
+///
+/// ```
+/// use memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig};
 ///
 /// // Default configuration
 /// let config = MemoryConfig::default();
 ///
-/// // Custom configuration with embeddings enabled
+/// // Custom configuration with embeddings and concurrency control
 /// let custom_config = MemoryConfig {
 ///     storage: StorageConfig::default(),
 ///     enable_embeddings: true,
 ///     pattern_extraction_threshold: 0.8,  // More selective pattern extraction
 ///     batch_config: Some(BatchConfig::default()),
+///     concurrency: ConcurrencyConfig {
+///         max_concurrent_cache_ops: 15,  // Allow more concurrent cache ops
+///     },
 /// };
 /// ```
 #[derive(Debug, Clone)]
@@ -554,6 +597,8 @@ pub struct MemoryConfig {
     pub pattern_extraction_threshold: f32,
     /// Step batching configuration (None disables batching)
     pub batch_config: Option<BatchConfig>,
+    /// Concurrency control configuration
+    pub concurrency: ConcurrencyConfig,
 }
 
 impl Default for MemoryConfig {
@@ -563,6 +608,7 @@ impl Default for MemoryConfig {
             enable_embeddings: false,
             pattern_extraction_threshold: 0.7,
             batch_config: Some(BatchConfig::default()),
+            concurrency: ConcurrencyConfig::default(),
         }
     }
 }

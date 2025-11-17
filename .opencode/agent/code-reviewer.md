@@ -184,6 +184,30 @@ cargo build --all
 cargo test --all
 ```
 
+### ⚠️ Verification vs Testing Distinction
+
+**Critical**: Distinguish between static code review and actual testing:
+
+**Code Review Can Verify:**
+- Code structure and organization
+- Logic correctness through inspection
+- Style and convention compliance
+- Documentation completeness
+- Security through static analysis
+
+**Code Review Cannot Verify:**
+- Code actually compiles (must run `cargo build`)
+- Tests pass (must run `cargo test`)
+- Performance meets targets (must benchmark)
+- Integration works (must test end-to-end)
+- Coverage percentage (must measure)
+
+**When Reviewing:**
+- ✅ "Code appears correct based on inspection"
+- ❌ "Implementation is production-ready" (without testing)
+- ✅ "No obvious issues found in static analysis"
+- ❌ "All tests pass" (must actually run them)
+
 ### 2. Code Inspection
 
 Read through the changes:

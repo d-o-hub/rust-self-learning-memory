@@ -431,6 +431,32 @@ Feature implementation is complete when:
 - Code review ready
 - Commit created with clear message
 
+## ⚠️ Verification Requirements
+
+**You MUST actually run these commands - do not assume they pass:**
+
+```bash
+# REQUIRED: Actually run these
+cargo fmt -- --check
+cargo clippy --all-targets -- -D warnings
+cargo build --all
+cargo test --all -- --nocapture
+cargo doc --no-deps
+```
+
+**Do NOT claim:**
+- "Tests pass" without running them
+- "Code compiles" without building it
+- "Ready for production" without verification
+- "Performance targets met" without benchmarking
+
+**Instead, state:**
+- "Code appears ready for testing"
+- "Implementation complete, pending verification"
+- "Static analysis shows no issues"
+
+## Implementation Summary Template
+
 Provide summary:
 ```markdown
 # Feature Implementation Complete: [Feature Name]
@@ -464,4 +490,10 @@ Provide summary:
 - Create PR
 - Request review
 - Address feedback
+
+## ⚠️ Verification Status
+- [ ] Code compiled successfully
+- [ ] All tests pass
+- [ ] Performance benchmarks run
+- [ ] Integration tests with real backends
 ```

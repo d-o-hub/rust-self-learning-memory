@@ -4,8 +4,9 @@ members = [
     "memory-core",
     "memory-storage-turso",
     "memory-storage-redb",
-    "test-utils",
     "memory-mcp",
+    "memory-cli",
+    "test-utils",
     "benches",
     "tests",
 ]

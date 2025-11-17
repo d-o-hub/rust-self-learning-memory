@@ -14,7 +14,7 @@ memory-storage-turso = { path = "../memory-storage-turso" }
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "time"] }
 tempfile = "3.0"
 uuid = { version = "1.0", features = ["v4"] }
-sysinfo = "0.30"
+sysinfo = "0.37"
 zipf = "7.0"
 rand = "0.8"
 futures = "0.3"

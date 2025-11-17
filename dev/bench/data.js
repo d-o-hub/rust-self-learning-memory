@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763312699367,
+  "lastUpdate": 1763351338313,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -2181,6 +2181,94 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/d7edbe3d3c4740b9eb011504f39254d0aa54ce2b"
         },
         "date": 1763312698746,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "d.o.",
+            "username": "d-o-hub",
+            "email": "242170972+d-o-hub@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "d7edbe3d3c4740b9eb011504f39254d0aa54ce2b",
+          "message": "release: v0.1.2 - Code quality improvements (#106)\n\n* feat: Add MCP server integration and testing\n\n- Add memory-mcp-server binary with full MCP protocol support\n- Update opencode.json with MCP server configuration\n- Create mcp-tester OpenCode agent for MCP testing\n- Implement JSON-RPC communication over stdio\n- Add tools: query_memory, execute_agent_code, analyze_patterns\n- Include security sandbox with code execution blocking\n- Test all functionality including security violations\n\nThe MCP server integrates the self-learning memory system with\nOpenCode through standardized tool interfaces, enabling secure\ncode execution and memory queries.\n\n* refactor: Rename MCP agent to mcp-integration-tester\n\n- Rename agent from mcp-tester to mcp-integration-tester for better clarity\n- Update YAML frontmatter name field to match\n- Update markdown title to reflect new name\n- More descriptive name indicates focus on integration testing\n\n* refactor: Rename agent to memory-mcp-tester\n\n- Rename agent to memory-mcp-tester to be specific to this codebase's MCP server\n- Update YAML name field and description to reflect memory-mcp specificity\n- Update title to 'Memory MCP Tester'\n- Agent is specifically for testing the memory-mcp server, not general MCP servers\n\n* feat: Add PWA Todo List and comprehensive MCP database testing\n\n- Create complete PWA Todo List app with local storage\n- Add service worker and web app manifest for offline functionality\n- Implement comprehensive database integration tests\n- Verify episode creation, storage, and retrieval\n- Test MCP server tool operations and memory queries\n- Validate pattern extraction and analysis\n- Confirm tool usage tracking and execution statistics\n- Ensure data persistence and memory system integration\n\nAll database operations verified and working correctly!\n\n* fix: Resolve warnings in plans/ directory\n\n- Fix broken cross-reference to 'Planner Agent Roadmap' in README.md\n- Update reference to correct section 'Agentic Layer: Strategic Planning'\n- Remove placeholder ADR-XXX template in architecture decision records\n- Replace with proper ADR-011 template for future use\n\nAll internal links and references now point to existing sections and files.\n\n* docs: Document v0.1.2 patch for MCP server code quality improvements\n\n- Add v0.1.2 patch section to CHANGELOG.md documenting compiler warning fixes\n- Update ROADMAP.md with v0.1.2 code quality improvements plan\n- Add v0.1.2 checklist item to RELEASE_CHECKLIST.md\n- Document v0.1.2 patch in v0.1.0 release status document\n\nWarnings identified during MCP integration testing:\n- Unused RewardScore import in memory_mcp_integration.rs example\n- Unused Result handling in database integration tests\n- Unused jsonrpc field and InitializeParams struct in MCP server binary\n\nAll warnings will be addressed in v0.1.2 patch release for improved code quality.\n\n* feat: Move PWA Todo App to examples and add comprehensive database verification\n\n- Move pwa-todo-app/ to examples/pwa-todo-app/ as proper example\n- Update README.md with comprehensive documentation for MCP integration\n- Add database schema documentation showing episode, pattern, and tool usage structures\n- Create pwa_integration_tests.rs with detailed database verification\n- Test simulates complete PWA workflow and logs all database entries\n- Verify episode creation, step logging, pattern extraction, and tool usage\n- Add performance benchmarks and troubleshooting guides\n- Include usage examples and integration testing commands\n\nThe PWA Todo App now serves as a complete reference implementation for testing Memory MCP database operations with real-world usage patterns.\n\n* release: v0.1.2 - Code quality improvements and PWA cleanup\n\nThis patch release focuses on code quality improvements, fixing compiler\nwarnings, and cleaning up temporary testing code.\n\n## Fixed\n\n### Code Quality Improvements\n- **Code formatting**: Ran `cargo fmt --all` to fix all formatting issues\n- **Clippy warnings**: Fixed 16+ unused variable warnings in monitoring code\n  - Prefixed unused variables with underscore in monitoring modules\n  - Removed unused `ConcurrencyConfig` import from memory/mod.rs\n- **Dependencies**: Added missing `fs_extra = \"1.3\"` to benches/Cargo.toml\n- **Test fixes**: Updated test assertion in simple_integration_tests.rs (3 → 5 tools)\n\n### PWA Cleanup\n- Removed temporary PWA example (examples/pwa-todo-app/)\n- Renamed pwa_integration_tests.rs → mcp_integration_tests.rs\n- Updated all PWA references to generic web application examples\n- Cleaned up documentation and agent definitions\n\n## Changed\n\n- **Test Organization**: Renamed and updated integration tests for clarity\n- **Benchmark Structure**: Moved from benches/benches/ to benches/ (Rust standard)\n\n## Test Results\n\n- ✅ memory-core: 207 tests passing\n- ✅ simple_integration_tests: 4 tests passing\n- ✅ Code formatting clean\n- ✅ All v0.1.2 fixes verified\n\n## Documentation\n\n- Updated CHANGELOG.md with v0.1.2 completion details\n- Updated ROADMAP.md marking v0.1.2 as COMPLETE\n- Created comprehensive verification reports in plans/\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix: YAML line length in benchmarks workflow\n\nFixed line 97 exceeding 120 character limit (was 133 characters).\nSplit long sed command across multiple lines for readability.\n\nFixes YAML lint check failure.\n\n* fix: resolve all compilation and test issues in PR #106\n\n- Remove duplicate test functions in database_integration_tests.rs\n- Fix API usage for start_episode(), complete_episode(), log_step()\n- Correct ExecutionStep construction and type usage\n- Fix TaskOutcome enum usage\n- Remove unused imports and fix dead code warnings\n- All tests now passing (207/207 memory-core tests ✅)\n\n* fix: resolve clippy warnings and formatting issues\n\n- Add #[allow(dead_code)] for unused monitoring components\n- Add Default implementations for AgentMonitor, QueryCache, MonitoringStats\n- Fix or_insert_with usage to use or_default()\n- Apply rustfmt formatting\n- All major compilation errors resolved\n\n* fix: resolve CI failures for v0.1.2 release\n\n- Fix benchmark compilation errors by updating API usage\n- Change TokioExecutor to FuturesExecutor in criterion benchmarks\n- Remove incorrect .expect() calls on non-Result methods\n- Fix StorageBackend enum conflict by renaming to BackendType\n- Update memory initialization to use Arc<dyn StorageBackend>\n- Fix lifetime issues in concurrent benchmarks with Arc cloning\n- Remove unused variables and dead code\n- Fix redundant locals in MCP example\n- Update formatting and resolve clippy warnings\n\nAll tests now pass:\n- 207 memory-core tests ✅\n- 4 memory-mcp integration tests ✅\n- Clippy clean ✅\n- Format clean ✅\n\n* fix: unwrap Option in monitoring doctest\n\n* fix: resolve doctest failure and missing monitoring exports\n\nFixes for PR #106:\n1. Fix doctest in monitoring/mod.rs by unwrapping Option\n2. Export MonitoringAnalytics and MonitoringStorage from monitoring module\n3. Add has_durable_storage() and has_cache_storage() methods to MonitoringStorage\n\nThese changes fix the failing tests in CI:\n- Doctest compilation error for monitoring module example\n- Missing type exports preventing test compilation\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* gitignore update\n\n* fix: add Default impl for MonitoringStorage to satisfy clippy\n\nClippy warning:\n- clippy::new_without_default: MonitoringStorage::new() should have Default impl\n\nThis fixes the CI Clippy check failure.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-16T16:56:40Z",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/d7edbe3d3c4740b9eb011504f39254d0aa54ce2b"
+        },
+        "date": 1763351337971,
         "tool": "cargo",
         "benches": [
           {

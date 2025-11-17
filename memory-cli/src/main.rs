@@ -79,19 +79,27 @@ async fn main() -> anyhow::Result<()> {
     // Load configuration
     let config = Config::load(cli.config.as_deref())?;
 
+    // Create memory system with storage backends
+    let memory = config.create_memory().await?;
+
     // Execute command
     match cli.command {
         Commands::Episode { command } => {
-            handle_episode_command(command, &config, cli.format, cli.dry_run).await
+            handle_episode_command(command, &memory, &config, cli.format, cli.dry_run).await
         }
         Commands::Pattern { command } => {
-            handle_pattern_command(command, &config, cli.format, cli.dry_run).await
+            handle_pattern_command(command, &memory, &config, cli.format, cli.dry_run).await
         }
         Commands::Storage { command } => {
-            handle_storage_command(command, &config, cli.format, cli.dry_run).await
+            handle_storage_command(command, &memory, &config, cli.format, cli.dry_run).await
         }
         Commands::Completion { shell } => {
-            clap_complete::generate(shell, &mut Cli::command(), "memory-cli", &mut std::io::stdout());
+            clap_complete::generate(
+                shell,
+                &mut Cli::command(),
+                "memory-cli",
+                &mut std::io::stdout(),
+            );
             Ok(())
         }
         Commands::Config => {

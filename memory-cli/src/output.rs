@@ -2,7 +2,7 @@ use clap::ValueEnum;
 use serde::Serialize;
 use std::io::{self, Write};
 
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Clone, PartialEq, ValueEnum)]
 pub enum OutputFormat {
     /// Human-readable output with colors and formatting
     Human,

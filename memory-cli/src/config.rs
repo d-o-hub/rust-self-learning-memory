@@ -1,6 +1,6 @@
+use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use anyhow::Context;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -72,8 +72,9 @@ impl Config {
                 let content = std::fs::read_to_string(path)
                     .with_context(|| format!("Failed to read config file: {}", path.display()))?;
 
-                if path.extension().and_then(|s| s.to_str()) == Some("yaml") ||
-                   path.extension().and_then(|s| s.to_str()) == Some("yml") {
+                if path.extension().and_then(|s| s.to_str()) == Some("yaml")
+                    || path.extension().and_then(|s| s.to_str()) == Some("yml")
+                {
                     serde_yaml::from_str(&content)
                         .with_context(|| format!("Failed to parse YAML config: {}", path.display()))
                 } else {
@@ -132,5 +133,77 @@ impl Config {
         }
 
         Ok(())
+    }
+
+    /// Create a SelfLearningMemory instance with configured storage backends
+    pub async fn create_memory(&self) -> anyhow::Result<memory_core::SelfLearningMemory> {
+        use memory_core::{MemoryConfig, SelfLearningMemory};
+        use std::sync::Arc;
+
+        let memory_config = MemoryConfig {
+            storage: memory_core::StorageConfig {
+                max_episodes_cache: self.storage.max_episodes_cache,
+                sync_interval_secs: 300, // 5 minutes default
+                enable_compression: false,
+            },
+            enable_embeddings: false,
+            pattern_extraction_threshold: 0.1, // Default threshold
+            batch_config: Some(memory_core::BatchConfig::default()),
+        };
+
+        // Create storage backends based on configuration
+        let mut turso_storage = None;
+        let mut redb_storage = None;
+
+        // Initialize Turso storage if configured
+        #[cfg(feature = "turso")]
+        if let Some(turso_url) = &self.database.turso_url {
+            let token = self.database.turso_token.as_deref().unwrap_or("");
+            let storage = memory_storage_turso::TursoStorage::new(turso_url, token).await?;
+            storage.initialize_schema().await?;
+            turso_storage = Some(Arc::new(storage) as Arc<dyn memory_core::StorageBackend>);
+        }
+
+        // Initialize redb storage if configured
+        #[cfg(feature = "redb")]
+        if let Some(redb_path) = &self.database.redb_path {
+            let path = std::path::Path::new(redb_path);
+            let storage = memory_storage_redb::RedbStorage::new(path).await?;
+            redb_storage = Some(Arc::new(storage) as Arc<dyn memory_core::StorageBackend>);
+        }
+
+        // Create memory system with storage backends
+        match (turso_storage, redb_storage) {
+            (Some(turso), Some(redb)) => {
+                Ok(SelfLearningMemory::with_storage(memory_config, turso, redb))
+            }
+            (Some(turso), None) => {
+                // Create a fallback redb for cache if only turso is configured
+                #[cfg(feature = "redb")]
+                {
+                    let temp_redb =
+                        memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:"))
+                            .await?;
+                    Ok(SelfLearningMemory::with_storage(
+                        memory_config,
+                        turso,
+                        Arc::new(temp_redb),
+                    ))
+                }
+                #[cfg(not(feature = "redb"))]
+                {
+                    // No redb available, use turso-only (in-memory cache fallback)
+                    Ok(SelfLearningMemory::with_config(memory_config))
+                }
+            }
+            (None, Some(redb)) => {
+                // Only redb configured - use in-memory fallback for durable storage
+                Ok(SelfLearningMemory::with_config(memory_config))
+            }
+            (None, None) => {
+                // No storage configured - use in-memory only
+                Ok(SelfLearningMemory::with_config(memory_config))
+            }
+        }
     }
 }

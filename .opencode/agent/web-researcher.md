@@ -47,7 +47,7 @@ When you receive a research query, you will:
 - Find code examples in official repositories or trusted tutorials
 
 ### For Best Practices:
-- Search for recent articles (include year in search when relevant)
+- Search for recent articles (include year in search when relevant - current year = 2025)
 - Look for content from recognized experts or organizations
 - Cross-reference multiple sources to identify consensus
 - Search for both "best practices" and "anti-patterns" to get full picture

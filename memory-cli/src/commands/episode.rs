@@ -1,5 +1,4 @@
-use anyhow::Context;
-use clap::{Args, Subcommand, ValueEnum};
+use clap::{Subcommand, ValueEnum};
 use serde::Serialize;
 use std::path::PathBuf;
 
@@ -95,7 +94,7 @@ pub enum EpisodeCommands {
     },
 }
 
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Clone, PartialEq, ValueEnum)]
 pub enum EpisodeStatus {
     /// Episode is currently in progress
     InProgress,
@@ -103,7 +102,7 @@ pub enum EpisodeStatus {
     Completed,
 }
 
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Clone, PartialEq, ValueEnum)]
 pub enum TaskOutcome {
     /// Task completed successfully
     Success,
@@ -114,6 +113,7 @@ pub enum TaskOutcome {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct EpisodeSummary {
     pub episode_id: String,
     pub task_description: String,
@@ -138,6 +138,7 @@ impl Output for EpisodeSummary {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct EpisodeList {
     pub episodes: Vec<EpisodeSummary>,
     pub total_count: usize,
@@ -151,16 +152,20 @@ impl Output for EpisodeList {
         writeln!(writer, "{}", "─".repeat(80))?;
 
         for episode in &self.episodes {
-            let status_color = match episode.status.as_str() {
-                "completed" => Color::Green,
-                "in_progress" => Color::Yellow,
-                _ => Color::Red,
+            let (status_color, status_icon) = match episode.status.as_str() {
+                "completed" => (Color::Green, "✓"),
+                "in_progress" => (Color::Yellow, "⟳"),
+                _ => (Color::Red, "✗"),
             };
 
+            let id_display = format!("{:<8}", &episode.episode_id[..episode.episode_id.len().min(8)]);
+            let task_display = episode.task_description.chars().take(50).collect::<String>();
+            let status_display = format!("{} {}", status_icon, episode.status);
+
             writeln!(writer, "{} {} {}",
-                episode.episode_id[..8].to_string().dimmed(),
-                episode.task_description.chars().take(50).collect::<String>(),
-                episode.status.color(status_color).bold()
+                id_display.dimmed(),
+                task_display,
+                status_display.color(status_color).bold()
             )?;
         }
 
@@ -172,16 +177,11 @@ impl Output for EpisodeList {
 pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,
-    config: &Config,
-    format: OutputFormat,
+    _config: &Config,
+    _format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    use memory_core::{SelfLearningMemory, TaskContext, TaskType, MemoryConfig};
-    #[cfg(feature = "turso")]
-    use memory_storage_turso::TursoStorage;
-    #[cfg(feature = "redb")]
-    use memory_storage_redb::RedbStorage;
-    use std::sync::Arc;
+
 
     if dry_run {
         println!("Would create episode with task: {}", task);
@@ -193,21 +193,28 @@ pub async fn create_episode(
 
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!("Turso storage feature not enabled. Use --features turso to enable."));
+    return Err(anyhow::anyhow!(
+        "Turso storage feature not enabled.\n\
+         \nTo enable Turso storage support:\n\
+         • Install with: cargo install --path memory-cli --features turso\n\
+         • Or build with: cargo build --features turso\n\
+         • For full features: cargo install --path memory-cli --features full\n\
+         \nAlternatively, configure a different storage backend in your config file."
+    ));
 
     #[cfg(feature = "turso")]
     {
         // Load context from file if provided
         let context_data = if let Some(context_path) = context {
             let content = std::fs::read_to_string(&context_path)
-                .with_context(|| format!("Failed to read context file: {}", context_path.display()))?;
+                .with_context(|| format!("Failed to read context file: {}\n\nPlease check:\n• File exists and is readable\n• Correct file path\n• File permissions", context_path.display()))?;
 
             // Try to parse as JSON first, then YAML
             if let Ok(ctx) = serde_json::from_str::<TaskContext>(&content) {
                 ctx
             } else {
                 serde_yaml::from_str(&content)
-                    .with_context(|| format!("Failed to parse context file as JSON or YAML: {}", context_path.display()))?
+                    .with_context(|| format!("Failed to parse context file as JSON or YAML: {}\n\nSupported formats:\n• JSON: {{ \"language\": \"rust\", \"domain\": \"web\" }}\n• YAML: language: rust\\n  domain: web", context_path.display()))?
             }
         } else {
             TaskContext::default()
@@ -215,7 +222,14 @@ pub async fn create_episode(
 
         // Create storage backends
         let turso_url = config.database.turso_url.as_ref()
-            .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
+            .ok_or_else(|| anyhow::anyhow!(
+                "Turso database URL not configured.\n\
+                 \nPlease configure the database URL in your config file:\n\
+                 \n[database]\n\
+                 turso_url = \"libsql://your-db.turso.io\"\n\
+                 turso_token = \"your-auth-token\"\n\
+                 \nOr set the MEMORY_TURSO_URL environment variable."
+            ))?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
         let turso_storage = TursoStorage::new(turso_url, token).await?;
@@ -273,15 +287,17 @@ pub async fn create_episode(
 }
 
 pub async fn list_episodes(
-    task_type: Option<String>,
-    limit: usize,
-    status: Option<EpisodeStatus>,
-    config: &Config,
-    format: OutputFormat,
+    _task_type: Option<String>,
+    _limit: usize,
+    _status: Option<EpisodeStatus>,
+    _config: &Config,
+    _format: OutputFormat,
 ) -> anyhow::Result<()> {
-    use memory_core::{SelfLearningMemory, MemoryConfig, TaskType as CoreTaskType};
     #[cfg(feature = "turso")]
     use memory_storage_turso::{TursoStorage, EpisodeQuery};
+    #[allow(unused_imports)]
+    use memory_core::TaskType as CoreTaskType;
+    #[allow(unused_imports)]
     use std::sync::Arc;
 
     // Check if storage features are enabled
@@ -314,7 +330,19 @@ pub async fn list_episodes(
                 "documentation" => Some(CoreTaskType::Documentation),
                 "refactoring" => Some(CoreTaskType::Refactoring),
                 "other" => Some(CoreTaskType::Other),
-                _ => return Err(anyhow::anyhow!("Invalid task type: {}. Valid types: code_generation, debugging, testing, analysis, documentation, refactoring, other", task_type_str)),
+                _ => return Err(anyhow::anyhow!(
+                    "Invalid task type: '{}'.\n\
+                     \nValid task types:\n\
+                     • code_generation - Code generation tasks\n\
+                     • debugging - Debugging and troubleshooting\n\
+                     • testing - Test writing and execution\n\
+                     • analysis - Code analysis and review\n\
+                     • documentation - Documentation tasks\n\
+                     • refactoring - Code refactoring\n\
+                     • other - Other task types\n\
+                     \nExample: memory-cli episode list --task-type debugging",
+                    task_type_str
+                )),
             };
         }
 
@@ -352,15 +380,19 @@ pub async fn list_episodes(
 
 pub async fn view_episode(
     episode_id: String,
-    config: &Config,
-    format: OutputFormat,
+    _config: &Config,
+    _format: OutputFormat,
 ) -> anyhow::Result<()> {
+    let _episode_id_str = episode_id.clone();
+    #[allow(unused_imports)]
     use memory_core::SelfLearningMemory;
     #[cfg(feature = "turso")]
     use memory_storage_turso::TursoStorage;
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[allow(unused_imports)]
     use std::sync::Arc;
+    #[allow(unused_imports)]
     use uuid::Uuid;
 
     // Check if storage features are enabled
@@ -402,7 +434,7 @@ pub async fn view_episode(
 
         // Get the episode
         let episode = memory.get_episode(episode_uuid).await
-            .with_context(|| format!("Episode not found: {}", episode_id))?;
+            .with_context(|| format!("Episode not found: {}", episode_id_str))?;
 
         // Create a detailed view
         #[derive(Debug, serde::Serialize)]
@@ -451,12 +483,13 @@ pub async fn view_episode(
             }
         }
 
+        let is_completed = episode.is_complete();
         let detail = EpisodeDetail {
             episode_id: episode.episode_id.to_string(),
             task_description: episode.task_description,
             task_type: episode.task_type.to_string(),
             context: serde_json::to_value(&episode.context)?,
-            status: if episode.is_complete() { "completed" } else { "in_progress" }.to_string(),
+            status: if is_completed { "completed" } else { "in_progress" }.to_string(),
             created_at: episode.start_time.to_rfc3339(),
             completed_at: episode.end_time.map(|t| t.to_rfc3339()),
             duration_ms: episode.end_time.map(|end| (end - episode.start_time).num_milliseconds()),
@@ -476,16 +509,20 @@ pub async fn view_episode(
 pub async fn complete_episode(
     episode_id: String,
     outcome: TaskOutcome,
-    config: &Config,
-    format: OutputFormat,
+    _config: &Config,
+    _format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
+    let _episode_id_str = episode_id.clone();
+    #[allow(unused_imports)]
     use memory_core::{SelfLearningMemory, MemoryConfig, TaskOutcome as CoreTaskOutcome};
     #[cfg(feature = "turso")]
     use memory_storage_turso::TursoStorage;
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[allow(unused_imports)]
     use std::sync::Arc;
+    #[allow(unused_imports)]
     use uuid::Uuid;
 
     if dry_run {
@@ -581,16 +618,18 @@ pub async fn complete_episode(
 }
 
 pub async fn search_episodes(
-    query: String,
-    limit: usize,
-    config: &Config,
-    format: OutputFormat,
+    _query: String,
+    _limit: usize,
+    _config: &Config,
+    _format: OutputFormat,
 ) -> anyhow::Result<()> {
+    #[allow(unused_imports)]
     use memory_core::{SelfLearningMemory, MemoryConfig, TaskContext};
     #[cfg(feature = "turso")]
     use memory_storage_turso::TursoStorage;
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[allow(unused_imports)]
     use std::sync::Arc;
 
     // Check if storage features are enabled
@@ -599,6 +638,7 @@ pub async fn search_episodes(
 
     #[cfg(feature = "turso")]
     {
+
         // Create storage backends
         let turso_url = config.database.turso_url.as_ref()
             .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
@@ -629,6 +669,7 @@ pub async fn search_episodes(
         // Search for relevant episodes
         let context = TaskContext::default(); // Use default context for search
         let episodes = memory.retrieve_relevant_context(query.clone(), context, limit).await;
+        let total_count = episodes.len();
 
         // Convert to summary format
         let episode_summaries: Vec<EpisodeSummary> = episodes
@@ -652,31 +693,36 @@ pub async fn search_episodes(
 
         let list = EpisodeList {
             episodes: episode_summaries,
-            total_count: episodes.len(), // For search, we don't know total count
+            total_count, // For search, we don't know total count
         };
 
         format.print_output(&list)
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn log_step(
     episode_id: String,
     tool: String,
     action: String,
     success: bool,
-    latency_ms: Option<u64>,
-    tokens: Option<u32>,
-    observation: Option<String>,
-    config: &Config,
-    format: OutputFormat,
+    _latency_ms: Option<u64>,
+    _tokens: Option<u32>,
+    _observation: Option<String>,
+    _config: &Config,
+    _format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
+    let _episode_id_str = episode_id.clone();
+    #[allow(unused_imports)]
     use memory_core::{SelfLearningMemory, MemoryConfig, ExecutionStep, ExecutionResult};
     #[cfg(feature = "turso")]
     use memory_storage_turso::TursoStorage;
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[allow(unused_imports)]
     use std::sync::Arc;
+    #[allow(unused_imports)]
     use uuid::Uuid;
 
     if dry_run {
@@ -729,7 +775,7 @@ pub async fn log_step(
         let step_number = episode.steps.len() + 1;
 
         // Create execution step
-        let mut step = ExecutionStep::new(step_number, tool, action);
+        let mut step = ExecutionStep::new(step_number, tool.clone(), action.clone());
 
         // Set result based on success flag
         step.result = Some(if success {
@@ -787,5 +833,313 @@ pub async fn log_step(
         };
 
         format.print_output(&result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use crate::output::OutputFormat;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_episode_status_enum() {
+        assert_eq!(EpisodeStatus::InProgress, EpisodeStatus::InProgress);
+        assert_eq!(EpisodeStatus::Completed, EpisodeStatus::Completed);
+    }
+
+    #[test]
+    fn test_task_outcome_enum() {
+        assert_eq!(TaskOutcome::Success, TaskOutcome::Success);
+        assert_eq!(TaskOutcome::PartialSuccess, TaskOutcome::PartialSuccess);
+        assert_eq!(TaskOutcome::Failure, TaskOutcome::Failure);
+    }
+
+    #[test]
+    fn test_episode_summary_output() {
+        let summary = EpisodeSummary {
+            episode_id: "test-id".to_string(),
+            task_description: "Test task".to_string(),
+            status: "completed".to_string(),
+            created_at: "2023-01-01T00:00:00Z".to_string(),
+            duration_ms: Some(1000),
+            steps_count: 5,
+        };
+
+        let mut buffer = Vec::new();
+        summary.write_human(&mut buffer).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        assert!(output.contains("Episode: test-id"));
+        assert!(output.contains("Task: Test task"));
+        assert!(output.contains("Status: completed"));
+        assert!(output.contains("Duration: 1000ms"));
+        assert!(output.contains("Steps: 5"));
+    }
+
+    #[test]
+    fn test_episode_list_output() {
+        let summaries = vec![
+            EpisodeSummary {
+                episode_id: "id1".to_string(),
+                task_description: "Task 1".to_string(),
+                status: "completed".to_string(),
+                created_at: "2023-01-01T00:00:00Z".to_string(),
+                duration_ms: Some(500),
+                steps_count: 3,
+            },
+            EpisodeSummary {
+                episode_id: "id2".to_string(),
+                task_description: "Task 2".to_string(),
+                status: "in_progress".to_string(),
+                created_at: "2023-01-01T01:00:00Z".to_string(),
+                duration_ms: None,
+                steps_count: 2,
+            },
+        ];
+
+        let list = EpisodeList {
+            episodes: summaries,
+            total_count: 2,
+        };
+
+        let mut buffer = Vec::new();
+        list.write_human(&mut buffer).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        assert!(output.contains("2 episodes"));
+        assert!(output.contains("Task 1"));
+        assert!(output.contains("Task 2"));
+    }
+
+    #[test]
+    fn test_clap_value_enum_implementations() {
+        // Test that our enums implement ValueEnum
+        let status_variants = EpisodeStatus::value_variants();
+        assert_eq!(status_variants.len(), 2);
+
+        let outcome_variants = TaskOutcome::value_variants();
+        assert_eq!(outcome_variants.len(), 3);
+    }
+
+    #[tokio::test]
+    async fn test_create_episode_dry_run() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+
+        let config_content = r#"
+[database]
+turso_url = "file:test.db"
+turso_token = "test-token"
+
+[storage]
+max_episodes_cache = 100
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "human"
+progress_bars = false
+batch_size = 10
+"#;
+
+        std::fs::write(&config_path, config_content).unwrap();
+
+        let config = Config::load(Some(&config_path)).unwrap();
+
+        // This should work in dry-run mode even without actual storage
+        let result = create_episode(
+            "Test task".to_string(),
+            None,
+            &config,
+            OutputFormat::Human,
+            true, // dry_run
+        ).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_complete_episode_dry_run() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+
+        let config_content = r#"
+[database]
+turso_url = "file:test.db"
+turso_token = "test-token"
+
+[storage]
+max_episodes_cache = 100
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "human"
+progress_bars = false
+batch_size = 10
+"#;
+
+        std::fs::write(&config_path, config_content).unwrap();
+
+        let config = Config::load(Some(&config_path)).unwrap();
+
+        // This should work in dry-run mode even without actual storage
+        let result = complete_episode(
+            "test-uuid".to_string(),
+            TaskOutcome::Success,
+            &config,
+            OutputFormat::Human,
+            true, // dry_run
+        ).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_log_step_dry_run() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+
+        let config_content = r#"
+[database]
+turso_url = "file:test.db"
+turso_token = "test-token"
+
+[storage]
+max_episodes_cache = 100
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "human"
+progress_bars = false
+batch_size = 10
+"#;
+
+        std::fs::write(&config_path, config_content).unwrap();
+
+        let config = Config::load(Some(&config_path)).unwrap();
+
+        // This should work in dry-run mode even without actual storage
+        let result = log_step(
+            "test-uuid".to_string(),
+            "test_tool".to_string(),
+            "Test action".to_string(),
+            true,
+            Some(100),
+            Some(50),
+            Some("Test observation".to_string()),
+            &config,
+            OutputFormat::Human,
+            true, // dry_run
+        ).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[cfg(not(feature = "turso"))]
+    #[tokio::test]
+    async fn test_create_episode_without_turso_feature() {
+        let config = Config::default();
+
+        let result = create_episode(
+            "Test task".to_string(),
+            None,
+            &config,
+            OutputFormat::Human,
+            false, // not dry run
+        ).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+    }
+
+    #[cfg(not(feature = "turso"))]
+    #[tokio::test]
+    async fn test_list_episodes_without_turso_feature() {
+        let config = Config::default();
+
+        let result = list_episodes(
+            None,
+            10,
+            None,
+            &config,
+            OutputFormat::Human,
+        ).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+    }
+
+    #[cfg(not(feature = "turso"))]
+    #[tokio::test]
+    async fn test_view_episode_without_turso_feature() {
+        let config = Config::default();
+
+        let result = view_episode(
+            "test-uuid".to_string(),
+            &config,
+            OutputFormat::Human,
+        ).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+    }
+
+    #[cfg(not(feature = "turso"))]
+    #[tokio::test]
+    async fn test_complete_episode_without_turso_feature() {
+        let config = Config::default();
+
+        let result = complete_episode(
+            "test-uuid".to_string(),
+            TaskOutcome::Success,
+            &config,
+            OutputFormat::Human,
+            false,
+        ).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+    }
+
+    #[cfg(not(feature = "turso"))]
+    #[tokio::test]
+    async fn test_search_episodes_without_turso_feature() {
+        let config = Config::default();
+
+        let result = search_episodes(
+            "test query".to_string(),
+            10,
+            &config,
+            OutputFormat::Human,
+        ).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+    }
+
+    #[cfg(not(feature = "turso"))]
+    #[tokio::test]
+    async fn test_log_step_without_turso_feature() {
+        let config = Config::default();
+
+        let result = log_step(
+            "test-uuid".to_string(),
+            "test_tool".to_string(),
+            "Test action".to_string(),
+            true,
+            None,
+            None,
+            None,
+            &config,
+            OutputFormat::Human,
+            false,
+        ).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
     }
 }

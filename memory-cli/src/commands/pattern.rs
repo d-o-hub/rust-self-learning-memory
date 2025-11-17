@@ -1,6 +1,5 @@
-use clap::{Args, Subcommand, ValueEnum};
+use clap::{Subcommand, ValueEnum};
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
@@ -149,19 +148,21 @@ impl Output for PatternList {
         writeln!(writer, "{}", "─".repeat(80))?;
 
         for pattern in &self.patterns {
-            let confidence_color = match pattern.confidence {
-                c if c >= 0.8 => Color::Green,
-                c if c >= 0.6 => Color::Yellow,
-                _ => Color::Red,
+            let (confidence_color, confidence_icon) = match pattern.confidence {
+                c if c >= 0.8 => (Color::Green, "●"),
+                c if c >= 0.6 => (Color::Yellow, "○"),
+                _ => (Color::Red, "○"),
             };
+
+            let confidence_display = format!("{:.2} {}", pattern.confidence, confidence_icon);
 
             writeln!(
                 writer,
-                "{} {:.2} {} {} uses",
+                "{} {} {} {} uses",
                 pattern.pattern_id[..8].to_string().dimmed(),
-                pattern.confidence,
-                pattern.pattern_type,
-                pattern.use_count.to_string().color(confidence_color).bold()
+                confidence_display.color(confidence_color).bold(),
+                pattern.pattern_type.dimmed(),
+                pattern.use_count.to_string().color(confidence_color)
             )?;
         }
 
@@ -226,7 +227,6 @@ pub struct PatternAnalysisData {
 
 impl Output for PatternAnalysis {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
-        use colored::*;
 
         writeln!(writer, "Pattern Analysis: {}", self.pattern_id)?;
         writeln!(writer, "{}", "─".repeat(40))?;
@@ -304,7 +304,6 @@ impl Output for EffectivenessRankings {
 
 impl Output for PatternDetail {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
-        use colored::*;
 
         writeln!(writer, "Pattern Details")?;
         writeln!(writer, "{}", "─".repeat(20))?;
@@ -385,11 +384,9 @@ pub async fn list_patterns(
     pattern_type: Option<PatternType>,
     limit: usize,
     memory: &memory_core::SelfLearningMemory,
-    config: &Config,
+    _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
-    use memory_core::patterns::EffectivenessTracker;
-
     // Get all patterns
     let patterns = memory
         .retrieve_relevant_patterns(&memory_core::types::TaskContext::default(), 1000)
@@ -503,7 +500,7 @@ pub async fn list_patterns(
 pub async fn view_pattern(
     pattern_id: String,
     memory: &memory_core::SelfLearningMemory,
-    config: &Config,
+    _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     use uuid::Uuid;
@@ -676,7 +673,7 @@ pub async fn analyze_pattern(
     pattern_id: String,
     episodes: usize,
     memory: &memory_core::SelfLearningMemory,
-    config: &Config,
+    _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     use uuid::Uuid;
@@ -684,7 +681,7 @@ pub async fn analyze_pattern(
     let pattern_uuid = Uuid::parse_str(&pattern_id)
         .map_err(|_| anyhow::anyhow!("Invalid pattern ID format: {}", pattern_id))?;
 
-    let pattern = memory
+    let _pattern = memory
         .get_pattern(pattern_uuid)
         .await?
         .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
@@ -782,11 +779,9 @@ pub async fn pattern_effectiveness(
     top: usize,
     min_uses: usize,
     memory: &memory_core::SelfLearningMemory,
-    config: &Config,
+    _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
-    use memory_core::patterns::EffectivenessTracker;
-
     // Get all patterns
     let patterns = memory
         .retrieve_relevant_patterns(&memory_core::types::TaskContext::default(), 1000)
@@ -904,13 +899,11 @@ pub async fn pattern_effectiveness(
 
 pub async fn decay_patterns(
     memory: &memory_core::SelfLearningMemory,
-    config: &Config,
+    _config: &Config,
     format: OutputFormat,
     dry_run: bool,
     force: bool,
 ) -> anyhow::Result<()> {
-    use memory_core::patterns::EffectivenessTracker;
-
     // Note: In a real implementation, we'd have an EffectivenessTracker instance
     // For now, we'll simulate decay analysis
 

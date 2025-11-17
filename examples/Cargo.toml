@@ -1,0 +1,23 @@
+[package]
+name = "memory-examples"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Workspace dependencies
+memory-core = { path = "../memory-core" }
+memory-storage-redb = { path = "../memory-storage-redb" }
+memory-storage-turso = { path = "../memory-storage-turso" }
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+tokio.workspace = true
+tempfile.workspace = true
+
+[[bin]]
+name = "verify_storage"
+path = "verify_storage.rs"

@@ -77,6 +77,9 @@ impl Config {
                 {
                     serde_yaml::from_str(&content)
                         .with_context(|| format!("Failed to parse YAML config: {}", path.display()))
+                } else if path.extension().and_then(|s| s.to_str()) == Some("toml") {
+                    toml::from_str(&content)
+                        .with_context(|| format!("Failed to parse TOML config: {}", path.display()))
                 } else {
                     serde_json::from_str(&content)
                         .with_context(|| format!("Failed to parse JSON config: {}", path.display()))
@@ -107,6 +110,7 @@ impl Config {
     }
 
     /// Validate configuration
+    #[allow(dead_code)]
     pub fn validate(&self) -> anyhow::Result<()> {
         // Validate database configuration
         if self.database.turso_url.is_none() && self.database.redb_path.is_none() {
@@ -138,6 +142,7 @@ impl Config {
     /// Create a SelfLearningMemory instance with configured storage backends
     pub async fn create_memory(&self) -> anyhow::Result<memory_core::SelfLearningMemory> {
         use memory_core::{MemoryConfig, SelfLearningMemory};
+        #[allow(unused_imports)]
         use std::sync::Arc;
 
         let memory_config = MemoryConfig {
@@ -152,7 +157,9 @@ impl Config {
         };
 
         // Create storage backends based on configuration
+        #[allow(unused_mut)]
         let mut turso_storage = None;
+        #[allow(unused_mut)]
         let mut redb_storage = None;
 
         // Initialize Turso storage if configured
@@ -173,6 +180,7 @@ impl Config {
         }
 
         // Create memory system with storage backends
+        #[allow(unused_variables)]
         match (turso_storage, redb_storage) {
             (Some(turso), Some(redb)) => {
                 Ok(SelfLearningMemory::with_storage(memory_config, turso, redb))
@@ -196,7 +204,7 @@ impl Config {
                     Ok(SelfLearningMemory::with_config(memory_config))
                 }
             }
-            (None, Some(redb)) => {
+            (None, Some(_redb)) => {
                 // Only redb configured - use in-memory fallback for durable storage
                 Ok(SelfLearningMemory::with_config(memory_config))
             }
@@ -207,3 +215,4 @@ impl Config {
         }
     }
 }
+

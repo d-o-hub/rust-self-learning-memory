@@ -83,6 +83,34 @@ jobs:
           RUST_LOG: debug
           QUALITY_GATE_SKIP_OPTIONAL: true
 
+  cli-test:
+    name: CLI Test
+    runs-on: ubuntu-latest
+    if: >-
+      ${{
+        github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success'
+      }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Build CLI
+        run: cargo build --package memory-cli --features full
+      - name: Run CLI unit tests
+        run: cargo test --package memory-cli --features full --lib
+      - name: Run CLI integration tests
+        run: cargo test --package memory-cli --features full --test integration_tests
+      - name: Run CLI security tests
+        run: cargo test --package memory-cli --features full --test security_tests
+      - name: Test CLI binary execution
+        run: |
+          ./target/debug/memory-cli --help
+          ./target/debug/memory-cli --version
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -229,7 +257,7 @@ jobs:
         github.event_name == 'pull_request' ||
         github.event.workflow_run.conclusion == 'success'
       }}
-    needs: [format, clippy, test, coverage, security-audit]
+    needs: [format, clippy, test, cli-test, coverage, security-audit]
     steps:
       - name: Free disk space
         run: |

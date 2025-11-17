@@ -31,16 +31,55 @@ tokio.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 
+# Configuration file support
+toml = "0.8"
+
 # Optional features for output formatting
 serde_yaml = "0.9"
 colored = "2.0"
 indicatif = "0.17"
+
+# Additional CLI dependencies for operational features
+regex = "1.10"
+
+# Test utilities dependencies
+assert_cmd = "2.0"
+predicates = "3.0"
+tempfile = "3.12"
+test-utils = { path = "../test-utils" }
 
 [features]
 default = []
 turso = ["memory-storage-turso"]
 redb = ["memory-storage-redb"]
 full = ["turso", "redb"]
+
+[dev-dependencies]
+# Testing framework
+tokio-test = "0.4"
+tempfile = "3.12"
+assert_cmd = "2.0"
+predicates = "3.0"
+rstest = "0.18"
+
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+
+# Test utilities
+test-utils = { path = "../test-utils" }
+
+# Additional test dependencies
+serde_test = "1.0"
+proptest = "1.4"
+regex = "1.10"
+
+[[bench]]
+name = "cli_benchmarks"
+harness = false
+
+[lib]
+name = "memory_cli"
+path = "src/lib.rs"
 
 [[bin]]
 name = "memory-cli"

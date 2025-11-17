@@ -2,6 +2,11 @@
 
 A command-line interface for the Self-Learning Memory System, providing direct access to episode management, pattern analysis, and storage operations.
 
+## Documentation
+
+- **[CLI User Guide](CLI_USER_GUIDE.md)** - Complete command reference and usage examples
+- **[Configuration Guide](CONFIGURATION_GUIDE.md)** - Detailed configuration options and examples
+
 ## Installation
 
 ### From Source
@@ -25,19 +30,21 @@ cargo install --path memory-cli --features full
 The CLI supports configuration via:
 
 1. **Default locations** (searched in order):
-   - `memory-cli.toml`
-   - `memory-cli.json`
-   - `memory-cli.yaml`
-   - `.memory-cli.toml`
-   - `.memory-cli.json`
-   - `.memory-cli.yaml`
+    - `memory-cli.toml`
+    - `memory-cli.json`
+    - `memory-cli.yaml`
+    - `.memory-cli.toml`
+    - `.memory-cli.json`
+    - `.memory-cli.yaml`
 
 2. **Explicit path**:
-   ```bash
-   memory-cli --config /path/to/config.toml <command>
-   ```
+    ```bash
+    memory-cli --config /path/to/config.toml <command>
+    ```
 
-### Configuration Format
+For complete configuration documentation, see **[Configuration Guide](CONFIGURATION_GUIDE.md)**.
+
+### Quick Configuration
 
 #### TOML
 ```toml
@@ -205,6 +212,114 @@ memory-cli storage health
 memory-cli storage connections
 ```
 
+### Configuration Management
+
+#### Validate Configuration
+```bash
+# Basic validation
+memory-cli config validate
+
+# Check with recommendations
+memory-cli config check
+
+# Show current configuration
+memory-cli config show
+```
+
+### Health Monitoring
+
+#### Health Check
+```bash
+# Comprehensive health check
+memory-cli health check
+
+# Show current status
+memory-cli health status
+
+# Monitor continuously
+memory-cli health monitor --interval 30 --duration 300
+```
+
+### Backup and Restore
+
+#### Create Backup
+```bash
+# Create JSON backup
+memory-cli backup create ./backups --format json --compress
+
+# Create SQL backup
+memory-cli backup create ./backups --format sql
+```
+
+#### List Backups
+```bash
+memory-cli backup list ./backups
+```
+
+#### Restore from Backup
+```bash
+# Restore specific backup
+memory-cli backup restore ./backups --backup-id backup_20251117_120000
+
+# Force restore (overwrite existing data)
+memory-cli backup restore ./backups --backup-id backup_20251117_120000 --force
+```
+
+#### Verify Backup
+```bash
+memory-cli backup verify ./backups --backup-id backup_20251117_120000
+```
+
+### Monitoring and Metrics
+
+#### Show Status
+```bash
+memory-cli monitor status
+```
+
+#### Export Metrics
+```bash
+# Export as Prometheus format
+memory-cli monitor export --format prometheus
+
+# Export as JSON
+memory-cli monitor export --format json
+```
+
+### Log Analysis
+
+#### Analyze Logs
+```bash
+# Analyze last 24 hours
+memory-cli logs analyze --since 24h
+
+# Analyze with custom filter
+memory-cli logs analyze --since 7d --filter "error"
+```
+
+#### Search Logs
+```bash
+# Search for specific terms
+memory-cli logs search "authentication" --limit 20 --since 24h
+
+# Search with multiple terms
+memory-cli logs search "timeout connection" --since 1h
+```
+
+#### Export Logs
+```bash
+# Export as JSON
+memory-cli logs export ./exports/logs.json --format json --since 24h
+
+# Export as CSV
+memory-cli logs export ./exports/logs.csv --format csv --since 7d
+```
+
+#### Log Statistics
+```bash
+memory-cli logs stats --since 24h
+```
+
 ### Meta Commands
 
 #### Generate Completions
@@ -217,11 +332,6 @@ memory-cli completion zsh > _memory-cli
 
 # Fish
 memory-cli completion fish > memory-cli.fish
-```
-
-#### Validate Configuration
-```bash
-memory-cli config
 ```
 
 ## Output Formats
@@ -321,6 +431,123 @@ The CLI provides clear error messages and appropriate exit codes:
 - `3`: Validation error
 
 Use `--verbose` for detailed error information and stack traces.
+
+## Operational Features
+
+### Production Deployment
+
+The CLI includes comprehensive operational features for production deployment:
+
+#### Automated Deployment
+```bash
+# Run the deployment script
+./deploy.sh
+
+# Deploy with systemd service
+./deploy.sh --systemd
+
+# Deploy with Docker
+./deploy.sh --docker
+```
+
+#### Docker Deployment
+```bash
+# Start all services
+docker-compose -f docker/docker-compose.yml up -d
+
+# View logs
+docker-compose -f docker/docker-compose.yml logs -f memory-cli
+
+# Scale monitoring services
+docker-compose -f docker/docker-compose.yml up -d --scale prometheus=2
+```
+
+#### Systemd Service
+```bash
+# Enable and start service
+sudo systemctl enable memory-cli
+sudo systemctl start memory-cli
+
+# Check status
+sudo systemctl status memory-cli
+
+# View logs
+sudo journalctl -u memory-cli -f
+```
+
+### Health Monitoring
+
+#### Automated Health Checks
+```bash
+# Continuous monitoring
+memory-cli health monitor --interval 30 --duration 3600
+
+# Health check in scripts
+if memory-cli health check --format json | jq -e '.overall_status == "Healthy"'; then
+    echo "System is healthy"
+else
+    echo "Health check failed"
+    exit 1
+fi
+```
+
+#### Integration with Monitoring Systems
+```bash
+# Export Prometheus metrics
+memory-cli monitor export --format prometheus > metrics.txt
+
+# Export for external analysis
+memory-cli monitor export --format json > metrics.json
+```
+
+### Backup and Recovery
+
+#### Automated Backups
+```bash
+#!/bin/bash
+# Daily backup script
+BACKUP_DIR="./backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+memory-cli backup create "$BACKUP_DIR" \
+    --format json \
+    --compress \
+    --backup-id "daily_$DATE"
+
+# Cleanup old backups (keep last 30 days)
+find "$BACKUP_DIR" -name "daily_*" -mtime +30 -delete
+```
+
+#### Disaster Recovery
+```bash
+# Verify backup integrity
+memory-cli backup verify ./backups --backup-id daily_20251117_020000
+
+# Restore from backup
+memory-cli backup restore ./backups --backup-id daily_20251117_020000 --force
+```
+
+### Log Analysis and Troubleshooting
+
+#### Automated Log Analysis
+```bash
+# Daily log analysis
+memory-cli logs analyze --since 24h > daily_report.json
+
+# Error trend analysis
+memory-cli logs search "error timeout" --since 7d --format json | \
+    jq '.results | group_by(.episode_id) | map({episode: .[0].episode_id, errors: length})'
+```
+
+#### Performance Monitoring
+```bash
+# Export performance metrics
+memory-cli logs stats --since 1h --format json
+
+# Identify slow operations
+memory-cli logs analyze --since 24h --format json | \
+    jq '.performance_trends[] | select(.average_latency_ms > 1000)'
+```
 
 ## Integration with MCP Server
 

@@ -55,3 +55,117 @@ impl OutputFormat {
         self.write_output(data, io::stdout())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::Serialize;
+
+    #[derive(Debug, Serialize)]
+    struct TestData {
+        name: String,
+        value: i32,
+    }
+
+    impl Output for TestData {
+        fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+            writeln!(writer, "Name: {}", self.name)?;
+            writeln!(writer, "Value: {}", self.value)?;
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_output_format_enum() {
+        assert_eq!(OutputFormat::Human, OutputFormat::Human);
+        assert_eq!(OutputFormat::Json, OutputFormat::Json);
+        assert_eq!(OutputFormat::Yaml, OutputFormat::Yaml);
+    }
+
+    #[test]
+    fn test_write_human_output() {
+        let data = TestData {
+            name: "test".to_string(),
+            value: 42,
+        };
+
+        let mut buffer = Vec::new();
+        data.write_human(&mut buffer).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        assert!(output.contains("Name: test"));
+        assert!(output.contains("Value: 42"));
+    }
+
+    #[test]
+    fn test_write_json_output() {
+        let data = TestData {
+            name: "test".to_string(),
+            value: 42,
+        };
+
+        let mut buffer = Vec::new();
+        data.write_json(&mut buffer).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(parsed["name"], "test");
+        assert_eq!(parsed["value"], 42);
+    }
+
+    #[test]
+    fn test_write_yaml_output() {
+        let data = TestData {
+            name: "test".to_string(),
+            value: 42,
+        };
+
+        let mut buffer = Vec::new();
+        data.write_yaml(&mut buffer).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        let parsed: serde_yaml::Value = serde_yaml::from_str(&output).unwrap();
+        assert_eq!(parsed["name"].as_str().unwrap(), "test");
+        assert_eq!(parsed["value"].as_i64().unwrap(), 42);
+    }
+
+    #[test]
+    fn test_output_format_write_output() {
+        let data = TestData {
+            name: "test".to_string(),
+            value: 42,
+        };
+
+        let format = OutputFormat::Json;
+        let mut buffer = Vec::new();
+        format.write_output(&data, &mut buffer).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(parsed["name"], "test");
+    }
+
+    #[test]
+    fn test_output_format_print_output() {
+        let data = TestData {
+            name: "test".to_string(),
+            value: 42,
+        };
+
+        let format = OutputFormat::Json;
+        // This would normally print to stdout, but we can't easily test that
+        // In a real test, we'd capture stdout
+        let result = format.print_output(&data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_clap_value_enum() {
+        // Test that OutputFormat implements ValueEnum
+        let variants = OutputFormat::value_variants();
+        assert_eq!(variants.len(), 3);
+        assert!(variants.contains(&OutputFormat::Human));
+        assert!(variants.contains(&OutputFormat::Json));
+        assert!(variants.contains(&OutputFormat::Yaml));
+    }
+}

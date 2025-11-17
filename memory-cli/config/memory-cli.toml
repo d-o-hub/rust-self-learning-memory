@@ -1,0 +1,63 @@
+# Memory CLI Configuration
+# This file contains all configuration options for the memory-cli tool
+
+[database]
+# Turso database configuration
+turso_url = "libsql://your-database.turso.io"
+turso_token = "your-auth-token-here"
+
+# Local redb cache configuration
+redb_path = "./data/memory.redb"
+
+[storage]
+# Maximum episodes to cache in memory
+max_episodes_cache = 1000
+
+# Cache TTL in seconds
+cache_ttl_seconds = 3600
+
+# Connection pool size
+pool_size = 10
+
+[cli]
+# Default output format (human, json, yaml)
+default_format = "human"
+
+# Enable progress bars for long operations
+progress_bars = true
+
+# Batch size for bulk operations
+batch_size = 100
+
+[monitoring]
+# Enable metrics collection
+enabled = true
+
+# Metrics export port (future feature)
+# metrics_port = 9090
+
+# Health check intervals
+health_check_interval_seconds = 30
+
+[backup]
+# Default backup directory
+backup_dir = "./backups"
+
+# Maximum backup age in days
+max_backup_age_days = 30
+
+# Compression enabled for backups
+compress_backups = true
+
+[logging]
+# Log level (error, warn, info, debug, trace)
+level = "info"
+
+# Log file path (optional)
+# log_file = "./logs/memory-cli.log"
+
+# Maximum log file size in MB
+max_log_size_mb = 10
+
+# Maximum number of log files to keep
+max_log_files = 5

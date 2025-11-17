@@ -5,6 +5,9 @@ mod commands;
 mod config;
 mod output;
 
+#[cfg(test)]
+mod test_utils;
+
 use commands::*;
 use config::Config;
 use output::OutputFormat;
@@ -51,14 +54,37 @@ enum Commands {
         #[command(subcommand)]
         command: StorageCommands,
     },
+    /// Configuration validation and management
+    Config {
+        #[command(subcommand)]
+        command: ConfigCommands,
+    },
+    /// Health monitoring and diagnostics
+    Health {
+        #[command(subcommand)]
+        command: HealthCommands,
+    },
+    /// Backup and restore operations
+    Backup {
+        #[command(subcommand)]
+        command: BackupCommands,
+    },
+    /// Monitoring and metrics
+    Monitor {
+        #[command(subcommand)]
+        command: MonitorCommands,
+    },
+    /// Log analysis and search
+    Logs {
+        #[command(subcommand)]
+        command: LogsCommands,
+    },
     /// Generate shell completion scripts
     Completion {
         /// Shell to generate completion for
         #[arg(value_enum)]
         shell: clap_complete::Shell,
     },
-    /// Validate configuration
-    Config,
 }
 
 #[tokio::main]
@@ -93,6 +119,21 @@ async fn main() -> anyhow::Result<()> {
         Commands::Storage { command } => {
             handle_storage_command(command, &memory, &config, cli.format, cli.dry_run).await
         }
+        Commands::Config { command } => {
+            handle_config_command(command, &memory, &config, cli.format, cli.dry_run).await
+        }
+        Commands::Health { command } => {
+            handle_health_command(command, &memory, &config, cli.format, cli.dry_run).await
+        }
+        Commands::Backup { command } => {
+            handle_backup_command(command, &memory, &config, cli.format, cli.dry_run).await
+        }
+        Commands::Monitor { command } => {
+            handle_monitor_command(command, &memory, &config, cli.format, cli.dry_run).await
+        }
+        Commands::Logs { command } => {
+            handle_logs_command(command, &memory, &config, cli.format, cli.dry_run).await
+        }
         Commands::Completion { shell } => {
             clap_complete::generate(
                 shell,
@@ -100,11 +141,6 @@ async fn main() -> anyhow::Result<()> {
                 "memory-cli",
                 &mut std::io::stdout(),
             );
-            Ok(())
-        }
-        Commands::Config => {
-            config.validate()?;
-            println!("Configuration is valid");
             Ok(())
         }
     }

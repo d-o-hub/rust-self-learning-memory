@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  memory-cli:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: memory-cli
+    restart: unless-stopped
+
+    # Configuration
+    volumes:
+      - ./config:/app/config:ro
+      - ./data:/app/data
+      - ./backups:/app/backups
+      - ./logs:/app/logs
+
+    # Environment variables
+    env_file:
+      - .env
+    environment:
+      - RUST_LOG=info
+      - MEMORY_CONFIG=/app/config/memory-cli.toml
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "memory-cli", "health", "check", "--format", "json"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Turso database proxy (if using Turso)
+  turso-proxy:
+    image: tursodatabase/libsql-server:latest
+    container_name: turso-proxy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - LIBSQL_URL=${TURSO_DATABASE_URL}
+      - LIBSQL_AUTH_TOKEN=${TURSO_AUTH_TOKEN}
+    profiles:
+      - turso
+
+  # Optional: Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: memory-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    profiles:
+      - monitoring
+
+  # Optional: Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: memory-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    profiles:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: memory-network

@@ -393,7 +393,7 @@ If plans are outdated or incomplete:
 If validation logic needs improvement:
 ```bash
 # Update .opencode/agent/architecture-validator.md
-# Update .claude/skills/architecture-validation/SKILL.md
+# Update .opencode/skills/architecture-validation/SKILL.md
 # Add new validation patterns
 # Improve extraction logic
 # Enhance reporting

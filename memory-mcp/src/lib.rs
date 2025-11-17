@@ -94,12 +94,15 @@
 //! └─────────────────┘          └──────────────────┘
 //! ```
 
+pub mod cache;
 pub mod error;
+pub mod monitoring;
 pub mod sandbox;
 pub mod server;
 pub mod types;
 
 // Re-export commonly used types
+pub use cache::{CacheConfig, CacheStats, QueryCache};
 pub use error::{Error, Result};
 pub use sandbox::CodeSandbox;
 pub use server::MemoryMCPServer;

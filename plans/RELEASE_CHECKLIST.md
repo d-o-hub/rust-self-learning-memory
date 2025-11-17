@@ -17,6 +17,7 @@ This checklist ensures all steps are completed before publishing crates to crate
 - [ ] Run `cargo test -p tests --test quality_gates` - Quality gates passing
 - [ ] Run `cargo build --release` - Release build successful
 - [ ] Run `cargo bench` - Benchmarks complete without regressions
+- [ ] **v0.1.2 PATCH**: Address MCP server compiler warnings (unused imports, unused code)
 
 ### 3. Security & Dependencies
 - [ ] Run `cargo audit` - No known vulnerabilities

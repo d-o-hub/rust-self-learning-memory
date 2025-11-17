@@ -24,7 +24,6 @@ node_modules/
 *_ENHANCEMENT*.md
 *.log
 memory-mcp/data/cache.redb
-
 # Database and cache files created by examples/tests
 *.db
 *.db-*

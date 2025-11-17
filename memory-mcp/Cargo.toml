@@ -12,6 +12,10 @@ keywords = ["mcp", "sandbox", "code-execution", "ai", "security"]
 categories = ["development-tools", "web-programming"]
 documentation = "https://docs.rs/memory-mcp"
 
+[[bin]]
+name = "memory-mcp-server"
+path = "src/bin/server.rs"
+
 [dependencies]
 # Workspace dependencies
 tokio = { workspace = true }
@@ -23,11 +27,14 @@ tracing = { workspace = true }
 
 # Local dependencies
 memory-core = { path = "../memory-core", version = "0.1.0" }
+memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.0" }
+memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.0" }
 
 # MCP-specific dependencies
 async-trait = "0.1"
 parking_lot = "0.12"
 url = "2.5"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -36,3 +43,20 @@ libc = "0.2"
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
+memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.0" }
+
+[[example]]
+name = "memory_mcp_integration"
+path = "examples/memory_mcp_integration.rs"
+
+[[test]]
+name = "simple_integration_tests"
+path = "tests/simple_integration_tests.rs"
+
+[[test]]
+name = "mcp_integration_tests"
+path = "tests/mcp_integration_tests.rs"
+
+[[test]]
+name = "persistent_storage_tests"
+path = "tests/persistent_storage_tests.rs"

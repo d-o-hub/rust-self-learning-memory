@@ -149,7 +149,7 @@ The implementation is divided into 6 distinct phases, each building upon the pre
 7. Iterate with [06-feedback-loop.md](./06-feedback-loop.md)
 
 **For Project Managers:**
-- **Timeline**: See [02-plan.md](./02-plan.md) → "Planner Agent Roadmap"
+- **Timeline**: See [02-plan.md](./02-plan.md) → "Agentic Layer: Strategic Planning"
 - **Risks**: See [00-overview.md](./00-overview.md) → "Risk Assessment"
 - **Progress**: See [03-execute.md](./03-execute.md) → "Progress Monitoring"
 - **Quality**: See [04-review.md](./04-review.md) → "Quality Assessment"

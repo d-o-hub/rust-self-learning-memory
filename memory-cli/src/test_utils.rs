@@ -55,8 +55,9 @@ batch_size = 10
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
     {
-        let bin_path = "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string();
-        let mut cmd = Command::new(bin_path);
+        // Use assert_cmd's cargo_bin to find the binary correctly
+        #[allow(deprecated)]
+        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&self.config_path);
         cmd.args(args);
         cmd

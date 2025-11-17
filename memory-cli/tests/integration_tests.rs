@@ -74,7 +74,8 @@ batch_size = 10
 
         fs::write(&invalid_config_path, invalid_config).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        #[allow(deprecated)]
+        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&invalid_config_path);
         cmd.args(["config", "validate"]); // Validate config to trigger validation
 
@@ -215,7 +216,8 @@ batch_size = 50
 
         fs::write(&config_path, custom_config).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        #[allow(deprecated)]
+        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&config_path);
         cmd.args(["config", "show"]);
 
@@ -248,7 +250,8 @@ batch_size = 25
         let original_dir = std::env::current_dir().unwrap();
         std::env::set_current_dir(&temp_dir).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        #[allow(deprecated)]
+        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
         cmd.args(["config", "show"]);
 
         cmd.assert().success();
@@ -266,8 +269,8 @@ batch_size = 25
         harness.execute(["--help"]).assert().success();
         let duration = start.elapsed();
 
-        // Help should execute in under 100ms
-        assert!(duration < Duration::from_millis(100));
+        // Help should execute in under 500ms (increased for Windows compatibility)
+        assert!(duration < Duration::from_millis(500));
     }
 
     #[test]

@@ -1,3 +1,4 @@
+#[cfg(feature = "turso")]
 use anyhow::Context;
 use clap::{Subcommand, ValueEnum};
 #[cfg(feature = "turso")]
@@ -420,7 +421,7 @@ pub async fn list_episodes(
 }
 
 pub async fn view_episode(
-    episode_id: String,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] episode_id: String,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {

@@ -1,4 +1,6 @@
 use clap::{Subcommand, ValueEnum};
+#[cfg(feature = "turso")]
+use memory_core::TaskContext;
 use serde::Serialize;
 use std::path::PathBuf;
 

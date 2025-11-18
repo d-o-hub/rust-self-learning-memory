@@ -1,3 +1,4 @@
+use anyhow::Context;
 use clap::{Subcommand, ValueEnum};
 #[cfg(feature = "turso")]
 use memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskType};
@@ -423,7 +424,8 @@ pub async fn view_episode(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
-    let _episode_id_str = episode_id.clone();
+    #[cfg(feature = "turso")]
+    let episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
     use memory_core::SelfLearningMemory;
     #[cfg(feature = "redb")]
@@ -571,22 +573,22 @@ pub async fn view_episode(
             steps: episode
                 .steps
                 .iter()
-                .map(|s| serde_json::to_value(s))
+                .map(serde_json::to_value)
                 .collect::<Result<Vec<_>, _>>()?,
             outcome: episode
                 .outcome
                 .as_ref()
-                .map(|o| serde_json::to_value(o))
+                .map(serde_json::to_value)
                 .transpose()?,
             reward: episode
                 .reward
                 .as_ref()
-                .map(|r| serde_json::to_value(r))
+                .map(serde_json::to_value)
                 .transpose()?,
             reflection: episode
                 .reflection
                 .as_ref()
-                .map(|r| serde_json::to_value(r))
+                .map(serde_json::to_value)
                 .transpose()?,
             patterns_count: episode.patterns.len(),
             heuristics_count: episode.heuristics.len(),
@@ -603,7 +605,6 @@ pub async fn complete_episode(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
     use memory_core::{MemoryConfig, SelfLearningMemory, TaskOutcome as CoreTaskOutcome};
     #[cfg(feature = "redb")]
@@ -847,7 +848,6 @@ pub async fn log_step(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
     use memory_core::{ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory};
     #[cfg(feature = "redb")]

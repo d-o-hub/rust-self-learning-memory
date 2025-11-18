@@ -1,7 +1,13 @@
 use clap::{Subcommand, ValueEnum};
 #[cfg(feature = "turso")]
-use memory_core::TaskContext;
+use memory_core::{MemoryConfig, SelfLearningMemory, TaskContext};
+#[cfg(feature = "turso")]
+use memory_storage_turso::TursoStorage;
+#[cfg(all(feature = "turso", feature = "redb"))]
+use memory_storage_redb::RedbStorage;
 use serde::Serialize;
+#[cfg(feature = "turso")]
+use std::sync::Arc;
 use std::path::PathBuf;
 
 use crate::config::Config;
@@ -193,7 +199,8 @@ impl Output for EpisodeList {
 pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,
-    _config: &Config,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))]
+    config: &Config,
     _format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {

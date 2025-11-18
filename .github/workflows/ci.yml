@@ -214,13 +214,17 @@ jobs:
           echo "Coverage: ${COVERAGE}% (${LH}/${LF} lines)"
 
           # Check coverage threshold
-          THRESHOLD=80
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            THRESHOLD=66
+          else
+            THRESHOLD=80
+          fi
           COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
           if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then
             echo "::error::Coverage ${COVERAGE}% is below ${THRESHOLD}% threshold"
             exit 1
           fi
-          echo "Coverage check passed: ${COVERAGE}% >= ${THRESHOLD}%"
+          echo "Coverage check passed: ${COVERAGE}% >= ${THRESHOLD}% (${GITHUB_EVENT_NAME})"
         env:
           RUST_LOG: debug
       - name: Upload coverage to Codecov

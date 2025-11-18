@@ -159,12 +159,18 @@ impl TursoStorage {
             ));
         }
 
-        let builder = Builder::new_remote(url.to_string(), token.to_string());
-
-        let db = builder
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?;
+        let db = if url.starts_with("libsql://") {
+            Builder::new_remote(url.to_string(), token.to_string())
+                .build()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
+        } else {
+            let path = if url.starts_with("file:") { &url["file:".len()..] } else { url };
+            Builder::new_local(path)
+                .build()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
+        };
 
         let db = Arc::new(db);
 
@@ -244,12 +250,18 @@ impl TursoStorage {
             ));
         }
 
-        let builder = Builder::new_remote(url.to_string(), token.to_string());
-
-        let db = builder
-            .build()
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?;
+        let db = if url.starts_with("libsql://") {
+            Builder::new_remote(url.to_string(), token.to_string())
+                .build()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
+        } else {
+            let path = if url.starts_with("file:") { &url["file:".len()..] } else { url };
+            Builder::new_local(path)
+                .build()
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
+        };
 
         let db = Arc::new(db);
 

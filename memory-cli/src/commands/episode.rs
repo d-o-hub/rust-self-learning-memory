@@ -316,11 +316,11 @@ pub async fn create_episode(
 }
 
 pub async fn list_episodes(
-    task_type: Option<String>,
-    limit: usize,
-    status: Option<EpisodeStatus>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] task_type: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] status: Option<EpisodeStatus>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
-    format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
     #[allow(unused_imports)]
     use memory_core::TaskType as CoreTaskType;
@@ -421,7 +421,7 @@ pub async fn list_episodes(
 pub async fn view_episode(
     episode_id: String,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
-    format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
@@ -600,7 +600,7 @@ pub async fn complete_episode(
     episode_id: String,
     outcome: TaskOutcome,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
-    format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();
@@ -840,11 +840,11 @@ pub async fn log_step(
     tool: String,
     action: String,
     success: bool,
-    _latency_ms: Option<u64>,
-    _tokens: Option<u32>,
-    _observation: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] latency_ms: Option<u64>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] tokens: Option<u32>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] observation: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
-    _format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();

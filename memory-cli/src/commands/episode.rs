@@ -1,6 +1,6 @@
 use clap::{Subcommand, ValueEnum};
 #[cfg(feature = "turso")]
-use memory_core::{MemoryConfig, SelfLearningMemory, TaskContext};
+use memory_core::{MemoryConfig, SelfLearningMemory, TaskContext, TaskType};
 #[cfg(all(feature = "turso", feature = "redb"))]
 use memory_storage_redb::RedbStorage;
 #[cfg(feature = "turso")]
@@ -200,7 +200,7 @@ pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
-    _format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     if dry_run {
@@ -316,11 +316,11 @@ pub async fn create_episode(
 }
 
 pub async fn list_episodes(
-    _task_type: Option<String>,
-    _limit: usize,
-    _status: Option<EpisodeStatus>,
-    _config: &Config,
-    _format: OutputFormat,
+    task_type: Option<String>,
+    limit: usize,
+    status: Option<EpisodeStatus>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
+    format: OutputFormat,
 ) -> anyhow::Result<()> {
     #[allow(unused_imports)]
     use memory_core::TaskType as CoreTaskType;
@@ -420,8 +420,8 @@ pub async fn list_episodes(
 
 pub async fn view_episode(
     episode_id: String,
-    _config: &Config,
-    _format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
+    format: OutputFormat,
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
@@ -599,8 +599,8 @@ pub async fn view_episode(
 pub async fn complete_episode(
     episode_id: String,
     outcome: TaskOutcome,
-    _config: &Config,
-    _format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
+    format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();
@@ -730,10 +730,10 @@ pub async fn complete_episode(
 }
 
 pub async fn search_episodes(
-    _query: String,
-    _limit: usize,
-    _config: &Config,
-    _format: OutputFormat,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] query: String,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
     #[allow(unused_imports)]
     use memory_core::{MemoryConfig, SelfLearningMemory, TaskContext};
@@ -843,7 +843,7 @@ pub async fn log_step(
     _latency_ms: Option<u64>,
     _tokens: Option<u32>,
     _observation: Option<String>,
-    _config: &Config,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] config: &Config,
     _format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {

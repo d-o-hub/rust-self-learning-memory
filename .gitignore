@@ -32,3 +32,4 @@ memory_test.db*
 persistence_*.redb
 verification_*.redb
 todo_example*.redb
+data/cache.redb

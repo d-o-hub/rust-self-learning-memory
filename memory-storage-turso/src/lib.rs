@@ -165,7 +165,11 @@ impl TursoStorage {
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
         } else {
-            let path = if url.starts_with("file:") { &url["file:".len()..] } else { url };
+            let path = if url.starts_with("file:") {
+                &url["file:".len()..]
+            } else {
+                url
+            };
             Builder::new_local(path)
                 .build()
                 .await
@@ -256,7 +260,11 @@ impl TursoStorage {
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
         } else {
-            let path = if url.starts_with("file:") { &url["file:".len()..] } else { url };
+            let path = if url.starts_with("file:") {
+                &url["file:".len()..]
+            } else {
+                url
+            };
             Builder::new_local(path)
                 .build()
                 .await

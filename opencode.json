@@ -38,7 +38,7 @@
        "enabled": true,
         "environment": {
           "RUST_LOG": "info",
-          "REDB_CACHE_PATH": "../data/cache.redb",
+          "REDB_CACHE_PATH": "./data/cache.redb",
           "REDB_MAX_CACHE_SIZE": "1000"
         }
      }

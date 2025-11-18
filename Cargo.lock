@@ -1482,7 +1482,7 @@ dependencies = [
  "memory-core",
  "memory-storage-redb",
  "memory-storage-turso",
- "rand",
+ "rand 0.8.5",
  "regex",
  "serde_json",
  "sysinfo",
@@ -1654,6 +1654,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "normalize-line-endings"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61807f77802ff30975e01f4f071c8ba10c022052f98b3294119f3e615d13e5be"
+
+[[package]]
 name = "ntapi"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1681,6 +1687,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "number_prefix"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
+
+[[package]]
 name = "objc2-core-foundation"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1698,7 +1710,6 @@ dependencies = [
  "libc",
  "objc2-core-foundation",
 ]
->>>>>>> origin/main
 
 [[package]]
 name = "once_cell"
@@ -3674,5 +3685,5 @@ version = "7.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d4e079d30939088cfc89b5318a5d3557d4a92890c917aa40475ea763bd473d5"
 dependencies = [
- "rand",
+ "rand 0.8.5",
 ]

@@ -1,6 +1,6 @@
 use clap::Subcommand;
-use serde::Serialize;
 use indicatif::{ProgressBar, ProgressStyle};
+use serde::Serialize;
 
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
@@ -213,7 +213,15 @@ impl Output for SyncResult {
         writeln!(writer, "{}", "Storage Synchronization Complete".bold())?;
         writeln!(writer, "{}", "─".repeat(40))?;
 
-        writeln!(writer, "Mode: {}", if self.force { "Full Sync".green() } else { "Incremental".blue() })?;
+        writeln!(
+            writer,
+            "Mode: {}",
+            if self.force {
+                "Full Sync".green()
+            } else {
+                "Incremental".blue()
+            }
+        )?;
         writeln!(writer, "Episodes synced: {}", self.episodes_synced)?;
         writeln!(writer, "Patterns synced: {}", self.patterns_synced)?;
         writeln!(writer, "Heuristics synced: {}", self.heuristics_synced)?;
@@ -361,7 +369,9 @@ pub async fn sync_storage(
     let (turso, redb) = match (memory.turso_storage(), memory.cache_storage()) {
         (Some(t), Some(r)) => (t.clone(), r.clone()),
         _ => {
-            anyhow::bail!("Storage sync requires both Turso and redb storage backends to be configured");
+            anyhow::bail!(
+                "Storage sync requires both Turso and redb storage backends to be configured"
+            );
         }
     };
 
@@ -387,7 +397,14 @@ pub async fn sync_storage(
     };
 
     println!("Starting storage synchronization...");
-    println!("- Mode: {}", if force { "Full (24h)" } else { "Incremental (1h)" });
+    println!(
+        "- Mode: {}",
+        if force {
+            "Full (24h)"
+        } else {
+            "Incremental (1h)"
+        }
+    );
     println!("- Since: {}", since.format("%Y-%m-%d %H:%M:%S UTC"));
 
     // Create progress bar
@@ -395,7 +412,7 @@ pub async fn sync_storage(
     progress.set_style(
         ProgressStyle::default_spinner()
             .template("{spinner:.green} [{elapsed_precise}] {msg}")
-            .unwrap()
+            .unwrap(),
     );
     progress.set_message("Querying episodes from Turso...");
 
@@ -421,7 +438,10 @@ pub async fn sync_storage(
 
     // Sync episodes to redb cache
     for episode in episodes {
-        progress.set_message(format!("Syncing episode {}", &episode.episode_id.to_string()[..8]));
+        progress.set_message(format!(
+            "Syncing episode {}",
+            &episode.episode_id.to_string()[..8]
+        ));
 
         match redb.store_episode(&episode).await {
             Ok(_) => {
@@ -463,7 +483,10 @@ pub async fn sync_storage(
 
     let duration_ms = start_time.elapsed().as_millis() as u64;
 
-    progress.finish_with_message(format!("✅ Sync completed in {:.2}s", duration_ms as f64 / 1000.0));
+    progress.finish_with_message(format!(
+        "✅ Sync completed in {:.2}s",
+        duration_ms as f64 / 1000.0
+    ));
 
     let result = SyncResult {
         episodes_synced,
@@ -513,7 +536,7 @@ pub async fn vacuum_storage(
     progress.set_style(
         ProgressStyle::default_spinner()
             .template("{spinner:.blue} [{elapsed_precise}] {msg}")
-            .unwrap()
+            .unwrap(),
     );
     progress.set_message("Analyzing storage for optimization opportunities...");
 
@@ -567,7 +590,11 @@ pub async fn storage_health(
             Ok(_) => {
                 let latency = start.elapsed().as_millis() as u64;
                 turso_health = ComponentHealth {
-                    status: if latency < 100 { HealthStatus::Healthy } else { HealthStatus::Degraded },
+                    status: if latency < 100 {
+                        HealthStatus::Healthy
+                    } else {
+                        HealthStatus::Degraded
+                    },
                     latency_ms: Some(latency),
                     error: None,
                 };
@@ -590,7 +617,11 @@ pub async fn storage_health(
             Ok(_) => {
                 let latency = start.elapsed().as_millis() as u64;
                 redb_health = ComponentHealth {
-                    status: if latency < 10 { HealthStatus::Healthy } else { HealthStatus::Degraded },
+                    status: if latency < 10 {
+                        HealthStatus::Healthy
+                    } else {
+                        HealthStatus::Degraded
+                    },
                     latency_ms: Some(latency),
                     error: None,
                 };
@@ -608,7 +639,8 @@ pub async fn storage_health(
     // Determine overall health
     let overall_status = match (&turso_health.status, &redb_health.status) {
         (HealthStatus::Healthy, HealthStatus::Healthy) => HealthStatus::Healthy,
-        (HealthStatus::Healthy, HealthStatus::Degraded) | (HealthStatus::Degraded, HealthStatus::Healthy) => HealthStatus::Degraded,
+        (HealthStatus::Healthy, HealthStatus::Degraded)
+        | (HealthStatus::Degraded, HealthStatus::Healthy) => HealthStatus::Degraded,
         (HealthStatus::Degraded, HealthStatus::Degraded) => HealthStatus::Degraded,
         _ => HealthStatus::Unhealthy,
     };
@@ -650,7 +682,11 @@ pub async fn connection_status(
         turso_info.active_connections = 1; // At least one connection
         turso_info.pool_size = 10; // Default pool size
         turso_info.queue_depth = 0; // Not available through trait
-        turso_info.last_activity = Some(chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string());
+        turso_info.last_activity = Some(
+            chrono::Utc::now()
+                .format("%Y-%m-%d %H:%M:%S UTC")
+                .to_string(),
+        );
     }
 
     // Get redb connection info (simpler, single connection)
@@ -658,7 +694,11 @@ pub async fn connection_status(
         redb_info.active_connections = 1; // redb uses a single synchronous connection
         redb_info.pool_size = 1;
         redb_info.queue_depth = 0; // No queuing in redb
-        redb_info.last_activity = Some(chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string());
+        redb_info.last_activity = Some(
+            chrono::Utc::now()
+                .format("%Y-%m-%d %H:%M:%S UTC")
+                .to_string(),
+        );
     }
 
     let status = ConnectionStatus {

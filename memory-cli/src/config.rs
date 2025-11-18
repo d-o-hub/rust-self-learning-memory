@@ -154,6 +154,7 @@ impl Config {
             enable_embeddings: false,
             pattern_extraction_threshold: 0.1, // Default threshold
             batch_config: Some(memory_core::BatchConfig::default()),
+            concurrency: memory_core::ConcurrencyConfig::default(),
         };
 
         // Create storage backends based on configuration
@@ -215,4 +216,3 @@ impl Config {
         }
     }
 }
-

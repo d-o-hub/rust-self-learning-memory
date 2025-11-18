@@ -458,7 +458,6 @@ impl SelfLearningMemory {
     pub fn cache_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
         self.cache_storage.as_ref()
     }
-    }
 }
 
 #[cfg(test)]

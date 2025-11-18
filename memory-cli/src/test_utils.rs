@@ -7,6 +7,8 @@
 //! - Output validation utilities
 //! - Security test harnesses
 
+#![allow(dead_code)]
+
 use assert_cmd::Command;
 use std::path::PathBuf;
 use tempfile::TempDir;
@@ -64,7 +66,10 @@ batch_size = 10
     }
 
     /// Execute a CLI command and capture output as string
-    pub fn execute_and_capture<I, S>(&self, args: I) -> std::result::Result<String, Box<dyn std::error::Error>>
+    pub fn execute_and_capture<I, S>(
+        &self,
+        args: I,
+    ) -> std::result::Result<String, Box<dyn std::error::Error>>
     where
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
@@ -93,13 +98,17 @@ impl Default for CliHarness {
 /// Output validation utilities
 pub mod validators {
     /// Validate JSON output format
-    pub fn validate_json_output(output: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    pub fn validate_json_output(
+        output: &str,
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
         serde_json::from_str::<serde_json::Value>(output)?;
         Ok(())
     }
 
     /// Validate YAML output format
-    pub fn validate_yaml_output(output: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    pub fn validate_yaml_output(
+        output: &str,
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
         serde_yaml::from_str::<serde_yaml::Value>(output)?;
         Ok(())
     }
@@ -113,20 +122,12 @@ pub mod validators {
 /// Security test utilities
 pub mod security {
     /// Test input sanitization
-    pub fn test_input_sanitization(input: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    pub fn test_input_sanitization(
+        input: &str,
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
         // Test for common injection patterns
         let dangerous_patterns = [
-            ";",
-            "&&",
-            "||",
-            "`",
-            "$(",
-            "${",
-            "<",
-            ">",
-            "|",
-            "../",
-            "..\\",
+            ";", "&&", "||", "`", "$(", "${", "<", ">", "|", "../", "..\\",
         ];
 
         for pattern in &dangerous_patterns {
@@ -156,8 +157,16 @@ pub mod security {
     }
 
     /// Test path traversal protection
-    pub fn test_path_traversal_protection(path: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
-        if path.contains("..") || path.starts_with("/") || path.starts_with("\\") || (path.len() >= 3 && path.chars().nth(1) == Some(':') && path.chars().nth(2) == Some('\\')) {
+    pub fn test_path_traversal_protection(
+        path: &str,
+    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        if path.contains("..")
+            || path.starts_with("/")
+            || path.starts_with("\\")
+            || (path.len() >= 3
+                && path.chars().nth(1) == Some(':')
+                && path.chars().nth(2) == Some('\\'))
+        {
             return Err("Path traversal or absolute path detected".into());
         }
         Ok(())

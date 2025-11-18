@@ -3,7 +3,6 @@ use serde::Serialize;
 use std::collections::HashMap;
 use tokio::fs;
 
-
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 
@@ -145,27 +144,37 @@ impl Output for LogAnalysis {
         writeln!(writer, "Time Range: {}", self.time_range)?;
         writeln!(writer, "Total Episodes: {}", self.total_episodes)?;
         writeln!(writer, "Total Steps: {}", self.total_steps)?;
-        writeln!(writer, "Avg Steps/Episode: {:.1}", self.average_steps_per_episode)?;
+        writeln!(
+            writer,
+            "Avg Steps/Episode: {:.1}",
+            self.average_steps_per_episode
+        )?;
         writeln!(writer, "Success Rate: {:.1}%", self.success_rate * 100.0)?;
 
         if !self.top_tools.is_empty() {
             writeln!(writer, "\nTop Tools:")?;
             for tool in &self.top_tools {
-                writeln!(writer, "  {}: {} uses ({:.1}% success, {:.1}ms avg)",
-                        tool.tool.cyan(),
-                        tool.usage_count,
-                        tool.success_rate * 100.0,
-                        tool.average_latency_ms)?;
+                writeln!(
+                    writer,
+                    "  {}: {} uses ({:.1}% success, {:.1}ms avg)",
+                    tool.tool.cyan(),
+                    tool.usage_count,
+                    tool.success_rate * 100.0,
+                    tool.average_latency_ms
+                )?;
             }
         }
 
         if !self.error_patterns.is_empty() {
             writeln!(writer, "\nError Patterns:")?;
             for error in &self.error_patterns {
-                writeln!(writer, "  {}: {} occurrences in {} episodes",
-                        error.error_type.red(),
-                        error.occurrences,
-                        error.affected_episodes)?;
+                writeln!(
+                    writer,
+                    "  {}: {} occurrences in {} episodes",
+                    error.error_type.red(),
+                    error.occurrences,
+                    error.affected_episodes
+                )?;
             }
         }
 
@@ -190,7 +199,13 @@ impl Output for LogSearchResult {
 
         writeln!(writer, "\nResults:")?;
         for (i, result) in self.results.iter().enumerate() {
-            writeln!(writer, "{}. Episode: {} at {}", i + 1, result.episode_id, result.timestamp)?;
+            writeln!(
+                writer,
+                "{}. Episode: {} at {}",
+                i + 1,
+                result.episode_id,
+                result.timestamp
+            )?;
             if let Some(tool) = &result.tool {
                 write!(writer, "   Tool: {}", tool)?;
             }
@@ -254,7 +269,11 @@ impl Output for ExportResult {
         writeln!(writer, "Format: {}", self.format)?;
         writeln!(writer, "Path: {}", self.path)?;
         writeln!(writer, "Records Exported: {}", self.records_exported)?;
-        writeln!(writer, "File Size: {:.2} KB", self.file_size_bytes as f64 / 1024.0)?;
+        writeln!(
+            writer,
+            "File Size: {:.2} KB",
+            self.file_size_bytes as f64 / 1024.0
+        )?;
         writeln!(writer, "Duration: {}ms", self.duration_ms)?;
 
         Ok(())
@@ -271,9 +290,13 @@ pub async fn analyze_logs(
 ) -> anyhow::Result<()> {
     // Get episodes within time range
     let episodes = if let Some(turso) = memory.turso_storage() {
-        turso.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        turso
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else if let Some(cache) = memory.cache_storage() {
-        cache.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        cache
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else {
         Vec::new()
     };
@@ -289,15 +312,20 @@ pub async fn analyze_logs(
 
         for step in &episode.steps {
             // Count tool usage
-            let tool_stats = tool_usage.entry(step.tool.clone()).or_insert_with(|| ToolStats {
-                count: 0,
-                successes: 0,
-                total_latency: 0,
-            });
+            let tool_stats = tool_usage
+                .entry(step.tool.clone())
+                .or_insert_with(|| ToolStats {
+                    count: 0,
+                    successes: 0,
+                    total_latency: 0,
+                });
             tool_stats.count += 1;
             tool_stats.total_latency += step.latency_ms;
 
-            let is_success = matches!(step.result, Some(memory_core::ExecutionResult::Success { .. }));
+            let is_success = matches!(
+                step.result,
+                Some(memory_core::ExecutionResult::Success { .. })
+            );
             if is_success {
                 tool_stats.successes += 1;
                 successful_steps += 1;
@@ -311,11 +339,13 @@ pub async fn analyze_logs(
                     _ => "Unknown error".to_string(),
                 };
                 let error_key = extract_error_type(&observation);
-                let error_stats = error_patterns.entry(error_key).or_insert_with(|| ErrorStats {
-                    occurrences: 0,
-                    episodes: std::collections::HashSet::new(),
-                    messages: Vec::new(),
-                });
+                let error_stats = error_patterns
+                    .entry(error_key)
+                    .or_insert_with(|| ErrorStats {
+                        occurrences: 0,
+                        episodes: std::collections::HashSet::new(),
+                        messages: Vec::new(),
+                    });
                 error_stats.occurrences += 1;
                 error_stats.episodes.insert(episode.episode_id);
                 if error_stats.messages.len() < 3 {
@@ -325,19 +355,33 @@ pub async fn analyze_logs(
         }
     }
 
-    let success_rate = if total_steps > 0 { successful_steps as f32 / total_steps as f32 } else { 0.0 };
+    let success_rate = if total_steps > 0 {
+        successful_steps as f32 / total_steps as f32
+    } else {
+        0.0
+    };
 
     // Convert to output format
-    let top_tools: Vec<ToolUsage> = tool_usage.into_iter()
+    let top_tools: Vec<ToolUsage> = tool_usage
+        .into_iter()
         .map(|(tool, stats)| ToolUsage {
             tool,
             usage_count: stats.count,
-            success_rate: if stats.count > 0 { stats.successes as f32 / stats.count as f32 } else { 0.0 },
-            average_latency_ms: if stats.count > 0 { stats.total_latency as f64 / stats.count as f64 } else { 0.0 },
+            success_rate: if stats.count > 0 {
+                stats.successes as f32 / stats.count as f32
+            } else {
+                0.0
+            },
+            average_latency_ms: if stats.count > 0 {
+                stats.total_latency as f64 / stats.count as f64
+            } else {
+                0.0
+            },
         })
         .collect();
 
-    let error_patterns_vec: Vec<ErrorPattern> = error_patterns.into_iter()
+    let error_patterns_vec: Vec<ErrorPattern> = error_patterns
+        .into_iter()
         .map(|(error_type, stats)| ErrorPattern {
             error_type,
             occurrences: stats.occurrences,
@@ -350,7 +394,11 @@ pub async fn analyze_logs(
         time_range: since,
         total_episodes: filtered_episodes.len(),
         total_steps,
-        average_steps_per_episode: if filtered_episodes.is_empty() { 0.0 } else { total_steps as f64 / filtered_episodes.len() as f64 },
+        average_steps_per_episode: if filtered_episodes.is_empty() {
+            0.0
+        } else {
+            total_steps as f64 / filtered_episodes.len() as f64
+        },
         success_rate,
         top_tools,
         error_patterns: error_patterns_vec,
@@ -370,9 +418,13 @@ pub async fn search_logs(
     since: String,
 ) -> anyhow::Result<()> {
     let episodes = if let Some(turso) = memory.turso_storage() {
-        turso.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        turso
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else if let Some(cache) = memory.cache_storage() {
-        cache.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        cache
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else {
         Vec::new()
     };
@@ -389,13 +441,16 @@ pub async fn search_logs(
                 None => "".to_string(),
             };
             let matches = query.to_lowercase().split_whitespace().all(|q| {
-                step.tool.to_lowercase().contains(q) ||
-                step.action.to_lowercase().contains(q) ||
-                observation.to_lowercase().contains(q)
+                step.tool.to_lowercase().contains(q)
+                    || step.action.to_lowercase().contains(q)
+                    || observation.to_lowercase().contains(q)
             });
 
             if matches {
-                let is_success = matches!(step.result, Some(memory_core::ExecutionResult::Success { .. }));
+                let is_success = matches!(
+                    step.result,
+                    Some(memory_core::ExecutionResult::Success { .. })
+                );
                 let observation = match &step.result {
                     Some(memory_core::ExecutionResult::Success { output }) => output.clone(),
                     Some(memory_core::ExecutionResult::Error { message }) => message.clone(),
@@ -405,7 +460,10 @@ pub async fn search_logs(
 
                 results.push(LogEntry {
                     episode_id: episode.episode_id.to_string(),
-                    timestamp: episode.start_time.format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+                    timestamp: episode
+                        .start_time
+                        .format("%Y-%m-%d %H:%M:%S UTC")
+                        .to_string(),
                     level: if is_success { "INFO" } else { "ERROR" }.to_string(),
                     tool: Some(step.tool.clone()),
                     action: Some(step.action.clone()),
@@ -454,9 +512,13 @@ pub async fn export_logs(
 
     let start_time = std::time::Instant::now();
     let episodes = if let Some(turso) = memory.turso_storage() {
-        turso.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        turso
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else if let Some(cache) = memory.cache_storage() {
-        cache.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        cache
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else {
         Vec::new()
     };
@@ -468,7 +530,10 @@ pub async fn export_logs(
             let mut log_entries = Vec::new();
             for episode in &filtered_episodes {
                 for step in &episode.steps {
-                    let is_success = matches!(step.result, Some(memory_core::ExecutionResult::Success { .. }));
+                    let is_success = matches!(
+                        step.result,
+                        Some(memory_core::ExecutionResult::Success { .. })
+                    );
                     let observation = match &step.result {
                         Some(memory_core::ExecutionResult::Success { output }) => output.clone(),
                         Some(memory_core::ExecutionResult::Error { message }) => message.clone(),
@@ -491,18 +556,24 @@ pub async fn export_logs(
             serde_json::to_string_pretty(&log_entries)?
         }
         ExportFormat::Csv => {
-            let mut csv_content = "episode_id,timestamp,tool,action,success,latency_ms,observation\n".to_string();
+            let mut csv_content =
+                "episode_id,timestamp,tool,action,success,latency_ms,observation\n".to_string();
             for episode in &filtered_episodes {
                 for step in &episode.steps {
-                    let is_success = matches!(step.result, Some(memory_core::ExecutionResult::Success { .. }));
+                    let is_success = matches!(
+                        step.result,
+                        Some(memory_core::ExecutionResult::Success { .. })
+                    );
                     let observation = match &step.result {
                         Some(memory_core::ExecutionResult::Success { output }) => output.clone(),
                         Some(memory_core::ExecutionResult::Error { message }) => message.clone(),
                         Some(memory_core::ExecutionResult::Timeout) => "Timeout".to_string(),
                         None => "No result".to_string(),
-                    }.replace("\"", "\"\"");
+                    }
+                    .replace("\"", "\"\"");
 
-                    csv_content.push_str(&format!("{},{},{},{},{},{},\"{}\"\n",
+                    csv_content.push_str(&format!(
+                        "{},{},{},{},{},{},\"{}\"\n",
                         episode.episode_id,
                         episode.start_time.format("%Y-%m-%d %H:%M:%S UTC"),
                         step.tool,
@@ -519,9 +590,15 @@ pub async fn export_logs(
         ExportFormat::Txt => {
             let mut txt_content = String::new();
             for episode in &filtered_episodes {
-                txt_content.push_str(&format!("Episode: {} ({})\n", episode.episode_id, episode.start_time));
+                txt_content.push_str(&format!(
+                    "Episode: {} ({})\n",
+                    episode.episode_id, episode.start_time
+                ));
                 for step in &episode.steps {
-                    let is_success = matches!(step.result, Some(memory_core::ExecutionResult::Success { .. }));
+                    let is_success = matches!(
+                        step.result,
+                        Some(memory_core::ExecutionResult::Success { .. })
+                    );
                     let observation = match &step.result {
                         Some(memory_core::ExecutionResult::Success { output }) => output.clone(),
                         Some(memory_core::ExecutionResult::Error { message }) => message.clone(),
@@ -529,7 +606,8 @@ pub async fn export_logs(
                         None => "No result".to_string(),
                     };
 
-                    txt_content.push_str(&format!("  [{}] {} -> {} ({}ms) {}\n",
+                    txt_content.push_str(&format!(
+                        "  [{}] {} -> {} ({}ms) {}\n",
                         if is_success { "OK" } else { "FAIL" },
                         step.tool,
                         step.action,
@@ -567,9 +645,13 @@ pub async fn logs_stats(
     since: String,
 ) -> anyhow::Result<()> {
     let episodes = if let Some(turso) = memory.turso_storage() {
-        turso.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        turso
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else if let Some(cache) = memory.cache_storage() {
-        cache.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        cache
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else {
         Vec::new()
     };
@@ -591,7 +673,10 @@ pub async fn logs_stats(
             total_latency += step.latency_ms;
             tools.insert(&step.tool);
 
-            let is_success = matches!(step.result, Some(memory_core::ExecutionResult::Success { .. }));
+            let is_success = matches!(
+                step.result,
+                Some(memory_core::ExecutionResult::Success { .. })
+            );
             if is_success {
                 successful_steps += 1;
             } else {
@@ -600,8 +685,16 @@ pub async fn logs_stats(
         }
     }
 
-    let success_rate = if total_steps > 0 { successful_steps as f32 / total_steps as f32 } else { 0.0 };
-    let average_latency = if total_steps > 0 { total_latency as f64 / total_steps as f64 } else { 0.0 };
+    let success_rate = if total_steps > 0 {
+        successful_steps as f32 / total_steps as f32
+    } else {
+        0.0
+    };
+    let average_latency = if total_steps > 0 {
+        total_latency as f64 / total_steps as f64
+    } else {
+        0.0
+    };
 
     let stats = LogStats {
         time_range: since,
@@ -619,9 +712,13 @@ pub async fn logs_stats(
 }
 
 // Helper functions
-fn filter_episodes_by_time(episodes: &[memory_core::Episode], since: &str) -> anyhow::Result<Vec<memory_core::Episode>> {
+fn filter_episodes_by_time(
+    episodes: &[memory_core::Episode],
+    since: &str,
+) -> anyhow::Result<Vec<memory_core::Episode>> {
     let cutoff = parse_time_range(since)?;
-    Ok(episodes.iter()
+    Ok(episodes
+        .iter()
         .filter(|e| e.start_time > cutoff)
         .cloned()
         .collect())

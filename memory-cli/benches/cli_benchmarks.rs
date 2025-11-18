@@ -33,7 +33,7 @@ fn cli_output_format_benchmark(c: &mut Criterion) {
     let formats = ["human", "json", "yaml"];
 
     for format in formats {
-        c.bench_function(format!("cli_config_{}_output", format), |b| {
+        c.bench_function(&format!("cli_config_{}_output", format), |b| {
             b.iter(|| {
                 harness
                     .execute(black_box(["--format", format, "config"]))
@@ -50,7 +50,7 @@ fn cli_completion_benchmark(c: &mut Criterion) {
     let shells = ["bash", "zsh", "fish"];
 
     for shell in shells {
-        c.bench_function(format!("cli_completion_{}", shell), |b| {
+        c.bench_function(&format!("cli_completion_{}", shell), |b| {
             b.iter(|| {
                 harness
                     .execute(black_box(["completion", shell]))
@@ -80,7 +80,12 @@ fn cli_dry_run_benchmark(c: &mut Criterion) {
     c.bench_function("cli_dry_run_episode_create", |b| {
         b.iter(|| {
             harness
-                .execute(black_box(["--dry-run", "episode", "create", "benchmark task"]))
+                .execute(black_box([
+                    "--dry-run",
+                    "episode",
+                    "create",
+                    "benchmark task",
+                ]))
                 .assert()
                 .success();
         });

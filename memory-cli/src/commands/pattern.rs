@@ -227,7 +227,6 @@ pub struct PatternAnalysisData {
 
 impl Output for PatternAnalysis {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
-
         writeln!(writer, "Pattern Analysis: {}", self.pattern_id)?;
         writeln!(writer, "{}", "─".repeat(40))?;
         writeln!(
@@ -304,7 +303,6 @@ impl Output for EffectivenessRankings {
 
 impl Output for PatternDetail {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
-
         writeln!(writer, "Pattern Details")?;
         writeln!(writer, "{}", "─".repeat(20))?;
         writeln!(writer, "ID: {}", self.id)?;

@@ -1,5 +1,4 @@
 use memory_storage_turso::TursoStorage;
-use std::env;
 use tempfile::TempDir;
 
 #[tokio::main]
@@ -16,11 +15,16 @@ async fn main() -> anyhow::Result<()> {
     local_storage.initialize_schema().await?;
 
     let stats = local_storage.get_statistics().await?;
-    println!("   ✓ Local storage initialized: {} episodes, {} patterns, {} heuristics",
-             stats.episode_count, stats.pattern_count, stats.heuristic_count);
+    println!(
+        "   ✓ Local storage initialized: {} episodes, {} patterns, {} heuristics",
+        stats.episode_count, stats.pattern_count, stats.heuristic_count
+    );
 
     let health = local_storage.health_check().await?;
-    println!("   ✓ Health check: {}", if health { "PASS" } else { "FAIL" });
+    println!(
+        "   ✓ Health check: {}",
+        if health { "PASS" } else { "FAIL" }
+    );
 
     // Test 2: In-memory database
     println!("\n2. Testing in-memory database...");
@@ -28,11 +32,16 @@ async fn main() -> anyhow::Result<()> {
     memory_storage.initialize_schema().await?;
 
     let stats = memory_storage.get_statistics().await?;
-    println!("   ✓ Memory storage initialized: {} episodes, {} patterns, {} heuristics",
-             stats.episode_count, stats.pattern_count, stats.heuristic_count);
+    println!(
+        "   ✓ Memory storage initialized: {} episodes, {} patterns, {} heuristics",
+        stats.episode_count, stats.pattern_count, stats.heuristic_count
+    );
 
     let health = memory_storage.health_check().await?;
-    println!("   ✓ Health check: {}", if health { "PASS" } else { "FAIL" });
+    println!(
+        "   ✓ Health check: {}",
+        if health { "PASS" } else { "FAIL" }
+    );
 
     // Test 3: Cloud configuration validation (without actual connection)
     println!("\n3. Testing cloud configuration validation...");
@@ -50,7 +59,9 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Should accept libsql:// with token
-    println!("   ✓ libsql:// protocol with token validation: PASS (would connect if valid credentials)");
+    println!(
+        "   ✓ libsql:// protocol with token validation: PASS (would connect if valid credentials)"
+    );
 
     println!("\n✅ All configuration tests passed!");
     println!("\nSetup verified for:");

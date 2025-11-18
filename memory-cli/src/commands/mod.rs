@@ -1,20 +1,20 @@
+pub mod backup;
+pub mod config;
 pub mod episode;
+pub mod health;
+pub mod logs;
+pub mod monitor;
 pub mod pattern;
 pub mod storage;
-pub mod config;
-pub mod health;
-pub mod backup;
-pub mod monitor;
-pub mod logs;
 
+pub use backup::*;
+pub use config::*;
 pub use episode::*;
+pub use health::*;
+pub use logs::*;
+pub use monitor::*;
 pub use pattern::*;
 pub use storage::*;
-pub use config::*;
-pub use health::*;
-pub use backup::*;
-pub use monitor::*;
-pub use logs::*;
 
 use crate::config::Config;
 use crate::output::OutputFormat;
@@ -163,13 +163,28 @@ pub async fn handle_backup_command(
     dry_run: bool,
 ) -> anyhow::Result<()> {
     match command {
-        BackupCommands::Create { path, format: backup_format, compress } => {
-            backup::create_backup(memory, config, format, path, backup_format, compress, dry_run).await
+        BackupCommands::Create {
+            path,
+            format: backup_format,
+            compress,
+        } => {
+            backup::create_backup(
+                memory,
+                config,
+                format,
+                path,
+                backup_format,
+                compress,
+                dry_run,
+            )
+            .await
         }
         BackupCommands::List { path } => backup::list_backups(memory, config, format, path).await,
-        BackupCommands::Restore { path, backup_id, force } => {
-            backup::restore_backup(memory, config, format, path, backup_id, force, dry_run).await
-        }
+        BackupCommands::Restore {
+            path,
+            backup_id,
+            force,
+        } => backup::restore_backup(memory, config, format, path, backup_id, force, dry_run).await,
         BackupCommands::Verify { path, backup_id } => {
             backup::verify_backup(memory, config, format, path, backup_id).await
         }
@@ -186,9 +201,9 @@ pub async fn handle_monitor_command(
     match command {
         MonitorCommands::Status => monitor::monitor_status(memory, config, format).await,
         MonitorCommands::Metrics => monitor::monitor_metrics(memory, config, format).await,
-        MonitorCommands::Export { format: export_format } => {
-            monitor::export_metrics(memory, config, format, export_format).await
-        }
+        MonitorCommands::Export {
+            format: export_format,
+        } => monitor::export_metrics(memory, config, format, export_format).await,
     }
 }
 
@@ -203,11 +218,28 @@ pub async fn handle_logs_command(
         LogsCommands::Analyze { since, filter } => {
             logs::analyze_logs(memory, config, format, since, filter).await
         }
-        LogsCommands::Search { query, limit, since } => {
-            logs::search_logs(memory, config, format, query, limit, since).await
-        }
-        LogsCommands::Export { path, format: export_format, since, filter } => {
-            logs::export_logs(memory, config, format, path, export_format, since, filter, dry_run).await
+        LogsCommands::Search {
+            query,
+            limit,
+            since,
+        } => logs::search_logs(memory, config, format, query, limit, since).await,
+        LogsCommands::Export {
+            path,
+            format: export_format,
+            since,
+            filter,
+        } => {
+            logs::export_logs(
+                memory,
+                config,
+                format,
+                path,
+                export_format,
+                since,
+                filter,
+                dry_run,
+            )
+            .await
         }
         LogsCommands::Stats { since } => logs::logs_stats(memory, config, format, since).await,
     }

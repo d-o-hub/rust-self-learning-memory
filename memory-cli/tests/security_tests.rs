@@ -4,8 +4,8 @@
 //! prevents injection attacks, and sanitizes user data.
 
 use memory_cli::test_utils;
-use test_utils::*;
 use std::fs;
+use test_utils::*;
 
 #[cfg(test)]
 mod security_tests {
@@ -74,7 +74,8 @@ batch_size = 10
             fs::write(&safe_config, config_content).unwrap();
 
             #[allow(deprecated)]
-            let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+            let mut cmd =
+                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&safe_config);
             cmd.args(["episode", "create", "test task"]);
 
@@ -99,12 +100,7 @@ batch_size = 10
 
     #[test]
     fn test_path_traversal_detection() {
-        let safe_paths = [
-            "safe/path",
-            "relative/path",
-            "file.txt",
-            "data/config.toml",
-        ];
+        let safe_paths = ["safe/path", "relative/path", "file.txt", "data/config.toml"];
 
         let unsafe_paths = [
             "../../../etc/passwd",
@@ -147,7 +143,8 @@ default_format = "human; echo 'injected'"
             fs::write(&config_path, config_content).unwrap();
 
             #[allow(deprecated)]
-            let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+            let mut cmd =
+                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -189,10 +186,7 @@ default_format = "human; echo 'injected'"
         ];
 
         for id in &invalid_ids {
-            harness
-                .execute(["episode", "view", id])
-                .assert()
-                .failure();
+            harness.execute(["episode", "view", id]).assert().failure();
         }
     }
 
@@ -225,8 +219,8 @@ default_format = "human; echo 'injected'"
             "测试任务", // Chinese
             "🚀 Task with emoji",
             "café résumé naïve", // Accented characters
-            "русский текст", // Cyrillic
-            "🔥💯✨", // Only emojis
+            "русский текст",     // Cyrillic
+            "🔥💯✨",            // Only emojis
         ];
 
         for input in &unicode_inputs {
@@ -242,14 +236,16 @@ default_format = "human; echo 'injected'"
         let harness = CliHarness::new();
 
         // Test null byte injection attempts
-        let null_injected = format!("safe input\x00malicious");
+        let null_injected = "safe input\x00malicious".to_string();
 
         let mut result = harness.execute(["episode", "create", &null_injected]);
         match result.output() {
             Ok(output) => {
                 // If command spawned, it should fail
-                assert!(output.status.code().is_some(),
-                        "Null byte injection should cause failure");
+                assert!(
+                    output.status.code().is_some(),
+                    "Null byte injection should cause failure"
+                );
             }
             Err(_) => {
                 // Command failed to spawn due to null bytes - this is acceptable security behavior
@@ -322,12 +318,10 @@ batch_size = 10
             "| cat",
             "../etc/passwd",
             "..\\windows\\system32",
-
             // Template injection
             "{{7*7}}",
             "${config.__class__.__bases__[0].__subclasses__()}",
             "{{config.__class__.__bases__[0].__subclasses__()}}",
-
             // Path traversal
             "../../../etc/passwd",
             "..\\..\\..\\windows\\system32",
@@ -336,17 +330,15 @@ batch_size = 10
             "~/malicious",
             "${HOME}/malicious",
             "{{config.__class__.__bases__[0].__subclasses__()}}",
-
             // Null byte injection
             "task\x00malicious",
-
             // Very long inputs (DoS attempt)
             &long_input,
         ];
 
         for input in malicious_inputs {
             // Test episode creation
-            let mut result = harness.execute(&["episode", "create", "--task", input]);
+            let mut result = harness.execute(["episode", "create", "--task", input]);
             let output = match result.output() {
                 Ok(output) => output,
                 Err(_) => {
@@ -358,16 +350,22 @@ batch_size = 10
 
             // Should fail safely, not execute dangerous operations
             // The CLI may fail due to missing features, but shouldn't crash or execute commands
-            assert!(output.status.code().is_some(),
-                    "Input '{}' caused crash instead of safe failure", input);
+            assert!(
+                output.status.code().is_some(),
+                "Input '{}' caused crash instead of safe failure",
+                input
+            );
 
             // Should not contain signs of successful command execution
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
 
             // Basic check that dangerous commands weren't executed
-            assert!(!stdout.contains("hacked") && !stderr.contains("hacked"),
-                    "Input '{}' may have led to command execution", input);
+            assert!(
+                !stdout.contains("hacked") && !stderr.contains("hacked"),
+                "Input '{}' may have led to command execution",
+                input
+            );
         }
     }
 
@@ -381,23 +379,18 @@ batch_size = 10
             "../../../etc/passwd",
             "../../../../root/.ssh/id_rsa",
             "..\\..\\..\\windows\\system32\\cmd.exe",
-
             // Encoded traversal
             "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
             "..%2f..%2f..%2fetc%2fpasswd",
-
             // Unicode normalization attempts
             "..\u{2216}..\u{2216}..\u{2216}windows\u{2216}system32", // Unicode division slash
-
             // Absolute paths
             "/etc/passwd",
             "C:\\Windows\\System32\\cmd.exe",
             "/root/.bashrc",
-
             // Nested traversal
             "safe/../../../dangerous",
             "path/../../../etc/passwd",
-
             // URL-style traversal
             "file:///etc/passwd",
             "file://c:/windows/system32/cmd.exe",
@@ -416,8 +409,12 @@ batch_size = 10
                 let output = result.output().unwrap();
 
                 // Should fail safely
-                assert!(output.status.code().is_some(),
-                        "Path '{}' caused crash in command {:?}", path, cmd);
+                assert!(
+                    output.status.code().is_some(),
+                    "Path '{}' caused crash in command {:?}",
+                    path,
+                    cmd
+                );
             }
         }
     }
@@ -433,38 +430,40 @@ batch_size = 10
             "task'; DROP TABLE episodes; --",
             "task' UNION SELECT password FROM users--",
             "task' AND 1=0 UNION SELECT username, password FROM admin--",
-
             // Time-based injection attempts
             "task' AND SLEEP(5)--",
             "task' WAITFOR DELAY '0:0:5'--",
-
             // Error-based injection
             "task' AND 1=0 UNION SELECT 1,@@version--",
-
             // Stacked queries
             "task'; SELECT * FROM episodes; --",
             "task'; DELETE FROM patterns WHERE 1=1; --",
-
             // Comment evasion
             "task'/*comment*/OR/*comment*/'1'='1",
             "task'#comment\nOR '1'='1",
         ];
 
         for injection in sql_injection_attempts {
-            let mut result = harness.execute(&["episode", "create", "--task", injection]);
+            let mut result = harness.execute(["episode", "create", "--task", injection]);
             let output = result.output().unwrap();
 
             // Should fail safely without executing SQL
-            assert!(output.status.code().is_some(),
-                    "SQL injection '{}' caused crash", injection);
+            assert!(
+                output.status.code().is_some(),
+                "SQL injection '{}' caused crash",
+                injection
+            );
 
             // Should not show signs of SQL execution (like actual data)
             let stdout = String::from_utf8_lossy(&output.stdout);
             let _stderr = String::from_utf8_lossy(&output.stderr);
 
             // Basic check - shouldn't contain database-like output
-            assert!(!stdout.contains("SELECT") && !stdout.contains("DROP"),
-                    "SQL injection '{}' may have been executed", injection);
+            assert!(
+                !stdout.contains("SELECT") && !stdout.contains("DROP"),
+                "SQL injection '{}' may have been executed",
+                injection
+            );
         }
     }
 
@@ -480,25 +479,34 @@ batch_size = 10
         ];
 
         for (description, input) in large_inputs {
-            let mut result = harness.execute(&["episode", "create", "--task", &input]);
+            let mut result = harness.execute(["episode", "create", "--task", &input]);
             let output = match result.output() {
                 Ok(output) => output,
                 Err(_) => {
                     // Command failed to spawn (e.g., due to argument list too long)
                     // This is acceptable behavior for very large inputs
-                    println!("{} failed to spawn (argument list too long) - acceptable", description);
+                    println!(
+                        "{} failed to spawn (argument list too long) - acceptable",
+                        description
+                    );
                     continue;
                 }
             };
 
             // Should handle large inputs without crashing
-            assert!(output.status.code().is_some(),
-                    "{} caused crash", description);
+            assert!(
+                output.status.code().is_some(),
+                "{} caused crash",
+                description
+            );
 
             // Should not consume excessive memory (basic check)
             // In a real scenario, you'd monitor actual memory usage
-            println!("{} handled successfully (exit code: {:?})",
-                     description, output.status.code());
+            println!(
+                "{} handled successfully (exit code: {:?})",
+                description,
+                output.status.code()
+            );
         }
     }
 
@@ -508,16 +516,22 @@ batch_size = 10
 
         // Test that config files can't be used for attacks
         let large_token = "x".repeat(1024 * 1024);
-        let large_config_base = format!(r#"
+        let large_config_base = format!(
+            r#"
 [database]
 turso_url = "file:test.db"
 turso_token = "{}"
 
 [storage]
 max_episodes_cache = 100
-"#, large_token);
+"#,
+            large_token
+        );
 
-        let large_config_complete = format!("{}\n{}", large_config_base, r#"
+        let large_config_complete = format!(
+            "{}\n{}",
+            large_config_base,
+            r#"
 cache_ttl_seconds = 3600
 pool_size = 5
 
@@ -525,11 +539,13 @@ pool_size = 5
 default_format = "human"
 progress_bars = false
 batch_size = 10
-"#);
+"#
+        );
 
         let malicious_configs = vec![
             // Config with command injection in values
-            (r#"
+            (
+                r#"
 [database]
 turso_url = "file:test.db"
 turso_token = "; rm -rf /"
@@ -543,10 +559,12 @@ pool_size = 5
 default_format = "human"
 progress_bars = false
 batch_size = 10
-"#, "command_injection"),
-
+"#,
+                "command_injection",
+            ),
             // Config with path traversal
-            (r#"
+            (
+                r#"
 [database]
 turso_url = "file:../../../etc/passwd"
 
@@ -559,18 +577,22 @@ pool_size = 5
 default_format = "human"
 progress_bars = false
 batch_size = 10
-"#, "path_traversal"),
-
+"#,
+                "path_traversal",
+            ),
             // Config with extremely large values (DoS)
             (&large_config_complete, "large_values"),
         ];
 
         for (config_content, attack_type) in malicious_configs {
-            let config_path = temp_dir.path().join(format!("malicious_{}.toml", attack_type));
+            let config_path = temp_dir
+                .path()
+                .join(format!("malicious_{}.toml", attack_type));
             fs::write(&config_path, config_content).unwrap();
 
             #[allow(deprecated)]
-            let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+            let mut cmd =
+                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config").arg("show");
 
@@ -582,9 +604,8 @@ batch_size = 10
                 "large_values" => {
                     // Large configs might succeed or fail gracefully
                     let output = result.get_output();
-                    assert!(output.status.code().is_some(),
-                            "Large config caused crash");
-                },
+                    assert!(output.status.code().is_some(), "Large config caused crash");
+                }
                 _ => {
                     // Other attacks should be handled
                     result.success(); // Config loading should work, even if values are suspicious
@@ -610,19 +631,25 @@ batch_size = 10
         ];
 
         for format in malicious_formats {
-            let mut result = harness.execute(&["--format", format, "config"]);
+            let mut result = harness.execute(["--format", format, "config"]);
             let output = result.output().unwrap();
 
             // Should fail safely
-            assert!(output.status.code().is_some(),
-                    "Format '{}' caused crash", format);
+            assert!(
+                output.status.code().is_some(),
+                "Format '{}' caused crash",
+                format
+            );
 
             // Should not show signs of command execution
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
 
-            assert!(!stdout.contains("hacked") && !stderr.contains("hacked"),
-                    "Format '{}' may have led to command execution", format);
+            assert!(
+                !stdout.contains("hacked") && !stderr.contains("hacked"),
+                "Format '{}' may have led to command execution",
+                format
+            );
         }
     }
 
@@ -639,11 +666,9 @@ batch_size = 10
             ("123", "numeric id"),
             ("../../../etc/passwd", "path traversal in id"),
             ("; DROP TABLE episodes;", "sql injection in id"),
-
             // Invalid task descriptions
             ("", "empty task"),
             (&long_input, "extremely long task"),
-
             // Invalid numeric parameters
             ("--limit", "non-numeric limit"),
             ("--batch-size", "non-numeric batch size"),
@@ -670,8 +695,12 @@ batch_size = 10
                     };
 
                     // Should fail safely with validation error
-                    assert!(output.status.code().is_some(),
-                            "Invalid arg '{}' in command {:?} caused crash", arg_value, cmd);
+                    assert!(
+                        output.status.code().is_some(),
+                        "Invalid arg '{}' in command {:?} caused crash",
+                        arg_value,
+                        cmd
+                    );
                 }
             }
         }

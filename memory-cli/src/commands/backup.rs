@@ -3,7 +3,6 @@ use serde::Serialize;
 use std::path::PathBuf;
 use tokio::fs;
 
-
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 
@@ -115,10 +114,18 @@ impl Output for BackupResult {
         writeln!(writer, "Backup ID: {}", self.backup_id.cyan())?;
         writeln!(writer, "Path: {}", self.path)?;
         writeln!(writer, "Format: {}", self.format)?;
-        writeln!(writer, "Compressed: {}", if self.compressed { "Yes" } else { "No" })?;
+        writeln!(
+            writer,
+            "Compressed: {}",
+            if self.compressed { "Yes" } else { "No" }
+        )?;
         writeln!(writer, "Episodes: {}", self.episodes_count)?;
         writeln!(writer, "Patterns: {}", self.patterns_count)?;
-        writeln!(writer, "Size: {:.2} MB", self.size_bytes as f64 / 1_000_000.0)?;
+        writeln!(
+            writer,
+            "Size: {:.2} MB",
+            self.size_bytes as f64 / 1_000_000.0
+        )?;
         writeln!(writer, "Duration: {}ms", self.duration_ms)?;
         writeln!(writer, "Timestamp: {}", self.timestamp)?;
 
@@ -138,8 +145,11 @@ impl Output for BackupList {
             return Ok(());
         }
 
-        writeln!(writer, "{:<36} {:<12} {:<8} {:<8} {:<10} {:<12}",
-                "Backup ID", "Timestamp", "Format", "Episodes", "Patterns", "Size")?;
+        writeln!(
+            writer,
+            "{:<36} {:<12} {:<8} {:<8} {:<10} {:<12}",
+            "Backup ID", "Timestamp", "Format", "Episodes", "Patterns", "Size"
+        )?;
         writeln!(writer, "{}", "─".repeat(90))?;
 
         for backup in &self.backups {
@@ -148,18 +158,25 @@ impl Output for BackupList {
             } else {
                 backup.id.clone()
             };
-            writeln!(writer, "{:<36} {:<12} {:<8} {:<8} {:<10} {:<12.1}MB",
-                    id_short,
-                    backup.timestamp,
-                    backup.format,
-                    backup.episodes_count,
-                    backup.patterns_count,
-                    backup.size_bytes as f64 / 1_000_000.0)?;
+            writeln!(
+                writer,
+                "{:<36} {:<12} {:<8} {:<8} {:<10} {:<12.1}MB",
+                id_short,
+                backup.timestamp,
+                backup.format,
+                backup.episodes_count,
+                backup.patterns_count,
+                backup.size_bytes as f64 / 1_000_000.0
+            )?;
         }
 
         writeln!(writer, "{}", "─".repeat(90))?;
         writeln!(writer, "Total backups: {}", self.backups.len())?;
-        writeln!(writer, "Total size: {:.2} MB", self.total_size_bytes as f64 / 1_000_000.0)?;
+        writeln!(
+            writer,
+            "Total size: {:.2} MB",
+            self.total_size_bytes as f64 / 1_000_000.0
+        )?;
 
         Ok(())
     }
@@ -170,9 +187,17 @@ impl Output for RestoreResult {
         use colored::*;
 
         if self.errors.is_empty() {
-            writeln!(writer, "{}", "Restore Completed Successfully".bold().green())?;
+            writeln!(
+                writer,
+                "{}",
+                "Restore Completed Successfully".bold().green()
+            )?;
         } else {
-            writeln!(writer, "{}", "Restore Completed with Errors".bold().yellow())?;
+            writeln!(
+                writer,
+                "{}",
+                "Restore Completed with Errors".bold().yellow()
+            )?;
         }
 
         writeln!(writer, "{}", "─".repeat(40))?;
@@ -246,9 +271,13 @@ pub async fn create_backup(
 
     // Get all episodes (using storage backend directly)
     let episodes = if let Some(turso) = memory.turso_storage() {
-        turso.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        turso
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else if let Some(cache) = memory.cache_storage() {
-        cache.query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365)).await?
+        cache
+            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .await?
     } else {
         Vec::new()
     };
@@ -326,16 +355,22 @@ pub async fn create_backup(
 
             for episode in &episodes {
                 if let Ok(json) = serde_json::to_string(episode) {
-                    sql_content.push_str(&format!("INSERT OR REPLACE INTO episodes (episode_id, data) VALUES ('{}', '{}');\n",
-                                                episode.episode_id, json.replace("'", "''")));
+                    sql_content.push_str(&format!(
+                        "INSERT OR REPLACE INTO episodes (episode_id, data) VALUES ('{}', '{}');\n",
+                        episode.episode_id,
+                        json.replace("'", "''")
+                    ));
                 }
             }
 
             sql_content.push_str("\n-- Patterns\n");
             for pattern in &patterns {
                 if let Ok(json) = serde_json::to_string(pattern) {
-                    sql_content.push_str(&format!("INSERT OR REPLACE INTO patterns (pattern_id, data) VALUES ('{}', '{}');\n",
-                                                pattern.id(), json.replace("'", "''")));
+                    sql_content.push_str(&format!(
+                        "INSERT OR REPLACE INTO patterns (pattern_id, data) VALUES ('{}', '{}');\n",
+                        pattern.id(),
+                        json.replace("'", "''")
+                    ));
                 }
             }
 
@@ -371,7 +406,9 @@ pub async fn create_backup(
         patterns_count,
         size_bytes: total_size,
         duration_ms,
-        timestamp: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+        timestamp: chrono::Utc::now()
+            .format("%Y-%m-%d %H:%M:%S UTC")
+            .to_string(),
     };
 
     format.print_output(&result)?;
@@ -401,19 +438,32 @@ pub async fn list_backups(
                 match fs::read_to_string(&metadata_file).await {
                     Ok(content) => {
                         if let Ok(metadata) = serde_json::from_str::<serde_json::Value>(&content) {
-                            let backup_id = metadata["backup_id"].as_str().unwrap_or("unknown").to_string();
-                            let timestamp = metadata["timestamp"].as_str().unwrap_or("unknown").to_string();
-                            let backup_format = metadata["format"].as_str().unwrap_or("unknown").to_string();
+                            let backup_id = metadata["backup_id"]
+                                .as_str()
+                                .unwrap_or("unknown")
+                                .to_string();
+                            let timestamp = metadata["timestamp"]
+                                .as_str()
+                                .unwrap_or("unknown")
+                                .to_string();
+                            let backup_format =
+                                metadata["format"].as_str().unwrap_or("unknown").to_string();
                             let compressed = metadata["compressed"].as_bool().unwrap_or(false);
-                            let episodes_count = metadata["episodes_count"].as_u64().unwrap_or(0) as usize;
-                            let patterns_count = metadata["patterns_count"].as_u64().unwrap_or(0) as usize;
+                            let episodes_count =
+                                metadata["episodes_count"].as_u64().unwrap_or(0) as usize;
+                            let patterns_count =
+                                metadata["patterns_count"].as_u64().unwrap_or(0) as usize;
                             let size_bytes = metadata["size_bytes"].as_u64().unwrap_or(0);
 
                             backups.push(BackupInfo {
                                 id: backup_id,
-                                timestamp: timestamp.split('T').next().unwrap_or("unknown").to_string(),
+                                timestamp: timestamp
+                                    .split('T')
+                                    .next()
+                                    .unwrap_or("unknown")
+                                    .to_string(),
                                 format: backup_format,
-        compressed,
+                                compressed,
                                 episodes_count,
                                 patterns_count,
                                 size_bytes,
@@ -457,7 +507,11 @@ pub async fn restore_backup(
     }
 
     if dry_run {
-        println!("DRY RUN: Would restore backup {} from {}", backup_id, backup_dir.display());
+        println!(
+            "DRY RUN: Would restore backup {} from {}",
+            backup_id,
+            backup_dir.display()
+        );
         println!("Force mode: {}", force);
         return Ok(());
     }
@@ -493,7 +547,9 @@ pub async fn restore_backup(
             if episodes_file.exists() {
                 match fs::read_to_string(&episodes_file).await {
                     Ok(content) => {
-                        if let Ok(episodes) = serde_json::from_str::<Vec<memory_core::Episode>>(&content) {
+                        if let Ok(episodes) =
+                            serde_json::from_str::<Vec<memory_core::Episode>>(&content)
+                        {
                             for episode in episodes {
                                 // Note: We can't directly store episodes through the memory interface
                                 // In a real implementation, we'd need to extend the interface or use storage directly
@@ -511,7 +567,9 @@ pub async fn restore_backup(
             if patterns_file.exists() {
                 match fs::read_to_string(&patterns_file).await {
                     Ok(content) => {
-                        if let Ok(patterns) = serde_json::from_str::<Vec<memory_core::Pattern>>(&content) {
+                        if let Ok(patterns) =
+                            serde_json::from_str::<Vec<memory_core::Pattern>>(&content)
+                        {
                             for pattern in patterns {
                                 // Note: We can't directly store patterns through the memory interface
                                 // In a real implementation, we'd need to extend the interface or use storage directly
@@ -585,23 +643,21 @@ pub async fn verify_backup(
     let episodes_file = backup_dir.join("episodes.json");
     if episodes_file.exists() {
         match fs::read_to_string(&episodes_file).await {
-            Ok(content) => {
-                match serde_json::from_str::<Vec<serde_json::Value>>(&content) {
-                    Ok(episodes) => {
-                        episodes_count = episodes.len();
-                        for (i, episode) in episodes.iter().enumerate() {
-                            if !episode["episode_id"].is_string() {
-                                issues.push(format!("Episode {} missing episode_id", i));
-                                is_valid = false;
-                            }
+            Ok(content) => match serde_json::from_str::<Vec<serde_json::Value>>(&content) {
+                Ok(episodes) => {
+                    episodes_count = episodes.len();
+                    for (i, episode) in episodes.iter().enumerate() {
+                        if !episode["episode_id"].is_string() {
+                            issues.push(format!("Episode {} missing episode_id", i));
+                            is_valid = false;
                         }
                     }
-                    Err(e) => {
-                        issues.push(format!("Invalid episodes JSON: {}", e));
-                        is_valid = false;
-                    }
                 }
-            }
+                Err(e) => {
+                    issues.push(format!("Invalid episodes JSON: {}", e));
+                    is_valid = false;
+                }
+            },
             Err(e) => {
                 issues.push(format!("Cannot read episodes file: {}", e));
                 is_valid = false;
@@ -616,23 +672,21 @@ pub async fn verify_backup(
     let patterns_file = backup_dir.join("patterns.json");
     if patterns_file.exists() {
         match fs::read_to_string(&patterns_file).await {
-            Ok(content) => {
-                match serde_json::from_str::<Vec<serde_json::Value>>(&content) {
-                    Ok(patterns) => {
-                        patterns_count = patterns.len();
-                        for (i, pattern) in patterns.iter().enumerate() {
-                            if !pattern["pattern_id"].is_string() {
-                                issues.push(format!("Pattern {} missing pattern_id", i));
-                                is_valid = false;
-                            }
+            Ok(content) => match serde_json::from_str::<Vec<serde_json::Value>>(&content) {
+                Ok(patterns) => {
+                    patterns_count = patterns.len();
+                    for (i, pattern) in patterns.iter().enumerate() {
+                        if !pattern["pattern_id"].is_string() {
+                            issues.push(format!("Pattern {} missing pattern_id", i));
+                            is_valid = false;
                         }
                     }
-                    Err(e) => {
-                        issues.push(format!("Invalid patterns JSON: {}", e));
-                        is_valid = false;
-                    }
                 }
-            }
+                Err(e) => {
+                    issues.push(format!("Invalid patterns JSON: {}", e));
+                    is_valid = false;
+                }
+            },
             Err(e) => {
                 issues.push(format!("Cannot read patterns file: {}", e));
                 is_valid = false;

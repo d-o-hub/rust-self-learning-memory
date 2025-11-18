@@ -75,24 +75,68 @@ impl Output for MonitorStatus {
         writeln!(writer, "Uptime: {}s", self.uptime_seconds)?;
 
         writeln!(writer, "\nMemory Stats:")?;
-        writeln!(writer, "  Episodes Cached: {}", self.memory_usage.episodes_cached)?;
-        writeln!(writer, "  Patterns Cached: {}", self.memory_usage.patterns_cached)?;
-        writeln!(writer, "  Cache Hit Rate: {:.1}%", self.memory_usage.cache_hit_rate * 100.0)?;
-        writeln!(writer, "  Cache Size: {:.2} MB", self.memory_usage.cache_size_bytes as f64 / 1_000_000.0)?;
+        writeln!(
+            writer,
+            "  Episodes Cached: {}",
+            self.memory_usage.episodes_cached
+        )?;
+        writeln!(
+            writer,
+            "  Patterns Cached: {}",
+            self.memory_usage.patterns_cached
+        )?;
+        writeln!(
+            writer,
+            "  Cache Hit Rate: {:.1}%",
+            self.memory_usage.cache_hit_rate * 100.0
+        )?;
+        writeln!(
+            writer,
+            "  Cache Size: {:.2} MB",
+            self.memory_usage.cache_size_bytes as f64 / 1_000_000.0
+        )?;
 
         writeln!(writer, "\nStorage Stats:")?;
-        writeln!(writer, "  Total Episodes: {}", self.storage_stats.total_episodes)?;
-        writeln!(writer, "  Total Patterns: {}", self.storage_stats.total_patterns)?;
-        writeln!(writer, "  Storage Size: {:.2} MB", self.storage_stats.storage_size_bytes as f64 / 1_000_000.0)?;
+        writeln!(
+            writer,
+            "  Total Episodes: {}",
+            self.storage_stats.total_episodes
+        )?;
+        writeln!(
+            writer,
+            "  Total Patterns: {}",
+            self.storage_stats.total_patterns
+        )?;
+        writeln!(
+            writer,
+            "  Storage Size: {:.2} MB",
+            self.storage_stats.storage_size_bytes as f64 / 1_000_000.0
+        )?;
         if let Some(sync_time) = &self.storage_stats.last_sync_timestamp {
             writeln!(writer, "  Last Sync: {}", sync_time)?;
         }
 
         writeln!(writer, "\nPerformance Metrics:")?;
-        writeln!(writer, "  Avg Query Latency: {:.2}ms", self.performance_metrics.average_query_latency_ms)?;
-        writeln!(writer, "  Queries/Second: {:.2}", self.performance_metrics.queries_per_second)?;
-        writeln!(writer, "  Error Rate: {:.2}%", self.performance_metrics.error_rate * 100.0)?;
-        writeln!(writer, "  Active Connections: {}", self.performance_metrics.active_connections)?;
+        writeln!(
+            writer,
+            "  Avg Query Latency: {:.2}ms",
+            self.performance_metrics.average_query_latency_ms
+        )?;
+        writeln!(
+            writer,
+            "  Queries/Second: {:.2}",
+            self.performance_metrics.queries_per_second
+        )?;
+        writeln!(
+            writer,
+            "  Error Rate: {:.2}%",
+            self.performance_metrics.error_rate * 100.0
+        )?;
+        writeln!(
+            writer,
+            "  Active Connections: {}",
+            self.performance_metrics.active_connections
+        )?;
 
         Ok(())
     }
@@ -102,7 +146,11 @@ impl Output for MetricsExport {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 
-        writeln!(writer, "{}", format!("Metrics Export ({})", self.format).bold())?;
+        writeln!(
+            writer,
+            "{}",
+            format!("Metrics Export ({})", self.format).bold()
+        )?;
         writeln!(writer, "{}", "─".repeat(40))?;
         writeln!(writer, "Timestamp: {}", self.timestamp)?;
         writeln!(writer, "Content:")?;
@@ -123,7 +171,9 @@ pub async fn monitor_status(
 
     // Create mock monitoring data (in a real implementation, this would collect actual metrics)
     let status = MonitorStatus {
-        timestamp: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+        timestamp: chrono::Utc::now()
+            .format("%Y-%m-%d %H:%M:%S UTC")
+            .to_string(),
         uptime_seconds: std::process::id() as u64, // Placeholder
         memory_usage: MemoryStats {
             episodes_cached: completed_episodes,
@@ -135,13 +185,17 @@ pub async fn monitor_status(
             total_episodes,
             total_patterns,
             storage_size_bytes: (total_episodes * 2048 + total_patterns * 1024) as u64,
-            last_sync_timestamp: Some(chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string()),
+            last_sync_timestamp: Some(
+                chrono::Utc::now()
+                    .format("%Y-%m-%d %H:%M:%S UTC")
+                    .to_string(),
+            ),
         },
         performance_metrics: PerformanceMetrics {
             average_query_latency_ms: 45.2, // Mock value
-            queries_per_second: 12.5, // Mock value
-            error_rate: 0.02, // Mock value
-            active_connections: 3, // Mock value
+            queries_per_second: 12.5,       // Mock value
+            error_rate: 0.02,               // Mock value
+            active_connections: 3,          // Mock value
         },
     };
 
@@ -167,7 +221,9 @@ pub async fn export_metrics(
     // Get basic stats
     let (total_episodes, completed_episodes, total_patterns) = memory.get_stats().await;
 
-    let timestamp = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string();
+    let timestamp = chrono::Utc::now()
+        .format("%Y-%m-%d %H:%M:%S UTC")
+        .to_string();
 
     let content = match export_format {
         ExportFormat::Prometheus => {
@@ -176,21 +232,19 @@ pub async fn export_metrics(
                 total_episodes, total_patterns
             )
         }
-        ExportFormat::Json => {
-            serde_json::to_string_pretty(&serde_json::json!({
-                "timestamp": timestamp,
-                "metrics": {
-                    "episodes_total": total_episodes,
-                    "episodes_completed": completed_episodes,
-                    "patterns_total": total_patterns,
-                    "cache_hit_rate": 0.85,
-                    "average_query_latency_ms": 45.2,
-                    "queries_per_second": 12.5,
-                    "error_rate": 0.02,
-                    "active_connections": 3
-                }
-            }))?
-        }
+        ExportFormat::Json => serde_json::to_string_pretty(&serde_json::json!({
+            "timestamp": timestamp,
+            "metrics": {
+                "episodes_total": total_episodes,
+                "episodes_completed": completed_episodes,
+                "patterns_total": total_patterns,
+                "cache_hit_rate": 0.85,
+                "average_query_latency_ms": 45.2,
+                "queries_per_second": 12.5,
+                "error_rate": 0.02,
+                "active_connections": 3
+            }
+        }))?,
         ExportFormat::Influx => {
             format!(
                 "memory_stats episodes_total={},episodes_completed={},patterns_total={},cache_hit_rate=0.85,query_latency_ms=45.2,queries_per_second=12.5,error_rate=0.02,active_connections=3i",

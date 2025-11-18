@@ -5,8 +5,10 @@
 
 use anyhow::Result;
 use memory_core::{
-    episode::ExecutionStep, memory::SelfLearningMemory,
-    types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType}, MemoryConfig,
+    episode::ExecutionStep,
+    memory::SelfLearningMemory,
+    types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType},
+    MemoryConfig,
 };
 use std::sync::Arc;
 use tempfile::tempdir;
@@ -26,7 +28,10 @@ async fn main() -> Result<()> {
     println!("📋 Test 2: Dual Storage (Turso + redb)");
     println!("----------------------------------------");
     if let Err(e) = test_dual_storage().await {
-        println!("⚠️  Dual storage test failed (expected if Turso not configured): {}", e);
+        println!(
+            "⚠️  Dual storage test failed (expected if Turso not configured): {}",
+            e
+        );
         println!("✅ Dual storage test handled gracefully\n");
     } else {
         println!("✅ Dual storage test completed\n");
@@ -61,11 +66,7 @@ async fn test_redb_only() -> Result<()> {
 
     // Initialize memory system
     let config = MemoryConfig::default();
-    let memory = SelfLearningMemory::with_storage(
-        config,
-        Arc::new(storage),
-        Arc::new(cache),
-    );
+    let memory = SelfLearningMemory::with_storage(config, Arc::new(storage), Arc::new(cache));
 
     println!("✅ Memory system initialized with redb storage");
 
@@ -81,36 +82,58 @@ async fn test_redb_only() -> Result<()> {
     };
 
     // Episode 1: Create a simple task
-    let episode1 = memory.start_episode(
-        "Implement basic storage verification".to_string(),
-        context.clone(),
-        TaskType::CodeGeneration,
-    ).await;
+    let episode1 = memory
+        .start_episode(
+            "Implement basic storage verification".to_string(),
+            context.clone(),
+            TaskType::CodeGeneration,
+        )
+        .await;
 
     // Add some execution steps
-    let step1 = ExecutionStep::new(1, "analyzer".to_string(), "Analyze requirements".to_string());
+    let step1 = ExecutionStep::new(
+        1,
+        "analyzer".to_string(),
+        "Analyze requirements".to_string(),
+    );
     memory.log_step(episode1, step1).await;
 
-    let step2 = ExecutionStep::new(2, "generator".to_string(), "Generate verification code".to_string());
+    let step2 = ExecutionStep::new(
+        2,
+        "generator".to_string(),
+        "Generate verification code".to_string(),
+    );
     memory.log_step(episode1, step2).await;
 
     // Complete episode
-    memory.complete_episode(episode1, TaskOutcome::Success {
-        verdict: "Verification implementation completed successfully".to_string(),
-        artifacts: vec!["verification.rs".to_string()],
-    }).await?;
+    memory
+        .complete_episode(
+            episode1,
+            TaskOutcome::Success {
+                verdict: "Verification implementation completed successfully".to_string(),
+                artifacts: vec!["verification.rs".to_string()],
+            },
+        )
+        .await?;
 
     // Episode 2: Create another task
-    let episode2 = memory.start_episode(
-        "Test storage backend integration".to_string(),
-        context,
-        TaskType::Testing,
-    ).await;
+    let episode2 = memory
+        .start_episode(
+            "Test storage backend integration".to_string(),
+            context,
+            TaskType::Testing,
+        )
+        .await;
 
-    memory.complete_episode(episode2, TaskOutcome::Success {
-        verdict: "Storage integration test passed".to_string(),
-        artifacts: vec!["storage_test.rs".to_string()],
-    }).await?;
+    memory
+        .complete_episode(
+            episode2,
+            TaskOutcome::Success {
+                verdict: "Storage integration test passed".to_string(),
+                artifacts: vec!["storage_test.rs".to_string()],
+            },
+        )
+        .await?;
 
     println!("✅ Created 2 test episodes");
 
@@ -137,17 +160,19 @@ async fn test_redb_only() -> Result<()> {
 
     // Try to retrieve episodes (this tests the retrieval bug we identified)
     println!("🔍 Testing episode retrieval...");
-    let retrieved = memory.retrieve_relevant_context(
-        "verification test".to_string(),
-        TaskContext {
-            language: Some("rust".to_string()),
-            domain: "verification".to_string(),
-            framework: None,
-            complexity: ComplexityLevel::Moderate,
-            tags: vec!["test".to_string()],
-        },
-        10,
-    ).await;
+    let retrieved = memory
+        .retrieve_relevant_context(
+            "verification test".to_string(),
+            TaskContext {
+                language: Some("rust".to_string()),
+                domain: "verification".to_string(),
+                framework: None,
+                complexity: ComplexityLevel::Moderate,
+                tags: vec!["test".to_string()],
+            },
+            10,
+        )
+        .await;
 
     println!("  Retrieved episodes: {}", retrieved.len());
 
@@ -183,11 +208,7 @@ async fn test_dual_storage() -> Result<()> {
 
     // Initialize memory system with both backends
     let config = MemoryConfig::default();
-    let memory = SelfLearningMemory::with_storage(
-        config,
-        Arc::new(turso_storage),
-        Arc::new(cache),
-    );
+    let memory = SelfLearningMemory::with_storage(config, Arc::new(turso_storage), Arc::new(cache));
 
     println!("✅ Memory system initialized with Turso + redb");
 
@@ -197,19 +218,30 @@ async fn test_dual_storage() -> Result<()> {
         domain: "dual_storage_test".to_string(),
         framework: Some("tokio".to_string()),
         complexity: ComplexityLevel::Complex,
-        tags: vec!["dual".to_string(), "storage".to_string(), "test".to_string()],
+        tags: vec![
+            "dual".to_string(),
+            "storage".to_string(),
+            "test".to_string(),
+        ],
     };
 
-    let episode = memory.start_episode(
-        "Test dual storage functionality".to_string(),
-        context,
-        TaskType::Testing,
-    ).await;
+    let episode = memory
+        .start_episode(
+            "Test dual storage functionality".to_string(),
+            context,
+            TaskType::Testing,
+        )
+        .await;
 
-    memory.complete_episode(episode, TaskOutcome::Success {
-        verdict: "Dual storage test completed successfully".to_string(),
-        artifacts: vec!["dual_storage_test.rs".to_string()],
-    }).await?;
+    memory
+        .complete_episode(
+            episode,
+            TaskOutcome::Success {
+                verdict: "Dual storage test completed successfully".to_string(),
+                artifacts: vec!["dual_storage_test.rs".to_string()],
+            },
+        )
+        .await?;
 
     println!("✅ Created and completed episode in dual storage");
 
@@ -237,11 +269,7 @@ async fn test_data_persistence() -> Result<()> {
         let cache = memory_storage_redb::RedbStorage::new(&cache_path).await?;
 
         let config = MemoryConfig::default();
-        let memory = SelfLearningMemory::with_storage(
-            config,
-            Arc::new(storage),
-            Arc::new(cache),
-        );
+        let memory = SelfLearningMemory::with_storage(config, Arc::new(storage), Arc::new(cache));
 
         // Add data
         let context = TaskContext {
@@ -252,16 +280,23 @@ async fn test_data_persistence() -> Result<()> {
             tags: vec!["persistence".to_string(), "test".to_string()],
         };
 
-        let episode = memory.start_episode(
-            "Test data persistence".to_string(),
-            context,
-            TaskType::Testing,
-        ).await;
+        let episode = memory
+            .start_episode(
+                "Test data persistence".to_string(),
+                context,
+                TaskType::Testing,
+            )
+            .await;
 
-        memory.complete_episode(episode, TaskOutcome::Success {
-            verdict: "Persistence test data created".to_string(),
-            artifacts: vec![],
-        }).await?;
+        memory
+            .complete_episode(
+                episode,
+                TaskOutcome::Success {
+                    verdict: "Persistence test data created".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await?;
 
         println!("  ✅ Data added to first instance");
     } // First instance goes out of scope
@@ -272,11 +307,7 @@ async fn test_data_persistence() -> Result<()> {
     let cache2 = memory_storage_redb::RedbStorage::new(&cache_path).await?;
 
     let config2 = MemoryConfig::default();
-    let memory2 = SelfLearningMemory::with_storage(
-        config2,
-        Arc::new(storage2),
-        Arc::new(cache2),
-    );
+    let memory2 = SelfLearningMemory::with_storage(config2, Arc::new(storage2), Arc::new(cache2));
 
     // Check if data persists
     let (total_episodes, completed_episodes, total_patterns) = memory2.get_stats().await;
@@ -293,17 +324,19 @@ async fn test_data_persistence() -> Result<()> {
     }
 
     // Test retrieval
-    let retrieved = memory2.retrieve_relevant_context(
-        "persistence test".to_string(),
-        TaskContext {
-            language: Some("rust".to_string()),
-            domain: "persistence".to_string(),
-            framework: None,
-            complexity: ComplexityLevel::Simple,
-            tags: vec!["test".to_string()],
-        },
-        10,
-    ).await;
+    let retrieved = memory2
+        .retrieve_relevant_context(
+            "persistence test".to_string(),
+            TaskContext {
+                language: Some("rust".to_string()),
+                domain: "persistence".to_string(),
+                framework: None,
+                complexity: ComplexityLevel::Simple,
+                tags: vec!["test".to_string()],
+            },
+            10,
+        )
+        .await;
 
     if retrieved.is_empty() {
         println!("  ⚠️  Episode retrieval failed - known bug in current implementation");

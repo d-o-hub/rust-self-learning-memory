@@ -1,6 +1,6 @@
 use clap::Subcommand;
-use serde::Serialize;
 use colored::Colorize;
+use serde::Serialize;
 
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
@@ -105,7 +105,13 @@ impl Output for ConfigValidation {
                     IssueLevel::Warning => "WARN",
                     IssueLevel::Info => "INFO",
                 };
-                writeln!(writer, "  {} [{}] {}", level_str.color(level_color).bold(), issue.category, issue.message)?;
+                writeln!(
+                    writer,
+                    "  {} [{}] {}",
+                    level_str.color(level_color).bold(),
+                    issue.category,
+                    issue.message
+                )?;
                 if let Some(suggestion) = &issue.suggestion {
                     writeln!(writer, "    💡 {}", suggestion.italic())?;
                 }
@@ -176,7 +182,15 @@ impl Output for ConfigDisplay {
         } else {
             writeln!(writer, "  Turso URL: {}", "Not configured".yellow())?;
         }
-        writeln!(writer, "  Turso Token: {}", if self.database.turso_token_configured { "Configured" } else { "Not configured" })?;
+        writeln!(
+            writer,
+            "  Turso Token: {}",
+            if self.database.turso_token_configured {
+                "Configured"
+            } else {
+                "Not configured"
+            }
+        )?;
         if let Some(path) = &self.database.redb_path {
             writeln!(writer, "  redb Path: {}", path)?;
         } else {
@@ -184,7 +198,11 @@ impl Output for ConfigDisplay {
         }
 
         writeln!(writer, "\nStorage:")?;
-        writeln!(writer, "  Max Episodes Cache: {}", self.storage.max_episodes_cache)?;
+        writeln!(
+            writer,
+            "  Max Episodes Cache: {}",
+            self.storage.max_episodes_cache
+        )?;
         writeln!(writer, "  Cache TTL: {}s", self.storage.cache_ttl_seconds)?;
         writeln!(writer, "  Pool Size: {}", self.storage.pool_size)?;
 
@@ -330,7 +348,9 @@ pub async fn check_config(
             level: IssueLevel::Warning,
             category: "performance".to_string(),
             message: "max_episodes_cache is quite low".to_string(),
-            suggestion: Some("Consider increasing to at least 1000 for better performance".to_string()),
+            suggestion: Some(
+                "Consider increasing to at least 1000 for better performance".to_string(),
+            ),
         });
     }
 
@@ -387,12 +407,19 @@ pub async fn check_config(
         security_issues.push("Turso URL configured but no token provided".to_string());
     }
 
-    if config.database.redb_path.as_ref().is_some_and(|p| p.starts_with("/tmp")) {
-        recommendations.push("Consider using a persistent path for redb instead of /tmp".to_string());
+    if config
+        .database
+        .redb_path
+        .as_ref()
+        .is_some_and(|p| p.starts_with("/tmp"))
+    {
+        recommendations
+            .push("Consider using a persistent path for redb instead of /tmp".to_string());
     }
 
     if !config.cli.progress_bars {
-        recommendations.push("Consider enabling progress bars for better user experience".to_string());
+        recommendations
+            .push("Consider enabling progress bars for better user experience".to_string());
     }
 
     let check = ConfigCheck {
@@ -427,9 +454,14 @@ pub async fn show_config(
             batch_size: config.cli.batch_size,
         },
         features: vec![
-            #[cfg(feature = "turso")] "turso".to_string(),
-            #[cfg(feature = "redb")] "redb".to_string(),
-        ].into_iter().filter(|_| true).collect(),
+            #[cfg(feature = "turso")]
+            "turso".to_string(),
+            #[cfg(feature = "redb")]
+            "redb".to_string(),
+        ]
+        .into_iter()
+        .filter(|_| true)
+        .collect(),
     };
 
     format.print_output(&display)?;

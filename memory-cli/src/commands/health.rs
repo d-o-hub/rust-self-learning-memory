@@ -85,7 +85,13 @@ impl Output for HealthCheckResult {
 
         writeln!(writer, "{}", "Health Check Results".bold())?;
         writeln!(writer, "{}", "─".repeat(40))?;
-        writeln!(writer, "Overall Status: {}", format!("{:?}", self.overall_status).color(status_color).bold())?;
+        writeln!(
+            writer,
+            "Overall Status: {}",
+            format!("{:?}", self.overall_status)
+                .color(status_color)
+                .bold()
+        )?;
         writeln!(writer, "Timestamp: {}", self.timestamp)?;
 
         writeln!(writer, "\nComponent Status:")?;
@@ -95,7 +101,12 @@ impl Output for HealthCheckResult {
                 HealthStatus::Degraded => Color::Yellow,
                 HealthStatus::Unhealthy => Color::Red,
             };
-            write!(writer, "  {}: {}", component.name, format!("{:?}", component.status).color(comp_color))?;
+            write!(
+                writer,
+                "  {}: {}",
+                component.name,
+                format!("{:?}", component.status).color(comp_color)
+            )?;
             if let Some(latency) = component.latency_ms {
                 write!(writer, " ({}ms)", latency)?;
             }
@@ -114,7 +125,11 @@ impl Output for HealthCheckResult {
             writeln!(writer, "  CPU Usage: {:.1}%", cpu)?;
         }
         writeln!(writer, "  Uptime: {}s", self.metrics.uptime_seconds)?;
-        writeln!(writer, "  Active Connections: {}", self.metrics.active_connections)?;
+        writeln!(
+            writer,
+            "  Active Connections: {}",
+            self.metrics.active_connections
+        )?;
 
         Ok(())
     }
@@ -131,7 +146,11 @@ impl Output for HealthStatusSummary {
         };
 
         writeln!(writer, "{}", "Health Status".bold())?;
-        writeln!(writer, "Status: {}", format!("{:?}", self.status).color(status_color).bold())?;
+        writeln!(
+            writer,
+            "Status: {}",
+            format!("{:?}", self.status).color(status_color).bold()
+        )?;
         writeln!(writer, "Last Check: {}", self.last_check)?;
 
         if let Some(next) = &self.next_check {
@@ -165,7 +184,11 @@ pub async fn health_check(
                 let latency = start.elapsed().as_millis() as u64;
                 components.push(ComponentHealth {
                     name: "Turso Storage".to_string(),
-                    status: if latency < 100 { HealthStatus::Healthy } else { HealthStatus::Degraded },
+                    status: if latency < 100 {
+                        HealthStatus::Healthy
+                    } else {
+                        HealthStatus::Degraded
+                    },
                     latency_ms: Some(latency),
                     error: None,
                     details: serde_json::json!({
@@ -208,7 +231,11 @@ pub async fn health_check(
                 let latency = start.elapsed().as_millis() as u64;
                 components.push(ComponentHealth {
                     name: "redb Cache".to_string(),
-                    status: if latency < 10 { HealthStatus::Healthy } else { HealthStatus::Degraded },
+                    status: if latency < 10 {
+                        HealthStatus::Healthy
+                    } else {
+                        HealthStatus::Degraded
+                    },
                     latency_ms: Some(latency),
                     error: None,
                     details: serde_json::json!({
@@ -259,9 +286,15 @@ pub async fn health_check(
     });
 
     // Determine overall status
-    let overall_status = if components.iter().any(|c| c.status == HealthStatus::Unhealthy) {
+    let overall_status = if components
+        .iter()
+        .any(|c| c.status == HealthStatus::Unhealthy)
+    {
         HealthStatus::Unhealthy
-    } else if components.iter().any(|c| c.status == HealthStatus::Degraded) {
+    } else if components
+        .iter()
+        .any(|c| c.status == HealthStatus::Degraded)
+    {
         HealthStatus::Degraded
     } else {
         HealthStatus::Healthy
@@ -269,8 +302,8 @@ pub async fn health_check(
 
     // Get system metrics (simplified)
     let metrics = SystemMetrics {
-        memory_usage_mb: None, // Would need system monitoring
-        cpu_usage_percent: None, // Would need system monitoring
+        memory_usage_mb: None,                     // Would need system monitoring
+        cpu_usage_percent: None,                   // Would need system monitoring
         uptime_seconds: std::process::id() as u64, // Placeholder
         active_connections: components.len(),
     };
@@ -279,7 +312,9 @@ pub async fn health_check(
         overall_status,
         components,
         metrics,
-        timestamp: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+        timestamp: chrono::Utc::now()
+            .format("%Y-%m-%d %H:%M:%S UTC")
+            .to_string(),
     };
 
     format.print_output(&result)?;
@@ -314,7 +349,9 @@ pub async fn health_status(
 
     let summary = HealthStatusSummary {
         status,
-        last_check: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+        last_check: chrono::Utc::now()
+            .format("%Y-%m-%d %H:%M:%S UTC")
+            .to_string(),
         next_check: None,
         issues,
     };
@@ -332,7 +369,10 @@ pub async fn health_monitor(
     dry_run: bool,
 ) -> anyhow::Result<()> {
     if dry_run {
-        println!("DRY RUN: Would monitor health every {}s for {}s", interval, duration);
+        println!(
+            "DRY RUN: Would monitor health every {}s for {}s",
+            interval, duration
+        );
         return Ok(());
     }
 
@@ -345,7 +385,10 @@ pub async fn health_monitor(
 
     let start_time = std::time::Instant::now();
 
-    println!("Starting health monitoring (interval: {}s, duration: {}s)", interval, duration);
+    println!(
+        "Starting health monitoring (interval: {}s, duration: {}s)",
+        interval, duration
+    );
     println!("Press Ctrl+C to stop...");
 
     loop {

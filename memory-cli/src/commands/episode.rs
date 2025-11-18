@@ -148,7 +148,12 @@ impl Output for EpisodeList {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 
-        writeln!(writer, "{} episodes (showing {})", self.total_count, self.episodes.len())?;
+        writeln!(
+            writer,
+            "{} episodes (showing {})",
+            self.total_count,
+            self.episodes.len()
+        )?;
         writeln!(writer, "{}", "─".repeat(80))?;
 
         for episode in &self.episodes {
@@ -158,11 +163,20 @@ impl Output for EpisodeList {
                 _ => (Color::Red, "✗"),
             };
 
-            let id_display = format!("{:<8}", &episode.episode_id[..episode.episode_id.len().min(8)]);
-            let task_display = episode.task_description.chars().take(50).collect::<String>();
+            let id_display = format!(
+                "{:<8}",
+                &episode.episode_id[..episode.episode_id.len().min(8)]
+            );
+            let task_display = episode
+                .task_description
+                .chars()
+                .take(50)
+                .collect::<String>();
             let status_display = format!("{} {}", status_icon, episode.status);
 
-            writeln!(writer, "{} {} {}",
+            writeln!(
+                writer,
+                "{} {} {}",
                 id_display.dimmed(),
                 task_display,
                 status_display.color(status_color).bold()
@@ -181,8 +195,6 @@ pub async fn create_episode(
     _format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-
-
     if dry_run {
         println!("Would create episode with task: {}", task);
         if let Some(context_path) = context {
@@ -221,15 +233,16 @@ pub async fn create_episode(
         };
 
         // Create storage backends
-        let turso_url = config.database.turso_url.as_ref()
-            .ok_or_else(|| anyhow::anyhow!(
+        let turso_url = config.database.turso_url.as_ref().ok_or_else(|| {
+            anyhow::anyhow!(
                 "Turso database URL not configured.\n\
                  \nPlease configure the database URL in your config file:\n\
                  \n[database]\n\
                  turso_url = \"libsql://your-db.turso.io\"\n\
                  turso_token = \"your-auth-token\"\n\
                  \nOr set the MEMORY_TURSO_URL environment variable."
-            ))?;
+            )
+        })?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
         let turso_storage = TursoStorage::new(turso_url, token).await?;
@@ -237,7 +250,9 @@ pub async fn create_episode(
 
         #[cfg(feature = "redb")]
         let cache_storage = if let Some(path) = &config.database.redb_path {
-            Some(Arc::new(RedbStorage::new(std::path::Path::new(path)).await?))
+            Some(Arc::new(
+                RedbStorage::new(std::path::Path::new(path)).await?,
+            ))
         } else {
             None
         };
@@ -248,14 +263,20 @@ pub async fn create_episode(
         let memory = if let Some(cache) = cache_storage {
             SelfLearningMemory::with_storage(memory_config, turso, cache)
         } else {
-            SelfLearningMemory::with_storage(memory_config, turso, Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?))
+            SelfLearningMemory::with_storage(
+                memory_config,
+                turso,
+                Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?),
+            )
         };
 
         #[cfg(not(feature = "redb"))]
         let memory = SelfLearningMemory::new(); // Fallback to in-memory only
 
         // Start the episode
-        let episode_id = memory.start_episode(task.clone(), context_data, TaskType::CodeGeneration).await;
+        let episode_id = memory
+            .start_episode(task.clone(), context_data, TaskType::CodeGeneration)
+            .await;
 
         // Output the result
         #[derive(Debug, serde::Serialize)]
@@ -293,21 +314,26 @@ pub async fn list_episodes(
     _config: &Config,
     _format: OutputFormat,
 ) -> anyhow::Result<()> {
-    #[cfg(feature = "turso")]
-    use memory_storage_turso::{TursoStorage, EpisodeQuery};
     #[allow(unused_imports)]
     use memory_core::TaskType as CoreTaskType;
+    #[cfg(feature = "turso")]
+    use memory_storage_turso::{EpisodeQuery, TursoStorage};
     #[allow(unused_imports)]
     use std::sync::Arc;
 
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!("Turso storage feature not enabled. Use --features turso to enable."));
+    return Err(anyhow::anyhow!(
+        "Turso storage feature not enabled. Use --features turso to enable."
+    ));
 
     #[cfg(feature = "turso")]
     {
         // Create storage backend
-        let turso_url = config.database.turso_url.as_ref()
+        let turso_url = config
+            .database
+            .turso_url
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
@@ -330,8 +356,9 @@ pub async fn list_episodes(
                 "documentation" => Some(CoreTaskType::Documentation),
                 "refactoring" => Some(CoreTaskType::Refactoring),
                 "other" => Some(CoreTaskType::Other),
-                _ => return Err(anyhow::anyhow!(
-                    "Invalid task type: '{}'.\n\
+                _ => {
+                    return Err(anyhow::anyhow!(
+                        "Invalid task type: '{}'.\n\
                      \nValid task types:\n\
                      • code_generation - Code generation tasks\n\
                      • debugging - Debugging and troubleshooting\n\
@@ -341,8 +368,9 @@ pub async fn list_episodes(
                      • refactoring - Code refactoring\n\
                      • other - Other task types\n\
                      \nExample: memory-cli episode list --task-type debugging",
-                    task_type_str
-                )),
+                        task_type_str
+                    ))
+                }
             };
         }
 
@@ -353,10 +381,14 @@ pub async fn list_episodes(
         let episode_summaries: Vec<EpisodeSummary> = episodes
             .into_iter()
             .map(|episode| {
-                let status = if episode.is_complete() { "completed" } else { "in_progress" };
-                let duration_ms = episode.end_time.map(|end| {
-                    (end - episode.start_time).num_milliseconds() as u64
-                });
+                let status = if episode.is_complete() {
+                    "completed"
+                } else {
+                    "in_progress"
+                };
+                let duration_ms = episode
+                    .end_time
+                    .map(|end| (end - episode.start_time).num_milliseconds() as u64);
 
                 EpisodeSummary {
                     episode_id: episode.episode_id.to_string(),
@@ -386,10 +418,10 @@ pub async fn view_episode(
     let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
     use memory_core::SelfLearningMemory;
-    #[cfg(feature = "turso")]
-    use memory_storage_turso::TursoStorage;
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[cfg(feature = "turso")]
+    use memory_storage_turso::TursoStorage;
     #[allow(unused_imports)]
     use std::sync::Arc;
     #[allow(unused_imports)]
@@ -397,7 +429,9 @@ pub async fn view_episode(
 
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!("Turso storage feature not enabled. Use --features turso to enable."));
+    return Err(anyhow::anyhow!(
+        "Turso storage feature not enabled. Use --features turso to enable."
+    ));
 
     #[cfg(feature = "turso")]
     {
@@ -406,7 +440,10 @@ pub async fn view_episode(
             .with_context(|| format!("Invalid episode ID format: {}", episode_id))?;
 
         // Create storage backends
-        let turso_url = config.database.turso_url.as_ref()
+        let turso_url = config
+            .database
+            .turso_url
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
@@ -415,7 +452,9 @@ pub async fn view_episode(
 
         #[cfg(feature = "redb")]
         let cache_storage = if let Some(path) = &config.database.redb_path {
-            Some(Arc::new(RedbStorage::new(std::path::Path::new(path)).await?))
+            Some(Arc::new(
+                RedbStorage::new(std::path::Path::new(path)).await?,
+            ))
         } else {
             None
         };
@@ -426,14 +465,26 @@ pub async fn view_episode(
         let memory = if let Some(cache) = cache_storage {
             SelfLearningMemory::with_storage(memory_config, turso, cache)
         } else {
-            SelfLearningMemory::with_storage(memory_config, turso, Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?))
+            SelfLearningMemory::with_storage(
+                memory_config,
+                turso,
+                Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?),
+            )
         };
 
         #[cfg(not(feature = "redb"))]
-        let memory = SelfLearningMemory::with_storage(memory_config, turso, Arc::new(memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?));
+        let memory = SelfLearningMemory::with_storage(
+            memory_config,
+            turso,
+            Arc::new(
+                memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?,
+            ),
+        );
 
         // Get the episode
-        let episode = memory.get_episode(episode_uuid).await
+        let episode = memory
+            .get_episode(episode_uuid)
+            .await
             .with_context(|| format!("Episode not found: {}", episode_id_str))?;
 
         // Create a detailed view
@@ -464,7 +515,15 @@ pub async fn view_episode(
                 writeln!(writer, "ID: {}", self.episode_id.dimmed())?;
                 writeln!(writer, "Task: {}", self.task_description)?;
                 writeln!(writer, "Type: {}", self.task_type)?;
-                writeln!(writer, "Status: {}", if self.completed_at.is_some() { "Completed".green() } else { "In Progress".yellow() })?;
+                writeln!(
+                    writer,
+                    "Status: {}",
+                    if self.completed_at.is_some() {
+                        "Completed".green()
+                    } else {
+                        "In Progress".yellow()
+                    }
+                )?;
                 writeln!(writer, "Created: {}", self.created_at)?;
 
                 if let Some(completed) = &self.completed_at {
@@ -489,15 +548,38 @@ pub async fn view_episode(
             task_description: episode.task_description,
             task_type: episode.task_type.to_string(),
             context: serde_json::to_value(&episode.context)?,
-            status: if is_completed { "completed" } else { "in_progress" }.to_string(),
+            status: if is_completed {
+                "completed"
+            } else {
+                "in_progress"
+            }
+            .to_string(),
             created_at: episode.start_time.to_rfc3339(),
             completed_at: episode.end_time.map(|t| t.to_rfc3339()),
-            duration_ms: episode.end_time.map(|end| (end - episode.start_time).num_milliseconds()),
+            duration_ms: episode
+                .end_time
+                .map(|end| (end - episode.start_time).num_milliseconds()),
             steps_count: episode.steps.len(),
-            steps: episode.steps.iter().map(|s| serde_json::to_value(s)).collect::<Result<Vec<_>, _>>()?,
-            outcome: episode.outcome.as_ref().map(|o| serde_json::to_value(o)).transpose()?,
-            reward: episode.reward.as_ref().map(|r| serde_json::to_value(r)).transpose()?,
-            reflection: episode.reflection.as_ref().map(|r| serde_json::to_value(r)).transpose()?,
+            steps: episode
+                .steps
+                .iter()
+                .map(|s| serde_json::to_value(s))
+                .collect::<Result<Vec<_>, _>>()?,
+            outcome: episode
+                .outcome
+                .as_ref()
+                .map(|o| serde_json::to_value(o))
+                .transpose()?,
+            reward: episode
+                .reward
+                .as_ref()
+                .map(|r| serde_json::to_value(r))
+                .transpose()?,
+            reflection: episode
+                .reflection
+                .as_ref()
+                .map(|r| serde_json::to_value(r))
+                .transpose()?,
             patterns_count: episode.patterns.len(),
             heuristics_count: episode.heuristics.len(),
         };
@@ -515,24 +597,29 @@ pub async fn complete_episode(
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
-    use memory_core::{SelfLearningMemory, MemoryConfig, TaskOutcome as CoreTaskOutcome};
-    #[cfg(feature = "turso")]
-    use memory_storage_turso::TursoStorage;
+    use memory_core::{MemoryConfig, SelfLearningMemory, TaskOutcome as CoreTaskOutcome};
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[cfg(feature = "turso")]
+    use memory_storage_turso::TursoStorage;
     #[allow(unused_imports)]
     use std::sync::Arc;
     #[allow(unused_imports)]
     use uuid::Uuid;
 
     if dry_run {
-        println!("Would complete episode {} with outcome: {:?}", episode_id, outcome);
+        println!(
+            "Would complete episode {} with outcome: {:?}",
+            episode_id, outcome
+        );
         return Ok(());
     }
 
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!("Turso storage feature not enabled. Use --features turso to enable."));
+    return Err(anyhow::anyhow!(
+        "Turso storage feature not enabled. Use --features turso to enable."
+    ));
 
     #[cfg(feature = "turso")]
     {
@@ -541,7 +628,10 @@ pub async fn complete_episode(
             .with_context(|| format!("Invalid episode ID format: {}", episode_id))?;
 
         // Create storage backends
-        let turso_url = config.database.turso_url.as_ref()
+        let turso_url = config
+            .database
+            .turso_url
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
@@ -550,7 +640,9 @@ pub async fn complete_episode(
 
         #[cfg(feature = "redb")]
         let cache_storage = if let Some(path) = &config.database.redb_path {
-            Some(Arc::new(RedbStorage::new(std::path::Path::new(path)).await?))
+            Some(Arc::new(
+                RedbStorage::new(std::path::Path::new(path)).await?,
+            ))
         } else {
             None
         };
@@ -561,11 +653,21 @@ pub async fn complete_episode(
         let memory = if let Some(cache) = cache_storage {
             SelfLearningMemory::with_storage(memory_config, turso, cache)
         } else {
-            SelfLearningMemory::with_storage(memory_config, turso, Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?))
+            SelfLearningMemory::with_storage(
+                memory_config,
+                turso,
+                Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?),
+            )
         };
 
         #[cfg(not(feature = "redb"))]
-        let memory = SelfLearningMemory::with_storage(memory_config, turso, Arc::new(memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?));
+        let memory = SelfLearningMemory::with_storage(
+            memory_config,
+            turso,
+            Arc::new(
+                memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?,
+            ),
+        );
 
         // Map CLI outcome to core outcome
         let core_outcome = match outcome {
@@ -585,7 +687,9 @@ pub async fn complete_episode(
         };
 
         // Complete the episode
-        memory.complete_episode(episode_uuid, core_outcome).await
+        memory
+            .complete_episode(episode_uuid, core_outcome)
+            .await
             .with_context(|| format!("Failed to complete episode: {}", episode_id))?;
 
         // Return success
@@ -624,23 +728,27 @@ pub async fn search_episodes(
     _format: OutputFormat,
 ) -> anyhow::Result<()> {
     #[allow(unused_imports)]
-    use memory_core::{SelfLearningMemory, MemoryConfig, TaskContext};
-    #[cfg(feature = "turso")]
-    use memory_storage_turso::TursoStorage;
+    use memory_core::{MemoryConfig, SelfLearningMemory, TaskContext};
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[cfg(feature = "turso")]
+    use memory_storage_turso::TursoStorage;
     #[allow(unused_imports)]
     use std::sync::Arc;
 
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!("Turso storage feature not enabled. Use --features turso to enable."));
+    return Err(anyhow::anyhow!(
+        "Turso storage feature not enabled. Use --features turso to enable."
+    ));
 
     #[cfg(feature = "turso")]
     {
-
         // Create storage backends
-        let turso_url = config.database.turso_url.as_ref()
+        let turso_url = config
+            .database
+            .turso_url
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
@@ -649,7 +757,9 @@ pub async fn search_episodes(
 
         #[cfg(feature = "redb")]
         let cache_storage = if let Some(path) = &config.database.redb_path {
-            Some(Arc::new(RedbStorage::new(std::path::Path::new(path)).await?))
+            Some(Arc::new(
+                RedbStorage::new(std::path::Path::new(path)).await?,
+            ))
         } else {
             None
         };
@@ -660,25 +770,41 @@ pub async fn search_episodes(
         let memory = if let Some(cache) = cache_storage {
             SelfLearningMemory::with_storage(memory_config, turso, cache)
         } else {
-            SelfLearningMemory::with_storage(memory_config, turso, Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?))
+            SelfLearningMemory::with_storage(
+                memory_config,
+                turso,
+                Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?),
+            )
         };
 
         #[cfg(not(feature = "redb"))]
-        let memory = SelfLearningMemory::with_storage(memory_config, turso, Arc::new(memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?));
+        let memory = SelfLearningMemory::with_storage(
+            memory_config,
+            turso,
+            Arc::new(
+                memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?,
+            ),
+        );
 
         // Search for relevant episodes
         let context = TaskContext::default(); // Use default context for search
-        let episodes = memory.retrieve_relevant_context(query.clone(), context, limit).await;
+        let episodes = memory
+            .retrieve_relevant_context(query.clone(), context, limit)
+            .await;
         let total_count = episodes.len();
 
         // Convert to summary format
         let episode_summaries: Vec<EpisodeSummary> = episodes
             .into_iter()
             .map(|episode| {
-                let status = if episode.is_complete() { "completed" } else { "in_progress" };
-                let duration_ms = episode.end_time.map(|end| {
-                    (end - episode.start_time).num_milliseconds() as u64
-                });
+                let status = if episode.is_complete() {
+                    "completed"
+                } else {
+                    "in_progress"
+                };
+                let duration_ms = episode
+                    .end_time
+                    .map(|end| (end - episode.start_time).num_milliseconds() as u64);
 
                 EpisodeSummary {
                     episode_id: episode.episode_id.to_string(),
@@ -715,25 +841,29 @@ pub async fn log_step(
 ) -> anyhow::Result<()> {
     let _episode_id_str = episode_id.clone();
     #[allow(unused_imports)]
-    use memory_core::{SelfLearningMemory, MemoryConfig, ExecutionStep, ExecutionResult};
-    #[cfg(feature = "turso")]
-    use memory_storage_turso::TursoStorage;
+    use memory_core::{ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory};
     #[cfg(feature = "redb")]
     use memory_storage_redb::RedbStorage;
+    #[cfg(feature = "turso")]
+    use memory_storage_turso::TursoStorage;
     #[allow(unused_imports)]
     use std::sync::Arc;
     #[allow(unused_imports)]
     use uuid::Uuid;
 
     if dry_run {
-        println!("Would log step for episode {}: tool={}, action={}, success={}",
-                episode_id, tool, action, success);
+        println!(
+            "Would log step for episode {}: tool={}, action={}, success={}",
+            episode_id, tool, action, success
+        );
         return Ok(());
     }
 
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!("Turso storage feature not enabled. Use --features turso to enable."));
+    return Err(anyhow::anyhow!(
+        "Turso storage feature not enabled. Use --features turso to enable."
+    ));
 
     #[cfg(feature = "turso")]
     {
@@ -742,7 +872,10 @@ pub async fn log_step(
             .with_context(|| format!("Invalid episode ID format: {}", episode_id))?;
 
         // Create storage backends
-        let turso_url = config.database.turso_url.as_ref()
+        let turso_url = config
+            .database
+            .turso_url
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Turso database URL not configured"))?;
         let token = config.database.turso_token.as_deref().unwrap_or("");
 
@@ -751,7 +884,9 @@ pub async fn log_step(
 
         #[cfg(feature = "redb")]
         let cache_storage = if let Some(path) = &config.database.redb_path {
-            Some(Arc::new(RedbStorage::new(std::path::Path::new(path)).await?))
+            Some(Arc::new(
+                RedbStorage::new(std::path::Path::new(path)).await?,
+            ))
         } else {
             None
         };
@@ -762,14 +897,26 @@ pub async fn log_step(
         let memory = if let Some(cache) = cache_storage {
             SelfLearningMemory::with_storage(memory_config, turso, cache)
         } else {
-            SelfLearningMemory::with_storage(memory_config, turso, Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?))
+            SelfLearningMemory::with_storage(
+                memory_config,
+                turso,
+                Arc::new(RedbStorage::new(std::path::Path::new(":memory:")).await?),
+            )
         };
 
         #[cfg(not(feature = "redb"))]
-        let memory = SelfLearningMemory::with_storage(memory_config, turso, Arc::new(memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?));
+        let memory = SelfLearningMemory::with_storage(
+            memory_config,
+            turso,
+            Arc::new(
+                memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?,
+            ),
+        );
 
         // Get the current episode to determine step number
-        let episode = memory.get_episode(episode_uuid).await
+        let episode = memory
+            .get_episode(episode_uuid)
+            .await
             .with_context(|| format!("Failed to retrieve episode: {}", episode_id))?;
 
         let step_number = episode.steps.len() + 1;
@@ -790,10 +937,12 @@ pub async fn log_step(
 
         // Set optional metadata
         if let Some(latency) = latency_ms {
-            step.metadata.insert("latency_ms".to_string(), latency.to_string());
+            step.metadata
+                .insert("latency_ms".to_string(), latency.to_string());
         }
         if let Some(token_count) = tokens {
-            step.metadata.insert("tokens".to_string(), token_count.to_string());
+            step.metadata
+                .insert("tokens".to_string(), token_count.to_string());
         }
 
         // Log the step
@@ -818,7 +967,15 @@ pub async fn log_step(
                 writeln!(writer, "Step: {}", self.step_number)?;
                 writeln!(writer, "Tool: {}", self.tool)?;
                 writeln!(writer, "Action: {}", self.action)?;
-                writeln!(writer, "Success: {}", if self.success { "Yes".green() } else { "No".red() })?;
+                writeln!(
+                    writer,
+                    "Success: {}",
+                    if self.success {
+                        "Yes".green()
+                    } else {
+                        "No".red()
+                    }
+                )?;
                 Ok(())
             }
         }
@@ -955,7 +1112,8 @@ batch_size = 10
             &config,
             OutputFormat::Human,
             true, // dry_run
-        ).await;
+        )
+        .await;
 
         assert!(result.is_ok());
     }
@@ -992,7 +1150,8 @@ batch_size = 10
             &config,
             OutputFormat::Human,
             true, // dry_run
-        ).await;
+        )
+        .await;
 
         assert!(result.is_ok());
     }
@@ -1034,7 +1193,8 @@ batch_size = 10
             &config,
             OutputFormat::Human,
             true, // dry_run
-        ).await;
+        )
+        .await;
 
         assert!(result.is_ok());
     }
@@ -1050,10 +1210,14 @@ batch_size = 10
             &config,
             OutputFormat::Human,
             false, // not dry run
-        ).await;
+        )
+        .await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Turso storage feature not enabled"));
     }
 
     #[cfg(not(feature = "turso"))]
@@ -1061,16 +1225,13 @@ batch_size = 10
     async fn test_list_episodes_without_turso_feature() {
         let config = Config::default();
 
-        let result = list_episodes(
-            None,
-            10,
-            None,
-            &config,
-            OutputFormat::Human,
-        ).await;
+        let result = list_episodes(None, 10, None, &config, OutputFormat::Human).await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Turso storage feature not enabled"));
     }
 
     #[cfg(not(feature = "turso"))]
@@ -1078,14 +1239,13 @@ batch_size = 10
     async fn test_view_episode_without_turso_feature() {
         let config = Config::default();
 
-        let result = view_episode(
-            "test-uuid".to_string(),
-            &config,
-            OutputFormat::Human,
-        ).await;
+        let result = view_episode("test-uuid".to_string(), &config, OutputFormat::Human).await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Turso storage feature not enabled"));
     }
 
     #[cfg(not(feature = "turso"))]
@@ -1099,10 +1259,14 @@ batch_size = 10
             &config,
             OutputFormat::Human,
             false,
-        ).await;
+        )
+        .await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Turso storage feature not enabled"));
     }
 
     #[cfg(not(feature = "turso"))]
@@ -1110,15 +1274,14 @@ batch_size = 10
     async fn test_search_episodes_without_turso_feature() {
         let config = Config::default();
 
-        let result = search_episodes(
-            "test query".to_string(),
-            10,
-            &config,
-            OutputFormat::Human,
-        ).await;
+        let result =
+            search_episodes("test query".to_string(), 10, &config, OutputFormat::Human).await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Turso storage feature not enabled"));
     }
 
     #[cfg(not(feature = "turso"))]
@@ -1137,9 +1300,13 @@ batch_size = 10
             &config,
             OutputFormat::Human,
             false,
-        ).await;
+        )
+        .await;
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Turso storage feature not enabled"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Turso storage feature not enabled"));
     }
 }

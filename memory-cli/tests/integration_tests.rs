@@ -14,8 +14,8 @@ mod common;
 mod integration_tests {
     use super::*;
     use memory_cli::test_utils;
-    use test_utils::*;
     use std::time::Duration;
+    use test_utils::*;
 
     #[test]
     fn test_cli_help_command() {
@@ -142,16 +142,10 @@ batch_size = 10
             .stdout(predicate::str::contains("memory-cli"));
 
         // Test zsh completion
-        harness
-            .execute(["completion", "zsh"])
-            .assert()
-            .success();
+        harness.execute(["completion", "zsh"]).assert().success();
 
         // Test fish completion
-        harness
-            .execute(["completion", "fish"])
-            .assert()
-            .success();
+        harness.execute(["completion", "fish"]).assert().success();
     }
 
     #[test]
@@ -181,16 +175,10 @@ batch_size = 10
         let harness = CliHarness::new();
 
         // Test episode view without ID
-        harness
-            .execute(["episode", "view"])
-            .assert()
-            .failure();
+        harness.execute(["episode", "view"]).assert().failure();
 
         // Test episode complete without ID
-        harness
-            .execute(["episode", "complete"])
-            .assert()
-            .failure();
+        harness.execute(["episode", "complete"]).assert().failure();
     }
 
     #[test]
@@ -282,7 +270,9 @@ batch_size = 25
             .execute(["episode", "view", "invalid-uuid"])
             .assert()
             .failure()
-            .stderr(predicate::str::contains("Turso storage feature not enabled"));
+            .stderr(predicate::str::contains(
+                "Turso storage feature not enabled",
+            ));
 
         // Test invalid task type
         harness

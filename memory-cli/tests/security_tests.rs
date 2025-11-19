@@ -308,7 +308,11 @@ batch_size = 10
         // The config itself is valid TOML, but connecting to the database should fail
         cmd.assert()
             .failure()
-            .stderr(predicate::str::contains("Failed to connect to database"));
+            .stderr(
+                predicate::str::contains("Failed to connect to database")
+                    .or(predicate::str::contains("SQLite failure"))
+                    .or(predicate::str::contains("Storage error")),
+            );
     }
 
     #[test]

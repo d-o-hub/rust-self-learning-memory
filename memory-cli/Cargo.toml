@@ -50,7 +50,7 @@ test-utils = { path = "../test-utils" }
 
 [features]
 default = []
-turso = ["memory-storage-turso"]
+turso = ["memory-storage-turso", "memory-storage-redb"]
 redb = ["memory-storage-redb"]
 full = ["turso", "redb"]
 

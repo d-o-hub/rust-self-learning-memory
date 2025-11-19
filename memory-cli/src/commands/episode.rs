@@ -281,7 +281,13 @@ pub async fn create_episode(
         };
 
         #[cfg(not(feature = "redb"))]
-        let memory = SelfLearningMemory::new(); // Fallback to in-memory only
+        let memory = SelfLearningMemory::with_storage(
+            memory_config,
+            turso,
+            Arc::new(
+                memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?,
+            ),
+        );
 
         // Start the episode
         let episode_id = memory

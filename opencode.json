@@ -27,14 +27,14 @@
           "options": {
             "search_language_filter": ["en"]
           }
-        },
+        }
       }
     }
   },
    "mcp": {
      "memory-mcp": {
        "type": "local",
-       "command": ["cargo", "run", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
+       "command": ["cargo", "run", "--quiet", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
        "enabled": true,
         "environment": {
           "RUST_LOG": "info",

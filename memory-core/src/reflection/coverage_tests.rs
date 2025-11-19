@@ -140,7 +140,8 @@ fn test_improvement_analyzer_edge_cases() {
         verdict: "ok".to_string(),
         artifacts: vec![],
     };
-    let mut episode = create_test_episode("Imp 1", TaskType::Testing, steps.to_vec(), Some(outcome));
+    let mut episode =
+        create_test_episode("Imp 1", TaskType::Testing, steps.to_vec(), Some(outcome));
     episode.end_time = Some(episode.start_time + chrono::Duration::seconds(100));
 
     let improvements = improvement_analyzer::identify_improvements(&episode, 5);

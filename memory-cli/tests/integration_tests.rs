@@ -306,10 +306,9 @@ batch_size = 25
             .execute(["episode", "view", "invalid-uuid"])
             .assert()
             .failure()
-            .stderr(
-                predicate::str::contains("Invalid episode ID format")
-                    .or(predicate::str::contains("Turso storage feature not enabled")),
-            );
+            .stderr(predicate::str::contains("Invalid episode ID format").or(
+                predicate::str::contains("Turso storage feature not enabled"),
+            ));
 
         // Test invalid task type
         harness

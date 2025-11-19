@@ -6,11 +6,8 @@ fn test_pattern_list_command() {
     let harness = CliHarness::new();
 
     // Should run without error, even if no patterns exist
-    harness
-        .execute(["pattern", "list"])
-        .assert()
-        .success();
-    
+    harness.execute(["pattern", "list"]).assert().success();
+
     // Test with limits
     harness
         .execute(["pattern", "list", "--limit", "5"])
@@ -52,11 +49,8 @@ fn test_logs_command() {
     let harness = CliHarness::new();
 
     // Logs analyze
-    harness
-        .execute(["logs", "analyze"])
-        .assert()
-        .success();
-        
+    harness.execute(["logs", "analyze"]).assert().success();
+
     // Logs search
     harness
         .execute(["logs", "search", "error"])
@@ -64,10 +58,7 @@ fn test_logs_command() {
         .success();
 
     // Logs stats
-    harness
-        .execute(["logs", "stats"])
-        .assert()
-        .success();
+    harness.execute(["logs", "stats"]).assert().success();
 }
 
 #[test]
@@ -85,7 +76,13 @@ fn test_backup_command() {
 
     // Create backup
     harness
-        .execute(["--dry-run", "backup", "create", "--path", backup_path.to_str().unwrap()])
+        .execute([
+            "--dry-run",
+            "backup",
+            "create",
+            "--path",
+            backup_path.to_str().unwrap(),
+        ])
         .assert()
         .success();
 }
@@ -96,7 +93,10 @@ fn test_storage_command() {
 
     harness.execute(["storage", "stats"]).assert().success();
     harness.execute(["storage", "health"]).assert().success();
-    harness.execute(["storage", "connections"]).assert().success();
+    harness
+        .execute(["storage", "connections"])
+        .assert()
+        .success();
 }
 
 #[test]

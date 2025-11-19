@@ -3,8 +3,8 @@ use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::test]
+async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
     println!("🧪 Testing MCP Tools JSON Response Validation\n");
 
     // Create MCP server
@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Report results
     println!("\n📊 Test Results Summary");
-    println!("=".repeat(50));
+    println!("{}", "=".repeat(50));
 
     let passed = test_results.iter().filter(|(_, status, _)| *status == "PASS").count();
     let failed = test_results.iter().filter(|(_, status, _)| *status == "FAIL").count();
@@ -62,13 +62,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("\n" + "=".repeat(50));
+    println!("\n{}", "=".repeat(50));
 
     if failed == 0 {
         println!("🎉 All MCP tools return valid JSON responses!");
     } else {
         println!("⚠️ Some tests failed. Check the details above.");
-        std::process::exit(1);
+        panic!("Tests failed");
     }
 
     Ok(())

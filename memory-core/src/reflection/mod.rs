@@ -35,6 +35,8 @@ mod success_analyzer;
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod coverage_tests;
 
 use crate::episode::Episode;
 use crate::types::Reflection;

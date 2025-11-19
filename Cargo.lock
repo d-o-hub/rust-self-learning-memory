@@ -1482,7 +1482,7 @@ dependencies = [
  "memory-core",
  "memory-storage-redb",
  "memory-storage-turso",
- "rand 0.8.5",
+ "rand 0.9.2",
  "regex",
  "serde_json",
  "sysinfo",

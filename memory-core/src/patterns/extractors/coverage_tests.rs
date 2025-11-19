@@ -23,7 +23,7 @@ fn complete_episode(episode: &mut Episode) {
 #[tokio::test]
 async fn test_decision_point_keywords_coverage() {
     let extractor = DecisionPointExtractor::new();
-    let keywords = vec![
+    let keywords = [
         "if condition",
         "when event",
         "ensure state",

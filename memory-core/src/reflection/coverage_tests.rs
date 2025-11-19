@@ -43,7 +43,7 @@ fn failed_step(step_number: usize, tool: &str, action: &str, error_msg: &str) ->
 #[test]
 fn test_success_analyzer_edge_cases() {
     // Case 1: Partial success with no completed subtasks
-    let steps = vec![successful_step(1, "tool", "action")];
+    let steps = [successful_step(1, "tool", "action")];
     let outcome = TaskOutcome::PartialSuccess {
         verdict: "Partial".to_string(),
         completed: vec![],
@@ -121,7 +121,7 @@ fn test_success_patterns_edge_cases() {
         domain: "coding".to_string(),
         ..Default::default()
     };
-    let steps = vec![successful_step(1, "tool", "action")];
+    let steps = [successful_step(1, "tool", "action")];
     let mut episode = Episode::new("Pattern 3".to_string(), context, TaskType::CodeGeneration);
     episode.add_step(steps[0].clone());
     episode.complete(outcome);
@@ -135,7 +135,7 @@ fn test_success_patterns_edge_cases() {
 #[test]
 fn test_improvement_analyzer_edge_cases() {
     // Case 1: Duration between 30s and 300s (no improvement needed)
-    let steps = vec![successful_step(1, "tool", "action")];
+    let steps = [successful_step(1, "tool", "action")];
     let outcome = TaskOutcome::Success {
         verdict: "ok".to_string(),
         artifacts: vec![],

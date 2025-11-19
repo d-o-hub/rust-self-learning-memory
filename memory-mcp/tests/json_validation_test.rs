@@ -102,13 +102,13 @@ async fn test_query_memory(server: &MemoryMCPServer) -> Result<(), Box<dyn std::
     validate_json_structure(&result, "query_memory")?;
 
     // Check expected fields
-    if !result.get("episodes").is_some() {
+    if result.get("episodes").is_none() {
         return Err("Missing 'episodes' field".into());
     }
-    if !result.get("patterns").is_some() {
+    if result.get("patterns").is_none() {
         return Err("Missing 'patterns' field".into());
     }
-    if !result.get("insights").is_some() {
+    if result.get("insights").is_none() {
         return Err("Missing 'insights' field".into());
     }
 
@@ -139,10 +139,10 @@ async fn test_analyze_patterns(server: &MemoryMCPServer) -> Result<(), Box<dyn s
     validate_json_structure(&result, "analyze_patterns")?;
 
     // Check expected fields
-    if !result.get("patterns").is_some() {
+    if result.get("patterns").is_none() {
         return Err("Missing 'patterns' field".into());
     }
-    if !result.get("statistics").is_some() {
+    if result.get("statistics").is_none() {
         return Err("Missing 'statistics' field".into());
     }
 

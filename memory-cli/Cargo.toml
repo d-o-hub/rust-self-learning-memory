@@ -37,7 +37,7 @@ toml = "0.8"
 # Optional features for output formatting
 serde_yaml = "0.9"
 colored = "2.0"
-indicatif = "0.17"
+indicatif = "0.18"
 
 # Additional CLI dependencies for operational features
 regex = "1.10"

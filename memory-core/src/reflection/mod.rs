@@ -34,6 +34,8 @@ mod insight_generator;
 mod success_analyzer;
 
 #[cfg(test)]
+mod coverage_tests;
+#[cfg(test)]
 mod tests;
 
 use crate::episode::Episode;

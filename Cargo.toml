@@ -4,14 +4,16 @@ members = [
     "memory-core",
     "memory-storage-turso",
     "memory-storage-redb",
-    "test-utils",
     "memory-mcp",
+    "memory-cli",
+    "test-utils",
     "benches",
     "tests",
+    "examples",
 ]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.3"
 edition = "2021"
 authors = ["Self-Learning Memory Contributors"]
 license = "MIT"

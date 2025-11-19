@@ -1,0 +1,40 @@
+[Unit]
+Description=Self-Learning Memory System CLI
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=memory
+Group=memory
+ExecStart=/usr/local/bin/memory-cli health monitor --interval 60 --duration 0
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=RUST_LOG=info
+Environment=MEMORY_CONFIG=/etc/memory-cli/config.toml
+EnvironmentFile=-/etc/memory-cli/environment
+
+# Working directory
+WorkingDirectory=/var/lib/memory-cli
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/memory-cli /var/log/memory-cli /var/backup/memory-cli
+ProtectHome=yes
+PrivateDevices=yes
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=memory-cli
+
+[Install]
+WantedBy=multi-user.target

@@ -438,6 +438,26 @@ impl SelfLearningMemory {
     pub async fn get_monitoring_summary(&self) -> crate::monitoring::MonitoringSummary {
         self.agent_monitor.get_summary_stats().await
     }
+
+    /// Check if Turso storage is configured
+    pub fn has_turso_storage(&self) -> bool {
+        self.turso_storage.is_some()
+    }
+
+    /// Check if cache storage is configured
+    pub fn has_cache_storage(&self) -> bool {
+        self.cache_storage.is_some()
+    }
+
+    /// Get a reference to the Turso storage backend (if configured)
+    pub fn turso_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
+        self.turso_storage.as_ref()
+    }
+
+    /// Get a reference to the cache storage backend (if configured)
+    pub fn cache_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
+        self.cache_storage.as_ref()
+    }
 }
 
 #[cfg(test)]

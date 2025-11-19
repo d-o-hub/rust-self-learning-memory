@@ -8,10 +8,9 @@
 This roadmap tracks the implementation status of the Self-Learning Memory System against the comprehensive 6-phase implementation plans. The v0.1.1 patch release includes production deployment documentation and enhanced security testing.
 
 **Current Status**: v0.1.1 RELEASED - Production deployment guide and bincode security tests complete
-**Next Patch**: v0.1.2 - Code quality improvements (MCP warnings cleanup) ✅ COMPLETE
-**In Progress**: v0.2.0 - Monitoring, caching, comprehensive benchmarks ⚠️ BLOCKED (compilation errors, file size violations)
-**Next Milestone**: v0.2.0 - Advanced features (Embeddings, Pattern Composition, Monitoring)
-**Test Status**: 347+ tests passing, 7/8 quality gates pass, 0 vulnerabilities, ⚠️ benchmarks don't compile
+**Next Milestone**: v0.1.3 - Complete CLI interface for debugging and operations ✅ COMPLETE
+**Future Milestone**: v0.2.0 - Advanced features (Embeddings, Pattern Composition, Monitoring)
+**Test Status**: 347+ tests passing, 7/8 quality gates pass, 0 vulnerabilities
 
 ### ✅ v0.1.2 Patch Release - Code Quality Improvements
 
@@ -93,6 +92,7 @@ This roadmap tracks the implementation status of the Self-Learning Memory System
 - **Critical Issues**: 4-8 hours
 - **Important Issues**: 3-5 hours
 - **Total**: 7-13 hours to unblock release
+>>>>>>> origin/main
 
 ---
 
@@ -157,6 +157,40 @@ This roadmap tracks the implementation status of the Self-Learning Memory System
 - [ ] Advanced observability and monitoring (Phase 4)
 - [ ] Multi-tenancy support (Phase 5)
 - [ ] Real-time pattern learning (Phase 6)
+
+---
+
+## v0.1.3: Optional CLI Interface (Target: Dec 2025)
+
+### Overview
+Implementation of an optional CLI interface (`memory-cli`) to complement the MCP server with command-line tools for debugging, administration, and automation.
+
+**Status**: Planned for v0.1.3
+**Effort**: 5 weeks
+**Priority**: Medium
+**Dependencies**: v0.1.1 stable
+
+### Planned Features
+
+#### Core CLI Commands
+- **Episode Management**: Create, list, view, search, and complete episodes
+- **Pattern Analysis**: Inspect patterns, analyze effectiveness, manage decay
+- **Storage Operations**: Health checks, sync operations, statistics
+- **Advanced Features**: Shell completion, batch processing, multiple output formats
+
+#### Implementation Approach
+- New optional `memory-cli` crate with feature gating
+- Shared logic with MCP server for consistency
+- Comprehensive testing and documentation
+- Zero breaking changes to existing functionality
+
+**Success Criteria**:
+- Full episode/pattern lifecycle management via CLI
+- <100ms command execution performance
+- >90% test coverage for CLI crate
+- Complete documentation and examples
+
+**Reference**: [plans/18-v0.1.3-cli-interface.md](plans/18-v0.1.3-cli-interface.md)
 
 ---
 
@@ -857,6 +891,7 @@ Long-term enhancements for scalability and advanced capabilities.
 - **[plans/04-review.md](plans/04-review.md)** - Quality assessment, benchmarks, compliance
 - **[plans/05-secure.md](plans/05-secure.md)** - Security analysis, threats, penetration tests
 - **[plans/06-feedback-loop.md](plans/06-feedback-loop.md)** - Refinements, production, future features
+- **[plans/18-v0.1.3-cli-interface.md](plans/18-v0.1.3-cli-interface.md)** - CLI interface implementation plan
 
 ### Related Documentation
 
@@ -894,22 +929,32 @@ Long-term enhancements for scalability and advanced capabilities.
 
 ### This Quarter (Months 1-3)
 
-**Focus**: Gather production usage data and feedback for v0.2.0 planning
+**Focus**: Implement v0.1.3 CLI interface and gather production usage data
 
-- Monitor production performance and reliability
-- Collect user feedback on pattern accuracy and relevance
-- Analyze actual usage patterns
-- Plan Priority 3 features based on real-world needs
+#### v0.1.3 CLI Implementation (Dec 2025)
+- **Phase 1** (Nov 18-24): Foundation and core episode commands
+- **Phase 2** (Nov 25-Dec 8): Pattern analysis and advanced features
+- **Phase 3** (Dec 9-22): Documentation and production readiness
+- **Target Release**: December 22, 2025
+
+**Key Deliverables**:
+- Optional `memory-cli` crate with comprehensive commands
+- Episode management (create, list, view, search)
+- Pattern analysis and effectiveness tracking
+- Storage operations and health monitoring
+- Shell completion and scripting support
 
 ### Next Quarter (Months 3-6)
 
-- Embedding-based semantic search (3.1)
-- Advanced pattern learning & heuristics (3.2)
-- Production observability & monitoring (3.3)
-- Performance optimization refinements
+**Focus**: Gather v0.1.3 feedback and plan v0.2.0 advanced features
+
+- Monitor CLI adoption and gather user feedback
+- Analyze operational usage patterns
+- Plan Priority 3 features based on real-world needs
+- Prepare for embedding-based semantic search (3.1)
 
 ---
 
-**Last Updated**: 2025-11-14
-**Roadmap Version**: 1.2
-**Status**: v0.1.0 RELEASE READY - All features validated, zero blockers, ready for immediate release ✅
+**Last Updated**: 2025-11-17
+**Roadmap Version**: 1.3
+**Status**: v0.1.1 RELEASED - Planning v0.1.3 CLI interface ✅

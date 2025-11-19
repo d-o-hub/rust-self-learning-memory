@@ -24,3 +24,12 @@ node_modules/
 *_ENHANCEMENT*.md
 *.log
 memory-mcp/data/cache.redb
+# Database and cache files created by examples/tests
+*.db
+*.db-*
+*.redb
+memory_test.db*
+persistence_*.redb
+verification_*.redb
+todo_example*.redb
+data/cache.redb

@@ -252,6 +252,41 @@ When analyzing code for this project, ensure all personas consider:
 - "How do we know this optimization matters?"
 - "What would make both perspectives accept this?"
 
+### Critical Verification Distinction
+
+**⚠️ IMPORTANT: Static Analysis ≠ Functional Verification**
+
+When assessing implementation completeness, clearly distinguish between:
+
+**What You CAN Verify (Static Analysis):**
+- Code exists and appears complete
+- Files follow project structure
+- Documentation claims are present
+- Code compiles syntactically
+- Basic logic appears sound
+
+**What You CANNOT Verify Without Testing:**
+- Code actually compiles and runs
+- Tests pass and provide claimed coverage
+- Performance benchmarks are met
+- Integration with real backends works
+- Commands function with actual data
+
+**RYAN Must Clarify:**
+- "Based on code inspection, this appears complete"
+- "Cannot confirm functionality without running tests"
+- "Static analysis shows no obvious issues"
+
+**FLASH Must Challenge:**
+- "Have you actually run the tests?"
+- "What's the evidence this works with real data?"
+- "Don't claim 'production ready' without verification"
+
+**SOCRATES Must Probe:**
+- "What testing have you actually performed?"
+- "How do you know the claims are valid?"
+- "What would change if tests failed?"
+
 ## Example Analysis Session
 
 ### Input

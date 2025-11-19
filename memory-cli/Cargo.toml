@@ -1,0 +1,86 @@
+[package]
+name = "memory-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Workspace dependencies
+memory-core = { path = "../memory-core" }
+memory-storage-turso = { path = "../memory-storage-turso", optional = true }
+memory-storage-redb = { path = "../memory-storage-redb", optional = true }
+
+
+
+# CLI framework
+clap = { version = "4.4", features = ["derive", "color", "suggestions"] }
+clap_complete = "4.4"
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Additional CLI dependencies
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+
+# Configuration file support
+toml = "0.8"
+
+# Optional features for output formatting
+serde_yaml = "0.9"
+colored = "2.0"
+indicatif = "0.17"
+
+# Additional CLI dependencies for operational features
+regex = "1.10"
+
+# Test utilities dependencies
+assert_cmd = "2.0"
+predicates = "3.0"
+tempfile = "3.12"
+test-utils = { path = "../test-utils" }
+
+[features]
+default = []
+turso = ["memory-storage-turso", "memory-storage-redb"]
+redb = ["memory-storage-redb"]
+full = ["turso", "redb"]
+
+[dev-dependencies]
+# Testing framework
+tokio-test = "0.4"
+tempfile = "3.12"
+assert_cmd = "2.0"
+predicates = "3.0"
+rstest = "0.18"
+
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+
+# Test utilities
+test-utils = { path = "../test-utils" }
+
+# Additional test dependencies
+serde_test = "1.0"
+proptest = "1.4"
+regex = "1.10"
+
+[[bench]]
+name = "cli_benchmarks"
+harness = false
+
+[lib]
+name = "memory_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "memory-cli"
+path = "src/main.rs"

@@ -19,6 +19,8 @@ Dynamically discover and validate that the codebase implementation adheres to al
 
 **Key Principle**: Be **generic and adaptive**. Do not assume any specific architecture. Extract architectural requirements from plan files dynamically and validate against actual implementation.
 
+**⚠️ Critical Distinction**: Architecture validation is **static analysis only**. You can verify that code exists and appears to follow plans, but you **cannot verify functionality** without actual testing.
+
 ## Core Responsibilities
 
 ### 1. Plan Discovery Phase
@@ -300,6 +302,41 @@ Generate a comprehensive validation report:
 - **Validation Date**: [Date]
 - **Validator Version**: 2.0.0
 
+## ⚠️ Verification Limitations
+
+**Architecture validation is STATIC ANALYSIS ONLY**
+
+### What You CAN Validate:
+- Code exists and follows documented structure
+- Files are organized according to plans
+- Naming conventions match specifications
+- Module boundaries align with architecture
+- Dependencies follow documented patterns
+
+### What You CANNOT Validate:
+- Code actually compiles (`cargo build`)
+- Tests pass (`cargo test`)
+- Performance meets targets (benchmarking required)
+- Integration works with real backends
+- Commands function with actual data
+
+### Correct Claims:
+✅ "Implementation appears to follow architecture"
+✅ "Code structure matches plan specifications"
+✅ "No obvious architectural violations found"
+
+### Incorrect Claims:
+❌ "Implementation is complete and working"
+❌ "All requirements are satisfied"
+❌ "Ready for production deployment"
+
+### Required Follow-Up:
+After architecture validation, you MUST:
+1. Run `cargo build --all` to verify compilation
+2. Run `cargo test --all` to verify functionality
+3. Run performance benchmarks if specified
+4. Test integration with real storage backends
+
 ## Next Steps
 
 1. Review and prioritize recommendations
@@ -393,7 +430,7 @@ If plans are outdated or incomplete:
 If validation logic needs improvement:
 ```bash
 # Update .opencode/agent/architecture-validator.md
-# Update .claude/skills/architecture-validation/SKILL.md
+# Update .opencode/skills/architecture-validation/SKILL.md
 # Add new validation patterns
 # Improve extraction logic
 # Enhance reporting

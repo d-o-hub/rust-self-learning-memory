@@ -59,6 +59,7 @@ pub mod reflection;
 pub mod reward;
 pub mod storage;
 pub mod sync;
+pub use sync::StorageSynchronizer;
 pub mod types;
 
 // Re-export commonly used types

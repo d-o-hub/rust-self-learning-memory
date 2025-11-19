@@ -21,6 +21,7 @@ This project provides a production-grade memory system designed for AI agents th
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Quick Start](#quick-start)
+- [Command Line Interface](#command-line-interface)
 - [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
 - [Code Coverage](#code-coverage)
@@ -132,20 +133,23 @@ cargo add memory-core memory-storage-turso memory-storage-redb
 
 ### Environment Variables
 
-The memory system requires the following environment variables for Turso/libSQL connectivity:
+The memory system supports both **local development** and **cloud production** deployments with Turso/libSQL:
 
 ```bash
-# Required for production Turso deployments
+# Production Turso (Cloud) - VERIFIED ✅
 export TURSO_DATABASE_URL="libsql://your-database.turso.io"
 export TURSO_AUTH_TOKEN="your-auth-token-here"
 
-# Optional: Local libSQL file (for development/testing)
-export LIBSQL_DATABASE_PATH="./data/memory.db"
+# Local Development (SQLite) - VERIFIED ✅
+export TURSO_DATABASE_URL="file:./data/memory.db"
+# export TURSO_AUTH_TOKEN=""  # Empty for local files
 
 # Optional: redb cache configuration
 export REDB_CACHE_PATH="./data/cache.redb"
 export REDB_MAX_CACHE_SIZE="1000"  # Maximum episodes to cache
 ```
+
+**✅ Turso Setup Verified**: Both local and cloud configurations are fully tested and working. Complete setup is available via config files for both MCP and CLI.
 
 ### Example `.env` File
 
@@ -249,6 +253,127 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
+## Command Line Interface
+
+The Memory CLI provides a comprehensive command-line interface for managing the Self-Learning Memory System. It offers direct access to all memory operations without writing code.
+
+### Installation
+
+```bash
+# Install with full features (recommended)
+cargo install --path memory-cli --features full
+
+# Or install specific features
+cargo install --path memory-cli --features turso,redb
+```
+
+### Quick CLI Examples
+
+```bash
+# Configure database connection (Cloud)
+echo '[database]
+turso_url = "libsql://your-db.turso.io"
+turso_token = "your-auth-token"' > memory-cli.toml
+
+# OR for local development
+echo '[database]
+turso_url = "file:./data/memory.db"
+turso_token = ""' > memory-cli.toml
+
+# Create and manage episodes
+memory-cli episode create --task "Implement user authentication"
+memory-cli episode list --limit 5
+memory-cli episode view <episode-id>
+
+# Log execution steps
+memory-cli episode log-step <episode-id> \
+  --tool "grep" \
+  --action "Search patterns" \
+  --success true \
+  --latency-ms 150
+
+# Complete episodes
+memory-cli episode complete <episode-id> --outcome success
+
+# Analyze patterns
+memory-cli pattern list --min-confidence 0.8
+memory-cli pattern effectiveness --top 10
+
+# Monitor storage health
+memory-cli storage health
+memory-cli storage stats
+
+# Search episodes
+memory-cli episode search "authentication"
+```
+
+### CLI Features
+
+- **Episode Management**: Create, list, view, complete, and search episodes
+- **Pattern Analysis**: List patterns, analyze effectiveness, manage pattern decay
+- **Storage Operations**: Health checks, statistics, synchronization, vacuum operations
+- **Multiple Output Formats**: Human-readable, JSON, and YAML output
+- **Shell Completions**: Auto-generated completions for Bash, Zsh, and Fish
+- **Dry Run Mode**: Preview operations before execution
+- **Verbose Logging**: Detailed diagnostics and error information
+
+### Configuration
+
+The CLI supports multiple configuration formats (TOML, JSON, YAML) and locations. See the **[Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md)** for complete documentation.
+
+**Quick Setup:**
+```toml
+[database]
+turso_url = "libsql://your-db.turso.io"
+turso_token = "your-auth-token"
+redb_path = "memory.redb"
+
+[storage]
+max_episodes_cache = 1000
+cache_ttl_seconds = 3600
+pool_size = 10
+
+[cli]
+default_format = "human"
+progress_bars = true
+batch_size = 100
+```
+
+### Advanced Usage
+
+#### Scripting Integration
+```bash
+#!/bin/bash
+# Batch process recent episodes
+
+memory-cli episode list --limit 10 --format json | \
+  jq -r '.episodes[].episode_id' | \
+  while read episode_id; do
+    memory-cli episode view "$episode_id" --format json > "episode_$episode_id.json"
+  done
+```
+
+#### Health Monitoring
+```bash
+#!/bin/bash
+# System health check
+
+if ! memory-cli storage health --format json | jq -e '.overall == "healthy"' > /dev/null; then
+  echo "Storage health check failed!" >&2
+  exit 1
+fi
+```
+
+### Complete Documentation
+
+For comprehensive CLI documentation, see **[CLI User Guide](memory-cli/CLI_USER_GUIDE.md)** which includes:
+
+- Complete command reference with all options
+- Configuration examples and templates
+- Scripting examples and best practices
+- Troubleshooting guide
+- Integration patterns
+
 ## API Documentation
 
 Comprehensive API documentation is available at:
@@ -319,17 +444,20 @@ cargo llvm-cov --all-features --workspace --summary-only
 
 ## Storage
 
-### Turso/libSQL (Durable)
-- Distributed SQL database for durable storage
+### Turso/libSQL (Durable) ✅ VERIFIED
+- **Cloud Production**: Distributed SQL database with TLS encryption
+- **Local Development**: SQLite-compatible file storage for offline development
 - Tables: `episodes`, `patterns`, `heuristics`
 - Parameterized queries for security
-- Supports remote and local deployments
+- Connection pooling and circuit breaker pattern
+- **Status**: Both local and cloud configurations fully tested and working
 
-### redb (Cache)
+### redb (Cache) ✅ VERIFIED
 - Embedded key-value store for hot-path access
 - Tables: `episodes`, `patterns`, `embeddings`, `metadata`
 - Synchronous operations (wrapped in spawn_blocking)
 - Reconciliation with Turso via sync_memories()
+- Bincode serialization with security limits
 
 ## Performance
 

@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'memory-cli'
+    static_configs:
+      - targets: ['localhost:9090']  # Would need HTTP metrics server
+    scrape_interval: 30s
+
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 30s
+
+  # Example for scraping Turso metrics (if available)
+  # - job_name: 'turso'
+  #   static_configs:
+  #     - targets: ['turso-proxy:8080']
+  #   scrape_interval: 30s

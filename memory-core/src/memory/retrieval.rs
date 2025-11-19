@@ -5,6 +5,7 @@ use crate::extraction::{deduplicate_patterns, rank_patterns};
 use crate::pattern::Pattern;
 use crate::types::TaskContext;
 use tracing::{debug, info, instrument};
+use uuid::Uuid;
 
 use super::SelfLearningMemory;
 
@@ -169,6 +170,47 @@ impl SelfLearningMemory {
         );
 
         ranked
+    }
+
+    /// Retrieve a single pattern by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `pattern_id` - The unique ID of the pattern to retrieve
+    ///
+    /// # Returns
+    ///
+    /// The pattern if found, or None if not found
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    #[instrument(skip(self))]
+    pub async fn get_pattern(&self, pattern_id: Uuid) -> crate::Result<Option<Pattern>> {
+        // Try storage backends first
+        if let Some(storage) = &self.turso_storage {
+            match storage.get_pattern(pattern_id).await {
+                Ok(pattern) => return Ok(pattern),
+                Err(e) => {
+                    debug!("Failed to get pattern from Turso storage: {}", e);
+                    // Fall back to cache or in-memory
+                }
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            match cache.get_pattern(pattern_id).await {
+                Ok(pattern) => return Ok(pattern),
+                Err(e) => {
+                    debug!("Failed to get pattern from cache storage: {}", e);
+                    // Fall back to in-memory
+                }
+            }
+        }
+
+        // Fall back to in-memory storage
+        let patterns = self.patterns_fallback.read().await;
+        Ok(patterns.get(&pattern_id).cloned())
     }
 
     /// Check if episode is relevant to the query

@@ -176,7 +176,20 @@ Based on 2025 Rust ecosystem standards:
 
 ## Version History
 
-- **v0.1.0** - Initial release
+- **v0.1.3** - CLI Release (2025-11-17)
+  - Complete command-line interface (memory-cli)
+  - 10 functional CLI commands with real storage integration
+  - 96% test coverage with comprehensive testing suite
+  - Production documentation and operational features
+  - CI/CD integration and deployment support
+
+- **v0.1.1** - Production Deployment (2025-11-14)
+  - Production deployment guide and procedures
+  - Performance tuning and monitoring setup
+  - Bincode deserialization security hardening
+  - Disaster recovery and backup strategies
+
+- **v0.1.0** - Initial release (2025-11-13)
   - Core episodic learning system
   - Dual storage (Turso + redb)
   - Pattern extraction and learning

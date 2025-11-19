@@ -65,7 +65,7 @@ fi
 
 # 7. Secret scanning
 echo "🔐 Scanning for secrets..."
-if git diff --cached --name-only | xargs grep -inE '(api[_-]?key|password|secret|token|credential)["\']?\s*[:=]' 2>/dev/null; then
+if git diff --cached --name-only | xargs grep -inE '(api[_-]?key|password|secret|token|credential)["'\'']?\s*[:=]' 2>/dev/null; then
     echo "❌ Potential secrets detected in staged files!"
     echo "Remove hardcoded secrets and use environment variables"
     exit 1

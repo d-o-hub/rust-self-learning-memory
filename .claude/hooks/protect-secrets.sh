@@ -16,7 +16,7 @@ if [[ "$FILE_PATH" =~ \.(env|secret|key)$ ]] || [[ "$FILE_PATH" == *".turso"* ]]
 fi
 
 # Check for hardcoded secrets in new content
-if echo "${CLAUDE_TOOL_INPUT:-}" | jq -r '.content // empty' | grep -qiE '(api[_-]?key|password|secret|token|credential)["\']?\s*[:=]'; then
+if echo "${CLAUDE_TOOL_INPUT:-}" | jq -r '.content // empty' | grep -qiE "(api[_-]?key|password|secret|token|credential)[\"']?\s*[:=]"; then
     echo "🚫 BLOCKED: Potential hardcoded secret detected"
     echo "Use environment variables instead"
     exit 1

@@ -3,8 +3,8 @@ use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::test]
+async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
     println!("🧪 Testing MCP Tools JSON Response Validation\n");
 
     // Create MCP server
@@ -23,14 +23,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Test 2: execute_agent_code tool
     println!("⚙️ Testing execute_agent_code tool...");
     match test_execute_agent_code(&server).await {
-        Ok(_) => test_results.push(("execute_agent_code", "PASS", "Valid JSON response".to_string())),
+        Ok(_) => test_results.push((
+            "execute_agent_code",
+            "PASS",
+            "Valid JSON response".to_string(),
+        )),
         Err(e) => test_results.push(("execute_agent_code", "FAIL", format!("Error: {}", e))),
     }
 
     // Test 3: analyze_patterns tool
     println!("📊 Testing analyze_patterns tool...");
     match test_analyze_patterns(&server).await {
-        Ok(_) => test_results.push(("analyze_patterns", "PASS", "Valid JSON response".to_string())),
+        Ok(_) => test_results.push((
+            "analyze_patterns",
+            "PASS",
+            "Valid JSON response".to_string(),
+        )),
         Err(e) => test_results.push(("analyze_patterns", "FAIL", format!("Error: {}", e))),
     }
 
@@ -43,10 +51,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Report results
     println!("\n📊 Test Results Summary");
-    println!("=".repeat(50));
+    println!("{}", "=".repeat(50));
 
-    let passed = test_results.iter().filter(|(_, status, _)| *status == "PASS").count();
-    let failed = test_results.iter().filter(|(_, status, _)| *status == "FAIL").count();
+    let passed = test_results
+        .iter()
+        .filter(|(_, status, _)| *status == "PASS")
+        .count();
+    let failed = test_results
+        .iter()
+        .filter(|(_, status, _)| *status == "FAIL")
+        .count();
     let total = test_results.len();
 
     println!("Total Tests: {}", total);
@@ -62,13 +76,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("\n" + "=".repeat(50));
+    println!("\n{}", "=".repeat(50));
 
     if failed == 0 {
         println!("🎉 All MCP tools return valid JSON responses!");
     } else {
         println!("⚠️ Some tests failed. Check the details above.");
-        std::process::exit(1);
+        panic!("Tests failed");
     }
 
     Ok(())
@@ -88,25 +102,24 @@ async fn test_query_memory(server: &MemoryMCPServer) -> Result<(), Box<dyn std::
     validate_json_structure(&result, "query_memory")?;
 
     // Check expected fields
-    if !result.get("episodes").is_some() {
+    if result.get("episodes").is_none() {
         return Err("Missing 'episodes' field".into());
     }
-    if !result.get("patterns").is_some() {
+    if result.get("patterns").is_none() {
         return Err("Missing 'patterns' field".into());
     }
-    if !result.get("insights").is_some() {
+    if result.get("insights").is_none() {
         return Err("Missing 'insights' field".into());
     }
 
     Ok(())
 }
 
-async fn test_execute_agent_code(server: &MemoryMCPServer) -> Result<(), Box<dyn std::error::Error>> {
+async fn test_execute_agent_code(
+    server: &MemoryMCPServer,
+) -> Result<(), Box<dyn std::error::Error>> {
     let code = "return { success: true, value: 42 };";
-    let context = ExecutionContext::new(
-        "test execution".to_string(),
-        json!({ "test": "data" })
-    );
+    let context = ExecutionContext::new("test execution".to_string(), json!({ "test": "data" }));
 
     let result = server.execute_agent_code(code.to_string(), context).await?;
 
@@ -126,10 +139,10 @@ async fn test_analyze_patterns(server: &MemoryMCPServer) -> Result<(), Box<dyn s
     validate_json_structure(&result, "analyze_patterns")?;
 
     // Check expected fields
-    if !result.get("patterns").is_some() {
+    if result.get("patterns").is_none() {
         return Err("Missing 'patterns' field".into());
     }
-    if !result.get("statistics").is_some() {
+    if result.get("statistics").is_none() {
         return Err("Missing 'statistics' field".into());
     }
 
@@ -160,7 +173,10 @@ async fn test_list_tools(server: &MemoryMCPServer) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
-fn validate_json_structure(value: &serde_json::Value, test_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn validate_json_structure(
+    value: &serde_json::Value,
+    test_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Try to serialize and deserialize to ensure it's valid JSON
     let serialized = serde_json::to_string(value)?;
     let _: serde_json::Value = serde_json::from_str(&serialized)?;

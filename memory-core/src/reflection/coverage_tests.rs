@@ -49,7 +49,7 @@ fn test_success_analyzer_edge_cases() {
         completed: vec![],
         failed: vec!["something".to_string()],
     };
-    let episode = create_test_episode("Edge 1", TaskType::Testing, steps.clone(), Some(outcome));
+    let episode = create_test_episode("Edge 1", TaskType::Testing, steps.to_vec(), Some(outcome));
     let successes = success_analyzer::identify_successes(&episode, 5);
     // Should contain verdict but NOT "Completed X subtask(s)"
     assert!(successes
@@ -62,7 +62,7 @@ fn test_success_analyzer_edge_cases() {
         verdict: "Done".to_string(),
         artifacts: vec![],
     };
-    let episode = create_test_episode("Edge 2", TaskType::Testing, steps.clone(), Some(outcome));
+    let episode = create_test_episode("Edge 2", TaskType::Testing, steps.to_vec(), Some(outcome));
     let successes = success_analyzer::identify_successes(&episode, 5);
     // Should contain verdict but NOT "Generated X artifact(s)"
     assert!(successes
@@ -140,7 +140,7 @@ fn test_improvement_analyzer_edge_cases() {
         verdict: "ok".to_string(),
         artifacts: vec![],
     };
-    let mut episode = create_test_episode("Imp 1", TaskType::Testing, steps, Some(outcome));
+    let mut episode = create_test_episode("Imp 1", TaskType::Testing, steps.to_vec(), Some(outcome));
     episode.end_time = Some(episode.start_time + chrono::Duration::seconds(100));
 
     let improvements = improvement_analyzer::identify_improvements(&episode, 5);

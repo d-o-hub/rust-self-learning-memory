@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763394951562,
+  "lastUpdate": 1763570255016,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -2535,6 +2535,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/pull/110/commits/417a3fb5343e0b0ff17d6f32097c25861122d8ee"
         },
         "date": 1763394951248,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dde3b74acd274f5efed63286d19be62f66b4634e",
+          "message": "feat: Implement v0.1.3 CLI interface with full functionality and testing (#111)\n\n* feat: Implement v0.1.3 CLI interface foundation\n\n- Add memory-cli crate with basic structure and configuration\n- Implement episode management commands (create, list, view, complete, search, log-step)\n- Implement storage operations commands (stats, sync, vacuum, health, connections)\n- Set up feature flags for optional storage backends (turso, redb)\n- Add comprehensive CLI argument parsing with clap\n- Implement output formatting system (human, JSON, YAML)\n- Add placeholder implementations for all commands\n- CLI compiles and runs with proper help system\n\nThis completes Phase 1 of the v0.1.3 CLI implementation plan.\nNext phases will add actual functionality with storage backend integration.\n\n* feat: Implement working CLI commands with storage integration\n\n- Implement episode list command with Turso database integration\n- Implement episode view command with detailed episode retrieval\n- Implement storage stats command with cache metrics\n- Add proper error handling and configuration validation\n- Support multiple output formats (human, JSON, YAML)\n- Feature-gated storage backends (turso, redb) for optional compilation\n- Clean command structure with comprehensive help system\n\nThis delivers actual working CLI functionality instead of placeholders,\nproviding users with episode management and storage monitoring capabilities.\n\nPhase 1 Core Commands: ✅ WORKING\n- episode list: Query and display episodes from database\n- episode view: Retrieve and display detailed episode information\n- storage stats: Show storage statistics and cache performance\n\nRemaining Phase 1 commands have placeholder implementations ready for\nPhase 2 completion (create, complete, log-step, search).\n\n* Add unit tests for memory-cli components and performance benchmarks\n\n- Created a new module for unit tests in `memory-cli/tests/unit/mod.rs` with submodules for command parsing, compatibility, config validation, input validation, output formatting, performance tests, and test utilities.\n- Implemented comprehensive unit tests for output formatting in `memory-cli/tests/unit/output_formatting.rs`, covering human, JSON, and YAML formats, including edge cases and special characters.\n- Added performance tests in `memory-cli/tests/unit/performance_tests.rs` to measure execution time for various CLI operations, ensuring they meet acceptable performance thresholds.\n- Developed utility functions in `memory-cli/tests/unit/test_utils.rs` for creating test data, including episodes, contexts, steps, patterns, outcomes, and mock memory systems.\n- Introduced a test suite for `memory-storage-turso` configurations in `memory-storage-turso/tests/test_turso_config.rs`, validating local file-based and in-memory databases, as well as cloud configuration requirements.\n\n* docs: clarify verification vs testing distinction in agents\n\nAdd explicit documentation across multiple agent files to distinguish between what can be verified through static analysis versus what requires actual testing. This prevents misleading claims about code readiness without proper verification.\n\nThe changes emphasize:\n- Clear separation between static analysis and functional verification\n- Specific commands that must be run for verification\n- Proper language to use when describing verification status\n- Limitations of code review and architecture validation\n\n* test: use cargo_bin for test command execution and update test expectations\n\n- Replace hardcoded binary paths with Command::cargo_bin for better test reliability\n- Increase timeout threshold for Windows compatibility\n- Update test assertions to handle platform-specific behavior\n- Document test execution status in phase-2-cli-execution-plan.md\n\n* refactor(scripts): move monitor_pr.sh to scripts directory\n\nRestructure project by moving monitoring script to dedicated scripts directory for better organization and maintainability\n\n* fix: resolve compilation, formatting, and linting issues in PR #111\n\n- Fixed syntax error in memory-core/src/memory/mod.rs (removed extra closing brace)\n- Fixed Cargo.lock merge conflict marker\n- Added missing concurrency field to MemoryConfig in memory-cli config\n- Fixed clippy warnings:\n  - Replaced useless format!() with .to_string() in security tests\n  - Removed needless borrows in security test execute calls\n  - Removed unused std::env import in turso config test\n  - Added #[allow(dead_code)] to test_utils.rs for utility functions\n  - Fixed bench_function calls to accept &String instead of String\n- Ran cargo fmt to fix all formatting issues\n- All tests pass locally (except coverage which requires cargo-llvm-cov)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix: add conditional import for TaskContext in episode.rs\n\nTaskContext is only used when the turso feature is enabled,\nso the import must also be conditional to avoid unused import warnings.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* ci: require quick check to pass before running other jobs\n\n- Add check-quick-check job that waits for Quick PR Check to complete\n- Make all CI jobs depend on check-quick-check for pull requests\n- Jobs only run if quick check succeeds or is skipped (for pushes)\n- Updated both ci.yml and benchmarks.yml workflows\n- This prevents wasting CI resources when format/clippy fails\n\nThis ensures fast feedback when basic checks fail and prevents\nrunning expensive jobs (tests, coverage, benchmarks) unnecessarily.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix: add missing imports and fix unused variable in episode.rs\n\n- Add conditional imports for turso feature:\n  - MemoryConfig, SelfLearningMemory, TaskContext from memory_core\n  - TursoStorage from memory_storage_turso\n  - RedbStorage from memory_storage_redb (when both turso and redb enabled)\n  - std::sync::Arc\n- Rename _config parameter to config (it's used in turso feature block)\n- Add #[cfg_attr] to allow unused_variables when turso feature disabled\n\nThis fixes compilation errors when building with --features turso\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* style: apply rustfmt formatting to episode.rs\n\n- Reorder imports alphabetically within cfg groups\n- Move std::path::PathBuf before std::sync::Arc\n- Place #[cfg_attr] attribute on same line as parameter\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix(claude): improve hook commands robustness and error handling\n\n- Add null checks for file_path in all hook commands\n- Make hooks more resilient by adding exit 0 to prevent blocking\n- Fix exit codes for better error handling\n- Remove strict failure conditions for non-critical checks\n\n* fix: resolve unused variable warnings in episode.rs with cfg_attr\n\nFixed all unused variable warnings in episode.rs command functions by\nadding #[cfg_attr(not(feature = \"turso\"), allow(unused_variables))]\nattributes to parameters that are only used within turso feature blocks.\n\nChanges:\n- list_episodes: Added cfg_attr to task_type, limit, status, format\n- view_episode: Added cfg_attr to format parameter\n- complete_episode: Added cfg_attr to format parameter\n- log_step: Removed underscore prefixes and added cfg_attr to\n  latency_ms, tokens, observation, and format parameters\n\nAll compilation and linting checks now pass cleanly.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix: add missing Context import and fix episode_id_str variables\n\nAdded missing `use anyhow::Context;` import required for with_context\nmethod calls throughout the file.\n\nFixed episode_id_str variable declarations:\n- view_episode: Made variable conditional with #[cfg(feature = \"turso\")]\n- complete_episode: Removed unused variable declaration\n- log_step: Removed unused variable declaration\n\nFixed clippy redundant_closure warnings:\n- Replaced closure |s| serde_json::to_value(s) with serde_json::to_value\n- Applied to all map calls with serde_json::to_value\n\nAll compilation and linting checks now pass cleanly.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix: make Context import and episode_id parameter conditional\n\nFixed compilation errors when turso feature is disabled:\n- Made `use anyhow::Context;` conditional with #[cfg(feature = \"turso\")]\n- Added #[cfg_attr(not(feature = \"turso\"), allow(unused_variables))] to\n  episode_id parameter in view_episode function\n\nAll clippy checks now pass with and without turso feature enabled.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* feat(turso): add support for local database connections\n\nci: adjust coverage threshold based on event type\nchore: update license exceptions in deny.toml\n\n* [fmt] fix conditional formatting in memory-storage-turso\n\n* gitignore .redb data\n\n* fix(mcp): correct JSON syntax and quiet cargo output in opencode.json\n\n* fix(clippy): use strip_prefix instead of manual string slicing\n\nReplace manual string slicing with idiomatic strip_prefix method\nin Turso storage URL handling. This fixes clippy::manual_strip warnings\nand improves code clarity.\n\nChanges:\n- Replace url.starts_with(\"file:\") + manual slicing with strip_prefix\n- Apply fix to both new() and with_migration() methods\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix(tests): resolve database locking and path issues in CLI tests\n\nFix test isolation and cross-platform compatibility issues that caused\ntest failures on Windows and concurrent test execution.\n\nChanges:\n- Use unique temporary database paths for each test to prevent locking\n- Convert Windows backslashes to forward slashes for TOML compatibility\n- Update security tests to expect database connection failures for malicious paths\n- Add missing redb_path configuration in all test configs\n\nFixes:\n- Database locking errors from concurrent test access\n- TOML parse errors from Windows path backslashes\n- Missing redb_path causing \"os error 123\" on Windows\n\nAll CLI integration and security tests now pass successfully.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* refactor(hooks): extract post-edit and post-bash hooks to separate files\n\nMove inline hook commands to dedicated script files for better maintainability\nSimplify settings.json by removing redundant hooks and keeping only essential ones\nAdd additional allowed bash commands to settings.local.json\n\n* fix(mcp): Redirect logs to stderr and fix integration test\n\n* test: fix cli error handling test and add command tests\n\n* style: apply rustfmt formatting to test files\n\nRun cargo fmt --all to fix formatting issues detected by CI.\n\nChanges:\n- Format command_tests.rs (line length, method chaining)\n- Format integration_tests.rs (predicate formatting)\n- Format json_validation_test.rs (function signatures, line breaks)\n\nAll formatting changes are automatic via rustfmt.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* fix(clippy): replace !is_some() with is_none() in MCP tests\n\nFix clippy::nonminimal_bool warnings by using the simpler is_none()\nmethod instead of !is_some().\n\nChanges:\n- memory-mcp/tests/json_validation_test.rs: 5 occurrences fixed\n  - Lines 105, 108, 111 (test_query_memory)\n  - Lines 142, 145 (test_analyze_patterns)\n\nAll clippy checks now pass without warnings.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* test(security): expand database error message assertions\n\nrefactor(hooks): update regex pattern for secret detection\n\n* Fix memory-cli compilation with turso feature and update security tests\n\n---------\n\nCo-authored-by: GitHub Actions <github-actions[bot]@users.noreply.github.com>\nCo-authored-by: d.o.it <6849456+d-oit@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-19T17:29:05+01:00",
+          "tree_id": "e7dc5d80935d93f964665e5cbeae001d52444de5",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/dde3b74acd274f5efed63286d19be62f66b4634e"
+        },
+        "date": 1763570254765,
         "tool": "cargo",
         "benches": [
           {

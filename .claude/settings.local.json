@@ -27,7 +27,8 @@
       "Bash(echo:*)",
       "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"git status\"\"}' bash .claude/hooks/post-bash.sh)",
       "Bash(1)",
-      "Bash(gh pr diff:*)"
+      "Bash(gh pr diff:*)",
+      "Skill(goap-agent)"
     ],
     "deny": [],
     "ask": []

@@ -26,7 +26,8 @@
       "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"echo hello\"\"}' bash .claude/hooks/post-bash.sh)",
       "Bash(echo:*)",
       "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"git status\"\"}' bash .claude/hooks/post-bash.sh)",
-      "Bash(1)"
+      "Bash(1)",
+      "Bash(gh pr diff:*)"
     ],
     "deny": [],
     "ask": []

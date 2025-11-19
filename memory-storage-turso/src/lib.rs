@@ -165,8 +165,8 @@ impl TursoStorage {
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
         } else {
-            let path = if url.starts_with("file:") {
-                &url["file:".len()..]
+            let path = if let Some(stripped) = url.strip_prefix("file:") {
+                stripped
             } else {
                 url
             };
@@ -260,8 +260,8 @@ impl TursoStorage {
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to connect to Turso: {}", e)))?
         } else {
-            let path = if url.starts_with("file:") {
-                &url["file:".len()..]
+            let path = if let Some(stripped) = url.strip_prefix("file:") {
+                stripped
             } else {
                 url
             };

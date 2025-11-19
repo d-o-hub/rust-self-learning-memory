@@ -17,7 +17,16 @@
       "Bash(git rm:*)",
       "Bash(test:*)",
       "Bash(bash:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(cargo --version:*)",
+      "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"echo test\"\"}' bash .claude/hooks/post-bash.sh)",
+      "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"git commit -m \\\"\"test\\\"\"\"\"}' bash .claude/hooks/post-bash.sh)",
+      "Bash(rustc:*)",
+      "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"echo hello\"\"}' bash .claude/hooks/post-bash.sh)",
+      "Bash(echo:*)",
+      "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"git status\"\"}' bash .claude/hooks/post-bash.sh)",
+      "Bash(1)"
     ],
     "deny": [],
     "ask": []

@@ -27,58 +27,13 @@
     ],
     "PostToolUse": [
       {
-        "name": "Post-Commit Security Check",
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cmd=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.command // empty' 2>/dev/null); if [ -n \"$cmd\" ] && echo \"$cmd\" | grep -q 'git commit'; then echo '🔒 Running post-commit security checks...' && bash .claude/hooks/pre-commit-security.sh 2>&1 || echo '⚠️  Security check warnings (non-blocking)'; fi; exit 0",
-            "timeout": 180
-          }
-        ]
-      },
-      {
         "name": "Auto-format Rust Code",
         "matcher": "Edit|MultiEdit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty' 2>/dev/null); if [ -n \"$file_path\" ] && echo \"$file_path\" | grep -q '\\.rs$' && [ -f \"$file_path\" ]; then cargo fmt -- \"$file_path\" 2>&1 && echo \"Formatted $file_path\"; fi; exit 0",
+            "command": "bash .claude/hooks/post-edit.sh || true",
             "timeout": 30
-          }
-        ]
-      },
-      {
-        "name": "Run Clippy Lints",
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty' 2>/dev/null); if [ -n \"$file_path\" ] && echo \"$file_path\" | grep -q '\\.rs$'; then cargo clippy --quiet -- -D warnings 2>&1 || echo 'Clippy warnings found'; fi; exit 0",
-            "timeout": 120
-          }
-        ]
-      },
-      {
-        "name": "Run Tests for Modified Files",
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty' 2>/dev/null); if [ -n \"$file_path\" ] && echo \"$file_path\" | grep -q '^src/.*\\.rs$'; then cargo test --quiet 2>&1 || echo 'Some tests failed'; fi; exit 0",
-            "timeout": 300,
-            "run_in_background": true
-          }
-        ]
-      },
-      {
-        "name": "Security Audit",
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty' 2>/dev/null); if [ -n \"$file_path\" ] && echo \"$file_path\" | grep -qE 'Cargo\\.(toml|lock)$'; then cargo audit --quiet || echo 'Security vulnerabilities detected'; fi; exit 0",
-            "timeout": 60
           }
         ]
       }

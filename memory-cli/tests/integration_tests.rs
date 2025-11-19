@@ -57,9 +57,19 @@ mod integration_tests {
         let temp_dir = TempDir::new().unwrap();
         let invalid_config_path = temp_dir.path().join("invalid.toml");
 
-        let invalid_config = r#"
+        // Use unique database paths within temp directory
+        let turso_db_path = temp_dir.path().join("test.db");
+        let redb_path = temp_dir.path().join("test.redb");
+
+        // Convert Windows paths to forward slashes for TOML compatibility
+        let turso_db_str = turso_db_path.display().to_string().replace('\\', "/");
+        let redb_str = redb_path.display().to_string().replace('\\', "/");
+
+        let invalid_config = format!(
+            r#"
 [database]
-turso_url = "file:test.db"
+turso_url = "file:{}"
+redb_path = "{}"
 
 [storage]
 max_episodes_cache = 0
@@ -70,9 +80,11 @@ pool_size = 5
 default_format = "human"
 progress_bars = true
 batch_size = 10
-"#;
+"#,
+            turso_db_str, redb_str
+        );
 
-        fs::write(&invalid_config_path, invalid_config).unwrap();
+        fs::write(&invalid_config_path, &invalid_config).unwrap();
 
         #[allow(deprecated)]
         let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
@@ -186,10 +198,20 @@ batch_size = 10
         let temp_dir = TempDir::new().unwrap();
         let config_path = temp_dir.path().join("custom.toml");
 
-        let custom_config = r#"
+        // Use unique database paths within temp directory
+        let turso_db_path = temp_dir.path().join("custom.db");
+        let redb_path = temp_dir.path().join("custom.redb");
+
+        // Convert Windows paths to forward slashes for TOML compatibility
+        let turso_db_str = turso_db_path.display().to_string().replace('\\', "/");
+        let redb_str = redb_path.display().to_string().replace('\\', "/");
+
+        let custom_config = format!(
+            r#"
 [database]
-turso_url = "file:custom.db"
+turso_url = "file:{}"
 turso_token = "custom-token"
+redb_path = "{}"
 
 [storage]
 max_episodes_cache = 200
@@ -200,9 +222,11 @@ pool_size = 8
 default_format = "json"
 progress_bars = true
 batch_size = 50
-"#;
+"#,
+            turso_db_str, redb_str
+        );
 
-        fs::write(&config_path, custom_config).unwrap();
+        fs::write(&config_path, &custom_config).unwrap();
 
         #[allow(deprecated)]
         let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
@@ -217,9 +241,19 @@ batch_size = 50
         let temp_dir = TempDir::new().unwrap();
         let default_config_path = temp_dir.path().join("memory-cli.toml");
 
-        let config_content = r#"
+        // Use unique database paths within temp directory
+        let turso_db_path = temp_dir.path().join("default.db");
+        let redb_path = temp_dir.path().join("default.redb");
+
+        // Convert Windows paths to forward slashes for TOML compatibility
+        let turso_db_str = turso_db_path.display().to_string().replace('\\', "/");
+        let redb_str = redb_path.display().to_string().replace('\\', "/");
+
+        let config_content = format!(
+            r#"
 [database]
-turso_url = "file:default.db"
+turso_url = "file:{}"
+redb_path = "{}"
 
 [storage]
 max_episodes_cache = 150
@@ -230,9 +264,11 @@ pool_size = 6
 default_format = "yaml"
 progress_bars = false
 batch_size = 25
-"#;
+"#,
+            turso_db_str, redb_str
+        );
 
-        fs::write(&default_config_path, config_content).unwrap();
+        fs::write(&default_config_path, &config_content).unwrap();
 
         // Change to temp directory to test default config loading
         let original_dir = std::env::current_dir().unwrap();
@@ -270,9 +306,7 @@ batch_size = 25
             .execute(["episode", "view", "invalid-uuid"])
             .assert()
             .failure()
-            .stderr(predicate::str::contains(
-                "Turso storage feature not enabled",
-            ));
+            .stderr(predicate::str::contains("Invalid episode ID format"));
 
         // Test invalid task type
         harness

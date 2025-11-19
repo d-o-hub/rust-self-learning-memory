@@ -25,12 +25,21 @@ impl CliHarness {
         let temp_dir = TempDir::new().expect("Failed to create temp directory");
         let config_path = temp_dir.path().join("test-config.toml");
 
-        // Create a basic test config
-        let config_content = r#"
+        // Create unique database paths within the temp directory to avoid locking conflicts
+        let turso_db_path = temp_dir.path().join("test.db");
+        let redb_path = temp_dir.path().join("test.redb");
+
+        // Convert Windows paths to forward slashes for TOML compatibility
+        let turso_db_str = turso_db_path.display().to_string().replace('\\', "/");
+        let redb_str = redb_path.display().to_string().replace('\\', "/");
+
+        // Create a basic test config with unique database paths
+        let config_content = format!(
+            r#"
 [database]
-turso_url = "file:test.db"
+turso_url = "file:{}"
 turso_token = "test-token"
-redb_path = "test.redb"
+redb_path = "{}"
 
 [storage]
 max_episodes_cache = 100
@@ -41,7 +50,9 @@ pool_size = 5
 default_format = "json"
 progress_bars = false
 batch_size = 10
-"#;
+"#,
+            turso_db_str, redb_str
+        );
 
         std::fs::write(&config_path, config_content).expect("Failed to write test config");
 

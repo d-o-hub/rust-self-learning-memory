@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763579815171,
+  "lastUpdate": 1763709359714,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -2715,6 +2715,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/6af6a1c2898eec95d7efa795b14d2a0d9d1c5f00"
         },
         "date": 1763579814454,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "631231e04ab50f48dcf4dc4b94e2ae533f230edf",
+          "message": "docs: add memory-cli agent and skill for Claude Code (#114)\n\n* docs: add memory-cli agent and skill for Claude Code\n\nCreated comprehensive Claude Code resources for memory-cli:\n\n## Agent (.claude/agents/memory-cli.md)\n- Complete CLI development guide\n- Command implementation patterns\n- Testing strategies (unit, integration, security, performance)\n- Security best practices (input validation, injection prevention)\n- Code quality standards (file size limits, error handling)\n- Deployment and troubleshooting guides\n\n## Skill (.claude/skills/memory-cli-ops/SKILL.md)\n- Complete command reference for all 30+ CLI commands\n- Episode management (start, complete, log-step, list, view)\n- Pattern management (list, view, analyze, effectiveness, decay)\n- Storage operations (stats, sync, vacuum, health, connection-status)\n- Operational commands (backup, config, health, logs, monitor)\n- Output format examples (JSON, YAML, table, plain)\n- Configuration guide and environment variables\n- Common workflows and troubleshooting\n- Shell integration and advanced usage patterns\n\nThese resources enable Claude Code to:\n- ✅ Implement new CLI commands following best practices\n- ✅ Help users understand and use CLI commands effectively\n- ✅ Debug and troubleshoot CLI issues\n- ✅ Maintain code quality and security standards\n- ✅ Guide developers through testing and deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* refactor: streamline memory-cli-ops skill following best practices\n\nRefactored .claude/skills/memory-cli-ops/SKILL.md following skill-creator\ntemplates and best practices:\n\n- Enhanced description to be more action-oriented\n- Added clear \"When to Use\" section with 6 specific scenarios\n- Reduced file length from 1,033 lines to ~479 lines\n- Reorganized content for better clarity and conciseness\n- Focused on essential commands and common workflows\n- Removed verbose reference material in favor of actionable guidance\n- Improved troubleshooting section organization\n- Added Integration section showing coordination with agents/skills\n\nThe skill is now more focused, scannable, and aligned with Claude Code\nskill development best practices.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: d.o.it <6849456+d-oit@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-21T08:09:00+01:00",
+          "tree_id": "2ff8d247ee5109215af53c0ff795c87b5943a162",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/631231e04ab50f48dcf4dc4b94e2ae533f230edf"
+        },
+        "date": 1763709359045,
         "tool": "cargo",
         "benches": [
           {

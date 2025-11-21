@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763709359714,
+  "lastUpdate": 1763752899286,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -2805,6 +2805,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/631231e04ab50f48dcf4dc4b94e2ae533f230edf"
         },
         "date": 1763709359045,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a23b02bbd0067c639d6c404968c9942a99a4c83",
+          "message": "feat: v0.1.4 - CLI Quality-of-Life Improvements & Enhanced Error Handling (#115)\n\n* docs: add memory-cli agent and skill for Claude Code\n\nCreated comprehensive Claude Code resources for memory-cli:\n\n## Agent (.claude/agents/memory-cli.md)\n- Complete CLI development guide\n- Command implementation patterns\n- Testing strategies (unit, integration, security, performance)\n- Security best practices (input validation, injection prevention)\n- Code quality standards (file size limits, error handling)\n- Deployment and troubleshooting guides\n\n## Skill (.claude/skills/memory-cli-ops/SKILL.md)\n- Complete command reference for all 30+ CLI commands\n- Episode management (start, complete, log-step, list, view)\n- Pattern management (list, view, analyze, effectiveness, decay)\n- Storage operations (stats, sync, vacuum, health, connection-status)\n- Operational commands (backup, config, health, logs, monitor)\n- Output format examples (JSON, YAML, table, plain)\n- Configuration guide and environment variables\n- Common workflows and troubleshooting\n- Shell integration and advanced usage patterns\n\nThese resources enable Claude Code to:\n- ✅ Implement new CLI commands following best practices\n- ✅ Help users understand and use CLI commands effectively\n- ✅ Debug and troubleshoot CLI issues\n- ✅ Maintain code quality and security standards\n- ✅ Guide developers through testing and deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* refactor: streamline memory-cli-ops skill following best practices\n\nRefactored .claude/skills/memory-cli-ops/SKILL.md following skill-creator\ntemplates and best practices:\n\n- Enhanced description to be more action-oriented\n- Added clear \"When to Use\" section with 6 specific scenarios\n- Reduced file length from 1,033 lines to ~479 lines\n- Reorganized content for better clarity and conciseness\n- Focused on essential commands and common workflows\n- Removed verbose reference material in favor of actionable guidance\n- Improved troubleshooting section organization\n- Added Integration section showing coordination with agents/skills\n\nThe skill is now more focused, scannable, and aligned with Claude Code\nskill development best practices.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* feat: Release v0.1.4 - CLI Quality-of-Life Improvements\n\nThis release delivers quality polish and enhancements to the memory-cli,\nachieving a quality score of 9.5/10 with zero warnings and 100% test pass rate.\n\n## Key Features Added\n\n### Enhanced Error Messages (120 LOC new module)\n- Created memory-cli/src/errors.rs with EnhancedError trait\n- Color-coded error output (red/yellow/cyan)\n- Context-rich error messages with helpful suggestions\n- Pre-defined error helpers for common scenarios\n- 100% test coverage for error handling\n\n### Command Aliases (9 shortcuts)\n- ep → episode, pat → pattern, st → storage\n- cfg → config, hp → health, bak → backup\n- mon → monitor, log → logs, comp → completion\n- All aliases tested and verified functional\n\n### Interactive Confirmations\n- Pattern decay confirmation with preview (safe default: No)\n- Force storage sync confirmation with warning\n- Storage vacuum confirmation with operation list\n- All confirmations bypassable with --force/--yes flags\n\n## Critical Bug Fixes\n\n### Duplicate Storage Initialization Fix\n- Fixed database lock errors in episode commands\n- Refactored episode.rs to use shared memory instance\n- Removed ~600 LOC of duplicate initialization code\n- Reduced memory usage by ~50MB per command\n- Improved command execution speed by 100-200ms\n\n### Security Test Fixes\n- Fixed 2 failing security tests\n- Updated error assertions for feature-gated scenarios\n- All 77 tests now passing (100% pass rate)\n\n## Code Quality Improvements\n\n- Quality Score: 9.5/10 (up from 8.7/10)\n- Zero clippy warnings with -D warnings flag\n- Zero compilation errors\n- 96%+ test coverage maintained\n- All performance targets exceeded\n\n## Documentation & Organization\n\n### Plans Folder Cleanup\n- Created plans/archive/ structure for historical docs\n- Archived 9 obsolete v0.1.0 and v0.1.2 files\n- Complete rewrite of plans/README.md (353 lines)\n- Added comprehensive version history and navigation\n\n### Implementation Reports\n- v0.1.4-complete-implementation-summary.md\n- v0.1.4-phase2-completion-report.md\n- v0.1.4-planning-summary.md\n- Detailed testing and verification documentation\n\n## Performance Metrics\n\n- CLI startup: <200ms (2.5x better than target)\n- Command execution: <100ms average\n- Memory usage: <50MB peak (50% reduction)\n- All storage operations within baselines\n\n## Testing Coverage\n\n- All 77 tests passing (100% pass rate)\n- Unit tests: 8/8\n- Command tests: 23/23\n- Integration tests: 19/19\n- Security tests: 19/19\n- Command integration: 8/8\n- Integration tested with local Turso database\n\n## Backward Compatibility\n\n- No breaking changes\n- No migration required from v0.1.3\n- All existing commands work unchanged\n- New confirmations can be bypassed for automation\n\n## Production Readiness\n\n✅ Zero warnings/errors\n✅ All tests passing\n✅ Integration testing complete\n✅ Release build successful\n✅ Quality score achieved\n✅ Performance targets exceeded\n✅ Ready for production deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* feat(cli): integrate enhanced error handling across all commands\n\nComplete Phase 2 stretch goal by integrating enhanced error handling infrastructure\nthroughout command implementations.\n\n## Enhanced Error Locations (16 total)\n\n### Episode Commands (8 locations)\n- Context file reading with INVALID_INPUT_HELP\n- YAML parsing with INVALID_INPUT_HELP\n- UUID validation (3 locations) with INVALID_INPUT_HELP\n- Episode retrieval (3 locations) with EPISODE_NOT_FOUND_HELP\n\n### Pattern Commands (6 locations)\n- UUID validation (2 locations) with INVALID_INPUT_HELP\n- Pattern retrieval (2 locations) with DATABASE_OPERATION_HELP\n- Pattern not found (2 locations) with PATTERN_NOT_FOUND_HELP\n\n### Storage Commands (2 locations)\n- Storage backend configuration with STORAGE_CONNECTION_HELP\n- Turso query failures with STORAGE_CONNECTION_HELP\n\n## Quality Verification\n\n- ✅ All 77/77 tests passing (100% pass rate)\n- ✅ Zero clippy warnings (strict mode: -D warnings)\n- ✅ Code formatted with cargo fmt\n- ✅ Release build successful\n- ✅ Feature gates properly applied (#[cfg(feature = \"turso\")])\n- ✅ Quality score: 9.5/10 maintained\n\n## User Experience Improvement\n\nUsers now receive helpful, color-coded error messages with actionable suggestions:\n- Red error messages with clear context\n- Yellow suggestion text with numbered steps\n- Cyan formatting for emphasis\n- Specific guidance for common error scenarios\n\n## Breaking Changes\n\nNone - all changes are backward compatible and additive.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n\n* docs(agents): update AGENTS.md with improved structure and content\n\nfeat(agents): add build-compile and code-quality agent documentation\nchore: add test configuration files and cleanup script\n\n---------\n\nCo-authored-by: d.o.it <6849456+d-oit@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>",
+          "timestamp": "2025-11-21T20:13:20+01:00",
+          "tree_id": "bb36c7048b7e284255f4e4e67302a4d29259d82a",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/0a23b02bbd0067c639d6c404968c9942a99a4c83"
+        },
+        "date": 1763752899024,
         "tool": "cargo",
         "benches": [
           {

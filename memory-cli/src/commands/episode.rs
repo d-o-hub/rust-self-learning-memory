@@ -1,12 +1,13 @@
-#[cfg(feature = "turso")]
-use anyhow::Context;
 use clap::{Subcommand, ValueEnum};
+use memory_core::SelfLearningMemory;
 #[cfg(feature = "turso")]
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use memory_core::{TaskContext, TaskType};
 use serde::Serialize;
 use std::path::PathBuf;
 
 use crate::config::Config;
+#[cfg(feature = "turso")]
+use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
 
 #[derive(Subcommand)]
@@ -195,7 +196,7 @@ impl Output for EpisodeList {
 pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,
-    memory: &SelfLearningMemory,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
@@ -223,15 +224,19 @@ pub async fn create_episode(
     {
         // Load context from file if provided
         let context_data = if let Some(context_path) = context {
-            let content = std::fs::read_to_string(&context_path)
-                .with_context(|| format!("Failed to read context file: {}\n\nPlease check:\n• File exists and is readable\n• Correct file path\n• File permissions", context_path.display()))?;
+            let content = std::fs::read_to_string(&context_path).context_with_help(
+                &format!("Failed to read context file: {}", context_path.display()),
+                helpers::INVALID_INPUT_HELP,
+            )?;
 
             // Try to parse as JSON first, then YAML
             if let Ok(ctx) = serde_json::from_str::<TaskContext>(&content) {
                 ctx
             } else {
-                serde_yaml::from_str(&content)
-                    .with_context(|| format!("Failed to parse context file as JSON or YAML: {}\n\nSupported formats:\n• JSON: {{ \"language\": \"rust\", \"domain\": \"web\" }}\n• YAML: language: rust\\n  domain: web", context_path.display()))?
+                serde_yaml::from_str(&content).context_with_help(
+                    &format!("Failed to parse context file: {}", context_path.display()),
+                    helpers::INVALID_INPUT_HELP,
+                )?
             }
         } else {
             TaskContext::default()
@@ -276,11 +281,10 @@ pub async fn list_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] task_type: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] status: Option<EpisodeStatus>,
-    memory: &SelfLearningMemory,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
-
     // Check if storage features are enabled
     #[cfg(not(feature = "turso"))]
     return Err(anyhow::anyhow!(
@@ -296,8 +300,8 @@ pub async fn list_episodes(
         if let Some(task_type_str) = &task_type {
             // Validate task type
             match task_type_str.as_str() {
-                "code_generation" | "debugging" | "testing" | "analysis"
-                | "documentation" | "refactoring" | "other" => {},
+                "code_generation" | "debugging" | "testing" | "analysis" | "documentation"
+                | "refactoring" | "other" => {}
                 _ => {
                     return Err(anyhow::anyhow!(
                         "Invalid task type: '{}'.\n\
@@ -340,7 +344,7 @@ pub async fn list_episodes(
                     Some(tt) => {
                         let episode_type = episode.task_type.to_string().to_lowercase();
                         episode_type.contains(&tt.to_lowercase())
-                    },
+                    }
                     None => true,
                 }
             })
@@ -384,7 +388,7 @@ pub async fn list_episodes(
 
 pub async fn view_episode(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] episode_id: String,
-    memory: &SelfLearningMemory,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -402,15 +406,17 @@ pub async fn view_episode(
     #[cfg(feature = "turso")]
     {
         // Parse episode ID
-        let episode_uuid = Uuid::parse_str(&episode_id)
-            .with_context(|| format!("Invalid episode ID format: {}", episode_id))?;
+        let episode_uuid = Uuid::parse_str(&episode_id).context_with_help(
+            &format!("Invalid episode ID format: {}", episode_id),
+            helpers::INVALID_INPUT_HELP,
+        )?;
 
         // Use the pre-initialized memory system
         // Get the episode
-        let episode = memory
-            .get_episode(episode_uuid)
-            .await
-            .with_context(|| format!("Episode not found: {}", episode_id_str))?;
+        let episode = memory.get_episode(episode_uuid).await.context_with_help(
+            &format!("Episode not found: {}", episode_id_str),
+            helpers::EPISODE_NOT_FOUND_HELP,
+        )?;
 
         // Create a detailed view
         #[derive(Debug, serde::Serialize)]
@@ -516,7 +522,7 @@ pub async fn view_episode(
 pub async fn complete_episode(
     episode_id: String,
     outcome: TaskOutcome,
-    memory: &SelfLearningMemory,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
@@ -543,8 +549,10 @@ pub async fn complete_episode(
     #[cfg(feature = "turso")]
     {
         // Parse episode ID
-        let episode_uuid = Uuid::parse_str(&episode_id)
-            .with_context(|| format!("Invalid episode ID format: {}", episode_id))?;
+        let episode_uuid = Uuid::parse_str(&episode_id).context_with_help(
+            &format!("Invalid episode ID format: {}", episode_id),
+            helpers::INVALID_INPUT_HELP,
+        )?;
 
         // Use the pre-initialized memory system
         // Map CLI outcome to core outcome
@@ -568,7 +576,10 @@ pub async fn complete_episode(
         memory
             .complete_episode(episode_uuid, core_outcome)
             .await
-            .with_context(|| format!("Failed to complete episode: {}", episode_id))?;
+            .context_with_help(
+                &format!("Failed to complete episode: {}", episode_id),
+                helpers::EPISODE_NOT_FOUND_HELP,
+            )?;
 
         // Return success
         #[derive(Debug, serde::Serialize)]
@@ -602,7 +613,7 @@ pub async fn complete_episode(
 pub async fn search_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] query: String,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
-    memory: &SelfLearningMemory,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -667,7 +678,7 @@ pub async fn log_step(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] latency_ms: Option<u64>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] tokens: Option<u32>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] observation: Option<String>,
-    memory: &SelfLearningMemory,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
     dry_run: bool,
@@ -694,15 +705,17 @@ pub async fn log_step(
     #[cfg(feature = "turso")]
     {
         // Parse episode ID
-        let episode_uuid = Uuid::parse_str(&episode_id)
-            .with_context(|| format!("Invalid episode ID format: {}", episode_id))?;
+        let episode_uuid = Uuid::parse_str(&episode_id).context_with_help(
+            &format!("Invalid episode ID format: {}", episode_id),
+            helpers::INVALID_INPUT_HELP,
+        )?;
 
         // Use the pre-initialized memory system
         // Get the current episode to determine step number
-        let episode = memory
-            .get_episode(episode_uuid)
-            .await
-            .with_context(|| format!("Failed to retrieve episode: {}", episode_id))?;
+        let episode = memory.get_episode(episode_uuid).await.context_with_help(
+            &format!("Failed to retrieve episode: {}", episode_id),
+            helpers::EPISODE_NOT_FOUND_HELP,
+        )?;
 
         let step_number = episode.steps.len() + 1;
 
@@ -865,6 +878,7 @@ mod tests {
         assert_eq!(outcome_variants.len(), 3);
     }
 
+    #[cfg(feature = "turso")]
     #[tokio::test]
     async fn test_create_episode_dry_run() {
         let temp_dir = TempDir::new().unwrap();
@@ -893,8 +907,7 @@ default_format = "human"
 progress_bars = false
 batch_size = 10
 "#,
-            db_path_str,
-            redb_path_str
+            db_path_str, redb_path_str
         );
 
         std::fs::write(&config_path, config_content).unwrap();
@@ -916,6 +929,7 @@ batch_size = 10
         assert!(result.is_ok());
     }
 
+    #[cfg(feature = "turso")]
     #[tokio::test]
     async fn test_complete_episode_dry_run() {
         let temp_dir = TempDir::new().unwrap();
@@ -944,8 +958,7 @@ default_format = "human"
 progress_bars = false
 batch_size = 10
 "#,
-            db_path_str,
-            redb_path_str
+            db_path_str, redb_path_str
         );
 
         std::fs::write(&config_path, config_content).unwrap();
@@ -967,6 +980,7 @@ batch_size = 10
         assert!(result.is_ok());
     }
 
+    #[cfg(feature = "turso")]
     #[tokio::test]
     async fn test_log_step_dry_run() {
         let temp_dir = TempDir::new().unwrap();
@@ -995,8 +1009,7 @@ default_format = "human"
 progress_bars = false
 batch_size = 10
 "#,
-            db_path_str,
-            redb_path_str
+            db_path_str, redb_path_str
         );
 
         std::fs::write(&config_path, config_content).unwrap();

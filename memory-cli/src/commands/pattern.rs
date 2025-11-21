@@ -2,6 +2,7 @@ use clap::{Subcommand, ValueEnum};
 use serde::Serialize;
 
 use crate::config::Config;
+use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
 
 #[derive(Subcommand)]
@@ -503,13 +504,25 @@ pub async fn view_pattern(
 ) -> anyhow::Result<()> {
     use uuid::Uuid;
 
-    let pattern_uuid = Uuid::parse_str(&pattern_id)
-        .map_err(|_| anyhow::anyhow!("Invalid pattern ID format: {}", pattern_id))?;
+    let pattern_uuid = Uuid::parse_str(&pattern_id).context_with_help(
+        &format!("Invalid pattern ID format: {}", pattern_id),
+        helpers::INVALID_INPUT_HELP,
+    )?;
 
     let pattern = memory
         .get_pattern(pattern_uuid)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
+        .await
+        .context_with_help(
+            "Failed to retrieve pattern from storage",
+            helpers::DATABASE_OPERATION_HELP,
+        )?
+        .ok_or_else(|| {
+            anyhow::anyhow!(helpers::format_error_message(
+                &format!("Pattern not found: {}", pattern_id),
+                "Pattern does not exist in storage",
+                helpers::PATTERN_NOT_FOUND_HELP
+            ))
+        })?;
 
     let (pattern_type, details) = match &pattern {
         memory_core::pattern::Pattern::ToolSequence {
@@ -676,13 +689,25 @@ pub async fn analyze_pattern(
 ) -> anyhow::Result<()> {
     use uuid::Uuid;
 
-    let pattern_uuid = Uuid::parse_str(&pattern_id)
-        .map_err(|_| anyhow::anyhow!("Invalid pattern ID format: {}", pattern_id))?;
+    let pattern_uuid = Uuid::parse_str(&pattern_id).context_with_help(
+        &format!("Invalid pattern ID format: {}", pattern_id),
+        helpers::INVALID_INPUT_HELP,
+    )?;
 
     let _pattern = memory
         .get_pattern(pattern_uuid)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
+        .await
+        .context_with_help(
+            "Failed to retrieve pattern from storage",
+            helpers::DATABASE_OPERATION_HELP,
+        )?
+        .ok_or_else(|| {
+            anyhow::anyhow!(helpers::format_error_message(
+                &format!("Pattern not found: {}", pattern_id),
+                "Pattern does not exist in storage",
+                helpers::PATTERN_NOT_FOUND_HELP
+            ))
+        })?;
 
     // Get recent episodes to analyze
     let context = memory_core::types::TaskContext::default();

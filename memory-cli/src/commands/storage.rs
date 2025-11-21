@@ -3,6 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde::Serialize;
 
 use crate::config::Config;
+use crate::errors::helpers;
 use crate::output::{Output, OutputFormat};
 
 #[derive(Subcommand)]
@@ -369,9 +370,11 @@ pub async fn sync_storage(
     let (turso, redb) = match (memory.turso_storage(), memory.cache_storage()) {
         (Some(t), Some(r)) => (t.clone(), r.clone()),
         _ => {
-            anyhow::bail!(
-                "Storage sync requires both Turso and redb storage backends to be configured"
-            );
+            return Err(anyhow::anyhow!(helpers::format_error_message(
+                "Storage sync requires both Turso and redb storage backends",
+                "Both storage backends must be configured for synchronization",
+                helpers::STORAGE_CONNECTION_HELP
+            )));
         }
     };
 
@@ -446,7 +449,11 @@ pub async fn sync_storage(
         Ok(episodes) => episodes,
         Err(e) => {
             progress.finish_with_message("❌ Failed to query episodes");
-            anyhow::bail!("Failed to query episodes from Turso: {}", e);
+            return Err(anyhow::anyhow!(helpers::format_error_message(
+                &format!("Failed to query episodes from Turso: {}", e),
+                "Could not retrieve episodes from durable storage",
+                helpers::STORAGE_CONNECTION_HELP
+            )));
         }
     };
 

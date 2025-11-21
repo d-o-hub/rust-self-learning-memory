@@ -1011,6 +1011,7 @@ pub async fn decay_patterns(
     if !force && !result.patterns_to_decay.is_empty() {
         if format == OutputFormat::Human {
             use colored::*;
+            use dialoguer::Confirm;
 
             println!("Pattern Decay Analysis");
             println!("======================");
@@ -1019,14 +1020,42 @@ pub async fn decay_patterns(
                 result.would_decay_count.to_string().yellow().bold()
             );
             println!();
-            println!("This will permanently remove ineffective patterns from the system.");
+
+            // Show preview of patterns to be decayed
+            println!("Patterns to be decayed:");
+            for pattern in result.patterns_to_decay.iter().take(5) {
+                println!(
+                    "  • {} ({:.2} effectiveness, {} uses)",
+                    &pattern.pattern_id[..8],
+                    pattern.effectiveness_score,
+                    pattern.use_count
+                );
+            }
+            if result.patterns_to_decay.len() > 5 {
+                println!("  ... and {} more", result.patterns_to_decay.len() - 5);
+            }
+            println!();
+
             println!(
-                "Run with {} to proceed, or {} to see what would be done.",
-                "--force".green().bold(),
-                "--dry-run".blue().bold()
+                "{}",
+                "This will permanently remove ineffective patterns from the system.".yellow()
             );
+            println!();
+
+            // Interactive confirmation
+            let confirmed = Confirm::new()
+                .with_prompt("Continue with pattern decay?")
+                .default(false)
+                .interact()?;
+
+            if !confirmed {
+                println!("{}", "Operation cancelled.".yellow());
+                return Ok(());
+            }
+        } else {
+            // Non-human format requires --force flag
+            anyhow::bail!("Pattern decay requires --force flag for non-interactive formats");
         }
-        return Ok(());
     }
 
     // Perform actual decay (in real implementation, this would remove from storage)

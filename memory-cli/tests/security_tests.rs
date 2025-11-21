@@ -313,7 +313,10 @@ batch_size = 10
                 .or(predicate::str::contains(
                     "Turso database URL not configured",
                 ))
-                .or(predicate::str::contains("Failed to open database")),
+                .or(predicate::str::contains("Failed to open database"))
+                .or(predicate::str::contains(
+                    "Turso storage feature not enabled",
+                )),
         );
     }
 
@@ -651,7 +654,10 @@ batch_size = 10
                         predicate::str::contains("Failed to connect to database")
                             .or(predicate::str::contains("SQLite failure"))
                             .or(predicate::str::contains("Storage error"))
-                            .or(predicate::str::contains("Failed to open database")),
+                            .or(predicate::str::contains("Failed to open database"))
+                            .or(predicate::str::contains(
+                                "Turso storage feature not enabled",
+                            )),
                     );
                 }
                 _ => {

@@ -387,6 +387,31 @@ pub async fn sync_storage(
         return Ok(());
     }
 
+    // Interactive confirmation for force sync
+    if force && format == OutputFormat::Human {
+        use colored::*;
+        use dialoguer::Confirm;
+
+        println!(
+            "{}",
+            "WARNING: Force synchronization will process all data from the last 24 hours."
+                .yellow()
+                .bold()
+        );
+        println!("This may take a while and could overwrite cached data.");
+        println!();
+
+        let confirmed = Confirm::new()
+            .with_prompt("Continue with full synchronization?")
+            .default(false)
+            .interact()?;
+
+        if !confirmed {
+            println!("{}", "Operation cancelled.".yellow());
+            return Ok(());
+        }
+    }
+
     let start_time = std::time::Instant::now();
 
     // Determine sync timeframe
@@ -527,6 +552,36 @@ pub async fn vacuum_storage(
         };
         format.print_output(&result)?;
         return Ok(());
+    }
+
+    // Interactive confirmation for vacuum
+    if format == OutputFormat::Human {
+        use colored::*;
+        use dialoguer::Confirm;
+
+        println!("{}", "Storage Vacuum".bold());
+        println!("{}", "==============".bold());
+        println!("This operation will:");
+        println!("  • Clean expired cache entries from redb");
+        println!("  • Optimize Turso database structures");
+        println!("  • Remove orphaned data and compact storage");
+        println!();
+        println!(
+            "{}",
+            "Note: This operation is generally safe but may take time.".yellow()
+        );
+        println!();
+
+        let confirmed = Confirm::new()
+            .with_prompt("Continue with vacuum operation?")
+            .default(true)
+            .interact()?;
+
+        if !confirmed {
+            println!("{}", "Operation cancelled.".yellow());
+            return Ok(());
+        }
+        println!();
     }
 
     println!("Starting storage vacuum operations...");

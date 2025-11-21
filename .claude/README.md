@@ -37,6 +37,7 @@ This Claude Code setup provides:
 │       └── SKILL.md
 ├── agents/                # Specialized sub-agents
 │   ├── test-runner.md
+│   ├── build-compile.md
 │   ├── code-reviewer.md
 │   ├── feature-implementer.md
 │   ├── refactorer.md

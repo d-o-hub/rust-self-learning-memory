@@ -1,0 +1,13 @@
+[database]
+turso_url = "file:./data/test-ep-mem.db"
+# redb_path is omitted, will use in-memory storage
+
+[storage]
+max_episodes_cache = 1000
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "human"
+progress_bars = true
+batch_size = 10

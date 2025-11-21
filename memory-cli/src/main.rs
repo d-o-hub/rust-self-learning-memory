@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 mod commands;
 mod config;
+mod errors;
 mod output;
 
 #[cfg(test)]
@@ -40,46 +41,55 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Episode management commands
+    #[command(alias = "ep")]
     Episode {
         #[command(subcommand)]
         command: EpisodeCommands,
     },
     /// Pattern analysis commands
+    #[command(alias = "pat")]
     Pattern {
         #[command(subcommand)]
         command: PatternCommands,
     },
     /// Storage operations commands
+    #[command(alias = "st")]
     Storage {
         #[command(subcommand)]
         command: StorageCommands,
     },
     /// Configuration validation and management
+    #[command(alias = "cfg")]
     Config {
         #[command(subcommand)]
         command: ConfigCommands,
     },
     /// Health monitoring and diagnostics
+    #[command(alias = "hp")]
     Health {
         #[command(subcommand)]
         command: HealthCommands,
     },
     /// Backup and restore operations
+    #[command(alias = "bak")]
     Backup {
         #[command(subcommand)]
         command: BackupCommands,
     },
     /// Monitoring and metrics
+    #[command(alias = "mon")]
     Monitor {
         #[command(subcommand)]
         command: MonitorCommands,
     },
     /// Log analysis and search
+    #[command(alias = "log")]
     Logs {
         #[command(subcommand)]
         command: LogsCommands,
     },
     /// Generate shell completion scripts
+    #[command(alias = "comp")]
     Completion {
         /// Shell to generate completion for
         #[arg(value_enum)]

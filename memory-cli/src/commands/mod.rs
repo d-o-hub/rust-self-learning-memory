@@ -21,29 +21,29 @@ use crate::output::OutputFormat;
 
 pub async fn handle_episode_command(
     command: EpisodeCommands,
-    _memory: &memory_core::SelfLearningMemory,
+    memory: &memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     match command {
         EpisodeCommands::Create { task, context } => {
-            episode::create_episode(task, context, config, format, dry_run).await
+            episode::create_episode(task, context, memory, config, format, dry_run).await
         }
         EpisodeCommands::List {
             task_type,
             limit,
             status,
-        } => episode::list_episodes(task_type, limit, status, config, format).await,
+        } => episode::list_episodes(task_type, limit, status, memory, config, format).await,
         EpisodeCommands::View { episode_id } => {
-            episode::view_episode(episode_id, config, format).await
+            episode::view_episode(episode_id, memory, config, format).await
         }
         EpisodeCommands::Complete {
             episode_id,
             outcome,
-        } => episode::complete_episode(episode_id, outcome, config, format, dry_run).await,
+        } => episode::complete_episode(episode_id, outcome, memory, config, format, dry_run).await,
         EpisodeCommands::Search { query, limit } => {
-            episode::search_episodes(query, limit, config, format).await
+            episode::search_episodes(query, limit, memory, config, format).await
         }
         EpisodeCommands::LogStep {
             episode_id,
@@ -62,6 +62,7 @@ pub async fn handle_episode_command(
                 latency_ms,
                 tokens,
                 observation,
+                memory,
                 config,
                 format,
                 dry_run,

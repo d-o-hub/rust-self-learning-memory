@@ -2,6 +2,7 @@ use clap::{Subcommand, ValueEnum};
 use serde::Serialize;
 
 use crate::config::Config;
+use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
 
 #[derive(Subcommand)]
@@ -503,13 +504,25 @@ pub async fn view_pattern(
 ) -> anyhow::Result<()> {
     use uuid::Uuid;
 
-    let pattern_uuid = Uuid::parse_str(&pattern_id)
-        .map_err(|_| anyhow::anyhow!("Invalid pattern ID format: {}", pattern_id))?;
+    let pattern_uuid = Uuid::parse_str(&pattern_id).context_with_help(
+        &format!("Invalid pattern ID format: {}", pattern_id),
+        helpers::INVALID_INPUT_HELP,
+    )?;
 
     let pattern = memory
         .get_pattern(pattern_uuid)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
+        .await
+        .context_with_help(
+            "Failed to retrieve pattern from storage",
+            helpers::DATABASE_OPERATION_HELP,
+        )?
+        .ok_or_else(|| {
+            anyhow::anyhow!(helpers::format_error_message(
+                &format!("Pattern not found: {}", pattern_id),
+                "Pattern does not exist in storage",
+                helpers::PATTERN_NOT_FOUND_HELP
+            ))
+        })?;
 
     let (pattern_type, details) = match &pattern {
         memory_core::pattern::Pattern::ToolSequence {
@@ -676,13 +689,25 @@ pub async fn analyze_pattern(
 ) -> anyhow::Result<()> {
     use uuid::Uuid;
 
-    let pattern_uuid = Uuid::parse_str(&pattern_id)
-        .map_err(|_| anyhow::anyhow!("Invalid pattern ID format: {}", pattern_id))?;
+    let pattern_uuid = Uuid::parse_str(&pattern_id).context_with_help(
+        &format!("Invalid pattern ID format: {}", pattern_id),
+        helpers::INVALID_INPUT_HELP,
+    )?;
 
     let _pattern = memory
         .get_pattern(pattern_uuid)
-        .await?
-        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
+        .await
+        .context_with_help(
+            "Failed to retrieve pattern from storage",
+            helpers::DATABASE_OPERATION_HELP,
+        )?
+        .ok_or_else(|| {
+            anyhow::anyhow!(helpers::format_error_message(
+                &format!("Pattern not found: {}", pattern_id),
+                "Pattern does not exist in storage",
+                helpers::PATTERN_NOT_FOUND_HELP
+            ))
+        })?;
 
     // Get recent episodes to analyze
     let context = memory_core::types::TaskContext::default();
@@ -1011,6 +1036,7 @@ pub async fn decay_patterns(
     if !force && !result.patterns_to_decay.is_empty() {
         if format == OutputFormat::Human {
             use colored::*;
+            use dialoguer::Confirm;
 
             println!("Pattern Decay Analysis");
             println!("======================");
@@ -1019,14 +1045,42 @@ pub async fn decay_patterns(
                 result.would_decay_count.to_string().yellow().bold()
             );
             println!();
-            println!("This will permanently remove ineffective patterns from the system.");
+
+            // Show preview of patterns to be decayed
+            println!("Patterns to be decayed:");
+            for pattern in result.patterns_to_decay.iter().take(5) {
+                println!(
+                    "  • {} ({:.2} effectiveness, {} uses)",
+                    &pattern.pattern_id[..8],
+                    pattern.effectiveness_score,
+                    pattern.use_count
+                );
+            }
+            if result.patterns_to_decay.len() > 5 {
+                println!("  ... and {} more", result.patterns_to_decay.len() - 5);
+            }
+            println!();
+
             println!(
-                "Run with {} to proceed, or {} to see what would be done.",
-                "--force".green().bold(),
-                "--dry-run".blue().bold()
+                "{}",
+                "This will permanently remove ineffective patterns from the system.".yellow()
             );
+            println!();
+
+            // Interactive confirmation
+            let confirmed = Confirm::new()
+                .with_prompt("Continue with pattern decay?")
+                .default(false)
+                .interact()?;
+
+            if !confirmed {
+                println!("{}", "Operation cancelled.".yellow());
+                return Ok(());
+            }
+        } else {
+            // Non-human format requires --force flag
+            anyhow::bail!("Pattern decay requires --force flag for non-interactive formats");
         }
-        return Ok(());
     }
 
     // Perform actual decay (in real implementation, this would remove from storage)

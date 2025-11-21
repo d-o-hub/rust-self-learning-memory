@@ -1,130 +1,165 @@
+# AGENTS.md
+
 ## Project overview
 
-* Purpose: maintain an episodic memory backend for AI agents (start -> execute -> score -> learn -> retrieve).
-* Languages: Rust (async/Tokio). Storage: Turso/libSQL for durable structured storage; redb for hot key-value caching.
-* Main entrypoint crates: `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-embed` (optional).
-* Expected outputs: episode JSON blobs, pattern records, cached embeddings.
+Episodic memory backend for AI agents: start → execute → score → learn → retrieve
+**Stack:** Rust (async/Tokio), Turso/libSQL (durable), redb (cache), optional embeddings
+**Crates:** `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-embed`
 
-## Quick setup
+## Setup commands
 
 ```bash
-# Rust toolchain
 rustup override set stable
-cargo fetch
-
-# Project build & tests
 cargo build --all
+cargo test --all
+
+# Debug tests
+cargo test -- --nocapture
+RUST_LOG=debug cargo test
+```
+
+## Code style
+
+- Follow `rustfmt` and Clippy
+- Max **500 LOC per file** — split when exceeded
+- `anyhow::Result` for public APIs
+- Use `tracing` not `println!`
+
+## Core workflows
+
+### 1. Create episode
+```rust
+memory.start_episode(desc, TaskContext {
+    language: "rust", domain: "coding", tags: vec!["async"]
+}).await?;
+```
+
+### 2. Log steps
+```rust
+memory.log_step(id, ExecutionStep {
+    tool: "compiler", action: "build",
+    latency_ms: 1250, success: true
+}).await?;
+```
+Batch steps during high-frequency operations.
+
+### 3. Complete episode
+```rust
+memory.complete_episode(id, TaskOutcome {
+    verdict: Verdict::Success, ...
+}).await?;
+```
+Auto-generates scores, reflections, and patterns.
+
+### 4. Retrieve context
+```rust
+memory.retrieve_relevant_context(
+    "implement async storage", context, limit: 5
+).await?;
+```
+Uses embeddings if configured, falls back to indexing.
+
+## Storage notes
+
+**Turso/libSQL** (source of truth):
+- Tables: `episodes`, `patterns`, `heuristics`
+- Nested fields as JSON strings
+- Use parameterized queries
+- `INSERT OR REPLACE` for upserts
+- Credentials in env vars only
+
+**redb** (hot cache):
+- Read transactions for concurrency
+- Short write transactions
+- Use `spawn_blocking` for writes
+- Sync via `sync_memories()` if stale
+
+## Performance
+
+```rust
+// Bounded concurrency
+let sem = Arc::new(Semaphore::new(10));
+for item in items {
+    let permit = sem.clone().acquire_owned();
+    tokio::spawn(async move {
+        let _p = permit.await;
+        process(item).await
+    });
+}
+```
+
+Config: `MAX_EPISODES_CACHE=1000`, `BATCH_SIZE=50`
+
+## Testing
+
+Unit tests: use `TempDir`, in-memory DBs, keep <100ms
+
+```rust
+#[tokio::test]
+async fn test_episode() {
+    let dir = TempDir::new()?;
+    let mem = Memory::new_test(dir.path()).await;
+    // test logic
+}
+```
+
+Integration: ephemeral test DB, cleanup in teardown
+
+## CI checks
+
+```bash
+cargo fmt -- --check
+cargo clippy -- -D warnings
 cargo test --all
 ```
 
-> Agents: run `cargo test -- --nocapture` when troubleshooting failing tests.
+## Security
 
-## File & code style
+- Never hardcode Turso tokens
+- Sanitize artifacts (no secrets in logs)
+- Rate limit episode creation
+- Validate all inputs
 
-* Rust: follow the project `rustfmt` and Clippy rules.
-* Keep each source file <= **500 LOC**. If a module grows, split into submodules (`storage/turso.rs`, `storage/redb.rs`).
-* Use `anyhow::Result` for top-level functions and propagate typed errors internally.
+## Troubleshooting
 
-## Agent responsibilities (common tasks)
+| Issue | Fix |
+|-------|-----|
+| Low retrieval recall | Check embeddings, run backfill |
+| Stale cache | Run `sync_memories()` |
+| Slow pattern updates | Reduce batch size, limit concurrency |
+| Test failures | `RUST_LOG=debug cargo test` |
 
-### 1) Create / start an episode
+## Development flow
 
-* Use `SelfLearningMemory::start_episode(task_description, context)`.
-* Ensure `TaskContext` contains `language`, `domain` and `tags` for accurate retrieval.
-* Persist to both Turso (durable) and redb (fast cache).
-
-### 2) Log execution steps
-
-* Use `log_step(episode_id, ExecutionStep)`.
-* Include `tool`, `action`, `latency_ms`, `tokens`, `success`, and `observation`.
-* Avoid frequent tiny writes — batch steps when many occur in short bursts.
-
-### 3) Complete & score episodes
-
-* Call `complete_episode(episode_id, TaskOutcome)` after finalization.
-* The system computes `RewardScore`, `Reflection`, and `Patterns` — update patterns and heuristics.
-
-### 4) Retrieval
-
-* Use `retrieve_relevant_context(description, context, limit)`.
-* If `embedding_service` is configured, prefer semantic search first for recall quality.
-
-## Storage & schema notes
-
-### Turso / libSQL
-
-* Tables: `episodes`, `patterns`, `heuristics`.
-* Store large nested fields (steps, context, artifacts) as JSON strings.
-* Indexes: `task_type`, `timestamp DESC`, `verdict`.
-* Use parameterized queries and `INSERT OR REPLACE` for upserts.
-
-### redb (cache)
-
-* Tables: `episodes`, `patterns`, `embeddings`, `metadata`.
-* Keep redb as hot-cache; do not treat it as only source-of-truth.
-* Use read transactions for concurrent reads; wrap writes in short-lived write transactions.
-
-## Patterns, heuristics & embeddings
-
-* Patterns are small, typed records (ToolSequence, DecisionPoint, etc.).
-* Heuristics are condition→action rules learned from episodes.
-* Embeddings (optional): store as raw bytes in `embeddings` table; cache embedding IDs in episode metadata.
-
-## Concurrency & performance
-
-* Use Tokio with `async` functions for all IO (Turso operations are async). redb is synchronous — perform redb writes in dedicated tasks to avoid blocking async runtime.
-* Batch pattern updates and use a semaphore (e.g., `Semaphore::new(10)`) when parallelizing heavy work.
-* Keep `MAX_EPISODES_CACHE` configurable (default 1000).
-
-## Testing & CI
-
-* Unit tests: small, deterministic, fast (TempDir + in-memory DB where possible).
-* Integration tests: use ephemeral Turso/test DB and a temp redb file.
-* CI: ensure `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo test` in pipeline.
-
-## Security & secrets
-
-* Read Turso credentials from environment variables (do not hardcode tokens).
-* Sanitize any artifact before storing (avoid storing secrets in episode artifacts or logs).
-* Set RBAC on remote DB; restrict write permissions where applicable.
-
-## Operational guidance
-
-* Backup strategy: periodically export episodes (SST/ JSONL) from Turso for long-term archival.
-* Monitoring: emit telemetry with `tracing` and expose metrics (episode creation rate, retrieval latency, pattern update failures).
-* Rolling upgrades: support schema migrations with SQL migration files and keep backward compatibility for older episode JSON shapes.
-* Quota management: Monitor episode creation rates and implement rate limiting for production deployments. Handle `QuotaExceeded` and `RateLimitExceeded` errors gracefully with backoff strategies.
-
-## Maintenance & extensibility
-
-* Keep `episode` and `pattern` structures backwards-compatible: add nullable fields; avoid renaming.
-* Split code into small modules under `src/` so each file stays <500 LOC.
-* Add feature flags for optional components (e.g., `embedding`, `experimental-patterns`).
-
-## Troubleshooting checklist for agents
-
-1. If retrieval returns few results: check embeddings are computed and cached. If embeddings missing, rely on `task_type` index.
-2. If redb is stale: run `sync_memories()` to reconcile with Turso.
-3. If pattern updates are slow: reduce batch size or limit concurrency.
-4. If tests fail intermittently: run with `RUST_LOG=debug cargo test` and inspect `tracing` logs.
-
----
-
-## Minimal agent task templates
-
-### Fix failing test
-
-```
-- Run: `cargo test --test <name>`
-- If failing: reproduce locally, add/adjust test, run `cargo test`.
-- Commit: include test and fix with clear message: `[tests] fix <module>: <short>`
+**Feature:**
+```bash
+git checkout -b feat/name
+# Implement in src/, keep ≤500 LOC
+# Add tests
+cargo fmt && cargo clippy && cargo test
+# Clean up: remove temp files, test fixtures, debug scripts
 ```
 
-### Implement feature
+**Bug fix:**
+```bash
+cargo test --test failing_test -- --nocapture
+# Add regression test first, then fix
+# Clean up any temporary debug/helper files
+git commit -m "fix(module): description
 
+Fixes X by Y. Added test in tests/Z.rs"
 ```
-- Create branch: `feat/<short-desc>`
-- Add small module <= 500 LOC; wire into crate root.
-- Add unit tests and integration tests if required.
-- Run `cargo clippy && cargo test` and submit PR.
-```
+
+## Commit format
+
+`[module] description` or `fix(module): description`
+
+Examples:
+- `[tests] fix storage: handle empty results`
+- `feat(retrieval): add semantic search`
+
+## Environment vars
+
+- `TURSO_URL` — database URL
+- `TURSO_TOKEN` — auth token
+- `MAX_EPISODES_CACHE` — cache size limit

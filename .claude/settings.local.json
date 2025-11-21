@@ -28,7 +28,18 @@
       "Bash(CLAUDE_TOOL_INPUT='{\"\"command\"\":\"\"git status\"\"}' bash .claude/hooks/post-bash.sh)",
       "Bash(1)",
       "Bash(gh pr diff:*)",
-      "Skill(goap-agent)"
+      "Skill(goap-agent)",
+      "Skill(skill-creator)",
+      "Bash(cargo check:*)",
+      "Bash(target/debug/memory-cli.exe:*)",
+      "Bash(cargo run:*)",
+      "Bash(TURSO_URL=\"file:./data/test-memory.db\" cargo run:*)",
+      "Bash(RUST_BACKTRACE=1 cargo test:*)",
+      "Bash(set RUST_BACKTRACE=1:*)",
+      "Bash(set TURSO_URL=file:./data/test-cli.db:*)",
+      "Bash(targetreleasememory-cli.exe st:*)",
+      "Bash(targetreleasememory-cli.exe ep list:*)",
+      "Bash(export TURSO_URL=\"file:./data/test-cli.db\")"
     ],
     "deny": [],
     "ask": []

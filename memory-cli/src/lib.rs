@@ -1,6 +1,7 @@
-//! # Memory CLI Test Utilities
+//! # Memory CLI Library
 //!
-//! This library provides test utilities for the memory-cli crate.
-//! It includes harnesses, generators, and utilities for testing CLI functionality.
+//! This library provides the core functionality for the memory-cli command-line tool.
+//! It includes error handling, test utilities, and command implementations.
 
+pub mod errors;
 pub mod test_utils;

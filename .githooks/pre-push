@@ -1,0 +1,68 @@
+#!/bin/bash
+# Pre-push hook for rust-self-learning-memory
+# Prevents pushing tags without full verification
+
+set -e
+
+# Read stdin to get information about what's being pushed
+while read local_ref local_sha remote_ref remote_sha; do
+    # Check if we're pushing a tag
+    if [[ $local_ref == refs/tags/* ]]; then
+        tag_name="${local_ref#refs/tags/}"
+
+        echo "🏷️  Detected tag push: $tag_name"
+        echo "🔍 Running comprehensive verification before pushing tag..."
+
+        # Checkout the tag to verify it
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+        git checkout "$tag_name" --quiet 2>/dev/null || {
+            echo "  ❌ Cannot checkout tag $tag_name"
+            exit 1
+        }
+
+        # 1. Check code formatting
+        echo "  ├─ Checking code formatting..."
+        if ! cargo fmt --all -- --check >/dev/null 2>&1; then
+            echo "  ❌ Code is not formatted for tag $tag_name"
+            git checkout "$current_branch" --quiet 2>/dev/null || git checkout -
+            exit 1
+        fi
+        echo "  ✅ Code formatting OK"
+
+        # 2. Run Clippy
+        echo "  ├─ Running clippy..."
+        if ! cargo clippy --all -- -D warnings 2>&1 | grep -q "Finished"; then
+            echo "  ❌ Clippy warnings found in tag $tag_name"
+            git checkout "$current_branch" --quiet 2>/dev/null || git checkout -
+            exit 1
+        fi
+        echo "  ✅ Clippy OK"
+
+        # 3. Compile release build
+        echo "  ├─ Building release binary..."
+        if ! cargo build --release --quiet 2>&1 | grep -q "Finished"; then
+            echo "  ❌ Release build failed for tag $tag_name"
+            git checkout "$current_branch" --quiet 2>/dev/null || git checkout -
+            exit 1
+        fi
+        echo "  ✅ Release build OK"
+
+        # 4. Run all tests
+        echo "  ├─ Running full test suite..."
+        if ! cargo test --lib --bins --quiet 2>&1 | grep -q "test result: ok"; then
+            echo "  ❌ Tests failed for tag $tag_name"
+            echo "  Please fix tests before pushing this tag."
+            git checkout "$current_branch" --quiet 2>/dev/null || git checkout -
+            exit 1
+        fi
+        echo "  ✅ All tests passed"
+
+        # Return to original branch
+        git checkout "$current_branch" --quiet 2>/dev/null || git checkout -
+
+        echo "✅ Tag $tag_name verified and ready to push!"
+        echo ""
+    fi
+done
+
+exit 0

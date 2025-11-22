@@ -1,0 +1,37 @@
+#!/bin/bash
+# Pre-commit hook for rust-self-learning-memory
+# Ensures code quality before commits
+
+set -e
+
+echo "🔍 Running pre-commit quality checks..."
+
+# 1. Check code formatting
+echo "  ├─ Checking code formatting..."
+if ! cargo fmt --all -- --check >/dev/null 2>&1; then
+    echo "  ❌ Code is not formatted. Running cargo fmt..."
+    cargo fmt --all
+    echo "  ✅ Code formatted. Please review changes and commit again."
+    exit 1
+fi
+echo "  ✅ Code formatting OK"
+
+# 2. Run Clippy
+echo "  ├─ Running clippy..."
+if ! cargo clippy --all -- -D warnings 2>&1 | grep -q "Finished"; then
+    echo "  ❌ Clippy warnings found. Please fix before committing."
+    cargo clippy --all -- -D warnings
+    exit 1
+fi
+echo "  ✅ Clippy OK"
+
+# 3. Run tests (lib and bins only, skip long-running integration tests)
+echo "  ├─ Running tests..."
+if ! cargo test --lib --bins --quiet 2>&1 | grep -q "test result: ok"; then
+    echo "  ❌ Tests failed. Please fix before committing."
+    cargo test --lib --bins
+    exit 1
+fi
+echo "  ✅ Tests OK"
+
+echo "✅ All pre-commit checks passed!"

@@ -8,30 +8,42 @@
    cd rust-self-learning-memory
    ```
 
-2. **Create Feature Branch**
+2. **Install Git Hooks** (Required)
+   ```bash
+   # Configure git to use quality-enforcing hooks
+   git config core.hooksPath .githooks
+   chmod +x .githooks/*
+   ```
+
+   These hooks prevent committing broken code and ensure all releases are tested.
+   See [`.githooks/README.md`](.githooks/README.md) for details.
+
+3. **Create Feature Branch**
    ```bash
    git checkout -b feat/your-feature-name
    ```
 
-3. **Make Changes**
+4. **Make Changes**
    - Keep files ≤500 LOC
    - Follow `rustfmt` and `clippy` rules
    - Add tests for new functionality
 
-4. **Run Tests**
+5. **Run Tests**
    ```bash
    cargo fmt --all -- --check
    cargo clippy --all -- -D warnings
    cargo test --all
    ```
 
-5. **Commit & Push**
+   **Note**: The pre-commit hook automatically runs these checks, but you can run them manually too.
+
+6. **Commit & Push**
    ```bash
    git commit -m "feat: add episode pattern recognition"
    git push origin feat/your-feature-name
    ```
 
-6. **Create Pull Request**
+7. **Create Pull Request**
    - Target `main` branch
    - Fill out PR template
    - Link related issues

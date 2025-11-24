@@ -796,6 +796,8 @@ mod tests {
     use super::*;
     use crate::config::Config;
     use crate::output::OutputFormat;
+
+    #[cfg(feature = "turso")]
     use tempfile::TempDir;
 
     #[test]
@@ -1040,10 +1042,12 @@ batch_size = 10
     #[tokio::test]
     async fn test_create_episode_without_turso_feature() {
         let config = Config::default();
+        let memory = config.create_memory().await.unwrap();
 
         let result = create_episode(
             "Test task".to_string(),
             None,
+            &memory,
             &config,
             OutputFormat::Human,
             false, // not dry run
@@ -1061,8 +1065,9 @@ batch_size = 10
     #[tokio::test]
     async fn test_list_episodes_without_turso_feature() {
         let config = Config::default();
+        let memory = config.create_memory().await.unwrap();
 
-        let result = list_episodes(None, 10, None, &config, OutputFormat::Human).await;
+        let result = list_episodes(None, 10, None, &memory, &config, OutputFormat::Human).await;
 
         assert!(result.is_err());
         assert!(result
@@ -1075,8 +1080,15 @@ batch_size = 10
     #[tokio::test]
     async fn test_view_episode_without_turso_feature() {
         let config = Config::default();
+        let memory = config.create_memory().await.unwrap();
 
-        let result = view_episode("test-uuid".to_string(), &config, OutputFormat::Human).await;
+        let result = view_episode(
+            "test-uuid".to_string(),
+            &memory,
+            &config,
+            OutputFormat::Human,
+        )
+        .await;
 
         assert!(result.is_err());
         assert!(result
@@ -1089,10 +1101,12 @@ batch_size = 10
     #[tokio::test]
     async fn test_complete_episode_without_turso_feature() {
         let config = Config::default();
+        let memory = config.create_memory().await.unwrap();
 
         let result = complete_episode(
             "test-uuid".to_string(),
             TaskOutcome::Success,
+            &memory,
             &config,
             OutputFormat::Human,
             false,
@@ -1110,9 +1124,16 @@ batch_size = 10
     #[tokio::test]
     async fn test_search_episodes_without_turso_feature() {
         let config = Config::default();
+        let memory = config.create_memory().await.unwrap();
 
-        let result =
-            search_episodes("test query".to_string(), 10, &config, OutputFormat::Human).await;
+        let result = search_episodes(
+            "test query".to_string(),
+            10,
+            &memory,
+            &config,
+            OutputFormat::Human,
+        )
+        .await;
 
         assert!(result.is_err());
         assert!(result
@@ -1125,6 +1146,7 @@ batch_size = 10
     #[tokio::test]
     async fn test_log_step_without_turso_feature() {
         let config = Config::default();
+        let memory = config.create_memory().await.unwrap();
 
         let result = log_step(
             "test-uuid".to_string(),
@@ -1134,6 +1156,7 @@ batch_size = 10
             None,
             None,
             None,
+            &memory,
             &config,
             OutputFormat::Human,
             false,

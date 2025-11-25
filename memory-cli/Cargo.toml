@@ -36,7 +36,7 @@ toml = "0.9"
 
 # Optional features for output formatting
 serde_yaml = "0.9"
-colored = "2.0"
+colored = "3.0"
 indicatif = "0.18"
 dialoguer = "0.12"
 

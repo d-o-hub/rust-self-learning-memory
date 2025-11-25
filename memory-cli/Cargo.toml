@@ -32,13 +32,13 @@ uuid.workspace = true
 chrono.workspace = true
 
 # Configuration file support
-toml = "0.8"
+toml = "0.9"
 
 # Optional features for output formatting
 serde_yaml = "0.9"
 colored = "2.0"
 indicatif = "0.18"
-dialoguer = "0.11"
+dialoguer = "0.12"
 
 # Additional CLI dependencies for operational features
 regex = "1.10"

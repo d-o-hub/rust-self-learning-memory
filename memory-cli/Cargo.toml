@@ -16,7 +16,7 @@ memory-storage-redb = { path = "../memory-storage-redb", optional = true }
 
 # CLI framework
 clap = { version = "4.4", features = ["derive", "color", "suggestions"] }
-clap_complete = "4.4"
+clap_complete = "4.5"
 
 # Serialization
 serde.workspace = true
@@ -32,13 +32,13 @@ uuid.workspace = true
 chrono.workspace = true
 
 # Configuration file support
-toml = "0.8"
+toml = "0.9"
 
 # Optional features for output formatting
 serde_yaml = "0.9"
-colored = "2.0"
+colored = "3.0"
 indicatif = "0.18"
-dialoguer = "0.11"
+dialoguer = "0.12"
 
 # Additional CLI dependencies for operational features
 regex = "1.10"
@@ -61,7 +61,7 @@ tokio-test = "0.4"
 tempfile = "3.12"
 assert_cmd = "2.0"
 predicates = "3.0"
-rstest = "0.18"
+rstest = "0.26"
 
 # Benchmarking
 criterion = { version = "0.5", features = ["html_reports"] }

@@ -26,7 +26,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Wait for Quick Check
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: lewagon/wait-on-check-action@v1.4.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
@@ -46,7 +46,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -66,7 +66,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
@@ -93,7 +93,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         rust: [stable]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
@@ -119,7 +119,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -150,7 +150,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -186,7 +186,7 @@ jobs:
           sudo rm -rf /opt/ghc/*
           sudo apt-get clean
           df -h
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
@@ -254,7 +254,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: rustsec/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -272,7 +272,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -311,7 +311,7 @@ jobs:
           sudo rm -rf /opt/ghc/*
           sudo apt-get clean
           df -h
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt, llvm-tools-preview

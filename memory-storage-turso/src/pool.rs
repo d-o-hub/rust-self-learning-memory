@@ -13,7 +13,7 @@ use memory_core::{Error, Result};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Semaphore, SemaphorePermit};
+use tokio::sync::{Semaphore, OwnedSemaphorePermit};
 use tracing::{debug, info, warn};
 
 /// Configuration for connection pool
@@ -71,7 +71,7 @@ impl PoolStatistics {
 #[derive(Debug)]
 pub struct PooledConnection {
     connection: Option<Connection>,
-    _permit: SemaphorePermit<'static>,
+    _permit: OwnedSemaphorePermit,
     stats: Arc<RwLock<PoolStatistics>>,
 }
 
@@ -108,7 +108,7 @@ impl Drop for PooledConnection {
 pub struct ConnectionPool {
     db: Arc<Database>,
     config: PoolConfig,
-    semaphore: &'static Semaphore,
+    semaphore: Arc<Semaphore>,
     stats: Arc<RwLock<PoolStatistics>>,
 }
 
@@ -140,8 +140,8 @@ impl ConnectionPool {
             config.max_connections
         );
 
-        // Create a static semaphore (leaked for 'static lifetime)
-        let semaphore = Box::leak(Box::new(Semaphore::new(config.max_connections)));
+        // Create a semaphore wrapped in Arc for shared ownership
+        let semaphore = Arc::new(Semaphore::new(config.max_connections));
         let stats = Arc::new(RwLock::new(PoolStatistics::default()));
 
         let pool = Self {
@@ -205,8 +205,9 @@ impl ConnectionPool {
     pub async fn get(&self) -> Result<PooledConnection> {
         let start = Instant::now();
 
-        // Acquire semaphore permit (limits concurrent connections)
-        let permit = tokio::time::timeout(self.config.connection_timeout, self.semaphore.acquire())
+        // Acquire an owned semaphore permit (limits concurrent connections)
+        let owned_permit_fut = self.semaphore.clone().acquire_owned();
+        let permit = tokio::time::timeout(self.config.connection_timeout, owned_permit_fut)
             .await
             .map_err(|_| {
                 Error::Storage(format!(
@@ -248,16 +249,7 @@ impl ConnectionPool {
             self.stats.read().active_connections
         );
 
-        // Convert permit to 'static lifetime by leaking it temporarily
-        // The PooledConnection guard will manage its lifecycle
-        let static_permit =
-            unsafe { std::mem::transmute::<SemaphorePermit<'_>, SemaphorePermit<'static>>(permit) };
-
-        Ok(PooledConnection {
-            connection: Some(conn),
-            _permit: static_permit,
-            stats: Arc::clone(&self.stats),
-        })
+        Ok(PooledConnection { connection: Some(conn), _permit: permit, stats: Arc::clone(&self.stats) })
     }
 
     /// Validate a connection is still healthy

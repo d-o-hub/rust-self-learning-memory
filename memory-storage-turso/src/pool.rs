@@ -13,7 +13,7 @@ use memory_core::{Error, Result};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Semaphore, OwnedSemaphorePermit};
+use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use tracing::{debug, info, warn};
 
 /// Configuration for connection pool
@@ -249,7 +249,11 @@ impl ConnectionPool {
             self.stats.read().active_connections
         );
 
-        Ok(PooledConnection { connection: Some(conn), _permit: permit, stats: Arc::clone(&self.stats) })
+        Ok(PooledConnection {
+            connection: Some(conn),
+            _permit: permit,
+            stats: Arc::clone(&self.stats),
+        })
     }
 
     /// Validate a connection is still healthy

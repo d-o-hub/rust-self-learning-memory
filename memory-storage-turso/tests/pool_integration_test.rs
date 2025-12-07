@@ -184,7 +184,6 @@ async fn test_pool_statistics_accuracy() {
 
     tokio::time::sleep(Duration::from_millis(50)).await;
 
-
     // Verify statistics
     let stats = pool.statistics().await;
     assert_eq!(stats.total_checkouts, 3);

@@ -458,6 +458,27 @@ impl SelfLearningMemory {
     pub fn cache_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
         self.cache_storage.as_ref()
     }
+
+    /// Get all episodes (for backfilling embeddings)
+    pub async fn get_all_episodes(&self) -> Result<Vec<Episode>> {
+        let episodes = self.episodes_fallback.read().await;
+        Ok(episodes.values().cloned().collect())
+    }
+
+    /// Get all patterns (for backfilling embeddings)
+    pub async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
+        let patterns = self.patterns_fallback.read().await;
+        Ok(patterns.values().cloned().collect())
+    }
+
+    /// Get patterns extracted from a specific episode
+    pub async fn get_episode_patterns(&self, episode_id: Uuid) -> Result<Vec<Pattern>> {
+        // For now, return empty vector
+        // In a real implementation, this would query the storage backend
+        // to find patterns that were extracted from the given episode
+        let _ = episode_id;
+        Ok(vec![])
+    }
 }
 
 #[cfg(test)]

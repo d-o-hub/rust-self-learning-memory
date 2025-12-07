@@ -62,6 +62,9 @@ pub mod sync;
 pub use sync::StorageSynchronizer;
 pub mod types;
 
+// Semantic embeddings module (simplified version)
+pub mod embeddings_simple;
+
 // Re-export commonly used types
 pub use episode::{Episode, ExecutionStep, PatternId};
 pub use error::{Error, Result};

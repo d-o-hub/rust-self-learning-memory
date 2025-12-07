@@ -23,10 +23,6 @@ async fn create_test_pool() -> (Arc<ConnectionPool>, TempDir) {
 }
 
 #[tokio::test]
-#[cfg_attr(
-    target_os = "windows",
-    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
-)]
 async fn test_pool_performance_concurrent_operations() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -71,13 +67,13 @@ async fn test_pool_performance_concurrent_operations() {
     // Verify concurrency was limited (no more than pool size active at once)
     // The semaphore ensures max 10 concurrent connections
     assert!(stats.active_connections == 0); // All should be returned after test completes
+
+    // Ensure pool is cleanly shutdown before TempDir drops to avoid Windows file handle races
+    let _ = pool.shutdown().await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
 }
 
 #[tokio::test]
-#[cfg_attr(
-    target_os = "windows",
-    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
-)]
 async fn test_pool_with_turso_storage() {
     let dir = TempDir::new().unwrap();
     let db_path = dir.path().join("test.db");
@@ -102,13 +98,13 @@ async fn test_pool_with_turso_storage() {
 
     let stats = pool.statistics().await;
     assert_eq!(stats.total_checkouts, 10);
+
+    // Clean shutdown before TempDir is dropped
+    let _ = pool.shutdown().await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
 }
 
 #[tokio::test]
-#[cfg_attr(
-    target_os = "windows",
-    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
-)]
 async fn test_pool_utilization_tracking() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -130,13 +126,13 @@ async fn test_pool_utilization_tracking() {
 
     // Utilization should be back to 0
     assert_eq!(pool.utilization().await, 0.0);
+
+    // Clean shutdown
+    let _ = pool.shutdown().await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
 }
 
 #[tokio::test]
-#[cfg_attr(
-    target_os = "windows",
-    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
-)]
 async fn test_pool_health_checks() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -148,13 +144,13 @@ async fn test_pool_health_checks() {
     let stats = pool.statistics().await;
     assert_eq!(stats.total_health_checks_passed, 5);
     assert_eq!(stats.total_health_checks_failed, 0);
+
+    // Shutdown pool before TempDir cleanup
+    let _ = pool.shutdown().await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
 }
 
 #[tokio::test]
-#[cfg_attr(
-    target_os = "windows",
-    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
-)]
 async fn test_pool_graceful_shutdown() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -167,16 +163,15 @@ async fn test_pool_graceful_shutdown() {
     // Wait for connections to be returned
     tokio::time::sleep(Duration::from_millis(100)).await;
 
-    // Shutdown should complete cleanly
+    // Shutdown should complete cleanly (already called in test)
     let result = pool.shutdown().await;
     assert!(result.is_ok());
+
+    // Small pause to ensure libsql releases handles on Windows before directory removal
+    tokio::time::sleep(Duration::from_millis(50)).await;
 }
 
 #[tokio::test]
-#[cfg_attr(
-    target_os = "windows",
-    ignore = "Crashes on Windows CI with STATUS_ACCESS_VIOLATION"
-)]
 async fn test_pool_statistics_accuracy() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -189,11 +184,14 @@ async fn test_pool_statistics_accuracy() {
 
     tokio::time::sleep(Duration::from_millis(50)).await;
 
-    let stats = pool.statistics().await;
-
     // Verify statistics
+    let stats = pool.statistics().await;
     assert_eq!(stats.total_checkouts, 3);
     assert!(stats.total_created >= 3);
     assert_eq!(stats.total_health_checks_passed, 3);
     assert_eq!(stats.active_connections, 0);
+
+    // Ensure the pool is shut down before TempDir is dropped
+    let _ = pool.shutdown().await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
 }

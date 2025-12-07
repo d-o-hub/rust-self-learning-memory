@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1764563151349,
+  "lastUpdate": 1765124940185,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -3971,6 +3971,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/7c56c9412f3b26c3a2c3fce4b2b45142f3327a65"
         },
         "date": 1764563151008,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c3853db509d0e62d998344d5d0f5cd643f3c6a75",
+          "message": "fix(turso): remove unsafe semaphore lifetime hack; ensure pool shutdown in integration tests to avoid Windows crashes (#126)\n\n* fix(turso): remove unsafe semaphore transmute + use OwnedSemaphorePermit; ensure tests shutdown pool before TempDir cleanup (fix Windows access violations)\n\nReplace leaked 'static Semaphore and transmute with Arc<Semaphore>\n\nUse OwnedSemaphorePermit to avoid unsafe lifetime widening\n\nUpdate integration tests to call pool.shutdown() and add short sleep to avoid Windows file handle races\n\nResolves crashes on Windows CI (STATUS_ACCESS_VIOLATION) in pool integration tests\n\n* style: apply rustfmt formatting (fix CI format check)",
+          "timestamp": "2025-12-07T17:22:04+01:00",
+          "tree_id": "dc11e16077c202c0464ebdabcc2209105b79a2a8",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/c3853db509d0e62d998344d5d0f5cd643f3c6a75"
+        },
+        "date": 1765124939938,
         "tool": "cargo",
         "benches": [
           {

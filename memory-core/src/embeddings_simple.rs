@@ -1,5 +1,5 @@
 //! Simple semantic embeddings implementation
-//! 
+//!
 //! This is a simplified version that demonstrates the concept
 //! without all the complex integrations that cause compilation issues.
 
@@ -59,7 +59,7 @@ pub fn text_to_embedding(text: &str) -> Vec<f32> {
     let dimension = 384; // Standard sentence transformer dimension
     let mut embedding = Vec::with_capacity(dimension);
     let mut seed = hash;
-    
+
     for _ in 0..dimension {
         // Simple PRNG to generate values
         seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
@@ -74,14 +74,19 @@ pub fn text_to_embedding(text: &str) -> Vec<f32> {
             *x /= magnitude;
         }
     }
-    
+
     embedding
 }
 
 /// Find most similar texts from a collection
-pub fn find_similar_texts(query: &str, candidates: &[String], limit: usize, threshold: f32) -> Vec<(usize, f32, String)> {
+pub fn find_similar_texts(
+    query: &str,
+    candidates: &[String],
+    limit: usize,
+    threshold: f32,
+) -> Vec<(usize, f32, String)> {
     let query_embedding = text_to_embedding(query);
-    
+
     let mut similarities: Vec<(usize, f32, String)> = candidates
         .iter()
         .enumerate()
@@ -95,7 +100,7 @@ pub fn find_similar_texts(query: &str, candidates: &[String], limit: usize, thre
 
     // Sort by similarity (highest first)
     similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-    
+
     // Return top results
     similarities.into_iter().take(limit).collect()
 }
@@ -130,10 +135,16 @@ pub fn demonstrate_semantic_search() -> Result<()> {
     for query in queries {
         println!("🔍 Query: \"{}\"", query);
         let results = find_similar_texts(query, &episodes, 3, 0.5);
-        
+
         println!("📊 Top {} similar episodes:", results.len());
         for (i, (idx, similarity, text)) in results.iter().enumerate() {
-            println!("  {}. [{}] {} (similarity: {:.3})", i + 1, idx, text, similarity);
+            println!(
+                "  {}. [{}] {} (similarity: {:.3})",
+                i + 1,
+                idx,
+                text,
+                similarity
+            );
         }
         println!();
     }
@@ -184,10 +195,10 @@ mod tests {
 
         // Same text should produce same embedding
         assert_eq!(embedding1, embedding2);
-        
+
         // Different text should produce different embedding
         assert_ne!(embedding1, embedding3);
-        
+
         // All embeddings should be unit vectors (magnitude ≈ 1.0)
         let magnitude1: f32 = embedding1.iter().map(|x| x * x).sum::<f32>().sqrt();
         assert!((magnitude1 - 1.0).abs() < 0.001);
@@ -203,10 +214,10 @@ mod tests {
         ];
 
         let results = find_similar_texts("user login system", &candidates, 2, 0.0);
-        
+
         // Should return at most 2 results
         assert!(results.len() <= 2);
-        
+
         // Results should be sorted by similarity (highest first)
         if results.len() > 1 {
             assert!(results[0].1 >= results[1].1);

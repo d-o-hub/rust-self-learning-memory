@@ -12,6 +12,8 @@ name: Security
 jobs:
   secret-scan:
     name: Secret Scanning
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

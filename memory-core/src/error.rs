@@ -47,6 +47,12 @@ pub enum Error {
 
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+
+    #[error("Configuration error: {0}")]
+    Configuration(String),
+
+    #[error("Embedding error: {0}")]
+    Embedding(#[from] anyhow::Error),
 }
 
 impl Error {
@@ -67,6 +73,8 @@ impl Error {
             Error::QuotaExceeded(_) => false,
             Error::RateLimitExceeded(_) => true, // Can retry after backoff
             Error::Io(_) => true,
+            Error::Configuration(_) => false,
+            Error::Embedding(_) => true,
         }
     }
 }

@@ -54,7 +54,9 @@ fn skip_optional_gates() -> bool {
     env::var("QUALITY_GATE_SKIP_OPTIONAL")
         .ok()
         .and_then(|s| s.parse().ok())
-        .unwrap_or(false)
+        // Default to skipping optional gates when helper tools are not present in
+        // a developer's environment (CI can override this explicitly).
+        .unwrap_or(true)
 }
 
 // ============================================================================

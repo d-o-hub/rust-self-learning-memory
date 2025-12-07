@@ -17,6 +17,8 @@ jobs:
   # Wait for quick check to pass on PRs
   check-quick-check:
     name: Check Quick Check Status
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:

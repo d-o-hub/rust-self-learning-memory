@@ -59,6 +59,35 @@ fn skip_optional_gates() -> bool {
         .unwrap_or(true)
 }
 
+#[cfg(test)]
+mod unit_tests {
+    use super::*;
+
+    #[test]
+    fn skip_optional_default_is_true_when_unset() {
+        std::env::remove_var("QUALITY_GATE_SKIP_OPTIONAL");
+        assert!(
+            skip_optional_gates(),
+            "expected default to skip optional gates when env var is unset"
+        );
+    }
+
+    #[test]
+    fn skip_optional_respects_env_var() {
+        std::env::set_var("QUALITY_GATE_SKIP_OPTIONAL", "false");
+        assert!(
+            !skip_optional_gates(),
+            "expected skip_optional_gates to be false when env var is set to false"
+        );
+        std::env::set_var("QUALITY_GATE_SKIP_OPTIONAL", "true");
+        assert!(
+            skip_optional_gates(),
+            "expected skip_optional_gates to be true when env var is set to true"
+        );
+        std::env::remove_var("QUALITY_GATE_SKIP_OPTIONAL");
+    }
+}
+
 // ============================================================================
 // Quality Gate 1: Test Coverage
 // ============================================================================

@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1765220018122,
+  "lastUpdate": 1765220069932,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -4959,6 +4959,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/d33e0b7eddae9a298d2114d5208db4d66c81d1c9"
         },
         "date": 1765220017787,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "distinct": true,
+          "id": "6acf5901e0a32c91a71a453bc60b31f70d0ac9c7",
+          "message": "chore(deps): bump libc from 0.2.177 to 0.2.178\n\nBumps [libc](https://github.com/rust-lang/libc) from 0.2.177 to 0.2.178.\n- [Release notes](https://github.com/rust-lang/libc/releases)\n- [Changelog](https://github.com/rust-lang/libc/blob/0.2.178/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/libc/compare/0.2.177...0.2.178)\n\n---\nupdated-dependencies:\n- dependency-name: libc\n  dependency-version: 0.2.178\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-12-08T19:45:36+01:00",
+          "tree_id": "db4d98e27eb1ec6a5cd24ded7e71ba8737307ec2",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/6acf5901e0a32c91a71a453bc60b31f70d0ac9c7"
+        },
+        "date": 1765220069387,
         "tool": "cargo",
         "benches": [
           {

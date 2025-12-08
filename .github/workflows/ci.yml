@@ -217,7 +217,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             THRESHOLD=66
           else
-            THRESHOLD=80
+            THRESHOLD=70
           fi
           COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
           if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then

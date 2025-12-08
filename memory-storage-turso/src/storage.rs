@@ -2,7 +2,12 @@
 
 use crate::TursoStorage;
 use libsql::params;
-use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result, TaskType};
+use memory_core::{
+    episode::PatternId,
+    monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
+    Episode, Error, Heuristic, Pattern, Result, TaskType,
+};
+use std::collections::HashMap;
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -23,6 +28,17 @@ pub struct PatternQuery {
     pub language: Option<String>,
     pub min_success_rate: Option<f32>,
     pub limit: Option<usize>,
+}
+
+/// Pattern metadata including timestamps
+#[derive(Debug, Clone)]
+pub struct PatternMetadata {
+    pub pattern_id: PatternId,
+    pub pattern_type: String,
+    pub success_rate: f32,
+    pub occurrence_count: usize,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl TursoStorage {
@@ -325,6 +341,37 @@ impl TursoStorage {
         }
     }
 
+    /// Get pattern metadata including timestamps
+    pub async fn get_pattern_metadata(
+        &self,
+        pattern_id: PatternId,
+    ) -> Result<Option<PatternMetadata>> {
+        debug!("Retrieving pattern metadata: {}", pattern_id);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT pattern_id, pattern_type, success_rate, occurrence_count,
+                   created_at, updated_at
+            FROM patterns WHERE pattern_id = ?
+        "#;
+
+        let mut rows = conn
+            .query(sql, params![pattern_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query pattern metadata: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch pattern metadata row: {}", e)))?
+        {
+            let metadata = self.row_to_pattern_metadata(&row)?;
+            Ok(Some(metadata))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Query patterns with filters
     pub async fn query_patterns(&self, query: &PatternQuery) -> Result<Vec<Pattern>> {
         debug!("Querying patterns with filters: {:?}", query);
@@ -599,5 +646,372 @@ impl TursoStorage {
             "other" => Ok(TaskType::Other),
             _ => Err(Error::Storage(format!("Unknown task type: {}", s))),
         }
+    }
+
+    // ======= Monitoring Storage Methods =======
+
+    /// Store an execution record for monitoring
+    pub async fn store_execution_record(&self, record: &ExecutionRecord) -> Result<()> {
+        debug!("Storing execution record for agent: {}", record.agent_name);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            INSERT INTO execution_records (
+                agent_name, agent_type, success, duration_ms,
+                started_at, task_description, error_message
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        "#;
+
+        conn.execute(
+            sql,
+            params![
+                record.agent_name.clone(),
+                record.agent_type.to_string(),
+                record.success,
+                record.duration.as_millis() as i64,
+                record.started_at.timestamp(),
+                record.task_description.clone(),
+                record.error_message.clone(),
+            ],
+        )
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store execution record: {}", e)))?;
+
+        info!(
+            "Successfully stored execution record for agent: {}",
+            record.agent_name
+        );
+        Ok(())
+    }
+
+    /// Store aggregated agent metrics
+    pub async fn store_agent_metrics(&self, metrics: &AgentMetrics) -> Result<()> {
+        debug!("Storing agent metrics for: {}", metrics.agent_name);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            INSERT OR REPLACE INTO agent_metrics (
+                agent_name, agent_type, total_executions, successful_executions,
+                total_duration_ms, avg_duration_ms, min_duration_ms, max_duration_ms,
+                last_execution, current_streak, longest_streak, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        "#;
+
+        conn.execute(
+            sql,
+            params![
+                metrics.agent_name.clone(),
+                metrics.agent_type.to_string(),
+                metrics.total_executions as i64,
+                metrics.successful_executions as i64,
+                metrics.total_duration.as_millis() as i64,
+                metrics.avg_duration.as_millis() as i64,
+                metrics.min_duration.as_millis() as i64,
+                metrics.max_duration.as_millis() as i64,
+                metrics.last_execution.map(|t| t.timestamp()),
+                metrics.current_streak as i64,
+                metrics.longest_streak as i64,
+                chrono::Utc::now().timestamp(),
+            ],
+        )
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store agent metrics: {}", e)))?;
+
+        info!(
+            "Successfully stored agent metrics for: {}",
+            metrics.agent_name
+        );
+        Ok(())
+    }
+
+    /// Store task metrics
+    pub async fn store_task_metrics(&self, metrics: &TaskMetrics) -> Result<()> {
+        debug!("Storing task metrics for: {}", metrics.task_type);
+        let conn = self.get_connection().await?;
+
+        let agent_success_rates_json =
+            serde_json::to_string(&metrics.agent_success_rates).map_err(Error::Serialization)?;
+
+        let sql = r#"
+            INSERT OR REPLACE INTO task_metrics (
+                task_type, total_tasks, completed_tasks, avg_completion_time_ms,
+                agent_success_rates, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        "#;
+
+        conn.execute(
+            sql,
+            params![
+                metrics.task_type.clone(),
+                metrics.total_tasks as i64,
+                metrics.completed_tasks as i64,
+                metrics.avg_completion_time.as_millis() as i64,
+                agent_success_rates_json,
+                chrono::Utc::now().timestamp(),
+            ],
+        )
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store task metrics: {}", e)))?;
+
+        info!(
+            "Successfully stored task metrics for: {}",
+            metrics.task_type
+        );
+        Ok(())
+    }
+
+    /// Load agent metrics by name
+    pub async fn load_agent_metrics(&self, agent_name: &str) -> Result<Option<AgentMetrics>> {
+        debug!("Loading agent metrics for: {}", agent_name);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT agent_name, agent_type, total_executions, successful_executions,
+                   total_duration_ms, avg_duration_ms, min_duration_ms, max_duration_ms,
+                   last_execution, current_streak, longest_streak
+            FROM agent_metrics WHERE agent_name = ?
+        "#;
+
+        let mut rows = conn
+            .query(sql, params![agent_name])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query agent metrics: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch agent metrics row: {}", e)))?
+        {
+            let metrics = self.row_to_agent_metrics(&row)?;
+            Ok(Some(metrics))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Load execution records with optional filtering
+    pub async fn load_execution_records(
+        &self,
+        agent_name: Option<&str>,
+        limit: usize,
+    ) -> Result<Vec<ExecutionRecord>> {
+        debug!("Loading execution records (limit: {})", limit);
+        let conn = self.get_connection().await?;
+
+        let mut sql = String::from(
+            r#"
+            SELECT agent_name, agent_type, success, duration_ms, started_at,
+                   task_description, error_message
+            FROM execution_records WHERE 1=1
+        "#,
+        );
+
+        let mut params_vec = Vec::new();
+
+        if let Some(agent) = agent_name {
+            sql.push_str(" AND agent_name = ?");
+            params_vec.push(agent.to_string());
+        }
+
+        sql.push_str(" ORDER BY started_at DESC");
+        sql.push_str(&format!(" LIMIT {}", limit));
+
+        let mut rows = conn
+            .query(&sql, libsql::params_from_iter(params_vec))
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query execution records: {}", e)))?;
+
+        let mut records = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch execution record row: {}", e)))?
+        {
+            records.push(self.row_to_execution_record(&row)?);
+        }
+
+        info!("Found {} execution records", records.len());
+        Ok(records)
+    }
+
+    /// Load task metrics by task type
+    pub async fn load_task_metrics(&self, task_type: &str) -> Result<Option<TaskMetrics>> {
+        debug!("Loading task metrics for: {}", task_type);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT task_type, total_tasks, completed_tasks, avg_completion_time_ms,
+                   agent_success_rates
+            FROM task_metrics WHERE task_type = ?
+        "#;
+
+        let mut rows = conn
+            .query(sql, params![task_type])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query task metrics: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch task metrics row: {}", e)))?
+        {
+            let metrics = self.row_to_task_metrics(&row)?;
+            Ok(Some(metrics))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Helper: Convert row to AgentMetrics
+    fn row_to_agent_metrics(&self, row: &libsql::Row) -> Result<AgentMetrics> {
+        let agent_name: String = row
+            .get(0)
+            .map_err(|e| Error::Storage(format!("Failed to get agent_name: {}", e)))?;
+        let agent_type_str: String = row
+            .get(1)
+            .map_err(|e| Error::Storage(format!("Failed to get agent_type: {}", e)))?;
+        let total_executions: i64 = row
+            .get(2)
+            .map_err(|e| Error::Storage(format!("Failed to get total_executions: {}", e)))?;
+        let successful_executions: i64 = row
+            .get(3)
+            .map_err(|e| Error::Storage(format!("Failed to get successful_executions: {}", e)))?;
+        let total_duration_ms: i64 = row
+            .get(4)
+            .map_err(|e| Error::Storage(format!("Failed to get total_duration_ms: {}", e)))?;
+        let avg_duration_ms: i64 = row
+            .get(5)
+            .map_err(|e| Error::Storage(format!("Failed to get avg_duration_ms: {}", e)))?;
+        let min_duration_ms: i64 = row
+            .get(6)
+            .map_err(|e| Error::Storage(format!("Failed to get min_duration_ms: {}", e)))?;
+        let max_duration_ms: i64 = row
+            .get(7)
+            .map_err(|e| Error::Storage(format!("Failed to get max_duration_ms: {}", e)))?;
+        let last_execution: Option<i64> = row
+            .get(8)
+            .map_err(|e| Error::Storage(format!("Failed to get last_execution: {}", e)))?;
+        let current_streak: i64 = row
+            .get(9)
+            .map_err(|e| Error::Storage(format!("Failed to get current_streak: {}", e)))?;
+        let longest_streak: i64 = row
+            .get(10)
+            .map_err(|e| Error::Storage(format!("Failed to get longest_streak: {}", e)))?;
+
+        Ok(AgentMetrics {
+            agent_name,
+            agent_type: AgentType::from(agent_type_str.as_str()),
+            total_executions: total_executions as u64,
+            successful_executions: successful_executions as u64,
+            total_duration: std::time::Duration::from_millis(total_duration_ms as u64),
+            avg_duration: std::time::Duration::from_millis(avg_duration_ms as u64),
+            min_duration: std::time::Duration::from_millis(min_duration_ms as u64),
+            max_duration: std::time::Duration::from_millis(max_duration_ms as u64),
+            last_execution: last_execution.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
+            current_streak: current_streak as u32,
+            longest_streak: longest_streak as u32,
+        })
+    }
+
+    /// Helper: Convert row to ExecutionRecord
+    fn row_to_execution_record(&self, row: &libsql::Row) -> Result<ExecutionRecord> {
+        let agent_name: String = row
+            .get(0)
+            .map_err(|e| Error::Storage(format!("Failed to get agent_name: {}", e)))?;
+        let agent_type_str: String = row
+            .get(1)
+            .map_err(|e| Error::Storage(format!("Failed to get agent_type: {}", e)))?;
+        let success: bool = row
+            .get(2)
+            .map_err(|e| Error::Storage(format!("Failed to get success: {}", e)))?;
+        let duration_ms: i64 = row
+            .get(3)
+            .map_err(|e| Error::Storage(format!("Failed to get duration_ms: {}", e)))?;
+        let started_at: i64 = row
+            .get(4)
+            .map_err(|e| Error::Storage(format!("Failed to get started_at: {}", e)))?;
+        let task_description: Option<String> = row
+            .get(5)
+            .map_err(|e| Error::Storage(format!("Failed to get task_description: {}", e)))?;
+        let error_message: Option<String> = row
+            .get(6)
+            .map_err(|e| Error::Storage(format!("Failed to get error_message: {}", e)))?;
+
+        Ok(ExecutionRecord {
+            agent_name,
+            agent_type: AgentType::from(agent_type_str.as_str()),
+            success,
+            duration: std::time::Duration::from_millis(duration_ms as u64),
+            started_at: chrono::DateTime::from_timestamp(started_at, 0)
+                .ok_or_else(|| Error::Storage("Invalid started_at timestamp".to_string()))?,
+            task_description,
+            error_message,
+        })
+    }
+
+    /// Helper: Convert row to TaskMetrics
+    fn row_to_task_metrics(&self, row: &libsql::Row) -> Result<TaskMetrics> {
+        let task_type: String = row
+            .get(0)
+            .map_err(|e| Error::Storage(format!("Failed to get task_type: {}", e)))?;
+        let total_tasks: i64 = row
+            .get(1)
+            .map_err(|e| Error::Storage(format!("Failed to get total_tasks: {}", e)))?;
+        let completed_tasks: i64 = row
+            .get(2)
+            .map_err(|e| Error::Storage(format!("Failed to get completed_tasks: {}", e)))?;
+        let avg_completion_time_ms: i64 = row
+            .get(3)
+            .map_err(|e| Error::Storage(format!("Failed to get avg_completion_time_ms: {}", e)))?;
+        let agent_success_rates_json: String = row
+            .get(4)
+            .map_err(|e| Error::Storage(format!("Failed to get agent_success_rates: {}", e)))?;
+
+        let agent_success_rates: HashMap<AgentType, f64> =
+            serde_json::from_str(&agent_success_rates_json).map_err(Error::Serialization)?;
+
+        Ok(TaskMetrics {
+            task_type,
+            total_tasks: total_tasks as u64,
+            completed_tasks: completed_tasks as u64,
+            avg_completion_time: std::time::Duration::from_millis(avg_completion_time_ms as u64),
+            agent_success_rates,
+        })
+    }
+
+    /// Helper: Convert row to PatternMetadata
+    fn row_to_pattern_metadata(&self, row: &libsql::Row) -> Result<PatternMetadata> {
+        let pattern_id_str: String = row
+            .get(0)
+            .map_err(|e| Error::Storage(format!("Failed to get pattern_id: {}", e)))?;
+        let pattern_type: String = row
+            .get(1)
+            .map_err(|e| Error::Storage(format!("Failed to get pattern_type: {}", e)))?;
+        let success_rate: f64 = row
+            .get(2)
+            .map_err(|e| Error::Storage(format!("Failed to get success_rate: {}", e)))?;
+        let occurrence_count: i64 = row
+            .get(3)
+            .map_err(|e| Error::Storage(format!("Failed to get occurrence_count: {}", e)))?;
+        let created_at: i64 = row
+            .get(4)
+            .map_err(|e| Error::Storage(format!("Failed to get created_at: {}", e)))?;
+        let updated_at: i64 = row
+            .get(5)
+            .map_err(|e| Error::Storage(format!("Failed to get updated_at: {}", e)))?;
+
+        let pattern_id = PatternId::parse_str(&pattern_id_str)
+            .map_err(|e| Error::Storage(format!("Invalid pattern UUID: {}", e)))?;
+
+        Ok(PatternMetadata {
+            pattern_id,
+            pattern_type,
+            success_rate: success_rate as f32,
+            occurrence_count: occurrence_count as usize,
+            created_at: chrono::DateTime::from_timestamp(created_at, 0)
+                .ok_or_else(|| Error::Storage("Invalid created_at timestamp".to_string()))?,
+            updated_at: chrono::DateTime::from_timestamp(updated_at, 0)
+                .ok_or_else(|| Error::Storage("Invalid updated_at timestamp".to_string()))?,
+        })
     }
 }

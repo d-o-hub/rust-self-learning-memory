@@ -26,9 +26,9 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 
 # Local dependencies
-memory-core = { path = "../memory-core", version = "0.1.0" }
-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.0" }
-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.0" }
+memory-core = { path = "../memory-core" }
+memory-storage-turso = { path = "../memory-storage-turso" }
+memory-storage-redb = { path = "../memory-storage-redb" }
 
 # MCP-specific dependencies
 async-trait = "0.1"
@@ -43,7 +43,7 @@ libc = "0.2"
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.0" }
+memory-storage-redb = { path = "../memory-storage-redb" }
 
 [[example]]
 name = "memory_mcp_integration"

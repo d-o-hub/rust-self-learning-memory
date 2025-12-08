@@ -182,6 +182,16 @@ jobs:
           path: ./cache
           key: benchmark-results-${{ github.ref }}
 
+      - name: Stash uncommitted changes before benchmark storage
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Stash any uncommitted changes (like Cargo.lock updates) 
+          # to allow clean branch switching for benchmark storage
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Stashing uncommitted changes..."
+            git stash push -m "Temporary stash for benchmark action"
+          fi
+
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1.20.7
         if: github.ref == 'refs/heads/main'

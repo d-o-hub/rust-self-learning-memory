@@ -185,7 +185,7 @@ jobs:
       - name: Stash uncommitted changes before benchmark storage
         if: github.ref == 'refs/heads/main'
         run: |
-          # Stash any uncommitted changes (like Cargo.lock updates) 
+          # Stash any uncommitted changes (like Cargo.lock updates)
           # to allow clean branch switching for benchmark storage
           if [ -n "$(git status --porcelain)" ]; then
             echo "Stashing uncommitted changes..."

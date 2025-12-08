@@ -33,8 +33,8 @@
 //! ```
 
 mod core;
-mod storage;
-mod types;
+pub mod storage;
+pub mod types;
 
 pub use core::{AgentMonitor, MonitoringSummary};
 pub use storage::{MonitoringAnalytics, MonitoringStorage};

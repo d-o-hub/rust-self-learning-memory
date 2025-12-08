@@ -1,5 +1,5 @@
+use super::storage::MonitoringStorageBackend;
 use super::types::{AgentMetrics, AgentType, ExecutionRecord, MonitoringConfig, TaskMetrics};
-use crate::storage::StorageBackend;
 use crate::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -22,7 +22,7 @@ pub struct AgentMonitor {
     /// Recent execution records (limited by config.max_records)
     execution_records: Arc<RwLock<Vec<ExecutionRecord>>>,
     /// Durable storage backend (optional)
-    storage: Option<Arc<dyn StorageBackend>>,
+    storage: Option<Arc<dyn MonitoringStorageBackend>>,
 }
 
 impl Default for AgentMonitor {
@@ -49,7 +49,10 @@ impl AgentMonitor {
     }
 
     /// Create a monitor with storage backend for persistence
-    pub fn with_storage(config: MonitoringConfig, storage: Arc<dyn StorageBackend>) -> Self {
+    pub fn with_storage(
+        config: MonitoringConfig,
+        storage: Arc<dyn MonitoringStorageBackend>,
+    ) -> Self {
         Self {
             storage: Some(storage),
             ..Self::with_config(config)
@@ -155,7 +158,22 @@ impl AgentMonitor {
             task_metric.update(&record);
         }
 
-        // Store execution record
+        // Persist to storage if configured (do this first to avoid borrowing issues)
+        if self.config.enable_persistence {
+            if let Some(storage) = &self.storage {
+                // Store execution record for persistence
+                if let Err(e) = storage.store_execution_record(&record).await {
+                    tracing::error!("Failed to store execution record: {}", e);
+                }
+
+                // Update agent metrics
+                if let Err(e) = self.update_and_store_agent_metrics(&record).await {
+                    tracing::error!("Failed to update agent metrics: {}", e);
+                }
+            }
+        }
+
+        // Store execution record in memory
         {
             let mut records = self.execution_records.write().await;
             records.push(record);
@@ -163,14 +181,6 @@ impl AgentMonitor {
             // Maintain size limit
             if records.len() > self.config.max_records {
                 records.remove(0); // Remove oldest
-            }
-        }
-
-        // Persist to storage if configured
-        if self.config.enable_persistence {
-            if let Some(_storage) = &self.storage {
-                // TODO: Implement storage persistence
-                // For now, we'll store in memory only
             }
         }
 
@@ -271,6 +281,23 @@ impl AgentMonitor {
 
         let mut records = self.execution_records.write().await;
         records.clear();
+    }
+
+    /// Update and store agent metrics for a given execution record
+    async fn update_and_store_agent_metrics(&self, record: &ExecutionRecord) -> Result<()> {
+        if let Some(storage) = &self.storage {
+            // Get current metrics from memory
+            let metrics = {
+                let agent_metrics = self.agent_metrics.read().await;
+                agent_metrics.get(&record.agent_name).cloned()
+            };
+
+            // Store updated metrics if they exist
+            if let Some(metrics) = metrics {
+                storage.store_agent_metrics(&metrics).await?;
+            }
+        }
+        Ok(())
     }
 }
 

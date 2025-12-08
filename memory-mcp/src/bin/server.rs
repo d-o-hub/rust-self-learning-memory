@@ -327,12 +327,27 @@ async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
         }),
     };
 
-    Some(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id,
-        result: Some(serde_json::to_value(result).unwrap()),
-        error: None,
-    })
+    match serde_json::to_value(result) {
+        Ok(value) => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: Some(value),
+            error: None,
+        }),
+        Err(e) => {
+            error!("Failed to serialize initialize response: {}", e);
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: "Internal error".to_string(),
+                    data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                }),
+            })
+        }
+    }
 }
 
 /// Handle tools/list request
@@ -356,12 +371,27 @@ async fn handle_list_tools(
 
     let result = ListToolsResult { tools: mcp_tools };
 
-    Some(JsonRpcResponse {
-        jsonrpc: "2.0".to_string(),
-        id: request.id,
-        result: Some(serde_json::to_value(result).unwrap()),
-        error: None,
-    })
+    match serde_json::to_value(result) {
+        Ok(value) => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: Some(value),
+            error: None,
+        }),
+        Err(e) => {
+            error!("Failed to serialize list_tools response: {}", e);
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: "Internal error".to_string(),
+                    data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                }),
+            })
+        }
+    }
 }
 
 /// Handle tools/call request
@@ -424,13 +454,30 @@ async fn handle_call_tool(
 
     match result {
         Ok(content) => {
-            let result = CallToolResult { content };
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: Some(serde_json::to_value(result).unwrap()),
-                error: None,
-            })
+            let call_result = CallToolResult { content };
+            match serde_json::to_value(call_result) {
+                Ok(value) => Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(value),
+                    error: None,
+                }),
+                Err(e) => {
+                    error!("Failed to serialize call_tool response: {}", e);
+                    Some(JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32603,
+                            message: "Internal error".to_string(),
+                            data: Some(
+                                json!({"details": format!("Response serialization failed: {}", e)}),
+                            ),
+                        }),
+                    })
+                }
+            }
         }
         Err(e) => {
             error!("Tool execution failed: {}", e);

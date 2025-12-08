@@ -277,7 +277,8 @@ impl SelfLearningMemory {
 
         // Configure agent monitor with storage backends
         let monitoring_config = MonitoringConfig::default();
-        let agent_monitor = AgentMonitor::with_storage(monitoring_config, turso.clone());
+        // For now, create monitor without storage - TODO: implement proper casting when storage supports monitoring
+        let agent_monitor = AgentMonitor::with_config(monitoring_config);
 
         Self {
             config: config.clone(),

@@ -728,12 +728,7 @@ impl MemoryMCPServer {
         // Filter by success rate and limit
         let filtered_patterns: Vec<_> = all_patterns
             .into_iter()
-            .filter(|_p| {
-                // Filter patterns based on success rate threshold
-                // For now, we include all patterns as we don't have success_rate in Pattern yet
-                // TODO: Add success_rate tracking to Pattern
-                true
-            })
+            .filter(|p| p.success_rate() >= min_success_rate)
             .take(limit)
             .collect();
 

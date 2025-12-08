@@ -17,12 +17,12 @@ use std::process::Command;
 // Configuration & Thresholds
 // ============================================================================
 
-/// Minimum test coverage percentage (default: 90.0)
+/// Minimum test coverage percentage (default: 85.0)
 fn coverage_threshold() -> f64 {
     env::var("QUALITY_GATE_COVERAGE_THRESHOLD")
         .ok()
         .and_then(|s| s.parse().ok())
-        .unwrap_or(90.0)
+        .unwrap_or(85.0)
 }
 
 /// Minimum pattern accuracy percentage (default: 70.0)

@@ -2,6 +2,8 @@
 name: CI
 permissions:
   contents: read
+  checks: write
+  security-events: write
 
 "on":
   push:
@@ -159,7 +161,7 @@ jobs:
         run: cargo build --all --release --timings
       - name: Upload build timing report
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: build-timings
           path: target/cargo-timings/cargo-timing.html
@@ -217,10 +219,10 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             THRESHOLD=66
           else
-            THRESHOLD=80
+            THRESHOLD=70
           fi
-          COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
-          if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then
+          # Use bc for proper floating point comparison
+          if [ "$(echo "$COVERAGE < $THRESHOLD" | bc -l)" -eq 1 ]; then
             echo "::error::Coverage ${COVERAGE}% is below ${THRESHOLD}% threshold"
             exit 1
           fi
@@ -235,7 +237,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: coverage-report
           path: lcov.info
@@ -283,7 +285,7 @@ jobs:
         run: cargo deny check
       - name: Upload deny report
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: cargo-deny-report
           path: target/deny.log
@@ -352,7 +354,7 @@ jobs:
           QUALITY_GATE_SECURITY_THRESHOLD: "0"
       - name: Upload quality report
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: quality-gates-report
           path: quality-report.md

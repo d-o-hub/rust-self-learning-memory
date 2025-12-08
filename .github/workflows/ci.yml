@@ -2,6 +2,8 @@
 name: CI
 permissions:
   contents: read
+  checks: write
+  security-events: write
 
 "on":
   push:
@@ -219,8 +221,8 @@ jobs:
           else
             THRESHOLD=70
           fi
-          COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
-          if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then
+          # Use bc for proper floating point comparison
+          if [ "$(echo "$COVERAGE < $THRESHOLD" | bc -l)" -eq 1 ]; then
             echo "::error::Coverage ${COVERAGE}% is below ${THRESHOLD}% threshold"
             exit 1
           fi

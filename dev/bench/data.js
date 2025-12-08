@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1765138809867,
+  "lastUpdate": 1765165973836,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -4331,6 +4331,94 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/4d2c9c13e5f6ba12c3f5aaf45c14a30a75bfbbff"
         },
         "date": 1765138809641,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "d.o.",
+            "username": "d-o-hub",
+            "email": "242170972+d-o-hub@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "4d2c9c13e5f6ba12c3f5aaf45c14a30a75bfbbff",
+          "message": "Fix/ci issues release prep (#129)\n\n* fix(ci): standardize artifact actions to v4.6.2 in release workflow\n\n- Updated upload-artifact from v4 to v4.6.2\n- Updated download-artifact from v6.0.0 to v4.6.2\n- Ensures compatibility between upload/download actions\n\n* fix(ci): standardize artifact actions in benchmarks workflow\n\n- Updated upload-artifact from v5.0.0 to v4.6.2\n- Updated download-artifact from v6.0.0 to v4.6.2\n- Maintains consistency across all workflows\n\n* fix(ci): standardize upload-artifact version in security workflow\n\n- Updated upload-artifact from v5.0.0 to v4.6.2\n- Ensures compatibility across all workflows\n\n* fix(ci): update rustsec/audit-check to v2\n\n- Updated from v1 to v2 for latest security features\n- Ensures compatibility with current GitHub Actions\n\n* fix(ci): update reviewdog/action-actionlint to v1.69.0\n\n- Updated from v1.68.0 to v1.69.0 for latest features\n- Ensures GitHub Actions validation is up to date\n\n* commit message\n\n---------\n\nCo-authored-by: CI Fix Bot <ci-fix@example.com>",
+          "timestamp": "2025-12-07T20:11:55Z",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/4d2c9c13e5f6ba12c3f5aaf45c14a30a75bfbbff"
+        },
+        "date": 1765165973482,
         "tool": "cargo",
         "benches": [
           {

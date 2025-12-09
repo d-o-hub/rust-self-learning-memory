@@ -48,7 +48,7 @@ impl Default for Config {
             database: DatabaseConfig {
                 turso_url: None,
                 turso_token: None,
-                redb_path: Some("memory.redb".to_string()),
+                redb_path: Some("./data/memory.redb".to_string()),
             },
             storage: StorageConfig {
                 max_episodes_cache: 1000,
@@ -172,6 +172,68 @@ impl Config {
             turso_storage = Some(Arc::new(storage) as Arc<dyn memory_core::StorageBackend>);
         }
 
+        // If no Turso storage configured, try to set up local SQLite fallback
+        #[cfg(feature = "turso")]
+        if turso_storage.is_none() {
+            // Try environment variables first
+            if let Ok(local_db_url) = std::env::var("LOCAL_DATABASE_URL") {
+                if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
+                    let db_path = local_db_url.strip_prefix("sqlite:").unwrap_or(&local_db_url);
+                    let db_path = db_path.strip_prefix("file:").unwrap_or(db_path);
+                    
+                    // Ensure data directory exists
+                    if let Some(parent) = std::path::Path::new(db_path).parent() {
+                        std::fs::create_dir_all(parent).ok();
+                    }
+                    
+                    match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+                        Ok(storage) => {
+                            if let Err(e) = storage.initialize_schema().await {
+                                eprintln!("Warning: Failed to initialize local SQLite schema: {}", e);
+                            } else {
+                                turso_storage = Some(Arc::new(storage) as Arc<dyn memory_core::StorageBackend>);
+                                eprintln!("Using local SQLite database: {}", db_path);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("Warning: Failed to create local SQLite storage: {}", e);
+                        }
+                    }
+                }
+            }
+        }
+
+        // If no Turso storage configured, try to set up local SQLite fallback
+        #[cfg(feature = "turso")]
+        if turso_storage.is_none() {
+            // Try environment variables first
+            if let Ok(local_db_url) = std::env::var("LOCAL_DATABASE_URL") {
+                if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
+                    let db_path = local_db_url.strip_prefix("sqlite:").unwrap_or(&local_db_url);
+                    let db_path = db_path.strip_prefix("file:").unwrap_or(db_path);
+                    
+                    // Ensure data directory exists
+                    if let Some(parent) = std::path::Path::new(db_path).parent() {
+                        std::fs::create_dir_all(parent).ok();
+                    }
+                    
+                    match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+                        Ok(storage) => {
+                            if let Err(e) = storage.initialize_schema().await {
+                                eprintln!("Warning: Failed to initialize local SQLite schema: {}", e);
+                            } else {
+                                turso_storage = Some(Arc::new(storage) as Arc<dyn memory_core::StorageBackend>);
+                                eprintln!("Using local SQLite database: {}", db_path);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("Warning: Failed to create local SQLite storage: {}", e);
+                        }
+                    }
+                }
+            }
+        }
+
         // Initialize redb storage if configured
         #[cfg(feature = "redb")]
         if let Some(redb_path) = &self.database.redb_path {
@@ -205,13 +267,85 @@ impl Config {
                     Ok(SelfLearningMemory::with_config(memory_config))
                 }
             }
-            (None, Some(_redb)) => {
-                // Only redb configured - use in-memory fallback for durable storage
-                Ok(SelfLearningMemory::with_config(memory_config))
+            (None, Some(redb)) => {
+                // Only redb configured - try to set up local SQLite as durable storage
+                #[cfg(feature = "turso")]
+                {
+                    if let Ok(local_db_url) = std::env::var("LOCAL_DATABASE_URL") {
+                        if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
+                            let db_path = local_db_url.strip_prefix("sqlite:").unwrap_or(&local_db_url);
+                            let db_path = db_path.strip_prefix("file:").unwrap_or(db_path);
+                            
+                            // Ensure data directory exists
+                            if let Some(parent) = std::path::Path::new(db_path).parent() {
+                                std::fs::create_dir_all(parent).ok();
+                            }
+                            
+                            match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+                                Ok(storage) => {
+                                    if let Err(e) = storage.initialize_schema().await {
+                                        eprintln!("Warning: Failed to initialize local SQLite schema: {}", e);
+                                        Ok(SelfLearningMemory::with_config(memory_config))
+                                    } else {
+                                        eprintln!("Using local SQLite database: {}", db_path);
+                                        Ok(SelfLearningMemory::with_storage(memory_config, Arc::new(storage) as Arc<dyn memory_core::StorageBackend>, redb))
+                                    }
+                                }
+                                Err(_) => {
+                                    Ok(SelfLearningMemory::with_config(memory_config))
+                                }
+                            }
+                        } else {
+                            Ok(SelfLearningMemory::with_config(memory_config))
+                        }
+                    } else {
+                        Ok(SelfLearningMemory::with_config(memory_config))
+                    }
+                }
+                #[cfg(not(feature = "turso"))]
+                {
+                    Ok(SelfLearningMemory::with_config(memory_config))
+                }
             }
             (None, None) => {
-                // No storage configured - use in-memory only
-                Ok(SelfLearningMemory::with_config(memory_config))
+                // No storage configured - try to set up local SQLite fallback
+                #[cfg(feature = "turso")]
+                {
+                    if let Ok(local_db_url) = std::env::var("LOCAL_DATABASE_URL") {
+                        if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
+                            let db_path = local_db_url.strip_prefix("sqlite:").unwrap_or(&local_db_url);
+                            let db_path = db_path.strip_prefix("file:").unwrap_or(db_path);
+                            
+                            // Ensure data directory exists
+                            if let Some(parent) = std::path::Path::new(db_path).parent() {
+                                std::fs::create_dir_all(parent).ok();
+                            }
+                            
+                            match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+                                Ok(storage) => {
+                                    if let Err(e) = storage.initialize_schema().await {
+                                        eprintln!("Warning: Failed to initialize local SQLite schema: {}", e);
+                                        Ok(SelfLearningMemory::with_config(memory_config))
+                                    } else {
+                                        eprintln!("Using local SQLite database: {}", db_path);
+                                        Ok(SelfLearningMemory::with_storage(memory_config, Arc::new(storage) as Arc<dyn memory_core::StorageBackend>, Arc::new(memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?) as Arc<dyn memory_core::StorageBackend>))
+                                    }
+                                }
+                                Err(_) => {
+                                    Ok(SelfLearningMemory::with_config(memory_config))
+                                }
+                            }
+                        } else {
+                            Ok(SelfLearningMemory::with_config(memory_config))
+                        }
+                    } else {
+                        Ok(SelfLearningMemory::with_config(memory_config))
+                    }
+                }
+                #[cfg(not(feature = "turso"))]
+                {
+                    Ok(SelfLearningMemory::with_config(memory_config))
+                }
             }
         }
     }

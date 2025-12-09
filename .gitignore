@@ -27,9 +27,52 @@ memory-mcp/data/cache.redb
 # Database and cache files created by examples/tests
 *.db
 *.db-*
+*.sqlite
+*.sqlite-*
+*.libsql
+*.libsql-*
+*.turso
 *.redb
 memory_test.db*
 persistence_*.redb
 verification_*.redb
 todo_example*.redb
 data/cache.redb
+memory-mcp/data/cache.redb
+
+# Additional database-related files
+*.turso
+*.libsql*
+hrana-*.db
+libsql-*.db
+
+# Cache and storage directories
+data/
+cache/
+storage/
+
+# Test database files
+test*.db
+test*.redb
+test*.sqlite
+*_test.db*
+*_test.redb*
+*_test.sqlite*
+
+# Temporary storage files
+temp*.db
+temp*.redb
+temp*.sqlite
+tmp*.db
+tmp*.redb
+tmp*.sqlite
+
+# Memory system files
+memory*.db
+memory*.redb
+memory*.sqlite
+
+# MCP server cache files
+mcp*.redb
+mcp*.db
+mcp*.sqlite

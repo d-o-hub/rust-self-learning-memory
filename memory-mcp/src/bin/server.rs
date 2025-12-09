@@ -11,6 +11,7 @@ use memory_storage_turso::{TursoConfig, TursoStorage};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
+use std::panic;
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -434,8 +435,28 @@ async fn handle_call_tool(
     let mut server = mcp_server.lock().await;
     let result = match params.name.as_str() {
         "query_memory" => handle_query_memory(&mut server, params.arguments).await,
-        "execute_agent_code" => handle_execute_code(&mut server, params.arguments).await,
+        "execute_agent_code" => {
+            // Check if execute_agent_code tool is available
+            let tools = server.list_tools().await;
+            if tools.iter().any(|t| t.name == "execute_agent_code") {
+                handle_execute_code(&mut server, params.arguments).await
+            } else {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32000,
+                        message: "Tool execution failed".to_string(),
+                        data: Some(json!({
+                            "details": "execute_agent_code tool is not available due to WASM sandbox compilation issues"
+                        })),
+                    }),
+                });
+            }
+        }
         "analyze_patterns" => handle_analyze_patterns(&mut server, params.arguments).await,
+        "advanced_pattern_analysis" => handle_advanced_pattern_analysis(&mut server, params.arguments).await,
         "health_check" => handle_health_check(&mut server, params.arguments).await,
         "get_metrics" => handle_get_metrics(&mut server, params.arguments).await,
         _ => {
@@ -452,43 +473,74 @@ async fn handle_call_tool(
         }
     };
 
-    match result {
-        Ok(content) => {
-            let call_result = CallToolResult { content };
-            match serde_json::to_value(call_result) {
-                Ok(value) => Some(JsonRpcResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(value),
-                    error: None,
-                }),
-                Err(e) => {
-                    error!("Failed to serialize call_tool response: {}", e);
-                    Some(JsonRpcResponse {
+    // Use catch_unwind to prevent panics from corrupting JSON-RPC responses
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(async {
+        match result {
+            Ok(content) => {
+                let call_result = CallToolResult { content };
+                match serde_json::to_value(call_result) {
+                    Ok(value) => Some(JsonRpcResponse {
                         jsonrpc: "2.0".to_string(),
                         id: request.id,
-                        result: None,
-                        error: Some(JsonRpcError {
-                            code: -32603,
-                            message: "Internal error".to_string(),
-                            data: Some(
-                                json!({"details": format!("Response serialization failed: {}", e)}),
-                            ),
-                        }),
-                    })
+                        result: Some(value),
+                        error: None,
+                    }),
+                    Err(e) => {
+                        error!("Failed to serialize call_tool response: {}", e);
+                        Some(JsonRpcResponse {
+                            jsonrpc: "2.0".to_string(),
+                            id: request.id,
+                            result: None,
+                            error: Some(JsonRpcError {
+                                code: -32603,
+                                message: "Internal error".to_string(),
+                                data: Some(
+                                    json!({"details": format!("Response serialization failed: {}", e)}),
+                                ),
+                            }),
+                        })
+                    }
                 }
             }
+            Err(e) => {
+                error!("Tool execution failed: {}", e);
+                Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32000,
+                        message: "Tool execution failed".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
         }
-        Err(e) => {
-            error!("Tool execution failed: {}", e);
+    }));
+
+    match result {
+        Ok(response) => response,
+        Err(panic_info) => {
+            let panic_msg = if let Some(s) = panic_info.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = panic_info.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "Unknown panic occurred".to_string()
+            };
+
+            error!("Tool call panicked: {}", panic_msg);
             Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
                 id: request.id,
                 result: None,
                 error: Some(JsonRpcError {
-                    code: -32000,
-                    message: "Tool execution failed".to_string(),
-                    data: Some(json!({"details": e.to_string()})),
+                    code: -32603,
+                    message: "Internal server error".to_string(),
+                    data: Some(json!({
+                        "details": "Server panicked during tool execution",
+                        "panic_info": panic_msg
+                    })),
                 }),
             })
         }
@@ -553,13 +605,22 @@ async fn handle_execute_code(
 
     let context = ExecutionContext::new(task, input);
 
-    let result = server.execute_agent_code(code, context).await?;
-
-    let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
-    }];
-
-    Ok(content)
+    // Check if WASM sandbox is available by attempting a simple test
+    // If it fails, return a proper error instead of crashing
+    match server.execute_agent_code("console.log('test');".to_string(), ExecutionContext::new("test".to_string(), json!({}))).await {
+        Ok(_) => {
+            // WASM sandbox is working, proceed with actual execution
+            let result = server.execute_agent_code(code, context).await?;
+            let content = vec![Content::Text {
+                text: serde_json::to_string_pretty(&result)?,
+            }];
+            Ok(content)
+        }
+        Err(e) => {
+            // WASM sandbox is not available, return proper error
+            Err(anyhow::anyhow!("Code execution is currently unavailable due to WASM sandbox compilation issues. Error: {}", e))
+        }
+    }
 }
 
 /// Handle analyze_patterns tool
@@ -582,6 +643,54 @@ async fn handle_analyze_patterns(
     let result = server
         .analyze_patterns(task_type, min_success_rate, limit)
         .await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+
+    Ok(content)
+}
+
+/// Handle advanced_pattern_analysis tool
+async fn handle_advanced_pattern_analysis(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+
+    // Parse analysis type
+    let analysis_type_str = args
+        .get("analysis_type")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'analysis_type' parameter"))?;
+
+    let analysis_type = match analysis_type_str {
+        "statistical" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Statistical,
+        "predictive" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Predictive,
+        "comprehensive" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Comprehensive,
+        _ => return Err(anyhow::anyhow!("Invalid analysis_type: {}", analysis_type_str)),
+    };
+
+    // Parse time series data
+    let time_series_data_value = args
+        .get("time_series_data")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'time_series_data' parameter"))?;
+
+    let time_series_data: std::collections::HashMap<String, Vec<f64>> =
+        serde_json::from_value(time_series_data_value.clone())?;
+
+    // Parse optional config
+    let config = args.get("config").and_then(|c| serde_json::from_value(c.clone()).ok());
+
+    let input = memory_mcp::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisInput {
+        analysis_type,
+        time_series_data,
+        config,
+    };
+
+    let result = server
+        .execute_advanced_pattern_analysis(input)
+        .await?;
+
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,
     }];

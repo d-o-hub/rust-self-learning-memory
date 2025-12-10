@@ -31,16 +31,18 @@
       }
     }
   },
-   "mcp": {
-     "memory-mcp": {
-       "type": "local",
-       "command": ["cargo", "run", "--quiet", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
-       "enabled": true,
-        "environment": {
-          "RUST_LOG": "info",
-          "REDB_CACHE_PATH": "./data/cache.redb",
-          "REDB_MAX_CACHE_SIZE": "1000"
-        }
-     }
-   }
+    "mcp": {
+      "memory-mcp": {
+        "type": "local",
+        "command": ["cargo", "run", "--quiet", "--bin", "memory-mcp-server", "--manifest-path", "memory-mcp/Cargo.toml"],
+        "enabled": true,
+          "environment": {
+            "RUST_LOG": "info",
+            "TURSO_DATABASE_URL": "file:./data/memory.db",
+            "REDB_CACHE_PATH": "./data/cache.redb",
+            "REDB_MAX_CACHE_SIZE": "1000",
+            "MCP_CACHE_WARMING_ENABLED": "true"
+         }
+      }
+    }
 }

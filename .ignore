@@ -1,0 +1,19 @@
+# Database and cache files created by examples/tests
+!*.db
+!*.db-*
+!*.sqlite
+*.sqlite-*
+*.libsql
+*.libsql-*
+!*.turso
+!*.redb
+
+# Memory system files
+!memory*.db
+!memory*.redb
+!memory*.sqlite
+
+# MCP server cache files
+!mcp*.redb
+!mcp*.db
+!mcp*.sqlite

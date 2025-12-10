@@ -49,7 +49,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tempfile = "3.12"
 
 # Benchmarking
-criterion = "0.5"
+criterion = "0.8"
 
 [profile.release]
 opt-level = 3

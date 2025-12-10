@@ -25,22 +25,3 @@ rand = "0.8"
 name = "verify_storage"
 path = "verify_storage.rs"
 
-[[bin]]
-name = "store_opencode_config"
-path = "store_opencode_config.rs"
-
-[[bin]]
-name = "pattern_extraction_demo"
-path = "pattern_extraction_demo.rs"
-
-[[bin]]
-name = "success_rate_validator"
-path = "success_rate_validator.rs"
-
-[[bin]]
-name = "performance_validation"
-path = "performance_validation.rs"
-
-[[bin]]
-name = "test_local_db"
-path = "test_local_db.rs"

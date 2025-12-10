@@ -11,7 +11,7 @@ use memory_storage_turso::{TursoConfig, TursoStorage};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
-use std::panic;
+
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -90,9 +90,15 @@ enum Content {
 
 /// Initialize the memory system with appropriate storage backends
 async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
-    // Try to initialize with dual storage (Turso + redb) first
+    // Try Turso local first (default behavior)
+    if let Ok(memory) = initialize_turso_local().await {
+        info!("Memory system initialized with Turso local database (default)");
+        return Ok(memory);
+    }
+
+    // If Turso local fails, try dual storage (Turso cloud + redb)
     if let Ok(memory) = initialize_dual_storage().await {
-        info!("Memory system initialized with persistent storage (Turso + redb)");
+        info!("Memory system initialized with persistent storage (Turso cloud + redb)");
         return Ok(memory);
     }
 
@@ -105,8 +111,9 @@ async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
     // Final fallback to in-memory storage
     warn!("Failed to initialize any persistent storage, falling back to in-memory");
     info!("To enable persistence:");
-    info!("  - For full persistence: set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN");
-    info!("  - For cache-only persistence: ensure REDB_CACHE_PATH is accessible");
+    info!("  - Default: Turso local database (no configuration needed)");
+    info!("  - Cloud: set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN");
+    info!("  - Cache-only: ensure REDB_CACHE_PATH is accessible");
     Ok(Arc::new(SelfLearningMemory::new()))
 }
 
@@ -196,6 +203,63 @@ async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>> {
         Arc::new(redb_storage),
     );
 
+    Ok(Arc::new(memory))
+}
+
+/// Initialize memory system with Turso local database (default behavior)
+async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>> {
+    info!("Attempting to initialize Turso local database (default)...");
+
+    // Use local Turso database file
+    let turso_url =
+        std::env::var("TURSO_DATABASE_URL").unwrap_or_else(|_| "file:./data/memory.db".to_string());
+
+    // For local files, no token is needed
+    let turso_token = if turso_url.starts_with("file:") {
+        "".to_string()
+    } else {
+        std::env::var("TURSO_AUTH_TOKEN").unwrap_or_default()
+    };
+
+    info!("Connecting to Turso database at {}", turso_url);
+
+    // Initialize Turso storage with basic config for local use
+    let turso_config = TursoConfig {
+        max_retries: 1, // Fewer retries for local
+        retry_base_delay_ms: 50,
+        retry_max_delay_ms: 1000,
+        enable_pooling: false, // No pooling needed for local
+    };
+
+    let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;
+    turso_storage.initialize_schema().await?;
+
+    // Initialize redb cache storage for performance
+    let cache_path_str =
+        std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
+    let cache_path = Path::new(&cache_path_str);
+
+    let cache_config = CacheConfig {
+        max_size: std::env::var("REDB_MAX_CACHE_SIZE")
+            .unwrap_or_else(|_| "1000".to_string())
+            .parse()
+            .unwrap_or(1000),
+        default_ttl_secs: 1800,     // 30 minutes
+        cleanup_interval_secs: 600, // 10 minutes
+        enable_background_cleanup: true,
+    };
+
+    let redb_storage = RedbStorage::new_with_cache_config(cache_path, cache_config).await?;
+
+    // Create memory system with both storage backends
+    let memory_config = MemoryConfig::default();
+    let memory = SelfLearningMemory::with_storage(
+        memory_config,
+        Arc::new(turso_storage),
+        Arc::new(redb_storage),
+    );
+
+    info!("Successfully initialized Turso local + redb cache storage");
     Ok(Arc::new(memory))
 }
 
@@ -456,7 +520,9 @@ async fn handle_call_tool(
             }
         }
         "analyze_patterns" => handle_analyze_patterns(&mut server, params.arguments).await,
-        "advanced_pattern_analysis" => handle_advanced_pattern_analysis(&mut server, params.arguments).await,
+        "advanced_pattern_analysis" => {
+            handle_advanced_pattern_analysis(&mut server, params.arguments).await
+        }
         "health_check" => handle_health_check(&mut server, params.arguments).await,
         "get_metrics" => handle_get_metrics(&mut server, params.arguments).await,
         _ => {
@@ -473,78 +539,50 @@ async fn handle_call_tool(
         }
     };
 
-    // Use catch_unwind to prevent panics from corrupting JSON-RPC responses
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(async {
-        match result {
-            Ok(content) => {
-                let call_result = CallToolResult { content };
-                match serde_json::to_value(call_result) {
-                    Ok(value) => Some(JsonRpcResponse {
-                        jsonrpc: "2.0".to_string(),
-                        id: request.id,
-                        result: Some(value),
-                        error: None,
-                    }),
-                    Err(e) => {
-                        error!("Failed to serialize call_tool response: {}", e);
-                        Some(JsonRpcResponse {
-                            jsonrpc: "2.0".to_string(),
-                            id: request.id,
-                            result: None,
-                            error: Some(JsonRpcError {
-                                code: -32603,
-                                message: "Internal error".to_string(),
-                                data: Some(
-                                    json!({"details": format!("Response serialization failed: {}", e)}),
-                                ),
-                            }),
-                        })
-                    }
-                }
-            }
-            Err(e) => {
-                error!("Tool execution failed: {}", e);
-                Some(JsonRpcResponse {
+    // Process the tool result
+    let response = match result {
+        Ok(content) => {
+            let call_result = CallToolResult { content };
+            match serde_json::to_value(call_result) {
+                Ok(value) => Some(JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
-                    result: None,
-                    error: Some(JsonRpcError {
-                        code: -32000,
-                        message: "Tool execution failed".to_string(),
-                        data: Some(json!({"details": e.to_string()})),
-                    }),
-                })
+                    result: Some(value),
+                    error: None,
+                }),
+                Err(e) => {
+                    error!("Failed to serialize call_tool response: {}", e);
+                    Some(JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32603,
+                            message: "Internal error".to_string(),
+                            data: Some(
+                                json!({"details": format!("Response serialization failed: {}", e)}),
+                            ),
+                        }),
+                    })
+                }
             }
         }
-    }));
-
-    match result {
-        Ok(response) => response,
-        Err(panic_info) => {
-            let panic_msg = if let Some(s) = panic_info.downcast_ref::<&str>() {
-                s.to_string()
-            } else if let Some(s) = panic_info.downcast_ref::<String>() {
-                s.clone()
-            } else {
-                "Unknown panic occurred".to_string()
-            };
-
-            error!("Tool call panicked: {}", panic_msg);
+        Err(e) => {
+            error!("Tool execution failed: {}", e);
             Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
                 id: request.id,
                 result: None,
                 error: Some(JsonRpcError {
-                    code: -32603,
-                    message: "Internal server error".to_string(),
-                    data: Some(json!({
-                        "details": "Server panicked during tool execution",
-                        "panic_info": panic_msg
-                    })),
+                    code: -32000,
+                    message: "Tool execution failed".to_string(),
+                    data: Some(json!({"details": e.to_string()})),
                 }),
             })
         }
-    }
+    };
+
+    response
 }
 
 /// Handle query_memory tool
@@ -607,7 +645,13 @@ async fn handle_execute_code(
 
     // Check if WASM sandbox is available by attempting a simple test
     // If it fails, return a proper error instead of crashing
-    match server.execute_agent_code("console.log('test');".to_string(), ExecutionContext::new("test".to_string(), json!({}))).await {
+    match server
+        .execute_agent_code(
+            "console.log('test');".to_string(),
+            ExecutionContext::new("test".to_string(), json!({})),
+        )
+        .await
+    {
         Ok(_) => {
             // WASM sandbox is working, proceed with actual execution
             let result = server.execute_agent_code(code, context).await?;
@@ -664,10 +708,19 @@ async fn handle_advanced_pattern_analysis(
         .ok_or_else(|| anyhow::anyhow!("Missing 'analysis_type' parameter"))?;
 
     let analysis_type = match analysis_type_str {
-        "statistical" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Statistical,
+        "statistical" => {
+            memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Statistical
+        }
         "predictive" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Predictive,
-        "comprehensive" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Comprehensive,
-        _ => return Err(anyhow::anyhow!("Invalid analysis_type: {}", analysis_type_str)),
+        "comprehensive" => {
+            memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Comprehensive
+        }
+        _ => {
+            return Err(anyhow::anyhow!(
+                "Invalid analysis_type: {}",
+                analysis_type_str
+            ))
+        }
     };
 
     // Parse time series data
@@ -679,7 +732,9 @@ async fn handle_advanced_pattern_analysis(
         serde_json::from_value(time_series_data_value.clone())?;
 
     // Parse optional config
-    let config = args.get("config").and_then(|c| serde_json::from_value(c.clone()).ok());
+    let config = args
+        .get("config")
+        .and_then(|c| serde_json::from_value(c.clone()).ok());
 
     let input = memory_mcp::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisInput {
         analysis_type,
@@ -687,9 +742,7 @@ async fn handle_advanced_pattern_analysis(
         config,
     };
 
-    let result = server
-        .execute_advanced_pattern_analysis(input)
-        .await?;
+    let result = server.execute_advanced_pattern_analysis(input).await?;
 
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,

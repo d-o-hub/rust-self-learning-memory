@@ -36,6 +36,21 @@ parking_lot = "0.12"
 url = "2.5"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+# WASM JavaScript execution dependencies
+rquickjs = { version = "0.6", features = ["parallel", "loader", "futures"] }
+wasmtime = { version = "19.0", features = ["async", "cranelift"] }
+
+# Additional dependencies for unified sandbox
+chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"
+
+# Advanced pattern analysis dependencies
+augurs = { version = "0.6.0", features = ["forecaster", "ets", "mstl", "outlier", "changepoint"] }
+changepoint = "0.15.0"
+deep_causality = "0.11.11"
+streaming_algorithms = "0.3.3"
+rayon = "1.8"
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
@@ -60,3 +75,19 @@ path = "tests/mcp_integration_tests.rs"
 [[test]]
 name = "persistent_storage_tests"
 path = "tests/persistent_storage_tests.rs"
+
+[[test]]
+name = "advanced_pattern_analysis_comprehensive"
+path = "tests/advanced_pattern_analysis_comprehensive.rs"
+
+[[test]]
+name = "mcp_integration_advanced"
+path = "tests/mcp_integration_advanced.rs"
+
+[[test]]
+name = "performance_tests"
+path = "tests/performance_tests.rs"
+
+[[test]]
+name = "security_tests"
+path = "tests/security_tests.rs"

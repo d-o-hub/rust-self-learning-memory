@@ -96,10 +96,14 @@
 
 pub mod cache;
 pub mod error;
+pub mod mcp;
 pub mod monitoring;
+pub mod patterns;
 pub mod sandbox;
 pub mod server;
 pub mod types;
+pub mod unified_sandbox;
+pub mod wasm_sandbox;
 
 // Re-export commonly used types
 pub use cache::{CacheConfig, CacheStats, QueryCache};
@@ -113,3 +117,7 @@ pub use types::{
 
 // Re-export security modules
 pub use sandbox::{FileSystemRestrictions, IsolationConfig, NetworkRestrictions};
+
+// Re-export new WASM modules
+pub use unified_sandbox::{BackendHealth, SandboxBackend, UnifiedMetrics, UnifiedSandbox};
+pub use wasm_sandbox::{WasmConfig, WasmMetrics, WasmSandbox};

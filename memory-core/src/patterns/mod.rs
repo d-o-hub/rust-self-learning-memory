@@ -13,6 +13,7 @@
 pub mod clustering;
 pub mod effectiveness;
 pub mod extractors;
+pub mod optimized_validator;
 pub mod validation;
 
 pub use clustering::{ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer};
@@ -20,5 +21,8 @@ pub use effectiveness::{EffectivenessTracker, PatternUsage, UsageStats};
 pub use extractors::{
     ContextPatternExtractor, DecisionPointExtractor, ErrorRecoveryExtractor,
     HybridPatternExtractor, PatternExtractor, ToolSequenceExtractor,
+};
+pub use optimized_validator::{
+    EnhancedPatternApplicator, OptimizedPatternValidator, RiskAssessment,
 };
 pub use validation::{PatternMetrics, PatternValidator, ValidationConfig};

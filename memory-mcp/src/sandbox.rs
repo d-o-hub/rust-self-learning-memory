@@ -62,6 +62,7 @@ use tokio::process::Command;
 use tracing::{debug, warn};
 
 /// Secure code execution sandbox
+#[derive(Debug)]
 pub struct CodeSandbox {
     config: SandboxConfig,
 }

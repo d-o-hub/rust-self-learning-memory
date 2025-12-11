@@ -34,8 +34,8 @@
 
 use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
-use crate::sandbox::CodeSandbox;
 use crate::types::{ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig, Tool};
+use crate::unified_sandbox::{SandboxBackend, UnifiedSandbox};
 use anyhow::{Context as AnyhowContext, Result};
 use memory_core::{Pattern, SelfLearningMemory, TaskContext};
 use parking_lot::RwLock;
@@ -126,7 +126,7 @@ impl CacheWarmingConfig {
 /// MCP server for memory integration
 pub struct MemoryMCPServer {
     /// Code execution sandbox
-    sandbox: Arc<CodeSandbox>,
+    sandbox: Arc<UnifiedSandbox>,
     /// Available tools
     tools: Arc<RwLock<Vec<Tool>>>,
     /// Execution statistics
@@ -156,7 +156,30 @@ impl MemoryMCPServer {
     ///
     /// Returns a new `MemoryMCPServer` instance
     pub async fn new(config: SandboxConfig, memory: Arc<SelfLearningMemory>) -> Result<Self> {
-        let sandbox = Arc::new(CodeSandbox::new(config)?);
+        let sandbox_backend = match std::env::var("MCP_USE_WASM")
+            .unwrap_or_else(|_| "auto".to_string())
+            .as_str()
+        {
+            "true" | "wasm" => SandboxBackend::Wasm,
+            "false" | "node" => SandboxBackend::NodeJs,
+            _ => {
+                let ratio = std::env::var("MCP_WASM_RATIO")
+                    .ok()
+                    .and_then(|v| v.parse::<f64>().ok())
+                    .unwrap_or(0.25);
+                let intelligent = std::env::var("MCP_INTELLIGENT_ROUTING")
+                    .map(|v| v.to_lowercase())
+                    .ok()
+                    .map(|v| v == "true" || v == "1" || v == "yes")
+                    .unwrap_or(true);
+                SandboxBackend::Hybrid {
+                    wasm_ratio: ratio.clamp(0.0, 1.0),
+                    intelligent_routing: intelligent,
+                }
+            }
+        };
+
+        let sandbox = Arc::new(UnifiedSandbox::new(config.clone(), sandbox_backend).await?);
         let tools = Arc::new(RwLock::new(Self::create_default_tools()));
 
         // Initialize monitoring system
@@ -356,10 +379,25 @@ impl MemoryMCPServer {
 
     /// Check if WASM sandbox is available for code execution
     fn is_wasm_sandbox_available() -> bool {
-        // Temporarily disabled due to compilation issues with rquickjs API changes
-        // TODO: Re-enable when WASM sandbox is fixed
-        warn!("WASM sandbox temporarily disabled due to compilation issues");
-        false
+        // honour explicit override
+        if let Ok(val) = std::env::var("MCP_USE_WASM") {
+            match val.to_lowercase().as_str() {
+                "true" | "wasm" => return true,
+                "false" | "node" => return false,
+                _ => {}
+            }
+        }
+        // Attempt to construct a unified sandbox with WASM-only backend
+        match futures::executor::block_on(UnifiedSandbox::new(
+            SandboxConfig::restrictive(),
+            SandboxBackend::Wasm,
+        )) {
+            Ok(_) => true,
+            Err(e) => {
+                warn!("WASM sandbox not available: {}", e);
+                false
+            }
+        }
     }
 
     /// Create default tool definitions
@@ -851,12 +889,47 @@ impl MemoryMCPServer {
             .start_request(request_id.clone(), "health_check".to_string())
             .await;
 
-        let result = self.monitoring_endpoints.health_check().await;
+        let mut result = self.monitoring_endpoints.health_check().await?;
+
+        // Attach unified sandbox health info
+        let backend = self.sandbox.backend();
+        let unified_metrics = self.sandbox.get_metrics().await;
+        let health = self.sandbox.get_health_status().await;
+
+        let sandbox_json = serde_json::json!({
+            "backend": match backend {
+                SandboxBackend::NodeJs => "nodejs",
+                SandboxBackend::Wasm => "wasm",
+                SandboxBackend::Hybrid { .. } => "hybrid",
+            },
+            "wasm_pool": health.wasm_pool_stats.map(|m| serde_json::json!({
+                "total_executions": m.total_executions,
+                "successful_executions": m.successful_executions,
+                "failed_executions": m.failed_executions,
+                "average_execution_time_ms": m.average_execution_time.as_millis(),
+                "pool_hits": m.pool_hits,
+                "pool_misses": m.pool_misses,
+                "memory_usage_bytes": m.memory_usage_bytes,
+            })),
+            "routing": serde_json::json!({
+                "total_executions": unified_metrics.total_executions,
+                "node_executions": unified_metrics.node_executions,
+                "wasm_executions": unified_metrics.wasm_executions,
+                "node_success_rate": unified_metrics.node_success_rate,
+                "wasm_success_rate": unified_metrics.wasm_success_rate,
+                "node_avg_latency_ms": unified_metrics.node_avg_latency_ms,
+                "wasm_avg_latency_ms": unified_metrics.wasm_avg_latency_ms,
+            })
+        });
+
+        if let Some(obj) = result.as_object_mut() {
+            obj.insert("sandbox".to_string(), sandbox_json);
+        }
 
         // End monitoring request
         self.monitoring.end_request(&request_id, true, None).await;
 
-        result
+        Ok(result)
     }
 
     /// Execute the get_metrics tool

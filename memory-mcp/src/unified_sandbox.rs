@@ -114,6 +114,11 @@ pub struct RoutingDecision {
 }
 
 impl UnifiedSandbox {
+    /// Get current backend configuration
+    pub fn backend(&self) -> SandboxBackend {
+        self.backend.clone()
+    }
+
     /// Create new unified sandbox with specified backend
     pub async fn new(config: SandboxConfig, backend: SandboxBackend) -> Result<Self> {
         info!("Creating unified sandbox with backend: {:?}", backend);

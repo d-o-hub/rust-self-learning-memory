@@ -294,6 +294,7 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
     let mut handle = stdin.lock();
 
     // Track last input framing to respond with the same framing style
+    #[allow(unused_assignments)]
     let mut last_input_was_lsp = false;
     loop {
         match read_next_message(&mut handle) {

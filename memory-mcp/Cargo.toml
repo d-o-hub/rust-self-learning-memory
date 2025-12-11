@@ -35,6 +35,7 @@ async-trait = "0.1"
 parking_lot = "0.12"
 url = "2.5"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+futures = "0.3"
 
 # WASM JavaScript execution dependencies
 rquickjs = { version = "0.6", features = ["parallel", "loader", "futures"] }

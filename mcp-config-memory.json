@@ -1,0 +1,17 @@
+
+{
+  "mcpServers": {
+    "memory-mcp": {
+      "command": "./target/release/memory-mcp-server",
+      "args": [],
+      "env": {
+        "RUST_LOG": "off",
+        "TURSO_DATABASE_URL": "file:./data/memory.db",
+        "REDB_CACHE_PATH": "./data/cache.redb",
+        "LOCAL_DATABASE_URL": "sqlite:./data/memory.db",
+        "REDB_MAX_CACHE_SIZE": "1000",
+        "MCP_CACHE_WARMING_ENABLED": "true"
+      }
+    }
+  }
+}

@@ -397,7 +397,8 @@ impl WasmSandbox {
                     .map(|arg| format!("{:?}", arg))
                     .collect::<Vec<_>>()
                     .join(" ");
-                println!("{}", message);
+                // Avoid printing to stdout (which is used for JSON-RPC responses). Use tracing (stderr) instead.
+                tracing::info!("WASM console.log: {}", message);
             })?,
         )?;
 
@@ -410,7 +411,7 @@ impl WasmSandbox {
                     .map(|arg| format!("{:?}", arg))
                     .collect::<Vec<_>>()
                     .join(" ");
-                eprintln!("ERROR: {}", message);
+                tracing::error!("WASM console.error: {}", message);
             })?,
         )?;
 
@@ -423,7 +424,7 @@ impl WasmSandbox {
                     .map(|arg| format!("{:?}", arg))
                     .collect::<Vec<_>>()
                     .join(" ");
-                eprintln!("WARN: {}", message);
+                tracing::warn!("WASM console.warn: {}", message);
             })?,
         )?;
 
@@ -436,6 +437,7 @@ impl WasmSandbox {
         let console = Object::new(ctx.clone())?;
 
         let ctx_clone = ctx.clone();
+        let output_clone = _output.clone();
         console.set(
             "log",
             Function::new(ctx_clone, move |args: Vec<Value>| {
@@ -444,8 +446,13 @@ impl WasmSandbox {
                     .map(|arg| format!("{:?}", arg))
                     .collect::<Vec<_>>()
                     .join(" ");
-                // Note: This is a simplified version - async capture would need different approach
-                println!("CONSOLE: {}", message);
+                // Asynchronously capture messages to the provided output buffer to avoid stdout pollution
+                let out = output_clone.clone();
+                let msg = message.clone();
+                tokio::spawn(async move {
+                    let mut w = out.write().await;
+                    w.push(msg);
+                });
             })?,
         )?;
 

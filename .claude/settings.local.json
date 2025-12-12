@@ -100,7 +100,9 @@
       "Bash(./gitleaks detect:*)",
       "Bash(tee:*)",
       "Bash(for i in {1..12})",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(for:*)",
+      "Bash(git rev-parse:*)"
     ],
     "deny": [],
     "ask": []

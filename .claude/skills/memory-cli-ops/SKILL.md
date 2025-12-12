@@ -1,478 +1,828 @@
 ---
 name: memory-cli-ops
-description: Execute and troubleshoot memory-cli commands for episode/pattern/storage management. Use when running CLI commands, debugging CLI issues, explaining command usage, or guiding users through CLI workflows.
+description: Execute and troubleshoot memory-cli commands for episode management, pattern analysis, and storage operations. Use this skill when running CLI commands, debugging CLI issues, explaining command usage, or guiding users through CLI workflows.
 ---
 
 # Memory CLI Operations
 
-Expert guidance for using the memory-cli command-line interface to manage the self-learning memory system.
+Execute and troubleshoot the memory-cli command-line interface for the self-learning memory system.
 
 ## When to Use
 
-Use this skill when:
-- Executing memory-cli commands for episode, pattern, or storage operations
-- Troubleshooting CLI command failures or unexpected behavior
-- Explaining CLI command usage and options to users
-- Guiding users through common CLI workflows
-- Diagnosing storage connection or configuration issues
-- Optimizing CLI performance and output formatting
+- Running memory-cli commands for episode or pattern management
+- Debugging CLI command failures
+- Understanding CLI command syntax and options
+- Guiding users through CLI workflows
+- Troubleshooting storage synchronization
+- Explaining CLI output formats
 
-## Core Concepts
+## CLI Overview
 
-### CLI Architecture
+The memory-cli provides a comprehensive interface for managing episodic memory, patterns, and storage.
 
-The memory-cli provides complete control over the self-learning memory system through **4 command categories**:
+**Location**: `./target/release/memory-cli`
+**Aliases**: Many commands have short aliases (shown below)
+**Output Formats**: human (default), json, yaml
 
-1. **Episode Management** (5 commands) - Track learning episodes from start to completion
-2. **Pattern Management** (5 commands) - Analyze and manage extracted patterns
-3. **Storage Operations** (5 commands) - Monitor and maintain Turso/redb storage
-4. **Operational Commands** (9 commands) - Backup, config, health, logs, monitoring
+## Global Options
 
-### Output Formats
-
-All commands support 4 output formats:
-- **JSON** (`--format json`) - For scripting and automation
-- **YAML** (`--format yaml`) - For readability and configuration
-- **Table** (`--format table`) - For terminal viewing (default)
-- **Plain** (`--format plain`) - For simple text output
-
-### Configuration Hierarchy
-
-Config files are loaded in order of precedence:
-1. `$MEMORY_CLI_CONFIG` environment variable
-2. `./memory-cli.toml` (current directory)
-3. `~/.config/memory-cli/config.toml` (user config)
-4. `/etc/memory-cli/config.toml` (system config)
-
-## Essential Commands
-
-### Episode Management
-
-**Start Episode**:
 ```bash
-memory-cli episode start "Task description" \
-  --language rust \
-  --domain backend \
-  --tags tag1,tag2 \
-  --complexity moderate
+memory-cli [OPTIONS] <COMMAND>
+
+Options:
+  -c, --config <FILE>    Configuration file path
+  -f, --format <FORMAT>  Output format (human|json|yaml) [default: human]
+  -v, --verbose          Enable verbose output
+  --dry-run              Show what would be done without executing
 ```
 
-**Complete Episode**:
+## Commands Overview
+
+| Command | Alias | Purpose |
+|---------|-------|---------|
+| episode | ep    | Episode management |
+| pattern | pat   | Pattern analysis |
+| storage | st    | Storage operations |
+| config  | cfg   | Configuration management |
+| health  | hp    | Health monitoring |
+| backup  | bak   | Backup and restore |
+| monitor | mon   | Monitoring and metrics |
+| logs    | log   | Log analysis |
+| completion | comp | Shell completions |
+
+## Episode Commands
+
+### Create Episode
+
+Start a new learning episode.
+
 ```bash
-memory-cli episode complete <EPISODE_ID> \
-  --verdict "Summary of outcome" \
-  --success
+memory-cli episode create --task "implement async storage" [--context context.json]
+# Alias
+memory-cli ep create -t "implement async storage" [-c context.json]
 ```
 
-**Log Step**:
+**Options**:
+- `-t, --task <TASK>`: Task description (required)
+- `-c, --context <FILE>`: Context file in JSON format (optional)
+
+**Output**: Episode ID and metadata
+
+**Example**:
 ```bash
-memory-cli episode log-step <EPISODE_ID> \
-  --tool cargo \
-  --action "cargo build" \
+memory-cli ep create -t "debug authentication bug" -f json
+```
+
+### List Episodes
+
+List episodes with optional filtering.
+
+```bash
+memory-cli episode list [OPTIONS]
+# Alias
+memory-cli ep list [OPTIONS]
+```
+
+**Options**:
+- `-t, --task-type <TYPE>`: Filter by task type
+- `-l, --limit <N>`: Maximum episodes to return [default: 10]
+- `-s, --status <STATUS>`: Filter by status (active|completed|failed)
+
+**Example**:
+```bash
+# List last 20 episodes
+memory-cli ep list -l 20
+
+# List only completed episodes
+memory-cli ep list -s completed -l 50
+
+# Get JSON output
+memory-cli ep list -f json -l 5
+```
+
+### View Episode Details
+
+View detailed information about a specific episode.
+
+```bash
+memory-cli episode view <EPISODE_ID>
+# Alias
+memory-cli ep view <EPISODE_ID>
+```
+
+**Output**: Complete episode data including steps, outcome, and patterns
+
+**Example**:
+```bash
+memory-cli ep view ep_abc123xyz -f json
+```
+
+### Complete Episode
+
+Mark an episode as complete with an outcome.
+
+```bash
+memory-cli episode complete <EPISODE_ID> <OUTCOME>
+# Alias
+memory-cli ep complete <EPISODE_ID> <OUTCOME>
+```
+
+**Outcomes**:
+- `success`: Task completed successfully
+- `partial`: Partially completed
+- `failed`: Task failed
+
+**Example**:
+```bash
+memory-cli ep complete ep_abc123xyz success
+```
+
+### Search Episodes
+
+Search episodes by query.
+
+```bash
+memory-cli episode search <QUERY> [--limit <N>]
+# Alias
+memory-cli ep search <QUERY> [-l <N>]
+```
+
+**Example**:
+```bash
+memory-cli ep search "authentication" -l 10
+```
+
+### Log Execution Step
+
+Log a step in an active episode.
+
+```bash
+memory-cli episode log-step <EPISODE_ID> [OPTIONS]
+# Alias
+memory-cli ep log-step <EPISODE_ID> [OPTIONS]
+```
+
+**Options**:
+- `-t, --tool <TOOL>`: Tool name (required)
+- `-a, --action <ACTION>`: Action description (required)
+- `--success`: Whether step was successful (required)
+- `--latency-ms <MS>`: Step latency in milliseconds
+- `--tokens <N>`: Token count
+- `-o, --observation <TEXT>`: Step observation
+
+**Example**:
+```bash
+memory-cli ep log-step ep_abc123xyz \
+  -t "compiler" \
+  -a "build project" \
   --success \
-  --observation "Build completed"
+  --latency-ms 1250 \
+  -o "Build completed with 0 warnings"
 ```
 
-**List Episodes**:
+## Pattern Commands
+
+### List Patterns
+
+List extracted patterns with filtering.
+
 ```bash
-memory-cli episode list \
-  --language rust \
-  --limit 20 \
-  --sort timestamp \
-  --order desc
+memory-cli pattern list [OPTIONS]
+# Alias
+memory-cli pat list [OPTIONS]
 ```
 
-**View Episode**:
+**Options**:
+- `--min-confidence <FLOAT>`: Minimum confidence threshold [default: 0.0]
+- `-p, --pattern-type <TYPE>`: Filter by pattern type
+- `-l, --limit <N>`: Maximum patterns to return [default: 20]
+
+**Pattern Types**:
+- `tool-sequence`: Tool usage sequences
+- `decision-point`: Decision patterns
+- `error-recovery`: Error recovery strategies
+- `context-pattern`: Context-based patterns
+
+**Example**:
 ```bash
-memory-cli episode view <EPISODE_ID> \
-  --include-steps \
-  --include-patterns \
-  --format yaml
+# List high-confidence patterns
+memory-cli pat list --min-confidence 0.8 -l 10
+
+# List error recovery patterns
+memory-cli pat list -p error-recovery -l 5
 ```
 
-### Pattern Management
+### View Pattern Details
 
-**List Patterns**:
+View detailed information about a specific pattern.
+
 ```bash
-memory-cli pattern list \
-  --pattern-type tool-sequence \
-  --min-frequency 5 \
-  --min-success 0.8 \
-  --sort success_rate
+memory-cli pattern view <PATTERN_ID>
+# Alias
+memory-cli pat view <PATTERN_ID>
 ```
 
-**Analyze Pattern**:
+**Output**: Pattern metadata, confidence score, usage count, and examples
+
+**Example**:
 ```bash
-memory-cli pattern analyze <PATTERN_ID> \
-  --time-window 90 \
-  --format json
+memory-cli pat view pat_xyz789abc -f json
 ```
 
-**Pattern Effectiveness**:
+### Analyze Pattern Effectiveness
+
+Analyze how effective a pattern has been.
+
 ```bash
-memory-cli pattern effectiveness \
-  --language rust \
-  --domain backend
+memory-cli pattern analyze <PATTERN_ID> [--episodes <N>]
+# Alias
+memory-cli pat analyze <PATTERN_ID> [-e <N>]
 ```
 
-**Decay Patterns**:
+**Options**:
+- `-e, --episodes <N>`: Number of episodes to analyze [default: 100]
+
+**Output**: Success rate, usage frequency, and effectiveness metrics
+
+**Example**:
 ```bash
-memory-cli pattern decay \
-  --decay-rate 0.15 \
-  --older-than 90 \
-  --dry-run
+memory-cli pat analyze pat_xyz789abc -e 200
 ```
 
-### Storage Operations
+### Pattern Effectiveness Rankings
 
-**Storage Stats**:
+Show top-performing patterns.
+
 ```bash
-memory-cli storage stats --detailed
+memory-cli pattern effectiveness [OPTIONS]
+# Alias
+memory-cli pat effectiveness [OPTIONS]
 ```
 
-**Sync Storage**:
+**Options**:
+- `-t, --top <N>`: Show top N patterns [default: 10]
+- `--min-uses <N>`: Minimum usage count [default: 1]
+
+**Example**:
 ```bash
-memory-cli storage sync --direction bidirectional
+# Top 20 most effective patterns with at least 5 uses
+memory-cli pat effectiveness -t 20 --min-uses 5
 ```
 
-**Vacuum Storage**:
+### Apply Pattern Decay
+
+Apply time-based decay to pattern confidence scores.
+
 ```bash
-memory-cli storage vacuum --backend all --aggressive
+memory-cli pattern decay [--dry-run] [--force]
+# Alias
+memory-cli pat decay [--dry-run] [--force]
 ```
 
-**Storage Health**:
+**Options**:
+- `--dry-run`: Show changes without applying
+- `--force`: Skip confirmation prompt
+
+**Example**:
 ```bash
-memory-cli storage health --detailed
+# Preview decay
+memory-cli pat decay --dry-run
+
+# Apply decay
+memory-cli pat decay --force
 ```
 
-**Connection Status**:
+## Storage Commands
+
+### Storage Statistics
+
+Show comprehensive storage statistics.
+
 ```bash
-memory-cli storage connection-status --backend all
+memory-cli storage stats
+# Alias
+memory-cli st stats
 ```
 
-### Operational Commands
+**Output**:
+- Episode count (total and recent)
+- Pattern count (total and recent)
+- Storage size
+- Cache hit rate
+- Last sync timestamp
 
-**Create Backup**:
+**Example**:
 ```bash
-memory-cli backup create \
-  --output backups/$(date +%Y%m%d).tar.gz \
-  --compress \
-  --include-cache
+memory-cli st stats -f json
 ```
 
-**Restore Backup**:
+### Synchronize Storage
+
+Synchronize Turso (durable) and redb (cache) storage layers.
+
 ```bash
-memory-cli backup restore <BACKUP_PATH> \
-  --clear-existing \
-  --confirm
+memory-cli storage sync [--force] [--dry-run]
+# Alias
+memory-cli st sync [--force] [--dry-run]
 ```
 
-**Initialize Config**:
+**Options**:
+- `--force`: Force full synchronization
+- `--dry-run`: Show what would be synchronized
+
+**Use When**:
+- Cache appears stale
+- After database failures
+- During periodic maintenance
+
+**Example**:
 ```bash
-memory-cli config init --interactive
+# Preview sync
+memory-cli st sync --dry-run
+
+# Force full sync
+memory-cli st sync --force
 ```
 
-**Show Config**:
+### Vacuum Storage
+
+Optimize and compact storage files.
+
 ```bash
-memory-cli config show --mask-secrets
+memory-cli storage vacuum [--dry-run]
+# Alias
+memory-cli st vacuum [--dry-run]
 ```
 
-**Health Check**:
+**Example**:
 ```bash
-memory-cli health check --detailed
+memory-cli st vacuum
 ```
+
+### Storage Health Check
+
+Check storage layer health.
+
+```bash
+memory-cli storage health
+# Alias
+memory-cli st health
+```
+
+**Output**: Health status for both Turso and redb layers
+
+### Storage Connections
+
+Show active storage connections.
+
+```bash
+memory-cli storage connections
+# Alias
+memory-cli st connections
+```
+
+## Configuration Commands
+
+### Validate Configuration
+
+Validate configuration file.
+
+```bash
+memory-cli config validate [--config <FILE>]
+# Alias
+memory-cli cfg validate [-c <FILE>]
+```
+
+### Show Configuration
+
+Display current configuration.
+
+```bash
+memory-cli config show
+# Alias
+memory-cli cfg show
+```
+
+## Health Commands
+
+### System Health Check
+
+Check overall system health.
+
+```bash
+memory-cli health check
+# Alias
+memory-cli hp check
+```
+
+### Health Status
+
+Show detailed health status.
+
+```bash
+memory-cli health status
+# Alias
+memory-cli hp status
+```
+
+## Backup Commands
+
+### Create Backup
+
+Create a backup of the memory system.
+
+```bash
+memory-cli backup create [--output <PATH>]
+# Alias
+memory-cli bak create [-o <PATH>]
+```
+
+### Restore Backup
+
+Restore from a backup.
+
+```bash
+memory-cli backup restore <BACKUP_FILE>
+# Alias
+memory-cli bak restore <BACKUP_FILE>
+```
+
+### List Backups
+
+List available backups.
+
+```bash
+memory-cli backup list
+# Alias
+memory-cli bak list
+```
+
+## Monitor Commands
+
+### Show Metrics
+
+Display monitoring metrics.
+
+```bash
+memory-cli monitor metrics
+# Alias
+memory-cli mon metrics
+```
+
+### Live Monitoring
+
+Start live monitoring dashboard.
+
+```bash
+memory-cli monitor live
+# Alias
+memory-cli mon live
+```
+
+## Logs Commands
+
+### Search Logs
+
+Search system logs.
+
+```bash
+memory-cli logs search <QUERY> [--limit <N>]
+# Alias
+memory-cli log search <QUERY> [-l <N>]
+```
+
+### Tail Logs
+
+Follow logs in real-time.
+
+```bash
+memory-cli logs tail [--follow]
+# Alias
+memory-cli log tail [-f]
+```
+
+## Shell Completion
+
+Generate shell completion scripts.
+
+```bash
+memory-cli completion <SHELL>
+
+# Examples:
+memory-cli completion bash > ~/.memory-cli-completion.bash
+memory-cli completion zsh > ~/.zsh/completions/_memory-cli
+memory-cli completion fish > ~/.config/fish/completions/memory-cli.fish
+```
+
+## Environment Variables
+
+The CLI uses these environment variables:
+
+- **TURSO_DATABASE_URL**: Primary database URL
+- **LOCAL_DATABASE_URL**: Local SQLite database URL
+- **REDB_CACHE_PATH**: Path to redb cache file
+- **RUST_LOG**: Logging level (off, error, warn, info, debug, trace)
+
+## Configuration File
+
+The CLI can use a configuration file in JSON or YAML format:
+
+```json
+{
+  "database": {
+    "turso_url": "file:./data/memory.db",
+    "local_url": "sqlite:./data/memory.db",
+    "cache_path": "./data/cache.redb"
+  },
+  "cache": {
+    "max_size": 1000,
+    "ttl_seconds": 1800
+  },
+  "output": {
+    "default_format": "human",
+    "color": true
+  }
+}
+```
+
+Use with: `memory-cli --config config.json <command>`
 
 ## Common Workflows
 
-### Complete Episode Workflow
+### Track a Task End-to-End
 
 ```bash
-# 1. Start episode and capture ID
-EPISODE_ID=$(memory-cli episode start "Implement feature X" \
-  --language rust \
-  --domain backend \
-  --tags feature,api \
-  --format plain | awk '{print $1}')
+# 1. Create episode
+EPISODE_ID=$(memory-cli ep create -t "implement feature X" -f json | jq -r '.episode_id')
 
-# 2. Log work steps
-memory-cli episode log-step $EPISODE_ID \
-  --tool cargo \
-  --action "cargo build" \
-  --success
-
-memory-cli episode log-step $EPISODE_ID \
-  --tool cargo \
-  --action "cargo test" \
-  --success
+# 2. Log steps as you work
+memory-cli ep log-step $EPISODE_ID -t "editor" -a "write code" --success --latency-ms 5000
+memory-cli ep log-step $EPISODE_ID -t "compiler" -a "build" --success --latency-ms 1200
+memory-cli ep log-step $EPISODE_ID -t "test-runner" -a "run tests" --success --latency-ms 3500
 
 # 3. Complete episode
-memory-cli episode complete $EPISODE_ID \
-  --verdict "Feature X implemented successfully" \
-  --success
+memory-cli ep complete $EPISODE_ID success
+
+# 4. View results
+memory-cli ep view $EPISODE_ID
 ```
 
-### Pattern Analysis Workflow
+### Analyze Performance Patterns
 
 ```bash
-# 1. List top patterns
-memory-cli pattern list \
-  --sort success_rate \
-  --order desc \
-  --min-frequency 5
+# 1. List patterns by effectiveness
+memory-cli pat effectiveness -t 10
 
 # 2. Analyze specific pattern
-memory-cli pattern analyze pattern-abc123 --time-window 90
+memory-cli pat analyze pat_abc123 -e 100
 
-# 3. Check overall effectiveness
-memory-cli pattern effectiveness --domain backend --format json
+# 3. Check storage stats
+memory-cli st stats
 ```
 
-### Storage Maintenance Workflow
+### Maintenance Workflow
 
 ```bash
 # 1. Check health
-memory-cli storage health --detailed
+memory-cli hp check
 
-# 2. Sync storages
-memory-cli storage sync --direction bidirectional
+# 2. Check storage
+memory-cli st health
 
-# 3. Vacuum to reclaim space
-memory-cli storage vacuum --backend all --aggressive
+# 3. Sync if needed
+memory-cli st sync --dry-run
+memory-cli st sync --force
 
-# 4. Verify stats
-memory-cli storage stats --detailed
+# 4. Vacuum to optimize
+memory-cli st vacuum
+
+# 5. Create backup
+memory-cli bak create -o ./backups/$(date +%Y%m%d).db
 ```
 
 ## Troubleshooting
 
-### Storage Connection Failed
+### Common Issues
 
-**Symptoms**: Commands hang or fail with connection errors
+#### CLI Not Found
 
-**Diagnosis**:
+**Symptoms**: `command not found: memory-cli`
+
+**Solutions**:
 ```bash
-memory-cli storage connection-status
-memory-cli config show --mask-secrets
+# Build the CLI
+cargo build --release --bin memory-cli
+
+# Add to PATH
+export PATH="$PATH:$(pwd)/target/release"
+
+# Or use full path
+./target/release/memory-cli --help
 ```
 
-**Solutions**:
-1. Verify `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are set
-2. Check network connectivity: `curl -H "Authorization: Bearer $TURSO_AUTH_TOKEN" $TURSO_DATABASE_URL`
-3. Try force sync: `memory-cli storage sync --force`
+#### Database Connection Failed
 
-### Config File Not Found
+**Symptoms**: `Error: Failed to connect to database`
 
-**Symptoms**: CLI can't find configuration
-
-**Solutions**:
-1. Initialize config: `memory-cli config init --interactive`
-2. Set custom path: `export MEMORY_CLI_CONFIG=~/my-config.toml`
-3. Create config manually in `~/.config/memory-cli/config.toml`
-
-### Permission Denied
-
-**Symptoms**: Can't write to data directories
+**Checks**:
+1. Database files exist: `ls -la ./data/`
+2. Environment variables set: `env | grep -E '(TURSO|LOCAL)'`
+3. Permissions: `ls -la ./data/*.db`
 
 **Solutions**:
-1. Fix permissions: `chmod -R u+rw ~/.local/share/memory-cli/`
-2. Change data directory in config
-
-### Slow Command Execution
-
-**Diagnosis**:
 ```bash
-memory-cli storage health --detailed
-memory-cli storage stats --detailed
+# Create data directory
+mkdir -p ./data
+
+# Set environment variables
+export TURSO_DATABASE_URL="file:./data/memory.db"
+export LOCAL_DATABASE_URL="sqlite:./data/memory.db"
+export REDB_CACHE_PATH="./data/cache.redb"
+
+# Test connection
+memory-cli st health
 ```
 
+#### Command Fails Silently
+
+**Symptoms**: Command returns no output or error
+
 **Solutions**:
-1. Vacuum databases: `memory-cli storage vacuum --aggressive`
-2. Increase cache size in config
-3. Sync storages: `memory-cli storage sync`
+```bash
+# Enable verbose mode
+memory-cli -v <command>
 
-## Configuration
+# Enable debug logging
+RUST_LOG=debug memory-cli <command>
 
-### Essential Environment Variables
+# Check JSON output
+memory-cli -f json <command>
+```
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `TURSO_DATABASE_URL` | Turso database URL | Yes |
-| `TURSO_AUTH_TOKEN` | Turso auth token | Yes |
-| `MEMORY_CLI_CONFIG` | Custom config file path | No |
-| `MEMORY_CLI_LOG_LEVEL` | Logging level | No (default: info) |
+#### Cache Appears Stale
 
-### Minimal Config File
+**Symptoms**: Old data returned, inconsistent results
 
-```toml
-[storage]
-turso_url = "libsql://your-database.turso.io"
-turso_token = "${TURSO_AUTH_TOKEN}"  # Use env var
-redb_path = "~/.local/share/memory-cli/cache.redb"
+**Solutions**:
+```bash
+# Check storage stats
+memory-cli st stats
 
-[output]
-default_format = "table"
-color = true
+# Sync storage layers
+memory-cli st sync --force
 
-[logging]
-level = "info"
-file = "~/.local/share/memory-cli/logs/cli.log"
+# Check health after sync
+memory-cli st health
+```
+
+#### Invalid JSON Output
+
+**Symptoms**: JSON parsing errors, malformed output
+
+**Solutions**:
+```bash
+# Verify format flag
+memory-cli -f json <command> | jq .
+
+# Check for stderr mixed with stdout
+memory-cli -f json <command> 2>/dev/null | jq .
+
+# Disable color in JSON mode
+NO_COLOR=1 memory-cli -f json <command>
 ```
 
 ## Best Practices
 
-### Security
-✓ Store credentials in environment variables, not config files
-✓ Use `--mask-secrets` when sharing config output
-✓ Restrict config permissions: `chmod 600 ~/.config/memory-cli/config.toml`
-✓ Regularly rotate Turso auth tokens
+### Command Usage
 
-### Reliability
-✓ Set up automated backups (cron/systemd)
-✓ Monitor storage health regularly
-✓ Vacuum databases periodically
-✓ Sync storages after major operations
+✓ **DO**:
+- Use aliases for faster typing (ep, pat, st, etc.)
+- Specify output format (-f json) for scripting
+- Use --dry-run before destructive operations
+- Log steps frequently during long tasks
+- Complete episodes promptly after tasks
+- Check storage health periodically
 
-### Performance
-✓ Use pagination for large results (`--limit`, `--offset`)
-✓ Filter queries as much as possible
-✓ Use JSON output for scripting (faster parsing)
-✓ Cache expensive query results
+✗ **DON'T**:
+- Forget to complete episodes (leaves them orphaned)
+- Skip --dry-run on sync/vacuum operations
+- Ignore health check warnings
+- Use default limits for large datasets
+- Run without environment variables set
 
-### Usability
-✓ Use table format for interactive use
-✓ Use JSON/YAML for automation
-✓ Set up shell aliases for common commands
-✓ Use `--verbose` for debugging
+### Scripting
 
-## Shell Integration
-
-### Bash Aliases
-
+✓ **DO**:
 ```bash
-# Add to ~/.bashrc
-alias mcli='memory-cli'
-alias mep='memory-cli episode'
-alias mpat='memory-cli pattern'
-alias mstor='memory-cli storage'
+# Use JSON output for parsing
+RESULT=$(memory-cli ep create -t "task" -f json)
+EPISODE_ID=$(echo "$RESULT" | jq -r '.episode_id')
 
-# Quick episode start
-estart() {
-  memory-cli episode start "$1" \
-    --language rust \
-    --domain backend \
-    --format plain
-}
+# Check exit codes
+if ! memory-cli st sync --force; then
+  echo "Sync failed!"
+  exit 1
+fi
+
+# Use verbose mode for debugging
+if [[ "$DEBUG" == "1" ]]; then
+  memory-cli -v ep list
+fi
 ```
 
-### Bash Completion
-
+✗ **DON'T**:
 ```bash
-# Enable completion
-memory-cli completion bash > ~/.local/share/bash-completion/completions/memory-cli
-source ~/.bashrc
+# Parse human-readable output
+EPISODE_ID=$(memory-cli ep create -t "task" | grep -oP 'ID: \K\w+')
+
+# Ignore failures
+memory-cli st sync --force
+# continue without checking...
+
+# Mix output formats
+memory-cli -f json ep list | grep "completed"
 ```
 
-## Advanced Usage
+### Output Formats
 
-### Scripting with JSON
+**Human** (default):
+- ✓ Interactive use
+- ✓ Reading results
+- ✗ Scripting
+- ✗ Parsing
+
+**JSON**:
+- ✓ Scripting
+- ✓ Parsing with jq
+- ✓ API integration
+- ✗ Human reading
+
+**YAML**:
+- ✓ Configuration
+- ✓ Human reading
+- ✗ Scripting (less common)
+
+## Integration Examples
+
+### CI/CD Pipeline
 
 ```bash
 #!/bin/bash
-# Export all episodes to JSON
+# Track deployment episode
+set -e
 
-OUTPUT_DIR="exports"
-mkdir -p "$OUTPUT_DIR"
+EPISODE_ID=$(memory-cli ep create -t "deploy to production" -f json | jq -r '.episode_id')
 
-# Get all episode IDs
-EPISODES=$(memory-cli episode list --format json | jq -r '.episodes[].id')
+# Log steps
+memory-cli ep log-step $EPISODE_ID -t "docker" -a "build image" --success
+memory-cli ep log-step $EPISODE_ID -t "kubectl" -a "apply manifests" --success
+memory-cli ep log-step $EPISODE_ID -t "smoke-test" -a "health check" --success
 
-# Export each episode
-for ep in $EPISODES; do
-  memory-cli episode view "$ep" --format json > "$OUTPUT_DIR/${ep}.json"
-done
-
-echo "Exported $(echo "$EPISODES" | wc -l) episodes"
+# Complete
+memory-cli ep complete $EPISODE_ID success
 ```
 
-### Integration with Tools
+### Monitoring Script
 
 ```bash
-# Filter with jq
-memory-cli episode list --format json | \
-  jq '.episodes[] | select(.language == "rust")'
+#!/bin/bash
+# Daily health check
+memory-cli hp check -f json > /var/log/memory-health.json
+memory-cli st stats -f json > /var/log/memory-stats.json
 
-# Export to CSV
-memory-cli episode list --format json | \
-  jq -r '.episodes[] | [.id, .task_description, .verdict] | @csv' > episodes.csv
-
-# Parallel processing
-cat pattern_ids.txt | parallel -j 4 \
-  memory-cli pattern analyze {} --format json
+# Alert if unhealthy
+if ! memory-cli hp check; then
+  echo "Health check failed!" | mail -s "Memory System Alert" admin@example.com
+fi
 ```
 
-## Quick Reference
+### Backup Automation
 
-```
-Episode Commands:
-  start       Start new episode
-  complete    Complete episode
-  log-step    Log execution step
-  list        List episodes
-  view        View episode details
+```bash
+#!/bin/bash
+# Weekly backup
+BACKUP_FILE="./backups/memory-$(date +%Y%m%d-%H%M%S).db"
+memory-cli bak create -o "$BACKUP_FILE"
 
-Pattern Commands:
-  list          List patterns
-  view          View pattern details
-  analyze       Analyze pattern
-  effectiveness Calculate metrics
-  decay         Apply decay
-
-Storage Commands:
-  stats             Storage statistics
-  sync              Sync storages
-  vacuum            Optimize storage
-  health            Check health
-  connection-status Connection status
-
-Operations:
-  backup    Create/restore backups
-  config    Manage configuration
-  health    Health checks
-  logs      Log analysis
-  monitor   Start monitoring
-
-Output Formats:
-  --format json   JSON output
-  --format yaml   YAML output
-  --format table  Table output (default)
-  --format plain  Plain text
-
-Help:
-  memory-cli --help              Show general help
-  memory-cli <command> --help    Show command help
-  memory-cli --version           Show version
+# Keep last 4 weeks
+find ./backups -name "memory-*.db" -mtime +28 -delete
 ```
 
-## Resources
+## Related Resources
 
-- **User Guide**: [memory-cli/CLI_USER_GUIDE.md](../../memory-cli/CLI_USER_GUIDE.md)
-- **Configuration**: [memory-cli/CONFIGURATION_GUIDE.md](../../memory-cli/CONFIGURATION_GUIDE.md)
-- **Memory Core**: [memory-core/README.md](../../memory-core/README.md)
-- **Issue Tracker**: [GitHub Issues](https://github.com/d-o-hub/rust-self-learning-memory/issues)
+- **CLI Source**: `memory-cli/src/`
+- **Command Implementations**: `memory-cli/src/commands/`
+- **Configuration**: `memory-cli/src/config.rs`
+- **Project Guide**: `AGENTS.md`
 
-## Integration
+## Summary
 
-**Works with**:
-- `memory-cli` agent - For implementing new CLI commands
-- `test-runner` skill - For testing CLI commands
-- `build-compile` skill - For building CLI binary
-- `debug-troubleshoot` skill - For debugging CLI issues
+The memory-cli-ops skill helps you:
+- ✓ Execute all CLI commands correctly
+- ✓ Understand command options and output
+- ✓ Troubleshoot common CLI issues
+- ✓ Integrate CLI into scripts and workflows
+- ✓ Follow best practices for episode tracking
+- ✓ Maintain storage health
 
-**Use Cases**:
-- Execute CLI commands during development workflows
-- Guide users through CLI operations
-- Troubleshoot CLI configuration and connectivity
-- Automate memory system operations with scripts
-- Monitor and maintain storage health
-
-Remember: The memory-cli is designed for both interactive use and automation. Choose the right output format for your use case!
+Use aliases, check output with --dry-run, and always complete episodes!

@@ -38,7 +38,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 futures = "0.3"
 
 # WASM JavaScript execution dependencies
-rquickjs = { version = "0.7", features = ["parallel", "loader", "futures"] }
+rquickjs = { version = "0.6.2", features = ["parallel", "loader", "futures"] }
 wasmtime = { version = "20.0", features = ["async", "cranelift"] }
 
 # Additional dependencies for unified sandbox

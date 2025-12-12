@@ -52,8 +52,8 @@ tempfile = "3.12"
 criterion = "0.5"
 
 # WASM and JavaScript execution
-rquickjs = "0.6"
-wasmtime = "19.0"
+rquickjs = "0.6.2"
+wasmtime = "20.0"
 
 # Additional utilities
 rand = "0.8"

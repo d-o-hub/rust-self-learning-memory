@@ -91,7 +91,9 @@
       "WebFetch(domain:bellard.org)",
       "WebFetch(domain:deno.com)",
       "WebFetch(domain:wasmer.io)",
-      "Bash(cargo:*)"
+      "Bash(cargo:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": [],
     "ask": []

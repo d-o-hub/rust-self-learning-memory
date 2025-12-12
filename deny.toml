@@ -10,7 +10,13 @@ version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
 ignore = [
-    # Add specific advisories to ignore here if needed
+    # Wasmtime vulnerabilities - requires major version upgrade to fix
+    # TODO: Upgrade wasmtime to >=38.0.4 in a future release
+    "RUSTSEC-2024-0438",
+    "RUSTSEC-2024-0439",
+    "RUSTSEC-2025-0046",
+    "RUSTSEC-2025-0118",
+    "RUSTSEC-2024-0442",
 ]
 
 [licenses]
@@ -28,6 +34,7 @@ allow = [
     "CDLA-Permissive-2.0",
     "Unlicense",
     "Zlib",
+    "BSL-1.0",
 ]
 exceptions = [{ name = "colored", allow = ["MPL-2.0"] }]
 # Note: In version 2, all licenses not in 'allow' list are automatically denied

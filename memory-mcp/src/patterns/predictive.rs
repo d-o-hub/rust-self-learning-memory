@@ -252,9 +252,9 @@ impl AnomalyDetector {
         info!("Detecting anomalies in {} variables", data.len());
 
         for (var_name, series) in data {
-            if series.len() < 10 {
+            if series.len() < 3 {
                 warn!(
-                    "Skipping anomaly detection for {}: insufficient data points",
+                    "Skipping anomaly detection for {}: insufficient data points (need at least 3)",
                     var_name
                 );
                 continue;

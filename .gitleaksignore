@@ -1,3 +1,8 @@
 # False positive in documentation showing bad practice example
 1beb523ee300ed4860c93f83a044d4a96a77234c:.claude/skills/rust-code-quality/quality-dimensions.md:generic-api-key:473
 95909d24a5d01524b116a8966cd255b01ae5c723:DEPLOYMENT.md:generic-api-key:49
+# Secret scanning ignores for historical commits
+adf26d76370e7d4a125b80b2af2c16796cd6b847:.claude/skills/rust-code-quality/SKILL.md:generic-api-key:498
+7a137e5bb3a5f8d2a4a21a591aaaea9fe9620eab:.github/SECURITY_TRAINING.md:generic-api-key:383
+1dca33a85bc7ba697afad76d0312c029de6d7262:README.md:generic-api-key:161
+3d7b483ba8785a287fea688cded1c6756f1d2a1c:.claude/settings.local.json:jwt:4

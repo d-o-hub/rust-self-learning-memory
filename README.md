@@ -158,7 +158,7 @@ Create a `.env` file in your project root:
 ```env
 # Turso Configuration (Production)
 TURSO_DATABASE_URL=libsql://my-memory-db.turso.io
-TURSO_AUTH_TOKEN=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...
+TURSO_AUTH_TOKEN=your_turso_auth_token_here
 
 # Local Development (Alternative to Turso)
 # LIBSQL_DATABASE_PATH=./data/memory.db

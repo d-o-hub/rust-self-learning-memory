@@ -1,7 +1,7 @@
 {
   "env": {
     "ANTHROPIC_BASE_URL": "https://api.minimax.io/anthropic",
-    "ANTHROPIC_AUTH_TOKEN": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiJEb21pbmlrIE9zd2FsZCIsIlVzZXJOYW1lIjoiRG9taW5payBPc3dhbGQiLCJBY2NvdW50IjoiIiwiU3ViamVjdElEIjoiMTkxMjEzMDY4MTQ2NzU3MjY1OCIsIlBob25lIjoiIiwiR3JvdXBJRCI6IjE5MTIxMzA2ODE0NTkxODQwNTAiLCJQYWdlTmFtZSI6IiIsIk1haWwiOiJkbW1vdGVjQGdtYWlsLmNvbSIsIkNyZWF0ZVRpbWUiOiIyMDI1LTExLTI3IDAxOjUwOjM5IiwiVG9rZW5UeXBlIjo0LCJpc3MiOiJtaW5pbWF4In0.TowSs3p6RKuDhLccaQZyIM18WeC65cBEli5aEjR_IqM0GpjMpCuIYivsQiK9kyWQzJ8ogjqPnQqlhCXxzxNYOP8KFyTiuXDtWWEeaPK98UpusWoAKQ2l1A_LyTsp1rOEDWWNKWYTPTKNOz1xQGZDQ_V9K4vxnxvPDerMiCaxErksEjeCvtPItv4K8an1YFEyO4Ibwd9kMlNb8drd_4qrYbdG1zKdGbCCkm53WiK8VqXjEDxUi1DqGCqNLRV39IvVDVbJ1U58FqGJzCYjC8UOMAcAzE-evjkjbBkaTpJ-7ehkV6XR2yLBK_W4c6-7ifWvUXkt2EnJQnOlHRmdpCoWfQ",
+    "ANTHROPIC_AUTH_TOKEN": "REDACTED - Use environment variable",
     "API_TIMEOUT_MS": "3000000",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "ANTHROPIC_MODEL": "MiniMax-M2",
@@ -93,7 +93,11 @@
       "WebFetch(domain:wasmer.io)",
       "Bash(cargo:*)",
       "Bash(gh run list:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(gitleaks detect:*)",
+      "Bash(curl:*)",
+      "Bash(tar:*)",
+      "Bash(./gitleaks detect:*)"
     ],
     "deny": [],
     "ask": []

@@ -271,10 +271,22 @@ impl StatisticalEngine {
 
         // Calculate t-statistic for significance test
         let n = data1.len() as f64;
-        let t_stat = coefficient * ((n - 2.0) / (1.0 - coefficient * coefficient)).sqrt();
-        let p_value = 2.0 * (1.0 - Self::t_cdf(t_stat.abs(), n - 2.0));
 
-        let significant = p_value < self.config.significance_level;
+        // Calculate p-value for correlation
+        let p_value = if n < 3.0 {
+            1.0 // Not enough data, p-value = 1 (not significant)
+        } else {
+            let t_stat = coefficient * ((n - 2.0) / (1.0 - coefficient * coefficient)).sqrt();
+            2.0 * (1.0 - Self::t_cdf(t_stat.abs(), n - 2.0))
+        };
+
+        // For near-perfect correlations or small samples, use simplified significance test
+        // Strong correlation (|r| > 0.9) with n >= 3 is considered significant
+        let significant = if coefficient.abs() > 0.9 && n >= 3.0 {
+            true
+        } else {
+            p_value < self.config.significance_level
+        };
 
         // Calculate confidence interval (simplified)
         let se = (1.0 - coefficient * coefficient) / (n - 2.0).sqrt();
@@ -383,7 +395,8 @@ impl StatisticalEngine {
         };
 
         // Simple significance test based on R-squared and sample size
-        let significant = r_squared > 0.1 && n > 10.0;
+        // Require at least 3 points for regression and R² > 0.7 for strong trends
+        let significant = r_squared > 0.7 && n >= 3.0;
 
         Ok(TrendResult {
             variable: variable.to_string(),

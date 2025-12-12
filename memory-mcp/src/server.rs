@@ -1048,7 +1048,16 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    // Set once for all tests in this module
+    fn set_once() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            std::env::set_var("MCP_USE_WASM", "false");
+        });
+    }
+
     async fn create_test_server() -> MemoryMCPServer {
+        set_once();
         let memory = Arc::new(SelfLearningMemory::new());
         MemoryMCPServer::new(SandboxConfig::default(), memory)
             .await

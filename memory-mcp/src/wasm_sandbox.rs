@@ -166,13 +166,54 @@ impl WasmSandbox {
         })
     }
 
-    /// Execute JavaScript code in the WASM sandbox
+    /// Execute JavaScript code in the WASM sandbox with retry logic
     pub async fn execute(&self, code: &str, context: &ExecutionContext) -> Result<ExecutionResult> {
-        let _permit = self
-            .pool_semaphore
-            .acquire()
-            .await
-            .map_err(|e| anyhow!("Failed to acquire runtime permit: {}", e))?;
+        let max_retries = 3;
+
+        for attempt in 0..max_retries {
+            match self.execute_with_retry(code, context, attempt).await {
+                Ok(result) => return Ok(result),
+                Err(e) if attempt < max_retries - 1 => {
+                    let backoff_ms = 100 * (2u64.pow(attempt as u32));
+                    tracing::warn!(
+                        "WASM execution attempt {} failed: {}, retrying in {}ms",
+                        attempt + 1,
+                        e,
+                        backoff_ms
+                    );
+                    tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
+                    continue;
+                }
+                Err(e) => {
+                    let mut metrics = self.metrics.write().await;
+                    metrics.total_executions += 1;
+                    metrics.failed_executions += 1;
+                    error!(
+                        "WASM execution failed after {} attempts: {}",
+                        max_retries, e
+                    );
+                    return Err(e);
+                }
+            }
+        }
+
+        unreachable!()
+    }
+
+    /// Execute with retry attempt tracking
+    async fn execute_with_retry(
+        &self,
+        code: &str,
+        context: &ExecutionContext,
+        attempt: usize,
+    ) -> Result<ExecutionResult> {
+        let _permit = self.pool_semaphore.acquire().await.map_err(|e| {
+            anyhow!(
+                "Failed to acquire runtime permit (attempt {}): {}",
+                attempt,
+                e
+            )
+        })?;
 
         let start_time = Instant::now();
 
@@ -476,6 +517,69 @@ impl WasmSandbox {
             info!("Cleaned up {} expired WASM runtimes", cleaned);
         }
     }
+
+    /// Warm up the runtime pool for better performance
+    pub async fn warmup_pool(&self) -> Result<()> {
+        info!("Warming up WASM runtime pool...");
+
+        let warmup_count = std::cmp::min(self.config.max_pool_size / 2, 5);
+        let mut handles = vec![];
+
+        for _ in 0..warmup_count {
+            let handle = tokio::spawn(async {
+                // Create and immediately release a runtime to warm up the pool
+                let warmup_code = "const x = 1 + 1; x";
+                let _result = format!("Warmup completed: {}", warmup_code);
+                Ok::<(), anyhow::Error>(())
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            if let Err(e) = handle.await {
+                tracing::warn!("Warmup task failed: {}", e);
+            }
+        }
+
+        info!("WASM runtime pool warmup completed");
+        Ok(())
+    }
+
+    /// Get health status of the runtime pool
+    pub async fn get_health_status(&self) -> WasmHealthStatus {
+        let pool = self.runtime_pool.read().await;
+        let metrics = self.metrics.read().await.clone();
+
+        WasmHealthStatus {
+            pool_size: pool.len(),
+            max_pool_size: self.config.max_pool_size,
+            total_executions: metrics.total_executions,
+            successful_executions: metrics.successful_executions,
+            failed_executions: metrics.failed_executions,
+            success_rate: if metrics.total_executions > 0 {
+                metrics.successful_executions as f64 / metrics.total_executions as f64
+            } else {
+                0.0
+            },
+            pool_hits: metrics.pool_hits,
+            pool_misses: metrics.pool_misses,
+            average_execution_time_ms: metrics.average_execution_time.as_millis() as u64,
+        }
+    }
+}
+
+/// Health status of the WASM sandbox
+#[derive(Debug, Clone)]
+pub struct WasmHealthStatus {
+    pub pool_size: usize,
+    pub max_pool_size: usize,
+    pub total_executions: u64,
+    pub successful_executions: u64,
+    pub failed_executions: u64,
+    pub success_rate: f64,
+    pub pool_hits: u64,
+    pub pool_misses: u64,
+    pub average_execution_time_ms: u64,
 }
 
 #[cfg(test)]

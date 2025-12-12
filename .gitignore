@@ -75,3 +75,6 @@ memory*.sqlite
 mcp*.redb
 mcp*.db
 mcp*.sqlite
+.claude/settings.local.json
+.claude/settings.local.json
+.claude/settings.local.json

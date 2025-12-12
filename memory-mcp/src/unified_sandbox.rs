@@ -74,7 +74,7 @@ pub enum SandboxBackend {
 impl Default for SandboxBackend {
     fn default() -> Self {
         Self::Hybrid {
-            wasm_ratio: 0.1, // Start with 10% WASM
+            wasm_ratio: 0.5, // Start with 50% WASM
             intelligent_routing: true,
         }
     }

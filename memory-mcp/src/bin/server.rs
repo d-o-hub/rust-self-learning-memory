@@ -48,8 +48,10 @@ struct JsonRpcError {
 /// MCP Initialize response
 #[derive(Debug, Serialize)]
 struct InitializeResult {
+    #[serde(rename = "protocolVersion")]
     protocol_version: String,
     capabilities: Value,
+    #[serde(rename = "serverInfo")]
     server_info: Value,
 }
 
@@ -58,6 +60,7 @@ struct InitializeResult {
 struct McpTool {
     name: String,
     description: String,
+    #[serde(rename = "inputSchema")]
     input_schema: Value,
 }
 

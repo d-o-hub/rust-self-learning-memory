@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "memory-mcp": {
+      "type": "stdio",
+      "command": "./target/release/memory-mcp-server",
+      "args": [],
+      "env": {
+        "TURSO_DATABASE_URL": "file:/workspaces/feat-phase3/data/memory.db",
+        "LOCAL_DATABASE_URL": "sqlite:/workspaces/feat-phase3/data/memory.db",
+        "REDB_CACHE_PATH": "/workspaces/feat-phase3/data/cache.redb",
+        "REDB_MAX_CACHE_SIZE": "1000",
+        "MCP_CACHE_WARMING_ENABLED": "true",
+        "MEMORY_MAX_EPISODES_CACHE": "1000",
+        "MEMORY_CACHE_TTL_SECONDS": "1800",
+        "RUST_LOG": "off"
+      }
+    }
+  }
+}

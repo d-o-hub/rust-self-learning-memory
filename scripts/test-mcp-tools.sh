@@ -25,10 +25,27 @@ test_tool_call() {
 
     echo "Request: $REQUEST"
 
-    RESPONSE=$(timeout 15s bash -c "
+    # Capture only STDOUT (JSON responses). STDERR (logs) is redirected to /dev/null
+    # Capture the raw output (up to N lines). The server now supports LSP Content-Length framing
+    # so the first line may be the Content-Length header and the body follows. We capture a chunk
+    # of lines and then extract the body depending on framing.
+    RESPONSE_RAW=$(timeout 15s bash -c "
         cd '$PROJECT_ROOT'
-        echo '$REQUEST' | target/debug/memory-mcp-server 2>&1 | head -1
+        echo '$REQUEST' | target/debug/memory-mcp-server 2>/dev/null | sed -n '1,200p'
     " 2>/dev/null || echo "TIMEOUT")
+
+    if [ "$RESPONSE_RAW" = "TIMEOUT" ]; then
+        RESPONSE="TIMEOUT"
+    else
+        FIRST_LINE=$(echo "$RESPONSE_RAW" | head -1 | tr -d '\r')
+        if echo "$FIRST_LINE" | grep -qi '^Content-Length:'; then
+            # Body is in subsequent lines; grab everything after the first line
+            RESPONSE=$(echo "$RESPONSE_RAW" | sed -n '2,$p' | tr -d '\r')
+        else
+            # Fallback: line-delimited JSON (first line is the JSON body)
+            RESPONSE=$FIRST_LINE
+        fi
+    fi
 
     echo "Response: $RESPONSE"
 

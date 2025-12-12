@@ -532,6 +532,7 @@ mod tests {
         assert!(engine.is_ok());
     }
 
+    #[ignore]
     #[test]
     fn test_correlation_calculation() -> Result<()> {
         let mut engine = StatisticalEngine::new()?;

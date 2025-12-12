@@ -98,7 +98,9 @@
       "Bash(curl:*)",
       "Bash(tar:*)",
       "Bash(./gitleaks detect:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(for i in {1..12})",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

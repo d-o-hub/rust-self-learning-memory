@@ -39,7 +39,7 @@ futures = "0.3"
 
 # WASM JavaScript execution dependencies
 rquickjs = { version = "0.6.2", features = ["parallel", "loader", "futures"] }
-wasmtime = { version = "20.0", features = ["async", "cranelift"] }
+wasmtime = { version = "24.0.5", features = ["async", "cranelift"] }
 
 # Additional dependencies for unified sandbox
 chrono = { version = "0.4", features = ["serde"] }

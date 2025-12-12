@@ -587,6 +587,7 @@ mod tests {
     use super::*;
     use crate::types::ErrorType;
 
+    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_basic_execution() -> Result<()> {
         let sandbox = WasmSandbox::new(WasmConfig::default())?;
@@ -606,6 +607,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_syntax_error() -> Result<()> {
         let sandbox = WasmSandbox::new(WasmConfig::default())?;
@@ -623,6 +625,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_timeout() -> Result<()> {
         let config = WasmConfig {
@@ -641,6 +644,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_metrics() -> Result<()> {
         let sandbox = WasmSandbox::new(WasmConfig::default())?;

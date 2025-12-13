@@ -38,8 +38,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 futures = "0.3"
 
 # WASM JavaScript execution dependencies
-rquickjs = { version = "0.6.2", features = ["parallel", "loader", "futures"] }
-wasmtime = { version = "24.0.5", features = ["async", "cranelift"] }
+rquickjs = { version = "0.6.2", features = ["parallel", "loader", "futures"] }  # DEPRECATED: To be removed after wasmtime migration
+wasmtime = { version = "24.0.5", features = ["async", "cranelift", "wat", "cache", "component-model"] }
+wasmtime-wasi = "24.0.5"  # WASI support for stdio capture
 
 # Additional dependencies for unified sandbox
 chrono = { version = "0.4", features = ["serde"] }

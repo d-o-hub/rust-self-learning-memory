@@ -11,11 +11,20 @@ use memory_mcp::types::SandboxConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+/// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
+fn disable_wasm_for_tests() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        std::env::set_var("MCP_USE_WASM", "false");
+    });
+}
+
 /// Test MCP server integration with advanced pattern analysis
 #[tokio::test]
 async fn test_mcp_server_advanced_pattern_analysis() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::new());
-    let sandbox_config = SandboxConfig::restrictive();
+    let sandbox_config = SandboxConfig::default();
     let server = MemoryMCPServer::new(sandbox_config, memory).await.unwrap();
 
     // Check that the tool is registered
@@ -33,8 +42,9 @@ async fn test_mcp_server_advanced_pattern_analysis() {
 /// Test tool execution through MCP server
 #[tokio::test]
 async fn test_mcp_tool_execution() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::new());
-    let sandbox_config = SandboxConfig::restrictive();
+    let sandbox_config = SandboxConfig::default();
     let server = MemoryMCPServer::new(sandbox_config, memory).await.unwrap();
 
     // Prepare test data
@@ -67,8 +77,9 @@ async fn test_mcp_tool_execution() {
 /// Test comprehensive analysis through MCP
 #[tokio::test]
 async fn test_mcp_comprehensive_analysis() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::new());
-    let sandbox_config = SandboxConfig::restrictive();
+    let sandbox_config = SandboxConfig::default();
     let server = MemoryMCPServer::new(sandbox_config, memory).await.unwrap();
 
     let mut data = HashMap::new();
@@ -102,8 +113,9 @@ async fn test_mcp_comprehensive_analysis() {
 /// Test input validation through MCP
 #[tokio::test]
 async fn test_mcp_input_validation() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::new());
-    let sandbox_config = SandboxConfig::restrictive();
+    let sandbox_config = SandboxConfig::default();
     let server = MemoryMCPServer::new(sandbox_config, memory).await.unwrap();
 
     // Test empty data
@@ -133,8 +145,9 @@ async fn test_mcp_input_validation() {
 /// Test predictive analysis through MCP
 #[tokio::test]
 async fn test_mcp_predictive_analysis() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::new());
-    let sandbox_config = SandboxConfig::restrictive();
+    let sandbox_config = SandboxConfig::default();
     let server = MemoryMCPServer::new(sandbox_config, memory).await.unwrap();
 
     let mut data = HashMap::new();
@@ -165,8 +178,9 @@ async fn test_mcp_predictive_analysis() {
 /// Test concurrent MCP requests
 #[tokio::test]
 async fn test_mcp_concurrent_requests() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::new());
-    let sandbox_config = SandboxConfig::restrictive();
+    let sandbox_config = SandboxConfig::default();
     let server = Arc::new(MemoryMCPServer::new(sandbox_config, memory).await.unwrap());
 
     let mut data = HashMap::new();

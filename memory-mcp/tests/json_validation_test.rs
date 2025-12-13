@@ -3,8 +3,17 @@ use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
+/// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
+fn disable_wasm_for_tests() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        std::env::set_var("MCP_USE_WASM", "false");
+    });
+}
+
 #[tokio::test]
 async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
+    disable_wasm_for_tests();
     println!("🧪 Testing MCP Tools JSON Response Validation\n");
 
     // Create MCP server

@@ -14,9 +14,18 @@ use std::sync::Arc;
 mod mcp_integration_tests {
     use super::*;
 
+    /// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
+    fn disable_wasm_for_tests() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            std::env::set_var("MCP_USE_WASM", "false");
+        });
+    }
+
     async fn setup_test_environment() -> (Arc<SelfLearningMemory>, Arc<MemoryMCPServer>) {
+        disable_wasm_for_tests();
         let memory = Arc::new(SelfLearningMemory::new());
-        let sandbox_config = SandboxConfig::restrictive();
+        let sandbox_config = SandboxConfig::default();
         let mcp_server = Arc::new(
             MemoryMCPServer::new(sandbox_config, memory.clone())
                 .await

@@ -104,6 +104,7 @@ pub mod server;
 pub mod types;
 pub mod unified_sandbox;
 pub mod wasm_sandbox;
+pub mod wasmtime_sandbox;
 
 // Re-export commonly used types
 pub use cache::{CacheConfig, CacheStats, QueryCache};
@@ -121,3 +122,4 @@ pub use sandbox::{FileSystemRestrictions, IsolationConfig, NetworkRestrictions};
 // Re-export new WASM modules
 pub use unified_sandbox::{BackendHealth, SandboxBackend, UnifiedMetrics, UnifiedSandbox};
 pub use wasm_sandbox::{WasmConfig, WasmMetrics, WasmSandbox};
+pub use wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};

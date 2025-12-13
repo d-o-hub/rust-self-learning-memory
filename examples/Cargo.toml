@@ -11,13 +11,17 @@ repository.workspace = true
 memory-core = { path = "../memory-core" }
 memory-storage-redb = { path = "../memory-storage-redb" }
 memory-storage-turso = { path = "../memory-storage-turso" }
+memory-cli = { path = "../memory-cli" }
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
 tokio.workspace = true
 tempfile.workspace = true
+uuid.workspace = true
+rand = "0.8"
 
 [[bin]]
 name = "verify_storage"
 path = "verify_storage.rs"
+

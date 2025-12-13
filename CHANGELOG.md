@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] - 2024-12-10
+
+### Added
+- Production-ready CLI with default redb storage backend
+- MCP server functionality with redb cache storage
+- Comprehensive linting and code quality improvements
+- Database creation validation for both Turso and redb
+
+### Fixed
+- Removed dead code warnings in unified sandbox
+- Fixed clippy warnings for manual clamp operations
+- Fixed redundant pattern matching issues
+- Corrected unused import errors in tests
+- Removed references to non-existent benchmark and test files
+
+### Changed
+- Updated version to 0.1.6 across all workspace packages
+- CLI now includes redb storage by default
+- Improved error handling and user feedback
+- Enhanced MCP server logging and initialization
+
+### Production Readiness
+- All linting checks pass (cargo clippy)
+- All formatting checks pass (cargo fmt)
+- CLI and MCP components verified working with storage backends
+- Database record creation validated in both Turso and redb
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

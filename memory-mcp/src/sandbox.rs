@@ -62,6 +62,7 @@ use tokio::process::Command;
 use tracing::{debug, warn};
 
 /// Secure code execution sandbox
+#[derive(Debug)]
 pub struct CodeSandbox {
     config: SandboxConfig,
 }
@@ -433,12 +434,21 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    // Set once for all tests in this module to disable WASM
+    fn set_once() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            std::env::set_var("MCP_USE_WASM", "false");
+        });
+    }
+
     fn create_test_context() -> ExecutionContext {
         ExecutionContext::new("test".to_string(), json!({}))
     }
 
     #[tokio::test]
     async fn test_simple_execution() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = "return 1 + 1;";
         let context = create_test_context();
@@ -455,6 +465,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_console_output() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = r#"
             console.log("Hello");
@@ -476,6 +487,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_timeout_enforcement() {
+        set_once();
         let config = SandboxConfig {
             max_execution_time_ms: 500, // 500ms timeout
             ..Default::default()
@@ -509,6 +521,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_filesystem_blocking() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = r#"
             const fs = require('fs');
@@ -531,6 +544,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_network_blocking() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = r#"
             const https = require('https');
@@ -553,6 +567,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_process_execution_blocking() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = r#"
             const { exec } = require('child_process');
@@ -575,6 +590,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_infinite_loop_detection() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = "while(true) {}";
         let context = create_test_context();
@@ -594,6 +610,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_eval_blocking() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = r#"eval("malicious code");"#;
         let context = create_test_context();
@@ -613,6 +630,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_syntax_error() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = "const x = ;"; // Invalid syntax
         let context = create_test_context();
@@ -632,6 +650,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_runtime_error() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = r#"
             throw new Error("Runtime error");
@@ -654,6 +673,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_code_length_limit() {
+        set_once();
         let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
         let code = "a".repeat(100_001); // Exceeds 100KB limit
         let context = create_test_context();

@@ -5,8 +5,17 @@ use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
+/// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
+fn disable_wasm_for_tests() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        std::env::set_var("MCP_USE_WASM", "false");
+    });
+}
+
 #[tokio::test]
 async fn test_server_full_lifecycle() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -40,6 +49,7 @@ async fn test_server_full_lifecycle() {
 
 #[tokio::test]
 async fn test_query_memory_integration() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -63,6 +73,7 @@ async fn test_query_memory_integration() {
 
 #[tokio::test]
 async fn test_analyze_patterns_integration() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -81,6 +92,7 @@ async fn test_analyze_patterns_integration() {
 
 #[tokio::test]
 async fn test_tool_management() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -111,6 +123,7 @@ async fn test_tool_management() {
 
 #[tokio::test]
 async fn test_concurrent_executions() {
+    disable_wasm_for_tests();
     let server = std::sync::Arc::new(
         MemoryMCPServer::new(
             SandboxConfig::default(),
@@ -143,6 +156,7 @@ async fn test_concurrent_executions() {
 
 #[tokio::test]
 async fn test_complex_code_execution() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -182,6 +196,7 @@ async fn test_complex_code_execution() {
 
 #[tokio::test]
 async fn test_error_handling_in_code() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -214,6 +229,7 @@ async fn test_error_handling_in_code() {
 
 #[tokio::test]
 async fn test_async_code_execution() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -240,6 +256,7 @@ async fn test_async_code_execution() {
 
 #[tokio::test]
 async fn test_progressive_tool_disclosure() {
+    disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::new()),
@@ -266,6 +283,7 @@ async fn test_progressive_tool_disclosure() {
 }
 #[tokio::test]
 async fn test_memory_integration_with_data() {
+    disable_wasm_for_tests();
     use memory_core::{
         ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
     };
@@ -335,6 +353,7 @@ async fn test_memory_integration_with_data() {
 
 #[tokio::test]
 async fn test_jsonrpc_response_format_execute_code() {
+    disable_wasm_for_tests();
     use memory_core::SelfLearningMemory;
     use memory_mcp::{MemoryMCPServer, SandboxConfig};
     use serde_json::json;

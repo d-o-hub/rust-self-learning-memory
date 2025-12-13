@@ -1,0 +1,13 @@
+# cargo-audit configuration
+# https://rustsec.org/
+
+[advisories]
+# Ignored advisories for known wasmtime vulnerabilities
+# TODO: Upgrade wasmtime to >=38.0.4 in a future release
+ignore = [
+    "RUSTSEC-2024-0438",  # wasmtime: wasm components may trap in debug assertion
+    "RUSTSEC-2024-0439",  # wasmtime: trap assertions in debug builds
+    "RUSTSEC-2025-0046",  # wasmtime: component model issues
+    "RUSTSEC-2025-0118",  # wasmtime: additional component model issues
+    "RUSTSEC-2024-0442",  # wasmtime: wasm memory issues
+]

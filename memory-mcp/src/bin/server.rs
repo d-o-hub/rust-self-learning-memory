@@ -10,7 +10,8 @@ use memory_storage_redb::{CacheConfig, RedbStorage};
 use memory_storage_turso::{TursoConfig, TursoStorage};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, Read, Write};
+
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -47,8 +48,10 @@ struct JsonRpcError {
 /// MCP Initialize response
 #[derive(Debug, Serialize)]
 struct InitializeResult {
+    #[serde(rename = "protocolVersion")]
     protocol_version: String,
     capabilities: Value,
+    #[serde(rename = "serverInfo")]
     server_info: Value,
 }
 
@@ -57,6 +60,7 @@ struct InitializeResult {
 struct McpTool {
     name: String,
     description: String,
+    #[serde(rename = "inputSchema")]
     input_schema: Value,
 }
 
@@ -89,9 +93,15 @@ enum Content {
 
 /// Initialize the memory system with appropriate storage backends
 async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
-    // Try to initialize with dual storage (Turso + redb) first
+    // Try Turso local first (default behavior)
+    if let Ok(memory) = initialize_turso_local().await {
+        info!("Memory system initialized with Turso local database (default)");
+        return Ok(memory);
+    }
+
+    // If Turso local fails, try dual storage (Turso cloud + redb)
     if let Ok(memory) = initialize_dual_storage().await {
-        info!("Memory system initialized with persistent storage (Turso + redb)");
+        info!("Memory system initialized with persistent storage (Turso cloud + redb)");
         return Ok(memory);
     }
 
@@ -104,8 +114,9 @@ async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
     // Final fallback to in-memory storage
     warn!("Failed to initialize any persistent storage, falling back to in-memory");
     info!("To enable persistence:");
-    info!("  - For full persistence: set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN");
-    info!("  - For cache-only persistence: ensure REDB_CACHE_PATH is accessible");
+    info!("  - Default: Turso local database (no configuration needed)");
+    info!("  - Cloud: set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN");
+    info!("  - Cache-only: ensure REDB_CACHE_PATH is accessible");
     Ok(Arc::new(SelfLearningMemory::new()))
 }
 
@@ -198,6 +209,63 @@ async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>> {
     Ok(Arc::new(memory))
 }
 
+/// Initialize memory system with Turso local database (default behavior)
+async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>> {
+    info!("Attempting to initialize Turso local database (default)...");
+
+    // Use local Turso database file
+    let turso_url =
+        std::env::var("TURSO_DATABASE_URL").unwrap_or_else(|_| "file:./data/memory.db".to_string());
+
+    // For local files, no token is needed
+    let turso_token = if turso_url.starts_with("file:") {
+        "".to_string()
+    } else {
+        std::env::var("TURSO_AUTH_TOKEN").unwrap_or_default()
+    };
+
+    info!("Connecting to Turso database at {}", turso_url);
+
+    // Initialize Turso storage with basic config for local use
+    let turso_config = TursoConfig {
+        max_retries: 1, // Fewer retries for local
+        retry_base_delay_ms: 50,
+        retry_max_delay_ms: 1000,
+        enable_pooling: false, // No pooling needed for local
+    };
+
+    let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;
+    turso_storage.initialize_schema().await?;
+
+    // Initialize redb cache storage for performance
+    let cache_path_str =
+        std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
+    let cache_path = Path::new(&cache_path_str);
+
+    let cache_config = CacheConfig {
+        max_size: std::env::var("REDB_MAX_CACHE_SIZE")
+            .unwrap_or_else(|_| "1000".to_string())
+            .parse()
+            .unwrap_or(1000),
+        default_ttl_secs: 1800,     // 30 minutes
+        cleanup_interval_secs: 600, // 10 minutes
+        enable_background_cleanup: true,
+    };
+
+    let redb_storage = RedbStorage::new_with_cache_config(cache_path, cache_config).await?;
+
+    // Create memory system with both storage backends
+    let memory_config = MemoryConfig::default();
+    let memory = SelfLearningMemory::with_storage(
+        memory_config,
+        Arc::new(turso_storage),
+        Arc::new(redb_storage),
+    );
+
+    info!("Successfully initialized Turso local + redb cache storage");
+    Ok(Arc::new(memory))
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
@@ -228,15 +296,18 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
     let mut stdout = io::stdout();
     let mut handle = stdin.lock();
 
+    // Track last input framing to respond with the same framing style
+    #[allow(unused_assignments)]
+    let mut last_input_was_lsp = false;
     loop {
-        let mut line = String::new();
-        match handle.read_line(&mut line) {
-            Ok(0) => {
+        match read_next_message(&mut handle) {
+            Ok(None) => {
                 // EOF reached
                 info!("Received EOF, shutting down");
                 break;
             }
-            Ok(_) => {
+            Ok(Some((line, is_lsp))) => {
+                last_input_was_lsp = is_lsp;
                 let line = line.trim();
                 if line.is_empty() {
                     continue;
@@ -247,11 +318,15 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
                     Ok(request) => {
                         let response = handle_request(request, &mcp_server).await;
 
-                        // Send response
+                        // Send response, matching the input framing style
                         if let Some(response_json) = response {
                             let response_str = serde_json::to_string(&response_json)?;
-                            writeln!(stdout, "{}", response_str)?;
-                            stdout.flush()?;
+                            if last_input_was_lsp {
+                                write_response_with_length(&mut stdout, &response_str)?;
+                            } else {
+                                writeln!(stdout, "{}", response_str)?;
+                                stdout.flush()?;
+                            }
                         }
                     }
                     Err(e) => {
@@ -268,8 +343,12 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
                             }),
                         };
                         let response_str = serde_json::to_string(&error_response)?;
-                        writeln!(stdout, "{}", response_str)?;
-                        stdout.flush()?;
+                        if last_input_was_lsp {
+                            write_response_with_length(&mut stdout, &response_str)?;
+                        } else {
+                            writeln!(stdout, "{}", response_str)?;
+                            stdout.flush()?;
+                        }
                     }
                 }
             }
@@ -281,6 +360,72 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
     }
 
     info!("Memory MCP Server shutting down");
+    Ok(())
+}
+
+/// Read a message from stdin and support both line-delimited JSON and Content-Length framed JSON-RPC
+/// Returns (message, is_content_length) where is_content_length indicates whether the message
+/// came in with a Content-Length header (LSP-style)
+fn read_next_message<R: BufRead + Read>(reader: &mut R) -> io::Result<Option<(String, bool)>> {
+    loop {
+        let mut line = String::new();
+        let n = reader.read_line(&mut line)?;
+        if n == 0 {
+            // EOF
+            return Ok(None);
+        }
+
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // If the line looks like JSON directly, return it (not LSP framed)
+        if trimmed.starts_with('{') {
+            return Ok(Some((trimmed.to_string(), false)));
+        }
+
+        // If it's a Content-Length header, parse it and read the payload
+        let low = trimmed.to_ascii_lowercase();
+        if low.starts_with("content-length:") {
+            // Parse length
+            let parts: Vec<&str> = trimmed.splitn(2, ':').collect();
+            let len: usize = parts
+                .get(1)
+                .map(|s| s.trim().parse().ok().unwrap_or(0))
+                .unwrap_or(0);
+
+            // Consume remaining header lines until we reach an empty line
+            loop {
+                let mut hline = String::new();
+                let hn = reader.read_line(&mut hline)?;
+                if hn == 0 || hline.trim().is_empty() {
+                    break;
+                }
+            }
+
+            // Read exact number of bytes for the content
+            if len == 0 {
+                continue;
+            }
+            let mut buf = vec![0u8; len];
+            reader.read_exact(&mut buf)?;
+            return Ok(Some((String::from_utf8_lossy(&buf).to_string(), true)));
+        }
+
+        // Otherwise, skip the line (e.g., logs accidentally printed to stdout) and continue
+        continue;
+    }
+}
+
+/// Write a JSON-RPC response using Content-Length framing to support LSP-style clients.
+fn write_response_with_length<W: Write>(writer: &mut W, body: &str) -> io::Result<()> {
+    let bytes = body.as_bytes();
+    let header = format!("Content-Length: {}\r\n\r\n", bytes.len());
+    writer.write_all(header.as_bytes())?;
+    writer.write_all(bytes)?;
+    writer.write_all(b"\n")?;
+    writer.flush()?;
     Ok(())
 }
 
@@ -434,8 +579,30 @@ async fn handle_call_tool(
     let mut server = mcp_server.lock().await;
     let result = match params.name.as_str() {
         "query_memory" => handle_query_memory(&mut server, params.arguments).await,
-        "execute_agent_code" => handle_execute_code(&mut server, params.arguments).await,
+        "execute_agent_code" => {
+            // Check if execute_agent_code tool is available
+            let tools = server.list_tools().await;
+            if tools.iter().any(|t| t.name == "execute_agent_code") {
+                handle_execute_code(&mut server, params.arguments).await
+            } else {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32000,
+                        message: "Tool execution failed".to_string(),
+                        data: Some(json!({
+                            "details": "execute_agent_code tool is not available due to WASM sandbox compilation issues"
+                        })),
+                    }),
+                });
+            }
+        }
         "analyze_patterns" => handle_analyze_patterns(&mut server, params.arguments).await,
+        "advanced_pattern_analysis" => {
+            handle_advanced_pattern_analysis(&mut server, params.arguments).await
+        }
         "health_check" => handle_health_check(&mut server, params.arguments).await,
         "get_metrics" => handle_get_metrics(&mut server, params.arguments).await,
         _ => {
@@ -452,7 +619,8 @@ async fn handle_call_tool(
         }
     };
 
-    match result {
+    // Process the tool result
+    let response = match result {
         Ok(content) => {
             let call_result = CallToolResult { content };
             match serde_json::to_value(call_result) {
@@ -492,7 +660,9 @@ async fn handle_call_tool(
                 }),
             })
         }
-    }
+    };
+
+    response
 }
 
 /// Handle query_memory tool
@@ -553,13 +723,28 @@ async fn handle_execute_code(
 
     let context = ExecutionContext::new(task, input);
 
-    let result = server.execute_agent_code(code, context).await?;
-
-    let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
-    }];
-
-    Ok(content)
+    // Check if WASM sandbox is available by attempting a simple test
+    // If it fails, return a proper error instead of crashing
+    match server
+        .execute_agent_code(
+            "console.log('test');".to_string(),
+            ExecutionContext::new("test".to_string(), json!({})),
+        )
+        .await
+    {
+        Ok(_) => {
+            // WASM sandbox is working, proceed with actual execution
+            let result = server.execute_agent_code(code, context).await?;
+            let content = vec![Content::Text {
+                text: serde_json::to_string_pretty(&result)?,
+            }];
+            Ok(content)
+        }
+        Err(e) => {
+            // WASM sandbox is not available, return proper error
+            Err(anyhow::anyhow!("Code execution is currently unavailable due to WASM sandbox compilation issues. Error: {}", e))
+        }
+    }
 }
 
 /// Handle analyze_patterns tool
@@ -582,6 +767,63 @@ async fn handle_analyze_patterns(
     let result = server
         .analyze_patterns(task_type, min_success_rate, limit)
         .await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+
+    Ok(content)
+}
+
+/// Handle advanced_pattern_analysis tool
+async fn handle_advanced_pattern_analysis(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+
+    // Parse analysis type
+    let analysis_type_str = args
+        .get("analysis_type")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'analysis_type' parameter"))?;
+
+    let analysis_type = match analysis_type_str {
+        "statistical" => {
+            memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Statistical
+        }
+        "predictive" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Predictive,
+        "comprehensive" => {
+            memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Comprehensive
+        }
+        _ => {
+            return Err(anyhow::anyhow!(
+                "Invalid analysis_type: {}",
+                analysis_type_str
+            ))
+        }
+    };
+
+    // Parse time series data
+    let time_series_data_value = args
+        .get("time_series_data")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'time_series_data' parameter"))?;
+
+    let time_series_data: std::collections::HashMap<String, Vec<f64>> =
+        serde_json::from_value(time_series_data_value.clone())?;
+
+    // Parse optional config
+    let config = args
+        .get("config")
+        .and_then(|c| serde_json::from_value(c.clone()).ok());
+
+    let input = memory_mcp::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisInput {
+        analysis_type,
+        time_series_data,
+        config,
+    };
+
+    let result = server.execute_advanced_pattern_analysis(input).await?;
+
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,
     }];

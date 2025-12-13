@@ -103,7 +103,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests
-        run: cargo test --all-features --workspace
+        run: cargo test --all-features --workspace -- --test-threads=4
         env:
           RUST_LOG: debug
           QUALITY_GATE_SKIP_OPTIONAL: true
@@ -257,9 +257,12 @@ jobs:
       }}
     steps:
       - uses: actions/checkout@v6
-      - uses: rustsec/audit-check@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Run cargo audit
+        run: cargo audit
 
   supply-chain:
     name: Supply Chain Security (cargo-deny)

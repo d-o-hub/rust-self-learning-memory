@@ -1,0 +1,33 @@
+# Memory CLI Configuration - Local Development Setup
+
+[database]
+# Local SQLite database (fallback when Turso is not available)
+turso_url = "file:///workspaces/feat-phase3/data/memory.db"
+turso_token = ""
+
+# Local redb cache
+redb_path = "/workspaces/feat-phase3/data/memory.redb"
+
+[storage]
+max_episodes_cache = 1000
+cache_ttl_seconds = 3600
+pool_size = 10
+
+[cli]
+default_format = "human"
+progress_bars = true
+batch_size = 100
+
+[monitoring]
+enabled = true
+health_check_interval_seconds = 30
+
+[backup]
+backup_dir = "/workspaces/feat-phase3/backups"
+max_backup_age_days = 30
+compress_backups = true
+
+[logging]
+level = "info"
+max_log_size_mb = 10
+max_log_files = 5

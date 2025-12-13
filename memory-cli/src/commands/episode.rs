@@ -1041,7 +1041,12 @@ batch_size = 10
     #[cfg(not(feature = "turso"))]
     #[tokio::test]
     async fn test_create_episode_without_turso_feature() {
-        let config = Config::default();
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.redb");
+
+        let mut config = Config::default();
+        config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = config.create_memory().await.unwrap();
 
         let result = create_episode(
@@ -1064,7 +1069,12 @@ batch_size = 10
     #[cfg(not(feature = "turso"))]
     #[tokio::test]
     async fn test_list_episodes_without_turso_feature() {
-        let config = Config::default();
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.redb");
+
+        let mut config = Config::default();
+        config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = config.create_memory().await.unwrap();
 
         let result = list_episodes(None, 10, None, &memory, &config, OutputFormat::Human).await;
@@ -1079,7 +1089,12 @@ batch_size = 10
     #[cfg(not(feature = "turso"))]
     #[tokio::test]
     async fn test_view_episode_without_turso_feature() {
-        let config = Config::default();
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.redb");
+
+        let mut config = Config::default();
+        config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = config.create_memory().await.unwrap();
 
         let result = view_episode(
@@ -1100,7 +1115,12 @@ batch_size = 10
     #[cfg(not(feature = "turso"))]
     #[tokio::test]
     async fn test_complete_episode_without_turso_feature() {
-        let config = Config::default();
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.redb");
+
+        let mut config = Config::default();
+        config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = config.create_memory().await.unwrap();
 
         let result = complete_episode(
@@ -1123,7 +1143,12 @@ batch_size = 10
     #[cfg(not(feature = "turso"))]
     #[tokio::test]
     async fn test_search_episodes_without_turso_feature() {
-        let config = Config::default();
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.redb");
+
+        let mut config = Config::default();
+        config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = config.create_memory().await.unwrap();
 
         let result = search_episodes(
@@ -1145,7 +1170,12 @@ batch_size = 10
     #[cfg(not(feature = "turso"))]
     #[tokio::test]
     async fn test_log_step_without_turso_feature() {
-        let config = Config::default();
+        use tempfile::TempDir;
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.redb");
+
+        let mut config = Config::default();
+        config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = config.create_memory().await.unwrap();
 
         let result = log_step(

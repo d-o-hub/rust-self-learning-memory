@@ -589,7 +589,7 @@ mod tests {
         let health = sandbox.get_health_status().await;
         assert!(health.node_available);
         assert!(health.wasm_available);
-        assert!(health.wasm_pool_stats.is_some());
+        assert!(health.wasmtime_pool_stats.is_some());
 
         Ok(())
     }

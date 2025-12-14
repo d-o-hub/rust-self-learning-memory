@@ -2945,6 +2945,7 @@ dependencies = [
  "url",
  "wasmtime",
  "wasmtime-wasi",
+ "wat",
 ]
 
 [[package]]

@@ -29,7 +29,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
 use tracing::{debug, info, warn};
 use wasmtime::*;
-use wasmtime_wasi::preview1::{WasiP1Ctx, add_to_linker_sync};
+use wasmtime_wasi::preview1::{add_to_linker_sync, WasiP1Ctx};
 
 use crate::types::{ErrorType, ExecutionContext, ExecutionResult};
 
@@ -109,8 +109,7 @@ impl WasmtimeSandbox {
         let mut engine_config = Config::new();
         engine_config.consume_fuel(true);
 
-        let engine = Engine::new(&engine_config)
-            .context("Failed to create wasmtime engine")?;
+        let engine = Engine::new(&engine_config).context("Failed to create wasmtime engine")?;
 
         debug!("Wasmtime engine created successfully with fuel support");
 
@@ -190,7 +189,10 @@ impl WasmtimeSandbox {
             .set_fuel(fuel)
             .context("Failed to set execution fuel")?;
 
-        debug!("Set fuel to {} for max execution time {:?}", fuel, config.max_execution_time);
+        debug!(
+            "Set fuel to {} for max execution time {:?}",
+            fuel, config.max_execution_time
+        );
 
         // Create linker and add WASI Preview 1
         let mut linker = Linker::new(engine);
@@ -445,8 +447,7 @@ mod tests {
         "#;
 
         // Parse WAT to WASM bytecode
-        let wasm_bytecode = wat::parse_str(wat)
-            .context("Failed to parse WAT")?;
+        let wasm_bytecode = wat::parse_str(wat).context("Failed to parse WAT")?;
 
         // Create sandbox with very short timeout
         let mut config = WasmtimeConfig::default();
@@ -461,7 +462,11 @@ mod tests {
         match result {
             ExecutionResult::Timeout { elapsed_ms, .. } => {
                 // Should have timed out quickly
-                assert!(elapsed_ms < 1000, "Expected timeout < 1000ms, got {}", elapsed_ms);
+                assert!(
+                    elapsed_ms < 1000,
+                    "Expected timeout < 1000ms, got {}",
+                    elapsed_ms
+                );
             }
             other => panic!("Expected timeout, got: {:?}", other),
         }

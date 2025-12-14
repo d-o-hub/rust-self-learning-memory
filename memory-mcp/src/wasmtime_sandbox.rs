@@ -5,29 +5,31 @@
 //!
 //! ## Architecture
 //!
-//! - **Engine**: Shared wasmtime engine for module compilation
+//! - **Engine**: Shared wasmtime engine with fuel-based timeout enforcement
 //! - **Store**: Per-execution isolated store with WASI context
 //! - **Pooling**: Semaphore-based concurrency control
 //! - **Metrics**: Execution statistics and health monitoring
 //!
-//! ## Phase 2A: Basic POC
+//! ## Phase 2A: Basic POC (Complete)
 //!
-//! This initial implementation executes simple WASM modules to prove
-//! concurrent execution stability without GC crashes.
+//! - Execute pre-compiled WASM modules
+//! - Concurrent execution without GC crashes
+//! - Basic metrics and health monitoring
 //!
-//! ## Phase 2B: JavaScript Support
+//! ## Phase 2B: Enhanced WASM Execution (In Progress)
 //!
-//! Future enhancement will add Javy integration for JavaScript→WASM compilation.
+//! - **WASI Support**: Stdout/stderr capture via WASI context
+//! - **Fuel-Based Timeouts**: Deterministic execution time limits
+//! - **JavaScript Support**: Future - Javy integration for JS→WASM compilation
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 use wasmtime::*;
-// WAS use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
-// Simplified POC: Not using WASI yet, just proving concurrent execution works
+use wasmtime_wasi::preview1::{WasiP1Ctx, add_to_linker_sync};
 
 use crate::types::{ErrorType, ExecutionContext, ExecutionResult};
 
@@ -91,11 +93,14 @@ impl WasmtimeSandbox {
     pub fn new(config: WasmtimeConfig) -> Result<Self> {
         info!("Initializing wasmtime sandbox with config: {:?}", config);
 
-        // Configure wasmtime engine - simplified for POC
-        // NOT using async support since we run in spawn_blocking
-        let engine = Engine::default();
+        // Configure wasmtime engine with fuel support for timeout enforcement
+        let mut engine_config = Config::new();
+        engine_config.consume_fuel(true);
 
-        debug!("Wasmtime engine created successfully");
+        let engine = Engine::new(&engine_config)
+            .context("Failed to create wasmtime engine")?;
+
+        debug!("Wasmtime engine created successfully with fuel support");
 
         let pool_size = config.max_pool_size;
 
@@ -151,18 +156,39 @@ impl WasmtimeSandbox {
     fn execute_sync(
         engine: &Engine,
         wasm_bytecode: &[u8],
-        _config: &WasmtimeConfig,
+        config: &WasmtimeConfig,
     ) -> Result<ExecutionResult> {
         // Load WASM module
         let module =
             Module::from_binary(engine, wasm_bytecode).context("Failed to load WASM module")?;
 
-        // Create a simple store without WASI for now (POC)
-        let mut store = Store::new(engine, ());
+        // Create WASI Preview 1 context
+        let wasi = wasmtime_wasi::WasiCtxBuilder::new()
+            .inherit_stdin()
+            .inherit_stdout()
+            .inherit_stderr()
+            .build_p1();
+
+        // Create store with WASI context
+        let mut store = Store::new(engine, wasi);
+
+        // Set fuel based on execution time limit
+        let fuel = Self::calculate_fuel(config.max_execution_time);
+        store
+            .set_fuel(fuel)
+            .context("Failed to set execution fuel")?;
+
+        debug!("Set fuel to {} for max execution time {:?}", fuel, config.max_execution_time);
+
+        // Create linker and add WASI Preview 1
+        let mut linker = Linker::new(engine);
+        add_to_linker_sync(&mut linker, |ctx: &mut WasiP1Ctx| ctx)
+            .context("Failed to add WASI to linker")?;
 
         // Instantiate module
-        let instance =
-            Instance::new(&mut store, &module, &[]).context("Failed to instantiate WASM module")?;
+        let instance = linker
+            .instantiate(&mut store, &module)
+            .context("Failed to instantiate WASM module")?;
 
         // Get the main export function
         let main_func = instance
@@ -174,27 +200,45 @@ impl WasmtimeSandbox {
         let call_result = main_func.call(&mut store, ());
         let execution_time_ms = exec_start.elapsed().as_millis() as u64;
 
+        // Check remaining fuel
+        let remaining_fuel = store.get_fuel().unwrap_or(0);
+        debug!("Execution completed with {} fuel remaining", remaining_fuel);
+
         match call_result {
             Ok(_result) => Ok(ExecutionResult::Success {
                 output: "WASM execution completed successfully".to_string(),
-                stdout: String::new(),
-                stderr: String::new(),
+                stdout: String::new(), // TODO: Capture from WASI in Phase 2B.1
+                stderr: String::new(), // TODO: Capture from WASI in Phase 2B.1
                 execution_time_ms,
             }),
-            Err(e) => Ok(ExecutionResult::Error {
-                error_type: ErrorType::Runtime,
-                message: e.to_string(),
-                stdout: String::new(),
-                stderr: String::new(),
-            }),
+            Err(e) => {
+                // Check if it was a timeout (out of fuel)
+                // wasmtime returns a Trap with OutOfFuel variant
+                if let Some(trap) = e.downcast_ref::<Trap>() {
+                    if matches!(trap, Trap::OutOfFuel) {
+                        warn!("Execution timed out due to fuel exhaustion");
+                        return Ok(ExecutionResult::Timeout {
+                            elapsed_ms: execution_time_ms,
+                            partial_output: None,
+                        });
+                    }
+                }
+
+                // Fall through to runtime error
+                Ok(ExecutionResult::Error {
+                    error_type: ErrorType::Runtime,
+                    message: e.to_string(),
+                    stdout: String::new(),
+                    stderr: String::new(),
+                })
+            }
         }
     }
 
     /// Calculate fuel amount based on execution time limit
-    /// Reserved for Phase 2B: fuel-based timeout enforcement
-    #[allow(dead_code)]
+    ///
+    /// Heuristic: 1 million fuel units per second of allowed execution time
     fn calculate_fuel(max_time: Duration) -> u64 {
-        // Heuristic: 1 million fuel units per second
         let seconds = max_time.as_secs();
         let millis = max_time.subsec_millis() as u64;
         (seconds * 1_000_000) + (millis * 1_000)
@@ -352,6 +396,63 @@ mod tests {
 
         // Should still be healthy
         assert!(sandbox.health_check().await);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_fuel_calculation() {
+        // Test fuel calculation heuristic
+        let one_second = Duration::from_secs(1);
+        let fuel = WasmtimeSandbox::calculate_fuel(one_second);
+        assert_eq!(fuel, 1_000_000); // 1 million fuel per second
+
+        let five_seconds = Duration::from_secs(5);
+        let fuel = WasmtimeSandbox::calculate_fuel(five_seconds);
+        assert_eq!(fuel, 5_000_000);
+
+        let with_millis = Duration::from_millis(1500);
+        let fuel = WasmtimeSandbox::calculate_fuel(with_millis);
+        assert_eq!(fuel, 1_500_000); // 1.5 million fuel
+    }
+
+    #[tokio::test]
+    async fn test_timeout_enforcement_via_fuel() -> Result<()> {
+        // Create a WASM module with an expensive loop
+        // This module runs a tight loop incrementing a counter, consuming fuel
+        let wat = r#"
+            (module
+              (func $main (result i32)
+                (local $i i32)
+                (local.set $i (i32.const 0))
+                (loop $forever
+                  (local.set $i (i32.add (local.get $i) (i32.const 1)))
+                  (br $forever))
+                (i32.const 42))
+              (export "main" (func $main)))
+        "#;
+
+        // Parse WAT to WASM bytecode
+        let wasm_bytecode = wat::parse_str(wat)
+            .context("Failed to parse WAT")?;
+
+        // Create sandbox with very short timeout
+        let mut config = WasmtimeConfig::default();
+        config.max_execution_time = Duration::from_millis(100);
+
+        let sandbox = WasmtimeSandbox::new(config)?;
+        let ctx = ExecutionContext::new("timeout-test".to_string(), serde_json::json!({}));
+
+        // Execute infinite loop - should timeout
+        let result = sandbox.execute(&wasm_bytecode, &ctx).await?;
+
+        match result {
+            ExecutionResult::Timeout { elapsed_ms, .. } => {
+                // Should have timed out quickly
+                assert!(elapsed_ms < 1000, "Expected timeout < 1000ms, got {}", elapsed_ms);
+            }
+            other => panic!("Expected timeout, got: {:?}", other),
+        }
 
         Ok(())
     }

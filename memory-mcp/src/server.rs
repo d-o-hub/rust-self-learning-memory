@@ -902,14 +902,14 @@ impl MemoryMCPServer {
                 SandboxBackend::Wasm => "wasm",
                 SandboxBackend::Hybrid { .. } => "hybrid",
             },
-            "wasm_pool": health.wasm_pool_stats.map(|m| serde_json::json!({
+            "wasmtime_pool": health.wasmtime_pool_stats.map(|m| serde_json::json!({
                 "total_executions": m.total_executions,
                 "successful_executions": m.successful_executions,
                 "failed_executions": m.failed_executions,
-                "average_execution_time_ms": m.average_execution_time.as_millis(),
-                "pool_hits": m.pool_hits,
-                "pool_misses": m.pool_misses,
-                "memory_usage_bytes": m.memory_usage_bytes,
+                "timeout_count": m.timeout_count,
+                "security_violations": m.security_violations,
+                "avg_execution_time_ms": m.avg_execution_time_ms,
+                "peak_memory_bytes": m.peak_memory_bytes,
             })),
             "routing": serde_json::json!({
                 "total_executions": unified_metrics.total_executions,

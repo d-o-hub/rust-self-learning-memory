@@ -88,6 +88,18 @@ pub struct WasmtimeSandbox {
     metrics: Arc<RwLock<WasmtimeMetrics>>,
 }
 
+// Manual Debug implementation since Engine doesn't implement Debug
+impl std::fmt::Debug for WasmtimeSandbox {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WasmtimeSandbox")
+            .field("config", &self.config)
+            .field("engine", &"<Engine>")
+            .field("pool_semaphore", &self.pool_semaphore)
+            .field("metrics", &self.metrics)
+            .finish()
+    }
+}
+
 impl WasmtimeSandbox {
     /// Create a new wasmtime sandbox
     pub fn new(config: WasmtimeConfig) -> Result<Self> {

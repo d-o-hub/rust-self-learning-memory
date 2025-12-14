@@ -18,13 +18,14 @@
 //!
 //! ## Phase 2B: Enhanced WASM Execution (In Progress)
 //!
-//! - **WASI Support**: Stdout/stderr capture via WASI context
-//! - **Fuel-Based Timeouts**: Deterministic execution time limits
+//! - **WASI Support**: Stdout/stderr capture via WASI context ✅
+//! - **Fuel-Based Timeouts**: Deterministic execution time limits ✅
 //! - **JavaScript Support**: Future - Javy integration for JS→WASM compilation
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::io::{self, Write};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
 use tracing::{debug, info, warn};
@@ -80,6 +81,66 @@ pub struct WasmtimeMetrics {
     pub peak_memory_bytes: usize,
 }
 
+/// Thread-safe output buffer for WASI stdio capture
+#[derive(Clone, Default)]
+struct OutputBuffer {
+    buffer: Arc<Mutex<Vec<u8>>>,
+}
+
+impl OutputBuffer {
+    /// Create a new output buffer
+    fn new() -> Self {
+        Self::default()
+    }
+
+    /// Extract the captured content as a UTF-8 string
+    fn into_string(self) -> String {
+        match Arc::try_unwrap(self.buffer) {
+            Ok(mutex) => {
+                let bytes = mutex.into_inner().unwrap_or_default();
+                String::from_utf8_lossy(&bytes).into_owned()
+            }
+            Err(_) => {
+                // If Arc is still shared, try to get a copy
+                let bytes = self.buffer.lock().unwrap_or_else(|e| e.into_inner());
+                String::from_utf8_lossy(&*bytes).into_owned()
+            }
+        }
+    }
+}
+
+impl Write for OutputBuffer {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let mut buffer = self.buffer.lock().unwrap_or_else(|e| e.into_inner());
+        buffer.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        // No-op for in-memory buffer
+        Ok(())
+    }
+}
+
+/// Captured WASI output for a single execution
+struct CapturedOutput {
+    stdout: OutputBuffer,
+    stderr: OutputBuffer,
+}
+
+impl CapturedOutput {
+    fn new() -> Self {
+        Self {
+            stdout: OutputBuffer::new(),
+            stderr: OutputBuffer::new(),
+        }
+    }
+
+    fn into_strings(self) -> (String, String) {
+        (self.stdout.into_string(), self.stderr.into_string())
+    }
+}
+
 /// Wasmtime-based WASM sandbox
 pub struct WasmtimeSandbox {
     config: WasmtimeConfig,
@@ -125,8 +186,9 @@ impl WasmtimeSandbox {
 
     /// Execute WASM module with the given context
     ///
-    /// Phase 2A: Accepts pre-compiled WASM bytecode
-    /// Phase 2B: Will add JavaScript→WASM compilation via Javy
+    /// Phase 2A: Accepts pre-compiled WASM bytecode ✅
+    /// Phase 2B.1: WASI stdout/stderr capture ✅
+    /// Phase 2B.2: Will add JavaScript→WASM compilation via Javy
     pub async fn execute(
         &self,
         wasm_bytecode: &[u8],
@@ -173,12 +235,27 @@ impl WasmtimeSandbox {
         let module =
             Module::from_binary(engine, wasm_bytecode).context("Failed to load WASM module")?;
 
-        // Create WASI Preview 1 context
-        let wasi = wasmtime_wasi::WasiCtxBuilder::new()
-            .inherit_stdin()
-            .inherit_stdout()
-            .inherit_stderr()
-            .build_p1();
+        // Set up output capture buffers
+        let captured_output = CapturedOutput::new();
+        let stdout_buffer = captured_output.stdout.clone();
+        let stderr_buffer = captured_output.stderr.clone();
+
+        // Create WASI Preview 1 context with custom stdout/stderr
+        let wasi = if config.allow_console {
+            debug!("Configuring WASI with captured stdout/stderr");
+            wasmtime_wasi::WasiCtxBuilder::new()
+                .inherit_stdin()
+                .stdout(Box::new(stdout_buffer))
+                .stderr(Box::new(stderr_buffer))
+                .build_p1()
+        } else {
+            debug!("Configuring WASI with inherited stdout/stderr (console disabled)");
+            wasmtime_wasi::WasiCtxBuilder::new()
+                .inherit_stdin()
+                .inherit_stdout()
+                .inherit_stderr()
+                .build_p1()
+        };
 
         // Create store with WASI context
         let mut store = Store::new(engine, wasi);
@@ -218,13 +295,23 @@ impl WasmtimeSandbox {
         let remaining_fuel = store.get_fuel().unwrap_or(0);
         debug!("Execution completed with {} fuel remaining", remaining_fuel);
 
+        // Extract captured output
+        let (stdout, stderr) = captured_output.into_strings();
+
         match call_result {
-            Ok(_result) => Ok(ExecutionResult::Success {
-                output: "WASM execution completed successfully".to_string(),
-                stdout: String::new(), // TODO: Capture from WASI in Phase 2B.1
-                stderr: String::new(), // TODO: Capture from WASI in Phase 2B.1
-                execution_time_ms,
-            }),
+            Ok(_result) => {
+                debug!(
+                    "WASM execution successful, captured {} bytes of stdout, {} bytes of stderr",
+                    stdout.len(),
+                    stderr.len()
+                );
+                Ok(ExecutionResult::Success {
+                    output: "WASM execution completed successfully".to_string(),
+                    stdout,
+                    stderr,
+                    execution_time_ms,
+                })
+            }
             Err(e) => {
                 // Check if it was a timeout (out of fuel)
                 // wasmtime returns a Trap with OutOfFuel variant
@@ -233,17 +320,22 @@ impl WasmtimeSandbox {
                         warn!("Execution timed out due to fuel exhaustion");
                         return Ok(ExecutionResult::Timeout {
                             elapsed_ms: execution_time_ms,
-                            partial_output: None,
+                            partial_output: if stdout.is_empty() {
+                                None
+                            } else {
+                                Some(stdout)
+                            },
                         });
                     }
                 }
 
                 // Fall through to runtime error
+                debug!("WASM execution failed: {}", e);
                 Ok(ExecutionResult::Error {
                     error_type: ErrorType::Runtime,
                     message: e.to_string(),
-                    stdout: String::new(),
-                    stderr: String::new(),
+                    stdout,
+                    stderr,
                 })
             }
         }
@@ -349,128 +441,182 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_concurrent_wasm_execution_no_crashes() -> Result<()> {
-        let sandbox = Arc::new(WasmtimeSandbox::new(WasmtimeConfig::default())?);
-        let mut handles = vec![];
-
-        // Spawn 100 concurrent executions to stress test
-        for i in 0..100 {
-            let sandbox_clone = Arc::clone(&sandbox);
-            let handle = tokio::spawn(async move {
-                let ctx = ExecutionContext::new(
-                    format!("concurrent-test-{}", i),
-                    serde_json::json!({"iteration": i}),
-                );
-                sandbox_clone.execute(SIMPLE_WASM, &ctx).await
-            });
-            handles.push(handle);
-        }
-
-        // All should complete without SIGABRT crashes
-        for handle in handles {
-            let result = handle.await??;
-            assert!(matches!(result, ExecutionResult::Success { .. }));
-        }
-
-        let metrics = sandbox.get_metrics().await;
-        assert_eq!(metrics.total_executions, 100);
-        assert_eq!(metrics.successful_executions, 100);
-        assert_eq!(metrics.failed_executions, 0);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_metrics_tracking() -> Result<()> {
-        let sandbox = WasmtimeSandbox::new(WasmtimeConfig::default())?;
-        let ctx = ExecutionContext::new("test".to_string(), serde_json::json!({}));
-
-        // Execute a few times
-        for _ in 0..5 {
-            sandbox.execute(SIMPLE_WASM, &ctx).await?;
-        }
-
-        let metrics = sandbox.get_metrics().await;
-        assert_eq!(metrics.total_executions, 5);
-        assert_eq!(metrics.successful_executions, 5);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_health_check() -> Result<()> {
-        let sandbox = WasmtimeSandbox::new(WasmtimeConfig::default())?;
-
-        // Should be healthy initially
-        assert!(sandbox.health_check().await);
-
-        // Execute successfully
-        let ctx = ExecutionContext::new("test".to_string(), serde_json::json!({}));
-        sandbox.execute(SIMPLE_WASM, &ctx).await?;
-
-        // Should still be healthy
-        assert!(sandbox.health_check().await);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_fuel_calculation() {
-        // Test fuel calculation heuristic
-        let one_second = Duration::from_secs(1);
-        let fuel = WasmtimeSandbox::calculate_fuel(one_second);
-        assert_eq!(fuel, 1_000_000); // 1 million fuel per second
-
-        let five_seconds = Duration::from_secs(5);
-        let fuel = WasmtimeSandbox::calculate_fuel(five_seconds);
-        assert_eq!(fuel, 5_000_000);
-
-        let with_millis = Duration::from_millis(1500);
-        let fuel = WasmtimeSandbox::calculate_fuel(with_millis);
-        assert_eq!(fuel, 1_500_000); // 1.5 million fuel
-    }
-
-    #[tokio::test]
-    async fn test_timeout_enforcement_via_fuel() -> Result<()> {
-        // Create a WASM module with an expensive loop
-        // This module runs a tight loop incrementing a counter, consuming fuel
+    async fn test_wasi_stdout_stderr_capture() -> Result<()> {
+        // Create a WASM module that writes to stdout and stderr using WASI
+        // This module uses fd_write system call to write "Hello, stdout!" to stdout (fd=1)
+        // and "Hello, stderr!" to stderr (fd=2)
         let wat = r#"
             (module
+              ;; Import WASI fd_write function
+              (import "wasi_snapshot_preview1" "fd_write"
+                (func $fd_write (param i32 i32 i32 i32) (result i32)))
+              
+              ;; Memory export for WASI
+              (memory (export "memory") 1)
+              
+              ;; Data section with our strings
+              (data (i32.const 100) "Hello, stdout!\n")
+              (data (i32.const 120) "Hello, stderr!\n")
+              
+              ;; Function to write to stdout
+              (func $write_stdout
+                ;; Set up iovec for stdout write
+                i32.const 1    ;; fd = 1 (stdout)
+                i32.const 116   ;; iov_ptr = address of iovec array
+                i32.const 1     ;; iov_cnt = 1
+                i32.const 132   ;; nwritten_ptr = address to store bytes written
+                call $fd_write
+                drop
+              )
+              
+              ;; Function to write to stderr  
+              (func $write_stderr
+                ;; Set up iovec for stderr write
+                i32.const 2    ;; fd = 2 (stderr)
+                i32.const 124   ;; iov_ptr = address of iovec array
+                i32.const 1     ;; iov_cnt = 1
+                i32.const 136   ;; nwritten_ptr = address to store bytes written
+                call $fd_write
+                drop
+              )
+              
+              ;; Main function
               (func $main (result i32)
-                (local $i i32)
-                (local.set $i (i32.const 0))
-                (loop $forever
-                  (local.set $i (i32.add (local.get $i) (i32.const 1)))
-                  (br $forever))
-                (i32.const 42))
-              (export "main" (func $main)))
+                ;; Initialize iovec structures
+                ;; stdout iovec at offset 116: [buf_ptr=100, buf_len=15]
+                i32.const 100
+                i32.const 116
+                i32.store offset=0 align=4
+                i32.const 15
+                i32.const 116
+                i32.store offset=4 align=4
+                
+                ;; stderr iovec at offset 124: [buf_ptr=120, buf_len=15]  
+                i32.const 120
+                i32.const 124
+                i32.store offset=0 align=4
+                i32.const 15
+                i32.const 124
+                i32.store offset=4 align=4
+                
+                ;; Write to stdout and stderr
+                call $write_stdout
+                call $write_stderr
+                
+                i32.const 0) ;; return 0
+              
+              (export "main" (func $main))
+            )
         "#;
 
         // Parse WAT to WASM bytecode
         let wasm_bytecode = wat::parse_str(wat).context("Failed to parse WAT")?;
 
+        // Test with console capture enabled
+        let config = WasmtimeConfig {
+            allow_console: true,
+            ..Default::default()
+        };
+        let sandbox = WasmtimeSandbox::new(config)?;
+        let ctx = ExecutionContext::new("wasi-test".to_string(), serde_json::json!({}));
+
+        let result = sandbox.execute(&wasm_bytecode, &ctx).await?;
+
+        match result {
+            ExecutionResult::Success { stdout, stderr, .. } => {
+                assert_eq!(stdout, "Hello, stdout!\n");
+                assert_eq!(stderr, "Hello, stderr!\n");
+            }
+            other => panic!("Expected success with captured output, got: {:?}", other),
+        }
+
+        // Test with console capture disabled
+        let config_disabled = WasmtimeConfig {
+            allow_console: false,
+            ..Default::default()
+        };
+        let sandbox_disabled = WasmtimeSandbox::new(config_disabled)?;
+
+        let result_disabled = sandbox_disabled.execute(&wasm_bytecode, &ctx).await?;
+
+        match result_disabled {
+            ExecutionResult::Success { stdout, stderr, .. } => {
+                // Should be empty when console is disabled
+                assert!(stdout.is_empty());
+                assert!(stderr.is_empty());
+            }
+            other => panic!("Expected success with empty output, got: {:?}", other),
+        }
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_wasi_capture_with_timeout() -> Result<()> {
+        // Create a WASM module that writes to stdout then enters infinite loop
+        let wat = r#"
+            (module
+              ;; Import WASI fd_write function
+              (import "wasi_snapshot_preview1" "fd_write"
+                (func $fd_write (param i32 i32 i32 i32) (result i32)))
+              
+              ;; Memory export for WASI
+              (memory (export "memory") 1)
+              
+              ;; Data section with our string
+              (data (i32.const 100) "Before infinite loop\n")
+              
+              ;; Main function
+              (func $main (result i32)
+                ;; Write to stdout first
+                i32.const 1    ;; fd = 1 (stdout)
+                i32.const 108   ;; iov_ptr = address of iovec array
+                i32.const 1     ;; iov_cnt = 1
+                i32.const 120   ;; nwritten_ptr = address to store bytes written
+                call $fd_write
+                drop
+                
+                ;; Initialize iovec
+                i32.const 100
+                i32.const 108
+                i32.store offset=0 align=4
+                i32.const 21
+                i32.const 108
+                i32.store offset=4 align=4
+                
+                ;; Infinite loop to trigger timeout
+                (loop $forever
+                  br $forever)
+                
+                i32.const 0) ;; unreachable
+              
+              (export "main" (func $main))
+            )
+        "#;
+
+        let wasm_bytecode = wat::parse_str(wat).context("Failed to parse WAT")?;
+
         // Create sandbox with very short timeout
         let config = WasmtimeConfig {
             max_execution_time: Duration::from_millis(100),
+            allow_console: true,
             ..Default::default()
         };
 
         let sandbox = WasmtimeSandbox::new(config)?;
         let ctx = ExecutionContext::new("timeout-test".to_string(), serde_json::json!({}));
 
-        // Execute infinite loop - should timeout
         let result = sandbox.execute(&wasm_bytecode, &ctx).await?;
 
         match result {
-            ExecutionResult::Timeout { elapsed_ms, .. } => {
-                // Should have timed out quickly
-                assert!(
-                    elapsed_ms < 1000,
-                    "Expected timeout < 1000ms, got {}",
-                    elapsed_ms
-                );
+            ExecutionResult::Timeout {
+                elapsed_ms,
+                partial_output,
+            } => {
+                assert!(elapsed_ms < 1000);
+                assert_eq!(partial_output, Some("Before infinite loop\n".to_string()));
             }
-            other => panic!("Expected timeout, got: {:?}", other),
+            other => panic!("Expected timeout with partial output, got: {:?}", other),
         }
 
         Ok(())

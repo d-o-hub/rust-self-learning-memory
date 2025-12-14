@@ -11,7 +11,7 @@ Always use the plans/ folder for all files.
 
 ## Quick Reference
 
-- **[Execution Strategies](execution-strategies.md)** - Detailed guide on parallel, sequential, swarm, hybrid, and iterative execution patterns
+See the GOAP Agent documentation (`../agents/goap-agent.md`) for detailed execution patterns and examples.
 
 ## When to Use This Skill
 
@@ -113,7 +113,7 @@ Task 1.3 (parallel) → Task 2.2
 
 ## Phase 3: Strategy Selection
 
-Choose execution strategy based on task characteristics. See **[execution-strategies.md](execution-strategies.md)** for detailed guide.
+Choose execution strategy based on task characteristics. See the GOAP Agent documentation (`../agents/goap-agent.md`) for detailed execution patterns.
 
 ### Quick Strategy Guide
 

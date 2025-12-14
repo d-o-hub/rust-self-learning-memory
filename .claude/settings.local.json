@@ -1,15 +1,4 @@
 {
-  "env": {
-    "ANTHROPIC_BASE_URL": "https://api.minimax.io/anthropic",
-    "ANTHROPIC_AUTH_TOKEN": "REDACTED - Use environment variable",
-    "API_TIMEOUT_MS": "3000000",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-    "ANTHROPIC_MODEL": "MiniMax-M2",
-    "ANTHROPIC_SMALL_FAST_MODEL": "MiniMax-M2",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "MiniMax-M2",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "MiniMax-M2",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "MiniMax-M2"
-  },
   "permissions": {
     "allow": [
       "Bash(cargo test:*)",
@@ -102,7 +91,22 @@
       "Bash(for i in {1..12})",
       "Bash(done)",
       "Bash(for:*)",
-      "Bash(git rev-parse:*)"
+      "Bash(git rev-parse:*)",
+      "Skill(analysis-swarm)",
+      "Bash(RUST_LOG=debug cargo test:*)",
+      "WebFetch(domain:bytecodealliance.org)",
+      "WebFetch(domain:docs.wasmtime.dev)",
+      "WebFetch(domain:petermalmgren.com)",
+      "WebFetch(domain:component-model.bytecodealliance.org)",
+      "WebFetch(domain:gist.github.com)",
+      "Bash(git diff:*)",
+      "WebFetch(domain:shopify.engineering)",
+      "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:lib.rs)",
+      "WebFetch(domain:crates.io)",
+      "Bash(jobs:*)",
+      "Bash(wait)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

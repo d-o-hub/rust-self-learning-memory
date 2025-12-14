@@ -450,8 +450,10 @@ mod tests {
         let wasm_bytecode = wat::parse_str(wat).context("Failed to parse WAT")?;
 
         // Create sandbox with very short timeout
-        let mut config = WasmtimeConfig::default();
-        config.max_execution_time = Duration::from_millis(100);
+        let config = WasmtimeConfig {
+            max_execution_time: Duration::from_millis(100),
+            ..Default::default()
+        };
 
         let sandbox = WasmtimeSandbox::new(config)?;
         let ctx = ExecutionContext::new("timeout-test".to_string(), serde_json::json!({}));

@@ -40,6 +40,7 @@
 //! ```
 
 use anyhow::{anyhow, Result};
+#[cfg(feature = "wasm-rquickjs")]
 use rquickjs::{Context, Ctx, Function, Object, Runtime, Value};
 use std::{
     sync::Arc,
@@ -136,6 +137,7 @@ impl PooledRuntime {
 
 /// WASM-based JavaScript execution sandbox
 #[derive(Debug)]
+#[cfg(feature = "wasm-rquickjs")]
 pub struct WasmSandbox {
     config: WasmConfig,
     runtime_pool: Arc<RwLock<Vec<PooledRuntime>>>,
@@ -155,6 +157,7 @@ pub struct WasmMetrics {
     pub memory_usage_bytes: u64,
 }
 
+#[cfg(feature = "wasm-rquickjs")]
 impl WasmSandbox {
     /// Create a new WASM sandbox with the given configuration
     pub fn new(config: WasmConfig) -> Result<Self> {

@@ -82,6 +82,44 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
     needs: [check-quick-check]
+  
+  mcp-feature-matrix:
+    name: MCP Feature Matrix
+    runs-on: ubuntu-latest
+    needs: [check-quick-check]
+    if: >-
+      ${{
+        always() &&
+        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
+        (github.event_name == 'push' ||
+        github.event_name == 'pull_request' ||
+        github.event.workflow_run.conclusion == 'success')
+      }}
+    strategy:
+      fail-fast: false
+      matrix:
+        feature: ["default", "wasm-rquickjs", "javy-backend"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Build (default)
+        if: matrix.feature == 'default'
+        run: |
+          cargo build -p memory-mcp
+          cargo test -p memory-mcp -- --test-threads=2
+      - name: Build (wasm-rquickjs)
+        if: matrix.feature == 'wasm-rquickjs'
+        run: |
+          cargo build -p memory-mcp --features wasm-rquickjs
+          cargo test -p memory-mcp --features wasm-rquickjs -- --test-threads=2
+      - name: Build (javy-backend)
+        if: matrix.feature == 'javy-backend'
+        run: |
+          cargo build -p memory-mcp --features javy-backend
+          cargo test -p memory-mcp --features javy-backend -- --test-threads=2
     if: >-
       ${{
         always() &&

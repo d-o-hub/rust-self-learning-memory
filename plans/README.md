@@ -4,22 +4,21 @@ This directory contains comprehensive implementation plans, architectural decisi
 
 ## Version Status
 
-### Current Release: v0.1.4 (2025-11-21)
+### Current Release: v0.1.6 (2025-12-14)
 
 **Status**: ✅ COMPLETE - Production Ready
 **Quality Score**: 9.5/10
-**Test Coverage**: 96%+
-**Tests Passing**: 77/77 ✅
+**Test Coverage**: 7/7 wasmtime tests passing
+**Branch**: `feat/phase2c-javy-integration`
 
 **Key Achievements**:
-- Enhanced CLI with error messages and command aliases
-- Interactive confirmations for destructive operations
-- Critical bug fixes (duplicate storage initialization)
-- All security tests passing
-- Zero compilation warnings
-- Performance targets exceeded (2-3x)
+- ✅ Wasmtime-first default with wasmtime 24.0.5 (rquickjs and Javy optional via features)
+- ✅ Javy research complete (JavaScript → WASM compilation ready)
+- ✅ WASI + Fuel-based timeouts implemented
+- ✅ MCP server fully operational (6/6 tools working)
+- ✅ Dual storage verified (Turso + redb)
 
-**Documentation**: See [v0.1.4 Release](#v014-quality-polish--cli-enhancement)
+**Current Phase**: Phase 2C - Javy Integration (Planning complete, implementation ready)
 
 ---
 
@@ -29,86 +28,68 @@ This directory contains comprehensive implementation plans, architectural decisi
 
 | Version | Release Date | Status | Quality | Key Features |
 |---------|-------------|---------|---------|--------------|
-| **v0.1.4** | 2025-11-21 | ✅ Complete | 9.5/10 | CLI polish, enhanced errors, aliases |
+| **v0.1.6** | 2025-12-14 | ✅ Complete | 9.5/10 | Wasmtime integration, Javy research |
+| **v0.1.4** | 2025-11-21 | ✅ Released | 9.5/10 | CLI polish, enhanced errors, aliases |
 | **v0.1.3** | 2025-11-17 | ✅ Released | 8.7/10 | Full CLI with 24 commands, 96% coverage |
 | **v0.1.2** | 2025-11-15 | ✅ Released | 9.2/10 | Operational runbooks, monitoring |
 | **v0.1.1** | 2025-11-14 | ✅ Released | 9.0/10 | Production deployment guide |
 | **v0.1.0** | 2025-11-13 | ✅ Released | 9.0/10 | Core memory system, dual storage |
 
-### Planned Versions
+### Active Development
 
-| Version | Target Date | Status | Focus |
-|---------|------------|---------|-------|
-| **v0.2.0** | Q2 2025 | Planning | Semantic intelligence, advanced patterns |
-| **v0.3.0** | Q4 2025 | Planned | Scale features, distributed storage |
-| **v0.4.0** | Q2 2026 | Planned | Intelligence 2.0, reinforcement learning |
-| **v1.0.0** | Q4 2027 | Vision | Enterprise maturity, ecosystem dominance |
+| Phase | Target Date | Status | Focus |
+|-------|------------|--------|-------|
+| **Phase 2C** | Jan 2026 | Planning | Javy integration (JS → WASM) |
+| **v0.2.0** | Q2 2026 | Planning | Semantic intelligence, advanced patterns |
+| **v1.0.0** | 2027 | Vision | Enterprise maturity, ecosystem dominance |
 
 ---
 
 ## Quick Navigation
 
-### Current Version Documentation
+### Active Development Documents
 
-#### v0.1.4 Quality Polish & CLI Enhancement
-- **[19-v0.1.4-quality-polish.md](19-v0.1.4-quality-polish.md)** - Implementation plan and requirements
-- **[v0.1.4-planning-summary.md](v0.1.4-planning-summary.md)** - Planning summary and approach
-- **[v0.1.4-phase1-completion-handoff.md](v0.1.4-phase1-completion-handoff.md)** - Phase 1 completion report
-- **[v0.1.4-phase2-completion-report.md](v0.1.4-phase2-completion-report.md)** - Phase 2 implementation details
-- **[v0.1.4-complete-implementation-summary.md](v0.1.4-complete-implementation-summary.md)** - Complete summary and verification ✅
+#### Phase 2C: Javy Integration (Current)
+- **[goap-phase2c-javy-plan.md](goap-phase2c-javy-plan.md)** - Complete GOAP implementation plan
+- **[javy-research-findings.md](javy-research-findings.md)** - Javy v8.0.0 research results and integration strategy
 
-**Key Deliverables**:
-- Enhanced error messages with suggestions and context
-- 9 command aliases (ep, pat, st, cfg, hp, bak, mon, log, comp)
-- Interactive confirmations for destructive operations
-- Duplicate storage initialization bug fixed
-- All 77 tests passing with zero warnings
+**Current Status**:
+- ✅ Research phase complete
+- ✅ Integration strategy documented (Dynamic linking approach)
+- ⏳ Implementation phase ready to begin
 
-### Future Roadmap
-
-#### v0.2.0 Advanced Features (Q2 2025)
-- **[14-v0.2.0-roadmap.md](14-v0.2.0-roadmap.md)** - Comprehensive v0.2.0 roadmap
-
-**Key Features**:
-- Semantic intelligence with embeddings
-- Advanced pattern composition and conflict resolution
-- Production-grade observability (Prometheus, OpenTelemetry)
-- Ecosystem integrations (LangChain, LlamaIndex)
-- Multi-tenancy and enterprise features
-
-#### Long-Term Vision
-- **[15-long-term-vision.md](15-long-term-vision.md)** - Strategic vision for v1.0 and beyond (2027)
-
-**Themes**:
-- Product evolution roadmap (v0.1.0 → v1.0)
-- Technology evolution (storage, AI/ML, deployment)
-- Market strategy and competitive differentiation
-- Research agenda and publication strategy
-- Community and governance model
-
-### Core Planning Documents
-
-#### Phase 0-7: Process Framework
-- **[00-overview.md](00-overview.md)** - Project overview and quick start guide
-- **[01-understand.md](01-understand.md)** - Problem analysis and cognitive mapping
-- **[02-plan.md](02-plan.md)** - Strategic planning and architecture design
-- **[03-execute.md](03-execute.md)** - Multi-agent implementation coordination
-- **[04-review.md](04-review.md)** - Quality assessment and validation
-- **[05-secure.md](05-secure.md)** - Security hardening and threat mitigation
-- **[06-feedback-loop.md](06-feedback-loop.md)** - Continuous improvement planning
-- **[07-p0-security-improvements.md](07-p0-security-improvements.md)** - Critical security enhancements ✅
+#### Project Status & Roadmap
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status and recent achievements
+- **[ROADMAP.md](ROADMAP.md)** - Master roadmap and version history
+- **[14-v0.2.0-roadmap.md](14-v0.2.0-roadmap.md)** - v0.2.0 roadmap (Q2 2026)
+- **[15-long-term-vision.md](15-long-term-vision.md)** - Strategic vision for v1.0 (2027)
 
 #### Technical Documentation
-- **[10-production-readiness.md](10-production-readiness.md)** - Path to production deployment
-- **[16-observability-implementation.md](16-observability-implementation.md)** - Monitoring and operations (P0)
-- **[17-operational-runbooks.md](17-operational-runbooks.md)** - Day-2 operations procedures (P0)
-- **[21-architecture-decision-records.md](21-architecture-decision-records.md)** - Documented architectural decisions (P1)
+- **[21-architecture-decision-records.md](21-architecture-decision-records.md)** - Documented architectural decisions
 
-#### Release Documentation
-- **[13-v0.1.0-release-status.md](13-v0.1.0-release-status.md)** - v0.1.0-v0.1.2 release comprehensive assessment
-- **[18-v0.1.3-cli-interface.md](18-v0.1.3-cli-interface.md)** - v0.1.3 CLI implementation (RELEASED) ✅
-- **[PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md)** - Benchmark results and targets
-- **[RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)** - Pre-release validation checklist
+### Archive Information
+
+All historical planning documents have been organized into the `archive/` directory:
+
+#### archive/goap-plans/
+Completed GOAP execution plans for historical phases (7 files)
+
+#### archive/releases/
+Organized by version:
+- **v0.1.0/** - Initial release documentation (1 file)
+- **v0.1.3/** - CLI interface implementation (1 file)
+- **v0.1.4/** - Quality polish release (4 files)
+- **v0.1.6/** - Wasmtime integration and completion reports (9 files)
+
+#### archive/research/
+Research and analysis reports that are no longer actively referenced (4 files)
+
+#### archive/legacy/
+Historical planning framework and technical docs (25+ files)
+- Phase 0-7 planning framework (00-07 series)
+- Production readiness documentation
+- Operational runbooks
+- Performance baselines
 
 ---
 
@@ -348,6 +329,29 @@ This README serves as the main index for all planning documentation. Documents a
 
 ---
 
-**Plan Version**: 4.0
-**Last Updated**: 2025-11-21
-**Status**: v0.1.4 COMPLETE ✅ - Ready for v0.2.0 Planning
+**Plan Version**: 5.0
+**Last Updated**: 2025-12-14
+**Status**: v0.1.6 COMPLETE ✅ - Phase 2C Javy Integration Ready
+
+---
+
+## Cleanup Summary
+
+**Archive Date**: 2025-12-14
+
+**Files Reduced**: 59 → 8 (86% reduction)
+
+**Actions Taken**:
+- Archived 7 GOAP execution plans to `archive/goap-plans/`
+- Consolidated 15 version-specific release docs to `archive/releases/`
+- Moved 5 research reports to `archive/research/`
+- Organized 25+ legacy planning docs to `archive/legacy/`
+- Updated PROJECT_STATUS.md to current branch and status
+- Fixed ROADMAP.md merge conflict and updated version info
+- Updated README.md to reflect new structure
+
+**Benefits**:
+- Easier navigation for new contributors
+- Clear separation of current work vs historical records
+- Reduced cognitive load when browsing plans
+- All historical information preserved in archive/

@@ -50,7 +50,7 @@ use std::sync::Arc;
 use tracing::{debug, info};
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
-use crate::wasm_sandbox::{WasmConfig, WasmMetrics, WasmSandbox};
+use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};
 
 // Re-export existing Node.js sandbox
 pub use super::sandbox::CodeSandbox;
@@ -86,7 +86,7 @@ pub struct UnifiedSandbox {
     config: SandboxConfig,
     backend: SandboxBackend,
     node_sandbox: Option<Arc<CodeSandbox>>,
-    wasm_sandbox: Option<Arc<WasmSandbox>>,
+    wasmtime_sandbox: Option<Arc<WasmtimeSandbox>>,
     metrics: Arc<tokio::sync::RwLock<UnifiedMetrics>>,
 }
 
@@ -124,7 +124,7 @@ impl UnifiedSandbox {
         info!("Creating unified sandbox with backend: {:?}", backend);
 
         let mut node_sandbox = None;
-        let mut wasm_sandbox = None;
+        let mut wasmtime_sandbox = None;
 
         // Initialize backends based on configuration
         match &backend {
@@ -133,16 +133,16 @@ impl UnifiedSandbox {
                 node_sandbox = Some(Arc::new(CodeSandbox::new(config.clone())?));
             }
             SandboxBackend::Wasm => {
-                debug!("Initializing WASM sandbox");
-                let wasm_config = WasmConfig::from(&config);
-                wasm_sandbox = Some(Arc::new(WasmSandbox::new(wasm_config)?));
+                debug!("Initializing Wasmtime WASM sandbox");
+                let wasmtime_config = WasmtimeConfig::from(&config);
+                wasmtime_sandbox = Some(Arc::new(WasmtimeSandbox::new(wasmtime_config)?));
             }
             SandboxBackend::Hybrid { .. } => {
                 debug!("Initializing Node.js sandbox");
                 node_sandbox = Some(Arc::new(CodeSandbox::new(config.clone())?));
-                debug!("Initializing WASM sandbox");
-                let wasm_config = WasmConfig::from(&config);
-                wasm_sandbox = Some(Arc::new(WasmSandbox::new(wasm_config)?));
+                debug!("Initializing Wasmtime WASM sandbox");
+                let wasmtime_config = WasmtimeConfig::from(&config);
+                wasmtime_sandbox = Some(Arc::new(WasmtimeSandbox::new(wasmtime_config)?));
             }
         }
 
@@ -150,7 +150,7 @@ impl UnifiedSandbox {
             config,
             backend,
             node_sandbox,
-            wasm_sandbox,
+            wasmtime_sandbox,
             metrics: Arc::new(tokio::sync::RwLock::new(UnifiedMetrics::default())),
         })
     }
@@ -184,10 +184,12 @@ impl UnifiedSandbox {
                 }
             }
             BackendChoice::Wasm => {
-                if let Some(sandbox) = &self.wasm_sandbox {
-                    sandbox.execute(code, &context).await
+                if let Some(_sandbox) = &self.wasmtime_sandbox {
+                    // TODO: Compile JavaScript to WASM using Javy before executing
+                    // For now, return error for JavaScript code
+                    Err(anyhow!("JavaScript→WASM compilation not yet implemented. Wasmtime sandbox requires pre-compiled WASM bytecode."))
                 } else {
-                    Err(anyhow!("WASM sandbox not available"))
+                    Err(anyhow!("Wasmtime sandbox not available"))
                 }
             }
         };
@@ -367,9 +369,9 @@ impl UnifiedSandbox {
             health.node_available = true;
         }
 
-        if let Some(sandbox) = &self.wasm_sandbox {
+        if let Some(sandbox) = &self.wasmtime_sandbox {
             health.wasm_available = true;
-            health.wasm_pool_stats = Some(sandbox.get_metrics().await);
+            health.wasmtime_pool_stats = Some(sandbox.get_metrics().await);
         }
 
         health
@@ -413,19 +415,19 @@ struct CodeHeuristics {
 pub struct BackendHealth {
     pub node_available: bool,
     pub wasm_available: bool,
-    pub wasm_pool_stats: Option<WasmMetrics>,
+    pub wasmtime_pool_stats: Option<WasmtimeMetrics>,
 }
 
-/// Convert SandboxConfig to WasmConfig
-impl From<&SandboxConfig> for WasmConfig {
+/// Convert SandboxConfig to WasmtimeConfig
+impl From<&SandboxConfig> for WasmtimeConfig {
     fn from(config: &SandboxConfig) -> Self {
-        // Map SandboxConfig to WasmConfig based on restrictiveness
+        // Map SandboxConfig to WasmtimeConfig based on restrictiveness
         if config.allow_network || config.allow_filesystem || config.allow_subprocesses {
             // Permissive if any dangerous permissions are enabled
-            WasmConfig::permissive()
+            WasmtimeConfig::default()
         } else {
             // Restrictive otherwise
-            WasmConfig::restrictive()
+            WasmtimeConfig::restrictive()
         }
     }
 }

@@ -120,6 +120,12 @@ jobs:
         run: |
           cargo build -p memory-mcp --features javy-backend
           cargo test -p memory-mcp --features javy-backend -- --test-threads=2
+  # End of feature matrix job
+
+  mcp-matrix:
+    name: MCP Matrix
+    runs-on: ${{ matrix.os }}
+    needs: [check-quick-check]
     if: >-
       ${{
         always() &&
@@ -129,6 +135,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success')
       }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         rust: [stable]

@@ -4,6 +4,7 @@ use serde_json::json;
 #[tokio::test]
 async fn test_unknown_method_notification_no_response() {
     let req = JsonRpcRequest {
+        jsonrpc: Some("2.0".into()),
         id: None,
         method: "nope".into(),
         params: None,
@@ -14,7 +15,7 @@ async fn test_unknown_method_notification_no_response() {
 
 // Minimal shim replicating server handler logic for unknown method path
 async fn bin_server_handle_request(req: JsonRpcRequest) -> Option<JsonRpcResponse> {
-    if req.id.is_none() {
+    if req.id.is_none() || matches!(req.id, Some(serde_json::Value::Null)) {
         return None;
     }
     Some(JsonRpcResponse {

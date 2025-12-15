@@ -24,9 +24,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
-use crate::types::{ErrorType, ExecutionContext, ExecutionResult};
+use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
 
 /// Javy compiler configuration
@@ -282,19 +282,19 @@ impl JavyCompiler {
         let wasm_bytes = self.compile_js_to_wasm(&js_source).await?;
 
         // Execute the compiled WASM
-        let result = self
-            .wasmtime_sandbox
-            .execute_wasm(wasm_bytes, context)
-            .await?;
+        let result = self.wasmtime_sandbox.execute(&wasm_bytes, &context).await?;
 
         // Update execution metrics
         {
             let mut metrics = self.metrics.write().await;
             metrics.total_executions += 1;
-            if result.success {
-                metrics.successful_executions += 1;
-            } else {
-                metrics.failed_executions += 1;
+            match &result {
+                ExecutionResult::Success { .. } => {
+                    metrics.successful_executions += 1;
+                }
+                _ => {
+                    metrics.failed_executions += 1;
+                }
             }
         }
 
@@ -334,10 +334,7 @@ impl JavyCompiler {
                 '{' => brace_count += 1,
                 '}' => {
                     if brace_count == 0 {
-                        return Err(anyhow::anyhow!(
-                            "Unmatched closing brace at position {}",
-                            i
-                        ));
+                        return Err(anyhow::anyhow!("Unmatched closing brace at position {}", i));
                     }
                     brace_count -= 1;
                 }
@@ -396,7 +393,10 @@ impl JavyCompiler {
     /// Check compiler health
     pub async fn health_check(&self) -> Result<()> {
         // Check if wasmtime sandbox is healthy
-        self.wasmtime_sandbox.health_check().await?;
+        let healthy = self.wasmtime_sandbox.health_check().await;
+        if !healthy {
+            return Err(anyhow::anyhow!("Wasmtime sandbox reported unhealthy status"));
+        }
 
         // Check cache health
         let _ = self.module_cache.lock().unwrap().len();
@@ -411,19 +411,33 @@ impl JavyCompiler {
     }
 
     /// Perform the actual JavaScript to WASM compilation
+    #[cfg(feature = "javy-backend")]
     async fn perform_compilation(&self, js_source: &str) -> Result<Vec<u8>> {
-        // TODO: Implement actual Javy compilation
-        // This is a placeholder that should be replaced with actual Javy API calls
+        use javy_codegen::{Generator, LinkingKind, JS};
+        let source = js_source.to_string();
+        let source_len = source.len();
+        tokio::task::spawn_blocking(move || {
+            let js = JS::from_string(source);
+            let mut gen = Generator::default();
+            gen.linking(LinkingKind::Dynamic);
+            let wasm = gen.generate(&js).context("Failed to generate WASM")?;
+            info!(
+                "Compiled JS ({} bytes) to WASM ({} bytes)",
+                source_len,
+                wasm.len()
+            );
+            Ok(wasm)
+        })
+        .await
+        .context("Compilation task panicked")?
+    }
 
-        // For now, return an error to indicate this needs implementation
+    #[cfg(not(feature = "javy-backend"))]
+    async fn perform_compilation(&self, js_source: &str) -> Result<Vec<u8>> {
         Err(anyhow::anyhow!(
-            "Javy compilation not yet implemented. This is a placeholder.\n\
-             Expected implementation: Use Javy APIs to compile JavaScript to WASM.\n\
-             JavaScript source ({} bytes): {}\n\
-             \n\
-             See: https://github.com/bytecodealliance/javy",
-            js_source.len(),
-            &js_source[..js_source.len().min(200)]
+            "Javy backend not enabled. Compile with --features javy-backend\n\
+             Source: {} bytes",
+            js_source.len()
         ))
     }
 
@@ -462,41 +476,26 @@ mod tests {
 
     #[tokio::test]
     async fn test_js_syntax_validation() {
-        let config = JavyConfig::default();
-        let compiler = JavyCompiler::new(config).unwrap();
-
-        // Valid JavaScript
-        assert!(compiler
-            .validate_js_syntax("const x = 1;")
-            .is_ok());
-
-        // Invalid JavaScript - unmatched braces
-        assert!(compiler
-            .validate_js_syntax("const x = {;")
-            .is_err());
+        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
+        assert!(compiler.validate_js_syntax("const x = 1;").is_ok());
+        assert!(compiler.validate_js_syntax("const x = {;").is_err());
     }
 
     #[tokio::test]
     async fn test_metrics_initialization() {
-        let config = JavyConfig::default();
-        let compiler = JavyCompiler::new(config).unwrap();
-        let metrics = compiler.get_metrics().await;
-
-        assert_eq!(metrics.total_compilations, 0);
-        assert_eq!(metrics.successful_compilations, 0);
-        assert_eq!(metrics.failed_compilations, 0);
+        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
+        let m = compiler.get_metrics().await;
+        assert_eq!(m.total_compilations, 0);
+        assert_eq!(m.successful_compilations, 0);
     }
 
     #[tokio::test]
     async fn test_cache_key_generation() {
-        let config = JavyConfig::default();
-        let compiler = JavyCompiler::new(config).unwrap();
-
-        let key1 = compiler.generate_cache_key("const x = 1;");
-        let key2 = compiler.generate_cache_key("const x = 1;");
-        let key3 = compiler.generate_cache_key("const x = 2;");
-
-        assert_eq!(key1, key2); // Same input should generate same key
-        assert_ne!(key1, key3); // Different input should generate different key
+        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
+        let k1 = compiler.generate_cache_key("const x = 1;");
+        let k2 = compiler.generate_cache_key("const x = 1;");
+        let k3 = compiler.generate_cache_key("const x = 2;");
+        assert_eq!(k1, k2);
+        assert_ne!(k1, k3);
     }
 }

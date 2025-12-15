@@ -342,32 +342,52 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
 // jsonrpc helpers moved to memory_mcp::jsonrpc
 /// Handle a JSON-RPC request
 async fn handle_request(
-    request: JsonRpcRequest,
-    mcp_server: &Arc<Mutex<MemoryMCPServer>>,
+   request: JsonRpcRequest,
+   mcp_server: &Arc<Mutex<MemoryMCPServer>>,
 ) -> Option<JsonRpcResponse> {
-    // Notifications (no id) must not produce a response per JSON-RPC
-    if request.id.is_none() {
-        return None;
-    }
-    match request.method.as_str() {
-        "initialize" => handle_initialize(request).await,
-        "tools/list" => handle_list_tools(request, mcp_server).await,
-        "tools/call" => handle_call_tool(request, mcp_server).await,
-        "shutdown" => handle_shutdown(request).await,
-        _ => {
-            warn!("Unknown method: {}", request.method);
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32601,
-                    message: "Method not found".to_string(),
-                    data: None,
-                }),
-            })
-        }
-    }
+   // Notifications (no id) must not produce a response per JSON-RPC
+   // Treat both missing id and explicit null id as notifications (no response)
+   if request.id.is_none() || matches!(request.id, Some(serde_json::Value::Null)) {
+       return None;
+   }
+
+   // Normalize method name if compatibility aliases are enabled
+   // Enable compatibility aliases by default for broader client support.
+   // Can be disabled by setting MCP_COMPAT_ALIASES to "false"/"0"/"no".
+   let compat_env = std::env::var("MCP_COMPAT_ALIASES").unwrap_or_else(|_| "true".to_string());
+   let compat = compat_env.to_lowercase();
+   let compat_enabled = !(compat == "false" || compat == "0" || compat == "no");
+
+   let mut method = request.method.clone();
+   if compat_enabled {
+       method = match request.method.as_str() {
+           // Common variants observed in some clients
+           "tools.get" | "tools/get" | "list_tools" | "list-tools" => "tools/list".to_string(),
+           "call_tool" | "tool/call" | "tools.call" => "tools/call".to_string(),
+           // Pass through known methods unchanged
+           _ => request.method.clone(),
+       };
+   }
+
+   match method.as_str() {
+       "initialize" => handle_initialize(request).await,
+       "tools/list" => handle_list_tools(request, mcp_server).await,
+       "tools/call" => handle_call_tool(request, mcp_server).await,
+       "shutdown" => handle_shutdown(request).await,
+       _ => {
+           warn!("Unknown method: {}", method);
+           Some(JsonRpcResponse {
+               jsonrpc: "2.0".to_string(),
+               id: request.id,
+               result: None,
+               error: Some(JsonRpcError {
+                   code: -32601,
+                   message: "Method not found".to_string(),
+                   data: None,
+               }),
+           })
+       }
+   }
 }
 
 /// Handle initialize request

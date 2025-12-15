@@ -354,10 +354,50 @@ impl SelfLearningMemory {
     ///
     /// Returns `Error::NotFound` if the episode doesn't exist
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Episode> {
-        let episodes = self.episodes_fallback.read().await;
-        episodes
-            .get(&episode_id)
-            .cloned()
-            .ok_or(Error::NotFound(episode_id))
+        // 1) Try in-memory cache first
+        if let Some(ep) = {
+            let episodes = self.episodes_fallback.read().await;
+            episodes.get(&episode_id).cloned()
+        } {
+            return Ok(ep);
+        }
+
+        // Helper to insert into in-memory cache
+        let insert_into_cache = |episode: &Episode, map: &mut std::collections::HashMap<Uuid, Episode>| {
+            map.insert(episode.episode_id, episode.clone());
+        };
+
+        // 2) Try cache storage (redb) next
+        if let Some(cache) = &self.cache_storage {
+            match cache.get_episode(episode_id).await {
+                Ok(Some(episode)) => {
+                    let mut episodes = self.episodes_fallback.write().await;
+                    insert_into_cache(&episode, &mut episodes);
+                    return Ok(episode);
+                }
+                Ok(None) => {
+                    // Not found in cache; continue to durable storage
+                }
+                Err(_e) => {
+                    // Cache access failed; continue to durable storage
+                }
+            }
+        }
+
+        // 3) Try durable storage (Turso)
+        if let Some(turso) = &self.turso_storage {
+            match turso.get_episode(episode_id).await {
+                Ok(Some(episode)) => {
+                    // Populate in-memory cache for subsequent accesses
+                    let mut episodes = self.episodes_fallback.write().await;
+                    insert_into_cache(&episode, &mut episodes);
+                    return Ok(episode);
+                }
+                Ok(None) => {}
+                Err(_e) => {}
+            }
+        }
+
+        Err(Error::NotFound(episode_id))
     }
 }

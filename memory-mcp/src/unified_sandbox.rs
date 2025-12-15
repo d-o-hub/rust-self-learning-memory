@@ -52,6 +52,9 @@ use tracing::{debug, info};
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};
 
+#[cfg(feature = "javy-backend")]
+use crate::javy_compiler::{JavyCompiler, JavyConfig};
+
 // Re-export existing Node.js sandbox
 pub use super::sandbox::CodeSandbox;
 
@@ -87,6 +90,8 @@ pub struct UnifiedSandbox {
     backend: SandboxBackend,
     node_sandbox: Option<Arc<CodeSandbox>>,
     wasmtime_sandbox: Option<Arc<WasmtimeSandbox>>,
+    #[cfg(feature = "javy-backend")]
+    javy_compiler: Option<Arc<JavyCompiler>>,
     metrics: Arc<tokio::sync::RwLock<UnifiedMetrics>>,
 }
 
@@ -146,11 +151,25 @@ impl UnifiedSandbox {
             }
         }
 
+        // Initialize Javy compiler if using Wasm or Hybrid backends
+        #[cfg(feature = "javy-backend")]
+        let javy_compiler = if matches!(
+            backend,
+            SandboxBackend::Wasm | SandboxBackend::Hybrid { .. }
+        ) {
+            debug!("Initializing Javy JavaScript→WASM compiler");
+            Some(Arc::new(JavyCompiler::new(JavyConfig::default())?))
+        } else {
+            None
+        };
+
         Ok(Self {
             config,
             backend,
             node_sandbox,
             wasmtime_sandbox,
+            #[cfg(feature = "javy-backend")]
+            javy_compiler,
             metrics: Arc::new(tokio::sync::RwLock::new(UnifiedMetrics::default())),
         })
     }
@@ -184,12 +203,32 @@ impl UnifiedSandbox {
                 }
             }
             BackendChoice::Wasm => {
-                if let Some(_sandbox) = &self.wasmtime_sandbox {
-                    // TODO: Compile JavaScript to WASM using Javy before executing
-                    // For now, return error for JavaScript code
-                    Err(anyhow!("JavaScript→WASM compilation not yet implemented. Wasmtime sandbox requires pre-compiled WASM bytecode."))
-                } else {
-                    Err(anyhow!("Wasmtime sandbox not available"))
+                // Try Javy compiler first (if enabled), then fallback to pre-compiled WASM
+                #[cfg(feature = "javy-backend")]
+                {
+                    if let Some(compiler) = &self.javy_compiler {
+                        // Use Javy to compile JavaScript to WASM and execute
+                        debug!("Compiling JavaScript to WASM via Javy");
+                        compiler.execute_js(code.to_string(), context).await
+                    } else if let Some(sandbox) = &self.wasmtime_sandbox {
+                        // Fallback: assume it's pre-compiled WASM bytecode
+                        debug!("Executing pre-compiled WASM bytecode");
+                        sandbox.execute(code.as_bytes(), &context).await
+                    } else {
+                        Err(anyhow!(
+                            "Neither Javy compiler nor Wasmtime sandbox initialized"
+                        ))
+                    }
+                }
+                #[cfg(not(feature = "javy-backend"))]
+                {
+                    // Without Javy feature, require pre-compiled WASM
+                    if let Some(sandbox) = &self.wasmtime_sandbox {
+                        debug!("Executing pre-compiled WASM bytecode (Javy not enabled)");
+                        sandbox.execute(code.as_bytes(), &context).await
+                    } else {
+                        Err(anyhow!("Wasmtime sandbox not initialized. Enable 'javy-backend' feature for JavaScript support."))
+                    }
                 }
             }
         };

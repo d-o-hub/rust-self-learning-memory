@@ -5,8 +5,12 @@ use std::io::{self, BufRead, Read, Write};
 /// JSON-RPC request structure
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcRequest {
+    #[serde(default)]
+    pub jsonrpc: Option<String>,
+    #[serde(default)]
     pub id: Option<Value>,
     pub method: String,
+    #[serde(default)]
     pub params: Option<Value>,
 }
 
@@ -15,7 +19,7 @@ pub struct JsonRpcRequest {
 pub struct JsonRpcResponse {
     pub jsonrpc: String,
     pub id: Option<Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    // Always include result, even when null, to satisfy strict clients
     pub result: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<JsonRpcError>,
@@ -91,7 +95,6 @@ pub fn write_response_with_length<W: Write>(writer: &mut W, body: &str) -> io::R
     let header = format!("Content-Length: {}\r\n\r\n", bytes.len());
     writer.write_all(header.as_bytes())?;
     writer.write_all(bytes)?;
-    writer.write_all(b"\n")?;
     writer.flush()?;
     Ok(())
 }

@@ -24,8 +24,7 @@
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::io::{self, Write};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
 use tracing::{debug, info, warn};
@@ -81,63 +80,26 @@ pub struct WasmtimeMetrics {
     pub peak_memory_bytes: usize,
 }
 
-/// Thread-safe output buffer for WASI stdio capture
-#[derive(Clone, Default)]
-struct OutputBuffer {
-    buffer: Arc<Mutex<Vec<u8>>>,
-}
-
-impl OutputBuffer {
-    /// Create a new output buffer
-    fn new() -> Self {
-        Self::default()
-    }
-
-    /// Extract the captured content as a UTF-8 string
-    fn into_string(self) -> String {
-        match Arc::try_unwrap(self.buffer) {
-            Ok(mutex) => {
-                let bytes = mutex.into_inner().unwrap_or_default();
-                String::from_utf8_lossy(&bytes).into_owned()
-            }
-            Err(_) => {
-                // If Arc is still shared, try to get a copy
-                let bytes = self.buffer.lock().unwrap_or_else(|e| e.into_inner());
-                String::from_utf8_lossy(&*bytes).into_owned()
-            }
-        }
-    }
-}
-
-impl Write for OutputBuffer {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let mut buffer = self.buffer.lock().unwrap_or_else(|e| e.into_inner());
-        buffer.extend_from_slice(buf);
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        // No-op for in-memory buffer
-        Ok(())
-    }
-}
-
-/// Captured WASI output for a single execution
+/// Captured WASI output for a single execution using wasmtime_wasi memory pipes
 struct CapturedOutput {
-    stdout: OutputBuffer,
-    stderr: OutputBuffer,
+    stdout: wasmtime_wasi::pipe::MemoryOutputPipe,
+    stderr: wasmtime_wasi::pipe::MemoryOutputPipe,
 }
 
 impl CapturedOutput {
     fn new() -> Self {
         Self {
-            stdout: OutputBuffer::new(),
-            stderr: OutputBuffer::new(),
+            stdout: wasmtime_wasi::pipe::MemoryOutputPipe::new(1024 * 64),
+            stderr: wasmtime_wasi::pipe::MemoryOutputPipe::new(1024 * 64),
         }
     }
 
     fn into_strings(self) -> (String, String) {
-        (self.stdout.into_string(), self.stderr.into_string())
+        let stdout = String::from_utf8_lossy(&self.stdout.try_into_inner().unwrap_or_default())
+            .into_owned();
+        let stderr = String::from_utf8_lossy(&self.stderr.try_into_inner().unwrap_or_default())
+            .into_owned();
+        (stdout, stderr)
     }
 }
 
@@ -245,8 +207,8 @@ impl WasmtimeSandbox {
             debug!("Configuring WASI with captured stdout/stderr");
             wasmtime_wasi::WasiCtxBuilder::new()
                 .inherit_stdin()
-                .stdout(Box::new(stdout_buffer))
-                .stderr(Box::new(stderr_buffer))
+                .stdout(stdout_buffer)
+                .stderr(stderr_buffer)
                 .build_p1()
         } else {
             debug!("Configuring WASI with inherited stdout/stderr (console disabled)");

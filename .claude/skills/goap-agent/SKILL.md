@@ -13,6 +13,40 @@ Always use the plans/ folder for all files.
 
 See the GOAP Agent documentation (`../agents/goap-agent.md`) for detailed execution patterns and examples.
 
+## CRITICAL: Understanding Skills vs Task Agents
+
+**There are TWO different types of workers you can coordinate in GOAP planning:**
+
+### Skills (invoked via `Skill` tool)
+Skills are **instruction sets** that guide Claude directly. They provide specialized knowledge and workflows.
+
+**How to invoke**: `Skill(command="skill-name")`
+
+**When to use**:
+- Need specialized knowledge/workflow guidance
+- Task requires deep domain expertise (Rust quality, architecture validation)
+- Want to follow a proven methodology
+- Examples: Code quality review, gap analysis, architecture validation
+
+### Task Agents (invoked via `Task` tool)
+Task Agents are **autonomous sub-processes** that execute tasks independently using tools.
+
+**How to invoke**: `Task(subagent_type="agent-name", prompt="...", description="...")`
+
+**When to use**:
+- Need autonomous task execution
+- Task requires tool usage (Read, Edit, Bash, etc.)
+- Want parallel/independent execution
+- Examples: Running tests, implementing features, debugging
+
+### Common Error to Avoid
+
+**WRONG**: `Task(subagent_type="rust-code-quality", ...)` → ERROR! rust-code-quality is a Skill!
+
+**CORRECT**: `Skill(command="rust-code-quality")` → SUCCESS
+
+**See the agent-coordination skill for the complete reference on Skills vs Agents.**
+
 ## When to Use This Skill
 
 Use this skill when facing:
@@ -23,6 +57,65 @@ Use this skill when facing:
 - **Quality-Critical Work**: Projects requiring validation checkpoints and quality gates
 - **Resource-Intensive Operations**: Large refactors, migrations, or architectural changes
 - **Ambiguous Requirements**: Tasks needing structured analysis before execution
+
+## Available Skills by Category
+
+### Quality & Validation Skills
+- **rust-code-quality**: Comprehensive Rust code review against best practices
+- **architecture-validation**: Validate implementation vs architecture plans
+- **plan-gap-analysis**: Implementation gap analysis between plans and code
+- **code-quality**: General code quality maintenance (formatting, linting)
+- **quality-unit-testing**: High-quality test writing following best practices
+
+### Build & Testing Skills
+- **build-compile**: Build management and compilation with error handling
+- **test-fix**: Systematic test debugging and fixing
+- **test-runner**: Test execution and management
+
+### Analysis & Decision-Making Skills
+- **analysis-swarm**: Multi-perspective code analysis (RYAN, FLASH, SOCRATES)
+- **codebase-consolidation**: Analyze, consolidate, document codebases
+- **debug-troubleshoot**: Systematic async Rust debugging
+
+### Research Skills
+- **web-search-researcher**: Web research for modern information
+- **context-retrieval**: Episodic memory retrieval from learning system
+
+### Memory System Skills
+- **episode-start**: Start learning episodes for task tracking
+- **episode-log-steps**: Log execution steps during episodes
+- **episode-complete**: Complete and score episodes
+- **memory-mcp**: MCP server operations
+- **memory-cli-ops**: CLI operations for memory system
+- **storage-sync**: Storage synchronization between Turso and redb
+
+### Workflow & Coordination Skills
+- **task-decomposition**: Break down complex tasks into atomic goals
+- **agent-coordination**: Coordinate multiple Skills and Agents
+- **parallel-execution**: Execute independent tasks simultaneously
+- **loop-agent**: Iterative refinement with convergence detection
+- **github-workflows**: Diagnose and optimize CI/CD workflows
+
+### Meta Skills
+- **skill-creator**: Create new Claude Code skills
+- **feature-implement**: Systematic feature implementation workflow
+
+## Available Task Agents
+
+### Execution Agents
+- **feature-implementer**: Design, implement, test new features
+- **refactorer**: Improve code quality, structure, maintainability
+- **debugger**: Diagnose runtime issues, performance problems
+
+### Validation Agents
+- **code-reviewer**: Review code quality, correctness, standards
+- **test-runner**: Execute tests, diagnose failures
+
+### Meta Agents
+- **agent-creator**: Create new Task Agents
+- **goap-agent**: Complex multi-step task planning (recursive)
+- **loop-agent**: Execute workflows iteratively
+- **Explore**: Fast codebase exploration and search
 
 ## Core GOAP Methodology
 
@@ -143,20 +236,92 @@ Needs iterative refinement?
 
 ### Agent Capability Matrix
 
-| Agent Type | Capabilities | Best For |
-|------------|--------------|----------|
-| feature-implementer | Design, implement, test features | New functionality |
-| debugger | Diagnose, fix runtime issues | Bug fixes, performance |
-| test-runner | Execute tests, diagnose failures | Test validation |
-| refactorer | Improve code quality, structure | Code improvements |
-| code-reviewer | Review quality, compliance | Quality assurance |
-| loop-agent | Iterative refinement, convergence detection | Progressive improvements |
+| Agent Type | Capabilities | Tools Available | Best For |
+|------------|--------------|-----------------|----------|
+| **feature-implementer** | Design, implement, test, integrate features | Read, Write, Edit, Bash, Glob, Grep | New functionality, modules, APIs |
+| **debugger** | Diagnose runtime issues, async problems | Read, Bash, Grep, Edit | Bug fixes, deadlocks, performance |
+| **test-runner** | Execute tests, diagnose failures | Bash, Read, Grep, Edit | Test validation, debugging tests |
+| **refactorer** | Improve structure, eliminate duplication | Read, Edit, Bash, Grep, Glob | Code quality, modernization |
+| **code-reviewer** | Review quality, standards, security | Read, Glob, Grep, Bash | Quality assurance, pre-commit |
+| **loop-agent** | Iterative refinement, convergence | Task, Read, TodoWrite, Glob, Grep | Progressive improvements, test-fix loops |
+| **agent-creator** | Create new Task Agents | Write, Read, Glob, Grep, Edit | Building new autonomous capabilities |
+| **Explore** | Fast codebase exploration | All tools | Finding files, understanding architecture |
+| **memory-cli** | CLI development and testing | Read, Write, Edit, Bash, Glob, Grep | Memory CLI features and fixes |
 
 ### Assignment Principles
 1. Match agent capabilities to task requirements
 2. Balance workload across agents
 3. Consider agent specialization
 4. Plan for quality validation
+
+### Phase-Specific Skill/Agent Recommendations
+
+#### Phase 1: Research & Analysis
+**Skills (Parallel)**:
+- `web-search-researcher` - Research best practices, modern solutions
+- `context-retrieval` - Find similar past implementations
+- `codebase-consolidation` - Understand current architecture
+
+**Agents (Parallel)**:
+- `Explore` - Fast codebase exploration
+- `code-reviewer` - Audit current code quality
+
+**Use when**: Beginning new features, investigating issues, understanding requirements
+
+#### Phase 2: Decision-Making & Planning
+**Skills (Sequential)**:
+- `task-decomposition` - Break down complex goals
+- `analysis-swarm` - Multi-perspective architectural decisions (RYAN, FLASH, SOCRATES)
+
+**Use when**: Multiple valid approaches, significant trade-offs, architectural decisions
+
+#### Phase 3: Quality Validation (Pre-Implementation)
+**Skills (Parallel)**:
+- `rust-code-quality` - Rust best practices review
+- `architecture-validation` - Validate vs architectural plans
+- `plan-gap-analysis` - Verify all requirements covered
+
+**Use when**: Before major implementation, validating design decisions
+
+#### Phase 4: Implementation
+**Agents (Parallel or Sequential)**:
+- `feature-implementer` - Build new functionality
+- `refactorer` - Improve existing code
+
+**Skills (Guidance)**:
+- `feature-implement` - Feature implementation workflow
+
+**Use when**: Executing planned work, building features
+
+#### Phase 5: Testing & Debugging
+**Skills (Sequential)**:
+- `test-fix` - Systematic test debugging
+- `quality-unit-testing` - High-quality test writing
+
+**Agents (Parallel or Sequential)**:
+- `test-runner` - Execute test suites
+- `debugger` - Diagnose runtime issues
+
+**Use when**: Validating implementations, fixing test failures
+
+#### Phase 6: Build & CI/CD
+**Skills (Sequential)**:
+- `build-compile` - Build verification and optimization
+- `github-workflows` - CI/CD pipeline validation
+
+**Use when**: Preparing for deployment, troubleshooting CI failures
+
+#### Phase 7: Quality Assurance (Post-Implementation)
+**Skills (Parallel)**:
+- `rust-code-quality` - Final Rust review
+- `architecture-validation` - Validate vs architecture
+- `plan-gap-analysis` - Verify completeness
+
+**Agents (Parallel)**:
+- `code-reviewer` - Final quality check
+- `test-runner` - Full test suite validation
+
+**Use when**: Pre-commit, pre-merge, release preparation
 
 ## Phase 5: Execution Planning
 
@@ -261,23 +426,276 @@ Phase 3: Agent 3 (code-reviewer) → Validate
 - [What to improve]
 ```
 
+## Integration with Self-Learning Memory
+
+GOAP coordination tasks can be tracked as learning episodes to improve future planning decisions.
+
+### Starting a GOAP Episode
+
+```markdown
+**Use**: Skill(command="episode-start")
+
+**TaskContext**:
+- language: "coordination"
+- domain: "goap"
+- tags: ["multi-agent", "parallel", "sequential", etc.]
+
+**Description**: "GOAP coordination for [task description]"
+```
+
+### Logging GOAP Steps
+
+```markdown
+**Use**: Skill(command="episode-log-steps")
+
+**Log during**:
+- Decomposition decisions (how goals were broken down)
+- Agent assignments (which agents chosen for which tasks)
+- Strategy selection (why parallel vs sequential vs swarm)
+- Quality gate results (pass/fail and why)
+- Recovery actions (how failures were handled)
+```
+
+### Completing a GOAP Episode
+
+```markdown
+**Use**: Skill(command="episode-complete")
+
+**Score based on**:
+- Goal achievement (all tasks completed?)
+- Efficiency (parallel speedup, resource utilization)
+- Quality (all quality gates passed?)
+- Adaptability (how well recovered from failures?)
+
+**Patterns extracted**:
+- Successful decomposition strategies
+- Effective agent assignments
+- Optimal execution patterns
+- Quality gate effectiveness
+```
+
+### Retrieving Past GOAP Context
+
+```markdown
+**Use**: Skill(command="context-retrieval")
+
+**Query for**:
+- Similar coordination tasks
+- Past parallel/sequential decisions
+- Agent assignment patterns
+- Quality gate strategies
+
+**Apply learnings**:
+- Reuse successful decompositions
+- Avoid past mistakes
+- Apply proven strategies
+- Optimize based on history
+```
+
+### Example: Learning-Enabled GOAP
+
+```markdown
+Task: Implement authentication system
+
+Phase 0: Retrieve Context
+└─ Skill(command="context-retrieval")
+   Query: "authentication implementation coordination"
+   → Found: 3 past auth implementations
+   → Pattern: Parallel (model + middleware + endpoints) worked well
+   → Lesson: Sequential integration after parallel build
+
+Phase 1: Start Episode
+└─ Skill(command="episode-start")
+   Context: {domain: "goap", tags: ["auth", "parallel"]}
+
+Phase 2-N: Execute with logging
+└─ Skill(command="episode-log-steps")
+   Log each: decomposition, assignment, quality gate
+
+Phase Final: Complete Episode
+└─ Skill(command="episode-complete")
+   Score: High (reused successful pattern)
+   Pattern: Confirmed parallel → sequential integration strategy
+```
+
+## Dynamic Capability Creation
+
+When existing Skills and Agents are insufficient, create new capabilities dynamically.
+
+### When to Create New Skills
+
+**Create Skill when**:
+- Recurring workflow pattern identified
+- Deep domain knowledge needed
+- Reusable methodology discovered
+- No existing Skill covers the domain
+
+**Examples**:
+- Custom quality standards for your domain
+- Specialized testing workflows
+- Domain-specific architecture patterns
+- Project-specific best practices
+
+**How to create**:
+```markdown
+Use: Skill(command="skill-creator")
+
+Provide:
+- Skill name and description
+- When to use this skill
+- Step-by-step methodology
+- Examples and patterns
+- Integration points
+```
+
+### When to Create New Agents
+
+**Create Agent when**:
+- New autonomous execution capability needed
+- Specialized tool usage pattern required
+- Cross-cutting concern needs dedicated agent
+- Complex multi-step execution to automate
+
+**Examples**:
+- Custom deployment agent
+- Specialized migration agent
+- Domain-specific analyzer agent
+- Project-specific workflow agent
+
+**How to create**:
+```markdown
+Use: Task(subagent_type="agent-creator", ...)
+
+Or use: Skill(command="skill-creator") for agent definition
+
+Provide:
+- Agent purpose and capabilities
+- Tools the agent needs
+- Input/output specification
+- Success criteria
+```
+
+### Update GOAP Knowledge
+
+After creating new capabilities:
+
+1. **Document in GOAP**:
+   - Add to Skills or Agents list
+   - Update capability matrix
+   - Add to phase-specific recommendations
+
+2. **Test the capability**:
+   - Use in real scenario
+   - Validate effectiveness
+   - Refine as needed
+
+3. **Share the pattern**:
+   - Document in project
+   - Add examples
+   - Enable reuse
+
+### Example: Creating Custom Capability
+
+```markdown
+Problem: Need specialized security audit for authentication code
+
+Step 1: Identify gap
+→ No existing Skill covers auth security audit specifically
+
+Step 2: Create Skill
+└─ Skill(command="skill-creator")
+   Name: "auth-security-audit"
+   Purpose: "Audit authentication code for security vulnerabilities"
+   Methodology: [OWASP auth checklist, crypto review, token validation, ...]
+
+Step 3: Integrate into GOAP
+→ Add to Quality & Validation Skills
+→ Add to Phase 3 and Phase 7 recommendations
+→ Document in project CLAUDE.md
+
+Step 4: Use in workflow
+└─ Phase 3: Skill(command="auth-security-audit")
+   → Validates auth design before implementation
+```
+
 ## Common GOAP Patterns
 
-### Pattern 1: Research → Implement → Validate
-```
-Phase 1 (Sequential): Research
-  - Explore agent → Understand codebase
-  - Quality Gate: Architecture documented
+### Pattern 1: Research → Decide → Implement → Validate (Full Stack)
 
-Phase 2 (Parallel): Implement
-  - feature-implementer (A) → Module 1
-  - feature-implementer (B) → Module 2
-  - Quality Gate: Implementations complete
+```markdown
+Task: Implement complex feature with architectural impact
 
-Phase 3 (Sequential): Validate
-  - test-runner → All tests
-  - code-reviewer → Final review
-  - Quality Gate: Ready for merge
+Phase 0: Retrieve Context [Skills]
+├─ Skill(command="context-retrieval")
+│  Query: "similar feature implementations"
+│  → Apply past learnings
+└─ Skill(command="episode-start")
+   → Start tracking this coordination
+
+Phase 1: Research [Parallel Skills + Agents]
+├─ Skill(command="web-search-researcher")
+│  → Research modern best practices
+├─ Skill(command="codebase-consolidation")
+│  → Understand current architecture
+└─ Task(subagent_type="Explore")
+   → Fast codebase exploration
+Quality Gate: Architecture and requirements clear
+
+Phase 2: Decision [Skill]
+└─ Skill(command="analysis-swarm")
+   → Multi-perspective architectural decision (RYAN, FLASH, SOCRATES)
+   → Evaluate trade-offs, choose approach
+Quality Gate: Architecture approved
+
+Phase 3: Pre-Implementation Validation [Parallel Skills]
+├─ Skill(command="architecture-validation")
+│  → Validate design vs plans
+├─ Skill(command="plan-gap-analysis")
+│  → Ensure complete requirements coverage
+└─ Skill(command="rust-code-quality")
+   → Review design for Rust best practices
+Quality Gate: Design validated
+
+Phase 4: Implementation [Parallel Agents]
+├─ Task(subagent_type="feature-implementer")
+│  Prompt: "Implement Module A"
+├─ Task(subagent_type="feature-implementer")
+│  Prompt: "Implement Module B"
+└─ Task(subagent_type="feature-implementer")
+   Prompt: "Implement Module C"
+Quality Gate: All modules implemented
+
+Phase 5: Testing [Skills + Agents]
+├─ Task(subagent_type="test-runner")
+│  → Execute all tests
+├─ Skill(command="test-fix")
+│  → Fix any failing tests systematically
+└─ Skill(command="quality-unit-testing")
+   → Ensure high-quality tests
+Quality Gate: All tests passing
+
+Phase 6: Quality Validation [Parallel Skills + Agents]
+├─ Skill(command="rust-code-quality")
+│  → Final Rust review
+├─ Skill(command="architecture-validation")
+│  → Validate vs architecture
+├─ Skill(command="plan-gap-analysis")
+│  → Verify completeness
+└─ Task(subagent_type="code-reviewer")
+   → Final quality check
+Quality Gate: Quality standards met
+
+Phase 7: Build & CI [Skills]
+├─ Skill(command="build-compile")
+│  → Build verification
+└─ Skill(command="github-workflows")
+   → CI validation
+Quality Gate: Ready for merge
+
+Phase 8: Learning [Skills]
+└─ Skill(command="episode-complete")
+   Score: High (all phases successful)
+   Patterns: Document successful strategies
 ```
 
 ### Pattern 2: Investigate → Diagnose → Fix → Verify

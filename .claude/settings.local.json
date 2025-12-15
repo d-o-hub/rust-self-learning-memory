@@ -106,7 +106,14 @@
       "WebFetch(domain:crates.io)",
       "Bash(jobs:*)",
       "Bash(wait)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(killall cargo:*)",
+      "Bash(apt-get update:*)",
+      "Bash(apt-get install:*)",
+      "Bash(whereis:*)",
+      "Bash(ldconfig:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get install:*)"
     ],
     "deny": [],
     "ask": []

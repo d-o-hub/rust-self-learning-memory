@@ -89,6 +89,48 @@ impl SelfLearningMemory {
         context: TaskContext,
         limit: usize,
     ) -> Vec<Episode> {
+        use chrono::{TimeZone, Utc};
+
+        // Ensure we have some episodes in memory; if not, try to backfill from storage
+        let mut need_backfill = false;
+        {
+            let episodes = self.episodes_fallback.read().await;
+            let completed_count = episodes.values().filter(|e| e.is_complete()).count();
+            if completed_count < limit {
+                need_backfill = true;
+                debug!(completed_count, limit, "Insufficient in-memory episodes, attempting backfill from storage");
+            }
+        }
+
+        if need_backfill {
+            // Oldest timestamp to fetch from
+            let since = Utc.timestamp_millis_opt(0).single().unwrap_or_else(|| Utc::now());
+
+            // Prefer cache first
+            if let Some(cache) = &self.cache_storage {
+                if let Ok(fetched) = cache.query_episodes_since(since).await {
+                    if !fetched.is_empty() {
+                        let mut episodes = self.episodes_fallback.write().await;
+                        for ep in fetched {
+                            episodes.entry(ep.episode_id).or_insert(ep);
+                        }
+                    }
+                }
+            }
+
+            // Then durable storage
+            if let Some(turso) = &self.turso_storage {
+                if let Ok(fetched) = turso.query_episodes_since(since).await {
+                    if !fetched.is_empty() {
+                        let mut episodes = self.episodes_fallback.write().await;
+                        for ep in fetched {
+                            episodes.entry(ep.episode_id).or_insert(ep);
+                        }
+                    }
+                }
+            }
+        }
+
         let episodes = self.episodes_fallback.read().await;
 
         debug!(

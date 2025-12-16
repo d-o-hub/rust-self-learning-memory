@@ -226,7 +226,7 @@ impl JavyCompiler {
         // Check cache first
         let cache_key = self.generate_cache_key(js_source);
         let cached_module_opt = {
-            let cache = self.module_cache.lock().unwrap();
+            let mut cache = self.module_cache.lock().unwrap();
             cache.get(&cache_key).cloned()
         };
 

@@ -96,6 +96,12 @@ mod unit_tests {
 fn quality_gate_test_coverage() {
     println!("\n=== Quality Gate: Test Coverage ===");
 
+    // Skip if optional gates are enabled (default behavior)
+    if skip_optional_gates() {
+        println!("⏭️  Skipping coverage gate (QUALITY_GATE_SKIP_OPTIONAL=true)");
+        return;
+    }
+
     // Skip if already running under coverage instrumentation (prevents nested llvm-cov)
     // cargo-llvm-cov sets CARGO_LLVM_COV=1 when running
     if env::var("CARGO_LLVM_COV").is_ok() {

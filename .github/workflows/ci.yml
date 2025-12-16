@@ -82,7 +82,7 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
     needs: [check-quick-check]
-  
+
   mcp-feature-matrix:
     name: MCP Feature Matrix
     runs-on: ubuntu-latest

@@ -43,6 +43,7 @@ async fn handle_shutdown(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
 #[tokio::test]
 async fn test_initialize_notification_no_response() {
     let req = JsonRpcRequest {
+        jsonrpc: Some("2.0".to_string()),
         id: None,
         method: "initialize".into(),
         params: None,
@@ -54,6 +55,7 @@ async fn test_initialize_notification_no_response() {
 #[tokio::test]
 async fn test_initialize_with_id_response() {
     let req = JsonRpcRequest {
+        jsonrpc: Some("2.0".to_string()),
         id: Some(json!(1)),
         method: "initialize".into(),
         params: None,
@@ -69,6 +71,7 @@ async fn test_initialize_with_id_response() {
 #[tokio::test]
 async fn test_shutdown_notification_no_response() {
     let req = JsonRpcRequest {
+        jsonrpc: Some("2.0".to_string()),
         id: None,
         method: "shutdown".into(),
         params: None,

@@ -98,13 +98,19 @@ impl SelfLearningMemory {
             let completed_count = episodes.values().filter(|e| e.is_complete()).count();
             if completed_count < limit {
                 need_backfill = true;
-                debug!(completed_count, limit, "Insufficient in-memory episodes, attempting backfill from storage");
+                debug!(
+                    completed_count,
+                    limit, "Insufficient in-memory episodes, attempting backfill from storage"
+                );
             }
         }
 
         if need_backfill {
             // Oldest timestamp to fetch from
-            let since = Utc.timestamp_millis_opt(0).single().unwrap_or_else(|| Utc::now());
+            let since = Utc
+                .timestamp_millis_opt(0)
+                .single()
+                .unwrap_or_else(Utc::now);
 
             // Prefer cache first
             if let Some(cache) = &self.cache_storage {

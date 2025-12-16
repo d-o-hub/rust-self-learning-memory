@@ -395,7 +395,9 @@ impl JavyCompiler {
         // Check if wasmtime sandbox is healthy
         let healthy = self.wasmtime_sandbox.health_check().await;
         if !healthy {
-            return Err(anyhow::anyhow!("Wasmtime sandbox reported unhealthy status"));
+            return Err(anyhow::anyhow!(
+                "Wasmtime sandbox reported unhealthy status"
+            ));
         }
 
         // Check cache health

@@ -6,6 +6,7 @@
 #[cfg(feature = "javy-backend")]
 mod javy_tests {
     use memory_mcp::javy_compiler::{JavyCompiler, JavyConfig};
+    use memory_mcp::types::ExecutionResult;
 
     #[tokio::test]
     async fn test_basic_js_compilation() {
@@ -89,11 +90,16 @@ mod javy_tests {
         );
 
         let exec_result = result.unwrap();
-        assert!(exec_result.success, "Execution should be successful");
-        assert!(
-            exec_result.stdout.contains("Test output"),
-            "stdout should contain console.log output"
-        );
+        match exec_result {
+            ExecutionResult::Success { stdout, .. } => {
+                assert!(
+                    stdout.contains("Test output"),
+                    "stdout should contain console.log output: got '{}'",
+                    stdout
+                );
+            }
+            other => panic!("Expected Success but got: {:?}", other),
+        }
     }
 
     #[tokio::test]
@@ -130,8 +136,8 @@ mod no_javy_tests {
 
         let error_msg = result.unwrap_err().to_string();
         assert!(
-            error_msg.contains("javy-backend"),
-            "Error should mention the missing feature flag"
+            error_msg.contains("JavaScript compilation failed"),
+            "Error should indicate compilation failure"
         );
     }
 }

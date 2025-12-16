@@ -34,7 +34,9 @@
 
 use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
-use crate::types::{ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig, Tool};
+use crate::types::{
+    ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig, Tool,
+};
 use crate::unified_sandbox::{SandboxBackend, UnifiedSandbox};
 use anyhow::{Context as AnyhowContext, Result};
 use memory_core::{Pattern, SelfLearningMemory, TaskContext};
@@ -696,11 +698,24 @@ impl MemoryMCPServer {
         let start = std::time::Instant::now();
 
         // Execute in sandbox
-        let result = self
-            .sandbox
-            .execute(&code, context)
-            .await
-            .context("Code execution failed")?;
+        let result = match self.sandbox.execute(&code, context).await {
+            Ok(r) => r,
+            Err(e) => {
+                // Even on error, we should track the execution attempt
+                let duration_ms = start.elapsed().as_millis() as u64;
+                let mut stats = self.stats.write();
+                stats.record_execution(
+                    &ExecutionResult::Error {
+                        message: e.to_string(),
+                        error_type: ErrorType::Runtime,
+                        stdout: "".to_string(),
+                        stderr: "".to_string(),
+                    },
+                    duration_ms,
+                );
+                return Err(e);
+            }
+        };
 
         let duration_ms = start.elapsed().as_millis() as u64;
 

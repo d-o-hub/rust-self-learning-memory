@@ -19,7 +19,7 @@ async fn test_mcp_server_tools() {
 
     // Test that server initializes with correct tools
     let tools = mcp_server.list_tools().await;
-    assert_eq!(tools.len(), 5);
+    assert_eq!(tools.len(), 6);
 
     let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
     assert!(tool_names.contains(&"query_memory".to_string()));

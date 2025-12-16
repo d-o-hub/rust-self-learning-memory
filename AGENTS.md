@@ -6,6 +6,11 @@ Episodic memory backend for AI agents: start → execute → score → learn →
 **Stack:** Rust (async/Tokio), Turso/libSQL (durable), redb (cache), optional embeddings
 **Crates:** `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-embed`
 
+# Project Rules
+
+- Use a single `work-log.md` for temporary notes if needed
+- Delete `work-log.md` content after task completion
+
 ## Setup commands
 
 ```bash

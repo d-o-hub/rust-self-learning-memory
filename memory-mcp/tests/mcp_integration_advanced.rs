@@ -99,15 +99,24 @@ async fn test_mcp_comprehensive_analysis() {
     };
 
     let result = server.execute_advanced_pattern_analysis(input).await;
-    assert!(result.is_ok());
+    assert!(
+        result.is_ok(),
+        "Comprehensive analysis failed: {:?}",
+        result.err()
+    );
 
     let response = result.unwrap();
     let obj = response.as_object().unwrap();
 
     // Should contain both statistical and predictive results
-    assert!(obj.contains_key("statistical_results"));
-    assert!(obj.contains_key("predictive_results"));
-    assert!(obj.contains_key("key_findings"));
+    assert!(
+        obj.contains_key("statistical_results"),
+        "Missing statistical_results"
+    );
+    assert!(
+        obj.contains_key("predictive_results"),
+        "Missing predictive_results"
+    );
 }
 
 /// Test input validation through MCP

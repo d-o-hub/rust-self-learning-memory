@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
-use tracing::{debug, info};
+use tracing::debug;
 
 use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
@@ -169,6 +169,7 @@ impl ModuleCache {
 #[derive(Debug)]
 pub struct JavyCompiler {
     config: JavyConfig,
+    #[allow(dead_code)]
     wasmtime_config: WasmtimeConfig,
     wasmtime_sandbox: Arc<WasmtimeSandbox>,
     metrics: Arc<RwLock<JavyMetrics>>,
@@ -224,11 +225,16 @@ impl JavyCompiler {
 
         // Check cache first
         let cache_key = self.generate_cache_key(js_source);
-        if let Some(cached_module) = self.module_cache.lock().unwrap().get(&cache_key) {
+        let cached_module_opt = {
+            let cache = self.module_cache.lock().unwrap();
+            cache.get(&cache_key).cloned()
+        };
+
+        if let Some(cached_module) = cached_module_opt {
             let mut metrics = self.metrics.write().await;
             metrics.cache_hits += 1;
             debug!("Using cached WASM module for JavaScript source");
-            return Ok(cached_module.clone());
+            return Ok(cached_module);
         }
 
         // Perform compilation with timeout

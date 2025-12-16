@@ -38,7 +38,7 @@ use crate::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SandboxConfig, Tool,
 };
 use crate::unified_sandbox::{SandboxBackend, UnifiedSandbox};
-use anyhow::{Context as AnyhowContext, Result};
+use anyhow::Result;
 use memory_core::{Pattern, SelfLearningMemory, TaskContext};
 use parking_lot::RwLock;
 use serde_json::json;

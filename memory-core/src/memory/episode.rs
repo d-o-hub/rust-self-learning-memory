@@ -363,9 +363,10 @@ impl SelfLearningMemory {
         }
 
         // Helper to insert into in-memory cache
-        let insert_into_cache = |episode: &Episode, map: &mut std::collections::HashMap<Uuid, Episode>| {
-            map.insert(episode.episode_id, episode.clone());
-        };
+        let insert_into_cache =
+            |episode: &Episode, map: &mut std::collections::HashMap<Uuid, Episode>| {
+                map.insert(episode.episode_id, episode.clone());
+            };
 
         // 2) Try cache storage (redb) next
         if let Some(cache) = &self.cache_storage {

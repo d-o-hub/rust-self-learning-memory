@@ -12,19 +12,21 @@ use tempfile::TempDir;
 /// Setup helper for benchmarks that need a temporary redb storage
 pub async fn setup_temp_memory() -> (SelfLearningMemory, TempDir) {
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
-    let db_path = temp_dir.path().join("benchmark.redb");
+    // Use separate files for primary and cache to avoid contention and better simulate architecture
+    let primary_path = temp_dir.path().join("benchmark_primary.redb");
+    let cache_path = temp_dir.path().join("benchmark_cache.redb");
 
     let memory_config = MemoryConfig::default();
 
-    let turso_storage = RedbStorage::new(&db_path)
+    let primary_storage = RedbStorage::new(&primary_path)
         .await
-        .expect("Failed to create redb storage");
-    let cache_storage = RedbStorage::new(&db_path)
+        .expect("Failed to create primary redb storage");
+    let cache_storage = RedbStorage::new(&cache_path)
         .await
-        .expect("Failed to create redb storage");
+        .expect("Failed to create cache redb storage");
     let memory = SelfLearningMemory::with_storage(
         memory_config,
-        Arc::new(turso_storage),
+        Arc::new(primary_storage),
         Arc::new(cache_storage),
     );
 

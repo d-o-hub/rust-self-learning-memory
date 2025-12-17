@@ -21,6 +21,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    timeout-minutes: 10
     steps:
       - name: Wait for Quick Check
         uses: lewagon/wait-on-check-action@v1.4.1
@@ -42,10 +43,11 @@ jobs:
     permissions:
       contents: write  # Required for auto-push of benchmark results
       actions: write   # Required for caching
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Fetch all history for comparison
 
@@ -55,19 +57,19 @@ jobs:
           components: rustfmt, clippy
 
       - name: Cache cargo registry
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v4.4.0
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo index
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v4.4.0
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo build
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v4.4.0
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-bench-${{ hashFiles('**/Cargo.lock') }}
@@ -177,7 +179,7 @@ jobs:
            head -20 bench_results.txt
 
       - name: Download previous benchmark results
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v4.4.0
         with:
           path: ./cache
           key: benchmark-results-${{ github.ref }}
@@ -237,10 +239,11 @@ jobs:
     permissions:
       contents: read
       pull-requests: write  # Required for commenting on PRs
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download benchmark results
         uses: actions/download-artifact@v4

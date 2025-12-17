@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -32,6 +33,7 @@ jobs:
     permissions:
       contents: read
     if: github.event_name == 'pull_request'
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: actions/dependency-review-action@v4.8.2
@@ -44,6 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable

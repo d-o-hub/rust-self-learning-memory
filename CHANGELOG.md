@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.6.1] - 2025-12-17
+
+### Fixed
+- CI modernization across all workflows: actions/checkout -> v4, download-artifact -> v4, upload-artifact -> v4
+- Security workflow now runs on all branches (push and PR), plus manual dispatch and weekly schedule
+- Stabilized Quick PR Check, Benchmarks, and Supply Chain jobs to align with latest best practices
+
+### Changed
+- Workspace version bumped to 0.1.6.1
+- Normalized actions versions and artifact handling across pipelines
+
+### Verification
+- All GitHub Actions checks green on PR and on develop after merge
+- Release workflow verified to complete successfully
+
+
 All notable changes to this project will be documented in this file.
 
 ## [0.1.6] - 2025-12-17

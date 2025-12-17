@@ -125,7 +125,6 @@ async fn test_numerical_stability_vulnerabilities() {
         match result {
             Ok(output) => {
                 // Results should be finite and reasonable
-                assert!(output.performance.total_time_ms >= 0);
                 assert!(output.performance.total_time_ms < 30_000); // < 30 seconds
             }
             Err(e) => {

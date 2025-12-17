@@ -1,6 +1,6 @@
 use serde_json::json;
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
 #[derive(Debug, serde::Serialize)]
 struct InitializeResult {
     #[serde(rename = "protocolVersion")]
@@ -10,6 +10,7 @@ struct InitializeResult {
     server_info: serde_json::Value,
 }
 
+#[allow(clippy::question_mark)]
 async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     if request.id.is_none() {
         return None;
@@ -28,6 +29,7 @@ async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     })
 }
 
+#[allow(clippy::question_mark)]
 async fn handle_shutdown(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     if request.id.is_none() {
         return None;

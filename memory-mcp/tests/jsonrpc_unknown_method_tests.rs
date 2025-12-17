@@ -1,6 +1,5 @@
 use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
 
-
 #[tokio::test]
 async fn test_unknown_method_notification_no_response() {
     let req = JsonRpcRequest {

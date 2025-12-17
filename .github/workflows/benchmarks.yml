@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for comparison
 
@@ -220,7 +220,7 @@ jobs:
            } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Archive benchmark results
-        uses: actions/upload-artifact@v5.0.0
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results-${{ github.sha }}
           path: |
@@ -240,10 +240,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Download benchmark results
-        uses: actions/download-artifact@v6.0.0
+        uses: actions/download-artifact@v4
         with:
           name: benchmark-results-${{ github.sha }}
 

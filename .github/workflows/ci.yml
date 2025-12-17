@@ -34,6 +34,9 @@ jobs:
           check-name: 'Quick PR Check (Format + Clippy)'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
+          allowed-conclusions: |
+            success
+            skipped
 
   format:
     name: Format Check

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.6] - 2024-12-10
+## [0.1.6] - 2025-12-17
 
 ### Added
 - Production-ready CLI with default redb storage backend

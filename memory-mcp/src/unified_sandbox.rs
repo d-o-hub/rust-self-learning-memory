@@ -25,7 +25,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_mcp::sandbox::{UnifiedSandbox, SandboxBackend};
+//! use memory_mcp::{UnifiedSandbox, SandboxBackend};
 //! use memory_mcp::types::{ExecutionContext, SandboxConfig};
 //!
 //! #[tokio::main]
@@ -33,8 +33,8 @@
 //!     // Create unified sandbox with both backends
 //!     let sandbox = UnifiedSandbox::new(
 //!         SandboxConfig::restrictive(),
-//!         SandboxBackend::Hybrid { wasm_ratio: 0.5 }
-//!     )?;
+//!         SandboxBackend::Hybrid { wasm_ratio: 0.5, intelligent_routing: false }
+//!     ).await?;
 //!
 //!     let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
 //!     let result = sandbox.execute("console.log('Hello')", context).await?;

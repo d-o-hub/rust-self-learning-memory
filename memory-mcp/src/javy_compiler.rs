@@ -429,7 +429,7 @@ impl JavyCompiler {
             let mut gen = Generator::default();
             gen.linking(LinkingKind::Dynamic);
             let wasm = gen.generate(&js).context("Failed to generate WASM")?;
-            info!(
+            debug!(
                 "Compiled JS ({} bytes) to WASM ({} bytes)",
                 source_len,
                 wasm.len()
@@ -473,8 +473,6 @@ fn calculate_ema(current: f64, new_value: f64, count: u64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
-
     #[tokio::test]
     async fn test_javy_compiler_creation() {
         let config = JavyConfig::default();

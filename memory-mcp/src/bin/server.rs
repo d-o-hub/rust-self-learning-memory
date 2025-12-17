@@ -8,13 +8,12 @@ use memory_core::{Error, MemoryConfig, SelfLearningMemory};
 use memory_mcp::jsonrpc::{
     read_next_message, write_response_with_length, JsonRpcError, JsonRpcRequest, JsonRpcResponse,
 };
-use memory_mcp::wasmtime_sandbox::WasmtimeConfig;
 use memory_mcp::{MemoryMCPServer, SandboxConfig};
 use memory_storage_redb::{CacheConfig, RedbStorage};
 use memory_storage_turso::{TursoConfig, TursoStorage};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::io::{self, BufRead, Read, Write};
+use std::io::{self, Write};
 
 use std::path::Path;
 use std::sync::Arc;
@@ -393,9 +392,7 @@ async fn handle_request(
 /// Handle initialize request
 async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
-    if request.id.is_none() {
-        return None;
-    }
+    request.id.as_ref()?;
     info!("Handling initialize request");
 
     let result = InitializeResult {
@@ -440,9 +437,7 @@ async fn handle_list_tools(
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
 ) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
-    if request.id.is_none() {
-        return None;
-    }
+    request.id.as_ref()?;
     info!("Handling tools/list request");
 
     let server = mcp_server.lock().await;
@@ -488,9 +483,7 @@ async fn handle_call_tool(
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
 ) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
-    if request.id.is_none() {
-        return None;
-    }
+    request.id.as_ref()?;
     let params: CallToolParams = match request.params {
         Some(params) => match serde_json::from_value(params) {
             Ok(p) => p,
@@ -813,9 +806,7 @@ async fn handle_get_metrics(
 /// Handle shutdown request
 async fn handle_shutdown(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
-    if request.id.is_none() {
-        return None;
-    }
+    request.id.as_ref()?;
     info!("Handling shutdown request");
 
     Some(JsonRpcResponse {

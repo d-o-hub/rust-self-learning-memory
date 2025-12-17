@@ -1,14 +1,14 @@
 # Project Status - Memory System
 
 **Last Updated:** 2025-12-16T19:55:00Z
-**Version:** 0.1.7
+**Version:** 0.1.6
 **Branch:** feat/phase2c-javy-integration
 
 ---
 
-## 🎯 Current Status: OPERATIONAL ✅ + Version 0.1.7 RELEASED
+## 🎯 Current Status: OPERATIONAL ✅ + Version 0.1.6 RELEASED
 
-All core systems are functional. Wasmtime integration complete, Javy integration 100% complete. ALL TESTS PASSING. Quality gates fixed and version 0.1.7 ready for release.
+All core systems are functional. Wasmtime integration complete, Javy integration 100% complete. ALL TESTS PASSING. Quality gates fixed and version 0.1.6 ready for release.
 
 ---
 

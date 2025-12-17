@@ -1,4 +1,3 @@
-use serde_json::json;
 use std::io::Cursor;
 
 use memory_mcp::jsonrpc::read_next_message;
@@ -17,7 +16,7 @@ fn test_read_next_message_line_json() {
 #[test]
 fn test_read_next_message_content_length() {
     let payload = "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"initialize\"}";
-    let header = format!("Content-Length: {}\r\n\r\n", payload.as_bytes().len());
+    let header = format!("Content-Length: {}\r\n\r\n", payload.len());
     let mut data = header.into_bytes();
     data.extend_from_slice(payload.as_bytes());
     let mut cursor = Cursor::new(data);

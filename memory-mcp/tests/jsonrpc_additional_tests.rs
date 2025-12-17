@@ -1,8 +1,8 @@
 use memory_mcp::jsonrpc::{
-    read_next_message, write_response_with_length, JsonRpcError, JsonRpcResponse,
+    read_next_message, write_response_with_length, JsonRpcResponse,
 };
 use serde_json::json;
-use std::io::{Cursor, Read};
+use std::io::Cursor;
 
 #[test]
 fn test_parse_failure_returns_none_and_does_not_panic() {
@@ -36,5 +36,5 @@ fn test_write_response_with_content_length() {
     // Validate payload length matches header
     let header_len: usize = parts[0].split(':').nth(1).unwrap().trim().parse().unwrap();
     let payload = parts[1].trim();
-    assert_eq!(payload.as_bytes().len(), header_len);
+    assert_eq!(payload.len(), header_len);
 }

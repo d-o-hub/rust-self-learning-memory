@@ -6,7 +6,8 @@
 #[cfg(feature = "javy-backend")]
 mod javy_tests {
     use memory_mcp::javy_compiler::{JavyCompiler, JavyConfig};
-    use memory_mcp::types::ExecutionResult;
+    #[allow(unused_imports)]
+    use memory_mcp::types::{ExecutionContext, ExecutionResult};
 
     #[tokio::test]
     async fn test_basic_js_compilation() {
@@ -77,9 +78,10 @@ mod javy_tests {
         "#;
 
         let context = ExecutionContext {
-            timeout_ms: 5000,
-            max_memory_mb: 64,
-            ..Default::default()
+            task: "Test JavaScript execution".to_string(),
+            input: serde_json::json!({"test": "data"}),
+            env: std::collections::HashMap::new(),
+            metadata: std::collections::HashMap::new(),
         };
 
         let result = compiler.execute_js(js_source.to_string(), context).await;

@@ -32,5 +32,5 @@ fn test_roundtrip_preserves_content_length_style() {
     let parts: Vec<&str> = out_str.splitn(2, "\r\n\r\n").collect();
     assert_eq!(parts.len(), 2);
     let header_len: usize = parts[0].split(':').nth(1).unwrap().trim().parse().unwrap();
-    assert_eq!(parts[1].trim().as_bytes().len(), header_len);
+    assert_eq!(parts[1].trim().len(), header_len);
 }

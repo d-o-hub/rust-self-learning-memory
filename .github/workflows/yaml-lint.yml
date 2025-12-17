@@ -22,11 +22,12 @@ jobs:
   yamllint:
     name: YAML Syntax Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.1.0
         with:
           python-version: '3.x'
 
@@ -42,8 +43,9 @@ jobs:
   actionlint:
     name: GitHub Actions Workflow Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run actionlint
         uses: reviewdog/action-actionlint@v1.69.1

@@ -33,7 +33,7 @@
 //!     let code = "const result = 1 + 1; console.log(result);";
 //!     let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
 //!
-//!     let result = sandbox.execute(code, context).await?;
+//!     let result = sandbox.execute(code, &context).await?;
 //!     println!("Result: {:?}", result);
 //!     Ok(())
 //! }

@@ -111,7 +111,7 @@ jobs:
            # Handle both regular benchmarks and custom measurements (memory, throughput)
 
            bench_results_file="bench_results.txt"
-           > "$bench_results_file"  # Clear file
+           : > "$bench_results_file"  # Clear file
 
            # Process all benchmark results
            find target/criterion -type f -path "*/new/estimates.json" | while read -r json_file; do

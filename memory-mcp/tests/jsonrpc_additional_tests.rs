@@ -1,6 +1,4 @@
-use memory_mcp::jsonrpc::{
-    read_next_message, write_response_with_length, JsonRpcResponse,
-};
+use memory_mcp::jsonrpc::{read_next_message, write_response_with_length, JsonRpcResponse};
 use serde_json::json;
 use std::io::Cursor;
 

@@ -8,8 +8,6 @@ permissions:
 "on":
   push:
     branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
   workflow_run:
     workflows: ["Quick Check"]
     types: [completed]
@@ -21,35 +19,37 @@ env:
   RUSTFLAGS: "-D warnings"
 
 jobs:
-  # Wait for quick check to pass on PRs
-  check-quick-check:
-    name: Check Quick Check Status
+  # Only run CI if Quick Check succeeded (for workflow_run) or on direct push
+  ci-guard:
+    name: CI Guard
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
     steps:
-      - name: Wait for Quick Check
-        uses: lewagon/wait-on-check-action@v1.4.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-name: 'Quick PR Check (Format + Clippy)'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-          allowed-conclusions: |
-            success
-            skipped
+      - name: Check if CI should run
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "Running CI on push to ${{ github.ref }}"
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+              echo "should-run=true" >> $GITHUB_OUTPUT
+              echo "Running CI after successful Quick Check"
+            else
+              echo "should-run=false" >> $GITHUB_OUTPUT
+              echo "Skipping CI due to failed Quick Check"
+            fi
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+            echo "Unexpected trigger: ${{ github.event_name }}"
+          fi
 
   format:
     name: Format Check
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -61,15 +61,8 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -84,7 +77,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -97,15 +91,8 @@ jobs:
   mcp-feature-matrix:
     name: MCP Feature Matrix
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -136,15 +123,8 @@ jobs:
   mcp-matrix:
     name: MCP Matrix
     runs-on: ${{ matrix.os }}
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -167,15 +147,8 @@ jobs:
   cli-test:
     name: CLI Test
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -198,15 +171,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -226,15 +192,8 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - name: Free disk space
         run: |
@@ -302,15 +261,8 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -323,15 +275,8 @@ jobs:
   supply-chain:
     name: Supply Chain Security (cargo-deny)
     runs-on: ubuntu-latest
-    needs: [check-quick-check]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -354,15 +299,8 @@ jobs:
   quality-gates:
     name: Quality Gates
     runs-on: ubuntu-latest
-    needs: [check-quick-check, format, clippy, test, cli-test, coverage, security-audit]
-    if: >-
-      ${{
-        always() &&
-        (needs.check-quick-check.result == 'success' || needs.check-quick-check.result == 'skipped') &&
-        (github.event_name == 'push' ||
-        github.event_name == 'pull_request' ||
-        github.event.workflow_run.conclusion == 'success')
-      }}
+    needs: [ci-guard, format, clippy, test, cli-test, coverage, security-audit]
+    if: needs.ci-guard.outputs.should-run == 'true'
     steps:
       - name: Free disk space
         run: |

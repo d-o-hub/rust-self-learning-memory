@@ -83,7 +83,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/sccache
-          shared-cache: true
           key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-bench-sccache-
@@ -122,7 +121,8 @@ jobs:
            done
 
            # Check if we have any benchmark results
-           if [ ! -d "$CARGO_TARGET_DIR/criterion" ] || [ -z "$(find "$CARGO_TARGET_DIR/criterion" -name "*.json" 2>/dev/null)" ]; then
+           criterion_dir="$CARGO_TARGET_DIR/criterion"
+           if [ ! -d "$criterion_dir" ] || [ -z "$(find "$criterion_dir" -name "*.json" 2>/dev/null)" ]; then
              echo "No benchmark results found, using dummy results"
              ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
            fi

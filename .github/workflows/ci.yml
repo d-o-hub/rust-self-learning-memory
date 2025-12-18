@@ -91,7 +91,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_DIR: $HOME/.cache/sccache
       SCCACHE_CACHE_SIZE: 2G
     strategy:
       fail-fast: false
@@ -123,7 +123,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/sccache
+          path: $HOME/.cache/sccache
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
@@ -143,7 +143,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_DIR: $HOME/.cache/sccache
       SCCACHE_CACHE_SIZE: 2G
     strategy:
       fail-fast: false
@@ -175,7 +175,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/sccache
+          path: $HOME/.cache/sccache
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
@@ -229,7 +229,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_DIR: $HOME/.cache/sccache
       SCCACHE_CACHE_SIZE: 2G
     strategy:
       fail-fast: false
@@ -262,7 +262,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/sccache
+          path: $HOME/.cache/sccache
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
@@ -287,7 +287,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_DIR: $HOME/.cache/sccache
       SCCACHE_CACHE_SIZE: 2G
     strategy:
       fail-fast: false
@@ -320,7 +320,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/sccache
+          path: $HOME/.cache/sccache
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
@@ -345,7 +345,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_DIR: $HOME/.cache/sccache
       SCCACHE_CACHE_SIZE: 2G
     steps:
       - uses: actions/checkout@v6
@@ -357,7 +357,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/sccache
+          path: $HOME/.cache/sccache
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-
@@ -424,7 +424,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_DIR: $HOME/.cache/sccache
       SCCACHE_CACHE_SIZE: 2G
     steps:
       - name: Free disk space
@@ -447,7 +447,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/sccache
+          path: $HOME/.cache/sccache
           key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-

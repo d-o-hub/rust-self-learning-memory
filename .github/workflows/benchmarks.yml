@@ -49,8 +49,23 @@ jobs:
       contents: write  # Required for auto-push of benchmark results
       actions: write   # Required for caching
     timeout-minutes: 60
+    env:
+      CARGO_TARGET_DIR: /tmp/target
+      RUSTC_WRAPPER: sccache
+      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_CACHE_SIZE: 2G
 
     steps:
+      - name: Check disk space
+        run: df -h
+      - name: Free disk space (benchmark cleanup)
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -f /swapfile || true
+          sudo apt-get clean || true
+          docker system prune -af || true
+          df -h
+
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
@@ -60,6 +75,18 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - name: Install sccache
+        uses: taiki-e/install-action@v2
+        with:
+          tool: sccache
+      - name: Cache sccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/sccache
+          shared-cache: true
+          key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bench-sccache-
 
       - name: Cache Rust dependencies and build artifacts
         uses: Swatinem/rust-cache@v2.8.2
@@ -95,7 +122,7 @@ jobs:
            done
 
            # Check if we have any benchmark results
-           if [ ! -d "target/criterion" ] || [ -z "$(find target/criterion -name "*.json" 2>/dev/null)" ]; then
+           if [ ! -d "$CARGO_TARGET_DIR/criterion" ] || [ -z "$(find "$CARGO_TARGET_DIR/criterion" -name "*.json" 2>/dev/null)" ]; then
              echo "No benchmark results found, using dummy results"
              ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
            fi
@@ -109,10 +136,10 @@ jobs:
            : > "$bench_results_file"  # Clear file
 
            # Process all benchmark results
-           find target/criterion -type f -path "*/new/estimates.json" | while read -r json_file; do
+           find "$CARGO_TARGET_DIR/criterion" -type f -path "*/new/estimates.json" | while read -r json_file; do
              # Extract benchmark name from path
              # Extract benchmark name from path (shortened for line length)
-            bench_name=$(echo "$json_file" | sed 's|target/criterion/||' | \
+            bench_name=$(echo "$json_file" | sed "s|$CARGO_TARGET_DIR/criterion/||" | \
               sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
 
              # Extract mean time in nanoseconds
@@ -134,9 +161,9 @@ jobs:
            done
 
            # Add memory pressure benchmark results (custom measurements)
-           if [ -d "target/criterion/memory_pressure" ]; then
+           if [ -d "$CARGO_TARGET_DIR/criterion/memory_pressure" ]; then
              echo "# Memory Pressure Benchmarks" >> "$bench_results_file"
-             find target/criterion/memory_pressure -name "*.json" | head -5 | while read -r json_file; do
+             find "$CARGO_TARGET_DIR/criterion/memory_pressure" -name "*.json" | head -5 | while read -r json_file; do
                bench_name=$(basename "$json_file" .json)
                peak_memory=$(grep -o '"peak_memory_mb":[0-9.]*' "$json_file" | cut -d: -f2 || echo "0")
                if [ "$peak_memory" != "0" ]; then
@@ -146,9 +173,9 @@ jobs:
            fi
 
            # Add scalability benchmark results
-           if [ -d "target/criterion/scalability" ]; then
+           if [ -d "$CARGO_TARGET_DIR/criterion/scalability" ]; then
              echo "# Scalability Benchmarks" >> "$bench_results_file"
-             find target/criterion/scalability -name "*.json" | head -10 | while read -r json_file; do
+             find "$CARGO_TARGET_DIR/criterion/scalability" -name "*.json" | head -10 | while read -r json_file; do
                bench_name=$(basename "$json_file" .json)
                throughput=$(grep -o '"operations_per_sec":[0-9.]*' "$json_file" | cut -d: -f2 || echo "0")
                if [ "$throughput" != "0" ]; then
@@ -170,6 +197,10 @@ jobs:
            echo "Generated comprehensive benchmark results:"
            echo "Total benchmark entries: $(wc -l < bench_results.txt)"
            head -20 bench_results.txt
+
+      - name: Show sccache stats
+        if: always()
+        run: sccache --show-stats || true
 
       - name: Download previous benchmark results
         uses: actions/cache@v5.0.1
@@ -220,7 +251,7 @@ jobs:
           name: benchmark-results-${{ github.sha }}
           path: |
             bench_results.txt
-            target/criterion/
+            ${{ env.CARGO_TARGET_DIR }}/criterion/
           retention-days: 90
 
   regression-check:

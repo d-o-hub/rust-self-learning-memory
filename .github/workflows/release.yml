@@ -39,7 +39,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: ${{ runner.temp }}/sccache
+      SCCACHE_DIR: /tmp/sccache
       SCCACHE_CACHE_SIZE: 2G
     steps:
       - name: Check disk space
@@ -64,7 +64,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/sccache
+          path: /tmp/sccache
           key: ${{ runner.os }}-sccache-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-sccache-${{ matrix.target }}-

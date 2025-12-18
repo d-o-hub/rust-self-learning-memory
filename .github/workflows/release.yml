@@ -6,6 +6,11 @@ name: Release
     tags:
       - 'v*.*.*'
 
+# Never cancel release builds in progress
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-release:
     name: Build ${{ matrix.target }}

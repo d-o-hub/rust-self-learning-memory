@@ -13,6 +13,11 @@ permissions:
     types: [completed]
     branches: [main, develop]
 
+# Cancel outdated runs to save resources
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
@@ -255,7 +260,7 @@ jobs:
           sudo rm -rf /opt/ghc/*
           sudo apt-get clean
           df -h
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
@@ -303,7 +308,7 @@ jobs:
         env:
           RUST_LOG: debug
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5.5.2
         with:
           files: lcov.info
           fail_ci_if_error: false

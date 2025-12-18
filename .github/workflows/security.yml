@@ -10,6 +10,11 @@ name: Security
   schedule:
     - cron: '0 0 * * 0'  # Weekly on Sunday
 
+# Never cancel security scans in progress
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   secret-scan:
     name: Secret Scanning

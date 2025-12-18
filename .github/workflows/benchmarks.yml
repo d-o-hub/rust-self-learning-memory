@@ -13,6 +13,11 @@ name: Performance Benchmarks
     - cron: '0 0 * * 1'
   workflow_dispatch:  # Allow manual triggers
 
+# Cancel outdated benchmark runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Wait for quick check to pass on PRs
   check-quick-check:
@@ -56,23 +61,11 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4.4.0
+      - name: Cache Rust dependencies and build artifacts
+        uses: Swatinem/rust-cache@v2.8.2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v4.4.0
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v4.4.0
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-bench-${{ hashFiles('**/Cargo.lock') }}
+          shared-key: "bench"
+          cache-on-failure: true
 
       - name: Run benchmarks
         run: |
@@ -179,7 +172,7 @@ jobs:
            head -20 bench_results.txt
 
       - name: Download previous benchmark results
-        uses: actions/cache@v4.4.0
+        uses: actions/cache@v5.0.1
         with:
           path: ./cache
           key: benchmark-results-${{ github.ref }}

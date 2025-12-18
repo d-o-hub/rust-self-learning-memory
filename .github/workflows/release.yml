@@ -36,25 +36,54 @@ jobs:
             target: x86_64-pc-windows-msvc
             binary-suffix: .exe
 
+    env:
+      CARGO_TARGET_DIR: /tmp/target
+      RUSTC_WRAPPER: sccache
+      SCCACHE_DIR: ~/.cache/sccache
+      SCCACHE_CACHE_SIZE: 2G
     steps:
+      - name: Check disk space
+        run: df -h
+      - name: Free disk space (Rust release build cleanup)
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -f /swapfile || true
+          sudo apt-get clean || true
+          docker system prune -af || true
+          df -h
       - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install sccache
+        uses: taiki-e/install-action@v2
+        with:
+          tool: sccache
+      - name: Cache sccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/sccache
+          key: ${{ runner.os }}-sccache-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-sccache-${{ matrix.target }}-
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
 
-      - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }} --all-features
+      - name: Build release binary (bins + libs only)
+        run: cargo build --workspace --all-features --release --bins --lib --target ${{ matrix.target }}
+      - name: Show sccache stats
+        if: always()
+        run: sccache --show-stats || true
 
       - name: Package binaries
         shell: bash
         run: |
           mkdir -p artifacts
-          for bin in target/${{ matrix.target }}/release/*${{ matrix.binary-suffix }}; do
+          for bin in /tmp/target/${{ matrix.target }}/release/*${{ matrix.binary-suffix }}; do
             if [ -f "$bin" ] && [ -x "$bin" ]; then
               cp "$bin" "artifacts/$(basename "$bin")"
             fi

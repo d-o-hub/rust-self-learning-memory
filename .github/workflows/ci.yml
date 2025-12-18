@@ -13,6 +13,11 @@ permissions:
     types: [completed]
     branches: [main, develop]
 
+# Cancel outdated runs to save resources
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always

@@ -52,7 +52,7 @@ jobs:
     env:
       CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: $HOME/.cache/sccache
+      SCCACHE_DIR: ${{ runner.temp }}/sccache
       SCCACHE_CACHE_SIZE: 2G
 
     steps:
@@ -82,7 +82,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: $HOME/.cache/sccache
+          path: ${{ runner.temp }}/sccache
           key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-bench-sccache-

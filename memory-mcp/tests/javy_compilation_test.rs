@@ -8,9 +8,34 @@ mod javy_tests {
     use memory_mcp::javy_compiler::{JavyCompiler, JavyConfig};
     #[allow(unused_imports)]
     use memory_mcp::types::{ExecutionContext, ExecutionResult};
+    use std::io::Read;
+
+    fn has_javy_plugin() -> bool {
+        if let Ok(p) = std::env::var("JAVY_PLUGIN") {
+            if let Ok(mut f) = std::fs::File::open(&p) {
+                let mut magic = [0u8;4];
+                if f.read_exact(&mut magic).is_ok() && &magic == b"\0asm" {
+                    return true;
+                }
+            }
+        }
+        let default = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
+        if let Ok(mut f) = std::fs::File::open(&default) {
+            let mut magic = [0u8;4];
+            if f.read_exact(&mut magic).is_ok() && &magic == b"\0asm" {
+                return true;
+            }
+        }
+        false
+    }
 
     #[tokio::test]
     async fn test_basic_js_compilation() {
+        if !has_javy_plugin() {
+            eprintln!("Skipping test_basic_js_compilation: Javy plugin not available");
+            return;
+        }
+
         let compiler =
             JavyCompiler::new(JavyConfig::default()).expect("Failed to create Javy compiler");
 
@@ -32,6 +57,11 @@ mod javy_tests {
 
     #[tokio::test]
     async fn test_js_syntax_error() {
+        if !has_javy_plugin() {
+            eprintln!("Skipping test_js_syntax_error: Javy plugin not available");
+            return;
+        }
+
         let compiler =
             JavyCompiler::new(JavyConfig::default()).expect("Failed to create Javy compiler");
 
@@ -47,6 +77,11 @@ mod javy_tests {
 
     #[tokio::test]
     async fn test_compilation_caching() {
+        if !has_javy_plugin() {
+            eprintln!("Skipping test_compilation_caching: Javy plugin not available");
+            return;
+        }
+
         let compiler =
             JavyCompiler::new(JavyConfig::default()).expect("Failed to create Javy compiler");
 
@@ -68,6 +103,11 @@ mod javy_tests {
     #[tokio::test]
     async fn test_js_execution_with_console_log() {
         use memory_mcp::ExecutionContext;
+
+        if !has_javy_plugin() {
+            eprintln!("Skipping test_js_execution_with_console_log: Javy plugin not available");
+            return;
+        }
 
         let compiler =
             JavyCompiler::new(JavyConfig::default()).expect("Failed to create Javy compiler");
@@ -106,6 +146,11 @@ mod javy_tests {
 
     #[tokio::test]
     async fn test_compilation_metrics() {
+        if !has_javy_plugin() {
+            eprintln!("Skipping test_compilation_metrics: Javy plugin not available");
+            return;
+        }
+
         let compiler =
             JavyCompiler::new(JavyConfig::default()).expect("Failed to create Javy compiler");
 

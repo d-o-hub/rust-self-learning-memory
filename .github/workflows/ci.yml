@@ -21,6 +21,13 @@ concurrency:
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
+  # Reduce debug symbol size and link-time memory usage in CI (dev profile)
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_DEV_CODEGEN_UNITS: 1
+  CARGO_INCREMENTAL: 0
+  # Limit parallel codegen/linking to reduce peak memory and serialize test builds
+  CARGO_BUILD_JOBS: 2
+  CARGO_TEST_JOBS: 1
   RUSTFLAGS: "-D warnings"
 
 jobs:
@@ -129,7 +136,12 @@ jobs:
             ${{ runner.os }}-sccache-
       - name: Run unit tests (libs only)
         run: |
-          cargo test -p ${{ matrix.crate }} --all-features --lib -- --test-threads=4
+          if [ "${{ matrix.crate }}" = "memory-mcp" ]; then \
+            RUSTFLAGS="-C debuginfo=0 -C strip=symbols -C panic=abort" \
+            cargo test -p memory-mcp --all-features --lib -- --test-threads=1; \
+          else \
+            cargo test -p ${{ matrix.crate }} --all-features --lib -- --test-threads=4; \
+          fi
       - name: Show sccache stats
         if: always()
         run: sccache --show-stats || true
@@ -181,7 +193,12 @@ jobs:
             ${{ runner.os }}-sccache-
       - name: Run integration tests
         run: |
-          cargo test -p ${{ matrix.crate }} --all-features --tests -- --test-threads=2
+          if [ "${{ matrix.crate }}" = "memory-mcp" ]; then \
+            RUSTFLAGS="-C debuginfo=0 -C strip=symbols -C panic=abort" \
+            cargo test -p memory-mcp --all-features --tests -- --test-threads=1; \
+          else \
+            cargo test -p ${{ matrix.crate }} --all-features --tests -- --test-threads=2; \
+          fi
       - name: Show sccache stats
         if: always()
         run: sccache --show-stats || true

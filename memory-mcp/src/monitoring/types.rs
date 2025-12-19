@@ -271,13 +271,14 @@ impl MonitoringStats {
 
         // Keep only recent timestamps (last 24 hours)
         self.episode_metrics.episode_timestamps.push(now);
+        // Ensure we don't underflow if timestamps are in the future; keep only timestamps <= now and within 24 hours
         self.episode_metrics
             .episode_timestamps
-            .retain(|&ts| now - ts < 86400); // 24 hours
+            .retain(|&ts| ts <= now && now - ts < 86400); // 24 hours
 
-        // Update counts
-        let one_hour_ago = now - 3600;
-        let twenty_four_hours_ago = now - 86400;
+        // Update counts with saturating subtraction for safety
+        let one_hour_ago = now.saturating_sub(3600);
+        let twenty_four_hours_ago = now.saturating_sub(86400);
 
         self.episode_metrics.episodes_last_hour = self
             .episode_metrics

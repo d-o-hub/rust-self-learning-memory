@@ -36,6 +36,8 @@ See [Phase 2A Documentation](../plans/phase2a-wasmtime-poc-complete.md) for comp
 - ⏳ Fuel-based timeout enforcement
 - ⏳ Performance benchmarking vs baseline
 
+> **Note:** The `javy` backend requires either a bundled `javy-plugin.wasm` plugin (set via `JAVY_PLUGIN`) or the `javy` CLI available on PATH. CI will attempt to install the CLI when running the `javy-backend` feature; if neither is present, Javy tests will be skipped gracefully.
+
 ### Phase 1: rquickjs Migration ✅ **COMPLETE**
 
 **Problem Solved**: rquickjs v0.6.2 had critical GC race conditions causing SIGABRT crashes under concurrent test execution.

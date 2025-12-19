@@ -29,6 +29,7 @@ env:
   CARGO_BUILD_JOBS: 2
   CARGO_TEST_JOBS: 1
   RUSTFLAGS: "-D warnings"
+  JAVY_PLUGIN: "${{ github.workspace }}/memory-mcp/javy-plugin.wasm"
 
 jobs:
   # Only run CI if Quick Check succeeded (for workflow_run) or on direct push

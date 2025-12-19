@@ -429,7 +429,10 @@ impl JavyCompiler {
             let default_path = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
             if std::fs::metadata(&default_path).is_ok() {
                 env::set_var("JAVY_PLUGIN", &default_path);
-                debug!("JAVY_PLUGIN not set; using bundled plugin at {}", default_path);
+                debug!(
+                    "JAVY_PLUGIN not set; using bundled plugin at {}",
+                    default_path
+                );
             } else {
                 // Fallback: write embedded plugin bytes to a temp file and use that
                 const PLUGIN_BYTES: &[u8] = include_bytes!("../javy-plugin.wasm");

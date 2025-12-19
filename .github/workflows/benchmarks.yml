@@ -52,6 +52,7 @@ jobs:
     env:
       RUSTC_WRAPPER: sccache
       SCCACHE_CACHE_SIZE: 2G
+      JAVY_PLUGIN: "${{ github.workspace }}/memory-mcp/javy-plugin.wasm"
 
     steps:
       - name: Set build directories

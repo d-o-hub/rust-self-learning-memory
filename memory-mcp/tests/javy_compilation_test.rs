@@ -13,7 +13,7 @@ mod javy_tests {
     fn has_javy_plugin() -> bool {
         if let Ok(p) = std::env::var("JAVY_PLUGIN") {
             if let Ok(mut f) = std::fs::File::open(&p) {
-                let mut magic = [0u8;4];
+                let mut magic = [0u8; 4];
                 if f.read_exact(&mut magic).is_ok() && &magic == b"\0asm" {
                     return true;
                 }
@@ -21,7 +21,7 @@ mod javy_tests {
         }
         let default = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
         if let Ok(mut f) = std::fs::File::open(&default) {
-            let mut magic = [0u8;4];
+            let mut magic = [0u8; 4];
             if f.read_exact(&mut magic).is_ok() && &magic == b"\0asm" {
                 return true;
             }

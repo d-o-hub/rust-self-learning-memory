@@ -50,12 +50,15 @@ jobs:
       actions: write   # Required for caching
     timeout-minutes: 60
     env:
-      CARGO_TARGET_DIR: /tmp/target
       RUSTC_WRAPPER: sccache
-      SCCACHE_DIR: /tmp/sccache
       SCCACHE_CACHE_SIZE: 2G
 
     steps:
+      - name: Set build directories
+        shell: bash
+        run: |
+          echo "CARGO_TARGET_DIR=${{ runner.temp }}/cargo-target" >> $GITHUB_ENV
+          echo "SCCACHE_DIR=${{ runner.temp }}/sccache" >> $GITHUB_ENV
       - name: Check disk space
         run: df -h
       - name: Free disk space (benchmark cleanup)
@@ -82,7 +85,7 @@ jobs:
       - name: Cache sccache
         uses: actions/cache@v4
         with:
-          path: /tmp/sccache
+          path: ${{ runner.temp }}/sccache
           key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-bench-sccache-
@@ -251,7 +254,7 @@ jobs:
           name: benchmark-results-${{ github.sha }}
           path: |
             bench_results.txt
-            ${{ env.CARGO_TARGET_DIR }}/criterion/
+            ${{ runner.temp }}/cargo-target/criterion/
           retention-days: 90
 
   regression-check:

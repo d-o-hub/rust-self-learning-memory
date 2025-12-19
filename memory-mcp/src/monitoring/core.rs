@@ -109,7 +109,9 @@ impl MonitoringSystem {
         if let Some(mut metrics) = active.remove(request_id) {
             metrics.end_time = end_time;
             metrics.success = success;
-            metrics.response_time_ms = (end_time - metrics.start_time) * 1000; // Convert to ms
+            // Avoid underflow if system clock moved backwards; use saturating operations
+            let elapsed_secs = end_time.saturating_sub(metrics.start_time);
+            metrics.response_time_ms = elapsed_secs.saturating_mul(1000); // Convert to ms
             metrics.error_message = error_message;
 
             // Update stats

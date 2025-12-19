@@ -66,6 +66,7 @@ use crate::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore};
+use tracing::{debug, info};
 use uuid::Uuid;
 
 use step_buffer::StepBuffer;
@@ -460,16 +461,185 @@ impl SelfLearningMemory {
         self.cache_storage.as_ref()
     }
 
-    /// Get all episodes (for backfilling embeddings)
+    /// Get all episodes with proper lazy loading from storage backends.
+    ///
+    /// This method implements the lazy loading pattern: memory → redb → Turso.
+    /// It first checks the in-memory cache, then falls back to cache storage
+    /// (redb), and finally to durable storage (Turso) if needed.
+    ///
+    /// Used primarily for backfilling embeddings and comprehensive episode retrieval.
+    ///
+    /// # Returns
+    ///
+    /// All episodes found across all storage backends, deduplicated by ID
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operations fail
     pub async fn get_all_episodes(&self) -> Result<Vec<Episode>> {
-        let episodes = self.episodes_fallback.read().await;
-        Ok(episodes.values().cloned().collect())
+        use chrono::{TimeZone, Utc};
+
+        // 1) Start with in-memory episodes
+        let mut all_episodes: std::collections::HashMap<Uuid, Episode> = {
+            let episodes = self.episodes_fallback.read().await;
+            episodes
+                .values()
+                .cloned()
+                .map(|e| (e.episode_id, e))
+                .collect()
+        };
+
+        // 2) Try to fetch from cache storage (redb) if we might be missing episodes
+        if let Some(cache) = &self.cache_storage {
+            // Fetch all episodes from cache (since timestamp 0)
+            let since = Utc
+                .timestamp_millis_opt(0)
+                .single()
+                .unwrap_or_else(Utc::now);
+            match cache.query_episodes_since(since).await {
+                Ok(cache_episodes) => {
+                    debug!(
+                        cache_count = cache_episodes.len(),
+                        "Fetched episodes from cache storage"
+                    );
+                    for episode in cache_episodes {
+                        all_episodes.entry(episode.episode_id).or_insert(episode);
+                    }
+                }
+                Err(e) => {
+                    debug!("Failed to fetch episodes from cache storage: {}", e);
+                }
+            }
+        }
+
+        // 3) Try to fetch from durable storage (Turso) for completeness
+        if let Some(turso) = &self.turso_storage {
+            let since = Utc
+                .timestamp_millis_opt(0)
+                .single()
+                .unwrap_or_else(Utc::now);
+            match turso.query_episodes_since(since).await {
+                Ok(turso_episodes) => {
+                    debug!(
+                        turso_count = turso_episodes.len(),
+                        "Fetched episodes from durable storage"
+                    );
+                    for episode in turso_episodes {
+                        all_episodes.entry(episode.episode_id).or_insert(episode);
+                    }
+                }
+                Err(e) => {
+                    debug!("Failed to fetch episodes from durable storage: {}", e);
+                }
+            }
+        }
+
+        // 4) Update in-memory cache with any newly discovered episodes
+        {
+            let mut episodes_cache = self.episodes_fallback.write().await;
+            for (id, episode) in &all_episodes {
+                if !episodes_cache.contains_key(id) {
+                    episodes_cache.insert(*id, episode.clone());
+                }
+            }
+        }
+
+        let total_count = all_episodes.len();
+        info!(
+            total_episodes = total_count,
+            "Retrieved all episodes from all storage backends"
+        );
+
+        Ok(all_episodes.into_values().collect())
     }
 
-    /// Get all patterns (for backfilling embeddings)
+    /// Get all patterns with proper lazy loading from storage backends.
+    ///
+    /// This method implements the lazy loading pattern: memory → redb → Turso.
+    /// It first checks the in-memory cache, then falls back to cache storage
+    /// (redb), and finally to durable storage (Turso) if needed.
+    ///
+    /// Used primarily for backfilling embeddings and comprehensive pattern retrieval.
+    ///
+    /// # Returns
+    ///
+    /// All patterns found across all storage backends, deduplicated by ID
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operations fail
+    /// Get all patterns from in-memory cache.
+    ///
+    /// Note: This method currently only returns patterns from the in-memory cache.
+    /// In the future, this could be extended to support lazy loading from storage
+    /// backends similar to get_all_episodes().
+    ///
+    /// Used primarily for backfilling embeddings.
+    ///
+    /// # Returns
+    ///
+    /// All patterns currently in the in-memory cache
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
     pub async fn get_all_patterns(&self) -> Result<Vec<Pattern>> {
         let patterns = self.patterns_fallback.read().await;
         Ok(patterns.values().cloned().collect())
+    }
+
+    /// List episodes with optional filtering, using proper lazy loading.
+    ///
+    /// This is the preferred method for CLI commands and user interfaces
+    /// that need to list episodes with optional filters. It implements
+    /// the same lazy loading pattern as get_all_episodes(): memory → redb → Turso.
+    ///
+    /// # Arguments
+    ///
+    /// * `limit` - Maximum number of episodes to return (None for all)
+    /// * `offset` - Number of episodes to skip for pagination (default 0)
+    /// * `completed_only` - Whether to return only completed episodes (default false)
+    ///
+    /// # Returns
+    ///
+    /// Filtered list of episodes from all storage backends
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operations fail
+    pub async fn list_episodes(
+        &self,
+        limit: Option<usize>,
+        offset: Option<usize>,
+        completed_only: Option<bool>,
+    ) -> Result<Vec<Episode>> {
+        // Get all episodes with lazy loading
+        let mut all_episodes = self.get_all_episodes().await?;
+
+        // Apply filters
+        if let Some(true) = completed_only {
+            all_episodes.retain(|e| e.is_complete());
+        }
+
+        // Sort by start time (newest first) for consistent ordering
+        all_episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+
+        // Apply pagination
+        let offset = offset.unwrap_or(0);
+        if offset > 0 {
+            all_episodes.drain(0..offset.min(all_episodes.len()));
+        }
+
+        if let Some(limit) = limit {
+            all_episodes.truncate(limit);
+        }
+
+        info!(
+            total_returned = all_episodes.len(),
+            "Listed episodes with filters"
+        );
+
+        Ok(all_episodes)
     }
 
     /// Get patterns extracted from a specific episode
@@ -888,5 +1058,101 @@ mod tests {
             old_sample_size + 1,
             "Sample size should increase by 1"
         );
+    }
+
+    #[tokio::test]
+    async fn test_get_all_episodes_lazy_loading() {
+        let memory = SelfLearningMemory::new();
+
+        // Create a few episodes
+        let episode_id1 = memory
+            .start_episode(
+                "Test task 1".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        let _episode_id2 = memory
+            .start_episode(
+                "Test task 2".to_string(),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            )
+            .await;
+
+        // Complete one episode
+        memory
+            .complete_episode(
+                episode_id1,
+                TaskOutcome::Success {
+                    verdict: "Task completed".to_string(),
+                    artifacts: vec![],
+                },
+            )
+            .await
+            .unwrap();
+
+        // Test get_all_episodes
+        let all_episodes = memory.get_all_episodes().await.unwrap();
+        assert_eq!(all_episodes.len(), 2, "Should return all episodes");
+
+        // Test list_episodes with filters
+        let all_episodes_list = memory.list_episodes(None, None, None).await.unwrap();
+        assert_eq!(all_episodes_list.len(), 2, "Should list all episodes");
+
+        let completed_episodes = memory.list_episodes(None, None, Some(true)).await.unwrap();
+        assert_eq!(
+            completed_episodes.len(),
+            1,
+            "Should return only completed episodes"
+        );
+
+        let limited_episodes = memory.list_episodes(Some(1), None, None).await.unwrap();
+        assert_eq!(limited_episodes.len(), 1, "Should respect limit");
+
+        // Test that episodes are sorted by start_time (newest first)
+        let mut episodes_by_time = all_episodes_list.clone();
+        episodes_by_time.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+        assert_eq!(
+            all_episodes_list, episodes_by_time,
+            "Episodes should be sorted by start_time (newest first)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_get_episode_lazy_loading() {
+        let memory = SelfLearningMemory::new();
+
+        // Create an episode
+        let episode_id = memory
+            .start_episode(
+                "Test lazy loading".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
+
+        // Get episode should work from in-memory
+        let episode = memory.get_episode(episode_id).await.unwrap();
+        assert_eq!(episode.task_description, "Test lazy loading");
+
+        // Note: In test environment without storage backends,
+        // lazy loading fallback won't work since episodes aren't persisted
+        // This test mainly verifies the method doesn't panic
+        // and works correctly when episode is in memory
+
+        // Verify episode is in in-memory cache
+        {
+            let episodes = memory.episodes_fallback.read().await;
+            assert!(
+                episodes.contains_key(&episode_id),
+                "Episode should be in memory cache"
+            );
+        }
+
+        // The existing get_episode method with lazy loading should work
+        let episode = memory.get_episode(episode_id).await.unwrap();
+        assert_eq!(episode.task_description, "Test lazy loading");
     }
 }

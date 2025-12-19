@@ -245,6 +245,26 @@ jobs:
           cargo build -p memory-mcp --features wasm-rquickjs && \
           RUSTFLAGS="-C debuginfo=0 -C strip=symbols -C panic=abort" \
           cargo test -p memory-mcp --features wasm-rquickjs -- --test-threads=1
+      - name: Prepare Javy (plugin or CLI)
+        if: matrix.feature == 'javy-backend'
+        run: |
+          echo "Checking for bundled Javy plugin: $JAVY_PLUGIN"
+          if [ -f "$JAVY_PLUGIN" ]; then
+            echo "Found bundled plugin: $JAVY_PLUGIN"
+            exit 0
+          fi
+          echo "Bundled plugin not found. Checking for javy CLI..."
+          if command -v javy >/dev/null 2>&1; then
+            echo "javy CLI already installed"
+            exit 0
+          fi
+          echo "Attempting to install javy CLI via cargo (best-effort)"
+          cargo install javy || echo "cargo install javy failed; proceeding (tests may skip if javy not available)"
+          if command -v javy >/dev/null 2>&1; then
+            echo "javy CLI is now available"
+          else
+            echo "javy CLI not available and plugin missing; Javy tests will be skipped"
+          fi
       - name: Build (javy-backend)
         if: matrix.feature == 'javy-backend'
         run: |

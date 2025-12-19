@@ -554,7 +554,7 @@ jobs:
         if: always()
         run: sccache --show-stats || true
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.5.2
         with:
           files: lcov.info
           fail_ci_if_error: false

@@ -580,7 +580,11 @@ mod tests {
         match result {
             ExecutionResult::Timeout { elapsed_ms, .. } => {
                 // Allow a reasonable upper bound to avoid flaky failures on busy CI runners.
-                assert!(elapsed_ms < 5000, "elapsed_ms {} unexpectedly large", elapsed_ms);
+                assert!(
+                    elapsed_ms < 5000,
+                    "elapsed_ms {} unexpectedly large",
+                    elapsed_ms
+                );
                 // Timeout worked correctly
             }
             other => panic!("Expected timeout, got: {:?}", other),

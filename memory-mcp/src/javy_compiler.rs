@@ -422,18 +422,124 @@ impl JavyCompiler {
     #[cfg(feature = "javy-backend")]
     async fn perform_compilation(&self, js_source: &str) -> Result<Vec<u8>> {
         use javy_codegen::{Generator, LinkingKind, JS};
+        use std::env;
+        // Ensure Javy plugin path is available for codegen. If not provided by the environment,
+        // default to the plugin bundled with this crate.
+        if env::var("JAVY_PLUGIN").is_err() {
+            let default_path = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
+            if std::fs::metadata(&default_path).is_ok() {
+                env::set_var("JAVY_PLUGIN", &default_path);
+                debug!(
+                    "JAVY_PLUGIN not set; using bundled plugin at {}",
+                    default_path
+                );
+            } else {
+                // Fallback: write embedded plugin bytes to a temp file and use that
+                const PLUGIN_BYTES: &[u8] = include_bytes!("../javy-plugin.wasm");
+                let tmp_path = std::env::temp_dir().join("memory_mcp_javy_plugin.wasm");
+                match std::fs::write(&tmp_path, PLUGIN_BYTES) {
+                    Ok(_) => {
+                        env::set_var("JAVY_PLUGIN", &tmp_path);
+                        debug!(
+                            "JAVY_PLUGIN not set; wrote embedded plugin to {}",
+                            tmp_path.display()
+                        );
+                    }
+                    Err(e) => {
+                        debug!(
+                            "Failed to write embedded Javy plugin to {}: {:?}",
+                            tmp_path.display(),
+                            e
+                        );
+                    }
+                }
+            }
+        }
+
         let source = js_source.to_string();
         let source_len = source.len();
+
+        // Try using Javy plugin (wasm plugin) first; if not available, fall back to the javy CLI.
+        let js_clone = source.clone();
         tokio::task::spawn_blocking(move || {
-            let js = JS::from_string(source);
-            let mut gen = Generator::default();
-            gen.linking(LinkingKind::Dynamic);
-            let wasm = gen.generate(&js).context("Failed to generate WASM")?;
+            // If a JAVY_PLUGIN is provided and looks like a valid WASM, prefer the plugin + codegen path
+            if let Ok(plugin_path) = std::env::var("JAVY_PLUGIN") {
+                if std::fs::File::open(&plugin_path).is_ok() {
+                    let js = JS::from_string(js_clone);
+                    let mut gen = Generator::default();
+                    gen.linking(LinkingKind::Dynamic);
+                    let wasm = gen.generate(&js).context("Failed to generate WASM")?;
+                    debug!(
+                        "Compiled JS ({} bytes) to WASM ({} bytes) via plugin {}",
+                        source_len,
+                        wasm.len(),
+                        plugin_path
+                    );
+                    return Ok(wasm);
+                }
+            }
+
+            // Try default bundled plugin path
+            let default_path = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
+            if std::fs::File::open(&default_path).is_ok() {
+                let js = JS::from_string(js_clone);
+                let mut gen = Generator::default();
+                gen.linking(LinkingKind::Dynamic);
+                let wasm = gen.generate(&js).context("Failed to generate WASM")?;
+                debug!(
+                    "Compiled JS ({} bytes) to WASM ({} bytes) via bundled plugin {}",
+                    source_len,
+                    wasm.len(),
+                    default_path
+                );
+                return Ok(wasm);
+            }
+
+            // Plugin not available — attempt CLI fallback
+            debug!("Javy plugin not found; attempting javy CLI fallback");
+            use std::io::Write;
+            use std::process::{Command, Stdio};
+
+            let mut child = Command::new("javy")
+                .arg("compile")
+                .arg("-o")
+                .arg("-")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .context("Failed to spawn javy CLI")?;
+
+            if let Some(mut stdin) = child.stdin.take() {
+                stdin
+                    .write_all(source.as_bytes())
+                    .context("Writing JS to javy stdin failed")?;
+            }
+
+            let output = child
+                .wait_with_output()
+                .context("Failed to read javy CLI output")?;
+
+            if !output.status.success() {
+                return Err(anyhow::anyhow!(
+                    "javy CLI failed: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                ));
+            }
+
+            let wasm = output.stdout;
+            if wasm.len() < 4 || &wasm[0..4] != b"\0asm" {
+                return Err(anyhow::anyhow!(
+                    "javy CLI produced non-wasm output ({} bytes)",
+                    wasm.len()
+                ));
+            }
+
             debug!(
-                "Compiled JS ({} bytes) to WASM ({} bytes)",
+                "Compiled JS ({} bytes) to WASM ({} bytes) via javy CLI",
                 source_len,
                 wasm.len()
             );
+
             Ok(wasm)
         })
         .await

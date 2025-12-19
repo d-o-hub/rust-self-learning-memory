@@ -92,7 +92,7 @@ jobs:
 
   unit-tests:
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-unit
+      group: ${{ github.workflow }}-${{ github.ref }}-unit-${{ matrix.crate }}
       cancel-in-progress: false
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -152,7 +152,7 @@ jobs:
 
   integration-tests:
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-integration
+      group: ${{ github.workflow }}-${{ github.ref }}-integration-${{ matrix.crate }}
       cancel-in-progress: false
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -212,7 +212,7 @@ jobs:
 
   mcp-feature-matrix:
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-mcp-feature
+      group: ${{ github.workflow }}-${{ github.ref }}-mcp-feature-${{ matrix.feature }}
       cancel-in-progress: false
     name: MCP Feature Matrix
     runs-on: ubuntu-latest
@@ -275,7 +275,7 @@ jobs:
 
   mcp-matrix:
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-mcp-matrix
+      group: ${{ github.workflow }}-${{ github.ref }}-mcp-matrix-${{ matrix.os }}-${{ matrix.rust }}
       cancel-in-progress: false
     name: MCP Matrix
     runs-on: ${{ matrix.os }}

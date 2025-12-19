@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-This roadmap tracks the implementation status of the Self-Learning Memory System against the comprehensive 6-phase implementation plans. The v0.1.6 release includes wasmtime integration and Javy research completion.
+This roadmap tracks the implementation status of the Self-Learning Memory System against the comprehensive 6-phase implementation plans. The v0.1.7 release includes plans folder optimization and GitHub Actions updates.
 
 **Current Status**: v0.1.7 RELEASE PREPARATION - Plans folder optimized, GitHub Actions updated ✅
 **Next Milestone**: v0.2.0 - Semantic intelligence and advanced features (Q2 2026)

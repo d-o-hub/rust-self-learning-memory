@@ -345,11 +345,11 @@ impl PatternValidator {
         }
 
         // Calculate Jaccard similarity (intersection / union)
-        let set1: std::collections::HashSet<_> = seq1.iter().collect();
-        let set2: std::collections::HashSet<_> = seq2.iter().collect();
+        let seq1_set: std::collections::HashSet<_> = seq1.iter().collect();
+        let seq2_set: std::collections::HashSet<_> = seq2.iter().collect();
 
-        let intersection = set1.intersection(&set2).count();
-        let union = set1.union(&set2).count();
+        let intersection = seq1_set.intersection(&seq2_set).count();
+        let union = seq1_set.union(&seq2_set).count();
 
         if union > 0 {
             intersection as f32 / union as f32

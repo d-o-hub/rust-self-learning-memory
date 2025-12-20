@@ -100,7 +100,7 @@ pub fn text_to_embedding(text: &str) -> Vec<f32> {
 
     for _ in 0..dimension {
         // Simple PRNG to generate values
-        seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
+        seed = seed.wrapping_mul(1_103_515_245).wrapping_add(12345);
         let value = ((seed >> 16) as f32) / 32768.0 - 1.0; // Range [-1, 1]
         embedding.push(value);
     }
@@ -136,7 +136,7 @@ pub fn text_to_embedding_test(text: &str) -> Vec<f32> {
 
     for _ in 0..dimension {
         // Simple PRNG to generate values
-        seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
+        seed = seed.wrapping_mul(1_103_515_245).wrapping_add(12345);
         let value = ((seed >> 16) as f32) / 32768.0 - 1.0; // Range [-1, 1]
         embedding.push(value);
     }

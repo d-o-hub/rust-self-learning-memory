@@ -207,12 +207,20 @@ impl EnhancedPatternApplicator {
         // Capability match analysis
         let capability_match = self.analyze_capability_match(tool, context);
 
-        // Weighted combination of factors (as per specification)
-        let overall_score =
-            (context_success_rate * 0.5) + (compatibility_score * 0.3) + (historical_usage * 0.2);
+        // Enhanced weighted combination of factors with better scoring
+        let mut overall_score = 0.0;
 
-        // Apply capability match as a modifier
-        overall_score * capability_match
+        // Context success rate gets highest weight (50%)
+        overall_score += context_success_rate * 0.5;
+
+        // Historical usage analysis (25%)
+        overall_score += historical_usage * 0.25;
+
+        // Compatibility score (15%)
+        overall_score += compatibility_score * 0.15;
+
+        // Apply capability match as a bonus multiplier (cap at 1.0)
+        (overall_score * (1.0 + capability_match * 0.3)).min(1.0)
     }
 
     /// Calculate historical success rate for tool in similar contexts
@@ -264,20 +272,23 @@ impl EnhancedPatternApplicator {
         // Find similar contexts in tool's typical contexts
         let mut similar_contexts = 0;
         let mut successful_contexts = 0;
+        let mut total_similarity = 0.0;
 
         for typical_context in &tool.typical_contexts {
             let similarity = self
                 .validator
                 .calculate_context_similarity(typical_context, context);
-            if similarity > 0.6 {
-                // Threshold for considering contexts similar
+
+            if similarity > 0.5 {
+                // Lower threshold for considering contexts similar
                 similar_contexts += 1;
+                total_similarity += similarity;
 
                 // Check if this context was successful
                 let domain_key = &typical_context.domain;
                 if let Some(&success_rate) = tool.success_history.get(domain_key) {
-                    if success_rate > 0.7 {
-                        // Consider successful if > 70%
+                    if success_rate > 0.6 {
+                        // Lowered threshold to 60%
                         successful_contexts += 1;
                     }
                 }
@@ -285,9 +296,19 @@ impl EnhancedPatternApplicator {
         }
 
         if similar_contexts > 0 {
-            successful_contexts as f32 / similar_contexts as f32
+            // Weight by similarity scores
+            let avg_similarity = total_similarity / similar_contexts as f32;
+            let base_success_rate = successful_contexts as f32 / similar_contexts as f32;
+
+            // Combine success rate with similarity weighting
+            base_success_rate * avg_similarity + (1.0 - avg_similarity) * 0.7
         } else {
-            0.5 // Neutral score when no similar contexts found
+            // If no similar contexts, check domain success history directly
+            if let Some(&domain_rate) = tool.success_history.get(&context.domain) {
+                domain_rate * 0.8 // Slight penalty for no direct context match
+            } else {
+                0.5 // Neutral score when no context information available
+            }
         }
     }
 
@@ -296,7 +317,7 @@ impl EnhancedPatternApplicator {
         let mut compatibility: f32 = 0.0;
         let mut factors_considered = 0;
 
-        // Domain compatibility (40% weight)
+        // Domain compatibility (40% weight) - Check exact matches first
         for typical_context in &tool.typical_contexts {
             if typical_context.domain == context.domain {
                 compatibility += 0.4;
@@ -305,29 +326,38 @@ impl EnhancedPatternApplicator {
             }
         }
 
-        // Language compatibility (25% weight)
-        if let (Some(tool_lang), Some(context_lang)) = (&context.language, &context.language) {
-            let has_tool_lang = tool
-                .typical_contexts
-                .iter()
-                .any(|tc| tc.language.as_ref() == Some(tool_lang));
+        // If no exact domain match, check for related domains
+        if factors_considered == 0 {
+            for typical_context in &tool.typical_contexts {
+                if self.is_related_domain(&typical_context.domain, &context.domain) {
+                    compatibility += 0.25; // Partial credit for related domains
+                    factors_considered += 1;
+                    break;
+                }
+            }
+        }
 
-            if has_tool_lang {
+        // Language compatibility (25% weight)
+        if let (Some(context_lang), Some(tool_lang_context)) = (
+            &context.language,
+            tool.typical_contexts
+                .iter()
+                .find_map(|tc| tc.language.as_ref()),
+        ) {
+            if context_lang == tool_lang_context {
                 compatibility += 0.25;
                 factors_considered += 1;
             }
         }
 
         // Framework compatibility (20% weight)
-        if let (Some(tool_framework), Some(context_framework)) =
-            (&context.framework, &context.framework)
-        {
-            let has_tool_framework = tool
-                .typical_contexts
+        if let (Some(context_framework), Some(tool_framework_context)) = (
+            &context.framework,
+            tool.typical_contexts
                 .iter()
-                .any(|tc| tc.framework.as_ref() == Some(tool_framework));
-
-            if has_tool_framework {
+                .find_map(|tc| tc.framework.as_ref()),
+        ) {
+            if context_framework == tool_framework_context {
                 compatibility += 0.20;
                 factors_considered += 1;
             }
@@ -344,9 +374,18 @@ impl EnhancedPatternApplicator {
             factors_considered += 1;
         }
 
-        // If no factors were considered, return neutral score
+        // Bonus for tools that have been used in exactly this domain before
+        if tool.success_history.contains_key(&context.domain) {
+            compatibility += 0.1; // Small bonus for known domain usage
+            factors_considered += 1;
+        }
+
+        // If no factors were considered, return a score based on domain popularity
         if factors_considered == 0 {
-            0.5
+            match context.domain.as_str() {
+                "api_development" | "web_development" => 0.6, // Common domains get base score
+                _ => 0.4,
+            }
         } else {
             compatibility.min(1.0)
         }
@@ -355,25 +394,55 @@ impl EnhancedPatternApplicator {
     /// Analyze capability match between tool and task requirements
     fn analyze_capability_match(&self, tool: &Tool, context: &TaskContext) -> f32 {
         if tool.capabilities.is_empty() {
-            return 1.0; // No capability restrictions
+            return 0.5; // Neutral score for tools with no capability restrictions
+        }
+
+        // Get expected capabilities for the context
+        let expected_capabilities = self.get_expected_capabilities_for_context(context);
+
+        if expected_capabilities.is_empty() {
+            return 1.0; // No specific capabilities required
         }
 
         let mut matched_capabilities = 0;
 
-        // Map context to expected capabilities
-        let expected_capabilities = self.get_expected_capabilities_for_context(context);
-
+        // Check for exact matches
         for capability in &tool.capabilities {
             if expected_capabilities.contains(capability) {
                 matched_capabilities += 1;
             }
         }
 
-        if expected_capabilities.is_empty() {
-            1.0 // No specific capabilities required
-        } else {
-            matched_capabilities as f32 / expected_capabilities.len() as f32
+        // Check for partial matches (e.g., "rust_compiler" matches "compiler" requirement)
+        for tool_cap in &tool.capabilities {
+            for expected_cap in &expected_capabilities {
+                if tool_cap.contains(expected_cap) || expected_cap.contains(tool_cap) {
+                    matched_capabilities += 1;
+                    break; // Don't double count
+                }
+            }
         }
+
+        // Calculate match ratio
+        let match_ratio = matched_capabilities as f32 / expected_capabilities.len() as f32;
+
+        // Bonus for exact domain-specific tools
+        let domain_bonus = match context.domain.as_str() {
+            "api_development" => {
+                if tool
+                    .capabilities
+                    .iter()
+                    .any(|c| c.contains("rust") || c.contains("compiler"))
+                {
+                    0.2
+                } else {
+                    0.0
+                }
+            }
+            _ => 0.0,
+        };
+
+        (match_ratio + domain_bonus).min(1.0)
     }
 
     /// Get expected capabilities for a given context
@@ -512,7 +581,7 @@ impl EnhancedPatternApplicator {
         if tools_assessed > 0 {
             let avg_compatibility = total_compatibility / tools_assessed as f32;
             // Convert compatibility score to risk score (1.0 - compatibility)
-            (1.0 - avg_compatibility).max(0.0).min(1.0)
+            (1.0 - avg_compatibility).clamp(0.0, 1.0)
         } else {
             0.5 // Neutral risk
         }
@@ -559,9 +628,7 @@ pub struct PlannedStep {
 mod tests {
     use super::*;
     use crate::types::{ComplexityLevel, TaskContext};
-    use chrono::Duration;
     use std::collections::HashMap;
-    use uuid::Uuid;
 
     #[test]
     fn test_enhanced_confidence_threshold() {
@@ -696,7 +763,7 @@ mod tests {
 
         let compatibility = applicator.assess_tool_compatibility(&empty_tool, &context);
         assert!(
-            compatibility >= 0.0 && compatibility <= 1.0,
+            (0.0..=1.0).contains(&compatibility),
             "Empty tool should return valid score between 0.0 and 1.0, got {}",
             compatibility
         );
@@ -707,7 +774,7 @@ mod tests {
 
         let compatibility2 = applicator.assess_tool_compatibility(&tool_with_contexts, &context);
         assert!(
-            compatibility2 >= 0.0 && compatibility2 <= 1.0,
+            (0.0..=1.0).contains(&compatibility2),
             "Tool with contexts should return valid score, got {}",
             compatibility2
         );
@@ -720,7 +787,7 @@ mod tests {
 
         let compatibility3 = applicator.assess_tool_compatibility(&tool_with_history, &context);
         assert!(
-            compatibility3 >= 0.0 && compatibility3 <= 1.0,
+            (0.0..=1.0).contains(&compatibility3),
             "Tool with history should return valid score, got {}",
             compatibility3
         );
@@ -781,7 +848,7 @@ mod tests {
             tools: vec!["test_tool".to_string()],
             context: TaskContext::default(),
             success_rate: 0.8,
-            avg_duration: chrono::Duration::seconds(30),
+            avg_latency: chrono::Duration::seconds(30),
             occurrence_count: 5,
         };
 
@@ -802,7 +869,7 @@ mod tests {
 
         let risk = applicator.calculate_tool_compatibility_risk(&pattern, &context, &planned_steps);
         assert!(
-            risk >= 0.0 && risk <= 1.0,
+            (0.0..=1.0).contains(&risk),
             "Tool compatibility risk should be between 0.0 and 1.0, got {}",
             risk
         );

@@ -430,6 +430,14 @@ impl StorageBackend for RedbStorage {
     ) -> Result<Vec<Episode>> {
         self.query_episodes_since(since).await
     }
+
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<Vec<Episode>> {
+        self.query_episodes_by_metadata(key, value).await
+    }
 }
 
 #[cfg(test)]

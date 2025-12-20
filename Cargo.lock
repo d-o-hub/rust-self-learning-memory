@@ -3885,6 +3885,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "augurs",
+ "base64 0.22.1",
  "changepoint 0.15.0",
  "chrono",
  "deep_causality",

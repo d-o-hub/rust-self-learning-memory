@@ -115,4 +115,26 @@ pub trait StorageBackend: Send + Sync {
         &self,
         since: chrono::DateTime<chrono::Utc>,
     ) -> Result<Vec<Episode>>;
+
+    /// Query episodes by metadata key-value pair
+    ///
+    /// Used for specialized queries like monitoring data retrieval.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes matching the metadata criteria
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<Vec<Episode>>;
 }

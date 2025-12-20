@@ -239,6 +239,63 @@ impl TursoStorage {
         Ok(episodes)
     }
 
+    /// Query episodes by metadata key-value pair
+    ///
+    /// Returns all episodes whose metadata contains the specified key-value pair.
+    /// This enables efficient querying of specialized data like monitoring records.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes matching the metadata criteria
+    pub async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<Vec<Episode>> {
+        debug!("Querying episodes by metadata: {} = {}", key, value);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT episode_id, task_type, task_description, context,
+                   start_time, end_time, steps, outcome, reward,
+                   reflection, patterns, heuristics, metadata
+            FROM episodes
+            WHERE metadata LIKE '%' || ? || '%'
+            ORDER BY start_time DESC
+        "#;
+
+        let search_pattern = format!("\"{}\":\"{}\"", key, value);
+
+        let mut rows = conn
+            .query(sql, params![search_pattern])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episodes by metadata: {}", e)))?;
+
+        let mut episodes = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+        {
+            let episode = self.row_to_episode(&row)?;
+            
+            // Double-check the metadata match (since LIKE might be imprecise)
+            if let Some(metadata_value) = episode.metadata.get(key) {
+                if metadata_value == value {
+                    episodes.push(episode);
+                }
+            }
+        }
+
+        info!("Found {} episodes with metadata {} = {}", episodes.len(), key, value);
+        Ok(episodes)
+    }
+
     /// Delete an episode
     pub async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
         debug!("Deleting episode: {}", episode_id);

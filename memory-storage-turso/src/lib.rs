@@ -502,6 +502,14 @@ impl StorageBackend for TursoStorage {
     ) -> Result<Vec<memory_core::Episode>> {
         self.query_episodes_since(since).await
     }
+
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<Vec<memory_core::Episode>> {
+        self.query_episodes_by_metadata(key, value).await
+    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage
@@ -510,56 +518,56 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
     async fn store_execution_record(
         &self,
         record: &memory_core::monitoring::types::ExecutionRecord,
-    ) -> anyhow::Result<()> {
+    ) -> Result<()> {
         self.store_execution_record(record)
             .await
-            .map_err(|e| anyhow::anyhow!("Storage error: {}", e))
+            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 
     async fn store_agent_metrics(
         &self,
         metrics: &memory_core::monitoring::types::AgentMetrics,
-    ) -> anyhow::Result<()> {
+    ) -> Result<()> {
         self.store_agent_metrics(metrics)
             .await
-            .map_err(|e| anyhow::anyhow!("Storage error: {}", e))
+            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 
     async fn store_task_metrics(
         &self,
         metrics: &memory_core::monitoring::types::TaskMetrics,
-    ) -> anyhow::Result<()> {
+    ) -> Result<()> {
         self.store_task_metrics(metrics)
             .await
-            .map_err(|e| anyhow::anyhow!("Storage error: {}", e))
+            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 
     async fn load_agent_metrics(
         &self,
         agent_name: &str,
-    ) -> anyhow::Result<Option<memory_core::monitoring::types::AgentMetrics>> {
+    ) -> Result<Option<memory_core::monitoring::types::AgentMetrics>> {
         self.load_agent_metrics(agent_name)
             .await
-            .map_err(|e| anyhow::anyhow!("Storage error: {}", e))
+            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 
     async fn load_execution_records(
         &self,
         agent_name: Option<&str>,
         limit: usize,
-    ) -> anyhow::Result<Vec<memory_core::monitoring::types::ExecutionRecord>> {
+    ) -> Result<Vec<memory_core::monitoring::types::ExecutionRecord>> {
         self.load_execution_records(agent_name, limit)
             .await
-            .map_err(|e| anyhow::anyhow!("Storage error: {}", e))
+            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 
     async fn load_task_metrics(
         &self,
         task_type: &str,
-    ) -> anyhow::Result<Option<memory_core::monitoring::types::TaskMetrics>> {
+    ) -> Result<Option<memory_core::monitoring::types::TaskMetrics>> {
         self.load_task_metrics(task_type)
             .await
-            .map_err(|e| anyhow::anyhow!("Storage error: {}", e))
+            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 }
 

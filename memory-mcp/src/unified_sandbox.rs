@@ -51,6 +51,7 @@ use tracing::{debug, info};
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};
+use base64::Engine;
 
 #[cfg(feature = "javy-backend")]
 use crate::javy_compiler::{JavyCompiler, JavyConfig};
@@ -225,7 +226,16 @@ impl UnifiedSandbox {
                     // Without Javy feature, require pre-compiled WASM
                     if let Some(sandbox) = &self.wasmtime_sandbox {
                         debug!("Executing pre-compiled WASM bytecode (Javy not enabled)");
-                        sandbox.execute(code.as_bytes(), &context).await
+
+                        let wasm_bytes = if let Some(encoded) = code.strip_prefix("wasm_base64:") {
+                            base64::engine::general_purpose::STANDARD
+                                .decode(encoded)
+                                .map_err(|e| anyhow!("Invalid wasm_base64 payload: {}", e))?
+                        } else {
+                            code.as_bytes().to_vec()
+                        };
+
+                        sandbox.execute(&wasm_bytes, &context).await
                     } else {
                         Err(anyhow!("Wasmtime sandbox not initialized. Enable 'javy-backend' feature for JavaScript support."))
                     }
@@ -527,7 +537,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
     async fn test_unified_sandbox_wasm_backend() -> Result<()> {
         let sandbox =
             UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::Wasm).await?;
@@ -544,9 +553,11 @@ mod tests {
         )?;
 
         let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
-        let result = sandbox
-            .execute(&String::from_utf8(wasm_bytes)?, context)
-            .await?;
+        let wasm_payload = format!(
+            "wasm_base64:{}",
+            base64::engine::general_purpose::STANDARD.encode(wasm_bytes)
+        );
+        let result = sandbox.execute(&wasm_payload, context).await?;
 
         match &result {
             ExecutionResult::Success { .. } => {} // Success
@@ -667,7 +678,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
     async fn test_backend_update() -> Result<()> {
         let mut sandbox =
             UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::NodeJs).await?;
@@ -699,9 +709,11 @@ mod tests {
             )
         "#,
         )?;
-        let result2 = sandbox
-            .execute(&String::from_utf8(wasm_bytes)?, context)
-            .await?;
+        let wasm_payload = format!(
+            "wasm_base64:{}",
+            base64::engine::general_purpose::STANDARD.encode(wasm_bytes)
+        );
+        let result2 = sandbox.execute(&wasm_payload, context).await?;
         match &result2 {
             ExecutionResult::Success { .. } => {} // Success
             _ => panic!("Expected success for WASM backend but got: {:?}", result2),

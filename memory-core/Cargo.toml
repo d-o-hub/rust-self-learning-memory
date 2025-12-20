@@ -59,3 +59,11 @@ tempfile = { workspace = true }
 memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
+
+[lints.clippy]
+# Core library gets pedantic linting for best practices
+pedantic = { level = "warn" }
+missing-docs-in-crate-items = { level = "allow" }
+missing-errors-doc = { level = "warn" }
+missing-safety-doc = { level = "warn" }
+doc-markdown = { level = "warn" }

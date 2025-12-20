@@ -559,6 +559,74 @@ impl RedbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
     }
 
+    /// Query episodes by metadata key-value pair
+    ///
+    /// This method searches through all episodes and returns those whose metadata
+    /// contains the specified key-value pair. This is less efficient than
+    /// timestamp-based queries but necessary for metadata-based searches.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes matching the metadata criteria
+    pub async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<Vec<Episode>> {
+        debug!("Querying episodes by metadata: {} = {}", key, value);
+        let db = Arc::clone(&self.db);
+        let key_str = key.to_string();
+        let value_str = value.to_string();
+
+        tokio::task::spawn_blocking(move || {
+            let read_txn = db
+                .begin_read()
+                .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
+
+            let table = read_txn
+                .open_table(EPISODES_TABLE)
+                .map_err(|e| Error::Storage(format!("Failed to open episodes table: {}", e)))?;
+
+            let mut episodes = Vec::new();
+            let iter = table
+                .iter()
+                .map_err(|e| Error::Storage(format!("Failed to iterate episodes: {}", e)))?;
+
+            for result in iter {
+                let (_, bytes_guard) = result
+                    .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
+
+                let config = bincode::options()
+                    .with_limit(MAX_EPISODE_SIZE)
+                    .with_fixint_encoding()
+                    .allow_trailing_bytes();
+                let episode: Episode = config
+                    .deserialize(bytes_guard.value())
+                    .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
+
+                // Check if metadata contains the key-value pair
+                if let Some(metadata_value) = episode.metadata.get(key_str.as_str()) {
+                    if metadata_value == value_str.as_str() {
+                        episodes.push(episode);
+                    }
+                }
+            }
+
+            // Sort by start_time descending (most recent first)
+            episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+
+            info!("Found {} episodes with metadata {} = {} in cache", episodes.len(), key_str, value_str);
+            Ok(episodes)
+        })
+        .await
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+    }
+
     /// Store metadata value
     pub async fn store_metadata(&self, key: &str, value: &str) -> Result<()> {
         debug!("Storing metadata: {} = {}", key, value);

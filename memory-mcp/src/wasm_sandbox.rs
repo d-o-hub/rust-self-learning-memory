@@ -590,9 +590,13 @@ mod tests {
     use super::*;
     use crate::types::ErrorType;
 
-    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_basic_execution() -> Result<()> {
+        if std::env::var("RUN_WASM_TESTS").is_err() {
+            tracing::info!("Skipping WASM sandbox test (set RUN_WASM_TESTS=1 to enable)");
+            return Ok(());
+        }
+
         let sandbox = WasmSandbox::new(WasmConfig::default())?;
         let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
 
@@ -610,9 +614,13 @@ mod tests {
         Ok(())
     }
 
-    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_syntax_error() -> Result<()> {
+        if std::env::var("RUN_WASM_TESTS").is_err() {
+            tracing::info!("Skipping WASM sandbox test (set RUN_WASM_TESTS=1 to enable)");
+            return Ok(());
+        }
+
         let sandbox = WasmSandbox::new(WasmConfig::default())?;
         let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
 
@@ -628,9 +636,13 @@ mod tests {
         Ok(())
     }
 
-    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_timeout() -> Result<()> {
+        if std::env::var("RUN_WASM_TESTS").is_err() {
+            tracing::info!("Skipping WASM sandbox test (set RUN_WASM_TESTS=1 to enable)");
+            return Ok(());
+        }
+
         let config = WasmConfig {
             max_execution_time: Duration::from_millis(100),
             ..Default::default()
@@ -647,9 +659,13 @@ mod tests {
         Ok(())
     }
 
-    #[ignore]
     #[tokio::test]
     async fn test_wasm_sandbox_metrics() -> Result<()> {
+        if std::env::var("RUN_WASM_TESTS").is_err() {
+            tracing::info!("Skipping WASM sandbox test (set RUN_WASM_TESTS=1 to enable)");
+            return Ok(());
+        }
+
         let sandbox = WasmSandbox::new(WasmConfig::default())?;
         let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
 

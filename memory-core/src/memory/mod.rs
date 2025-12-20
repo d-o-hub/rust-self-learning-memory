@@ -282,16 +282,12 @@ impl SelfLearningMemory {
             enable_persistence: true,
             max_records: 1000,
         };
-        
-        // Create a simple monitoring storage that wraps the provided backends
-        let monitoring_storage = crate::monitoring::storage::SimpleMonitoringStorage::new(
-            turso.clone(),
-            cache.clone(),
-        );
-        let agent_monitor = AgentMonitor::with_storage(
-            monitoring_config,
-            Arc::new(monitoring_storage),
-        );
+
+        // Create monitoring storage that uses the primary storage backend
+        let monitoring_storage =
+            crate::monitoring::storage::SimpleMonitoringStorage::new(turso.clone());
+        let agent_monitor =
+            AgentMonitor::with_storage(monitoring_config, Arc::new(monitoring_storage));
 
         Self {
             config: config.clone(),

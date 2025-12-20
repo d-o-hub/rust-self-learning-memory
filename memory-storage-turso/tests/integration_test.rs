@@ -16,7 +16,6 @@ async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
 }
 
 #[tokio::test]
-#[ignore] // Requires proper Turso database setup
 async fn test_store_and_retrieve_episode() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -36,7 +35,6 @@ async fn test_store_and_retrieve_episode() {
 }
 
 #[tokio::test]
-#[ignore] // Requires proper Turso database setup
 async fn test_query_episodes() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -58,7 +56,6 @@ async fn test_query_episodes() {
 }
 
 #[tokio::test]
-#[ignore] // Requires proper Turso database setup
 async fn test_delete_episode() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -75,7 +72,6 @@ async fn test_delete_episode() {
 }
 
 #[tokio::test]
-#[ignore] // Requires proper Turso database setup
 async fn test_storage_statistics() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 

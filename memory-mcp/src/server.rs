@@ -1105,9 +1105,14 @@ mod tests {
         assert!(!tool.description.is_empty());
     }
 
-    #[ignore] // WASM sandbox disabled - test depends on execute_agent_code tool
     #[tokio::test]
     async fn test_execute_code() {
+        if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available()
+        {
+            tracing::info!("Skipping execute_agent_code test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
+            return;
+        }
+
         let server = create_test_server().await;
 
         let code = "return 1 + 1;";
@@ -1137,9 +1142,14 @@ mod tests {
         assert_eq!(usage.get("execute_agent_code"), Some(&3));
     }
 
-    #[ignore] // WASM sandbox disabled - test depends on execute_agent_code tool
     #[tokio::test]
     async fn test_progressive_tool_disclosure() {
+        if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available()
+        {
+            tracing::info!("Skipping progressive tool disclosure test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
+            return;
+        }
+
         let server = create_test_server().await;
 
         // Use execute_agent_code multiple times

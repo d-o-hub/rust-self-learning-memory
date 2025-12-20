@@ -50,14 +50,14 @@ This directory contains comprehensive implementation plans, architectural decisi
 
 ### Active Development Documents
 
-#### Phase 2C: Javy Integration (Current)
-- **[goap-phase2c-javy-plan.md](goap-phase2c-javy-plan.md)** - Complete GOAP implementation plan
-- **[javy-research-findings.md](javy-research-findings.md)** - Javy v8.0.0 research results and integration strategy
+#### Phase 2C: Javy Integration (Archived)
+- **[archive/goap-plans/goap-phase2c-javy-plan.md](archive/goap-plans/goap-phase2c-javy-plan.md)** - Complete GOAP implementation plan
+- **[archive/releases/v0.1.6/javy-research-findings.md](archive/releases/v0.1.6/javy-research-findings.md)** - Javy v8.0.0 research results and integration strategy
 
 **Current Status**:
 - ✅ Research phase complete
 - ✅ Integration strategy documented (Dynamic linking approach)
-- ⏳ Implementation phase ready to begin
+- ✅ v0.1.7 released with Wasmtime integration
 
 #### Project Status & Roadmap
 - **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current project status and recent achievements
@@ -338,21 +338,29 @@ This README serves as the main index for all planning documentation. Documents a
 
 ## Cleanup Summary
 
-**Archive Date**: 2025-12-14
+**Archive Date**: 2025-12-19
 
-**Files Reduced**: 59 → 8 (86% reduction)
+**Latest Cleanup (2025-12-19)**:
+- **Files Removed**: 15 duplicate files from root level
+- **Total Files Reduced**: 50+ → 11 (78% reduction)
+- **Duplicates Eliminated**: GitHub Actions docs, Loop Agent reports, Phase implementation files
 
-**Actions Taken**:
+**Actions Taken (Latest)**:
+- Removed 15 duplicate files from root level (kept archive versions)
+- Verified all unique content preserved in organized archive structure
+- Maintained clear separation: root = current docs, archive = historical records
+- Updated README.md navigation to point to archive locations
+
+**Previous Cleanup (2025-12-14)**:
 - Archived 7 GOAP execution plans to `archive/goap-plans/`
 - Consolidated 15 version-specific release docs to `archive/releases/`
 - Moved 5 research reports to `archive/research/`
 - Organized 25+ legacy planning docs to `archive/legacy/`
-- Updated PROJECT_STATUS.md to current branch and status
-- Fixed ROADMAP.md merge conflict and updated version info
-- Updated README.md to reflect new structure
 
 **Benefits**:
-- Easier navigation for new contributors
-- Clear separation of current work vs historical records
-- Reduced cognitive load when browsing plans
-- All historical information preserved in archive/
+- ✅ Easier navigation for new contributors
+- ✅ Clear separation of current work vs historical records
+- ✅ Reduced cognitive load when browsing plans
+- ✅ All historical information preserved in archive/
+- ✅ Eliminated file confusion and duplicate management
+- ✅ Single source of truth for each document type

@@ -18,6 +18,8 @@ default = []
 openai = ["reqwest"]
 # Enable all embedding providers
 embeddings-full = ["openai"]
+# Enable local embedding models (requires model files)
+local-embeddings = []
 
 [dependencies]
 # Async runtime
@@ -41,6 +43,15 @@ tracing = { workspace = true }
 
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.12", features = ["json"], optional = true }
+
+# Local embedding models (optional)
+gte-rs = { version = "0.9.1", optional = true }
+ort = { version = "2.0.0-rc.9", optional = true }
+tokenizers = { version = "0.20", optional = true }
+
+# For ONNX model loading and inference
+candle-core = { version = "0.6", optional = true }
+candle-nn = { version = "0.6", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

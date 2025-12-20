@@ -32,17 +32,21 @@
 
 mod config;
 mod local;
+mod mock_model;
 mod openai;
 mod provider;
+mod real_model;
 mod similarity;
 mod storage;
+mod utils;
 
 pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig};
-pub use local::LocalEmbeddingProvider;
+pub use local::{LocalEmbeddingProvider, get_recommended_model, list_available_models, LocalModelUseCase};
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
 pub use similarity::{cosine_similarity, EmbeddingWithMetadata, SimilaritySearchResult};
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
+pub use utils::{get_recommended_model, list_available_models, LocalModelUseCase};
 
 use crate::episode::Episode;
 use crate::pattern::Pattern;

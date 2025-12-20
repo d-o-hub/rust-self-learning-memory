@@ -215,11 +215,13 @@ impl Default for SelfLearningMemory {
 
 impl SelfLearningMemory {
     /// Create a new self-learning memory system with default configuration (in-memory only)
+    #[must_use]
     pub fn new() -> Self {
         Self::with_config(MemoryConfig::default())
     }
 
     /// Create a memory system with custom configuration (in-memory only)
+    #[must_use]
     pub fn with_config(config: MemoryConfig) -> Self {
         let pattern_extractor =
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
@@ -316,6 +318,7 @@ impl SelfLearningMemory {
     /// # Arguments
     ///
     /// * `queue_config` - Configuration for the queue and workers
+    #[must_use]
     pub fn enable_async_extraction(mut self, queue_config: QueueConfig) -> Self {
         let memory_arc = Arc::new(self.clone());
         let queue = Arc::new(PatternExtractionQueue::new(queue_config, memory_arc));
@@ -429,7 +432,7 @@ impl SelfLearningMemory {
     ///
     /// # Returns
     ///
-    /// AgentMetrics if the agent has been tracked, None otherwise
+    /// `AgentMetrics` if the agent has been tracked, None otherwise
     pub async fn get_agent_metrics(&self, agent_name: &str) -> Option<AgentMetrics> {
         self.agent_monitor.get_agent_metrics(agent_name).await
     }
@@ -450,21 +453,25 @@ impl SelfLearningMemory {
     }
 
     /// Check if Turso storage is configured
+    #[must_use]
     pub fn has_turso_storage(&self) -> bool {
         self.turso_storage.is_some()
     }
 
     /// Check if cache storage is configured
+    #[must_use]
     pub fn has_cache_storage(&self) -> bool {
         self.cache_storage.is_some()
     }
 
     /// Get a reference to the Turso storage backend (if configured)
+    #[must_use]
     pub fn turso_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
         self.turso_storage.as_ref()
     }
 
     /// Get a reference to the cache storage backend (if configured)
+    #[must_use]
     pub fn cache_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
         self.cache_storage.as_ref()
     }
@@ -580,7 +587,7 @@ impl SelfLearningMemory {
     ///
     /// Note: This method currently only returns patterns from the in-memory cache.
     /// In the future, this could be extended to support lazy loading from storage
-    /// backends similar to get_all_episodes().
+    /// backends similar to `get_all_episodes()`.
     ///
     /// Used primarily for backfilling embeddings.
     ///
@@ -600,7 +607,7 @@ impl SelfLearningMemory {
     ///
     /// This is the preferred method for CLI commands and user interfaces
     /// that need to list episodes with optional filters. It implements
-    /// the same lazy loading pattern as get_all_episodes(): memory → redb → Turso.
+    /// the same lazy loading pattern as `get_all_episodes()`: memory → redb → Turso.
     ///
     /// # Arguments
     ///
@@ -626,7 +633,7 @@ impl SelfLearningMemory {
 
         // Apply filters
         if let Some(true) = completed_only {
-            all_episodes.retain(|e| e.is_complete());
+            all_episodes.retain(super::episode::Episode::is_complete);
         }
 
         // Sort by start time (newest first) for consistent ordering

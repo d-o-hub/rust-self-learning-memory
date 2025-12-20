@@ -107,6 +107,7 @@ impl PatternExtractionQueue {
     ///
     /// * `config` - Queue configuration
     /// * `memory` - Shared reference to memory system
+    #[must_use]
     pub fn new(config: QueueConfig, memory: Arc<SelfLearningMemory>) -> Self {
         let extractor = PatternExtractor::new();
 
@@ -316,8 +317,7 @@ impl PatternExtractionQueue {
         // Ensure episode is complete
         if !episode.is_complete() {
             return Err(Error::InvalidState(format!(
-                "Episode {} is not complete",
-                episode_id
+                "Episode {episode_id} is not complete"
             )));
         }
 

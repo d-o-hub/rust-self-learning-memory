@@ -43,7 +43,7 @@ fn edit_distance(seq1: &[String], seq2: &[String]) -> usize {
     // Fill matrix
     for i in 1..=len1 {
         for j in 1..=len2 {
-            let cost = if seq1[i - 1] == seq2[j - 1] { 0 } else { 1 };
+            let cost = usize::from(seq1[i - 1] != seq2[j - 1]);
             matrix[i][j] = (matrix[i - 1][j] + 1) // deletion
                 .min(matrix[i][j - 1] + 1) // insertion
                 .min(matrix[i - 1][j - 1] + cost); // substitution
@@ -95,7 +95,7 @@ fn char_edit_distance(chars1: &[char], chars2: &[char]) -> usize {
 
     for i in 1..=len1 {
         for j in 1..=len2 {
-            let cost = if chars1[i - 1] == chars2[j - 1] { 0 } else { 1 };
+            let cost = usize::from(chars1[i - 1] != chars2[j - 1]);
             matrix[i][j] = (matrix[i - 1][j] + 1)
                 .min(matrix[i][j - 1] + 1)
                 .min(matrix[i - 1][j - 1] + cost);

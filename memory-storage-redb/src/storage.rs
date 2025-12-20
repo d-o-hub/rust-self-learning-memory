@@ -573,11 +573,7 @@ impl RedbStorage {
     /// # Returns
     ///
     /// Vector of episodes matching the metadata criteria
-    pub async fn query_episodes_by_metadata(
-        &self,
-        key: &str,
-        value: &str,
-    ) -> Result<Vec<Episode>> {
+    pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
         debug!("Querying episodes by metadata: {} = {}", key, value);
         let db = Arc::clone(&self.db);
         let key_str = key.to_string();
@@ -620,7 +616,12 @@ impl RedbStorage {
             // Sort by start_time descending (most recent first)
             episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
 
-            info!("Found {} episodes with metadata {} = {} in cache", episodes.len(), key_str, value_str);
+            info!(
+                "Found {} episodes with metadata {} = {} in cache",
+                episodes.len(),
+                key_str,
+                value_str
+            );
             Ok(episodes)
         })
         .await

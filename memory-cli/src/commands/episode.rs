@@ -794,7 +794,7 @@ pub async fn log_step(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::config::{initialize_storage, load_config, Config};
     use crate::output::OutputFormat;
 
     #[cfg(feature = "turso")]
@@ -914,8 +914,8 @@ batch_size = 10
 
         std::fs::write(&config_path, config_content).unwrap();
 
-        let config = Config::load(Some(&config_path)).unwrap();
-        let memory = config.create_memory().await.unwrap();
+        let config = load_config(Some(&config_path)).unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         // This should work in dry-run mode even without actual storage
         let result = create_episode(
@@ -965,8 +965,8 @@ batch_size = 10
 
         std::fs::write(&config_path, config_content).unwrap();
 
-        let config = Config::load(Some(&config_path)).unwrap();
-        let memory = config.create_memory().await.unwrap();
+        let config = load_config(Some(&config_path)).unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         // This should work in dry-run mode even without actual storage
         let result = complete_episode(
@@ -1016,8 +1016,8 @@ batch_size = 10
 
         std::fs::write(&config_path, config_content).unwrap();
 
-        let config = Config::load(Some(&config_path)).unwrap();
-        let memory = config.create_memory().await.unwrap();
+        let config = load_config(Some(&config_path)).unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         // This should work in dry-run mode even without actual storage
         let result = log_step(
@@ -1047,7 +1047,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = create_episode(
             "Test task".to_string(),
@@ -1075,7 +1075,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = list_episodes(None, 10, None, &memory, &config, OutputFormat::Human).await;
 
@@ -1095,7 +1095,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = view_episode(
             "test-uuid".to_string(),
@@ -1121,7 +1121,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = complete_episode(
             "test-uuid".to_string(),
@@ -1149,7 +1149,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = search_episodes(
             "test query".to_string(),
@@ -1176,7 +1176,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = log_step(
             "test-uuid".to_string(),

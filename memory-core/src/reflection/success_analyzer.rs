@@ -12,7 +12,7 @@ pub(super) fn identify_successes(episode: &Episode, max_items: usize) -> Vec<Str
     // Check overall outcome
     match &episode.outcome {
         Some(TaskOutcome::Success { verdict, artifacts }) => {
-            successes.push(format!("Successfully completed task: {}", verdict));
+            successes.push(format!("Successfully completed task: {verdict}"));
 
             if !artifacts.is_empty() {
                 successes.push(format!("Generated {} artifact(s)", artifacts.len()));
@@ -21,7 +21,7 @@ pub(super) fn identify_successes(episode: &Episode, max_items: usize) -> Vec<Str
         Some(TaskOutcome::PartialSuccess {
             verdict, completed, ..
         }) => {
-            successes.push(format!("Partial success: {}", verdict));
+            successes.push(format!("Partial success: {verdict}"));
             if !completed.is_empty() {
                 successes.push(format!("Completed {} subtask(s)", completed.len()));
             }
@@ -55,8 +55,7 @@ pub(super) fn identify_successes(episode: &Episode, max_items: usize) -> Vec<Str
         let duration_secs = duration.num_seconds();
         if duration_secs < 30 && total_steps > 0 {
             successes.push(format!(
-                "Efficient execution: completed in {} seconds",
-                duration_secs
+                "Efficient execution: completed in {duration_secs} seconds"
             ));
         }
     }
@@ -73,7 +72,7 @@ pub(super) fn analyze_success_patterns(episode: &Episode) -> Vec<String> {
     // Only analyze if episode was successful
     let is_success = matches!(
         episode.outcome,
-        Some(TaskOutcome::Success { .. }) | Some(TaskOutcome::PartialSuccess { .. })
+        Some(TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. })
     );
 
     if !is_success || episode.steps.is_empty() {
@@ -121,10 +120,10 @@ fn identify_effective_tool_sequence(episode: &Episode) -> Option<String> {
         let sequence = successful_tools
             .iter()
             .take(3)
-            .cloned()
+            .copied()
             .collect::<Vec<_>>()
             .join(" → ");
-        Some(format!("Effective tool sequence: {}", sequence))
+        Some(format!("Effective tool sequence: {sequence}"))
     } else {
         None
     }
@@ -153,7 +152,7 @@ fn analyze_tool_combination_strategy(episode: &Episode) -> Option<String> {
             unique_tools
                 .iter()
                 .take(3)
-                .map(|s| s.to_string())
+                .map(|s| (**s).to_string())
                 .collect::<Vec<_>>()
                 .join(", ")
         ))
@@ -207,8 +206,7 @@ fn analyze_efficiency_achievements(episode: &Episode) -> Option<String> {
 
         if duration_secs < 60 && steps < 15 {
             Some(format!(
-                "Highly efficient execution: {} steps in {}s - demonstrates expertise",
-                steps, duration_secs
+                "Highly efficient execution: {steps} steps in {duration_secs}s - demonstrates expertise"
             ))
         } else if steps < 5 && duration_secs < 120 {
             Some(

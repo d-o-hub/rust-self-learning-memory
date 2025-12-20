@@ -252,11 +252,7 @@ impl TursoStorage {
     /// # Returns
     ///
     /// Vector of episodes matching the metadata criteria
-    pub async fn query_episodes_by_metadata(
-        &self,
-        key: &str,
-        value: &str,
-    ) -> Result<Vec<Episode>> {
+    pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
         debug!("Querying episodes by metadata: {} = {}", key, value);
         let conn = self.get_connection().await?;
 
@@ -283,7 +279,7 @@ impl TursoStorage {
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
         {
             let episode = self.row_to_episode(&row)?;
-            
+
             // Double-check the metadata match (since LIKE might be imprecise)
             if let Some(metadata_value) = episode.metadata.get(key) {
                 if metadata_value == value {
@@ -292,7 +288,12 @@ impl TursoStorage {
             }
         }
 
-        info!("Found {} episodes with metadata {} = {}", episodes.len(), key, value);
+        info!(
+            "Found {} episodes with metadata {} = {}",
+            episodes.len(),
+            key,
+            value
+        );
         Ok(episodes)
     }
 

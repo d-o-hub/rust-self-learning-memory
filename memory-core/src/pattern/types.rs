@@ -48,6 +48,7 @@ pub enum Pattern {
 
 impl Pattern {
     /// Get the unique ID of this pattern
+    #[must_use]
     pub fn id(&self) -> PatternId {
         match self {
             Pattern::ToolSequence { id, .. } => *id,
@@ -58,6 +59,7 @@ impl Pattern {
     }
 
     /// Get the success rate of this pattern
+    #[must_use]
     pub fn success_rate(&self) -> f32 {
         match self {
             Pattern::ToolSequence { success_rate, .. } => *success_rate,
@@ -68,6 +70,7 @@ impl Pattern {
     }
 
     /// Get the context associated with this pattern
+    #[must_use]
     pub fn context(&self) -> Option<&TaskContext> {
         match self {
             Pattern::ToolSequence { context, .. } => Some(context),
@@ -78,6 +81,7 @@ impl Pattern {
     }
 
     /// Get the sample size (number of occurrences) for this pattern
+    #[must_use]
     pub fn sample_size(&self) -> usize {
         match self {
             Pattern::ToolSequence {

@@ -24,6 +24,7 @@ impl Default for ErrorRecoveryExtractor {
 
 impl ErrorRecoveryExtractor {
     /// Create new error recovery extractor
+    #[must_use]
     pub fn new() -> Self {
         Self {
             confidence_threshold: 0.7,
@@ -31,6 +32,7 @@ impl ErrorRecoveryExtractor {
     }
 
     /// Create with custom confidence threshold
+    #[must_use]
     pub fn with_threshold(threshold: f32) -> Self {
         Self {
             confidence_threshold: threshold,
@@ -109,7 +111,7 @@ impl PatternExtractorTrait for ErrorRecoveryExtractor {
         Ok(patterns)
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "ErrorRecoveryExtractor"
     }
 

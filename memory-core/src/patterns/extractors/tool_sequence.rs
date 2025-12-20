@@ -25,6 +25,7 @@ impl Default for ToolSequenceExtractor {
 
 impl ToolSequenceExtractor {
     /// Create new tool sequence extractor with default settings
+    #[must_use]
     pub fn new() -> Self {
         Self {
             min_sequence_len: 2,
@@ -34,6 +35,7 @@ impl ToolSequenceExtractor {
     }
 
     /// Create with custom thresholds
+    #[must_use]
     pub fn with_thresholds(min_len: usize, max_len: usize, threshold: f32) -> Self {
         Self {
             min_sequence_len: min_len,
@@ -107,7 +109,7 @@ impl PatternExtractorTrait for ToolSequenceExtractor {
         Ok(patterns)
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "ToolSequenceExtractor"
     }
 

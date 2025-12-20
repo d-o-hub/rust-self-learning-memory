@@ -162,10 +162,10 @@ pub fn extract_context_pattern(extractor: &PatternExtractor, episode: &Episode) 
     // Extract context features
     let mut context_features = Vec::new();
     if let Some(ref lang) = episode.context.language {
-        context_features.push(format!("language:{}", lang));
+        context_features.push(format!("language:{lang}"));
     }
     if let Some(ref framework) = episode.context.framework {
-        context_features.push(format!("framework:{}", framework));
+        context_features.push(format!("framework:{framework}"));
     }
     context_features.push(format!("domain:{}", episode.context.domain));
     context_features.push(format!("complexity:{:?}", episode.context.complexity));

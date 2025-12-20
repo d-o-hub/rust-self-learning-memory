@@ -61,6 +61,7 @@ impl Default for ReflectionGenerator {
 
 impl ReflectionGenerator {
     /// Create a new reflection generator
+    #[must_use]
     pub fn new() -> Self {
         Self {
             max_items: MAX_REFLECTION_ITEMS,
@@ -68,6 +69,7 @@ impl ReflectionGenerator {
     }
 
     /// Create a generator with custom max items
+    #[must_use]
     pub fn with_max_items(max_items: usize) -> Self {
         Self { max_items }
     }

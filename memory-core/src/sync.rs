@@ -88,8 +88,7 @@ impl<T, R> StorageSynchronizer<T, R> {
         state.sync_count += 1;
         if errors > 0 {
             state.last_error = Some(format!(
-                "Synced {} episodes with {} errors",
-                episodes_synced, errors
+                "Synced {episodes_synced} episodes with {errors} errors"
             ));
         } else {
             state.last_error = None;
@@ -110,6 +109,7 @@ pub struct TwoPhaseCommit {
 
 impl TwoPhaseCommit {
     /// Create a new two-phase commit transaction
+    #[must_use]
     pub fn new() -> Self {
         Self {
             phase1_complete: false,
@@ -126,7 +126,7 @@ impl TwoPhaseCommit {
     {
         debug!("Two-phase commit: Phase 1 (cache write)");
         match operation().await {
-            Ok(_) => {
+            Ok(()) => {
                 self.phase1_complete = true;
                 Ok(())
             }
@@ -151,7 +151,7 @@ impl TwoPhaseCommit {
         }
 
         match operation().await {
-            Ok(_) => {
+            Ok(()) => {
                 self.phase2_complete = true;
                 Ok(())
             }
@@ -175,18 +175,19 @@ impl TwoPhaseCommit {
 
         warn!("Rolling back two-phase commit");
         match operation().await {
-            Ok(_) => {
+            Ok(()) => {
                 info!("Rollback successful");
                 Ok(())
             }
             Err(e) => {
                 error!("Rollback failed: {}", e);
-                Err(Error::Storage(format!("Rollback failed: {}", e)))
+                Err(Error::Storage(format!("Rollback failed: {e}")))
             }
         }
     }
 
     /// Check if commit is complete
+    #[must_use]
     pub fn is_complete(&self) -> bool {
         self.phase1_complete && self.phase2_complete && !self.rollback_needed
     }
@@ -211,6 +212,7 @@ pub enum ConflictResolution {
 }
 
 /// Resolve conflict between two episodes
+#[must_use]
 pub fn resolve_episode_conflict(
     turso_episode: &Episode,
     redb_episode: &Episode,
@@ -234,6 +236,7 @@ pub fn resolve_episode_conflict(
 }
 
 /// Resolve conflict between two patterns
+#[must_use]
 pub fn resolve_pattern_conflict(
     turso_pattern: &Pattern,
     redb_pattern: &Pattern,
@@ -254,6 +257,7 @@ pub fn resolve_pattern_conflict(
 }
 
 /// Resolve conflict between two heuristics
+#[must_use]
 pub fn resolve_heuristic_conflict(
     turso_heuristic: &Heuristic,
     redb_heuristic: &Heuristic,
@@ -305,10 +309,7 @@ where
 
         // Fetch from Turso (source of truth)
         let episode = self.turso.get_episode(episode_id).await?.ok_or_else(|| {
-            Error::Storage(format!(
-                "Episode {} not found in source storage",
-                episode_id
-            ))
+            Error::Storage(format!("Episode {episode_id} not found in source storage"))
         })?;
 
         // Store in redb cache
@@ -324,7 +325,7 @@ where
     ///
     /// # Arguments
     ///
-    /// * `since` - Only sync episodes with start_time >= this timestamp
+    /// * `since` - Only sync episodes with `start_time` >= this timestamp
     ///
     /// # Returns
     ///
@@ -345,7 +346,7 @@ where
         // Batch update cache
         for episode in episodes {
             match self.redb.store_episode(&episode).await {
-                Ok(_) => {
+                Ok(()) => {
                     stats.episodes_synced += 1;
                 }
                 Err(e) => {
@@ -370,7 +371,7 @@ where
     /// Start a periodic background sync task
     ///
     /// Spawns a background task that syncs recent episodes at the specified interval.
-    /// The task will continue running until the returned JoinHandle is dropped or aborted.
+    /// The task will continue running until the returned `JoinHandle` is dropped or aborted.
     ///
     /// # Arguments
     ///
@@ -378,7 +379,7 @@ where
     ///
     /// # Returns
     ///
-    /// JoinHandle that can be used to cancel the background task
+    /// `JoinHandle` that can be used to cancel the background task
     ///
     /// # Example
     ///

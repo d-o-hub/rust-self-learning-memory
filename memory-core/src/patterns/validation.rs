@@ -49,6 +49,7 @@ pub struct PatternMetrics {
 
 impl PatternMetrics {
     /// Create metrics from confusion matrix counts
+    #[must_use]
     pub fn from_counts(tp: usize, fp: usize, fn_: usize, tn: usize) -> Self {
         let precision = if tp + fp > 0 {
             tp as f32 / (tp + fp) as f32
@@ -88,11 +89,13 @@ impl PatternMetrics {
     }
 
     /// Check if metrics meet target thresholds
+    #[must_use]
     pub fn meets_target(&self, target_precision: f32, target_recall: f32) -> bool {
         self.precision >= target_precision && self.recall >= target_recall
     }
 
     /// Get overall quality score (0.0 to 1.0)
+    #[must_use]
     pub fn quality_score(&self) -> f32 {
         // Weight F1 score (60%), precision (25%), and recall (15%)
         (self.f1_score * 0.6) + (self.precision * 0.25) + (self.recall * 0.15)
@@ -132,6 +135,7 @@ pub struct PatternValidator {
 
 impl PatternValidator {
     /// Create a new validator with default config
+    #[must_use]
     pub fn new(config: ValidationConfig) -> Self {
         Self {
             config,
@@ -189,6 +193,7 @@ impl PatternValidator {
     }
 
     /// Validate that a pattern meets confidence threshold
+    #[must_use]
     pub fn validate_confidence(&self, pattern: &Pattern) -> bool {
         let success_rate = pattern.success_rate();
         success_rate >= self.config.min_confidence
@@ -224,6 +229,7 @@ impl PatternValidator {
     }
 
     /// Get the tracked confidence for a pattern
+    #[must_use]
     pub fn get_confidence(&self, pattern_id: Uuid) -> Option<f32> {
         self.confidence_cache.get(&pattern_id).copied()
     }
@@ -244,8 +250,8 @@ impl PatternValidator {
     fn pattern_type_key(&self, pattern: &Pattern) -> String {
         match pattern {
             Pattern::ToolSequence { tools, .. } => format!("tool_seq_{}", tools.join("_")),
-            Pattern::DecisionPoint { condition, .. } => format!("decision_{}", condition),
-            Pattern::ErrorRecovery { error_type, .. } => format!("error_{}", error_type),
+            Pattern::DecisionPoint { condition, .. } => format!("decision_{condition}"),
+            Pattern::ErrorRecovery { error_type, .. } => format!("error_{error_type}"),
             Pattern::ContextPattern {
                 context_features, ..
             } => format!("context_{}", context_features.join("_")),

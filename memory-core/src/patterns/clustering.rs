@@ -42,6 +42,7 @@ pub struct PatternClusterer {
 
 impl PatternClusterer {
     /// Create a new pattern clusterer with default configuration
+    #[must_use]
     pub fn new() -> Self {
         Self {
             config: ClusteringConfig::default(),
@@ -49,6 +50,7 @@ impl PatternClusterer {
     }
 
     /// Create a clusterer with custom configuration
+    #[must_use]
     pub fn with_config(config: ClusteringConfig) -> Self {
         Self { config }
     }
@@ -56,6 +58,7 @@ impl PatternClusterer {
     /// Deduplicate patterns by merging similar ones
     ///
     /// Returns deduplicated patterns with merged statistics
+    #[must_use]
     pub fn deduplicate_patterns(&self, patterns: Vec<Pattern>) -> Vec<Pattern> {
         if patterns.is_empty() {
             return Vec::new();
@@ -94,6 +97,7 @@ impl PatternClusterer {
     /// Group patterns by similarity key for exact duplicates
     ///
     /// Returns a map of similarity key to list of patterns
+    #[must_use]
     pub fn group_by_similarity_key(&self, patterns: Vec<Pattern>) -> HashMap<String, Vec<Pattern>> {
         let mut groups: HashMap<String, Vec<Pattern>> = HashMap::new();
 
@@ -108,6 +112,7 @@ impl PatternClusterer {
     /// Cluster episodes by their patterns using k-means
     ///
     /// Groups episodes with similar patterns together
+    #[must_use]
     pub fn cluster_episodes(&self, episodes: Vec<Episode>) -> Vec<EpisodeCluster> {
         if episodes.is_empty() {
             return Vec::new();
@@ -166,6 +171,7 @@ impl PatternClusterer {
     /// Find similar patterns to a given pattern
     ///
     /// Returns patterns sorted by similarity score (highest first)
+    #[must_use]
     pub fn find_similar_patterns(
         &self,
         target: &Pattern,
@@ -359,11 +365,13 @@ pub struct EpisodeCluster {
 
 impl EpisodeCluster {
     /// Get the size of this cluster
+    #[must_use]
     pub fn size(&self) -> usize {
         self.episodes.len()
     }
 
     /// Calculate the average success rate for this cluster
+    #[must_use]
     pub fn success_rate(&self) -> f32 {
         if self.episodes.is_empty() {
             return 0.0;
@@ -375,8 +383,7 @@ impl EpisodeCluster {
             .filter(|e| {
                 e.outcome
                     .as_ref()
-                    .map(|o| matches!(o, crate::types::TaskOutcome::Success { .. }))
-                    .unwrap_or(false)
+                    .is_some_and(|o| matches!(o, crate::types::TaskOutcome::Success { .. }))
             })
             .count();
 
@@ -389,7 +396,8 @@ impl EpisodeCluster {
     /// The returned IDs are sorted by occurrence frequency (most common first).
     ///
     /// Note: Episodes store pattern IDs only. To get full Pattern objects,
-    /// use a PatternStorage to look up these IDs.
+    /// use a `PatternStorage` to look up these IDs.
+    #[must_use]
     pub fn extract_common_patterns(&self) -> Vec<crate::episode::PatternId> {
         use std::collections::HashMap;
 

@@ -28,6 +28,7 @@ use anyhow::Result;
 /// assert!(is_decision_action("When ready, proceed"));
 /// assert!(!is_decision_action("Read file"));
 /// ```
+#[must_use]
 pub fn is_decision_action(action: &str) -> bool {
     let action_lower = action.to_lowercase();
     action_lower.contains("if ")
@@ -65,7 +66,7 @@ pub fn extract_condition(episode: &Episode, step: &ExecutionStep, _idx: usize) -
 
     // Add language context if available
     if let Some(lang) = &episode.context.language {
-        condition_parts.push(format!("using {}", lang));
+        condition_parts.push(format!("using {lang}"));
     }
 
     // Add the decision action itself

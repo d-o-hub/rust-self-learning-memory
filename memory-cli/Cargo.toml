@@ -43,6 +43,10 @@ dialoguer = "0.12"
 # Additional CLI dependencies for operational features
 regex = "1.10"
 
+# Platform and system utilities for smart defaults
+dirs = "5.0"
+sysinfo = "0.30"
+
 # Test utilities dependencies
 assert_cmd = "2.0"
 predicates = "3.0"

@@ -95,6 +95,7 @@ pub struct ExecutionRecord {
 
 impl ExecutionRecord {
     /// Create a new execution record
+    #[must_use]
     pub fn new(
         agent_name: String,
         agent_type: AgentType,
@@ -162,6 +163,7 @@ impl Default for AgentMetrics {
 
 impl AgentMetrics {
     /// Calculate success rate (0.0 to 1.0)
+    #[must_use]
     pub fn success_rate(&self) -> f64 {
         if self.total_executions == 0 {
             0.0
@@ -171,6 +173,7 @@ impl AgentMetrics {
     }
 
     /// Get average duration in seconds
+    #[must_use]
     pub fn avg_duration_secs(&self) -> f64 {
         self.avg_duration.as_secs_f64()
     }
@@ -234,6 +237,7 @@ impl Default for TaskMetrics {
 
 impl TaskMetrics {
     /// Calculate overall success rate
+    #[must_use]
     pub fn success_rate(&self) -> f64 {
         if self.total_tasks == 0 {
             0.0

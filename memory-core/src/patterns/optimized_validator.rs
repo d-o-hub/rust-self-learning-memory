@@ -27,6 +27,7 @@ pub struct CompatibilityResult {
 }
 
 impl Tool {
+    #[must_use]
     pub fn new(name: String) -> Self {
         Self {
             name,
@@ -36,16 +37,19 @@ impl Tool {
         }
     }
 
+    #[must_use]
     pub fn with_capabilities(mut self, capabilities: Vec<String>) -> Self {
         self.capabilities = capabilities;
         self
     }
 
+    #[must_use]
     pub fn with_typical_context(mut self, contexts: Vec<TaskContext>) -> Self {
         self.typical_contexts = contexts;
         self
     }
 
+    #[must_use]
     pub fn with_success_history(mut self, history: HashMap<String, f32>) -> Self {
         self.success_history = history;
         self
@@ -75,6 +79,7 @@ impl Default for OptimizedPatternValidator {
 
 impl OptimizedPatternValidator {
     /// Create validator with custom thresholds
+    #[must_use]
     pub fn new(confidence: f32, sample_size: usize, context_threshold: f32) -> Self {
         Self {
             minimum_confidence: confidence,
@@ -84,6 +89,7 @@ impl OptimizedPatternValidator {
     }
 
     /// Determine if pattern should be applied with enhanced validation
+    #[must_use]
     pub fn should_apply_pattern(&self, pattern: &Pattern, context: &TaskContext) -> bool {
         // Enhanced confidence check
         if pattern.confidence() < self.minimum_confidence {
@@ -107,6 +113,7 @@ impl OptimizedPatternValidator {
     }
 
     /// Calculate enhanced context similarity
+    #[must_use]
     pub fn calculate_context_similarity(
         &self,
         pattern_context: &TaskContext,
@@ -186,6 +193,7 @@ pub struct EnhancedPatternApplicator {
 }
 
 impl EnhancedPatternApplicator {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             validator: OptimizedPatternValidator::default(),
@@ -194,6 +202,7 @@ impl EnhancedPatternApplicator {
     }
 
     /// Assess tool compatibility with task context
+    #[must_use]
     pub fn assess_tool_compatibility(&self, tool: &Tool, context: &TaskContext) -> f32 {
         // Historical usage analysis
         let historical_usage = self.calculate_historical_success_rate(tool, context);
@@ -473,13 +482,13 @@ impl EnhancedPatternApplicator {
 
         // Language-based capabilities
         if let Some(lang) = &context.language {
-            capabilities.push(format!("{}_compiler", lang));
-            capabilities.push(format!("{}_linter", lang));
+            capabilities.push(format!("{lang}_compiler"));
+            capabilities.push(format!("{lang}_linter"));
         }
 
         // Framework-based capabilities
         if let Some(framework) = &context.framework {
-            capabilities.push(format!("{}_integration", framework));
+            capabilities.push(format!("{framework}_integration"));
         }
 
         capabilities
@@ -600,11 +609,11 @@ impl EnhancedPatternApplicator {
         };
 
         // Insert before the last step (usually the most critical)
-        if !planned_steps.is_empty() {
+        if planned_steps.is_empty() {
+            planned_steps.push(validation_step);
+        } else {
             let insert_position = planned_steps.len() - 1;
             planned_steps.insert(insert_position, validation_step);
-        } else {
-            planned_steps.push(validation_step);
         }
     }
 }

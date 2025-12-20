@@ -4,6 +4,7 @@ use crate::pattern::Pattern;
 use crate::types::TaskContext;
 
 /// Remove duplicate patterns from a list
+#[must_use]
 pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
     use std::collections::HashSet;
 
@@ -22,6 +23,7 @@ pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
 }
 
 /// Rank patterns by relevance/quality
+#[must_use]
 pub fn rank_patterns(mut patterns: Vec<Pattern>, context: &TaskContext) -> Vec<Pattern> {
     // Sort patterns by a composite score considering multiple factors
     patterns.sort_by(|a, b| {
@@ -42,7 +44,7 @@ fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> 
     let mut score = 0.0;
 
     // Base score from success rate (0-100 points)
-    score += pattern.success_rate() as f64 * 100.0;
+    score += f64::from(pattern.success_rate()) * 100.0;
 
     // Sample size bonus (0-50 points, diminishing returns)
     let sample_size = pattern.sample_size() as f64;

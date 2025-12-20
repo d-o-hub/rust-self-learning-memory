@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 
 /// Lightweight agent monitoring system for tracking utilization and performance
 ///
-/// The AgentMonitor provides real-time tracking of agent executions with minimal
+/// The `AgentMonitor` provides real-time tracking of agent executions with minimal
 /// performance overhead. It maintains in-memory metrics and optionally persists
 /// data to durable storage for analysis.
 #[derive(Clone)]
@@ -19,7 +19,7 @@ pub struct AgentMonitor {
     agent_metrics: Arc<RwLock<HashMap<String, AgentMetrics>>>,
     /// In-memory task metrics storage
     task_metrics: Arc<RwLock<HashMap<String, TaskMetrics>>>,
-    /// Recent execution records (limited by config.max_records)
+    /// Recent execution records (limited by `config.max_records`)
     execution_records: Arc<RwLock<Vec<ExecutionRecord>>>,
     /// Durable storage backend (optional)
     storage: Option<Arc<dyn MonitoringStorageBackend>>,
@@ -33,11 +33,13 @@ impl Default for AgentMonitor {
 
 impl AgentMonitor {
     /// Create a new agent monitor with default configuration
+    #[must_use]
     pub fn new() -> Self {
         Self::with_config(MonitoringConfig::default())
     }
 
     /// Create a new agent monitor with custom configuration
+    #[must_use]
     pub fn with_config(config: MonitoringConfig) -> Self {
         Self {
             config,
@@ -197,7 +199,7 @@ impl AgentMonitor {
     ///
     /// # Returns
     ///
-    /// AgentMetrics containing execution statistics, or None if agent not found
+    /// `AgentMetrics` containing execution statistics, or None if agent not found
     pub async fn get_agent_metrics(&self, agent_name: &str) -> Option<AgentMetrics> {
         let metrics = self.agent_metrics.read().await;
         metrics.get(agent_name).cloned()

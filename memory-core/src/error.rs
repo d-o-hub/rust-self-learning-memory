@@ -57,6 +57,7 @@ pub enum Error {
 
 impl Error {
     /// Check if this error is recoverable (can retry with backoff)
+    #[must_use]
     pub fn is_recoverable(&self) -> bool {
         match self {
             Error::Storage(_) => true,

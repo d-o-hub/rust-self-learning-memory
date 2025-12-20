@@ -11,7 +11,7 @@
 //! ## Configuration
 //!
 //! - Failure threshold: Configurable consecutive failures to open circuit
-//! - Timeout: Duration before attempting recovery (OPEN -> HALF_OPEN)
+//! - Timeout: Duration before attempting recovery (OPEN -> `HALF_OPEN`)
 //! - Half-open test period: Duration to test recovery before closing
 //! - Exponential backoff: Progressive delays between retries
 //!
@@ -167,7 +167,7 @@ impl CircuitBreaker {
     ///
     /// # Returns
     ///
-    /// Result of the operation, or CircuitBreakerOpen error if circuit is open
+    /// Result of the operation, or `CircuitBreakerOpen` error if circuit is open
     ///
     /// # Example
     ///
@@ -381,6 +381,7 @@ impl CircuitBreaker {
     /// let delay = cb.calculate_backoff(3); // 800ms
     /// let delay = cb.calculate_backoff(4); // 1600ms
     /// ```
+    #[must_use]
     pub fn calculate_backoff(&self, attempt: u32) -> Duration {
         let delay = self.config.base_delay.as_millis() as u64 * 2u64.pow(attempt);
         let delay = Duration::from_millis(delay);

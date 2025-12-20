@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// Maximum length for task descriptions (10KB).
 ///
-/// Prevents DoS attacks via unbounded input strings that could exhaust
+/// Prevents `DoS` attacks via unbounded input strings that could exhaust
 /// memory during serialization or storage operations.
 pub const MAX_DESCRIPTION_LEN: usize = 10_000;
 
@@ -28,7 +28,7 @@ pub const MAX_OBSERVATION_LEN: usize = 10_000;
 
 /// Maximum size for serialized episode data (10MB).
 ///
-/// Prevents DoS attacks via unbounded episode serialization that could
+/// Prevents `DoS` attacks via unbounded episode serialization that could
 /// exhaust memory during bincode encoding/decoding operations.
 pub const MAX_EPISODE_SIZE: usize = 10_000_000;
 
@@ -295,6 +295,7 @@ impl ExecutionResult {
     /// # Returns
     ///
     /// `true` if the result is [`ExecutionResult::Success`], `false` otherwise.
+    #[must_use]
     pub fn is_success(&self) -> bool {
         matches!(self, ExecutionResult::Success { .. })
     }
@@ -444,6 +445,7 @@ impl OutcomeStats {
     ///
     /// assert_eq!(stats.success_rate(), 0.7);
     /// ```
+    #[must_use]
     pub fn success_rate(&self) -> f32 {
         if self.total_count == 0 {
             0.0

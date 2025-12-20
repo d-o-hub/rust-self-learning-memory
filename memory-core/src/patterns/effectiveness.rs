@@ -57,6 +57,7 @@ pub struct PatternUsage {
 
 impl PatternUsage {
     /// Create new usage tracking for a pattern
+    #[must_use]
     pub fn new(pattern_id: Uuid) -> Self {
         Self {
             pattern_id,
@@ -72,6 +73,7 @@ impl PatternUsage {
     }
 
     /// Calculate success rate (0.0 to 1.0)
+    #[must_use]
     pub fn success_rate(&self) -> f32 {
         if self.application_count == 0 {
             return 0.5; // Neutral if never applied
@@ -80,6 +82,7 @@ impl PatternUsage {
     }
 
     /// Calculate application rate (how often retrieved patterns are applied)
+    #[must_use]
     pub fn application_rate(&self) -> f32 {
         if self.retrieval_count == 0 {
             return 0.0;
@@ -88,6 +91,7 @@ impl PatternUsage {
     }
 
     /// Calculate recency factor (0.0 to 1.0, higher for recent usage)
+    #[must_use]
     pub fn recency_factor(&self, now: DateTime<Utc>) -> f32 {
         let last_use = self
             .last_applied
@@ -130,6 +134,7 @@ impl PatternUsage {
     }
 
     /// Check if pattern should be kept (not decayed away)
+    #[must_use]
     pub fn should_keep(&self, min_effectiveness: f32) -> bool {
         self.effectiveness_score >= min_effectiveness
     }
@@ -174,6 +179,7 @@ impl Default for EffectivenessTracker {
 
 impl EffectivenessTracker {
     /// Create a new effectiveness tracker
+    #[must_use]
     pub fn new() -> Self {
         Self {
             usage_map: HashMap::new(),
@@ -184,6 +190,7 @@ impl EffectivenessTracker {
     }
 
     /// Create tracker with custom settings
+    #[must_use]
     pub fn with_config(min_effectiveness: f32, decay_interval_days: i64) -> Self {
         Self {
             usage_map: HashMap::new(),
@@ -241,6 +248,7 @@ impl EffectivenessTracker {
     }
 
     /// Get usage statistics for a pattern
+    #[must_use]
     pub fn get_stats(&self, pattern_id: Uuid) -> Option<UsageStats> {
         self.usage_map.get(&pattern_id).map(|usage| {
             let now = Utc::now();
@@ -263,6 +271,7 @@ impl EffectivenessTracker {
     }
 
     /// Get all patterns sorted by effectiveness (best first)
+    #[must_use]
     pub fn get_ranked_patterns(&self) -> Vec<(Uuid, f32)> {
         let mut patterns: Vec<_> = self
             .usage_map
@@ -275,6 +284,7 @@ impl EffectivenessTracker {
     }
 
     /// Get patterns that should be decayed (low effectiveness)
+    #[must_use]
     pub fn get_patterns_to_decay(&self) -> Vec<Uuid> {
         self.usage_map
             .iter()
@@ -318,11 +328,13 @@ impl EffectivenessTracker {
     }
 
     /// Get total number of tracked patterns
+    #[must_use]
     pub fn pattern_count(&self) -> usize {
         self.usage_map.len()
     }
 
     /// Get overall system effectiveness statistics
+    #[must_use]
     pub fn overall_stats(&self) -> OverallStats {
         let total_patterns = self.usage_map.len();
         if total_patterns == 0 {
@@ -345,8 +357,7 @@ impl EffectivenessTracker {
             .values()
             .filter(|u| {
                 u.last_applied
-                    .map(|t| (Utc::now() - t).num_days() < 30)
-                    .unwrap_or(false)
+                    .is_some_and(|t| (Utc::now() - t).num_days() < 30)
             })
             .count();
 

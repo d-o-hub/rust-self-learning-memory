@@ -30,6 +30,7 @@ impl Default for PatternExtractor {
 
 impl PatternExtractor {
     /// Create a new pattern extractor with default thresholds
+    #[must_use]
     pub fn new() -> Self {
         Self {
             success_threshold: MIN_PATTERN_SUCCESS_RATE,
@@ -39,6 +40,7 @@ impl PatternExtractor {
     }
 
     /// Create an extractor with custom thresholds
+    #[must_use]
     pub fn with_thresholds(
         success_threshold: f32,
         min_sequence_len: usize,

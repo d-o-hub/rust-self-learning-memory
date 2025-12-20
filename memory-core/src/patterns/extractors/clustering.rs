@@ -7,6 +7,7 @@ use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
 /// Deduplicate patterns by removing exact duplicates (same ID)
+#[must_use]
 pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
     let mut unique_patterns = Vec::new();
     let mut seen_ids = HashSet::new();
@@ -32,10 +33,11 @@ pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
 /// Cluster similar patterns together to avoid redundancy
 ///
 /// This performs a simple similarity-based clustering:
-/// - ToolSequence patterns with same tools are merged
-/// - DecisionPoint patterns with same condition are merged
-/// - ErrorRecovery patterns with same error type are merged
-/// - ContextPattern patterns with overlapping features are merged
+/// - `ToolSequence` patterns with same tools are merged
+/// - `DecisionPoint` patterns with same condition are merged
+/// - `ErrorRecovery` patterns with same error type are merged
+/// - `ContextPattern` patterns with overlapping features are merged
+#[must_use]
 pub fn cluster_similar_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
     let mut clustered = Vec::new();
 

@@ -105,6 +105,7 @@ impl ExecutionStep {
     /// assert_eq!(step.step_number, 1);
     /// assert_eq!(step.tool, "code_analyzer");
     /// ```
+    #[must_use]
     pub fn new(step_number: usize, tool: String, action: String) -> Self {
         Self {
             step_number,
@@ -150,11 +151,11 @@ impl ExecutionStep {
     /// });
     /// assert!(!step.is_success());
     /// ```
+    #[must_use]
     pub fn is_success(&self) -> bool {
         self.result
             .as_ref()
-            .map(|r| r.is_success())
-            .unwrap_or(false)
+            .is_some_and(super::types::ExecutionResult::is_success)
     }
 }
 
@@ -291,6 +292,7 @@ impl Episode {
     /// assert!(!episode.is_complete());
     /// assert_eq!(episode.steps.len(), 0);
     /// ```
+    #[must_use]
     pub fn new(task_description: String, context: TaskContext, task_type: TaskType) -> Self {
         Self {
             episode_id: Uuid::new_v4(),
@@ -338,6 +340,7 @@ impl Episode {
     ///
     /// assert!(episode.is_complete());
     /// ```
+    #[must_use]
     pub fn is_complete(&self) -> bool {
         self.end_time.is_some() && self.outcome.is_some()
     }
@@ -372,6 +375,7 @@ impl Episode {
     /// let duration = episode.duration().unwrap();
     /// assert!(duration.num_milliseconds() >= 0);
     /// ```
+    #[must_use]
     pub fn duration(&self) -> Option<chrono::Duration> {
         self.end_time.map(|end| end - self.start_time)
     }
@@ -471,6 +475,7 @@ impl Episode {
     /// assert_eq!(episode.successful_steps_count(), 1);
     /// assert_eq!(episode.failed_steps_count(), 1);
     /// ```
+    #[must_use]
     pub fn successful_steps_count(&self) -> usize {
         self.steps.iter().filter(|s| s.is_success()).count()
     }
@@ -499,6 +504,7 @@ impl Episode {
     ///
     /// assert_eq!(episode.failed_steps_count(), 1);
     /// ```
+    #[must_use]
     pub fn failed_steps_count(&self) -> usize {
         self.steps.iter().filter(|s| !s.is_success()).count()
     }

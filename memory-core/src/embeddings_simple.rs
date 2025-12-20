@@ -39,6 +39,7 @@ impl Default for EmbeddingConfig {
 }
 
 /// Calculate cosine similarity between two vectors
+#[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() || a.is_empty() {
         return 0.0;
@@ -231,7 +232,7 @@ pub fn demonstrate_semantic_search() -> Result<()> {
     ];
 
     for query in queries {
-        println!("🔍 Query: \"{}\"", query);
+        println!("🔍 Query: \"{query}\"");
         let results = find_similar_texts(query, &episodes, 3, 0.5);
 
         println!("📊 Top {} similar episodes:", results.len());
@@ -260,7 +261,7 @@ pub fn demonstrate_semantic_search() -> Result<()> {
         let emb1 = text_to_embedding(text1);
         let emb2 = text_to_embedding(text2);
         let similarity = cosine_similarity(&emb1, &emb2);
-        println!("  \"{}\" <-> \"{}\" = {:.3}", text1, text2, similarity);
+        println!("  \"{text1}\" <-> \"{text2}\" = {similarity:.3}");
     }
 
     println!("\n💡 For real semantic search, use memory-core::embeddings modules");

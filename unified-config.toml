@@ -1,18 +1,12 @@
-# Memory CLI Configuration Template
-# This file contains all configuration options for the memory-cli tool
-# Copy this file to your project root and customize as needed
-# Or use the unified-config.toml for standard setup
+# Memory CLI Configuration - Unified Setup
+# This is the canonical configuration for all memory-cli operations
 
 [database]
-# SQLite database (local development)
+# Primary SQLite database for episodes and patterns (source of truth)
 turso_url = "file:./data/memory.db"
 turso_token = ""
 
-# OR use Turso cloud database (production)
-# turso_url = "libsql://your-database.turso.io"
-# turso_token = "your-auth-token-here"
-
-# Local redb cache configuration (unified path)
+# Unified redb cache for all operations
 redb_path = "./data/cache.redb"
 
 [storage]
@@ -22,7 +16,7 @@ max_episodes_cache = 1000
 # Cache TTL in seconds
 cache_ttl_seconds = 3600
 
-# Connection pool size
+# Connection pool size for database connections
 pool_size = 10
 
 [cli]
@@ -38,9 +32,6 @@ batch_size = 100
 [monitoring]
 # Enable metrics collection
 enabled = true
-
-# Metrics export port (future feature)
-# metrics_port = 9090
 
 # Health check intervals
 health_check_interval_seconds = 30
@@ -58,9 +49,6 @@ compress_backups = true
 [logging]
 # Log level (error, warn, info, debug, trace)
 level = "info"
-
-# Log file path (optional)
-# log_file = "./logs/memory-cli.log"
 
 # Maximum log file size in MB
 max_log_size_mb = 10

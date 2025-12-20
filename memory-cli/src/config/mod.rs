@@ -168,6 +168,7 @@ async fn setup_with_environment(
         ConfigPreset::Custom => {
             // For custom, try to load from file first
             let default_paths = [
+                "unified-config.toml",
                 "memory-cli.toml",
                 "memory-cli.json",
                 "memory-cli.yaml",

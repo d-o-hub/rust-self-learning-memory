@@ -399,14 +399,14 @@ impl ConfigPreset {
     pub fn create_config(&self) -> Config {
         match self {
             ConfigPreset::Local => {
-                // Enhanced local development preset
+                // Enhanced local development preset with SQLite + redb
                 let info = smart_defaults::get_system_info();
 
                 Config {
                     database: DatabaseConfig {
-                        turso_url: None, // Local only
+                        turso_url: Some("file:./data/memory.db".to_string()), // SQLite support
                         turso_token: None,
-                        redb_path: Some(smart_defaults::detect_redb_path()),
+                        redb_path: Some("./data/cache.redb".to_string()), // Consistent path
                     },
                     storage: StorageConfig {
                         max_episodes_cache: if info.is_development { 500 } else { 1000 },
@@ -429,11 +429,7 @@ impl ConfigPreset {
                         turso_url: smart_defaults::detect_turso_url()
                             .or(Some("file:./data/memory.db".to_string())),
                         turso_token: smart_defaults::detect_turso_token(),
-                        redb_path: Some({
-                            let mut cache_dir = smart_defaults::detect_cache_directory();
-                            cache_dir.push("cache.redb");
-                            cache_dir.to_string_lossy().to_string()
-                        }),
+                        redb_path: Some("./data/cache.redb".to_string()), // Consistent path
                     },
                     storage: StorageConfig {
                         max_episodes_cache: std::cmp::min(

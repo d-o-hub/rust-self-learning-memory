@@ -28,8 +28,20 @@ pub fn load_config(path: Option<&Path>) -> Result<super::Config, anyhow::Error> 
             }
         }
         None => {
+            // Try to load from environment variable first
+            if let Ok(config_path) = std::env::var("MEMORY_CLI_CONFIG") {
+                let path = Path::new(&config_path);
+                if path.exists() {
+                    tracing::info!("Loading configuration from MEMORY_CLI_CONFIG: {}", config_path);
+                    return load_config(Some(path));
+                } else {
+                    tracing::warn!("MEMORY_CLI_CONFIG points to non-existent file: {}", config_path);
+                }
+            }
+
             // Try to load from default locations
             let default_paths = [
+                "unified-config.toml",
                 "memory-cli.toml",
                 "memory-cli.json",
                 "memory-cli.yaml",

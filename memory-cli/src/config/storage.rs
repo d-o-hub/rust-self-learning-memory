@@ -232,6 +232,7 @@ async fn determine_storage_combination(
     _redb_messages: Vec<String>,
 ) -> Result<(StorageType, StorageType, SelfLearningMemory)> {
     let memory_config = create_memory_config(config);
+    let memory_config_clone = memory_config.clone(); // Clone for multiple uses
 
     let storage_combination = match (turso_storage, redb_storage) {
         (Some(turso), Some(redb)) => {
@@ -255,11 +256,11 @@ async fn determine_storage_combination(
                 (StorageType::Turso, StorageType::Memory, memory)
             }
         }
-        (None, Some(_redb)) => {
+        (None, Some(redb)) => {
             // Only redb configured - try to set up local SQLite as durable storage
             #[cfg(feature = "turso")]
             {
-                match try_setup_local_sqlite_for_redis(redb, memory_config).await {
+                match try_setup_local_sqlite_for_redis(redb, memory_config_clone).await {
                     Ok((storage_type, memory)) => (storage_type, StorageType::Redb, memory),
                     Err(_) => (
                         StorageType::Redb,
@@ -273,7 +274,7 @@ async fn determine_storage_combination(
                 (
                     StorageType::Redb,
                     StorageType::Memory,
-                    SelfLearningMemory::with_config(memory_config),
+                    SelfLearningMemory::with_config(memory_config_clone),
                 )
             }
         }
@@ -281,12 +282,12 @@ async fn determine_storage_combination(
             // No storage configured - try to set up local SQLite fallback
             #[cfg(feature = "turso")]
             {
-                match try_setup_fallback_storage(memory_config).await {
+                match try_setup_fallback_storage(memory_config.clone()).await {
                     Ok((primary, cache, memory)) => (primary, cache, memory),
                     Err(_) => (
                         StorageType::Memory,
                         StorageType::Memory,
-                        SelfLearningMemory::with_config(memory_config),
+                        SelfLearningMemory::with_config(memory_config_clone),
                     ),
                 }
             }
@@ -295,7 +296,7 @@ async fn determine_storage_combination(
                 (
                     StorageType::Memory,
                     StorageType::Memory,
-                    SelfLearningMemory::with_config(memory_config),
+                    SelfLearningMemory::with_config(memory_config_clone),
                 )
             }
         }

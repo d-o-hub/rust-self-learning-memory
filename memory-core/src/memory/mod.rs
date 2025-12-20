@@ -633,7 +633,7 @@ impl SelfLearningMemory {
 
         // Apply filters
         if let Some(true) = completed_only {
-            all_episodes.retain(super::episode::Episode::is_complete);
+            all_episodes.retain(|e| e.is_complete());
         }
 
         // Sort by start time (newest first) for consistent ordering

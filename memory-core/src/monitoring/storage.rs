@@ -1,7 +1,13 @@
 use super::types::{AgentMetrics, ExecutionRecord, TaskMetrics};
 use crate::storage::StorageBackend;
-use anyhow::Result;
+use crate::{Episode, Pattern, Heuristic, Result, Error};
+use crate::episode::PatternId;
+use crate::types::{TaskOutcome, TaskType, TaskContext, RewardScore};
+use chrono::{DateTime, Utc};
+use std::collections::HashMap;
 use std::sync::Arc;
+use uuid::Uuid;
+use anyhow::Result;
 
 /// Extended storage backend trait for monitoring data
 ///
@@ -30,6 +36,174 @@ pub trait MonitoringStorageBackend: StorageBackend + Send + Sync {
 
     /// Load task metrics by task type
     async fn load_task_metrics(&self, task_type: &str) -> Result<Option<TaskMetrics>>;
+}
+
+/// Simple monitoring storage that wraps basic StorageBackend implementations
+/// 
+/// This provides basic monitoring capabilities by storing execution records
+/// as episodes in the underlying storage systems.
+pub struct SimpleMonitoringStorage {
+    /// Primary storage backend (Turso)
+    primary: Arc<dyn StorageBackend>,
+    /// Cache storage backend (redb)
+    cache: Arc<dyn StorageBackend>,
+}
+
+impl SimpleMonitoringStorage {
+    /// Create a new simple monitoring storage with the given backends
+    pub fn new(primary: Arc<dyn StorageBackend>, cache: Arc<dyn StorageBackend>) -> Self {
+        Self {
+            primary,
+            cache,
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl StorageBackend for SimpleMonitoringStorage {
+    async fn store_episode(&self, episode: &Episode) -> Result<()> {
+        // Store in both primary and cache
+        if let Err(e) = self.primary.store_episode(episode).await {
+            return Err(e);
+        }
+        if let Err(e) = self.cache.store_episode(episode).await {
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
+        // Try cache first, then primary
+        if let Ok(Some(episode)) = self.cache.get_episode(id).await {
+            return Ok(Some(episode));
+        }
+        self.primary.get_episode(id).await
+    }
+
+    async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
+        if let Err(e) = self.primary.store_pattern(pattern).await {
+            return Err(e);
+        }
+        if let Err(e) = self.cache.store_pattern(pattern).await {
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    async fn get_pattern(&self, id: PatternId) -> Result<Option<Pattern>> {
+        if let Ok(Some(pattern)) = self.cache.get_pattern(id).await {
+            return Ok(Some(pattern));
+        }
+        self.primary.get_pattern(id).await
+    }
+
+    async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
+        if let Err(e) = self.primary.store_heuristic(heuristic).await {
+            return Err(e);
+        }
+        if let Err(e) = self.cache.store_heuristic(heuristic).await {
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
+        if let Ok(Some(heuristic)) = self.cache.get_heuristic(id).await {
+            return Ok(Some(heuristic));
+        }
+        self.primary.get_heuristic(id).await
+    }
+
+    async fn query_episodes_since(
+        &self,
+        since: DateTime<Utc>,
+    ) -> Result<Vec<Episode>> {
+        // Query both backends and combine results
+        let cache_episodes = self.cache.query_episodes_since(since).await.unwrap_or_default();
+        let primary_episodes = self.primary.query_episodes_since(since).await.unwrap_or_default();
+        
+        // Combine and deduplicate by episode_id
+        let mut episodes = cache_episodes;
+        for episode in primary_episodes {
+            if !episodes.iter().any(|e| e.episode_id == episode.episode_id) {
+                episodes.push(episode);
+            }
+        }
+        
+        Ok(episodes)
+    }
+}
+
+#[async_trait::async_trait]
+impl MonitoringStorageBackend for SimpleMonitoringStorage {
+    async fn store_execution_record(&self, record: &ExecutionRecord) -> Result<()> {
+        // Convert execution record to an episode for storage
+        let episode = Episode {
+            episode_id: Uuid::new_v4(),
+            task_type: TaskType::Analysis,
+            task_description: format!("Agent execution: {}", record.agent_name),
+            context: TaskContext::default(),
+            start_time: Utc::now(),
+            end_time: Some(Utc::now()),
+            steps: vec![],
+            outcome: Some(match record.success {
+                true => TaskOutcome::Success {
+                    verdict: "Execution completed".to_string(),
+                    artifacts: vec![],
+                },
+                false => TaskOutcome::Failure {
+                    reason: "Execution failed".to_string(),
+                    error_details: record.error_message.clone(),
+                },
+            }),
+            reward: Some(RewardScore {
+                total: if record.success { 1.0 } else { 0.0 },
+                base: if record.success { 1.0 } else { 0.0 },
+                efficiency: 1.0,
+                complexity_bonus: 1.0,
+                quality_multiplier: 1.0,
+                learning_bonus: 0.0,
+            }),
+            reflection: None,
+            patterns: vec![],
+            heuristics: vec![],
+            metadata: HashMap::new(),
+        };
+
+        self.store_episode(&episode).await?;
+        Ok(())
+    }
+
+    async fn store_agent_metrics(&self, _metrics: &AgentMetrics) -> Result<()> {
+        // For now, just log this - in a full implementation,
+        // this would store metrics in a dedicated table
+        tracing::debug!("Storing agent metrics (basic implementation)");
+        Ok(())
+    }
+
+    async fn store_task_metrics(&self, _metrics: &TaskMetrics) -> Result<()> {
+        tracing::debug!("Storing task metrics (basic implementation)");
+        Ok(())
+    }
+
+    async fn load_agent_metrics(&self, _agent_name: &str) -> Result<Option<AgentMetrics>> {
+        // Basic implementation - return None for now
+        Ok(None)
+    }
+
+    async fn load_execution_records(
+        &self,
+        _agent_name: Option<&str>,
+        _limit: usize,
+    ) -> Result<Vec<ExecutionRecord>> {
+        // Basic implementation - return empty for now
+        Ok(vec![])
+    }
+
+    async fn load_task_metrics(&self, _task_type: &str) -> Result<Option<TaskMetrics>> {
+        // Basic implementation - return None for now
+        Ok(None)
+    }
 }
 
 /// Storage layer for agent monitoring data

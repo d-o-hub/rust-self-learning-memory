@@ -383,11 +383,42 @@ impl EpisodeCluster {
         successes as f32 / self.episodes.len() as f32
     }
 
-    /// Get common patterns across episodes in this cluster
-    pub fn extract_common_patterns(&self) -> Vec<Pattern> {
-        // This would extract patterns that appear in multiple episodes
-        // For now, return empty vec as placeholder
-        Vec::new()
+    /// Get common pattern IDs across episodes in this cluster
+    ///
+    /// Returns pattern IDs that appear in at least 30% of episodes (minimum 2 occurrences).
+    /// The returned IDs are sorted by occurrence frequency (most common first).
+    ///
+    /// Note: Episodes store pattern IDs only. To get full Pattern objects,
+    /// use a PatternStorage to look up these IDs.
+    pub fn extract_common_patterns(&self) -> Vec<crate::episode::PatternId> {
+        use std::collections::HashMap;
+
+        if self.episodes.is_empty() {
+            return Vec::new();
+        }
+
+        // Collect all pattern IDs from all episodes with occurrence counts
+        let mut pattern_occurrences: HashMap<crate::episode::PatternId, usize> = HashMap::new();
+
+        for episode in &self.episodes {
+            for pattern_id in &episode.patterns {
+                *pattern_occurrences.entry(*pattern_id).or_insert(0) += 1;
+            }
+        }
+
+        // Filter patterns that appear in at least 30% of episodes (common threshold)
+        let min_occurrence = (self.episodes.len() as f32 * 0.3).ceil() as usize;
+
+        let mut common_patterns: Vec<(crate::episode::PatternId, usize)> = pattern_occurrences
+            .into_iter()
+            .filter(|(_, count)| *count >= min_occurrence.max(2)) // At least 2 occurrences
+            .collect();
+
+        // Sort by occurrence count (higher count first)
+        common_patterns.sort_by(|a, b| b.1.cmp(&a.1));
+
+        // Return just the pattern IDs
+        common_patterns.into_iter().map(|(id, _)| id).collect()
     }
 }
 
@@ -571,5 +602,59 @@ mod tests {
             error_details: None,
         });
         episode
+    }
+
+    #[test]
+    fn test_extract_common_patterns() {
+        use crate::types::TaskType;
+
+        // Create test episodes
+        let mut episodes = vec![];
+
+        // Common pattern ID that appears in multiple episodes
+        let common_pattern_id = Uuid::new_v4();
+        let rare_pattern_id = Uuid::new_v4();
+
+        // Create 3 episodes, 2 with the common pattern
+        for i in 0..3 {
+            let mut episode = Episode::new(
+                format!("Task {}", i),
+                TaskContext {
+                    domain: "test".to_string(),
+                    language: None,
+                    complexity: ComplexityLevel::Simple,
+                    framework: None,
+                    tags: vec![],
+                },
+                TaskType::Testing,
+            );
+
+            // First 2 episodes have the common pattern
+            if i < 2 {
+                episode.patterns.push(common_pattern_id);
+            }
+
+            // Only the first episode has the rare pattern
+            if i == 0 {
+                episode.patterns.push(rare_pattern_id);
+            }
+
+            episodes.push(episode);
+        }
+
+        let cluster = EpisodeCluster {
+            centroid: ClusterCentroid::default(),
+            episodes,
+        };
+
+        let common = cluster.extract_common_patterns();
+
+        // Should find the common pattern (appears in 2/3 episodes = 66%)
+        // The rare pattern should NOT appear (only in 1/3 = 33%)
+        assert_eq!(common.len(), 1, "Should extract exactly one common pattern");
+        assert_eq!(
+            common[0], common_pattern_id,
+            "Should extract the pattern that appears in 2 episodes"
+        );
     }
 }

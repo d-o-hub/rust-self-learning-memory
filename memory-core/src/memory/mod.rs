@@ -277,9 +277,21 @@ impl SelfLearningMemory {
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
 
         // Configure agent monitor with storage backends
-        let monitoring_config = MonitoringConfig::default();
-        // For now, create monitor without storage - TODO: implement proper casting when storage supports monitoring
-        let agent_monitor = AgentMonitor::with_config(monitoring_config);
+        let monitoring_config = MonitoringConfig {
+            enabled: true,
+            enable_persistence: true,
+            max_records: 1000,
+        };
+        
+        // Create a simple monitoring storage that wraps the provided backends
+        let monitoring_storage = crate::monitoring::storage::SimpleMonitoringStorage::new(
+            turso.clone(),
+            cache.clone(),
+        );
+        let agent_monitor = AgentMonitor::with_storage(
+            monitoring_config,
+            Arc::new(monitoring_storage),
+        );
 
         Self {
             config: config.clone(),

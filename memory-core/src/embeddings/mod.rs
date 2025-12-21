@@ -396,8 +396,8 @@ impl SemanticService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::episode::ExecutionStep;
-    use crate::pattern::{Pattern, PatternId};
+    use crate::episode::{ExecutionStep, PatternId};
+    use crate::pattern::Pattern;
     use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
     use crate::Result;
     use uuid::Uuid;
@@ -494,10 +494,11 @@ mod tests {
         let pattern = create_test_pattern();
         let text = service.pattern_to_text(&pattern);
 
-        assert!(text.contains("Parse then validate pattern"));
-        assert!(text.contains("pattern type: ToolSequence"));
+        // Check that it contains the tool sequence
+        assert!(text.contains("Tool sequence: parser -> validator"));
         assert!(text.contains("domain: web-api"));
         assert!(text.contains("language: rust"));
+        assert!(text.contains("tags: async"));
     }
 
     #[test]

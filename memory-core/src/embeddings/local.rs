@@ -220,7 +220,7 @@ impl EmbeddingProvider for LocalEmbeddingProvider {
 
 /// Trait for local embedding models
 #[async_trait]
-trait LocalEmbeddingModel: Send + Sync {
+pub trait LocalEmbeddingModel: Send + Sync {
     /// Generate embedding for single text
     async fn embed(&self, text: &str) -> Result<Vec<f32>>;
 
@@ -444,7 +444,7 @@ mod tests {
 
     #[test]
     fn test_utils_list_models() {
-        let models = utils::list_available_models();
+        let models = list_available_models();
         assert!(!models.is_empty());
 
         for model in models {
@@ -455,14 +455,14 @@ mod tests {
 
     #[test]
     fn test_utils_recommended_models() {
-        let fast_model = utils::get_recommended_model(utils::LocalModelUseCase::Fast);
+        let fast_model = get_recommended_model(LocalModelUseCase::Fast);
         assert_eq!(fast_model.embedding_dimension, 384);
 
-        let quality_model = utils::get_recommended_model(utils::LocalModelUseCase::Quality);
+        let quality_model = get_recommended_model(LocalModelUseCase::Quality);
         assert_eq!(quality_model.embedding_dimension, 768);
 
         let multilingual_model =
-            utils::get_recommended_model(utils::LocalModelUseCase::Multilingual);
+            get_recommended_model(LocalModelUseCase::Multilingual);
         assert_eq!(multilingual_model.embedding_dimension, 384);
     }
 

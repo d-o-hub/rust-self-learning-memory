@@ -617,7 +617,9 @@ impl Config {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn simple_with_performance(performance: PerformanceLevel) -> Result<Self, anyhow::Error> {
+    pub async fn simple_with_performance(
+        performance: PerformanceLevel,
+    ) -> Result<Self, anyhow::Error> {
         use crate::config::validator::validate_config;
 
         // Choose the best preset based on performance level and environment

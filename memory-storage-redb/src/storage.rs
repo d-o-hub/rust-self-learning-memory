@@ -766,8 +766,9 @@ impl EmbeddingStorageBackend for RedbStorage {
                 .allow_trailing_bytes();
 
             for result in iter {
-                let (key_bytes, embedding_bytes_guard) = result
-                    .map_err(|e| Error::Storage(format!("Failed to read embedding entry: {}", e)))?;
+                let (key_bytes, embedding_bytes_guard) = result.map_err(|e| {
+                    Error::Storage(format!("Failed to read embedding entry: {}", e))
+                })?;
 
                 let key = key_bytes.value();
 
@@ -778,7 +779,9 @@ impl EmbeddingStorageBackend for RedbStorage {
 
                 let embedding: Vec<f32> = config
                     .deserialize(embedding_bytes_guard.value())
-                    .map_err(|e| Error::Storage(format!("Failed to deserialize embedding: {}", e)))?;
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to deserialize embedding: {}", e))
+                    })?;
 
                 let similarity = cosine_similarity(&query_embedding, &embedding);
 
@@ -868,8 +871,9 @@ impl EmbeddingStorageBackend for RedbStorage {
                 .allow_trailing_bytes();
 
             for result in iter {
-                let (key_bytes, embedding_bytes_guard) = result
-                    .map_err(|e| Error::Storage(format!("Failed to read embedding entry: {}", e)))?;
+                let (key_bytes, embedding_bytes_guard) = result.map_err(|e| {
+                    Error::Storage(format!("Failed to read embedding entry: {}", e))
+                })?;
 
                 let key = key_bytes.value();
 
@@ -880,7 +884,9 @@ impl EmbeddingStorageBackend for RedbStorage {
 
                 let embedding: Vec<f32> = config
                     .deserialize(embedding_bytes_guard.value())
-                    .map_err(|e| Error::Storage(format!("Failed to deserialize embedding: {}", e)))?;
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to deserialize embedding: {}", e))
+                    })?;
 
                 let similarity = cosine_similarity(&query_embedding, &embedding);
 

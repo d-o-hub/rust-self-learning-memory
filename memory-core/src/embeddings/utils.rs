@@ -20,14 +20,12 @@ pub fn list_available_models() -> Vec<ModelConfig> {
 /// Get recommended model configuration for different use cases
 pub fn get_recommended_model(use_case: LocalModelUseCase) -> ModelConfig {
     match use_case {
-        LocalModelUseCase::Fast => ModelConfig::local_sentence_transformer(
-            "sentence-transformers/all-MiniLM-L6-v2",
-            384,
-        ),
-        LocalModelUseCase::Quality => ModelConfig::local_sentence_transformer(
-            "sentence-transformers/all-mpnet-base-v2",
-            768,
-        ),
+        LocalModelUseCase::Fast => {
+            ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384)
+        }
+        LocalModelUseCase::Quality => {
+            ModelConfig::local_sentence_transformer("sentence-transformers/all-mpnet-base-v2", 768)
+        }
         LocalModelUseCase::Multilingual => ModelConfig::local_sentence_transformer(
             "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             384,

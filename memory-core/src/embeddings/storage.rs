@@ -226,7 +226,9 @@ impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStora
 }
 
 #[async_trait]
-impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStorageBackend for EmbeddingStorage<T> {
+impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStorageBackend
+    for EmbeddingStorage<T>
+{
     async fn store_episode_embedding(&self, episode_id: Uuid, embedding: Vec<f32>) -> Result<()> {
         // Try to store in main storage, fall back to in-memory
         if let Err(e) = self

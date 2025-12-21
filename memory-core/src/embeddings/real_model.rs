@@ -48,11 +48,16 @@ impl RealEmbeddingModel {
             .map_err(|e| anyhow::anyhow!("Failed to encode text: {}", e))?;
 
         let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
-        let attention_mask: Vec<i64> = encoding.get_attention_mask().iter().map(|&mask| mask as i64).collect();
+        let attention_mask: Vec<i64> = encoding
+            .get_attention_mask()
+            .iter()
+            .map(|&mask| mask as i64)
+            .collect();
 
         // Prepare input tensors
         let input_ids_tensor = ort::Tensor::new(&[input_ids.len() as u64], input_ids)?;
-        let attention_mask_tensor = ort::Tensor::new(&[attention_mask.len() as u64], attention_mask)?;
+        let attention_mask_tensor =
+            ort::Tensor::new(&[attention_mask.len() as u64], attention_mask)?;
 
         // Run inference in blocking context since ONNX is synchronous
         let embedding = tokio::task::spawn_blocking(move || {
@@ -116,7 +121,8 @@ impl RealEmbeddingModel {
         // Model file paths - would typically be downloaded/cache
         let model_name = &config.model_name;
         let model_path = cache_dir.join(format!("{}.onnx", model_name.replace("/", "_")));
-        let tokenizer_path = cache_dir.join(format!("{}_tokenizer.json", model_name.replace("/", "_")));
+        let tokenizer_path =
+            cache_dir.join(format!("{}_tokenizer.json", model_name.replace("/", "_")));
 
         // Check if model files exist
         if !model_path.exists() || !tokenizer_path.exists() {
@@ -139,7 +145,10 @@ impl RealEmbeddingModel {
             .commit_from_file(&model_path)
             .map_err(|e| anyhow::anyhow!("Failed to load ONNX model: {}", e))?;
 
-        tracing::info!("Successfully loaded real ONNX model from {}", model_path.display());
+        tracing::info!(
+            "Successfully loaded real ONNX model from {}",
+            model_path.display()
+        );
 
         Ok(Self::new(
             model_name.clone(),

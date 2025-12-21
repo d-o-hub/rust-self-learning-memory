@@ -5,8 +5,8 @@
 //! not be used as they provide deterministic but non-semantic embeddings.
 
 use super::config::ModelConfig;
-use super::provider::{EmbeddingProvider, EmbeddingResult};
 use super::cosine_similarity;
+use super::provider::{EmbeddingProvider, EmbeddingResult};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
@@ -122,7 +122,10 @@ impl RealEmbeddingModelWithFallback {
         if let Some(ref real_model) = self.real_model {
             match real_model.generate_real_embedding(text).await {
                 Ok(embedding) => {
-                    tracing::info!("Using real embedding model for text: {}", text.chars().take(20).collect::<String>());
+                    tracing::info!(
+                        "Using real embedding model for text: {}",
+                        text.chars().take(20).collect::<String>()
+                    );
                     Ok(embedding)
                 }
                 Err(e) => {
@@ -133,7 +136,9 @@ impl RealEmbeddingModelWithFallback {
             }
         } else {
             tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
-            tracing::warn!("To enable real embeddings, add local-embeddings feature and download ONNX models");
+            tracing::warn!(
+                "To enable real embeddings, add local-embeddings feature and download ONNX models"
+            );
             Ok(self.mock_model.generate_mock_embedding(text))
         }
     }
@@ -164,7 +169,9 @@ impl RealEmbeddingModelWithFallback {
             }
         } else {
             tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
-            tracing::warn!("To enable real embeddings, add local-embeddings feature and download ONNX models");
+            tracing::warn!(
+                "To enable real embeddings, add local-embeddings feature and download ONNX models"
+            );
         }
 
         // Fallback to mock embeddings
@@ -253,7 +260,12 @@ pub struct RealEmbeddingModel {
 
 #[cfg(feature = "local-embeddings")]
 impl RealEmbeddingModel {
-    pub fn new(name: String, dimension: usize, tokenizer: tokenizers::Tokenizer, session: ort::Session) -> Self {
+    pub fn new(
+        name: String,
+        dimension: usize,
+        tokenizer: tokenizers::Tokenizer,
+        session: ort::Session,
+    ) -> Self {
         Self {
             name,
             dimension,
@@ -274,11 +286,16 @@ impl RealEmbeddingModel {
             .map_err(|e| anyhow::anyhow!("Failed to encode text: {}", e))?;
 
         let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
-        let attention_mask: Vec<i64> = encoding.get_attention_mask().iter().map(|&mask| mask as i64).collect();
+        let attention_mask: Vec<i64> = encoding
+            .get_attention_mask()
+            .iter()
+            .map(|&mask| mask as i64)
+            .collect();
 
         // Prepare input tensors
         let input_ids_tensor = ort::Tensor::new(&[input_ids.len() as u64], input_ids)?;
-        let attention_mask_tensor = ort::Tensor::new(&[attention_mask.len() as u64], attention_mask)?;
+        let attention_mask_tensor =
+            ort::Tensor::new(&[attention_mask.len() as u64], attention_mask)?;
 
         // Run inference in blocking context since ONNX is synchronous
         let embedding = tokio::task::spawn_blocking(move || {
@@ -347,6 +364,8 @@ impl RealEmbeddingModel {
     }
 
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
-        Err(anyhow::anyhow!("Real embedding model not available - enable local-embeddings feature"))
+        Err(anyhow::anyhow!(
+            "Real embedding model not available - enable local-embeddings feature"
+        ))
     }
 }

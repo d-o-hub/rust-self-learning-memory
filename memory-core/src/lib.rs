@@ -64,8 +64,8 @@
 //! }
 //! ```
 
-pub mod episode;
 pub mod embeddings;
+pub mod episode;
 pub mod error;
 pub mod extraction;
 pub mod learning;

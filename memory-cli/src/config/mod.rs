@@ -41,9 +41,8 @@ pub mod wizard;
 
 // Re-export main types and functions for convenient access
 pub use types::{
-    CliConfig, Config, ConfigError, ConfigPreset, DatabaseConfig, DatabaseType,
-    PerformanceLevel, StorageConfig, ValidationError, ValidationResult,
-    ValidationWarning,
+    CliConfig, Config, ConfigError, ConfigPreset, DatabaseConfig, DatabaseType, PerformanceLevel,
+    StorageConfig, ValidationError, ValidationResult, ValidationWarning,
 };
 
 pub use loader::{

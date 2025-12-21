@@ -98,7 +98,9 @@ impl LocalEmbeddingProvider {
                 }
                 Err(e) => {
                     tracing::warn!("Failed to load real embedding model: {}", e);
-                    tracing::warn!("Falling back to mock embeddings - semantic search will not work correctly");
+                    tracing::warn!(
+                        "Falling back to mock embeddings - semantic search will not work correctly"
+                    );
 
                     let mock_fallback = Box::new(RealEmbeddingModelWithFallback::new(
                         self.config.model_name.clone(),
@@ -241,7 +243,9 @@ pub use crate::embeddings::real_model::RealEmbeddingModel;
 pub use crate::embeddings::mock_model::{MockLocalModel, RealEmbeddingModelWithFallback};
 
 /// Re-export utilities from the utils module
-pub use crate::embeddings::utils::{list_available_models, get_recommended_model, LocalModelUseCase};
+pub use crate::embeddings::utils::{
+    get_recommended_model, list_available_models, LocalModelUseCase,
+};
 
 #[cfg(test)]
 mod tests {
@@ -335,17 +339,24 @@ mod tests {
             return;
         }
 
-        let config = ModelConfig::local_sentence_transformer(
-            "sentence-transformers/all-MiniLM-L6-v2",
-            384,
-        );
+        let config =
+            ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
         // Generate embeddings for semantically similar texts
-        let embedding1 = provider.embed_text("machine learning algorithms").await.unwrap();
-        let embedding2 = provider.embed_text("artificial intelligence models").await.unwrap();
-        let embedding3 = provider.embed_text("cooking recipes for pasta").await.unwrap();
+        let embedding1 = provider
+            .embed_text("machine learning algorithms")
+            .await
+            .unwrap();
+        let embedding2 = provider
+            .embed_text("artificial intelligence models")
+            .await
+            .unwrap();
+        let embedding3 = provider
+            .embed_text("cooking recipes for pasta")
+            .await
+            .unwrap();
 
         assert_eq!(embedding1.len(), 384);
         assert_eq!(embedding2.len(), 384);
@@ -388,13 +399,17 @@ mod tests {
 
         // Check that values are in reasonable range
         for &value in &embedding {
-            assert!(value >= -1.0 && value <= 1.0, "Embedding values should be in [-1, 1]");
+            assert!(
+                value >= -1.0 && value <= 1.0,
+                "Embedding values should be in [-1, 1]"
+            );
         }
     }
 
     #[tokio::test]
     async fn test_model_metadata() {
-        let config = ModelConfig::local_sentence_transformer("sentence-transformers/test-model", 768);
+        let config =
+            ModelConfig::local_sentence_transformer("sentence-transformers/test-model", 768);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -461,8 +476,7 @@ mod tests {
         let quality_model = get_recommended_model(LocalModelUseCase::Quality);
         assert_eq!(quality_model.embedding_dimension, 768);
 
-        let multilingual_model =
-            get_recommended_model(LocalModelUseCase::Multilingual);
+        let multilingual_model = get_recommended_model(LocalModelUseCase::Multilingual);
         assert_eq!(multilingual_model.embedding_dimension, 384);
     }
 

@@ -41,11 +41,15 @@ mod storage;
 mod utils;
 
 pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig};
-pub use local::{LocalEmbeddingProvider, get_recommended_model, list_available_models, LocalModelUseCase};
+pub use local::{
+    get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
+};
 #[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
-pub use similarity::{cosine_similarity, EmbeddingWithMetadata, SimilarityMetadata, SimilaritySearchResult};
+pub use similarity::{
+    cosine_similarity, EmbeddingWithMetadata, SimilarityMetadata, SimilaritySearchResult,
+};
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
 
 use crate::episode::Episode;
@@ -94,9 +98,7 @@ impl SemanticService {
     }
 
     /// Create a semantic service with default local provider
-    pub async fn default(
-        storage: Box<dyn EmbeddingStorageBackend>,
-    ) -> Result<Self> {
+    pub async fn default(storage: Box<dyn EmbeddingStorageBackend>) -> Result<Self> {
         let config = EmbeddingConfig::default();
         Self::with_local_provider(storage, config).await
     }
@@ -133,7 +135,9 @@ impl SemanticService {
         }
 
         // Final fallback to mock provider (with warning)
-        tracing::error!("All embedding providers failed, using mock provider (embeddings will be random)");
+        tracing::error!(
+            "All embedding providers failed, using mock provider (embeddings will be random)"
+        );
         tracing::error!("To fix this, either:");
         tracing::error!("  1. Install local embedding model dependencies");
         #[cfg(feature = "openai")]

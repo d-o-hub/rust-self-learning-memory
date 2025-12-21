@@ -1078,7 +1078,12 @@ impl TursoStorage {
     }
 
     /// Store an embedding in the database
-    async fn store_embedding(&self, item_id: &str, item_type: &str, embedding: &[f32]) -> Result<()> {
+    async fn store_embedding(
+        &self,
+        item_id: &str,
+        item_type: &str,
+        embedding: &[f32],
+    ) -> Result<()> {
         debug!("Storing embedding for {}: {}", item_type, item_id);
 
         let conn = self.get_connection().await?;
@@ -1159,14 +1164,12 @@ impl EmbeddingStorageBackend for TursoStorage {
 
     async fn get_episode_embedding(&self, episode_id: Uuid) -> Result<Option<Vec<f32>>> {
         debug!("Retrieving episode embedding: {}", episode_id);
-        self.get_embedding(&episode_id.to_string(), "episode")
-            .await
+        self.get_embedding(&episode_id.to_string(), "episode").await
     }
 
     async fn get_pattern_embedding(&self, pattern_id: PatternId) -> Result<Option<Vec<f32>>> {
         debug!("Retrieving pattern embedding: {}", pattern_id);
-        self.get_embedding(&pattern_id.to_string(), "pattern")
-            .await
+        self.get_embedding(&pattern_id.to_string(), "pattern").await
     }
 
     async fn find_similar_episodes(

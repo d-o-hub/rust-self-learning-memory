@@ -4,13 +4,10 @@
 //! intended primarily for testing purposes. In production, these should
 //! not be used as they provide deterministic but non-semantic embeddings.
 
-use super::config::ModelConfig;
 use super::cosine_similarity;
-use super::provider::{EmbeddingProvider, EmbeddingResult};
-use anyhow::{Context, Result};
+use super::provider::EmbeddingProvider;
+use anyhow::Result;
 use async_trait::async_trait;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 /// Mock implementation for local embedding model
 /// Intended for testing only - in production should not be used
@@ -39,7 +36,7 @@ impl MockLocalModel {
 
         for _ in 0..self.dimension {
             // Simple PRNG to generate values
-            seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
+            seed = seed.wrapping_mul(1_103_515_245).wrapping_add(12_345);
             let value = ((seed >> 16) as f32) / 32768.0 - 1.0; // Range [-1, 1]
             embedding.push(value);
         }
@@ -163,10 +160,10 @@ impl RealEmbeddingModelWithFallback {
             if !real_failed {
                 tracing::info!("Using real embeddings for batch of {} texts", texts.len());
                 return Ok(real_embeddings);
-            } else {
-                tracing::warn!("Real embedding batch failed, falling back to mock for all texts");
-                tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
             }
+
+            tracing::warn!("Real embedding batch failed, falling back to mock for all texts");
+            tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
         } else {
             tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
             tracing::warn!(
@@ -353,12 +350,15 @@ impl RealEmbeddingModel {
 /// Stubs for when local-embeddings feature is not enabled
 #[cfg(not(feature = "local-embeddings"))]
 pub struct RealEmbeddingModel {
+    #[allow(dead_code)]
     name: String,
+    #[allow(dead_code)]
     dimension: usize,
 }
 
 #[cfg(not(feature = "local-embeddings"))]
 impl RealEmbeddingModel {
+    #[allow(dead_code)]
     pub fn new(name: String, dimension: usize, _tokenizer: (), _session: ()) -> Self {
         Self { name, dimension }
     }

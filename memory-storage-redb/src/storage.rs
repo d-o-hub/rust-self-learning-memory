@@ -788,7 +788,7 @@ impl EmbeddingStorageBackend for RedbStorage {
                 if similarity >= threshold {
                     // Extract episode ID from key
                     let episode_id_str = &key[8..]; // Remove "episode_" prefix
-                    if let Ok(episode_id) = Uuid::parse_str(episode_id_str) {
+                    if let Ok(_episode_id) = Uuid::parse_str(episode_id_str) {
                         // Try to get the episode
                         if let Some(episode_bytes) = episodes_table
                             .get(episode_id_str)
@@ -893,7 +893,7 @@ impl EmbeddingStorageBackend for RedbStorage {
                 if similarity >= threshold {
                     // Extract pattern ID from key
                     let pattern_id_str = &key[8..]; // Remove "pattern_" prefix
-                    if let Ok(pattern_id) = PatternId::parse_str(pattern_id_str) {
+                    if let Ok(_pattern_id) = PatternId::parse_str(pattern_id_str) {
                         // Try to get the pattern
                         if let Some(pattern_bytes) = patterns_table
                             .get(pattern_id_str)

@@ -4,7 +4,7 @@
 //! providing offline capability with no external API dependencies.
 
 use super::config::ModelConfig;
-use super::provider::{EmbeddingProvider, EmbeddingResult};
+use super::provider::EmbeddingProvider;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
@@ -165,6 +165,7 @@ impl LocalEmbeddingProvider {
     }
 
     /// Get model information
+    #[allow(dead_code)]
     pub fn model_info(&self) -> serde_json::Value {
         serde_json::json!({
             "name": self.config.model_name,
@@ -230,19 +231,24 @@ pub trait LocalEmbeddingModel: Send + Sync {
     async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>>;
 
     /// Get model name
+    #[allow(dead_code)]
     fn name(&self) -> &str;
 
     /// Get embedding dimension
+    #[allow(dead_code)]
     fn dimension(&self) -> usize;
 }
 
 /// Import real model implementation
+#[allow(unused)]
 pub use crate::embeddings::real_model::RealEmbeddingModel;
 
 /// Import mock model implementations
+#[allow(unused)]
 pub use crate::embeddings::mock_model::{MockLocalModel, RealEmbeddingModelWithFallback};
 
 /// Re-export utilities from the utils module
+#[allow(unused)]
 pub use crate::embeddings::utils::{
     get_recommended_model, list_available_models, LocalModelUseCase,
 };

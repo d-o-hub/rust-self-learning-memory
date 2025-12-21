@@ -1,5 +1,7 @@
 //! Vector similarity calculations and search utilities
 
+#![allow(dead_code)]
+
 // Remove unused imports for now
 use serde::{Deserialize, Serialize};
 

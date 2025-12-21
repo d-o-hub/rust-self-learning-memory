@@ -12,7 +12,7 @@
 //!
 //! The embedding system supports multiple providers:
 //! - **Local**: sentence-transformers via candle-transformers (offline)
-//! - **OpenAI**: text-embedding-ada-002 (cloud)
+//! - **`OpenAI`**: text-embedding-ada-002 (cloud)
 //! - **Custom**: User-provided embedding functions
 //!
 //! ## Usage
@@ -270,13 +270,13 @@ impl SemanticService {
 
         // Execution summary
         if !episode.steps.is_empty() {
-            let tools: Vec<String> = episode
-                .steps
-                .iter()
-                .map(|step| step.tool.clone())
-                .collect::<std::collections::HashSet<_>>()
-                .into_iter()
-                .collect();
+            // Collect unique tools while preserving order
+            let mut tools = Vec::new();
+            for step in &episode.steps {
+                if !tools.contains(&step.tool) {
+                    tools.push(step.tool.clone());
+                }
+            }
             parts.push(format!("tools used: {}", tools.join(", ")));
 
             let actions: Vec<String> = episode

@@ -4,8 +4,7 @@
 //! that runs locally when the 'local-embeddings' feature is enabled.
 
 use super::config::ModelConfig;
-use anyhow::{Context, Result};
-use async_trait::async_trait;
+use anyhow::Result;
 
 #[cfg(feature = "local-embeddings")]
 use {
@@ -171,6 +170,7 @@ impl RealEmbeddingModel {
 
 /// Stubs for when local-embeddings feature is not enabled
 #[cfg(not(feature = "local-embeddings"))]
+#[allow(dead_code)]
 pub struct RealEmbeddingModel {
     name: String,
     dimension: usize,
@@ -179,11 +179,13 @@ pub struct RealEmbeddingModel {
 #[cfg(not(feature = "local-embeddings"))]
 impl RealEmbeddingModel {
     /// Create a stub real embedding model
+    #[allow(dead_code)]
     pub fn new(name: String, dimension: usize, _tokenizer: (), _session: ()) -> Self {
         Self { name, dimension }
     }
 
     /// Try to load real model (always fails without feature)
+    #[allow(dead_code)]
     pub async fn try_load_from_cache(
         _config: &ModelConfig,
         _cache_dir: &std::path::Path,
@@ -194,6 +196,7 @@ impl RealEmbeddingModel {
     }
 
     /// Generate real embedding (always fails without feature)
+    #[allow(dead_code)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
             "Real embedding model not available - enable local-embeddings feature"
@@ -201,11 +204,13 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
+    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
+    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }

@@ -265,6 +265,7 @@ impl CircuitBreaker {
     }
 
     /// Handle successful operation
+    #[allow(clippy::unused_async)]
     async fn on_success(&self, state: &mut CircuitBreakerState) {
         match state.state {
             CircuitState::HalfOpen => {
@@ -293,6 +294,7 @@ impl CircuitBreaker {
     }
 
     /// Handle failed operation
+    #[allow(clippy::unused_async)]
     async fn on_failure(&self, state: &mut CircuitBreakerState) {
         state.stats.consecutive_failures += 1;
         state.last_failure_time = Some(Instant::now());

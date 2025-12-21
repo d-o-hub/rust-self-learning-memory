@@ -658,6 +658,7 @@ impl SelfLearningMemory {
     }
 
     /// Get patterns extracted from a specific episode
+    #[allow(clippy::unused_async)]
     pub async fn get_episode_patterns(&self, episode_id: Uuid) -> Result<Vec<Pattern>> {
         // For now, return empty vector
         // In a real implementation, this would query the storage backend

@@ -107,6 +107,7 @@ impl HeuristicExtractor {
     /// # Errors
     ///
     /// Returns error if confidence calculation fails or data is invalid
+    #[allow(clippy::unused_async)]
     pub async fn extract(&self, episode: &Episode) -> Result<Vec<Heuristic>> {
         // Only extract from complete episodes
         if !episode.is_complete() {

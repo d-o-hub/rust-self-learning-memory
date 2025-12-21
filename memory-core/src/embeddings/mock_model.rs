@@ -6,6 +6,7 @@
 
 use super::config::ModelConfig;
 use super::provider::{EmbeddingProvider, EmbeddingResult};
+use super::cosine_similarity;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
@@ -73,7 +74,7 @@ impl EmbeddingProvider for MockLocalModel {
         let embedding1 = self.generate_mock_embedding(text1);
         let embedding2 = self.generate_mock_embedding(text2);
 
-        Ok(super::provider::utils::cosine_similarity(&embedding1, &embedding2))
+        Ok(cosine_similarity(&embedding1, &embedding2))
     }
 
     fn embedding_dimension(&self) -> usize {
@@ -190,7 +191,7 @@ impl EmbeddingProvider for RealEmbeddingModelWithFallback {
         let embedding1 = self.mock_model.generate_mock_embedding(text1);
         let embedding2 = self.mock_model.generate_mock_embedding(text2);
 
-        Ok(super::provider::utils::cosine_similarity(&embedding1, &embedding2))
+        Ok(cosine_similarity(&embedding1, &embedding2))
     }
 
     fn embedding_dimension(&self) -> usize {
@@ -217,6 +218,25 @@ impl EmbeddingProvider for RealEmbeddingModelWithFallback {
             "type": "hybrid",
             "provider": "real-with-fallback"
         })
+    }
+}
+
+#[async_trait]
+impl super::local::LocalEmbeddingModel for RealEmbeddingModelWithFallback {
+    async fn embed(&self, text: &str) -> Result<Vec<f32>> {
+        self.embed_with_fallback(text).await
+    }
+
+    async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
+        self.embed_batch_with_fallback(texts).await
+    }
+
+    fn name(&self) -> &str {
+        &self.mock_model.name
+    }
+
+    fn dimension(&self) -> usize {
+        self.mock_model.dimension
     }
 }
 

@@ -4,7 +4,7 @@ use super::similarity::SimilaritySearchResult;
 use crate::episode::Episode;
 use crate::episode::PatternId;
 use crate::pattern::Pattern;
-use anyhow::Result;
+use crate::Result;
 use async_trait::async_trait;
 use uuid::Uuid;
 
@@ -83,7 +83,7 @@ impl InMemoryEmbeddingStorage {
         let mut patterns = self.patterns.write().await;
         let pattern_id = match &pattern {
             Pattern::ToolSequence { id, .. } => *id,
-            Pattern::DecisionPoint { outcome_stats, .. } => outcome_stats.episode_id, // Use episode_id as pattern_id
+            Pattern::DecisionPoint { .. } => uuid::Uuid::new_v4(), // Generate new ID
             Pattern::ErrorRecovery { .. } => uuid::Uuid::new_v4(), // Generate new ID
             Pattern::ContextPattern { .. } => uuid::Uuid::new_v4(), // Generate new ID
         };
@@ -211,12 +211,12 @@ impl EmbeddingStorageBackend for InMemoryEmbeddingStorage {
 }
 
 /// Wrapper around existing storage backends to add embedding support
-pub struct EmbeddingStorage<T: crate::storage::StorageBackend> {
+pub struct EmbeddingStorage<T: crate::storage::StorageBackend + EmbeddingStorageBackend> {
     storage: std::sync::Arc<T>,
     fallback: InMemoryEmbeddingStorage,
 }
 
-impl<T: crate::storage::StorageBackend> EmbeddingStorage<T> {
+impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStorage<T> {
     pub fn new(storage: std::sync::Arc<T>) -> Self {
         Self {
             storage,
@@ -226,7 +226,7 @@ impl<T: crate::storage::StorageBackend> EmbeddingStorage<T> {
 }
 
 #[async_trait]
-impl<T: crate::storage::StorageBackend> EmbeddingStorageBackend for EmbeddingStorage<T> {
+impl<T: crate::storage::StorageBackend + EmbeddingStorageBackend> EmbeddingStorageBackend for EmbeddingStorage<T> {
     async fn store_episode_embedding(&self, episode_id: Uuid, embedding: Vec<f32>) -> Result<()> {
         // Try to store in main storage, fall back to in-memory
         if let Err(e) = self

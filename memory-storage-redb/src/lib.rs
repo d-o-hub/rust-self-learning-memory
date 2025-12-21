@@ -1,3 +1,5 @@
+#![allow(clippy::excessive_nesting)]
+
 //! # Memory Storage - redb
 //!
 //! redb embedded database for fast cache layer.

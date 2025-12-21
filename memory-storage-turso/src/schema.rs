@@ -51,6 +51,25 @@ CREATE TABLE IF NOT EXISTS heuristics (
 )
 "#;
 
+/// SQL to create the embeddings table
+pub const CREATE_EMBEDDINGS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS embeddings (
+    embedding_id TEXT PRIMARY KEY NOT NULL,
+    item_id TEXT NOT NULL,
+    item_type TEXT NOT NULL,
+    embedding_data TEXT NOT NULL,
+    dimension INTEGER NOT NULL,
+    model TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// Index on embeddings for fast item lookups
+pub const CREATE_EMBEDDINGS_ITEM_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_embeddings_item
+ON embeddings(item_id, item_type)
+"#;
+
 /// Index on episodes task_type for fast filtering
 pub const CREATE_EPISODES_TASK_TYPE_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_episodes_task_type

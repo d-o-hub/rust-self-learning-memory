@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 //! # Memory Storage - Turso
 //!
 //! Turso/libSQL storage backend for durable persistence of episodes and patterns.
@@ -304,6 +306,8 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_TABLE)
             .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_TABLE)
+            .await?;
 
         // Create monitoring tables
         self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_TABLE)
@@ -323,6 +327,8 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_PATTERNS_CONTEXT_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_CONFIDENCE_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_ITEM_INDEX)
             .await?;
 
         // Create monitoring indexes

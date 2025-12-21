@@ -3,6 +3,9 @@
 //! Core statistical engine providing Bayesian changepoint detection,
 //! correlation analysis with significance testing, and time-series trend detection.
 
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_wrap)]
+#[allow(clippy::cast_sign_loss)]
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -713,7 +716,11 @@ impl StatisticalEngine {
             return Err(anyhow!("No data provided for analysis"));
         }
 
-        let first_len = data.values().next().unwrap().len();
+        let first_len = data
+            .values()
+            .next()
+            .ok_or_else(|| anyhow!("No data values found"))?
+            .len();
         if first_len > self.config.max_data_points {
             warn!(
                 "Data size {} exceeds maximum {}, truncating",

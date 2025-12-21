@@ -3,6 +3,9 @@
 //! Provides forecasting models, anomaly detection, and causal inference capabilities
 //! using advanced algorithms from augurs and deep_causality.
 
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_wrap)]
+#[allow(clippy::cast_sign_loss)]
 use anyhow::{anyhow, Result};
 
 use serde::{Deserialize, Serialize};
@@ -58,7 +61,11 @@ impl Point {
 
         // Trend features
         let trend = if values.len() > 1 {
-            (values.last().unwrap() - values.first().unwrap()) / (values.len() - 1) as f64
+            #[allow(clippy::cast_precision_loss)]
+            // Safe to unwrap since we checked len > 1
+            let last_val = *values.last().unwrap();
+            let first_val = *values.first().unwrap();
+            (last_val - first_val) / (values.len() - 1) as f64
         } else {
             0.0
         };

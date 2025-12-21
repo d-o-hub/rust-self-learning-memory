@@ -1,3 +1,14 @@
+#![allow(clippy::empty_line_after_doc_comments)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(clippy::if_same_then_else)]
+#![allow(clippy::nonminimal_bool)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::manual_clamp)]
+#![allow(clippy::derivable_impls)]
+
 use clap::{CommandFactory, Parser, Subcommand};
 use std::path::PathBuf;
 

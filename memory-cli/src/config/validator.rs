@@ -3,11 +3,92 @@
 //! This module provides comprehensive validation for configuration with
 //! contextual error messages and suggestions for fixing issues.
 
-use super::types::{
-    CliConfig, Config, DatabaseConfig, StorageConfig, ValidationError, ValidationResult,
-    ValidationWarning,
-};
+use super::types::{CliConfig, Config, DatabaseConfig, StorageConfig};
 use std::path::Path;
+
+/// Validation result with enhanced error context
+#[derive(Debug)]
+pub struct ValidationResult {
+    /// Whether validation passed
+    pub is_valid: bool,
+    /// List of validation errors with context
+    pub errors: Vec<ValidationError>,
+    /// List of warnings that don't prevent usage
+    pub warnings: Vec<ValidationWarning>,
+}
+
+impl ValidationResult {
+    /// Create a successful validation result
+    pub fn ok() -> Self {
+        Self {
+            is_valid: true,
+            errors: Vec::new(),
+            warnings: Vec::new(),
+        }
+    }
+
+    /// Create a failed validation result with errors
+    pub fn with_errors(errors: Vec<ValidationError>) -> Self {
+        Self {
+            is_valid: false,
+            errors,
+            warnings: Vec::new(),
+        }
+    }
+
+    /// Add warnings to a validation result
+    pub fn with_warnings(mut self, warnings: Vec<ValidationWarning>) -> Self {
+        self.warnings.extend(warnings);
+        self
+    }
+}
+
+/// Enhanced validation error with context and suggestions
+#[derive(Debug)]
+pub struct ValidationError {
+    /// Field that failed validation
+    pub field: String,
+    /// Human-readable error message
+    pub message: String,
+    /// Suggested value or fix
+    pub suggestion: Option<String>,
+    /// Context for the error
+    pub context: Option<String>,
+}
+
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.message)?;
+        if let Some(suggestion) = &self.suggestion {
+            write!(f, " Suggestion: {}", suggestion)?;
+        }
+        if let Some(context) = &self.context {
+            write!(f, " Context: {}", context)?;
+        }
+        Ok(())
+    }
+}
+
+/// Non-blocking validation warnings
+#[derive(Debug)]
+pub struct ValidationWarning {
+    /// Field that generated the warning
+    pub field: String,
+    /// Warning message
+    pub message: String,
+    /// Suggested improvement
+    pub suggestion: Option<String>,
+}
+
+impl std::fmt::Display for ValidationWarning {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.message)?;
+        if let Some(suggestion) = &self.suggestion {
+            write!(f, " Suggestion: {}", suggestion)?;
+        }
+        Ok(())
+    }
+}
 
 /// Validate the entire configuration
 pub fn validate_config(config: &Config) -> ValidationResult {
@@ -404,4 +485,74 @@ pub fn quick_validation_check(config: &Config) -> Vec<String> {
     }
 
     issues
+}
+
+/// Validate if the current configuration is suitable for the environment
+pub fn validate_environment_fitness(config: &Config) -> ValidationResult {
+    // Import the smart_defaults module functions
+    let mut system = sysinfo::System::new_all();
+    system.refresh_all();
+
+    let total_memory = system.total_memory();
+    let available_memory = system.available_memory();
+    let cpu_count = system.physical_core_count().unwrap_or(1);
+    let is_ci = std::env::var("CI").is_ok();
+    let is_development = std::env::var("DEVELOPMENT").is_ok() || std::env::var("DEV").is_ok();
+
+    let mut result = ValidationResult::ok();
+    let mut warnings = Vec::new();
+
+    // Check cache size vs available memory
+    let cache_memory_estimate = config.storage.max_episodes_cache * 1024; // Rough estimate in bytes
+    if cache_memory_estimate > available_memory as usize {
+        warnings.push(ValidationWarning {
+            field: "storage.max_episodes_cache".to_string(),
+            message: format!(
+                "Cache size estimate ({}MB) may exceed available memory ({}MB)",
+                cache_memory_estimate / (1024 * 1024),
+                available_memory / (1024 * 1024)
+            ),
+            suggestion: Some(format!(
+                "Consider reducing cache size to {}",
+                available_memory / (1024 * 1024)
+            )),
+        });
+    }
+
+    // Check pool size vs CPU cores
+    if config.storage.pool_size > cpu_count * 4 {
+        warnings.push(ValidationWarning {
+            field: "storage.pool_size".to_string(),
+            message: format!(
+                "Pool size ({}) may be too high for {} CPU cores",
+                config.storage.pool_size, cpu_count
+            ),
+            suggestion: Some(format!("Consider reducing to {}", cpu_count * 2)),
+        });
+    }
+
+    // CI-specific checks
+    if is_ci {
+        if config.storage.max_episodes_cache > 200 {
+            warnings.push(ValidationWarning {
+                field: "storage.max_episodes_cache".to_string(),
+                message: "CI environment detected - large cache may impact performance".to_string(),
+                suggestion: Some("Consider reducing to 100-200".to_string()),
+            });
+        }
+
+        if config.cli.progress_bars {
+            warnings.push(ValidationWarning {
+                field: "cli.progress_bars".to_string(),
+                message: "Progress bars may not work properly in CI environments".to_string(),
+                suggestion: Some("Set to false for CI".to_string()),
+            });
+        }
+    }
+
+    if !warnings.is_empty() {
+        result = result.with_warnings(warnings);
+    }
+
+    result
 }

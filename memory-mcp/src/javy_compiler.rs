@@ -18,13 +18,13 @@
 //! - Comprehensive metrics and health monitoring
 //! - Fuel-based execution timeouts
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
-use tracing::debug;
+use tracing::{debug, warn};
 
 use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
@@ -179,6 +179,11 @@ pub struct JavyCompiler {
 
 impl JavyCompiler {
     /// Create a new Javy compiler instance
+    /// Create a new Javy compiler with the given configuration
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the WASM sandbox cannot be initialized or if the configuration is invalid.
     pub fn new(config: JavyConfig) -> Result<Self> {
         let wasmtime_config = WasmtimeConfig {
             max_execution_time: config.max_execution_time,
@@ -207,7 +212,19 @@ impl JavyCompiler {
         })
     }
 
-    /// Compile JavaScript source to WASM
+    /// Compile JavaScript source code to WASM bytecode
+    ///
+    /// # Arguments
+    ///
+    /// * `js_source` - The JavaScript source code to compile
+    ///
+    /// # Returns
+    ///
+    /// WASM bytecode as a vector of bytes
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if compilation fails, times out, or if the JavaScript syntax is invalid.
     pub async fn compile_js_to_wasm(&self, js_source: &str) -> Result<Vec<u8>> {
         let _permit = self
             .compilation_semaphore
@@ -226,7 +243,10 @@ impl JavyCompiler {
         // Check cache first
         let cache_key = self.generate_cache_key(js_source);
         let cached_module_opt = {
-            let mut cache = self.module_cache.lock().unwrap();
+            let mut cache = self
+                .module_cache
+                .lock()
+                .map_err(|e| anyhow!("Failed to lock module cache: {}", e))?;
             cache.get(&cache_key).cloned()
         };
 
@@ -259,7 +279,7 @@ impl JavyCompiler {
                 if self.config.enable_caching {
                     self.module_cache
                         .lock()
-                        .unwrap()
+                        .map_err(|e| anyhow!("Failed to lock module cache for caching: {}", e))?
                         .insert(cache_key, wasm.clone());
                 }
 
@@ -390,8 +410,16 @@ impl JavyCompiler {
     /// Get current metrics
     pub async fn get_metrics(&self) -> JavyMetrics {
         let metrics = self.metrics.read().await;
+        let cached_modules = self
+            .module_cache
+            .lock()
+            .map(|cache| cache.len())
+            .unwrap_or_else(|e| {
+                warn!("Failed to lock module cache: {}", e);
+                0
+            });
         JavyMetrics {
-            cached_modules: self.module_cache.lock().unwrap().len(),
+            cached_modules,
             ..metrics.clone()
         }
     }
@@ -407,15 +435,27 @@ impl JavyCompiler {
         }
 
         // Check cache health
-        let _ = self.module_cache.lock().unwrap().len();
+        if let Err(e) = self.module_cache.lock() {
+            warn!("Failed to lock module cache: {}", e);
+        }
 
         Ok(())
     }
 
     /// Clear the module cache
     pub async fn clear_cache(&self) {
-        self.module_cache.lock().unwrap().modules.clear();
-        self.module_cache.lock().unwrap().access_order.clear();
+        let mut cache = self
+            .module_cache
+            .lock()
+            .map_err(|e| {
+                warn!("Failed to lock module cache for clearing: {}", e);
+            })
+            .ok();
+
+        if let Some(ref mut cache) = cache {
+            cache.modules.clear();
+            cache.access_order.clear();
+        }
     }
 
     /// Perform the actual JavaScript to WASM compilation

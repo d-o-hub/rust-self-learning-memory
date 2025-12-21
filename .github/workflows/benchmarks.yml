@@ -250,7 +250,7 @@ jobs:
            } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Archive benchmark results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: benchmark-results-${{ github.sha }}
           path: |

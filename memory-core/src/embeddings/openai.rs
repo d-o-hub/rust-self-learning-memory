@@ -37,18 +37,19 @@ use std::time::Instant;
 ///     Ok(())
 /// }
 /// ```
+#[cfg(feature = "openai")]
 pub struct OpenAIEmbeddingProvider {
     /// OpenAI API key
     api_key: String,
     /// Model configuration
     config: ModelConfig,
     /// HTTP client for API requests
-    #[cfg(feature = "openai")]
     client: reqwest::Client,
     /// Base URL for OpenAI API
     base_url: String,
 }
 
+#[cfg(feature = "openai")]
 impl OpenAIEmbeddingProvider {
     /// Create a new OpenAI embedding provider
     ///
@@ -123,6 +124,7 @@ impl OpenAIEmbeddingProvider {
     }
 }
 
+#[cfg(feature = "openai")]
 #[async_trait]
 impl EmbeddingProvider for OpenAIEmbeddingProvider {
     async fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
@@ -216,6 +218,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
 
 // OpenAI API request/response structures
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Serialize)]
 struct EmbeddingRequest {
     input: EmbeddingInput,
@@ -226,6 +229,7 @@ struct EmbeddingRequest {
     dimensions: Option<usize>,
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 enum EmbeddingInput {
@@ -233,6 +237,7 @@ enum EmbeddingInput {
     Batch(Vec<String>),
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct EmbeddingResponse {
     data: Vec<EmbeddingData>,
@@ -240,6 +245,7 @@ struct EmbeddingResponse {
     usage: Usage,
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct EmbeddingData {
     embedding: Vec<f32>,
@@ -247,6 +253,7 @@ struct EmbeddingData {
     object: String, // Should be "embedding"
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct Usage {
     prompt_tokens: usize,
@@ -373,6 +380,7 @@ mod tests {
         assert_eq!(legacy.model_name, "text-embedding-ada-002");
     }
 
+    #[cfg(feature = "openai")]
     #[tokio::test]
     async fn test_provider_creation() {
         let config = ModelConfig::openai_3_small();
@@ -383,6 +391,7 @@ mod tests {
         assert_eq!(provider.base_url, "https://api.openai.com/v1");
     }
 
+    #[cfg(feature = "openai")]
     #[tokio::test]
     async fn test_custom_url_provider() {
         let config = ModelConfig::openai_3_small();

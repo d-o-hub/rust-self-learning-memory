@@ -42,11 +42,11 @@ mod utils;
 
 pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig};
 pub use local::{LocalEmbeddingProvider, get_recommended_model, list_available_models, LocalModelUseCase};
+#[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
-pub use similarity::{cosine_similarity, EmbeddingWithMetadata, SimilaritySearchResult};
+pub use similarity::{cosine_similarity, EmbeddingWithMetadata, SimilarityMetadata, SimilaritySearchResult};
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
-pub use utils::{get_recommended_model, list_available_models, LocalModelUseCase};
 
 use crate::episode::Episode;
 use crate::pattern::Pattern;
@@ -93,7 +93,62 @@ impl SemanticService {
         Ok(Self::new(provider, storage, config))
     }
 
+    /// Create a semantic service with default local provider
+    pub async fn default(
+        storage: Box<dyn EmbeddingStorageBackend>,
+    ) -> Result<Self> {
+        let config = EmbeddingConfig::default();
+        Self::with_local_provider(storage, config).await
+    }
+
+    /// Create a semantic service with automatic provider fallback
+    ///
+    /// Tries providers in order: Local → OpenAI → Mock (with warnings)
+    /// This ensures maximum reliability by falling back to simpler options if preferred ones fail.
+    pub async fn with_fallback(
+        storage: Box<dyn EmbeddingStorageBackend>,
+        config: EmbeddingConfig,
+    ) -> Result<Self> {
+        // Try local provider first (default)
+        match LocalEmbeddingProvider::new(config.model.clone()).await {
+            Ok(provider) => {
+                tracing::info!("Using local embedding provider");
+                return Ok(Self::new(Box::new(provider), storage, config));
+            }
+            Err(e) => {
+                tracing::warn!("Failed to initialize local provider: {}, trying OpenAI", e);
+            }
+        }
+
+        // Try OpenAI provider as fallback
+        #[cfg(feature = "openai")]
+        {
+            if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
+                let provider = OpenAIEmbeddingProvider::new(api_key, config.model.clone());
+                tracing::info!("Using OpenAI embedding provider as fallback");
+                return Ok(Self::new(Box::new(provider), storage, config));
+            } else {
+                tracing::warn!("OPENAI_API_KEY not set, cannot use OpenAI provider");
+            }
+        }
+
+        // Final fallback to mock provider (with warning)
+        tracing::error!("All embedding providers failed, using mock provider (embeddings will be random)");
+        tracing::error!("To fix this, either:");
+        tracing::error!("  1. Install local embedding model dependencies");
+        #[cfg(feature = "openai")]
+        tracing::error!("  2. Set OPENAI_API_KEY environment variable");
+
+        // Use MockLocalModel as the final fallback
+        let provider = crate::embeddings::mock_model::MockLocalModel::new(
+            "mock-model".to_string(),
+            config.model.embedding_dimension,
+        );
+        Ok(Self::new(Box::new(provider), storage, config))
+    }
+
     /// Create a semantic service with OpenAI embedding provider
+    #[cfg(feature = "openai")]
     pub fn with_openai_provider(
         api_key: String,
         storage: Box<dyn EmbeddingStorageBackend>,
@@ -134,7 +189,7 @@ impl SemanticService {
 
         // Store the embedding
         self.storage
-            .store_pattern_embedding(pattern.pattern_id, embedding.clone())
+            .store_pattern_embedding(pattern.id(), embedding.clone())
             .await?;
 
         Ok(embedding)
@@ -160,6 +215,7 @@ impl SemanticService {
         self.storage
             .find_similar_episodes(query_embedding, limit, self.config.similarity_threshold)
             .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
     }
 
     /// Find semantically similar patterns for a context
@@ -181,6 +237,7 @@ impl SemanticService {
         self.storage
             .find_similar_patterns(query_embedding, limit, self.config.similarity_threshold)
             .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
     }
 
     /// Calculate similarity between two texts
@@ -340,8 +397,10 @@ impl SemanticService {
 mod tests {
     use super::*;
     use crate::episode::ExecutionStep;
-    use crate::pattern::{PatternId, PatternType};
+    use crate::pattern::{Pattern, PatternId};
     use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
+    use crate::Result;
+    use uuid::Uuid;
 
     fn create_test_episode() -> Episode {
         let context = TaskContext {
@@ -394,16 +453,14 @@ mod tests {
             tags: vec!["async".to_string()],
         };
 
-        Pattern::new(
-            PatternType::ToolSequence,
-            "Parse then validate pattern".to_string(),
+        Pattern::ToolSequence {
+            id: PatternId::new_v4(),
+            tools: vec!["parser".to_string(), "validator".to_string()],
             context,
-            0.85,
-            Some(serde_json::json!({
-                "sequence": ["parser", "validator"],
-                "success_rate": 0.92
-            })),
-        )
+            success_rate: 0.85,
+            avg_latency: chrono::Duration::seconds(10),
+            occurrence_count: 5,
+        }
     }
 
     #[test]
@@ -469,19 +526,21 @@ mod tests {
     }
 
     // Mock implementations for testing
+    use anyhow::Result as AnyhowResult;
+
     struct MockEmbeddingProvider;
 
     #[async_trait::async_trait]
     impl EmbeddingProvider for MockEmbeddingProvider {
-        async fn embed_text(&self, _text: &str) -> Result<Vec<f32>> {
+        async fn embed_text(&self, _text: &str) -> AnyhowResult<Vec<f32>> {
             Ok(vec![0.1, 0.2, 0.3, 0.4])
         }
 
-        async fn embed_batch(&self, _texts: &[String]) -> Result<Vec<Vec<f32>>> {
+        async fn embed_batch(&self, _texts: &[String]) -> AnyhowResult<Vec<Vec<f32>>> {
             Ok(vec![vec![0.1, 0.2, 0.3, 0.4]; _texts.len()])
         }
 
-        async fn similarity(&self, _text1: &str, _text2: &str) -> Result<f32> {
+        async fn similarity(&self, _text1: &str, _text2: &str) -> AnyhowResult<f32> {
             Ok(0.85)
         }
 

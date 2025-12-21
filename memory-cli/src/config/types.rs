@@ -219,68 +219,6 @@ pub mod smart_config {
             cpu_adequate: info.cpu_count >= 2,
         }
     }
-
-    /// Validate if the current configuration is suitable for the environment
-    pub fn validate_environment_fitness(config: &Config) -> ValidationResult {
-        let info = smart_defaults::get_system_info();
-        let mut result = ValidationResult::ok();
-        let mut warnings = Vec::new();
-
-        // Check cache size vs available memory
-        let cache_memory_estimate = config.storage.max_episodes_cache * 1024; // Rough estimate in bytes
-        if cache_memory_estimate > info.available_memory as usize {
-            warnings.push(ValidationWarning {
-                field: "storage.max_episodes_cache".to_string(),
-                message: format!(
-                    "Cache size estimate ({}MB) may exceed available memory ({}MB)",
-                    cache_memory_estimate / (1024 * 1024),
-                    info.available_memory / (1024 * 1024)
-                ),
-                suggestion: Some(format!(
-                    "Consider reducing cache size to {}",
-                    info.available_memory / (1024 * 1024)
-                )),
-            });
-        }
-
-        // Check pool size vs CPU cores
-        if config.storage.pool_size > info.cpu_count * 4 {
-            warnings.push(ValidationWarning {
-                field: "storage.pool_size".to_string(),
-                message: format!(
-                    "Pool size ({}) may be too high for {} CPU cores",
-                    config.storage.pool_size, info.cpu_count
-                ),
-                suggestion: Some(format!("Consider reducing to {}", info.cpu_count * 2)),
-            });
-        }
-
-        // CI-specific checks
-        if info.is_ci {
-            if config.storage.max_episodes_cache > 200 {
-                warnings.push(ValidationWarning {
-                    field: "storage.max_episodes_cache".to_string(),
-                    message: "CI environment detected - large cache may impact performance"
-                        .to_string(),
-                    suggestion: Some("Consider reducing to 100-200".to_string()),
-                });
-            }
-
-            if config.cli.progress_bars {
-                warnings.push(ValidationWarning {
-                    field: "cli.progress_bars".to_string(),
-                    message: "Progress bars may not work properly in CI environments".to_string(),
-                    suggestion: Some("Set to false for CI".to_string()),
-                });
-            }
-        }
-
-        if !warnings.is_empty() {
-            result = result.with_warnings(warnings);
-        }
-
-        result
-    }
 }
 
 /// Configuration recommendations for optimization
@@ -468,86 +406,513 @@ impl ConfigPreset {
     }
 }
 
-/// Validation result with enhanced error context
-#[derive(Debug)]
-pub struct ValidationResult {
-    /// Whether validation passed
-    pub is_valid: bool,
-    /// List of validation errors with context
-    pub errors: Vec<ValidationError>,
-    /// List of warnings that don't prevent usage
-    pub warnings: Vec<ValidationWarning>,
+// Re-export validation types from validator module for backward compatibility
+pub use crate::config::validator::{ValidationError, ValidationResult, ValidationWarning};
+
+/// Database type for simple configuration
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum DatabaseType {
+    /// Local SQLite database via Turso
+    Local,
+    /// Cloud database via Turso
+    Cloud,
+    /// In-memory only (temporary storage)
+    Memory,
 }
 
-impl ValidationResult {
-    /// Create a successful validation result
-    pub fn ok() -> Self {
-        Self {
-            is_valid: true,
-            errors: Vec::new(),
-            warnings: Vec::new(),
+/// Performance level for simple configuration
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum PerformanceLevel {
+    /// Minimal resources: < 100MB memory, < 100 episodes
+    Minimal,
+    /// Standard resources: < 1GB memory, < 1000 episodes
+    Standard,
+    /// High resources: < 4GB memory, < 10000 episodes
+    High,
+}
+
+/// Configuration error types
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigError {
+    #[error("Simple mode configuration failed: {message}")]
+    SimpleModeFailed { message: String },
+    #[error("Configuration validation failed: {message}")]
+    ValidationFailed { message: String },
+    #[error("Environment detection failed: {message}")]
+    EnvironmentDetectionFailed { message: String },
+    #[error("Storage initialization failed: {message}")]
+    StorageInitFailed { message: String },
+}
+
+impl Config {
+    /// Create a configuration with intelligent auto-detection for one-line setup
+    ///
+    /// This method automatically detects the environment and chooses the best
+    /// configuration preset, making it ideal for quick setup without manual configuration.
+    ///
+    /// Auto-detection logic:
+    /// - If Turso credentials detected (TURSO_DATABASE_URL, TURSO_TOKEN) → Cloud preset
+    /// - If cloud environment detected → Cloud preset
+    /// - If in CI environment → Memory preset (fastest)
+    /// - Otherwise → Local preset (SQLite + redb)
+    ///
+    /// # Returns
+    ///
+    /// Returns a validated `Config` ready to use, or an error if validation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use memory_cli::config::Config;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     // One-line setup with intelligent defaults
+    ///     let config = Config::simple().await?;
+    ///     println!("Using configuration: {:?}", config);
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - Configuration validation fails
+    /// - Required settings are missing or invalid
+    /// - Environment detection fails
+    pub async fn simple() -> Result<Self, anyhow::Error> {
+        use crate::config::validator::{format_validation_result, validate_config};
+
+        // Get system information for environment detection
+        let system_info = smart_defaults::get_system_info();
+
+        // Auto-detect and select the best preset
+        let preset = auto_detect_preset(&system_info);
+
+        // Create configuration from the selected preset
+        let config = preset.create_config();
+
+        // Validate the configuration
+        let validation_result = validate_config(&config);
+
+        // Return clear error messages if validation fails
+        if !validation_result.is_valid {
+            let error_message = format!(
+                "Failed to create simple configuration: {}\n\n{}",
+                if validation_result.errors.is_empty() {
+                    "Unknown validation error".to_string()
+                } else {
+                    format!("{} error(s) found", validation_result.errors.len())
+                },
+                format_validation_result(&validation_result)
+            );
+
+            return Err(anyhow::anyhow!("{}", error_message));
+        }
+
+        // Log warnings if any (non-fatal)
+        if !validation_result.warnings.is_empty() {
+            tracing::warn!(
+                "Configuration created with {} warning(s): {}",
+                validation_result.warnings.len(),
+                validation_result
+                    .warnings
+                    .iter()
+                    .map(|w| w.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        }
+
+        Ok(config)
+    }
+
+    /// Create a simple configuration with a specific storage type
+    ///
+    /// This method allows you to specify whether you want local, cloud, or memory-only storage
+    /// while automatically optimizing other settings based on best practices.
+    ///
+    /// # Arguments
+    ///
+    /// * `database` - The preferred database type
+    ///
+    /// # Returns
+    ///
+    /// Returns a validated `Config` with the specified storage type, or an error if validation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use memory_cli::config::{Config, DatabaseType};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     // Use local SQLite database
+    ///     let config = Config::simple_with_storage(DatabaseType::Local).await?;
+    ///
+    ///     // Use cloud database
+    ///     let config = Config::simple_with_storage(DatabaseType::Cloud).await?;
+    ///
+    ///     // Use in-memory only (for testing)
+    ///     let config = Config::simple_with_storage(DatabaseType::Memory).await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn simple_with_storage(database: DatabaseType) -> Result<Self, anyhow::Error> {
+        use crate::config::validator::validate_config;
+
+        let preset = match database {
+            DatabaseType::Local => ConfigPreset::Local,
+            DatabaseType::Cloud => ConfigPreset::Cloud,
+            DatabaseType::Memory => ConfigPreset::Memory,
+        };
+
+        let config = preset.create_config();
+        let validation_result = validate_config(&config);
+
+        if !validation_result.is_valid {
+            return Err(anyhow::anyhow!(
+                "Failed to create configuration: {}",
+                validation_result
+                    .errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ));
+        }
+
+        Ok(config)
+    }
+
+    /// Create a simple configuration with a specific performance level
+    ///
+    /// This method optimizes the configuration for your performance needs while
+    /// automatically selecting the best storage backend.
+    ///
+    /// # Arguments
+    ///
+    /// * `performance` - The desired performance level
+    ///
+    /// # Returns
+    ///
+    /// Returns a validated `Config` optimized for the specified performance level,
+    /// or an error if validation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use memory_cli::config::{Config, PerformanceLevel};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     // Minimal resources (good for testing or low-memory systems)
+    ///     let config = Config::simple_with_performance(PerformanceLevel::Minimal).await?;
+    ///
+    ///     // Standard resources (good for most use cases)
+    ///     let config = Config::simple_with_performance(PerformanceLevel::Standard).await?;
+    ///
+    ///     // High resources (good for production or large datasets)
+    ///     let config = Config::simple_with_performance(PerformanceLevel::High).await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn simple_with_performance(performance: PerformanceLevel) -> Result<Self, anyhow::Error> {
+        use crate::config::validator::validate_config;
+
+        // Choose the best preset based on performance level and environment
+        let preset = match performance {
+            PerformanceLevel::Minimal => {
+                // For minimal, prefer Memory preset in CI/testing, Local otherwise
+                let system_info = smart_defaults::get_system_info();
+                if system_info.is_ci || system_info.is_development {
+                    ConfigPreset::Memory
+                } else {
+                    ConfigPreset::Local
+                }
+            }
+            PerformanceLevel::Standard => ConfigPreset::Local,
+            PerformanceLevel::High => ConfigPreset::Cloud,
+        };
+
+        let mut config = preset.create_config();
+
+        // Adjust resource limits based on performance level
+        match performance {
+            PerformanceLevel::Minimal => {
+                config.storage.max_episodes_cache = 100;
+                config.storage.pool_size = 3;
+            }
+            PerformanceLevel::Standard => {
+                config.storage.max_episodes_cache = 1000;
+                config.storage.pool_size = 10;
+            }
+            PerformanceLevel::High => {
+                config.storage.max_episodes_cache = 10000;
+                config.storage.pool_size = 20;
+            }
+        }
+
+        let validation_result = validate_config(&config);
+
+        if !validation_result.is_valid {
+            return Err(anyhow::anyhow!(
+                "Failed to create configuration: {}",
+                validation_result
+                    .errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ));
+        }
+
+        Ok(config)
+    }
+
+    /// Create a simple configuration with full control over both storage and performance
+    ///
+    /// This is the most flexible option, allowing you to specify both the database type
+    /// and performance level. The system will create an optimized configuration that
+    /// combines your preferences.
+    ///
+    /// # Arguments
+    ///
+    /// * `database` - The preferred database type
+    /// * `performance` - The desired performance level
+    ///
+    /// # Returns
+    ///
+    /// Returns a validated `Config` with your specified preferences, or an error if validation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use memory_cli::config::{Config, DatabaseType, PerformanceLevel};
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     // Local SQLite with standard performance
+    ///     let config = Config::simple_full(
+    ///         DatabaseType::Local,
+    ///         PerformanceLevel::Standard
+    ///     ).await?;
+    ///
+    ///     // Cloud database with high performance
+    ///     let config = Config::simple_full(
+    ///         DatabaseType::Cloud,
+    ///         PerformanceLevel::High
+    ///     ).await?;
+    ///
+    ///     // Memory-only with minimal resources (good for testing)
+    ///     let config = Config::simple_full(
+    ///         DatabaseType::Memory,
+    ///         PerformanceLevel::Minimal
+    ///     ).await?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn simple_full(
+        database: DatabaseType,
+        performance: PerformanceLevel,
+    ) -> Result<Self, anyhow::Error> {
+        use crate::config::validator::validate_config;
+
+        let preset = match database {
+            DatabaseType::Local => ConfigPreset::Local,
+            DatabaseType::Cloud => ConfigPreset::Cloud,
+            DatabaseType::Memory => ConfigPreset::Memory,
+        };
+
+        let mut config = preset.create_config();
+
+        // Apply performance-based resource limits
+        match performance {
+            PerformanceLevel::Minimal => {
+                config.storage.max_episodes_cache = 50;
+                config.storage.pool_size = 2;
+            }
+            PerformanceLevel::Standard => {
+                config.storage.max_episodes_cache = 1000;
+                config.storage.pool_size = 10;
+            }
+            PerformanceLevel::High => {
+                config.storage.max_episodes_cache = 10000;
+                config.storage.pool_size = 20;
+            }
+        }
+
+        let validation_result = validate_config(&config);
+
+        if !validation_result.is_valid {
+            return Err(anyhow::anyhow!(
+                "Failed to create configuration: {}",
+                validation_result
+                    .errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ));
+        }
+
+        Ok(config)
+    }
+}
+
+/// Auto-detect the best configuration preset based on environment
+fn auto_detect_preset(system_info: &SystemInfo) -> ConfigPreset {
+    // Priority 1: Check for explicit Turso credentials
+    // This takes precedence over other detection methods
+    if smart_defaults::is_cloud_environment() {
+        tracing::info!(
+            "Auto-detected Cloud preset: Turso credentials found (TURSO_URL, TURSO_TOKEN)"
+        );
+        return ConfigPreset::Cloud;
+    }
+
+    // Priority 2: Check for cloud environment indicators
+    // This includes platforms like Render, Heroku, Fly.io, etc.
+    if env::var("RENDER").is_ok()
+        || env::var("HEROKU").is_ok()
+        || env::var("FLY_IO").is_ok()
+        || env::var("RAILWAY").is_ok()
+        || env::var("VERCEL").is_ok()
+    {
+        tracing::info!("Auto-detected Cloud preset: Cloud platform environment detected");
+        return ConfigPreset::Cloud;
+    }
+
+    // Priority 3: CI environment gets Memory preset for speed
+    if system_info.is_ci {
+        tracing::info!("Auto-detected Memory preset: CI environment detected");
+        return ConfigPreset::Memory;
+    }
+
+    // Priority 4: Default to Local preset for development and general use
+    tracing::info!("Auto-detected Local preset: Development/general use environment");
+    ConfigPreset::Local
+}
+
+#[cfg(test)]
+mod simple_config_tests {
+    use super::*;
+    use std::env;
+
+    /// Helper function to clean up all environment variables before each test
+    fn clean_environment() {
+        env::remove_var("CI");
+        env::remove_var("TURSO_URL");
+        env::remove_var("TURSO_TOKEN");
+        env::remove_var("TURSO_DATABASE_URL");
+        env::remove_var("RENDER");
+        env::remove_var("HEROKU");
+        env::remove_var("FLY_IO");
+        env::remove_var("RAILWAY");
+        env::remove_var("VERCEL");
+        env::remove_var("DEVELOPMENT");
+        env::remove_var("DEV");
+    }
+
+    /// Helper function to setup environment for CI testing
+    fn setup_ci_environment() {
+        clean_environment();
+        env::set_var("CI", "true");
+    }
+
+    /// Helper function to setup environment for Turso testing
+    fn setup_turso_environment() {
+        clean_environment();
+        env::set_var("TURSO_URL", "libsql://test.example.com/db");
+        env::set_var("TURSO_TOKEN", "test-token");
+    }
+
+    /// Helper function to setup environment for cloud platform testing
+    fn setup_cloud_platform_environment(platform: &str) {
+        clean_environment();
+        env::set_var(platform, "true");
+    }
+
+    #[tokio::test]
+    async fn test_simple_config_basic() {
+        clean_environment();
+
+        let config = Config::simple()
+            .await
+            .expect("Config::simple() should succeed");
+
+        // Verify that we got a valid config
+        assert!(config.database.redb_path.is_some() || config.database.turso_url.is_some());
+        assert!(config.storage.max_episodes_cache > 0);
+        assert!(config.storage.pool_size > 0);
+        assert!(!config.cli.default_format.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_simple_config_ci_environment() {
+        setup_ci_environment();
+
+        let config = Config::simple()
+            .await
+            .expect("Config::simple() should succeed in CI");
+
+        // In CI, should use Memory preset with in-memory redb
+        assert_eq!(config.database.redb_path, Some(":memory:".to_string()));
+        assert_eq!(config.storage.max_episodes_cache, 100);
+        assert_eq!(config.cli.progress_bars, false);
+    }
+
+    #[tokio::test]
+    async fn test_simple_config_with_turso() {
+        setup_turso_environment();
+
+        let config = Config::simple()
+            .await
+            .expect("Config::simple() should succeed with Turso");
+
+        // With Turso credentials, should use Cloud preset
+        assert!(
+            config.database.turso_url.is_some(),
+            "turso_url should be set"
+        );
+        assert!(
+            config.database.turso_token.is_some(),
+            "turso_token should be set"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_simple_config_with_cloud_platform() {
+        // Test various cloud platform indicators
+        let platforms = ["RENDER", "HEROKU", "FLY_IO", "RAILWAY", "VERCEL"];
+
+        for platform in &platforms {
+            setup_cloud_platform_environment(platform);
+
+            let config = Config::simple().await.expect(&format!(
+                "Config::simple() should succeed with {} platform",
+                platform
+            ));
+
+            // Should use Cloud preset
+            assert!(
+                config.database.turso_url.is_some() || config.database.redb_path.is_some(),
+                "Should have database configuration for cloud platform: {}",
+                platform
+            );
         }
     }
 
-    /// Create a failed validation result with errors
-    pub fn with_errors(errors: Vec<ValidationError>) -> Self {
-        Self {
-            is_valid: false,
-            errors,
-            warnings: Vec::new(),
-        }
-    }
+    #[tokio::test]
+    async fn test_simple_config_validation() {
+        clean_environment();
 
-    /// Add warnings to a validation result
-    pub fn with_warnings(mut self, warnings: Vec<ValidationWarning>) -> Self {
-        self.warnings.extend(warnings);
-        self
-    }
-}
-
-/// Enhanced validation error with context and suggestions
-#[derive(Debug)]
-pub struct ValidationError {
-    /// Field that failed validation
-    pub field: String,
-    /// Human-readable error message
-    pub message: String,
-    /// Suggested value or fix
-    pub suggestion: Option<String>,
-    /// Context for the error
-    pub context: Option<String>,
-}
-
-impl std::fmt::Display for ValidationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.message)?;
-        if let Some(suggestion) = &self.suggestion {
-            write!(f, " Suggestion: {}", suggestion)?;
-        }
-        if let Some(context) = &self.context {
-            write!(f, " Context: {}", context)?;
-        }
-        Ok(())
-    }
-}
-
-/// Non-blocking validation warnings
-#[derive(Debug)]
-pub struct ValidationWarning {
-    /// Field that generated the warning
-    pub field: String,
-    /// Warning message
-    pub message: String,
-    /// Suggested improvement
-    pub suggestion: Option<String>,
-}
-
-impl std::fmt::Display for ValidationWarning {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.message)?;
-        if let Some(suggestion) = &self.suggestion {
-            write!(f, " Suggestion: {}", suggestion)?;
-        }
-        Ok(())
+        // Should succeed with valid preset
+        let result = Config::simple().await;
+        assert!(
+            result.is_ok(),
+            "Config::simple() should succeed with valid environment: {:?}",
+            result.err()
+        );
     }
 }

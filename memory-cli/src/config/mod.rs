@@ -41,8 +41,9 @@ pub mod wizard;
 
 // Re-export main types and functions for convenient access
 pub use types::{
-    CliConfig, Config, ConfigPreset, DatabaseConfig, StorageConfig, ValidationError,
-    ValidationResult, ValidationWarning,
+    CliConfig, Config, ConfigError, ConfigPreset, DatabaseConfig, DatabaseType,
+    PerformanceLevel, StorageConfig, ValidationError, ValidationResult,
+    ValidationWarning,
 };
 
 pub use loader::{
@@ -52,7 +53,8 @@ pub use loader::{
 
 pub use validator::{
     format_validation_result, quick_validation_check, validate_cli_config, validate_config,
-    validate_config_path, validate_database_config, validate_storage_config,
+    validate_config_path, validate_database_config, validate_environment_fitness,
+    validate_storage_config,
 };
 
 pub use storage::{initialize_storage, StorageInfo, StorageInitResult, StorageType};

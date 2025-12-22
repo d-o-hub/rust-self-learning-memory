@@ -89,12 +89,7 @@ fn cluster_tool_sequences(patterns: Vec<Pattern>) -> Vec<Pattern> {
                         .partial_cmp(&a.success_rate())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
-                Some(
-                    cluster
-                        .into_iter()
-                        .next()
-                        .expect("Cluster should not be empty"),
-                )
+                cluster.into_iter().next()
             }
         })
         .collect()
@@ -124,12 +119,7 @@ fn cluster_decision_points(patterns: Vec<Pattern>) -> Vec<Pattern> {
                         .partial_cmp(&a.success_rate())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
-                Some(
-                    cluster
-                        .into_iter()
-                        .next()
-                        .expect("Cluster should not be empty"),
-                )
+                cluster.into_iter().next()
             }
         })
         .collect()
@@ -154,12 +144,7 @@ fn cluster_error_recoveries(patterns: Vec<Pattern>) -> Vec<Pattern> {
             if cluster.is_empty() {
                 None
             } else if cluster.len() == 1 {
-                Some(
-                    cluster
-                        .into_iter()
-                        .next()
-                        .expect("Cluster should not be empty"),
-                )
+                cluster.into_iter().next()
             } else {
                 // Merge multiple patterns with same error type
                 merge_error_recovery_patterns(cluster)
@@ -293,12 +278,7 @@ fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
     }
 
     if patterns.len() == 1 {
-        return Some(
-            patterns
-                .into_iter()
-                .next()
-                .expect("Patterns should not be empty"),
-        );
+        return patterns.into_iter().next();
     }
 
     // Combine features and evidence

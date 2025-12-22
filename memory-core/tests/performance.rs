@@ -770,8 +770,8 @@ async fn should_complete_episodes_quickly_with_pattern_extraction() {
     }
 
     // Then: Average completion time should be fast (<100ms including pattern extraction)
-    let avg_time: Duration =
-        completion_times.iter().sum::<Duration>() / completion_times.len() as u32;
+    let avg_time: Duration = completion_times.iter().sum::<Duration>()
+        / u32::try_from(completion_times.len()).unwrap_or(1);
 
     println!("Average episode completion time: {:?}", avg_time);
 

@@ -113,7 +113,7 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
     let async_episode_id = create_test_episode(&async_memory, "Async task", 3).await;
 
     // When: Completing episode asynchronously
-    let start_async = std::time::Instant::now();
+    let async_start = std::time::Instant::now();
     async_memory
         .complete_episode(
             async_episode_id,
@@ -124,7 +124,7 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
         )
         .await
         .unwrap();
-    let async_duration = start_async.elapsed();
+    let async_duration = async_start.elapsed();
 
     // Then: Async should be faster (doesn't block on pattern extraction)
     println!("Sync: {:?}, Async: {:?}", sync_duration, async_duration);
@@ -133,8 +133,8 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
     sleep(Duration::from_millis(500)).await;
 
     // Then: Episode should be fully processed
-    let episode_async = async_memory.get_episode(async_episode_id).await.unwrap();
-    assert!(episode_async.is_complete());
+    let async_episode = async_memory.get_episode(async_episode_id).await.unwrap();
+    assert!(async_episode.is_complete());
 }
 
 #[tokio::test]
@@ -171,7 +171,6 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
 
     // Then: All episodes should be enqueued
     let stats = memory.get_queue_stats().await.unwrap();
-    #[allow(clippy::cast_sign_loss)]
     assert_eq!(stats.total_enqueued, episode_count as u64);
 
     // When: Waiting for parallel processing

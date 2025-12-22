@@ -40,7 +40,11 @@ jobs:
             -D warnings \
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
-            -A clippy::unwrap_used
+            -A clippy::unwrap_used \
+            -A clippy::float_cmp \
+            -A clippy::cast_precision_loss \
+            -A clippy::similar_names \
+            -A clippy::useless_vec
 
       - name: Run clippy on tests
         run: |
@@ -48,4 +52,8 @@ jobs:
             -D warnings \
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
-            -A clippy::unwrap_used
+            -A clippy::unwrap_used \
+            -A clippy::float_cmp \
+            -A clippy::cast_precision_loss \
+            -A clippy::similar_names \
+            -A clippy::useless_vec

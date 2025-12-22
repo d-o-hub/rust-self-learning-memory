@@ -40,15 +40,7 @@ jobs:
             -D warnings \
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
-            -A clippy::unwrap_used \
-            -A clippy::float_cmp \
-            -A clippy::cast_precision_loss \
-            -A clippy::cast_sign_loss \
-            -A clippy::cast_possible_truncation \
-            -A clippy::similar_names \
-            -A clippy::useless_vec \
-            -A clippy::doc_markdown \
-            -A clippy::redundant_closure_for_method_calls
+            -A clippy::unwrap_used
 
       - name: Run clippy on tests
         run: |
@@ -57,11 +49,4 @@ jobs:
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
             -A clippy::unwrap_used \
-            -A clippy::float_cmp \
-            -A clippy::cast_precision_loss \
-            -A clippy::cast_sign_loss \
-            -A clippy::cast_possible_truncation \
-            -A clippy::similar_names \
-            -A clippy::useless_vec \
-            -A clippy::doc_markdown \
-            -A clippy::redundant_closure_for_method_calls
+            -A clippy::all

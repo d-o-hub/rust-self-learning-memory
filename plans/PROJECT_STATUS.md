@@ -1,9 +1,9 @@
 # Project Status - Memory System
 
-**Last Updated:** 2025-12-21T00:00:00Z
-**Version:** 0.1.7
-**Branch:** feat/embeddings-refactor
-**Analysis Date:** 2025-12-21 (Quality Gates Fixed, Plans Updated)  
+**Last Updated:** 2025-12-22T12:00:00Z
+**Version:** 0.1.7 → v0.2.0 Transition
+**Branch:** feat-phase3
+**Analysis Date:** 2025-12-22 (Build/Test Status Updated, Models.dev Plan Created)  
 
 ---
 
@@ -236,7 +236,7 @@
 ## Known Issues
 
 ### ⚠️ P1: Episode Retrieval Lazy Loading
-**Status:** Documented in TODO.md
+**Status:** Resolved in memory-cli (list uses core lazy-loading API) ✅
 **Impact:** Episodes persist correctly but CLI retrieval commands (`list`/`view`) return empty
 
 **Details:**
@@ -249,7 +249,7 @@
 - File: `memory-core/src/memory/episode.rs:356-362`
 - Methods: `get_episode()`, `list_episodes()`, `retrieve_relevant_context()`
 
-**Solution:** Implement lazy loading pattern (memory → redb → Turso)
+**Solution:** Implemented lazy loading pattern in core and updated memory-cli list to use `SelfLearningMemory::list_episodes` (memory → redb → Turso) ✅
 
 **Priority:** P1 (High)
 **Estimated Effort:** 2-3 days
@@ -413,7 +413,7 @@ ls -lh ./data/cache.redb
 
 ---
 
-**Status:** ✅ System operational, wasmtime complete, javy integration 100% complete, all tests passing
-**Confidence:** VERY HIGH - All test failures fixed, implementation verified and production-ready
-**Next Action:** Deploy Phase 2C completion - all infrastructure complete
-**Documentation:** See `plans/phase2c-javy-completion-final.md` for detailed analysis
+**Status:** ✅ System operational, Phase 2 P1 83% complete, Models.dev integration planned
+**Confidence:** HIGH - Architecture solid, configuration optimization in progress
+**Next Action:** Resolve test timeout, complete remaining configuration tasks
+**Documentation:** See `models-dev-integration-goap.md` for Q1 2026 integration plan

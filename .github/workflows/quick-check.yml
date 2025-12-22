@@ -36,5 +36,5 @@ jobs:
 
       - name: Run clippy
         run: |
-          cargo clippy --lib -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args
-          cargo clippy --tests -- -D clippy::unwrap_used
+          cargo clippy --lib -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used
+          cargo clippy --tests -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used

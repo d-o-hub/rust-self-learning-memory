@@ -76,6 +76,7 @@ pub struct SemanticService {
 
 impl SemanticService {
     /// Create a new semantic service with the specified provider and storage
+    #[must_use]
     pub fn new(
         provider: Box<dyn EmbeddingProvider>,
         storage: Box<dyn EmbeddingStorageBackend>,
@@ -105,7 +106,7 @@ impl SemanticService {
 
     /// Create a semantic service with automatic provider fallback
     ///
-    /// Tries providers in order: Local → OpenAI → Mock (with warnings)
+    /// Tries providers in order: Local → `OpenAI` → Mock (with warnings)
     /// This ensures maximum reliability by falling back to simpler options if preferred ones fail.
     pub async fn with_fallback(
         storage: Box<dyn EmbeddingStorageBackend>,

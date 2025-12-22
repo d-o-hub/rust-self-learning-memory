@@ -6,6 +6,7 @@
 use super::config::ModelConfig;
 
 /// List available local models
+#[must_use]
 pub fn list_available_models() -> Vec<ModelConfig> {
     vec![
         ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384),
@@ -18,6 +19,7 @@ pub fn list_available_models() -> Vec<ModelConfig> {
 }
 
 /// Get recommended model configuration for different use cases
+#[must_use]
 pub fn get_recommended_model(use_case: LocalModelUseCase) -> ModelConfig {
     match use_case {
         LocalModelUseCase::Fast => {

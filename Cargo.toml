@@ -53,7 +53,7 @@ criterion = "0.5"
 
 # WASM and JavaScript execution
 rquickjs = "0.6.2"
-wasmtime = "24.0.5"
+wasmtime = "36.0.3"
 wasmtime-wasi = "24.0.5"
 
 # Additional utilities

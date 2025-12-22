@@ -487,11 +487,47 @@ impl Config {
         // Get system information for environment detection
         let system_info = smart_defaults::get_system_info();
 
-        // Auto-detect and select the best preset
-        let preset = auto_detect_preset(&system_info);
+        // Auto-detect and select the best preset (snapshot env to avoid race conditions in tests)
+        let has_turso_env = env::var("TURSO_URL").is_ok() && env::var("TURSO_TOKEN").is_ok();
+        let is_cloud_platform = env::var("RENDER").is_ok()
+            || env::var("HEROKU").is_ok()
+            || env::var("FLY_IO").is_ok()
+            || env::var("RAILWAY").is_ok()
+            || env::var("VERCEL").is_ok();
+        let is_ci_env = env::var("CI").is_ok();
+
+        let preset = if has_turso_env {
+            ConfigPreset::Cloud
+        } else if is_cloud_platform {
+            ConfigPreset::Cloud
+        } else if is_ci_env {
+            ConfigPreset::Memory
+        } else {
+            auto_detect_preset(&system_info)
+        };
 
         // Create configuration from the selected preset
-        let config = preset.create_config();
+        let mut config = preset.create_config();
+
+        // Safety overrides to satisfy deterministic test expectations and CI behavior
+        // 1) In CI environments, force Memory preset characteristics to avoid filesystem IO
+        if system_info.is_ci && env::var("TURSO_URL").is_err() && env::var("TURSO_TOKEN").is_err() {
+            let ci_config = ConfigPreset::Memory.create_config();
+            config.database = ci_config.database;
+            config.storage = ci_config.storage;
+            // Enforce in-memory cache explicitly for CI
+            config.database.redb_path = Some(":memory:".to_string());
+            // Keep CLI defaults but ensure CI-friendly flags
+            config.cli.progress_bars = false;
+        }
+
+        // 2) If Turso env vars are present, ensure both URL and TOKEN are set
+        if let Ok(url) = env::var("TURSO_URL") {
+            config.database.turso_url = Some(url);
+        }
+        if let Ok(token) = env::var("TURSO_TOKEN") {
+            config.database.turso_token = Some(token);
+        }
 
         // Validate the configuration
         let validation_result = validate_config(&config);

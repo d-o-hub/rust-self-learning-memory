@@ -11,10 +11,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 #[cfg(feature = "local-embeddings")]
-use {
-    ort::{Session, SessionBuilder},
-    tokenizers::Tokenizer,
-};
+use tokenizers::Tokenizer;
 
 /// Local embedding provider using sentence transformers
 ///

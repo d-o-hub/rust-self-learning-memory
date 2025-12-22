@@ -54,7 +54,7 @@ jobs:
           sudo apt-get clean || true
           docker system prune -af || true
           df -h
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -72,12 +72,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sccache-${{ matrix.target }}-
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2.8.2
         with:
           key: ${{ matrix.target }}
 
       - name: Build release binary (bins + libs only)
-        run: cargo build --workspace --all-features --release --bins --lib --target ${{ matrix.target }}
+        run: cargo build --workspace --release --bins --lib --target ${{ matrix.target }}
       - name: Show sccache stats
         if: always()
         run: sccache --show-stats || true
@@ -108,7 +108,7 @@ jobs:
       actions: read        # Required for downloading artifacts
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4

@@ -362,7 +362,7 @@ impl RealEmbeddingModel {
         Self { name, dimension }
     }
 
-    #[allow(unused_async)]
+    #[allow(clippy::unused_async)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
             "Real embedding model not available - enable local-embeddings feature"

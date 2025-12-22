@@ -259,10 +259,10 @@ impl SemanticService {
         // Context information
         parts.push(format!("domain: {}", episode.context.domain));
         if let Some(lang) = &episode.context.language {
-            parts.push(format!("language: {}", lang));
+            parts.push(format!("language: {lang}"));
         }
         if let Some(framework) = &episode.context.framework {
-            parts.push(format!("framework: {}", framework));
+            parts.push(format!("framework: {framework}"));
         }
         if !episode.context.tags.is_empty() {
             parts.push(format!("tags: {}", episode.context.tags.join(", ")));
@@ -292,13 +292,13 @@ impl SemanticService {
         if let Some(outcome) = &episode.outcome {
             match outcome {
                 crate::types::TaskOutcome::Success { verdict, .. } => {
-                    parts.push(format!("outcome: success - {}", verdict));
+                    parts.push(format!("outcome: success - {verdict}"));
                 }
                 crate::types::TaskOutcome::PartialSuccess { verdict, .. } => {
-                    parts.push(format!("outcome: partial success - {}", verdict));
+                    parts.push(format!("outcome: partial success - {verdict}"));
                 }
                 crate::types::TaskOutcome::Failure { reason, .. } => {
-                    parts.push(format!("outcome: failure - {}", reason));
+                    parts.push(format!("outcome: failure - {reason}"));
                 }
             }
         }
@@ -318,7 +318,7 @@ impl SemanticService {
             crate::pattern::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
-                format!("Decision: if {} then {}", condition, action)
+                format!("Decision: if {condition} then {action}")
             }
             crate::pattern::Pattern::ErrorRecovery {
                 error_type,
@@ -349,7 +349,7 @@ impl SemanticService {
         if let Some(pattern_context) = pattern.context() {
             parts.push(format!("domain: {}", pattern_context.domain));
             if let Some(lang) = &pattern_context.language {
-                parts.push(format!("language: {}", lang));
+                parts.push(format!("language: {lang}"));
             }
             if !pattern_context.tags.is_empty() {
                 parts.push(format!("tags: {}", pattern_context.tags.join(", ")));
@@ -365,10 +365,10 @@ impl SemanticService {
 
         parts.push(format!("domain: {}", context.domain));
         if let Some(lang) = &context.language {
-            parts.push(format!("language: {}", lang));
+            parts.push(format!("language: {lang}"));
         }
         if let Some(framework) = &context.framework {
-            parts.push(format!("framework: {}", framework));
+            parts.push(format!("framework: {framework}"));
         }
         if !context.tags.is_empty() {
             parts.push(format!("tags: {}", context.tags.join(", ")));
@@ -383,10 +383,10 @@ impl SemanticService {
 
         parts.push(format!("domain: {}", context.domain));
         if let Some(lang) = &context.language {
-            parts.push(format!("language: {}", lang));
+            parts.push(format!("language: {lang}"));
         }
         if let Some(framework) = &context.framework {
-            parts.push(format!("framework: {}", framework));
+            parts.push(format!("framework: {framework}"));
         }
         if !context.tags.is_empty() {
             parts.push(format!("tags: {}", context.tags.join(", ")));

@@ -85,13 +85,13 @@ async fn should_extract_patterns_asynchronously_in_background() {
 async fn should_complete_faster_with_async_extraction_than_sync() {
     // Given: Sync memory system
     let sync_memory = SelfLearningMemory::new();
-    let episode_id_sync = create_test_episode(&sync_memory, "Sync task", 3).await;
+    let sync_episode_id = create_test_episode(&sync_memory, "Sync task", 3).await;
 
     // When: Completing episode synchronously
     let start_sync = std::time::Instant::now();
     sync_memory
         .complete_episode(
-            episode_id_sync,
+            sync_episode_id,
             TaskOutcome::Success {
                 verdict: "Done".to_string(),
                 artifacts: vec![],
@@ -102,7 +102,7 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
     let sync_duration = start_sync.elapsed();
 
     // Then: Patterns should be extracted immediately
-    let episode_sync = sync_memory.get_episode(episode_id_sync).await.unwrap();
+    let episode_sync = sync_memory.get_episode(sync_episode_id).await.unwrap();
     assert!(!episode_sync.patterns.is_empty() || episode_sync.steps.len() < 2);
 
     // Given: Async memory system with workers started
@@ -110,13 +110,13 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
         Arc::new(SelfLearningMemory::new().enable_async_extraction(QueueConfig::default()));
     async_memory.start_workers().await;
 
-    let episode_id_async = create_test_episode(&async_memory, "Async task", 3).await;
+    let async_episode_id = create_test_episode(&async_memory, "Async task", 3).await;
 
     // When: Completing episode asynchronously
     let start_async = std::time::Instant::now();
     async_memory
         .complete_episode(
-            episode_id_async,
+            async_episode_id,
             TaskOutcome::Success {
                 verdict: "Done".to_string(),
                 artifacts: vec![],
@@ -133,7 +133,7 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
     sleep(Duration::from_millis(500)).await;
 
     // Then: Episode should be fully processed
-    let episode_async = async_memory.get_episode(episode_id_async).await.unwrap();
+    let episode_async = async_memory.get_episode(async_episode_id).await.unwrap();
     assert!(episode_async.is_complete());
 }
 
@@ -171,6 +171,7 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
 
     // Then: All episodes should be enqueued
     let stats = memory.get_queue_stats().await.unwrap();
+    #[allow(clippy::cast_sign_loss)]
     assert_eq!(stats.total_enqueued, episode_count as u64);
 
     // When: Waiting for parallel processing
@@ -385,7 +386,7 @@ async fn should_complete_episodes_in_under_100ms_with_async_extraction() {
 
     // Then: Should complete in under 100ms (performance requirement)
     assert!(
-        duration.as_millis() < 100,
+        duration.as_millis() < 100u128,
         "Episode completion took {:?}, expected < 100ms",
         duration
     );

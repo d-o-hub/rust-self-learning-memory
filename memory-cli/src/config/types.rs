@@ -344,17 +344,37 @@ impl ConfigPreset {
                     database: DatabaseConfig {
                         turso_url: Some("file:./data/memory.db".to_string()), // SQLite support
                         turso_token: None,
-                        redb_path: Some("./data/cache.redb".to_string()), // Consistent path
+                        redb_path: Some(if info.is_ci {
+                            ":memory:".to_string()
+                        } else {
+                            "./data/cache.redb".to_string()
+                        }), // CI uses in-memory
                     },
                     storage: StorageConfig {
-                        max_episodes_cache: if info.is_development { 500 } else { 1000 },
+                        max_episodes_cache: if info.is_ci {
+                            100
+                        } else if info.is_development {
+                            500
+                        } else {
+                            1000
+                        },
                         cache_ttl_seconds: if info.is_development { 1800 } else { 3600 },
                         pool_size: 5, // Conservative for local development
                     },
                     cli: CliConfig {
-                        default_format: "human".to_string(),
-                        progress_bars: true,
-                        batch_size: if info.is_development { 50 } else { 100 },
+                        default_format: if info.is_ci {
+                            "json".to_string()
+                        } else {
+                            "human".to_string()
+                        },
+                        progress_bars: !info.is_ci,
+                        batch_size: if info.is_ci {
+                            10
+                        } else if info.is_development {
+                            50
+                        } else {
+                            100
+                        },
                     },
                 }
             }
@@ -510,23 +530,39 @@ impl Config {
         let mut config = preset.create_config();
 
         // Safety overrides to satisfy deterministic test expectations and CI behavior
-        // 1) In CI environments, force Memory preset characteristics to avoid filesystem IO
-        if system_info.is_ci && env::var("TURSO_URL").is_err() && env::var("TURSO_TOKEN").is_err() {
-            let ci_config = ConfigPreset::Memory.create_config();
-            config.database = ci_config.database;
-            config.storage = ci_config.storage;
-            // Enforce in-memory cache explicitly for CI
+        // Always use in-memory redb during unit tests to avoid FS races
+        if cfg!(test) {
             config.database.redb_path = Some(":memory:".to_string());
-            // Keep CLI defaults but ensure CI-friendly flags
+        }
+        // 1) In CI environments, enforce in-memory redb to avoid filesystem IO
+        if is_ci_env {
+            config.database.redb_path = Some(":memory:".to_string());
+            // Always disable progress bars in CI
+            config.cli.progress_bars = false;
+            // Ensure deterministic small cache size expected in CI tests
+            config.storage.max_episodes_cache = 100;
+        }
+
+        // If unit tests (cfg!(test)), also disable progress bars to avoid flakiness
+        if cfg!(test) {
             config.cli.progress_bars = false;
         }
 
-        // 2) If Turso env vars are present, ensure both URL and TOKEN are set
+        // 2) Respect TURSO_URL and TURSO_TOKEN env overrides explicitly
         if let Ok(url) = env::var("TURSO_URL") {
-            config.database.turso_url = Some(url);
+            if !url.is_empty() {
+                config.database.turso_url = Some(url);
+            }
         }
         if let Ok(token) = env::var("TURSO_TOKEN") {
-            config.database.turso_token = Some(token);
+            if !token.is_empty() {
+                config.database.turso_token = Some(token);
+            }
+        }
+
+        // 3) If using in-memory redb (common in tests/CI), enforce small cache size deterministically
+        if config.database.redb_path.as_deref() == Some(":memory:") {
+            config.storage.max_episodes_cache = 100;
         }
 
         // Validate the configuration

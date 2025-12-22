@@ -74,9 +74,9 @@ async fn should_execute_complete_learning_cycle_end_to_end() {
 
     // Check reward
     let reward = completed_episode.reward.unwrap();
-    assert_eq!(reward.base, 1.0); // Success
+    assert!((reward.base - 1.0).abs() < f32::EPSILON); // Success
     assert_reward_in_range(&reward, 1.0, 3.0); // Reasonable range for rewards
-    assert_eq!(reward.complexity_bonus, 1.1); // Moderate complexity
+    assert!((reward.complexity_bonus - 1.1).abs() < f32::EPSILON); // Moderate complexity
 
     // Check reflection
     let reflection = completed_episode.reflection.unwrap();
@@ -211,7 +211,7 @@ async fn should_learn_from_failed_episodes_with_improvement_insights() {
     assert!(episode.is_complete());
 
     let reward = episode.reward.unwrap();
-    assert_eq!(reward.base, 0.0); // Failure
+    assert!((reward.base - 0.0).abs() < f32::EPSILON); // Failure
 
     let reflection = episode.reflection.unwrap();
     assert!(!reflection.improvements.is_empty());

@@ -34,7 +34,18 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
-      - name: Run clippy
+      - name: Run clippy on lib
         run: |
-          cargo clippy --lib -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used
-          cargo clippy --tests -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used
+          cargo clippy --lib -- \
+            -D warnings \
+            -A clippy::expect_used \
+            -A clippy::uninlined_format_args \
+            -A clippy::unwrap_used
+
+      - name: Run clippy on tests
+        run: |
+          cargo clippy --tests -- \
+            -D warnings \
+            -A clippy::expect_used \
+            -A clippy::uninlined_format_args \
+            -A clippy::unwrap_used

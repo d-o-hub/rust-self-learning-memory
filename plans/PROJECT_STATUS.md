@@ -251,6 +251,13 @@
 
 **Solution:** Implemented lazy loading pattern in core and updated memory-cli list to use `SelfLearningMemory::list_episodes` (memory → redb → Turso) ✅
 
+Verification (2025-12-22):
+- cargo fmt: passed
+- cargo clippy (targeted at memory-cli): passed with -D warnings
+- cargo build -p memory-cli: passed
+- cargo test -p memory-cli: 16 passed, 2 failed (config defaults unrelated to episode listing)
+- Note: Full workspace clippy has warnings in other crates; scoped verification for this fix focused on memory-cli as intended.
+
 **Priority:** P1 (High)
 **Estimated Effort:** 2-3 days
 **Tracked In:** `TODO.md`

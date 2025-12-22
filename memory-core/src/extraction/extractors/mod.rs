@@ -131,7 +131,7 @@ pub fn extract_error_recovery(_extractor: &PatternExtractor, episode: &Episode) 
 
     Some(Pattern::ErrorRecovery {
         id: PatternId::new_v4(),
-        error_type: error_type.unwrap(),
+        error_type: error_type.expect("error_type is guaranteed by preceding check"),
         recovery_steps,
         context: episode.context.clone(),
         success_rate,

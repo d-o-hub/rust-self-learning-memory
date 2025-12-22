@@ -214,6 +214,22 @@ dependencies = [
 
 [[package]]
 name = "argmin"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "760a49d596b18b881d2fe6e9e6da4608fa64d4a7653ef5cd43bfaa4da018d596"
+dependencies = [
+ "anyhow",
+ "argmin-math 0.4.0",
+ "instant",
+ "num-traits",
+ "paste",
+ "rand 0.8.5",
+ "rand_xoshiro 0.6.0",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "argmin"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7ab7ca97779074715a402e5e8045fae27e7191acaec9b4c5653276316e9e404"
@@ -237,6 +253,21 @@ dependencies = [
  "anyhow",
  "cfg-if",
  "nalgebra 0.32.6",
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "rand 0.8.5",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "argmin-math"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d93a0d0269b60bd1cd674de70314e3f0da97406cf8c1936ce760d2a46e0f13fe"
+dependencies = [
+ "anyhow",
+ "cfg-if",
  "num-complex",
  "num-integer",
  "num-traits",
@@ -338,9 +369,9 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "augurs"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "579866a587fce120eccede1b45f5f60a5e3ade660e0e006e8df807f8ce59a296"
+checksum = "bccef13a79aa99f00bb6f4f16816684337fff90dc441b07e14c92f9d7df63d12"
 dependencies = [
  "augurs-changepoint",
  "augurs-core",
@@ -352,79 +383,83 @@ dependencies = [
 
 [[package]]
 name = "augurs-changepoint"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8e5a2522b37dcb7464bfc2c246717a0c6aea755bc2508ea31c61d458b5fa5fe"
+checksum = "710c909e86ed1f4842fff67609030b6f78c6297c573e7f17a1c74f97b2ef9431"
 dependencies = [
  "augurs-core",
  "changepoint 0.14.2",
  "distrs",
- "itertools 0.13.0",
- "thiserror 1.0.69",
+ "itertools 0.14.0",
+ "thiserror 2.0.17",
  "tracing",
 ]
 
 [[package]]
 name = "augurs-core"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51271c6767ef8a81d50ff70cf108ff8cc04886475a2b69051b4f7d37f455f094"
+checksum = "2f8b8156abf8771ab2ffb6ecbac9ecab3cee86f422f14f88a30ee4c04e069f3d"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "augurs-ets"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "868c8ef455c742ede439fe9187f82a467aecd9d1cfd862c58c10c4eaea7d41a3"
+checksum = "8513a5b56c125d0f5e632b439321364747302709849cd4f6a5251541636610dc"
 dependencies = [
  "augurs-core",
  "augurs-mstl",
  "distrs",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "lstsq",
- "nalgebra 0.33.2",
+ "nalgebra 0.34.1",
  "rand 0.8.5",
  "rand_distr 0.4.3",
  "roots",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tracing",
 ]
 
 [[package]]
 name = "augurs-forecaster"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "871d7f88d3e18af3d5b07954f75abf59dc324761529fa392d320e53892626a0a"
+checksum = "40471179ca20dab9e51a2db71f4f7d46660db3e056a5c83c44036dd0aaa4369b"
 dependencies = [
+ "argmin 0.10.0",
  "augurs-core",
- "itertools 0.13.0",
- "thiserror 1.0.69",
+ "itertools 0.14.0",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
 name = "augurs-mstl"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0071801821cf94ac2e681e03780eca6edf68027b493fb44b02ef2dd5d887b498"
+checksum = "29fbbf8f61f0b8109fb8dac9821423c1f0bf0c140b082ffb772e1555688c4237"
 dependencies = [
  "augurs-core",
  "distrs",
  "stlrs",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tracing",
 ]
 
 [[package]]
 name = "augurs-outlier"
-version = "0.6.3"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9487992d1dc7456d42b3e8da0fba1270bc08862762056ae3984ce604d6e11d7"
+checksum = "01f38b0bc0b0ec5c182929c06f829139b6d0b8e04ad4b9c81938fd4cfcb60967"
 dependencies = [
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "rand 0.8.5",
  "roots",
  "rustc-hash 2.1.1",
- "rv 0.17.0",
- "thiserror 1.0.69",
+ "rv 0.18.1",
+ "thiserror 2.0.17",
  "tinyvec",
  "tracing",
 ]
@@ -3447,11 +3482,11 @@ dependencies = [
 
 [[package]]
 name = "lstsq"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0767b5d1bcb5c7a99647520963706322bdabd5e5ba18530fd9c9c02ab04029e"
+checksum = "23ec6a3ba23bb2580ae4ea21f002edff262671a7bcc833f87728e2f8007a5ea2"
 dependencies = [
- "nalgebra 0.33.2",
+ "nalgebra 0.34.1",
 ]
 
 [[package]]
@@ -3771,22 +3806,6 @@ dependencies = [
  "num-traits",
  "serde",
  "simba 0.8.1",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
-version = "0.33.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26aecdf64b707efd1310e3544d709c5c0ac61c13756046aaaba41be5c4f66a3b"
-dependencies = [
- "approx 0.5.1",
- "matrixmultiply",
- "nalgebra-macros 0.2.2",
- "num-complex",
- "num-rational",
- "num-traits",
- "simba 0.9.1",
  "typenum",
 ]
 
@@ -5316,12 +5335,12 @@ dependencies = [
 
 [[package]]
 name = "rv"
-version = "0.17.0"
+version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9faacd781d5e74704f997488d4677ff34dc18b71c9c43b2bdb050cf01c7ea160"
+checksum = "05fb66da6e2919c71fe2967b1e16a792f5d0191a9c580d5b9da1e0f4add31353"
 dependencies = [
  "doc-comment",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "lru 0.12.5",
  "num",
  "num-traits",

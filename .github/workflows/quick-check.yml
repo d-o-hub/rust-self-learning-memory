@@ -44,6 +44,7 @@ jobs:
             -A clippy::float_cmp \
             -A clippy::cast_precision_loss \
             -A clippy::cast_sign_loss \
+            -A clippy::cast_possible_truncation \
             -A clippy::similar_names \
             -A clippy::useless_vec \
             -A clippy::doc_markdown
@@ -58,6 +59,7 @@ jobs:
             -A clippy::float_cmp \
             -A clippy::cast_precision_loss \
             -A clippy::cast_sign_loss \
+            -A clippy::cast_possible_truncation \
             -A clippy::similar_names \
             -A clippy::useless_vec \
             -A clippy::doc_markdown

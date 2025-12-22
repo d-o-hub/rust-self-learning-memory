@@ -10,8 +10,6 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-
-
 /// Local embedding provider using sentence transformers
 ///
 /// Runs embedding models locally using candle-transformers or similar.

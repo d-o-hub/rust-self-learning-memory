@@ -108,7 +108,11 @@ pub struct RealEmbeddingModelWithFallback {
 }
 
 impl RealEmbeddingModelWithFallback {
-    pub fn new(name: String, dimension: usize, real_model: Option<super::real_model::RealEmbeddingModel>) -> Self {
+    pub fn new(
+        name: String,
+        dimension: usize,
+        real_model: Option<super::real_model::RealEmbeddingModel>,
+    ) -> Self {
         Self {
             real_model,
             mock_model: MockLocalModel::new(name.clone(), dimension),
@@ -242,5 +246,3 @@ impl super::local::LocalEmbeddingModel for RealEmbeddingModelWithFallback {
         self.mock_model.dimension
     }
 }
-
-

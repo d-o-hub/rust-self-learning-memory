@@ -11,9 +11,7 @@ use anyhow::Context;
 
 #[cfg(feature = "local-embeddings")]
 use {
-    ort::execution_providers::CPUExecutionProvider,
-    ort::session::Session,
-    tokenizers::Tokenizer,
+    ort::execution_providers::CPUExecutionProvider, ort::session::Session, tokenizers::Tokenizer,
 };
 
 /// Real embedding model using ONNX runtime
@@ -63,10 +61,11 @@ impl RealEmbeddingModel {
             // Prepare input tensors using ndarray
             let input_ids_array = ndarray::Array1::from_vec(input_ids).into_dyn();
             let attention_mask_array = ndarray::Array1::from_vec(attention_mask).into_dyn();
-            
+
             // Convert to ORT tensor references
             let input_ids_tensor = ort::value::TensorRef::from_array_view(input_ids_array.view())?;
-            let attention_mask_tensor = ort::value::TensorRef::from_array_view(attention_mask_array.view())?;
+            let attention_mask_tensor =
+                ort::value::TensorRef::from_array_view(attention_mask_array.view())?;
 
             // Lock the session for exclusive access
             let mut session_guard = session.blocking_lock();

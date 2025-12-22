@@ -44,9 +44,11 @@ tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 serde_json = { workspace = true }
 
-[lints.clippy]
+[lints.rust]
 # In-process memory operations - focus on unsafe code and memory safety
-unsafe_code = { level = "deny" }
+unsafe_code = "deny"
+
+[lints.clippy]
 correctness = { level = "deny" }
 # Serialize safety
 unwrap_used = { level = "warn" }  # May need for internal redb operations

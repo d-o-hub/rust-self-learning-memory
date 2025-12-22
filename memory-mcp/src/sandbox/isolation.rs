@@ -5,6 +5,16 @@
 //! - Privilege dropping (if running as root)
 //! - Resource limits via ulimit
 //! - Process namespace isolation (where available)
+//!
+//! # Safety
+//!
+//! This module requires `unsafe` code for security-critical operations:
+//! - Calling libc syscalls (setuid, setgid, getuid, geteuid, getgid)
+//! - Process privilege dropping before command execution
+//! - Security boundary enforcement through OS-level controls
+//!
+//! All unsafe operations are documented with SAFETY comments explaining why they are safe.
+#![allow(unsafe_code)]
 
 use anyhow::Result;
 use std::process::Command;
@@ -121,6 +131,12 @@ pub fn apply_isolation(
             // Copy GID to owned value for closure
             let _gid = config.drop_to_gid;
 
+            // SAFETY: This unsafe block is required for privilege dropping using libc syscalls.
+            // It's safe because:
+            // 1. We call setuid/setgid with validated UID/GID values
+            // 2. These syscalls are designed to be called from pre_exec
+            // 3. We check return values for errors and propagate them
+            // 4. This is a critical security feature to drop privileges
             unsafe {
                 cmd.pre_exec(move || {
                     // Drop to specified UID
@@ -169,6 +185,8 @@ pub fn is_running_as_root() -> bool {
     #[cfg(unix)]
     {
         // Check if effective UID is 0
+        // SAFETY: geteuid() is a simple read-only syscall with no side effects.
+        // It always returns a valid UID and cannot fail.
         unsafe { libc::geteuid() == 0 }
     }
 
@@ -183,6 +201,8 @@ pub fn is_running_as_root() -> bool {
 pub fn current_uid() -> Option<u32> {
     #[cfg(unix)]
     {
+        // SAFETY: getuid() is a simple read-only syscall with no side effects.
+        // It always returns a valid UID and cannot fail.
         Some(unsafe { libc::getuid() })
     }
 
@@ -196,6 +216,8 @@ pub fn current_uid() -> Option<u32> {
 pub fn current_gid() -> Option<u32> {
     #[cfg(unix)]
     {
+        // SAFETY: getgid() is a simple read-only syscall with no side effects.
+        // It always returns a valid GID and cannot fail.
         Some(unsafe { libc::getgid() })
     }
 

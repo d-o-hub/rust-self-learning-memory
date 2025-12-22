@@ -107,12 +107,14 @@ path = "tests/performance_tests.rs"
 name = "security_tests"
 path = "tests/security_tests.rs"
 
+[lints.rust]
+# Security-critical for sandbox operations
+unsafe_code = "deny"
+
 [lints.clippy]
 # Protocol and serialization safety - critical for MCP security
 correctness = { level = "deny" }
 suspicious = { level = "deny" }
-# Security-critical for sandbox operations
-unsafe_code = { level = "deny" }
 unwrap_used = { level = "deny" }
 expect_used = { level = "deny" }
 # JSON/serialization safety

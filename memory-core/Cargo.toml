@@ -63,7 +63,7 @@ libsql = { workspace = true }
 [lints.clippy]
 # Core library gets pedantic linting for best practices
 pedantic = { level = "warn" }
-missing-docs-in-crate-items = { level = "allow" }
-missing-errors-doc = { level = "warn" }
-missing-safety-doc = { level = "warn" }
-doc-markdown = { level = "warn" }
+missing_docs_in_private_items = { level = "allow" }
+missing_errors_doc = { level = "warn" }
+missing_safety_doc = { level = "warn" }
+doc_markdown = { level = "warn" }

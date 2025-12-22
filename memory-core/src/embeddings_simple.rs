@@ -1,10 +1,21 @@
 //! Simple semantic embeddings implementation
 //!
+//! **⚠️ WARNING: This module contains mock/test-only implementations**
+//!
 //! This is a simplified version that demonstrates the concept
 //! without all the complex integrations that cause compilation issues.
+//! The `text_to_embedding` function uses hash-based pseudo-embeddings
+//! that are NOT semantically meaningful and should only be used for:
+//! - Unit testing
+//! - Development/demonstration purposes
+//! - Fallback when real embeddings are unavailable
+//!
+//! **Production Use:** Use `memory-core/src/embeddings/` module with real
+//! embedding models (gte-rs, ONNX runtime) for actual semantic search.
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use tracing;
 
 /// Configuration for embeddings
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,6 +39,7 @@ impl Default for EmbeddingConfig {
 }
 
 /// Calculate cosine similarity between two vectors
+#[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() || a.is_empty() {
         return 0.0;
@@ -47,7 +59,69 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 }
 
 /// Simple text to embedding converter (mock implementation)
+///
+/// **⚠️ PRODUCTION WARNING: This is a mock/test-only implementation**
+///
+/// This function generates deterministic hash-based "embeddings" that are
+/// NOT semantically meaningful. The similarity between these vectors is
+/// essentially random and does not reflect actual semantic similarity.
+///
+/// **Use Cases:**
+/// - Unit testing (deterministic, fast)
+/// - Development/demonstration
+/// - Fallback when real embeddings unavailable
+///
+/// **Do NOT Use For:**
+/// - Production semantic search
+/// - Real similarity calculations
+/// - User-facing features
+///
+/// **For Production:** Use `memory-core::embeddings::LocalEmbeddingProvider`
+/// with the `local-embeddings` feature enabled and real ONNX models.
 pub fn text_to_embedding(text: &str) -> Vec<f32> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    // Emit production warning
+    tracing::warn!(
+        "PRODUCTION WARNING: Using hash-based pseudo-embeddings - semantic search will not work correctly! \
+         Text: '{}'. Use real embedding models for production.",
+        text.chars().take(20).collect::<String>()
+    );
+
+    // Create a deterministic embedding based on text hash
+    let mut hasher = DefaultHasher::new();
+    text.hash(&mut hasher);
+    let hash = hasher.finish();
+
+    let dimension = 384; // Standard sentence transformer dimension
+    let mut embedding = Vec::with_capacity(dimension);
+    let mut seed = hash;
+
+    for _ in 0..dimension {
+        // Simple PRNG to generate values
+        seed = seed.wrapping_mul(1_103_515_245).wrapping_add(12345);
+        let value = ((seed >> 16) as f32) / 32768.0 - 1.0; // Range [-1, 1]
+        embedding.push(value);
+    }
+
+    // Normalize the vector
+    let magnitude = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
+    if magnitude > 0.0 {
+        for x in &mut embedding {
+            *x /= magnitude;
+        }
+    }
+
+    embedding
+}
+
+/// Test-only text to embedding converter
+///
+/// This function is identical to `text_to_embedding` but without the warning
+/// for use in tests and internal testing scenarios.
+#[cfg(test)]
+pub fn text_to_embedding_test(text: &str) -> Vec<f32> {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
 
@@ -62,7 +136,7 @@ pub fn text_to_embedding(text: &str) -> Vec<f32> {
 
     for _ in 0..dimension {
         // Simple PRNG to generate values
-        seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
+        seed = seed.wrapping_mul(1_103_515_245).wrapping_add(12345);
         let value = ((seed >> 16) as f32) / 32768.0 - 1.0; // Range [-1, 1]
         embedding.push(value);
     }
@@ -79,12 +153,23 @@ pub fn text_to_embedding(text: &str) -> Vec<f32> {
 }
 
 /// Find most similar texts from a collection
+///
+/// **⚠️ Uses Mock Embeddings:** This function uses hash-based pseudo-embeddings
+/// that are NOT semantically meaningful. The "similarity" results are
+/// essentially random and should not be used for production semantic search.
+///
+/// For production semantic search, use `memory-core::embeddings::SemanticService`
+/// with real embedding models.
 pub fn find_similar_texts(
     query: &str,
     candidates: &[String],
     limit: usize,
     threshold: f32,
 ) -> Vec<(usize, f32, String)> {
+    tracing::warn!(
+        "Using mock embeddings for semantic search - results are not semantically meaningful!"
+    );
+
     let query_embedding = text_to_embedding(query);
 
     let mut similarities: Vec<(usize, f32, String)> = candidates
@@ -106,9 +191,23 @@ pub fn find_similar_texts(
 }
 
 /// Simple semantic search demonstration
+///
+/// **⚠️ DEMONSTRATION ONLY:** This function uses mock hash-based embeddings
+/// that are NOT semantically meaningful. The results shown here are for
+/// demonstration purposes only and should NOT be used to evaluate the
+/// effectiveness of semantic search.
+///
+/// For real semantic search demonstrations, use the proper embeddings module
+/// with `cargo run --features local-embeddings`.
 pub fn demonstrate_semantic_search() -> Result<()> {
-    println!("🧠 Semantic Search Demonstration");
-    println!("=================================\n");
+    println!("🧠 Semantic Search Demonstration (Mock Embeddings)");
+    println!("===================================================\n");
+
+    println!("⚠️  WARNING: This demonstration uses hash-based pseudo-embeddings");
+    println!("   that are NOT semantically meaningful. Similarity scores are");
+    println!("   essentially random and do not reflect actual semantic similarity.");
+    println!("\n   For production semantic search, use real embedding models.");
+    println!("   Enable with: cargo run --features local-embeddings\n");
 
     // Sample episode descriptions
     let episodes = vec![
@@ -133,7 +232,7 @@ pub fn demonstrate_semantic_search() -> Result<()> {
     ];
 
     for query in queries {
-        println!("🔍 Query: \"{}\"", query);
+        println!("🔍 Query: \"{query}\"");
         let results = find_similar_texts(query, &episodes, 3, 0.5);
 
         println!("📊 Top {} similar episodes:", results.len());
@@ -162,8 +261,11 @@ pub fn demonstrate_semantic_search() -> Result<()> {
         let emb1 = text_to_embedding(text1);
         let emb2 = text_to_embedding(text2);
         let similarity = cosine_similarity(&emb1, &emb2);
-        println!("  \"{}\" <-> \"{}\" = {:.3}", text1, text2, similarity);
+        println!("  \"{text1}\" <-> \"{text2}\" = {similarity:.3}");
     }
+
+    println!("\n💡 For real semantic search, use memory-core::embeddings modules");
+    println!("   with proper ONNX models and sentence transformers.");
 
     Ok(())
 }

@@ -17,3 +17,6 @@
 !mcp*.redb
 !mcp*.db
 !mcp*.sqlite
+
+!data/
+!plans/

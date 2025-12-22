@@ -354,7 +354,7 @@ impl SelfLearningMemory {
     ///
     /// 1. Retrieve heuristic from in-memory fallback (or storage if needed)
     /// 2. Call `heuristic.update_evidence(episode_id, is_success)`
-    /// 3. Recalculate confidence: success_rate × √sample_size
+    /// 3. Recalculate confidence: `success_rate` × √`sample_size`
     /// 4. Store updated heuristic to both Turso and redb
     /// 5. Update in-memory fallback
     ///

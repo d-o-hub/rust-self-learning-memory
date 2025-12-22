@@ -325,38 +325,27 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
                             let context = context.clone();
 
                             let handle = tokio::spawn(async move {
-                                for i in 0..10 {
-                                    // Mix of reads and writes
-                                    if i % 2 == 0 {
-                                        let _results = memory
-                                            .retrieve_relevant_context(
-                                                format!("Concurrent read {}:{}", thread_id, i),
-                                                context.clone(),
-                                                3,
-                                            )
-                                            .await;
-                                    } else {
-                                        let episode_id = memory
-                                            .start_episode(
-                                                generate_episode_description(i),
-                                                context.clone(),
-                                                TaskType::CodeGeneration,
-                                            )
-                                            .await;
-
-                                        memory
-                                            .complete_episode(
-                                                episode_id,
-                                                TaskOutcome::Success {
-                                                    verdict: format!(
-                                                        "Concurrent write {}:{}",
-                                                        thread_id, i
-                                                    ),
-                                                    artifacts: vec![],
-                                                },
-                                            )
-                                            .await
-                                            .expect("Failed to complete episode");
+                                #[allow(clippy::excessive_nesting)]
+                                {
+                                    for i in 0..10 {
+                                        // Mix of reads and writes
+                                        if i % 2 == 0 {
+                                            let _results = memory
+                                                .retrieve_relevant_context(
+                                                    format!("Concurrent read {}:{}", thread_id, i),
+                                                    context.clone(),
+                                                    3,
+                                                )
+                                                .await;
+                                        } else {
+                                            let episode_id = memory
+                                                .start_episode(
+                                                    format!("Concurrent write {}:{}", thread_id, i),
+                                                    context.clone(),
+                                                    TaskType::CodeGeneration,
+                                                )
+                                                .await;
+                                        }
                                     }
                                 }
                             });

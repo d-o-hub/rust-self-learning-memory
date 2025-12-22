@@ -14,6 +14,7 @@ use chrono::Duration;
 
 impl Pattern {
     /// Check if this pattern is relevant to a given context
+    #[must_use]
     pub fn is_relevant_to(&self, query_context: &TaskContext) -> bool {
         if let Some(pattern_context) = self.context() {
             // Match on domain
@@ -45,6 +46,7 @@ impl Pattern {
 
     /// Get a similarity key for pattern deduplication
     /// Patterns with identical keys are considered duplicates
+    #[must_use]
     pub fn similarity_key(&self) -> String {
         match self {
             Pattern::ToolSequence { tools, context, .. } => {
@@ -87,6 +89,7 @@ impl Pattern {
 
     /// Calculate similarity score between this pattern and another (0.0 to 1.0)
     /// Uses edit distance for sequences and context matching
+    #[must_use]
     pub fn similarity_score(&self, other: &Self) -> f32 {
         // Different pattern types have zero similarity
         if std::mem::discriminant(self) != std::mem::discriminant(other) {
@@ -173,7 +176,8 @@ impl Pattern {
     }
 
     /// Calculate confidence score for this pattern
-    /// Confidence = success_rate * sqrt(sample_size)
+    /// Confidence = `success_rate` * `sqrt(sample_size)`
+    #[must_use]
     pub fn confidence(&self) -> f32 {
         let success_rate = self.success_rate();
         let sample_size = self.sample_size() as f32;

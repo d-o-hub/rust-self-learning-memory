@@ -23,6 +23,7 @@ impl Default for DecisionPointExtractor {
 
 impl DecisionPointExtractor {
     /// Create new decision point extractor
+    #[must_use]
     pub fn new() -> Self {
         Self {
             confidence_threshold: 0.6,
@@ -30,6 +31,7 @@ impl DecisionPointExtractor {
     }
 
     /// Create with custom confidence threshold
+    #[must_use]
     pub fn with_threshold(threshold: f32) -> Self {
         Self {
             confidence_threshold: threshold,
@@ -64,8 +66,8 @@ impl PatternExtractorTrait for DecisionPointExtractor {
         for step in &episode.steps {
             if Self::is_decision_action(&step.action) {
                 let outcome_stats = OutcomeStats {
-                    success_count: if step.is_success() { 1 } else { 0 },
-                    failure_count: if step.is_success() { 0 } else { 1 },
+                    success_count: usize::from(step.is_success()),
+                    failure_count: usize::from(!step.is_success()),
                     total_count: 1,
                     avg_duration_secs: step.latency_ms as f32 / 1000.0,
                 };
@@ -83,7 +85,7 @@ impl PatternExtractorTrait for DecisionPointExtractor {
         Ok(patterns)
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "DecisionPointExtractor"
     }
 

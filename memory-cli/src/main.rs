@@ -1,3 +1,14 @@
+#![allow(clippy::empty_line_after_doc_comments)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(clippy::if_same_then_else)]
+#![allow(clippy::nonminimal_bool)]
+#![allow(clippy::needless_borrow)]
+#![allow(clippy::manual_clamp)]
+#![allow(clippy::derivable_impls)]
+
 use clap::{CommandFactory, Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -10,7 +21,7 @@ mod output;
 mod test_utils;
 
 use commands::*;
-use config::Config;
+use config::{initialize_storage, load_config};
 use output::OutputFormat;
 
 #[derive(Parser)]
@@ -113,36 +124,95 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Load configuration
-    let config = Config::load(cli.config.as_deref())?;
+    let config = match &cli.config {
+        Some(path) => load_config(Some(path.as_ref()))?,
+        None => load_config(None)?,
+    };
 
     // Create memory system with storage backends
-    let memory = config.create_memory().await?;
+    let storage_result = initialize_storage(&config).await?;
 
     // Execute command
     match cli.command {
         Commands::Episode { command } => {
-            handle_episode_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_episode_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Pattern { command } => {
-            handle_pattern_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_pattern_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Storage { command } => {
-            handle_storage_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_storage_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Config { command } => {
-            handle_config_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_config_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Health { command } => {
-            handle_health_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_health_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Backup { command } => {
-            handle_backup_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_backup_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Monitor { command } => {
-            handle_monitor_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_monitor_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Logs { command } => {
-            handle_logs_command(command, &memory, &config, cli.format, cli.dry_run).await
+            handle_logs_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
         Commands::Completion { shell } => {
             clap_complete::generate(

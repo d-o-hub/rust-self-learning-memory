@@ -1,5 +1,5 @@
 ---
-agent_name: architecture-validator
+name: architecture-validator
 description: Generic architecture validator that validates implementations against any plan files in the plans/ folder
 version: 2.0.0
 tools: [Read, Glob, Grep, Bash, TodoWrite]

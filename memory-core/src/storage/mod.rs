@@ -15,7 +15,7 @@ use uuid::Uuid;
 /// Unified storage backend trait
 ///
 /// Provides a common interface for different storage implementations.
-/// All operations are async to support both async (Turso) and sync (redb via spawn_blocking).
+/// All operations are async to support both async (Turso) and sync (redb via `spawn_blocking`).
 #[async_trait]
 pub trait StorageBackend: Send + Sync {
     /// Store an episode
@@ -106,7 +106,7 @@ pub trait StorageBackend: Send + Sync {
     ///
     /// # Returns
     ///
-    /// Vector of episodes with start_time >= since
+    /// Vector of episodes with `start_time` >= since
     ///
     /// # Errors
     ///
@@ -115,4 +115,22 @@ pub trait StorageBackend: Send + Sync {
         &self,
         since: chrono::DateTime<chrono::Utc>,
     ) -> Result<Vec<Episode>>;
+
+    /// Query episodes by metadata key-value pair
+    ///
+    /// Used for specialized queries like monitoring data retrieval.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes matching the metadata criteria
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>>;
 }

@@ -293,12 +293,8 @@ pub async fn list_episodes(
 
     #[cfg(feature = "turso")]
     {
-        // Build a filter context for episode retrieval
-        let filter_context = memory_core::TaskContext::default();
-
-        // Apply task type filter if specified
+        // Validate task type if specified (human-friendly error messages)
         if let Some(task_type_str) = &task_type {
-            // Validate task type
             match task_type_str.as_str() {
                 "code_generation" | "debugging" | "testing" | "analysis" | "documentation"
                 | "refactoring" | "other" => {}
@@ -320,34 +316,39 @@ pub async fn list_episodes(
             };
         }
 
-        // Use retrieve_relevant_context to get episodes
-        // Note: This is a workaround since we don't have direct query access
-        // A better approach would be to add a list_episodes method to SelfLearningMemory
-        let all_episodes = memory
-            .retrieve_relevant_context("".to_string(), filter_context, limit * 2) // Get more than limit to filter
-            .await;
+        // Use core's list_episodes API which implements lazy loading (memory → redb → Turso)
+        let completed_only = match status {
+            Some(EpisodeStatus::Completed) => Some(true),
+            _ => None, // For InProgress or None, we filter client-side
+        };
 
-        // Filter and convert to summary format
-        let mut episode_summaries: Vec<EpisodeSummary> = all_episodes
+        // Get more than needed so we can apply client-side filters without losing items
+        let mut episodes = memory
+            .list_episodes(Some(limit * 2), None, completed_only)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to list episodes: {}", e))?;
+
+        // Apply client-side filtering for in-progress and task type
+        episodes.retain(|episode| match status {
+            Some(EpisodeStatus::InProgress) => !episode.is_complete(),
+            Some(EpisodeStatus::Completed) => episode.is_complete(),
+            None => true,
+        });
+
+        if let Some(ref tt) = task_type {
+            let tt_lower = tt.to_lowercase();
+            episodes.retain(|episode| {
+                episode
+                    .task_type
+                    .to_string()
+                    .to_lowercase()
+                    .contains(&tt_lower)
+            });
+        }
+
+        // Convert to summary format
+        let mut episode_summaries: Vec<EpisodeSummary> = episodes
             .into_iter()
-            .filter(|episode| {
-                // Apply status filter
-                match &status {
-                    Some(EpisodeStatus::Completed) => episode.is_complete(),
-                    Some(EpisodeStatus::InProgress) => !episode.is_complete(),
-                    None => true,
-                }
-            })
-            .filter(|episode| {
-                // Apply task type filter
-                match &task_type {
-                    Some(tt) => {
-                        let episode_type = episode.task_type.to_string().to_lowercase();
-                        episode_type.contains(&tt.to_lowercase())
-                    }
-                    None => true,
-                }
-            })
             .map(|episode| {
                 let ep_status = if episode.is_complete() {
                     "completed"
@@ -369,12 +370,9 @@ pub async fn list_episodes(
             })
             .collect();
 
-        // Sort by created_at (newest first)
+        // Sort by created_at (newest first) and apply limit
         episode_summaries.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-
         let total_count = episode_summaries.len();
-
-        // Apply limit
         episode_summaries.truncate(limit);
 
         let list = EpisodeList {
@@ -794,7 +792,7 @@ pub async fn log_step(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Config;
+    use crate::config::{initialize_storage, load_config, Config};
     use crate::output::OutputFormat;
 
     #[cfg(feature = "turso")]
@@ -914,8 +912,8 @@ batch_size = 10
 
         std::fs::write(&config_path, config_content).unwrap();
 
-        let config = Config::load(Some(&config_path)).unwrap();
-        let memory = config.create_memory().await.unwrap();
+        let config = load_config(Some(&config_path)).unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         // This should work in dry-run mode even without actual storage
         let result = create_episode(
@@ -965,8 +963,8 @@ batch_size = 10
 
         std::fs::write(&config_path, config_content).unwrap();
 
-        let config = Config::load(Some(&config_path)).unwrap();
-        let memory = config.create_memory().await.unwrap();
+        let config = load_config(Some(&config_path)).unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         // This should work in dry-run mode even without actual storage
         let result = complete_episode(
@@ -1016,8 +1014,8 @@ batch_size = 10
 
         std::fs::write(&config_path, config_content).unwrap();
 
-        let config = Config::load(Some(&config_path)).unwrap();
-        let memory = config.create_memory().await.unwrap();
+        let config = load_config(Some(&config_path)).unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         // This should work in dry-run mode even without actual storage
         let result = log_step(
@@ -1047,7 +1045,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = create_episode(
             "Test task".to_string(),
@@ -1075,7 +1073,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = list_episodes(None, 10, None, &memory, &config, OutputFormat::Human).await;
 
@@ -1095,7 +1093,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = view_episode(
             "test-uuid".to_string(),
@@ -1121,7 +1119,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = complete_episode(
             "test-uuid".to_string(),
@@ -1149,7 +1147,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = search_episodes(
             "test query".to_string(),
@@ -1176,7 +1174,7 @@ batch_size = 10
 
         let mut config = Config::default();
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
-        let memory = config.create_memory().await.unwrap();
+        let memory = initialize_storage(&config).await.unwrap().memory;
 
         let result = log_step(
             "test-uuid".to_string(),

@@ -34,10 +34,11 @@ impl Default for EmbeddingConfig {
 
 /// Supported embedding providers
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[allow(dead_code)]
 pub enum EmbeddingProvider {
     /// Local embedding using sentence transformers
     Local,
-    /// OpenAI's text embedding models
+    /// `OpenAI`'s text embedding models
     OpenAI,
     /// Custom provider implementation
     Custom(String),
@@ -66,6 +67,7 @@ impl Default for ModelConfig {
 
 impl ModelConfig {
     /// Create configuration for a local sentence transformer model
+    #[must_use]
     pub fn local_sentence_transformer(model_name: &str, dimension: usize) -> Self {
         Self {
             model_name: model_name.to_string(),
@@ -77,7 +79,8 @@ impl ModelConfig {
         }
     }
 
-    /// Create configuration for OpenAI text-embedding-ada-002
+    /// Create configuration for `OpenAI` text-embedding-ada-002
+    #[must_use]
     pub fn openai_ada_002() -> Self {
         Self {
             model_name: "text-embedding-ada-002".to_string(),
@@ -86,7 +89,8 @@ impl ModelConfig {
         }
     }
 
-    /// Create configuration for OpenAI text-embedding-3-small
+    /// Create configuration for `OpenAI` text-embedding-3-small
+    #[must_use]
     pub fn openai_3_small() -> Self {
         Self {
             model_name: "text-embedding-3-small".to_string(),
@@ -95,7 +99,8 @@ impl ModelConfig {
         }
     }
 
-    /// Create configuration for OpenAI text-embedding-3-large
+    /// Create configuration for `OpenAI` text-embedding-3-large
+    #[must_use]
     pub fn openai_3_large() -> Self {
         Self {
             model_name: "text-embedding-3-large".to_string(),

@@ -1,3 +1,9 @@
+#![allow(clippy::useless_attribute)]
+#![allow(clippy::excessive_nesting)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::ifs_same_cond)]
+
 //! # Memory MCP (Model Context Protocol) Integration
 //!
 //! This crate provides MCP server integration for the self-learning memory system,

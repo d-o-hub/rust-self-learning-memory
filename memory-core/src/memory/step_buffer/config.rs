@@ -72,6 +72,7 @@ impl BatchConfig {
     /// assert_eq!(config.flush_interval_ms, 10000);
     /// assert!(config.auto_flush);
     /// ```
+    #[must_use]
     pub fn new(max_batch_size: usize, flush_interval_ms: u64, auto_flush: bool) -> Self {
         Self {
             max_batch_size,
@@ -84,6 +85,7 @@ impl BatchConfig {
     ///
     /// Uses smaller buffer (20 steps) and shorter interval (2 seconds)
     /// for episodes where steps are logged rapidly.
+    #[must_use]
     pub fn high_frequency() -> Self {
         Self {
             max_batch_size: 20,
@@ -96,6 +98,7 @@ impl BatchConfig {
     ///
     /// Uses larger buffer (100 steps) and longer interval (10 seconds)
     /// for episodes where steps are logged slowly.
+    #[must_use]
     pub fn low_frequency() -> Self {
         Self {
             max_batch_size: 100,
@@ -108,6 +111,7 @@ impl BatchConfig {
     ///
     /// Disables all automatic flushing. Steps are only persisted
     /// when explicitly flushed or when the episode completes.
+    #[must_use]
     pub fn manual_only() -> Self {
         Self {
             max_batch_size: usize::MAX,

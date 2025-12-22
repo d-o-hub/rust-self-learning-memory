@@ -12,7 +12,7 @@
 //!
 //! The embedding system supports multiple providers:
 //! - **Local**: sentence-transformers via candle-transformers (offline)
-//! - **OpenAI**: text-embedding-ada-002 (cloud)
+//! - **`OpenAI`**: text-embedding-ada-002 (cloud)
 //! - **Custom**: User-provided embedding functions
 //!
 //! ## Usage
@@ -32,16 +32,24 @@
 
 mod config;
 mod local;
+mod mock_model;
 mod openai;
 mod provider;
+mod real_model;
 mod similarity;
 mod storage;
+mod utils;
 
 pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig};
-pub use local::LocalEmbeddingProvider;
+pub use local::{
+    get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
+};
+#[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
-pub use similarity::{cosine_similarity, EmbeddingWithMetadata, SimilaritySearchResult};
+pub use similarity::{
+    cosine_similarity, EmbeddingWithMetadata, SimilarityMetadata, SimilaritySearchResult,
+};
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
 
 use crate::episode::Episode;
@@ -68,6 +76,7 @@ pub struct SemanticService {
 
 impl SemanticService {
     /// Create a new semantic service with the specified provider and storage
+    #[must_use]
     pub fn new(
         provider: Box<dyn EmbeddingProvider>,
         storage: Box<dyn EmbeddingStorageBackend>,
@@ -89,7 +98,62 @@ impl SemanticService {
         Ok(Self::new(provider, storage, config))
     }
 
+    /// Create a semantic service with default local provider
+    pub async fn default(storage: Box<dyn EmbeddingStorageBackend>) -> Result<Self> {
+        let config = EmbeddingConfig::default();
+        Self::with_local_provider(storage, config).await
+    }
+
+    /// Create a semantic service with automatic provider fallback
+    ///
+    /// Tries providers in order: Local → `OpenAI` → Mock (with warnings)
+    /// This ensures maximum reliability by falling back to simpler options if preferred ones fail.
+    pub async fn with_fallback(
+        storage: Box<dyn EmbeddingStorageBackend>,
+        config: EmbeddingConfig,
+    ) -> Result<Self> {
+        // Try local provider first (default)
+        match LocalEmbeddingProvider::new(config.model.clone()).await {
+            Ok(provider) => {
+                tracing::info!("Using local embedding provider");
+                return Ok(Self::new(Box::new(provider), storage, config));
+            }
+            Err(e) => {
+                tracing::warn!("Failed to initialize local provider: {}, trying OpenAI", e);
+            }
+        }
+
+        // Try OpenAI provider as fallback
+        #[cfg(feature = "openai")]
+        {
+            if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
+                let provider = OpenAIEmbeddingProvider::new(api_key, config.model.clone());
+                tracing::info!("Using OpenAI embedding provider as fallback");
+                return Ok(Self::new(Box::new(provider), storage, config));
+            } else {
+                tracing::warn!("OPENAI_API_KEY not set, cannot use OpenAI provider");
+            }
+        }
+
+        // Final fallback to mock provider (with warning)
+        tracing::error!(
+            "All embedding providers failed, using mock provider (embeddings will be random)"
+        );
+        tracing::error!("To fix this, either:");
+        tracing::error!("  1. Install local embedding model dependencies");
+        #[cfg(feature = "openai")]
+        tracing::error!("  2. Set OPENAI_API_KEY environment variable");
+
+        // Use MockLocalModel as the final fallback
+        let provider = crate::embeddings::mock_model::MockLocalModel::new(
+            "mock-model".to_string(),
+            config.model.embedding_dimension,
+        );
+        Ok(Self::new(Box::new(provider), storage, config))
+    }
+
     /// Create a semantic service with OpenAI embedding provider
+    #[cfg(feature = "openai")]
     pub fn with_openai_provider(
         api_key: String,
         storage: Box<dyn EmbeddingStorageBackend>,
@@ -130,7 +194,7 @@ impl SemanticService {
 
         // Store the embedding
         self.storage
-            .store_pattern_embedding(pattern.pattern_id, embedding.clone())
+            .store_pattern_embedding(pattern.id(), embedding.clone())
             .await?;
 
         Ok(embedding)
@@ -156,6 +220,7 @@ impl SemanticService {
         self.storage
             .find_similar_episodes(query_embedding, limit, self.config.similarity_threshold)
             .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
     }
 
     /// Find semantically similar patterns for a context
@@ -177,6 +242,7 @@ impl SemanticService {
         self.storage
             .find_similar_patterns(query_embedding, limit, self.config.similarity_threshold)
             .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
     }
 
     /// Calculate similarity between two texts
@@ -194,10 +260,10 @@ impl SemanticService {
         // Context information
         parts.push(format!("domain: {}", episode.context.domain));
         if let Some(lang) = &episode.context.language {
-            parts.push(format!("language: {}", lang));
+            parts.push(format!("language: {lang}"));
         }
         if let Some(framework) = &episode.context.framework {
-            parts.push(format!("framework: {}", framework));
+            parts.push(format!("framework: {framework}"));
         }
         if !episode.context.tags.is_empty() {
             parts.push(format!("tags: {}", episode.context.tags.join(", ")));
@@ -205,13 +271,13 @@ impl SemanticService {
 
         // Execution summary
         if !episode.steps.is_empty() {
-            let tools: Vec<String> = episode
-                .steps
-                .iter()
-                .map(|step| step.tool.clone())
-                .collect::<std::collections::HashSet<_>>()
-                .into_iter()
-                .collect();
+            // Collect unique tools while preserving order
+            let mut tools = Vec::new();
+            for step in &episode.steps {
+                if !tools.contains(&step.tool) {
+                    tools.push(step.tool.clone());
+                }
+            }
             parts.push(format!("tools used: {}", tools.join(", ")));
 
             let actions: Vec<String> = episode
@@ -227,13 +293,13 @@ impl SemanticService {
         if let Some(outcome) = &episode.outcome {
             match outcome {
                 crate::types::TaskOutcome::Success { verdict, .. } => {
-                    parts.push(format!("outcome: success - {}", verdict));
+                    parts.push(format!("outcome: success - {verdict}"));
                 }
                 crate::types::TaskOutcome::PartialSuccess { verdict, .. } => {
-                    parts.push(format!("outcome: partial success - {}", verdict));
+                    parts.push(format!("outcome: partial success - {verdict}"));
                 }
                 crate::types::TaskOutcome::Failure { reason, .. } => {
-                    parts.push(format!("outcome: failure - {}", reason));
+                    parts.push(format!("outcome: failure - {reason}"));
                 }
             }
         }
@@ -253,7 +319,7 @@ impl SemanticService {
             crate::pattern::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
-                format!("Decision: if {} then {}", condition, action)
+                format!("Decision: if {condition} then {action}")
             }
             crate::pattern::Pattern::ErrorRecovery {
                 error_type,
@@ -284,7 +350,7 @@ impl SemanticService {
         if let Some(pattern_context) = pattern.context() {
             parts.push(format!("domain: {}", pattern_context.domain));
             if let Some(lang) = &pattern_context.language {
-                parts.push(format!("language: {}", lang));
+                parts.push(format!("language: {lang}"));
             }
             if !pattern_context.tags.is_empty() {
                 parts.push(format!("tags: {}", pattern_context.tags.join(", ")));
@@ -300,10 +366,10 @@ impl SemanticService {
 
         parts.push(format!("domain: {}", context.domain));
         if let Some(lang) = &context.language {
-            parts.push(format!("language: {}", lang));
+            parts.push(format!("language: {lang}"));
         }
         if let Some(framework) = &context.framework {
-            parts.push(format!("framework: {}", framework));
+            parts.push(format!("framework: {framework}"));
         }
         if !context.tags.is_empty() {
             parts.push(format!("tags: {}", context.tags.join(", ")));
@@ -318,10 +384,10 @@ impl SemanticService {
 
         parts.push(format!("domain: {}", context.domain));
         if let Some(lang) = &context.language {
-            parts.push(format!("language: {}", lang));
+            parts.push(format!("language: {lang}"));
         }
         if let Some(framework) = &context.framework {
-            parts.push(format!("framework: {}", framework));
+            parts.push(format!("framework: {framework}"));
         }
         if !context.tags.is_empty() {
             parts.push(format!("tags: {}", context.tags.join(", ")));
@@ -335,9 +401,11 @@ impl SemanticService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::episode::ExecutionStep;
-    use crate::pattern::{PatternId, PatternType};
+    use crate::episode::{ExecutionStep, PatternId};
+    use crate::pattern::Pattern;
     use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
+    use crate::Result;
+    use uuid::Uuid;
 
     fn create_test_episode() -> Episode {
         let context = TaskContext {
@@ -390,16 +458,14 @@ mod tests {
             tags: vec!["async".to_string()],
         };
 
-        Pattern::new(
-            PatternType::ToolSequence,
-            "Parse then validate pattern".to_string(),
+        Pattern::ToolSequence {
+            id: PatternId::new_v4(),
+            tools: vec!["parser".to_string(), "validator".to_string()],
             context,
-            0.85,
-            Some(serde_json::json!({
-                "sequence": ["parser", "validator"],
-                "success_rate": 0.92
-            })),
-        )
+            success_rate: 0.85,
+            avg_latency: chrono::Duration::seconds(10),
+            occurrence_count: 5,
+        }
     }
 
     #[test]
@@ -433,10 +499,11 @@ mod tests {
         let pattern = create_test_pattern();
         let text = service.pattern_to_text(&pattern);
 
-        assert!(text.contains("Parse then validate pattern"));
-        assert!(text.contains("pattern type: ToolSequence"));
+        // Check that it contains the tool sequence
+        assert!(text.contains("Tool sequence: parser -> validator"));
         assert!(text.contains("domain: web-api"));
         assert!(text.contains("language: rust"));
+        assert!(text.contains("tags: async"));
     }
 
     #[test]
@@ -465,19 +532,21 @@ mod tests {
     }
 
     // Mock implementations for testing
+    use anyhow::Result as AnyhowResult;
+
     struct MockEmbeddingProvider;
 
     #[async_trait::async_trait]
     impl EmbeddingProvider for MockEmbeddingProvider {
-        async fn embed_text(&self, _text: &str) -> Result<Vec<f32>> {
+        async fn embed_text(&self, _text: &str) -> AnyhowResult<Vec<f32>> {
             Ok(vec![0.1, 0.2, 0.3, 0.4])
         }
 
-        async fn embed_batch(&self, _texts: &[String]) -> Result<Vec<Vec<f32>>> {
+        async fn embed_batch(&self, _texts: &[String]) -> AnyhowResult<Vec<Vec<f32>>> {
             Ok(vec![vec![0.1, 0.2, 0.3, 0.4]; _texts.len()])
         }
 
-        async fn similarity(&self, _text1: &str, _text2: &str) -> Result<f32> {
+        async fn similarity(&self, _text1: &str, _text2: &str) -> AnyhowResult<f32> {
             Ok(0.85)
         }
 

@@ -13,7 +13,7 @@ pub fn extract_tool_sequence(extractor: &PatternExtractor, episode: &Episode) ->
     }
 
     // Check success rate threshold
-    let success_rate = extractor.calculate_step_success_rate(episode);
+    let success_rate = PatternExtractor::calculate_step_success_rate(episode);
     if success_rate < extractor.success_threshold {
         return None;
     }
@@ -33,7 +33,7 @@ pub fn extract_tool_sequence(extractor: &PatternExtractor, episode: &Episode) ->
         tools,
         context: episode.context.clone(),
         success_rate,
-        avg_latency: extractor.calculate_average_latency(episode),
+        avg_latency: PatternExtractor::calculate_average_latency(episode),
         occurrence_count: 1,
     })
 }
@@ -43,7 +43,7 @@ pub fn extract_decision_points(extractor: &PatternExtractor, episode: &Episode) 
     let mut patterns = Vec::new();
 
     // Check success rate threshold
-    let success_rate = extractor.calculate_step_success_rate(episode);
+    let success_rate = PatternExtractor::calculate_step_success_rate(episode);
     if success_rate < extractor.success_threshold {
         return patterns;
     }
@@ -80,7 +80,7 @@ pub fn extract_decision_points(extractor: &PatternExtractor, episode: &Episode) 
 }
 
 /// Extract error recovery patterns from an episode
-pub fn extract_error_recovery(extractor: &PatternExtractor, episode: &Episode) -> Option<Pattern> {
+pub fn extract_error_recovery(_extractor: &PatternExtractor, episode: &Episode) -> Option<Pattern> {
     use crate::types::ExecutionResult;
 
     // Need at least 2 steps to have error -> recovery
@@ -120,7 +120,7 @@ pub fn extract_error_recovery(extractor: &PatternExtractor, episode: &Episode) -
     }
 
     // Calculate success rate
-    let success_rate = extractor.calculate_step_success_rate(episode);
+    let success_rate = PatternExtractor::calculate_step_success_rate(episode);
 
     // For error recovery patterns, we use a lower threshold (0.3) since they
     // represent valuable learning from failures even when overall success rate is moderate
@@ -131,7 +131,7 @@ pub fn extract_error_recovery(extractor: &PatternExtractor, episode: &Episode) -
 
     Some(Pattern::ErrorRecovery {
         id: PatternId::new_v4(),
-        error_type: error_type.unwrap(),
+        error_type: error_type.expect("error_type is guaranteed by preceding check"),
         recovery_steps,
         context: episode.context.clone(),
         success_rate,
@@ -152,7 +152,7 @@ pub fn extract_context_pattern(extractor: &PatternExtractor, episode: &Episode) 
             return None;
         }
     } else {
-        extractor.calculate_step_success_rate(episode)
+        PatternExtractor::calculate_step_success_rate(episode)
     };
 
     if success_rate < extractor.success_threshold {
@@ -162,10 +162,10 @@ pub fn extract_context_pattern(extractor: &PatternExtractor, episode: &Episode) 
     // Extract context features
     let mut context_features = Vec::new();
     if let Some(ref lang) = episode.context.language {
-        context_features.push(format!("language:{}", lang));
+        context_features.push(format!("language:{lang}"));
     }
     if let Some(ref framework) = episode.context.framework {
-        context_features.push(format!("framework:{}", framework));
+        context_features.push(format!("framework:{framework}"));
     }
     context_features.push(format!("domain:{}", episode.context.domain));
     context_features.push(format!("complexity:{:?}", episode.context.complexity));

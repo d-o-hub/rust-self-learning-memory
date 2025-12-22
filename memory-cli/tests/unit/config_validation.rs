@@ -3,7 +3,7 @@
 //! These tests verify that configuration files are loaded correctly,
 //! validation works as expected, and defaults are applied properly.
 
-use memory_cli::config::{CliConfig, Config, DatabaseConfig, StorageConfig};
+use memory_cli::config::{CliConfig, Config, DatabaseConfig, StorageConfig, initialize_storage};
 use std::fs;
 use tempfile::TempDir;
 
@@ -324,7 +324,7 @@ default_format = "json"
 
         // This should work even without turso/redb features enabled
         // (it will create an in-memory system)
-        let result = config.create_memory();
+        let result = initialize_storage(&config);
         // We can't easily test the async result in a unit test without tokio::test
         // but we can verify the method exists and doesn't panic on config validation
         assert!(config.validate().is_ok());

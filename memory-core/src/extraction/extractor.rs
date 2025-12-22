@@ -30,6 +30,7 @@ impl Default for PatternExtractor {
 
 impl PatternExtractor {
     /// Create a new pattern extractor with default thresholds
+    #[must_use]
     pub fn new() -> Self {
         Self {
             success_threshold: MIN_PATTERN_SUCCESS_RATE,
@@ -39,6 +40,7 @@ impl PatternExtractor {
     }
 
     /// Create an extractor with custom thresholds
+    #[must_use]
     pub fn with_thresholds(
         success_threshold: f32,
         min_sequence_len: usize,
@@ -88,7 +90,8 @@ impl PatternExtractor {
     }
 
     /// Calculate step success rate
-    pub(crate) fn calculate_step_success_rate(&self, episode: &Episode) -> f32 {
+    #[allow(clippy::cast_precision_loss)]
+    pub(crate) fn calculate_step_success_rate(episode: &Episode) -> f32 {
         if episode.steps.is_empty() {
             return 0.0;
         }
@@ -98,7 +101,8 @@ impl PatternExtractor {
     }
 
     /// Calculate average latency
-    pub(crate) fn calculate_average_latency(&self, episode: &Episode) -> Duration {
+    #[allow(clippy::cast_precision_loss, clippy::cast_possible_wrap)]
+    pub(crate) fn calculate_average_latency(episode: &Episode) -> Duration {
         if episode.steps.is_empty() {
             return Duration::zero();
         }

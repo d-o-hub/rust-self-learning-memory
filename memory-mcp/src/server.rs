@@ -615,6 +615,49 @@ impl MemoryMCPServer {
             .retrieve_relevant_context(query.clone(), context.clone(), limit)
             .await;
 
+        // Strict filtering: only return episodes that actually contain the query.
+        // Rationale: MCP callers expect "no match" to return an empty list rather than
+        // an arbitrary "closest" episode.
+        let query_lc = query.to_lowercase();
+        let episodes: Vec<_> = episodes
+            .into_iter()
+            .filter(|ep| {
+                // Strict matching based on explicit, stable fields rather than full JSON
+                // serialization (which can omit/transform fields).
+                if ep.task_description.to_lowercase().contains(&query_lc) {
+                    return true;
+                }
+
+                // Search step action and parameters/result payloads
+                for step in &ep.steps {
+                    if step.action.to_lowercase().contains(&query_lc) {
+                        return true;
+                    }
+
+                    if step
+                        .parameters
+                        .to_string()
+                        .to_lowercase()
+                        .contains(&query_lc)
+                    {
+                        return true;
+                    }
+
+                    if let Some(result) = &step.result {
+                        if serde_json::to_string(result)
+                            .unwrap_or_default()
+                            .to_lowercase()
+                            .contains(&query_lc)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                false
+            })
+            .collect();
+
         // Also get relevant patterns
         let patterns = self
             .memory
@@ -1105,9 +1148,14 @@ mod tests {
         assert!(!tool.description.is_empty());
     }
 
-    #[ignore] // WASM sandbox disabled - test depends on execute_agent_code tool
     #[tokio::test]
     async fn test_execute_code() {
+        if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available()
+        {
+            tracing::info!("Skipping execute_agent_code test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
+            return;
+        }
+
         let server = create_test_server().await;
 
         let code = "return 1 + 1;";
@@ -1137,9 +1185,14 @@ mod tests {
         assert_eq!(usage.get("execute_agent_code"), Some(&3));
     }
 
-    #[ignore] // WASM sandbox disabled - test depends on execute_agent_code tool
     #[tokio::test]
     async fn test_progressive_tool_disclosure() {
+        if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available()
+        {
+            tracing::info!("Skipping progressive tool disclosure test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
+            return;
+        }
+
         let server = create_test_server().await;
 
         // Use execute_agent_code multiple times
@@ -1226,6 +1279,31 @@ mod tests {
         let json = result.unwrap();
         assert!(json.get("episodes").is_some());
         assert!(json.get("patterns").is_some());
+    }
+
+    #[tokio::test]
+    async fn test_query_memory_negative_returns_empty() {
+        let server = create_test_server().await;
+
+        let result = server
+            .query_memory(
+                "tmp_rovodev_negative_test_unique_string".to_string(),
+                "verification".to_string(),
+                Some("analysis".to_string()),
+                10,
+            )
+            .await
+            .unwrap();
+
+        let episodes = result
+            .get("episodes")
+            .and_then(|v| v.as_array())
+            .expect("episodes should be an array");
+
+        assert!(
+            episodes.is_empty(),
+            "expected no episodes for unmatched query"
+        );
     }
 
     #[tokio::test]

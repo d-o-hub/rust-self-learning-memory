@@ -382,7 +382,7 @@ impl SelfLearningMemory {
     ///    - Language exact match: +0.8
     ///    - Framework match: +0.5
     ///    - Tag overlap: +0.3 per matching tag
-    /// 3. Rank by: confidence × relevance_score
+    /// 3. Rank by: confidence × `relevance_score`
     /// 4. Return top N heuristics sorted by score DESC
     ///
     /// # Arguments

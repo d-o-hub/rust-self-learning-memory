@@ -354,31 +354,34 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                         let context_clone = context.clone();
 
                         let handle = tokio::spawn(async move {
-                            let episode_id = memory_clone
-                                .start_episode(
-                                    generate_episode_description(i),
-                                    context_clone,
-                                    TaskType::CodeGeneration,
-                                )
-                                .await;
+                            #[allow(clippy::excessive_nesting)]
+                            {
+                                let episode_id = memory_clone
+                                    .start_episode(
+                                        generate_episode_description(i),
+                                        context_clone,
+                                        TaskType::CodeGeneration,
+                                    )
+                                    .await;
 
-                            let steps = generate_execution_steps(10);
-                            for step in &steps {
-                                memory_clone.log_step(episode_id, step.clone()).await;
+                                let steps = generate_execution_steps(10);
+                                for step in &steps {
+                                    memory_clone.log_step(episode_id, step.clone()).await;
+                                }
+
+                                memory_clone
+                                    .complete_episode(
+                                        episode_id,
+                                        TaskOutcome::Success {
+                                            verdict: format!("Concurrent episode {} completed", i),
+                                            artifacts: vec![],
+                                        },
+                                    )
+                                    .await
+                                    .expect("Failed to complete episode");
+
+                                episode_id
                             }
-
-                            memory_clone
-                                .complete_episode(
-                                    episode_id,
-                                    TaskOutcome::Success {
-                                        verdict: format!("Concurrent episode {} completed", i),
-                                        artifacts: vec![],
-                                    },
-                                )
-                                .await
-                                .expect("Failed to complete episode");
-
-                            episode_id
                         });
 
                         handles.push(handle);

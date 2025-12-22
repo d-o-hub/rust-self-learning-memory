@@ -13,7 +13,7 @@ use crate::types::{
 /// Validate task description length.
 ///
 /// Ensures the task description does not exceed [`MAX_DESCRIPTION_LEN`] (10KB).
-/// Prevents DoS attacks via unbounded input strings.
+/// Prevents `DoS` attacks via unbounded input strings.
 ///
 /// # Arguments
 ///
@@ -145,7 +145,7 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
 
     // Validate serialized parameters size
     let params_json = serde_json::to_string(&step.parameters)
-        .map_err(|e| Error::InvalidInput(format!("Failed to serialize step parameters: {}", e)))?;
+        .map_err(|e| Error::InvalidInput(format!("Failed to serialize step parameters: {e}")))?;
     if params_json.len() > MAX_ARTIFACT_SIZE {
         return Err(Error::InvalidInput(format!(
             "Step parameters size {} exceeds maximum {} bytes ({}MB)",
@@ -194,7 +194,7 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
 pub fn validate_episode_size(episode: &Episode) -> Result<()> {
     // Serialize to JSON to get accurate size
     let serialized = serde_json::to_vec(episode).map_err(|e| {
-        Error::InvalidInput(format!("Failed to serialize episode for validation: {}", e))
+        Error::InvalidInput(format!("Failed to serialize episode for validation: {e}"))
     })?;
 
     if serialized.len() > MAX_EPISODE_SIZE {

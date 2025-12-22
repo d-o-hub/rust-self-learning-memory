@@ -1,3 +1,5 @@
+#![allow(clippy::excessive_nesting)]
+
 //! # Memory Storage - redb
 //!
 //! redb embedded database for fast cache layer.
@@ -429,6 +431,10 @@ impl StorageBackend for RedbStorage {
         since: chrono::DateTime<chrono::Utc>,
     ) -> Result<Vec<Episode>> {
         self.query_episodes_since(since).await
+    }
+
+    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
+        self.query_episodes_by_metadata(key, value).await
     }
 }
 

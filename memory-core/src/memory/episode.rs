@@ -23,7 +23,7 @@ impl SelfLearningMemory {
     ///
     /// * `task_description` - Clear, human-readable description of what needs to be done
     /// * `context` - Contextual metadata (language, domain, framework, etc.) used for retrieval
-    /// * `task_type` - Classification of task (CodeGeneration, Debugging, etc.)
+    /// * `task_type` - Classification of task (`CodeGeneration`, Debugging, etc.)
     ///
     /// # Returns
     ///

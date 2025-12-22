@@ -11,22 +11,24 @@ struct InitializeResult {
 }
 
 #[allow(clippy::question_mark)]
-async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
+async fn handle_initialize(
+    request: JsonRpcRequest,
+) -> Result<Option<JsonRpcResponse>, serde_json::Error> {
     if request.id.is_none() {
-        return None;
+        return Ok(None);
     }
     let result = InitializeResult {
         protocol_version: "2024-11-05".to_string(),
         capabilities: serde_json::json!({"tools":{"listChanged":false}}),
         server_info: serde_json::json!({"name":"memory-mcp-server","version":"test"}),
     };
-    let value = serde_json::to_value(result).unwrap();
-    Some(JsonRpcResponse {
+    let value = serde_json::to_value(result)?;
+    Ok(Some(JsonRpcResponse {
         jsonrpc: "2.0".to_string(),
         id: request.id,
         result: Some(value),
         error: None,
-    })
+    }))
 }
 
 #[allow(clippy::question_mark)]
@@ -50,7 +52,7 @@ async fn test_initialize_notification_no_response() {
         method: "initialize".into(),
         params: None,
     };
-    let resp = handle_initialize(req).await;
+    let resp = handle_initialize(req).await.unwrap();
     assert!(resp.is_none());
 }
 
@@ -62,7 +64,7 @@ async fn test_initialize_with_id_response() {
         method: "initialize".into(),
         params: None,
     };
-    let resp = handle_initialize(req).await;
+    let resp = handle_initialize(req).await.unwrap();
     assert!(resp.is_some());
     let resp = resp.unwrap();
     assert_eq!(resp.jsonrpc, "2.0");

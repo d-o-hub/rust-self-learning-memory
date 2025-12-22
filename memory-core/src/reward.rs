@@ -58,6 +58,7 @@ impl Default for RewardCalculator {
 
 impl RewardCalculator {
     /// Create a new reward calculator with default weights
+    #[must_use]
     pub fn new() -> Self {
         Self {
             duration_weight: 0.5,
@@ -66,6 +67,7 @@ impl RewardCalculator {
     }
 
     /// Create a calculator with custom weights
+    #[must_use]
     pub fn with_weights(duration_weight: f32, step_count_weight: f32) -> Self {
         Self {
             duration_weight,

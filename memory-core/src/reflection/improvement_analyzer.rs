@@ -10,7 +10,7 @@ pub(super) fn identify_improvements(episode: &Episode, max_items: usize) -> Vec<
     // Check for failures
     match &episode.outcome {
         Some(TaskOutcome::Failure { reason, .. }) => {
-            improvements.push(format!("Task failed: {}", reason));
+            improvements.push(format!("Task failed: {reason}"));
         }
         Some(TaskOutcome::PartialSuccess { failed, .. }) if !failed.is_empty() => {
             improvements.push(format!("Failed {} subtask(s)", failed.len()));
@@ -22,8 +22,7 @@ pub(super) fn identify_improvements(episode: &Episode, max_items: usize) -> Vec<
     let failed_steps = episode.failed_steps_count();
     if failed_steps > 0 {
         improvements.push(format!(
-            "Reduce failed execution steps (current: {})",
-            failed_steps
+            "Reduce failed execution steps (current: {failed_steps})"
         ));
 
         // Identify specific tools that failed
@@ -38,8 +37,7 @@ pub(super) fn identify_improvements(episode: &Episode, max_items: usize) -> Vec<
         if duration_secs > 300 {
             // > 5 minutes
             improvements.push(format!(
-                "Optimize execution time (took {} seconds)",
-                duration_secs
+                "Optimize execution time (took {duration_secs} seconds)"
             ));
         }
     }
@@ -48,8 +46,7 @@ pub(super) fn identify_improvements(episode: &Episode, max_items: usize) -> Vec<
     let step_count = episode.steps.len();
     if step_count > 50 {
         improvements.push(format!(
-            "Reduce number of execution steps (current: {})",
-            step_count
+            "Reduce number of execution steps (current: {step_count})"
         ));
     }
 
@@ -62,7 +59,7 @@ pub(super) fn identify_improvements(episode: &Episode, max_items: usize) -> Vec<
     if improvements.is_empty()
         && matches!(
             episode.outcome,
-            Some(TaskOutcome::Failure { .. }) | Some(TaskOutcome::PartialSuccess { .. })
+            Some(TaskOutcome::Failure { .. } | TaskOutcome::PartialSuccess { .. })
         )
     {
         improvements.push("Review and refine approach for better outcomes".to_string());
@@ -121,7 +118,7 @@ fn identify_problematic_tool(episode: &Episode) -> Option<String> {
         .iter()
         .max_by_key(|(_, &count)| count)
         .filter(|(_, &count)| count >= 2)
-        .map(|(tool, count)| format!("Tool '{}' failed {} times - needs attention", tool, count))
+        .map(|(tool, count)| format!("Tool '{tool}' failed {count} times - needs attention"))
 }
 
 fn identify_repeated_errors(episode: &Episode) -> Option<String> {
@@ -138,7 +135,7 @@ fn identify_repeated_errors(episode: &Episode) -> Option<String> {
         .iter()
         .max_by_key(|(_, &count)| count)
         .filter(|(_, &count)| count >= 2)
-        .map(|(msg, count)| format!("Repeated error ({} times): {}", count, msg))
+        .map(|(msg, count)| format!("Repeated error ({count} times): {msg}"))
 }
 
 fn identify_bottlenecks(episode: &Episode) -> Option<String> {
@@ -177,8 +174,7 @@ fn identify_redundancy(episode: &Episode) -> Option<String> {
 
     if let Some((tool, count)) = redundant {
         Some(format!(
-            "High repetition of '{}' ({} times) - consider batching or alternative approach",
-            tool, count
+            "High repetition of '{tool}' ({count} times) - consider batching or alternative approach"
         ))
     } else {
         None
@@ -236,13 +232,11 @@ fn analyze_resource_utilization(episode: &Episode) -> Option<String> {
 
     if total_tokens > 10000 {
         Some(format!(
-            "High token usage ({} tokens) - consider more focused prompts or caching",
-            total_tokens
+            "High token usage ({total_tokens} tokens) - consider more focused prompts or caching"
         ))
     } else if total_tokens > 0 && total_tokens < 1000 {
         Some(format!(
-            "Efficient token usage ({} tokens) - demonstrates focused communication",
-            total_tokens
+            "Efficient token usage ({total_tokens} tokens) - demonstrates focused communication"
         ))
     } else {
         None

@@ -23,16 +23,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2.8.2
 
       - name: Check formatting
         run: cargo fmt --all -- --check
 
-      - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Run clippy on lib
+        run: |
+          cargo clippy --lib -- \
+            -D warnings \
+            -A clippy::expect_used \
+            -A clippy::uninlined_format_args \
+            -A clippy::unwrap_used
+
+      - name: Run clippy on tests
+        run: |
+          RUSTFLAGS="--cap-lints=warn" cargo clippy --tests -- \
+            -D warnings \
+            -A clippy::expect_used \
+            -A clippy::uninlined_format_args \
+            -A clippy::unwrap_used

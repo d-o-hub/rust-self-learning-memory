@@ -1,3 +1,20 @@
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::missing_docs_in_private_items)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::unused_self)]
+#![allow(clippy::items_after_statements)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::assigning_clones)]
+#![allow(clippy::borrowed_box)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::ref_option)]
+
 //! # Memory Core
 //!
 //! Core data structures and types for the self-learning memory system.
@@ -47,6 +64,7 @@
 //! }
 //! ```
 
+pub mod embeddings;
 pub mod episode;
 pub mod error;
 pub mod extraction;

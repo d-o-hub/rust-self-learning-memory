@@ -165,7 +165,7 @@ async fn should_complete_episodes_with_reward_scoring_and_reflection() {
     // And: The reward should reflect success
     let reward = completed.reward.unwrap();
     assert!(reward.total >= 0.0);
-    assert_eq!(reward.base, 1.0); // Success
+    assert!((reward.base - 1.0).abs() < f32::EPSILON); // Success
 
     // And: The reflection should contain insights or successes
     let reflection = completed.reflection.unwrap();
@@ -190,7 +190,7 @@ async fn should_handle_failed_episodes_with_improvements() {
     // Then: The reward should reflect failure
     let completed = memory.get_episode(episode_id).await.unwrap();
     let reward = completed.reward.unwrap();
-    assert_eq!(reward.base, 0.0); // Failure
+    assert!((reward.base - 0.0).abs() < f32::EPSILON); // Failure
 
     // And: The reflection should contain improvement suggestions
     let reflection = completed.reflection.unwrap();
@@ -327,10 +327,14 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
         .iter()
         .filter(|e| e.context.domain == "web-api")
         .count();
-    assert!(
-        web_count as f32 / results.len() as f32 > 0.5,
-        "Expected majority of results to match domain filter"
-    );
+    {
+        #[allow(clippy::cast_precision_loss)]
+        let ratio = web_count as f32 / results.len() as f32;
+        assert!(
+            ratio > 0.5,
+            "Expected majority of results to match domain filter"
+        );
+    }
 
     // Given: A memory system with 50 episodes
     let memory2 = setup_test_memory();

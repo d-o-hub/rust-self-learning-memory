@@ -4,7 +4,7 @@
 //! providing offline capability with no external API dependencies.
 
 use super::config::ModelConfig;
-use super::provider::{EmbeddingProvider, EmbeddingResult};
+use super::provider::EmbeddingProvider;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
@@ -74,18 +74,66 @@ impl LocalEmbeddingProvider {
     async fn load_model(&self) -> Result<()> {
         tracing::info!("Loading local embedding model: {}", self.config.model_name);
 
-        // For now, use a mock implementation
-        // In a real implementation, this would load the actual model
-        let mock_model = Box::new(MockLocalModel::new(
-            self.config.model_name.clone(),
-            self.config.embedding_dimension,
-        ));
+        #[cfg(feature = "local-embeddings")]
+        {
+            // Try to load real ONNX model, fallback to mock if fails
+            match self.try_load_real_model().await {
+                Ok(real_model) => {
+                    let fallback_model = Box::new(RealEmbeddingModelWithFallback::new(
+                        self.config.model_name.clone(),
+                        self.config.embedding_dimension,
+                        Some(real_model),
+                    ));
 
-        let mut model_guard = self.model.write().await;
-        *model_guard = Some(mock_model);
+                    let mut model_guard = self.model.write().await;
+                    *model_guard = Some(fallback_model);
 
-        tracing::info!("Local embedding model loaded successfully");
+                    tracing::info!("Local embedding model loaded with real ONNX backend");
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to load real embedding model: {}", e);
+                    tracing::warn!(
+                        "Falling back to mock embeddings - semantic search will not work correctly"
+                    );
+
+                    let mock_fallback = Box::new(RealEmbeddingModelWithFallback::new(
+                        self.config.model_name.clone(),
+                        self.config.embedding_dimension,
+                        None,
+                    ));
+
+                    let mut model_guard = self.model.write().await;
+                    *model_guard = Some(mock_fallback);
+
+                    tracing::info!("Local embedding model loaded with mock fallback");
+                }
+            }
+        }
+
+        #[cfg(not(feature = "local-embeddings"))]
+        {
+            tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly");
+            tracing::warn!("To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available");
+
+            let mock_fallback = Box::new(RealEmbeddingModelWithFallback::new(
+                self.config.model_name.clone(),
+                self.config.embedding_dimension,
+                None,
+            ));
+
+            let mut model_guard = self.model.write().await;
+            *model_guard = Some(mock_fallback);
+
+            tracing::info!("Local embedding model loaded with mock implementation");
+        }
+
         Ok(())
+    }
+
+    /// Try to load real ONNX model
+    #[cfg(feature = "local-embeddings")]
+    async fn try_load_real_model(&self) -> Result<RealEmbeddingModel> {
+        RealEmbeddingModel::try_load_from_cache(&self.config, &self.cache_dir).await
     }
 
     /// Get the cache directory for models
@@ -111,6 +159,8 @@ impl LocalEmbeddingProvider {
     }
 
     /// Get model information
+    #[allow(dead_code)]
+    #[must_use]
     pub fn model_info(&self) -> serde_json::Value {
         serde_json::json!({
             "name": self.config.model_name,
@@ -168,7 +218,7 @@ impl EmbeddingProvider for LocalEmbeddingProvider {
 
 /// Trait for local embedding models
 #[async_trait]
-trait LocalEmbeddingModel: Send + Sync {
+pub trait LocalEmbeddingModel: Send + Sync {
     /// Generate embedding for single text
     async fn embed(&self, text: &str) -> Result<Vec<f32>>;
 
@@ -176,123 +226,27 @@ trait LocalEmbeddingModel: Send + Sync {
     async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>>;
 
     /// Get model name
+    #[allow(dead_code)]
     fn name(&self) -> &str;
 
     /// Get embedding dimension
+    #[allow(dead_code)]
     fn dimension(&self) -> usize;
 }
 
-/// Mock implementation for local embedding model
-/// In production, this would be replaced with actual model loading/inference
-struct MockLocalModel {
-    name: String,
-    dimension: usize,
-}
+/// Import real model implementation
+#[allow(unused)]
+pub use crate::embeddings::real_model::RealEmbeddingModel;
 
-impl MockLocalModel {
-    fn new(name: String, dimension: usize) -> Self {
-        Self { name, dimension }
-    }
+/// Import mock model implementations
+#[allow(unused)]
+pub use crate::embeddings::mock_model::{MockLocalModel, RealEmbeddingModelWithFallback};
 
-    /// Generate a deterministic mock embedding for testing
-    fn generate_mock_embedding(&self, text: &str) -> Vec<f32> {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-
-        // Create a deterministic embedding based on text hash
-        let mut hasher = DefaultHasher::new();
-        text.hash(&mut hasher);
-        let hash = hasher.finish();
-
-        let mut embedding = Vec::with_capacity(self.dimension);
-        let mut seed = hash;
-
-        for _ in 0..self.dimension {
-            // Simple PRNG to generate values
-            seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
-            let value = ((seed >> 16) as f32) / 32768.0 - 1.0; // Range [-1, 1]
-            embedding.push(value);
-        }
-
-        // Normalize the vector
-        super::provider::utils::normalize_vector(embedding)
-    }
-}
-
-#[async_trait]
-impl LocalEmbeddingModel for MockLocalModel {
-    async fn embed(&self, text: &str) -> Result<Vec<f32>> {
-        // Simulate processing time
-        tokio::time::sleep(std::time::Duration::from_millis(5)).await;
-
-        Ok(self.generate_mock_embedding(text))
-    }
-
-    async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
-        // Simulate batch processing (faster than individual calls)
-        let batch_delay = std::cmp::max(1, texts.len() / 10);
-        tokio::time::sleep(std::time::Duration::from_millis(batch_delay as u64)).await;
-
-        let mut embeddings = Vec::with_capacity(texts.len());
-        for text in texts {
-            embeddings.push(self.generate_mock_embedding(text));
-        }
-        Ok(embeddings)
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn dimension(&self) -> usize {
-        self.dimension
-    }
-}
-
-/// Helper functions for local model management
-pub mod utils {
-    use super::*;
-
-    /// List available local models
-    pub fn list_available_models() -> Vec<ModelConfig> {
-        vec![
-            ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384),
-            ModelConfig::local_sentence_transformer("sentence-transformers/all-mpnet-base-v2", 768),
-            ModelConfig::local_sentence_transformer(
-                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-                384,
-            ),
-        ]
-    }
-
-    /// Get recommended model configuration for different use cases
-    pub fn get_recommended_model(use_case: LocalModelUseCase) -> ModelConfig {
-        match use_case {
-            LocalModelUseCase::Fast => ModelConfig::local_sentence_transformer(
-                "sentence-transformers/all-MiniLM-L6-v2",
-                384,
-            ),
-            LocalModelUseCase::Quality => ModelConfig::local_sentence_transformer(
-                "sentence-transformers/all-mpnet-base-v2",
-                768,
-            ),
-            LocalModelUseCase::Multilingual => ModelConfig::local_sentence_transformer(
-                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-                384,
-            ),
-        }
-    }
-
-    /// Use cases for local model selection
-    pub enum LocalModelUseCase {
-        /// Fast inference with good quality (384 dimensions)
-        Fast,
-        /// Best quality (768 dimensions, slower)
-        Quality,
-        /// Multilingual support (384 dimensions)
-        Multilingual,
-    }
-}
+/// Re-export utilities from the utils module
+#[allow(unused)]
+pub use crate::embeddings::utils::{
+    get_recommended_model, list_available_models, LocalModelUseCase,
+};
 
 #[cfg(test)]
 mod tests {
@@ -367,9 +321,145 @@ mod tests {
         assert!(similarity < 1.0);
     }
 
+    #[tokio::test]
+    #[cfg(feature = "local-embeddings")]
+    async fn test_real_embedding_generation() {
+        // This test only runs when local-embeddings feature is enabled
+        // and real ONNX models are available
+        use std::path::PathBuf;
+
+        // Create a temporary directory for model cache
+        let temp_dir = TempDir::new().unwrap();
+        let cache_path = temp_dir.path().join("models");
+
+        // Try to load a real model if available
+        // In CI, this might not have actual model files
+        if cache_path.exists() || std::env::var("CI").is_ok() {
+            tracing::info!("Skipping real embedding test - no model files available");
+            return;
+        }
+
+        let config =
+            ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384);
+
+        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+
+        // Generate embeddings for semantically similar texts
+        let embedding1 = provider
+            .embed_text("machine learning algorithms")
+            .await
+            .unwrap();
+        let embedding2 = provider
+            .embed_text("artificial intelligence models")
+            .await
+            .unwrap();
+        let embedding3 = provider
+            .embed_text("cooking recipes for pasta")
+            .await
+            .unwrap();
+
+        assert_eq!(embedding1.len(), 384);
+        assert_eq!(embedding2.len(), 384);
+        assert_eq!(embedding3.len(), 384);
+
+        // Calculate similarities
+        let similarity_ai_ml = provider
+            .similarity("machine learning", "artificial intelligence")
+            .await
+            .unwrap();
+        let similarity_cooking = provider
+            .similarity("machine learning", "cooking recipes")
+            .await
+            .unwrap();
+
+        // Semantically similar texts should have higher similarity
+        assert!(
+            similarity_ai_ml > similarity_cooking,
+            "AI/ML similarity ({}) should be higher than ML/cooking ({})",
+            similarity_ai_ml,
+            similarity_cooking
+        );
+
+        // Both should be positive (cosine similarity range)
+        assert!(similarity_ai_ml > 0.0);
+        assert!(similarity_cooking > 0.0);
+    }
+
+    #[tokio::test]
+    async fn test_embedding_vector_properties() {
+        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+
+        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+
+        let embedding = provider.embed_text("test text").await.unwrap();
+
+        // Check that embedding is properly normalized (unit vector)
+        let norm: f32 = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 0.001, "Embedding should be normalized");
+
+        // Check that values are in reasonable range
+        for &value in &embedding {
+            assert!(
+                value >= -1.0 && value <= 1.0,
+                "Embedding values should be in [-1, 1]"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn test_model_metadata() {
+        let config =
+            ModelConfig::local_sentence_transformer("sentence-transformers/test-model", 768);
+
+        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+
+        let metadata = provider.metadata();
+        assert_eq!(metadata["model"], "sentence-transformers/test-model");
+        assert_eq!(metadata["dimension"], 768);
+        assert_eq!(metadata["type"], "local");
+        assert_eq!(metadata["provider"], "sentence-transformers");
+
+        let model_info = provider.model_info();
+        assert_eq!(model_info["name"], "sentence-transformers/test-model");
+        assert_eq!(model_info["dimension"], 768);
+        assert_eq!(model_info["type"], "local");
+    }
+
+    #[tokio::test]
+    async fn test_error_handling() {
+        let config = ModelConfig::local_sentence_transformer("nonexistent-model", 384);
+
+        // Test with non-existent model - should fall back to mock or fail gracefully
+        let result = LocalEmbeddingProvider::new(config).await;
+
+        match result {
+            Ok(provider) => {
+                // If successful, it should be a mock implementation
+                assert!(provider.is_loaded().await);
+                let embedding = provider.embed_text("test").await.unwrap();
+                assert_eq!(embedding.len(), 384);
+            }
+            Err(e) => {
+                // Should provide meaningful error message
+                assert!(e.to_string().contains("model") || e.to_string().contains("load"));
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_warmup_functionality() {
+        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+
+        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+
+        // Warmup should succeed
+        let result = provider.warmup().await;
+        assert!(result.is_ok(), "Warmup should succeed");
+    }
+
     #[test]
     fn test_utils_list_models() {
-        let models = utils::list_available_models();
+        let models = list_available_models();
         assert!(!models.is_empty());
 
         for model in models {
@@ -380,14 +470,29 @@ mod tests {
 
     #[test]
     fn test_utils_recommended_models() {
-        let fast_model = utils::get_recommended_model(utils::LocalModelUseCase::Fast);
+        let fast_model = get_recommended_model(LocalModelUseCase::Fast);
         assert_eq!(fast_model.embedding_dimension, 384);
 
-        let quality_model = utils::get_recommended_model(utils::LocalModelUseCase::Quality);
+        let quality_model = get_recommended_model(LocalModelUseCase::Quality);
         assert_eq!(quality_model.embedding_dimension, 768);
 
-        let multilingual_model =
-            utils::get_recommended_model(utils::LocalModelUseCase::Multilingual);
+        let multilingual_model = get_recommended_model(LocalModelUseCase::Multilingual);
         assert_eq!(multilingual_model.embedding_dimension, 384);
+    }
+
+    #[tokio::test]
+    async fn test_production_warning_behavior() {
+        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+
+        // This should emit a warning if not in test mode
+        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+
+        // Verify the provider works but may be using mock embeddings
+        let embedding1 = provider.embed_text("test").await.unwrap();
+        let embedding2 = provider.embed_text("test").await.unwrap();
+
+        // In test mode, embeddings should be deterministic (same)
+        assert_eq!(embedding1, embedding2);
+        assert_eq!(embedding1.len(), 384);
     }
 }

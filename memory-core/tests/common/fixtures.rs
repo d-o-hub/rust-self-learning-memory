@@ -4,7 +4,7 @@ use memory_core::{ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext};
 use serde_json::json;
 use std::collections::HashMap;
 
-/// Builder pattern for creating TaskContext instances in tests
+/// Builder pattern for creating `TaskContext` instances in tests
 ///
 /// # Examples
 ///
@@ -27,7 +27,7 @@ pub struct ContextBuilder {
 }
 
 impl ContextBuilder {
-    /// Create a new ContextBuilder with the specified domain
+    /// Create a new `ContextBuilder` with the specified domain
     pub fn new(domain: impl Into<String>) -> Self {
         Self {
             language: None,
@@ -69,7 +69,7 @@ impl ContextBuilder {
         self
     }
 
-    /// Build the TaskContext
+    /// Build the `TaskContext`
     pub fn build(self) -> TaskContext {
         TaskContext {
             language: self.language,
@@ -81,7 +81,7 @@ impl ContextBuilder {
     }
 }
 
-/// Builder pattern for creating ExecutionStep instances in tests
+/// Builder pattern for creating `ExecutionStep` instances in tests
 ///
 /// # Examples
 ///
@@ -105,7 +105,7 @@ pub struct StepBuilder {
 }
 
 impl StepBuilder {
-    /// Create a new StepBuilder
+    /// Create a new `StepBuilder`
     pub fn new(step_number: usize, tool: impl Into<String>, action: impl Into<String>) -> Self {
         Self {
             step_number,
@@ -159,7 +159,7 @@ impl StepBuilder {
         self
     }
 
-    /// Build the ExecutionStep
+    /// Build the `ExecutionStep`
     pub fn build(self) -> ExecutionStep {
         ExecutionStep {
             step_number: self.step_number,

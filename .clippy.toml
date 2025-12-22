@@ -1,3 +1,23 @@
-# Clippy configuration
+# Clippy configuration - Updated for memory backend system
 msrv = "1.70"
+
+# Type system and complexity
+type-complexity-threshold = 500
+cognitive-complexity-threshold = 30
+excessive-nesting-threshold = 6
+too-many-arguments-threshold = 7
+too-many-lines-threshold = 500
+
+# Async/Tokio specific
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
+
+# Memory/performance
+vec-box-size-threshold = 4096
+stack-size-threshold = 2048
+
+# Import and wildcard patterns
 warn-on-all-wildcard-imports = true
+
+# Documentation standards
+missing-docs-in-crate-items = false

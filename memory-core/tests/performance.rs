@@ -164,7 +164,7 @@ async fn should_retrieve_episodes_under_100ms_p95_with_100_episodes() {
 
     // Then: P95 latency should be under 100ms (NFR1)
     latencies.sort();
-    let p95_index = (latencies.len() as f32 * 0.95) as usize;
+    let p95_index = ((latencies.len() as f32 * 0.95) as usize).min(latencies.len() - 1);
     let p95 = latencies[p95_index];
 
     println!("P95 latency with 100 episodes: {:?}", p95);
@@ -199,7 +199,7 @@ async fn should_retrieve_episodes_under_100ms_p95_with_10k_episodes() {
 
     // Then: P95 latency should remain under 100ms even with large dataset (NFR1)
     latencies.sort();
-    let p95_index = (latencies.len() as f32 * 0.95) as usize;
+    let p95_index = ((latencies.len() as f32 * 0.95) as usize).min(latencies.len() - 1);
     let p95 = latencies[p95_index];
 
     println!("P95 latency with 10K episodes: {:?}", p95);
@@ -369,7 +369,8 @@ async fn should_create_episodes_very_quickly() {
     }
 
     // Then: Average creation time should be very fast (<10ms)
-    let avg_time: Duration = creation_times.iter().sum::<Duration>() / creation_times.len() as u32;
+    let avg_time: Duration =
+        creation_times.iter().sum::<Duration>() / u32::try_from(creation_times.len()).unwrap_or(1);
 
     println!("Average episode creation time: {:?}", avg_time);
 
@@ -470,6 +471,7 @@ async fn should_not_leak_memory_under_continuous_operation() {
     println!("Final memory: {} bytes", final_memory);
 
     if initial_memory > 0 {
+        #[allow(clippy::cast_precision_loss)]
         let growth = (final_memory as f32 - initial_memory as f32) / initial_memory as f32;
         println!("Memory growth: {:.2}%", growth * 100.0);
 
@@ -514,6 +516,7 @@ async fn should_not_leak_memory_over_1000_iterations() {
         // Then: Check memory periodically to detect leaks early
         if i % 100 == 0 && initial_memory > 0 {
             let current_memory = get_current_memory_usage();
+            #[allow(clippy::cast_precision_loss)]
             let growth = (current_memory as f32 - initial_memory as f32) / initial_memory as f32;
 
             println!("Iteration {}: Memory growth {:.2}%", i, growth * 100.0);
@@ -767,8 +770,8 @@ async fn should_complete_episodes_quickly_with_pattern_extraction() {
     }
 
     // Then: Average completion time should be fast (<100ms including pattern extraction)
-    let avg_time: Duration =
-        completion_times.iter().sum::<Duration>() / completion_times.len() as u32;
+    let avg_time: Duration = completion_times.iter().sum::<Duration>()
+        / u32::try_from(completion_times.len()).unwrap_or(1);
 
     println!("Average episode completion time: {:?}", avg_time);
 

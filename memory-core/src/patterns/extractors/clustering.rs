@@ -7,6 +7,7 @@ use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
 /// Deduplicate patterns by removing exact duplicates (same ID)
+#[must_use]
 pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
     let mut unique_patterns = Vec::new();
     let mut seen_ids = HashSet::new();
@@ -32,10 +33,11 @@ pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
 /// Cluster similar patterns together to avoid redundancy
 ///
 /// This performs a simple similarity-based clustering:
-/// - ToolSequence patterns with same tools are merged
-/// - DecisionPoint patterns with same condition are merged
-/// - ErrorRecovery patterns with same error type are merged
-/// - ContextPattern patterns with overlapping features are merged
+/// - `ToolSequence` patterns with same tools are merged
+/// - `DecisionPoint` patterns with same condition are merged
+/// - `ErrorRecovery` patterns with same error type are merged
+/// - `ContextPattern` patterns with overlapping features are merged
+#[must_use]
 pub fn cluster_similar_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
     let mut clustered = Vec::new();
 
@@ -87,7 +89,7 @@ fn cluster_tool_sequences(patterns: Vec<Pattern>) -> Vec<Pattern> {
                         .partial_cmp(&a.success_rate())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
-                Some(cluster.into_iter().next().unwrap())
+                cluster.into_iter().next()
             }
         })
         .collect()
@@ -117,7 +119,7 @@ fn cluster_decision_points(patterns: Vec<Pattern>) -> Vec<Pattern> {
                         .partial_cmp(&a.success_rate())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
-                Some(cluster.into_iter().next().unwrap())
+                cluster.into_iter().next()
             }
         })
         .collect()
@@ -142,7 +144,7 @@ fn cluster_error_recoveries(patterns: Vec<Pattern>) -> Vec<Pattern> {
             if cluster.is_empty() {
                 None
             } else if cluster.len() == 1 {
-                Some(cluster.into_iter().next().unwrap())
+                cluster.into_iter().next()
             } else {
                 // Merge multiple patterns with same error type
                 merge_error_recovery_patterns(cluster)
@@ -276,7 +278,7 @@ fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
     }
 
     if patterns.len() == 1 {
-        return Some(patterns.into_iter().next().unwrap());
+        return patterns.into_iter().next();
     }
 
     // Combine features and evidence

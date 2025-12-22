@@ -5,6 +5,56 @@
 use crate::pattern::Pattern;
 use crate::types::TaskContext;
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+/// Tool representation for compatibility assessment
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tool {
+    pub name: String,
+    pub capabilities: Vec<String>,
+    pub typical_contexts: Vec<TaskContext>,
+    pub success_history: HashMap<String, f32>, // context_domain -> success_rate
+}
+
+/// Tool compatibility assessment result
+#[derive(Debug, Clone)]
+pub struct CompatibilityResult {
+    pub overall_score: f32,
+    pub historical_success_rate: f32,
+    pub context_compatibility: f32,
+    pub capability_match: f32,
+}
+
+impl Tool {
+    #[must_use]
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            capabilities: Vec::new(),
+            typical_contexts: Vec::new(),
+            success_history: HashMap::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn with_capabilities(mut self, capabilities: Vec<String>) -> Self {
+        self.capabilities = capabilities;
+        self
+    }
+
+    #[must_use]
+    pub fn with_typical_context(mut self, contexts: Vec<TaskContext>) -> Self {
+        self.typical_contexts = contexts;
+        self
+    }
+
+    #[must_use]
+    pub fn with_success_history(mut self, history: HashMap<String, f32>) -> Self {
+        self.success_history = history;
+        self
+    }
+}
 
 /// Enhanced pattern validator with optimized thresholds
 #[derive(Debug, Clone)]
@@ -29,6 +79,7 @@ impl Default for OptimizedPatternValidator {
 
 impl OptimizedPatternValidator {
     /// Create validator with custom thresholds
+    #[must_use]
     pub fn new(confidence: f32, sample_size: usize, context_threshold: f32) -> Self {
         Self {
             minimum_confidence: confidence,
@@ -38,6 +89,7 @@ impl OptimizedPatternValidator {
     }
 
     /// Determine if pattern should be applied with enhanced validation
+    #[must_use]
     pub fn should_apply_pattern(&self, pattern: &Pattern, context: &TaskContext) -> bool {
         // Enhanced confidence check
         if pattern.confidence() < self.minimum_confidence {
@@ -61,6 +113,7 @@ impl OptimizedPatternValidator {
     }
 
     /// Calculate enhanced context similarity
+    #[must_use]
     pub fn calculate_context_similarity(
         &self,
         pattern_context: &TaskContext,
@@ -140,11 +193,305 @@ pub struct EnhancedPatternApplicator {
 }
 
 impl EnhancedPatternApplicator {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             validator: OptimizedPatternValidator::default(),
             risk_threshold: 0.7, // Validated threshold for validation step injection
         }
+    }
+
+    /// Assess tool compatibility with task context
+    #[must_use]
+    pub fn assess_tool_compatibility(&self, tool: &Tool, context: &TaskContext) -> f32 {
+        // Historical usage analysis
+        let historical_usage = self.calculate_historical_success_rate(tool, context);
+
+        // Success rate calculation for tool-task context pairs
+        let context_success_rate = self.calculate_context_success_rate(tool, context);
+
+        // Context compatibility analysis
+        let compatibility_score = self.analyze_context_compatibility(tool, context);
+
+        // Capability match analysis
+        let capability_match = self.analyze_capability_match(tool, context);
+
+        // Enhanced weighted combination of factors with better scoring
+        let mut overall_score = 0.0;
+
+        // Context success rate gets highest weight (50%)
+        overall_score += context_success_rate * 0.5;
+
+        // Historical usage analysis (25%)
+        overall_score += historical_usage * 0.25;
+
+        // Compatibility score (15%)
+        overall_score += compatibility_score * 0.15;
+
+        // Apply capability match as a bonus multiplier (cap at 1.0)
+        (overall_score * (1.0 + capability_match * 0.3)).min(1.0)
+    }
+
+    /// Calculate historical success rate for tool in similar contexts
+    fn calculate_historical_success_rate(&self, tool: &Tool, context: &TaskContext) -> f32 {
+        if tool.success_history.is_empty() {
+            return 0.5; // Neutral score for tools with no history
+        }
+
+        let mut total_rate = 0.0;
+        let mut weight_sum = 0.0;
+
+        // Weight by domain similarity
+        for (domain, rate) in &tool.success_history {
+            let weight = if domain == &context.domain {
+                1.0 // Exact domain match
+            } else if self.is_related_domain(domain, &context.domain) {
+                0.7 // Related domain
+            } else {
+                0.3 // Different domain
+            };
+
+            total_rate += rate * weight;
+            weight_sum += weight;
+        }
+
+        if weight_sum > 0.0 {
+            total_rate / weight_sum
+        } else {
+            0.5
+        }
+    }
+
+    /// Check if two domains are related
+    fn is_related_domain(&self, domain1: &str, domain2: &str) -> bool {
+        let related_pairs = [
+            ("api_development", "web_development"),
+            ("data_processing", "data_science"),
+            ("testing", "debugging"),
+            ("refactoring", "code_generation"),
+        ];
+
+        related_pairs
+            .iter()
+            .any(|(a, b)| (domain1 == *a && domain2 == *b) || (domain1 == *b && domain2 == *a))
+    }
+
+    /// Calculate success rate for specific context
+    fn calculate_context_success_rate(&self, tool: &Tool, context: &TaskContext) -> f32 {
+        // Find similar contexts in tool's typical contexts
+        let mut similar_contexts = 0;
+        let mut successful_contexts = 0;
+        let mut total_similarity = 0.0;
+
+        for typical_context in &tool.typical_contexts {
+            let similarity = self
+                .validator
+                .calculate_context_similarity(typical_context, context);
+
+            if similarity > 0.5 {
+                // Lower threshold for considering contexts similar
+                similar_contexts += 1;
+                total_similarity += similarity;
+
+                // Check if this context was successful
+                let domain_key = &typical_context.domain;
+                if let Some(&success_rate) = tool.success_history.get(domain_key) {
+                    if success_rate > 0.6 {
+                        // Lowered threshold to 60%
+                        successful_contexts += 1;
+                    }
+                }
+            }
+        }
+
+        if similar_contexts > 0 {
+            // Weight by similarity scores
+            let avg_similarity = total_similarity / similar_contexts as f32;
+            let base_success_rate = successful_contexts as f32 / similar_contexts as f32;
+
+            // Combine success rate with similarity weighting
+            base_success_rate * avg_similarity + (1.0 - avg_similarity) * 0.7
+        } else {
+            // If no similar contexts, check domain success history directly
+            if let Some(&domain_rate) = tool.success_history.get(&context.domain) {
+                domain_rate * 0.8 // Slight penalty for no direct context match
+            } else {
+                0.5 // Neutral score when no context information available
+            }
+        }
+    }
+
+    /// Analyze context compatibility between tool and task
+    fn analyze_context_compatibility(&self, tool: &Tool, context: &TaskContext) -> f32 {
+        let mut compatibility: f32 = 0.0;
+        let mut factors_considered = 0;
+
+        // Domain compatibility (40% weight) - Check exact matches first
+        for typical_context in &tool.typical_contexts {
+            if typical_context.domain == context.domain {
+                compatibility += 0.4;
+                factors_considered += 1;
+                break;
+            }
+        }
+
+        // If no exact domain match, check for related domains
+        if factors_considered == 0 {
+            for typical_context in &tool.typical_contexts {
+                if self.is_related_domain(&typical_context.domain, &context.domain) {
+                    compatibility += 0.25; // Partial credit for related domains
+                    factors_considered += 1;
+                    break;
+                }
+            }
+        }
+
+        // Language compatibility (25% weight)
+        if let (Some(context_lang), Some(tool_lang_context)) = (
+            &context.language,
+            tool.typical_contexts
+                .iter()
+                .find_map(|tc| tc.language.as_ref()),
+        ) {
+            if context_lang == tool_lang_context {
+                compatibility += 0.25;
+                factors_considered += 1;
+            }
+        }
+
+        // Framework compatibility (20% weight)
+        if let (Some(context_framework), Some(tool_framework_context)) = (
+            &context.framework,
+            tool.typical_contexts
+                .iter()
+                .find_map(|tc| tc.framework.as_ref()),
+        ) {
+            if context_framework == tool_framework_context {
+                compatibility += 0.20;
+                factors_considered += 1;
+            }
+        }
+
+        // Complexity compatibility (15% weight)
+        let has_matching_complexity = tool
+            .typical_contexts
+            .iter()
+            .any(|tc| tc.complexity == context.complexity);
+
+        if has_matching_complexity {
+            compatibility += 0.15;
+            factors_considered += 1;
+        }
+
+        // Bonus for tools that have been used in exactly this domain before
+        if tool.success_history.contains_key(&context.domain) {
+            compatibility += 0.1; // Small bonus for known domain usage
+            factors_considered += 1;
+        }
+
+        // If no factors were considered, return a score based on domain popularity
+        if factors_considered == 0 {
+            match context.domain.as_str() {
+                "api_development" | "web_development" => 0.6, // Common domains get base score
+                _ => 0.4,
+            }
+        } else {
+            compatibility.min(1.0)
+        }
+    }
+
+    /// Analyze capability match between tool and task requirements
+    fn analyze_capability_match(&self, tool: &Tool, context: &TaskContext) -> f32 {
+        if tool.capabilities.is_empty() {
+            return 0.5; // Neutral score for tools with no capability restrictions
+        }
+
+        // Get expected capabilities for the context
+        let expected_capabilities = self.get_expected_capabilities_for_context(context);
+
+        if expected_capabilities.is_empty() {
+            return 1.0; // No specific capabilities required
+        }
+
+        let mut matched_capabilities = 0;
+
+        // Check for exact matches
+        for capability in &tool.capabilities {
+            if expected_capabilities.contains(capability) {
+                matched_capabilities += 1;
+            }
+        }
+
+        // Check for partial matches (e.g., "rust_compiler" matches "compiler" requirement)
+        for tool_cap in &tool.capabilities {
+            for expected_cap in &expected_capabilities {
+                if tool_cap.contains(expected_cap) || expected_cap.contains(tool_cap) {
+                    matched_capabilities += 1;
+                    break; // Don't double count
+                }
+            }
+        }
+
+        // Calculate match ratio
+        let match_ratio = matched_capabilities as f32 / expected_capabilities.len() as f32;
+
+        // Bonus for exact domain-specific tools
+        let domain_bonus = match context.domain.as_str() {
+            "api_development" => {
+                if tool
+                    .capabilities
+                    .iter()
+                    .any(|c| c.contains("rust") || c.contains("compiler"))
+                {
+                    0.2
+                } else {
+                    0.0
+                }
+            }
+            _ => 0.0,
+        };
+
+        (match_ratio + domain_bonus).min(1.0)
+    }
+
+    /// Get expected capabilities for a given context
+    fn get_expected_capabilities_for_context(&self, context: &TaskContext) -> Vec<String> {
+        let mut capabilities = Vec::new();
+
+        // Domain-based capabilities
+        match context.domain.as_str() {
+            "api_development" => {
+                capabilities.extend(vec!["http_client".to_string(), "json_parser".to_string()]);
+            }
+            "data_processing" => {
+                capabilities.extend(vec!["file_reader".to_string(), "data_analyzer".to_string()]);
+            }
+            "debugging" => {
+                capabilities.extend(vec!["error_analyzer".to_string(), "log_viewer".to_string()]);
+            }
+            "testing" => {
+                capabilities.extend(vec![
+                    "test_runner".to_string(),
+                    "assertion_checker".to_string(),
+                ]);
+            }
+            _ => {
+                capabilities.push("general_processor".to_string());
+            }
+        }
+
+        // Language-based capabilities
+        if let Some(lang) = &context.language {
+            capabilities.push(format!("{lang}_compiler"));
+            capabilities.push(format!("{lang}_linter"));
+        }
+
+        // Framework-based capabilities
+        if let Some(framework) = &context.framework {
+            capabilities.push(format!("{framework}_integration"));
+        }
+
+        capabilities
     }
 
     /// Apply pattern with risk assessment and validation injection
@@ -195,6 +542,11 @@ impl EnhancedPatternApplicator {
         let step_count_risk = (planned_steps.len() as f32 / 10.0).min(1.0);
         risk_score += step_count_risk * 0.2;
 
+        // Tool compatibility risk (10% weight) - NEW IMPLEMENTATION
+        let tool_compatibility_risk =
+            self.calculate_tool_compatibility_risk(pattern, context, planned_steps);
+        risk_score += tool_compatibility_risk * 0.1;
+
         // Domain-specific risk (10% weight)
         let domain_risk = match context.domain.as_str() {
             "debugging" => 0.8,       // High risk domain
@@ -208,8 +560,39 @@ impl EnhancedPatternApplicator {
             overall_risk_score: risk_score,
             step_level_risks: vec![risk_score; planned_steps.len()],
             context_complexity_risk: complexity_risk,
-            tool_compatibility_risk: 0.0, // TODO: Implement in future iteration
+            tool_compatibility_risk,
             should_inject_validation: risk_score > self.risk_threshold,
+        }
+    }
+
+    /// Calculate tool compatibility risk based on planned steps
+    fn calculate_tool_compatibility_risk(
+        &self,
+        _pattern: &Pattern,
+        context: &TaskContext,
+        planned_steps: &[PlannedStep],
+    ) -> f32 {
+        if planned_steps.is_empty() {
+            return 0.5; // Neutral risk when no steps planned
+        }
+
+        let mut total_compatibility = 0.0;
+        let mut tools_assessed = 0;
+
+        // Extract tools from planned steps and assess compatibility
+        for step in planned_steps {
+            let tool = Tool::new(step.tool.clone());
+            let compatibility = self.assess_tool_compatibility(&tool, context);
+            total_compatibility += compatibility;
+            tools_assessed += 1;
+        }
+
+        if tools_assessed > 0 {
+            let avg_compatibility = total_compatibility / tools_assessed as f32;
+            // Convert compatibility score to risk score (1.0 - compatibility)
+            (1.0 - avg_compatibility).clamp(0.0, 1.0)
+        } else {
+            0.5 // Neutral risk
         }
     }
 
@@ -226,11 +609,11 @@ impl EnhancedPatternApplicator {
         };
 
         // Insert before the last step (usually the most critical)
-        if !planned_steps.is_empty() {
+        if planned_steps.is_empty() {
+            planned_steps.push(validation_step);
+        } else {
             let insert_position = planned_steps.len() - 1;
             planned_steps.insert(insert_position, validation_step);
-        } else {
-            planned_steps.push(validation_step);
         }
     }
 }
@@ -254,6 +637,7 @@ pub struct PlannedStep {
 mod tests {
     use super::*;
     use crate::types::{ComplexityLevel, TaskContext};
+    use std::collections::HashMap;
 
     #[test]
     fn test_enhanced_confidence_threshold() {
@@ -303,5 +687,207 @@ mod tests {
 
         let similarity = validator.calculate_jaccard_similarity(&tags1, &tags2);
         assert!(similarity > 0.0 && similarity < 1.0); // Partial overlap
+    }
+
+    // Tool Compatibility Assessment Tests
+
+    #[test]
+    fn test_high_tool_compatibility() {
+        let applicator = EnhancedPatternApplicator::new();
+
+        // Create a tool with high compatibility context
+        let mut tool = Tool::new("rust_compiler".to_string());
+        tool.capabilities = vec!["rust_compiler".to_string(), "rust_linter".to_string()];
+
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("axum".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "api_development".to_string(),
+            tags: vec!["api".to_string(), "rest".to_string()],
+        };
+
+        // Add matching typical context
+        let typical_context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("axum".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "api_development".to_string(),
+            tags: vec!["api".to_string(), "rest".to_string()],
+        };
+        tool.typical_contexts = vec![typical_context];
+
+        // Add high success history
+        let mut history = HashMap::new();
+        history.insert("api_development".to_string(), 0.9);
+        tool.success_history = history;
+
+        let compatibility = applicator.assess_tool_compatibility(&tool, &context);
+        assert!(
+            compatibility > 0.8,
+            "High compatibility scenario should score > 0.8, got {}",
+            compatibility
+        );
+        assert!(
+            compatibility <= 1.0,
+            "Compatibility score should not exceed 1.0"
+        );
+    }
+
+    #[test]
+    fn test_low_tool_compatibility() {
+        let applicator = EnhancedPatternApplicator::new();
+
+        // Create a tool with low compatibility
+        let tool = Tool::new("python_script".to_string());
+
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("axum".to_string()),
+            complexity: ComplexityLevel::Complex,
+            domain: "api_development".to_string(),
+            tags: vec!["api".to_string(), "rest".to_string()],
+        };
+
+        // No typical contexts or success history - should result in low score
+        let compatibility = applicator.assess_tool_compatibility(&tool, &context);
+        assert!(
+            compatibility < 0.6,
+            "Low compatibility scenario should score < 0.6, got {}",
+            compatibility
+        );
+        assert!(
+            compatibility >= 0.0,
+            "Compatibility score should not be negative"
+        );
+    }
+
+    #[test]
+    fn test_tool_compatibility_edge_cases() {
+        let applicator = EnhancedPatternApplicator::new();
+
+        // Test with empty tool data
+        let empty_tool = Tool::new("unknown_tool".to_string());
+        let context = TaskContext::default();
+
+        let compatibility = applicator.assess_tool_compatibility(&empty_tool, &context);
+        assert!(
+            (0.0..=1.0).contains(&compatibility),
+            "Empty tool should return valid score between 0.0 and 1.0, got {}",
+            compatibility
+        );
+
+        // Test with no capabilities but has contexts
+        let mut tool_with_contexts = Tool::new("general_tool".to_string());
+        tool_with_contexts.typical_contexts = vec![TaskContext::default()];
+
+        let compatibility2 = applicator.assess_tool_compatibility(&tool_with_contexts, &context);
+        assert!(
+            (0.0..=1.0).contains(&compatibility2),
+            "Tool with contexts should return valid score, got {}",
+            compatibility2
+        );
+
+        // Test with success history but no typical contexts
+        let mut tool_with_history = Tool::new("historical_tool".to_string());
+        let mut history = HashMap::new();
+        history.insert("unknown_domain".to_string(), 0.5);
+        tool_with_history.success_history = history;
+
+        let compatibility3 = applicator.assess_tool_compatibility(&tool_with_history, &context);
+        assert!(
+            (0.0..=1.0).contains(&compatibility3),
+            "Tool with history should return valid score, got {}",
+            compatibility3
+        );
+    }
+
+    #[test]
+    fn test_expected_capabilities_mapping() {
+        let applicator = EnhancedPatternApplicator::new();
+
+        // Test domain-based capability mapping
+        let api_context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("axum".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "api_development".to_string(),
+            tags: Vec::new(),
+        };
+
+        let capabilities = applicator.get_expected_capabilities_for_context(&api_context);
+        assert!(capabilities.contains(&"http_client".to_string()));
+        assert!(capabilities.contains(&"json_parser".to_string()));
+        assert!(capabilities.contains(&"rust_compiler".to_string()));
+        assert!(capabilities.contains(&"rust_linter".to_string()));
+        assert!(capabilities.contains(&"axum_integration".to_string()));
+
+        // Test unknown domain gets general capabilities
+        let unknown_context = TaskContext {
+            language: None,
+            framework: None,
+            complexity: ComplexityLevel::Simple,
+            domain: "unknown_domain".to_string(),
+            tags: Vec::new(),
+        };
+
+        let general_capabilities =
+            applicator.get_expected_capabilities_for_context(&unknown_context);
+        assert!(general_capabilities.contains(&"general_processor".to_string()));
+    }
+
+    #[test]
+    fn test_related_domain_detection() {
+        let applicator = EnhancedPatternApplicator::new();
+
+        assert!(applicator.is_related_domain("api_development", "web_development"));
+        assert!(applicator.is_related_domain("web_development", "api_development"));
+        assert!(applicator.is_related_domain("data_processing", "data_science"));
+        assert!(applicator.is_related_domain("testing", "debugging"));
+        assert!(!applicator.is_related_domain("api_development", "debugging"));
+        assert!(!applicator.is_related_domain("unknown", "domain"));
+    }
+
+    #[test]
+    fn test_tool_compatibility_risk_calculation() {
+        let applicator = EnhancedPatternApplicator::new();
+
+        let pattern = Pattern::ToolSequence {
+            id: uuid::Uuid::new_v4(),
+            tools: vec!["test_tool".to_string()],
+            context: TaskContext::default(),
+            success_rate: 0.8,
+            avg_latency: chrono::Duration::seconds(30),
+            occurrence_count: 5,
+        };
+
+        let planned_steps = vec![PlannedStep {
+            tool: "rust_compiler".to_string(),
+            action: "compile".to_string(),
+            expected_duration_ms: 5000,
+            parameters: serde_json::json!({}),
+        }];
+
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: None,
+            complexity: ComplexityLevel::Simple,
+            domain: "api_development".to_string(),
+            tags: Vec::new(),
+        };
+
+        let risk = applicator.calculate_tool_compatibility_risk(&pattern, &context, &planned_steps);
+        assert!(
+            (0.0..=1.0).contains(&risk),
+            "Tool compatibility risk should be between 0.0 and 1.0, got {}",
+            risk
+        );
+
+        // Test with empty planned steps
+        let empty_risk = applicator.calculate_tool_compatibility_risk(&pattern, &context, &[]);
+        assert_eq!(
+            empty_risk, 0.5,
+            "Empty planned steps should result in neutral risk (0.5)"
+        );
     }
 }

@@ -38,8 +38,7 @@ pub(super) fn generate_insights(episode: &Episode, max_items: usize) -> Vec<Stri
     let unique_tools = helpers::count_unique_tools(episode);
     if unique_tools > 5 {
         insights.push(format!(
-            "Task required diverse toolset ({} different tools)",
-            unique_tools
+            "Task required diverse toolset ({unique_tools} different tools)"
         ));
     } else if unique_tools == 1 && episode.steps.len() > 3 {
         insights.push("Task accomplished with single tool - potential for automation".to_string());
@@ -50,8 +49,7 @@ pub(super) fn generate_insights(episode: &Episode, max_items: usize) -> Vec<Stri
         if avg_latency > 5000 {
             // > 5 seconds
             insights.push(format!(
-                "High average step latency: {}ms - consider optimization",
-                avg_latency
+                "High average step latency: {avg_latency}ms - consider optimization"
             ));
         }
     }
@@ -146,13 +144,11 @@ fn analyze_complexity_alignment(episode: &Episode) -> Option<String> {
 
     if step_count < expected_steps / 2 {
         Some(format!(
-            "Task complexity ({:?}) handled more efficiently than expected ({} vs ~{} steps)",
-            complexity, step_count, expected_steps
+            "Task complexity ({complexity:?}) handled more efficiently than expected ({step_count} vs ~{expected_steps} steps)"
         ))
     } else if step_count > expected_steps * 2 {
         Some(format!(
-            "Task required more steps than typical for {:?} complexity - may need approach refinement",
-            complexity
+            "Task required more steps than typical for {complexity:?} complexity - may need approach refinement"
         ))
     } else {
         None
@@ -164,13 +160,11 @@ fn analyze_learning_indicators(episode: &Episode) -> Option<String> {
 
     if pattern_count >= 3 {
         Some(format!(
-            "Strong learning episode: discovered {} reusable patterns for future tasks",
-            pattern_count
+            "Strong learning episode: discovered {pattern_count} reusable patterns for future tasks"
         ))
     } else if pattern_count > 0 && episode.successful_steps_count() > 0 {
         Some(format!(
-            "Learning opportunity: {} pattern(s) identified - build on this for similar tasks",
-            pattern_count
+            "Learning opportunity: {pattern_count} pattern(s) identified - build on this for similar tasks"
         ))
     } else if helpers::detect_error_recovery(episode) {
         Some(
@@ -217,7 +211,9 @@ fn generate_recommendations_for_similar_tasks(episode: &Episode) -> Option<Strin
             .take(3)
             .collect();
 
-        if !key_tools.is_empty() {
+        if key_tools.is_empty() {
+            None
+        } else {
             Some(format!(
                 "For similar {} tasks in {}, prioritize: {}",
                 episode.context.domain,
@@ -228,8 +224,6 @@ fn generate_recommendations_for_similar_tasks(episode: &Episode) -> Option<Strin
                     .unwrap_or("any language"),
                 key_tools.join(", ")
             ))
-        } else {
-            None
         }
     } else {
         None

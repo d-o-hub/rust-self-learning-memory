@@ -1,14 +1,15 @@
-//! OpenAI embedding provider for high-quality cloud-based embeddings
+//! `OpenAI` embedding provider for high-quality cloud-based embeddings
 
 use super::config::ModelConfig;
-use super::provider::EmbeddingProvider;
-use anyhow::{Context, Result};
-use async_trait::async_trait;
+use anyhow::Result;
 
 #[cfg(feature = "openai")]
-use serde::{Deserialize, Serialize};
-#[cfg(feature = "openai")]
-use std::time::Instant;
+use {
+    super::provider::EmbeddingProvider,
+    async_trait::async_trait,
+    serde::{Deserialize, Serialize},
+    std::time::Instant,
+};
 
 /// OpenAI embedding provider
 ///
@@ -37,18 +38,19 @@ use std::time::Instant;
 ///     Ok(())
 /// }
 /// ```
+#[cfg(feature = "openai")]
 pub struct OpenAIEmbeddingProvider {
     /// OpenAI API key
     api_key: String,
     /// Model configuration
     config: ModelConfig,
     /// HTTP client for API requests
-    #[cfg(feature = "openai")]
     client: reqwest::Client,
     /// Base URL for OpenAI API
     base_url: String,
 }
 
+#[cfg(feature = "openai")]
 impl OpenAIEmbeddingProvider {
     /// Create a new OpenAI embedding provider
     ///
@@ -123,6 +125,7 @@ impl OpenAIEmbeddingProvider {
     }
 }
 
+#[cfg(feature = "openai")]
 #[async_trait]
 impl EmbeddingProvider for OpenAIEmbeddingProvider {
     async fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
@@ -216,6 +219,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
 
 // OpenAI API request/response structures
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Serialize)]
 struct EmbeddingRequest {
     input: EmbeddingInput,
@@ -226,6 +230,7 @@ struct EmbeddingRequest {
     dimensions: Option<usize>,
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 enum EmbeddingInput {
@@ -233,6 +238,7 @@ enum EmbeddingInput {
     Batch(Vec<String>),
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct EmbeddingResponse {
     data: Vec<EmbeddingData>,
@@ -240,6 +246,7 @@ struct EmbeddingResponse {
     usage: Usage,
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct EmbeddingData {
     embedding: Vec<f32>,
@@ -247,17 +254,19 @@ struct EmbeddingData {
     object: String, // Should be "embedding"
 }
 
+#[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct Usage {
     prompt_tokens: usize,
     total_tokens: usize,
 }
 
-/// Utility functions for OpenAI provider
+/// Utility functions for `OpenAI` provider
 pub mod utils {
-    use super::*;
+    use super::{ModelConfig, Result};
 
-    /// Validate OpenAI API key format
+    /// Validate `OpenAI` API key format
+    #[allow(dead_code)]
     pub fn validate_api_key(api_key: &str) -> Result<()> {
         if api_key.is_empty() {
             anyhow::bail!("OpenAI API key is empty");
@@ -275,6 +284,7 @@ pub mod utils {
     }
 
     /// Get the appropriate model configuration for different use cases
+    #[allow(dead_code)]
     pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> ModelConfig {
         match use_case {
             OpenAIModelUseCase::Balanced => ModelConfig::openai_3_small(),
@@ -285,7 +295,8 @@ pub mod utils {
 
     /// Calculate approximate cost for embedding generation
     ///
-    /// Based on OpenAI's pricing as of 2024. Prices may change.
+    /// Based on `OpenAI`'s pricing as of 2024. Prices may change.
+    #[allow(dead_code)]
     pub fn estimate_cost(num_tokens: usize, model: &str) -> f64 {
         let cost_per_million_tokens = match model {
             "text-embedding-ada-002" => 0.10,
@@ -300,12 +311,14 @@ pub mod utils {
     /// Estimate token count for text (approximate)
     ///
     /// This is a rough estimate. Actual token count may differ.
+    #[allow(dead_code)]
     pub fn estimate_tokens(text: &str) -> usize {
         // Rough estimate: ~1 token per 4 characters for English text
         (text.len() as f64 / 4.0).ceil() as usize
     }
 
-    /// Use cases for OpenAI model selection
+    /// Use cases for `OpenAI` model selection
+    #[allow(dead_code)]
     pub enum OpenAIModelUseCase {
         /// Balanced performance and cost (text-embedding-3-small)
         Balanced,
@@ -373,6 +386,7 @@ mod tests {
         assert_eq!(legacy.model_name, "text-embedding-ada-002");
     }
 
+    #[cfg(feature = "openai")]
     #[tokio::test]
     async fn test_provider_creation() {
         let config = ModelConfig::openai_3_small();
@@ -383,6 +397,7 @@ mod tests {
         assert_eq!(provider.base_url, "https://api.openai.com/v1");
     }
 
+    #[cfg(feature = "openai")]
     #[tokio::test]
     async fn test_custom_url_provider() {
         let config = ModelConfig::openai_3_small();

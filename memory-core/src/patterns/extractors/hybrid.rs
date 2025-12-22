@@ -29,6 +29,7 @@ impl Default for HybridPatternExtractor {
 
 impl HybridPatternExtractor {
     /// Create a new hybrid extractor with all default extractors
+    #[must_use]
     pub fn new() -> Self {
         let extractors: Vec<Box<dyn PatternExtractorTrait>> = vec![
             Box::new(ToolSequenceExtractor::new()),
@@ -45,6 +46,7 @@ impl HybridPatternExtractor {
     }
 
     /// Create with custom extractors
+    #[must_use]
     pub fn with_extractors(extractors: Vec<Box<dyn PatternExtractorTrait>>) -> Self {
         Self {
             extractors,
@@ -54,12 +56,14 @@ impl HybridPatternExtractor {
     }
 
     /// Set confidence threshold for filtering patterns
+    #[must_use]
     pub fn with_confidence_threshold(mut self, threshold: f32) -> Self {
         self.confidence_threshold = threshold;
         self
     }
 
     /// Enable or disable clustering
+    #[must_use]
     pub fn with_clustering(mut self, enable: bool) -> Self {
         self.enable_clustering = enable;
         self
@@ -131,11 +135,13 @@ impl HybridPatternExtractor {
     }
 
     /// Get the number of registered extractors
+    #[must_use]
     pub fn extractor_count(&self) -> usize {
         self.extractors.len()
     }
 
     /// Get names of all registered extractors
+    #[must_use]
     pub fn extractor_names(&self) -> Vec<&str> {
         self.extractors.iter().map(|e| e.name()).collect()
     }
@@ -147,7 +153,7 @@ impl PatternExtractorTrait for HybridPatternExtractor {
         self.extract_patterns(episode).await
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "HybridPatternExtractor"
     }
 

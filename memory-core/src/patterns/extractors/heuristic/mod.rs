@@ -42,7 +42,7 @@ impl Default for HeuristicExtractorConfig {
 /// 1. Identify decision points in episode steps (by keywords)
 /// 2. For successful episodes, extract the decision context and resulting action
 /// 3. Group similar condition→action pairs
-/// 4. Calculate confidence = success_rate × √sample_size
+/// 4. Calculate confidence = `success_rate` × √`sample_size`
 /// 5. Filter by minimum confidence threshold
 ///
 /// # Examples
@@ -67,6 +67,7 @@ impl Default for HeuristicExtractor {
 
 impl HeuristicExtractor {
     /// Create a new heuristic extractor with default configuration
+    #[must_use]
     pub fn new() -> Self {
         Self {
             config: HeuristicExtractorConfig::default(),
@@ -74,11 +75,13 @@ impl HeuristicExtractor {
     }
 
     /// Create with custom configuration
+    #[must_use]
     pub fn with_config(config: HeuristicExtractorConfig) -> Self {
         Self { config }
     }
 
     /// Create with custom thresholds
+    #[must_use]
     pub fn with_thresholds(min_confidence: f32, min_sample_size: usize) -> Self {
         Self {
             config: HeuristicExtractorConfig {
@@ -104,6 +107,7 @@ impl HeuristicExtractor {
     /// # Errors
     ///
     /// Returns error if confidence calculation fails or data is invalid
+    #[allow(clippy::unused_async)]
     pub async fn extract(&self, episode: &Episode) -> Result<Vec<Heuristic>> {
         // Only extract from complete episodes
         if !episode.is_complete() {
@@ -113,7 +117,7 @@ impl HeuristicExtractor {
         // Only extract from successful episodes
         let is_successful = matches!(
             episode.outcome,
-            Some(TaskOutcome::Success { .. }) | Some(TaskOutcome::PartialSuccess { .. })
+            Some(TaskOutcome::Success { .. } | TaskOutcome::PartialSuccess { .. })
         );
 
         if !is_successful {
@@ -172,8 +176,7 @@ impl HeuristicExtractor {
             // Validate confidence is non-negative and finite
             if !confidence.is_finite() || confidence < 0.0 {
                 return Err(anyhow::anyhow!(
-                    "Invalid confidence score: {}. Must be finite and non-negative",
-                    confidence
+                    "Invalid confidence score: {confidence}. Must be finite and non-negative"
                 ))
                 .context("Failed to calculate heuristic confidence");
             }

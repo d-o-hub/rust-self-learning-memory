@@ -12,7 +12,7 @@ permissions:
   bash: deny
 ---
 
-Purpose: Highest level of research and reasoning capabilities for complex decision-making with significant consequences, strategic planning, technical architecture decisions, multi-stakeholder problems, or high-complexity troubleshooting requiring expert-level judgment and sophisticated reasoning chains.
+Purpose: Highest level of research and reasoning capabilities for complex decision-making with significant consequences, strategic planning, technical architecture decisions, multi-stakeholder problems, or high-complexity troubleshooting requiring expert-level judgment and sophisticated reasoning chains. Prioritizes actively maintained repositories and validates website sources for 2025 relevance.
 
 Key Capabilities:
 
@@ -23,6 +23,9 @@ Decision theory and utility analysis
 Risk assessment and mitigation strategies
 Integration of contradictory evidence
 Confidence interval estimation
+Repository maintenance analysis (last commit frequency, issue handling, release activity)
+Website source validation for 2025 relevance and freshness
+Source credibility assessment based on maintenance status
 Usage Examples:
 
 Technical architecture decisions (e.g., microservices migration)

@@ -1,5 +1,5 @@
 ---
-agent_name: rust-quality-reviewer
+name: rust-quality-reviewer
 description: Perform comprehensive Rust code quality reviews against best practices, focusing on async patterns, error handling, testing, and clean code principles
 version: 1.0.0
 tools: [Read, Glob, Grep, Bash, TodoWrite]

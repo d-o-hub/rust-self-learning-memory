@@ -27,6 +27,7 @@ pub struct Heuristic {
 
 impl Heuristic {
     /// Create a new heuristic
+    #[must_use]
     pub fn new(condition: String, action: String, confidence: f32) -> Self {
         let now = Utc::now();
         Self {

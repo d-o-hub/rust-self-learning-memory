@@ -45,3 +45,16 @@ parking_lot = "0.12"
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 futures = "0.3"
+
+[lints.rust]
+# Allow unsafe only for specific use cases
+unsafe_code = "warn"
+
+[lints.clippy]
+# External I/O requires stricter security and correctness
+suspicious = { level = "deny" }
+correctness = { level = "deny" }
+style = { level = "warn" }
+# SQL injection prevention
+unwrap_used = { level = "deny" }
+expect_used = { level = "deny" }

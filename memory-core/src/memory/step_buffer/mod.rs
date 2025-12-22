@@ -166,9 +166,9 @@ impl StepBuffer {
     /// Check if the buffer should be flushed.
     ///
     /// Returns true if any flush condition is met:
-    /// - Buffer size >= max_batch_size
-    /// - Time since last flush >= flush_interval_ms
-    /// - Buffer is non-empty and auto_flush is disabled
+    /// - Buffer size >= `max_batch_size`
+    /// - Time since last flush >= `flush_interval_ms`
+    /// - Buffer is non-empty and `auto_flush` is disabled
     ///
     /// # Returns
     ///
@@ -320,6 +320,7 @@ impl StepBuffer {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
     pub fn len(&self) -> usize {
         self.steps.len()
     }
@@ -342,6 +343,7 @@ impl StepBuffer {
     ///
     /// assert!(buffer.is_empty());
     /// ```
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.steps.is_empty()
     }
@@ -351,6 +353,7 @@ impl StepBuffer {
     /// # Returns
     ///
     /// UUID of the episode.
+    #[must_use]
     pub fn episode_id(&self) -> Uuid {
         self.episode_id
     }
@@ -361,6 +364,7 @@ impl StepBuffer {
     ///
     /// Total count of all steps added to this buffer, including those
     /// that have been flushed.
+    #[must_use]
     pub fn total_steps_processed(&self) -> usize {
         self.total_steps_processed
     }
@@ -370,6 +374,7 @@ impl StepBuffer {
     /// # Returns
     ///
     /// Duration since the last `take_steps()` call or buffer creation.
+    #[must_use]
     pub fn time_since_last_flush(&self) -> Duration {
         self.last_flush.elapsed()
     }

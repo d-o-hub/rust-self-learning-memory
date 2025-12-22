@@ -209,7 +209,7 @@ async fn should_handle_special_characters_and_edge_cases_gracefully() {
     let test_cases = vec![
         SpecialCharTest {
             name: "Empty description",
-            description: "".to_string(),
+            description: String::new(),
             tool: "tool".to_string(),
             action: "action".to_string(),
             should_test_in_step: false,

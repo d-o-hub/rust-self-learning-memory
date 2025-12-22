@@ -57,24 +57,27 @@ pub enum Error {
 
 impl Error {
     /// Check if this error is recoverable (can retry with backoff)
+    #[must_use]
     pub fn is_recoverable(&self) -> bool {
         match self {
-            Error::Storage(_) => true,
-            Error::Learning(_) => false,
-            Error::MCP(_) => true,
-            Error::NotFound(_) => false,
-            Error::Pattern(_) => false,
-            Error::Serialization(_) => false,
-            Error::ExecutionTimeout => true,
-            Error::CircuitBreakerOpen => true,
-            Error::InvalidInput(_) => false,
-            Error::InvalidState(_) => false,
-            Error::Security(_) => false,
-            Error::QuotaExceeded(_) => false,
-            Error::RateLimitExceeded(_) => true, // Can retry after backoff
-            Error::Io(_) => true,
-            Error::Configuration(_) => false,
-            Error::Embedding(_) => true,
+            // Recoverable errors (can retry with backoff)
+            Error::Storage(_)
+            | Error::MCP(_)
+            | Error::ExecutionTimeout
+            | Error::CircuitBreakerOpen
+            | Error::RateLimitExceeded(_)
+            | Error::Io(_)
+            | Error::Embedding(_) => true,
+            // Non-recoverable errors
+            Error::Learning(_)
+            | Error::NotFound(_)
+            | Error::Pattern(_)
+            | Error::Serialization(_)
+            | Error::InvalidInput(_)
+            | Error::InvalidState(_)
+            | Error::Security(_)
+            | Error::QuotaExceeded(_)
+            | Error::Configuration(_) => false,
         }
     }
 }

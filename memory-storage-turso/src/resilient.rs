@@ -237,6 +237,25 @@ impl StorageBackend for ResilientStorage {
             })
             .await
     }
+
+    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
+        let storage = Arc::clone(&self.storage);
+        let key_string = key.to_string();
+        let value_string = value.to_string();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                let key_string = key_string;
+                let value_string = value_string;
+                async move {
+                    storage
+                        .query_episodes_by_metadata(&key_string, &value_string)
+                        .await
+                }
+            })
+            .await
+    }
 }
 
 #[cfg(test)]

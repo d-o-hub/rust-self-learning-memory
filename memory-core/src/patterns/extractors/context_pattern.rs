@@ -23,6 +23,7 @@ impl Default for ContextPatternExtractor {
 
 impl ContextPatternExtractor {
     /// Create new context pattern extractor
+    #[must_use]
     pub fn new() -> Self {
         Self {
             confidence_threshold: 0.7,
@@ -30,6 +31,7 @@ impl ContextPatternExtractor {
     }
 
     /// Create with custom confidence threshold
+    #[must_use]
     pub fn with_threshold(threshold: f32) -> Self {
         Self {
             confidence_threshold: threshold,
@@ -59,18 +61,18 @@ impl ContextPatternExtractor {
         let mut features = Vec::new();
 
         if let Some(lang) = &episode.context.language {
-            features.push(format!("language:{}", lang));
+            features.push(format!("language:{lang}"));
         }
 
         if let Some(framework) = &episode.context.framework {
-            features.push(format!("framework:{}", framework));
+            features.push(format!("framework:{framework}"));
         }
 
         features.push(format!("domain:{}", episode.context.domain));
         features.push(format!("complexity:{:?}", episode.context.complexity));
 
         for tag in &episode.context.tags {
-            features.push(format!("tag:{}", tag));
+            features.push(format!("tag:{tag}"));
         }
 
         features
@@ -124,7 +126,7 @@ impl PatternExtractorTrait for ContextPatternExtractor {
         Ok(patterns)
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "ContextPatternExtractor"
     }
 

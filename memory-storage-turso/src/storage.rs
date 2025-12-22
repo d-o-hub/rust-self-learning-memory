@@ -1,7 +1,11 @@
 //! Storage operations for episodes, patterns, and heuristics
 
 use crate::TursoStorage;
+use async_trait::async_trait;
 use libsql::params;
+use memory_core::embeddings::{
+    cosine_similarity, EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult,
+};
 use memory_core::{
     episode::PatternId,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
@@ -236,6 +240,64 @@ impl TursoStorage {
         }
 
         info!("Found {} episodes modified since {}", episodes.len(), since);
+        Ok(episodes)
+    }
+
+    /// Query episodes by metadata key-value pair
+    ///
+    /// Returns all episodes whose metadata contains the specified key-value pair.
+    /// This enables efficient querying of specialized data like monitoring records.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes matching the metadata criteria
+    pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
+        debug!("Querying episodes by metadata: {} = {}", key, value);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT episode_id, task_type, task_description, context,
+                   start_time, end_time, steps, outcome, reward,
+                   reflection, patterns, heuristics, metadata
+            FROM episodes
+            WHERE metadata LIKE '%' || ? || '%'
+            ORDER BY start_time DESC
+        "#;
+
+        let search_pattern = format!("\"{}\":\"{}\"", key, value);
+
+        let mut rows = conn
+            .query(sql, params![search_pattern])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episodes by metadata: {}", e)))?;
+
+        let mut episodes = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+        {
+            let episode = self.row_to_episode(&row)?;
+
+            // Double-check the metadata match (since LIKE might be imprecise)
+            if let Some(metadata_value) = episode.metadata.get(key) {
+                if metadata_value == value {
+                    episodes.push(episode);
+                }
+            }
+        }
+
+        info!(
+            "Found {} episodes with metadata {} = {}",
+            episodes.len(),
+            key,
+            value
+        );
         Ok(episodes)
     }
 
@@ -1013,5 +1075,260 @@ impl TursoStorage {
             updated_at: chrono::DateTime::from_timestamp(updated_at, 0)
                 .ok_or_else(|| Error::Storage("Invalid updated_at timestamp".to_string()))?,
         })
+    }
+
+    /// Store an embedding in the database
+    async fn store_embedding(
+        &self,
+        item_id: &str,
+        item_type: &str,
+        embedding: &[f32],
+    ) -> Result<()> {
+        debug!("Storing embedding for {}: {}", item_type, item_id);
+
+        let conn = self.get_connection().await?;
+        let embedding_json = serde_json::to_string(embedding).map_err(Error::Serialization)?;
+        let embedding_id = format!("{}_{}", item_type, item_id);
+
+        let sql = r#"
+            INSERT OR REPLACE INTO embeddings (
+                embedding_id, item_id, item_type, embedding_data, dimension, model
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        "#;
+
+        conn.execute(
+            sql,
+            params![
+                embedding_id,
+                item_id,
+                item_type,
+                embedding_json,
+                embedding.len() as i64,
+                "unknown",
+            ],
+        )
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store embedding: {}", e)))?;
+
+        Ok(())
+    }
+
+    /// Retrieve an embedding from the database
+    async fn get_embedding(&self, item_id: &str, item_type: &str) -> Result<Option<Vec<f32>>> {
+        debug!("Retrieving embedding for {}: {}", item_type, item_id);
+
+        let conn = self.get_connection().await?;
+        let embedding_id = format!("{}_{}", item_type, item_id);
+
+        let sql = "SELECT embedding_data FROM embeddings WHERE embedding_id = ?";
+
+        let mut rows = conn
+            .query(sql, params![embedding_id])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query embedding: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch embedding row: {}", e)))?
+        {
+            let embedding_json: String = row
+                .get(0)
+                .map_err(|e| Error::Storage(format!("Failed to get embedding_data: {}", e)))?;
+            let embedding: Vec<f32> =
+                serde_json::from_str(&embedding_json).map_err(Error::Serialization)?;
+            Ok(Some(embedding))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+#[async_trait]
+impl EmbeddingStorageBackend for TursoStorage {
+    async fn store_episode_embedding(&self, episode_id: Uuid, embedding: Vec<f32>) -> Result<()> {
+        debug!("Storing episode embedding: {}", episode_id);
+        self.store_embedding(&episode_id.to_string(), "episode", &embedding)
+            .await
+    }
+
+    async fn store_pattern_embedding(
+        &self,
+        pattern_id: PatternId,
+        embedding: Vec<f32>,
+    ) -> Result<()> {
+        debug!("Storing pattern embedding: {}", pattern_id);
+        self.store_embedding(&pattern_id.to_string(), "pattern", &embedding)
+            .await
+    }
+
+    async fn get_episode_embedding(&self, episode_id: Uuid) -> Result<Option<Vec<f32>>> {
+        debug!("Retrieving episode embedding: {}", episode_id);
+        self.get_embedding(&episode_id.to_string(), "episode").await
+    }
+
+    async fn get_pattern_embedding(&self, pattern_id: PatternId) -> Result<Option<Vec<f32>>> {
+        debug!("Retrieving pattern embedding: {}", pattern_id);
+        self.get_embedding(&pattern_id.to_string(), "pattern").await
+    }
+
+    async fn find_similar_episodes(
+        &self,
+        query_embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<SimilaritySearchResult<Episode>>> {
+        debug!(
+            "Finding similar episodes (limit: {}, threshold: {})",
+            limit, threshold
+        );
+
+        let conn = self.get_connection().await?;
+
+        // First, get all episode embeddings
+        let sql = r#"
+            SELECT item_id, embedding_data
+            FROM embeddings
+            WHERE item_type = 'episode'
+        "#;
+
+        let mut rows = conn
+            .query(sql, ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query embeddings: {}", e)))?;
+
+        let mut candidates: Vec<(String, Vec<f32>)> = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch embedding row: {}", e)))?
+        {
+            let item_id: String = row
+                .get(0)
+                .map_err(|e| Error::Storage(format!("Failed to get item_id: {}", e)))?;
+            let embedding_json: String = row
+                .get(1)
+                .map_err(|e| Error::Storage(format!("Failed to get embedding_data: {}", e)))?;
+            let embedding: Vec<f32> =
+                serde_json::from_str(&embedding_json).map_err(Error::Serialization)?;
+
+            candidates.push((item_id, embedding));
+        }
+
+        // Calculate similarities and filter
+        let mut results = Vec::new();
+        for (episode_id_str, embedding) in candidates {
+            let similarity = cosine_similarity(&query_embedding, &embedding);
+
+            if similarity >= threshold {
+                // Try to get the episode
+                if let Ok(episode_id) = Uuid::parse_str(&episode_id_str) {
+                    if let Ok(Some(episode)) = self.get_episode(episode_id).await {
+                        results.push(SimilaritySearchResult {
+                            item: episode,
+                            similarity,
+                            metadata: SimilarityMetadata {
+                                embedding_model: "unknown".to_string(),
+                                embedding_timestamp: None,
+                                context: serde_json::json!({}),
+                            },
+                        });
+                    }
+                }
+            }
+        }
+
+        // Sort by similarity (highest first)
+        results.sort_by(|a, b| {
+            b.similarity
+                .partial_cmp(&a.similarity)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Limit results
+        results.truncate(limit);
+
+        info!("Found {} similar episodes", results.len());
+        Ok(results)
+    }
+
+    async fn find_similar_patterns(
+        &self,
+        query_embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
+        debug!(
+            "Finding similar patterns (limit: {}, threshold: {})",
+            limit, threshold
+        );
+
+        let conn = self.get_connection().await?;
+
+        // First, get all pattern embeddings
+        let sql = r#"
+            SELECT item_id, embedding_data
+            FROM embeddings
+            WHERE item_type = 'pattern'
+        "#;
+
+        let mut rows = conn
+            .query(sql, ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query embeddings: {}", e)))?;
+
+        let mut candidates: Vec<(String, Vec<f32>)> = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch embedding row: {}", e)))?
+        {
+            let item_id: String = row
+                .get(0)
+                .map_err(|e| Error::Storage(format!("Failed to get item_id: {}", e)))?;
+            let embedding_json: String = row
+                .get(1)
+                .map_err(|e| Error::Storage(format!("Failed to get embedding_data: {}", e)))?;
+            let embedding: Vec<f32> =
+                serde_json::from_str(&embedding_json).map_err(Error::Serialization)?;
+
+            candidates.push((item_id, embedding));
+        }
+
+        // Calculate similarities and filter
+        let mut results = Vec::new();
+        for (pattern_id_str, embedding) in candidates {
+            let similarity = cosine_similarity(&query_embedding, &embedding);
+
+            if similarity >= threshold {
+                // Try to get the pattern
+                if let Ok(pattern_id) = PatternId::parse_str(&pattern_id_str) {
+                    if let Ok(Some(pattern)) = self.get_pattern(pattern_id).await {
+                        results.push(SimilaritySearchResult {
+                            item: pattern,
+                            similarity,
+                            metadata: SimilarityMetadata {
+                                embedding_model: "unknown".to_string(),
+                                embedding_timestamp: None,
+                                context: serde_json::json!({}),
+                            },
+                        });
+                    }
+                }
+            }
+        }
+
+        // Sort by similarity (highest first)
+        results.sort_by(|a, b| {
+            b.similarity
+                .partial_cmp(&a.similarity)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Limit results
+        results.truncate(limit);
+
+        info!("Found {} similar patterns", results.len());
+        Ok(results)
     }
 }

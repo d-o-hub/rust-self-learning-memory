@@ -193,15 +193,18 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                             let semaphore = semaphore.clone();
 
                             let handle = tokio::spawn(async move {
-                                let _permit = semaphore.acquire().await.unwrap();
-                                run_concurrent_workload(
-                                    memory,
-                                    &episode_ids,
-                                    pattern,
-                                    operations_per_thread,
-                                    thread_id,
-                                )
-                                .await;
+                                #[allow(clippy::excessive_nesting)]
+                                {
+                                    let _permit = semaphore.acquire().await.unwrap();
+                                    run_concurrent_workload(
+                                        memory,
+                                        &episode_ids,
+                                        pattern,
+                                        operations_per_thread,
+                                        thread_id,
+                                    )
+                                    .await;
+                                }
                             });
 
                             handles.push(handle);
@@ -241,31 +244,34 @@ fn benchmark_async_throughput(c: &mut Criterion) {
                         let context = context.clone();
 
                         let handle = tokio::spawn(async move {
-                            let episode_id = memory
-                                .start_episode(
-                                    generate_episode_description(i),
-                                    context,
-                                    TaskType::CodeGeneration,
-                                )
-                                .await;
+                            #[allow(clippy::excessive_nesting)]
+                            {
+                                let episode_id = memory
+                                    .start_episode(
+                                        generate_episode_description(i),
+                                        context,
+                                        TaskType::CodeGeneration,
+                                    )
+                                    .await;
 
-                            let steps = generate_execution_steps(1);
-                            for step in steps {
-                                memory.log_step(episode_id, step).await;
+                                let steps = generate_execution_steps(1);
+                                for step in steps {
+                                    memory.log_step(episode_id, step).await;
+                                }
+
+                                memory
+                                    .complete_episode(
+                                        episode_id,
+                                        TaskOutcome::Success {
+                                            verdict: format!("Async throughput test {}", i),
+                                            artifacts: vec![],
+                                        },
+                                    )
+                                    .await
+                                    .expect("Failed to complete episode");
+
+                                episode_id
                             }
-
-                            memory
-                                .complete_episode(
-                                    episode_id,
-                                    TaskOutcome::Success {
-                                        verdict: format!("Async throughput test {}", i),
-                                        artifacts: vec![],
-                                    },
-                                )
-                                .await
-                                .expect("Failed to complete episode");
-
-                            episode_id
                         });
 
                         handles.push(handle);

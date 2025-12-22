@@ -1,13 +1,19 @@
-# Memory CLI Configuration
+# Memory CLI Configuration Template
 # This file contains all configuration options for the memory-cli tool
+# Copy this file to your project root and customize as needed
+# Or use the unified-config.toml for standard setup
 
 [database]
-# Turso database configuration
-turso_url = "libsql://your-database.turso.io"
-turso_token = "your-auth-token-here"
+# SQLite database (local development)
+turso_url = "file:./data/memory.db"
+turso_token = ""
 
-# Local redb cache configuration
-redb_path = "./data/memory.redb"
+# OR use Turso cloud database (production)
+# turso_url = "libsql://your-database.turso.io"
+# turso_token = "your-auth-token-here"
+
+# Local redb cache configuration (unified path)
+redb_path = "./data/cache.redb"
 
 [storage]
 # Maximum episodes to cache in memory

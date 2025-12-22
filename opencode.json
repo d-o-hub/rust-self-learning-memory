@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode/big-pickle",
+  "model": "minimax/MiniMax-M2",
   "provider": {
     "perplexity": {
       "npm": "@ai-sdk/perplexity",

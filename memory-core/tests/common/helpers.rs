@@ -94,7 +94,7 @@ pub async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
     memory
 }
 
-/// Create a TaskContext for testing
+/// Create a `TaskContext` for testing
 ///
 /// # Arguments
 ///

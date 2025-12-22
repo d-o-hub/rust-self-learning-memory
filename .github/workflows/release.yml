@@ -54,7 +54,7 @@ jobs:
           sudo apt-get clean || true
           docker system prune -af || true
           df -h
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -108,7 +108,7 @@ jobs:
       actions: read        # Required for downloading artifacts
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4

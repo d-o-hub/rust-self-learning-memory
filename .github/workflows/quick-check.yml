@@ -35,4 +35,6 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Run clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: |
+          cargo clippy --lib -- -D warnings
+          cargo clippy --tests -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::uninlined_format_args

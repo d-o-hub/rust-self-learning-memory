@@ -115,11 +115,14 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                 let mut handles = Vec::new();
                 for i in 0..black_box(10) {
                     let handle = tokio::spawn(async move {
-                        let mut local_data = Vec::new();
-                        for j in 0..50 {
-                            local_data.push(format!("concurrent_item_{}_{}", i, j));
+                        #[allow(clippy::excessive_nesting)]
+                        {
+                            let mut local_data = Vec::new();
+                            for j in 0..50 {
+                                local_data.push(format!("concurrent_item_{}_{}", i, j));
+                            }
+                            local_data
                         }
-                        local_data
                     });
                     handles.push(handle);
                 }

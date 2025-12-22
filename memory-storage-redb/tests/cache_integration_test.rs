@@ -35,11 +35,11 @@ fn create_test_episode(id: Uuid) -> Episode {
 
 /// Helper to create storage with custom cache config
 async fn create_storage_with_config(config: CacheConfig) -> RedbStorage {
-    let dir = tempdir().unwrap();
+    let dir = tempdir().expect("Failed to create temp directory for test");
     let db_path = dir.path().join("test.redb");
     RedbStorage::new_with_cache_config(&db_path, config)
         .await
-        .unwrap()
+        .expect("Failed to create storage with config")
 }
 
 #[tokio::test]

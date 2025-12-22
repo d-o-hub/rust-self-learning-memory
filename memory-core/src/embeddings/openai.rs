@@ -292,7 +292,7 @@ pub mod utils {
 
     /// Calculate approximate cost for embedding generation
     ///
-    /// Based on OpenAI's pricing as of 2024. Prices may change.
+    /// Based on `OpenAI`'s pricing as of 2024. Prices may change.
     #[allow(dead_code)]
     pub fn estimate_cost(num_tokens: usize, model: &str) -> f64 {
         let cost_per_million_tokens = match model {
@@ -314,7 +314,7 @@ pub mod utils {
         (text.len() as f64 / 4.0).ceil() as usize
     }
 
-    /// Use cases for OpenAI model selection
+    /// Use cases for `OpenAI` model selection
     #[allow(dead_code)]
     pub enum OpenAIModelUseCase {
         /// Balanced performance and cost (text-embedding-3-small)

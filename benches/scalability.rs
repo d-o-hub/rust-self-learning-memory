@@ -144,45 +144,51 @@ fn benchmark_concurrent_user_scalability(c: &mut Criterion) {
                         let semaphore = semaphore.clone();
 
                         let handle = tokio::spawn(async move {
-                            let _permit = semaphore.acquire().await.unwrap();
-                            let context = create_benchmark_context();
+                            #[allow(clippy::excessive_nesting)]
+                            {
+                                let _permit = semaphore.acquire().await.unwrap();
+                                let context = create_benchmark_context();
 
-                            for op in 0..operations_per_user {
-                                // Mix of reads and writes
-                                if op % 3 == 0 {
-                                    // Write operation
-                                    let episode_id = memory
-                                        .start_episode(
-                                            format!("User {} operation {}", user_id, op),
-                                            context.clone(),
-                                            TaskType::CodeGeneration,
-                                        )
-                                        .await;
+                                for op in 0..operations_per_user {
+                                    // Mix of reads and writes
+                                    if op % 3 == 0 {
+                                        // Write operation
+                                        let episode_id = memory
+                                            .start_episode(
+                                                format!("User {} operation {}", user_id, op),
+                                                context.clone(),
+                                                TaskType::CodeGeneration,
+                                            )
+                                            .await;
 
-                                    let steps = generate_execution_steps(1);
-                                    for step in steps {
-                                        memory.log_step(episode_id, step).await;
+                                        let steps = generate_execution_steps(1);
+                                        for step in steps {
+                                            memory.log_step(episode_id, step).await;
+                                        }
+
+                                        memory
+                                            .complete_episode(
+                                                episode_id,
+                                                TaskOutcome::Success {
+                                                    verdict: format!(
+                                                        "User {} write {}",
+                                                        user_id, op
+                                                    ),
+                                                    artifacts: vec![],
+                                                },
+                                            )
+                                            .await
+                                            .expect("Failed to complete episode");
+                                    } else {
+                                        // Read operation
+                                        let _results = memory
+                                            .retrieve_relevant_context(
+                                                format!("User {} query {}", user_id, op),
+                                                context.clone(),
+                                                5,
+                                            )
+                                            .await;
                                     }
-
-                                    memory
-                                        .complete_episode(
-                                            episode_id,
-                                            TaskOutcome::Success {
-                                                verdict: format!("User {} write {}", user_id, op),
-                                                artifacts: vec![],
-                                            },
-                                        )
-                                        .await
-                                        .expect("Failed to complete episode");
-                                } else {
-                                    // Read operation
-                                    let _results = memory
-                                        .retrieve_relevant_context(
-                                            format!("User {} query {}", user_id, op),
-                                            context.clone(),
-                                            5,
-                                        )
-                                        .await;
                                 }
                             }
                         });
@@ -267,31 +273,37 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
                             let op_id = batch * size + i;
 
                             let handle = tokio::spawn(async move {
-                                let episode_id = memory
-                                    .start_episode(
-                                        format!("Batch operation {}", op_id),
-                                        context,
-                                        TaskType::CodeGeneration,
-                                    )
-                                    .await;
+                                #[allow(clippy::excessive_nesting)]
+                                {
+                                    let episode_id = memory
+                                        .start_episode(
+                                            format!("Batch operation {}", op_id),
+                                            context,
+                                            TaskType::CodeGeneration,
+                                        )
+                                        .await;
 
-                                let steps = generate_execution_steps(1);
-                                for step in steps {
-                                    memory.log_step(episode_id, step).await;
+                                    let steps = generate_execution_steps(1);
+                                    for step in steps {
+                                        memory.log_step(episode_id, step).await;
+                                    }
+
+                                    memory
+                                        .complete_episode(
+                                            episode_id,
+                                            TaskOutcome::Success {
+                                                verdict: format!(
+                                                    "Batch operation {} completed",
+                                                    op_id
+                                                ),
+                                                artifacts: vec![],
+                                            },
+                                        )
+                                        .await
+                                        .expect("Failed to complete episode");
+
+                                    episode_id
                                 }
-
-                                memory
-                                    .complete_episode(
-                                        episode_id,
-                                        TaskOutcome::Success {
-                                            verdict: format!("Batch operation {} completed", op_id),
-                                            artifacts: vec![],
-                                        },
-                                    )
-                                    .await
-                                    .expect("Failed to complete episode");
-
-                                episode_id
                             });
 
                             batch_handles.push(handle);

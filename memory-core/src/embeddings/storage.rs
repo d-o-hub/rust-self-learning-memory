@@ -55,6 +55,7 @@ pub struct InMemoryEmbeddingStorage {
 }
 
 impl InMemoryEmbeddingStorage {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             episode_embeddings: std::sync::Arc::new(tokio::sync::RwLock::new(

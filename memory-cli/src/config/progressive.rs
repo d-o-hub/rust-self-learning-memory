@@ -503,7 +503,6 @@ impl UsagePattern {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     #[tokio::test]
     async fn test_quick_redb_setup() {

@@ -18,6 +18,7 @@ pub struct EmbeddingResult {
 
 impl EmbeddingResult {
     /// Create a simple embedding result
+    #[must_use]
     pub fn new(embedding: Vec<f32>, model: String) -> Self {
         Self {
             embedding,
@@ -28,6 +29,7 @@ impl EmbeddingResult {
     }
 
     /// Create a detailed embedding result
+    #[must_use]
     pub fn detailed(
         embedding: Vec<f32>,
         model: String,
@@ -57,8 +59,8 @@ pub trait EmbeddingProvider: Send + Sync {
 
     /// Generate embeddings for multiple texts in batch
     ///
-    /// More efficient than calling embed_text multiple times.
-    /// Default implementation calls embed_text for each text.
+    /// More efficient than calling `embed_text` multiple times.
+    /// Default implementation calls `embed_text` for each text.
     ///
     /// # Arguments
     /// * `texts` - Batch of texts to embed
@@ -121,7 +123,7 @@ pub trait EmbeddingProvider: Send + Sync {
 
 /// Utility functions for embedding providers
 pub mod utils {
-    use super::*;
+    use anyhow::Result;
 
     /// Normalize a vector to unit length
     pub fn normalize_vector(mut vector: Vec<f32>) -> Vec<f32> {

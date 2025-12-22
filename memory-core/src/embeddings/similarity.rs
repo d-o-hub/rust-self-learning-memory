@@ -75,6 +75,7 @@ pub struct EmbeddingMetadata {
 /// let similarity = cosine_similarity(&vec1, &vec2);
 /// assert_eq!(similarity, 1.0); // Identical vectors
 /// ```
+#[must_use]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() {
         return 0.0; // Different dimensions = no similarity
@@ -152,14 +153,14 @@ pub fn approximate_similarity(a: &[f32], b: &[f32], precision: SimilarityPrecisi
         SimilarityPrecision::High => cosine_similarity(a, b),
         SimilarityPrecision::Medium => {
             // Use only every other dimension for faster calculation
-            let a_sampled: Vec<f32> = a.iter().step_by(2).cloned().collect();
-            let b_sampled: Vec<f32> = b.iter().step_by(2).cloned().collect();
+            let a_sampled: Vec<f32> = a.iter().step_by(2).copied().collect();
+            let b_sampled: Vec<f32> = b.iter().step_by(2).copied().collect();
             cosine_similarity(&a_sampled, &b_sampled)
         }
         SimilarityPrecision::Low => {
             // Use only every 4th dimension
-            let a_sampled: Vec<f32> = a.iter().step_by(4).cloned().collect();
-            let b_sampled: Vec<f32> = b.iter().step_by(4).cloned().collect();
+            let a_sampled: Vec<f32> = a.iter().step_by(4).copied().collect();
+            let b_sampled: Vec<f32> = b.iter().step_by(4).copied().collect();
             cosine_similarity(&a_sampled, &b_sampled)
         }
     }

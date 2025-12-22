@@ -179,29 +179,32 @@ async fn run_memory_pressure_scenario(
                     let context = context.clone();
 
                     let handle = tokio::spawn(async move {
-                        let episode_id = memory
-                            .start_episode(
-                                generate_episode_description(rand::random::<usize>() % 100),
-                                context,
-                                TaskType::CodeGeneration,
-                            )
-                            .await;
+                        #[allow(clippy::excessive_nesting)]
+                        {
+                            let episode_id = memory
+                                .start_episode(
+                                    generate_episode_description(rand::random::<usize>() % 100),
+                                    context,
+                                    TaskType::CodeGeneration,
+                                )
+                                .await;
 
-                        let steps = generate_execution_steps(3);
-                        for step in steps {
-                            memory.log_step(episode_id, step).await;
+                            let steps = generate_execution_steps(3);
+                            for step in steps {
+                                memory.log_step(episode_id, step).await;
+                            }
+
+                            memory
+                                .complete_episode(
+                                    episode_id,
+                                    TaskOutcome::Success {
+                                        verdict: "Burst operation".to_string(),
+                                        artifacts: vec![],
+                                    },
+                                )
+                                .await
+                                .expect("Failed to complete episode");
                         }
-
-                        memory
-                            .complete_episode(
-                                episode_id,
-                                TaskOutcome::Success {
-                                    verdict: "Burst operation".to_string(),
-                                    artifacts: vec![],
-                                },
-                            )
-                            .await
-                            .expect("Failed to complete episode");
                     });
 
                     handles.push(handle);
@@ -227,29 +230,32 @@ async fn run_memory_pressure_scenario(
                     let context = context.clone();
 
                     let handle = tokio::spawn(async move {
-                        let episode_id = memory
-                            .start_episode(
-                                format!("Gradual growth episode {}", rand::random::<u32>()),
-                                context,
-                                TaskType::CodeGeneration,
-                            )
-                            .await;
+                        #[allow(clippy::excessive_nesting)]
+                        {
+                            let episode_id = memory
+                                .start_episode(
+                                    format!("Gradual growth episode {}", rand::random::<u32>()),
+                                    context,
+                                    TaskType::CodeGeneration,
+                                )
+                                .await;
 
-                        let steps = generate_execution_steps(2 + (rand::random::<usize>() % 3));
-                        for step in steps {
-                            memory.log_step(episode_id, step).await;
+                            let steps = generate_execution_steps(2 + (rand::random::<usize>() % 3));
+                            for step in steps {
+                                memory.log_step(episode_id, step).await;
+                            }
+
+                            memory
+                                .complete_episode(
+                                    episode_id,
+                                    TaskOutcome::Success {
+                                        verdict: "Gradual growth operation".to_string(),
+                                        artifacts: vec![],
+                                    },
+                                )
+                                .await
+                                .expect("Failed to complete episode");
                         }
-
-                        memory
-                            .complete_episode(
-                                episode_id,
-                                TaskOutcome::Success {
-                                    verdict: "Gradual growth operation".to_string(),
-                                    artifacts: vec![],
-                                },
-                            )
-                            .await
-                            .expect("Failed to complete episode");
                     });
 
                     handles.push(handle);
@@ -271,32 +277,35 @@ async fn run_memory_pressure_scenario(
                 let context = context.clone();
 
                 let handle = tokio::spawn(async move {
-                    for j in 0..10 {
-                        let episode_id = memory
-                            .start_episode(
-                                format!("Concurrent episode {}:{}", i, j),
-                                context.clone(),
-                                TaskType::CodeGeneration,
-                            )
-                            .await;
+                    #[allow(clippy::excessive_nesting)]
+                    {
+                        for j in 0..10 {
+                            let episode_id = memory
+                                .start_episode(
+                                    format!("Concurrent episode {}:{}", i, j),
+                                    context.clone(),
+                                    TaskType::CodeGeneration,
+                                )
+                                .await;
 
-                        let steps = generate_execution_steps(2);
-                        for step in steps {
-                            memory.log_step(episode_id, step).await;
+                            let steps = generate_execution_steps(2);
+                            for step in steps {
+                                memory.log_step(episode_id, step).await;
+                            }
+
+                            memory
+                                .complete_episode(
+                                    episode_id,
+                                    TaskOutcome::Success {
+                                        verdict: format!("Concurrent operation {}:{}", i, j),
+                                        artifacts: vec![],
+                                    },
+                                )
+                                .await
+                                .expect("Failed to complete episode");
+
+                            sleep(Duration::from_millis(5)).await;
                         }
-
-                        memory
-                            .complete_episode(
-                                episode_id,
-                                TaskOutcome::Success {
-                                    verdict: format!("Concurrent operation {}:{}", i, j),
-                                    artifacts: vec![],
-                                },
-                            )
-                            .await
-                            .expect("Failed to complete episode");
-
-                        sleep(Duration::from_millis(5)).await;
                     }
                 });
 
@@ -336,15 +345,18 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
 
                         // Start monitoring
                         let monitor_handle = tokio::spawn(async move {
-                            let mut monitor = monitor;
-                            let start = std::time::Instant::now();
+                            #[allow(clippy::excessive_nesting)]
+                            {
+                                let mut monitor = monitor;
+                                let start = std::time::Instant::now();
 
-                            while start.elapsed().as_secs() < 30 {
-                                monitor.record_measurement();
-                                sleep(Duration::from_millis(100)).await;
+                                while start.elapsed().as_secs() < 30 {
+                                    monitor.record_measurement();
+                                    sleep(Duration::from_millis(100)).await;
+                                }
+
+                                monitor
                             }
-
-                            monitor
                         });
 
                         // Run the memory pressure scenario

@@ -1,4 +1,4 @@
-//! OpenAI embedding provider for high-quality cloud-based embeddings
+//! `OpenAI` embedding provider for high-quality cloud-based embeddings
 
 use super::config::ModelConfig;
 use anyhow::Result;
@@ -258,11 +258,11 @@ struct Usage {
     total_tokens: usize,
 }
 
-/// Utility functions for OpenAI provider
+/// Utility functions for `OpenAI` provider
 pub mod utils {
-    use super::*;
+    use super::{ModelConfig, Result};
 
-    /// Validate OpenAI API key format
+    /// Validate `OpenAI` API key format
     #[allow(dead_code)]
     pub fn validate_api_key(api_key: &str) -> Result<()> {
         if api_key.is_empty() {

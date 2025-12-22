@@ -186,6 +186,7 @@ impl RealEmbeddingModel {
 
     /// Try to load real model (always fails without feature)
     #[allow(dead_code)]
+    #[allow(unused_async)]
     pub async fn try_load_from_cache(
         _config: &ModelConfig,
         _cache_dir: &std::path::Path,
@@ -197,6 +198,7 @@ impl RealEmbeddingModel {
 
     /// Generate real embedding (always fails without feature)
     #[allow(dead_code)]
+    #[allow(unused_async)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
             "Real embedding model not available - enable local-embeddings feature"

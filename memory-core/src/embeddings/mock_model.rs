@@ -148,12 +148,11 @@ impl RealEmbeddingModelWithFallback {
             let mut real_failed = false;
 
             for text in texts {
-                match real_model.generate_real_embedding(text).await {
-                    Ok(embedding) => real_embeddings.push(embedding),
-                    Err(_) => {
-                        real_failed = true;
-                        break;
-                    }
+                if let Ok(embedding) = real_model.generate_real_embedding(text).await {
+                    real_embeddings.push(embedding);
+                } else {
+                    real_failed = true;
+                    break;
                 }
             }
 
@@ -363,6 +362,7 @@ impl RealEmbeddingModel {
         Self { name, dimension }
     }
 
+    #[allow(unused_async)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
             "Real embedding model not available - enable local-embeddings feature"

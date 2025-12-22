@@ -163,6 +163,7 @@ impl LocalEmbeddingProvider {
 
     /// Get model information
     #[allow(dead_code)]
+    #[must_use]
     pub fn model_info(&self) -> serde_json::Value {
         serde_json::json!({
             "name": self.config.model_name,

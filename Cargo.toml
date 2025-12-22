@@ -54,7 +54,7 @@ criterion = "0.5"
 # WASM and JavaScript execution
 rquickjs = "0.6.2"
 wasmtime = "24.0.5"
-wasmtime-wasi = "24.0.5"
+wasmtime-wasi = "36.0.3"
 
 # Additional utilities
 rand = "0.8"

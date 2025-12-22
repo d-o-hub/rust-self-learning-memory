@@ -1027,7 +1027,7 @@ checksum = "af491d569909a7e4dee0ad7db7f5341fef5c614d5b8ec8cf765732aba3cff681"
 dependencies = [
  "serde",
  "termcolor",
- "unicode-width 0.2.2",
+ "unicode-width 0.1.14",
 ]
 
 [[package]]
@@ -1042,7 +1042,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1807,31 +1807,11 @@ dependencies = [
 
 [[package]]
 name = "dirs"
-version = "4.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca3aa72a6f96ea37bbc5aa912f6788242832f75369bdfdadcb0e38423f100059"
-dependencies = [
- "dirs-sys 0.3.7",
-]
-
-[[package]]
-name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
 dependencies = [
- "dirs-sys 0.4.1",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b1d1d91c932ef41c0f2663aa8b0ca0342d444d842c06914aa0a7e352d0bada6"
-dependencies = [
- "libc",
- "redox_users",
- "winapi",
+ "dirs-sys",
 ]
 
 [[package]]
@@ -2768,7 +2748,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -2788,7 +2768,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.62.2",
+ "windows-core 0.61.2",
 ]
 
 [[package]]
@@ -3148,7 +3128,7 @@ dependencies = [
  "wasm-opt",
  "wasmparser 0.240.0",
  "wasmtime 36.0.3",
- "wasmtime-wasi 36.0.3",
+ "wasmtime-wasi",
  "wit-parser 0.240.0",
  "wizer",
 ]
@@ -3561,7 +3541,7 @@ dependencies = [
  "colored",
  "criterion",
  "dialoguer",
- "dirs 5.0.1",
+ "dirs",
  "indicatif 0.18.3",
  "memory-core",
  "memory-storage-redb",
@@ -3659,7 +3639,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "wasmtime 24.0.5",
- "wasmtime-wasi 24.0.5",
+ "wasmtime-wasi",
  "wat",
 ]
 
@@ -4566,7 +4546,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.10.5",
  "proc-macro2",
  "quote",
  "syn 2.0.111",
@@ -5568,15 +5548,6 @@ name = "shell-words"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc6fe69c597f9c37bfeeeeeb33da3530379845f10be461a66d16d03eca2ded77"
-
-[[package]]
-name = "shellexpand"
-version = "2.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ccc8076840c4da029af4f87e4e8daeb0fca6b87bbb02e10cb60b791450e11e4"
-dependencies = [
- "dirs 4.0.0",
-]
 
 [[package]]
 name = "shlex"
@@ -6847,7 +6818,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
@@ -7875,37 +7846,6 @@ dependencies = [
 
 [[package]]
 name = "wasmtime-wasi"
-version = "24.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50d4719ac50939453a62be431a8dbfac702f0caed207741893d36d5760642634"
-dependencies = [
- "anyhow",
- "async-trait",
- "bitflags 2.10.0",
- "bytes",
- "cap-fs-ext",
- "cap-net-ext",
- "cap-rand",
- "cap-std",
- "cap-time-ext",
- "fs-set-times",
- "futures",
- "io-extras",
- "io-lifetimes",
- "once_cell",
- "rustix 0.38.44",
- "system-interface",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
- "url",
- "wasmtime 24.0.5",
- "wiggle 24.0.5",
- "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "wasmtime-wasi"
 version = "36.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c308d1c736f451e7af8f06f8c12c7cd28c66ecb2a34e193538ecd22bc5bb2ede"
@@ -7931,7 +7871,7 @@ dependencies = [
  "url",
  "wasmtime 36.0.3",
  "wasmtime-wasi-io",
- "wiggle 36.0.3",
+ "wiggle",
  "windows-sys 0.60.2",
 ]
 
@@ -8079,21 +8019,6 @@ dependencies = [
 
 [[package]]
 name = "wiggle"
-version = "24.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac37e851c14a6bbe24dab67e54068829e6f131c9799abf1d3e6d6dc6e5aaf0c3"
-dependencies = [
- "anyhow",
- "async-trait",
- "bitflags 2.10.0",
- "thiserror 1.0.69",
- "tracing",
- "wasmtime 24.0.5",
- "wiggle-macro 24.0.5",
-]
-
-[[package]]
-name = "wiggle"
 version = "36.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8cdaec73c802186b8dae10da973116f2ecd47a284058b0fc9a7c8461f2ade07"
@@ -8104,22 +8029,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tracing",
  "wasmtime 36.0.3",
- "wiggle-macro 36.0.3",
-]
-
-[[package]]
-name = "wiggle-generate"
-version = "24.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e65f5301774731995608b98dea7bc71ef7cec423d0b811d15c62ad9606dffc50"
-dependencies = [
- "anyhow",
- "heck 0.4.1",
- "proc-macro2",
- "quote",
- "shellexpand",
- "syn 2.0.111",
- "witx",
+ "wiggle-macro",
 ]
 
 [[package]]
@@ -8138,18 +8048,6 @@ dependencies = [
 
 [[package]]
 name = "wiggle-macro"
-version = "24.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "449c9c36dee65cba24170a2bccd7ca842c94ec472130eab341680357fb75fc94"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.111",
- "wiggle-generate 24.0.5",
-]
-
-[[package]]
-name = "wiggle-macro"
 version = "36.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8af76de2b2fe1446eaef8f00679c30bc31d1d5fb260165386bf50171040aa9d9"
@@ -8157,7 +8055,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.111",
- "wiggle-generate 36.0.3",
+ "wiggle-generate",
 ]
 
 [[package]]
@@ -8182,7 +8080,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -8280,19 +8178,6 @@ dependencies = [
  "windows-link 0.1.3",
  "windows-result 0.3.4",
  "windows-strings 0.4.2",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.62.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8e83a14d34d0623b51dce9581199302a221863196a1dde71a7663a4c2be9deb"
-dependencies = [
- "windows-implement",
- "windows-interface",
- "windows-link 0.2.1",
- "windows-result 0.4.1",
- "windows-strings 0.5.1",
 ]
 
 [[package]]
@@ -8741,7 +8626,7 @@ dependencies = [
  "wasm-encoder 0.238.1",
  "wasmparser 0.238.1",
  "wasmtime 36.0.3",
- "wasmtime-wasi 36.0.3",
+ "wasmtime-wasi",
 ]
 
 [[package]]

@@ -3596,6 +3596,7 @@ dependencies = [
  "libsql",
  "memory-storage-redb",
  "memory-storage-turso",
+ "ndarray 0.16.1",
  "ort",
  "reqwest",
  "serde",

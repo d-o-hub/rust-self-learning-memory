@@ -103,12 +103,12 @@ impl EmbeddingProvider for MockLocalModel {
 
 /// Real embedding model with graceful fallback to mock
 pub struct RealEmbeddingModelWithFallback {
-    real_model: Option<RealEmbeddingModel>,
+    real_model: Option<super::real_model::RealEmbeddingModel>,
     mock_model: MockLocalModel,
 }
 
 impl RealEmbeddingModelWithFallback {
-    pub fn new(name: String, dimension: usize, real_model: Option<RealEmbeddingModel>) -> Self {
+    pub fn new(name: String, dimension: usize, real_model: Option<super::real_model::RealEmbeddingModel>) -> Self {
         Self {
             real_model,
             mock_model: MockLocalModel::new(name.clone(), dimension),
@@ -243,129 +243,4 @@ impl super::local::LocalEmbeddingModel for RealEmbeddingModelWithFallback {
     }
 }
 
-/// Real embedding model using ONNX runtime (conditional compilation)
-#[cfg(feature = "local-embeddings")]
-pub struct RealEmbeddingModel {
-    name: String,
-    dimension: usize,
-    #[allow(dead_code)]
-    tokenizer: Option<tokenizers::Tokenizer>,
-    #[allow(dead_code)]
-    session: ort::Session,
-}
 
-#[cfg(feature = "local-embeddings")]
-impl RealEmbeddingModel {
-    pub fn new(
-        name: String,
-        dimension: usize,
-        tokenizer: tokenizers::Tokenizer,
-        session: ort::Session,
-    ) -> Self {
-        Self {
-            name,
-            dimension,
-            tokenizer: Some(tokenizer),
-            session,
-        }
-    }
-
-    /// Generate real embedding using ONNX model
-    pub async fn generate_real_embedding(&self, text: &str) -> Result<Vec<f32>> {
-        use ort::{ExecutionProvider, RuntimeParameters};
-
-        // Tokenize the input text
-        let tokenizer = self.tokenizer.as_ref().context("Tokenizer not available")?;
-
-        let encoding = tokenizer
-            .encode(text, false)
-            .map_err(|e| anyhow::anyhow!("Failed to encode text: {}", e))?;
-
-        let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
-        let attention_mask: Vec<i64> = encoding
-            .get_attention_mask()
-            .iter()
-            .map(|&mask| mask as i64)
-            .collect();
-
-        // Prepare input tensors
-        let input_ids_tensor = ort::Tensor::new(&[input_ids.len() as u64], input_ids)?;
-        let attention_mask_tensor =
-            ort::Tensor::new(&[attention_mask.len() as u64], attention_mask)?;
-
-        // Run inference in blocking context since ONNX is synchronous
-        let embedding = tokio::task::spawn_blocking(move || {
-            let mut outputs = self.session.run(ort::inputs! {
-                "input_ids" => &input_ids_tensor,
-                "attention_mask" => &attention_mask_tensor
-            })?;
-
-            // Extract embeddings from output (typically last hidden state pooled)
-            let output = outputs.remove("last_hidden_state").unwrap();
-            let embedding_tensor: ort::Tensor<f32> = output.try_extract()?;
-
-            // Average pooling over sequence length
-            let shape = embedding_tensor.dims();
-            if shape.len() != 3 {
-                return Err(anyhow::anyhow!("Unexpected output shape: {:?}", shape));
-            }
-
-            let batch_size = shape[0] as usize;
-            let seq_length = shape[1] as usize;
-            let hidden_size = shape[2] as usize;
-
-            if batch_size != 1 {
-                return Err(anyhow::anyhow!("Expected batch size 1, got {}", batch_size));
-            }
-
-            // Average pooling over sequence length
-            let mut pooled_embedding = vec![0.0f32; hidden_size];
-            let data = embedding_tensor.as_slice();
-
-            for seq_idx in 0..seq_length {
-                for hidden_idx in 0..hidden_size {
-                    let idx = seq_idx * hidden_size + hidden_idx;
-                    pooled_embedding[hidden_idx] += data[idx];
-                }
-            }
-
-            // Average the pooled embedding
-            for value in &mut pooled_embedding {
-                *value /= seq_length as f32;
-            }
-
-            Ok(pooled_embedding)
-        })
-        .await
-        .map_err(|e| anyhow::anyhow!("Task execution failed: {}", e))??;
-
-        // Normalize the embedding
-        let normalized_embedding = super::provider::utils::normalize_vector(embedding);
-
-        Ok(normalized_embedding)
-    }
-}
-
-/// Stubs for when local-embeddings feature is not enabled
-#[cfg(not(feature = "local-embeddings"))]
-pub struct RealEmbeddingModel {
-    #[allow(dead_code)]
-    name: String,
-    #[allow(dead_code)]
-    dimension: usize,
-}
-
-#[cfg(not(feature = "local-embeddings"))]
-impl RealEmbeddingModel {
-    #[allow(dead_code)]
-    pub fn new(name: String, dimension: usize, _tokenizer: (), _session: ()) -> Self {
-        Self { name, dimension }
-    }
-
-    #[allow(clippy::unused_async)]
-    pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
-        Err(anyhow::anyhow!(
-            "Real embedding model not available - enable local-embeddings feature"
-        ))
-    }
-}

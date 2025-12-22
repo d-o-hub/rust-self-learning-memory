@@ -10,8 +10,7 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-#[cfg(feature = "local-embeddings")]
-use tokenizers::Tokenizer;
+
 
 /// Local embedding provider using sentence transformers
 ///
@@ -254,7 +253,6 @@ pub use crate::embeddings::utils::{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     #[tokio::test]
     async fn test_local_provider_creation() {

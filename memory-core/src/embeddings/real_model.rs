@@ -7,8 +7,12 @@ use super::config::ModelConfig;
 use anyhow::Result;
 
 #[cfg(feature = "local-embeddings")]
+use anyhow::Context;
+
+#[cfg(feature = "local-embeddings")]
 use {
-    ort::{ExecutionProvider, Session, SessionBuilder},
+    ort::execution_providers::CPUExecutionProvider,
+    ort::session::Session,
     tokenizers::Tokenizer,
 };
 
@@ -20,7 +24,7 @@ pub struct RealEmbeddingModel {
     #[allow(dead_code)]
     tokenizer: Option<Tokenizer>,
     #[allow(dead_code)]
-    session: Session,
+    session: std::sync::Arc<tokio::sync::Mutex<Session>>,
 }
 
 #[cfg(feature = "local-embeddings")]
@@ -31,14 +35,12 @@ impl RealEmbeddingModel {
             name,
             dimension,
             tokenizer: Some(tokenizer),
-            session,
+            session: std::sync::Arc::new(tokio::sync::Mutex::new(session)),
         }
     }
 
     /// Generate real embedding using ONNX model
     pub async fn generate_real_embedding(&self, text: &str) -> Result<Vec<f32>> {
-        use ort::{ExecutionProvider, RuntimeParameters};
-
         // Tokenize the input text
         let tokenizer = self.tokenizer.as_ref().context("Tokenizer not available")?;
 
@@ -53,31 +55,39 @@ impl RealEmbeddingModel {
             .map(|&mask| mask as i64)
             .collect();
 
-        // Prepare input tensors
-        let input_ids_tensor = ort::Tensor::new(&[input_ids.len() as u64], input_ids)?;
-        let attention_mask_tensor =
-            ort::Tensor::new(&[attention_mask.len() as u64], attention_mask)?;
+        // Clone session Arc for the blocking task
+        let session = self.session.clone();
 
         // Run inference in blocking context since ONNX is synchronous
         let embedding = tokio::task::spawn_blocking(move || {
-            let mut outputs = self.session.run(ort::inputs! {
-                "input_ids" => &input_ids_tensor,
-                "attention_mask" => &attention_mask_tensor
+            // Prepare input tensors using ndarray
+            let input_ids_array = ndarray::Array1::from_vec(input_ids).into_dyn();
+            let attention_mask_array = ndarray::Array1::from_vec(attention_mask).into_dyn();
+            
+            // Convert to ORT tensor references
+            let input_ids_tensor = ort::value::TensorRef::from_array_view(input_ids_array.view())?;
+            let attention_mask_tensor = ort::value::TensorRef::from_array_view(attention_mask_array.view())?;
+
+            // Lock the session for exclusive access
+            let mut session_guard = session.blocking_lock();
+            let mut outputs = session_guard.run(ort::inputs! {
+                "input_ids" => input_ids_tensor,
+                "attention_mask" => attention_mask_tensor
             })?;
 
             // Extract embeddings from output (typically last hidden state pooled)
             let output = outputs.remove("last_hidden_state").unwrap();
-            let embedding_tensor: ort::Tensor<f32> = output.try_extract()?;
+            let embedding_array: ndarray::ArrayViewD<f32> = output.try_extract_array()?;
 
             // Average pooling over sequence length
-            let shape = embedding_tensor.dims();
+            let shape = embedding_array.shape();
             if shape.len() != 3 {
                 return Err(anyhow::anyhow!("Unexpected output shape: {:?}", shape));
             }
 
-            let batch_size = shape[0] as usize;
-            let seq_length = shape[1] as usize;
-            let hidden_size = shape[2] as usize;
+            let batch_size = shape[0];
+            let seq_length = shape[1];
+            let hidden_size = shape[2];
 
             if batch_size != 1 {
                 return Err(anyhow::anyhow!("Expected batch size 1, got {}", batch_size));
@@ -85,7 +95,7 @@ impl RealEmbeddingModel {
 
             // Average pooling over sequence length
             let mut pooled_embedding = vec![0.0f32; hidden_size];
-            let data = embedding_tensor.as_slice();
+            let data = embedding_array.as_slice().unwrap();
 
             for seq_idx in 0..seq_length {
                 for hidden_idx in 0..hidden_size {
@@ -115,8 +125,6 @@ impl RealEmbeddingModel {
         config: &ModelConfig,
         cache_dir: &std::path::Path,
     ) -> Result<Self> {
-        use ort::ExecutionProvider;
-
         // Model file paths - would typically be downloaded/cache
         let model_name = &config.model_name;
         let model_path = cache_dir.join(format!("{}.onnx", model_name.replace("/", "_")));
@@ -140,7 +148,7 @@ impl RealEmbeddingModel {
 
         // Load ONNX session
         let session = Session::builder()?
-            .with_execution_providers([ExecutionProvider::CPU().clone()])
+            .with_execution_providers([CPUExecutionProvider::default().build()])?
             .commit_from_file(&model_path)
             .map_err(|e| anyhow::anyhow!("Failed to load ONNX model: {}", e))?;
 
@@ -158,11 +166,13 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
+    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
+    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }

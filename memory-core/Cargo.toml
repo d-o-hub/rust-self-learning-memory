@@ -19,7 +19,7 @@ openai = ["reqwest"]
 # Enable all embedding providers
 embeddings-full = ["openai"]
 # Enable local embedding models (requires model files)
-local-embeddings = ["ort", "tokenizers"]
+local-embeddings = ["ort", "tokenizers", "ndarray"]
 
 [dependencies]
 # Async runtime
@@ -49,6 +49,9 @@ ort = { version = "2.0.0-rc.10", optional = true }
 
 # Tokenizers for local embeddings (optional)
 tokenizers = { version = "0.20", optional = true }
+
+# ndarray for tensor operations (required by ort)
+ndarray = { version = "0.16", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

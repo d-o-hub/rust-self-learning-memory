@@ -4,9 +4,12 @@ use super::config::ModelConfig;
 use anyhow::Result;
 
 #[cfg(feature = "openai")]
-use serde::{Deserialize, Serialize};
-#[cfg(feature = "openai")]
-use std::time::Instant;
+use {
+    super::provider::EmbeddingProvider,
+    async_trait::async_trait,
+    serde::{Deserialize, Serialize},
+    std::time::Instant,
+};
 
 /// OpenAI embedding provider
 ///

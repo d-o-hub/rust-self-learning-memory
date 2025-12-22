@@ -89,7 +89,12 @@ fn cluster_tool_sequences(patterns: Vec<Pattern>) -> Vec<Pattern> {
                         .partial_cmp(&a.success_rate())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
-                Some(cluster.into_iter().next().expect("Cluster should not be empty"))
+                Some(
+                    cluster
+                        .into_iter()
+                        .next()
+                        .expect("Cluster should not be empty"),
+                )
             }
         })
         .collect()
@@ -119,7 +124,12 @@ fn cluster_decision_points(patterns: Vec<Pattern>) -> Vec<Pattern> {
                         .partial_cmp(&a.success_rate())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
-                Some(cluster.into_iter().next().expect("Cluster should not be empty"))
+                Some(
+                    cluster
+                        .into_iter()
+                        .next()
+                        .expect("Cluster should not be empty"),
+                )
             }
         })
         .collect()
@@ -144,7 +154,12 @@ fn cluster_error_recoveries(patterns: Vec<Pattern>) -> Vec<Pattern> {
             if cluster.is_empty() {
                 None
             } else if cluster.len() == 1 {
-                Some(cluster.into_iter().next().expect("Cluster should not be empty"))
+                Some(
+                    cluster
+                        .into_iter()
+                        .next()
+                        .expect("Cluster should not be empty"),
+                )
             } else {
                 // Merge multiple patterns with same error type
                 merge_error_recovery_patterns(cluster)
@@ -278,7 +293,12 @@ fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
     }
 
     if patterns.len() == 1 {
-        return Some(patterns.into_iter().next().expect("Patterns should not be empty"));
+        return Some(
+            patterns
+                .into_iter()
+                .next()
+                .expect("Patterns should not be empty"),
+        );
     }
 
     // Combine features and evidence

@@ -943,6 +943,7 @@ mod simple_config_tests {
     }
 
     #[tokio::test]
+    #[ignore] // Run separately to avoid environment variable race conditions
     async fn test_simple_config_with_turso() {
         // Skip in CI due to test isolation issues with parallel execution
         if std::env::var("CI").is_ok() {

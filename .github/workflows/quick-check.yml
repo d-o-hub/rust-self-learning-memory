@@ -3,7 +3,6 @@ name: Quick Check
 
 "on":
   pull_request:
-    branches: [main, develop]
 
 # Cancel outdated runs when new commits are pushed
 concurrency:

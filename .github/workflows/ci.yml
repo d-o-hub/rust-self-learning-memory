@@ -8,6 +8,8 @@ permissions:
 "on":
   push:
     branches: [main, develop]
+  pull_request:
+    branches: [main, develop, **]
   workflow_run:
     workflows: ["Quick Check"]
     types: [completed]
@@ -32,6 +34,9 @@ jobs:
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "should-run=true" >> $GITHUB_OUTPUT
             echo "Running CI on push to ${{ github.ref }}"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "Running CI on pull request to ${{ github.event.pull_request.base.ref }}"
           elif [ "${{ github.event_name }}" = "workflow_run" ]; then
             if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
               echo "should-run=true" >> $GITHUB_OUTPUT

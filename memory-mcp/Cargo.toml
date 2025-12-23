@@ -38,7 +38,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 futures = "0.3"
 
 # WASM JavaScript execution dependencies
-rquickjs = { version = "0.6.2", features = ["parallel", "loader", "futures"], optional = true }  # DEPRECATED: gated behind feature `wasm-rquickjs`
+rquickjs = { version = "0.10.0", features = ["parallel", "loader", "futures"], optional = true }  # DEPRECATED: gated behind feature `wasm-rquickjs`
 wasmtime = { workspace = true, features = ["async", "cranelift", "wat", "cache"] }
 wasmtime-wasi = "24.0.5"  # Align with wasmtime version
 

@@ -1,11 +1,9 @@
 //! Storage operations for redb
 
 use crate::{
-    RedbStorage, EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, MAX_EMBEDDING_SIZE,
-    MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE, METADATA_TABLE, PATTERNS_TABLE,
+    RedbStorage, EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE, PATTERNS_TABLE,
 };
 use async_trait::async_trait;
-use bincode::Options;
 use memory_core::embeddings::{
     cosine_similarity, EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult,
 };
@@ -27,7 +25,7 @@ impl RedbStorage {
         debug!("Storing episode in cache: {}", episode.episode_id);
         let db = Arc::clone(&self.db);
         let episode_id = episode.episode_id.to_string();
-        let episode_bytes = bincode::serialize(episode)
+        let episode_bytes = postcard::to_allocvec(episode)
             .map_err(|e| Error::Storage(format!("Failed to serialize episode: {}", e)))?;
 
         let byte_size = episode_bytes.len();
@@ -85,12 +83,8 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get episode: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let bytes = bytes_guard.value();
-                    let config = bincode::options()
-                        .with_limit(MAX_EPISODE_SIZE)
-                        .with_fixint_encoding()
-                        .allow_trailing_bytes();
-                    let episode: Episode = config.deserialize(bytes).map_err(|e| {
+                    let _bytes = bytes_guard.value();
+                    let episode: Episode = postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize episode: {}", e))
                     })?;
                     Ok::<Option<Episode>, Error>(Some(episode))
@@ -138,12 +132,7 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
-                let config = bincode::options()
-                    .with_limit(MAX_EPISODE_SIZE)
-                    .with_fixint_encoding()
-                    .allow_trailing_bytes();
-                let episode: Episode = config
-                    .deserialize(bytes_guard.value())
+                let episode: Episode = postcard::from_bytes(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 episodes.push(episode);
@@ -197,7 +186,7 @@ impl RedbStorage {
         debug!("Storing pattern in cache: {}", pattern.id());
         let db = Arc::clone(&self.db);
         let pattern_id = pattern.id().to_string();
-        let pattern_bytes = bincode::serialize(pattern)
+        let pattern_bytes = postcard::to_allocvec(pattern)
             .map_err(|e| Error::Storage(format!("Failed to serialize pattern: {}", e)))?;
 
         tokio::task::spawn_blocking(move || {
@@ -248,12 +237,8 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get pattern: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let bytes = bytes_guard.value();
-                    let config = bincode::options()
-                        .with_limit(MAX_PATTERN_SIZE)
-                        .with_fixint_encoding()
-                        .allow_trailing_bytes();
-                    let pattern: Pattern = config.deserialize(bytes).map_err(|e| {
+                    let _bytes = bytes_guard.value();
+                    let pattern: Pattern = postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize pattern: {}", e))
                     })?;
                     Ok(Some(pattern))
@@ -295,12 +280,7 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read pattern entry: {}", e)))?;
 
-                let config = bincode::options()
-                    .with_limit(MAX_PATTERN_SIZE)
-                    .with_fixint_encoding()
-                    .allow_trailing_bytes();
-                let pattern: Pattern = config
-                    .deserialize(bytes_guard.value())
+                let pattern: Pattern = postcard::from_bytes(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize pattern: {}", e)))?;
 
                 patterns.push(pattern);
@@ -317,7 +297,7 @@ impl RedbStorage {
         debug!("Storing heuristic in cache: {}", heuristic.heuristic_id);
         let db = Arc::clone(&self.db);
         let heuristic_id = heuristic.heuristic_id.to_string();
-        let heuristic_bytes = bincode::serialize(heuristic)
+        let heuristic_bytes = postcard::to_allocvec(heuristic)
             .map_err(|e| Error::Storage(format!("Failed to serialize heuristic: {}", e)))?;
 
         tokio::task::spawn_blocking(move || {
@@ -368,12 +348,8 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get heuristic: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let bytes = bytes_guard.value();
-                    let config = bincode::options()
-                        .with_limit(MAX_HEURISTIC_SIZE)
-                        .with_fixint_encoding()
-                        .allow_trailing_bytes();
-                    let heuristic: Heuristic = config.deserialize(bytes).map_err(|e| {
+                    let _bytes = bytes_guard.value();
+                    let heuristic: Heuristic = postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize heuristic: {}", e))
                     })?;
                     Ok(Some(heuristic))
@@ -416,12 +392,8 @@ impl RedbStorage {
                     Error::Storage(format!("Failed to read heuristic entry: {}", e))
                 })?;
 
-                let config = bincode::options()
-                    .with_limit(MAX_HEURISTIC_SIZE)
-                    .with_fixint_encoding()
-                    .allow_trailing_bytes();
                 let heuristic: Heuristic =
-                    config.deserialize(bytes_guard.value()).map_err(|e| {
+                    postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize heuristic: {}", e))
                     })?;
 
@@ -439,7 +411,7 @@ impl RedbStorage {
         debug!("Storing embedding: {}", id);
         let db = Arc::clone(&self.db);
         let id_str = id.to_string();
-        let embedding_bytes = bincode::serialize(embedding)
+        let embedding_bytes = postcard::to_allocvec(embedding)
             .map_err(|e| Error::Storage(format!("Failed to serialize embedding: {}", e)))?;
 
         tokio::task::spawn_blocking(move || {
@@ -489,12 +461,8 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get embedding: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let bytes = bytes_guard.value();
-                    let config = bincode::options()
-                        .with_limit(MAX_EMBEDDING_SIZE)
-                        .with_fixint_encoding()
-                        .allow_trailing_bytes();
-                    let embedding: Vec<f32> = config.deserialize(bytes).map_err(|e| {
+                    let _bytes = bytes_guard.value();
+                    let embedding: Vec<f32> = postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                         Error::Storage(format!("Failed to deserialize embedding: {}", e))
                     })?;
                     Ok(Some(embedding))
@@ -539,12 +507,7 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
-                let config = bincode::options()
-                    .with_limit(MAX_EPISODE_SIZE)
-                    .with_fixint_encoding()
-                    .allow_trailing_bytes();
-                let episode: Episode = config
-                    .deserialize(bytes_guard.value())
+                let episode: Episode = postcard::from_bytes(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 // Filter by timestamp
@@ -601,12 +564,7 @@ impl RedbStorage {
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
-                let config = bincode::options()
-                    .with_limit(MAX_EPISODE_SIZE)
-                    .with_fixint_encoding()
-                    .allow_trailing_bytes();
-                let episode: Episode = config
-                    .deserialize(bytes_guard.value())
+                let episode: Episode = postcard::from_bytes(bytes_guard.value())
                     .map_err(|e| Error::Storage(format!("Failed to deserialize episode: {}", e)))?;
 
                 // Check if metadata contains the key-value pair
@@ -686,8 +644,8 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get metadata: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let bytes = bytes_guard.value();
-                    let value = String::from_utf8(bytes.to_vec())
+                    let _bytes = bytes_guard.value();
+                    let value = String::from_utf8(_bytes.to_vec())
                         .map_err(|e| Error::Storage(format!("Failed to decode metadata: {}", e)))?;
                     Ok(Some(value))
                 }
@@ -760,10 +718,6 @@ impl EmbeddingStorageBackend for RedbStorage {
                 .iter()
                 .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?;
 
-            let config = bincode::options()
-                .with_limit(MAX_EMBEDDING_SIZE)
-                .with_fixint_encoding()
-                .allow_trailing_bytes();
 
             for result in iter {
                 let (key_bytes, embedding_bytes_guard) = result.map_err(|e| {
@@ -777,8 +731,8 @@ impl EmbeddingStorageBackend for RedbStorage {
                     continue;
                 }
 
-                let embedding: Vec<f32> = config
-                    .deserialize(embedding_bytes_guard.value())
+                let embedding: Vec<f32> = postcard::from_bytes(embedding_bytes_guard.value())
+                    
                     .map_err(|e| {
                         Error::Storage(format!("Failed to deserialize embedding: {}", e))
                     })?;
@@ -794,12 +748,7 @@ impl EmbeddingStorageBackend for RedbStorage {
                             .get(episode_id_str)
                             .map_err(|e| Error::Storage(format!("Failed to get episode: {}", e)))?
                         {
-                            let episode_config = bincode::options()
-                                .with_limit(MAX_EPISODE_SIZE)
-                                .with_fixint_encoding()
-                                .allow_trailing_bytes();
-                            let episode: Episode = episode_config
-                                .deserialize(episode_bytes.value())
+                            let episode: Episode = postcard::from_bytes(episode_bytes.value())
                                 .map_err(|e| {
                                     Error::Storage(format!("Failed to deserialize episode: {}", e))
                                 })?;
@@ -865,10 +814,6 @@ impl EmbeddingStorageBackend for RedbStorage {
                 .iter()
                 .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?;
 
-            let config = bincode::options()
-                .with_limit(MAX_EMBEDDING_SIZE)
-                .with_fixint_encoding()
-                .allow_trailing_bytes();
 
             for result in iter {
                 let (key_bytes, embedding_bytes_guard) = result.map_err(|e| {
@@ -882,8 +827,8 @@ impl EmbeddingStorageBackend for RedbStorage {
                     continue;
                 }
 
-                let embedding: Vec<f32> = config
-                    .deserialize(embedding_bytes_guard.value())
+                let embedding: Vec<f32> = postcard::from_bytes(embedding_bytes_guard.value())
+                    
                     .map_err(|e| {
                         Error::Storage(format!("Failed to deserialize embedding: {}", e))
                     })?;
@@ -899,12 +844,7 @@ impl EmbeddingStorageBackend for RedbStorage {
                             .get(pattern_id_str)
                             .map_err(|e| Error::Storage(format!("Failed to get pattern: {}", e)))?
                         {
-                            let pattern_config = bincode::options()
-                                .with_limit(MAX_PATTERN_SIZE)
-                                .with_fixint_encoding()
-                                .allow_trailing_bytes();
-                            let pattern: Pattern = pattern_config
-                                .deserialize(pattern_bytes.value())
+                            let pattern: Pattern = postcard::from_bytes(pattern_bytes.value())
                                 .map_err(|e| {
                                     Error::Storage(format!("Failed to deserialize pattern: {}", e))
                                 })?;

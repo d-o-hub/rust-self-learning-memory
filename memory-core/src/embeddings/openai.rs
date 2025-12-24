@@ -60,33 +60,33 @@ impl OpenAIEmbeddingProvider {
     ///
     /// # Returns
     /// Configured OpenAI embedding provider
-    pub fn new(api_key: String, config: ModelConfig) -> Self {
+    pub fn new(api_key: String, config: ModelConfig) -> anyhow::Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(60))
             .build()
-            .expect("Failed to create HTTP client");
+            .context("Failed to create HTTP client")?;
 
-        Self {
+        Ok(Self {
             api_key,
             config,
             client,
             base_url: "https://api.openai.com/v1".to_string(),
-        }
+        })
     }
 
     /// Create provider with custom base URL (for Azure OpenAI, etc.)
-    pub fn with_custom_url(api_key: String, config: ModelConfig, base_url: String) -> Self {
+    pub fn with_custom_url(api_key: String, config: ModelConfig, base_url: String) -> anyhow::Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(60))
             .build()
-            .expect("Failed to create HTTP client");
+            .context("Failed to create HTTP client")?;
 
-        Self {
+        Ok(Self {
             api_key,
             config,
             client,
             base_url,
-        }
+        })
     }
 
     /// Make embedding request to OpenAI API
@@ -388,26 +388,28 @@ mod tests {
 
     #[cfg(feature = "openai")]
     #[tokio::test]
-    async fn test_provider_creation() {
+    async fn test_provider_creation() -> anyhow::Result<()> {
         let config = ModelConfig::openai_3_small();
-        let provider = OpenAIEmbeddingProvider::new("sk-test-key-1234567890".to_string(), config);
+        let provider = OpenAIEmbeddingProvider::new("sk-test-key-1234567890".to_string(), config)?;
 
         assert_eq!(provider.model_name(), "text-embedding-3-small");
         assert_eq!(provider.embedding_dimension(), 1536);
         assert_eq!(provider.base_url, "https://api.openai.com/v1");
+        Ok(())
     }
 
     #[cfg(feature = "openai")]
     #[tokio::test]
-    async fn test_custom_url_provider() {
+    async fn test_custom_url_provider() -> anyhow::Result<()> {
         let config = ModelConfig::openai_3_small();
         let custom_url = "https://custom.openai.azure.com/v1";
         let provider = OpenAIEmbeddingProvider::with_custom_url(
             "sk-test-key-1234567890".to_string(),
             config,
             custom_url.to_string(),
-        );
+        )?;
 
         assert_eq!(provider.base_url, custom_url);
+        Ok(())
     }
 }

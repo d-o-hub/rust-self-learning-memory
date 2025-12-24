@@ -127,9 +127,15 @@ impl SemanticService {
         #[cfg(feature = "openai")]
         {
             if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
-                let provider = OpenAIEmbeddingProvider::new(api_key, config.model.clone());
-                tracing::info!("Using OpenAI embedding provider as fallback");
-                return Ok(Self::new(Box::new(provider), storage, config));
+                match OpenAIEmbeddingProvider::new(api_key, config.model.clone()) {
+                    Ok(provider) => {
+                        tracing::info!("Using OpenAI embedding provider as fallback");
+                        return Ok(Self::new(Box::new(provider), storage, config));
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to initialize OpenAI provider: {}. Falling back to mock.", e);
+                    }
+                }
             } else {
                 tracing::warn!("OPENAI_API_KEY not set, cannot use OpenAI provider");
             }
@@ -158,9 +164,9 @@ impl SemanticService {
         api_key: String,
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
-    ) -> Self {
-        let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, config.model.clone()));
-        Self::new(provider, storage, config)
+    ) -> Result<Self> {
+        let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, config.model.clone())?);
+        Ok(Self::new(provider, storage, config))
     }
 
     /// Generate and store embedding for an episode

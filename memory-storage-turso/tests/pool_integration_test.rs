@@ -35,7 +35,7 @@ async fn test_pool_performance_concurrent_operations() {
         let handle = tokio::spawn(async move {
             let conn = pool_clone.get().await.unwrap();
             // Simulate database work
-            let result = conn.connection().query("SELECT 1", ()).await;
+            let result = conn.connection().unwrap().query("SELECT 1", ()).await;
             assert!(result.is_ok());
             tokio::time::sleep(Duration::from_millis(5)).await;
         });
@@ -92,7 +92,7 @@ async fn test_pool_with_turso_storage() {
     // Test multiple sequential operations
     for i in 0..10 {
         let conn = pool.get().await.unwrap();
-        let result = conn.connection().query("SELECT 1", ()).await;
+        let result = conn.connection().unwrap().query("SELECT 1", ()).await;
         assert!(result.is_ok(), "Query {} failed", i);
     }
 
@@ -178,7 +178,7 @@ async fn test_pool_statistics_accuracy() {
     // Get and use 3 connections
     for _ in 0..3 {
         let conn = pool.get().await.unwrap();
-        let _result = conn.connection().query("SELECT 1", ()).await.unwrap();
+        let _result = conn.connection().unwrap().query("SELECT 1", ()).await.unwrap();
         drop(conn);
     }
 

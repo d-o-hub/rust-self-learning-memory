@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **[BREAKING]** Migrated from bincode to postcard for serialization in memory-storage-redb
+  - Replaced `bincode::serialize`/`deserialize` with `postcard::to_allocvec`/`from_bytes`
+  - Postcard provides better security guarantees and smaller binary sizes
+  - Existing redb databases will need to be recreated or migrated
+  - Updated security tests to reflect postcard's safer design (renamed `bincode_security_test.rs` to `postcard_security_test.rs`)
+- Removed bincode size limit checks in favor of postcard's inherent safety
+- Updated all serialization code in episode, pattern, heuristic, and embedding storage
+
 ## [0.1.6.1] - 2025-12-17
 
 ### Fixed

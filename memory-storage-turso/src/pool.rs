@@ -77,13 +77,15 @@ pub struct PooledConnection {
 
 impl PooledConnection {
     /// Get a reference to the underlying connection
-    pub fn connection(&self) -> &Connection {
-        self.connection.as_ref().expect("Connection already taken")
+    pub fn connection(&self) -> Option<&Connection> {
+        self.connection.as_ref()
     }
 
     /// Take ownership of the connection
-    pub fn into_inner(mut self) -> Connection {
-        self.connection.take().expect("Connection already taken")
+    pub fn into_inner(mut self) -> Result<Connection> {
+        self.connection
+            .take()
+            .ok_or_else(|| Error::Storage("Connection already taken".to_string()))
     }
 }
 
@@ -546,7 +548,7 @@ mod tests {
         let conn = pool.get().await.unwrap();
 
         // Use the connection
-        let result = conn.connection().query("SELECT 1", ()).await;
+        let result = conn.connection().unwrap().query("SELECT 1", ()).await;
         assert!(result.is_ok());
 
         drop(conn);

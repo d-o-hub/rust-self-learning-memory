@@ -351,7 +351,7 @@ impl TursoStorage {
         if let Some(ref pool) = self.pool {
             // Use connection pool
             let pooled_conn = pool.get().await?;
-            Ok(pooled_conn.into_inner())
+            Ok(pooled_conn.into_inner()?)
         } else {
             // Create direct connection (legacy mode)
             self.db

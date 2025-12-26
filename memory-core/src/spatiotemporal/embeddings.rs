@@ -44,6 +44,7 @@ use std::sync::Arc;
 /// # Ok(())
 /// # }
 /// ```
+#[derive(Clone)]
 pub struct ContextAwareEmbeddings {
     /// Base embedding provider
     base_embeddings: Arc<dyn EmbeddingProvider>,
@@ -392,7 +393,7 @@ mod tests {
             self.dimension
         }
 
-        fn model_name(&self) -> &str {
+        fn model_name(&self) -> &'static str {
             "mock-model"
         }
     }

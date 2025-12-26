@@ -852,7 +852,7 @@ mod tests {
         let clusters = index.get_temporal_clusters(Some("web-api"), Some(TaskType::CodeGeneration));
 
         // Should have 2 weekly clusters (current week + last week)
-        assert!(clusters.len() >= 1);
+        assert!(!clusters.is_empty());
         assert!(clusters
             .iter()
             .any(|c| c.granularity == TemporalGranularity::Weekly));
@@ -874,7 +874,7 @@ mod tests {
         let clusters = index.get_temporal_clusters(Some("web-api"), Some(TaskType::CodeGeneration));
 
         // Should have monthly clusters
-        assert!(clusters.len() >= 1);
+        assert!(!clusters.is_empty());
         assert!(clusters
             .iter()
             .any(|c| c.granularity == TemporalGranularity::Monthly));
@@ -896,7 +896,7 @@ mod tests {
         let clusters = index.get_temporal_clusters(Some("web-api"), Some(TaskType::CodeGeneration));
 
         // Should have quarterly clusters
-        assert!(clusters.len() >= 1);
+        assert!(!clusters.is_empty());
         assert!(clusters
             .iter()
             .any(|c| c.granularity == TemporalGranularity::Quarterly));

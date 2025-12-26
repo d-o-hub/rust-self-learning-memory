@@ -702,11 +702,7 @@ mod tests {
         let result = maximizer.maximize_diversity(candidates, 3);
         let diversity = maximizer.calculate_diversity_score(&result);
 
-        assert!(
-            diversity >= 0.7,
-            "Expected diversity ≥0.7, got {}",
-            diversity
-        );
+        assert!(diversity >= 0.7, "Expected diversity ≥0.7, got {diversity}");
     }
 
     #[test]

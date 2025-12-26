@@ -228,6 +228,12 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         enable_summarization: true,
         summary_min_length: 100,
         summary_max_length: 200,
+        // Phase 3 (Spatiotemporal) - Hierarchical retrieval
+        enable_spatiotemporal_indexing: true,
+        enable_diversity_maximization: true,
+        diversity_lambda: 0.7,
+        temporal_bias_weight: 0.3,
+        max_clusters_to_search: 5,
     }
 }
 

@@ -557,7 +557,7 @@ mod tests {
     fn test_task_type_filtering() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "Write code", 1),
             create_test_episode("web-api", TaskType::Testing, "Write tests", 1),
             create_test_episode("web-api", TaskType::CodeGeneration, "More code", 1),
@@ -584,7 +584,7 @@ mod tests {
     fn test_task_type_filtering_no_filter() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "Write code", 1),
             create_test_episode("web-api", TaskType::Testing, "Write tests", 1),
         ];
@@ -607,7 +607,7 @@ mod tests {
     fn test_temporal_clustering_favors_recent() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "Old", 30),
             create_test_episode("web-api", TaskType::CodeGeneration, "Recent", 1),
             create_test_episode("web-api", TaskType::CodeGeneration, "Very old", 60),
@@ -636,7 +636,7 @@ mod tests {
     fn test_scoring_domain_match() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "API endpoint", 1),
             create_test_episode("data-science", TaskType::CodeGeneration, "Data pipeline", 1),
         ];
@@ -662,7 +662,7 @@ mod tests {
     fn test_scoring_task_type_match() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "Write code", 1),
             create_test_episode("web-api", TaskType::Testing, "Write tests", 1),
         ];
@@ -688,7 +688,7 @@ mod tests {
     fn test_scoring_temporal_proximity() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "Recent task", 1),
             create_test_episode("web-api", TaskType::CodeGeneration, "Old task", 30),
         ];
@@ -821,7 +821,7 @@ mod tests {
     fn test_combined_score_calculation() {
         let retriever = HierarchicalRetriever::new();
 
-        let episodes = vec![create_test_episode(
+        let episodes = [create_test_episode(
             "web-api",
             TaskType::CodeGeneration,
             "implement authentication",
@@ -856,7 +856,7 @@ mod tests {
         // High temporal bias
         let high_bias = HierarchicalRetriever::with_config(0.7, 5);
 
-        let episodes = vec![
+        let episodes = [
             create_test_episode("web-api", TaskType::CodeGeneration, "old task", 30),
             create_test_episode("web-api", TaskType::CodeGeneration, "new task", 1),
         ];

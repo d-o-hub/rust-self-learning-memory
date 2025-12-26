@@ -596,6 +596,7 @@ impl Default for ConcurrencyConfig {
 /// };
 /// ```
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct MemoryConfig {
     /// Storage configuration
     pub storage: StorageConfig,
@@ -862,8 +863,7 @@ mod tests {
             let config = MemoryConfig::from_env();
             assert!(
                 matches!(config.eviction_policy, Some(policy) if policy == expected),
-                "Failed for input: {}",
-                input
+                "Failed for input: {input}"
             );
             std::env::remove_var("MEMORY_EVICTION_POLICY");
         }
@@ -891,14 +891,14 @@ mod tests {
         for input in true_cases {
             std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
             let config = MemoryConfig::from_env();
-            assert!(config.enable_summarization, "Failed for input: {}", input);
+            assert!(config.enable_summarization, "Failed for input: {input}");
             std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
         }
 
         for input in false_cases {
             std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
             let config = MemoryConfig::from_env();
-            assert!(!config.enable_summarization, "Failed for input: {}", input);
+            assert!(!config.enable_summarization, "Failed for input: {input}");
             std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
         }
     }

@@ -231,13 +231,15 @@ pub struct SelfLearningMemory {
     pub(super) semantic_summarizer: Option<crate::semantic::SemanticSummarizer>,
 
     // Phase 3 (Spatiotemporal) - Hierarchical retrieval and indexing
-    /// Spatiotemporal index for domain → task_type → temporal clustering
-    pub(super) spatiotemporal_index: Option<Arc<RwLock<crate::spatiotemporal::SpatiotemporalIndex>>>,
+    /// Spatiotemporal index for domain -> `task_type` -> temporal clustering
+    pub(super) spatiotemporal_index:
+        Option<Arc<RwLock<crate::spatiotemporal::SpatiotemporalIndex>>>,
     /// Hierarchical retriever for efficient episode search
     pub(super) hierarchical_retriever: Option<crate::spatiotemporal::HierarchicalRetriever>,
     /// Diversity maximizer using MMR for result set optimization
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
     /// Context-aware embeddings for task-specific similarity (future)
+    #[allow(dead_code)]
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
 }
 
@@ -879,7 +881,7 @@ mod tests {
 
         // Log some steps
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -913,13 +915,10 @@ mod tests {
 
         // Log multiple steps to meet quality threshold
         for i in 0..20 {
-            let mut step = ExecutionStep::new(
-                i + 1,
-                format!("tool_{}", i % 6),
-                format!("Test action {}", i),
-            );
+            let mut step =
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Test action {i}"));
             step.result = Some(ExecutionResult::Success {
-                output: format!("Step {} passed", i),
+                output: format!("Step {i} passed"),
             });
             memory.log_step(episode_id, step).await;
         }
@@ -963,18 +962,15 @@ mod tests {
             };
 
             let episode_id = memory
-                .start_episode(format!("API task {}", i), context, TaskType::CodeGeneration)
+                .start_episode(format!("API task {i}"), context, TaskType::CodeGeneration)
                 .await;
 
             // Log multiple steps to meet quality threshold
             for j in 0..20 {
-                let mut step = ExecutionStep::new(
-                    j + 1,
-                    format!("tool_{}", j % 6),
-                    format!("Build step {}", j),
-                );
+                let mut step =
+                    ExecutionStep::new(j + 1, format!("tool_{}", j % 6), format!("Build step {j}"));
                 step.result = Some(ExecutionResult::Success {
-                    output: format!("Step {} completed", j),
+                    output: format!("Step {j} completed"),
                 });
                 memory.log_step(episode_id, step).await;
             }
@@ -1013,10 +1009,10 @@ mod tests {
             let mut step = ExecutionStep::new(
                 j + 1,
                 format!("analysis_tool_{}", j % 6),
-                format!("Analysis step {}", j),
+                format!("Analysis step {j}"),
             );
             step.result = Some(ExecutionResult::Success {
-                output: format!("Analysis step {} completed", j),
+                output: format!("Analysis step {j} completed"),
             });
             memory.log_step(different_id, step).await;
         }
@@ -1181,7 +1177,7 @@ mod tests {
         // Add steps to meet quality threshold
         for i in 0..20 {
             let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Test step {}", i));
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Test step {i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "Success".to_string(),
             });

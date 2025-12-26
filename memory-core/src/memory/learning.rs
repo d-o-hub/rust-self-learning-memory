@@ -251,6 +251,25 @@ impl SelfLearningMemory {
                         evicted_ids = ?evicted_ids,
                         "Episodes evicted (backend deletion to be implemented in Phase 2.4)"
                     );
+
+                    // Phase 3: Remove evicted episodes from spatiotemporal index
+                    if let Some(ref index) = self.spatiotemporal_index {
+                        if let Ok(mut index_write) = index.try_write() {
+                            for evicted_id in &evicted_ids {
+                                if let Err(e) = index_write.remove_episode(*evicted_id) {
+                                    warn!(
+                                        episode_id = %evicted_id,
+                                        error = %e,
+                                        "Failed to remove evicted episode from spatiotemporal index"
+                                    );
+                                }
+                            }
+                            debug!(
+                                evicted_count = evicted_ids.len(),
+                                "Removed evicted episodes from spatiotemporal index"
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -281,6 +300,35 @@ impl SelfLearningMemory {
         }
 
         // Note: Write lock already released above for capacity enforcement
+
+        // ============================================================================
+        // Phase 3 (Spatiotemporal) - Update hierarchical index
+        // ============================================================================
+
+        // Update spatiotemporal index if enabled
+        if let Some(ref index) = self.spatiotemporal_index {
+            if let Ok(mut index_write) = index.try_write() {
+                if let Err(e) = index_write.insert_episode(episode) {
+                    warn!(
+                        episode_id = %episode_id,
+                        error = %e,
+                        "Failed to insert episode into spatiotemporal index"
+                    );
+                } else {
+                    debug!(
+                        episode_id = %episode_id,
+                        domain = %episode.context.domain,
+                        task_type = %episode.task_type,
+                        "Inserted episode into spatiotemporal index"
+                    );
+                }
+            } else {
+                debug!(
+                    episode_id = %episode_id,
+                    "Spatiotemporal index locked, skipping indexing"
+                );
+            }
+        }
 
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {

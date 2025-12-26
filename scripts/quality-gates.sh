@@ -144,7 +144,7 @@ else
 fi
 
 echo ""
-if cargo test --test quality_gates -- --nocapture; then
+if RUSTFLAGS="-D warnings" cargo test --test quality_gates -- --nocapture; then
     echo ""
     echo -e "${GREEN}────────────────────────────────────────────────────────────────────────${NC}"
     echo -e "${GREEN}│          ✓ All Quality Gates PASSED                          │${NC}"

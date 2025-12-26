@@ -96,7 +96,7 @@ fn create_tool_sequence_episode() -> Episode {
     // Sequential tool usage
     let tools = ["analyzer", "designer", "builder", "tester"];
     for (i, tool) in tools.iter().enumerate() {
-        let mut step = ExecutionStep::new(i + 1, tool.to_string(), format!("{} step", tool));
+        let mut step = ExecutionStep::new(i + 1, (*tool).to_string(), format!("{tool} step"));
         step.result = Some(ExecutionResult::Success {
             output: "Done".to_string(),
         });
@@ -272,7 +272,7 @@ async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {
 
     for i in 0..10000 {
         if i % 1000 == 0 {
-            println!("Loading test episodes: {}/10000", i);
+            println!("Loading test episodes: {i}/10000");
         }
 
         let context = TaskContext {
@@ -286,7 +286,7 @@ async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {
         };
 
         let episode_id = memory
-            .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
+            .start_episode(format!("Task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         memory
@@ -432,7 +432,7 @@ async fn should_maintain_fast_retrieval_with_large_dataset() {
 
     let avg_time = total_time / test_queries.len() as u32;
 
-    println!("Average retrieval time with 10K episodes: {:?}", avg_time);
+    println!("Average retrieval time with 10K episodes: {avg_time:?}");
 
     // Then: Average retrieval time should remain under 100ms
     assert!(
@@ -456,11 +456,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         };
 
         let episode_id = memory
-            .start_episode(
-                format!("Auth task {}", i),
-                context,
-                TaskType::CodeGeneration,
-            )
+            .start_episode(format!("Auth task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         memory
@@ -484,11 +480,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         };
 
         let episode_id = memory
-            .start_episode(
-                format!("Batch task {}", i),
-                context,
-                TaskType::CodeGeneration,
-            )
+            .start_episode(format!("Batch task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         memory
@@ -673,8 +665,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
     for pattern_id in &completed.patterns {
         assert!(
             seen.insert(*pattern_id),
-            "Duplicate pattern ID found: {}",
-            pattern_id
+            "Duplicate pattern ID found: {pattern_id}"
         );
     }
 
@@ -746,7 +737,7 @@ async fn should_maintain_baseline_episode_creation_performance() {
     for i in 0..100 {
         let episode_id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )

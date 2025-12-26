@@ -2,7 +2,7 @@
 
 use memory_core::{
     AdaptiveRewardCalculator, ComplexityLevel, DomainStatisticsCache, Episode, ExecutionResult,
-    ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+    ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };
 
 #[tokio::test]
@@ -22,14 +22,14 @@ async fn test_adaptive_reward_with_domain_statistics() {
         };
 
         let mut episode = Episode::new(
-            format!("API request {}", i),
+            format!("API request {i}"),
             context,
             TaskType::CodeGeneration,
         );
 
         // Add 8 steps
         for j in 0..8 {
-            let mut step = ExecutionStep::new(j + 1, format!("tool_{}", j), "Action".to_string());
+            let mut step = ExecutionStep::new(j + 1, format!("tool_{j}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -56,11 +56,11 @@ async fn test_adaptive_reward_with_domain_statistics() {
             tags: vec!["batch".to_string()],
         };
 
-        let mut episode = Episode::new(format!("Process batch {}", i), context, TaskType::Analysis);
+        let mut episode = Episode::new(format!("Process batch {i}"), context, TaskType::Analysis);
 
         // Add 25 steps
         for j in 0..25 {
-            let mut step = ExecutionStep::new(j + 1, format!("tool_{}", j), "Action".to_string());
+            let mut step = ExecutionStep::new(j + 1, format!("tool_{j}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -111,7 +111,7 @@ async fn test_adaptive_reward_with_domain_statistics() {
     );
 
     for j in 0..8 {
-        let mut step = ExecutionStep::new(j + 1, format!("tool_{}", j), "Action".to_string());
+        let mut step = ExecutionStep::new(j + 1, format!("tool_{j}"), "Action".to_string());
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -141,7 +141,7 @@ async fn test_adaptive_reward_with_domain_statistics() {
     );
 
     for j in 0..25 {
-        let mut step = ExecutionStep::new(j + 1, format!("tool_{}", j), "Action".to_string());
+        let mut step = ExecutionStep::new(j + 1, format!("tool_{j}"), "Action".to_string());
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -193,7 +193,7 @@ fn test_domain_statistics_reliability_threshold() {
             domain: "test-domain".to_string(),
             ..Default::default()
         };
-        let mut episode = Episode::new(format!("Task {}", i), context, TaskType::Testing);
+        let mut episode = Episode::new(format!("Task {i}"), context, TaskType::Testing);
         episode.complete(TaskOutcome::Success {
             verdict: "Done".to_string(),
             artifacts: vec![],

@@ -400,7 +400,7 @@ mod tests {
         // Check that values are in reasonable range
         for &value in &embedding {
             assert!(
-                value >= -1.0 && value <= 1.0,
+                (-1.0..=1.0).contains(&value),
                 "Embedding values should be in [-1, 1]"
             );
         }

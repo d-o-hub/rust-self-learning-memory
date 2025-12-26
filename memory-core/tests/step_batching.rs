@@ -17,7 +17,7 @@ use memory_core::{BatchConfig, ExecutionStep, MemoryConfig, TaskContext, TaskOut
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 
-/// Test auto-flush when buffer reaches max_batch_size
+/// Test auto-flush when buffer reaches `max_batch_size`
 #[tokio::test]
 async fn test_step_buffering_with_auto_flush_on_size() -> anyhow::Result<()> {
     // Arrange: Configure batch size of 10 steps
@@ -45,7 +45,7 @@ async fn test_step_buffering_with_auto_flush_on_size() -> anyhow::Result<()> {
 
     // Act: Log 9 steps - should not trigger flush
     for i in 1..=9 {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -109,7 +109,7 @@ async fn test_step_buffering_with_auto_flush_on_time() -> anyhow::Result<()> {
 
     // Act: Log 3 steps quickly
     for i in 1..=3 {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -139,7 +139,7 @@ async fn test_step_buffering_with_auto_flush_on_time() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Test manual flush via flush_steps()
+/// Test manual flush via `flush_steps()`
 #[tokio::test]
 async fn test_manual_flush() -> anyhow::Result<()> {
     // Arrange: Configure large batch size and long interval (no auto-flush)
@@ -163,7 +163,7 @@ async fn test_manual_flush() -> anyhow::Result<()> {
 
     // Act: Log several steps
     for i in 1..=5 {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -198,7 +198,7 @@ async fn test_manual_flush() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Test that complete_episode flushes buffered steps
+/// Test that `complete_episode` flushes buffered steps
 #[tokio::test]
 async fn test_complete_episode_flushes_steps() -> anyhow::Result<()> {
     // Arrange: Configure large batch to prevent auto-flush
@@ -226,7 +226,7 @@ async fn test_complete_episode_flushes_steps() -> anyhow::Result<()> {
 
     // Act: Log buffered steps
     for i in 1..=8 {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -270,7 +270,7 @@ async fn test_complete_episode_flushes_steps() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Test batching disabled (batch_config: None) - immediate persistence
+/// Test batching disabled (`batch_config`: None) - immediate persistence
 #[tokio::test]
 async fn test_batching_disabled() -> anyhow::Result<()> {
     // Arrange: Create memory with batching disabled
@@ -294,7 +294,7 @@ async fn test_batching_disabled() -> anyhow::Result<()> {
 
     // Act & Assert: Each step should be persisted immediately
     for i in 1..=5 {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
 
         // Verify immediate persistence
@@ -302,8 +302,7 @@ async fn test_batching_disabled() -> anyhow::Result<()> {
         assert_eq!(
             episode.steps.len(),
             i,
-            "Step {} should be immediately persisted",
-            i
+            "Step {i} should be immediately persisted"
         );
     }
 
@@ -327,12 +326,12 @@ async fn test_multiple_episodes_concurrent_buffering() -> anyhow::Result<()> {
     // Create multiple episodes concurrently
     let mut episode_ids = Vec::new();
     for i in 0..3 {
-        let context = ContextBuilder::new(format!("concurrent-test-{}", i))
+        let context = ContextBuilder::new(format!("concurrent-test-{i}"))
             .language("rust")
             .build();
 
         let episode_id = memory
-            .start_episode(format!("Concurrent task {}", i), context, TaskType::Testing)
+            .start_episode(format!("Concurrent task {i}"), context, TaskType::Testing)
             .await;
         episode_ids.push(episode_id);
     }
@@ -344,7 +343,7 @@ async fn test_multiple_episodes_concurrent_buffering() -> anyhow::Result<()> {
             let step = create_success_step(
                 step_num,
                 "test_tool",
-                &format!("Episode {} Step {}", idx, step_num),
+                &format!("Episode {idx} Step {step_num}"),
             );
             memory.log_step(*episode_id, step).await;
         }
@@ -356,8 +355,7 @@ async fn test_multiple_episodes_concurrent_buffering() -> anyhow::Result<()> {
         assert_eq!(
             episode.steps.len(),
             0,
-            "Steps should be buffered for episode {}",
-            episode_id
+            "Steps should be buffered for episode {episode_id}"
         );
     }
 
@@ -418,7 +416,7 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
 
     let start_no_batch = Instant::now();
     for i in 1..=step_count {
-        let step = ExecutionStep::new(i, "tool".to_string(), format!("Action {}", i));
+        let step = ExecutionStep::new(i, "tool".to_string(), format!("Action {i}"));
         memory_no_batch.log_step(episode_id1, step).await;
     }
     let duration_no_batch = start_no_batch.elapsed();
@@ -446,7 +444,7 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
 
     let start_batch = Instant::now();
     for i in 1..=step_count {
-        let step = ExecutionStep::new(i, "tool".to_string(), format!("Action {}", i));
+        let step = ExecutionStep::new(i, "tool".to_string(), format!("Action {i}"));
         memory_batch.log_step(episode_id2, step).await;
     }
     // Flush buffered steps
@@ -470,17 +468,14 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
 
     // Print performance comparison (informational)
     println!("\n=== Performance Comparison ===");
-    println!(
-        "Without batching: {:?} ({} steps)",
-        duration_no_batch, step_count
-    );
-    println!(
-        "With batching:    {:?} ({} steps)",
-        duration_batch, step_count
-    );
+    println!("Without batching: {duration_no_batch:?} ({step_count} steps)");
+    println!("With batching:    {duration_batch:?} ({step_count} steps)");
     println!(
         "Speedup:          {:.2}x",
-        duration_no_batch.as_micros() as f64 / duration_batch.as_micros() as f64
+        // Clippy: Precision loss acceptable for speedup calculation in test
+        #[allow(clippy::cast_precision_loss)]
+        duration_no_batch.as_micros() as f64
+            / duration_batch.as_micros() as f64
     );
 
     // Note: We don't assert performance improvement as CI environments vary
@@ -518,7 +513,7 @@ async fn test_no_data_loss_on_flush() -> anyhow::Result<()> {
     // Act: Log many steps (will trigger multiple auto-flushes)
     let total_steps = 27; // Will flush at 5, 10, 15, 20, 25, then 2 remain
     for i in 1..=total_steps {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -599,7 +594,7 @@ async fn test_flush_nonexistent_episode() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Test buffer behavior with auto_flush disabled
+/// Test buffer behavior with `auto_flush` disabled
 #[tokio::test]
 async fn test_manual_flush_only_mode() -> anyhow::Result<()> {
     // Arrange: Configure manual-only flushing
@@ -627,7 +622,7 @@ async fn test_manual_flush_only_mode() -> anyhow::Result<()> {
 
     // Act: Log many steps (exceeding batch size and wait time)
     for i in 1..=15 {
-        let step = create_success_step(i, "test_tool", &format!("Action {}", i));
+        let step = create_success_step(i, "test_tool", &format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -694,7 +689,7 @@ async fn test_batch_config_presets() -> anyhow::Result<()> {
 
     // Log exactly 20 steps (should trigger flush)
     for i in 1..=20 {
-        let step = ExecutionStep::new(i, "tool".to_string(), format!("Action {}", i));
+        let step = ExecutionStep::new(i, "tool".to_string(), format!("Action {i}"));
         memory.log_step(episode_id, step).await;
     }
 

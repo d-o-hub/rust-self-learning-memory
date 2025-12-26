@@ -54,7 +54,7 @@ async fn should_execute_complete_learning_cycle_end_to_end() {
     for (i, (tool, action)) in steps.iter().enumerate() {
         let step = StepBuilder::new(i + 1, *tool, *action)
             .latency_ms(100 + (i as u64 * 50))
-            .success(format!("{} completed", action))
+            .success(format!("{action} completed"))
             .build();
         memory.log_step(episode_id, step).await;
     }
@@ -125,7 +125,7 @@ async fn should_learn_from_multiple_episodes_in_same_domain() {
 
         let episode_id = memory
             .start_episode(
-                format!("Process batch {}", i),
+                format!("Process batch {i}"),
                 context,
                 TaskType::CodeGeneration,
             )
@@ -133,7 +133,7 @@ async fn should_learn_from_multiple_episodes_in_same_domain() {
 
         // Add steps - using create_success_step helper
         for j in 0..3 {
-            let step = create_success_step(j + 1, &format!("processor_{}", j), "Process data");
+            let step = create_success_step(j + 1, &format!("processor_{j}"), "Process data");
             memory.log_step(episode_id, step).await;
         }
 
@@ -142,7 +142,7 @@ async fn should_learn_from_multiple_episodes_in_same_domain() {
             .complete_episode(
                 episode_id,
                 TaskOutcome::Success {
-                    verdict: format!("Batch {} processed", i),
+                    verdict: format!("Batch {i} processed"),
                     artifacts: vec![],
                 },
             )
@@ -238,7 +238,7 @@ async fn should_handle_concurrent_episode_operations_safely() {
             };
 
             let episode_id = mem
-                .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
+                .start_episode(format!("Task {i}"), context, TaskType::CodeGeneration)
                 .await;
 
             // Add step

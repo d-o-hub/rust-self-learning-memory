@@ -1,7 +1,7 @@
-//! Integration tests for PREMem (Pre-Storage Reasoning) Phase 1
+//! Integration tests for `PREMem` (Pre-Storage Reasoning) Phase 1
 //!
 //! Tests quality assessment and salient feature extraction integration
-//! into the SelfLearningMemory workflow.
+//! into the `SelfLearningMemory` workflow.
 
 use memory_core::memory::SelfLearningMemory;
 use memory_core::types::{
@@ -44,10 +44,9 @@ fn create_high_quality_episode_data() -> (String, TaskContext, TaskType, Vec<Exe
 
     // Step 2-4: Tool sequence
     for i in 2..=4 {
-        let mut step =
-            ExecutionStep::new(i, format!("builder_{}", i), format!("Build layer {}", i));
+        let mut step = ExecutionStep::new(i, format!("builder_{i}"), format!("Build layer {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Layer {} complete", i),
+            output: format!("Layer {i} complete"),
         });
         step.latency_ms = 100 + (i as u64 * 10);
         steps.push(step);
@@ -82,10 +81,10 @@ fn create_high_quality_episode_data() -> (String, TaskContext, TaskType, Vec<Exe
         let mut step = ExecutionStep::new(
             i,
             format!("integrator_{}", i % 3),
-            format!("Integration step {}", i),
+            format!("Integration step {i}"),
         );
         step.result = Some(ExecutionResult::Success {
-            output: format!("Integration {} complete", i),
+            output: format!("Integration {i} complete"),
         });
         step.latency_ms = 90 + (i as u64 * 5);
         steps.push(step);
@@ -246,7 +245,7 @@ async fn test_low_quality_episode_rejected() {
             assert!(msg.contains("quality score"));
             assert!(msg.contains("below threshold"));
         }
-        other => panic!("Expected ValidationFailed error, got: {:?}", other),
+        other => panic!("Expected ValidationFailed error, got: {other:?}"),
     }
 }
 
@@ -291,7 +290,7 @@ async fn test_custom_quality_threshold() {
             memory_core::Error::ValidationFailed(_) => {
                 // Expected if quality is below 0.4
             }
-            other => panic!("Unexpected error: {:?}", other),
+            other => panic!("Unexpected error: {other:?}"),
         }
     }
 }
@@ -432,7 +431,7 @@ async fn test_rejection_logging() {
     // Verify rejection with clear error message
     assert!(result.is_err());
     let err = result.unwrap_err();
-    let err_msg = format!("{}", err);
+    let err_msg = format!("{err}");
 
     // Error message should include quality score and threshold
     assert!(err_msg.contains("quality score"));

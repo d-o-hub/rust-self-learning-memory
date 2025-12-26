@@ -37,7 +37,7 @@ fn test_extract_from_complete_episode() {
 
     // Add some execution steps
     for i in 0..3 {
-        let step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+        let step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
         episode.add_step(step);
     }
 
@@ -139,7 +139,7 @@ mod utils_tests {
         // Higher success rate should come first
         match &ranked[0] {
             Pattern::ToolSequence { success_rate, .. } => {
-                assert!((*success_rate - 0.9).abs() < 0.01)
+                assert!((*success_rate - 0.9).abs() < 0.01);
             }
             _ => panic!("Expected ToolSequence"),
         }

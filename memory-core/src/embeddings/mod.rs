@@ -161,7 +161,7 @@ impl SemanticService {
         Ok(Self::new(Box::new(provider), storage, config))
     }
 
-    /// Create a semantic service with OpenAI embedding provider
+    /// Create a semantic service with `OpenAI` embedding provider
     #[cfg(feature = "openai")]
     pub fn with_openai_provider(
         api_key: String,
@@ -564,7 +564,7 @@ mod tests {
             4
         }
 
-        fn model_name(&self) -> &str {
+        fn model_name(&self) -> &'static str {
             "mock-model"
         }
     }

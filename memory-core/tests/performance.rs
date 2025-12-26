@@ -54,18 +54,17 @@ async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
         };
 
         let episode_id = memory
-            .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
+            .start_episode(format!("Task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         // Add 3-5 steps per episode
         let step_count = 3 + (i % 3);
         for j in 0..step_count {
-            let mut step =
-                ExecutionStep::new(j + 1, format!("tool_{}", j), format!("Action {}", j));
+            let mut step = ExecutionStep::new(j + 1, format!("tool_{j}"), format!("Action {j}"));
             step.latency_ms = 10 + (j as u64 * 5);
             step.tokens_used = Some(50 + (j * 10));
             step.result = Some(ExecutionResult::Success {
-                output: format!("Step {} done", j),
+                output: format!("Step {j} done"),
             });
             memory.log_step(episode_id, step).await;
         }
@@ -75,7 +74,7 @@ async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
             .complete_episode(
                 episode_id,
                 TaskOutcome::Success {
-                    verdict: format!("Task {} completed", i),
+                    verdict: format!("Task {i} completed"),
                     artifacts: vec![],
                 },
             )
@@ -101,8 +100,8 @@ fn test_context() -> TaskContext {
 fn create_test_step(step_number: usize) -> ExecutionStep {
     let mut step = ExecutionStep::new(
         step_number,
-        format!("tool_{}", step_number),
-        format!("Action {}", step_number),
+        format!("tool_{step_number}"),
+        format!("Action {step_number}"),
     );
     step.latency_ms = 10;
     step.tokens_used = Some(50);
@@ -157,17 +156,20 @@ async fn should_retrieve_episodes_under_100ms_p95_with_100_episodes() {
 
         let start = Instant::now();
         let _ = memory
-            .retrieve_relevant_context(format!("test query {}", i), context.clone(), 10)
+            .retrieve_relevant_context(format!("test query {i}"), context.clone(), 10)
             .await;
         latencies.push(start.elapsed());
     }
 
     // Then: P95 latency should be under 100ms (NFR1)
     latencies.sort();
+    // Clippy: Cast is safe for percentile index calculation in test context
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_precision_loss)]
     let p95_index = ((latencies.len() as f32 * 0.95) as usize).min(latencies.len() - 1);
     let p95 = latencies[p95_index];
 
-    println!("P95 latency with 100 episodes: {:?}", p95);
+    println!("P95 latency with 100 episodes: {p95:?}");
 
     assert!(
         p95.as_millis() < 100,
@@ -192,17 +194,20 @@ async fn should_retrieve_episodes_under_100ms_p95_with_10k_episodes() {
 
         let start = Instant::now();
         let _ = memory
-            .retrieve_relevant_context(format!("test query {}", i), context.clone(), 10)
+            .retrieve_relevant_context(format!("test query {i}"), context.clone(), 10)
             .await;
         latencies.push(start.elapsed());
     }
 
     // Then: P95 latency should remain under 100ms even with large dataset (NFR1)
     latencies.sort();
+    // Clippy: Cast is safe for percentile index calculation in test context
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_precision_loss)]
     let p95_index = ((latencies.len() as f32 * 0.95) as usize).min(latencies.len() - 1);
     let p95 = latencies[p95_index];
 
-    println!("P95 latency with 10K episodes: {:?}", p95);
+    println!("P95 latency with 10K episodes: {p95:?}");
 
     assert!(
         p95.as_millis() < 100,
@@ -234,10 +239,10 @@ async fn should_maintain_consistent_retrieval_latency_across_percentiles() {
     let p99 = latencies[99];
 
     println!("Retrieval latency percentiles:");
-    println!("  P50: {:?}", p50);
-    println!("  P90: {:?}", p90);
-    println!("  P95: {:?}", p95);
-    println!("  P99: {:?}", p99);
+    println!("  P50: {p50:?}");
+    println!("  P90: {p90:?}");
+    println!("  P95: {p95:?}");
+    println!("  P99: {p99:?}");
 
     assert!(p95.as_millis() < 100, "P95 should be under 100ms");
 }
@@ -256,7 +261,7 @@ async fn should_store_1000_episodes_without_performance_degradation() {
     for i in 0..1000 {
         let episode_id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -278,7 +283,7 @@ async fn should_store_1000_episodes_without_performance_degradation() {
     }
 
     let storage_time = start.elapsed();
-    println!("Stored 1K episodes in {:?}", storage_time);
+    println!("Stored 1K episodes in {storage_time:?}");
 
     // Then: Retrieval should remain fast despite large dataset
     let retrieval_start = Instant::now();
@@ -305,12 +310,12 @@ async fn should_store_10000_episodes_without_performance_degradation() {
     // When: Storing 10,000 episodes (NFR2 extended capacity test)
     for i in 0..10000 {
         if i % 1000 == 0 {
-            println!("Progress: {}/10000 episodes", i);
+            println!("Progress: {i}/10000 episodes");
         }
 
         let episode_id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -332,7 +337,7 @@ async fn should_store_10000_episodes_without_performance_degradation() {
     }
 
     let storage_time = start.elapsed();
-    println!("Stored 10K episodes in {:?}", storage_time);
+    println!("Stored 10K episodes in {storage_time:?}");
 
     // Then: Retrieval should remain fast even with very large dataset
     let retrieval_start = Instant::now();
@@ -360,7 +365,7 @@ async fn should_create_episodes_very_quickly() {
         let start = Instant::now();
         memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -372,7 +377,7 @@ async fn should_create_episodes_very_quickly() {
     let avg_time: Duration =
         creation_times.iter().sum::<Duration>() / u32::try_from(creation_times.len()).unwrap_or(1);
 
-    println!("Average episode creation time: {:?}", avg_time);
+    println!("Average episode creation time: {avg_time:?}");
 
     assert!(
         avg_time.as_millis() < 10,
@@ -428,7 +433,7 @@ async fn should_maintain_90_percent_test_coverage() {
                 "CI workflow should include coverage reporting"
             );
         } else {
-            println!("CI workflow not found at {:?}", ci_workflow_path);
+            println!("CI workflow not found at {ci_workflow_path:?}");
         }
     }
 }
@@ -442,13 +447,13 @@ async fn should_not_leak_memory_under_continuous_operation() {
     // Given: Memory system with initial memory baseline
     let memory = Arc::new(setup_test_memory());
     let initial_memory = get_current_memory_usage();
-    println!("Initial memory: {} bytes", initial_memory);
+    println!("Initial memory: {initial_memory} bytes");
 
     // When: Running 100 episode creation/completion cycles
     for i in 0..100 {
         let mem = memory.clone();
         let episode_id = mem
-            .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
+            .start_episode(format!("Task {i}"), test_context(), TaskType::Testing)
             .await;
 
         for j in 0..5 {
@@ -468,7 +473,7 @@ async fn should_not_leak_memory_under_continuous_operation() {
 
     // Then: Memory growth should be minimal (NFR5: no leaks)
     let final_memory = get_current_memory_usage();
-    println!("Final memory: {} bytes", final_memory);
+    println!("Final memory: {final_memory} bytes");
 
     if initial_memory > 0 {
         #[allow(clippy::cast_precision_loss)]
@@ -496,7 +501,7 @@ async fn should_not_leak_memory_over_1000_iterations() {
     for i in 0..1000 {
         let mem = memory.clone();
         let episode_id = mem
-            .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
+            .start_episode(format!("Task {i}"), test_context(), TaskType::Testing)
             .await;
 
         for j in 0..5 {
@@ -546,7 +551,7 @@ async fn should_cleanup_cache_when_exceeding_limits() {
     // When: Creating 200 episodes (exceeding cache limit)
     for i in 0..200 {
         let episode_id = memory
-            .start_episode(format!("Task {}", i), test_context(), TaskType::Testing)
+            .start_episode(format!("Task {i}"), test_context(), TaskType::Testing)
             .await;
 
         memory
@@ -583,7 +588,7 @@ async fn should_create_episodes_concurrently_without_conflicts() {
         let mem = memory.clone();
         let handle = tokio::spawn(async move {
             mem.start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -625,7 +630,7 @@ async fn should_complete_episodes_concurrently_without_conflicts() {
     for i in 0..50 {
         let id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -658,7 +663,7 @@ async fn should_complete_episodes_concurrently_without_conflicts() {
 
     let elapsed = start.elapsed();
 
-    println!("Completed 50 episodes concurrently in {:?}", elapsed);
+    println!("Completed 50 episodes concurrently in {elapsed:?}");
 
     // Then: All episodes should be completed successfully
     let (_, completed, _) = memory.get_stats().await;
@@ -676,7 +681,7 @@ async fn should_handle_concurrent_retrievals_efficiently() {
     for i in 0..50 {
         let mem = memory.clone();
         let handle = tokio::spawn(async move {
-            mem.retrieve_relevant_context(format!("query {}", i), test_context(), 10)
+            mem.retrieve_relevant_context(format!("query {i}"), test_context(), 10)
                 .await
         });
         handles.push(handle);
@@ -690,7 +695,7 @@ async fn should_handle_concurrent_retrievals_efficiently() {
 
     let elapsed = start.elapsed();
 
-    println!("Executed 50 concurrent retrievals in {:?}", elapsed);
+    println!("Executed 50 concurrent retrievals in {elapsed:?}");
 
     // Then: Concurrent retrievals should be fast (<500ms)
     assert!(
@@ -723,9 +728,11 @@ async fn should_log_steps_very_quickly() {
     }
 
     // Then: Average step logging should be very fast (<5ms)
-    let avg_time: Duration = step_times.iter().sum::<Duration>() / step_times.len() as u32;
+    // Clippy: Cast is safe for small test sizes (100 items)
+    #[allow(clippy::cast_possible_truncation)]
+    let avg_time: Duration = step_times.iter().sum::<Duration>() / u32::from(step_times.len());
 
-    println!("Average step logging time: {:?}", avg_time);
+    println!("Average step logging time: {avg_time:?}");
 
     assert!(
         avg_time.as_millis() < 5,
@@ -744,7 +751,7 @@ async fn should_complete_episodes_quickly_with_pattern_extraction() {
     for i in 0..50 {
         let episode_id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -773,7 +780,7 @@ async fn should_complete_episodes_quickly_with_pattern_extraction() {
     let avg_time: Duration = completion_times.iter().sum::<Duration>()
         / u32::try_from(completion_times.len()).unwrap_or(1);
 
-    println!("Average episode completion time: {:?}", avg_time);
+    println!("Average episode completion time: {avg_time:?}");
 
     assert!(
         avg_time.as_millis() < 100,

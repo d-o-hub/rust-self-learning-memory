@@ -57,8 +57,7 @@ mod tests {
 
     pub(crate) fn add_successful_steps(episode: &mut Episode, count: usize) {
         for i in 0..count {
-            let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i), format!("Action {}", i));
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("Action {i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

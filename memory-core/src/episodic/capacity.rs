@@ -23,18 +23,13 @@ use uuid::Uuid;
 /// let policy = EvictionPolicy::RelevanceWeighted;
 /// let lru_policy = EvictionPolicy::LRU;
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum EvictionPolicy {
     /// Least Recently Used - evict oldest episodes first
     LRU,
     /// Relevance-weighted - evict episodes with lowest quality + recency scores
+    #[default]
     RelevanceWeighted,
-}
-
-impl Default for EvictionPolicy {
-    fn default() -> Self {
-        Self::RelevanceWeighted
-    }
 }
 
 /// Capacity manager for episodic storage.
@@ -382,7 +377,7 @@ mod tests {
     fn test_evict_if_needed_under_capacity() {
         let manager = CapacityManager::new(10, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..5)
-            .map(|i| create_test_episode(&format!("Task {}", i)))
+            .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
 
         let to_evict = manager.evict_if_needed(&episodes);
@@ -393,7 +388,7 @@ mod tests {
     fn test_evict_if_needed_at_capacity() {
         let manager = CapacityManager::new(3, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..3)
-            .map(|i| create_test_episode(&format!("Task {}", i)))
+            .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
 
         let to_evict = manager.evict_if_needed(&episodes);
@@ -405,7 +400,7 @@ mod tests {
     fn test_evict_if_needed_over_capacity() {
         let manager = CapacityManager::new(3, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..5)
-            .map(|i| create_test_episode(&format!("Task {}", i)))
+            .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
 
         let to_evict = manager.evict_if_needed(&episodes);
@@ -506,7 +501,7 @@ mod tests {
         });
 
         let score = manager.relevance_score(&episode);
-        assert!(score >= 0.0 && score <= 1.0);
+        assert!((0.0..=1.0).contains(&score));
     }
 
     #[test]
@@ -521,7 +516,7 @@ mod tests {
 
         let score = manager.calculate_recency_score(&episode);
         // Very recent episode should have high recency score
-        assert!(score > 0.9, "Expected recency score > 0.9, got {}", score);
+        assert!(score > 0.9, "Expected recency score > 0.9, got {score}");
     }
 
     #[test]
@@ -541,7 +536,7 @@ mod tests {
 
         let score = manager.calculate_recency_score(&episode);
         // Old episode should have low recency score
-        assert!(score < 0.5, "Expected recency score < 0.5, got {}", score);
+        assert!(score < 0.5, "Expected recency score < 0.5, got {score}");
     }
 
     #[test]
@@ -559,7 +554,7 @@ mod tests {
         });
 
         let score = manager.extract_quality_score(&episode);
-        assert!(score >= 0.0 && score <= 1.0);
+        assert!((0.0..=1.0).contains(&score));
         // Reward total of 1.5 should map to quality ~0.75
         assert!((score - 0.75).abs() < 0.1);
     }
@@ -608,7 +603,7 @@ mod tests {
     fn test_exactly_at_capacity_needs_eviction() {
         let manager = CapacityManager::new(5, EvictionPolicy::LRU);
         let episodes: Vec<Episode> = (0..5)
-            .map(|i| create_test_episode(&format!("Task {}", i)))
+            .map(|i| create_test_episode(&format!("Task {i}")))
             .collect();
 
         // When exactly at capacity, we need to evict to make room for new episode

@@ -605,8 +605,7 @@ mod tests {
 
         // Add successful sequence
         for i in 0..4 {
-            let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("action_{i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -627,7 +626,7 @@ mod tests {
 
         // Add success sequence
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -643,7 +642,7 @@ mod tests {
 
         // Add another success sequence
         for i in 4..6 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -699,9 +698,9 @@ mod tests {
         episode.add_step(error_step);
 
         // Add multiple recovery steps
-        let recovery_actions = vec!["Sanitize input", "Validate format", "Re-parse"];
+        let recovery_actions = ["Sanitize input", "Validate format", "Re-parse"];
         for (i, action) in recovery_actions.iter().enumerate() {
-            let mut step = ExecutionStep::new(i + 2, "parser".to_string(), action.to_string());
+            let mut step = ExecutionStep::new(i + 2, "parser".to_string(), (*action).to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -714,7 +713,7 @@ mod tests {
         assert!(features
             .error_recovery_patterns
             .iter()
-            .any(|p| p.contains("[")));
+            .any(|p| p.contains('[')));
     }
 
     #[test]
@@ -784,8 +783,7 @@ mod tests {
 
         // Add tool sequence
         for i in 1..4 {
-            let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("action_{i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

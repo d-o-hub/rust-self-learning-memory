@@ -2,10 +2,10 @@
 //!
 //! Tests the full workflow of training and using task-specific embedding adapters.
 
+use memory_core::embeddings::LocalEmbeddingProvider;
 use memory_core::episode::Episode;
 use memory_core::spatiotemporal::embeddings::{ContextAwareEmbeddings, ContrastivePair};
 use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
-use memory_core::embeddings::LocalEmbeddingProvider;
 use std::sync::Arc;
 
 fn create_test_episode(task_type: TaskType, description: &str, domain: &str) -> Episode {
@@ -70,7 +70,7 @@ async fn test_context_aware_embeddings_integration() {
 
     // Test embedding generation with and without adapter
     let text = "implement authentication";
-    
+
     let base_embedding = base.embed_text(text).await.unwrap();
     let adapted_embedding = embeddings
         .get_adapted_embedding(text, Some(TaskType::CodeGeneration))
@@ -130,12 +130,9 @@ async fn test_multiple_task_adapters() {
 
 #[test]
 fn test_empty_training_pairs_error() {
-    let config = memory_core::embeddings::config::EmbeddingConfig::default();
+    let _config = memory_core::embeddings::config::EmbeddingConfig::default();
     // Use mock provider for this synchronous test
-    let mock = memory_core::embeddings::mock_model::MockLocalModel::new(
-        "mock".to_string(),
-        128,
-    );
+    let mock = memory_core::embeddings::mock_model::MockLocalModel::new("mock".to_string(), 128);
     let mut embeddings = ContextAwareEmbeddings::new(Arc::new(mock));
 
     let result = embeddings.train_adapter(TaskType::CodeGeneration, &[]);
@@ -157,7 +154,7 @@ async fn test_backward_compatibility_no_adapters() {
     let embeddings = ContextAwareEmbeddings::new(base.clone());
 
     let text = "test task";
-    
+
     // All should return base embedding
     let none_result = embeddings.get_adapted_embedding(text, None).await.unwrap();
     let some_result = embeddings

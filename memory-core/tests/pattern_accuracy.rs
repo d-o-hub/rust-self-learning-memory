@@ -5,7 +5,7 @@
 //!
 //! ## Test Coverage
 //! - Pattern metrics calculation (precision, recall, F1, accuracy)
-//! - Pattern extraction by type (ToolSequence, DecisionPoint, ErrorRecovery)
+//! - Pattern extraction by type (`ToolSequence`, `DecisionPoint`, `ErrorRecovery`)
 //! - Overall pattern recognition accuracy against ground truth
 //! - Effectiveness tracking, pattern ranking, and decay mechanisms
 
@@ -20,7 +20,7 @@ use uuid::Uuid;
 /// Create a test context for episodes
 fn create_test_context(domain: &str, language: Option<&str>) -> TaskContext {
     TaskContext {
-        language: language.map(|s| s.to_string()),
+        language: language.map(std::string::ToString::to_string),
         framework: Some("tokio".to_string()),
         complexity: ComplexityLevel::Moderate,
         domain: domain.to_string(),
@@ -610,7 +610,7 @@ fn should_extract_patterns_by_type_with_minimum_accuracy() {
     ];
 
     for (pattern_name, ground_truth, min_tp, min_quality) in test_cases {
-        println!("\n=== Testing {} Pattern Extraction ===", pattern_name);
+        println!("\n=== Testing {pattern_name} Pattern Extraction ===");
 
         // Filter extracted patterns by type
         let extracted_by_type: Vec<_> = all_extracted
@@ -788,7 +788,7 @@ fn should_track_effectiveness_and_decay_poor_patterns() {
     let pattern_count_before = tracker.pattern_count();
     let decayed = tracker.decay_old_patterns();
 
-    println!("Patterns before decay: {}", pattern_count_before);
+    println!("Patterns before decay: {pattern_count_before}");
     println!("Decayed patterns: {}", decayed.len());
     println!("Remaining patterns: {}", tracker.pattern_count());
 

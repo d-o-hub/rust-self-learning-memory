@@ -635,7 +635,7 @@ mod tests {
         let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

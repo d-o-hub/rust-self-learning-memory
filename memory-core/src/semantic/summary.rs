@@ -3,6 +3,8 @@
 //! Provides semantic summarization of episodes into concise, searchable summaries
 //! with key concepts, critical steps, and optional embeddings for retrieval.
 
+#![allow(clippy::uninlined_format_args)]
+
 use crate::embeddings::EmbeddingProvider;
 use crate::episode::Episode;
 use crate::pre_storage::SalientFeatures;
@@ -206,6 +208,7 @@ impl SemanticSummarizer {
     /// let summary = summarizer.summarize_episode(&episode).await.unwrap();
     /// # });
     /// ```
+    #[allow(clippy::unused_async)]
     pub async fn summarize_episode(&self, episode: &Episode) -> Result<EpisodeSummary> {
         let key_concepts = self.extract_key_concepts(episode);
         let key_steps = self.extract_key_steps(episode);
@@ -305,6 +308,7 @@ impl SemanticSummarizer {
     /// assert!(concepts.contains(&"rust".to_string()));
     /// assert!(concepts.contains(&"authentication".to_string()));
     /// ```
+    #[must_use]
     pub fn extract_key_concepts(&self, episode: &Episode) -> Vec<String> {
         let mut concepts = HashSet::new();
 
@@ -414,6 +418,7 @@ impl SemanticSummarizer {
     /// let key_steps = summarizer.extract_key_steps(&episode);
     /// assert!(!key_steps.is_empty());
     /// ```
+    #[must_use]
     pub fn extract_key_steps(&self, episode: &Episode) -> Vec<String> {
         if episode.steps.is_empty() {
             return Vec::new();
@@ -541,6 +546,7 @@ impl SemanticSummarizer {
     /// assert!(summary.contains("Task:"));
     /// assert!(summary.contains("Outcome:"));
     /// ```
+    #[must_use]
     pub fn generate_summary_text(&self, episode: &Episode) -> String {
         let mut parts = Vec::new();
 

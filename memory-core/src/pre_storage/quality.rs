@@ -441,7 +441,7 @@ mod tests {
         let assessor = QualityAssessor::new(QualityConfig::default());
         let episode = create_test_episode();
         let score = assessor.assess_episode(&episode);
-        assert!(score >= 0.0 && score <= 1.0);
+        assert!((0.0..=1.0).contains(&score));
     }
 
     #[test]
@@ -460,7 +460,7 @@ mod tests {
         // Add many diverse steps
         for i in 0..15 {
             let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i % 5), format!("action_{}", i));
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 5), format!("action_{i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "Success".to_string(),
             });
@@ -484,8 +484,7 @@ mod tests {
         let score = assessor.assess_episode(&episode);
         assert!(
             score > 0.6,
-            "Complex episode should have high quality score, got {}",
-            score
+            "Complex episode should have high quality score, got {score}"
         );
     }
 
@@ -504,8 +503,7 @@ mod tests {
         let score = assessor.assess_episode(&episode);
         assert!(
             score < 0.5,
-            "Simple episode should have low quality score, got {}",
-            score
+            "Simple episode should have low quality score, got {score}"
         );
     }
 
@@ -516,7 +514,7 @@ mod tests {
 
         // Add mostly failing steps
         for i in 0..10 {
-            let mut step = ExecutionStep::new(i + 1, "tool".to_string(), format!("action_{}", i));
+            let mut step = ExecutionStep::new(i + 1, "tool".to_string(), format!("action_{i}"));
             step.result = Some(ExecutionResult::Error {
                 message: "Error".to_string(),
             });
@@ -535,7 +533,7 @@ mod tests {
         // Add mix of errors and successes (error recovery pattern)
         for i in 0..10 {
             let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i % 3), format!("action_{}", i));
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 3), format!("action_{i}"));
             step.result = if i % 3 == 0 {
                 Some(ExecutionResult::Error {
                     message: "Error".to_string(),
@@ -551,8 +549,7 @@ mod tests {
         let score = assessor.assess_episode(&episode);
         assert!(
             score > 0.4,
-            "Error recovery should improve quality score, got {}",
-            score
+            "Error recovery should improve quality score, got {score}"
         );
     }
 
@@ -591,8 +588,7 @@ mod tests {
 
         // Add steps to get moderate quality
         for i in 0..5 {
-            let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("action_{i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "Success".to_string(),
             });
@@ -631,7 +627,7 @@ mod tests {
         // High complexity: many steps, diverse tools
         let mut episode2 = create_test_episode();
         for i in 0..15 {
-            let step = ExecutionStep::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
+            let step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("action_{i}"));
             episode2.add_step(step);
         }
         let high_complexity = assessor.assess_task_complexity(&episode2);
@@ -657,7 +653,7 @@ mod tests {
         // High diversity: varied actions
         let mut episode2 = create_test_episode();
         for i in 0..5 {
-            let step = ExecutionStep::new(i + 1, "tool".to_string(), format!("action_{}", i));
+            let step = ExecutionStep::new(i + 1, "tool".to_string(), format!("action_{i}"));
             episode2.add_step(step);
         }
         let high_diversity = assessor.assess_step_diversity(&episode2);

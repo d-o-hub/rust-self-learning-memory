@@ -18,7 +18,7 @@ fn test_quality_assessor_basic_usage() {
 
     let score = assessor.assess_episode(&episode);
     assert!(
-        score >= 0.0 && score <= 1.0,
+        (0.0..=1.0).contains(&score),
         "Quality score must be in range 0.0-1.0"
     );
 }
@@ -39,10 +39,10 @@ fn test_high_quality_episode_scores_above_threshold() {
         let mut step = ExecutionStep::new(
             i + 1,
             format!("tool_{}", i % 5),
-            format!("Implementing feature part {}", i),
+            format!("Implementing feature part {i}"),
         );
         step.result = Some(ExecutionResult::Success {
-            output: format!("Part {} completed successfully", i),
+            output: format!("Part {i} completed successfully"),
         });
         episode.add_step(step);
     }
@@ -75,8 +75,7 @@ fn test_high_quality_episode_scores_above_threshold() {
     // Should score well above the default 0.7 threshold
     assert!(
         score >= 0.7,
-        "High-quality episode should score >= 0.7, got {}",
-        score
+        "High-quality episode should score >= 0.7, got {score}"
     );
     assert!(
         assessor.should_store(&episode),
@@ -113,8 +112,7 @@ fn test_low_quality_episode_scores_below_threshold() {
     // Single simple step should score below threshold
     assert!(
         score < 0.7,
-        "Low-quality episode should score < 0.7 (below threshold), got {}",
-        score
+        "Low-quality episode should score < 0.7 (below threshold), got {score}"
     );
     assert!(
         !assessor.should_store(&episode),
@@ -135,8 +133,7 @@ fn test_error_recovery_improves_quality() {
 
     // Mix of errors and successes showing error recovery
     for i in 0..12 {
-        let mut step =
-            ExecutionStep::new(i + 1, format!("tool_{}", i % 4), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i % 4), format!("Action {i}"));
         // Every 4th step fails, others succeed (showing recovery)
         step.result = if i % 4 == 0 {
             Some(ExecutionResult::Error {
@@ -158,8 +155,7 @@ fn test_error_recovery_improves_quality() {
     let score = assessor.assess_episode(&episode);
     assert!(
         score > 0.5,
-        "Error recovery should result in moderate-to-good quality, got {}",
-        score
+        "Error recovery should result in moderate-to-good quality, got {score}"
     );
 }
 
@@ -192,8 +188,7 @@ fn test_custom_quality_threshold() {
     // Should not pass very high threshold
     assert!(
         !assessor.should_store(&episode),
-        "Episode with score {} should not pass 0.9 threshold",
-        score
+        "Episode with score {score} should not pass 0.9 threshold"
     );
 }
 
@@ -217,7 +212,7 @@ fn test_custom_feature_weights() {
 
     // Add many steps with diverse tools (high complexity)
     for i in 0..20 {
-        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("Action {i}"));
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -233,8 +228,7 @@ fn test_custom_feature_weights() {
     // Should score well due to high complexity weight
     assert!(
         score > 0.6,
-        "High complexity with heavy weight should score well, got {}",
-        score
+        "High complexity with heavy weight should score well, got {score}"
     );
 }
 
@@ -298,7 +292,7 @@ fn test_all_quality_features_contribute() {
         let mut step = ExecutionStep::new(
             i + 1,
             format!("tool_{}", i % 6),
-            format!("Varied action {}", i),
+            format!("Varied action {i}"),
         );
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
@@ -327,8 +321,7 @@ fn test_all_quality_features_contribute() {
     // Should score well across all features
     assert!(
         score > 0.7,
-        "Episode with good scores across all features should be high quality, got {}",
-        score
+        "Episode with good scores across all features should be high quality, got {score}"
     );
 }
 

@@ -67,3 +67,8 @@ name = "phase3_retrieval_accuracy"
 path = "phase3_retrieval_accuracy.rs"
 harness = false
 
+[[bench]]
+name = "spatiotemporal_benchmark"
+path = "spatiotemporal_benchmark.rs"
+harness = false
+

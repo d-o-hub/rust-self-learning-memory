@@ -22,7 +22,7 @@ async fn create_test_turso() -> anyhow::Result<(TursoStorage, TempDir)> {
     let db = libsql::Builder::new_local(&db_path)
         .build()
         .await
-        .map_err(|e| anyhow::anyhow!("Failed to create test database: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Failed to create test database: {e}"))?;
 
     let storage = TursoStorage::from_database(db)?;
     storage.initialize_schema().await?;
@@ -75,11 +75,7 @@ async fn should_sync_all_recent_episodes_in_batch() {
     let mut episode_ids = Vec::new();
 
     for i in 0..5 {
-        let episode = Episode::new(
-            format!("Test task {}", i),
-            context.clone(),
-            TaskType::Testing,
-        );
+        let episode = Episode::new(format!("Test task {i}"), context.clone(), TaskType::Testing);
         episode_ids.push(episode.episode_id);
         sync.turso.store_episode(&episode).await.unwrap();
     }
@@ -95,11 +91,7 @@ async fn should_sync_all_recent_episodes_in_batch() {
     // Then: All episodes should be available in cache
     for episode_id in episode_ids {
         let cached = sync.redb.get_episode(episode_id).await.unwrap();
-        assert!(
-            cached.is_some(),
-            "Episode {} should be in cache",
-            episode_id
-        );
+        assert!(cached.is_some(), "Episode {episode_id} should be in cache");
     }
 }
 

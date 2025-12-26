@@ -8,6 +8,11 @@
 //! - `domain_stats` - Domain-specific statistics for adaptive calibration
 //! - `adaptive` - Adaptive reward calculator using domain baselines
 //!
+
+#![allow(clippy::if_not_else)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::doc_markdown)]
 //! Calculates reward scores for completed episodes based on:
 //! - Task outcome (success/partial/failure)
 //! - Efficiency (duration and step count)
@@ -436,7 +441,7 @@ mod tests {
 
         // Add just a few steps
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -464,7 +469,7 @@ mod tests {
 
         // Add many steps (more than efficient threshold)
         for i in 0..50 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -576,7 +581,7 @@ mod tests {
 
         // Add all successful steps
         for i in 0..5 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -601,7 +606,7 @@ mod tests {
 
         // Add many failed steps
         for i in 0..10 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             if i < 7 {
                 step.result = Some(ExecutionResult::Error {
                     message: "Error".to_string(),
@@ -632,7 +637,7 @@ mod tests {
 
         // Add some successful steps
         for i in 0..5 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -696,7 +701,7 @@ mod tests {
 
         // Add many different tools (diverse approach)
         for i in 0..6 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -721,7 +726,7 @@ mod tests {
 
         // Add successful steps with perfect execution
         for i in 0..5 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -746,7 +751,7 @@ mod tests {
 
         // Add high-quality execution
         for i in 0..7 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

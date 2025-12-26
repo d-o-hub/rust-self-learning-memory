@@ -725,8 +725,7 @@ mod tests {
         let compatibility = applicator.assess_tool_compatibility(&tool, &context);
         assert!(
             compatibility > 0.8,
-            "High compatibility scenario should score > 0.8, got {}",
-            compatibility
+            "High compatibility scenario should score > 0.8, got {compatibility}"
         );
         assert!(
             compatibility <= 1.0,
@@ -753,8 +752,7 @@ mod tests {
         let compatibility = applicator.assess_tool_compatibility(&tool, &context);
         assert!(
             compatibility < 0.6,
-            "Low compatibility scenario should score < 0.6, got {}",
-            compatibility
+            "Low compatibility scenario should score < 0.6, got {compatibility}"
         );
         assert!(
             compatibility >= 0.0,
@@ -773,8 +771,7 @@ mod tests {
         let compatibility = applicator.assess_tool_compatibility(&empty_tool, &context);
         assert!(
             (0.0..=1.0).contains(&compatibility),
-            "Empty tool should return valid score between 0.0 and 1.0, got {}",
-            compatibility
+            "Empty tool should return valid score between 0.0 and 1.0, got {compatibility}"
         );
 
         // Test with no capabilities but has contexts
@@ -784,8 +781,7 @@ mod tests {
         let compatibility2 = applicator.assess_tool_compatibility(&tool_with_contexts, &context);
         assert!(
             (0.0..=1.0).contains(&compatibility2),
-            "Tool with contexts should return valid score, got {}",
-            compatibility2
+            "Tool with contexts should return valid score, got {compatibility2}"
         );
 
         // Test with success history but no typical contexts
@@ -797,8 +793,7 @@ mod tests {
         let compatibility3 = applicator.assess_tool_compatibility(&tool_with_history, &context);
         assert!(
             (0.0..=1.0).contains(&compatibility3),
-            "Tool with history should return valid score, got {}",
-            compatibility3
+            "Tool with history should return valid score, got {compatibility3}"
         );
     }
 
@@ -880,8 +875,7 @@ mod tests {
         let risk = applicator.calculate_tool_compatibility_risk(&pattern, &context, &planned_steps);
         assert!(
             (0.0..=1.0).contains(&risk),
-            "Tool compatibility risk should be between 0.0 and 1.0, got {}",
-            risk
+            "Tool compatibility risk should be between 0.0 and 1.0, got {risk}"
         );
 
         // Test with empty planned steps

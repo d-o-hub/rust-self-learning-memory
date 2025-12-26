@@ -72,7 +72,7 @@ impl PatternEffectiveness {
     #[must_use]
     pub fn effectiveness_score(&self) -> f32 {
         let success_rate = self.application_success_rate();
-        let usage_weight = (self.times_applied as f32).ln().max(0.0).min(3.0);
+        let usage_weight = (self.times_applied as f32).ln().clamp(0.0, 3.0);
         let reward_factor = (1.0 + self.avg_reward_delta).max(0.0);
 
         // Score combines success rate, confidence from usage, and reward impact

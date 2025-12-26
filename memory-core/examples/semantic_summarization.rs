@@ -168,7 +168,7 @@ async fn main() -> anyhow::Result<()> {
     println!("Key Steps ({} total):", summary.key_steps.len());
     println!("-------------");
     for step in &summary.key_steps {
-        println!("  - {}", step);
+        println!("  - {step}");
     }
     println!();
 

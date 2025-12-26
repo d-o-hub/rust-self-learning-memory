@@ -1013,7 +1013,7 @@ impl RedbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
 
         // Record cache access for the new episode
-        if let Some(episode_bytes) = postcard::to_allocvec(episode).ok() {
+        if let Ok(episode_bytes) = postcard::to_allocvec(episode) {
             self.cache
                 .record_access(episode.episode_id, false, Some(episode_bytes.len()))
                 .await;

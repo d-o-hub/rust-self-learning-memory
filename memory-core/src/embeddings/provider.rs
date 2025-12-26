@@ -258,7 +258,7 @@ mod tests {
         // Average before normalization would be [2.0, 4.0, 6.0]
         // After normalization, it should be a unit vector in that direction
         let expected_magnitude = (4.0 + 16.0 + 36.0_f32).sqrt(); // sqrt(56) ≈ 7.48
-        let expected = vec![
+        let expected = [
             2.0 / expected_magnitude,
             4.0 / expected_magnitude,
             6.0 / expected_magnitude,

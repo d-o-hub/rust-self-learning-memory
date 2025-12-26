@@ -19,8 +19,10 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 /// let memory = setup_test_memory();
 /// ```
 pub fn setup_test_memory() -> SelfLearningMemory {
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.3; // Lower threshold for test episodes
+    let config = MemoryConfig {
+        quality_threshold: 0.3, // Lower threshold for test episodes
+        ..Default::default()
+    };
     SelfLearningMemory::with_config(config)
 }
 
@@ -69,16 +71,16 @@ pub async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
             .build();
 
         let episode_id = memory
-            .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
+            .start_episode(format!("Task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         // Add 3-5 steps per episode
         let step_count = 3 + (i % 3);
         for j in 0..step_count {
-            let step = StepBuilder::new(j + 1, format!("tool_{}", j), format!("Action {}", j))
+            let step = StepBuilder::new(j + 1, format!("tool_{j}"), format!("Action {j}"))
                 .latency_ms(10 + (j as u64 * 5))
                 .tokens_used(50 + (j * 10))
-                .success(format!("Step {} done", j))
+                .success(format!("Step {j} done"))
                 .build();
             memory.log_step(episode_id, step).await;
         }
@@ -88,7 +90,7 @@ pub async fn setup_memory_with_n_episodes(n: usize) -> SelfLearningMemory {
             .complete_episode(
                 episode_id,
                 TaskOutcome::Success {
-                    verdict: format!("Task {} completed", i),
+                    verdict: format!("Task {i} completed"),
                     artifacts: vec![],
                 },
             )
@@ -182,13 +184,13 @@ pub fn create_error_step(
 pub fn create_test_step(step_number: usize) -> ExecutionStep {
     StepBuilder::new(
         step_number,
-        format!("test_tool_{}", step_number),
-        format!("Test action {}", step_number),
+        format!("test_tool_{step_number}"),
+        format!("Test action {step_number}"),
     )
     .parameters(serde_json::json!({"param": "value"}))
     .latency_ms(10 + (step_number as u64 * 5))
     .tokens_used(50)
-    .success(format!("Step {} completed", step_number))
+    .success(format!("Step {step_number} completed"))
     .build()
 }
 
@@ -359,7 +361,7 @@ pub async fn create_test_episode_with_domain(memory: &SelfLearningMemory, domain
 
     let episode_id = memory
         .start_episode(
-            format!("Task in {}", domain),
+            format!("Task in {domain}"),
             context,
             TaskType::CodeGeneration,
         )

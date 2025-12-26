@@ -442,7 +442,7 @@ mod tests {
     fn create_test_pattern_tool_sequence(tools: Vec<&str>, domain: &str) -> Pattern {
         Pattern::ToolSequence {
             id: Uuid::new_v4(),
-            tools: tools.iter().map(|s| s.to_string()).collect(),
+            tools: tools.iter().map(|s| (*s).to_string()).collect(),
             context: TaskContext {
                 domain: domain.to_string(),
                 language: Some("rust".to_string()),
@@ -582,8 +582,8 @@ mod tests {
         for i in 0..step_count {
             episode.steps.push(ExecutionStep {
                 step_number: i + 1,
-                tool: format!("tool_{}", i),
-                action: format!("action_{}", i),
+                tool: format!("tool_{i}"),
+                action: format!("action_{i}"),
                 timestamp: Utc::now(),
                 result: Some(ExecutionResult::Success {
                     output: "ok".to_string(),
@@ -630,7 +630,7 @@ mod tests {
         // Create 3 episodes, 2 with the common pattern
         for i in 0..3 {
             let mut episode = Episode::new(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 TaskContext {
                     domain: "test".to_string(),
                     language: None,

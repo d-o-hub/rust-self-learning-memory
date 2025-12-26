@@ -505,7 +505,7 @@ mod tests {
         // Add steps and complete
         for i in 0..20 {
             let mut step =
-                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Action {}", i));
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Action {i}"));
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -561,12 +561,12 @@ mod tests {
         for i in 0..5 {
             let context = TaskContext::default();
             let episode_id = memory
-                .start_episode(format!("Task {}", i), context, TaskType::Testing)
+                .start_episode(format!("Task {i}"), context, TaskType::Testing)
                 .await;
 
             for j in 0..20 {
                 let mut step =
-                    ExecutionStep::new(j + 1, format!("tool_{}", j % 6), format!("Action {}", j));
+                    ExecutionStep::new(j + 1, format!("tool_{}", j % 6), format!("Action {j}"));
                 step.result = Some(ExecutionResult::Success {
                     output: "OK".to_string(),
                 });

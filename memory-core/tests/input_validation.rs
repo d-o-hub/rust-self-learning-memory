@@ -93,7 +93,7 @@ async fn should_handle_large_inputs_without_data_loss() {
         let mut context_builder = ContextBuilder::new("test-domain").language("rust");
         if test_case.tags_count > 0 {
             for i in 0..test_case.tags_count {
-                context_builder = context_builder.tag(format!("tag_{}", i));
+                context_builder = context_builder.tag(format!("tag_{i}"));
             }
         }
         let context = context_builder.build();
@@ -119,7 +119,7 @@ async fn should_handle_large_inputs_without_data_loss() {
             for i in 0..test_case.metadata_count {
                 episode
                     .metadata
-                    .insert(format!("field_{}", i), format!("value_{}", i));
+                    .insert(format!("field_{i}"), format!("value_{i}"));
             }
             let json_result = serde_json::to_string(&episode);
             assert!(
@@ -132,14 +132,14 @@ async fn should_handle_large_inputs_without_data_loss() {
         // When: We add many steps
         for i in 0..test_case.step_count {
             let mut step_builder =
-                StepBuilder::new(i + 1, format!("tool_{}", i), format!("action_{}", i));
+                StepBuilder::new(i + 1, format!("tool_{i}"), format!("action_{i}"));
 
             // Add large JSON parameters if needed
             if test_case.json_params_count > 0 && i == 0 {
                 let mut large_params = serde_json::Map::new();
                 for j in 0..test_case.json_params_count {
                     large_params.insert(
-                        format!("param_{}", j),
+                        format!("param_{j}"),
                         serde_json::json!({
                             "index": j,
                             "data": format!("value_{}", j),

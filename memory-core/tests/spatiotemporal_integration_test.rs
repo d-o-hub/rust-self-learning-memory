@@ -70,24 +70,6 @@ async fn create_test_episode(
 }
 
 /// Helper: Create episode with specific age (days ago)
-async fn create_aged_episode(
-    memory: &SelfLearningMemory,
-    domain: &str,
-    task_type: TaskType,
-    description: &str,
-    _age_days: i64,
-) -> Uuid {
-    let episode_id = create_test_episode(memory, domain, task_type, description, 10).await;
-
-    // Note: In real implementation, we would modify episode.start_time
-    // For now, this creates episodes sequentially (older ones created first)
-    // Tests will create older episodes first to simulate age
-
-    tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
-
-    episode_id
-}
-
 // ============================================================================
 // Task 6.1: Hierarchical Retrieval Integration Tests
 // ============================================================================

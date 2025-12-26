@@ -35,6 +35,7 @@ pub fn extract_tool_sequence(extractor: &PatternExtractor, episode: &Episode) ->
         success_rate,
         avg_latency: PatternExtractor::calculate_average_latency(episode),
         occurrence_count: 1,
+        effectiveness: crate::pattern::PatternEffectiveness::new(),
     })
 }
 
@@ -72,6 +73,7 @@ pub fn extract_decision_points(extractor: &PatternExtractor, episode: &Episode) 
                 action: step.tool.clone(),
                 outcome_stats,
                 context: episode.context.clone(),
+                effectiveness: crate::pattern::PatternEffectiveness::new(),
             });
         }
     }
@@ -135,6 +137,7 @@ pub fn extract_error_recovery(_extractor: &PatternExtractor, episode: &Episode) 
         recovery_steps,
         context: episode.context.clone(),
         success_rate,
+        effectiveness: crate::pattern::PatternEffectiveness::new(),
     })
 }
 
@@ -179,5 +182,6 @@ pub fn extract_context_pattern(extractor: &PatternExtractor, episode: &Episode) 
         recommended_approach,
         evidence: vec![episode.episode_id],
         success_rate,
+        effectiveness: crate::pattern::PatternEffectiveness::new(),
     })
 }

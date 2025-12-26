@@ -4,6 +4,7 @@ use memory_core::SelfLearningMemory;
 use memory_core::{TaskContext, TaskType};
 use serde::Serialize;
 use std::path::PathBuf;
+use uuid::Uuid;
 
 use crate::config::Config;
 #[cfg(feature = "turso")]

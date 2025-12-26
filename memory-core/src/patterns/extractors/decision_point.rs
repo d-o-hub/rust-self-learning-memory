@@ -78,6 +78,7 @@ impl PatternExtractorTrait for DecisionPointExtractor {
                     action: step.tool.clone(),
                     outcome_stats,
                     context: episode.context.clone(),
+                    effectiveness: crate::pattern::PatternEffectiveness::new(),
                 });
             }
         }

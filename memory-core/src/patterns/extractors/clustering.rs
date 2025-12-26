@@ -201,6 +201,7 @@ fn merge_error_recovery_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
             recovery_steps: unique_steps,
             success_rate: total_success_rate / count as f32,
             context: context.clone(),
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         })
     } else {
         None
@@ -313,6 +314,7 @@ fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
         recommended_approach: combined_approach,
         evidence: all_evidence,
         success_rate: avg_success_rate,
+        effectiveness: crate::pattern::PatternEffectiveness::new(),
     })
 }
 
@@ -334,6 +336,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 1,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -343,6 +346,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 1,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let patterns = vec![pattern1.clone(), pattern2.clone(), pattern1.clone()];
@@ -365,6 +369,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 1,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -374,6 +379,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(150),
             occurrence_count: 1,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let patterns = vec![pattern1, pattern2];
@@ -392,6 +398,7 @@ mod tests {
             recovery_steps: vec!["retry".to_string()],
             success_rate: 0.9,
             context: TaskContext::default(),
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ErrorRecovery {
@@ -400,6 +407,7 @@ mod tests {
             recovery_steps: vec!["backoff".to_string()],
             success_rate: 0.8,
             context: TaskContext::default(),
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let patterns = vec![pattern1, pattern2];
@@ -428,6 +436,7 @@ mod tests {
             recommended_approach: "Use async".to_string(),
             evidence: vec![Uuid::new_v4()],
             success_rate: 0.9,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ContextPattern {
@@ -442,6 +451,7 @@ mod tests {
             recommended_approach: "Use tokio runtime".to_string(),
             evidence: vec![Uuid::new_v4()],
             success_rate: 0.85,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let patterns = vec![pattern1, pattern2];
@@ -466,6 +476,7 @@ mod tests {
             recommended_approach: "Use async".to_string(),
             evidence: vec![Uuid::new_v4()],
             success_rate: 0.9,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let pattern4 = Pattern::ContextPattern {
@@ -478,6 +489,7 @@ mod tests {
             recommended_approach: "Use tokio".to_string(),
             evidence: vec![Uuid::new_v4()],
             success_rate: 0.85,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let patterns2 = vec![pattern3, pattern4];

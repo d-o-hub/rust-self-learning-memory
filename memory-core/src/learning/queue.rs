@@ -487,7 +487,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_worker_processes_episodes() {
-        let memory = Arc::new(SelfLearningMemory::new());
+        use crate::types::MemoryConfig;
+
+        // Use lower quality threshold for test episodes
+        let test_config = MemoryConfig {
+            quality_threshold: 0.5,
+            ..Default::default()
+        };
+        let memory = Arc::new(SelfLearningMemory::with_config(test_config));
 
         // Create and complete an episode
         let context = TaskContext::default();
@@ -496,11 +503,14 @@ mod tests {
             .await;
 
         // Add steps and complete
-        let mut step = ExecutionStep::new(1, "tool1".to_string(), "Action".to_string());
-        step.result = Some(ExecutionResult::Success {
-            output: "OK".to_string(),
-        });
-        memory.log_step(episode_id, step).await;
+        for i in 0..20 {
+            let mut step =
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Action {}", i));
+            step.result = Some(ExecutionResult::Success {
+                output: "OK".to_string(),
+            });
+            memory.log_step(episode_id, step).await;
+        }
 
         memory
             .complete_episode(
@@ -537,7 +547,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_parallel_processing() {
-        let memory = Arc::new(SelfLearningMemory::new());
+        use crate::types::MemoryConfig;
+
+        // Use lower quality threshold for test episodes
+        let test_config = MemoryConfig {
+            quality_threshold: 0.5,
+            ..Default::default()
+        };
+        let memory = Arc::new(SelfLearningMemory::with_config(test_config));
 
         // Create multiple episodes
         let mut episode_ids = Vec::new();
@@ -547,11 +564,14 @@ mod tests {
                 .start_episode(format!("Task {}", i), context, TaskType::Testing)
                 .await;
 
-            let mut step = ExecutionStep::new(1, "tool".to_string(), "Action".to_string());
-            step.result = Some(ExecutionResult::Success {
-                output: "OK".to_string(),
-            });
-            memory.log_step(episode_id, step).await;
+            for j in 0..20 {
+                let mut step =
+                    ExecutionStep::new(j + 1, format!("tool_{}", j % 6), format!("Action {}", j));
+                step.result = Some(ExecutionResult::Success {
+                    output: "OK".to_string(),
+                });
+                memory.log_step(episode_id, step).await;
+            }
 
             memory
                 .complete_episode(

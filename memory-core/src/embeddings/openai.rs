@@ -6,6 +6,7 @@ use anyhow::Result;
 #[cfg(feature = "openai")]
 use {
     super::provider::EmbeddingProvider,
+    anyhow::Context,
     async_trait::async_trait,
     serde::{Deserialize, Serialize},
     std::time::Instant,
@@ -75,7 +76,11 @@ impl OpenAIEmbeddingProvider {
     }
 
     /// Create provider with custom base URL (for Azure OpenAI, etc.)
-    pub fn with_custom_url(api_key: String, config: ModelConfig, base_url: String) -> anyhow::Result<Self> {
+    pub fn with_custom_url(
+        api_key: String,
+        config: ModelConfig,
+        base_url: String,
+    ) -> anyhow::Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(60))
             .build()

@@ -120,6 +120,7 @@ pub fn create_test_pattern(pattern_type: &str, success_rate: f32) -> Pattern {
             success_rate,
             avg_latency: chrono::Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::new(),
         },
         "error_recovery" => Pattern::ErrorRecovery {
             id: Uuid::new_v4(),
@@ -127,6 +128,7 @@ pub fn create_test_pattern(pattern_type: &str, success_rate: f32) -> Pattern {
             recovery_steps: vec!["retry".to_string(), "backoff".to_string()],
             success_rate,
             context,
+            effectiveness: PatternEffectiveness::new(),
         },
         _ => panic!("Unknown pattern type: {}", pattern_type),
     }

@@ -339,6 +339,14 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_AGENT_METRICS_TYPE_INDEX)
             .await?;
 
+        // Create Phase 2 (GENESIS) tables and indexes
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_SUMMARIES_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_SUMMARIES_CREATED_AT_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
+            .await?;
+
         info!("Schema initialization complete");
         Ok(())
     }

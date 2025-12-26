@@ -164,3 +164,38 @@ pub const CREATE_AGENT_METRICS_TYPE_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_agent_metrics_type
 ON agent_metrics(agent_type)
 "#;
+
+// ======= Phase 2 (GENESIS) Schema =======
+
+/// SQL to create the episode_summaries table
+///
+/// Stores semantic summaries for episodes with optional embeddings.
+/// Summaries are CASCADE deleted when episodes are removed.
+pub const CREATE_EPISODE_SUMMARIES_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS episode_summaries (
+    episode_id TEXT PRIMARY KEY NOT NULL,
+    summary_text TEXT NOT NULL,
+    key_concepts TEXT NOT NULL,
+    key_steps TEXT NOT NULL,
+    summary_embedding BLOB,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE
+)
+"#;
+
+/// Index on episode_summaries for time-based queries
+pub const CREATE_SUMMARIES_CREATED_AT_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_summaries_created_at
+ON episode_summaries(created_at)
+"#;
+
+/// SQL to create the metadata table for capacity management
+///
+/// Stores configuration and runtime metadata like episode counts.
+pub const CREATE_METADATA_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS metadata (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;

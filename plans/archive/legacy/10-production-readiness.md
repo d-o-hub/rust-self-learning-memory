@@ -60,7 +60,7 @@ This phase outlines the path from current state to production-ready deployment o
 
 **Bincode Security Tests** (`memory-storage-redb/tests/security_tests.rs`):
 - [ ] Test 10MB+1 episode → Storage error
-- [ ] Test malicious oversized bincode → fails safely
+- [ ] Test malicious oversized wincode → fails safely
 - [ ] Test valid MAX_EPISODE_SIZE episode → succeeds
 
 **Quality Gate**: All integration tests passing in CI

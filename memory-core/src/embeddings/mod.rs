@@ -133,7 +133,10 @@ impl SemanticService {
                         return Ok(Self::new(Box::new(provider), storage, config));
                     }
                     Err(e) => {
-                        tracing::warn!("Failed to initialize OpenAI provider: {}. Falling back to mock.", e);
+                        tracing::warn!(
+                            "Failed to initialize OpenAI provider: {}. Falling back to mock.",
+                            e
+                        );
                     }
                 }
             } else {
@@ -408,7 +411,7 @@ impl SemanticService {
 mod tests {
     use super::*;
     use crate::episode::{ExecutionStep, PatternId};
-    use crate::pattern::Pattern;
+    use crate::pattern::{Pattern, PatternEffectiveness};
     use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
     use crate::Result;
     use uuid::Uuid;
@@ -471,6 +474,7 @@ mod tests {
             success_rate: 0.85,
             avg_latency: chrono::Duration::seconds(10),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::default(),
         }
     }
 

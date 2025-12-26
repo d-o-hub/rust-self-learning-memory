@@ -10,13 +10,18 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 
 /// Create a test memory instance with default configuration
 ///
+/// Note: Uses a lower quality threshold (0.3) for testing to avoid
+/// rejecting test episodes that are intentionally simple.
+///
 /// # Examples
 ///
 /// ```ignore
 /// let memory = setup_test_memory();
 /// ```
 pub fn setup_test_memory() -> SelfLearningMemory {
-    SelfLearningMemory::new()
+    let mut config = MemoryConfig::default();
+    config.quality_threshold = 0.3; // Lower threshold for test episodes
+    SelfLearningMemory::with_config(config)
 }
 
 /// Create a memory instance with custom configuration

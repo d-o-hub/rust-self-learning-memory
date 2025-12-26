@@ -104,6 +104,7 @@ impl PatternExtractorTrait for ErrorRecoveryExtractor {
                     recovery_steps,
                     success_rate,
                     context: episode.context.clone(),
+                    effectiveness: crate::pattern::PatternEffectiveness::new(),
                 });
             }
         }

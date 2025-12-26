@@ -152,6 +152,7 @@ fn create_optimization_episode() -> Episode {
 /// Load reference patterns (known good patterns)
 fn load_reference_patterns() -> Vec<Pattern> {
     use chrono::Duration;
+    use memory_core::PatternEffectiveness;
 
     vec![
         Pattern::ErrorRecovery {
@@ -160,6 +161,7 @@ fn load_reference_patterns() -> Vec<Pattern> {
             error_type: "timeout".to_string(),
             recovery_steps: vec!["retry_with_backoff".to_string()],
             success_rate: 0.9,
+            effectiveness: PatternEffectiveness::default(),
         },
         Pattern::ToolSequence {
             id: Uuid::new_v4(),
@@ -173,6 +175,7 @@ fn load_reference_patterns() -> Vec<Pattern> {
             success_rate: 0.85,
             avg_latency: Duration::milliseconds(60000),
             occurrence_count: 10,
+            effectiveness: PatternEffectiveness::default(),
         },
     ]
 }

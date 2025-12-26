@@ -29,6 +29,8 @@ fn create_test_episode(id: Uuid) -> Episode {
         heuristics: vec![],
         reflection: None,
         reward: None,
+        applied_patterns: vec![],
+        salient_features: None,
         metadata: HashMap::new(),
     }
 }

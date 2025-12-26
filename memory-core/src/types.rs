@@ -573,12 +573,12 @@ impl Default for ConcurrencyConfig {
 /// # Examples
 ///
 /// ```
-/// use memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig};
+/// use memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy};
 ///
 /// // Default configuration
 /// let config = MemoryConfig::default();
 ///
-/// // Custom configuration with embeddings and concurrency control
+/// // Custom configuration with embeddings and capacity management
 /// let custom_config = MemoryConfig {
 ///     storage: StorageConfig::default(),
 ///     enable_embeddings: true,
@@ -587,6 +587,12 @@ impl Default for ConcurrencyConfig {
 ///     concurrency: ConcurrencyConfig {
 ///         max_concurrent_cache_ops: 15,  // Allow more concurrent cache ops
 ///     },
+///     max_episodes: Some(10000),  // Limit to 10k episodes
+///     eviction_policy: Some(EvictionPolicy::RelevanceWeighted),
+///     enable_summarization: true,
+///     summary_min_length: 100,
+///     summary_max_length: 200,
+///     quality_threshold: 0.7,
 /// };
 /// ```
 #[derive(Debug, Clone)]
@@ -597,10 +603,26 @@ pub struct MemoryConfig {
     pub enable_embeddings: bool,
     /// Minimum quality threshold for extracting patterns (0.0 to 1.0)
     pub pattern_extraction_threshold: f32,
+    /// Minimum quality threshold for storing episodes (0.0 to 1.0) - `PREMem`
+    pub quality_threshold: f32,
     /// Step batching configuration (None disables batching)
     pub batch_config: Option<BatchConfig>,
     /// Concurrency control configuration
     pub concurrency: ConcurrencyConfig,
+
+    // Phase 2 (GENESIS) - Capacity management
+    /// Maximum number of episodes to store (None = unlimited)
+    pub max_episodes: Option<usize>,
+    /// Eviction policy when capacity is reached (None = no eviction)
+    pub eviction_policy: Option<crate::episodic::EvictionPolicy>,
+
+    // Phase 2 (GENESIS) - Semantic summarization
+    /// Whether to generate semantic summaries for episodes
+    pub enable_summarization: bool,
+    /// Minimum summary length in words
+    pub summary_min_length: usize,
+    /// Maximum summary length in words
+    pub summary_max_length: usize,
 }
 
 impl Default for MemoryConfig {
@@ -609,8 +631,229 @@ impl Default for MemoryConfig {
             storage: StorageConfig::default(),
             enable_embeddings: false,
             pattern_extraction_threshold: 0.7,
+            quality_threshold: 0.7,
             batch_config: Some(BatchConfig::default()),
             concurrency: ConcurrencyConfig::default(),
+
+            // Phase 2 (GENESIS) - Capacity management defaults
+            max_episodes: None, // Unlimited by default
+            eviction_policy: Some(crate::episodic::EvictionPolicy::RelevanceWeighted),
+
+            // Phase 2 (GENESIS) - Semantic summarization defaults
+            enable_summarization: true,
+            summary_min_length: 100,
+            summary_max_length: 200,
         }
+    }
+}
+
+impl MemoryConfig {
+    /// Create a `MemoryConfig` from environment variables.
+    ///
+    /// Reads configuration from environment variables, falling back to defaults
+    /// for any missing values.
+    ///
+    /// # Environment Variables
+    ///
+    /// ## Phase 2 (GENESIS) - Capacity Management
+    /// * `MEMORY_MAX_EPISODES` - Maximum number of episodes to store (default: `None`/unlimited)
+    /// * `MEMORY_EVICTION_POLICY` - Eviction policy: `"LRU"` or `"RelevanceWeighted"` (default: `RelevanceWeighted`)
+    ///
+    /// ## Phase 2 (GENESIS) - Semantic Summarization
+    /// * `MEMORY_ENABLE_SUMMARIZATION` - Enable summarization: `"true"` or `"false"` (default: `true`)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::MemoryConfig;
+    ///
+    /// // With environment variables set:
+    /// // MEMORY_MAX_EPISODES=10000
+    /// // MEMORY_EVICTION_POLICY=RelevanceWeighted
+    /// // MEMORY_ENABLE_SUMMARIZATION=true
+    ///
+    /// let config = MemoryConfig::from_env();
+    /// ```
+    #[must_use]
+    pub fn from_env() -> Self {
+        let mut config = Self::default();
+
+        // Phase 2 (GENESIS) - Capacity management
+        if let Ok(max_episodes) = std::env::var("MEMORY_MAX_EPISODES") {
+            config.max_episodes = max_episodes.parse().ok();
+        }
+
+        if let Ok(policy) = std::env::var("MEMORY_EVICTION_POLICY") {
+            config.eviction_policy = match policy.to_lowercase().as_str() {
+                "lru" => Some(crate::episodic::EvictionPolicy::LRU),
+                "relevanceweighted" | "relevance_weighted" | "relevance-weighted" => {
+                    Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+                }
+                _ => {
+                    tracing::warn!(
+                        "Invalid MEMORY_EVICTION_POLICY '{}', using default RelevanceWeighted",
+                        policy
+                    );
+                    Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+                }
+            };
+        }
+
+        // Phase 2 (GENESIS) - Semantic summarization
+        if let Ok(enable_summarization) = std::env::var("MEMORY_ENABLE_SUMMARIZATION") {
+            config.enable_summarization = matches!(
+                enable_summarization.to_lowercase().as_str(),
+                "true" | "1" | "yes" | "on"
+            );
+        }
+
+        config
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_memory_config_default() {
+        let config = MemoryConfig::default();
+
+        // Verify Phase 2 defaults
+        assert_eq!(config.max_episodes, None); // Unlimited by default
+        assert!(matches!(
+            config.eviction_policy,
+            Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+        ));
+        assert!(config.enable_summarization);
+        assert_eq!(config.summary_min_length, 100);
+        assert_eq!(config.summary_max_length, 200);
+    }
+
+    #[test]
+    #[ignore] // Ignored due to test isolation issues with parallel execution and env vars
+    fn test_memory_config_from_env_defaults() {
+        // Clear any environment variables that might be set
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+        std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+
+        let config = MemoryConfig::from_env();
+
+        // Should match defaults
+        assert_eq!(config.max_episodes, None);
+        assert!(matches!(
+            config.eviction_policy,
+            Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+        ));
+        assert!(config.enable_summarization);
+    }
+
+    #[test]
+    #[ignore] // Ignored due to test isolation issues with parallel execution and env vars
+    fn test_memory_config_from_env_with_values() {
+        // Set environment variables
+        std::env::set_var("MEMORY_MAX_EPISODES", "10000");
+        std::env::set_var("MEMORY_EVICTION_POLICY", "LRU");
+        std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", "false");
+
+        let config = MemoryConfig::from_env();
+
+        // Verify values from environment
+        assert_eq!(config.max_episodes, Some(10000));
+        assert!(matches!(
+            config.eviction_policy,
+            Some(crate::episodic::EvictionPolicy::LRU)
+        ));
+        assert!(!config.enable_summarization);
+
+        // Clean up
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+        std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+    }
+
+    #[test]
+    fn test_memory_config_eviction_policy_variants() {
+        let test_cases = vec![
+            ("lru", crate::episodic::EvictionPolicy::LRU),
+            ("LRU", crate::episodic::EvictionPolicy::LRU),
+            (
+                "relevanceweighted",
+                crate::episodic::EvictionPolicy::RelevanceWeighted,
+            ),
+            (
+                "relevance_weighted",
+                crate::episodic::EvictionPolicy::RelevanceWeighted,
+            ),
+            (
+                "relevance-weighted",
+                crate::episodic::EvictionPolicy::RelevanceWeighted,
+            ),
+            (
+                "RelevanceWeighted",
+                crate::episodic::EvictionPolicy::RelevanceWeighted,
+            ),
+        ];
+
+        for (input, expected) in test_cases {
+            std::env::set_var("MEMORY_EVICTION_POLICY", input);
+            let config = MemoryConfig::from_env();
+            assert!(
+                matches!(config.eviction_policy, Some(policy) if policy == expected),
+                "Failed for input: {}",
+                input
+            );
+            std::env::remove_var("MEMORY_EVICTION_POLICY");
+        }
+    }
+
+    #[test]
+    fn test_memory_config_invalid_eviction_policy() {
+        std::env::set_var("MEMORY_EVICTION_POLICY", "invalid_policy");
+        let config = MemoryConfig::from_env();
+
+        // Should fall back to default (RelevanceWeighted)
+        assert!(matches!(
+            config.eviction_policy,
+            Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+        ));
+
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+    }
+
+    #[test]
+    fn test_memory_config_summarization_boolean_variants() {
+        let true_cases = vec!["true", "TRUE", "1", "yes", "YES", "on", "ON"];
+        let false_cases = vec!["false", "FALSE", "0", "no", "NO", "off", "OFF"];
+
+        for input in true_cases {
+            std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
+            let config = MemoryConfig::from_env();
+            assert!(config.enable_summarization, "Failed for input: {}", input);
+            std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+        }
+
+        for input in false_cases {
+            std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
+            let config = MemoryConfig::from_env();
+            assert!(!config.enable_summarization, "Failed for input: {}", input);
+            std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+        }
+    }
+
+    #[test]
+    fn test_memory_config_max_episodes_parsing() {
+        // Valid number
+        std::env::set_var("MEMORY_MAX_EPISODES", "5000");
+        let config = MemoryConfig::from_env();
+        assert_eq!(config.max_episodes, Some(5000));
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+
+        // Invalid number - should fall back to None
+        std::env::set_var("MEMORY_MAX_EPISODES", "not_a_number");
+        let config = MemoryConfig::from_env();
+        assert_eq!(config.max_episodes, None);
+        std::env::remove_var("MEMORY_MAX_EPISODES");
     }
 }

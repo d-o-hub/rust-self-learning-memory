@@ -3732,6 +3732,7 @@ dependencies = [
  "libsql",
  "memory-core",
  "parking_lot",
+ "postcard",
  "serde",
  "serde_json",
  "tempfile",

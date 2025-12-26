@@ -603,11 +603,11 @@ impl ETSModelState for ETSModel {
             last_update: Utc::now(),
         };
         
-        bincode::serialize(&state).unwrap()
+        wincode::serialize(&state).unwrap()
     }
     
     fn deserialize_state(data: &[u8]) -> Result<Self, ETSError> {
-        let state: ETSState = bincode::deserialize(data)
+        let state: ETSState = wincode::deserialize(data)
             .map_err(|e| ETSError::DeserializationError(e.to_string()))?;
             
         Ok(Self {

@@ -528,6 +528,9 @@ impl MemoryMCPServer {
         // Add advanced pattern analysis tool
         tools.push(crate::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisTool::tool_definition());
 
+        // Add quality metrics tool
+        tools.push(crate::mcp::tools::quality_metrics::QualityMetricsTool::tool_definition());
+
         tools
     }
 
@@ -920,6 +923,35 @@ impl MemoryMCPServer {
         let tool = crate::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisTool::new(
             Arc::clone(&self.memory),
         );
+
+        let result = tool.execute(input).await?;
+
+        // Convert result to JSON
+        Ok(serde_json::to_value(result)?)
+    }
+
+    /// Execute the quality_metrics tool
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Quality metrics input parameters
+    ///
+    /// # Returns
+    ///
+    /// Returns quality metrics and noise reduction statistics
+    pub async fn execute_quality_metrics(
+        &self,
+        input: crate::mcp::tools::quality_metrics::QualityMetricsInput,
+    ) -> Result<serde_json::Value> {
+        self.track_tool_usage("quality_metrics").await;
+
+        debug!(
+            "Executing quality metrics query: time_range={}, include_trends={}",
+            input.time_range, input.include_trends
+        );
+
+        let tool =
+            crate::mcp::tools::quality_metrics::QualityMetricsTool::new(Arc::clone(&self.memory));
 
         let result = tool.execute(input).await?;
 

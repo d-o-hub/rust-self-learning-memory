@@ -121,6 +121,7 @@ impl PatternExtractorTrait for ContextPatternExtractor {
             recommended_approach,
             evidence: vec![episode.episode_id],
             success_rate,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         });
 
         Ok(patterns)

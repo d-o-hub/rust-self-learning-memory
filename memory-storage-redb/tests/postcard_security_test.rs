@@ -8,15 +8,8 @@
 //! are still enforced, even though postcard is inherently safer than bincode.
 
 use memory_core::{
-    ComplexityLevel,
-    Episode,
-    Evidence,
-    ExecutionResult,
-    ExecutionStep,
-    Heuristic,
-    Pattern,
-    TaskContext,
-    TaskType,
+    ComplexityLevel, Episode, Evidence, ExecutionResult, ExecutionStep, Heuristic, Pattern,
+    TaskContext, TaskType,
 };
 use memory_storage_redb::{RedbStorage, MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE};
 use serde_json::json;
@@ -135,6 +128,7 @@ fn create_large_pattern() -> Pattern {
             total_count: 10,
             avg_duration_secs: 1.5,
         },
+        effectiveness: memory_core::PatternEffectiveness::new(),
     }
 }
 
@@ -155,6 +149,7 @@ fn create_oversized_pattern() -> Pattern {
             total_count: 10,
             avg_duration_secs: 1.5,
         },
+        effectiveness: memory_core::PatternEffectiveness::new(),
     }
 }
 
@@ -384,7 +379,8 @@ async fn test_heuristic_deserialization_at_limit() {
     let large_heuristic = create_large_heuristic();
 
     // Verify serialized size (using postcard)
-    let serialized = postcard::to_allocvec(&large_heuristic).expect("Failed to serialize heuristic");
+    let serialized =
+        postcard::to_allocvec(&large_heuristic).expect("Failed to serialize heuristic");
     println!(
         "Large heuristic serialized size: {} bytes ({:.2} KB)",
         serialized.len(),

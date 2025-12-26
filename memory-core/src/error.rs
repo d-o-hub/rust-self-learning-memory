@@ -39,6 +39,9 @@ pub enum Error {
     #[error("Security validation failed: {0}")]
     Security(String),
 
+    #[error("Validation failed: {0}")]
+    ValidationFailed(String),
+
     #[error("Quota exceeded: {0}")]
     QuotaExceeded(String),
 
@@ -76,6 +79,7 @@ impl Error {
             | Error::InvalidInput(_)
             | Error::InvalidState(_)
             | Error::Security(_)
+            | Error::ValidationFailed(_)
             | Error::QuotaExceeded(_)
             | Error::Configuration(_) => false,
         }

@@ -859,6 +859,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: chrono::Duration::seconds(30),
             occurrence_count: 5,
+            effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
         let planned_steps = vec![PlannedStep {

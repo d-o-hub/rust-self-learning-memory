@@ -433,6 +433,7 @@ impl EpisodeCluster {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::pattern::PatternEffectiveness;
     use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome};
     use crate::ExecutionStep;
     use chrono::Utc;
@@ -452,6 +453,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: chrono::Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::default(),
         }
     }
 
@@ -572,6 +574,8 @@ mod tests {
             reflection: None,
             patterns: Vec::new(),
             heuristics: Vec::new(),
+            applied_patterns: Vec::new(),
+            salient_features: None,
             metadata: std::collections::HashMap::new(),
         };
 

@@ -103,6 +103,7 @@ impl PatternExtractorTrait for ToolSequenceExtractor {
                 success_rate,
                 avg_latency,
                 occurrence_count: 1,
+                effectiveness: crate::pattern::PatternEffectiveness::new(),
             });
         }
 

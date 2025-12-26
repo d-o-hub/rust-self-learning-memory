@@ -193,7 +193,7 @@ impl SelfLearningMemory {
         context: &TaskContext,
         limit: usize,
     ) -> Vec<Pattern> {
-        let patterns = self.patterns_fallback.read().await;
+        let mut patterns = self.patterns_fallback.write().await;
 
         debug!(
             total_patterns = patterns.len(),
@@ -203,18 +203,25 @@ impl SelfLearningMemory {
 
         let all_patterns: Vec<Pattern> = patterns.values().cloned().collect();
 
-        // Rank patterns by relevance and quality
+        // Rank patterns by relevance and quality (includes effectiveness scoring)
         let mut ranked = rank_patterns(all_patterns, context);
 
         // Deduplicate
         ranked = deduplicate_patterns(ranked);
+
+        // Record retrieval for effectiveness tracking
+        for pattern in &mut ranked.iter_mut().take(limit) {
+            pattern.record_retrieval();
+            // Update the stored pattern with retrieval count
+            patterns.insert(pattern.id(), pattern.clone());
+        }
 
         // Limit results
         ranked.truncate(limit);
 
         info!(
             retrieved_count = ranked.len(),
-            "Retrieved relevant patterns"
+            "Retrieved relevant patterns with effectiveness tracking"
         );
 
         ranked

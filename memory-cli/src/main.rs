@@ -99,6 +99,12 @@ enum Commands {
         #[command(subcommand)]
         command: LogsCommands,
     },
+    /// Evaluation and calibration commands
+    #[command(alias = "ev")]
+    Eval {
+        #[command(subcommand)]
+        command: EvalCommands,
+    },
     /// Generate shell completion scripts
     #[command(alias = "comp")]
     Completion {
@@ -206,6 +212,16 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Logs { command } => {
             handle_logs_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::Eval { command } => {
+            handle_eval_command(
                 command,
                 &storage_result.memory,
                 &config,

@@ -178,7 +178,12 @@ async fn test_pool_statistics_accuracy() {
     // Get and use 3 connections
     for _ in 0..3 {
         let conn = pool.get().await.unwrap();
-        let _result = conn.connection().unwrap().query("SELECT 1", ()).await.unwrap();
+        let _result = conn
+            .connection()
+            .unwrap()
+            .query("SELECT 1", ())
+            .await
+            .unwrap();
         drop(conn);
     }
 

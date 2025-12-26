@@ -1,5 +1,13 @@
 //! # Reward Calculator
 //!
+//! Calculates reward scores for episodes based on outcome, efficiency, and quality.
+//! Supports both fixed thresholds and adaptive domain-based calibration.
+//!
+//! ## Modules
+//!
+//! - `domain_stats` - Domain-specific statistics for adaptive calibration
+//! - `adaptive` - Adaptive reward calculator using domain baselines
+//!
 //! Calculates reward scores for completed episodes based on:
 //! - Task outcome (success/partial/failure)
 //! - Efficiency (duration and step count)
@@ -28,6 +36,14 @@
 use crate::episode::Episode;
 use crate::types::{ComplexityLevel, RewardScore, TaskOutcome};
 use tracing::{debug, instrument};
+
+// Public modules
+pub mod adaptive;
+pub mod domain_stats;
+
+// Re-export for convenience
+pub use adaptive::AdaptiveRewardCalculator;
+pub use domain_stats::{DomainStatistics, DomainStatisticsCache};
 
 /// Threshold for "efficient" episode duration (in seconds)
 const EFFICIENT_DURATION_SECS: f32 = 60.0;

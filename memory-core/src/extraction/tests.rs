@@ -1,7 +1,10 @@
 //! Tests for pattern extraction
 
 use super::*;
-use crate::{pattern::Pattern, Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use crate::{
+    pattern::{Pattern, PatternEffectiveness},
+    Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType,
+};
 use chrono::Duration;
 
 #[test]
@@ -62,6 +65,7 @@ mod utils_tests {
                 success_rate: 0.9,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
             Pattern::ToolSequence {
                 id: uuid::Uuid::new_v4(),
@@ -70,6 +74,7 @@ mod utils_tests {
                 success_rate: 0.8,
                 avg_latency: Duration::milliseconds(200),
                 occurrence_count: 3,
+                effectiveness: PatternEffectiveness::default(),
             },
         ];
 
@@ -86,6 +91,7 @@ mod utils_tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::default(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -95,6 +101,7 @@ mod utils_tests {
             success_rate: 0.8,                                     // Different success rate
             avg_latency: Duration::milliseconds(200),              // Different latency
             occurrence_count: 3,                                   // Different count
+            effectiveness: PatternEffectiveness::default(),
         };
 
         let patterns = vec![pattern1, pattern2];
@@ -112,6 +119,7 @@ mod utils_tests {
                 success_rate: 0.5,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
             Pattern::ToolSequence {
                 id: uuid::Uuid::new_v4(),
@@ -120,6 +128,7 @@ mod utils_tests {
                 success_rate: 0.9,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
         ];
 
@@ -158,6 +167,7 @@ mod utils_tests {
                 success_rate: 0.8,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
             Pattern::ToolSequence {
                 id: uuid::Uuid::new_v4(),
@@ -166,6 +176,7 @@ mod utils_tests {
                 success_rate: 0.8,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
         ];
 

@@ -40,6 +40,13 @@ pub fn rank_patterns(mut patterns: Vec<Pattern>, context: &TaskContext) -> Vec<P
 }
 
 /// Calculate a relevance score for a pattern given the current context
+///
+/// Scoring system (max ~400+ points):
+/// - Base success rate: 0-100 points
+/// - Sample size: 0-50 points
+/// - Context relevance: 0-100 points
+/// - Pattern type bonuses: 0-50 points
+/// - **Effectiveness tracking: 0-200 points** (NEW)
 fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> f64 {
     let mut score = 0.0;
 
@@ -75,6 +82,43 @@ fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> 
         Pattern::ContextPattern { evidence, .. } => {
             // Context patterns with more evidence are better
             score += (evidence.len() as f64).min(5.0) * 10.0;
+        }
+    }
+
+    // **NEW: Effectiveness-based scoring (0-200 points)**
+    // This is the key metric for self-learning!
+    let effectiveness = pattern.effectiveness();
+
+    // 1. Effectiveness score boost (0-100 points)
+    // Combines success rate, usage confidence, and reward impact
+    score += f64::from(effectiveness.effectiveness_score()) * 100.0;
+
+    // 2. Proven usage bonus (0-50 points)
+    // Patterns that have been successfully applied get priority
+    if effectiveness.times_applied > 0 {
+        let success_rate = effectiveness.application_success_rate();
+        let usage_confidence = (effectiveness.times_applied as f64).ln().min(3.0) / 3.0;
+        score += f64::from(success_rate) * usage_confidence * 50.0;
+    }
+
+    // 3. Reward delta bonus (0-50 points)
+    // Patterns that improve outcomes get strong preference
+    if effectiveness.avg_reward_delta > 0.0 {
+        let capped_delta = effectiveness.avg_reward_delta.min(0.5); // Cap at +0.5
+        score += f64::from(capped_delta) * 100.0; // 0.5 delta = 50 points
+    } else if effectiveness.avg_reward_delta < 0.0 {
+        // Penalize patterns that hurt performance
+        let capped_penalty = effectiveness.avg_reward_delta.max(-0.5); // Cap at -0.5
+        score += f64::from(capped_penalty) * 100.0; // Can subtract up to 50 points
+    }
+
+    // 4. Recency bonus (0-10 points)
+    // Recently used patterns are more likely to be relevant
+    if effectiveness.times_applied > 0 {
+        use chrono::Utc;
+        let days_since_use = (Utc::now() - effectiveness.last_used).num_days();
+        if days_since_use < 30 {
+            score += (30.0 - days_since_use as f64) / 30.0 * 10.0;
         }
     }
 

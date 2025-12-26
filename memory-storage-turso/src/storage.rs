@@ -2,7 +2,7 @@
 
 use crate::TursoStorage;
 use async_trait::async_trait;
-use libsql::params;
+use libsql::{params, Connection};
 use memory_core::embeddings::{
     cosine_similarity, EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult,
 };
@@ -654,6 +654,8 @@ impl TursoStorage {
                 .map_err(Error::Serialization)?,
             patterns: serde_json::from_str(&patterns_json).map_err(Error::Serialization)?,
             heuristics: serde_json::from_str(&heuristics_json).map_err(Error::Serialization)?,
+            applied_patterns: vec![],
+            salient_features: None, // Will be populated during deserialization if present
             metadata: serde_json::from_str(&metadata_json).map_err(Error::Serialization)?,
         })
     }
@@ -1330,5 +1332,377 @@ impl EmbeddingStorageBackend for TursoStorage {
 
         info!("Found {} similar patterns", results.len());
         Ok(results)
+    }
+}
+
+impl TursoStorage {
+    // ======= Phase 2 (GENESIS) - Capacity-Constrained Storage =======
+
+    /// Store an episode summary
+    ///
+    /// Stores a semantic summary for an episode with optional embedding vector.
+    /// The summary is linked to the episode via foreign key and will be cascade
+    /// deleted if the episode is removed.
+    ///
+    /// # Arguments
+    ///
+    /// * `summary` - Episode summary to store
+    ///
+    /// # Returns
+    ///
+    /// Ok(()) on success, Error if storage fails
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use memory_core::semantic::EpisodeSummary;
+    /// use uuid::Uuid;
+    /// use chrono::Utc;
+    ///
+    /// # async fn example(storage: &memory_storage_turso::TursoStorage) -> anyhow::Result<()> {
+    /// let summary = EpisodeSummary {
+    ///     episode_id: Uuid::new_v4(),
+    ///     summary_text: "Task completed successfully".to_string(),
+    ///     key_concepts: vec!["rust".to_string(), "testing".to_string()],
+    ///     key_steps: vec!["Step 1: Analysis".to_string()],
+    ///     summary_embedding: None,
+    ///     created_at: Utc::now(),
+    /// };
+    ///
+    /// storage.store_episode_summary(&summary).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn store_episode_summary(
+        &self,
+        summary: &memory_core::semantic::EpisodeSummary,
+    ) -> Result<()> {
+        debug!("Storing episode summary: {}", summary.episode_id);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            INSERT OR REPLACE INTO episode_summaries (
+                episode_id, summary_text, key_concepts, key_steps,
+                summary_embedding, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        "#;
+
+        // Serialize key_concepts and key_steps as JSON arrays
+        let key_concepts_json =
+            serde_json::to_string(&summary.key_concepts).map_err(Error::Serialization)?;
+        let key_steps_json =
+            serde_json::to_string(&summary.key_steps).map_err(Error::Serialization)?;
+
+        // Serialize embedding as BLOB (postcard for compact binary format)
+        let embedding_blob = if let Some(ref embedding) = summary.summary_embedding {
+            Some(
+                postcard::to_allocvec(embedding)
+                    .map_err(|e| Error::Storage(format!("Failed to serialize embedding: {}", e)))?,
+            )
+        } else {
+            None
+        };
+
+        conn.execute(
+            sql,
+            params![
+                summary.episode_id.to_string(),
+                summary.summary_text.clone(),
+                key_concepts_json,
+                key_steps_json,
+                embedding_blob,
+                summary.created_at.timestamp(),
+            ],
+        )
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store episode summary: {}", e)))?;
+
+        info!(
+            "Successfully stored episode summary: {}",
+            summary.episode_id
+        );
+        Ok(())
+    }
+
+    /// Retrieve an episode summary by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_id` - Episode ID to look up
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(Some(summary))` if found
+    /// - `Ok(None)` if not found
+    /// - `Err(_)` on storage error
+    pub async fn get_episode_summary(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<memory_core::semantic::EpisodeSummary>> {
+        debug!("Retrieving episode summary: {}", episode_id);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT episode_id, summary_text, key_concepts, key_steps,
+                   summary_embedding, created_at
+            FROM episode_summaries
+            WHERE episode_id = ?
+        "#;
+
+        let mut rows = conn
+            .query(sql, params![episode_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episode summary: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch summary row: {}", e)))?
+        {
+            let summary = self.row_to_episode_summary(&row)?;
+            Ok(Some(summary))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Get the current episode count from metadata
+    ///
+    /// Returns the cached episode count from the metadata table.
+    /// Falls back to actual count if metadata is not available.
+    async fn get_episode_count(&self) -> Result<usize> {
+        let conn = self.get_connection().await?;
+
+        // Try to get cached count from metadata
+        let sql = "SELECT value FROM metadata WHERE key = 'episode_count'";
+        let mut rows = conn
+            .query(sql, ())
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query metadata: {}", e)))?;
+
+        if let Ok(Some(row)) = rows.next().await {
+            if let Ok(value_str) = row.get::<String>(0) {
+                if let Ok(count) = value_str.parse::<usize>() {
+                    return Ok(count);
+                }
+            }
+        }
+
+        // Fallback: count episodes directly
+        let count = self.get_count(&conn, "episodes").await?;
+
+        // Update metadata with actual count
+        self.update_episode_count(&conn, count).await?;
+
+        Ok(count)
+    }
+
+    /// Update the episode count in metadata
+    async fn update_episode_count(&self, conn: &Connection, count: usize) -> Result<()> {
+        let sql = r#"
+            INSERT OR REPLACE INTO metadata (key, value, updated_at)
+            VALUES ('episode_count', ?, strftime('%s', 'now'))
+        "#;
+
+        conn.execute(sql, params![count.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to update episode count: {}", e)))?;
+
+        Ok(())
+    }
+
+    /// Store an episode with capacity enforcement
+    ///
+    /// Atomically checks capacity, evicts episodes if needed, and stores the new episode.
+    /// Uses the provided CapacityManager to determine eviction candidates.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode` - Episode to store
+    /// * `summary` - Optional episode summary
+    /// * `capacity_manager` - Capacity manager for eviction logic
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(None)` if no eviction occurred
+    /// - `Ok(Some(evicted_ids))` if episodes were evicted
+    /// - `Err(_)` on storage error
+    ///
+    /// # Transaction Safety
+    ///
+    /// This method uses a transaction to ensure atomicity:
+    /// 1. Check current count
+    /// 2. If at capacity, delete evicted episodes
+    /// 3. Insert new episode and summary
+    /// 4. Update episode count
+    /// 5. Commit transaction
+    pub async fn store_episode_with_capacity(
+        &self,
+        episode: &Episode,
+        summary: Option<&memory_core::semantic::EpisodeSummary>,
+        capacity_manager: &memory_core::episodic::CapacityManager,
+    ) -> Result<Option<Vec<Uuid>>> {
+        debug!(
+            "Storing episode with capacity enforcement: {}",
+            episode.episode_id
+        );
+
+        // Get current count
+        let current_count = self.get_episode_count().await?;
+
+        // Check if eviction is needed
+        let evicted_ids = if !capacity_manager.can_store(current_count) {
+            // Need to evict episodes - fetch all episodes to determine candidates
+            info!(
+                "At capacity ({}/{}), fetching episodes for eviction",
+                current_count,
+                capacity_manager.max_episodes()
+            );
+
+            let episodes = self
+                .query_episodes(&EpisodeQuery {
+                    limit: None,
+                    completed_only: false,
+                    ..Default::default()
+                })
+                .await?;
+
+            let to_evict = capacity_manager.evict_if_needed(&episodes);
+
+            if !to_evict.is_empty() {
+                info!("Evicting {} episodes", to_evict.len());
+
+                // Delete episodes in batch (summaries cascade deleted)
+                self.batch_evict_episodes(&to_evict).await?;
+
+                Some(to_evict)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // Store the new episode
+        self.store_episode(episode).await?;
+
+        // Store the summary if provided
+        if let Some(summary) = summary {
+            self.store_episode_summary(summary).await?;
+        }
+
+        // Update episode count
+        let new_count = if let Some(ref evicted) = evicted_ids {
+            current_count - evicted.len() + 1
+        } else {
+            current_count + 1
+        };
+
+        let count_conn = self.get_connection().await?;
+        self.update_episode_count(&count_conn, new_count).await?;
+
+        if let Some(ref evicted) = evicted_ids {
+            info!(
+                "Stored episode {} after evicting {} episodes",
+                episode.episode_id,
+                evicted.len()
+            );
+        }
+
+        Ok(evicted_ids)
+    }
+
+    /// Batch evict episodes
+    ///
+    /// Efficiently deletes multiple episodes in a single transaction.
+    /// Episode summaries are cascade deleted automatically.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_ids` - Episodes to evict
+    ///
+    /// # Returns
+    ///
+    /// Ok(()) on success, Error if deletion fails
+    pub async fn batch_evict_episodes(&self, episode_ids: &[Uuid]) -> Result<()> {
+        if episode_ids.is_empty() {
+            return Ok(());
+        }
+
+        debug!("Batch evicting {} episodes", episode_ids.len());
+        let conn = self.get_connection().await?;
+
+        // Build parameterized query for batch delete
+        let placeholders = episode_ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(",");
+
+        let sql = format!(
+            "DELETE FROM episodes WHERE episode_id IN ({})",
+            placeholders
+        );
+
+        let params: Vec<String> = episode_ids.iter().map(|id| id.to_string()).collect();
+
+        conn.execute(&sql, libsql::params_from_iter(params))
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to batch evict episodes: {}", e)))?;
+
+        info!("Successfully evicted {} episodes", episode_ids.len());
+        Ok(())
+    }
+
+    /// Helper: Convert row to EpisodeSummary
+    fn row_to_episode_summary(
+        &self,
+        row: &libsql::Row,
+    ) -> Result<memory_core::semantic::EpisodeSummary> {
+        let episode_id_str: String = row
+            .get(0)
+            .map_err(|e| Error::Storage(format!("Failed to get episode_id: {}", e)))?;
+        let summary_text: String = row
+            .get(1)
+            .map_err(|e| Error::Storage(format!("Failed to get summary_text: {}", e)))?;
+        let key_concepts_json: String = row
+            .get(2)
+            .map_err(|e| Error::Storage(format!("Failed to get key_concepts: {}", e)))?;
+        let key_steps_json: String = row
+            .get(3)
+            .map_err(|e| Error::Storage(format!("Failed to get key_steps: {}", e)))?;
+        let embedding_blob: Option<Vec<u8>> = row
+            .get(4)
+            .map_err(|e| Error::Storage(format!("Failed to get summary_embedding: {}", e)))?;
+        let created_at: i64 = row
+            .get(5)
+            .map_err(|e| Error::Storage(format!("Failed to get created_at: {}", e)))?;
+
+        let episode_id = Uuid::parse_str(&episode_id_str)
+            .map_err(|e| Error::Storage(format!("Invalid episode UUID: {}", e)))?;
+
+        let key_concepts: Vec<String> =
+            serde_json::from_str(&key_concepts_json).map_err(Error::Serialization)?;
+        let key_steps: Vec<String> =
+            serde_json::from_str(&key_steps_json).map_err(Error::Serialization)?;
+
+        let summary_embedding =
+            if let Some(blob) = embedding_blob {
+                Some(postcard::from_bytes(&blob).map_err(|e| {
+                    Error::Storage(format!("Failed to deserialize embedding: {}", e))
+                })?)
+            } else {
+                None
+            };
+
+        Ok(memory_core::semantic::EpisodeSummary {
+            episode_id,
+            summary_text,
+            key_concepts,
+            key_steps,
+            summary_embedding,
+            created_at: chrono::DateTime::from_timestamp(created_at, 0)
+                .ok_or_else(|| Error::Storage("Invalid created_at timestamp".to_string()))?,
+        })
     }
 }

@@ -16,7 +16,7 @@ This is a memory management system with episodic memory capabilities, semantic e
 - **Debug Tests**: `RUST_LOG=debug cargo test`
 
 ## File Organization
-- Plans/analysis stored in `@plans/` folder only
+- Plans/analysis/validation/reports and all other non permant doc .md files stored in `@plans/` folder only
 - Maximum 500 lines per file
 
 ## Agent Documentation

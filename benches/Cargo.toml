@@ -57,3 +57,8 @@ name = "multi_backend_comparison"
 path = "multi_backend_comparison.rs"
 harness = false
 
+[[bench]]
+name = "genesis_benchmark"
+path = "genesis_benchmark.rs"
+harness = false
+

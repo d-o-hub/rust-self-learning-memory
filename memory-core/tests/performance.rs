@@ -728,9 +728,10 @@ async fn should_log_steps_very_quickly() {
     }
 
     // Then: Average step logging should be very fast (<5ms)
-    // Clippy: Cast is safe for small test sizes (100 items)
-    #[allow(clippy::cast_possible_truncation)]
-    let avg_time: Duration = step_times.iter().sum::<Duration>() / u32::from(step_times.len());
+    // Cast is safe for small test sizes (100 items)
+    // Fixed: use try_into() for safe usize to u32 conversion
+    let count: u32 = step_times.len().try_into().expect("Test size fits in u32");
+    let avg_time: Duration = step_times.iter().sum::<Duration>() / count;
 
     println!("Average step logging time: {avg_time:?}");
 

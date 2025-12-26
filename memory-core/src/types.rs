@@ -150,7 +150,7 @@ impl Default for TaskContext {
 /// let fix_task = TaskType::Debugging;         // Finding and fixing bugs
 /// let test_task = TaskType::Testing;          // Writing or running tests
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TaskType {
     /// Writing new code or implementing features
     CodeGeneration,
@@ -623,6 +623,20 @@ pub struct MemoryConfig {
     pub summary_min_length: usize,
     /// Maximum summary length in words
     pub summary_max_length: usize,
+
+    // Phase 3 (Spatiotemporal Memory Organization)
+    /// Enable spatiotemporal hierarchical indexing (default: true)
+    pub enable_spatiotemporal_indexing: bool,
+    /// Enable diversity maximization via MMR (default: true)
+    pub enable_diversity_maximization: bool,
+    /// Lambda parameter for MMR diversity (0.0-1.0, default: 0.7)
+    /// 1.0 = pure relevance, 0.0 = pure diversity
+    pub diversity_lambda: f32,
+    /// Temporal bias weight in retrieval scoring (default: 0.3)
+    /// Higher values favor more recent episodes
+    pub temporal_bias_weight: f32,
+    /// Maximum temporal clusters to search (default: 5)
+    pub max_clusters_to_search: usize,
 }
 
 impl Default for MemoryConfig {
@@ -643,6 +657,13 @@ impl Default for MemoryConfig {
             enable_summarization: true,
             summary_min_length: 100,
             summary_max_length: 200,
+
+            // Phase 3 (Spatiotemporal) - Defaults
+            enable_spatiotemporal_indexing: true,
+            enable_diversity_maximization: true,
+            diversity_lambda: 0.7,
+            temporal_bias_weight: 0.3,
+            max_clusters_to_search: 5,
         }
     }
 }
@@ -661,6 +682,13 @@ impl MemoryConfig {
     ///
     /// ## Phase 2 (GENESIS) - Semantic Summarization
     /// * `MEMORY_ENABLE_SUMMARIZATION` - Enable summarization: `"true"` or `"false"` (default: `true`)
+    ///
+    /// ## Phase 3 (Spatiotemporal) - Hierarchical Retrieval
+    /// * `MEMORY_ENABLE_SPATIOTEMPORAL` - Enable spatiotemporal indexing: `"true"` or `"false"` (default: `true`)
+    /// * `MEMORY_ENABLE_DIVERSITY` - Enable diversity maximization: `"true"` or `"false"` (default: `true`)
+    /// * `MEMORY_DIVERSITY_LAMBDA` - MMR lambda parameter (0.0-1.0, default: `0.7`)
+    /// * `MEMORY_TEMPORAL_BIAS` - Temporal bias weight (0.0-1.0, default: `0.3`)
+    /// * `MEMORY_MAX_CLUSTERS` - Maximum temporal clusters to search (default: `5`)
     ///
     /// # Examples
     ///
@@ -705,6 +733,39 @@ impl MemoryConfig {
                 enable_summarization.to_lowercase().as_str(),
                 "true" | "1" | "yes" | "on"
             );
+        }
+
+        // Phase 3 (Spatiotemporal Memory Organization)
+        if let Ok(enable_spatiotemporal) = std::env::var("MEMORY_ENABLE_SPATIOTEMPORAL") {
+            config.enable_spatiotemporal_indexing = matches!(
+                enable_spatiotemporal.to_lowercase().as_str(),
+                "true" | "1" | "yes" | "on"
+            );
+        }
+
+        if let Ok(enable_diversity) = std::env::var("MEMORY_ENABLE_DIVERSITY") {
+            config.enable_diversity_maximization = matches!(
+                enable_diversity.to_lowercase().as_str(),
+                "true" | "1" | "yes" | "on"
+            );
+        }
+
+        if let Ok(lambda) = std::env::var("MEMORY_DIVERSITY_LAMBDA") {
+            if let Ok(value) = lambda.parse::<f32>() {
+                config.diversity_lambda = value.clamp(0.0, 1.0);
+            }
+        }
+
+        if let Ok(bias) = std::env::var("MEMORY_TEMPORAL_BIAS") {
+            if let Ok(value) = bias.parse::<f32>() {
+                config.temporal_bias_weight = value.clamp(0.0, 1.0);
+            }
+        }
+
+        if let Ok(clusters) = std::env::var("MEMORY_MAX_CLUSTERS") {
+            if let Ok(value) = clusters.parse::<usize>() {
+                config.max_clusters_to_search = value;
+            }
         }
 
         config

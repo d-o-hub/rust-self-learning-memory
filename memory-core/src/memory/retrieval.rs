@@ -3,11 +3,75 @@
 use crate::episode::Episode;
 use crate::extraction::{deduplicate_patterns, rank_patterns};
 use crate::pattern::Pattern;
+use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
 use tracing::{debug, info, instrument};
 use uuid::Uuid;
 
 use super::SelfLearningMemory;
+
+/// Generate a simple embedding for an episode based on its metadata
+/// This is a placeholder until full embedding integration is complete
+fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
+    let mut embedding = Vec::with_capacity(10);
+    
+    // Domain hash
+    let domain_hash = episode.context.domain.chars().fold(0u32, |acc, c| acc.wrapping_add(c as u32));
+    embedding.push((domain_hash % 100) as f32 / 100.0);
+    
+    // Task type encoding
+    embedding.push(match episode.task_type {
+        crate::types::TaskType::CodeGeneration => 0.9,
+        crate::types::TaskType::Analysis => 0.7,
+        crate::types::TaskType::Testing => 0.5,
+        crate::types::TaskType::Debugging => 0.3,
+        crate::types::TaskType::Refactoring => 0.2,
+        crate::types::TaskType::Documentation => 0.1,
+        crate::types::TaskType::Other => 0.0,
+    });
+    
+    // Complexity encoding
+    embedding.push(match episode.context.complexity {
+        crate::types::ComplexityLevel::Simple => 0.2,
+        crate::types::ComplexityLevel::Moderate => 0.5,
+        crate::types::ComplexityLevel::Complex => 0.8,
+    });
+    
+    // Language/framework presence
+    embedding.push(if episode.context.language.is_some() { 1.0 } else { 0.0 });
+    embedding.push(if episode.context.framework.is_some() { 1.0 } else { 0.0 });
+    
+    // Number of steps (normalized)
+    let step_count = episode.steps.len().min(50) as f32 / 50.0;
+    embedding.push(step_count);
+    
+    // Reward component (if available)
+    let reward_value = episode.reward.as_ref().map_or(0.5, |r| r.total.min(1.0));
+    embedding.push(reward_value);
+    
+    // Duration component
+    if let Some(end) = episode.end_time {
+        let duration = end - episode.start_time;
+        let duration_secs = duration.num_seconds().max(0).min(3600) as f32 / 3600.0;
+        embedding.push(duration_secs);
+    } else {
+        embedding.push(0.5);
+    }
+    
+    // Tag count (normalized)
+    let tag_count = episode.context.tags.len().min(10) as f32 / 10.0;
+    embedding.push(tag_count);
+    
+    // Outcome encoding
+    embedding.push(match &episode.outcome {
+        Some(crate::types::TaskOutcome::Success { .. }) => 1.0,
+        Some(crate::types::TaskOutcome::PartialSuccess { .. }) => 0.5,
+        Some(crate::types::TaskOutcome::Failure { .. }) => 0.0,
+        None => 0.5,
+    });
+    
+    embedding
+}
 
 impl SelfLearningMemory {
     /// Retrieve relevant past episodes for a new task.
@@ -142,36 +206,212 @@ impl SelfLearningMemory {
         debug!(
             total_episodes = episodes.len(),
             limit = limit,
-            "Retrieving relevant context"
+            "Retrieving relevant context with Phase 3 hierarchical retrieval"
         );
 
-        // Find relevant episodes
-        let mut relevant: Vec<Episode> = episodes
+        // Collect completed episodes
+        let completed_episodes: Vec<Episode> = episodes
             .values()
             .filter(|e| e.is_complete())
-            .filter(|e| self.is_relevant_episode(e, &context, &task_description))
             .cloned()
             .collect();
 
-        // Sort by relevance (using reward as proxy for quality)
-        relevant.sort_by(|a, b| {
-            let a_score = self.calculate_relevance_score(a, &context, &task_description);
-            let b_score = self.calculate_relevance_score(b, &context, &task_description);
+        if completed_episodes.is_empty() {
+            info!("No completed episodes found for retrieval");
+            return vec![];
+        }
 
-            b_score
-                .partial_cmp(&a_score)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        // Phase 3: Use hierarchical retriever for efficient search (if enabled)
+        let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {
+            let query = RetrievalQuery {
+                query_text: task_description.clone(),
+                query_embedding: None, // TODO: Add embedding support in future
+                domain: Some(context.domain.clone()),
+                task_type: None, // Could extract from context if needed
+                limit: limit * 2, // Retrieve more candidates for diversity maximization
+            };
 
-        // Limit results
-        relevant.truncate(limit);
+            match retriever.retrieve(&query, &completed_episodes).await {
+                Ok(scored) => Some(scored),
+                Err(e) => {
+                    debug!("Hierarchical retrieval failed: {}, falling back to legacy method", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
+        // If hierarchical retrieval failed or is disabled, use legacy method
+        if scored_episodes.is_none() {
+            let mut relevant: Vec<Episode> = completed_episodes
+                .into_iter()
+                .filter(|e| self.is_relevant_episode(e, &context, &task_description))
+                .collect();
+
+            relevant.sort_by(|a, b| {
+                let a_score = self.calculate_relevance_score(a, &context, &task_description);
+                let b_score = self.calculate_relevance_score(b, &context, &task_description);
+                b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
+            });
+
+            relevant.truncate(limit);
+            info!(retrieved_count = relevant.len(), "Retrieved episodes using legacy method");
+            return relevant;
+        }
+
+        let scored_episodes = scored_episodes.unwrap();
+
+        // Phase 3: Apply MMR diversity maximization (if enabled)
+        if let Some(ref maximizer) = self.diversity_maximizer {
+            // Convert scored episodes to diversity format with embeddings
+            let diversity_candidates: Vec<crate::spatiotemporal::diversity::ScoredEpisode> = scored_episodes
+                .iter()
+                .filter_map(|scored| {
+                    completed_episodes
+                        .iter()
+                        .find(|e| e.episode_id == scored.episode_id)
+                        .map(|episode| {
+                            let embedding = generate_simple_embedding(episode);
+                            crate::spatiotemporal::diversity::ScoredEpisode::new(
+                                episode.episode_id.to_string(),
+                                scored.relevance_score,
+                                embedding,
+                            )
+                        })
+                })
+                .collect();
+
+            // Apply MMR diversity maximization
+            let diverse_scored = maximizer.maximize_diversity(diversity_candidates, limit);
+
+            // Calculate and log diversity score
+            let diversity_score = maximizer.calculate_diversity_score(&diverse_scored);
+            debug!(
+                diversity_score = diversity_score,
+                target = 0.7,
+                "Applied MMR diversity maximization"
+            );
+
+            // Extract episodes from diverse results
+            let result_episodes: Vec<Episode> = diverse_scored
+                .iter()
+                .filter_map(|scored| {
+                    let episode_id = uuid::Uuid::parse_str(scored.episode_id()).ok()?;
+                    completed_episodes
+                        .iter()
+                        .find(|e| e.episode_id == episode_id)
+                        .cloned()
+                })
+                .collect();
+
+            info!(
+                retrieved_count = result_episodes.len(),
+                diversity_score = diversity_score,
+                "Retrieved diverse, relevant episodes using Phase 3 hierarchical retrieval + MMR"
+            );
+
+            return result_episodes;
+        }
+
+        // Diversity maximization disabled - just use top scored episodes
+        let result_episodes: Vec<Episode> = scored_episodes
+            .iter()
+            .take(limit)
+            .filter_map(|scored| {
+                completed_episodes
+                    .iter()
+                    .find(|e| e.episode_id == scored.episode_id)
+                    .cloned()
+            })
+            .collect();
 
         info!(
-            retrieved_count = relevant.len(),
-            "Retrieved relevant episodes"
+            retrieved_count = result_episodes.len(),
+            "Retrieved episodes using hierarchical retrieval (diversity disabled)"
         );
 
-        relevant
+        result_episodes
+    }
+
+    /// Legacy retrieval fallback (removed - integrated above)
+    #[allow(dead_code)]
+    fn legacy_retrieval_fallback(
+        &self,
+        completed_episodes: Vec<Episode>,
+        context: &TaskContext,
+        task_description: &str,
+        limit: usize,
+    ) -> Vec<Episode> {
+        {
+            // Fallback to legacy retrieval
+            {
+                let mut relevant: Vec<Episode> = completed_episodes
+                    .into_iter()
+                    .filter(|e| self.is_relevant_episode(e, &context, &task_description))
+                    .collect();
+
+                relevant.sort_by(|a, b| {
+                    let a_score = self.calculate_relevance_score(a, &context, &task_description);
+                    let b_score = self.calculate_relevance_score(b, &context, &task_description);
+                    b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
+                });
+
+                relevant.truncate(limit);
+                info!(retrieved_count = relevant.len(), "Retrieved episodes using legacy method");
+                return relevant;
+            }
+        };
+
+        // Phase 3: Apply MMR diversity maximization
+        // Convert scored episodes to diversity format with embeddings
+        let diversity_candidates: Vec<crate::spatiotemporal::diversity::ScoredEpisode> = scored_episodes
+            .iter()
+            .filter_map(|scored| {
+                completed_episodes
+                    .iter()
+                    .find(|e| e.episode_id == scored.episode_id)
+                    .map(|episode| {
+                        let embedding = generate_simple_embedding(episode);
+                        crate::spatiotemporal::diversity::ScoredEpisode::new(
+                            episode.episode_id.to_string(),
+                            scored.relevance_score,
+                            embedding,
+                        )
+                    })
+            })
+            .collect();
+
+        // Apply MMR diversity maximization
+        let diverse_scored = self.diversity_maximizer.maximize_diversity(diversity_candidates, limit);
+        
+        // Calculate and log diversity score
+        let diversity_score = self.diversity_maximizer.calculate_diversity_score(&diverse_scored);
+        debug!(
+            diversity_score = diversity_score,
+            target = 0.7,
+            "Applied MMR diversity maximization"
+        );
+
+        // Extract episodes from diverse results
+        let result_episodes: Vec<Episode> = diverse_scored
+            .iter()
+            .filter_map(|scored| {
+                let episode_id = uuid::Uuid::parse_str(scored.episode_id()).ok()?;
+                completed_episodes
+                    .iter()
+                    .find(|e| e.episode_id == episode_id)
+                    .cloned()
+            })
+            .collect();
+
+        info!(
+            retrieved_count = result_episodes.len(),
+            diversity_score = diversity_score,
+            "Retrieved diverse, relevant episodes using Phase 3 hierarchical retrieval + MMR"
+        );
+
+        result_episodes
     }
 
     /// Retrieve relevant patterns for a task context

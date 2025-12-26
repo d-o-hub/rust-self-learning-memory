@@ -229,6 +229,16 @@ pub struct SelfLearningMemory {
     // Phase 2 (GENESIS) - Semantic summarization
     /// Semantic summarizer for episode compression
     pub(super) semantic_summarizer: Option<crate::semantic::SemanticSummarizer>,
+
+    // Phase 3 (Spatiotemporal) - Hierarchical retrieval and indexing
+    /// Spatiotemporal index for domain → task_type → temporal clustering
+    pub(super) spatiotemporal_index: Option<Arc<RwLock<crate::spatiotemporal::SpatiotemporalIndex>>>,
+    /// Hierarchical retriever for efficient episode search
+    pub(super) hierarchical_retriever: Option<crate::spatiotemporal::HierarchicalRetriever>,
+    /// Diversity maximizer using MMR for result set optimization
+    pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
+    /// Context-aware embeddings for task-specific similarity (future)
+    pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
 }
 
 impl Default for SelfLearningMemory {
@@ -281,6 +291,32 @@ impl SelfLearningMemory {
             None
         };
 
+        // Phase 3 (Spatiotemporal) - Initialize components if enabled
+        let spatiotemporal_index = if config.enable_spatiotemporal_indexing {
+            Some(Arc::new(RwLock::new(
+                crate::spatiotemporal::SpatiotemporalIndex::new(),
+            )))
+        } else {
+            None
+        };
+
+        let hierarchical_retriever = if config.enable_spatiotemporal_indexing {
+            Some(crate::spatiotemporal::HierarchicalRetriever::with_config(
+                config.temporal_bias_weight,
+                config.max_clusters_to_search,
+            ))
+        } else {
+            None
+        };
+
+        let diversity_maximizer = if config.enable_diversity_maximization {
+            Some(crate::spatiotemporal::DiversityMaximizer::new(
+                config.diversity_lambda,
+            ))
+        } else {
+            None
+        };
+
         Self {
             config: config.clone(),
             quality_assessor,
@@ -300,6 +336,10 @@ impl SelfLearningMemory {
             cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
             capacity_manager,
             semantic_summarizer,
+            spatiotemporal_index,
+            hierarchical_retriever,
+            diversity_maximizer,
+            context_aware_embeddings: None, // Future enhancement
         }
     }
 
@@ -385,6 +425,32 @@ impl SelfLearningMemory {
             None
         };
 
+        // Phase 3 (Spatiotemporal) - Initialize components if enabled
+        let spatiotemporal_index = if config.enable_spatiotemporal_indexing {
+            Some(Arc::new(RwLock::new(
+                crate::spatiotemporal::SpatiotemporalIndex::new(),
+            )))
+        } else {
+            None
+        };
+
+        let hierarchical_retriever = if config.enable_spatiotemporal_indexing {
+            Some(crate::spatiotemporal::HierarchicalRetriever::with_config(
+                config.temporal_bias_weight,
+                config.max_clusters_to_search,
+            ))
+        } else {
+            None
+        };
+
+        let diversity_maximizer = if config.enable_diversity_maximization {
+            Some(crate::spatiotemporal::DiversityMaximizer::new(
+                config.diversity_lambda,
+            ))
+        } else {
+            None
+        };
+
         Self {
             config: config.clone(),
             quality_assessor,
@@ -404,6 +470,10 @@ impl SelfLearningMemory {
             cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
             capacity_manager,
             semantic_summarizer,
+            spatiotemporal_index,
+            hierarchical_retriever,
+            diversity_maximizer,
+            context_aware_embeddings: None, // Future enhancement
         }
     }
 

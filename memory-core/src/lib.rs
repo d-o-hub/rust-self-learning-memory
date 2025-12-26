@@ -78,6 +78,7 @@ pub mod pre_storage;
 pub mod reflection;
 pub mod reward;
 pub mod semantic;
+pub mod spatiotemporal;
 pub mod storage;
 pub mod sync;
 pub use sync::StorageSynchronizer;

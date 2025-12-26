@@ -180,12 +180,14 @@ mod tests {
     fn test_feature() {
         // Arrange
         let input = setup_test_data();
-        
+
         // Act
         let result = function_under_test(input);
-        
+
         // Assert
-        assert_eq!(result, expected_value);
+        let expected = "expected_value";
+        assert_eq!(result, expected);
+        println!("Test passed with result: {result}");
     }
 }
 ```
@@ -229,7 +231,17 @@ fn benchmark_operation(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, benchmark_operation);
+fn benchmark_comparison(c: &mut Criterion) {
+    c.bench_function("baseline", |b| {
+        b.iter(|| baseline_operation(black_box(data)))
+    });
+
+    c.bench_function("optimized", |b| {
+        b.iter(|| optimized_operation(black_box(data)))
+    });
+}
+
+criterion_group!(benches, benchmark_operation, benchmark_comparison);
 criterion_main!(benches);
 ```
 
@@ -250,6 +262,12 @@ criterion_main!(benches);
 - Review uncovered lines in HTML report
 - Add tests for edge cases
 
+### Clippy warnings
+- Run `cargo clippy --all-targets --all-features`
+- Apply fixes with `cargo clippy --fix --allow-dirty`
+- For intentional violations, use `#[allow(clippy::...)]` with justification
+- See [plans/CLIPPY_FIX_PLAN.md](plans/CLIPPY_FIX_PLAN.md) for recent fixes
+
 ## Best Practices
 
 1. **Test Independence**: Each test should be isolated and not depend on others
@@ -264,7 +282,13 @@ criterion_main!(benches);
 
 Before merging:
 - [ ] All tests passing
-- [ ] Code coverage >80%
-- [ ] No clippy warnings
+- [ ] Code coverage >90% (quality gate threshold)
+- [ ] No clippy warnings (run `cargo clippy --all-targets --all-features`)
+- [ ] All code formatted (`cargo fmt --all -- --check`)
 - [ ] Benchmarks within targets
-- [ ] Documentation updated
+- [ ] Documentation updated with modern Rust patterns
+- [ ] Format strings use variable capture: `format!("{var}")`
+- [ ] Type conversions use `From` trait: `i64::from(value)`
+- [ ] Documentation uses backticks for code elements
+
+See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for complete quality gate definitions.

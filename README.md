@@ -105,6 +105,8 @@ cargo run --bin memory-cli -- context retrieve \
   --limit 5
 ```
 
+Note: All code examples follow 2025 Rust best practices including modern format strings, type-safe conversions, and proper documentation formatting.
+
 ## Documentation
 
 | Document | Description |

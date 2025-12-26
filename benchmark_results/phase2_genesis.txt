@@ -1,0 +1,168 @@
+    Blocking waiting for file lock on build directory
+   Compiling memory-benches v0.1.7 (/workspaces/feat-phase3/benches)
+    Finished `bench` profile [optimized] target(s) in 4m 22s
+     Running genesis_benchmark.rs (target/release/deps/genesis_benchmark-727aefec030c9207)
+Gnuplot not found, using plotters backend
+Benchmarking capacity_enforcement_overhead/100episodes_LRU
+Benchmarking capacity_enforcement_overhead/100episodes_LRU: Warming up for 3.0000 s
+Benchmarking capacity_enforcement_overhead/100episodes_LRU: Collecting 100 samples in estimated 5.0014 s (13M iterations)
+Benchmarking capacity_enforcement_overhead/100episodes_LRU: Analyzing
+capacity_enforcement_overhead/100episodes_LRU
+                        time:   [350.35 ns 357.05 ns 364.96 ns]
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high mild
+Benchmarking capacity_enforcement_overhead/100episodes_RelevanceWeighted
+Benchmarking capacity_enforcement_overhead/100episodes_RelevanceWeighted: Warming up for 3.0000 s
+Benchmarking capacity_enforcement_overhead/100episodes_RelevanceWeighted: Collecting 100 samples in estimated 5.0183 s (515k iterations)
+Benchmarking capacity_enforcement_overhead/100episodes_RelevanceWeighted: Analyzing
+capacity_enforcement_overhead/100episodes_RelevanceWeighted
+                        time:   [9.3654 µs 9.7062 µs 10.168 µs]
+Found 5 outliers among 100 measurements (5.00%)
+  2 (2.00%) high mild
+  3 (3.00%) high severe
+Benchmarking capacity_enforcement_overhead/500episodes_LRU
+Benchmarking capacity_enforcement_overhead/500episodes_LRU: Warming up for 3.0000 s
+Benchmarking capacity_enforcement_overhead/500episodes_LRU: Collecting 100 samples in estimated 5.0006 s (2.7M iterations)
+Benchmarking capacity_enforcement_overhead/500episodes_LRU: Analyzing
+capacity_enforcement_overhead/500episodes_LRU
+                        time:   [1.7984 µs 1.8357 µs 1.8730 µs]
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high mild
+Benchmarking capacity_enforcement_overhead/500episodes_RelevanceWeighted
+Benchmarking capacity_enforcement_overhead/500episodes_RelevanceWeighted: Warming up for 3.0000 s
+Benchmarking capacity_enforcement_overhead/500episodes_RelevanceWeighted: Collecting 100 samples in estimated 5.1381 s (101k iterations)
+Benchmarking capacity_enforcement_overhead/500episodes_RelevanceWeighted: Analyzing
+capacity_enforcement_overhead/500episodes_RelevanceWeighted
+                        time:   [48.503 µs 49.375 µs 50.360 µs]
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+Benchmarking capacity_enforcement_overhead/1000episodes_LRU
+Benchmarking capacity_enforcement_overhead/1000episodes_LRU: Warming up for 3.0000 s
+Benchmarking capacity_enforcement_overhead/1000episodes_LRU: Collecting 100 samples in estimated 5.0055 s (1.4M iterations)
+Benchmarking capacity_enforcement_overhead/1000episodes_LRU: Analyzing
+capacity_enforcement_overhead/1000episodes_LRU
+                        time:   [3.3899 µs 3.4595 µs 3.5368 µs]
+Found 5 outliers among 100 measurements (5.00%)
+  4 (4.00%) high mild
+  1 (1.00%) high severe
+Benchmarking capacity_enforcement_overhead/1000episodes_RelevanceWeighted
+Benchmarking capacity_enforcement_overhead/1000episodes_RelevanceWeighted: Warming up for 3.0000 s
+Benchmarking capacity_enforcement_overhead/1000episodes_RelevanceWeighted: Collecting 100 samples in estimated 5.3361 s (56k iterations)
+Benchmarking capacity_enforcement_overhead/1000episodes_RelevanceWeighted: Analyzing
+capacity_enforcement_overhead/1000episodes_RelevanceWeighted
+                        time:   [93.884 µs 96.895 µs 100.56 µs]
+Found 11 outliers among 100 measurements (11.00%)
+  7 (7.00%) high mild
+  4 (4.00%) high severe
+
+Benchmarking summary_generation_time/5
+Benchmarking summary_generation_time/5: Warming up for 3.0000 s
+Benchmarking summary_generation_time/5: Collecting 100 samples in estimated 5.0067 s (732k iterations)
+Benchmarking summary_generation_time/5: Analyzing
+summary_generation_time/5
+                        time:   [6.6199 µs 6.7826 µs 6.9654 µs]
+Found 8 outliers among 100 measurements (8.00%)
+  8 (8.00%) high mild
+Benchmarking summary_generation_time/20
+Benchmarking summary_generation_time/20: Warming up for 3.0000 s
+Benchmarking summary_generation_time/20: Collecting 100 samples in estimated 5.0095 s (460k iterations)
+Benchmarking summary_generation_time/20: Analyzing
+summary_generation_time/20
+                        time:   [10.131 µs 10.412 µs 10.726 µs]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+Benchmarking summary_generation_time/50
+Benchmarking summary_generation_time/50: Warming up for 3.0000 s
+Benchmarking summary_generation_time/50: Collecting 100 samples in estimated 5.0662 s (278k iterations)
+Benchmarking summary_generation_time/50: Analyzing
+summary_generation_time/50
+                        time:   [18.656 µs 19.318 µs 20.077 µs]
+Found 9 outliers among 100 measurements (9.00%)
+  5 (5.00%) high mild
+  4 (4.00%) high severe
+
+Benchmarking storage_compression_ratio/5
+Benchmarking storage_compression_ratio/5: Warming up for 3.0000 s
+Benchmarking storage_compression_ratio/5: Collecting 50 samples in estimated 5.0125 s (303k iterations)
+Benchmarking storage_compression_ratio/5: Analyzing
+storage_compression_ratio/5
+                        time:   [14.795 µs 15.096 µs 15.411 µs]
+Found 3 outliers among 50 measurements (6.00%)
+  3 (6.00%) high mild
+Benchmarking storage_compression_ratio/20
+Benchmarking storage_compression_ratio/20: Warming up for 3.0000 s
+Benchmarking storage_compression_ratio/20: Collecting 50 samples in estimated 5.0359 s (149k iterations)
+Benchmarking storage_compression_ratio/20: Analyzing
+storage_compression_ratio/20
+                        time:   [32.096 µs 32.839 µs 33.554 µs]
+Found 1 outliers among 50 measurements (2.00%)
+  1 (2.00%) high mild
+Benchmarking storage_compression_ratio/50
+Benchmarking storage_compression_ratio/50: Warming up for 3.0000 s
+Benchmarking storage_compression_ratio/50: Collecting 50 samples in estimated 5.0169 s (74k iterations)
+Benchmarking storage_compression_ratio/50: Analyzing
+storage_compression_ratio/50
+                        time:   [63.815 µs 65.432 µs 67.179 µs]
+Found 4 outliers among 50 measurements (8.00%)
+  3 (6.00%) high mild
+  1 (2.00%) high severe
+
+Benchmarking eviction_algorithm_performance/LRU/100
+Benchmarking eviction_algorithm_performance/LRU/100: Warming up for 3.0000 s
+Benchmarking eviction_algorithm_performance/LRU/100: Collecting 50 samples in estimated 5.0003 s (12M iterations)
+Benchmarking eviction_algorithm_performance/LRU/100: Analyzing
+eviction_algorithm_performance/LRU/100
+                        time:   [353.41 ns 363.37 ns 374.08 ns]
+Found 2 outliers among 50 measurements (4.00%)
+  2 (4.00%) high mild
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/100
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/100: Warming up for 3.0000 s
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/100: Collecting 50 samples in estimated 5.0035 s (495k iterations)
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/100: Analyzing
+eviction_algorithm_performance/RelevanceWeighted/100
+                        time:   [8.9927 µs 9.0626 µs 9.1382 µs]
+Benchmarking eviction_algorithm_performance/LRU/500
+Benchmarking eviction_algorithm_performance/LRU/500: Warming up for 3.0000 s
+Benchmarking eviction_algorithm_performance/LRU/500: Collecting 50 samples in estimated 5.0009 s (2.9M iterations)
+Benchmarking eviction_algorithm_performance/LRU/500: Analyzing
+eviction_algorithm_performance/LRU/500
+                        time:   [1.5212 µs 1.5584 µs 1.6077 µs]
+Found 6 outliers among 50 measurements (12.00%)
+  1 (2.00%) high mild
+  5 (10.00%) high severe
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/500
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/500: Warming up for 3.0000 s
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/500: Collecting 50 samples in estimated 5.0310 s (103k iterations)
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/500: Analyzing
+eviction_algorithm_performance/RelevanceWeighted/500
+                        time:   [46.100 µs 47.215 µs 48.441 µs]
+Found 2 outliers among 50 measurements (4.00%)
+  1 (2.00%) high mild
+  1 (2.00%) high severe
+Benchmarking eviction_algorithm_performance/LRU/1000
+Benchmarking eviction_algorithm_performance/LRU/1000: Warming up for 3.0000 s
+Benchmarking eviction_algorithm_performance/LRU/1000: Collecting 50 samples in estimated 5.0013 s (1.4M iterations)
+Benchmarking eviction_algorithm_performance/LRU/1000: Analyzing
+eviction_algorithm_performance/LRU/1000
+                        time:   [3.0694 µs 3.1468 µs 3.2489 µs]
+Found 5 outliers among 50 measurements (10.00%)
+  5 (10.00%) high mild
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/1000
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/1000: Warming up for 3.0000 s
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/1000: Collecting 50 samples in estimated 5.0331 s (56k iterations)
+Benchmarking eviction_algorithm_performance/RelevanceWeighted/1000: Analyzing
+eviction_algorithm_performance/RelevanceWeighted/1000
+                        time:   [80.204 µs 80.925 µs 81.628 µs]
+Found 3 outliers among 50 measurements (6.00%)
+  2 (4.00%) high mild
+  1 (2.00%) high severe
+
+Benchmarking combined_premem_genesis_overhead/baseline_no_phase2
+Benchmarking combined_premem_genesis_overhead/baseline_no_phase2: Warming up for 3.0000 s
+
+thread 'main' (1012071) panicked at /workspaces/feat-phase3/memory-storage-redb/src/lib.rs:131:18:
+there is no reactor running, must be called from the context of a Tokio 1.x runtime
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: bench failed, to rerun pass `-p memory-benches --bench genesis_benchmark`

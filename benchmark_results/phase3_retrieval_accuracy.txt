@@ -1,0 +1,52 @@
+   Compiling axum-core v0.3.4
+   Compiling axum v0.6.20
+   Compiling memory-core v0.1.7 (/workspaces/feat-phase3/memory-core)
+   Compiling tonic v0.11.0
+   Compiling memory-storage-redb v0.1.7 (/workspaces/feat-phase3/memory-storage-redb)
+   Compiling libsql_replication v0.9.29
+   Compiling tonic-web v0.11.0
+   Compiling libsql v0.9.29
+   Compiling memory-storage-turso v0.1.7 (/workspaces/feat-phase3/memory-storage-turso)
+   Compiling memory-benches v0.1.7 (/workspaces/feat-phase3/benches)
+    Finished `bench` profile [optimized] target(s) in 2m 03s
+     Running phase3_retrieval_accuracy.rs (target/release/deps/phase3_retrieval_accuracy-1d5123e2f14dcf82)
+Gnuplot not found, using plotters backend
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5: Warming up for 3.0000 s
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5: Collecting 20 samples in estimated 10.151 s (13k iterations)
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5: Analyzing
+phase3_retrieval_accuracy/hierarchical_retrieval/5
+                        time:   [757.71 µs 776.20 µs 792.84 µs]
+                        change: [+65.299% +71.714% +78.378%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 20 measurements (15.00%)
+  2 (10.00%) low mild
+  1 (5.00%) high severe
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10: Warming up for 3.0000 s
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10: Collecting 20 samples in estimated 10.056 s (12k iterations)
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10: Analyzing
+phase3_retrieval_accuracy/hierarchical_retrieval/10
+                        time:   [715.89 µs 766.63 µs 830.25 µs]
+                        change: [+49.685% +59.867% +71.521%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high mild
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20: Warming up for 3.0000 s
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20: Collecting 20 samples in estimated 10.128 s (13k iterations)
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20: Analyzing
+phase3_retrieval_accuracy/hierarchical_retrieval/20
+                        time:   [812.81 µs 860.23 µs 896.13 µs]
+                        change: [+59.275% +67.082% +75.086%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query: Warming up for 3.0000 s
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query: Collecting 10 samples in estimated 5.0413 s (5720 iterations)
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query: Analyzing
+retrieval_accuracy_metrics/accuracy_web_api_query
+                        time:   [703.11 µs 748.51 µs 774.31 µs]
+                        change: [+49.151% +56.242% +63.551%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+

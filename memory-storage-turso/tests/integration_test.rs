@@ -9,7 +9,10 @@ async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
     let db_path = dir.path().join("test.db");
 
     // Create Turso storage with local file database
-    let url = format!("file://{}", db_path.to_str().expect("temp path should be valid UTF-8"));
+    let url = format!(
+        "file://{}",
+        db_path.to_str().expect("temp path should be valid UTF-8")
+    );
     let storage = TursoStorage::new(&url, "").await?;
     storage.initialize_schema().await?;
     Ok((storage, dir))

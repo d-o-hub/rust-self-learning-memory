@@ -17,11 +17,11 @@ fn test_valid_jsonrpc_response() {
     };
 
     let json_str = serde_json::to_string(&response).expect("Should serialize to JSON");
-    
+
     // Verify it's valid JSON that can be parsed
-    let parsed: serde_json::Value = serde_json::from_str(&json_str)
-        .expect("Response should be valid JSON");
-    
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_str).expect("Response should be valid JSON");
+
     assert_eq!(parsed["jsonrpc"], "2.0");
     assert_eq!(parsed["id"], 1);
     assert_eq!(parsed["result"]["success"], true);
@@ -42,11 +42,11 @@ fn test_valid_jsonrpc_error_response() {
     };
 
     let json_str = serde_json::to_string(&response).expect("Should serialize to JSON");
-    
+
     // Verify it's valid JSON that can be parsed
-    let parsed: serde_json::Value = serde_json::from_str(&json_str)
-        .expect("Error response should be valid JSON");
-    
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_str).expect("Error response should be valid JSON");
+
     assert_eq!(parsed["jsonrpc"], "2.0");
     assert_eq!(parsed["id"], 2);
     assert!(parsed["error"].is_object());
@@ -69,11 +69,11 @@ fn test_parse_error_response_serialization() {
     };
 
     let json_str = serde_json::to_string(&response).expect("Should serialize to JSON");
-    
+
     // Verify it's valid JSON that can be parsed
-    let parsed: serde_json::Value = serde_json::from_str(&json_str)
-        .expect("Parse error response should be valid JSON");
-    
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_str).expect("Parse error response should be valid JSON");
+
     assert_eq!(parsed["jsonrpc"], "2.0");
     assert!(parsed["id"].is_null());
     assert!(parsed["error"].is_object());
@@ -92,7 +92,7 @@ fn test_response_roundtrip() {
 
     let json_str = serde_json::to_string(&original).expect("Should serialize");
     let parsed: JsonRpcResponse = serde_json::from_str(&json_str).expect("Should deserialize");
-    
+
     assert_eq!(parsed.jsonrpc, original.jsonrpc);
     assert_eq!(parsed.id, original.id);
     assert_eq!(parsed.result, original.result);
@@ -114,7 +114,7 @@ fn test_complex_result_serialization() {
             "domains": ["web", "data"]
         }
     });
-    
+
     let response = JsonRpcResponse {
         jsonrpc: "2.0".to_string(),
         id: Some(serde_json::json!(10)),
@@ -123,11 +123,11 @@ fn test_complex_result_serialization() {
     };
 
     let json_str = serde_json::to_string(&response).expect("Should serialize to JSON");
-    
+
     // Verify it's valid JSON
-    let parsed: serde_json::Value = serde_json::from_str(&json_str)
-        .expect("Complex response should be valid JSON");
-    
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_str).expect("Complex response should be valid JSON");
+
     assert_eq!(parsed["result"]["episodes"][0]["id"], "ep1");
     assert_eq!(parsed["result"]["patterns"]["count"], 5);
 }

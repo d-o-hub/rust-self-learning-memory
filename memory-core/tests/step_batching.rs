@@ -474,8 +474,7 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
     println!(
         "Speedup:          {:.2}x",
         // Clippy: Precision loss acceptable for speedup calculation in test
-        duration_no_batch.as_micros() as f64
-            / duration_batch.as_micros() as f64
+        duration_no_batch.as_micros() as f64 / duration_batch.as_micros() as f64
     );
 
     // Note: We don't assert performance improvement as CI environments vary

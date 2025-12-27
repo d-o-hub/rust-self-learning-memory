@@ -48,8 +48,11 @@ chmod +x .githooks/*
 ./scripts/quality-gates.sh
 
 # Individual quality checks
-cargo fmt -- --check
-cargo clippy -- -D warnings
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features
+
+# Fix clippy suggestions automatically
+cargo clippy --fix --allow-dirty
 ```
 
 ### Docker Setup (Optional)
@@ -73,8 +76,12 @@ docker-compose up -d
 
 ### Common Build Issues
 1. **Missing dependencies**: Run `cargo update`
-2. **Format errors**: Run `cargo fmt`
-3. **Clippy warnings**: Address all warnings with `-D warnings`
+2. **Format errors**: Run `cargo fmt --all`
+3. **Clippy warnings**:
+   - Run `cargo clippy --all-targets --all-features` to see warnings
+   - Apply fixes: `cargo clippy --fix --allow-dirty`
+   - For intentional violations, add `#[allow(...)]` with justification
+   - See [plans/CLIPPY_FIX_PLAN.md](../plans/CLIPPY_FIX_PLAN.md) for recent fixes and best practices
 4. **Test failures**: Check `TESTING.md` for debugging
 
 ### Performance Issues

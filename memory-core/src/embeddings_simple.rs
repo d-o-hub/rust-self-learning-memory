@@ -121,6 +121,7 @@ pub fn text_to_embedding(text: &str) -> Vec<f32> {
 /// This function is identical to `text_to_embedding` but without the warning
 /// for use in tests and internal testing scenarios.
 #[cfg(test)]
+#[must_use]
 pub fn text_to_embedding_test(text: &str) -> Vec<f32> {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};

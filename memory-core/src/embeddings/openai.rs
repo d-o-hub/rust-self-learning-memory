@@ -6,20 +6,21 @@ use anyhow::Result;
 #[cfg(feature = "openai")]
 use {
     super::provider::EmbeddingProvider,
+    anyhow::Context,
     async_trait::async_trait,
     serde::{Deserialize, Serialize},
     std::time::Instant,
 };
 
-/// OpenAI embedding provider
+/// `OpenAI` embedding provider
 ///
-/// Uses OpenAI's embedding API for high-quality semantic embeddings.
+/// Uses `OpenAI`'s embedding API for high-quality semantic embeddings.
 /// Requires an API key and internet connection.
 ///
 /// # Supported Models
-/// - text-embedding-ada-002 (1536 dimensions, legacy)
-/// - text-embedding-3-small (1536 dimensions, improved)
-/// - text-embedding-3-large (3072 dimensions, highest quality)
+/// - `text-embedding-ada-002` (1536 dimensions, legacy)
+/// - `text-embedding-3-small` (1536 dimensions, improved)
+/// - `text-embedding-3-large` (3072 dimensions, highest quality)
 ///
 /// # Example
 /// ```no_run
@@ -60,38 +61,42 @@ impl OpenAIEmbeddingProvider {
     ///
     /// # Returns
     /// Configured OpenAI embedding provider
-    pub fn new(api_key: String, config: ModelConfig) -> Self {
+    pub fn new(api_key: String, config: ModelConfig) -> anyhow::Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(60))
             .build()
-            .expect("Failed to create HTTP client");
+            .context("Failed to create HTTP client")?;
 
-        Self {
+        Ok(Self {
             api_key,
             config,
             client,
             base_url: "https://api.openai.com/v1".to_string(),
-        }
+        })
     }
 
     /// Create provider with custom base URL (for Azure OpenAI, etc.)
-    pub fn with_custom_url(api_key: String, config: ModelConfig, base_url: String) -> Self {
+    pub fn with_custom_url(
+        api_key: String,
+        config: ModelConfig,
+        base_url: String,
+    ) -> anyhow::Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(60))
             .build()
-            .expect("Failed to create HTTP client");
+            .context("Failed to create HTTP client")?;
 
-        Self {
+        Ok(Self {
             api_key,
             config,
             client,
             base_url,
-        }
+        })
     }
 
-    /// Make embedding request to OpenAI API
+    /// Make embedding request to `OpenAI` API
     async fn request_embeddings(&self, input: EmbeddingInput) -> Result<EmbeddingResponse> {
-        let url = format!("{}/embeddings", self.base_url);
+        let url = format!("{base_url}/embeddings", base_url = self.base_url);
 
         let request = EmbeddingRequest {
             input,
@@ -142,8 +147,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         let generation_time = start_time.elapsed().as_millis() as u64;
 
         tracing::debug!(
-            "Generated OpenAI embedding in {}ms, {} tokens, {} dimensions",
-            generation_time,
+            "Generated `OpenAI` embedding in {generation_time}ms, {} tokens, {} dimensions",
             response.usage.total_tokens,
             embedding.len()
         );
@@ -178,9 +182,8 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         let generation_time = start_time.elapsed().as_millis() as u64;
 
         tracing::debug!(
-            "Generated {} OpenAI embeddings in {}ms, {} tokens",
+            "Generated {} `OpenAI` embeddings in {generation_time}ms, {} tokens",
             embeddings.len(),
-            generation_time,
             response.usage.total_tokens
         );
 
@@ -242,6 +245,7 @@ enum EmbeddingInput {
 #[derive(Debug, Deserialize)]
 struct EmbeddingResponse {
     data: Vec<EmbeddingData>,
+    #[allow(dead_code)] // Part of OpenAI API response, kept for future use
     model: String,
     usage: Usage,
 }
@@ -251,12 +255,14 @@ struct EmbeddingResponse {
 struct EmbeddingData {
     embedding: Vec<f32>,
     index: usize,
+    #[allow(dead_code)] // Part of OpenAI API response, indicates object type
     object: String, // Should be "embedding"
 }
 
 #[cfg(feature = "openai")]
 #[derive(Debug, Deserialize)]
 struct Usage {
+    #[allow(dead_code)] // Part of OpenAI API response, not currently used
     prompt_tokens: usize,
     total_tokens: usize,
 }
@@ -388,26 +394,28 @@ mod tests {
 
     #[cfg(feature = "openai")]
     #[tokio::test]
-    async fn test_provider_creation() {
+    async fn test_provider_creation() -> anyhow::Result<()> {
         let config = ModelConfig::openai_3_small();
-        let provider = OpenAIEmbeddingProvider::new("sk-test-key-1234567890".to_string(), config);
+        let provider = OpenAIEmbeddingProvider::new("sk-test-key-1234567890".to_string(), config)?;
 
         assert_eq!(provider.model_name(), "text-embedding-3-small");
         assert_eq!(provider.embedding_dimension(), 1536);
         assert_eq!(provider.base_url, "https://api.openai.com/v1");
+        Ok(())
     }
 
     #[cfg(feature = "openai")]
     #[tokio::test]
-    async fn test_custom_url_provider() {
+    async fn test_custom_url_provider() -> anyhow::Result<()> {
         let config = ModelConfig::openai_3_small();
         let custom_url = "https://custom.openai.azure.com/v1";
         let provider = OpenAIEmbeddingProvider::with_custom_url(
             "sk-test-key-1234567890".to_string(),
             config,
             custom_url.to_string(),
-        );
+        )?;
 
         assert_eq!(provider.base_url, custom_url);
+        Ok(())
     }
 }

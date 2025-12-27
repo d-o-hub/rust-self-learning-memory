@@ -71,6 +71,7 @@ pub(crate) const HEURISTICS_TABLE: TableDefinition<&str, &[u8]> =
 pub(crate) const EMBEDDINGS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("embeddings");
 pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("metadata");
+pub(crate) const SUMMARIES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("summaries");
 
 /// redb storage backend for fast caching
 pub struct RedbStorage {
@@ -173,6 +174,9 @@ impl RedbStorage {
                 let _metadata = write_txn
                     .open_table(METADATA_TABLE)
                     .map_err(|e| Error::Storage(format!("Failed to open metadata table: {}", e)))?;
+                let _summaries = write_txn.open_table(SUMMARIES_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open summaries table: {}", e))
+                })?;
             }
 
             write_txn

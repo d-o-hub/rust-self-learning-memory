@@ -17,11 +17,13 @@ pub struct MockLocalModel {
 }
 
 impl MockLocalModel {
+    #[must_use]
     pub fn new(name: String, dimension: usize) -> Self {
         Self { name, dimension }
     }
 
     /// Generate a deterministic mock embedding for testing
+    #[must_use]
     pub fn generate_mock_embedding(&self, text: &str) -> Vec<f32> {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};

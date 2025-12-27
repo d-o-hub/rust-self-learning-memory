@@ -218,8 +218,22 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         },
         enable_embeddings: false,
         pattern_extraction_threshold: 0.1,
+        quality_threshold: 0.7, // PREMem quality threshold
         batch_config: Some(memory_core::BatchConfig::default()),
         concurrency: memory_core::ConcurrencyConfig::default(),
+        // Phase 2 (GENESIS) - Capacity management
+        max_episodes: None, // No capacity limit by default
+        eviction_policy: Some(memory_core::episodic::EvictionPolicy::RelevanceWeighted),
+        // Phase 2 (GENESIS) - Semantic summarization
+        enable_summarization: true,
+        summary_min_length: 100,
+        summary_max_length: 200,
+        // Phase 3 (Spatiotemporal) - Hierarchical retrieval
+        enable_spatiotemporal_indexing: true,
+        enable_diversity_maximization: true,
+        diversity_lambda: 0.7,
+        temporal_bias_weight: 0.3,
+        max_clusters_to_search: 5,
     }
 }
 

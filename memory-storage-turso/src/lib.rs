@@ -339,6 +339,14 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_AGENT_METRICS_TYPE_INDEX)
             .await?;
 
+        // Create Phase 2 (GENESIS) tables and indexes
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_SUMMARIES_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_SUMMARIES_CREATED_AT_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
+            .await?;
+
         info!("Schema initialization complete");
         Ok(())
     }
@@ -351,7 +359,7 @@ impl TursoStorage {
         if let Some(ref pool) = self.pool {
             // Use connection pool
             let pooled_conn = pool.get().await?;
-            Ok(pooled_conn.into_inner())
+            Ok(pooled_conn.into_inner()?)
         } else {
             // Create direct connection (legacy mode)
             self.db

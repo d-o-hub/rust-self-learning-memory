@@ -104,6 +104,54 @@ impl SelfLearningMemory {
         // Validate total episode size before processing
         super::validation::validate_episode_size(episode)?;
 
+        // ============================================================================
+        // Pre-Storage Reasoning (PREMem Phase 1)
+        // ============================================================================
+
+        // 1. Assess episode quality before storage
+        let quality_score = self.quality_assessor.assess_episode(episode);
+
+        info!(
+            episode_id = %episode_id,
+            quality_score = quality_score,
+            quality_threshold = self.config.quality_threshold,
+            "Assessed episode quality"
+        );
+
+        // 2. Check if episode meets quality threshold
+        if quality_score < self.config.quality_threshold {
+            warn!(
+                episode_id = %episode_id,
+                quality_score = quality_score,
+                quality_threshold = self.config.quality_threshold,
+                "Episode rejected: quality score below threshold"
+            );
+
+            // Return error - episode will not be stored
+            return Err(Error::ValidationFailed(format!(
+                "Episode quality score ({:.2}) below threshold ({:.2})",
+                quality_score, self.config.quality_threshold
+            )));
+        }
+
+        // 3. Extract salient features for high-quality episodes
+        let salient_features = self.salient_extractor.extract(episode);
+        episode.salient_features = Some(salient_features.clone());
+
+        debug!(
+            episode_id = %episode_id,
+            feature_count = salient_features.count(),
+            critical_decisions = salient_features.critical_decisions.len(),
+            tool_combinations = salient_features.tool_combinations.len(),
+            error_recovery_patterns = salient_features.error_recovery_patterns.len(),
+            key_insights = salient_features.key_insights.len(),
+            "Extracted salient features"
+        );
+
+        // ============================================================================
+        // Learning Analysis (Existing Workflow)
+        // ============================================================================
+
         // Calculate reward score
         let reward = self.reward_calculator.calculate(episode);
         episode.reward = Some(reward.clone());
@@ -127,6 +175,108 @@ impl SelfLearningMemory {
             "Generated reflection"
         );
 
+        // ============================================================================
+        // Phase 2 (GENESIS) - Semantic Summarization
+        // ============================================================================
+
+        // Generate semantic summary before storage (if enabled)
+        let summary = if let Some(ref summarizer) = self.semantic_summarizer {
+            match summarizer.summarize_episode(episode).await {
+                Ok(summary) => {
+                    info!(
+                        episode_id = %episode_id,
+                        summary_words = summary.summary_text.split_whitespace().count(),
+                        key_concepts = summary.key_concepts.len(),
+                        key_steps = summary.key_steps.len(),
+                        "Generated semantic summary"
+                    );
+                    Some(summary)
+                }
+                Err(e) => {
+                    warn!("Failed to generate semantic summary: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
+        // ============================================================================
+        // Phase 2 (GENESIS) - Capacity-Constrained Storage
+        // ============================================================================
+
+        // Clone episode for capacity enforcement (we need to release the write lock)
+        let episode_clone = episode.clone();
+
+        // Release write lock before capacity enforcement to avoid deadlock
+        drop(episodes);
+
+        // Store with capacity enforcement if configured, otherwise use normal storage
+        if let Some(ref capacity_mgr) = self.capacity_manager {
+            // Get all episodes EXCEPT the current one for capacity calculation
+            // (the current episode is being added, so we check if we need to evict others)
+            let (current_count, all_episodes) = {
+                let eps = self.episodes_fallback.read().await;
+                let episodes: Vec<_> = eps
+                    .iter()
+                    .filter(|(id, _)| **id != episode_id) // Exclude current episode
+                    .map(|(_, ep)| ep.clone())
+                    .collect();
+                (episodes.len(), episodes)
+            };
+
+            // Check if eviction is needed
+            if !capacity_mgr.can_store(current_count) {
+                let evicted_ids = capacity_mgr.evict_if_needed(&all_episodes);
+
+                if !evicted_ids.is_empty() {
+                    info!(
+                        episode_id = %episode_id,
+                        evicted_count = evicted_ids.len(),
+                        "Evicting episodes due to capacity constraints"
+                    );
+
+                    // Remove evicted episodes from in-memory storage
+                    {
+                        let mut episodes_map = self.episodes_fallback.write().await;
+                        for evicted_id in &evicted_ids {
+                            episodes_map.remove(evicted_id);
+                        }
+                    }
+
+                    // Remove from storage backends
+                    // Note: In Phase 2.4, storage backends will have store_episode_with_capacity()
+                    // For now, we just log the eviction
+                    debug!(
+                        evicted_ids = ?evicted_ids,
+                        "Episodes evicted (backend deletion to be implemented in Phase 2.4)"
+                    );
+
+                    // Phase 3: Remove evicted episodes from spatiotemporal index
+                    if let Some(ref index) = self.spatiotemporal_index {
+                        if let Ok(mut index_write) = index.try_write() {
+                            for evicted_id in &evicted_ids {
+                                if let Err(e) = index_write.remove_episode(*evicted_id) {
+                                    warn!(
+                                        episode_id = %evicted_id,
+                                        error = %e,
+                                        "Failed to remove evicted episode from spatiotemporal index"
+                                    );
+                                }
+                            }
+                            debug!(
+                                evicted_count = evicted_ids.len(),
+                                "Removed evicted episodes from spatiotemporal index"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // Use the cloned episode for storage operations
+        let episode = &episode_clone;
+
         // Store updated episode in backends
         if let Some(cache) = &self.cache_storage {
             if let Err(e) = cache.store_episode(episode).await {
@@ -140,8 +290,45 @@ impl SelfLearningMemory {
             }
         }
 
-        // Release the write lock before pattern extraction
-        drop(episodes);
+        // Store episode summary if generated
+        // Note: In Phase 2.4, storage backends will have store_episode_summary()
+        if let Some(_summary) = summary {
+            debug!(
+                episode_id = %episode_id,
+                "Summary generated (storage to be implemented in Phase 2.4)"
+            );
+        }
+
+        // Note: Write lock already released above for capacity enforcement
+
+        // ============================================================================
+        // Phase 3 (Spatiotemporal) - Update hierarchical index
+        // ============================================================================
+
+        // Update spatiotemporal index if enabled
+        if let Some(ref index) = self.spatiotemporal_index {
+            if let Ok(mut index_write) = index.try_write() {
+                if let Err(e) = index_write.insert_episode(episode) {
+                    warn!(
+                        episode_id = %episode_id,
+                        error = %e,
+                        "Failed to insert episode into spatiotemporal index"
+                    );
+                } else {
+                    debug!(
+                        episode_id = %episode_id,
+                        domain = %episode.context.domain,
+                        task_type = %episode.task_type,
+                        "Inserted episode into spatiotemporal index"
+                    );
+                }
+            } else {
+                debug!(
+                    episode_id = %episode_id,
+                    "Spatiotemporal index locked, skipping indexing"
+                );
+            }
+        }
 
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {

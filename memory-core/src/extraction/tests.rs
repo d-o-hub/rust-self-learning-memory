@@ -1,7 +1,10 @@
 //! Tests for pattern extraction
 
 use super::*;
-use crate::{pattern::Pattern, Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use crate::{
+    pattern::{Pattern, PatternEffectiveness},
+    Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType,
+};
 use chrono::Duration;
 
 #[test]
@@ -34,7 +37,7 @@ fn test_extract_from_complete_episode() {
 
     // Add some execution steps
     for i in 0..3 {
-        let step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+        let step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
         episode.add_step(step);
     }
 
@@ -62,6 +65,7 @@ mod utils_tests {
                 success_rate: 0.9,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
             Pattern::ToolSequence {
                 id: uuid::Uuid::new_v4(),
@@ -70,6 +74,7 @@ mod utils_tests {
                 success_rate: 0.8,
                 avg_latency: Duration::milliseconds(200),
                 occurrence_count: 3,
+                effectiveness: PatternEffectiveness::default(),
             },
         ];
 
@@ -86,6 +91,7 @@ mod utils_tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::default(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -95,10 +101,11 @@ mod utils_tests {
             success_rate: 0.8,                                     // Different success rate
             avg_latency: Duration::milliseconds(200),              // Different latency
             occurrence_count: 3,                                   // Different count
+            effectiveness: PatternEffectiveness::default(),
         };
 
-        let patterns = vec![pattern1, pattern2];
-        let deduplicated = super::utils::deduplicate_patterns(patterns);
+        let extracted_patterns = vec![pattern1, pattern2];
+        let deduplicated = super::utils::deduplicate_patterns(extracted_patterns);
         assert_eq!(deduplicated.len(), 1);
     }
 
@@ -112,6 +119,7 @@ mod utils_tests {
                 success_rate: 0.5,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
             Pattern::ToolSequence {
                 id: uuid::Uuid::new_v4(),
@@ -120,6 +128,7 @@ mod utils_tests {
                 success_rate: 0.9,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
         ];
 
@@ -130,7 +139,7 @@ mod utils_tests {
         // Higher success rate should come first
         match &ranked[0] {
             Pattern::ToolSequence { success_rate, .. } => {
-                assert!((*success_rate - 0.9).abs() < 0.01)
+                assert!((*success_rate - 0.9).abs() < 0.01);
             }
             _ => panic!("Expected ToolSequence"),
         }
@@ -158,6 +167,7 @@ mod utils_tests {
                 success_rate: 0.8,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
             Pattern::ToolSequence {
                 id: uuid::Uuid::new_v4(),
@@ -166,6 +176,7 @@ mod utils_tests {
                 success_rate: 0.8,
                 avg_latency: Duration::milliseconds(100),
                 occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
             },
         ];
 

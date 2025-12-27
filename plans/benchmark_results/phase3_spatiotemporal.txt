@@ -1,0 +1,192 @@
+   Compiling memory-benches v0.1.7 (/workspaces/feat-phase3/benches)
+    Finished `bench` profile [optimized] target(s) in 2m 09s
+     Running spatiotemporal_benchmark.rs (target/release/deps/spatiotemporal_benchmark-999e8144d8ebef48)
+Gnuplot not found, using plotters backend
+Benchmarking baseline_flat_retrieval/flat_retrieval_accuracy
+Benchmarking baseline_flat_retrieval/flat_retrieval_accuracy: Warming up for 3.0000 s
+Benchmarking baseline_flat_retrieval/flat_retrieval_accuracy: Collecting 10 samples in estimated 20.044 s (24k iterations)
+Benchmarking baseline_flat_retrieval/flat_retrieval_accuracy: Analyzing
+baseline_flat_retrieval/flat_retrieval_accuracy
+                        time:   [826.78 µs 832.08 µs 842.71 µs]
+                        change: [+5.5999% +10.194% +14.677%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 10 measurements (30.00%)
+  1 (10.00%) low severe
+  1 (10.00%) high mild
+  1 (10.00%) high severe
+
+=== Baseline Flat Retrieval Metrics ===
+Precision: 40.00%
+Recall: 8.00%
+F1 Score: 13.33%
+True Positives: 4/10
+
+Benchmarking hierarchical_retrieval_accuracy/phase3_retrieval_accuracy
+Benchmarking hierarchical_retrieval_accuracy/phase3_retrieval_accuracy: Warming up for 3.0000 s
+Benchmarking hierarchical_retrieval_accuracy/phase3_retrieval_accuracy: Collecting 10 samples in estimated 20.035 s (23k iterations)
+Benchmarking hierarchical_retrieval_accuracy/phase3_retrieval_accuracy: Analyzing
+hierarchical_retrieval_accuracy/phase3_retrieval_accuracy
+                        time:   [851.29 µs 857.34 µs 863.39 µs]
+                        change: [+6.1001% +9.2321% +12.472%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+
+=== Phase 3 Hierarchical Retrieval Metrics ===
+Precision: 100.00%
+Recall: 20.00%
+F1 Score: 33.33%
+True Positives: 10/10
+
+Benchmarking diversity_impact/lambda/0.0
+Benchmarking diversity_impact/lambda/0.0: Warming up for 3.0000 s
+Benchmarking diversity_impact/lambda/0.0: Collecting 10 samples in estimated 5.0126 s (15k iterations)
+Benchmarking diversity_impact/lambda/0.0: Analyzing
+diversity_impact/lambda/0.0
+                        time:   [320.90 µs 324.01 µs 330.24 µs]
+                        change: [+11.107% +15.813% +20.782%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Benchmarking diversity_impact/lambda/0.3
+Benchmarking diversity_impact/lambda/0.3: Warming up for 3.0000 s
+Benchmarking diversity_impact/lambda/0.3: Collecting 10 samples in estimated 5.0165 s (15k iterations)
+Benchmarking diversity_impact/lambda/0.3: Analyzing
+diversity_impact/lambda/0.3
+                        time:   [325.67 µs 331.27 µs 335.06 µs]
+                        change: [+7.8838% +12.092% +16.372%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Benchmarking diversity_impact/lambda/0.5
+Benchmarking diversity_impact/lambda/0.5: Warming up for 3.0000 s
+Benchmarking diversity_impact/lambda/0.5: Collecting 10 samples in estimated 5.0089 s (15k iterations)
+Benchmarking diversity_impact/lambda/0.5: Analyzing
+diversity_impact/lambda/0.5
+                        time:   [323.64 µs 328.22 µs 331.18 µs]
+                        change: [+1.6326% +6.5171% +12.493%] (p = 0.02 < 0.05)
+                        Performance has regressed.
+Benchmarking diversity_impact/lambda/0.7
+Benchmarking diversity_impact/lambda/0.7: Warming up for 3.0000 s
+Benchmarking diversity_impact/lambda/0.7: Collecting 10 samples in estimated 5.0139 s (15k iterations)
+Benchmarking diversity_impact/lambda/0.7: Analyzing
+diversity_impact/lambda/0.7
+                        time:   [322.06 µs 326.00 µs 329.51 µs]
+                        change: [+0.4430% +3.3995% +6.3253%] (p = 0.04 < 0.05)
+                        Change within noise threshold.
+Benchmarking diversity_impact/lambda/1.0
+Benchmarking diversity_impact/lambda/1.0: Warming up for 3.0000 s
+Benchmarking diversity_impact/lambda/1.0: Collecting 10 samples in estimated 5.0081 s (15k iterations)
+Benchmarking diversity_impact/lambda/1.0: Analyzing
+diversity_impact/lambda/1.0
+                        time:   [321.70 µs 325.29 µs 329.11 µs]
+                        change: [+8.8992% +13.468% +18.570%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
+
+Creating 100 episodes for latency benchmark...
+Benchmarking query_latency_scaling/episodes/100
+Benchmarking query_latency_scaling/episodes/100: Warming up for 3.0000 s
+Benchmarking query_latency_scaling/episodes/100: Collecting 15 samples in estimated 30.047 s (72k iterations)
+Benchmarking query_latency_scaling/episodes/100: Analyzing
+query_latency_scaling/episodes/100
+                        time:   [411.33 µs 416.10 µs 421.34 µs]
+                        change: [-3.0390% +1.2256% +5.0514%] (p = 0.59 > 0.05)
+                        No change in performance detected.
+Found 3 outliers among 15 measurements (20.00%)
+  1 (6.67%) low mild
+  2 (13.33%) high mild
+Creating 500 episodes for latency benchmark...
+  Created 100/500 episodes
+  Created 200/500 episodes
+  Created 300/500 episodes
+  Created 400/500 episodes
+Benchmarking query_latency_scaling/episodes/500
+Benchmarking query_latency_scaling/episodes/500: Warming up for 3.0000 s
+Benchmarking query_latency_scaling/episodes/500: Collecting 15 samples in estimated 30.212 s (14k iterations)
+Benchmarking query_latency_scaling/episodes/500: Analyzing
+query_latency_scaling/episodes/500
+                        time:   [2.1846 ms 2.2168 ms 2.2445 ms]
+                        change: [+7.7501% +12.865% +17.729%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Creating 1000 episodes for latency benchmark...
+  Created 100/1000 episodes
+  Created 200/1000 episodes
+  Created 300/1000 episodes
+  Created 400/1000 episodes
+  Created 500/1000 episodes
+  Created 600/1000 episodes
+  Created 700/1000 episodes
+  Created 800/1000 episodes
+  Created 900/1000 episodes
+Benchmarking query_latency_scaling/episodes/1000
+Benchmarking query_latency_scaling/episodes/1000: Warming up for 3.0000 s
+Benchmarking query_latency_scaling/episodes/1000: Collecting 15 samples in estimated 30.367 s (5160 iterations)
+Benchmarking query_latency_scaling/episodes/1000: Analyzing
+query_latency_scaling/episodes/1000
+                        time:   [5.7454 ms 5.8191 ms 5.8819 ms]
+                        change: [+13.147% +19.393% +25.702%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 15 measurements (6.67%)
+  1 (6.67%) high mild
+
+Benchmarking index_insertion_overhead/insertion_with_index
+Benchmarking index_insertion_overhead/insertion_with_index: Warming up for 3.0000 s
+Benchmarking index_insertion_overhead/insertion_with_index: Collecting 20 samples in estimated 5.1910 s (4620 iterations)
+Benchmarking index_insertion_overhead/insertion_with_index: Analyzing
+index_insertion_overhead/insertion_with_index
+                        time:   [1.1308 ms 1.1552 ms 1.1771 ms]
+                        change: [-2.3296% +8.3245% +18.696%] (p = 0.12 > 0.05)
+                        No change in performance detected.
+Benchmarking index_insertion_overhead/insertion_without_index
+Benchmarking index_insertion_overhead/insertion_without_index: Warming up for 3.0000 s
+Benchmarking index_insertion_overhead/insertion_without_index: Collecting 20 samples in estimated 5.0119 s (4410 iterations)
+Benchmarking index_insertion_overhead/insertion_without_index: Analyzing
+index_insertion_overhead/insertion_without_index
+                        time:   [1.1283 ms 1.1511 ms 1.1793 ms]
+                        change: [+6.2613% +17.991% +28.888%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) high mild
+  1 (5.00%) high severe
+
+Benchmarking diversity_computation/result_size/10
+Benchmarking diversity_computation/result_size/10: Warming up for 3.0000 s
+Benchmarking diversity_computation/result_size/10: Collecting 50 samples in estimated 5.0150 s (282k iterations)
+Benchmarking diversity_computation/result_size/10: Analyzing
+diversity_computation/result_size/10
+                        time:   [17.430 µs 17.652 µs 17.931 µs]
+                        change: [+2.7551% +10.751% +18.887%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 50 measurements (6.00%)
+  2 (4.00%) high mild
+  1 (2.00%) high severe
+Benchmarking diversity_computation/result_size/50
+Benchmarking diversity_computation/result_size/50: Warming up for 3.0000 s
+Benchmarking diversity_computation/result_size/50: Collecting 50 samples in estimated 6.0032 s (2550 iterations)
+Benchmarking diversity_computation/result_size/50: Analyzing
+diversity_computation/result_size/50
+                        time:   [2.3421 ms 2.3770 ms 2.4193 ms]
+                        change: [+2.4230% +8.8527% +15.127%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 5 outliers among 50 measurements (10.00%)
+  2 (4.00%) low mild
+  2 (4.00%) high mild
+  1 (2.00%) high severe
+Benchmarking diversity_computation/result_size/100
+Benchmarking diversity_computation/result_size/100: Warming up for 3.0000 s
+Benchmarking diversity_computation/result_size/100: Collecting 50 samples in estimated 5.7448 s (300 iterations)
+Benchmarking diversity_computation/result_size/100: Analyzing
+diversity_computation/result_size/100
+                        time:   [18.936 ms 19.161 ms 19.416 ms]
+                        change: [+7.4376% +15.686% +23.293%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 50 measurements (6.00%)
+  3 (6.00%) high mild
+
+Benchmarking end_to_end_retrieval/full_retrieval_pipeline
+Benchmarking end_to_end_retrieval/full_retrieval_pipeline: Warming up for 3.0000 s
+Benchmarking end_to_end_retrieval/full_retrieval_pipeline: Collecting 20 samples in estimated 15.025 s (11k iterations)
+Benchmarking end_to_end_retrieval/full_retrieval_pipeline: Analyzing
+end_to_end_retrieval/full_retrieval_pipeline
+                        time:   [1.4025 ms 1.4172 ms 1.4346 ms]
+                        change: [+29.427% +38.781% +45.762%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high severe
+

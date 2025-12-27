@@ -158,7 +158,7 @@ Direct Acyclic Graph (DAG) - GOOD STRUCTURE
 
 ### 2.4 Serialization Usage
 
-13 files use serde/bincode serialization:
+13 files use serde/wincode serialization:
 - `episode.rs` (2 struct derives)
 - `types.rs` (7 struct derives)
 - Various pattern types

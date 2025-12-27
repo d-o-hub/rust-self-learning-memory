@@ -1,0 +1,42 @@
+   Compiling memory-benches v0.1.7 (/workspaces/feat-phase3/benches)
+    Finished `bench` profile [optimized] target(s) in 1m 18s
+     Running phase3_retrieval_accuracy.rs (target/release/deps/phase3_retrieval_accuracy-1d5123e2f14dcf82)
+Gnuplot not found, using plotters backend
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5: Warming up for 3.0000 s
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5: Collecting 20 samples in estimated 10.052 s (12k iterations)
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/5: Analyzing
+phase3_retrieval_accuracy/hierarchical_retrieval/5
+                        time:   [845.04 µs 856.52 µs 870.40 µs]
+                        change: [+9.0197% +12.352% +16.012%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  2 (10.00%) high mild
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10: Warming up for 3.0000 s
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10: Collecting 20 samples in estimated 10.163 s (11k iterations)
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/10: Analyzing
+phase3_retrieval_accuracy/hierarchical_retrieval/10
+                        time:   [891.97 µs 901.24 µs 911.60 µs]
+                        change: [+9.3576% +16.673% +23.693%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20: Warming up for 3.0000 s
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20: Collecting 20 samples in estimated 10.086 s (11k iterations)
+Benchmarking phase3_retrieval_accuracy/hierarchical_retrieval/20: Analyzing
+phase3_retrieval_accuracy/hierarchical_retrieval/20
+                        time:   [888.98 µs 898.13 µs 909.45 µs]
+                        change: [+6.0589% +10.332% +14.870%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high mild
+
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query: Warming up for 3.0000 s
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query: Collecting 10 samples in estimated 5.0276 s (5720 iterations)
+Benchmarking retrieval_accuracy_metrics/accuracy_web_api_query: Analyzing
+retrieval_accuracy_metrics/accuracy_web_api_query
+                        time:   [854.95 µs 874.16 µs 890.16 µs]
+                        change: [+12.425% +17.708% +23.345%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+

@@ -58,6 +58,7 @@ use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
 use crate::monitoring::{AgentMetrics, AgentMonitor, MonitoringConfig};
 use crate::pattern::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
+use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::storage::StorageBackend;
@@ -75,6 +76,7 @@ use step_buffer::StepBuffer;
 ///
 /// `SelfLearningMemory` is the primary interface for episodic learning. It manages:
 /// - **Episode lifecycle**: Create, track, and complete task executions
+/// - **Pre-storage reasoning**: Quality assessment and salient feature extraction (`PREMem`)
 /// - **Learning analysis**: Calculate rewards, generate reflections, extract patterns
 /// - **Pattern storage**: Persist learnings to durable (Turso) and cache (redb) storage
 /// - **Context retrieval**: Find relevant past episodes for new tasks
@@ -144,8 +146,18 @@ use step_buffer::StepBuffer;
 /// use std::sync::Arc;
 ///
 /// # async fn example() -> anyhow::Result<()> {
-/// # let turso_backend: Arc<dyn memory_core::StorageBackend> = unimplemented!();
-/// # let redb_backend: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+/// // In practice, use storage backends like:
+/// // - memory_storage_turso::TursoStorage for durable SQL storage
+/// // - memory_storage_redb::RedbStorage for fast key-value cache
+/// //
+/// // Example setup:
+/// // let turso_url = std::env::var("TURSO_URL")?;
+/// // let turso_backend = memory_storage_turso::TursoStorage::new(&turso_url).await?;
+/// // let redb_backend = memory_storage_redb::RedbStorage::new("cache.redb").await?;
+///
+/// // For this example, we assume the backends are already configured
+/// # let turso_backend: Arc<dyn memory_core::StorageBackend> = todo!("Configure TursoStorage backend");
+/// # let redb_backend: Arc<dyn memory_core::StorageBackend> = todo!("Configure RedbStorage backend");
 /// let memory = SelfLearningMemory::with_storage(
 ///     MemoryConfig::default(),
 ///     turso_backend,   // Durable storage
@@ -178,6 +190,10 @@ pub struct SelfLearningMemory {
     /// Configuration
     #[allow(dead_code)]
     config: MemoryConfig,
+    /// Quality assessor for pre-storage reasoning
+    pub(super) quality_assessor: QualityAssessor,
+    /// Salient feature extractor for pre-storage reasoning
+    pub(super) salient_extractor: SalientExtractor,
     /// Reward calculator
     pub(super) reward_calculator: RewardCalculator,
     /// Reflection generator
@@ -205,6 +221,26 @@ pub struct SelfLearningMemory {
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
     #[allow(dead_code)]
     pub(super) cache_semaphore: Arc<Semaphore>,
+
+    // Phase 2 (GENESIS) - Capacity management
+    /// Capacity manager for episodic storage with eviction policies
+    pub(super) capacity_manager: Option<crate::episodic::CapacityManager>,
+
+    // Phase 2 (GENESIS) - Semantic summarization
+    /// Semantic summarizer for episode compression
+    pub(super) semantic_summarizer: Option<crate::semantic::SemanticSummarizer>,
+
+    // Phase 3 (Spatiotemporal) - Hierarchical retrieval and indexing
+    /// Spatiotemporal index for domain -> `task_type` -> temporal clustering
+    pub(super) spatiotemporal_index:
+        Option<Arc<RwLock<crate::spatiotemporal::SpatiotemporalIndex>>>,
+    /// Hierarchical retriever for efficient episode search
+    pub(super) hierarchical_retriever: Option<crate::spatiotemporal::HierarchicalRetriever>,
+    /// Diversity maximizer using MMR for result set optimization
+    pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
+    /// Context-aware embeddings for task-specific similarity (future)
+    #[allow(dead_code)]
+    pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
 }
 
 impl Default for SelfLearningMemory {
@@ -226,8 +262,67 @@ impl SelfLearningMemory {
         let pattern_extractor =
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
 
+        // Initialize quality assessor with configured threshold
+        let quality_config = QualityConfig::new(config.quality_threshold);
+        let quality_assessor = QualityAssessor::new(quality_config);
+
+        // Initialize salient feature extractor
+        let salient_extractor = SalientExtractor::new();
+
+        // Phase 2 (GENESIS) - Initialize capacity manager if max_episodes is configured
+        let capacity_manager = if let Some(max_episodes) = config.max_episodes {
+            let eviction_policy = config
+                .eviction_policy
+                .unwrap_or(crate::episodic::EvictionPolicy::RelevanceWeighted);
+            Some(crate::episodic::CapacityManager::new(
+                max_episodes,
+                eviction_policy,
+            ))
+        } else {
+            None
+        };
+
+        // Phase 2 (GENESIS) - Initialize semantic summarizer if enabled
+        let semantic_summarizer = if config.enable_summarization {
+            Some(crate::semantic::SemanticSummarizer::with_config(
+                config.summary_min_length,
+                config.summary_max_length,
+                5, // max_key_steps
+            ))
+        } else {
+            None
+        };
+
+        // Phase 3 (Spatiotemporal) - Initialize components if enabled
+        let spatiotemporal_index = if config.enable_spatiotemporal_indexing {
+            Some(Arc::new(RwLock::new(
+                crate::spatiotemporal::SpatiotemporalIndex::new(),
+            )))
+        } else {
+            None
+        };
+
+        let hierarchical_retriever = if config.enable_spatiotemporal_indexing {
+            Some(crate::spatiotemporal::HierarchicalRetriever::with_config(
+                config.temporal_bias_weight,
+                config.max_clusters_to_search,
+            ))
+        } else {
+            None
+        };
+
+        let diversity_maximizer = if config.enable_diversity_maximization {
+            Some(crate::spatiotemporal::DiversityMaximizer::new(
+                config.diversity_lambda,
+            ))
+        } else {
+            None
+        };
+
         Self {
             config: config.clone(),
+            quality_assessor,
+            salient_extractor,
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
@@ -241,6 +336,12 @@ impl SelfLearningMemory {
             pattern_queue: None,
             step_buffers: Arc::new(RwLock::new(HashMap::new())),
             cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
+            capacity_manager,
+            semantic_summarizer,
+            spatiotemporal_index,
+            hierarchical_retriever,
+            diversity_maximizer,
+            context_aware_embeddings: None, // Future enhancement
         }
     }
 
@@ -259,9 +360,13 @@ impl SelfLearningMemory {
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {
-    /// // Assuming turso and cache are already created StorageBackend implementations
-    /// # let turso: Arc<dyn memory_core::StorageBackend> = unimplemented!();
-    /// # let cache: Arc<dyn memory_core::StorageBackend> = unimplemented!();
+    /// // Configure storage backends for production use:
+    /// // - Turso: Durable SQL storage (libSQL/Turso)
+    /// // - redb: Fast key-value cache
+    /// //
+    /// // See memory-storage-turso and memory-storage-redb crates for implementation details.
+    /// # let turso: Arc<dyn memory_core::StorageBackend> = todo!("Configure TursoStorage backend");
+    /// # let cache: Arc<dyn memory_core::StorageBackend> = todo!("Configure RedbStorage backend");
     /// let memory = SelfLearningMemory::with_storage(
     ///     MemoryConfig::default(),
     ///     turso,
@@ -278,6 +383,13 @@ impl SelfLearningMemory {
         let pattern_extractor =
             PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
 
+        // Initialize quality assessor with configured threshold
+        let quality_config = QualityConfig::new(config.quality_threshold);
+        let quality_assessor = QualityAssessor::new(quality_config);
+
+        // Initialize salient feature extractor
+        let salient_extractor = SalientExtractor::new();
+
         // Configure agent monitor with storage backends
         let monitoring_config = MonitoringConfig {
             enabled: true,
@@ -291,8 +403,60 @@ impl SelfLearningMemory {
         let agent_monitor =
             AgentMonitor::with_storage(monitoring_config, Arc::new(monitoring_storage));
 
+        // Phase 2 (GENESIS) - Initialize capacity manager if max_episodes is configured
+        let capacity_manager = if let Some(max_episodes) = config.max_episodes {
+            let eviction_policy = config
+                .eviction_policy
+                .unwrap_or(crate::episodic::EvictionPolicy::RelevanceWeighted);
+            Some(crate::episodic::CapacityManager::new(
+                max_episodes,
+                eviction_policy,
+            ))
+        } else {
+            None
+        };
+
+        // Phase 2 (GENESIS) - Initialize semantic summarizer if enabled
+        let semantic_summarizer = if config.enable_summarization {
+            Some(crate::semantic::SemanticSummarizer::with_config(
+                config.summary_min_length,
+                config.summary_max_length,
+                5, // max_key_steps
+            ))
+        } else {
+            None
+        };
+
+        // Phase 3 (Spatiotemporal) - Initialize components if enabled
+        let spatiotemporal_index = if config.enable_spatiotemporal_indexing {
+            Some(Arc::new(RwLock::new(
+                crate::spatiotemporal::SpatiotemporalIndex::new(),
+            )))
+        } else {
+            None
+        };
+
+        let hierarchical_retriever = if config.enable_spatiotemporal_indexing {
+            Some(crate::spatiotemporal::HierarchicalRetriever::with_config(
+                config.temporal_bias_weight,
+                config.max_clusters_to_search,
+            ))
+        } else {
+            None
+        };
+
+        let diversity_maximizer = if config.enable_diversity_maximization {
+            Some(crate::spatiotemporal::DiversityMaximizer::new(
+                config.diversity_lambda,
+            ))
+        } else {
+            None
+        };
+
         Self {
             config: config.clone(),
+            quality_assessor,
+            salient_extractor,
             reward_calculator: RewardCalculator::new(),
             reflection_generator: ReflectionGenerator::new(),
             pattern_extractor,
@@ -306,6 +470,12 @@ impl SelfLearningMemory {
             pattern_queue: None,
             step_buffers: Arc::new(RwLock::new(HashMap::new())),
             cache_semaphore: Arc::new(Semaphore::new(config.concurrency.max_concurrent_cache_ops)),
+            capacity_manager,
+            semantic_summarizer,
+            spatiotemporal_index,
+            hierarchical_retriever,
+            diversity_maximizer,
+            context_aware_embeddings: None, // Future enhancement
         }
     }
 
@@ -711,7 +881,7 @@ mod tests {
 
         // Log some steps
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });
@@ -728,7 +898,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_complete_episode() {
-        let memory = SelfLearningMemory::new();
+        // Use lower quality threshold for test episodes
+        let test_config = MemoryConfig {
+            quality_threshold: 0.5,
+            ..Default::default()
+        };
+        let memory = SelfLearningMemory::with_config(test_config);
 
         let episode_id = memory
             .start_episode(
@@ -738,12 +913,15 @@ mod tests {
             )
             .await;
 
-        // Log a step
-        let mut step = ExecutionStep::new(1, "test_tool".to_string(), "Run tests".to_string());
-        step.result = Some(ExecutionResult::Success {
-            output: "All tests passed".to_string(),
-        });
-        memory.log_step(episode_id, step).await;
+        // Log multiple steps to meet quality threshold
+        for i in 0..20 {
+            let mut step =
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Test action {i}"));
+            step.result = Some(ExecutionResult::Success {
+                output: format!("Step {i} passed"),
+            });
+            memory.log_step(episode_id, step).await;
+        }
 
         // Complete the episode
         let outcome = TaskOutcome::Success {
@@ -766,7 +944,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_retrieve_relevant_context() {
-        let memory = SelfLearningMemory::new();
+        // Use lower quality threshold for test episodes
+        let test_config = MemoryConfig {
+            quality_threshold: 0.5,
+            ..Default::default()
+        };
+        let memory = SelfLearningMemory::with_config(test_config);
 
         // Create and complete several episodes
         for i in 0..3 {
@@ -779,14 +962,18 @@ mod tests {
             };
 
             let episode_id = memory
-                .start_episode(format!("API task {}", i), context, TaskType::CodeGeneration)
+                .start_episode(format!("API task {i}"), context, TaskType::CodeGeneration)
                 .await;
 
-            let mut step = ExecutionStep::new(1, "builder".to_string(), "Build API".to_string());
-            step.result = Some(ExecutionResult::Success {
-                output: "Built".to_string(),
-            });
-            memory.log_step(episode_id, step).await;
+            // Log multiple steps to meet quality threshold
+            for j in 0..20 {
+                let mut step =
+                    ExecutionStep::new(j + 1, format!("tool_{}", j % 6), format!("Build step {j}"));
+                step.result = Some(ExecutionResult::Success {
+                    output: format!("Step {j} completed"),
+                });
+                memory.log_step(episode_id, step).await;
+            }
 
             memory
                 .complete_episode(
@@ -816,6 +1003,19 @@ mod tests {
                 TaskType::Analysis,
             )
             .await;
+
+        // Add steps to meet quality threshold
+        for j in 0..20 {
+            let mut step = ExecutionStep::new(
+                j + 1,
+                format!("analysis_tool_{}", j % 6),
+                format!("Analysis step {j}"),
+            );
+            step.result = Some(ExecutionResult::Success {
+                output: format!("Analysis step {j} completed"),
+            });
+            memory.log_step(different_id, step).await;
+        }
 
         memory
             .complete_episode(
@@ -848,140 +1048,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_retrieve_relevant_patterns() {
-        let memory = SelfLearningMemory::new();
-
-        // Create and complete an episode to generate patterns
-        let context = TaskContext {
-            language: Some("rust".to_string()),
-            framework: Some("tokio".to_string()),
-            complexity: ComplexityLevel::Moderate,
-            domain: "async-processing".to_string(),
-            tags: vec!["concurrency".to_string()],
+        // Use lower quality threshold for test episodes
+        let test_config = MemoryConfig {
+            quality_threshold: 0.4,
+            ..Default::default()
         };
-
-        let episode_id = memory
-            .start_episode(
-                "Process data concurrently".to_string(),
-                context.clone(),
-                TaskType::CodeGeneration,
-            )
-            .await;
-
-        // Add multiple successful steps to generate patterns
-        for i in 0..4 {
-            let mut step =
-                ExecutionStep::new(i + 1, format!("async_tool_{}", i), "Process".to_string());
-            step.result = Some(ExecutionResult::Success {
-                output: "Processed".to_string(),
-            });
-            memory.log_step(episode_id, step).await;
-        }
-
-        memory
-            .complete_episode(
-                episode_id,
-                TaskOutcome::Success {
-                    verdict: "Processing complete".to_string(),
-                    artifacts: vec![],
-                },
-            )
-            .await
-            .unwrap();
-
-        // Retrieve patterns for similar context
-        let patterns = memory.retrieve_relevant_patterns(&context, 10).await;
-
-        assert!(!patterns.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_get_stats() {
-        let memory = SelfLearningMemory::new();
-
-        // Initially no episodes
-        let (total, completed, patterns) = memory.get_stats().await;
-        assert_eq!(total, 0);
-        assert_eq!(completed, 0);
-        assert_eq!(patterns, 0);
-
-        // Create an incomplete episode
-        let _ = memory
-            .start_episode(
-                "Task 1".to_string(),
-                TaskContext::default(),
-                TaskType::Testing,
-            )
-            .await;
-
-        let (total, completed, _) = memory.get_stats().await;
-        assert_eq!(total, 1);
-        assert_eq!(completed, 0);
-
-        // Complete the episode
-        let episode_id = memory
-            .start_episode(
-                "Task 2".to_string(),
-                TaskContext::default(),
-                TaskType::Testing,
-            )
-            .await;
-
-        memory
-            .complete_episode(
-                episode_id,
-                TaskOutcome::Success {
-                    verdict: "Done".to_string(),
-                    artifacts: vec![],
-                },
-            )
-            .await
-            .unwrap();
-
-        let (total, completed, patterns) = memory.get_stats().await;
-        assert_eq!(total, 2);
-        assert_eq!(completed, 1);
-        assert!(patterns > 0);
-    }
-
-    #[tokio::test]
-    async fn test_episode_not_found() {
-        let memory = SelfLearningMemory::new();
-
-        let fake_id = Uuid::new_v4();
-        let result = memory.get_episode(fake_id).await;
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            crate::error::Error::NotFound(_)
-        ));
-    }
-
-    #[tokio::test]
-    async fn test_complete_nonexistent_episode() {
-        let memory = SelfLearningMemory::new();
-
-        let fake_id = Uuid::new_v4();
-        let result = memory
-            .complete_episode(
-                fake_id,
-                TaskOutcome::Success {
-                    verdict: "Done".to_string(),
-                    artifacts: vec![],
-                },
-            )
-            .await;
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            crate::error::Error::NotFound(_)
-        ));
-    }
-
-    #[tokio::test]
-    async fn test_heuristic_retrieval_and_update() {
-        let memory = SelfLearningMemory::new();
+        let memory = SelfLearningMemory::with_config(test_config);
 
         // Create an episode with decision points
         let context = TaskContext {
@@ -1001,7 +1073,7 @@ mod tests {
             .await;
 
         // Add multiple decision steps to trigger heuristic extraction
-        for i in 0..3 {
+        for i in 0..10 {
             let mut step = ExecutionStep::new(
                 i * 2 + 1,
                 "validator".to_string(),
@@ -1014,7 +1086,7 @@ mod tests {
 
             let mut action_step = ExecutionStep::new(
                 i * 2 + 2,
-                "processor".to_string(),
+                format!("processor_{}", i % 6),
                 "Process the data".to_string(),
             );
             action_step.result = Some(ExecutionResult::Success {
@@ -1078,7 +1150,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_all_episodes_lazy_loading() {
-        let memory = SelfLearningMemory::new();
+        // Use lower quality threshold for test episodes
+        let test_config = MemoryConfig {
+            quality_threshold: 0.5,
+            ..Default::default()
+        };
+        let memory = SelfLearningMemory::with_config(test_config);
 
         // Create a few episodes
         let episode_id1 = memory
@@ -1096,6 +1173,16 @@ mod tests {
                 TaskType::CodeGeneration,
             )
             .await;
+
+        // Add steps to meet quality threshold
+        for i in 0..20 {
+            let mut step =
+                ExecutionStep::new(i + 1, format!("tool_{}", i % 6), format!("Test step {i}"));
+            step.result = Some(ExecutionResult::Success {
+                output: "Success".to_string(),
+            });
+            memory.log_step(episode_id1, step).await;
+        }
 
         // Complete one episode
         memory

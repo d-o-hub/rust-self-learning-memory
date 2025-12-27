@@ -77,23 +77,84 @@ echo ""
 echo -e "${BLUE}Running quality gates...${NC}"
 echo ""
 
+# Optional: Non-blocking GOAP checks (documentation hygiene + feedback loop markers)
+run_goap_checks() {
+  echo -e "${BLUE}Running optional GOAP checks (non-blocking)...${NC}"
+  local failed=0
+
+  # Helper: ensure file exists and under 500 lines
+  check_doc() {
+    local f="$1"
+    if [ -f "$f" ]; then
+      local lines
+      lines=$(wc -l < "$f" | tr -d ' ')
+      if [ "$lines" -gt 500 ]; then
+        echo -e "  ${YELLOW}⚠${NC} $f exceeds 500 lines ($lines)"
+      else
+        echo -e "  ${GREEN}✓${NC} $f within 500 lines ($lines)"
+      fi
+    else
+      echo -e "  ${YELLOW}⚠${NC} $f not found"
+    fi
+  }
+
+  # Check canonical GOAP docs
+  check_doc plans/GOAP_AGENT_IMPROVEMENT_PLAN.md
+  check_doc plans/GOAP_AGENT_QUALITY_GATES.md
+  check_doc plans/GOAP_AGENT_EXECUTION_TEMPLATE.md
+  check_doc plans/GOAP_AGENT_ROADMAP.md
+  check_doc plans/GOAP_AGENT_CODEBASE_VERIFICATION.md
+
+  # Light template completeness checks (headings exist) for current execution plans
+  for f in plans/GOAP_EXECUTION_PLAN_*.md; do
+    [ -e "$f" ] || continue
+    local ok=1
+    grep -q "^## Objective" "$f" || ok=0
+    grep -q "^## Validation" "$f" || grep -q "^## Validation Plan" "$f" || ok=0
+    grep -q "^## Risks" "$f" || grep -q "^## Risks & Mitigations" "$f" || ok=0
+    grep -q "^## Rollback" "$f" || ok=0
+    if [ $ok -eq 1 ]; then
+      echo -e "  ${GREEN}✓${NC} Template sections present in $f"
+    else
+      echo -e "  ${YELLOW}⚠${NC} Consider aligning $f with GOAP template sections"
+    fi
+    check_doc "$f"
+  done
+
+  # Optional memory-mcp feedback loop markers (informational only)
+  echo -e "${BLUE}memory-mcp feedback loop markers:${NC}"
+  echo "  - health_check: ensure MCP server is reachable during plan execution"
+  echo "  - get_metrics: capture a short snapshot in plan notes when applicable"
+  echo "  - advanced_pattern_analysis/analyze_patterns: run when data is available"
+
+  echo -e "${GREEN}GOAP checks complete (non-blocking).${NC}"
+}
+
 export QUALITY_GATE_COVERAGE_THRESHOLD=$COVERAGE_THRESHOLD
 export QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD=$PATTERN_THRESHOLD
 export QUALITY_GATE_COMPLEXITY_THRESHOLD=$COMPLEXITY_THRESHOLD
 export QUALITY_GATE_SECURITY_THRESHOLD=$SECURITY_THRESHOLD
 export QUALITY_GATE_SKIP_OPTIONAL=$SKIP_OPTIONAL
 
-if cargo test --test quality_gates -- --nocapture; then
+# Execute GOAP checks unless disabled
+if [ "${QUALITY_GATE_SKIP_GOAP:-false}" != "true" ]; then
+  run_goap_checks || true
+else
+  echo -e "${YELLOW}Skipping GOAP checks (${NC}QUALITY_GATE_SKIP_GOAP=true${YELLOW}).${NC}"
+fi
+
+echo ""
+if RUSTFLAGS="-D warnings" cargo test --test quality_gates -- --nocapture; then
     echo ""
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║          ✓ All Quality Gates PASSED                          ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${GREEN}────────────────────────────────────────────────────────────────────────${NC}"
+    echo -e "${GREEN}│          ✓ All Quality Gates PASSED                          │${NC}"
+    echo -e "${GREEN}────────────────────────────────────────────────────────────────────────${NC}"
     exit 0
 else
     echo ""
-    echo -e "${RED}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${RED}║          ✗ Quality Gates FAILED                               ║${NC}"
-    echo -e "${RED}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+    echo -e "${RED}│          ✗ Quality Gates FAILED                               │${NC}"
+    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
     echo ""
     echo "Review the output above to identify which gates failed."
     echo "See docs/QUALITY_GATES.md for troubleshooting guidance."

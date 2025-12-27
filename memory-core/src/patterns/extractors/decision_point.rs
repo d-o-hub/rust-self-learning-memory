@@ -78,6 +78,7 @@ impl PatternExtractorTrait for DecisionPointExtractor {
                     action: step.tool.clone(),
                     outcome_stats,
                     context: episode.context.clone(),
+                    effectiveness: crate::pattern::PatternEffectiveness::new(),
                 });
             }
         }
@@ -142,11 +143,8 @@ mod tests {
         // Add multiple decision steps
         let decision_keywords = ["Check if", "Verify that", "Validate"];
         for (i, keyword) in decision_keywords.iter().enumerate() {
-            let mut step = ExecutionStep::new(
-                i + 1,
-                format!("tool_{}", i),
-                format!("{} something", keyword),
-            );
+            let mut step =
+                ExecutionStep::new(i + 1, format!("tool_{i}"), format!("{keyword} something"));
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

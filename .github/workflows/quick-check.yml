@@ -44,7 +44,7 @@ jobs:
 
       - name: Run clippy on tests
         run: |
-          RUSTFLAGS="--cap-lints=warn" cargo clippy --tests -- \
+          cargo clippy --tests -- \
             -D warnings \
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \

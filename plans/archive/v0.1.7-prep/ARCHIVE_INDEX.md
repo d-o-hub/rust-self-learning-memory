@@ -1,8 +1,51 @@
-# v0.1.7 Release Preparation Archive Index
+# Archive Index - Planning Documentation Archive
 
-**Archive Date**: 2025-12-19  
-**Target Version**: v0.1.7  
-**Previous Version**: v0.1.6  
+**Archive Date**: 2025-12-19 (initial) + 2025-12-23 (updates)  
+**Current Version**: v0.1.7  
+**Status**: Active maintenance and organization
+
+---
+
+## 📋 Archive Overview
+
+This archive contains all completed planning work, historical documentation, and superseded planning materials. It serves as a permanent reference for understanding project evolution and methodology decisions.
+
+### Archive Organization
+```
+archive/
+├── completed/              # Implementation summaries and completion reports
+├── goap-plans/            # GOAP execution planning and methodology
+├── legacy/                # Historical planning framework (deprecated)
+├── releases/              # Version-specific documentation
+├── research/              # Research findings and analysis
+└── v0.1.7-prep/          # v0.1.7 release preparation materials
+```
+
+**Total Archived Files**: 50+ documents organized by theme and version  
+**Active Planning**: 8 core documents in plans/ root (maintained separately)
+
+## 🗂️ Recent Archive Activities (2025-12-23)
+
+### Status Document Consolidation ✅
+**Action**: Consolidated multiple competing status documents into single source of truth
+
+| Previous Status Document | Status | Reason | Replacement |
+|--------------------------|--------|---------|-------------|
+| `IMPLEMENTATION_STATUS_2025-12-20.md` | 🗑️ **DELETED** | Superseded by unified status | [PROJECT_STATUS_UNIFIED.md](../PROJECT_STATUS_UNIFIED.md) |
+| `V0.2.0_COMPLETION_STATUS.md` | 🗑️ **DELETED** | Superseded by unified status | [PROJECT_STATUS_UNIFIED.md](../PROJECT_STATUS_UNIFIED.md) |
+| `QUALITY_GATES_CURRENT_STATUS.md` | 🗑️ **DELETED** | Superseded by unified status | [PROJECT_STATUS_UNIFIED.md](../PROJECT_STATUS_UNIFIED.md) |
+
+**Impact**: Reduced confusion, established single source of truth for project status
+
+### Navigation Enhancement ✅
+**Action**: Enhanced plans folder navigation and organization
+
+| New Document | Purpose | Category |
+|--------------|---------|----------|
+| `README_NAVIGATION.md` | Plans folder navigation guide | Active reference |
+| `PROJECT_STATUS_UNIFIED.md` | Consolidated project status | Active reference |
+
+**Impact**: Improved developer experience and documentation discoverability  
 
 ## Archive Summary
 

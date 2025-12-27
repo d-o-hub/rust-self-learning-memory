@@ -1,6 +1,7 @@
 pub mod backup;
 pub mod config;
 pub mod episode;
+pub mod eval;
 pub mod health;
 pub mod logs;
 pub mod monitor;
@@ -10,6 +11,7 @@ pub mod storage;
 pub use backup::*;
 pub use config::*;
 pub use episode::*;
+pub use eval::*;
 pub use health::*;
 pub use logs::*;
 pub use monitor::*;
@@ -243,5 +245,27 @@ pub async fn handle_logs_command(
             .await
         }
         LogsCommands::Stats { since } => logs::logs_stats(memory, config, format, since).await,
+    }
+}
+
+pub async fn handle_eval_command(
+    command: EvalCommands,
+    memory: &memory_core::SelfLearningMemory,
+    config: &Config,
+    format: OutputFormat,
+    _dry_run: bool,
+) -> anyhow::Result<()> {
+    match command {
+        EvalCommands::Calibration {
+            domain,
+            all,
+            min_episodes,
+        } => eval::calibration(domain, all, min_episodes, memory, config, format).await,
+        EvalCommands::Stats { domain } => eval::domain_stats(domain, memory, config, format).await,
+        EvalCommands::SetThreshold {
+            domain,
+            duration,
+            steps,
+        } => eval::set_threshold(domain, duration, steps, memory, config, format).await,
     }
 }

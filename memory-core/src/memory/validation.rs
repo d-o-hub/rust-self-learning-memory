@@ -354,7 +354,7 @@ mod tests {
         let mut step = ExecutionStep::new(1, "tool".to_string(), "action".to_string());
         // Create params that serialize to > MAX_ARTIFACT_SIZE
         let large_array: Vec<String> = (0..10_000)
-            .map(|i| format!("item_{}_with_some_padding_text", i))
+            .map(|i| format!("item_{i}_with_some_padding_text"))
             .collect();
         step.parameters = serde_json::json!({
             "large_data": large_array,

@@ -57,3 +57,18 @@ name = "multi_backend_comparison"
 path = "multi_backend_comparison.rs"
 harness = false
 
+[[bench]]
+name = "genesis_benchmark"
+path = "genesis_benchmark.rs"
+harness = false
+
+[[bench]]
+name = "phase3_retrieval_accuracy"
+path = "phase3_retrieval_accuracy.rs"
+harness = false
+
+[[bench]]
+name = "spatiotemporal_benchmark"
+path = "spatiotemporal_benchmark.rs"
+harness = false
+

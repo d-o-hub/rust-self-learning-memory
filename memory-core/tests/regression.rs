@@ -96,7 +96,7 @@ fn create_tool_sequence_episode() -> Episode {
     // Sequential tool usage
     let tools = ["analyzer", "designer", "builder", "tester"];
     for (i, tool) in tools.iter().enumerate() {
-        let mut step = ExecutionStep::new(i + 1, tool.to_string(), format!("{} step", tool));
+        let mut step = ExecutionStep::new(i + 1, (*tool).to_string(), format!("{tool} step"));
         step.result = Some(ExecutionResult::Success {
             output: "Done".to_string(),
         });
@@ -152,6 +152,7 @@ fn create_optimization_episode() -> Episode {
 /// Load reference patterns (known good patterns)
 fn load_reference_patterns() -> Vec<Pattern> {
     use chrono::Duration;
+    use memory_core::PatternEffectiveness;
 
     vec![
         Pattern::ErrorRecovery {
@@ -160,6 +161,7 @@ fn load_reference_patterns() -> Vec<Pattern> {
             error_type: "timeout".to_string(),
             recovery_steps: vec!["retry_with_backoff".to_string()],
             success_rate: 0.9,
+            effectiveness: PatternEffectiveness::default(),
         },
         Pattern::ToolSequence {
             id: Uuid::new_v4(),
@@ -173,11 +175,13 @@ fn load_reference_patterns() -> Vec<Pattern> {
             success_rate: 0.85,
             avg_latency: Duration::milliseconds(60000),
             occurrence_count: 10,
+            effectiveness: PatternEffectiveness::default(),
         },
     ]
 }
 
 /// Calculate pattern similarity/accuracy
+#[allow(clippy::cast_precision_loss)]
 fn calculate_pattern_similarity(extracted: &[Pattern], reference: &[Pattern]) -> f32 {
     if reference.is_empty() {
         return 0.0;
@@ -269,7 +273,7 @@ async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {
 
     for i in 0..10000 {
         if i % 1000 == 0 {
-            println!("Loading test episodes: {}/10000", i);
+            println!("Loading test episodes: {i}/10000");
         }
 
         let context = TaskContext {
@@ -283,7 +287,7 @@ async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {
         };
 
         let episode_id = memory
-            .start_episode(format!("Task {}", i), context, TaskType::CodeGeneration)
+            .start_episode(format!("Task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         memory
@@ -427,9 +431,10 @@ async fn should_maintain_fast_retrieval_with_large_dataset() {
         total_time += start.elapsed();
     }
 
-    let avg_time = total_time / test_queries.len() as u32;
+    let avg_time = total_time
+        / u32::try_from(test_queries.len()).expect("test_queries length should fit in u32");
 
-    println!("Average retrieval time with 10K episodes: {:?}", avg_time);
+    println!("Average retrieval time with 10K episodes: {avg_time:?}");
 
     // Then: Average retrieval time should remain under 100ms
     assert!(
@@ -453,11 +458,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         };
 
         let episode_id = memory
-            .start_episode(
-                format!("Auth task {}", i),
-                context,
-                TaskType::CodeGeneration,
-            )
+            .start_episode(format!("Auth task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         memory
@@ -481,11 +482,7 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         };
 
         let episode_id = memory
-            .start_episode(
-                format!("Batch task {}", i),
-                context,
-                TaskType::CodeGeneration,
-            )
+            .start_episode(format!("Batch task {i}"), context, TaskType::CodeGeneration)
             .await;
 
         memory
@@ -519,12 +516,15 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         .filter(|e| e.context.domain == "web-api")
         .count();
 
-    assert!(
-        web_api_count as f32 / results.len() as f32 >= 0.5,
-        "Retrieval quality degraded - only {}/{} results matched domain",
-        web_api_count,
-        results.len()
-    );
+    #[allow(clippy::cast_precision_loss)]
+    {
+        assert!(
+            web_api_count as f64 / results.len() as f64 >= 0.5,
+            "Retrieval quality degraded - only {}/{} results matched domain",
+            web_api_count,
+            results.len()
+        );
+    }
 }
 
 // ============================================================================
@@ -670,8 +670,7 @@ async fn should_prevent_previously_fixed_bugs_from_recurring() {
     for pattern_id in &completed.patterns {
         assert!(
             seen.insert(*pattern_id),
-            "Duplicate pattern ID found: {}",
-            pattern_id
+            "Duplicate pattern ID found: {pattern_id}"
         );
     }
 
@@ -743,7 +742,7 @@ async fn should_maintain_baseline_episode_creation_performance() {
     for i in 0..100 {
         let episode_id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )

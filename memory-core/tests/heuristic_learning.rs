@@ -27,7 +27,7 @@ async fn create_episode_with_decision_points(
 
     let episode_id = memory
         .start_episode(
-            format!("Task with {} decision points", num_decisions),
+            format!("Task with {num_decisions} decision points"),
             context,
             TaskType::CodeGeneration,
         )
@@ -216,8 +216,7 @@ async fn test_heuristic_storage_in_learning_cycle() {
 
         assert!(
             found,
-            "Should be able to retrieve stored heuristic {}",
-            heuristic_id
+            "Should be able to retrieve stored heuristic {heuristic_id}"
         );
     }
 }
@@ -237,7 +236,7 @@ async fn test_heuristic_retrieval_by_context() {
             .complete_episode(
                 episode_id,
                 TaskOutcome::Success {
-                    verdict: format!("Completed in {}", domain),
+                    verdict: format!("Completed in {domain}"),
                     artifacts: vec![],
                 },
             )
@@ -293,6 +292,7 @@ async fn test_heuristic_retrieval_by_context() {
 }
 
 #[tokio::test]
+#[allow(clippy::float_cmp)]
 async fn test_heuristic_confidence_updates() {
     // Given: A memory system with an initial heuristic
     let memory = setup_test_memory();
@@ -366,6 +366,7 @@ async fn test_heuristic_confidence_updates() {
     );
 
     // Verify confidence recalculated (success_rate × √sample_size)
+    #[allow(clippy::cast_precision_loss)]
     let expected_confidence =
         updated.evidence.success_rate * (updated.evidence.sample_size as f32).sqrt();
     assert!(
@@ -517,7 +518,7 @@ async fn test_end_to_end_heuristic_learning() {
             .complete_episode(
                 episode_id,
                 TaskOutcome::Success {
-                    verdict: format!("Authentication flow {} completed", i),
+                    verdict: format!("Authentication flow {i} completed"),
                     artifacts: vec![],
                 },
             )

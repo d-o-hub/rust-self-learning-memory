@@ -44,6 +44,7 @@ pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, Mo
 pub use local::{
     get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
 };
+pub use mock_model::MockLocalModel;
 #[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
@@ -127,9 +128,18 @@ impl SemanticService {
         #[cfg(feature = "openai")]
         {
             if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
-                let provider = OpenAIEmbeddingProvider::new(api_key, config.model.clone());
-                tracing::info!("Using OpenAI embedding provider as fallback");
-                return Ok(Self::new(Box::new(provider), storage, config));
+                match OpenAIEmbeddingProvider::new(api_key, config.model.clone()) {
+                    Ok(provider) => {
+                        tracing::info!("Using OpenAI embedding provider as fallback");
+                        return Ok(Self::new(Box::new(provider), storage, config));
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "Failed to initialize OpenAI provider: {}. Falling back to mock.",
+                            e
+                        );
+                    }
+                }
             } else {
                 tracing::warn!("OPENAI_API_KEY not set, cannot use OpenAI provider");
             }
@@ -152,15 +162,15 @@ impl SemanticService {
         Ok(Self::new(Box::new(provider), storage, config))
     }
 
-    /// Create a semantic service with OpenAI embedding provider
+    /// Create a semantic service with `OpenAI` embedding provider
     #[cfg(feature = "openai")]
     pub fn with_openai_provider(
         api_key: String,
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
-    ) -> Self {
-        let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, config.model.clone()));
-        Self::new(provider, storage, config)
+    ) -> Result<Self> {
+        let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, config.model.clone())?);
+        Ok(Self::new(provider, storage, config))
     }
 
     /// Generate and store embedding for an episode
@@ -402,7 +412,7 @@ impl SemanticService {
 mod tests {
     use super::*;
     use crate::episode::{ExecutionStep, PatternId};
-    use crate::pattern::Pattern;
+    use crate::pattern::{Pattern, PatternEffectiveness};
     use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
     use crate::Result;
     use uuid::Uuid;
@@ -465,6 +475,7 @@ mod tests {
             success_rate: 0.85,
             avg_latency: chrono::Duration::seconds(10),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::default(),
         }
     }
 
@@ -554,7 +565,7 @@ mod tests {
             4
         }
 
-        fn model_name(&self) -> &str {
+        fn model_name(&self) -> &'static str {
             "mock-model"
         }
     }

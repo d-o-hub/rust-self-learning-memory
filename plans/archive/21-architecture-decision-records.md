@@ -655,7 +655,7 @@ Episodes and patterns need serialization for storage:
 
 ### Decision
 
-Use **bincode with enforced size limits**.
+Use postcard for runtime storage. Retain **bincode with enforced size limits** in tests (dev-dependency) to validate size boundaries using Options.with_limit.
 
 **Size Limits**:
 ```rust

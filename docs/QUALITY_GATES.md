@@ -184,8 +184,17 @@ Running cargo clippy...
 
 **If Failed:**
 - Review clippy warnings in output
-- Fix issues: `cargo clippy --fix`
+- Fix issues: `cargo clippy --fix --allow-dirty`
 - For intentional violations, use `#[allow(clippy::...)]` with justification
+- See [CLIPPY_FIX_PLAN.md](../plans/CLIPPY_FIX_PLAN.md) for examples of recent fixes
+
+**Recent Updates (2025-12-26):**
+All clippy warnings have been resolved using 2025 best practices:
+- Modern format strings: `format!("{var}")` instead of `format!("{}", var)`
+- Type-safe conversions: `From` trait instead of `as` casts
+- Range checks: `(0.0..=1.0).contains(&value)` instead of explicit comparisons
+- Documentation backticks for code elements
+- Proper `#[allow]` attributes with justifications for dead code
 
 ### Formatting Gate
 

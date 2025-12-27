@@ -66,6 +66,7 @@
 
 pub mod embeddings;
 pub mod episode;
+pub mod episodic;
 pub mod error;
 pub mod extraction;
 pub mod learning;
@@ -73,8 +74,11 @@ pub mod memory;
 pub mod monitoring;
 pub mod pattern;
 pub mod patterns;
+pub mod pre_storage;
 pub mod reflection;
 pub mod reward;
+pub mod semantic;
+pub mod spatiotemporal;
 pub mod storage;
 pub mod sync;
 pub use sync::StorageSynchronizer;
@@ -85,19 +89,22 @@ pub mod embeddings_simple;
 
 // Re-export commonly used types
 pub use episode::{Episode, ExecutionStep, PatternId};
+pub use episodic::{CapacityManager, EvictionPolicy};
 pub use error::{Error, Result};
 pub use extraction::PatternExtractor;
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
 pub use memory::step_buffer::BatchConfig;
 pub use memory::SelfLearningMemory;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
-pub use pattern::{Heuristic, Pattern};
+pub use pattern::{Heuristic, Pattern, PatternEffectiveness};
 pub use patterns::{
     ClusterCentroid, ClusteringConfig, EffectivenessTracker, EpisodeCluster, PatternClusterer,
     PatternMetrics, PatternUsage, PatternValidator, UsageStats, ValidationConfig,
 };
 pub use reflection::ReflectionGenerator;
-pub use reward::RewardCalculator;
+pub use reward::{
+    AdaptiveRewardCalculator, DomainStatistics, DomainStatisticsCache, RewardCalculator,
+};
 pub use storage::StorageBackend;
 pub use types::{
     ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,

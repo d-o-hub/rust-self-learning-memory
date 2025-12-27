@@ -7,6 +7,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 # Feature Implementer Agent
 
 You are a specialized agent for implementing new features in the Rust self-learning memory project.
+Read @AGENTS.md with all instructions.  
 
 ## Role
 

@@ -455,7 +455,7 @@ mod improvement_analyzer_tests {
     #[test]
     fn test_identify_improvements_many_steps() {
         let steps: Vec<_> = (1..60)
-            .map(|i| successful_step(i, "tool", &format!("action{}", i)))
+            .map(|i| successful_step(i, "tool", &format!("action{i}")))
             .collect();
 
         let outcome = TaskOutcome::Success {
@@ -648,7 +648,7 @@ mod insight_generator_tests {
     #[test]
     fn test_generate_insights_tool_diversity() {
         let steps: Vec<_> = (1..8)
-            .map(|i| successful_step(i, &format!("tool{}", i), "action"))
+            .map(|i| successful_step(i, &format!("tool{i}"), "action"))
             .collect();
 
         let outcome = TaskOutcome::Success {
@@ -705,7 +705,7 @@ mod insight_generator_tests {
         };
 
         let steps = (1..12)
-            .map(|i| successful_step(i, &format!("tool{}", i), &format!("action{}", i)))
+            .map(|i| successful_step(i, &format!("tool{i}"), &format!("action{i}")))
             .collect::<Vec<_>>();
 
         let outcome = TaskOutcome::Success {

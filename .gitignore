@@ -81,3 +81,4 @@ mcp*.sqlite
 *.tar.gz
 opencodetmp/opencode
 .claude/settings.local.json
+:memory:

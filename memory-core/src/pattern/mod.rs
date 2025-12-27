@@ -7,7 +7,7 @@ mod similarity;
 mod types;
 
 pub use heuristic::Heuristic;
-pub use types::Pattern;
+pub use types::{Pattern, PatternEffectiveness};
 
 use crate::types::TaskContext;
 use chrono::Duration;
@@ -293,6 +293,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         assert!(pattern.success_rate() > 0.8);
@@ -311,6 +312,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -323,6 +325,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(120),
             occurrence_count: 3,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         // Same tools and domain = same key
@@ -342,6 +345,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 5,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -355,6 +359,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(120),
             occurrence_count: 3,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         let similarity = pattern1.similarity_score(&pattern2);
@@ -372,6 +377,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 16, // sqrt(16) = 4
+            effectiveness: PatternEffectiveness::new(),
         };
 
         let confidence = pattern.confidence();
@@ -389,6 +395,7 @@ mod tests {
             success_rate: 0.8,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 10,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         let pattern2 = Pattern::ToolSequence {
@@ -398,6 +405,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(200),
             occurrence_count: 10,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         pattern1.merge_with(&pattern2);
@@ -434,6 +442,7 @@ mod tests {
             success_rate: 0.9,
             avg_latency: Duration::milliseconds(100),
             occurrence_count: 1,
+            effectiveness: PatternEffectiveness::new(),
         };
 
         // Should match on domain

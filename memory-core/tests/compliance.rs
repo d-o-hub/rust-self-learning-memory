@@ -46,7 +46,7 @@ async fn should_create_episodes_with_unique_ids_and_timestamps() {
     for i in 0..10 {
         let id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )
@@ -96,7 +96,7 @@ async fn should_log_execution_steps_with_ordering_and_metadata() {
 
     // When: We log multiple steps in sequence
     for i in 2..=5 {
-        let step = StepBuilder::new(i, format!("tool_{}", i), format!("Action {}", i))
+        let step = StepBuilder::new(i, format!("tool_{i}"), format!("Action {i}"))
             .success("OK")
             .build();
         memory.log_step(episode_id, step).await;
@@ -273,7 +273,7 @@ async fn should_extract_different_pattern_types_based_on_episode_structure() {
 
     // And: Add sequential steps
     for i in 1..=3 {
-        let step = StepBuilder::new(i, format!("tool_{}", i), format!("Action {}", i))
+        let step = StepBuilder::new(i, format!("tool_{i}"), format!("Action {i}"))
             .success("Done")
             .build();
         memory.log_step(episode_id, step).await;
@@ -467,7 +467,7 @@ async fn should_report_accurate_statistics() {
     for i in 0..5 {
         let episode_id = memory
             .start_episode(
-                format!("Task {}", i),
+                format!("Task {i}"),
                 test_context(),
                 TaskType::CodeGeneration,
             )

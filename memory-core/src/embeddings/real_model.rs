@@ -46,11 +46,11 @@ impl RealEmbeddingModel {
             .encode(text, false)
             .map_err(|e| anyhow::anyhow!("Failed to encode text: {}", e))?;
 
-        let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
+        let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| i64::from(id)).collect();
         let attention_mask: Vec<i64> = encoding
             .get_attention_mask()
             .iter()
-            .map(|&mask| mask as i64)
+            .map(|&mask| i64::from(mask))
             .collect();
 
         // Clone session Arc for the blocking task
@@ -96,6 +96,8 @@ impl RealEmbeddingModel {
             let mut pooled_embedding = vec![0.0f32; hidden_size];
             let data = embedding_array.as_slice().unwrap();
 
+            // Clippy: Indexing is necessary for accumulation across sequence dimension
+            #[allow(clippy::needless_range_loop)]
             for seq_idx in 0..seq_length {
                 for hidden_idx in 0..hidden_size {
                     let idx = seq_idx * hidden_size + hidden_idx;
@@ -120,15 +122,16 @@ impl RealEmbeddingModel {
     }
 
     /// Try to load real ONNX model
+    #[allow(clippy::unused_async)] // Required for API compatibility with async trait methods
     pub async fn try_load_from_cache(
         config: &ModelConfig,
         cache_dir: &std::path::Path,
     ) -> Result<Self> {
         // Model file paths - would typically be downloaded/cache
         let model_name = &config.model_name;
-        let model_path = cache_dir.join(format!("{}.onnx", model_name.replace("/", "_")));
-        let tokenizer_path =
-            cache_dir.join(format!("{}_tokenizer.json", model_name.replace("/", "_")));
+        let sanitized_name = model_name.replace("/", "_");
+        let model_path = cache_dir.join(format!("{sanitized_name}.onnx"));
+        let tokenizer_path = cache_dir.join(format!("{sanitized_name}_tokenizer.json"));
 
         // Check if model files exist
         if !model_path.exists() || !tokenizer_path.exists() {
@@ -152,8 +155,8 @@ impl RealEmbeddingModel {
             .map_err(|e| anyhow::anyhow!("Failed to load ONNX model: {}", e))?;
 
         tracing::info!(
-            "Successfully loaded real ONNX model from {}",
-            model_path.display()
+            "Successfully loaded real ONNX model from {path}",
+            path = model_path.display()
         );
 
         Ok(Self::new(

@@ -34,7 +34,7 @@ async fn create_test_episode(
 
     // Add execution steps
     for i in 0..step_count {
-        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -127,7 +127,7 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
     let async_duration = async_start.elapsed();
 
     // Then: Async should be faster (doesn't block on pattern extraction)
-    println!("Sync: {:?}, Async: {:?}", sync_duration, async_duration);
+    println!("Sync: {sync_duration:?}, Async: {async_duration:?}");
 
     // When: Waiting for async processing to complete
     sleep(Duration::from_millis(500)).await;
@@ -153,13 +153,13 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
 
     // When: Creating and completing multiple episodes
     for i in 0..episode_count {
-        let episode_id = create_test_episode(&memory, &format!("Task {}", i), 3).await;
+        let episode_id = create_test_episode(&memory, &format!("Task {i}"), 3).await;
 
         memory
             .complete_episode(
                 episode_id,
                 TaskOutcome::Success {
-                    verdict: format!("Done {}", i),
+                    verdict: format!("Done {i}"),
                     artifacts: vec![],
                 },
             )
@@ -171,7 +171,7 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
 
     // Then: All episodes should be enqueued
     let stats = memory.get_queue_stats().await.unwrap();
-    assert_eq!(stats.total_enqueued, episode_count as u64);
+    assert_eq!(stats.total_enqueued, u64::try_from(episode_count).unwrap());
 
     // When: Waiting for parallel processing
     sleep(Duration::from_secs(2)).await;
@@ -183,7 +183,7 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
     }
 
     let final_stats = memory.get_queue_stats().await.unwrap();
-    println!("Final stats: {:?}", final_stats);
+    println!("Final stats: {final_stats:?}");
 }
 
 #[tokio::test]
@@ -200,7 +200,7 @@ async fn should_handle_backpressure_when_queue_exceeds_capacity() {
 
     // When: Enqueuing more episodes than max_queue_size
     for i in 0..10 {
-        let episode_id = create_test_episode(&memory, &format!("Task {}", i), 2).await;
+        let episode_id = create_test_episode(&memory, &format!("Task {i}"), 2).await;
 
         let result = memory
             .complete_episode(
@@ -288,7 +288,7 @@ async fn should_scale_processing_with_different_worker_counts() {
 
         // When: Creating and completing multiple episodes
         for i in 0..episode_count {
-            let episode_id = create_test_episode(&memory, &format!("Task {}", i), 3).await;
+            let episode_id = create_test_episode(&memory, &format!("Task {i}"), 3).await;
             memory
                 .complete_episode(
                     episode_id,
@@ -332,7 +332,7 @@ async fn should_track_queue_statistics_accurately() {
 
     // When: Enqueuing episodes
     for i in 0..5 {
-        let episode_id = create_test_episode(&memory, &format!("Task {}", i), 3).await;
+        let episode_id = create_test_episode(&memory, &format!("Task {i}"), 3).await;
         memory
             .complete_episode(
                 episode_id,
@@ -381,13 +381,12 @@ async fn should_complete_episodes_in_under_100ms_with_async_extraction() {
         .unwrap();
     let duration = start.elapsed();
 
-    println!("Episode completion time: {:?}", duration);
+    println!("Episode completion time: {duration:?}");
 
     // Then: Should complete in under 100ms (performance requirement)
     assert!(
         duration.as_millis() < 100u128,
-        "Episode completion took {:?}, expected < 100ms",
-        duration
+        "Episode completion took {duration:?}, expected < 100ms"
     );
 }
 
@@ -429,7 +428,7 @@ async fn should_handle_concurrent_episode_completions_safely() {
     // Given: Multiple episodes created
     let mut episode_ids = Vec::new();
     for i in 0..5 {
-        let episode_id = create_test_episode(&memory, &format!("Task {}", i), 3).await;
+        let episode_id = create_test_episode(&memory, &format!("Task {i}"), 3).await;
         episode_ids.push(episode_id);
     }
 

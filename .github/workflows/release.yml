@@ -121,5 +121,6 @@ jobs:
           generate_release_notes: true
           files: artifacts/**/*
           fail_on_unmatched_files: false
+          remove_artifacts: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

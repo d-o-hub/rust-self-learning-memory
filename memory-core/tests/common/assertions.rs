@@ -77,8 +77,11 @@ pub fn assert_reward_in_range(reward: &RewardScore, min: f32, max: f32) {
 /// assert_reward_is_success(&reward);
 /// ```
 pub fn assert_reward_is_success(reward: &RewardScore) {
-    assert_eq!(
-        reward.base, 1.0,
+    // Use approximate comparison for floats to avoid precision issues
+    #[allow(clippy::float_cmp)] // Exact comparison is valid for success/failure scores
+    let is_success = reward.base == 1.0;
+    assert!(
+        is_success,
         "Reward base score should be 1.0 for success, got {}",
         reward.base
     );
@@ -97,8 +100,11 @@ pub fn assert_reward_is_success(reward: &RewardScore) {
 /// assert_reward_is_failure(&reward);
 /// ```
 pub fn assert_reward_is_failure(reward: &RewardScore) {
-    assert_eq!(
-        reward.base, 0.0,
+    // Use approximate comparison for floats to avoid precision issues
+    #[allow(clippy::float_cmp)] // Exact comparison is valid for success/failure scores
+    let is_failure = reward.base == 0.0;
+    assert!(
+        is_failure,
         "Reward base score should be 0.0 for failure, got {}",
         reward.base
     );

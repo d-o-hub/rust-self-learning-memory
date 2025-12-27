@@ -25,9 +25,9 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 
 # Serialization
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-bincode = { workspace = true }
+postcard = { workspace = true }
 
 # Database
 redb = { workspace = true }
@@ -43,6 +43,7 @@ tracing = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 serde_json = { workspace = true }
+bincode = { version = "1", default-features = false }
 
 [lints.rust]
 # In-process memory operations - focus on unsafe code and memory safety

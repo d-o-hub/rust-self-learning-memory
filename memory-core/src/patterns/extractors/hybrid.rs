@@ -318,8 +318,8 @@ mod tests {
         for i in 0..3 {
             let mut step = ExecutionStep::new(
                 11 + i,
-                format!("validator_{}", i),
-                format!("Check condition {}", i),
+                format!("validator_{i}"),
+                format!("Check condition {i}"),
             );
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),

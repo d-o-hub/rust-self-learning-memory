@@ -33,7 +33,7 @@ async fn test_decision_point_keywords_coverage() {
 
     let mut episode = create_test_episode();
     for (i, kw) in keywords.iter().enumerate() {
-        let mut step = ExecutionStep::new(i + 1, "tool".to_string(), kw.to_string());
+        let mut step = ExecutionStep::new(i + 1, "tool".to_string(), (*kw).to_string());
         step.result = Some(ExecutionResult::Success {
             output: "ok".to_string(),
         });

@@ -3,7 +3,42 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+use crate::pre_storage::SalientFeatures;
 use crate::types::{ExecutionResult, Reflection, RewardScore, TaskContext, TaskOutcome, TaskType};
+
+/// Records when a pattern was applied during episode execution
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PatternApplication {
+    /// ID of the pattern that was applied
+    pub pattern_id: PatternId,
+    /// Step number when pattern was applied
+    pub applied_at_step: usize,
+    /// Outcome of applying this pattern
+    pub outcome: ApplicationOutcome,
+    /// Optional notes about the application
+    pub notes: Option<String>,
+}
+
+/// Outcome of applying a pattern
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ApplicationOutcome {
+    /// Pattern helped achieve the desired outcome
+    Helped,
+    /// Pattern was applied but had no noticeable effect
+    NoEffect,
+    /// Pattern hindered progress or caused issues
+    Hindered,
+    /// Outcome not yet determined
+    Pending,
+}
+
+impl ApplicationOutcome {
+    /// Check if this outcome counts as a success
+    #[must_use]
+    pub fn is_success(&self) -> bool {
+        matches!(self, ApplicationOutcome::Helped)
+    }
+}
 
 /// Unique identifier for patterns extracted from episodes.
 ///
@@ -249,6 +284,12 @@ pub struct Episode {
     pub patterns: Vec<PatternId>,
     /// Extracted heuristic IDs
     pub heuristics: Vec<Uuid>,
+    /// Record of patterns applied during execution
+    #[serde(default)]
+    pub applied_patterns: Vec<PatternApplication>,
+    /// Salient features extracted during pre-storage reasoning (`PREMem`)
+    #[serde(default)]
+    pub salient_features: Option<SalientFeatures>,
     /// Additional metadata
     pub metadata: HashMap<String, String>,
 }
@@ -307,8 +348,26 @@ impl Episode {
             reflection: None,
             patterns: Vec::new(),
             heuristics: Vec::new(),
+            applied_patterns: Vec::new(),
+            salient_features: None,
             metadata: HashMap::new(),
         }
+    }
+
+    /// Record that a pattern was applied during this episode
+    pub fn record_pattern_application(
+        &mut self,
+        pattern_id: PatternId,
+        applied_at_step: usize,
+        outcome: ApplicationOutcome,
+        notes: Option<String>,
+    ) {
+        self.applied_patterns.push(PatternApplication {
+            pattern_id,
+            applied_at_step,
+            outcome,
+            notes,
+        });
     }
 
     /// Check if the episode has been completed.
@@ -576,7 +635,7 @@ mod tests {
         let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
         for i in 0..3 {
-            let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+            let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
             step.result = Some(ExecutionResult::Success {
                 output: "OK".to_string(),
             });

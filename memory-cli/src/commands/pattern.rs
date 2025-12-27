@@ -422,10 +422,11 @@ pub async fn list_patterns(
             }
         }
 
-        // Get effectiveness data (if available)
-        let effectiveness = 0.5; // Default neutral effectiveness
-        let use_count = pattern.sample_size();
-        let last_used = get_pattern_last_used(&pattern, memory).await;
+        // Get effectiveness data from the pattern
+        let effectiveness_data = pattern.effectiveness();
+        let effectiveness = effectiveness_data.effectiveness_score();
+        let use_count = effectiveness_data.times_applied;
+        let last_used = format_relative_time(effectiveness_data.last_used);
 
         let description = match &pattern {
             memory_core::pattern::Pattern::ToolSequence { tools, context, .. } => {
@@ -815,16 +816,16 @@ pub async fn pattern_effectiveness(
     let mut rankings: Vec<(String, f32, usize, String)> = Vec::new();
 
     for pattern in patterns {
-        let use_count = pattern.sample_size();
+        let effectiveness_data = pattern.effectiveness();
+        let use_count = effectiveness_data.times_applied;
 
         // Filter by minimum uses
         if use_count < min_uses {
             continue;
         }
 
-        // Calculate effectiveness score (simplified - could use EffectivenessTracker in future)
-        let effectiveness =
-            pattern.success_rate() * (1.0 + (use_count as f32).ln().min(2.0) / 10.0);
+        // Use the actual effectiveness score from tracking
+        let effectiveness = effectiveness_data.effectiveness_score();
 
         let description = match &pattern {
             memory_core::pattern::Pattern::ToolSequence { tools, .. } => {
@@ -941,8 +942,8 @@ pub async fn decay_patterns(
     let min_effectiveness = 0.3; // Same as EffectivenessTracker default
 
     for pattern in &patterns {
-        let effectiveness =
-            pattern.success_rate() * (1.0 + (pattern.sample_size() as f32).ln().min(2.0) / 10.0);
+        let effectiveness_data = pattern.effectiveness();
+        let effectiveness = effectiveness_data.effectiveness_score();
 
         if effectiveness < min_effectiveness {
             patterns_to_decay.push((

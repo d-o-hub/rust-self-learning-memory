@@ -21,7 +21,7 @@ mod output;
 mod test_utils;
 
 use commands::*;
-use config::{initialize_storage, load_config};
+use config::{initialize_storage, load_config_with_validation};
 use output::OutputFormat;
 
 #[derive(Parser)]
@@ -129,10 +129,10 @@ async fn main() -> anyhow::Result<()> {
             .init();
     }
 
-    // Load configuration
+    // Load configuration with validation
     let config = match &cli.config {
-        Some(path) => load_config(Some(path.as_ref()))?,
-        None => load_config(None)?,
+        Some(path) => load_config_with_validation(Some(path.as_ref()))?,
+        None => load_config_with_validation(None)?,
     };
 
     // Create memory system with storage backends

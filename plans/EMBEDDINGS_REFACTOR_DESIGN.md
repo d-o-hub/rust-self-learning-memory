@@ -1,9 +1,11 @@
 # Embeddings Refactor Design - Real Semantic Search Implementation
 
-**Last Updated**: 2025-12-21
+**Last Updated**: 2025-12-27 (Storage Optimization Analysis Added)
 **Branch**: feat/embeddings-refactor
-**Status**: ✅ Integration Complete
+**Status**: ✅ Integration Complete | ⚠️ Storage Optimization Recommended
 **Goal**: Transition from hash-based mock embeddings to real semantic search
+
+> **⚡ NEW (2025-12-27)**: Turso native vector storage analysis added. See [Storage Optimization](#storage-optimization-turso-native-vectors) section and `VECTOR_SEARCH_OPTIMIZATION.md` for migration plan.
 
 ## Executive Summary
 
@@ -875,14 +877,110 @@ fn bench_local_embedding(c: &mut Criterion) {
    - Configuration guide
    - Migration guide from mock embeddings
 
+## Storage Optimization: Turso Native Vectors
+
+> **NEW SECTION (2025-12-27)**: Critical performance optimization opportunity identified
+
+### Current Storage Approach (Inefficient)
+
+The current implementation stores embeddings as JSON text in a separate table:
+
+```sql
+CREATE TABLE embeddings (
+    embedding_data TEXT NOT NULL,  -- JSON array [0.1, 0.2, ...]
+    -- ...
+);
+```
+
+**Problem**: Similarity search fetches ALL embeddings and computes cosine similarity in Rust:
+- Scales O(n) - linear with dataset size
+- High memory usage (deserialize all vectors)
+- No indexing for vector similarity
+
+**Performance**: 1000 episodes = 10ms, 100K episodes = 1000ms+
+
+### Turso Native Vector Storage (Recommended)
+
+Turso/libSQL has **built-in vector search** with DiskANN indexing:
+
+```sql
+CREATE TABLE embeddings (
+    embedding F32_BLOB(384),  -- Native 384-dim vector
+    -- ...
+);
+
+CREATE INDEX idx_vec ON embeddings(libsql_vector_idx(embedding));
+
+-- Query with DiskANN index
+SELECT * FROM vector_top_k('idx_vec', vector32('[...]'), 10);
+```
+
+**Benefits**:
+- ✅ 10-100x faster (DiskANN algorithm)
+- ✅ Scales O(log n) - logarithmic
+- ✅ SQL-native queries
+- ✅ No external vector database needed
+
+**Performance**: 1000 episodes = 2-5ms, 100K episodes = 10-20ms
+
+### Migration Plan
+
+See `VECTOR_SEARCH_OPTIMIZATION.md` for complete migration guide:
+
+1. **Schema**: Add `F32_BLOB` columns with vector indexes
+2. **Queries**: Replace brute-force scan with `vector_top_k()`
+3. **Backfill**: Convert existing JSON embeddings to native format
+4. **Validation**: Performance benchmarks and accuracy testing
+
+**Estimated effort**: 3 weeks
+**Impact**: HIGH (10-100x performance improvement)
+**Risk**: LOW (additive migration, rollback possible)
+
+### Do We Need Qdrant/Pinecone?
+
+**NO** - for this project's scale (<100K episodes), Turso native vectors are sufficient.
+
+**When you WOULD need external vector DB**:
+- >1M vectors
+- >1000 QPS
+- Advanced filtering requirements
+- Multi-tenancy isolation
+- Distributed architecture
+
+**None of these apply to self-learning memory system.**
+
+### Provider Architecture Unchanged
+
+**Critical**: This storage optimization does NOT affect embedding providers.
+
+- **Providers** (OpenAI, Local, Together) → Generate vectors from text
+- **Storage** (Turso native) → Store and search vectors efficiently
+
+**Keep all provider work**:
+- ✅ EmbeddingProvider trait
+- ✅ Local/OpenAI/Together implementations
+- ✅ Caching layer
+- ✅ Batch processing
+
+**Change only**: Storage layer (JSON → native vectors)
+
 ## Conclusion
 
-The embeddings refactor unlocks true semantic search capabilities, transforming the memory system from keyword-based to meaning-based retrieval. The architecture is complete, tested, and ready for integration. Remaining work focuses on storage integration, configuration simplification, and user experience.
+The embeddings refactor unlocks true semantic search capabilities, transforming the memory system from keyword-based to meaning-based retrieval. The architecture is complete, tested, and ready for integration.
 
-**Status**: 80% complete, on track for completion in 2-3 weeks
+**Provider Status**: ✅ COMPLETE (80%)
+- Remaining work: Storage integration, configuration simplification, user experience
+
+**Storage Status**: ⚠️ OPTIMIZATION RECOMMENDED
+- Current: JSON storage with brute-force search (works but slow)
+- Recommended: Turso native vectors with DiskANN indexing (10-100x faster)
+- See `VECTOR_SEARCH_OPTIMIZATION.md` for migration plan
+
+**Overall Status**: Ready for production with planned storage optimization
 **Risk**: LOW (technical), MEDIUM (integration)
 **Impact**: HIGH (enables core semantic search functionality)
 
 ---
 
 *This document describes the design and implementation of the embeddings refactor on the feat/embeddings-refactor branch.*
+*Storage optimization analysis added 2025-12-27. See `VECTOR_SEARCH_OPTIMIZATION.md` for details.*

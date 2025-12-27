@@ -98,7 +98,7 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 | Final report | ✅ Complete | FINAL_RESEARCH_INTEGRATION_REPORT.md |
 | Research claims | ✅ **ALL VALIDATED** | Exceeded targets by 4-2307x |
 
-**See**: [FINAL_RESEARCH_INTEGRATION_REPORT.md](FINAL_RESEARCH_INTEGRATION_REPORT.md) for complete details.
+**See**: [FINAL_RESEARCH_INTEGRATION_REPORT.md](../research/FINAL_RESEARCH_INTEGRATION_REPORT.md) for complete details.
 
 ---
 
@@ -269,10 +269,10 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 ## 📞 Team & Contributors
 
 ### For Questions & Updates
-- **Architecture**: Review CURRENT_ARCHITECTURE_STATE.md
-- **Roadmap**: Check ROADMAP.md for future plans
-- **Implementation**: See IMPLEMENTATION_PLAN.md for technical details
-- **Configuration**: Reference CONFIGURATION_OPTIMIZATION_STATUS.md
+- **Architecture**: Review [ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)
+- **Roadmap**: Check [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md) for current plans
+- **Implementation**: See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for technical details
+- **Configuration**: Reference [CONFIGURATION_OPTIMIZATION_STATUS.md](../CONFIGURATION/CONFIGURATION_OPTIMIZATION_STATUS.md)
 
 ### Maintenance Responsibility
 - **Primary**: Project maintainers and core team
@@ -285,9 +285,9 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 
 ### Core Documentation
 - **[README.md](../README.md)** - Project overview and quick start
-- **[ROADMAP.md](./ROADMAP.md)** - Master roadmap and version history
-- **[CURRENT_ARCHITECTURE_STATE.md](./CURRENT_ARCHITECTURE_STATE.md)** - Detailed architecture documentation
-- **[IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)** - Missing implementations and technical details
+- **[ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)** - Active development roadmap
+- **[ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)** - Detailed architecture documentation
+- **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** - Implementation status and technical details
 
 ### Quality & Status
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and changes

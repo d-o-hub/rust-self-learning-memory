@@ -54,7 +54,7 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 | **Turso Storage** | ✅ Healthy | 11ms latency | 2+ episodes confirmed |
 | **redb Cache** | ✅ Healthy | 0ms latency | Postcard serialization | 3.6MB, LRU configured |
 | **Pattern Extraction** | ✅ Operational | <10ms (10x target) | 4 extractors working |
-| **Semantic Embeddings** | ✅ Operational | Real embeddings working | Local-first configuration |
+| **Semantic Embeddings** | ✅ Operational | Real embeddings working | Local-first config, ⚡ storage optimization planned |
 
 ---
 
@@ -224,12 +224,14 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 2. **✅ Quality Gates**: ALL PASSING consistently
 3. **🔄 Documentation Consolidation**: Plans folder organization in progress
 4. **🔄 Configuration Completion**: Finish remaining 33% of optimization
+5. **⚡ NEW: Vector Search Optimization Analysis**: Turso native vector storage investigation complete - 10-100x performance improvement opportunity identified (see `VECTOR_SEARCH_OPTIMIZATION.md`)
 
 ### Short-term (Next 2 Weeks)
-1. **Production Deployment Preparation**: Deployment guides and runbooks
-2. **Configuration Wizard**: Complete remaining UX polish
-3. **Documentation**: Complete consolidation of planning documents (60% reduction)
-4. **Backward Compatibility**: Test with existing configurations
+1. **⚡ Vector Storage Migration**: Migrate from JSON embeddings to Turso native F32_BLOB vectors with DiskANN indexing (HIGH IMPACT - 10-100x faster semantic search)
+2. **Production Deployment Preparation**: Deployment guides and runbooks
+3. **Configuration Wizard**: Complete remaining UX polish
+4. **Documentation**: Complete consolidation of planning documents (60% reduction)
+5. **Backward Compatibility**: Test with existing configurations
 
 ### Medium-term (v0.2.1 - Q1 2026)
 1. **Full Contrastive Learning**: Enhanced embeddings (+5-10% accuracy)

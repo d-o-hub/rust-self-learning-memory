@@ -84,6 +84,10 @@ This directory contains comprehensive implementation plans, architectural decisi
 - **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Implementation status and technical specifications (needs split: 610 lines)
 - **[archive/21-architecture-decision-records.md](archive/21-architecture-decision-records.md)** - Architectural decision records - archived
 
+#### ⚡ Performance & Optimization
+- **[VECTOR_SEARCH_OPTIMIZATION.md](VECTOR_SEARCH_OPTIMIZATION.md)** - ⚡ **NEW (2025-12-27)** - Turso native vector storage analysis, 10-100x performance opportunity, migration plan from JSON to F32_BLOB with DiskANN indexing
+- **[EMBEDDINGS_REFACTOR_DESIGN.md](EMBEDDINGS_REFACTOR_DESIGN.md)** - Embedding provider architecture (OpenAI, Local, Together), semantic search implementation (updated 2025-12-27 with storage optimization)
+
 ### Archive Information
 
 All historical planning documents have been organized into the `archive/` directory:

@@ -416,32 +416,48 @@ fn validate_file_url_security(url: &str) -> Result<(), ValidationError> {
 
     // Check for access to sensitive system paths
     let sensitive_paths = [
-        "/etc/", "/bin/", "/sbin/", "/usr/bin/", "/usr/sbin/",
-        "/sys/", "/proc/", "/dev/", "/boot/", "/root/",
-        "/var/log/", "/var/run/", "/tmp/",
+        "/etc/",
+        "/bin/",
+        "/sbin/",
+        "/usr/bin/",
+        "/usr/sbin/",
+        "/sys/",
+        "/proc/",
+        "/dev/",
+        "/boot/",
+        "/root/",
+        "/var/log/",
+        "/var/run/",
+        "/tmp/",
     ];
 
     for sensitive_path in &sensitive_paths {
         if path.starts_with(sensitive_path) {
             return Err(ValidationError {
                 field: "database.turso_url".to_string(),
-                message: format!("Storage error: Access to sensitive system path is not allowed: {}", path),
-                suggestion: Some("Use a path in your home directory or project directory".to_string()),
+                message: format!(
+                    "Storage error: Access to sensitive system path is not allowed: {}",
+                    path
+                ),
+                suggestion: Some(
+                    "Use a path in your home directory or project directory".to_string(),
+                ),
                 context: Some("Security: Access to system paths is blocked".to_string()),
             });
         }
     }
 
     // Additional check for specific sensitive files
-    let sensitive_files = [
-        "/etc/passwd", "/etc/shadow", "/etc/hosts", "/etc/sudoers",
-    ];
+    let sensitive_files = ["/etc/passwd", "/etc/shadow", "/etc/hosts", "/etc/sudoers"];
 
     for sensitive_file in &sensitive_files {
         if path == *sensitive_file || path.ends_with(sensitive_file) {
             return Err(ValidationError {
                 field: "database.turso_url".to_string(),
-                message: format!("Storage error: Access to sensitive file is not allowed: {}", sensitive_file),
+                message: format!(
+                    "Storage error: Access to sensitive file is not allowed: {}",
+                    sensitive_file
+                ),
                 suggestion: Some("Use a database file in your project directory".to_string()),
                 context: Some("Security: Access to sensitive files is blocked".to_string()),
             });

@@ -285,16 +285,19 @@ async fn test_custom_quality_threshold() {
 
     // With lower threshold, this episode might be accepted
     // (depends on exact quality score calculation)
-    if result.is_ok() {
-        let episode = memory.get_episode(episode_id).await.unwrap();
-        assert!(episode.salient_features.is_some());
-    } else {
-        // If still rejected, that's also valid - quality might still be below 0.4
-        match result.unwrap_err() {
-            memory_core::Error::ValidationFailed(_) => {
-                // Expected if quality is below 0.4
+    match result {
+        Ok(()) => {
+            let episode = memory.get_episode(episode_id).await.unwrap();
+            assert!(episode.salient_features.is_some());
+        }
+        Err(err) => {
+            // If still rejected, that's also valid - quality might still be below 0.4
+            match err {
+                memory_core::Error::ValidationFailed(_) => {
+                    // Expected if quality is below 0.4
+                }
+                other => panic!("Unexpected error: {other:?}"),
             }
-            other => panic!("Unexpected error: {other:?}"),
         }
     }
 }

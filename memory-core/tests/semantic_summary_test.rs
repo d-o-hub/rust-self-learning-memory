@@ -35,7 +35,7 @@ async fn test_summarize_complete_episode() {
 
     // Add execution steps
     for i in 0..5 {
-        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("Action {i}"));
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -148,7 +148,7 @@ fn test_extract_key_steps() {
 
     // Add diverse steps
     for i in 0..10 {
-        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("Action {i}"));
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -174,7 +174,7 @@ fn test_extract_key_steps_with_errors() {
 
     // Add successful steps
     for i in 0..3 {
-        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("Action {i}"));
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });
@@ -243,8 +243,8 @@ fn test_summary_length_constraints() {
     for i in 0..100 {
         let mut step = ExecutionStep::new(
             i + 1,
-            format!("tool_{}", i),
-            format!("Very long action description number {}", i),
+            format!("tool_{i}"),
+            format!("Very long action description number {i}"),
         );
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),

@@ -17,6 +17,7 @@ pub struct MockLocalModel {
 }
 
 impl MockLocalModel {
+    #[must_use]
     pub fn new(name: String, dimension: usize) -> Self {
         Self { name, dimension }
     }

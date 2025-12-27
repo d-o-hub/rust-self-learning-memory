@@ -7,6 +7,7 @@ use memory_core::types::{ComplexityLevel, TaskContext};
 use memory_core::TaskType;
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_pattern_effectiveness_creation() {
     let effectiveness = PatternEffectiveness::new();
 
@@ -29,6 +30,7 @@ fn test_pattern_effectiveness_record_retrieval() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_pattern_effectiveness_record_application() {
     let mut effectiveness = PatternEffectiveness::new();
 
@@ -79,6 +81,7 @@ fn test_pattern_effectiveness_score() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_pattern_usage_rate() {
     let mut effectiveness = PatternEffectiveness::new();
 
@@ -126,6 +129,7 @@ fn test_pattern_record_retrieval() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_pattern_record_application() {
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -186,6 +190,7 @@ fn test_application_outcome_is_success() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_pattern_effectiveness_moving_average() {
     let mut effectiveness = PatternEffectiveness::new();
 
@@ -205,6 +210,7 @@ fn test_pattern_effectiveness_moving_average() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_pattern_effectiveness_with_negative_reward() {
     let mut effectiveness = PatternEffectiveness::new();
 

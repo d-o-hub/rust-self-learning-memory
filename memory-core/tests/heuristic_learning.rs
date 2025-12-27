@@ -292,6 +292,7 @@ async fn test_heuristic_retrieval_by_context() {
 }
 
 #[tokio::test]
+#[allow(clippy::float_cmp)]
 async fn test_heuristic_confidence_updates() {
     // Given: A memory system with an initial heuristic
     let memory = setup_test_memory();
@@ -365,6 +366,7 @@ async fn test_heuristic_confidence_updates() {
     );
 
     // Verify confidence recalculated (success_rate × √sample_size)
+    #[allow(clippy::cast_precision_loss)]
     let expected_confidence =
         updated.evidence.success_rate * (updated.evidence.sample_size as f32).sqrt();
     assert!(

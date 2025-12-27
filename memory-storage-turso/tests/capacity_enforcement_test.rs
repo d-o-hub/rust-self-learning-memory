@@ -163,7 +163,7 @@ async fn test_capacity_enforcement_relevance_weighted() {
     for episode in &episodes {
         let summary = create_test_summary(episode).await;
         storage
-            .store_episode_with_capacity(&episode, Some(&summary), &capacity_manager)
+            .store_episode_with_capacity(episode, Some(&summary), &capacity_manager)
             .await
             .expect("Failed to store episode");
     }

@@ -540,6 +540,7 @@ fn create_episodes_with_patterns() -> Vec<Episode> {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn should_calculate_pattern_metrics_correctly() {
     // Given: Known pattern validation counts (7 TP, 2 FP, 1 FN, 10 TN)
     let true_positives = 7;
@@ -719,6 +720,7 @@ fn should_achieve_minimum_overall_pattern_recognition_quality() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn should_track_effectiveness_and_decay_poor_patterns() {
     // Given: Effectiveness tracker configured with 40% threshold and immediate decay
     println!("\n=== Effectiveness Tracking Tests ===");

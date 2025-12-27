@@ -29,13 +29,12 @@ fn create_test_episode(task_type: TaskType, description: &str, domain: &str) -> 
 async fn test_context_aware_embeddings_integration() {
     // Create base provider (using mock in this test)
     let config = memory_core::embeddings::EmbeddingConfig::default();
-    let base = match LocalEmbeddingProvider::new(config.model).await {
-        Ok(provider) => Arc::new(provider),
-        Err(_) => {
-            // Skip test if model not available
-            eprintln!("Skipping test - embedding model not available");
-            return;
-        }
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new(config.model).await {
+        Arc::new(provider)
+    } else {
+        // Skip test if model not available
+        eprintln!("Skipping test - embedding model not available");
+        return;
     };
 
     let mut embeddings = ContextAwareEmbeddings::new(base.clone());
@@ -93,12 +92,11 @@ async fn test_context_aware_embeddings_integration() {
 #[tokio::test]
 async fn test_multiple_task_adapters() {
     let config = memory_core::embeddings::EmbeddingConfig::default();
-    let base = match LocalEmbeddingProvider::new(config.model).await {
-        Ok(provider) => Arc::new(provider),
-        Err(_) => {
-            eprintln!("Skipping test - embedding model not available");
-            return;
-        }
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new(config.model).await {
+        Arc::new(provider)
+    } else {
+        eprintln!("Skipping test - embedding model not available");
+        return;
     };
 
     let mut embeddings = ContextAwareEmbeddings::new(base);
@@ -143,12 +141,11 @@ fn test_empty_training_pairs_error() {
 #[tokio::test]
 async fn test_backward_compatibility_no_adapters() {
     let config = memory_core::embeddings::EmbeddingConfig::default();
-    let base = match LocalEmbeddingProvider::new(config.model).await {
-        Ok(provider) => Arc::new(provider),
-        Err(_) => {
-            eprintln!("Skipping test - embedding model not available");
-            return;
-        }
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new(config.model).await {
+        Arc::new(provider)
+    } else {
+        eprintln!("Skipping test - embedding model not available");
+        return;
     };
 
     let embeddings = ContextAwareEmbeddings::new(base.clone());

@@ -4,7 +4,6 @@
 //! that can be parsed by clients, addressing issue #143.
 
 use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
-use serde_json;
 
 #[test]
 fn test_valid_jsonrpc_response() {

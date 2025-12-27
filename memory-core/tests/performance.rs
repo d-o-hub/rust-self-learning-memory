@@ -166,6 +166,7 @@ async fn should_retrieve_episodes_under_100ms_p95_with_100_episodes() {
     // Clippy: Cast is safe for percentile index calculation in test context
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_sign_loss)]
     let p95_index = ((latencies.len() as f32 * 0.95) as usize).min(latencies.len() - 1);
     let p95 = latencies[p95_index];
 
@@ -204,6 +205,7 @@ async fn should_retrieve_episodes_under_100ms_p95_with_10k_episodes() {
     // Clippy: Cast is safe for percentile index calculation in test context
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_sign_loss)]
     let p95_index = ((latencies.len() as f32 * 0.95) as usize).min(latencies.len() - 1);
     let p95 = latencies[p95_index];
 

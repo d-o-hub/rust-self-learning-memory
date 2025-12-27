@@ -326,6 +326,7 @@ fn test_all_quality_features_contribute() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn test_score_stability() {
     let config = QualityConfig::default();
     let assessor = QualityAssessor::new(config);

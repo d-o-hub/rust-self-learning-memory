@@ -181,6 +181,7 @@ fn load_reference_patterns() -> Vec<Pattern> {
 }
 
 /// Calculate pattern similarity/accuracy
+#[allow(clippy::cast_precision_loss)]
 fn calculate_pattern_similarity(extracted: &[Pattern], reference: &[Pattern]) -> f32 {
     if reference.is_empty() {
         return 0.0;
@@ -430,7 +431,8 @@ async fn should_maintain_fast_retrieval_with_large_dataset() {
         total_time += start.elapsed();
     }
 
-    let avg_time = total_time / test_queries.len() as u32;
+    let avg_time = total_time
+        / u32::try_from(test_queries.len()).expect("test_queries length should fit in u32");
 
     println!("Average retrieval time with 10K episodes: {avg_time:?}");
 
@@ -514,12 +516,15 @@ async fn should_retrieve_relevant_episodes_by_domain() {
         .filter(|e| e.context.domain == "web-api")
         .count();
 
-    assert!(
-        web_api_count as f32 / results.len() as f32 >= 0.5,
-        "Retrieval quality degraded - only {}/{} results matched domain",
-        web_api_count,
-        results.len()
-    );
+    #[allow(clippy::cast_precision_loss)]
+    {
+        assert!(
+            web_api_count as f64 / results.len() as f64 >= 0.5,
+            "Retrieval quality degraded - only {}/{} results matched domain",
+            web_api_count,
+            results.len()
+        );
+    }
 }
 
 // ============================================================================

@@ -369,8 +369,8 @@ mod tests {
             // Create a deterministic embedding based on text length
             let mut embedding = vec![0.0; self.dimension];
             let text_len = text.len() as f32;
-            for i in 0..self.dimension {
-                embedding[i] = (i as f32 + text_len) / 100.0;
+            for (i, val) in embedding.iter_mut().enumerate() {
+                *val = (i as f32 + text_len) / 100.0;
             }
             Ok(embedding)
         }

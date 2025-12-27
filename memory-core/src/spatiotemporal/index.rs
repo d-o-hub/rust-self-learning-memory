@@ -753,8 +753,10 @@ mod tests {
     use crate::{TaskContext, TaskType};
 
     fn create_test_episode(domain: &str, task_type: TaskType, days_ago: i64) -> Episode {
-        let mut context = TaskContext::default();
-        context.domain = domain.to_string();
+        let context = TaskContext {
+            domain: domain.to_string(),
+            ..Default::default()
+        };
 
         let mut episode = Episode::new("Test task".to_string(), context, task_type);
 

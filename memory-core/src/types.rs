@@ -793,7 +793,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // Ignored due to test isolation issues with parallel execution and env vars
+    #[ignore = "test isolation issues with parallel execution and env vars"]
     fn test_memory_config_from_env_defaults() {
         // Clear any environment variables that might be set
         std::env::remove_var("MEMORY_MAX_EPISODES");
@@ -812,7 +812,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // Ignored due to test isolation issues with parallel execution and env vars
+    #[ignore = "test isolation issues with parallel execution and env vars"]
     fn test_memory_config_from_env_with_values() {
         // Set environment variables
         std::env::set_var("MEMORY_MAX_EPISODES", "10000");

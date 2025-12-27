@@ -104,8 +104,8 @@ mod utils_tests {
             effectiveness: PatternEffectiveness::default(),
         };
 
-        let patterns = vec![pattern1, pattern2];
-        let deduplicated = super::utils::deduplicate_patterns(patterns);
+        let extracted_patterns = vec![pattern1, pattern2];
+        let deduplicated = super::utils::deduplicate_patterns(extracted_patterns);
         assert_eq!(deduplicated.len(), 1);
     }
 

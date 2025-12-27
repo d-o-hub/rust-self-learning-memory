@@ -671,17 +671,17 @@ mod tests {
         for i in 0..20 {
             let cb_clone = Arc::clone(&cb);
             let handle = tokio::spawn(async move {
-                let result = cb_clone
+                let result_value = if i % 2 == 0 {
+                    Ok::<i32, Error>(i)
+                } else {
+                    Err(Error::Storage("test error".to_string()))
+                };
+                cb_clone
                     .call(|| async {
                         tokio::time::sleep(Duration::from_millis(10)).await;
-                        if i % 2 == 0 {
-                            Ok::<i32, Error>(i)
-                        } else {
-                            Err(Error::Storage("test error".to_string()))
-                        }
+                        result_value
                     })
-                    .await;
-                result
+                    .await
             });
             handles.push(handle);
         }

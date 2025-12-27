@@ -382,13 +382,13 @@ mod tests {
         assert_eq!(matrix[0].len(), 3);
 
         // Diagonal should be 1.0 (self-similarity)
-        for i in 0..3 {
-            assert!((matrix[i][i] - 1.0).abs() < 0.001);
+        for (i, row) in matrix.iter().enumerate().take(3) {
+            assert!((row[i] - 1.0).abs() < 0.001);
         }
 
         // Matrix should be symmetric
-        for i in 0..3 {
-            for j in 0..3 {
+        for (i, row) in matrix.iter().enumerate().take(3) {
+            for (j, _val) in row.iter().enumerate().take(3) {
                 assert!((matrix[i][j] - matrix[j][i]).abs() < 0.001);
             }
         }

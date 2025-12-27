@@ -171,7 +171,7 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
 
     // Then: All episodes should be enqueued
     let stats = memory.get_queue_stats().await.unwrap();
-    assert_eq!(stats.total_enqueued, episode_count as u64);
+    assert_eq!(stats.total_enqueued, u64::try_from(episode_count).unwrap());
 
     // When: Waiting for parallel processing
     sleep(Duration::from_secs(2)).await;

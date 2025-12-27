@@ -31,7 +31,7 @@ async fn create_test_storage() -> anyhow::Result<RedbStorage> {
 fn create_episode_with_quality(task_description: &str, quality_score: f32) -> Episode {
     use memory_core::ComplexityLevel;
 
-    let episode = Episode {
+    Episode {
         episode_id: Uuid::new_v4(),
         task_type: TaskType::Testing,
         task_description: task_description.to_string(),
@@ -68,9 +68,7 @@ fn create_episode_with_quality(task_description: &str, quality_score: f32) -> Ep
             key_insights: vec!["Test completed successfully".to_string()],
         }),
         metadata: std::collections::HashMap::new(),
-    };
-
-    episode
+    }
 }
 
 /// Helper to create a test episode summary
@@ -387,9 +385,9 @@ async fn test_capacity_enforcement_batch_eviction() {
     assert_eq!(stats_after.episode_count, 3);
 
     // Verify the oldest 3 episodes were evicted (LRU)
-    for i in 0..3 {
+    for episode_id in episode_ids.iter().take(3) {
         assert!(
-            evicted_ids.contains(&episode_ids[i]),
+            evicted_ids.contains(episode_id),
             "Oldest episodes should be evicted"
         );
     }

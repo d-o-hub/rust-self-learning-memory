@@ -349,8 +349,8 @@ mod tests {
             effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
-        let patterns = vec![pattern1.clone(), pattern2.clone(), pattern1.clone()];
-        let deduped = deduplicate_patterns(patterns);
+        let test_patterns = vec![pattern1.clone(), pattern2.clone(), pattern1.clone()];
+        let deduped = deduplicate_patterns(test_patterns);
 
         assert_eq!(deduped.len(), 2);
         // Should be sorted by success rate
@@ -382,10 +382,10 @@ mod tests {
             effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
-        let patterns = vec![pattern1, pattern2];
-        let clustered = cluster_similar_patterns(patterns);
+        let test_patterns = vec![pattern1, pattern2];
+        let clustered = cluster_similar_patterns(test_patterns);
 
-        // Should merge to one pattern (keeping the higher success rate)
+        // Should merge to one pattern (keeping higher success rate)
         assert_eq!(clustered.len(), 1);
         assert_eq!(clustered[0].success_rate(), 0.9);
     }
@@ -410,8 +410,8 @@ mod tests {
             effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
-        let patterns = vec![pattern1, pattern2];
-        let clustered = cluster_similar_patterns(patterns);
+        let test_patterns = vec![pattern1, pattern2];
+        let clustered = cluster_similar_patterns(test_patterns);
 
         // Should merge to one pattern
         assert_eq!(clustered.len(), 1);
@@ -454,8 +454,8 @@ mod tests {
             effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
-        let patterns = vec![pattern1, pattern2];
-        let clustered = cluster_similar_patterns(patterns);
+        let test_patterns = vec![pattern1, pattern2];
+        let clustered = cluster_similar_patterns(test_patterns);
 
         // Should merge similar context patterns (similarity > 0.7)
         // Intersection: 4 features (language:rust, domain:web, framework:tokio, tag:async)
@@ -492,8 +492,8 @@ mod tests {
             effectiveness: crate::pattern::PatternEffectiveness::new(),
         };
 
-        let patterns2 = vec![pattern3, pattern4];
-        let clustered2 = cluster_similar_patterns(patterns2);
+        let test_patterns2 = vec![pattern3, pattern4];
+        let clustered2 = cluster_similar_patterns(test_patterns2);
 
         // These should merge: 3 common / 4 total = 0.75 > 0.7
         assert_eq!(clustered2.len(), 1);

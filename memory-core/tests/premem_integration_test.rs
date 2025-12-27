@@ -27,20 +27,20 @@ fn create_high_quality_episode_data() -> (String, TaskContext, TaskType, Vec<Exe
     let mut steps = Vec::new();
 
     // Step 1: Planning with decision
-    let mut step1 = ExecutionStep::new(
+    let mut execution_step1 = ExecutionStep::new(
         1,
         "planner".to_string(),
         "Choose async implementation strategy".to_string(),
     );
-    step1.parameters = serde_json::json!({
+    execution_step1.parameters = serde_json::json!({
         "strategy": "tokio-async",
         "approach": "layered-architecture"
     });
-    step1.result = Some(ExecutionResult::Success {
+    execution_step1.result = Some(ExecutionResult::Success {
         output: "Strategy selected: async with layered architecture".to_string(),
     });
-    step1.latency_ms = 120;
-    steps.push(step1);
+    execution_step1.latency_ms = 120;
+    steps.push(execution_step1);
 
     // Step 2-4: Tool sequence
     for i in 2..=4 {
@@ -125,8 +125,10 @@ fn create_low_quality_episode_data() -> (String, TaskContext, TaskType, Vec<Exec
 async fn test_high_quality_episode_accepted() {
     // Create memory system with threshold set to 0.5 for testing
     // (The episode we create scores ~0.59, which is acceptable quality)
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.5;
+    let config = MemoryConfig {
+        quality_threshold: 0.5,
+        ..Default::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
 
     let (task_description, context, task_type, steps) = create_high_quality_episode_data();
@@ -252,8 +254,10 @@ async fn test_low_quality_episode_rejected() {
 #[tokio::test]
 async fn test_custom_quality_threshold() {
     // Create memory system with lower threshold (0.4)
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.4;
+    let config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
 
     let (task_description, context, task_type, steps) = create_low_quality_episode_data();
@@ -300,8 +304,10 @@ async fn test_salient_features_storage_in_cache() {
     // This test would require actual storage backends (Turso + redb)
     // For now, we test that the in-memory storage includes salient features
 
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.5; // Lower threshold for testing
+    let config = MemoryConfig {
+        quality_threshold: 0.5, // Lower threshold for testing
+        ..Default::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
 
     let (task_description, context, task_type, steps) = create_high_quality_episode_data();
@@ -360,8 +366,10 @@ async fn test_performance_overhead() {
     use std::time::Instant;
 
     // Measure overhead of quality assessment and salient extraction
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.5; // Lower threshold for testing
+    let config = MemoryConfig {
+        quality_threshold: 0.5, // Lower threshold for testing
+        ..Default::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
 
     let (task_description, context, task_type, steps) = create_high_quality_episode_data();

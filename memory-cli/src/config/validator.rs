@@ -161,6 +161,11 @@ pub fn validate_database_config(config: &DatabaseConfig) -> ValidationResult {
                     "Ensure URL follows format: libsql://host/db or file:path".to_string(),
                 ),
             });
+        } else {
+            // Security check for file: URLs
+            if let Err(security_error) = validate_file_url_security(turso_url) {
+                errors.push(security_error);
+            }
         }
     }
 
@@ -387,6 +392,63 @@ fn validate_cross_config(config: &Config) -> ValidationResult {
 fn is_valid_turso_url(url: &str) -> bool {
     // Basic validation for Turso/libSQL URL format
     url.starts_with("libsql://") || url.starts_with("file:")
+}
+
+/// Validate that a file URL doesn't contain path traversal or access sensitive paths
+fn validate_file_url_security(url: &str) -> Result<(), ValidationError> {
+    if !url.starts_with("file:") {
+        // Not a file URL, no security check needed
+        return Ok(());
+    }
+
+    // Extract the path from the file: URL
+    let path = url.strip_prefix("file:").unwrap_or(url);
+
+    // Check for path traversal attempts
+    if path.contains("..") {
+        return Err(ValidationError {
+            field: "database.turso_url".to_string(),
+            message: "Storage error: Path traversal detected in database URL".to_string(),
+            suggestion: Some("Use an absolute path without '..' components".to_string()),
+            context: Some("Security: Path traversal attacks are blocked".to_string()),
+        });
+    }
+
+    // Check for access to sensitive system paths
+    let sensitive_paths = [
+        "/etc/", "/bin/", "/sbin/", "/usr/bin/", "/usr/sbin/",
+        "/sys/", "/proc/", "/dev/", "/boot/", "/root/",
+        "/var/log/", "/var/run/", "/tmp/",
+    ];
+
+    for sensitive_path in &sensitive_paths {
+        if path.starts_with(sensitive_path) {
+            return Err(ValidationError {
+                field: "database.turso_url".to_string(),
+                message: format!("Storage error: Access to sensitive system path is not allowed: {}", path),
+                suggestion: Some("Use a path in your home directory or project directory".to_string()),
+                context: Some("Security: Access to system paths is blocked".to_string()),
+            });
+        }
+    }
+
+    // Additional check for specific sensitive files
+    let sensitive_files = [
+        "/etc/passwd", "/etc/shadow", "/etc/hosts", "/etc/sudoers",
+    ];
+
+    for sensitive_file in &sensitive_files {
+        if path == *sensitive_file || path.ends_with(sensitive_file) {
+            return Err(ValidationError {
+                field: "database.turso_url".to_string(),
+                message: format!("Storage error: Access to sensitive file is not allowed: {}", sensitive_file),
+                suggestion: Some("Use a database file in your project directory".to_string()),
+                context: Some("Security: Access to sensitive files is blocked".to_string()),
+            });
+        }
+    }
+
+    Ok(())
 }
 
 /// Validate configuration file path

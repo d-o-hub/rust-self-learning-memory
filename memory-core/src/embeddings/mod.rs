@@ -44,6 +44,7 @@ pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, Mo
 pub use local::{
     get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
 };
+pub use mock_model::MockLocalModel;
 #[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
 pub use provider::{EmbeddingProvider, EmbeddingResult};

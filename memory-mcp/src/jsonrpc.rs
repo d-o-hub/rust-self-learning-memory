@@ -15,7 +15,7 @@ pub struct JsonRpcRequest {
 }
 
 /// JSON-RPC response structure
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct JsonRpcResponse {
     pub jsonrpc: String,
     pub id: Option<Value>,
@@ -26,7 +26,7 @@ pub struct JsonRpcResponse {
 }
 
 /// JSON-RPC error structure
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct JsonRpcError {
     pub code: i32,
     pub message: String,

@@ -2,7 +2,7 @@
 //!
 //! Tests the full workflow of training and using task-specific embedding adapters.
 
-use memory_core::embeddings::LocalEmbeddingProvider;
+use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider};
 use memory_core::episode::Episode;
 use memory_core::spatiotemporal::embeddings::{ContextAwareEmbeddings, ContrastivePair};
 use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
@@ -28,7 +28,7 @@ fn create_test_episode(task_type: TaskType, description: &str, domain: &str) -> 
 #[tokio::test]
 async fn test_context_aware_embeddings_integration() {
     // Create base provider (using mock in this test)
-    let config = memory_core::embeddings::config::EmbeddingConfig::default();
+    let config = memory_core::embeddings::EmbeddingConfig::default();
     let base = match LocalEmbeddingProvider::new(config.model).await {
         Ok(provider) => Arc::new(provider),
         Err(_) => {
@@ -92,7 +92,7 @@ async fn test_context_aware_embeddings_integration() {
 
 #[tokio::test]
 async fn test_multiple_task_adapters() {
-    let config = memory_core::embeddings::config::EmbeddingConfig::default();
+    let config = memory_core::embeddings::EmbeddingConfig::default();
     let base = match LocalEmbeddingProvider::new(config.model).await {
         Ok(provider) => Arc::new(provider),
         Err(_) => {
@@ -130,9 +130,9 @@ async fn test_multiple_task_adapters() {
 
 #[test]
 fn test_empty_training_pairs_error() {
-    let _config = memory_core::embeddings::config::EmbeddingConfig::default();
+    let _config = memory_core::embeddings::EmbeddingConfig::default();
     // Use mock provider for this synchronous test
-    let mock = memory_core::embeddings::mock_model::MockLocalModel::new("mock".to_string(), 128);
+    let mock = memory_core::embeddings::MockLocalModel::new("mock".to_string(), 128);
     let mut embeddings = ContextAwareEmbeddings::new(Arc::new(mock));
 
     let result = embeddings.train_adapter(TaskType::CodeGeneration, &[]);
@@ -142,7 +142,7 @@ fn test_empty_training_pairs_error() {
 
 #[tokio::test]
 async fn test_backward_compatibility_no_adapters() {
-    let config = memory_core::embeddings::config::EmbeddingConfig::default();
+    let config = memory_core::embeddings::EmbeddingConfig::default();
     let base = match LocalEmbeddingProvider::new(config.model).await {
         Ok(provider) => Arc::new(provider),
         Err(_) => {

@@ -392,6 +392,7 @@ async fn test_multiple_episodes_concurrent_buffering() -> anyhow::Result<()> {
 
 /// Benchmark-style test to verify batching reduces operations
 #[tokio::test]
+#[allow(clippy::cast_precision_loss)]
 async fn test_batching_performance_improvement() -> anyhow::Result<()> {
     let step_count = 100;
 
@@ -473,7 +474,6 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
     println!(
         "Speedup:          {:.2}x",
         // Clippy: Precision loss acceptable for speedup calculation in test
-        #[allow(clippy::cast_precision_loss)]
         duration_no_batch.as_micros() as f64
             / duration_batch.as_micros() as f64
     );

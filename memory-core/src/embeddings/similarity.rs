@@ -249,7 +249,7 @@ pub fn weighted_similarity(
 /// * `embeddings` - Vector of embeddings to compare
 ///
 /// # Returns
-/// Symmetric similarity matrix where matrix[i][j] = similarity(embedding[i], embedding[j])
+/// Symmetric similarity matrix where matrix\[i\]\[j\] = similarity(embedding\[i\], embedding\[j\])
 pub fn similarity_matrix(embeddings: &[Vec<f32>]) -> Vec<Vec<f32>> {
     let n = embeddings.len();
     let mut matrix = vec![vec![0.0; n]; n];

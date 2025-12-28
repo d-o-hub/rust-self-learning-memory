@@ -25,7 +25,10 @@ async fn setup_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory>, T
     // Create memory system with redb storage
     // Note: For this test, we only use redb since Turso requires external setup
     let memory = SelfLearningMemory::with_storage(
-        MemoryConfig::default(),
+        MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        },
         redb_storage.clone(), // Use redb as both turso and cache for testing
         redb_storage,
     );
@@ -220,7 +223,10 @@ mod persistent_storage_tests {
         // Create storage and memory instance
         let redb_storage = Arc::new(RedbStorage::new(&redb_path).await.unwrap());
         let memory = SelfLearningMemory::with_storage(
-            MemoryConfig::default(),
+            MemoryConfig {
+                quality_threshold: 0.0, // Zero threshold for test episodes
+                ..Default::default()
+            },
             redb_storage.clone(),
             redb_storage,
         );

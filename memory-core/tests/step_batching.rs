@@ -279,7 +279,7 @@ async fn test_complete_episode_flushes_steps() -> anyhow::Result<()> {
 async fn test_batching_disabled() -> anyhow::Result<()> {
     // Arrange: Create memory with batching disabled
     let config = MemoryConfig {
-        batch_config: None, // No batching
+        batch_config: None,     // No batching
         quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };

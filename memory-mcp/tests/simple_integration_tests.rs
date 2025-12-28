@@ -2,14 +2,19 @@
 //!
 //! These tests verify basic MCP server functionality and database integration.
 
-use memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+use memory_core::{
+    ComplexityLevel, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+};
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
 #[tokio::test]
 async fn test_mcp_server_tools() {
-    let memory = Arc::new(SelfLearningMemory::new());
+    let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    }));
     let sandbox_config = SandboxConfig::restrictive();
     let mcp_server = Arc::new(
         MemoryMCPServer::new(sandbox_config, memory.clone())
@@ -18,8 +23,9 @@ async fn test_mcp_server_tools() {
     );
 
     // Test that server initializes with correct tools
+    // Available tools: query_memory, execute_agent_code, analyze_patterns, health_check, get_metrics, advanced_pattern_analysis, quality_metrics
     let tools = mcp_server.list_tools().await;
-    assert_eq!(tools.len(), 6);
+    assert_eq!(tools.len(), 7);
 
     let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
     assert!(tool_names.contains(&"query_memory".to_string()));
@@ -31,7 +37,10 @@ async fn test_mcp_server_tools() {
 
 #[tokio::test]
 async fn test_memory_query_with_episode() {
-    let memory = Arc::new(SelfLearningMemory::new());
+    let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    }));
     let sandbox_config = SandboxConfig::restrictive();
     let mcp_server = Arc::new(
         MemoryMCPServer::new(sandbox_config, memory.clone())
@@ -87,7 +96,10 @@ async fn test_memory_query_with_episode() {
 
 #[tokio::test]
 async fn test_tool_usage_tracking() {
-    let memory = Arc::new(SelfLearningMemory::new());
+    let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    }));
     let sandbox_config = SandboxConfig::restrictive();
     let mcp_server = Arc::new(
         MemoryMCPServer::new(sandbox_config, memory.clone())
@@ -116,7 +128,10 @@ async fn test_tool_usage_tracking() {
 
 #[tokio::test]
 async fn test_execution_attempt_tracking() {
-    let memory = Arc::new(SelfLearningMemory::new());
+    let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    }));
     let sandbox_config = SandboxConfig::restrictive();
     let mcp_server = Arc::new(
         MemoryMCPServer::new(sandbox_config, memory.clone())

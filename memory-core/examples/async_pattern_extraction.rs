@@ -11,7 +11,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 #[tokio::main]
-#[allow(clippy::uninlined-format-args)]
+#[allow(clippy::uninlined_format_args)]
 #[allow(clippy::cast_precision_loss)]
 async fn main() {
     println!("=== Async Pattern Extraction Demo ===\n");

@@ -17,17 +17,21 @@
 //!
 //! ## Usage
 //!
-//! ```rust
-//! use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider};
+//! ```rust,no_run
+//! use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
 //!
+//! # async fn example() -> anyhow::Result<()> {
 //! // Local embedding provider (offline)
-//! let provider = LocalEmbeddingProvider::new().await?;
+//! let config = ModelConfig::default();
+//! let provider = LocalEmbeddingProvider::new(config).await?;
 //!
 //! // Generate embedding for text
 //! let embedding = provider.embed_text("implement REST API").await?;
 //!
 //! // Calculate similarity between two texts
 //! let similarity = provider.similarity("REST API", "web service API").await?;
+//! # Ok(())
+//! # }
 //! ```
 
 mod circuit_breaker;

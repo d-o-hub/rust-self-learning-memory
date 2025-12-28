@@ -94,6 +94,7 @@ pub struct EpisodeSummary {
 /// use memory_core::semantic::SemanticSummarizer;
 /// use memory_core::{Episode, TaskContext, TaskType, ExecutionStep, ExecutionResult, TaskOutcome};
 ///
+/// # async fn example() -> anyhow::Result<()> {
 /// let summarizer = SemanticSummarizer::new();
 ///
 /// let mut episode = Episode::new(
@@ -112,11 +113,11 @@ pub struct EpisodeSummary {
 ///     artifacts: vec!["auth.rs".to_string()],
 /// });
 ///
-/// # tokio_test::block_on(async {
-/// let summary = summarizer.summarize_episode(&episode).await.unwrap();
+/// let summary = summarizer.summarize_episode(&episode).await?;
 /// assert!(summary.summary_text.split_whitespace().count() >= 50);
 /// assert!(!summary.key_concepts.is_empty());
-/// # });
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone)]
 pub struct SemanticSummarizer {
@@ -197,6 +198,7 @@ impl SemanticSummarizer {
     /// use memory_core::semantic::SemanticSummarizer;
     /// use memory_core::{Episode, TaskContext, TaskType};
     ///
+    /// # async fn example() -> anyhow::Result<()> {
     /// let summarizer = SemanticSummarizer::new();
     /// let episode = Episode::new(
     ///     "Test task".to_string(),
@@ -204,9 +206,9 @@ impl SemanticSummarizer {
     ///     TaskType::Testing,
     /// );
     ///
-    /// # tokio_test::block_on(async {
-    /// let summary = summarizer.summarize_episode(&episode).await.unwrap();
-    /// # });
+    /// let summary = summarizer.summarize_episode(&episode).await?;
+    /// # Ok(())
+    /// # }
     /// ```
     #[allow(clippy::unused_async)]
     pub async fn summarize_episode(&self, episode: &Episode) -> Result<EpisodeSummary> {

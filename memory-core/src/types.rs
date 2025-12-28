@@ -596,8 +596,8 @@ impl Default for ConcurrencyConfig {
 ///     enable_diversity_maximization: true,
 ///     diversity_lambda: 0.7,
 ///     enable_spatiotemporal_indexing: true,
-///     temporal_bias: 0.3,
-///     cluster_size_target: 50,
+///     temporal_bias_weight: 0.3,
+///     max_clusters_to_search: 5,
 /// };
 /// ```
 #[derive(Debug, Clone)]

@@ -45,13 +45,13 @@
 //! ```
 
 use anyhow::{anyhow, Result};
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info};
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};
-use base64::Engine;
 
 #[cfg(feature = "javy-backend")]
 use crate::javy_compiler::{JavyCompiler, JavyConfig};

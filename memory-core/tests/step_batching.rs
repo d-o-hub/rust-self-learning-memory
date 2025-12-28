@@ -27,6 +27,7 @@ async fn test_step_buffering_with_auto_flush_on_size() -> anyhow::Result<()> {
             flush_interval_ms: 60000, // Very long interval so only size triggers
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -91,6 +92,7 @@ async fn test_step_buffering_with_auto_flush_on_time() -> anyhow::Result<()> {
             flush_interval_ms: 100, // Short interval for test
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -149,6 +151,7 @@ async fn test_manual_flush() -> anyhow::Result<()> {
             flush_interval_ms: 60000,
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -208,6 +211,7 @@ async fn test_complete_episode_flushes_steps() -> anyhow::Result<()> {
             flush_interval_ms: 60000,
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -276,6 +280,7 @@ async fn test_batching_disabled() -> anyhow::Result<()> {
     // Arrange: Create memory with batching disabled
     let config = MemoryConfig {
         batch_config: None, // No batching
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -319,6 +324,7 @@ async fn test_multiple_episodes_concurrent_buffering() -> anyhow::Result<()> {
             flush_interval_ms: 5000,
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -399,6 +405,7 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
     // Test 1: Without batching (immediate persistence)
     let config_no_batch = MemoryConfig {
         batch_config: None,
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory_no_batch = setup_memory_with_config(config_no_batch);
@@ -429,6 +436,7 @@ async fn test_batching_performance_improvement() -> anyhow::Result<()> {
             flush_interval_ms: 60000,
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory_batch = setup_memory_with_config(config_batch);
@@ -493,6 +501,7 @@ async fn test_no_data_loss_on_flush() -> anyhow::Result<()> {
             flush_interval_ms: 60000,
             auto_flush: true,
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -550,6 +559,7 @@ async fn test_flush_empty_buffer() -> anyhow::Result<()> {
     // Arrange
     let config = MemoryConfig {
         batch_config: Some(BatchConfig::default()),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -575,6 +585,7 @@ async fn test_flush_nonexistent_episode() -> anyhow::Result<()> {
     // Arrange
     let config = MemoryConfig {
         batch_config: Some(BatchConfig::default()),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -603,6 +614,7 @@ async fn test_manual_flush_only_mode() -> anyhow::Result<()> {
             flush_interval_ms: 1000,
             auto_flush: false, // Manual only
         }),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);
@@ -677,6 +689,7 @@ async fn test_batch_config_presets() -> anyhow::Result<()> {
     // Verify high_frequency actually flushes more often
     let config = MemoryConfig {
         batch_config: Some(BatchConfig::high_frequency()),
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);

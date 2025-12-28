@@ -26,9 +26,13 @@ use std::time::{Duration, Instant};
 // Test Utilities
 // ============================================================================
 
-/// Create a test memory instance
+/// Create a test memory instance with zero quality threshold
 fn setup_test_memory() -> SelfLearningMemory {
-    SelfLearningMemory::new()
+    let config = MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    };
+    SelfLearningMemory::with_config(config)
 }
 
 /// Create memory with custom config
@@ -546,6 +550,7 @@ async fn should_cleanup_cache_when_exceeding_limits() {
             max_episodes_cache: 100,
             ..Default::default()
         },
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     };
     let memory = setup_memory_with_config(config);

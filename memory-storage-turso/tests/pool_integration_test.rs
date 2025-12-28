@@ -6,10 +6,13 @@ use std::time::{Duration, Instant};
 use tempfile::TempDir;
 
 async fn create_test_pool() -> (Arc<ConnectionPool>, TempDir) {
-    let dir = TempDir::new().unwrap();
+    let dir = TempDir::new().expect("Failed to create temp dir");
     let db_path = dir.path().join("test.db");
 
-    let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+    let db = libsql::Builder::new_local(&db_path)
+        .build()
+        .await
+        .expect("Failed to create test database");
 
     let config = PoolConfig {
         max_connections: 10,
@@ -18,7 +21,9 @@ async fn create_test_pool() -> (Arc<ConnectionPool>, TempDir) {
         health_check_timeout: Duration::from_secs(2),
     };
 
-    let pool = ConnectionPool::new(Arc::new(db), config).await.unwrap();
+    let pool = ConnectionPool::new(Arc::new(db), config)
+        .await
+        .expect("Failed to create connection pool");
     (Arc::new(pool), dir)
 }
 

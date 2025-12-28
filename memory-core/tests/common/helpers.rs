@@ -13,8 +13,6 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 /// Note: Uses a very low quality threshold (0.1) for testing to avoid
 /// rejecting test episodes that are intentionally simple or minimal
 /// (e.g., episodes with no steps to test edge cases).
-/// Also disables diversity maximization to allow retrieval limit tests
-/// to work with similar episodes.
 ///
 /// # Examples
 ///
@@ -24,8 +22,27 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 pub fn setup_test_memory() -> SelfLearningMemory {
     let config = MemoryConfig {
         quality_threshold: 0.1, // Very low threshold for test episodes (allows minimal episodes)
-        enable_diversity_maximization: false, // Disable diversity for predictable test results
-        enable_spatiotemporal_indexing: false, // Disable hierarchical retrieval for predictable limits
+        ..Default::default()
+    };
+    SelfLearningMemory::with_config(config)
+}
+
+/// Create a simple test memory instance without advanced features
+///
+/// This disables spatiotemporal indexing and diversity maximization
+/// for tests that need predictable, deterministic behavior (e.g., testing
+/// exact retrieval limits with similar episodes).
+///
+/// # Examples
+///
+/// ```ignore
+/// let memory = setup_simple_test_memory();
+/// ```
+pub fn setup_simple_test_memory() -> SelfLearningMemory {
+    let config = MemoryConfig {
+        quality_threshold: 0.1,                // Very low threshold for test episodes
+        enable_diversity_maximization: false,  // Disable for predictable results
+        enable_spatiotemporal_indexing: false, // Disable for exact limit control
         ..Default::default()
     };
     SelfLearningMemory::with_config(config)

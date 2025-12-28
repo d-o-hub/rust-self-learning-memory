@@ -167,7 +167,7 @@ async fn should_learn_from_multiple_episodes_in_same_domain() {
 #[tokio::test]
 async fn should_learn_from_failed_episodes_with_improvement_insights() {
     // Given: A memory system and a complex task context
-    let memory = SelfLearningMemory::new();
+    let memory = setup_test_memory();
     let context = TaskContext {
         complexity: ComplexityLevel::Complex,
         domain: "distributed-systems".to_string(),
@@ -224,7 +224,7 @@ async fn should_learn_from_failed_episodes_with_improvement_insights() {
 #[tokio::test]
 async fn should_handle_concurrent_episode_operations_safely() {
     // Given: A shared memory system
-    let memory = SelfLearningMemory::new();
+    let memory = setup_test_memory();
 
     // When: We create and complete multiple episodes concurrently
     let mut handles = vec![];
@@ -281,7 +281,7 @@ async fn should_handle_concurrent_episode_operations_safely() {
 #[tokio::test]
 async fn should_extract_patterns_accurately_from_error_recovery_episodes() {
     // Given: A memory system
-    let memory = SelfLearningMemory::new();
+    let memory = setup_test_memory();
 
     // When: We create an error recovery episode
     let context = TaskContext {

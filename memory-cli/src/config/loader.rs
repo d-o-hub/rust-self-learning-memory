@@ -551,11 +551,16 @@ mod cache_tests {
         // Clear cache
         clear_cache();
 
-        // Verify cache was cleared (entries should be <= original count due to parallel tests)
+        // Verify cache was cleared (should have fewer entries than after load)
+        // Note: We compare against stats_after_load rather than entries_before
+        // because parallel tests may be adding entries to the shared cache
         let stats_after_clear = cache_stats();
         assert!(
-            stats_after_clear.entries <= entries_before,
-            "Cache entries should not exceed original count after clear"
+            stats_after_clear.entries < stats_after_load.entries,
+            "Cache should have fewer entries after clear (before: {}, after load: {}, after clear: {})",
+            entries_before,
+            stats_after_load.entries,
+            stats_after_clear.entries
         );
     }
 

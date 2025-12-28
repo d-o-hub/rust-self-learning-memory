@@ -100,6 +100,10 @@ Examples:
 - `docs(readme): update performance metrics for v0.1.7`
 - `refactor(embeddings): simplify multi-provider interface`
 
+**Field Renaming**: When renaming fields, include the old and new field names in commit messages to help reviewers:
+- `refactor(episode): rename field_name to new_field_name for clarity`
+- `feat(storage): rename old_id to external_id to match API spec`
+
 ## Security Guidelines
 - Use environment variables for all secrets (never hardcode)
 - Use parameterized queries for all SQL operations

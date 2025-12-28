@@ -49,3 +49,8 @@ jobs:
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
             -A clippy::unwrap_used
+
+      - name: Run documentation tests
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/check-doctests.sh

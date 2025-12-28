@@ -46,12 +46,12 @@ fi
 
 # 2. Build documentation to check for broken links and warnings
 section "Building documentation (cargo doc --no-deps --document-private-items)..."
-if cargo doc --no-deps --document-private-items --quiet 2>&1 | tail -5 | grep -q "Finished"; then
+if RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items >/dev/null 2>&1; then
     success "Documentation built successfully"
 else
     failure "Documentation build failed or produced warnings"
     echo "Running with verbose output:"
-    cargo doc --no-deps --document-private-items
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items
     exit 1
 fi
 

@@ -36,9 +36,9 @@ echo "  ✅ Tests OK"
 
 # 4. Run documentation tests
 echo "  ├─ Running documentation tests..."
-if ! cargo test --doc --quiet 2>&1 | grep -q "test result: ok"; then
+if ! ./scripts/check-doctests.sh >/dev/null 2>&1; then
     echo "  ❌ Documentation tests failed. Please fix before committing."
-    cargo test --doc
+    ./scripts/check-doctests.sh
     exit 1
 fi
 echo "  ✅ Documentation tests OK"

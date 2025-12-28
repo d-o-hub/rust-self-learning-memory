@@ -94,6 +94,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2.8.2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
       - name: Run documentation tests
         run: ./scripts/check-doctests.sh
 

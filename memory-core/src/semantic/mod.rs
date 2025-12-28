@@ -14,6 +14,7 @@
 //! use memory_core::semantic::{SemanticSummarizer, EpisodeSummary};
 //! use memory_core::{Episode, TaskContext, TaskType};
 //!
+//! # async fn example() -> anyhow::Result<()> {
 //! let summarizer = SemanticSummarizer::new();
 //!
 //! let episode = Episode::new(
@@ -22,12 +23,12 @@
 //!     TaskType::CodeGeneration,
 //! );
 //!
-//! # tokio_test::block_on(async {
-//! let summary = summarizer.summarize_episode(&episode).await.unwrap();
+//! let summary = summarizer.summarize_episode(&episode).await?;
 //! println!("Summary: {}", summary.summary_text);
 //! println!("Key concepts: {:?}", summary.key_concepts);
 //! println!("Key steps: {:?}", summary.key_steps);
-//! # });
+//! # Ok(())
+//! # }
 //! ```
 
 pub mod summary;

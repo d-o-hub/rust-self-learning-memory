@@ -593,6 +593,11 @@ impl Default for ConcurrencyConfig {
 ///     summary_min_length: 100,
 ///     summary_max_length: 200,
 ///     quality_threshold: 0.7,
+///     enable_diversity_maximization: true,
+///     diversity_lambda: 0.7,
+///     enable_spatiotemporal_indexing: true,
+///     temporal_bias: 0.3,
+///     cluster_size_target: 50,
 /// };
 /// ```
 #[derive(Debug, Clone)]

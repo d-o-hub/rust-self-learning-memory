@@ -67,7 +67,8 @@ pub struct EmbeddingMetadata {
 /// Similarity score between 0.0 and 1.0
 ///
 /// # Example
-/// ```
+/// ```ignore
+/// // Note: similarity module is private, this is for internal documentation only
 /// use memory_core::embeddings::similarity::cosine_similarity;
 ///
 /// let vec1 = vec![1.0, 2.0, 3.0];

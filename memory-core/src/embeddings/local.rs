@@ -22,7 +22,7 @@ use tokio::sync::RwLock;
 ///
 /// # Example
 /// ```no_run
-/// use memory_core::embeddings::{LocalEmbeddingProvider, ModelConfig};
+/// use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
@@ -31,7 +31,7 @@ use tokio::sync::RwLock;
 ///         384
 ///     );
 ///     let provider = LocalEmbeddingProvider::new(config).await?;
-///     
+///
 ///     let embedding = provider.embed_text("Hello world").await?;
 ///     println!("Generated embedding with {} dimensions", embedding.len());
 ///     Ok(())

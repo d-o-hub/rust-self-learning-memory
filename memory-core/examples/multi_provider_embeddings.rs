@@ -7,7 +7,7 @@
 //!
 //! Run with: cargo run --example `multi_provider_embeddings` --features openai
 
-#![allow(clippy::doc_markdown, clippy::unnecessary-wraps)]
+#![allow(clippy::doc_markdown, clippy::unnecessary_wraps)]
 
 use memory_core::embeddings::ModelConfig;
 

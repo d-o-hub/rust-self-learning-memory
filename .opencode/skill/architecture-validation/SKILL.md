@@ -1,3 +1,9 @@
+---
+name: architecture-validation
+description: Dynamically validate codebase compliance with architectural decisions and constraints
+audience: architects
+workflow: architecture-review
+---
 # Architecture Validation Skill
 
 Dynamically validate that the implemented codebase matches the architectural decisions, design patterns, and system constraints documented in ANY plan files found in the `plans/` directory.
@@ -85,19 +91,19 @@ cat plans/README.md
 ### Phase 2: Architecture Extraction
 ```bash
 # Extract components/crates
-grep -rh "crate\|component\|module" plans/ | sort -u
+grep -rh "crate|component|module" plans/ | sort -u
 
 # Extract dependencies
-grep -rh "depend\|flow\|import" plans/ | sort -u
+grep -rh "depend|flow|import" plans/ | sort -u
 
 # Extract performance targets
-grep -rh "target\|metric\|<.*ms\|P[0-9]" plans/ | sort -u
+grep -rh "target|metric|<.*ms|P[0-9]" plans/ | sort -u
 
 # Extract security requirements
-grep -rh "security\|threat\|attack" plans/ -i | sort -u
+grep -rh "security|threat|attack" plans/ -i | sort -u
 
 # Extract data models
-grep -rh "struct\|enum\|type\|schema" plans/ | sort -u
+grep -rh "struct|enum|type|schema" plans/ | sort -u
 ```
 
 **Output**: Structured list of architectural elements
@@ -325,7 +331,7 @@ head -20 plans/README.md
 # Extract all architectural keywords
 for file in plans/*.md; do
   echo "=== $file ==="
-  grep -i "decision:\|requirement:\|target:\|constraint:" "$file"
+  grep -i "decision:|requirement:|target:|constraint:" "$file"
 done
 ```
 
@@ -591,6 +597,32 @@ In `plans/06-feedback-loop.md`:
 - `rust-code-quality`: Validates Rust-specific code quality
 - `code-reviewer`: Reviews code changes for quality
 - `episode-complete`: For recording validation learnings in memory system
+- `github-release-best-practices`: For release architecture validation and quality gates
+
+## GitHub Release Integration
+
+This skill provides architecture validation capabilities for release preparation workflows:
+
+### Pre-Release Architecture Review
+When preparing releases, use this skill to validate:
+- **Architectural Consistency**: Ensure changes align with overall system design
+- **Module Dependencies**: Verify new features don't break existing architectural patterns
+- **Performance Impact**: Assess architectural implications of changes on system performance
+- **Security Architecture**: Validate security considerations in release changes
+
+### Release Quality Gates
+Integrate architecture validation into release workflows:
+1. **Pre-Implementation**: Baseline architecture assessment
+2. **During Development**: Ongoing architecture compliance checks
+3. **Pre-Release**: Comprehensive architecture validation
+4. **Post-Release**: Architecture impact assessment
+
+### Coordination with Release Best Practices
+- **github-release-best-practices**: Incorporates architecture validation in quality gates
+- **goap-agent**: Uses architecture validation for complex release planning
+- **code-reviewer**: Combines code quality with architectural compliance assessment
+
+This integration ensures releases maintain architectural integrity while following 2025 GitHub release best practices.
 
 ## Resources
 

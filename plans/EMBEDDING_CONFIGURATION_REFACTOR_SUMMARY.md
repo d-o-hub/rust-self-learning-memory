@@ -4,6 +4,10 @@
 
 Successfully refactored the embedding provider configuration system to support multiple API providers (OpenAI, Mistral AI, Azure OpenAI, and custom providers) without hardcoded URLs.
 
+**Status**: ✅ COMPLETE (v0.1.7)
+**Completion**: 2025-12-28
+**Test Status**: All 8 configuration tests passing
+
 ## Changes Made
 
 ### 1. Core Configuration (`memory-core/src/embeddings/config.rs`)

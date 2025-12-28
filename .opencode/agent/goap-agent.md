@@ -317,6 +317,11 @@ Use loop-agent for:
 
 ### Available Agents & Capabilities
 
+#### github-release-best-practices
+- **Strengths**: GitHub release creation, changelog management, semantic versioning, quality gates
+- **Best For**: Release preparation, version bumping, changelog updates, release note generation
+- **Output**: Complete releases with proper metadata, updated changelogs, version coordination
+
 #### test-runner
 - **Strengths**: Test execution, debugging test failures, async/await issues
 - **Best For**: Testing, verification, quality assurance
@@ -614,6 +619,66 @@ Release Status: READY ✓
 Recommendations:
 - Consider implementing suggested optimizations in next release
 - Add performance regression tests
+```
+
+### Example 4: Complete Release Preparation and Creation
+
+```
+User: "Prepare and create v0.1.8 release with comprehensive changelog and GitHub release"
+
+GOAP Analysis:
+- Complexity: High (multiple phases, quality gates, release coordination)
+- Strategy: Hybrid (sequential preparation + parallel validation + release creation)
+
+Execution Plan:
+
+Phase 1: Pre-Release Analysis (Sequential)
+└─ github-release-best-practices: Analyze changes, determine version bump
+   - Review commits since v0.1.7
+   - Assess semantic versioning impact (patch vs minor)
+   - Identify affected workspace crates
+
+Phase 2: Quality Validation (Parallel)
+├─ test-runner: Verify all tests pass and coverage maintained
+├─ code-reviewer: Final code quality audit (fmt, clippy, warnings)
+├─ security: Complete security audit (cargo audit, deny)
+└─ testing-qa: Validate quality gates (>90% coverage, zero warnings)
+
+Phase 3: Changelog and Documentation (Sequential)
+└─ github-release-best-practices: Update CHANGELOG.md and prepare release notes
+   - Generate changelog entry following Keep a Changelog format
+   - Create comprehensive release notes with proper categorization
+   - Include breaking changes migration guide if applicable
+
+Phase 4: Release Creation (Sequential)
+└─ github-release-best-practices: Create GitHub release with 2025 best practices
+   - Create git tag v0.1.8
+   - Generate auto-release notes with human enhancement
+   - Handle immutable release features (draft-first approach)
+   - Publish release with proper metadata
+
+Quality Gates:
+- After Phase 1: Version determination justified and documented
+- After Phase 2: All CI checks passing, security audit clean
+- After Phase 3: Changelog complete with proper formatting
+- After Phase 4: Release created successfully with verification
+
+[Execute coordination plan...]
+
+Summary:
+✓ Version Analysis: v0.1.7 → v0.1.8 (PATCH - bug fixes and CI improvements)
+✓ Quality Gates: All tests passing (424/427), 92.5% coverage, zero clippy warnings
+✓ Security: cargo audit clean, no vulnerabilities found
+✓ Changelog: Complete entry in Keep a Changelog format
+✓ GitHub Release: v0.1.8 created with comprehensive notes and proper categorization
+
+Release Artifacts:
+- Changelog: Updated CHANGELOG.md with v0.1.8 entry
+- Git Tag: v0.1.8 pushed and verified
+- GitHub Release: Professional release with auto-generated + enhanced notes
+- CI Integration: All workflows validated and green
+
+Status: RELEASE COMPLETE ✓
 ```
 
 ## Error Handling & Recovery

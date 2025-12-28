@@ -98,6 +98,7 @@ async fn run_backend_comparison(
     operation_fn(memory).await;
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_backend_write_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_write_performance");
     group.sample_size(20);
@@ -144,6 +145,7 @@ fn benchmark_backend_write_performance(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_backend_read_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_read_performance");
     group.sample_size(20);
@@ -212,6 +214,7 @@ fn benchmark_backend_read_performance(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_backend_bulk_operations(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_bulk_operations");
     group.sample_size(10);
@@ -271,6 +274,7 @@ fn benchmark_backend_bulk_operations(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_concurrent_performance");
     group.sample_size(5);
@@ -338,7 +342,7 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
                                                 )
                                                 .await;
                                         } else {
-                                            let episode_id = memory
+                                            let _episode_id = memory
                                                 .start_episode(
                                                     format!("Concurrent write {}:{}", thread_id, i),
                                                     context.clone(),
@@ -364,6 +368,7 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_backend_storage_efficiency(c: &mut Criterion) {
     let mut group = c.benchmark_group("backend_storage_efficiency");
     group.sample_size(10);

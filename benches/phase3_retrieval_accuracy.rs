@@ -86,8 +86,8 @@ fn benchmark_phase3_retrieval_accuracy(c: &mut Criterion) {
     let memory = SelfLearningMemory::with_config(config);
 
     // Pre-populate with diverse episodes
-    let domains = vec!["web-api", "data-science", "devops", "mobile-app"];
-    let task_types = vec![
+    let domains = ["web-api", "data-science", "devops", "mobile-app"];
+    let task_types = [
         TaskType::CodeGeneration,
         TaskType::Analysis,
         TaskType::Testing,

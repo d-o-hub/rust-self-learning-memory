@@ -547,8 +547,8 @@ fn end_to_end_retrieval_performance(c: &mut Criterion) {
     let memory = SelfLearningMemory::with_config(config);
 
     // Create realistic dataset
-    let domains = vec!["web-api", "data-science", "devops", "mobile-app"];
-    let task_types = vec![
+    let domains = ["web-api", "data-science", "devops", "mobile-app"];
+    let task_types = [
         TaskType::CodeGeneration,
         TaskType::Debugging,
         TaskType::Testing,

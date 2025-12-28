@@ -6,11 +6,17 @@
 //! - Optimize batch processing
 //! - Handle large datasets efficiently
 //!
-//! Run with: cargo run --example embedding_optimization_demo
+//! Run with: cargo run --example `embedding_optimization_demo`
+
+#![allow(
+    clippy::uninlined_format_args,
+    clippy::doc_markdown,
+    clippy::unnecessary_wraps
+)]
 
 use memory_core::embeddings::{ModelConfig, OptimizationConfig};
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     println!("🚀 Embedding Provider Optimization Demo\n");
     println!("{}", "=".repeat(70));
 
@@ -213,8 +219,6 @@ fn main() -> anyhow::Result<()> {
 See EMBEDDING_OPTIMIZATION_GUIDE.md for detailed strategies.
 "
     );
-
-    Ok(())
 }
 
 fn print_optimization_config(name: &str, config: &OptimizationConfig) {

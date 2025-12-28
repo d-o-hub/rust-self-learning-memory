@@ -898,6 +898,7 @@ impl SelfLearningMemory {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::embeddings::ModelConfig;
     use crate::episode::ExecutionStep;
     use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
 
@@ -1338,7 +1339,7 @@ mod tests {
 
         let custom_config = EmbeddingConfig {
             provider: EmbeddingProviderType::Local,
-            model: Default::default(),
+            model: ModelConfig::default(),
             similarity_threshold: 0.8,
             batch_size: 16,
             cache_embeddings: false,

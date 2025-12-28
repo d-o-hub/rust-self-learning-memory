@@ -25,6 +25,7 @@ use std::sync::Arc;
 use tokio::time::{sleep, Duration};
 
 #[tokio::main]
+#[allow(clippy::unwrap_used)]
 async fn main() -> anyhow::Result<()> {
     println!("🚀 Memory MCP Integration Sample");
     println!("================================\n");

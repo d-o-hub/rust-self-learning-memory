@@ -11,6 +11,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 #[tokio::main]
+#[allow(clippy::uninlined-format-args)]
+#[allow(clippy::cast_precision_loss)]
 async fn main() {
     println!("=== Async Pattern Extraction Demo ===\n");
 
@@ -22,7 +24,7 @@ async fn main() {
     let sync_episode_id = create_and_complete_episode(&sync_memory, "Sync task").await;
     let sync_duration = start.elapsed();
 
-    println!("   Episode completed in: {:?}", sync_duration);
+    println!("   Episode completed in: {sync_duration:?}");
     println!("   Patterns extracted: immediately\n");
 
     // ===== Asynchronous Pattern Extraction =====
@@ -45,7 +47,7 @@ async fn main() {
     let async_episode_id = create_and_complete_episode(&async_memory, "Async task").await;
     let async_duration = start.elapsed();
 
-    println!("   Episode completed in: {:?}", async_duration);
+    println!("   Episode completed in: {async_duration:?}");
     println!("   Patterns extracting: in background\n");
 
     // Check queue stats

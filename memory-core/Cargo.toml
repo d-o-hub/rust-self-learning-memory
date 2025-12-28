@@ -19,7 +19,7 @@ openai = ["reqwest"]
 # Enable all embedding providers
 embeddings-full = ["openai"]
 # Enable local embedding models (requires model files)
-local-embeddings = ["ort", "tokenizers", "ndarray"]
+local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
 
 [dependencies]
 # Async runtime
@@ -40,6 +40,9 @@ chrono = { workspace = true }
 
 # Logging
 tracing = { workspace = true }
+
+# Futures utilities
+futures = { workspace = true }
 
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.12", features = ["json"], optional = true }

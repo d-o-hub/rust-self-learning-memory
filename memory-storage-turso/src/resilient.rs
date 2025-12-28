@@ -256,6 +256,73 @@ impl StorageBackend for ResilientStorage {
             })
             .await
     }
+
+    async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
+        let storage = Arc::clone(&self.storage);
+        let id_string = id.to_string();
+        let embedding_clone = embedding.clone();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                let id = id_string;
+                let embedding = embedding_clone;
+                async move { storage.store_embedding_backend(&id, embedding).await }
+            })
+            .await
+    }
+
+    async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
+        let storage = Arc::clone(&self.storage);
+        let id_string = id.to_string();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                let id = id_string;
+                async move { storage.get_embedding_backend(&id).await }
+            })
+            .await
+    }
+
+    async fn delete_embedding(&self, id: &str) -> Result<bool> {
+        let storage = Arc::clone(&self.storage);
+        let id_string = id.to_string();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                let id = id_string;
+                async move { storage.delete_embedding_backend(&id).await }
+            })
+            .await
+    }
+
+    async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
+        let storage = Arc::clone(&self.storage);
+        let embeddings_clone = embeddings.clone();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                let embeddings = embeddings_clone;
+                async move { storage.store_embeddings_batch_backend(embeddings).await }
+            })
+            .await
+    }
+
+    async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
+        let storage = Arc::clone(&self.storage);
+        let ids_vec = ids.to_vec();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                let ids = ids_vec;
+                async move { storage.get_embeddings_batch_backend(&ids).await }
+            })
+            .await
+    }
 }
 
 #[cfg(test)]

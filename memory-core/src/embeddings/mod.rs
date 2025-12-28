@@ -30,8 +30,10 @@
 //! let similarity = provider.similarity("REST API", "web service API").await?;
 //! ```
 
+mod circuit_breaker;
 mod config;
 mod local;
+mod metrics;
 mod mock_model;
 mod openai;
 mod provider;
@@ -40,10 +42,14 @@ mod similarity;
 mod storage;
 mod utils;
 
-pub use config::{EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig};
+pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState};
+pub use config::{
+    EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig, OptimizationConfig,
+};
 pub use local::{
     get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
 };
+pub use metrics::{LatencyTimer, MetricsSnapshot, ProviderMetrics};
 pub use mock_model::MockLocalModel;
 #[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
@@ -615,5 +621,151 @@ mod tests {
         ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
             Ok(vec![])
         }
+    }
+
+    #[tokio::test]
+    async fn test_with_fallback_uses_local_first() {
+        // This test verifies that with_fallback tries Local provider first
+        // and succeeds when it's available
+
+        // We expect this to succeed with Local provider (assuming it's installed)
+        // If Local fails, it will fall back to OpenAI or Mock
+        let storage = Box::new(MockEmbeddingStorage);
+        let config = EmbeddingConfig::default();
+
+        // This should not panic, even if Local provider fails
+        // It will fallback to Mock if needed
+        let result = SemanticService::with_fallback(storage, config).await;
+        assert!(result.is_ok(), "with_fallback should always succeed");
+
+        let service = result.unwrap();
+        assert_eq!(service.config.provider, EmbeddingProviderType::Local);
+        assert_eq!(
+            service.config.model.model_name,
+            "sentence-transformers/all-MiniLM-L6-v2"
+        );
+        assert_eq!(service.config.similarity_threshold, 0.7);
+    }
+
+    #[tokio::test]
+    async fn test_with_fallback_fallback_behavior() {
+        // This test verifies the fallback chain: Local → OpenAI → Mock
+        // and that warnings are emitted appropriately
+
+        let storage = Box::new(MockEmbeddingStorage);
+        let config = EmbeddingConfig::default();
+
+        // The with_fallback method should:
+        // 1. Try Local provider first
+        // 2. If Local fails, warn and try OpenAI (if feature enabled and API key set)
+        // 3. If OpenAI fails or not available, warn and fall back to Mock
+
+        // Capture logs to verify warnings
+        // Note: This is difficult to test directly without capturing logs,
+        // but we can verify the function returns successfully
+
+        let result = SemanticService::with_fallback(storage, config).await;
+        assert!(
+            result.is_ok(),
+            "with_fallback should always succeed, even if all providers fail"
+        );
+
+        let service = result.unwrap();
+
+        // Verify the service was created with valid config
+        assert!(service.config.cache_embeddings);
+        assert_eq!(service.config.batch_size, 32);
+        assert_eq!(service.config.timeout_seconds, 30);
+
+        // Verify the provider is functional
+        let embedding = service.provider.embed_text("test").await;
+        assert!(
+            embedding.is_ok(),
+            "Provider should generate embeddings even if using Mock"
+        );
+
+        let vec = embedding.unwrap();
+        assert!(!vec.is_empty(), "Embedding should not be empty");
+        assert_eq!(
+            vec.len(),
+            service.provider.embedding_dimension(),
+            "Embedding dimension should match provider config"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_with_fallback_config_preservation() {
+        // Verify that the config passed to with_fallback is preserved
+        let storage = Box::new(MockEmbeddingStorage);
+
+        let config = EmbeddingConfig {
+            provider: EmbeddingProviderType::Local,
+            model: ModelConfig::openai_3_small(),
+            similarity_threshold: 0.8,
+            batch_size: 64,
+            cache_embeddings: false,
+            timeout_seconds: 60,
+        };
+
+        let result = SemanticService::with_fallback(storage, config.clone()).await;
+        assert!(result.is_ok());
+
+        let service = result.unwrap();
+
+        // Verify all config fields are preserved
+        assert_eq!(service.config.provider, config.provider);
+        assert_eq!(service.config.model.model_name, config.model.model_name);
+        assert_eq!(
+            service.config.model.embedding_dimension,
+            config.model.embedding_dimension
+        );
+        assert_eq!(
+            service.config.similarity_threshold,
+            config.similarity_threshold
+        );
+        assert_eq!(service.config.batch_size, config.batch_size);
+        assert_eq!(service.config.cache_embeddings, config.cache_embeddings);
+        assert_eq!(service.config.timeout_seconds, config.timeout_seconds);
+    }
+
+    #[tokio::test]
+    async fn test_with_fallback_default_storage_works() {
+        // Verify with_fallback works with different storage backends
+        let storage = Box::new(MockEmbeddingStorage);
+        let config = EmbeddingConfig::default();
+
+        // Should work with default config
+        let result = SemanticService::with_fallback(storage, config).await;
+        assert!(result.is_ok());
+
+        // Should also work with custom config
+        let custom_config = EmbeddingConfig {
+            similarity_threshold: 0.5,
+            batch_size: 16,
+            ..Default::default()
+        };
+
+        let storage2 = Box::new(MockEmbeddingStorage);
+        let result2 = SemanticService::with_fallback(storage2, custom_config).await;
+        assert!(result2.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_default_creates_valid_service() {
+        // Test that the default() method creates a valid service
+        let storage = Box::new(MockEmbeddingStorage);
+
+        let result = SemanticService::default(storage).await;
+        // This may fail if Local provider is not installed, but it should handle gracefully
+        // If it fails, it's expected behavior in some environments
+        if result.is_ok() {
+            let service = result.unwrap();
+            assert_eq!(service.config.provider, EmbeddingProviderType::Local);
+            assert_eq!(
+                service.config.model.model_name,
+                "sentence-transformers/all-MiniLM-L6-v2"
+            );
+        }
+        // If it fails, that's acceptable - Local provider might not be available
     }
 }

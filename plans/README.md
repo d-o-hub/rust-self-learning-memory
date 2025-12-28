@@ -80,9 +80,13 @@ This directory contains comprehensive implementation plans, architectural decisi
 - **[archive/15-long-term-vision.md](archive/15-long-term-vision.md)** - Strategic vision for v1.0 (2027) - archived
 
 #### 🏗️ Architecture & Implementation
-- **[CURRENT_ARCHITECTURE_STATE.md](CURRENT_ARCHITECTURE_STATE.md)** - Detailed architecture documentation (needs split: 858 lines)
-- **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Implementation status and technical specifications (needs split: 610 lines)
-- **[archive/21-architecture-decision-records.md](archive/21-architecture-decision-records.md)** - Architectural decision records - archived
+- **[ARCHITECTURE_CORE.md](ARCHITECTURE/ARCHITECTURE_CORE.md)** - Core architecture documentation
+- **[ARCHITECTURE_PATTERNS.md](ARCHITECTURE/ARCHITECTURE_PATTERNS.md)** - Architecture patterns and best practices
+- **[ARCHITECTURE_INTEGRATION.md](ARCHITECTURE/ARCHITECTURE_INTEGRATION.md)** - Integration architecture
+- **[IMPLEMENTATION_STATUS.md](STATUS/IMPLEMENTATION_STATUS.md)** - Current implementation status
+- **[IMPLEMENTATION_PHASE1.md](STATUS/IMPLEMENTATION_PHASE1.md)** - Phase 1 implementation details
+- **[IMPLEMENTATION_PHASE2.md](STATUS/IMPLEMENTATION_PHASE2.md)** - Phase 2 implementation details
+- **[ARCHITECTURE_DECISION_RECORDS.md](ARCHITECTURE/ARCHITECTURE_DECISION_RECORDS.md)** - Architectural decision records
 
 #### ⚡ Performance & Optimization
 - **[VECTOR_SEARCH_OPTIMIZATION.md](VECTOR_SEARCH_OPTIMIZATION.md)** - ⚡ **NEW (2025-12-27)** - Turso native vector storage analysis, 10-100x performance opportunity, migration plan from JSON to F32_BLOB with DiskANN indexing

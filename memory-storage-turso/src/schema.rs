@@ -51,17 +51,30 @@ CREATE TABLE IF NOT EXISTS heuristics (
 )
 "#;
 
-/// SQL to create the embeddings table
+/// SQL to create the embeddings table with native vector support
+///
+/// Uses Turso's F32_BLOB(384) for native vector storage with DiskANN indexing.
+/// The embedding_data column is kept for JSON serialization compatibility.
 pub const CREATE_EMBEDDINGS_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings (
     embedding_id TEXT PRIMARY KEY NOT NULL,
     item_id TEXT NOT NULL,
     item_type TEXT NOT NULL,
     embedding_data TEXT NOT NULL,
+    embedding_vector F32_BLOB(384),
     dimension INTEGER NOT NULL,
     model TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
+"#;
+
+/// SQL to create DiskANN vector index for fast similarity search
+///
+/// This creates a specialized vector index that enables 10-100x faster
+/// similarity search compared to brute-force scanning.
+pub const CREATE_EMBEDDINGS_VECTOR_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_embeddings_vector
+ON embeddings(libsql_vector_idx(embedding_vector))
 "#;
 
 /// Index on embeddings for fast item lookups

@@ -330,6 +330,27 @@ impl SelfLearningMemory {
             }
         }
 
+        // ============================================================================
+        // Semantic Search - Generate and store embedding
+        // ============================================================================
+
+        // Generate and store embedding for semantic search
+        if let Some(ref semantic) = self.semantic_service {
+            if let Err(e) = semantic.embed_episode(episode).await {
+                warn!(
+                    episode_id = %episode_id,
+                    error = %e,
+                    "Failed to generate embedding for episode. Continuing without embedding."
+                );
+                // Don't fail entire operation on embedding error
+            } else {
+                debug!(
+                    episode_id = %episode_id,
+                    "Successfully generated embedding for episode"
+                );
+            }
+        }
+
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {
             // Async path: enqueue for background processing

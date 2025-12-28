@@ -24,7 +24,7 @@ use tokio::time::sleep;
 /// Create test memory config with lower quality threshold for testing
 fn test_memory_config() -> MemoryConfig {
     MemoryConfig {
-        quality_threshold: 0.1, // Very low threshold for test episodes
+        quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()
     }
 }

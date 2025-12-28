@@ -46,8 +46,8 @@ pub use types::{
 };
 
 pub use loader::{
-    detect_format, load_config, load_config_verbose, load_config_with_format, ConfigFormat,
-    ConfigWriter,
+    cache_stats, clear_cache, detect_format, load_config, load_config_verbose,
+    load_config_with_format, CacheStats, ConfigFormat, ConfigWriter,
 };
 
 pub use validator::{

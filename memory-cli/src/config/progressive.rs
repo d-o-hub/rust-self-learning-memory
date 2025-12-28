@@ -29,7 +29,7 @@
 //! ## Simple Mode (Guided preset selection)
 //!
 //! ```no_run
-//! use memory_cli::config::progressive::{SimpleSetup, ConfigPreset};
+//! use memory_cli::config::{SimpleSetup, ConfigPreset};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
@@ -49,11 +49,11 @@
 //! ## Advanced Mode (Full configuration)
 //!
 //! ```no_run
-//! use memory_cli::config::wizard::run_interactive_wizard;
+//! use memory_cli::config::quick_setup;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
-//!     let config = run_interactive_wizard().await?;
+//!     let config = quick_setup().await?;
 //!     Ok(())
 //! }
 //! ```
@@ -185,7 +185,7 @@ fn quick_redb_path_sync() -> Result<String> {
 /// # Example
 ///
 /// ```no_run
-/// use memory_cli::config::progressive::{SimpleSetup, ConfigPreset};
+/// use memory_cli::config::{SimpleSetup, ConfigPreset};
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
@@ -233,6 +233,9 @@ impl SimpleSetup {
     /// # Example
     ///
     /// ```no_run
+    /// # use memory_cli::config::{SimpleSetup, ConfigPreset};
+    /// # #[tokio::main]
+    /// # async fn example() -> anyhow::Result<()> {
     /// let config = SimpleSetup::preset(ConfigPreset::Local)
     ///     .with_custom(|c| {
     ///         c.storage.max_episodes_cache = 1500;
@@ -240,6 +243,8 @@ impl SimpleSetup {
     ///     })
     ///     .build()
     ///     .await?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn with_custom<F>(mut self, customize: F) -> Self
     where
@@ -518,9 +523,14 @@ mod tests {
         let setup = SimpleSetup::preset(ConfigPreset::Local);
         let config = setup.build().await.unwrap();
 
-        // Default is 1000 for non-development, 500 for development
-        assert!(config.storage.max_episodes_cache >= 500);
-        assert!(config.storage.max_episodes_cache <= 1000);
+        // CI uses 100, development uses 500, production uses 1000
+        let expected_values = [100, 500, 1000];
+        assert!(
+            expected_values.contains(&config.storage.max_episodes_cache),
+            "max_episodes_cache should be one of {:?}, got {}",
+            expected_values,
+            config.storage.max_episodes_cache
+        );
     }
 
     #[tokio::test]

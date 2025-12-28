@@ -5,7 +5,7 @@ use crate::extraction::{deduplicate_patterns, rank_patterns};
 use crate::pattern::Pattern;
 use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
-use tracing::{debug, info, instrument};
+use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
 use super::SelfLearningMemory;
@@ -232,6 +232,45 @@ impl SelfLearningMemory {
             info!("No completed episodes found for retrieval");
             return vec![];
         }
+
+        // ============================================================================
+        // Semantic Search - Try semantic similarity first
+        // ============================================================================
+
+        if let Some(ref semantic) = self.semantic_service {
+            match semantic
+                .find_similar_episodes(&task_description, &context, limit)
+                .await
+            {
+                Ok(mut results) => {
+                    if !results.is_empty() {
+                        info!(
+                            semantic_results = results.len(),
+                            "Found episodes via semantic search"
+                        );
+
+                        // Limit results and extract episodes
+                        results.truncate(limit);
+
+                        let semantic_episodes: Vec<Episode> =
+                            results.into_iter().map(|result| result.item).collect();
+
+                        return semantic_episodes;
+                    }
+                }
+                Err(e) => {
+                    warn!(
+                        error = %e,
+                        "Semantic search failed: {}. Falling back to keyword search.",
+                        e
+                    );
+                }
+            }
+        }
+
+        // ============================================================================
+        // Fallback to keyword-based retrieval
+        // ============================================================================
 
         // Phase 3: Use hierarchical retriever for efficient search (if enabled)
         let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {

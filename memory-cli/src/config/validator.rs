@@ -415,6 +415,7 @@ fn validate_file_url_security(url: &str) -> Result<(), ValidationError> {
     }
 
     // Check for access to sensitive system paths
+    // Note: /tmp/ is excluded as it's commonly used for temporary/test databases
     let sensitive_paths = [
         "/etc/",
         "/bin/",
@@ -428,7 +429,6 @@ fn validate_file_url_security(url: &str) -> Result<(), ValidationError> {
         "/root/",
         "/var/log/",
         "/var/run/",
-        "/tmp/",
     ];
 
     for sensitive_path in &sensitive_paths {

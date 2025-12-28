@@ -330,6 +330,8 @@ impl TursoStorage {
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_ITEM_INDEX)
             .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_VECTOR_INDEX)
+            .await?;
 
         // Create monitoring indexes
         self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_TIME_INDEX)
@@ -524,6 +526,26 @@ impl StorageBackend for TursoStorage {
     ) -> Result<Vec<memory_core::Episode>> {
         self.query_episodes_by_metadata(key, value).await
     }
+
+    async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
+        self.store_embedding_backend(id, embedding).await
+    }
+
+    async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
+        self.get_embedding_backend(id).await
+    }
+
+    async fn delete_embedding(&self, id: &str) -> Result<bool> {
+        self.delete_embedding_backend(id).await
+    }
+
+    async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
+        self.store_embeddings_batch_backend(embeddings).await
+    }
+
+    async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
+        self.get_embeddings_batch_backend(ids).await
+    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage
@@ -630,5 +652,219 @@ mod tests {
         assert_eq!(stats.episode_count, 0);
         assert_eq!(stats.pattern_count, 0);
         assert_eq!(stats.heuristic_count, 0);
+    }
+
+    // ========== Embedding Storage Tests ==========
+
+    #[tokio::test]
+    async fn test_store_and_get_embedding() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let id = "test_embedding_1";
+        let embedding = vec![0.1_f32, 0.2, 0.3, 0.4];
+
+        // Store embedding
+        storage
+            .store_embedding_backend(id, embedding.clone())
+            .await
+            .unwrap();
+
+        // Retrieve embedding
+        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        assert!(retrieved.is_some());
+        assert_eq!(retrieved.unwrap(), embedding);
+    }
+
+    #[tokio::test]
+    async fn test_get_nonexistent_embedding() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let retrieved = storage.get_embedding_backend("nonexistent").await.unwrap();
+        assert!(retrieved.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_delete_embedding() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let id = "test_embedding_delete";
+        let embedding = vec![0.1_f32, 0.2, 0.3];
+
+        // Store embedding
+        storage
+            .store_embedding_backend(id, embedding.clone())
+            .await
+            .unwrap();
+
+        // Verify it exists
+        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        assert!(retrieved.is_some());
+
+        // Delete embedding
+        let deleted = storage.delete_embedding_backend(id).await.unwrap();
+        assert!(deleted);
+
+        // Verify it's gone
+        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        assert!(retrieved.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_delete_nonexistent_embedding() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let deleted = storage
+            .delete_embedding_backend("nonexistent")
+            .await
+            .unwrap();
+        assert!(!deleted);
+    }
+
+    #[tokio::test]
+    async fn test_store_embeddings_batch() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let embeddings = vec![
+            ("batch_1".to_string(), vec![0.1_f32, 0.2, 0.3]),
+            ("batch_2".to_string(), vec![0.4_f32, 0.5, 0.6]),
+            ("batch_3".to_string(), vec![0.7_f32, 0.8, 0.9]),
+        ];
+
+        // Store embeddings in batch
+        storage
+            .store_embeddings_batch_backend(embeddings.clone())
+            .await
+            .unwrap();
+
+        // Verify all embeddings were stored
+        for (id, expected_embedding) in &embeddings {
+            let retrieved = storage.get_embedding_backend(id).await.unwrap();
+            assert!(retrieved.is_some());
+            assert_eq!(retrieved.unwrap(), *expected_embedding);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_embeddings_batch() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let embeddings = vec![
+            ("get_batch_1".to_string(), vec![0.1_f32, 0.2]),
+            ("get_batch_2".to_string(), vec![0.3_f32, 0.4]),
+            ("get_batch_3".to_string(), vec![0.5_f32, 0.6]),
+        ];
+
+        // Store embeddings
+        storage
+            .store_embeddings_batch_backend(embeddings.clone())
+            .await
+            .unwrap();
+
+        // Get embeddings in batch
+        let ids = vec![
+            "get_batch_1".to_string(),
+            "get_batch_2".to_string(),
+            "get_batch_3".to_string(),
+            "nonexistent".to_string(),
+        ];
+
+        let results = storage.get_embeddings_batch_backend(&ids).await.unwrap();
+
+        // Verify results
+        assert_eq!(results.len(), 4);
+
+        assert!(results[0].is_some());
+        assert_eq!(results[0].as_ref().unwrap(), &embeddings[0].1);
+
+        assert!(results[1].is_some());
+        assert_eq!(results[1].as_ref().unwrap(), &embeddings[1].1);
+
+        assert!(results[2].is_some());
+        assert_eq!(results[2].as_ref().unwrap(), &embeddings[2].1);
+
+        assert!(results[3].is_none()); // Nonexistent embedding
+    }
+
+    #[tokio::test]
+    async fn test_different_embedding_dimensions() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Test different dimensions (384, 1024, 1536)
+        let dim_384: Vec<f32> = (0..384).map(|i| i as f32 / 384.0).collect();
+        let dim_1024: Vec<f32> = (0..1024).map(|i| i as f32 / 1024.0).collect();
+        let dim_1536: Vec<f32> = (0..1536).map(|i| i as f32 / 1536.0).collect();
+
+        // Store different dimensions
+        storage
+            .store_embedding_backend("dim_384", dim_384)
+            .await
+            .unwrap();
+
+        storage
+            .store_embedding_backend("dim_1024", dim_1024)
+            .await
+            .unwrap();
+
+        storage
+            .store_embedding_backend("dim_1536", dim_1536)
+            .await
+            .unwrap();
+
+        // Retrieve and verify dimensions
+        let retrieved_384 = storage.get_embedding_backend("dim_384").await.unwrap();
+        assert!(retrieved_384.is_some());
+        assert_eq!(retrieved_384.unwrap().len(), 384);
+
+        let retrieved_1024 = storage.get_embedding_backend("dim_1024").await.unwrap();
+        assert!(retrieved_1024.is_some());
+        assert_eq!(retrieved_1024.unwrap().len(), 1024);
+
+        let retrieved_1536 = storage.get_embedding_backend("dim_1536").await.unwrap();
+        assert!(retrieved_1536.is_some());
+        assert_eq!(retrieved_1536.unwrap().len(), 1536);
+    }
+
+    #[tokio::test]
+    async fn test_update_existing_embedding() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let id = "update_test";
+        let embedding_v1 = vec![0.1_f32, 0.2, 0.3];
+        let embedding_v2 = vec![0.9_f32, 0.8, 0.7];
+
+        // Store initial embedding
+        storage
+            .store_embedding_backend(id, embedding_v1.clone())
+            .await
+            .unwrap();
+
+        // Verify initial embedding
+        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        assert_eq!(retrieved.unwrap(), embedding_v1);
+
+        // Update embedding
+        storage
+            .store_embedding_backend(id, embedding_v2.clone())
+            .await
+            .unwrap();
+
+        // Verify updated embedding
+        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        assert_eq!(retrieved.unwrap(), embedding_v2);
+    }
+
+    #[tokio::test]
+    async fn test_empty_embeddings_batch() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Store empty batch
+        storage
+            .store_embeddings_batch_backend(vec![])
+            .await
+            .unwrap();
+
+        // Get empty batch
+        let results = storage.get_embeddings_batch_backend(&[]).await.unwrap();
+        assert!(results.is_empty());
     }
 }

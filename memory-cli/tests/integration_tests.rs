@@ -91,9 +91,10 @@ batch_size = 10
         cmd.arg("--config").arg(&invalid_config_path);
         cmd.args(["config", "validate"]); // Validate config to trigger validation
 
-        cmd.assert()
-            .success()
-            .stdout(predicate::str::contains("max_episodes_cache"));
+        // Config validation should fail due to invalid max_episodes_cache = 0
+        cmd.assert().failure().stderr(predicate::str::contains(
+            "max_episodes_cache must be greater than 0",
+        ));
     }
 
     #[test]

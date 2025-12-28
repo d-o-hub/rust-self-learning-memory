@@ -1,6 +1,6 @@
 # Plans Archive Index
 
-**Last Updated**: 2025-12-24
+**Last Updated**: 2025-12-28
 **Purpose**: Complete inventory of archived planning documents
 
 This index provides a complete reference to all historical planning documents organized by category and date.
@@ -12,7 +12,11 @@ This index provides a complete reference to all historical planning documents or
 ```
 plans/archive/
 ├── completed/          # Implementation completion summaries
+│   └── 2025-12/       # December 2025 completions
 ├── goap-plans/         # GOAP execution planning documents
+│   ├── 2025-12/       # December 2025 GOAP executions
+│   ├── 2025-12-consolidation/  # Plans folder consolidation (Phase 3.2)
+│   └── deprecated/    # Deprecated GOAP plans
 ├── legacy/            # Historical planning framework (Phase 0-7)
 ├── releases/          # Version-specific documentation
 ├── research/          # Research findings and analysis
@@ -27,6 +31,8 @@ plans/archive/
 
 Implementation completion summaries and validation reports.
 
+#### completed/ (root)
+
 | File | Date | Description |
 |------|------|-------------|
 | CLEANUP_SUMMARY.md | 2025-12-19 | Phase 2 cleanup summary |
@@ -34,9 +40,29 @@ Implementation completion summaries and validation reports.
 | QUALITY_GATE_FIXES_2025-12-20.md | 2025-12-20 | Quality gate fixes |
 | phase2-working-directory-cleanup.md | 2025-12-19 | Directory cleanup |
 
+#### completed/2025-12/
+
+December 2025 implementation completions.
+
+| File | Date | Description |
+|------|------|-------------|
+| CLIPPY_FIX_PLAN.md | 2025-12 | Clippy warnings fix plan |
+| CLIPPY_FIX_REPORT.md | 2025-12 | Clippy fixes report |
+| DOCUMENTATION_UPDATE_FINAL_REPORT.md | 2025-12 | Documentation updates |
+| DOCUMENTATION_UPDATE_PLAN.md | 2025-12 | Documentation planning |
+| DOCUMENTATION_UPDATE_SUMMARY.md | 2025-12 | Documentation summary |
+| FILE_SPLITTING_SUMMARY.md | 2025-12 | File splitting for 500-line limit |
+| GITHUB_ACTIONS_MCP_FIXES_PLAN.md | 2025-12 | GitHub Actions MCP fixes |
+| MMR_DIVERSITY_INTEGRATION_SUMMARY.md | 2025-12 | MMR diversity implementation |
+| PHASE3_INTEGRATION_COMPLETE.md | 2025-12 | Phase 3 integration complete |
+| RESEARCH_INTEGRATION_EXECUTION_PLAN.md | 2025-12 | Research integration plan |
+| RESEARCH_INTEGRATION_FINAL_REPORT.md | 2025-12 | Research integration final report |
+
 ### goap-plans/
 
 GOAP (Goal-Oriented Action Planning) execution plans for various development phases.
+
+#### goap-plans/ (root)
 
 | File | Date | Description |
 |------|------|-------------|
@@ -61,6 +87,48 @@ GOAP (Goal-Oriented Action Planning) execution plans for various development pha
 | loop-iteration-1-results.md | 2025-12-20 | Iteration results |
 | phase1-quick-wins-implementation.md | 2025-12-20 | Quick wins plan |
 | turso-local-ci-setup-plan.md | 2025-12-20 | CI setup plan |
+
+#### goap-plans/2025-12/
+
+December 2025 GOAP execution plans (workflow automations).
+
+| File | Date | Description |
+|------|------|-------------|
+| GOAP_EXECUTION_PLAN_benchmarks-workflow.md | 2025-12 | Benchmarks workflow automation |
+| GOAP_EXECUTION_PLAN_ci-workflow.md | 2025-12 | CI workflow automation |
+| GOAP_EXECUTION_PLAN_inspector-integration.md | 2025-12 | MCP inspector integration |
+| GOAP_EXECUTION_PLAN_memory-mcp-validation.md | 2025-12 | Memory MCP validation |
+| GOAP_EXECUTION_PLAN_quick-check-workflow.md | 2025-12 | Quick check workflow |
+| GOAP_EXECUTION_PLAN_release-workflow.md | 2025-12 | Release workflow automation |
+| GOAP_EXECUTION_PLAN_research-integration.md | 2025-12 | Research integration plan |
+| GOAP_EXECUTION_PLAN_security-workflow.md | 2025-12 | Security workflow automation |
+| GOAP_EXECUTION_PLAN_yaml-lint-workflow.md | 2025-12 | YAML lint workflow |
+| GOAP_EXECUTION_SUMMARY_memory-mcp-validation.md | 2025-12 | MCP validation summary |
+| GOAP_EXECUTION_SUMMARY_phase1-completion.md | 2025-12 | Phase 1 completion |
+| GOAP_EXECUTION_SUMMARY_phase2-completion.md | 2025-12 | Phase 2 completion |
+| GOAP_EXECUTION_SUMMARY_plans-folder-verification.md | 2025-12 | Plans folder verification |
+
+#### goap-plans/2025-12-consolidation/
+
+**NEW (2025-12-28)**: Plans folder consolidation GOAP plans (Phase 3.2).
+
+| File | Date | Description |
+|------|------|-------------|
+| PLANS_CONSOLIDATION_COMPLETION_REPORT.md | 2025-12-27 | Consolidation completion report (63.3% reduction) |
+| PHASE1_ANALYSIS_DOCUMENT_CATEGORIZATION.md | 2025-12-27 | Document categorization analysis (226 files) |
+| PHASE1_ANALYSIS_IMPLEMENTATION_COMPLETENESS.md | 2025-12-27 | Implementation completeness analysis |
+| PHASE1_ANALYSIS_SYNTHESIS.md | 2025-12-27 | Phase 1 synthesis and recommendations |
+| PHASE2_CONSOLIDATION_ARCHIVE_DELETION_PLAN.md | 2025-12-27 | Consolidation and archive plan |
+| PHASE2_CRITICAL_UPDATES_PLAN.md | 2025-12-27 | Critical status updates plan |
+| PLANS_FOLDER_CONSOLIDATION_GOAP_PLAN.md | 2025-12-27 | Master GOAP consolidation plan |
+| PLANS_FOLDER_HISTORY.md | 2025-12-27 | Consolidation history and timeline |
+| PLANS_FOLDER_PRE_RESEARCH_ANALYSIS.md | 2025-12-27 | Pre-research analysis |
+| PLANS_FOLDER_UPDATE_PHASE2_MASTER_PLAN.md | 2025-12-27 | Phase 2 master plan |
+| PLANS_FOLDER_UPDATE_READINESS.md | 2025-12-27 | Readiness assessment |
+| PLANS_UPDATE_WORKFLOW_EXECUTION_SUMMARY.md | 2025-12-27 | Workflow execution summary |
+| ANALYSIS_SWARM_PHASE3_REVIEW.md | 2025-12-26 | Multi-perspective Phase 3 review |
+| GOAP_PLANS_UPDATE_EXECUTION_PLAN.md | 2025-12-25 | Plans folder update execution |
+| github_actions_fix_summary.md | 2025-12-27 | GitHub Actions formatting fixes |
 
 ### legacy/
 
@@ -189,13 +257,17 @@ Files in plans/archive/ root (subfolder level):
 
 | Category | Files | Total LOC |
 |----------|-------|-----------|
-| completed | 4 | ~2000 |
-| goap-plans | 22 | ~15000 |
+| completed | 4 + 11 (2025-12) | ~2000 + ~8000 |
+| goap-plans | 22 + 13 (2025-12) + 15 (consolidation) | ~15000 + ~25000 |
 | legacy | 25+ | ~20000 |
 | releases | 15+ | ~8000 |
 | research | 13+ | ~10000 |
 | v0.1.7-prep | 2 | ~500 |
-| **TOTAL** | **~80** | **~55000** |
+| **TOTAL** | **~115** | **~88500** |
+
+**Latest Addition (2025-12-28)**:
+- 15 files archived to `goap-plans/2025-12-consolidation/`
+- Plans folder consolidation Phase 3.2 complete
 
 ---
 
@@ -221,6 +293,21 @@ Files in plans/archive/ root (subfolder level):
 
 ---
 
-**Last Updated**: 2025-12-24
+## Recent Updates
+
+### 2025-12-28: Phase 3.2 Consolidation Archive
+- Added `goap-plans/2025-12-consolidation/` folder
+- Archived 15 completed GOAP consolidation plans
+- Updated archive structure documentation
+- Total files archived: 115+ (up from ~80)
+
+### 2025-12-24: Initial Index Creation
+- Created comprehensive archive index
+- Categorized all historical documents
+- Established archive maintenance protocol
+
+---
+
+**Last Updated**: 2025-12-28
 **Next Review**: 2025-12-31 (monthly archive maintenance)
 **Maintainer**: Project documentation team

@@ -1,9 +1,9 @@
-# Vector Search Optimization: Turso Native vs. External Vector Databases
+# Vector Search Optimization: Turso Native Vector Search
 
 **Created**: 2025-12-27
-**Status**: 🔍 Analysis Complete - Implementation Recommended
+**Status**: ✅ IMPLEMENTED
 **Impact**: HIGH - Performance optimization for semantic search
-**Effort**: MEDIUM - Schema migration + query updates
+**Effort**: LOW - Schema update + query optimization (no migration needed)
 
 ## Executive Summary
 
@@ -190,7 +190,7 @@ ALTER TABLE embeddings DROP COLUMN embedding_data;
 ALTER TABLE embeddings DROP COLUMN dimension;  -- No longer needed
 ```
 
-### Phase 2: Update Query Implementation
+### Updated Query Implementation
 
 **Before (memory-storage-turso/src/storage.rs:1177):**
 
@@ -281,7 +281,7 @@ async fn search_similar_episodes(
 - ✅ Only fetches top-k results (not entire dataset)
 - ✅ Scales logarithmically instead of linearly
 
-### Phase 3: Handle Multiple Dimensions
+### Future: Handle Multiple Dimensions
 
 Different embedding models have different dimensions:
 - Local models (gte-small): 384 dimensions
@@ -425,35 +425,25 @@ Consider Qdrant/Pinecone/Weaviate if:
 4. **Global edge deployment**: Turso's edge replication handles latency
 5. **Cost-effective**: No additional infrastructure or API costs
 
-## Migration Checklist
+## Implementation Checklist
 
-### Pre-Migration
+### Schema Updates
+- [x] Update CREATE_EMBEDDINGS_TABLE to include embedding_vector column
+- [x] Add CREATE_EMBEDDINGS_VECTOR_INDEX to schema
+- [x] Add vector index creation to initialize_schema()
 
-- [ ] Review current embedding storage usage
-- [ ] Identify all tables using embeddings (episodes, patterns, summaries)
-- [ ] Determine dimension requirements per model
-- [ ] Create backup of production database
-- [ ] Write migration scripts
-- [ ] Write rollback scripts
+### Code Updates
+- [x] Update store_embedding() to save both JSON and native formats
+- [x] Add find_similar_episodes_native() using vector_top_k()
+- [x] Add find_similar_episodes_brute_force() as fallback
+- [x] Update find_similar_episodes() to try native first, fallback to brute-force
+- [x] Update tests to work with new schema
 
-### Migration Steps
-
-- [ ] Create new columns with vector types
-- [ ] Create vector indexes
-- [ ] Backfill existing embeddings
-- [ ] Verify data integrity (sample comparisons)
-- [ ] Update query functions in `memory-storage-turso/src/storage.rs`
-- [ ] Update tests in `memory-storage-turso/tests/`
-- [ ] Run performance benchmarks (before/after)
+### Validation
+- [ ] Run all tests
+- [ ] Verify vector search works
+- [ ] Run performance benchmarks
 - [ ] Update documentation
-
-### Post-Migration
-
-- [ ] Monitor query performance
-- [ ] Verify search quality (accuracy comparison)
-- [ ] Drop old columns (after validation period)
-- [ ] Update schema documentation
-- [ ] Remove deprecated code paths
 
 ## Performance Benchmarks (Estimated)
 

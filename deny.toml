@@ -36,7 +36,10 @@ allow = [
     "Zlib",
     "BSL-1.0",
 ]
-exceptions = [{ name = "colored", allow = ["MPL-2.0"] }]
+exceptions = [
+    { name = "colored", allow = ["MPL-2.0"] },
+    { name = "option-ext", allow = ["MPL-2.0"] },
+]
 # Note: In version 2, all licenses not in 'allow' list are automatically denied
 
 [bans]

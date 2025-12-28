@@ -99,7 +99,7 @@ async fn create_and_complete_episode(memory: &SelfLearningMemory, description: &
 
     // Add some execution steps
     for i in 0..5 {
-        let mut step = ExecutionStep::new(i + 1, format!("tool_{}", i), "Action".to_string());
+        let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), "Action".to_string());
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });

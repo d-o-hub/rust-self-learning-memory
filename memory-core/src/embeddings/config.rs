@@ -145,7 +145,7 @@ impl Default for OptimizationConfig {
             compression_enabled: default_compression(),
             compression_threshold_bytes: default_compression_threshold(),
             connection_pool_size: default_pool_size(),
-            enable_circuit_breaker: true,  // Enabled by default for production safety
+            enable_circuit_breaker: true, // Enabled by default for production safety
             circuit_breaker_config: Some(super::circuit_breaker::CircuitBreakerConfig::default()),
             enable_metrics: default_enable_metrics(),
         }

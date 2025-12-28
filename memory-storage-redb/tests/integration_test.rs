@@ -1,6 +1,6 @@
 //! Integration tests for redb storage
 
-use memory_core::{Episode, TaskContext, TaskType};
+use memory_core::{Episode, StorageBackend, TaskContext, TaskType};
 use memory_storage_redb::{RedbQuery, RedbStorage};
 use tempfile::TempDir;
 
@@ -72,7 +72,10 @@ async fn test_embeddings() {
     let embedding = vec![0.1, 0.2, 0.3, 0.4];
 
     // Store embedding
-    storage.store_embedding(id, &embedding).await.unwrap();
+    storage
+        .store_embedding(id, embedding.clone())
+        .await
+        .unwrap();
 
     // Retrieve embedding
     let retrieved = storage.get_embedding(id).await.unwrap();

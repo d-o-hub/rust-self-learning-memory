@@ -283,8 +283,8 @@ mod tests {
         metrics.record_failure();
 
         let snapshot = metrics.snapshot();
-        assert_eq!(snapshot.success_rate(), 66.66666666666666);
-        assert_eq!(snapshot.failure_rate(), 33.33333333333333);
+        assert_eq!(snapshot.success_rate(), 66.666_666_666_666_66);
+        assert_eq!(snapshot.failure_rate(), 33.333_333_333_333_33);
     }
 
     #[test]

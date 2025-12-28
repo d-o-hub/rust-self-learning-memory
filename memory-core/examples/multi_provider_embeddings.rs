@@ -1,16 +1,17 @@
 //! Example demonstrating multiple embedding provider configurations
 //!
 //! This example shows how to configure various embedding providers:
-//! - OpenAI (standard API)
-//! - Mistral AI
-//! - Azure OpenAI
+//! - `OpenAI` (standard API)
+//! - Azure `OpenAI`
 //! - Custom OpenAI-compatible APIs
 //!
-//! Run with: cargo run --example multi_provider_embeddings --features openai
+//! Run with: cargo run --example `multi_provider_embeddings` --features openai
+
+#![allow(clippy::doc_markdown, clippy::unnecessary-wraps)]
 
 use memory_core::embeddings::ModelConfig;
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     println!("🌐 Multi-Provider Embedding Configuration Examples\n");
     println!("{}", "=".repeat(60));
 
@@ -147,6 +148,4 @@ fn main() -> anyhow::Result<()> {
         println!("To see full functionality, run:");
         println!("  cargo run --example multi_provider_embeddings --features openai");
     }
-
-    Ok(())
 }

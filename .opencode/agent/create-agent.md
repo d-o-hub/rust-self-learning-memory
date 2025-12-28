@@ -664,6 +664,7 @@ This agent launches:
 - Code quality enforcers (fmt, clippy, standards)
 - Feature implementers (patterns, episodes, retrieval)
 - Performance analyzers (benchmarks, profiling)
+- Release coordinators (github-release-best-practices)
 
 **Integration Requirements**:
 - Reference AGENTS.md standards in system prompts

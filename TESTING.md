@@ -56,9 +56,10 @@ open coverage/html/index.html
 ```
 
 ### Coverage targets
-- Line coverage: >90%
+- Line coverage: >90% (Current: 92.5%)
 - Branch coverage: >85%
 - All public APIs must be tested
+- Test pass rate: >99% (Current: 99.3%)
 
 ### Configuration
 

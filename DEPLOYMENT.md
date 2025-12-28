@@ -184,7 +184,16 @@ ls -lh target/release/
 
 **Build Output**:
 - `target/release/memory-core` - Core library
-- `target/release/memory-mcp` - MCP server binary (if applicable)
+- `target/release/memory-mcp` - MCP server binary
+- `target/release/memory-cli` - CLI binary
+- `target/release/memory-service` - Service binary (if applicable)
+
+**Build Configuration**:
+- Rust stable channel (pinned in `rust-toolchain.toml`)
+- Optimizations: `--release` with LTO enabled
+- Zero clippy warnings enforced
+- Overflow checks enabled in release mode
+- Security hardening: RELRO/BIND_NOW for Linux
 
 ### Step 2: Database Setup
 

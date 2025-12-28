@@ -12,6 +12,29 @@ This project implements a **Zero-Trust security model** with multiple layers of 
 
 ## Security Layers
 
+### 0. Code Security (Baseline)
+
+#### Zero Clippy Warnings
+- Strict linting with `-D warnings` flag
+- All code passes clippy checks
+- Security-focused lint rules enabled
+- CI enforces zero warnings policy
+
+#### Postcard Serialization
+- **[BREAKING]** Migrated from bincode to postcard in v0.1.7
+- Postcard provides better security guarantees
+- Smaller binary sizes
+- Inherent safety without manual size limits
+- Prevents deserialization attacks
+- Better no-std support for embedded systems
+
+#### Input Validation
+- **Task Description**: Max 10KB (10,000 characters)
+- **Execution Step Observation**: Max 10KB (10,000 characters)
+- **Execution Step Parameters**: Max 1MB (1,000,000 characters)
+- **Episode Artifacts**: Max 1MB (1,000,000 characters)
+- **Episode Steps**: Max 1,000 steps per episode
+
 ### 1. Claude Code Hooks (Development-Time Security)
 
 Located in `.claude/settings.json`, hooks enforce security at development time:
@@ -141,10 +164,19 @@ Session-end verification:
 - **Episode Artifacts**: Max 1MB (1,000,000 characters)
 - **Episode Steps**: Max 1,000 steps per episode
 
-#### Bincode Deserialization Limits
-- **Episode Size**: Max 10MB for deserialization
-- **Pattern Size**: Max 1MB for deserialization
-- **Heuristic Size**: Max 100KB for deserialization
+#### Postcard Serialization (v0.1.7+)
+- **Inherent Safety**: Postcard has built-in protection against deserialization attacks
+- **No Manual Size Limits Required**: Postcard's design prevents OOM attacks
+- **Smaller Binary Sizes**: More efficient serialization
+- **Better No-std Support**: Suitable for embedded systems
+- **Migration Note**: Existing redb databases must be recreated after upgrade
+
+#### Path Traversal Protection (v0.1.7+)
+- **Fixed Vulnerability**: Path traversal in sandbox filesystem access
+- **Proper Path Validation**: All paths sanitized before access
+- **Whitelist/Blacklist**: Filesystem access restricted to designated directories
+- **Prevents Escape**: Cannot access files outside allowed directories
+- **Updated Tests**: Security tests now cover path traversal scenarios
 
 #### Error Types
 - **QuotaExceeded**: For resource limit enforcement
@@ -154,7 +186,9 @@ Session-end verification:
 - All input validation occurs at API boundaries
 - Validation errors are logged but don't prevent episode creation (backward compatibility)
 - Size limits prevent DoS attacks via oversized inputs
-- Bincode limits prevent OOM attacks during deserialization
+- Postcard serialization provides inherent protection against deserialization attacks
+- Path traversal protection prevents unauthorized filesystem access
+- All file access in sandbox is validated against whitelist/blacklist
 
 ## Reporting Security Vulnerabilities
 

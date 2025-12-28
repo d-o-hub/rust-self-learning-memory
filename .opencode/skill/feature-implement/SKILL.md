@@ -1,3 +1,9 @@
+---
+name: feature-implement
+description: Systematic approach to implementing new features in Rust memory systems
+audience: developers
+workflow: feature-development
+---
 # Feature Implementation
 
 Systematic approach to implementing new features in the Rust memory system.
@@ -490,3 +496,40 @@ for item in items {
 // Better
 storage.save_batch(items).await?;  // 1 database call
 ```
+
+## Integration with GitHub Release Best Practices
+
+This skill integrates with the GitHub release best practices workflow for feature development and release management:
+
+### Release Preparation Integration
+When implementing features for release:
+1. **Version Impact Assessment**: Consult github-release-best-practices skill for semantic versioning implications
+2. **Changelog Planning**: Consider Keep a Changelog format for feature documentation
+3. **Quality Gates**: Ensure implementation meets release standards (>90% coverage, zero warnings)
+4. **Breaking Changes**: Identify and document any breaking changes for migration guides
+
+### Coordination Workflows
+- **Pre-Implementation**: Use github-release-best-practices for version planning
+- **Implementation**: Follow feature-implement patterns while considering release requirements  
+- **Testing**: Coordinate with testing-qa for release validation
+- **Release Creation**: Leverage github-release-best-practices agent for final release orchestration
+
+### Example Integration Pattern
+```markdown
+## Feature Implementation → Release Workflow
+
+1. **Assessment Phase**
+   - github-release-best-practices: Analyze feature scope and version impact
+   - feature-implement: Plan implementation with release considerations
+
+2. **Implementation Phase**
+   - feature-implement: Execute feature development
+   - testing-qa: Ensure quality gates met
+   - code-reviewer: Validate implementation standards
+
+3. **Release Phase**
+   - github-release-best-practices: Update changelog, create release notes
+   - goap-agent: Coordinate final release creation
+```
+
+This integration ensures features are implemented with release readiness in mind, following 2025 GitHub release best practices for Rust workspaces.

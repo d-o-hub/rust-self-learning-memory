@@ -150,6 +150,7 @@ async fn run_concurrent_workload(
     }
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_concurrent_operations(c: &mut Criterion) {
     let mut group = c.benchmark_group("concurrent_operations");
     group.sample_size(10); // Reduce sample size for concurrent benchmarks
@@ -193,18 +194,15 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                             let semaphore = semaphore.clone();
 
                             let handle = tokio::spawn(async move {
-                                #[allow(clippy::excessive_nesting)]
-                                {
-                                    let _permit = semaphore.acquire().await.unwrap();
-                                    run_concurrent_workload(
-                                        memory,
-                                        &episode_ids,
-                                        pattern,
-                                        operations_per_thread,
-                                        thread_id,
-                                    )
-                                    .await;
-                                }
+                                let _permit = semaphore.acquire().await.unwrap();
+                                run_concurrent_workload(
+                                    memory,
+                                    &episode_ids,
+                                    pattern,
+                                    operations_per_thread,
+                                    thread_id,
+                                )
+                                .await;
                             });
 
                             handles.push(handle);

@@ -516,7 +516,7 @@ mod tests {
     fn test_url_construction() {
         let model_name = "sentence-transformers/all-MiniLM-L6-v2";
         let sanitized = model_name.replace('/', "_");
-        let base_url = format!("https://huggingface.co/{}/resolve/main", model_name);
+        let base_url = format!("https://huggingface.co/{model_name}/resolve/main");
 
         assert_eq!(sanitized, "sentence-transformers_all-MiniLM-L6-v2");
         assert_eq!(
@@ -524,7 +524,7 @@ mod tests {
             "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main"
         );
 
-        let files = vec![
+        let files = [
             format!("{}.onnx", sanitized),
             format!("{}_tokenizer.json", sanitized),
             format!("{}_config.json", sanitized),

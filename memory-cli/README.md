@@ -1,11 +1,23 @@
 # Memory CLI
 
-A command-line interface for the Self-Learning Memory System, providing direct access to episode management, pattern analysis, and storage operations.
+A full-featured command-line interface for the Self-Learning Memory System, providing direct access to episode management, pattern analysis, storage operations, monitoring, diagnostics, backup/restore, log analysis, and evaluation tools.
 
 ## Documentation
 
 - **[CLI User Guide](CLI_USER_GUIDE.md)** - Complete command reference and usage examples
 - **[Configuration Guide](CONFIGURATION_GUIDE.md)** - Detailed configuration options and examples
+- **[Configuration Reference](CONFIGURATION.md)** - Configuration options and defaults
+
+## Overview
+
+Memory CLI provides a comprehensive command-line interface for managing the self-learning memory system with:
+
+- **10 Core Commands**: episode, pattern, storage, config, health, backup, monitor, logs, eval, completion
+- **9 Command Aliases**: ep, pat, st, cfg, hp, bak, mon, log, comp for faster typing
+- **Multiple Output Formats**: human-readable, JSON, YAML, and table formats
+- **Intelligent Configuration**: Progressive disclosure, wizard setup, and smart defaults
+- **Production Features**: Health monitoring, backup/restore, metrics export, and log analysis
+- **Developer Tools**: Validation, diagnostics, calibration, and threshold management
 
 ## Installation
 
@@ -23,26 +35,38 @@ cargo install --path memory-cli --features full
 
 - `turso`: Enable Turso database backend
 - `redb`: Enable redb database backend
-- `full`: Enable both backends
+- `full`: Enable both backends (recommended)
 
 ## Configuration
 
 The CLI supports configuration via:
 
 1. **Default locations** (searched in order):
-    - `memory-cli.toml`
-    - `memory-cli.json`
-    - `memory-cli.yaml`
-    - `.memory-cli.toml`
-    - `.memory-cli.json`
-    - `.memory-cli.yaml`
+    - `memory-cli.toml` / `memory-cli.json` / `memory-cli.yaml`
+    - `.memory-cli.toml` / `.memory-cli.json` / `.memory-cli.yaml`
+    - `config.toml` / `config.json` / `config.yaml`
+    - `~/.config/memory-cli/config.*` (user config directory)
 
 2. **Explicit path**:
     ```bash
     memory-cli --config /path/to/config.toml <command>
     ```
 
-For complete configuration documentation, see **[Configuration Guide](CONFIGURATION_GUIDE.md)**.
+3. **Configuration wizard**:
+    ```bash
+    memory-cli config wizard
+    ```
+
+### Key Configuration Features
+
+- **Progressive Disclosure**: Automatically reveals options based on usage patterns
+- **Multi-Format Support**: TOML, JSON, and YAML configuration files
+- **Configuration Wizard**: Interactive step-by-step setup for new users
+- **Configuration Caching**: Fast configuration loading with automatic mtime-based cache invalidation (200-500x speedup)
+- **Smart Defaults**: Automatic detection of optimal settings based on system resources
+- **Simple Mode API**: One-call configuration for common scenarios
+
+For complete configuration documentation, see **[Configuration Guide](CONFIGURATION_GUIDE.md)** and **[Configuration Reference](CONFIGURATION.md)**.
 
 ### Quick Configuration
 
@@ -286,7 +310,7 @@ memory-cli monitor export --format prometheus
 memory-cli monitor export --format json
 ```
 
-### Log Analysis
+### Log Analysis (alias: `log`)
 
 #### Analyze Logs
 ```bash
@@ -320,9 +344,37 @@ memory-cli logs export ./exports/logs.csv --format csv --since 7d
 memory-cli logs stats --since 24h
 ```
 
+### Evaluation and Calibration (alias: `ev`)
+
+#### Calibration Statistics
+```bash
+# View all domains
+memory-cli eval calibration --all
+
+# View specific domain
+memory-cli eval calibration --domain web-development
+
+# View reliable domains only
+memory-cli eval calibration --min-episodes 10
+```
+
+#### Domain Statistics
+```bash
+memory-cli eval stats web-development
+```
+
+#### Set Threshold
+```bash
+# Set duration threshold
+memory-cli eval set-threshold --domain web-development --duration 300
+
+# Set step count threshold
+memory-cli eval set-threshold --domain web-development --steps 15
+```
+
 ### Meta Commands
 
-#### Generate Completions
+#### Generate Completions (alias: `comp`)
 ```bash
 # Bash
 memory-cli completion bash > memory-cli.bash
@@ -333,6 +385,52 @@ memory-cli completion zsh > _memory-cli
 # Fish
 memory-cli completion fish > memory-cli.fish
 ```
+
+## Command Aliases
+
+The CLI provides convenient shortcuts for frequently used commands:
+
+| Alias | Full Command | Description |
+|-------|--------------|-------------|
+| `ep` | `episode` | Episode management |
+| `pat` | `pattern` | Pattern analysis |
+| `st` | `storage` | Storage operations |
+| `cfg` | `config` | Configuration management |
+| `hp` | `health` | Health monitoring |
+| `bak` | `backup` | Backup and restore |
+| `mon` | `monitor` | Monitoring and metrics |
+| `log` | `logs` | Log analysis |
+| `comp` | `completion` | Shell completions |
+| `ev` | `eval` | Evaluation and calibration |
+
+Example:
+```bash
+# Long form
+memory-cli episode list
+
+# Short form
+memory-cli ep list
+```
+
+## Recent Improvements (v0.1.4)
+
+### Interactive Confirmations
+- Safety prompts for destructive operations (pattern decay, storage sync, vacuum)
+- Preview operations before execution with `--dry-run`
+- Safe defaults (No) with `--force` or `--yes` flags for automation
+
+### Enhanced Error Messages
+- Color-coded error output (red errors, yellow suggestions, cyan numbering)
+- Context-rich error messages with helpful suggestions
+- Pre-defined helper messages for common error scenarios
+- Enhanced error handling infrastructure in `errors.rs` module
+
+### Command Aliases
+All 10 commands now have convenient aliases for faster CLI usage (see table above).
+
+### Fixed Duplicate Storage Initialization
+- Resolved issues with multiple storage backend initialization
+- Improved storage backend detection and management
 
 ## Output Formats
 
@@ -609,3 +707,47 @@ When adding new commands:
 ## License
 
 This CLI is part of the Self-Learning Memory System and follows the same MIT license.
+## Architecture
+
+### Key Modules
+
+- **commands/**: Command implementations for all CLI operations
+  - `episode.rs`: Episode management commands
+  - `pattern.rs`: Pattern analysis commands
+  - `storage.rs`: Storage operations
+  - `config.rs`: Configuration validation and management
+  - `health.rs`: Health monitoring and diagnostics
+  - `backup.rs`: Backup and restore operations
+  - `monitor.rs`: Monitoring and metrics export
+  - `logs.rs`: Log analysis and search
+  - `eval.rs`: Evaluation and calibration
+
+- **config/**: Configuration system with progressive disclosure
+  - `loader.rs`: Configuration loading with caching
+  - `validator.rs`: Configuration validation
+  - `wizard.rs`: Interactive configuration wizard
+  - `simple.rs`: Simple mode API
+  - `progressive.rs`: Progressive disclosure
+  - `types.rs`: Configuration types
+
+- **output.rs**: Output formatting (human, JSON, YAML, table)
+- **errors.rs`: Enhanced error handling with context
+- **main.rs`: CLI entry point and command routing
+
+### Dependencies
+
+- **clap** 4.4: CLI framework with derive features
+- **clap_complete** 4.5: Shell completion generation
+- **dialoguer** 0.12: Interactive terminal prompts
+- **indicatif** 0.18: Progress bars for long operations
+- **colored** 3.0: Colorized console output
+- **serde_yaml** 0.9: YAML configuration support
+- **dirs** 5.0: Cross-platform directory paths
+- **sysinfo** 0.30: System resource detection
+- **regex** 1.10: Pattern matching for log analysis
+
+### Core Integrations
+
+- **memory-core**: Core memory operations and APIs
+- **memory-storage-turso**: Turso database backend (optional)
+- **memory-storage-redb**: redb database backend (optional)

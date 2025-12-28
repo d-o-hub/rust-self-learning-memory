@@ -2,7 +2,57 @@
 
 ## Overview
 
-The Memory CLI is a comprehensive command-line interface for managing the Self-Learning Memory System. It provides direct access to episode management, pattern analysis, storage operations, and system administration.
+The Memory CLI is a comprehensive command-line interface for managing the Self-Learning Memory System. It provides direct access to episode management, pattern analysis, storage operations, health monitoring, backup/restore, log analysis, evaluation tools, and system administration.
+
+## Quick Start
+
+```bash
+# Install the CLI
+cargo install --path memory-cli --features full
+
+# Configure database connection (or use interactive wizard)
+echo '[database]
+turso_url = "libsql://your-db.turso.io"
+turso_token = "your-auth-token"' > memory-cli.toml
+
+# Or run the interactive wizard
+memory-cli config wizard
+
+# Create your first episode
+memory-cli episode create --task "Implement user authentication"
+
+# View recent episodes
+memory-cli episode list
+
+# Check system health
+memory-cli health check
+```
+
+## Command Aliases
+
+The CLI provides convenient shortcuts for frequently used commands:
+
+| Alias | Full Command |
+|-------|--------------|
+| `ep` | `episode` |
+| `pat` | `pattern` |
+| `st` | `storage` |
+| `cfg` | `config` |
+| `hp` | `health` |
+| `bak` | `backup` |
+| `mon` | `monitor` |
+| `log` | `logs` |
+| `comp` | `completion` |
+| `ev` | `eval` |
+
+Example:
+```bash
+# Long form
+memory-cli episode list --limit 10
+
+# Short form
+memory-cli ep list --limit 10
+```
 
 ## Quick Start
 
@@ -349,6 +399,66 @@ Show connection status and pool information.
 ```bash
 # Connection status
 memory-cli storage connections
+```
+
+### Eval Commands (alias: `ev`)
+
+#### `memory-cli eval calibration`
+
+View domain calibration statistics and effectiveness.
+
+**Options:**
+- `--domain <DOMAIN>`: Filter by specific domain
+- `--all`: Show all domains (including those with few episodes)
+- `--min-episodes <NUM>`: Minimum episodes required to show domain (default: 5)
+
+**Examples:**
+```bash
+# View all domains
+memory-cli eval calibration --all
+
+# View specific domain
+memory-cli eval calibration --domain web-development
+
+# View reliable domains only
+memory-cli eval calibration --min-episodes 10
+```
+
+#### `memory-cli eval stats`
+
+View detailed statistics for a specific domain.
+
+**Arguments:**
+- `DOMAIN`: Domain to analyze
+
+**Examples:**
+```bash
+# View web-development domain stats
+memory-cli eval stats web-development
+
+# JSON output for automation
+memory-cli eval stats web-development --format json
+```
+
+#### `memory-cli eval set-threshold`
+
+Set custom duration and step count thresholds for a domain.
+
+**Options:**
+- `--domain <DOMAIN>`: Domain to configure (required)
+- `--duration <SECONDS>`: Duration threshold in seconds
+- `--steps <NUM>`: Step count threshold
+
+**Examples:**
+```bash
+# Set duration threshold
+memory-cli eval set-threshold --domain web-development --duration 300
+
+# Set step count threshold
+memory-cli eval set-threshold --domain web-development --steps 15
+
+# Set both thresholds
+memory-cli eval set-threshold --domain web-development --duration 300 --steps 15
 ```
 
 ### Meta Commands

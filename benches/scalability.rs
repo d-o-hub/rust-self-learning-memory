@@ -246,6 +246,7 @@ fn benchmark_query_complexity_scalability(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_operation_batch_scalability(c: &mut Criterion) {
     let mut group = c.benchmark_group("operation_batch_scalability");
     group.sample_size(10);

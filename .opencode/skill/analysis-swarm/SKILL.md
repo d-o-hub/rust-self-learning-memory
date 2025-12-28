@@ -1,3 +1,9 @@
+---
+name: analysis-swarm
+description: Multi-persona analytical framework for comprehensive code review and decision-making
+audience: developers
+workflow: code-review
+---
 # Analysis Swarm - Collective Code Intelligence
 
 A three-persona analytical framework for comprehensive code review and decision-making that balances thoroughness with pragmatism through structured discourse.

@@ -1,7 +1,19 @@
 //! Comprehensive integration tests for embedding system
 //!
 //! These tests verify the entire embedding workflow from text input to
-//! stored embeddings, semantic search, and integration with SelfLearningMemory.
+//! stored embeddings, semantic search, and integration with `SelfLearningMemory`.
+
+#![allow(
+    clippy::uninlined_format_args,
+    clippy::used_underscore_binding,
+    clippy::field_reassign_with_default,
+    clippy::cast_precision_loss,
+    clippy::float_cmp,
+    clippy::single_match,
+    clippy::default_trait_access,
+    unused_imports,
+    clippy::doc_markdown
+)]
 
 use memory_core::embeddings::{
     cosine_similarity, EmbeddingConfig, EmbeddingProvider, EmbeddingStorageBackend,

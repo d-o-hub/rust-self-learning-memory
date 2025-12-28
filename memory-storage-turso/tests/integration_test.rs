@@ -1,5 +1,7 @@
 //! Integration tests for Turso storage
 
+#![allow(clippy::expect_used)]
+
 use memory_core::{Episode, TaskContext, TaskType};
 use memory_storage_turso::{EpisodeQuery, TursoStorage};
 use tempfile::TempDir;

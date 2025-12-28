@@ -38,6 +38,7 @@ pub fn setup_test_memory() -> SelfLearningMemory {
 /// ```ignore
 /// let memory = setup_simple_test_memory();
 /// ```
+#[allow(dead_code)]
 pub fn setup_simple_test_memory() -> SelfLearningMemory {
     let config = MemoryConfig {
         quality_threshold: 0.1,                // Very low threshold for test episodes

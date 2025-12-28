@@ -5,14 +5,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
 
-async fn create_test_pool() -> (Arc<ConnectionPool>, TempDir) {
-    let dir = TempDir::new().expect("Failed to create temp dir");
+async fn create_test_pool() -> anyhow::Result<(Arc<ConnectionPool>, TempDir)> {
+    let dir = TempDir::new()?;
     let db_path = dir.path().join("test.db");
 
-    let db = libsql::Builder::new_local(&db_path)
-        .build()
-        .await
-        .expect("Failed to create test database");
+    let db = libsql::Builder::new_local(&db_path).build().await?;
 
     let config = PoolConfig {
         max_connections: 10,
@@ -21,15 +18,13 @@ async fn create_test_pool() -> (Arc<ConnectionPool>, TempDir) {
         health_check_timeout: Duration::from_secs(2),
     };
 
-    let pool = ConnectionPool::new(Arc::new(db), config)
-        .await
-        .expect("Failed to create connection pool");
-    (Arc::new(pool), dir)
+    let pool = ConnectionPool::new(Arc::new(db), config).await?;
+    Ok((Arc::new(pool), dir))
 }
 
 #[tokio::test]
-async fn test_pool_performance_concurrent_operations() {
-    let (pool, _dir) = create_test_pool().await;
+async fn test_pool_performance_concurrent_operations() -> Result<(), Box<dyn std::error::Error>> {
+    let (pool, _dir) = create_test_pool().await?;
 
     let start = Instant::now();
     let mut handles = vec![];
@@ -38,18 +33,23 @@ async fn test_pool_performance_concurrent_operations() {
     for _ in 0..100 {
         let pool_clone = Arc::clone(&pool);
         let handle = tokio::spawn(async move {
-            let conn = pool_clone.get().await.unwrap();
+            let conn = pool_clone.get().await?;
             // Simulate database work
-            let result = conn.connection().unwrap().query("SELECT 1", ()).await;
+            let result = conn
+                .connection()
+                .ok_or_else(|| anyhow::anyhow!("Failed to get connection"))?
+                .query("SELECT 1", ())
+                .await;
             assert!(result.is_ok());
             tokio::time::sleep(Duration::from_millis(5)).await;
+            anyhow::Ok(())
         });
         handles.push(handle);
     }
 
     // Wait for all to complete
     for handle in handles {
-        handle.await.unwrap();
+        handle.await??;
     }
 
     let elapsed = start.elapsed();
@@ -76,14 +76,15 @@ async fn test_pool_performance_concurrent_operations() {
     // Ensure pool is cleanly shutdown before TempDir drops to avoid Windows file handle races
     let _ = pool.shutdown().await;
     tokio::time::sleep(Duration::from_millis(50)).await;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pool_with_turso_storage() {
-    let dir = TempDir::new().unwrap();
+async fn test_pool_with_turso_storage() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = TempDir::new()?;
     let db_path = dir.path().join("test.db");
 
-    let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+    let db = libsql::Builder::new_local(&db_path).build().await?;
 
     let config = PoolConfig {
         max_connections: 5,
@@ -92,12 +93,16 @@ async fn test_pool_with_turso_storage() {
         health_check_timeout: Duration::from_secs(2),
     };
 
-    let pool = ConnectionPool::new(Arc::new(db), config).await.unwrap();
+    let pool = ConnectionPool::new(Arc::new(db), config).await?;
 
     // Test multiple sequential operations
     for i in 0..10 {
-        let conn = pool.get().await.unwrap();
-        let result = conn.connection().unwrap().query("SELECT 1", ()).await;
+        let conn = pool.get().await?;
+        let result = conn
+            .connection()
+            .ok_or_else(|| anyhow::anyhow!("Failed to get connection"))?
+            .query("SELECT 1", ())
+            .await;
         assert!(result.is_ok(), "Query {} failed", i);
     }
 
@@ -107,20 +112,21 @@ async fn test_pool_with_turso_storage() {
     // Clean shutdown before TempDir is dropped
     let _ = pool.shutdown().await;
     tokio::time::sleep(Duration::from_millis(50)).await;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pool_utilization_tracking() {
-    let (pool, _dir) = create_test_pool().await;
+async fn test_pool_utilization_tracking() -> Result<(), Box<dyn std::error::Error>> {
+    let (pool, _dir) = create_test_pool().await?;
 
     // Initially no utilization
     assert_eq!(pool.utilization().await, 0.0);
 
     // Get connections and check utilization increases
-    let _conn1 = pool.get().await.unwrap();
+    let _conn1 = pool.get().await?;
     assert!(pool.utilization().await > 0.0);
 
-    let _conn2 = pool.get().await.unwrap();
+    let _conn2 = pool.get().await?;
     assert!(pool.utilization().await > 0.1);
 
     drop(_conn1);
@@ -135,15 +141,16 @@ async fn test_pool_utilization_tracking() {
     // Clean shutdown
     let _ = pool.shutdown().await;
     tokio::time::sleep(Duration::from_millis(50)).await;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pool_health_checks() {
-    let (pool, _dir) = create_test_pool().await;
+async fn test_pool_health_checks() -> Result<(), Box<dyn std::error::Error>> {
+    let (pool, _dir) = create_test_pool().await?;
 
     // Get multiple connections, all should pass health checks
     for _ in 0..5 {
-        let _conn = pool.get().await.unwrap();
+        let _conn = pool.get().await?;
     }
 
     let stats = pool.statistics().await;
@@ -153,16 +160,17 @@ async fn test_pool_health_checks() {
     // Shutdown pool before TempDir cleanup
     let _ = pool.shutdown().await;
     tokio::time::sleep(Duration::from_millis(50)).await;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pool_graceful_shutdown() {
-    let (pool, _dir) = create_test_pool().await;
+async fn test_pool_graceful_shutdown() -> Result<(), Box<dyn std::error::Error>> {
+    let (pool, _dir) = create_test_pool().await?;
 
     // Perform some operations
     {
-        let _conn1 = pool.get().await.unwrap();
-        let _conn2 = pool.get().await.unwrap();
+        let _conn1 = pool.get().await?;
+        let _conn2 = pool.get().await?;
     }
 
     // Wait for connections to be returned
@@ -174,21 +182,21 @@ async fn test_pool_graceful_shutdown() {
 
     // Small pause to ensure libsql releases handles on Windows before directory removal
     tokio::time::sleep(Duration::from_millis(50)).await;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pool_statistics_accuracy() {
-    let (pool, _dir) = create_test_pool().await;
+async fn test_pool_statistics_accuracy() -> Result<(), Box<dyn std::error::Error>> {
+    let (pool, _dir) = create_test_pool().await?;
 
     // Get and use 3 connections
     for _ in 0..3 {
-        let conn = pool.get().await.unwrap();
+        let conn = pool.get().await?;
         let _result = conn
             .connection()
-            .unwrap()
+            .ok_or_else(|| anyhow::anyhow!("Failed to get connection"))?
             .query("SELECT 1", ())
-            .await
-            .unwrap();
+            .await?;
         drop(conn);
     }
 
@@ -204,4 +212,5 @@ async fn test_pool_statistics_accuracy() {
     // Ensure the pool is shut down before TempDir is dropped
     let _ = pool.shutdown().await;
     tokio::time::sleep(Duration::from_millis(50)).await;
+    Ok(())
 }

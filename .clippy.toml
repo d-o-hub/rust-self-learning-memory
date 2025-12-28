@@ -2,8 +2,8 @@
 msrv = "1.70"
 
 # Type system and complexity
-type-complexity-threshold = 500
-cognitive-complexity-threshold = 30
+type-complexity-threshold = 1000
+cognitive-complexity-threshold = 50
 excessive-nesting-threshold = 6
 too-many-arguments-threshold = 7
 too-many-lines-threshold = 500
@@ -13,8 +13,7 @@ allow-expect-in-tests = true
 allow-unwrap-in-tests = true
 
 # Allowances for examples and tests (style warnings that don't affect functionality)
-type-complexity-threshold = 1000
-cognitive-complexity-threshold = 50
+# Type complexity and cognitive complexity thresholds already set above
 
 # Memory/performance
 vec-box-size-threshold = 4096
@@ -28,5 +27,3 @@ missing-docs-in-crate-items = false
 
 # Additional allowances for examples and tests (minor style warnings)
 doc-valid-idents = ["OpenAI", "AzureOpenAI", "multi_provider_embeddings", "embedding_optimization_demo", "async_pattern_extraction", "OpenAI", "AzureOpenAI", "standard API"]
-needless-range-loop-threshold = 500
-unnecessary-wraps = true

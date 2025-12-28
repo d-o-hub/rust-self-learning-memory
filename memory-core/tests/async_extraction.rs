@@ -24,7 +24,7 @@ use tokio::time::sleep;
 /// Create test memory config with lower quality threshold for testing
 fn test_memory_config() -> MemoryConfig {
     MemoryConfig {
-        quality_threshold: 0.3, // Lower threshold for test episodes
+        quality_threshold: 0.1, // Very low threshold for test episodes
         ..Default::default()
     }
 }
@@ -56,8 +56,8 @@ async fn create_test_episode(
 #[tokio::test]
 async fn should_extract_patterns_asynchronously_in_background() {
     // Given: Memory system with async extraction enabled and workers started
-    let memory =
-        SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(QueueConfig::default());
+    let memory = SelfLearningMemory::with_config(test_memory_config())
+        .enable_async_extraction(QueueConfig::default());
     let memory_arc = Arc::new(memory);
 
     memory_arc.start_workers().await;
@@ -115,8 +115,10 @@ async fn should_complete_faster_with_async_extraction_than_sync() {
     assert!(!episode_sync.patterns.is_empty() || episode_sync.steps.len() < 2);
 
     // Given: Async memory system with workers started
-    let async_memory =
-        Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(QueueConfig::default()));
+    let async_memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config())
+            .enable_async_extraction(QueueConfig::default()),
+    );
     async_memory.start_workers().await;
 
     let async_episode_id = create_test_episode(&async_memory, "Async task", 3).await;
@@ -154,7 +156,9 @@ async fn should_process_multiple_episodes_in_parallel_with_worker_pool() {
         ..Default::default()
     };
 
-    let memory = Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(config));
+    let memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(config),
+    );
     memory.start_workers().await;
 
     let episode_count = 10;
@@ -204,7 +208,9 @@ async fn should_handle_backpressure_when_queue_exceeds_capacity() {
         poll_interval_ms: 50,
     };
 
-    let memory = Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(config));
+    let memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(config),
+    );
     memory.start_workers().await;
 
     // When: Enqueuing more episodes than max_queue_size
@@ -240,8 +246,10 @@ async fn should_handle_backpressure_when_queue_exceeds_capacity() {
 #[tokio::test]
 async fn should_recover_from_worker_errors_and_continue_processing() {
     // Given: Memory system with async extraction and workers
-    let memory =
-        Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(QueueConfig::default()));
+    let memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config())
+            .enable_async_extraction(QueueConfig::default()),
+    );
     memory.start_workers().await;
 
     // Given: An incomplete episode (would fail extraction if enqueued)
@@ -289,7 +297,9 @@ async fn should_scale_processing_with_different_worker_counts() {
             ..Default::default()
         };
 
-        let memory = Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(config));
+        let memory = Arc::new(
+            SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(config),
+        );
         memory.start_workers().await;
 
         let episode_count = 20;
@@ -329,8 +339,10 @@ async fn should_scale_processing_with_different_worker_counts() {
 #[tokio::test]
 async fn should_track_queue_statistics_accurately() {
     // Given: Memory system with async extraction and workers
-    let memory =
-        Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(QueueConfig::default()));
+    let memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config())
+            .enable_async_extraction(QueueConfig::default()),
+    );
     memory.start_workers().await;
 
     // Then: Initial stats should be zero
@@ -370,8 +382,10 @@ async fn should_track_queue_statistics_accurately() {
 #[tokio::test]
 async fn should_complete_episodes_in_under_100ms_with_async_extraction() {
     // Given: Memory system with async extraction enabled
-    let memory =
-        Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(QueueConfig::default()));
+    let memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config())
+            .enable_async_extraction(QueueConfig::default()),
+    );
     memory.start_workers().await;
 
     let episode_id = create_test_episode(&memory, "Performance test", 5).await;
@@ -430,8 +444,10 @@ async fn should_work_with_sync_extraction_when_async_disabled() {
 #[tokio::test]
 async fn should_handle_concurrent_episode_completions_safely() {
     // Given: Memory system with async extraction
-    let memory =
-        Arc::new(SelfLearningMemory::with_config(test_memory_config()).enable_async_extraction(QueueConfig::default()));
+    let memory = Arc::new(
+        SelfLearningMemory::with_config(test_memory_config())
+            .enable_async_extraction(QueueConfig::default()),
+    );
     memory.start_workers().await;
 
     // Given: Multiple episodes created

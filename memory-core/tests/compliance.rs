@@ -10,8 +10,9 @@ mod common;
 
 use chrono::Utc;
 use common::{
-    create_completed_episode_with_pattern, create_test_episode_with_domain, setup_test_memory,
-    test_context, ContextBuilder, PatternType, StepBuilder,
+    create_completed_episode_with_pattern, create_test_episode_with_domain,
+    setup_simple_test_memory, setup_test_memory, test_context, ContextBuilder, PatternType,
+    StepBuilder,
 };
 use memory_core::{Pattern, TaskOutcome, TaskType};
 use serde_json::json;
@@ -336,8 +337,8 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
         );
     }
 
-    // Given: A memory system with 50 episodes
-    let memory2 = setup_test_memory();
+    // Given: A memory system with 50 episodes (using simple setup for predictable limits)
+    let memory2 = setup_simple_test_memory();
     for _i in 0..50 {
         create_test_episode_with_domain(&memory2, "test-domain").await;
     }

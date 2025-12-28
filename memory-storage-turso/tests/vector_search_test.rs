@@ -132,8 +132,8 @@ async fn test_vector_search_threshold() {
 
     // Store an embedding with specific pattern
     let mut embedding = vec![0.0_f32; 384];
-    for i in 0..384 {
-        embedding[i] = if i % 2 == 0 { 1.0 } else { 0.0 };
+    for (i, val) in embedding.iter_mut().enumerate().take(384) {
+        *val = if i % 2 == 0 { 1.0 } else { 0.0 };
     }
     storage
         .store_episode_embedding(episode.episode_id, embedding)
@@ -142,8 +142,8 @@ async fn test_vector_search_threshold() {
 
     // Search with very different embedding and high threshold
     let mut query_embedding = vec![0.0_f32; 384];
-    for i in 0..384 {
-        query_embedding[i] = if i % 2 == 0 { 0.0 } else { 1.0 }; // Opposite pattern
+    for (i, val) in query_embedding.iter_mut().enumerate().take(384) {
+        *val = if i % 2 == 0 { 0.0 } else { 1.0 }; // Opposite pattern
     }
 
     let results = storage

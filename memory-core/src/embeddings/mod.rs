@@ -758,8 +758,7 @@ mod tests {
         let result = SemanticService::default(storage).await;
         // This may fail if Local provider is not installed, but it should handle gracefully
         // If it fails, it's expected behavior in some environments
-        if result.is_ok() {
-            let service = result.unwrap();
+        if let Ok(service) = result {
             assert_eq!(service.config.provider, EmbeddingProviderType::Local);
             assert_eq!(
                 service.config.model.model_name,

@@ -4,8 +4,8 @@
 //! and that all database operations work as expected.
 
 use memory_core::{
-    ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
-    TaskType,
+    ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext,
+    TaskOutcome, TaskType,
 };
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
@@ -25,7 +25,10 @@ mod integration_tests {
 
     async fn setup_test_environment() -> (Arc<SelfLearningMemory>, Arc<MemoryMCPServer>) {
         disable_wasm_for_tests();
-        let memory = Arc::new(SelfLearningMemory::new());
+        let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        }));
         let sandbox_config = SandboxConfig::default();
         let mcp_server = Arc::new(
             MemoryMCPServer::new(sandbox_config, memory.clone())
@@ -41,9 +44,9 @@ mod integration_tests {
 
         // Test that server initializes with correct tools
         // Note: WASM is disabled, so execute_agent_code is not available
-        // Available tools: query_memory, analyze_patterns, health_check, get_metrics, advanced_pattern_analysis
+        // Available tools: query_memory, analyze_patterns, health_check, get_metrics, advanced_pattern_analysis, quality_metrics
         let tools = mcp_server.list_tools().await;
-        assert_eq!(tools.len(), 5);
+        assert_eq!(tools.len(), 6);
 
         let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
         assert!(tool_names.contains(&"query_memory".to_string()));

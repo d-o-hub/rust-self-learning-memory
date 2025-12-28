@@ -1,6 +1,6 @@
 //! Integration tests for MCP server and sandbox
 
-use memory_core::SelfLearningMemory;
+use memory_core::{MemoryConfig, SelfLearningMemory};
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
@@ -18,7 +18,10 @@ async fn test_server_full_lifecycle() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -52,7 +55,10 @@ async fn test_query_memory_integration() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -76,7 +82,10 @@ async fn test_analyze_patterns_integration() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -95,7 +104,10 @@ async fn test_tool_management() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -127,7 +139,10 @@ async fn test_concurrent_executions() {
     let server = std::sync::Arc::new(
         MemoryMCPServer::new(
             SandboxConfig::default(),
-            Arc::new(SelfLearningMemory::new()),
+            Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+                quality_threshold: 0.0, // Zero threshold for test episodes
+                ..Default::default()
+            })),
         )
         .await
         .unwrap(),
@@ -159,7 +174,10 @@ async fn test_complex_code_execution() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -199,7 +217,10 @@ async fn test_error_handling_in_code() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -232,7 +253,10 @@ async fn test_async_code_execution() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -259,7 +283,10 @@ async fn test_progressive_tool_disclosure() {
     disable_wasm_for_tests();
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();
@@ -291,7 +318,10 @@ async fn test_memory_integration_with_data() {
     use std::sync::Arc;
 
     // Create a shared memory instance
-    let memory = Arc::new(SelfLearningMemory::new());
+    let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    }));
 
     // Populate memory with some episodes
     let context = TaskContext {
@@ -362,7 +392,10 @@ async fn test_jsonrpc_response_format_execute_code() {
     // Create server
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
-        Arc::new(SelfLearningMemory::new()),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        })),
     )
     .await
     .unwrap();

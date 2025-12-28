@@ -4,7 +4,8 @@
 //! memory operations and MCP queries in the same process.
 
 use memory_core::{
-    ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
+    TaskType,
 };
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
@@ -15,7 +16,10 @@ async fn test_comprehensive_database_operations() {
     println!("🧪 Starting Comprehensive Database Operations Test");
 
     // Initialize memory system
-    let memory = Arc::new(SelfLearningMemory::new());
+    let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+        quality_threshold: 0.0, // Zero threshold for test episodes
+        ..Default::default()
+    }));
     let sandbox_config = SandboxConfig::restrictive();
     let mcp_server = Arc::new(
         MemoryMCPServer::new(sandbox_config, memory.clone())

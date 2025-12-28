@@ -4,7 +4,8 @@
 //! and verify that all database entries are created and stored correctly.
 
 use memory_core::{
-    ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
+    TaskType,
 };
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
@@ -24,7 +25,10 @@ mod mcp_integration_tests {
 
     async fn setup_test_environment() -> (Arc<SelfLearningMemory>, Arc<MemoryMCPServer>) {
         disable_wasm_for_tests();
-        let memory = Arc::new(SelfLearningMemory::new());
+        let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0, // Zero threshold for test episodes
+            ..Default::default()
+        }));
         let sandbox_config = SandboxConfig::default();
         let mcp_server = Arc::new(
             MemoryMCPServer::new(sandbox_config, memory.clone())

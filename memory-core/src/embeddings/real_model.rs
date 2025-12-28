@@ -525,9 +525,9 @@ mod tests {
         );
 
         let files = [
-            format!("{}.onnx", sanitized),
-            format!("{}_tokenizer.json", sanitized),
-            format!("{}_config.json", sanitized),
+            format!("{sanitized}.onnx"),
+            format!("{sanitized}_tokenizer.json"),
+            format!("{sanitized}_config.json"),
         ];
 
         assert_eq!(files[0], "sentence-transformers_all-MiniLM-L6-v2.onnx");

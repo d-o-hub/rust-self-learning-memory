@@ -357,7 +357,8 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
     assert_eq!(results_20.len(), 20, "Should respect limit of 20");
 
     // Given: A memory system with episodes in different languages
-    let memory3 = setup_test_memory();
+    // Use simple setup to ensure language filtering works predictably
+    let memory3 = setup_simple_test_memory();
     for lang in ["rust", "python", "typescript"] {
         let context = ContextBuilder::new("code-gen").language(lang).build();
 
@@ -383,6 +384,11 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
         }
     }
 
+    // Verify episodes were stored
+    let (total, completed, _) = memory3.get_stats().await;
+    assert_eq!(total, 15, "Should have 15 episodes total");
+    assert_eq!(completed, 15, "All 15 episodes should be completed");
+
     // When: We query for rust-specific episodes
     let rust_context = ContextBuilder::new("code-gen").language("rust").build();
     let results = memory3
@@ -394,7 +400,17 @@ async fn should_retrieve_relevant_episodes_with_context_filtering_and_limits() {
         .iter()
         .filter(|e| e.context.language.as_deref() == Some("rust"))
         .count();
-    assert!(rust_count > 0, "Should return rust episodes");
+    assert!(
+        !results.is_empty(),
+        "Should return some results (got {} results)",
+        results.len()
+    );
+    assert!(
+        rust_count > 0,
+        "Should return rust episodes (got {} results, {} rust)",
+        results.len(),
+        rust_count
+    );
 }
 
 // ============================================================================

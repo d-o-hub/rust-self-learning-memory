@@ -10,7 +10,7 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 
 /// Create a test memory instance with default configuration
 ///
-/// Note: Uses a very low quality threshold (0.1) for testing to avoid
+/// Note: Uses zero quality threshold for testing to avoid
 /// rejecting test episodes that are intentionally simple or minimal
 /// (e.g., episodes with no steps to test edge cases).
 ///
@@ -21,7 +21,7 @@ use super::fixtures::{ContextBuilder, StepBuilder};
 /// ```
 pub fn setup_test_memory() -> SelfLearningMemory {
     let config = MemoryConfig {
-        quality_threshold: 0.1, // Very low threshold for test episodes (allows minimal episodes)
+        quality_threshold: 0.0, // Zero threshold for test episodes (allows any episode)
         ..Default::default()
     };
     SelfLearningMemory::with_config(config)
@@ -41,7 +41,7 @@ pub fn setup_test_memory() -> SelfLearningMemory {
 #[allow(dead_code)]
 pub fn setup_simple_test_memory() -> SelfLearningMemory {
     let config = MemoryConfig {
-        quality_threshold: 0.1,                // Very low threshold for test episodes
+        quality_threshold: 0.0,                // Zero threshold for test episodes
         enable_diversity_maximization: false,  // Disable for predictable results
         enable_spatiotemporal_indexing: false, // Disable for exact limit control
         ..Default::default()

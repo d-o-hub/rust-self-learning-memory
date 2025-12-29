@@ -3198,7 +3198,7 @@ dependencies = [
  "bitflags 2.10.0",
  "fastrand",
  "quickcheck",
- "rquickjs",
+ "rquickjs 0.10.0",
  "serde",
 ]
 
@@ -3666,7 +3666,7 @@ dependencies = [
  "libsql",
  "memory-storage-redb",
  "memory-storage-turso",
- "ndarray 0.16.1",
+ "ndarray 0.17.1",
  "ort",
  "reqwest",
  "serde",
@@ -3718,7 +3718,7 @@ dependencies = [
  "parking_lot",
  "rand 0.8.5",
  "rayon",
- "rquickjs",
+ "rquickjs 0.11.0",
  "serde",
  "serde_json",
  "streaming_algorithms",
@@ -3950,6 +3950,21 @@ dependencies = [
  "rawpointer",
  "rayon",
  "serde",
+]
+
+[[package]]
+name = "ndarray"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c7c9125e8f6f10c9da3aad044cc918cf8784fa34de857b1aa68038eb05a50a9"
+dependencies = [
+ "matrixmultiply",
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "portable-atomic",
+ "portable-atomic-util",
+ "rawpointer",
 ]
 
 [[package]]
@@ -5092,8 +5107,17 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a135375fbac5ba723bb6a48f432a72f81539cedde422f0121a86c7c4e96d8e0d"
 dependencies = [
- "rquickjs-core",
+ "rquickjs-core 0.10.0",
  "rquickjs-macro",
+]
+
+[[package]]
+name = "rquickjs"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c50dc6d6c587c339edb4769cf705867497a2baf0eca8b4645fa6ecd22f02c77a"
+dependencies = [
+ "rquickjs-core 0.11.0",
 ]
 
 [[package]]
@@ -5102,10 +5126,21 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bccb7121a123865c8ace4dea42e7ed84d78b90cbaf4ca32c59849d8d210c9672"
 dependencies = [
+ "hashbrown 0.16.1",
+ "relative-path 2.0.1",
+ "rquickjs-sys 0.10.0",
+]
+
+[[package]]
+name = "rquickjs-core"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8bf7840285c321c3ab20e752a9afb95548c75cd7f4632a0627cea3507e310c1"
+dependencies = [
  "async-lock",
  "hashbrown 0.16.1",
  "relative-path 2.0.1",
- "rquickjs-sys",
+ "rquickjs-sys 0.11.0",
 ]
 
 [[package]]
@@ -5121,7 +5156,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "rquickjs-core",
+ "rquickjs-core 0.10.0",
  "syn 2.0.111",
 ]
 
@@ -5132,6 +5167,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57b1b6528590d4d65dc86b5159eae2d0219709546644c66408b2441696d1d725"
 dependencies = [
  "bindgen 0.72.1",
+ "cc",
+]
+
+[[package]]
+name = "rquickjs-sys"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27344601ef27460e82d6a4e1ecb9e7e99f518122095f3c51296da8e9be2b9d83"
+dependencies = [
  "cc",
 ]
 
@@ -5511,15 +5555,15 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.146"
+version = "1.0.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "217ca874ae0207aac254aa02c957ded05585a90892cc8d87f9e5fa49669dadd8"
+checksum = "3084b546a1dd6289475996f182a22aba973866ea8e8b02c51d9f46b1336a22da"
 dependencies = [
  "itoa",
  "memchr",
- "ryu",
  "serde",
  "serde_core",
+ "zmij",
 ]
 
 [[package]]
@@ -8896,6 +8940,12 @@ checksum = "0d4e079d30939088cfc89b5318a5d3557d4a92890c917aa40475ea763bd473d5"
 dependencies = [
  "rand 0.8.5",
 ]
+
+[[package]]
+name = "zmij"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f4a4e8e9dc5c62d159f04fcdbe07f4c3fb710415aab4754bf11505501e3251d"
 
 [[package]]
 name = "zstd"

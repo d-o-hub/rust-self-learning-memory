@@ -758,3 +758,306 @@ For issues and questions:
 2. Use `--help` for command-specific guidance
 3. Enable `--verbose` for detailed error information
 4. Check the main project documentation for architecture details
+---
+
+## Semantic Search with Embeddings
+
+Memory CLI supports semantic similarity search using embeddings, allowing you to find relevant episodes based on meaning rather than just keywords.
+
+### Quick Start
+
+1. **Enable embeddings in your config file:**
+
+```toml
+[embeddings]
+enabled = true
+provider = "openai"  # or "local", "mistral", "azure", "custom"
+model = "text-embedding-3-small"
+dimension = 1536
+api_key_env = "OPENAI_API_KEY"
+```
+
+2. **Set your API key (if using OpenAI/Mistral/Azure):**
+
+```bash
+export OPENAI_API_KEY="sk-your-key-here"
+```
+
+3. **Test your configuration:**
+
+```bash
+memory-cli embedding test
+```
+
+### Embedding Commands
+
+#### `memory-cli embedding test`
+
+Test your embedding provider configuration and connectivity.
+
+**Example:**
+```bash
+$ memory-cli embedding test
+
+🧪 Testing Embedding Provider Configuration
+============================================================
+
+📋 Configuration:
+   Provider: openai
+   Model: text-embedding-3-small
+   Dimension: 1536
+   Similarity Threshold: 0.7
+
+🔌 Connecting to provider...
+✅ Provider initialized: text-embedding-3-small
+   Dimension: 1536
+
+🧠 Testing single embedding generation...
+✅ Embedding generated successfully
+   Text: 'Implement REST API authentication with JWT tokens'
+   Dimensions: 1536
+   Time: 245ms
+
+⚡ Testing batch embedding generation...
+✅ Batch embeddings generated successfully
+   Count: 3
+   Time: 412ms
+   Avg per text: 137ms
+
+✨ All tests passed!
+```
+
+#### `memory-cli embedding config`
+
+Show current embedding configuration.
+
+**Example:**
+```bash
+$ memory-cli embedding config
+
+⚙️  Embedding Configuration
+============================================================
+
+Status: ✅ Enabled
+
+Provider Settings:
+  provider: openai
+  model: text-embedding-3-small
+  dimension: 1536
+  api_key_env: OPENAI_API_KEY (✅ Set)
+
+Search Settings:
+  similarity_threshold: 0.7
+  batch_size: 32
+  cache_embeddings: true
+  timeout_seconds: 30
+```
+
+#### `memory-cli embedding list-providers`
+
+List all available embedding providers with details.
+
+**Example:**
+```bash
+$ memory-cli embedding list-providers
+
+📚 Available Embedding Providers
+============================================================
+
+🏠 Local Provider
+   • Model: sentence-transformers/all-MiniLM-L6-v2
+   • Dimension: 384
+   • Cost: Free (runs on your CPU)
+   • Speed: Fast for small batches
+   • Setup: Requires 'local-embeddings' feature
+
+🌐 OpenAI Provider
+   • Model: text-embedding-3-small (default)
+   • Dimension: 1536
+   • Cost: $0.02 per 1M tokens
+   • Speed: Very fast (API-based)
+   • Setup: Requires OPENAI_API_KEY
+```
+
+#### `memory-cli embedding benchmark`
+
+Benchmark your embedding provider's performance.
+
+**Example:**
+```bash
+$ memory-cli embedding benchmark
+
+⚡ Benchmarking Embedding Provider
+============================================================
+
+Provider: openai (text-embedding-3-small)
+
+📊 Single Embedding Benchmark
+  Iterations: 10
+  Average: 234ms
+  Min: 198ms
+  Max: 287ms
+
+📊 Batch Embedding Benchmark
+  Batch size 5: 512ms (102ms per item)
+  Batch size 10: 891ms (89ms per item)
+  Batch size 20: 1.54s (77ms per item)
+
+✅ Benchmark complete!
+```
+
+### Provider Configuration Examples
+
+#### Local Provider (Free, CPU-based)
+
+```toml
+[embeddings]
+enabled = true
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+```
+
+**Pros:** Free, no API key needed, works offline  
+**Cons:** Slower than cloud providers, requires local-embeddings feature
+
+#### OpenAI Provider (Recommended)
+
+```toml
+[embeddings]
+enabled = true
+provider = "openai"
+model = "text-embedding-3-small"
+dimension = 1536
+api_key_env = "OPENAI_API_KEY"
+```
+
+```bash
+export OPENAI_API_KEY="sk-your-key-here"
+```
+
+**Pros:** Fast, reliable, best quality  
+**Cons:** Costs $0.02 per 1M tokens
+
+#### Mistral Provider
+
+```toml
+[embeddings]
+enabled = true
+provider = "mistral"
+model = "mistral-embed"
+dimension = 1024
+api_key_env = "MISTRAL_API_KEY"
+```
+
+```bash
+export MISTRAL_API_KEY="your-mistral-key"
+```
+
+#### Azure OpenAI Provider
+
+```toml
+[embeddings]
+enabled = true
+provider = "azure"
+model = "your-deployment-name"
+dimension = 1536
+api_key_env = "AZURE_OPENAI_API_KEY"
+```
+
+```bash
+export AZURE_OPENAI_API_KEY="your-azure-key"
+export AZURE_DEPLOYMENT="your-deployment"
+export AZURE_RESOURCE="your-resource"
+export AZURE_API_VERSION="2023-05-15"
+```
+
+#### Custom Provider (LM Studio, Ollama, etc.)
+
+```toml
+[embeddings]
+enabled = true
+provider = "custom"
+model = "text-embedding-model"
+dimension = 768
+base_url = "http://localhost:1234/v1"
+```
+
+**Works with:** LM Studio, Ollama, LocalAI, or any OpenAI-compatible API
+
+### Using Semantic Search
+
+Once embeddings are enabled, episode search automatically uses semantic similarity:
+
+```bash
+# Search episodes by meaning, not just keywords
+memory-cli episode search "user authentication" --limit 5
+
+# The system will find episodes about:
+# - "OAuth2 login flow"
+# - "JWT token implementation"
+# - "Session management"
+# Even if they don't contain the exact words "user authentication"
+```
+
+### Troubleshooting
+
+#### "Embeddings are disabled"
+- Check your config file: `[embeddings] enabled = true`
+- Or enable for current session: `memory-cli embedding enable`
+
+#### "API error 401: Unauthorized"
+- Verify your API key is set: `echo $OPENAI_API_KEY`
+- Check the key is valid and not expired
+- Ensure `api_key_env` matches your environment variable name
+
+#### "API error 429: Rate limit exceeded"
+- Reduce `batch_size` in config
+- Add delays between requests
+- Upgrade your API plan
+
+#### "Failed to create HTTP client"
+- Check internet connection
+- Verify firewall allows HTTPS connections
+- Check proxy settings if applicable
+
+#### "Local embeddings not available"
+- Compile with: `cargo build --features local-embeddings`
+- Or switch to a cloud provider (OpenAI, Mistral)
+
+### Performance Tips
+
+1. **Enable caching:** `cache_embeddings = true` (default)
+2. **Use batch operations:** Higher `batch_size` for bulk operations
+3. **Choose the right provider:**
+   - Local: Free but slower
+   - OpenAI: Fast and reliable (recommended)
+   - Custom: Depends on your setup
+
+4. **Optimize similarity threshold:**
+   - Lower (0.5-0.6): More results, less precise
+   - Medium (0.7): Balanced (default)
+   - Higher (0.8-0.9): Fewer results, more precise
+
+### Cost Estimation (OpenAI)
+
+- **Price:** $0.02 per 1 million tokens
+- **Average episode:** ~100 tokens
+- **1000 episodes:** ~$0.002 (less than a penny)
+- **Caching:** Reduces costs by ~90% for repeated queries
+
+### Security Best Practices
+
+1. **Never commit API keys:** Use environment variables
+2. **Use .env files:** Add `.env` to `.gitignore`
+3. **Rotate keys regularly:** Especially if exposed
+4. **Use read-only keys:** When possible
+5. **Monitor usage:** Check your API provider dashboard
+
+### Next Steps
+
+- See `memory-core/EMBEDDING_PROVIDERS.md` for detailed provider docs
+- See `memory-core/QUICK_START_EMBEDDINGS.md` for code examples
+- Run `memory-cli embedding test` to verify your setup
+- Try semantic search: `memory-cli episode search "your query"`
+

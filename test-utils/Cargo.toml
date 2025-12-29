@@ -11,7 +11,7 @@ documentation = "https://docs.rs/test-utils"
 
 [dependencies]
 memory-core = { path = "../memory-core" }
-memory-storage-turso = { path = "../memory-storage-turso" }
+memory-storage-turso = { path = "../memory-storage-turso", optional = true }
 # memory-storage-redb = { path = "../memory-storage-redb" }  # Temporarily disabled
 
 tokio = { workspace = true }
@@ -20,3 +20,11 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 tempfile = { workspace = true }
 anyhow = { workspace = true }
+rand = { workspace = true, optional = true }
+rand_chacha = { workspace = true, optional = true }
+tracing = { workspace = true }
+
+[features]
+default = []
+turso = ["dep:memory-storage-turso", "dep:rand", "dep:rand_chacha"]
+full = ["turso"]

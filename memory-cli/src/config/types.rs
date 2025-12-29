@@ -244,6 +244,9 @@ pub struct Config {
     pub storage: StorageConfig,
     /// CLI-specific settings and preferences
     pub cli: CliConfig,
+    /// Embeddings configuration for semantic search
+    #[serde(default)]
+    pub embeddings: EmbeddingsConfig,
 }
 
 /// Database configuration for storage backend setup
@@ -279,6 +282,31 @@ pub struct CliConfig {
     pub batch_size: usize,
 }
 
+/// Embeddings configuration for semantic search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbeddingsConfig {
+    /// Enable semantic embeddings
+    pub enabled: bool,
+    /// Embedding provider: "local", "openai", "mistral", "azure", or "custom"
+    pub provider: String,
+    /// Model name or identifier
+    pub model: String,
+    /// Embedding dimension
+    pub dimension: usize,
+    /// API key environment variable (e.g., "OPENAI_API_KEY")
+    pub api_key_env: Option<String>,
+    /// Base URL for custom providers
+    pub base_url: Option<String>,
+    /// Similarity threshold for search (0.0 - 1.0)
+    pub similarity_threshold: f32,
+    /// Batch size for embedding generation
+    pub batch_size: usize,
+    /// Cache embeddings to avoid regeneration
+    pub cache_embeddings: bool,
+    /// Timeout for embedding requests (seconds)
+    pub timeout_seconds: u64,
+}
+
 impl Default for DatabaseConfig {
     fn default() -> Self {
         Self {
@@ -309,12 +337,30 @@ impl Default for CliConfig {
     }
 }
 
+impl Default for EmbeddingsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false, // Disabled by default for backward compatibility
+            provider: "local".to_string(),
+            model: "sentence-transformers/all-MiniLM-L6-v2".to_string(),
+            dimension: 384,
+            api_key_env: None,
+            base_url: None,
+            similarity_threshold: 0.7,
+            batch_size: 32,
+            cache_embeddings: true,
+            timeout_seconds: 30,
+        }
+    }
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
             database: DatabaseConfig::default(),
             storage: StorageConfig::default(),
             cli: CliConfig::default(),
+            embeddings: EmbeddingsConfig::default(),
         }
     }
 }
@@ -376,6 +422,7 @@ impl ConfigPreset {
                             100
                         },
                     },
+                    embeddings: EmbeddingsConfig::default(),
                 }
             }
             ConfigPreset::Cloud => {
@@ -402,6 +449,7 @@ impl ConfigPreset {
                         progress_bars: !info.is_ci,
                         batch_size: std::cmp::max(200, smart_defaults::suggest_batch_size()),
                     },
+                    embeddings: EmbeddingsConfig::default(),
                 }
             }
             ConfigPreset::Memory => Config {
@@ -420,6 +468,7 @@ impl ConfigPreset {
                     progress_bars: false, // Disable for tests
                     batch_size: 10,       // Small batches for testing
                 },
+                embeddings: EmbeddingsConfig::default(),
             },
             ConfigPreset::Custom => Config::default(),
         }

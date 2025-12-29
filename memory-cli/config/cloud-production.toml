@@ -1,0 +1,82 @@
+# Memory CLI Configuration - Cloud Production Preset
+# ===================================================
+# This configuration is optimized for production workloads with Turso cloud.
+# Designed for high availability, performance, and reliability.
+
+[database]
+# Remote Turso database (replace with your actual database URL)
+turso_url = "libsql://your-database.turso.io"
+
+# Authentication token (set via environment variable for security)
+# Get your token from: https://turso.tech/
+# Recommended: Use environment variable TURSO_AUTH_TOKEN instead
+turso_token = ""  # Leave empty and set TURSO_AUTH_TOKEN env var
+
+# Local redb cache for performance
+redb_path = "./data/cache.redb"
+
+[storage]
+# Large cache size for production
+max_episodes_cache = 5000
+
+# 2-hour cache TTL - reduce database queries
+cache_ttl_seconds = 7200
+
+# Larger pool size for high concurrency
+pool_size = 20
+
+[cli]
+# JSON output for automation and logging
+default_format = "json"
+
+# Disable progress bars in production (cleaner logs)
+progress_bars = false
+
+# Large batch size for efficiency
+batch_size = 500
+
+[monitoring]
+# Critical for production monitoring
+enabled = true
+health_check_interval_seconds = 60
+
+[backup]
+# Production backup directory
+backup_dir = "/var/backups/memory-cli"
+max_backup_age_days = 30  # Keep backups for 1 month
+compress_backups = true
+
+[logging]
+# Info level for production (less verbose)
+level = "info"
+log_file = "/var/log/memory-cli/memory-cli.log"
+max_log_size_mb = 100
+max_log_files = 10
+
+[embeddings]
+# Enable semantic embeddings for production semantic search
+enabled = true
+
+# Provider: "openai" recommended for production (fast, reliable)
+provider = "openai"
+
+# OpenAI's best balance of cost and performance
+model = "text-embedding-3-small"
+
+# OpenAI embedding dimension
+dimension = 1536
+
+# API key from environment variable (REQUIRED for OpenAI)
+api_key_env = "OPENAI_API_KEY"
+
+# Similarity threshold for search (0.0 - 1.0)
+similarity_threshold = 0.75
+
+# Larger batch size for production efficiency
+batch_size = 50
+
+# Cache embeddings to reduce API costs
+cache_embeddings = true
+
+# Production timeout (30 seconds)
+timeout_seconds = 30

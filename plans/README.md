@@ -36,7 +36,7 @@ This directory contains comprehensive implementation plans, architectural decisi
 - ✅ Circuit Breaker: Enabled by default with comprehensive runbook
 - ✅ Test Coverage: 92.5% coverage maintained across all modules
 
-**Current Phase**: v0.2.0 Planning (Next generation features)
+**Current Phase**: v0.1.x Feature Development (All enhancements through 0.1.x series until v1.0)
 
 **Recent Milestones** (2025-12-29):
 - ✅ v0.1.9 Release: Multi-provider embeddings, doctest validation, security improvements
@@ -67,9 +67,10 @@ This directory contains comprehensive implementation plans, architectural decisi
 
 | Phase | Target Date | Status | Focus |
 |-------|------------|--------|-------|
-| **Phase 2C** | Jan 2026 | Planning | Javy integration (JS → WASM) |
-| **v0.2.0** | Q2 2026 | Planning | Semantic intelligence, advanced patterns |
-| **v1.0.0** | 2027 | Vision | Enterprise maturity, ecosystem dominance |
+| **v0.1.11-v0.1.15** | Q1 2026 | Planning | Config polish, query caching, contrastive learning, clustering |
+| **v0.1.16-v0.1.20** | Q2 2026 | Planning | Advanced features, custom models, production validation |
+| **v0.1.x series** | 2026 | Active | All feature development until v1.0 |
+| **v1.0.0** | 2027 | Vision | Enterprise maturity, stable API, ecosystem dominance |
 
 ---
 
@@ -80,9 +81,9 @@ This directory contains comprehensive implementation plans, architectural decisi
 #### 📊 Status & Roadmap
 - **[PROJECT_STATUS_UNIFIED.md](STATUS/PROJECT_STATUS_UNIFIED.md)** - **SINGLE SOURCE OF TRUTH** - Current project status, quality gates, implementation progress (v0.1.9)
 - **[V019_STATUS_REPORT.md](STATUS/V019_STATUS_REPORT.md)** - v0.1.9 release details (multi-provider embeddings, security, CI improvements)
-- **[ROADMAP_V020_PLANNING.md](ROADMAPS/ROADMAP_V020_PLANNING.md)** - v0.2.0 planning (Q1 2026) - Advanced features: query caching, contrastive learning, async indexing
+- **[ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md)** - Active development roadmap - v0.1.x feature releases (all enhancements)
 - **[ROADMAP_V010_ARCHIVED.md](ROADMAPS/ROADMAP_V010_ARCHIVED.md)** - v0.1.7-v0.1.9 history - Research integration complete (PREMem, GENESIS, Spatiotemporal)
-- **[ROADMAP_V030_VISION.md](ROADMAPS/ROADMAP_V030_VISION.md)** - v0.3.0+ vision - Future features: distributed memory, advanced observability, multi-tenancy
+- **[ROADMAP_V030_VISION.md](ROADMAPS/ROADMAP_V030_VISION.md)** - v1.0+ vision - Enterprise features: distributed memory, advanced observability, multi-tenancy
 
 #### 🏗️ Architecture & Implementation
 - **[ARCHITECTURE_CORE.md](ARCHITECTURE/ARCHITECTURE_CORE.md)** - Core architecture documentation
@@ -350,7 +351,7 @@ See [../LICENSE](../LICENSE) for licensing information.
 
 This README serves as the main index for all planning documentation. Documents are organized by:
 
-1. **Version**: Current (v0.1.4), Released (v0.1.0-v0.1.3), Planned (v0.2.0+)
+1. **Version**: Current (v0.1.9), Released (v0.1.0-v0.1.9), Planned (v0.1.10+ → v1.0)
 2. **Type**: Planning, Technical, Release, Operational, Architectural
 3. **Phase**: Process framework (00-07), Technical docs (10-21)
 4. **Archive**: Historical documents by version (archive/v0.1.x/)

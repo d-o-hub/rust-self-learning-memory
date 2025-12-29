@@ -258,6 +258,10 @@ pub struct SelfLearningMemory {
     /// Configuration for semantic search
     #[allow(dead_code)]
     semantic_config: EmbeddingConfig,
+
+    // v0.1.12: Query Caching
+    /// Query cache for retrieval performance (LRU + TTL)
+    query_cache: Arc<crate::retrieval::QueryCache>,
 }
 
 impl Default for SelfLearningMemory {
@@ -343,6 +347,9 @@ impl SelfLearningMemory {
         // We can't initialize it here because it requires async runtime
         let semantic_service: Option<Arc<SemanticService>> = None;
 
+        // Initialize query cache with default settings
+        let query_cache = Arc::new(crate::retrieval::QueryCache::new());
+
         Self {
             config: config.clone(),
             quality_assessor,
@@ -368,6 +375,7 @@ impl SelfLearningMemory {
             context_aware_embeddings: None, // Future enhancement
             semantic_service,
             semantic_config,
+            query_cache,
         }
     }
 
@@ -485,6 +493,9 @@ impl SelfLearningMemory {
         // Semantic service initialized to None (will be created lazily if needed)
         let semantic_service: Option<Arc<SemanticService>> = None;
 
+        // Initialize query cache with default settings
+        let query_cache = Arc::new(crate::retrieval::QueryCache::new());
+
         Self {
             config: config.clone(),
             quality_assessor,
@@ -510,6 +521,7 @@ impl SelfLearningMemory {
             context_aware_embeddings: None, // Future enhancement
             semantic_service,
             semantic_config,
+            query_cache,
         }
     }
 
@@ -677,6 +689,63 @@ impl SelfLearningMemory {
     /// and performance metrics across all agents.
     pub async fn get_monitoring_summary(&self) -> crate::monitoring::MonitoringSummary {
         self.agent_monitor.get_summary_stats().await
+    }
+
+    /// Get query cache metrics (v0.1.12)
+    ///
+    /// Returns cache performance statistics including hit rate, size,
+    /// and eviction counts. Useful for monitoring cache effectiveness.
+    ///
+    /// # Returns
+    ///
+    /// `CacheMetrics` with hit/miss counts, hit rate, size, and capacity
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::SelfLearningMemory;
+    ///
+    /// # async fn example() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Perform some retrievals...
+    /// // ...
+    ///
+    /// // Check cache performance
+    /// let metrics = memory.get_cache_metrics();
+    /// println!("Cache hit rate: {:.1}%", metrics.hit_rate() * 100.0);
+    /// println!("Cache size: {} / {}", metrics.size, metrics.capacity);
+    ///
+    /// if !metrics.is_effective() {
+    ///     println!("Warning: Cache hit rate below 40% target");
+    /// }
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn get_cache_metrics(&self) -> crate::retrieval::CacheMetrics {
+        self.query_cache.metrics()
+    }
+
+    /// Clear query cache metrics (v0.1.12)
+    ///
+    /// Resets all cache performance counters (hits, misses, evictions).
+    /// Useful for testing or when starting a new monitoring period.
+    ///
+    /// Note: This does NOT clear the cached entries themselves,
+    /// only the performance metrics. Use `clear_cache()` to invalidate entries.
+    pub fn clear_cache_metrics(&self) {
+        self.query_cache.clear_metrics();
+    }
+
+    /// Clear all cached query results (v0.1.12)
+    ///
+    /// Invalidates all cached query results. Future retrievals will
+    /// perform full searches until the cache is repopulated.
+    ///
+    /// This is called automatically on `complete_episode()` to ensure
+    /// new episodes are included in search results.
+    pub fn clear_cache(&self) {
+        self.query_cache.invalidate_all();
     }
 
     /// Check if Turso storage is configured

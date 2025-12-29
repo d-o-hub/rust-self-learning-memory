@@ -167,40 +167,48 @@
 
 ## Upcoming Sprints
 
-### Sprint: v0.2.1 Advanced Features (Q1 2026)
+### Sprint: v0.1.x Feature Releases (Q1-Q2 2026)
 
 **Status**: PLANNING
-**Priority**: P2 - Performance Enhancements
-**Duration**: 4-6 weeks
-**Effort**: 80-100 hours
+**Priority**: HIGH - Continuous Enhancement
+**Duration**: Ongoing (2-4 weeks per release)
+**Effort**: 20-80 hours per release
 
-**Goal**: Implement advanced features building on research foundation
+**Goal**: Deliver all planned features through 0.1.x patch series (no v0.2.0)
 
 **Sprint Backlog**:
 
-#### Full Contrastive Learning (2 weeks)
+#### v0.1.11: Configuration Polish (1-2 weeks, ~20 hours)
+- [ ] Wizard UX refinement and improved error messages
+- [ ] Enhanced documentation with more examples
+- [ ] Performance optimizations for config loading
+- **Target**: Complete remaining 33% of configuration optimization
+
+#### v0.1.12: Code Quality & Query Caching (2 weeks, ~40 hours)
+- [ ] Remove unused import warnings (29 items)
+- [ ] Fix security test compilation issues
+- [ ] Implement query caching (LRU cache with TTL)
+- [ ] Cache invalidation strategies
+- **Target**: Zero warnings, 2-3x speedup for repeated queries
+
+#### v0.1.13: Full Contrastive Learning (2 weeks, ~50 hours)
 - [ ] Enhanced embedding adaptation (+5-10% accuracy)
 - [ ] Task-specific contrastive loss functions
 - [ ] Training infrastructure for embeddings
 - **Target**: +5-10% retrieval accuracy improvement
 
-#### Adaptive Temporal Clustering (1-2 weeks)
+#### v0.1.14: Adaptive Temporal Clustering (2 weeks, ~40 hours)
 - [ ] Dynamic cluster size adjustment
 - [ ] Density-based clustering algorithms
 - [ ] Auto-tuning temporal granularity
 - **Target**: +10-20% retrieval speed improvement
 
-#### Query Caching (1 week)
-- [ ] Frequently accessed cluster caching
-- [ ] Cache invalidation strategies
+#### v0.1.15+: Advanced Features (ongoing)
+- [ ] Large-scale validation (10,000+ episodes)
 - [ ] Performance profiling and optimization
-- **Target**: 2-3x speedup for repeated queries
-
-#### Large-Scale Validation (1 week)
-- [ ] Performance profiling at 10,000+ episodes
-- [ ] Memory usage optimization
-- [ ] Scalability benchmarking
-- **Target**: Validated performance at production scale
+- [ ] Custom embedding model support (ONNX, PyTorch)
+- [ ] Advanced pattern algorithms (DBSCAN, BOCPD)
+- **Target**: Production-scale validation, enhanced capabilities
 
 ---
 
@@ -238,11 +246,12 @@
 
 ### Next Month
 
-3. **Plan v0.2.1 Advanced Features Sprint**
-   - Full contrastive learning for embeddings
-   - Adaptive temporal clustering
-   - Query caching implementation
-   - Large-scale validation
+3. **Plan v0.1.11-v0.1.15+ Feature Releases**
+   - Configuration polish and wizard UX improvements (v0.1.11)
+   - Query caching implementation (v0.1.12)
+   - Full contrastive learning for embeddings (v0.1.13)
+   - Adaptive temporal clustering (v0.1.14)
+   - Advanced features and validation (v0.1.15+)
 
 ---
 

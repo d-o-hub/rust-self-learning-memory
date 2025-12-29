@@ -8,6 +8,7 @@ use memory_core::{Error, MemoryConfig, SelfLearningMemory};
 use memory_mcp::jsonrpc::{
     read_next_message, write_response_with_length, JsonRpcError, JsonRpcRequest, JsonRpcResponse,
 };
+use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
 use memory_mcp::{MemoryMCPServer, SandboxConfig};
 use memory_storage_redb::{CacheConfig, RedbStorage};
 use memory_storage_turso::{TursoConfig, TursoStorage};
@@ -545,6 +546,7 @@ async fn handle_call_tool(
         }
         "health_check" => handle_health_check(&mut server, params.arguments).await,
         "get_metrics" => handle_get_metrics(&mut server, params.arguments).await,
+        "quality_metrics" => handle_quality_metrics(&mut server, params.arguments).await,
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
@@ -800,6 +802,20 @@ async fn handle_get_metrics(
         text: serde_json::to_string_pretty(&result)?,
     }];
 
+    Ok(content)
+}
+
+/// Handle quality_metrics tool
+async fn handle_quality_metrics(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let input: QualityMetricsInput = serde_json::from_value(args)?;
+    let result = server.execute_quality_metrics(input).await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
     Ok(content)
 }
 

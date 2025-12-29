@@ -46,6 +46,7 @@ parking_lot = "0.12"
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 futures = "0.3"
+test-utils = { path = "../test-utils", features = ["turso"] }
 
 [lints.rust]
 # Allow unsafe only for specific use cases

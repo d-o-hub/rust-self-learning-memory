@@ -3601,6 +3601,7 @@ dependencies = [
 name = "memory-benches"
 version = "0.1.9"
 dependencies = [
+ "anyhow",
  "chrono",
  "criterion",
  "fs_extra",
@@ -3609,6 +3610,7 @@ dependencies = [
  "memory-storage-redb",
  "memory-storage-turso",
  "rand 0.8.5",
+ "rand_chacha 0.3.1",
  "regex",
  "serde_json",
  "sysinfo 0.37.2",
@@ -3664,6 +3666,7 @@ dependencies = [
  "chrono",
  "futures",
  "libsql",
+ "lru 0.12.5",
  "memory-storage-redb",
  "memory-storage-turso",
  "ndarray 0.16.1",
@@ -3768,6 +3771,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+ "test-utils",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -6310,9 +6314,12 @@ dependencies = [
  "chrono",
  "memory-core",
  "memory-storage-turso",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
  "serde_json",
  "tempfile",
  "tokio",
+ "tracing",
  "uuid",
 ]
 

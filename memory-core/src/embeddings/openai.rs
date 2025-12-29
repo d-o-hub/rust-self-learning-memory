@@ -235,34 +235,6 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         Ok(all_embeddings)
     }
 
-    /// Process a single batch chunk
-    async fn embed_batch_chunk(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
-        let input = EmbeddingInput::Batch(texts.to_vec());
-        let response = self.request_embeddings(input).await?;
-
-        if response.data.len() != texts.len() {
-            anyhow::bail!(
-                "OpenAI API returned {} embeddings for {} texts",
-                response.data.len(),
-                texts.len()
-            );
-        }
-
-        // Sort by index to ensure correct order
-        let mut data = response.data;
-        data.sort_by_key(|item| item.index);
-
-        let embeddings: Vec<Vec<f32>> = data.into_iter().map(|item| item.embedding).collect();
-
-        tracing::debug!(
-            "Generated {} embeddings in batch, {} tokens",
-            embeddings.len(),
-            response.usage.total_tokens
-        );
-
-        Ok(embeddings)
-    }
-
     fn embedding_dimension(&self) -> usize {
         self.config.embedding_dimension
     }
@@ -290,6 +262,38 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
             "provider": "OpenAI",
             "base_url": self.base_url
         })
+    }
+}
+
+// Helper methods for OpenAIEmbeddingProvider
+#[cfg(feature = "openai")]
+impl OpenAIEmbeddingProvider {
+    /// Process a single batch chunk
+    async fn embed_batch_chunk(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
+        let input = EmbeddingInput::Batch(texts.to_vec());
+        let response = self.request_embeddings(input).await?;
+
+        if response.data.len() != texts.len() {
+            anyhow::bail!(
+                "OpenAI API returned {} embeddings for {} texts",
+                response.data.len(),
+                texts.len()
+            );
+        }
+
+        // Sort by index to ensure correct order
+        let mut data = response.data;
+        data.sort_by_key(|item| item.index);
+
+        let embeddings: Vec<Vec<f32>> = data.into_iter().map(|item| item.embedding).collect();
+
+        tracing::debug!(
+            "Generated {} embeddings in batch, {} tokens",
+            embeddings.len(),
+            response.usage.total_tokens
+        );
+
+        Ok(embeddings)
     }
 }
 

@@ -161,6 +161,10 @@ pub fn create_test_reflection() -> Reflection {
     }
 }
 
+// Re-export multi-dimension test utilities
+#[cfg(feature = "turso")]
+pub mod multi_dimension;
+
 #[cfg(test)]
 mod tests {
     use super::*;

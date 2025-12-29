@@ -216,7 +216,7 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
             sync_interval_secs: 300, // 5 minutes default
             enable_compression: false,
         },
-        enable_embeddings: false,
+        enable_embeddings: config.embeddings.enabled, // Use config value
         pattern_extraction_threshold: 0.1,
         quality_threshold: 0.7, // PREMem quality threshold
         batch_config: Some(memory_core::BatchConfig::default()),

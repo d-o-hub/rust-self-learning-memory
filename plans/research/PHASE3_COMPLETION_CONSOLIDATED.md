@@ -334,10 +334,10 @@ Phase 3 completed the implementation of spatiotemporal indexing, semantic simila
 - ⏳ Update archive index
 - ⏳ Create final consolidation summary
 
-### Short-term (Phase 4)
+### Short-term (v0.1.x patches)
 - Implement remaining configuration optimizations
 - Complete final quality checks
-- Prepare v0.2.0 release
+- Continue v0.1.x patch releases (v0.1.11-v0.1.15)
 - Update production deployment docs
 
 ### Long-term (Post-Phase 4)

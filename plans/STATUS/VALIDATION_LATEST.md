@@ -224,7 +224,7 @@ Files exceeding 500-line limit:
 5. CONFIG_USER_EXPERIENCE_IMPROVEMENTS.md (959 lines) → Split by feature
 6-9. Other large files
 
-**Recommendation**: Address during v0.2.0 planning cycle (Q1 2026)
+**Recommendation**: Address during v0.1.x patch releases as needed (Q1 2026)
 
 ### Cross-Reference Validation
 
@@ -272,7 +272,7 @@ Some API references are outdated (pre-postcard migration):
 
 2. **Large files** (9 files > 500 lines)
    - Exceeds maintainability guidelines
-   - **Action**: Planned for v0.2.0 cycle
+   - **Action**: Address incrementally during v0.1.x patch releases as needed
 
 ### Recommended Actions
 

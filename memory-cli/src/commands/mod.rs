@@ -1,5 +1,6 @@
 pub mod backup;
 pub mod config;
+pub mod embedding;
 pub mod episode;
 pub mod eval;
 pub mod health;
@@ -10,6 +11,7 @@ pub mod storage;
 
 pub use backup::*;
 pub use config::*;
+pub use embedding::*;
 pub use episode::*;
 pub use eval::*;
 pub use health::*;

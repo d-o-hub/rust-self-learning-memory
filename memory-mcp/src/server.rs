@@ -379,6 +379,43 @@ impl MemoryMCPServer {
         Ok(())
     }
 
+    /// Check if Javy plugin is valid (only when javy-backend feature is enabled)
+    #[cfg(feature = "javy-backend")]
+    fn is_javy_plugin_valid() -> bool {
+        use std::path::Path;
+
+        // Check bundled plugin file
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let plugin_path = Path::new(manifest_dir).join("javy-plugin.wasm");
+
+        if let Ok(metadata) = std::fs::metadata(&plugin_path) {
+            if metadata.len() > 100 {
+                // Check WASM magic bytes
+                if let Ok(mut file) = std::fs::File::open(&plugin_path) {
+                    let mut magic = [0u8; 4];
+                    if std::io::Read::read_exact(&mut file, &mut magic).is_ok() {
+                        return &magic == b"\0asm";
+                    }
+                }
+            }
+        }
+
+        // Check embedded plugin bytes (included via include_bytes!)
+        const EMBEDDED_PLUGIN: &[u8] = include_bytes!("../javy-plugin.wasm");
+        if EMBEDDED_PLUGIN.len() > 100 && EMBEDDED_PLUGIN.starts_with(b"\0asm") {
+            return true;
+        }
+
+        warn!("Javy plugin not valid (too small or missing WASM magic bytes)");
+        false
+    }
+
+    #[cfg(not(feature = "javy-backend"))]
+    fn is_javy_plugin_valid() -> bool {
+        // Javy backend not enabled, so plugin validity is irrelevant
+        false
+    }
+
     /// Check if WASM sandbox is available for code execution
     fn is_wasm_sandbox_available() -> bool {
         // honour explicit override
@@ -387,6 +424,15 @@ impl MemoryMCPServer {
                 "true" | "wasm" => return true,
                 "false" | "node" => return false,
                 _ => {}
+            }
+        }
+        // If javy-backend feature is enabled, plugin must be valid
+        // (execute_agent_code tool depends on Javy compilation)
+        #[cfg(feature = "javy-backend")]
+        {
+            if !Self::is_javy_plugin_valid() {
+                warn!("WASM sandbox not available due to invalid Javy plugin");
+                return false;
             }
         }
         // Attempt to construct a unified sandbox with WASM-only backend

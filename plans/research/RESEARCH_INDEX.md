@@ -138,10 +138,11 @@ Focus: Secure code execution and WASM integration
 - ✅ December 2025 academic research synthesis (NEW 2025-12-25)
 
 ### Ongoing Research
-- 🔄 Configuration optimization (67% complete)
-- 🔄 v0.2.0 feature research
-- 🔄 Q1 2026 research integration sprint (NEW - planning phase)
-- 🔄 Models.dev integration planning (Q1 2026)
+- 🔄 Configuration optimization (67% complete) - v0.1.11
+- 🔄 Query caching strategies - v0.1.12
+- 🔄 Contrastive learning for embeddings - v0.1.13
+- 🔄 Adaptive temporal clustering algorithms - v0.1.14
+- 🔄 Custom model integration (ONNX, PyTorch) - v0.1.15+
 
 ### Future Research
 - 📅 Advanced semantic embeddings

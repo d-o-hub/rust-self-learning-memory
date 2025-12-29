@@ -64,6 +64,7 @@
 //! }
 //! ```
 
+pub mod constants;
 pub mod embeddings;
 pub mod episode;
 pub mod episodic;
@@ -76,6 +77,7 @@ pub mod pattern;
 pub mod patterns;
 pub mod pre_storage;
 pub mod reflection;
+pub mod retrieval;
 pub mod reward;
 pub mod semantic;
 pub mod spatiotemporal;
@@ -102,6 +104,7 @@ pub use patterns::{
     PatternMetrics, PatternUsage, PatternValidator, UsageStats, ValidationConfig,
 };
 pub use reflection::ReflectionGenerator;
+pub use retrieval::{CacheKey, CacheMetrics, QueryCache};
 pub use reward::{
     AdaptiveRewardCalculator, DomainStatistics, DomainStatisticsCache, RewardCalculator,
 };

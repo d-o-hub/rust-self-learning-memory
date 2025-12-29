@@ -3,7 +3,7 @@
 ## Project Overview
 This is a memory management system with episodic memory capabilities, semantic embeddings, and multiple storage backends. The system provides persistent memory across agent interactions through an MCP (Model Context Protocol) server.
 
-**Current Status (v0.1.7):**
+**Current Status (v0.1.9):**
 - **Production-ready** episodic memory management system for AI agents
 - **8 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples
 - **367 Rust source files** with ~44,250 lines of code in core library

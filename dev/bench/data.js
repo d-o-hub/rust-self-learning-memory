@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1767013115972,
+  "lastUpdate": 1767017127877,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -7561,6 +7561,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/f76a1026b7c3b314035de03e56b0691ea4249096"
         },
         "date": 1767013115580,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "distinct": true,
+          "id": "dfecaf9ae9ecd7ea1e3347d9e7780d2581a5fcae",
+          "message": "chore(deps): bump serde_json from 1.0.146 to 1.0.148\n\nBumps [serde_json](https://github.com/serde-rs/json) from 1.0.146 to 1.0.148.\n- [Release notes](https://github.com/serde-rs/json/releases)\n- [Commits](https://github.com/serde-rs/json/compare/v1.0.146...v1.0.148)\n\n---\nupdated-dependencies:\n- dependency-name: serde_json\n  dependency-version: 1.0.148\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-12-29T14:57:30+01:00",
+          "tree_id": "4c54abfeca84e05add3c64958337fa1061e9d684",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/dfecaf9ae9ecd7ea1e3347d9e7780d2581a5fcae"
+        },
+        "date": 1767017127524,
         "tool": "cargo",
         "benches": [
           {

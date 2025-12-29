@@ -3599,7 +3599,7 @@ dependencies = [
 
 [[package]]
 name = "memory-benches"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "chrono",
  "criterion",
@@ -3620,7 +3620,7 @@ dependencies = [
 
 [[package]]
 name = "memory-cli"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3657,7 +3657,7 @@ dependencies = [
 
 [[package]]
 name = "memory-core"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3681,7 +3681,7 @@ dependencies = [
 
 [[package]]
 name = "memory-examples"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3699,7 +3699,7 @@ dependencies = [
 
 [[package]]
 name = "memory-mcp"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3735,7 +3735,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-redb"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3755,7 +3755,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-turso"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4658,7 +4658,7 @@ checksum = "3804877ffeba468c806c2ad9057bbbae92e4b2c410c2f108baaa0042f241fa4c"
 
 [[package]]
 name = "quality-gates"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "memory-core",
@@ -5511,15 +5511,15 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.146"
+version = "1.0.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "217ca874ae0207aac254aa02c957ded05585a90892cc8d87f9e5fa49669dadd8"
+checksum = "3084b546a1dd6289475996f182a22aba973866ea8e8b02c51d9f46b1336a22da"
 dependencies = [
  "itoa",
  "memchr",
- "ryu",
  "serde",
  "serde_core",
+ "zmij",
 ]
 
 [[package]]
@@ -6304,7 +6304,7 @@ checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 
 [[package]]
 name = "test-utils"
-version = "0.1.7"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "chrono",
@@ -8896,6 +8896,12 @@ checksum = "0d4e079d30939088cfc89b5318a5d3557d4a92890c917aa40475ea763bd473d5"
 dependencies = [
  "rand 0.8.5",
 ]
+
+[[package]]
+name = "zmij"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f4a4e8e9dc5c62d159f04fcdbe07f4c3fb710415aab4754bf11505501e3251d"
 
 [[package]]
 name = "zstd"

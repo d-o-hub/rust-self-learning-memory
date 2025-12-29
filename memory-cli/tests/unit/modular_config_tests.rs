@@ -355,16 +355,23 @@ mod integration_tests {
         let temp_dir = TempDir::new().unwrap();
         let config_path = temp_dir.path().join("test.toml");
         
-        let config_content = r#"
+        // Use unique database path per test to avoid lock conflicts
+        let redb_path = temp_dir.path().join("test.redb");
+        let redb_str = redb_path.display().to_string().replace('\\', "/");
+        
+        let config_content = format!(
+            r#"
 [database]
-redb_path = ":memory:"
+redb_path = "{}"
 
 [storage]
 max_episodes_cache = 100
 
 [cli]
 default_format = "json"
-"#;
+"#,
+            redb_str
+        );
         
         std::fs::write(&config_path, config_content).unwrap();
         

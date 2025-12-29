@@ -45,7 +45,6 @@
 //! ```
 
 use anyhow::{anyhow, Result};
-use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info};

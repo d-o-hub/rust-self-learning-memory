@@ -37,11 +37,11 @@ impl CliHarness {
         );
         let turso_db_path = temp_dir.path().join(format!("test-{}.db", unique_id));
         let redb_path = temp_dir.path().join(format!("test-{}.redb", unique_id));
-        
+
         // Convert Windows paths to forward slashes for TOML compatibility
         let turso_db_str = turso_db_path.display().to_string().replace('\\', "/");
         let redb_str = redb_path.display().to_string().replace('\\', "/");
-        
+
         let config_content = format!(
             r#"
 [database]

@@ -1682,9 +1682,9 @@ dependencies = [
 
 [[package]]
 name = "deep_causality"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2638bd9b04a563a8d119f51118813bfcb3deaf4e2bd42c9d907f9ecd3678119e"
+checksum = "0815ee49acd08764a4c692e3be329388cd4dcbe123b991d9612faff27edd6895"
 dependencies = [
  "deep_causality_ast",
  "deep_causality_core",

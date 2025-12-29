@@ -45,6 +45,8 @@
 //! ```
 
 use anyhow::{anyhow, Result};
+use base64::Engine;
+use base64::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info};
@@ -227,7 +229,7 @@ impl UnifiedSandbox {
                         debug!("Executing pre-compiled WASM bytecode (Javy not enabled)");
 
                         let wasm_bytes = if let Some(encoded) = code.strip_prefix("wasm_base64:") {
-                            base64::engine::general_purpose::STANDARD
+                            BASE64_STANDARD
                                 .decode(encoded)
                                 .map_err(|e| anyhow!("Invalid wasm_base64 payload: {}", e))?
                         } else {
@@ -553,10 +555,7 @@ mod tests {
         )?;
 
         let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
-        let wasm_payload = format!(
-            "wasm_base64:{}",
-            base64::engine::general_purpose::STANDARD.encode(wasm_bytes)
-        );
+        let wasm_payload = format!("wasm_base64:{}", BASE64_STANDARD.encode(wasm_bytes));
         let result = sandbox.execute(&wasm_payload, context).await?;
 
         match &result {
@@ -710,10 +709,7 @@ mod tests {
             )
         "#,
         )?;
-        let wasm_payload = format!(
-            "wasm_base64:{}",
-            base64::engine::general_purpose::STANDARD.encode(wasm_bytes)
-        );
+        let wasm_payload = format!("wasm_base64:{}", BASE64_STANDARD.encode(wasm_bytes));
         let result2 = sandbox.execute(&wasm_payload, context).await?;
         match &result2 {
             ExecutionResult::Success { .. } => {} // Success

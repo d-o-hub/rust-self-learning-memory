@@ -737,12 +737,12 @@ mod tests {
 
         // Store embedding
         storage
-            .store_embedding(id, "embedding", &embedding)
+            .store_embedding(id, embedding.clone())
             .await
             .unwrap();
 
         // Retrieve embedding
-        let retrieved = storage.get_embedding(id, "embedding").await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap(), embedding);
     }
@@ -751,10 +751,7 @@ mod tests {
     async fn test_get_nonexistent_embedding() {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
-        let retrieved = storage
-            .get_embedding("nonexistent", "embedding")
-            .await
-            .unwrap();
+        let retrieved = storage.get_embedding("nonexistent").await.unwrap();
         assert!(retrieved.is_none());
     }
 
@@ -767,12 +764,12 @@ mod tests {
 
         // Store embedding
         storage
-            .store_embedding(id, "embedding", &embedding)
+            .store_embedding(id, embedding.clone())
             .await
             .unwrap();
 
         // Verify it exists
-        let retrieved = storage.get_embedding(id, "embedding").await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert!(retrieved.is_some());
 
         // Delete embedding
@@ -780,7 +777,7 @@ mod tests {
         assert!(deleted);
 
         // Verify it's gone
-        let retrieved = storage.get_embedding(id, "embedding").await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert!(retrieved.is_none());
     }
 
@@ -810,7 +807,7 @@ mod tests {
 
         // Verify all embeddings were stored
         for (id, expected_embedding) in &embeddings {
-            let retrieved = storage.get_embedding(id, "embedding").await.unwrap();
+            let retrieved = storage.get_embedding(id).await.unwrap();
             assert!(retrieved.is_some());
             assert_eq!(retrieved.unwrap(), *expected_embedding);
         }
@@ -868,36 +865,30 @@ mod tests {
 
         // Store different dimensions
         storage
-            .store_embedding("dim_384", "embedding", &dim_384)
+            .store_embedding("dim_384", dim_384.clone())
             .await
             .unwrap();
 
         storage
-            .store_embedding("dim_1024", "embedding", &dim_1024)
+            .store_embedding("dim_1024", dim_1024.clone())
             .await
             .unwrap();
 
         storage
-            .store_embedding("dim_1536", "embedding", &dim_1536)
+            .store_embedding("dim_1536", dim_1536.clone())
             .await
             .unwrap();
 
         // Retrieve and verify dimensions
-        let retrieved_384 = storage.get_embedding("dim_384", "embedding").await.unwrap();
+        let retrieved_384 = storage.get_embedding("dim_384").await.unwrap();
         assert!(retrieved_384.is_some());
         assert_eq!(retrieved_384.unwrap().len(), 384);
 
-        let retrieved_1024 = storage
-            .get_embedding("dim_1024", "embedding")
-            .await
-            .unwrap();
+        let retrieved_1024 = storage.get_embedding("dim_1024").await.unwrap();
         assert!(retrieved_1024.is_some());
         assert_eq!(retrieved_1024.unwrap().len(), 1024);
 
-        let retrieved_1536 = storage
-            .get_embedding("dim_1536", "embedding")
-            .await
-            .unwrap();
+        let retrieved_1536 = storage.get_embedding("dim_1536").await.unwrap();
         assert!(retrieved_1536.is_some());
         assert_eq!(retrieved_1536.unwrap().len(), 1536);
     }
@@ -912,22 +903,22 @@ mod tests {
 
         // Store initial embedding
         storage
-            .store_embedding(id, "embedding", &embedding_v1)
+            .store_embedding(id, embedding_v1.clone())
             .await
             .unwrap();
 
         // Verify initial embedding
-        let retrieved = storage.get_embedding(id, "embedding").await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert_eq!(retrieved.unwrap(), embedding_v1);
 
         // Update embedding
         storage
-            .store_embedding(id, "embedding", &embedding_v2)
+            .store_embedding(id, embedding_v2.clone())
             .await
             .unwrap();
 
         // Verify updated embedding
-        let retrieved = storage.get_embedding(id, "embedding").await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert_eq!(retrieved.unwrap(), embedding_v2);
     }
 

@@ -662,6 +662,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(clippy::excessive_nesting)]
     async fn test_concurrent_operations() {
         let cb = Arc::new(create_test_circuit_breaker(10, 30));
 

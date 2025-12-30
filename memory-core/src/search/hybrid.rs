@@ -248,8 +248,8 @@ mod tests {
     #[test]
     fn test_hybrid_search_config_normalization() {
         let config = HybridSearchConfig::new(2.0, 1.0);
-        assert!((config.vector_weight - 0.6666667).abs() < 0.001);
-        assert!((config.fts_weight - 0.3333333).abs() < 0.001);
+        assert!((config.vector_weight - 0.666_666_7).abs() < 0.001);
+        assert!((config.fts_weight - 0.333_333_3).abs() < 0.001);
         assert!(config.validate().is_ok());
     }
 

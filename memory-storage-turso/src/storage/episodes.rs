@@ -201,6 +201,35 @@ impl TursoStorage {
         }
     }
 
+    /// Retrieve an episode by task description
+    pub async fn get_episode_by_task_desc(&self, task_desc: &str) -> Result<Option<Episode>> {
+        debug!("Retrieving episode by task description: {}", task_desc);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT episode_id, task_type, task_description, context,
+                   start_time, end_time, steps, outcome, reward,
+                   reflection, patterns, heuristics, metadata, domain, language
+            FROM episodes WHERE task_description = ?
+        "#;
+
+        let mut rows = conn
+            .query(sql, libsql::params![task_desc])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
+        {
+            let episode = Self::row_to_episode(&row)?;
+            Ok(Some(episode))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Query episodes with filters
     pub async fn query_episodes(&self, query: &super::EpisodeQuery) -> Result<Vec<Episode>> {
         debug!("Querying episodes with filters: {:?}", query);

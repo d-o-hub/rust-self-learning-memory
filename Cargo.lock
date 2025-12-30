@@ -3772,6 +3772,7 @@ dependencies = [
  "postcard",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "test-utils",
  "thiserror 2.0.17",

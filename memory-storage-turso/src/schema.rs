@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS embeddings_384 (
     item_type TEXT NOT NULL,
     embedding_data TEXT NOT NULL,
     embedding_vector F32_BLOB(384),
+    dimension INTEGER NOT NULL DEFAULT 384,
     model TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
@@ -90,6 +91,7 @@ CREATE TABLE IF NOT EXISTS embeddings_1024 (
     item_type TEXT NOT NULL,
     embedding_data TEXT NOT NULL,
     embedding_vector F32_BLOB(1024),
+    dimension INTEGER NOT NULL DEFAULT 1024,
     model TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
@@ -104,6 +106,7 @@ CREATE TABLE IF NOT EXISTS embeddings_1536 (
     item_type TEXT NOT NULL,
     embedding_data TEXT NOT NULL,
     embedding_vector F32_BLOB(1536),
+    dimension INTEGER NOT NULL DEFAULT 1536,
     model TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
@@ -118,6 +121,7 @@ CREATE TABLE IF NOT EXISTS embeddings_3072 (
     item_type TEXT NOT NULL,
     embedding_data TEXT NOT NULL,
     embedding_vector F32_BLOB(3072),
+    dimension INTEGER NOT NULL DEFAULT 3072,
     model TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )

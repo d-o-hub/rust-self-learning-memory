@@ -1118,7 +1118,7 @@ mod tests {
         let log_sum = super::log_sum_exp(&test_values);
         assert!(log_sum.is_finite(), "Log-sum-exp should be finite");
 
-        let log_add = super::log_add_exp(-1000.0, -500.0);
+        let log_add = super::log_sum_exp(&[-1000.0, -500.0]);
         assert!(log_add.is_finite(), "Log-add-exp should be finite");
     }
 }

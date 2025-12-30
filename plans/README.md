@@ -363,32 +363,35 @@ This README serves as the main index for all planning documentation. Documents a
 
 ---
 
-**Plan Version**: 7.0
-**Last Updated**: 2025-12-29
-**Status**: v0.1.9 COMPLETE ✅ - Multi-provider embeddings, security, CI improvements
+**Plan Version**: 8.0
+**Last Updated**: 2025-12-30
+**Status**: v0.1.10 COMPLETE - Multi-embedding support, phase 3 completion, performance optimization
 
 ---
 
 ## Cleanup Summary
 
-**Latest Update (2025-12-24)**:
-- **Files Deleted**: 3 obsolete status documents (superseded by PROJECT_STATUS_UNIFIED.md)
-- **Files Archived**: 5 historical documents moved to appropriate archive folders
-- **Files Created**: 3 new index and summary documents
-- **Archive Index**: Complete inventory created with 102+ archived files
-- **Research Index**: Research documentation index created
+**Latest Update (2025-12-30)**:
+- **Files Deleted**: 17 obsolete phase completion summaries, status reports, and audit files
+  - PHASE0/PHASE1/PHASE2/PHASE3 completion summaries (superseded)
+  - DOCUMENTATION_AUDIT_*, DOCUMENTATION_VERIFICATION_* files (one-time audits)
+  - TASK_COMPLETION_SUMMARY_*, MISSING_TASKS_SUMMARY.md (outdated status)
+  - PLANS_UPDATE_SUMMARY_V017.md, GOAP_EXECUTION_SUMMARY.md (duplicates)
 
 **Actions Taken**:
-- Deleted: PROJECT_STATUS.md, PLANS_FOLDER_CLEANUP_2025-12-22.md, PLANS_FOLDER_CLEANUP_SUMMARY_2025-12-22.md
-- Archived to archive/: ARCHIVAL_SUMMARY_2025-12-21.md, PR_MERGE_STATUS_2025-12-23.md
-- Archived to archive/research/: wasmtime_migration_plan_24_to_36.md, models-dev-integration-goap.md, goap-mcp-verification-system-integration.md
-- Created: DECEMBER_2025_SUMMARY.md, archive/ARCHIVE_INDEX.md, research/RESEARCH_INDEX.md
-- Updated: README.md with improved navigation and accurate references
+- Deleted: 17 obsolete files
+- Created: Updated README.md with improved folder structure
+- Organized: Clear separation between active docs and archive
+
+**Remaining Documents**:
+- Active implementation guides and roadmaps preserved
+- Research documents in research/ subdirectory
+- Architecture docs in ARCHITECTURE/ subdirectory
+- Configuration guides in CONFIGURATION/ subdirectory
+- GOAP documentation in GOAP/ subdirectory
 
 **Benefits**:
-- ✅ Single source of truth: PROJECT_STATUS_UNIFIED.md
-- ✅ Complete archive inventory: All 102+ documents indexed
-- ✅ Research documentation: Dedicated index for research findings
-- ✅ December activity: Comprehensive summary of 90 commits
-- ✅ Clear separation: Active docs in root, historical in archive
-- ✅ Improved navigation: Updated all internal references
+- ✅ Cleaned plans folder: 39 files remaining (was 56)
+- ✅ Single source of truth maintained
+- ✅ Clear navigation with folder structure
+- ✅ All active documentation preserved

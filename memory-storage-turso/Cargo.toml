@@ -48,6 +48,9 @@ tracing = { workspace = true }
 # Synchronization
 parking_lot = "0.12"
 
+# Cryptography for deterministic ID generation
+sha2 = "0.10"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }

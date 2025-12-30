@@ -152,18 +152,18 @@ mod tests {
 
     #[test]
     fn test_default_values() {
-        assert!(defaults::DEFAULT_CACHE_SIZE > 0);
-        assert!(defaults::DEFAULT_BATCH_SIZE > 0);
-        assert!(defaults::MAX_BATCH_SIZE >= defaults::DEFAULT_BATCH_SIZE);
-        assert!(defaults::MIN_BATCH_SIZE <= defaults::DEFAULT_BATCH_SIZE);
+        debug_assert!(defaults::DEFAULT_CACHE_SIZE > 0);
+        debug_assert!(defaults::DEFAULT_BATCH_SIZE > 0);
+        debug_assert!(defaults::MAX_BATCH_SIZE >= defaults::DEFAULT_BATCH_SIZE);
+        debug_assert!(defaults::MIN_BATCH_SIZE <= defaults::DEFAULT_BATCH_SIZE);
     }
 
     #[test]
     fn test_similarity_thresholds() {
-        assert!(defaults::MIN_SIMILARITY_THRESHOLD >= 0.0);
-        assert!(defaults::MAX_SIMILARITY_THRESHOLD <= 1.0);
-        assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD >= defaults::MIN_SIMILARITY_THRESHOLD);
-        assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD <= defaults::MAX_SIMILARITY_THRESHOLD);
+        debug_assert!(defaults::MIN_SIMILARITY_THRESHOLD >= 0.0);
+        debug_assert!(defaults::MAX_SIMILARITY_THRESHOLD <= 1.0);
+        debug_assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD >= defaults::MIN_SIMILARITY_THRESHOLD);
+        debug_assert!(defaults::DEFAULT_SIMILARITY_THRESHOLD <= defaults::MAX_SIMILARITY_THRESHOLD);
     }
 
     #[test]

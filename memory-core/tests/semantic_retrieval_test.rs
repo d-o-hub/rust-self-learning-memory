@@ -496,7 +496,7 @@ async fn test_level_4_score_range() {
     let retriever = HierarchicalRetriever::new();
 
     // Test with various query embeddings
-    let query_embeddings = vec![
+    let query_embeddings = [
         vec![0.0; 10],                                              // All zeros
         vec![1.0; 10],                                              // All ones
         vec![0.5; 10],                                              // All 0.5

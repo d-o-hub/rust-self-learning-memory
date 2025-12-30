@@ -182,6 +182,21 @@ impl std::fmt::Display for TaskType {
     }
 }
 
+impl std::str::FromStr for TaskType {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "code_generation" => Ok(TaskType::CodeGeneration),
+            "debugging" => Ok(TaskType::Debugging),
+            "refactoring" => Ok(TaskType::Refactoring),
+            "testing" => Ok(TaskType::Testing),
+            "analysis" => Ok(TaskType::Analysis),
+            "documentation" => Ok(TaskType::Documentation),
+            _ => Ok(TaskType::Other),
+        }
+    }
+}
+
 /// Final outcome of a completed task.
 ///
 /// Represents the result after task execution, including success status

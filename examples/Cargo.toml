@@ -31,3 +31,11 @@ path = "verify_storage.rs"
 name = "migrate_embeddings_to_multi_dim"
 path = "migrate_embeddings_to_multi_dim.rs"
 
+[[bin]]
+name = "debug_config"
+path = "debug_config.rs"
+
+[[bin]]
+name = "debug_storage"
+path = "debug_storage.rs"
+

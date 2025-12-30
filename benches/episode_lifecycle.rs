@@ -394,11 +394,8 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                         let memory_clone = memory.clone();
                         let context_clone = context.clone();
 
-                        let handle = tokio::spawn(run_concurrent_episode(
-                            memory_clone,
-                            i,
-                            context_clone,
-                        ));
+                        let handle =
+                            tokio::spawn(run_concurrent_episode(memory_clone, i, context_clone));
 
                         handles.push(handle);
                     }

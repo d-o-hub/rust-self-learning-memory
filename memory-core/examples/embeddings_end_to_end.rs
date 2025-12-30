@@ -17,12 +17,12 @@
 //! cargo run --example embeddings_end_to_end --features openai
 //! ```
 
+use chrono::Utc;
 use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
 use memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
 };
-use chrono::Utc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -77,8 +77,7 @@ async fn main() -> anyhow::Result<()> {
         let embedding_len = embedding.len();
         println!(
             "  Created episode: '{}' (embedding: {} dims)",
-            desc,
-            embedding_len
+            desc, embedding_len
         );
 
         // Start episode

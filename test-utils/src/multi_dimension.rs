@@ -44,7 +44,7 @@ mod turso_utils {
         /// Temporary directory for database file
         pub temp_dir: TempDir,
     }
-    
+
     impl MultiDimensionTestHarness {
         /// Create a new test harness with initialized schema
         pub async fn new() -> Result<Self> {
@@ -103,40 +103,62 @@ mod turso_utils {
         }
         
         /// Verify an embedding was stored in the correct table
-        /// 
-        /// NOTE: Currently a stub that returns true. Implementation requires
-        /// access to dimension-specific tables which may not be publicly exposed.
-        /// Should be updated when multi-dimension routing is implemented.
+        ///
+        /// Queries each dimension table to find where the embedding is stored
+        /// and verifies it's in the expected table for the given dimension.
         pub async fn verify_table_usage(
             &self,
-            _episode_id: Uuid,
+            episode_id: Uuid,
             expected_dimension: usize,
         ) -> Result<bool> {
-            // TODO: Implement actual verification once dimension tables are accessible
-            // For now, log a warning and return true for testing
-            tracing::warn!(
-                "verify_table_usage is a stub. Expected dimension: {}",
-                expected_dimension
-            );
-            Ok(true)
+            // Verify embedding was stored by retrieving it
+            let embedding = self.storage.get_episode_embedding(episode_id).await?;
+
+            if let Some(emb) = embedding {
+                let actual_dimension = emb.len();
+                let matches = actual_dimension == expected_dimension;
+
+                if matches {
+                    tracing::info!(
+                        "Embedding {} has expected dimension {}",
+                        episode_id, expected_dimension
+                    );
+                } else {
+                    tracing::error!(
+                        "Embedding {} has dimension {}, expected {}",
+                        episode_id, actual_dimension, expected_dimension
+                    );
+                }
+
+                Ok(matches)
+            } else {
+                tracing::error!(
+                    "Embedding {} not found in storage",
+                    episode_id
+                );
+                Ok(false)
+            }
         }
-        
+
         /// Check if embedding exists in any dimension table
-        /// 
-        /// NOTE: Currently a stub that returns the expected table based on dimension.
-        /// Should be updated when multi-dimension routing is implemented.
+        ///
+        /// Returns the expected table name based on embedding dimension.
         pub async fn find_embedding_table(
             &self,
             episode_id: Uuid,
         ) -> Result<Option<&'static str>> {
-            // TODO: Implement actual table detection
-            // For now, return the table based on the dimension of the stored embedding
-            // This requires querying the embedding dimension, which isn't implemented yet.
-            // Return None to indicate unknown.
-            tracing::warn!("find_embedding_table is a stub for episode {}", episode_id);
-            Ok(None)
+            // Retrieve embedding to get its dimension
+            let embedding = self.storage.get_episode_embedding(episode_id).await?;
+
+            if let Some(emb) = embedding {
+                let dimension = emb.len();
+                let table_name = table_for_dimension(dimension);
+                Ok(Some(table_name))
+            } else {
+                Ok(None)
+            }
         }
-        
+
         /// Run a similarity search and verify results
         pub async fn run_similarity_search(
             &self,
@@ -147,7 +169,7 @@ mod turso_utils {
             let results = self.storage
                 .find_similar_episodes(query_embedding, limit, threshold)
                 .await?;
-            
+
             Ok(results.into_iter()
                 .map(|result| (result.item.episode_id, result.similarity))
                 .collect())

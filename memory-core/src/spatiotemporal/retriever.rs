@@ -259,7 +259,7 @@ impl HierarchicalRetriever {
     /// Level 4: Score episodes by similarity.
     ///
     /// Calculates fine-grained similarity scores for candidates.
-    /// Currently uses text-based similarity; future: embedding-based.
+    /// Uses embedding-based similarity when available, falls back to text similarity.
     fn score_episodes(
         &self,
         candidates: &[&Episode],
@@ -297,11 +297,22 @@ impl HierarchicalRetriever {
                 let max_age_seconds = 30.0 * 24.0 * 3600.0; // 30 days
                 let level_3_score = 1.0 - (age_seconds / max_age_seconds).min(1.0);
 
-                // Level 4 score: Text similarity (simple keyword overlap)
-                let level_4_score = calculate_text_similarity(
-                    &query.query_text.to_lowercase(),
-                    &episode.task_description.to_lowercase(),
-                );
+                // Level 4 score: Embedding similarity (if available) or text similarity
+                let level_4_score = if let Some(ref query_emb) = query.query_embedding {
+                    // Generate episode embedding (simple metadata-based for now)
+                    let episode_emb = generate_episode_embedding(episode);
+
+                    // Calculate cosine similarity between query and episode embeddings
+                    // Note: cosine_similarity returns a value in [-1, 1], normalize to [0, 1]
+                    let similarity = crate::embeddings::cosine_similarity(query_emb, &episode_emb);
+                    (similarity + 1.0) / 2.0 // Normalize from [-1, 1] to [0, 1]
+                } else {
+                    // Fallback to text-based similarity
+                    calculate_text_similarity(
+                        &query.query_text.to_lowercase(),
+                        &episode.task_description.to_lowercase(),
+                    )
+                };
 
                 // Combined relevance score
                 // Weights: domain (0.3), task_type (0.3), temporal (temporal_bias_weight), similarity (1 - temporal_bias - 0.6)
@@ -436,10 +447,95 @@ pub struct ScoredEpisode {
     pub level_4_score: f32,
 }
 
+/// Generate a simple embedding for an episode based on its metadata.
+///
+/// Creates a feature vector encoding episode characteristics for similarity
+/// comparison. This is a lightweight alternative to full semantic embeddings.
+///
+/// # Arguments
+///
+/// * `episode` - The episode to generate an embedding for
+///
+/// # Returns
+///
+/// Feature vector with 10 dimensions encoding episode properties
+fn generate_episode_embedding(episode: &Episode) -> Vec<f32> {
+    let mut embedding = Vec::with_capacity(10);
+
+    // Domain hash
+    let domain_hash = episode
+        .context
+        .domain
+        .chars()
+        .fold(0u32, |acc, c| acc.wrapping_add(c as u32));
+    embedding.push((domain_hash % 100) as f32 / 100.0);
+
+    // Task type encoding
+    embedding.push(match episode.task_type {
+        crate::types::TaskType::CodeGeneration => 0.9,
+        crate::types::TaskType::Analysis => 0.7,
+        crate::types::TaskType::Testing => 0.5,
+        crate::types::TaskType::Debugging => 0.3,
+        crate::types::TaskType::Refactoring => 0.2,
+        crate::types::TaskType::Documentation => 0.1,
+        crate::types::TaskType::Other => 0.0,
+    });
+
+    // Complexity encoding
+    embedding.push(match episode.context.complexity {
+        crate::types::ComplexityLevel::Simple => 0.2,
+        crate::types::ComplexityLevel::Moderate => 0.5,
+        crate::types::ComplexityLevel::Complex => 0.8,
+    });
+
+    // Language/framework presence
+    embedding.push(if episode.context.language.is_some() {
+        1.0
+    } else {
+        0.0
+    });
+    embedding.push(if episode.context.framework.is_some() {
+        1.0
+    } else {
+        0.0
+    });
+
+    // Number of steps (normalized)
+    let step_count = episode.steps.len().min(50) as f32 / 50.0;
+    embedding.push(step_count);
+
+    // Reward component (if available)
+    let reward_value = episode.reward.as_ref().map_or(0.5, |r| r.total.min(1.0));
+    embedding.push(reward_value);
+
+    // Duration component
+    if let Some(end) = episode.end_time {
+        let duration = end - episode.start_time;
+        let duration_secs = duration.num_seconds().clamp(0, 3600) as f32 / 3600.0;
+        embedding.push(duration_secs);
+    } else {
+        embedding.push(0.5);
+    }
+
+    // Tag count (normalized)
+    let tag_count = episode.context.tags.len().min(10) as f32 / 10.0;
+    embedding.push(tag_count);
+
+    // Outcome encoding
+    embedding.push(match &episode.outcome {
+        Some(crate::types::TaskOutcome::Success { .. }) => 1.0,
+        Some(crate::types::TaskOutcome::PartialSuccess { .. }) => 0.5,
+        Some(crate::types::TaskOutcome::Failure { .. }) => 0.0,
+        None => 0.5,
+    });
+
+    embedding
+}
+
 /// Calculate text similarity using keyword overlap.
 ///
 /// Simple similarity metric based on common words between texts.
-/// Future: replace with embedding-based similarity.
+/// Used as fallback when embeddings are not available.
 ///
 /// # Arguments
 ///

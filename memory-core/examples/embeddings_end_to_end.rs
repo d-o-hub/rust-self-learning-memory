@@ -18,9 +18,7 @@
 //! ```
 
 use memory_core::embeddings::{EmbeddingProvider, EmbeddingResult, MockEmbeddingProvider};
-use memory_core::{
-    ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
-};
+use memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -170,10 +168,7 @@ async fn main() -> anyhow::Result<()> {
 
     for (text1, text2) in text_pairs {
         let similarity = provider.similarity(text1, text2).await?;
-        println!(
-            "  Similarity('{}', '{}') = {:.3}",
-            text1, text2, similarity
-        );
+        println!("  Similarity('{}', '{}') = {:.3}", text1, text2, similarity);
     }
     println!();
 

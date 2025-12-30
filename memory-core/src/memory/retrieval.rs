@@ -39,11 +39,13 @@ fn should_cache_episodes(episodes: &[Episode]) -> bool {
                     crate::types::TaskOutcome::Success { artifacts, .. } => {
                         size += artifacts.iter().map(|a| a.len()).sum::<usize>();
                     }
-                    crate::types::TaskOutcome::PartialSuccess { completed, failed, .. } => {
+                    crate::types::TaskOutcome::PartialSuccess {
+                        completed, failed, ..
+                    } => {
                         size += completed.iter().map(|a| a.len()).sum::<usize>();
                         size += failed.iter().map(|a| a.len()).sum::<usize>();
                     }
-                    _ => {}
+                    crate::types::TaskOutcome::Failure { .. } => {}
                 }
             }
 
@@ -364,9 +366,31 @@ impl SelfLearningMemory {
 
         // Phase 3: Use hierarchical retriever for efficient search (if enabled)
         let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {
+            // Generate query embedding if semantic service is available
+            let query_embedding = if let Some(ref semantic) = self.semantic_service {
+                match semantic.provider.embed_text(&task_description).await {
+                    Ok(embedding) => {
+                        debug!(
+                            embedding_dim = embedding.len(),
+                            "Generated query embedding for hierarchical retrieval"
+                        );
+                        Some(embedding)
+                    }
+                    Err(e) => {
+                        debug!(
+                            error = %e,
+                            "Failed to generate query embedding, falling back to keyword search"
+                        );
+                        None
+                    }
+                }
+            } else {
+                None
+            };
+
             let query = RetrievalQuery {
                 query_text: task_description.clone(),
-                query_embedding: None, // TODO: Add embedding support in future
+                query_embedding,
                 domain: Some(context.domain.clone()),
                 task_type: None,  // Could extract from context if needed
                 limit: limit * 2, // Retrieve more candidates for diversity maximization

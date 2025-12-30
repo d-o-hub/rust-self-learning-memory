@@ -446,12 +446,14 @@ impl SelfLearningMemory {
 
                     // Store in backends
                     if let Some(cache) = &self.cache_storage {
+                        #[allow(clippy::excessive_nesting)]
                         if let Err(e) = cache.store_heuristic(heuristic).await {
                             warn!("Failed to store heuristic in cache: {}", e);
                         }
                     }
 
                     if let Some(turso) = &self.turso_storage {
+                        #[allow(clippy::excessive_nesting)]
                         if let Err(e) = turso.store_heuristic(heuristic).await {
                             warn!("Failed to store heuristic in Turso: {}", e);
                         }

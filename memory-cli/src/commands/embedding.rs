@@ -5,8 +5,30 @@
 
 use crate::config::Config;
 use anyhow::Result;
+use clap::Subcommand;
 use memory_core::embeddings::{EmbeddingProvider, ModelConfig};
 use std::env;
+
+#[derive(Subcommand)]
+pub enum EmbeddingCommands {
+    /// Test embedding provider connectivity and configuration
+    Test,
+
+    /// Show current embedding configuration
+    Config,
+
+    /// List available embedding providers
+    ListProviders,
+
+    /// Benchmark embedding provider performance
+    Benchmark,
+
+    /// Enable embeddings in the current session
+    Enable,
+
+    /// Disable embeddings in the current session
+    Disable,
+}
 
 /// Test embedding provider connectivity and configuration
 ///

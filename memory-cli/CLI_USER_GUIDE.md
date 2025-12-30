@@ -122,12 +122,16 @@ memory-cli --dry-run episode create --task "Test task"
 
 #### `memory-cli episode list`
 
-List episodes with optional filtering.
+List episodes with optional filtering and semantic search.
 
 **Options:**
 - `--task-type <TYPE>`: Filter by task type (code_generation, debugging, testing, analysis, documentation, refactoring, other)
 - `--limit <NUM>`: Maximum episodes to return (default: 10)
 - `--status <STATUS>`: Filter by status (in_progress, completed)
+- `--semantic-search <QUERY>`: Search episodes semantically by meaning
+- `--enable-embeddings`: Enable embeddings for this operation (overrides config)
+- `--embedding-provider <PROVIDER>`: Override embedding provider (openai, local, cohere, ollama, custom)
+- `--embedding-model <MODEL>`: Override embedding model
 
 **Examples:**
 ```bash
@@ -139,6 +143,12 @@ memory-cli episode list --status completed
 
 # Filter by task type with limit
 memory-cli episode list --task-type debugging --limit 20
+
+# Semantic search within list (if embeddings enabled in config)
+memory-cli episode list --semantic-search "authentication issues" --limit 10
+
+# Override provider for this operation
+memory-cli episode list --semantic-search "database errors" --enable-embeddings --embedding-provider openai
 
 # JSON output for scripting
 memory-cli episode list --format json
@@ -184,18 +194,31 @@ memory-cli --dry-run episode complete 12345678-1234-1234-1234-123456789abc --out
 
 #### `memory-cli episode search`
 
-Search episodes by content.
+Search episodes by content with optional semantic similarity.
 
 **Arguments:**
 - `QUERY`: Search query string
 
 **Options:**
 - `--limit <NUM>`: Maximum results to return (default: 10)
+- `--semantic`: Enable semantic search using embeddings (if configured)
+- `--enable-embeddings`: Enable embeddings for this operation (overrides config)
+- `--embedding-provider <PROVIDER>`: Override embedding provider (openai, local, cohere, ollama, custom)
+- `--embedding-model <MODEL>`: Override embedding model
 
 **Examples:**
 ```bash
-# Search for authentication-related episodes
+# Basic keyword search
 memory-cli episode search "authentication"
+
+# Semantic search (if embeddings enabled in config)
+memory-cli episode search "user login problems" --semantic --limit 10
+
+# Force semantic search with specific provider
+memory-cli episode search "database connection issues" --semantic --enable-embeddings --embedding-provider openai
+
+# Override embedding model for this search
+memory-cli episode search "API errors" --semantic --embedding-model text-embedding-3-large
 
 # Limit results
 memory-cli episode search "database" --limit 5

@@ -67,3 +67,34 @@ max_log_size_mb = 10
 
 # Maximum number of log files to keep
 max_log_files = 5
+
+[embeddings]
+# Enable semantic embeddings for similarity search
+enabled = false
+
+# Provider: "local", "openai", "cohere", "ollama", or "custom"
+provider = "local"
+
+# Model name or identifier
+model = "sentence-transformers/all-MiniLM-L6-v2"
+
+# Embedding dimension
+dimension = 384
+
+# API key environment variable (for OpenAI, Cohere, etc.)
+# api_key_env = "OPENAI_API_KEY"
+
+# Base URL for custom providers
+# base_url = "http://localhost:1234/v1"
+
+# Similarity threshold for search (0.0 - 1.0)
+similarity_threshold = 0.7
+
+# Batch size for embedding generation
+batch_size = 32
+
+# Cache embeddings to avoid regeneration
+cache_embeddings = true
+
+# Timeout for embedding requests (seconds)
+timeout_seconds = 30

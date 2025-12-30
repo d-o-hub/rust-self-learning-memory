@@ -37,6 +37,22 @@ pub enum EpisodeCommands {
         /// Filter by status
         #[arg(short, long)]
         status: Option<EpisodeStatus>,
+
+        /// Enable semantic search using embeddings
+        #[arg(long)]
+        semantic_search: Option<String>,
+
+        /// Enable embeddings for this operation
+        #[arg(long)]
+        enable_embeddings: bool,
+
+        /// Override embedding provider (openai, local, cohere, ollama, custom)
+        #[arg(long)]
+        embedding_provider: Option<String>,
+
+        /// Override embedding model
+        #[arg(long)]
+        embedding_model: Option<String>,
     },
 
     /// View episode details
@@ -66,6 +82,22 @@ pub enum EpisodeCommands {
         /// Maximum number of results
         #[arg(short, long, default_value = "10")]
         limit: usize,
+
+        /// Enable semantic search using embeddings
+        #[arg(long)]
+        semantic: bool,
+
+        /// Enable embeddings for this operation
+        #[arg(long)]
+        enable_embeddings: bool,
+
+        /// Override embedding provider (openai, local, cohere, ollama, custom)
+        #[arg(long)]
+        embedding_provider: Option<String>,
+
+        /// Override embedding model
+        #[arg(long)]
+        embedding_model: Option<String>,
     },
 
     /// Log an execution step
@@ -282,6 +314,10 @@ pub async fn list_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] task_type: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] status: Option<EpisodeStatus>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] semantic_search: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] enable_embeddings: bool,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] embedding_provider: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] embedding_model: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
@@ -612,6 +648,10 @@ pub async fn complete_episode(
 pub async fn search_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] query: String,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] semantic: bool,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] enable_embeddings: bool,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] embedding_provider: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] embedding_model: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
@@ -1076,7 +1116,19 @@ batch_size = 10
         config.database.redb_path = Some(db_path.to_string_lossy().to_string());
         let memory = initialize_storage(&config).await.unwrap().memory;
 
-        let result = list_episodes(None, 10, None, &memory, &config, OutputFormat::Human).await;
+        let result = list_episodes(
+            None,
+            10,
+            None,
+            None,
+            false,
+            None,
+            None,
+            &memory,
+            &config,
+            OutputFormat::Human,
+        )
+        .await;
 
         assert!(result.is_err());
         assert!(result
@@ -1153,6 +1205,10 @@ batch_size = 10
         let result = search_episodes(
             "test query".to_string(),
             10,
+            false,
+            false,
+            None,
+            None,
             &memory,
             &config,
             OutputFormat::Human,

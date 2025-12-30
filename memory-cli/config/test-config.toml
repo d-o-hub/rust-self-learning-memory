@@ -27,3 +27,14 @@ compress_backups = true
 level = "info"
 max_log_size_mb = 10
 max_log_files = 5
+
+[embeddings]
+# Embeddings disabled by default in test config
+enabled = false
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+similarity_threshold = 0.7
+batch_size = 32
+cache_embeddings = true
+timeout_seconds = 30

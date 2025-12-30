@@ -12,9 +12,15 @@ keywords = ["turso", "libsql", "storage", "database", "ai-memory"]
 categories = ["database"]
 documentation = "https://docs.rs/memory-storage-turso"
 
+[features]
+# Enable multi-dimension vector schema for Turso (Phase 0)
+turso_multi_dimension = []
+# Enable FTS5 hybrid search for enhanced retrieval
+hybrid_search = []
+
 [dependencies]
 # Core dependencies
-memory-core = { path = "../memory-core" }
+memory-core = { path = "../memory-core", features = ["hybrid_search"] }
 
 # Async runtime
 tokio = { workspace = true }

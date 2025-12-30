@@ -57,7 +57,12 @@ test-utils = { path = "../test-utils" }
 default = ["redb"]
 turso = ["memory-storage-turso", "memory-storage-redb"]
 redb = ["memory-storage-redb"]
-full = ["turso", "redb"]
+# Embedding provider features (pass through to memory-core)
+openai = ["memory-core/openai"]
+local-embeddings = ["memory-core/local-embeddings"]
+embeddings-full = ["memory-core/embeddings-full"]
+# Full feature set
+full = ["turso", "redb", "embeddings-full"]
 
 [dev-dependencies]
 # Testing framework

@@ -14,7 +14,7 @@
 //!
 //! For streaming/batch workloads (>100 QPS) or high episode completion rates:
 //! - Cache effectiveness may decrease due to frequent invalidation
-//! - Consider implementing domain-based invalidation (see GitHub issue)
+//! - Consider implementing domain-based invalidation (see `GitHub` issue)
 //! - Adjust TTL based on your episode completion frequency
 //!
 //! ## Design Decisions
@@ -246,10 +246,13 @@ impl QueryCache {
     #[must_use]
     pub fn get(&self, key: &CacheKey) -> Option<Vec<Episode>> {
         let hash = key.compute_hash();
-        let mut cache = self.cache.write()
+        let mut cache = self
+            .cache
+            .write()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
-        let mut metrics = self.metrics.write()
-            .expect("QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking");
+        let mut metrics = self.metrics.write().expect(
+            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+        );
 
         if let Some(result) = cache.get(&hash) {
             // Check if expired
@@ -280,10 +283,13 @@ impl QueryCache {
             ttl: self.default_ttl,
         };
 
-        let mut cache = self.cache.write()
+        let mut cache = self
+            .cache
+            .write()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
-        let mut metrics = self.metrics.write()
-            .expect("QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking");
+        let mut metrics = self.metrics.write().expect(
+            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+        );
 
         // Track eviction if cache is at capacity
         if cache.len() >= self.max_entries && !cache.contains(&hash) {
@@ -298,10 +304,13 @@ impl QueryCache {
     ///
     /// Should be called when new episodes are inserted to ensure fresh results
     pub fn invalidate_all(&self) {
-        let mut cache = self.cache.write()
+        let mut cache = self
+            .cache
+            .write()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
-        let mut metrics = self.metrics.write()
-            .expect("QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking");
+        let mut metrics = self.metrics.write().expect(
+            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+        );
 
         let size = cache.len();
         cache.clear();
@@ -328,15 +337,17 @@ impl QueryCache {
     /// Get current cache metrics
     #[must_use]
     pub fn metrics(&self) -> CacheMetrics {
-        let metrics = self.metrics.read()
-            .expect("QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking");
+        let metrics = self.metrics.read().expect(
+            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+        );
         metrics.clone()
     }
 
     /// Clear all metrics
     pub fn clear_metrics(&self) {
-        let mut metrics = self.metrics.write()
-            .expect("QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking");
+        let mut metrics = self.metrics.write().expect(
+            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+        );
         *metrics = CacheMetrics {
             capacity: self.max_entries,
             ..Default::default()
@@ -346,7 +357,8 @@ impl QueryCache {
     /// Get cache size (number of entries)
     #[must_use]
     pub fn size(&self) -> usize {
-        self.cache.read()
+        self.cache
+            .read()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
             .len()
     }
@@ -354,7 +366,8 @@ impl QueryCache {
     /// Check if cache is empty
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.cache.read()
+        self.cache
+            .read()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
             .is_empty()
     }
@@ -519,7 +532,7 @@ mod tests {
 
         // Generate hits
         for _ in 0..10 {
-            cache.get(&key);
+            let _ = cache.get(&key);
         }
 
         let metrics = cache.metrics();

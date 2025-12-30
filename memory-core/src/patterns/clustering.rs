@@ -147,6 +147,7 @@ impl PatternClusterer {
                     let new_centroid = self.calculate_centroid(&new_assignments[i]);
 
                     // Check if centroid changed
+                    #[allow(clippy::excessive_nesting)]
                     if !self.centroids_equal(&cluster.centroid, &new_centroid) {
                         cluster.centroid = new_centroid;
                         cluster.episodes = new_assignments[i].clone();

@@ -79,6 +79,7 @@ pub mod pre_storage;
 pub mod reflection;
 pub mod retrieval;
 pub mod reward;
+pub mod search;
 pub mod semantic;
 pub mod spatiotemporal;
 pub mod storage;

@@ -31,7 +31,10 @@ impl Default for StatisticalConfig {
             significance_level: 0.05,
             max_data_points: 10_000,
             parallel_processing: true,
-            changepoint_config: ChangepointConfig::default(),
+            changepoint_config: ChangepointConfig {
+                hazard_rate: 100.0,
+                expected_run_length: 50.0,
+            },
         }
     }
 }
@@ -88,10 +91,10 @@ impl Default for BOCPDConfig {
     fn default() -> Self {
         Self {
             hazard_rate: 250.0,
-            expected_run_length: 250,
-            max_run_length_hypotheses: 500,
+            expected_run_length: 100,
+            max_run_length_hypotheses: 200,
             alert_threshold: 0.7,
-            buffer_size: 100,
+            buffer_size: 50,
         }
     }
 }
@@ -183,32 +186,38 @@ impl SimpleBOCPD {
         let hazard_prob = (self.state.hazard_rate / (1.0 + self.state.hazard_rate)).ln();
         let survival_prob = (1.0 / (1.0 + self.state.hazard_rate)).ln();
 
-        for r in 0..=max_r {
-            if r == 0 {
-                // Changepoint case
-                let mut log_sum = f64::NEG_INFINITY;
-                for prev_r in 0..=max_r {
-                    if self.state.log_posterior[prev_r].is_finite() {
-                        let term = self.state.log_posterior[prev_r] + hazard_prob;
-                        log_sum = log_add_exp(log_sum, term);
-                    }
-                }
-                new_posterior[0] = log_sum + self.compute_likelihood(observation)?;
-            } else {
-                // Continuity case
-                if self.state.log_posterior[r - 1].is_finite() {
-                    new_posterior[r] = self.state.log_posterior[r - 1]
-                        + survival_prob
-                        + self.compute_likelihood(observation)?;
-                }
+        // Pre-compute likelihood once for this observation
+        let log_likelihood = self.compute_likelihood(observation)?;
+
+        // For r=0 (changepoint case): use cached max instead of iterating all prev_r
+        // This is an optimization: log(sum(exp(log_posterior[prev_r] + hazard_prob)))
+        // = log(N * exp(max_log_post + hazard_prob)) where N is count of finite values
+        // = log(N) + max_log_post + hazard_prob
+        let max_prev_log_post = self.state.log_posterior.iter()
+            .filter(|&&x| x.is_finite())
+            .fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+
+        if max_prev_log_post.is_finite() {
+            let finite_count = self.state.log_posterior.iter()
+                .filter(|&&x| x.is_finite())
+                .count();
+            new_posterior[0] = (finite_count as f64).ln() + max_prev_log_post + hazard_prob + log_likelihood;
+        }
+
+        // For r>0 (continuity case): shift previous posterior
+        for r in 1..=max_r {
+            if self.state.log_posterior[r - 1].is_finite() {
+                new_posterior[r] = self.state.log_posterior[r - 1] + survival_prob + log_likelihood;
             }
         }
 
         // Normalize
         let log_normalizer = log_sum_exp(&new_posterior);
-        for val in &mut new_posterior {
-            if val.is_finite() {
-                *val -= log_normalizer;
+        if log_normalizer.is_finite() {
+            for val in &mut new_posterior {
+                if val.is_finite() {
+                    *val -= log_normalizer;
+                }
             }
         }
 
@@ -304,23 +313,6 @@ impl SimpleBOCPD {
             .iter()
             .map(|&x| (x - log_normalizer).exp())
             .collect()
-    }
-}
-
-/// Utility functions for numerical stability
-fn log_add_exp(a: f64, b: f64) -> f64 {
-    if a.is_infinite() && a < 0.0 {
-        return b;
-    }
-    if b.is_infinite() && b < 0.0 {
-        return a;
-    }
-
-    let max_val = a.max(b);
-    if (a - b).abs() > 50.0 {
-        max_val
-    } else {
-        max_val + ((a - max_val).exp() + (b - max_val).exp()).ln()
     }
 }
 

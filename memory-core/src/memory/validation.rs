@@ -129,6 +129,7 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
                 || key.contains("file")
             {
                 if let Some(string_value) = value.as_str() {
+                    #[allow(clippy::excessive_nesting)]
                     if string_value.len() > MAX_ARTIFACT_SIZE {
                         return Err(Error::InvalidInput(format!(
                             "Artifact '{}' size {} exceeds maximum {} bytes ({}MB)",

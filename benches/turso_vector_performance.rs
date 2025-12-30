@@ -7,10 +7,8 @@
 //! 4. JSON query performance vs Rust deserialization
 
 use anyhow::Result;
-use criterion::{
-    async_executor::FuturesExecutor, black_box, criterion_group, criterion_main, BenchmarkId, Criterion,
-    Throughput,
-};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use tokio::runtime::Runtime;
 use memory_core::{
     embeddings::EmbeddingStorageBackend,
     types::{ComplexityLevel, TaskContext, TaskType},
@@ -51,18 +49,50 @@ fn create_test_episode(id: usize) -> Episode {
     episode
 }
 
+/// Verify vector extensions are available in the database
+async fn verify_vector_extensions(storage: &TursoStorage) -> Result<()> {
+    // Try to execute vector32 function to verify vector extensions are loaded
+    let conn = storage.connect().await
+        .map_err(|e| anyhow::anyhow!("Failed to connect: {}", e))?;
+
+    match conn.execute("SELECT vector32('0.1,0.2,0.3')", ()).await {
+        Ok(_) => {
+            eprintln!("✓ Vector extensions verified: vector32() function available");
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!("✗ Vector extensions NOT available: {}", e);
+            Err(anyhow::anyhow!(
+                "Vector extensions not available. Ensure you're using Turso server (libsql://), not local SQLite (file://). \
+                See HOW_TO_RUN_TURSO_LOCALLY.md for setup instructions."
+            ))
+        }
+    }
+}
+
 /// Setup storage with episodes and embeddings
 async fn setup_storage_with_data(
     dimension: usize,
     count: usize,
 ) -> Result<(Arc<TursoStorage>, TempDir, Vec<f32>)> {
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
-    let db_path = temp_dir.path().join("benchmark.db");
-    
-    let storage = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
+
+    // Use Turso dev server or cloud database via environment variables
+    // Default to local Turso dev server: libsql://127.0.0.1:8080
+    let url = std::env::var("TURSO_DATABASE_URL")
+        .unwrap_or_else(|_| "libsql://127.0.0.1:8080".to_string());
+    let token = std::env::var("TURSO_AUTH_TOKEN")
+        .unwrap_or_else(|_| String::new());
+
+    eprintln!("Connecting to Turso at: {}", url);
+
+    let storage = TursoStorage::new(&url, &token)
         .await
         .expect("Failed to create turso storage");
     storage.initialize_schema().await.expect("Failed to initialize schema");
+
+    // Verify vector extensions are available
+    verify_vector_extensions(&storage).await.expect("Vector extensions not available");
     
     // Store episodes with embeddings
     for i in 0..count {
@@ -84,84 +114,90 @@ async fn setup_storage_with_data(
 /// Benchmark 384-dim native vector search
 fn benchmark_384_dim_native_search(c: &mut Criterion) {
     let mut group = c.benchmark_group("384_dim_native_search");
-    group.sample_size(10);
-    
-    for embedding_count in [100, 1000, 10000] {
+    group.sample_size(20);
+    group.measurement_time(std::time::Duration::from_secs(20));
+
+    let rt = Runtime::new().unwrap();
+
+    // Note: Skip 10K test for initial run as it takes very long
+    for embedding_count in [100, 1000] {
         group.throughput(Throughput::Elements(embedding_count as u64));
-        
+
+        // Setup storage with data once per test size
+        let (storage, _temp_dir, query_embedding) = rt
+            .block_on(async { setup_storage_with_data(384, embedding_count).await })
+            .expect("Failed to setup storage");
+        let storage = Arc::new(storage);
+        let query_embedding = Arc::new(query_embedding);
+
         group.bench_with_input(
             BenchmarkId::from_parameter(embedding_count),
             &embedding_count,
-            |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
-                    let (storage, _temp_dir, query_embedding) = setup_storage_with_data(384, count)
-                        .await
-                        .expect("Failed to setup storage");
-                    
-                    // This should use native vector search for 384-dim embeddings
-                    let results = storage.find_similar_episodes(query_embedding.clone(), 10, 0.5)
-                        .await
-                        .expect("Failed to find similar episodes");
-                    
-                    black_box(results.len());
+            |b, &_count| {
+                b.iter(|| {
+                    rt.block_on(async {
+                        let storage = storage.clone();
+                        let query_embedding = query_embedding.clone();
+
+                        // This should use native vector search for 384-dim embeddings
+                        let results = storage
+                            .find_similar_episodes(query_embedding.as_ref().clone(), 10, 0.5)
+                            .await
+                            .expect("Failed to find similar episodes");
+
+                        black_box(results.len());
+                    })
                 });
             },
         );
     }
-    
+
     group.finish();
 }
 
-/// Benchmark 1536-dim brute-force search simulation
-fn benchmark_1536_dim_brute_force_search(c: &mut Criterion) {
-    let mut group = c.benchmark_group("1536_dim_brute_force_search");
-    group.sample_size(10);
-    
+/// Benchmark brute-force search simulation (1536-dim equivalent)
+/// Note: This simulates the fallback brute-force approach by using 384-dim
+/// which will use the brute-force code path if migration not applied
+fn benchmark_brute_force_search(c: &mut Criterion) {
+    let mut group = c.benchmark_group("brute_force_search");
+    group.sample_size(20);
+    group.measurement_time(std::time::Duration::from_secs(20));
+
+    let rt = Runtime::new().unwrap();
+
     // Note: brute-force is O(n), so we test smaller sizes
     for embedding_count in [10, 50, 100] {
         group.throughput(Throughput::Elements(embedding_count as u64));
-        
+
+        // Setup storage with data once per test size
+        let (storage, _temp_dir, query_embedding) = rt
+            .block_on(async { setup_storage_with_data(384, embedding_count).await })
+            .expect("Failed to setup storage");
+        let storage = Arc::new(storage);
+        let query_embedding = Arc::new(query_embedding);
+
         group.bench_with_input(
             BenchmarkId::from_parameter(embedding_count),
             &embedding_count,
-            |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
-                    // For brute-force simulation, we'll compute similarity in Rust
-                    // This gives us a baseline for O(n) performance
-                    let (storage, _temp_dir, query_embedding) = setup_storage_with_data(384, count)
-                        .await
-                        .expect("Failed to setup storage");
-                    
-                    // Get all embeddings from database (simulating brute-force)
-                    let conn = storage.get_connection().await.expect("Failed to get connection");
-                    let sql = "SELECT embedding_data FROM embeddings WHERE item_type = 'episode'";
-                    let mut rows = conn.query(sql, ()).await.expect("Failed to query embeddings");
-                    
-                    let mut similarity_count = 0;
-                    while let Some(row) = rows.next().await.expect("Failed to fetch row") {
-                        let embedding_json: String = row.get(0).expect("Failed to get embedding_data");
-                        let embedding: Vec<f32> = serde_json::from_str(&embedding_json).expect("Failed to parse embedding");
-                        
-                        // Compute cosine similarity
-                        let dot_product: f32 = query_embedding.iter().zip(embedding.iter()).map(|(a, b)| a * b).sum();
-                        let norm_a: f32 = query_embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
-                        let norm_b: f32 = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
-                        let similarity = if norm_a > 0.0 && norm_b > 0.0 {
-                            dot_product / (norm_a * norm_b)
-                        } else {
-                            0.0
-                        };
-                        if similarity >= 0.5 {
-                            similarity_count += 1;
-                        }
-                    }
-                    
-                    black_box(similarity_count);
+            |b, &_count| {
+                b.iter(|| {
+                    rt.block_on(async {
+                        let storage = storage.clone();
+                        let query_embedding = query_embedding.clone();
+
+                        // Use the public API - will fallback to brute-force if migration not applied
+                        let results = storage
+                            .find_similar_episodes(query_embedding.as_ref().clone(), 10, 0.5)
+                            .await
+                            .expect("Failed to find similar episodes");
+
+                        black_box(results.len());
+                    })
                 });
             },
         );
     }
-    
+
     group.finish();
 }
 
@@ -234,47 +270,59 @@ fn benchmark_json_query_performance(c: &mut Criterion) {
 /// Benchmark embedding storage performance
 fn benchmark_embedding_storage(c: &mut Criterion) {
     let mut group = c.benchmark_group("embedding_storage");
-    
+    group.sample_size(20);
+    group.measurement_time(std::time::Duration::from_secs(20));
+
+    let rt = Runtime::new().unwrap();
+
     for dimension in [384, 1536] {
         for count in [10, 100] {
             group.bench_with_input(
                 BenchmarkId::new(format!("{}_dim", dimension), count),
                 &count,
-                |b, &count| {
-                    b.to_async(FuturesExecutor).iter(|| async {
-                        let temp_dir = TempDir::new().expect("Failed to create temp directory");
-                        let db_path = temp_dir.path().join("benchmark.db");
-                        
-                        let storage = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
-                            .await
-                            .expect("Failed to create turso storage");
-                        storage.initialize_schema().await.expect("Failed to initialize schema");
-                        
-                        // Store embeddings
-                        for i in 0..count {
-                            let embedding = generate_random_embedding(dimension, i as u64);
-                            let id = Uuid::new_v4().to_string();
-                            
-                            // Use store_embedding_backend which handles dimension check
-                            storage.store_embedding_backend(&id, embedding)
+                |b, &_count| {
+                    b.iter(|| {
+                        rt.block_on(async {
+                            let temp_dir = TempDir::new().expect("Failed to create temp directory");
+
+                            // Use Turso dev server or cloud database via environment variables
+                            let url = std::env::var("TURSO_DATABASE_URL")
+                                .unwrap_or_else(|_| "libsql://127.0.0.1:8080".to_string());
+                            let token = std::env::var("TURSO_AUTH_TOKEN")
+                                .unwrap_or_else(|_| String::new());
+
+                            let storage = TursoStorage::new(&url, &token)
                                 .await
-                                .expect("Failed to store embedding");
-                        }
-                        
-                        black_box(count);
+                                .expect("Failed to create turso storage");
+                            storage.initialize_schema().await.expect("Failed to initialize schema");
+
+                            // Store embeddings
+                            for i in 0..count {
+                                let embedding = generate_random_embedding(dimension, i as u64);
+                                let id = Uuid::new_v4().to_string();
+
+                                // Use store_embedding_backend which handles dimension check
+                                storage
+                                    .store_embedding_backend(&id, embedding)
+                                    .await
+                                    .expect("Failed to store embedding");
+                            }
+
+                            black_box(count);
+                        })
                     });
                 },
             );
         }
     }
-    
+
     group.finish();
 }
 
 criterion_group!(
     benches,
     benchmark_384_dim_native_search,
-    benchmark_1536_dim_brute_force_search,
+    benchmark_brute_force_search,
     benchmark_memory_usage,
     benchmark_json_query_performance,
     benchmark_embedding_storage,

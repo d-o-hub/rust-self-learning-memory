@@ -3688,6 +3688,7 @@ version = "0.1.9"
 dependencies = [
  "anyhow",
  "chrono",
+ "libsql",
  "memory-cli",
  "memory-core",
  "memory-storage-redb",
@@ -3697,6 +3698,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
+ "tracing-subscriber",
  "uuid",
 ]
 
@@ -6312,6 +6314,7 @@ version = "0.1.9"
 dependencies = [
  "anyhow",
  "chrono",
+ "libsql",
  "memory-core",
  "memory-storage-turso",
  "rand 0.8.5",

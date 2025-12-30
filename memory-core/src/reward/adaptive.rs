@@ -236,6 +236,7 @@ impl AdaptiveRewardCalculator {
 
             if let Some(coverage_str) = episode.metadata.get("test_coverage") {
                 if let Ok(coverage) = coverage_str.parse::<f32>() {
+                    #[allow(clippy::excessive_nesting)]
                     if coverage > 80.0 {
                         quality += 0.15;
                     } else if coverage > 60.0 {

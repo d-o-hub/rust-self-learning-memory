@@ -126,15 +126,18 @@ pub mod api {
 }
 
 /// Feature flags (for conditional compilation)
+#[allow(unexpected_cfgs)]
 pub mod features {
-    #[cfg(feature = "openai-embeddings")]
+    #[cfg(feature = "openai")]
     pub const OPENAI_ENABLED: bool = true;
-    #[cfg(not(feature = "openai-embeddings"))]
+    #[cfg(not(feature = "openai"))]
     pub const OPENAI_ENABLED: bool = false;
 
     #[cfg(feature = "cohere-embeddings")]
+    #[allow(unexpected_cfgs)]
     pub const COHERE_ENABLED: bool = true;
     #[cfg(not(feature = "cohere-embeddings"))]
+    #[allow(unexpected_cfgs)]
     pub const COHERE_ENABLED: bool = false;
 
     #[cfg(feature = "local-embeddings")]

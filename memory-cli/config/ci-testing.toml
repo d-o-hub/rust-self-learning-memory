@@ -50,3 +50,18 @@ max_log_files = 1
 
 # CI logs typically go to stdout, not files
 # log_file = ""
+
+[embeddings]
+# Disable embeddings in CI for speed (can be enabled for specific tests)
+enabled = false
+
+# Use local provider if embeddings are needed in tests
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+
+# Fast settings for CI
+similarity_threshold = 0.7
+batch_size = 10
+cache_embeddings = false  # No persistence in CI
+timeout_seconds = 10

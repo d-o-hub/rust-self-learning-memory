@@ -573,7 +573,7 @@ pub fn validate_environment_fitness(config: &Config) -> ValidationResult {
 
     let total_memory = system.total_memory();
     let available_memory = system.available_memory();
-    let cpu_count = system.physical_core_count().unwrap_or(1);
+    let cpu_count = sysinfo::System::physical_core_count().unwrap_or(1);
     let is_ci = std::env::var("CI").is_ok();
     let is_development = std::env::var("DEVELOPMENT").is_ok() || std::env::var("DEV").is_ok();
 

@@ -185,7 +185,7 @@ impl std::fmt::Display for TaskType {
 impl std::str::FromStr for TaskType {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s {
             "code_generation" => Ok(TaskType::CodeGeneration),
             "debugging" => Ok(TaskType::Debugging),

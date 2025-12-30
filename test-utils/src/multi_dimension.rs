@@ -30,13 +30,13 @@ mod turso_utils {
     use std::sync::Arc;
     use tempfile::TempDir;
     use tracing;
-    
+
     /// Generate a random embedding of specified dimension
     pub fn generate_embedding(dimension: usize, seed: u64) -> Vec<f32> {
         let mut rng = ChaCha8Rng::seed_from_u64(seed);
         (0..dimension).map(|_| rng.gen_range(-1.0..1.0)).collect()
     }
-    
+
     /// Test harness for multi-dimension embedding tests
     pub struct MultiDimensionTestHarness {
         /// Turso storage instance
@@ -50,19 +50,17 @@ mod turso_utils {
         pub async fn new() -> Result<Self> {
             let temp_dir = TempDir::new()?;
             let db_path = temp_dir.path().join("test.db");
-            
-            let storage = TursoStorage::new(
-                &format!("file://{}", db_path.to_string_lossy()),
-                ""
-            ).await?;
-            
+
+            let storage =
+                TursoStorage::new(&format!("file://{}", db_path.to_string_lossy()), "").await?;
+
             storage.initialize_schema().await?;
             Ok(Self {
                 storage: Arc::new(storage),
                 temp_dir,
             })
         }
-        
+
         /// Create a test episode with embedding
         pub async fn create_episode_with_embedding(
             &self,
@@ -70,7 +68,7 @@ mod turso_utils {
             seed: u64,
         ) -> Result<(Episode, Vec<f32>)> {
             use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
-            
+
             // Create episode
             let context = TaskContext {
                 language: Some("rust".to_string()),
@@ -79,29 +77,30 @@ mod turso_utils {
                 domain: "web-api".to_string(),
                 tags: vec![],
             };
-            
+
             let mut episode = Episode::new(
                 format!("Test episode with {} dim embedding", dimension),
                 context,
                 TaskType::Testing,
             );
-            
+
             episode.complete(memory_core::types::TaskOutcome::Success {
                 verdict: "Done".to_string(),
                 artifacts: vec![],
             });
-            
+
             // Store episode
             self.storage.store_episode(&episode).await?;
-            
+
             // Generate and store embedding
             let embedding = generate_embedding(dimension, seed);
-            self.storage.store_episode_embedding(episode.episode_id, embedding.clone())
+            self.storage
+                .store_episode_embedding(episode.episode_id, embedding.clone())
                 .await?;
-            
+
             Ok((episode, embedding))
         }
-        
+
         /// Verify an embedding was stored in the correct table
         ///
         /// Queries each dimension table to find where the embedding is stored
@@ -121,21 +120,21 @@ mod turso_utils {
                 if matches {
                     tracing::info!(
                         "Embedding {} has expected dimension {}",
-                        episode_id, expected_dimension
+                        episode_id,
+                        expected_dimension
                     );
                 } else {
                     tracing::error!(
                         "Embedding {} has dimension {}, expected {}",
-                        episode_id, actual_dimension, expected_dimension
+                        episode_id,
+                        actual_dimension,
+                        expected_dimension
                     );
                 }
 
                 Ok(matches)
             } else {
-                tracing::error!(
-                    "Embedding {} not found in storage",
-                    episode_id
-                );
+                tracing::error!("Embedding {} not found in storage", episode_id);
                 Ok(false)
             }
         }
@@ -143,10 +142,7 @@ mod turso_utils {
         /// Check if embedding exists in any dimension table
         ///
         /// Returns the expected table name based on embedding dimension.
-        pub async fn find_embedding_table(
-            &self,
-            episode_id: Uuid,
-        ) -> Result<Option<&'static str>> {
+        pub async fn find_embedding_table(&self, episode_id: Uuid) -> Result<Option<&'static str>> {
             // Retrieve embedding to get its dimension
             let embedding = self.storage.get_episode_embedding(episode_id).await?;
 
@@ -166,22 +162,24 @@ mod turso_utils {
             limit: usize,
             threshold: f32,
         ) -> Result<Vec<(Uuid, f32)>> {
-            let results = self.storage
+            let results = self
+                .storage
                 .find_similar_episodes(query_embedding, limit, threshold)
                 .await?;
 
-            Ok(results.into_iter()
+            Ok(results
+                .into_iter()
                 .map(|result| (result.item.episode_id, result.similarity))
                 .collect())
         }
     }
-    
+
     /// Helper to create test embeddings of various dimensions
     pub struct EmbeddingGenerator {
         dimension: usize,
         seed: u64,
     }
-    
+
     impl EmbeddingGenerator {
         pub fn new(dimension: usize) -> Self {
             Self {
@@ -189,11 +187,11 @@ mod turso_utils {
                 seed: 42,
             }
         }
-        
+
         pub fn with_seed(dimension: usize, seed: u64) -> Self {
             Self { dimension, seed }
         }
-        
+
         pub fn generate(&mut self, count: usize) -> Vec<Vec<f32>> {
             (0..count)
                 .map(|i| {
@@ -204,7 +202,7 @@ mod turso_utils {
                 })
                 .collect()
         }
-        
+
         pub fn generate_with_similarity(
             &mut self,
             base_embedding: &[f32],
@@ -213,7 +211,7 @@ mod turso_utils {
         ) -> Vec<Vec<f32>> {
             assert!(base_embedding.len() == self.dimension);
             assert!((0.0..=1.0).contains(&similarity));
-            
+
             (0..count)
                 .map(|i| {
                     let mut rng = ChaCha8Rng::seed_from_u64(self.seed + i as u64);
@@ -233,7 +231,7 @@ mod turso_utils {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_table_for_dimension() {
         assert_eq!(table_for_dimension(384), "embeddings_384");
@@ -241,18 +239,18 @@ mod tests {
         assert_eq!(table_for_dimension(500), "embeddings_other");
         assert_eq!(table_for_dimension(3072), "embeddings_3072");
     }
-    
+
     #[cfg(feature = "turso")]
     #[test]
     fn test_embedding_generator() {
         use super::turso_utils::EmbeddingGenerator;
-        
+
         let mut gen = EmbeddingGenerator::new(384);
         let embeddings = gen.generate(5);
-        
+
         assert_eq!(embeddings.len(), 5);
         assert_eq!(embeddings[0].len(), 384);
-        
+
         // Verify randomness (same seed produces same sequence)
         let mut gen2 = EmbeddingGenerator::with_seed(384, 42);
         let embeddings2 = gen2.generate(5);

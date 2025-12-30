@@ -268,7 +268,9 @@ impl EmbeddingTools {
             "mistral" => EmbeddingProviderType::Mistral,
             "azure" => EmbeddingProviderType::AzureOpenAI,
             "cohere" => {
-                warnings.push("Cohere provider not yet implemented, using Local as fallback".to_string());
+                warnings.push(
+                    "Cohere provider not yet implemented, using Local as fallback".to_string(),
+                );
                 EmbeddingProviderType::Local
             }
             _ => {
@@ -302,62 +304,63 @@ impl EmbeddingTools {
         }
 
         // Build model configuration based on provider
-        let model_config = match provider_type {
-            EmbeddingProviderType::OpenAI => {
-                let model_name = input.model.as_deref().unwrap_or("text-embedding-3-small");
-                match model_name {
-                    "text-embedding-3-small" => ModelConfig::openai_3_small(),
-                    "text-embedding-3-large" => ModelConfig::openai_3_large(),
-                    "text-embedding-ada-002" => ModelConfig::openai_ada_002(),
-                    _ => {
-                        warnings.push(format!(
-                            "Unknown OpenAI model '{}', using text-embedding-3-small",
-                            model_name
-                        ));
-                        ModelConfig::openai_3_small()
+        let model_config =
+            match provider_type {
+                EmbeddingProviderType::OpenAI => {
+                    let model_name = input.model.as_deref().unwrap_or("text-embedding-3-small");
+                    match model_name {
+                        "text-embedding-3-small" => ModelConfig::openai_3_small(),
+                        "text-embedding-3-large" => ModelConfig::openai_3_large(),
+                        "text-embedding-ada-002" => ModelConfig::openai_ada_002(),
+                        _ => {
+                            warnings.push(format!(
+                                "Unknown OpenAI model '{}', using text-embedding-3-small",
+                                model_name
+                            ));
+                            ModelConfig::openai_3_small()
+                        }
                     }
                 }
-            }
-            EmbeddingProviderType::Mistral => {
-                let model_name = input.model.as_deref().unwrap_or("mistral-embed");
-                if model_name != "mistral-embed" {
-                    warnings.push(format!(
-                        "Unknown Mistral model '{}', using mistral-embed",
-                        model_name
-                    ));
+                EmbeddingProviderType::Mistral => {
+                    let model_name = input.model.as_deref().unwrap_or("mistral-embed");
+                    if model_name != "mistral-embed" {
+                        warnings.push(format!(
+                            "Unknown Mistral model '{}', using mistral-embed",
+                            model_name
+                        ));
+                    }
+                    ModelConfig::mistral_embed()
                 }
-                ModelConfig::mistral_embed()
-            }
-            EmbeddingProviderType::AzureOpenAI => {
-                let deployment = input.deployment_name.as_ref().ok_or_else(|| {
-                    anyhow!("deployment_name required for Azure OpenAI provider")
-                })?;
-                let resource = input.resource_name.as_ref().ok_or_else(|| {
-                    anyhow!("resource_name required for Azure OpenAI provider")
-                })?;
-                let api_version = input.api_version.as_deref().unwrap_or("2023-05-15");
+                EmbeddingProviderType::AzureOpenAI => {
+                    let deployment = input.deployment_name.as_ref().ok_or_else(|| {
+                        anyhow!("deployment_name required for Azure OpenAI provider")
+                    })?;
+                    let resource = input.resource_name.as_ref().ok_or_else(|| {
+                        anyhow!("resource_name required for Azure OpenAI provider")
+                    })?;
+                    let api_version = input.api_version.as_deref().unwrap_or("2023-05-15");
 
-                // Azure dimension depends on the underlying model
-                let dimension = 1536; // Default for ada-002 and text-embedding-3-small
-                ModelConfig::azure_openai(deployment, resource, api_version, dimension)
-            }
-            EmbeddingProviderType::Local => {
-                let model_name = input
-                    .model
-                    .as_deref()
-                    .unwrap_or("sentence-transformers/all-MiniLM-L6-v2");
-                let dimension = 384; // Default for MiniLM
-                ModelConfig::local_sentence_transformer(model_name, dimension)
-            }
-            EmbeddingProviderType::Custom(_) => {
-                let model_name = input.model.as_deref().unwrap_or("custom-model");
-                let base_url = input
-                    .base_url
-                    .as_deref()
-                    .ok_or_else(|| anyhow!("base_url required for custom provider"))?;
-                ModelConfig::custom(model_name, 384, base_url, None)
-            }
-        };
+                    // Azure dimension depends on the underlying model
+                    let dimension = 1536; // Default for ada-002 and text-embedding-3-small
+                    ModelConfig::azure_openai(deployment, resource, api_version, dimension)
+                }
+                EmbeddingProviderType::Local => {
+                    let model_name = input
+                        .model
+                        .as_deref()
+                        .unwrap_or("sentence-transformers/all-MiniLM-L6-v2");
+                    let dimension = 384; // Default for MiniLM
+                    ModelConfig::local_sentence_transformer(model_name, dimension)
+                }
+                EmbeddingProviderType::Custom(_) => {
+                    let model_name = input.model.as_deref().unwrap_or("custom-model");
+                    let base_url = input
+                        .base_url
+                        .as_deref()
+                        .ok_or_else(|| anyhow!("base_url required for custom provider"))?;
+                    ModelConfig::custom(model_name, 384, base_url, None)
+                }
+            };
 
         // Build embedding configuration
         let embedding_config = EmbeddingConfig {
@@ -697,7 +700,7 @@ mod tests {
             batch_size: None,
             base_url: None,
             api_version: None,
-            resource_name: None, // Missing required field
+            resource_name: None,   // Missing required field
             deployment_name: None, // Missing required field
         };
 

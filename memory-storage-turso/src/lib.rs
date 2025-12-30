@@ -42,9 +42,9 @@ pub mod storage;
 
 pub use pool::{ConnectionPool, PoolConfig, PoolStatistics};
 pub use resilient::ResilientStorage;
-pub use storage::episodes::EpisodeQuery;
-pub use storage::patterns::{PatternQuery, PatternMetadata};
 pub use storage::capacity::CapacityStatistics;
+pub use storage::episodes::EpisodeQuery;
+pub use storage::patterns::{PatternMetadata, PatternQuery};
 
 /// Turso storage backend for durable persistence
 pub struct TursoStorage {
@@ -600,11 +600,11 @@ impl StorageBackend for TursoStorage {
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        self.store_embedding(id, "embedding", &embedding).await
+        self.store_embedding(id, embedding).await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
-        self.get_embedding(id, "embedding").await
+        self.get_embedding(id).await
     }
 
     async fn delete_embedding(&self, id: &str) -> Result<bool> {
@@ -615,8 +615,7 @@ impl StorageBackend for TursoStorage {
         self.store_embeddings_batch(embeddings).await
     }
 
-    async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>>
-    {
+    async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
         self.get_embeddings_batch(ids).await
     }
 }
@@ -752,7 +751,10 @@ mod tests {
     async fn test_get_nonexistent_embedding() {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
-        let retrieved = storage.get_embedding("nonexistent", "embedding").await.unwrap();
+        let retrieved = storage
+            .get_embedding("nonexistent", "embedding")
+            .await
+            .unwrap();
         assert!(retrieved.is_none());
     }
 
@@ -786,10 +788,7 @@ mod tests {
     async fn test_delete_nonexistent_embedding() {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
-        let deleted = storage
-            .delete_embedding("nonexistent")
-            .await
-            .unwrap();
+        let deleted = storage.delete_embedding("nonexistent").await.unwrap();
         assert!(!deleted);
     }
 
@@ -888,11 +887,17 @@ mod tests {
         assert!(retrieved_384.is_some());
         assert_eq!(retrieved_384.unwrap().len(), 384);
 
-        let retrieved_1024 = storage.get_embedding("dim_1024", "embedding").await.unwrap();
+        let retrieved_1024 = storage
+            .get_embedding("dim_1024", "embedding")
+            .await
+            .unwrap();
         assert!(retrieved_1024.is_some());
         assert_eq!(retrieved_1024.unwrap().len(), 1024);
 
-        let retrieved_1536 = storage.get_embedding("dim_1536", "embedding").await.unwrap();
+        let retrieved_1536 = storage
+            .get_embedding("dim_1536", "embedding")
+            .await
+            .unwrap();
         assert!(retrieved_1536.is_some());
         assert_eq!(retrieved_1536.unwrap().len(), 1536);
     }
@@ -931,10 +936,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         // Store empty batch
-        storage
-            .store_embeddings_batch(vec![])
-            .await
-            .unwrap();
+        storage.store_embeddings_batch(vec![]).await.unwrap();
 
         // Get empty batch
         let results = storage.get_embeddings_batch(&[]).await.unwrap();

@@ -267,7 +267,7 @@ impl StorageBackend for ResilientStorage {
                 let storage = Arc::clone(&storage);
                 let id = id_string;
                 let embedding = embedding_clone;
-                async move { storage.store_embedding(&id, "embedding", &embedding).await }
+                async move { storage.store_embedding(&id, embedding).await }
             })
             .await
     }
@@ -280,7 +280,7 @@ impl StorageBackend for ResilientStorage {
             .call(move || {
                 let storage = Arc::clone(&storage);
                 let id = id_string;
-                async move { storage.get_embedding(&id, "embedding").await }
+                async move { storage.get_embedding(&id).await }
             })
             .await
     }

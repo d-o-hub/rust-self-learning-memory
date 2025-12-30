@@ -3,10 +3,10 @@
 //! Comprehensive validation of multi-dimension vector support implementation.
 
 use anyhow::Result;
-use memory_core::StorageBackend;
 use memory_core::embeddings::EmbeddingStorageBackend as _;
+use memory_core::StorageBackend;
 use tempfile::TempDir;
-use test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
+use test_utils::multi_dimension::{table_for_dimension, MultiDimensionTestHarness};
 use tracing::info;
 
 // ============================================================================
@@ -23,11 +23,12 @@ async fn phase1_task1_validate_all_dimension_tables_created() -> Result<()> {
     let dimensions = [384, 1024, 1536, 3072, 512];
 
     for dimension in dimensions {
-        let (episode, _embedding) = harness
-            .create_episode_with_embedding(dimension, 42)
-            .await?;
+        let (episode, _embedding) = harness.create_episode_with_embedding(dimension, 42).await?;
 
-        info!("✓ Created episode with {}-dim embedding: {}", dimension, episode.episode_id);
+        info!(
+            "✓ Created episode with {}-dim embedding: {}",
+            dimension, episode.episode_id
+        );
     }
 
     info!("✓ All dimension tables created successfully");
@@ -45,7 +46,10 @@ async fn phase1_task1_validate_vector_indexes_created() -> Result<()> {
 
     let results = harness.run_similarity_search(embedding, 5, 0.5).await?;
 
-    assert!(!results.is_empty(), "Vector index should allow similarity search");
+    assert!(
+        !results.is_empty(),
+        "Vector index should allow similarity search"
+    );
 
     info!("✓ Vector indexes created successfully");
     info!("  Similarity search returned {} results", results.len());
@@ -62,10 +66,20 @@ async fn phase1_task1_validate_item_indexes_created() -> Result<()> {
     let (episode, _embedding) = harness.create_episode_with_embedding(1536, 42).await?;
 
     // Verify we can retrieve embedding via harness
-    let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
+    let retrieved = harness
+        .storage
+        .get_episode_embedding(episode.episode_id)
+        .await?;
 
-    assert!(retrieved.is_some(), "Item index should allow embedding retrieval");
-    assert_eq!(retrieved.unwrap().len(), 1536, "Retrieved embedding should be 1536-dimensional");
+    assert!(
+        retrieved.is_some(),
+        "Item index should allow embedding retrieval"
+    );
+    assert_eq!(
+        retrieved.unwrap().len(),
+        1536,
+        "Retrieved embedding should be 1536-dimensional"
+    );
 
     info!("✓ Item indexes created successfully");
 
@@ -86,11 +100,20 @@ async fn phase1_task2_384_dimension_routing() -> Result<()> {
 
     // Verify routing by checking expected table name
     let expected_table = table_for_dimension(384);
-    assert_eq!(expected_table, "embeddings_384", "384-dim should route to embeddings_384");
+    assert_eq!(
+        expected_table, "embeddings_384",
+        "384-dim should route to embeddings_384"
+    );
 
     // Verify we can retrieve embedding
-    let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
-    assert!(retrieved.is_some(), "Should be able to retrieve 384-dim embedding");
+    let retrieved = harness
+        .storage
+        .get_episode_embedding(episode.episode_id)
+        .await?;
+    assert!(
+        retrieved.is_some(),
+        "Should be able to retrieve 384-dim embedding"
+    );
 
     info!("✓ 384-dimension embedding routed correctly");
 
@@ -107,11 +130,20 @@ async fn phase1_task2_1536_dimension_routing() -> Result<()> {
 
     // Verify routing by checking expected table name
     let expected_table = table_for_dimension(1536);
-    assert_eq!(expected_table, "embeddings_1536", "1536-dim should route to embeddings_1536");
+    assert_eq!(
+        expected_table, "embeddings_1536",
+        "1536-dim should route to embeddings_1536"
+    );
 
     // Verify we can retrieve embedding
-    let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
-    assert!(retrieved.is_some(), "Should be able to retrieve 1536-dim embedding");
+    let retrieved = harness
+        .storage
+        .get_episode_embedding(episode.episode_id)
+        .await?;
+    assert!(
+        retrieved.is_some(),
+        "Should be able to retrieve 1536-dim embedding"
+    );
 
     info!("✓ 1536-dimension embedding routed correctly");
 
@@ -128,11 +160,20 @@ async fn phase1_task2_unsupported_dimension_routing() -> Result<()> {
 
     // Verify routing by checking expected table name
     let expected_table = table_for_dimension(512);
-    assert_eq!(expected_table, "embeddings_other", "512-dim should route to embeddings_other");
+    assert_eq!(
+        expected_table, "embeddings_other",
+        "512-dim should route to embeddings_other"
+    );
 
     // Verify we can retrieve embedding
-    let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
-    assert!(retrieved.is_some(), "Should be able to retrieve 512-dim embedding");
+    let retrieved = harness
+        .storage
+        .get_episode_embedding(episode.episode_id)
+        .await?;
+    assert!(
+        retrieved.is_some(),
+        "Should be able to retrieve 512-dim embedding"
+    );
 
     info!("✓ Unsupported dimension routed correctly to embeddings_other");
 
@@ -145,9 +186,13 @@ async fn phase1_task2_mixed_dimension_routing() -> Result<()> {
     info!("=== Task 2: Validate mixed dimension routing ===");
     let harness = MultiDimensionTestHarness::new().await?;
 
-    let test_cases = [(384, "embeddings_384"), (1024, "embeddings_1024"),
-                      (1536, "embeddings_1536"), (3072, "embeddings_3072"),
-                      (500, "embeddings_other")];
+    let test_cases = [
+        (384, "embeddings_384"),
+        (1024, "embeddings_1024"),
+        (1536, "embeddings_1536"),
+        (3072, "embeddings_3072"),
+        (500, "embeddings_other"),
+    ];
 
     for (dimension, expected_table) in test_cases {
         let (episode, _embedding) = harness
@@ -163,10 +208,20 @@ async fn phase1_task2_mixed_dimension_routing() -> Result<()> {
         );
 
         // Verify we can retrieve embedding
-        let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
-        assert!(retrieved.is_some(), "Should be able to retrieve {}-dim embedding", dimension);
+        let retrieved = harness
+            .storage
+            .get_episode_embedding(episode.episode_id)
+            .await?;
+        assert!(
+            retrieved.is_some(),
+            "Should be able to retrieve {}-dim embedding",
+            dimension
+        );
 
-        info!("✓ {}-dimension embedding routed to {}", dimension, expected_table);
+        info!(
+            "✓ {}-dimension embedding routed to {}",
+            dimension, expected_table
+        );
     }
 
     info!("✓ Mixed dimension routing validated successfully");
@@ -182,12 +237,13 @@ async fn phase1_task2_native_vector_stored_for_supported() -> Result<()> {
     let supported_dimensions = [384, 1024, 1536, 3072];
 
     for dimension in supported_dimensions {
-        let (episode, embedding) = harness
-            .create_episode_with_embedding(dimension, 42)
-            .await?;
+        let (episode, embedding) = harness.create_episode_with_embedding(dimension, 42).await?;
 
         // Retrieve and verify dimension matches
-        let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
+        let retrieved = harness
+            .storage
+            .get_episode_embedding(episode.episode_id)
+            .await?;
         assert!(
             retrieved.is_some(),
             "Native vector should be stored for {} dimension",
@@ -201,7 +257,10 @@ async fn phase1_task2_native_vector_stored_for_supported() -> Result<()> {
             "Retrieved embedding should have {} dimensions",
             dimension
         );
-        assert_eq!(retrieved_embedding, embedding, "Retrieved embedding should match original");
+        assert_eq!(
+            retrieved_embedding, embedding,
+            "Retrieved embedding should match original"
+        );
 
         info!("✓ Native vector stored for {} dimension", dimension);
     }
@@ -224,12 +283,13 @@ async fn phase1_task3_embedding_retrieval_by_dimension() -> Result<()> {
     let dimensions = [384, 1536, 500];
 
     for dimension in dimensions {
-        let (episode, _embedding) = harness
-            .create_episode_with_embedding(dimension, 42)
-            .await?;
+        let (episode, _embedding) = harness.create_episode_with_embedding(dimension, 42).await?;
 
         // Retrieve and verify dimension
-        let retrieved = harness.storage.get_episode_embedding(episode.episode_id).await?;
+        let retrieved = harness
+            .storage
+            .get_episode_embedding(episode.episode_id)
+            .await?;
 
         assert!(
             retrieved.is_some(),
@@ -273,7 +333,9 @@ async fn phase1_task4_384_dimension_vector_search() -> Result<()> {
     }
 
     // Run similarity search
-    let results = harness.run_similarity_search(base_embedding, 5, 0.5).await?;
+    let results = harness
+        .run_similarity_search(base_embedding, 5, 0.5)
+        .await?;
 
     assert!(!results.is_empty(), "Search should return results");
     assert!(
@@ -283,13 +345,8 @@ async fn phase1_task4_384_dimension_vector_search() -> Result<()> {
     );
 
     // Check that base episode is found
-    let base_found = results
-        .iter()
-        .any(|(id, _)| *id == base_episode.episode_id);
-    assert!(
-        base_found,
-        "Base episode should be found in search results"
-    );
+    let base_found = results.iter().any(|(id, _)| *id == base_episode.episode_id);
+    assert!(base_found, "Base episode should be found in search results");
 
     // Check similarity scores are in valid range
     for (_, similarity) in &results {
@@ -323,16 +380,13 @@ async fn phase1_task4_1536_dimension_vector_search() -> Result<()> {
     }
 
     // Run similarity search
-    let results = harness.run_similarity_search(base_embedding, 5, 0.5).await?;
+    let results = harness
+        .run_similarity_search(base_embedding, 5, 0.5)
+        .await?;
 
     assert!(!results.is_empty(), "Search should return results");
-    let base_found = results
-        .iter()
-        .any(|(id, _)| *id == base_episode.episode_id);
-    assert!(
-        base_found,
-        "Base episode should be found in search results"
-    );
+    let base_found = results.iter().any(|(id, _)| *id == base_episode.episode_id);
+    assert!(base_found, "Base episode should be found in search results");
 
     info!("✓ 1536-dimension vector search works correctly");
     info!("  Found {} results", results.len());
@@ -357,16 +411,13 @@ async fn phase1_task4_3072_dimension_vector_search() -> Result<()> {
     }
 
     // Run similarity search
-    let results = harness.run_similarity_search(base_embedding, 5, 0.5).await?;
+    let results = harness
+        .run_similarity_search(base_embedding, 5, 0.5)
+        .await?;
 
     assert!(!results.is_empty(), "Search should return results");
-    let base_found = results
-        .iter()
-        .any(|(id, _)| *id == base_episode.episode_id);
-    assert!(
-        base_found,
-        "Base episode should be found in search results"
-    );
+    let base_found = results.iter().any(|(id, _)| *id == base_episode.episode_id);
+    assert!(base_found, "Base episode should be found in search results");
 
     info!("✓ 3072-dimension vector search works correctly");
     info!("  Found {} results", results.len());
@@ -397,7 +448,10 @@ async fn phase1_task4_unsupported_dimension_fallback() -> Result<()> {
     // but it should handle the case gracefully
     match results {
         Ok(results) => {
-            info!("✓ Search for unsupported dimension returned {} results", results.len());
+            info!(
+                "✓ Search for unsupported dimension returned {} results",
+                results.len()
+            );
         }
         Err(e) => {
             // This is acceptable - unsupported dimensions may not support vector search
@@ -419,7 +473,9 @@ async fn phase1_task4_cross_dimension_isolation() -> Result<()> {
     let (episode_1536, embedding_1536) = harness.create_episode_with_embedding(1536, 43).await?;
 
     // Search with 384-dim embedding
-    let results_384 = harness.run_similarity_search(embedding_384, 10, 0.5).await?;
+    let results_384 = harness
+        .run_similarity_search(embedding_384, 10, 0.5)
+        .await?;
 
     let found_1536_in_384_search = results_384
         .iter()
@@ -431,7 +487,9 @@ async fn phase1_task4_cross_dimension_isolation() -> Result<()> {
     );
 
     // Search with 1536-dim embedding
-    let results_1536 = harness.run_similarity_search(embedding_1536, 10, 0.5).await?;
+    let results_1536 = harness
+        .run_similarity_search(embedding_1536, 10, 0.5)
+        .await?;
 
     let found_384_in_1536_search = results_1536
         .iter()

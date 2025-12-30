@@ -37,6 +37,7 @@ impl ConfigCache {
     }
 
     /// Get configuration from cache if valid
+    #[allow(clippy::excessive_nesting)]
     fn get(&self, path: &Path) -> Option<super::Config> {
         let entries = self.entries.lock().unwrap();
 

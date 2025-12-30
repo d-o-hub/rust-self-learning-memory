@@ -19,8 +19,7 @@ async fn main() -> Result<()> {
 
     println!("Starting migration to multi-dimension schema...");
 
-    let db_url = std::env::var("TURSO_DB_URL")
-        .unwrap_or_else(|_| "file:memory.db".to_string());
+    let db_url = std::env::var("TURSO_DB_URL").unwrap_or_else(|_| "file:memory.db".to_string());
     let auth_token = std::env::var("TURSO_AUTH_TOKEN").unwrap_or_default();
 
     println!("Connecting to database: {}", db_url);

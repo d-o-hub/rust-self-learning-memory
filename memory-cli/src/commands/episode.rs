@@ -310,6 +310,7 @@ pub async fn create_episode(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn list_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] task_type: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
@@ -645,6 +646,7 @@ pub async fn complete_episode(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn search_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] query: String,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,

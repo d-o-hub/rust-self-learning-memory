@@ -106,14 +106,8 @@ pub async fn test_embeddings(config: &Config) -> Result<()> {
     let sim_13 = provider.similarity(text1, text3).await?;
 
     println!("✅ Similarity calculations completed");
-    println!(
-        "   Similarity('{}', '{}') = {:.3}",
-        text1, text2, sim_12
-    );
-    println!(
-        "   Similarity('{}', '{}') = {:.3}",
-        text1, text3, sim_13
-    );
+    println!("   Similarity('{}', '{}') = {:.3}", text1, text2, sim_12);
+    println!("   Similarity('{}', '{}') = {:.3}", text1, text3, sim_13);
     println!();
 
     // Summary
@@ -133,11 +127,14 @@ pub fn show_config(config: &Config) -> Result<()> {
     println!("{}", "=".repeat(60));
     println!();
 
-    println!("Status: {}", if config.embeddings.enabled {
-        "✅ Enabled"
-    } else {
-        "⚠️  Disabled"
-    });
+    println!(
+        "Status: {}",
+        if config.embeddings.enabled {
+            "✅ Enabled"
+        } else {
+            "⚠️  Disabled"
+        }
+    );
     println!();
 
     println!("Provider Settings:");
@@ -163,10 +160,7 @@ pub fn show_config(config: &Config) -> Result<()> {
         config.embeddings.similarity_threshold
     );
     println!("  batch_size: {}", config.embeddings.batch_size);
-    println!(
-        "  cache_embeddings: {}",
-        config.embeddings.cache_embeddings
-    );
+    println!("  cache_embeddings: {}", config.embeddings.cache_embeddings);
     println!("  timeout_seconds: {}", config.embeddings.timeout_seconds);
     println!();
 
@@ -280,16 +274,20 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
         ));
     }
 
-    println!("Provider: {} ({})", config.embeddings.provider, config.embeddings.model);
+    println!(
+        "Provider: {} ({})",
+        config.embeddings.provider, config.embeddings.model
+    );
     println!();
 
     let provider = create_provider_from_config(config).await?;
 
     // Benchmark single embedding
     println!("📊 Single Embedding Benchmark");
-    let test_text = "Implement REST API authentication with JWT tokens and role-based access control";
+    let test_text =
+        "Implement REST API authentication with JWT tokens and role-based access control";
     let iterations = 10;
-    
+
     let mut durations = Vec::new();
     for _ in 0..iterations {
         let start = std::time::Instant::now();
@@ -310,7 +308,7 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
     // Benchmark batch embedding
     println!("📊 Batch Embedding Benchmark");
     let batch_sizes = vec![5, 10, 20];
-    
+
     for batch_size in batch_sizes {
         let texts: Vec<String> = (0..batch_size)
             .map(|i| match i % 3 {
@@ -339,9 +337,7 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
 }
 
 /// Create embedding provider from configuration
-async fn create_provider_from_config(
-    config: &Config,
-) -> Result<Box<dyn EmbeddingProvider>> {
+async fn create_provider_from_config(config: &Config) -> Result<Box<dyn EmbeddingProvider>> {
     match config.embeddings.provider.as_str() {
         "local" => {
             #[cfg(feature = "local-embeddings")]
@@ -399,8 +395,9 @@ async fn create_provider_from_config(
                 let deployment = env::var("AZURE_DEPLOYMENT")
                     .unwrap_or_else(|_| config.embeddings.model.clone());
                 let resource = env::var("AZURE_RESOURCE")?;
-                let api_version = env::var("AZURE_API_VERSION").unwrap_or_else(|_| "2023-05-15".to_string());
-                
+                let api_version =
+                    env::var("AZURE_API_VERSION").unwrap_or_else(|_| "2023-05-15".to_string());
+
                 let model_config = ModelConfig::azure_openai(
                     &deployment,
                     &resource,
@@ -422,9 +419,12 @@ async fn create_provider_from_config(
             {
                 use memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config).unwrap_or_else(|_| "not-needed".to_string());
-                let base_url = config.embeddings.base_url.as_ref()
+                let base_url = config
+                    .embeddings
+                    .base_url
+                    .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("base_url required for custom provider"))?;
-                
+
                 let model_config = ModelConfig::custom(
                     &config.embeddings.model,
                     config.embeddings.dimension,

@@ -1,5 +1,5 @@
 //! Benchmark Turso vector search performance for different embedding dimensions
-//! 
+//!
 //! Measures:
 //! 1. OpenAI embedding search latency (1536-dim, brute-force)
 //! 2. 384-dim search latency (native vector search)
@@ -8,7 +8,6 @@
 
 use anyhow::Result;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use tokio::runtime::Runtime;
 use memory_core::{
     embeddings::EmbeddingStorageBackend,
     types::{ComplexityLevel, TaskContext, TaskType},
@@ -19,6 +18,7 @@ use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::sync::Arc;
 use tempfile::TempDir;
+use tokio::runtime::Runtime;
 use uuid::Uuid;
 
 /// Generate random embedding of specified dimension
@@ -36,7 +36,7 @@ fn create_test_episode(id: usize) -> Episode {
         domain: "web-api".to_string(),
         tags: vec![],
     };
-    
+
     let mut episode = Episode::new(
         format!("Implement API endpoint {}", id),
         context,
@@ -52,7 +52,9 @@ fn create_test_episode(id: usize) -> Episode {
 /// Verify vector extensions are available in the database
 async fn verify_vector_extensions(storage: &TursoStorage) -> Result<()> {
     // Try to execute vector32 function to verify vector extensions are loaded
-    let conn = storage.connect().await
+    let conn = storage
+        .connect()
+        .await
         .map_err(|e| anyhow::anyhow!("Failed to connect: {}", e))?;
 
     match conn.execute("SELECT vector32('0.1,0.2,0.3')", ()).await {
@@ -81,33 +83,41 @@ async fn setup_storage_with_data(
     // Default to local Turso dev server: libsql://127.0.0.1:8080
     let url = std::env::var("TURSO_DATABASE_URL")
         .unwrap_or_else(|_| "libsql://127.0.0.1:8080".to_string());
-    let token = std::env::var("TURSO_AUTH_TOKEN")
-        .unwrap_or_else(|_| String::new());
+    let token = std::env::var("TURSO_AUTH_TOKEN").unwrap_or_else(|_| String::new());
 
     eprintln!("Connecting to Turso at: {}", url);
 
     let storage = TursoStorage::new(&url, &token)
         .await
         .expect("Failed to create turso storage");
-    storage.initialize_schema().await.expect("Failed to initialize schema");
+    storage
+        .initialize_schema()
+        .await
+        .expect("Failed to initialize schema");
 
     // Verify vector extensions are available
-    verify_vector_extensions(&storage).await.expect("Vector extensions not available");
-    
+    verify_vector_extensions(&storage)
+        .await
+        .expect("Vector extensions not available");
+
     // Store episodes with embeddings
     for i in 0..count {
         let episode = create_test_episode(i);
-        storage.store_episode(&episode).await.expect("Failed to store episode");
-        
+        storage
+            .store_episode(&episode)
+            .await
+            .expect("Failed to store episode");
+
         let embedding = generate_random_embedding(dimension, i as u64);
-        storage.store_episode_embedding(episode.episode_id, embedding.clone())
+        storage
+            .store_episode_embedding(episode.episode_id, embedding.clone())
             .await
             .expect("Failed to store embedding");
     }
-    
+
     // Create a query embedding
     let query_embedding = generate_random_embedding(dimension, 9999);
-    
+
     Ok((Arc::new(storage), temp_dir, query_embedding))
 }
 
@@ -204,7 +214,7 @@ fn benchmark_brute_force_search(c: &mut Criterion) {
 /// Benchmark memory usage calculation
 fn benchmark_memory_usage(c: &mut Criterion) {
     let mut group = c.benchmark_group("embedding_memory_usage");
-    
+
     for dimension in [384, 1536, 3072] {
         for embedding_count in [1000, 10000] {
             group.bench_with_input(
@@ -216,24 +226,24 @@ fn benchmark_memory_usage(c: &mut Criterion) {
                         let embedding_size_bytes = dimension * 4; // f32 = 4 bytes
                         let total_memory_bytes = count * embedding_size_bytes;
                         let total_memory_mb = total_memory_bytes as f64 / (1024.0 * 1024.0);
-                        
+
                         // Add overhead for data structures (estimate 20%)
                         let estimated_memory_mb = total_memory_mb * 1.2;
-                        
+
                         black_box(estimated_memory_mb);
                     });
                 },
             );
         }
     }
-    
+
     group.finish();
 }
 
 /// Benchmark JSON query performance
 fn benchmark_json_query_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("json_query_performance");
-    
+
     // Benchmark Rust deserialization
     group.bench_function("rust_deserialization", |b| {
         b.iter(|| {
@@ -249,21 +259,27 @@ fn benchmark_json_query_performance(c: &mut Criterion) {
                 "score": 0.95,
                 "iterations": 42
             });
-            
+
             // Serialize and deserialize
             let json_str = metadata.to_string();
             let parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
-            
+
             // Access multiple fields (simulating typical usage)
             let domain = parsed.get("domain").and_then(|v| v.as_str()).unwrap_or("");
-            let complexity = parsed.get("complexity").and_then(|v| v.as_str()).unwrap_or("");
+            let complexity = parsed
+                .get("complexity")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             let score = parsed.get("score").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            let success = parsed.get("success").and_then(|v| v.as_bool()).unwrap_or(false);
-            
+            let success = parsed
+                .get("success")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+
             black_box((domain, complexity, score, success));
         });
     });
-    
+
     group.finish();
 }
 
@@ -288,13 +304,16 @@ fn benchmark_embedding_storage(c: &mut Criterion) {
                             // Use Turso dev server or cloud database via environment variables
                             let url = std::env::var("TURSO_DATABASE_URL")
                                 .unwrap_or_else(|_| "libsql://127.0.0.1:8080".to_string());
-                            let token = std::env::var("TURSO_AUTH_TOKEN")
-                                .unwrap_or_else(|_| String::new());
+                            let token =
+                                std::env::var("TURSO_AUTH_TOKEN").unwrap_or_else(|_| String::new());
 
                             let storage = TursoStorage::new(&url, &token)
                                 .await
                                 .expect("Failed to create turso storage");
-                            storage.initialize_schema().await.expect("Failed to initialize schema");
+                            storage
+                                .initialize_schema()
+                                .await
+                                .expect("Failed to initialize schema");
 
                             // Store embeddings
                             for i in 0..count {

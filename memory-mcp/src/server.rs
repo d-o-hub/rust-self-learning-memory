@@ -411,6 +411,7 @@ impl MemoryMCPServer {
     }
 
     #[cfg(not(feature = "javy-backend"))]
+    #[allow(dead_code)]
     fn is_javy_plugin_valid() -> bool {
         // Javy backend not enabled, so plugin validity is irrelevant
         false
@@ -1203,8 +1204,7 @@ impl MemoryMCPServer {
             input.provider, input.model
         );
 
-        let tool =
-            crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
+        let tool = crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
 
         let result = tool.execute_configure_embeddings(input).await?;
 
@@ -1244,8 +1244,7 @@ impl MemoryMCPServer {
             input.query, input.limit
         );
 
-        let tool =
-            crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
+        let tool = crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
 
         let result = tool.execute_query_semantic_memory(input).await;
 
@@ -1270,8 +1269,7 @@ impl MemoryMCPServer {
 
         debug!("Testing embedding provider connectivity");
 
-        let tool =
-            crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
+        let tool = crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
 
         let result = tool.execute_test_embeddings().await?;
 

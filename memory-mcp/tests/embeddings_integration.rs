@@ -58,17 +58,20 @@ async fn test_configure_embeddings_local_provider() {
     };
 
     let result = tools.execute_configure_embeddings(input).await;
-    assert!(result.is_ok(), "Local provider configuration should succeed");
+    assert!(
+        result.is_ok(),
+        "Local provider configuration should succeed"
+    );
 
     let output = result.unwrap();
     assert!(output.success, "Configuration should be successful");
     assert_eq!(output.provider, "local");
-    assert_eq!(
-        output.model,
-        "sentence-transformers/all-MiniLM-L6-v2"
-    );
+    assert_eq!(output.model, "sentence-transformers/all-MiniLM-L6-v2");
     assert_eq!(output.dimension, 384);
-    assert!(output.warnings.is_empty(), "No warnings for valid local config");
+    assert!(
+        output.warnings.is_empty(),
+        "No warnings for valid local config"
+    );
 }
 
 #[tokio::test]
@@ -154,12 +157,15 @@ async fn test_configure_embeddings_azure_validation() {
         batch_size: None,
         base_url: None,
         api_version: None,
-        resource_name: None, // Missing
+        resource_name: None,   // Missing
         deployment_name: None, // Missing
     };
 
     let result = tools.execute_configure_embeddings(input_missing).await;
-    assert!(result.is_err(), "Azure config should fail without required fields");
+    assert!(
+        result.is_err(),
+        "Azure config should fail without required fields"
+    );
     assert!(result.unwrap_err().to_string().contains("required"));
 
     // Valid Azure configuration
@@ -201,7 +207,10 @@ async fn test_configure_embeddings_invalid_provider() {
 
     let result = tools.execute_configure_embeddings(input).await;
     assert!(result.is_err(), "Invalid provider should fail");
-    assert!(result.unwrap_err().to_string().contains("Unsupported provider"));
+    assert!(result
+        .unwrap_err()
+        .to_string()
+        .contains("Unsupported provider"));
 }
 
 #[tokio::test]
@@ -221,7 +230,10 @@ async fn test_query_semantic_memory_basic() {
     assert!(result.is_ok(), "Query should succeed");
 
     let output = result.unwrap();
-    assert!(output.query_time_ms > 0, "Query should have measurable time");
+    assert!(
+        output.query_time_ms > 0,
+        "Query should have measurable time"
+    );
     assert_eq!(output.embedding_dimension, 384);
     // Results may be empty if no episodes in memory
     assert!(output.results_found >= 0);
@@ -265,7 +277,7 @@ async fn test_query_semantic_memory_default_params() {
     // Query with minimal parameters (using defaults)
     let input = QuerySemanticMemoryInput {
         query: "test query".to_string(),
-        limit: None, // Should use default
+        limit: None,                // Should use default
         similarity_threshold: None, // Should use default
         domain: None,
         task_type: None,

@@ -10,7 +10,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use memory_core::retrieval::{CacheKey, QueryCache};
-use memory_core::{Episode, ExecutionStep, TaskContext, TaskType, ExecutionResult};
+use memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskType};
 use std::time::Duration;
 use uuid::Uuid;
 
@@ -69,9 +69,7 @@ fn bench_cache_hit(c: &mut Criterion) {
             .with_domain(Some("web-api".to_string()))
             .with_limit(10);
 
-        let episodes: Vec<Episode> = (0..*episode_count)
-            .map(create_test_episode)
-            .collect();
+        let episodes: Vec<Episode> = (0..*episode_count).map(create_test_episode).collect();
 
         cache.put(key.clone(), episodes);
 
@@ -113,9 +111,7 @@ fn bench_cache_put(c: &mut Criterion) {
     let mut group = c.benchmark_group("cache_put");
 
     for episode_count in [1, 5, 10, 20].iter() {
-        let episodes: Vec<Episode> = (0..*episode_count)
-            .map(create_test_episode)
-            .collect();
+        let episodes: Vec<Episode> = (0..*episode_count).map(create_test_episode).collect();
 
         group.throughput(Throughput::Elements(*episode_count as u64));
         group.bench_with_input(

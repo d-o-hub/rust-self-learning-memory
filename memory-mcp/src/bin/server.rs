@@ -266,6 +266,7 @@ async fn main() -> anyhow::Result<()> {
     run_jsonrpc_server(mcp_server).await
 }
 
+#[allow(clippy::excessive_nesting)]
 async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::Result<()> {
     // Main message loop for JSON-RPC
     let stdin = io::stdin();
@@ -290,6 +291,7 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
                 }
 
                 // Parse JSON-RPC request
+                #[allow(clippy::excessive_nesting)]
                 match serde_json::from_str::<JsonRpcRequest>(line) {
                     Ok(request) => {
                         let response = handle_request(request, &mcp_server).await;

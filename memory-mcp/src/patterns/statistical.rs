@@ -179,6 +179,7 @@ impl SimpleBOCPD {
     }
 
     /// Update posterior distribution
+    #[allow(clippy::needless_range_loop)]
     fn update_posterior(&mut self, observation: f64) -> Result<()> {
         let max_r = self.state.log_posterior.len() - 1;
         let mut new_posterior = vec![f64::NEG_INFINITY; self.state.log_posterior.len()];
@@ -193,15 +194,22 @@ impl SimpleBOCPD {
         // This is an optimization: log(sum(exp(log_posterior[prev_r] + hazard_prob)))
         // = log(N * exp(max_log_post + hazard_prob)) where N is count of finite values
         // = log(N) + max_log_post + hazard_prob
-        let max_prev_log_post = self.state.log_posterior.iter()
+        let max_prev_log_post = self
+            .state
+            .log_posterior
+            .iter()
             .filter(|&&x| x.is_finite())
             .fold(f64::NEG_INFINITY, |a, &b| a.max(b));
 
         if max_prev_log_post.is_finite() {
-            let finite_count = self.state.log_posterior.iter()
+            let finite_count = self
+                .state
+                .log_posterior
+                .iter()
                 .filter(|&&x| x.is_finite())
                 .count();
-            new_posterior[0] = (finite_count as f64).ln() + max_prev_log_post + hazard_prob + log_likelihood;
+            new_posterior[0] =
+                (finite_count as f64).ln() + max_prev_log_post + hazard_prob + log_likelihood;
         }
 
         // For r>0 (continuity case): shift previous posterior

@@ -39,6 +39,9 @@ chrono = { workspace = true }
 # Logging
 tracing = { workspace = true }
 
+# Cryptography for embedding ID generation
+sha2 = "0.10"
+
 # Synchronization
 parking_lot = "0.12"
 
@@ -46,6 +49,9 @@ parking_lot = "0.12"
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 futures = "0.3"
+
+[features]
+turso_multi_dimension = []
 
 [lints.rust]
 # Allow unsafe only for specific use cases

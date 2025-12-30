@@ -528,23 +528,23 @@ impl StorageBackend for TursoStorage {
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        self.store_embedding_backend(id, embedding).await
+        TursoStorage::_store_embedding_internal(self, id, "embedding", &embedding).await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
-        self.get_embedding_backend(id).await
+        TursoStorage::_get_embedding_internal(self, id, "embedding").await
     }
 
     async fn delete_embedding(&self, id: &str) -> Result<bool> {
-        self.delete_embedding_backend(id).await
+        TursoStorage::_delete_embedding_internal(self, id).await
     }
 
     async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        self.store_embeddings_batch_backend(embeddings).await
+        TursoStorage::_store_embeddings_batch_internal(self, embeddings).await
     }
 
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
-        self.get_embeddings_batch_backend(ids).await
+        TursoStorage::_get_embeddings_batch_internal(self, ids).await
     }
 }
 
@@ -663,14 +663,14 @@ mod tests {
         let id = "test_embedding_1";
         let embedding = vec![0.1_f32, 0.2, 0.3, 0.4];
 
-        // Store embedding
+        // Store embedding using the internal 3-param method
         storage
-            .store_embedding_backend(id, embedding.clone())
+            ._store_embedding_internal(id, "embedding", &embedding)
             .await
             .unwrap();
 
-        // Retrieve embedding
-        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        // Retrieve embedding using the internal 3-param method
+        let retrieved = storage._get_embedding_internal(id, "embedding").await.unwrap();
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap(), embedding);
     }
@@ -679,7 +679,7 @@ mod tests {
     async fn test_get_nonexistent_embedding() {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
-        let retrieved = storage.get_embedding_backend("nonexistent").await.unwrap();
+        let retrieved = storage.get_embedding("nonexistent").await.unwrap();
         assert!(retrieved.is_none());
     }
 
@@ -692,20 +692,20 @@ mod tests {
 
         // Store embedding
         storage
-            .store_embedding_backend(id, embedding.clone())
+            .store_embedding(id, embedding.clone())
             .await
             .unwrap();
 
         // Verify it exists
-        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert!(retrieved.is_some());
 
         // Delete embedding
-        let deleted = storage.delete_embedding_backend(id).await.unwrap();
+        let deleted = storage.delete_embedding(id).await.unwrap();
         assert!(deleted);
 
         // Verify it's gone
-        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert!(retrieved.is_none());
     }
 
@@ -714,7 +714,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         let deleted = storage
-            .delete_embedding_backend("nonexistent")
+            .delete_embedding("nonexistent")
             .await
             .unwrap();
         assert!(!deleted);
@@ -732,13 +732,13 @@ mod tests {
 
         // Store embeddings in batch
         storage
-            .store_embeddings_batch_backend(embeddings.clone())
+            .store_embeddings_batch(embeddings.clone())
             .await
             .unwrap();
 
         // Verify all embeddings were stored
         for (id, expected_embedding) in &embeddings {
-            let retrieved = storage.get_embedding_backend(id).await.unwrap();
+            let retrieved = storage.get_embedding(id).await.unwrap();
             assert!(retrieved.is_some());
             assert_eq!(retrieved.unwrap(), *expected_embedding);
         }
@@ -756,7 +756,7 @@ mod tests {
 
         // Store embeddings
         storage
-            .store_embeddings_batch_backend(embeddings.clone())
+            .store_embeddings_batch(embeddings.clone())
             .await
             .unwrap();
 
@@ -768,7 +768,7 @@ mod tests {
             "nonexistent".to_string(),
         ];
 
-        let results = storage.get_embeddings_batch_backend(&ids).await.unwrap();
+        let results = storage.get_embeddings_batch(&ids).await.unwrap();
 
         // Verify results
         assert_eq!(results.len(), 4);
@@ -796,30 +796,30 @@ mod tests {
 
         // Store different dimensions
         storage
-            .store_embedding_backend("dim_384", dim_384)
+            .store_embedding("dim_384", dim_384)
             .await
             .unwrap();
 
         storage
-            .store_embedding_backend("dim_1024", dim_1024)
+            .store_embedding("dim_1024", dim_1024)
             .await
             .unwrap();
 
         storage
-            .store_embedding_backend("dim_1536", dim_1536)
+            .store_embedding("dim_1536", dim_1536)
             .await
             .unwrap();
 
         // Retrieve and verify dimensions
-        let retrieved_384 = storage.get_embedding_backend("dim_384").await.unwrap();
+        let retrieved_384 = storage.get_embedding("dim_384").await.unwrap();
         assert!(retrieved_384.is_some());
         assert_eq!(retrieved_384.unwrap().len(), 384);
 
-        let retrieved_1024 = storage.get_embedding_backend("dim_1024").await.unwrap();
+        let retrieved_1024 = storage.get_embedding("dim_1024").await.unwrap();
         assert!(retrieved_1024.is_some());
         assert_eq!(retrieved_1024.unwrap().len(), 1024);
 
-        let retrieved_1536 = storage.get_embedding_backend("dim_1536").await.unwrap();
+        let retrieved_1536 = storage.get_embedding("dim_1536").await.unwrap();
         assert!(retrieved_1536.is_some());
         assert_eq!(retrieved_1536.unwrap().len(), 1536);
     }
@@ -834,22 +834,22 @@ mod tests {
 
         // Store initial embedding
         storage
-            .store_embedding_backend(id, embedding_v1.clone())
+            .store_embedding(id, embedding_v1.clone())
             .await
             .unwrap();
 
         // Verify initial embedding
-        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert_eq!(retrieved.unwrap(), embedding_v1);
 
         // Update embedding
         storage
-            .store_embedding_backend(id, embedding_v2.clone())
+            .store_embedding(id, embedding_v2.clone())
             .await
             .unwrap();
 
         // Verify updated embedding
-        let retrieved = storage.get_embedding_backend(id).await.unwrap();
+        let retrieved = storage.get_embedding(id).await.unwrap();
         assert_eq!(retrieved.unwrap(), embedding_v2);
     }
 
@@ -859,12 +859,12 @@ mod tests {
 
         // Store empty batch
         storage
-            .store_embeddings_batch_backend(vec![])
+            .store_embeddings_batch(vec![])
             .await
             .unwrap();
 
         // Get empty batch
-        let results = storage.get_embeddings_batch_backend(&[]).await.unwrap();
+        let results = storage.get_embeddings_batch(&[]).await.unwrap();
         assert!(results.is_empty());
     }
 }

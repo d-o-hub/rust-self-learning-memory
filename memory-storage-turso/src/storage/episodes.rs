@@ -114,6 +114,21 @@ impl TursoStorage {
         }
     }
 
+    /// Delete an episode by ID
+    pub async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
+        debug!("Deleting episode: {}", episode_id);
+        let conn = self.get_connection().await?;
+
+        let sql = "DELETE FROM episodes WHERE episode_id = ?";
+
+        conn.execute(sql, libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
+
+        info!("Successfully deleted episode: {}", episode_id);
+        Ok(())
+    }
+
     /// Query episodes with filters
     pub async fn query_episodes(&self, query: &super::EpisodeQuery) -> Result<Vec<Episode>> {
         debug!("Querying episodes with filters: {:?}", query);

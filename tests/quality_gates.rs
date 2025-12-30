@@ -295,6 +295,7 @@ fn quality_gate_pattern_accuracy() {
 }
 
 /// Parse pattern accuracy from test output
+#[allow(clippy::excessive_nesting)]
 fn parse_pattern_accuracy(stdout: &str, _stderr: &str) -> f64 {
     // Prefer "Quality Score: 0.XX" over accuracy percentage
     // Quality Score is the composite metric we want to track

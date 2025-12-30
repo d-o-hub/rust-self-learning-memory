@@ -185,7 +185,7 @@ impl std::fmt::Display for TaskType {
 impl std::str::FromStr for TaskType {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s {
             "code_generation" => Ok(TaskType::CodeGeneration),
             "debugging" => Ok(TaskType::Debugging),
@@ -194,7 +194,7 @@ impl std::str::FromStr for TaskType {
             "analysis" => Ok(TaskType::Analysis),
             "documentation" => Ok(TaskType::Documentation),
             "other" => Ok(TaskType::Other),
-            _ => Err(format!("Unknown TaskType: {}", s)),
+            _ => Err(format!("Unknown TaskType: {s}")),
         }
     }
 }

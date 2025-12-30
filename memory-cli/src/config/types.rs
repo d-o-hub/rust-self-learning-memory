@@ -53,7 +53,7 @@ mod smart_defaults {
         SystemInfo {
             total_memory: system.total_memory(),
             available_memory: system.available_memory(),
-            cpu_count: system.physical_core_count().unwrap_or(1),
+            cpu_count: System::physical_core_count().unwrap_or(1),
             is_ci: env::var("CI").is_ok(),
             is_development: env::var("DEVELOPMENT").is_ok() || env::var("DEV").is_ok(),
         }

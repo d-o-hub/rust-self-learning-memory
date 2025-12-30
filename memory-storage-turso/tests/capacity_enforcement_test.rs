@@ -35,7 +35,7 @@ fn create_test_episode(task_desc: &str, _quality_score: f32) -> Episode {
 
     // Complete the episode
     episode.complete(TaskOutcome::Success {
-        verdict: format!("Task completed"),
+        verdict: "Task completed".to_string(),
         artifacts: vec![format!("{}.rs", task_desc)],
     });
 

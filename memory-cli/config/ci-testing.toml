@@ -1,0 +1,67 @@
+# Memory CLI Configuration - CI/Testing Preset
+# ==============================================
+# This configuration is optimized for CI/CD pipelines and automated testing.
+# Uses in-memory storage for speed and isolation.
+
+[database]
+# In-memory SQLite - no persistence, fast, isolated
+turso_url = "file::memory:?cache=shared"
+turso_token = ""
+
+# In-memory cache - no disk I/O
+redb_path = ":memory:"
+
+[storage]
+# Small cache for testing
+max_episodes_cache = 100
+
+# Short cache TTL for testing
+cache_ttl_seconds = 300
+
+# Minimal pool size for testing
+pool_size = 2
+
+[cli]
+# JSON output for CI parsing
+default_format = "json"
+
+# No progress bars in CI
+progress_bars = false
+
+# Small batch size for testing
+batch_size = 50
+
+[monitoring]
+# Disable monitoring in CI (faster)
+enabled = false
+health_check_interval_seconds = 0
+
+[backup]
+# Use temp directory for CI backups
+backup_dir = "/tmp/memory-cli-backups"
+max_backup_age_days = 1  # Clean up daily
+compress_backups = false  # Faster without compression
+
+[logging]
+# Warn level for CI (only important messages)
+level = "warn"
+max_log_size_mb = 5
+max_log_files = 1
+
+# CI logs typically go to stdout, not files
+# log_file = ""
+
+[embeddings]
+# Disable embeddings in CI for speed (can be enabled for specific tests)
+enabled = false
+
+# Use local provider if embeddings are needed in tests
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+
+# Fast settings for CI
+similarity_threshold = 0.7
+batch_size = 10
+cache_embeddings = false  # No persistence in CI
+timeout_seconds = 10

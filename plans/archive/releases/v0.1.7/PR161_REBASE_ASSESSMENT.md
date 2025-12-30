@@ -36,7 +36,7 @@ Modified files:
 - memory-cli.toml
 
 Untracked files:
-- debug_config, debug_config.rs, debug_storage.rs
+- debug_config, debug_storage.rs (now in examples/)
 - embedded_database_architecture_analysis.md
 - memory-cli.toml.backup
 - Various plan documents

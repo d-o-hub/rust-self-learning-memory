@@ -320,6 +320,7 @@ impl SemanticSummarizer {
                 .to_lowercase()
                 .trim_matches(|c: char| !c.is_alphanumeric())
                 .to_string();
+            #[allow(clippy::excessive_nesting)]
             if normalized.len() > 3 && !Self::is_stopword(&normalized) {
                 concepts.insert(normalized);
             }
@@ -353,6 +354,7 @@ impl SemanticSummarizer {
                         .to_lowercase()
                         .trim_matches(|c: char| !c.is_alphanumeric())
                         .to_string();
+                    #[allow(clippy::excessive_nesting)]
                     if normalized.len() > 3 && !Self::is_stopword(&normalized) {
                         concepts.insert(normalized);
                     }
@@ -365,6 +367,7 @@ impl SemanticSummarizer {
                         .to_lowercase()
                         .trim_matches(|c: char| !c.is_alphanumeric())
                         .to_string();
+                    #[allow(clippy::excessive_nesting)]
                     if normalized.len() > 3 && !Self::is_stopword(&normalized) {
                         concepts.insert(normalized);
                     }
@@ -446,6 +449,7 @@ impl SemanticSummarizer {
             for decision in &features.critical_decisions {
                 // Try to extract step number from decision text
                 if let Some(step_num) = Self::extract_step_number(decision) {
+                    #[allow(clippy::excessive_nesting)]
                     if step_num > 0 && step_num <= episode.steps.len() {
                         step_indices.push(step_num - 1);
                     }

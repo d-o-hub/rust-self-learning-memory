@@ -10,7 +10,7 @@ repository.workspace = true
 # Workspace dependencies
 memory-core = { path = "../memory-core" }
 memory-storage-redb = { path = "../memory-storage-redb" }
-memory-storage-turso = { path = "../memory-storage-turso" }
+memory-storage-turso = { path = "../memory-storage-turso", features = ["turso_multi_dimension"] }
 memory-cli = { path = "../memory-cli" }
 anyhow.workspace = true
 serde.workspace = true
@@ -20,8 +20,22 @@ tokio.workspace = true
 tempfile.workspace = true
 uuid.workspace = true
 rand = "0.8"
+tracing-subscriber.workspace = true
+libsql.workspace = true
 
 [[bin]]
 name = "verify_storage"
 path = "verify_storage.rs"
+
+[[bin]]
+name = "migrate_embeddings_to_multi_dim"
+path = "migrate_embeddings_to_multi_dim.rs"
+
+[[bin]]
+name = "debug_config"
+path = "debug_config.rs"
+
+[[bin]]
+name = "debug_storage"
+path = "debug_storage.rs"
 

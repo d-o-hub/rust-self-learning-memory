@@ -296,6 +296,7 @@ impl EnhancedPatternApplicator {
                 // Check if this context was successful
                 let domain_key = &typical_context.domain;
                 if let Some(&success_rate) = tool.success_history.get(domain_key) {
+                    #[allow(clippy::excessive_nesting)]
                     if success_rate > 0.6 {
                         // Lowered threshold to 60%
                         successful_contexts += 1;

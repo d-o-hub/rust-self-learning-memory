@@ -379,6 +379,44 @@ impl MemoryMCPServer {
         Ok(())
     }
 
+    /// Check if Javy plugin is valid (only when javy-backend feature is enabled)
+    #[cfg(feature = "javy-backend")]
+    fn is_javy_plugin_valid() -> bool {
+        use std::path::Path;
+
+        // Check bundled plugin file
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let plugin_path = Path::new(manifest_dir).join("javy-plugin.wasm");
+
+        if let Ok(metadata) = std::fs::metadata(&plugin_path) {
+            if metadata.len() > 100 {
+                // Check WASM magic bytes
+                if let Ok(mut file) = std::fs::File::open(&plugin_path) {
+                    let mut magic = [0u8; 4];
+                    if std::io::Read::read_exact(&mut file, &mut magic).is_ok() {
+                        return &magic == b"\0asm";
+                    }
+                }
+            }
+        }
+
+        // Check embedded plugin bytes (included via include_bytes!)
+        const EMBEDDED_PLUGIN: &[u8] = include_bytes!("../javy-plugin.wasm");
+        if EMBEDDED_PLUGIN.len() > 100 && EMBEDDED_PLUGIN.starts_with(b"\0asm") {
+            return true;
+        }
+
+        warn!("Javy plugin not valid (too small or missing WASM magic bytes)");
+        false
+    }
+
+    #[cfg(not(feature = "javy-backend"))]
+    #[allow(dead_code)]
+    fn is_javy_plugin_valid() -> bool {
+        // Javy backend not enabled, so plugin validity is irrelevant
+        false
+    }
+
     /// Check if WASM sandbox is available for code execution
     fn is_wasm_sandbox_available() -> bool {
         // honour explicit override
@@ -387,6 +425,15 @@ impl MemoryMCPServer {
                 "true" | "wasm" => return true,
                 "false" | "node" => return false,
                 _ => {}
+            }
+        }
+        // If javy-backend feature is enabled, plugin must be valid
+        // (execute_agent_code tool depends on Javy compilation)
+        #[cfg(feature = "javy-backend")]
+        {
+            if !Self::is_javy_plugin_valid() {
+                warn!("WASM sandbox not available due to invalid Javy plugin");
+                return false;
             }
         }
         // Attempt to construct a unified sandbox with WASM-only backend
@@ -530,6 +577,11 @@ impl MemoryMCPServer {
 
         // Add quality metrics tool
         tools.push(crate::mcp::tools::quality_metrics::QualityMetricsTool::tool_definition());
+
+        // Add embedding tools
+        tools.push(crate::mcp::tools::embeddings::EmbeddingTools::configure_embeddings_tool());
+        tools.push(crate::mcp::tools::embeddings::EmbeddingTools::query_semantic_memory_tool());
+        tools.push(crate::mcp::tools::embeddings::EmbeddingTools::test_embeddings_tool());
 
         tools
     }
@@ -1130,6 +1182,99 @@ impl MemoryMCPServer {
 
         self.monitoring
             .update_system_metrics(memory_mb, cpu_percent);
+    }
+
+    /// Execute the configure_embeddings tool
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Configuration parameters for the embedding provider
+    ///
+    /// # Returns
+    ///
+    /// Returns configuration result with provider details
+    pub async fn execute_configure_embeddings(
+        &self,
+        input: crate::mcp::tools::embeddings::ConfigureEmbeddingsInput,
+    ) -> Result<serde_json::Value> {
+        self.track_tool_usage("configure_embeddings").await;
+
+        debug!(
+            "Configuring embeddings: provider='{}', model='{:?}'",
+            input.provider, input.model
+        );
+
+        let tool = crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
+
+        let result = tool.execute_configure_embeddings(input).await?;
+
+        // Convert result to JSON
+        Ok(serde_json::to_value(result)?)
+    }
+
+    /// Execute the query_semantic_memory tool
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Semantic query parameters
+    ///
+    /// # Returns
+    ///
+    /// Returns semantic search results with similarity scores
+    pub async fn execute_query_semantic_memory(
+        &self,
+        input: crate::mcp::tools::embeddings::QuerySemanticMemoryInput,
+    ) -> Result<serde_json::Value> {
+        self.track_tool_usage("query_semantic_memory").await;
+
+        // Start monitoring request
+        let request_id = format!(
+            "query_semantic_memory_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos()
+        );
+        self.monitoring
+            .start_request(request_id.clone(), "query_semantic_memory".to_string())
+            .await;
+
+        debug!(
+            "Semantic memory query: query='{}', limit={:?}",
+            input.query, input.limit
+        );
+
+        let tool = crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
+
+        let result = tool.execute_query_semantic_memory(input).await;
+
+        // End monitoring request
+        self.monitoring
+            .end_request(&request_id, result.is_ok(), None)
+            .await;
+
+        let output = result?;
+
+        // Convert result to JSON
+        Ok(serde_json::to_value(output)?)
+    }
+
+    /// Execute the test_embeddings tool
+    ///
+    /// # Returns
+    ///
+    /// Returns embedding provider test results
+    pub async fn execute_test_embeddings(&self) -> Result<serde_json::Value> {
+        self.track_tool_usage("test_embeddings").await;
+
+        debug!("Testing embedding provider connectivity");
+
+        let tool = crate::mcp::tools::embeddings::EmbeddingTools::new(Arc::clone(&self.memory));
+
+        let result = tool.execute_test_embeddings().await?;
+
+        // Convert result to JSON
+        Ok(serde_json::to_value(result)?)
     }
 }
 

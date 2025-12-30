@@ -1,5 +1,6 @@
 pub mod backup;
 pub mod config;
+pub mod embedding;
 pub mod episode;
 pub mod eval;
 pub mod health;
@@ -10,6 +11,7 @@ pub mod storage;
 
 pub use backup::*;
 pub use config::*;
+pub use embedding::*;
 pub use episode::*;
 pub use eval::*;
 pub use health::*;
@@ -36,7 +38,25 @@ pub async fn handle_episode_command(
             task_type,
             limit,
             status,
-        } => episode::list_episodes(task_type, limit, status, memory, config, format).await,
+            semantic_search,
+            enable_embeddings,
+            embedding_provider,
+            embedding_model,
+        } => {
+            episode::list_episodes(
+                task_type,
+                limit,
+                status,
+                semantic_search,
+                enable_embeddings,
+                embedding_provider,
+                embedding_model,
+                memory,
+                config,
+                format,
+            )
+            .await
+        }
         EpisodeCommands::View { episode_id } => {
             episode::view_episode(episode_id, memory, config, format).await
         }
@@ -44,8 +64,26 @@ pub async fn handle_episode_command(
             episode_id,
             outcome,
         } => episode::complete_episode(episode_id, outcome, memory, config, format, dry_run).await,
-        EpisodeCommands::Search { query, limit } => {
-            episode::search_episodes(query, limit, memory, config, format).await
+        EpisodeCommands::Search {
+            query,
+            limit,
+            semantic,
+            enable_embeddings,
+            embedding_provider,
+            embedding_model,
+        } => {
+            episode::search_episodes(
+                query,
+                limit,
+                semantic,
+                enable_embeddings,
+                embedding_provider,
+                embedding_model,
+                memory,
+                config,
+                format,
+            )
+            .await
         }
         EpisodeCommands::LogStep {
             episode_id,
@@ -267,5 +305,22 @@ pub async fn handle_eval_command(
             duration,
             steps,
         } => eval::set_threshold(domain, duration, steps, memory, config, format).await,
+    }
+}
+
+pub async fn handle_embedding_command(
+    command: EmbeddingCommands,
+    _memory: &memory_core::SelfLearningMemory,
+    config: &Config,
+    _format: OutputFormat,
+    _dry_run: bool,
+) -> anyhow::Result<()> {
+    match command {
+        EmbeddingCommands::Test => embedding::test_embeddings(config).await,
+        EmbeddingCommands::Config => embedding::show_config(config),
+        EmbeddingCommands::ListProviders => embedding::list_providers(),
+        EmbeddingCommands::Benchmark => embedding::benchmark_embeddings(config).await,
+        EmbeddingCommands::Enable => embedding::enable_embeddings(),
+        EmbeddingCommands::Disable => embedding::disable_embeddings(),
     }
 }

@@ -201,14 +201,12 @@ pub fn find_similar_texts(
 /// For real semantic search demonstrations, use the proper embeddings module
 /// with `cargo run --features local-embeddings`.
 pub fn demonstrate_semantic_search() -> Result<()> {
-    println!("🧠 Semantic Search Demonstration (Mock Embeddings)");
-    println!("===================================================\n");
-
-    println!("⚠️  WARNING: This demonstration uses hash-based pseudo-embeddings");
-    println!("   that are NOT semantically meaningful. Similarity scores are");
-    println!("   essentially random and do not reflect actual semantic similarity.");
-    println!("\n   For production semantic search, use real embedding models.");
-    println!("   Enable with: cargo run --features local-embeddings\n");
+    tracing::warn!("🧠 Semantic Search Demonstration (Mock Embeddings)");
+    tracing::warn!("WARNING: This demonstration uses hash-based pseudo-embeddings");
+    tracing::warn!("that are NOT semantically meaningful. Similarity scores are");
+    tracing::warn!("essentially random and do not reflect actual semantic similarity.");
+    tracing::warn!("For production semantic search, use real embedding models.");
+    tracing::info!("Enable with: cargo run --features local-embeddings");
 
     // Sample episode descriptions
     let episodes = vec![
@@ -233,12 +231,12 @@ pub fn demonstrate_semantic_search() -> Result<()> {
     ];
 
     for query in queries {
-        println!("🔍 Query: \"{query}\"");
+        tracing::debug!("Query: \"{}\"", query);
         let results = find_similar_texts(query, &episodes, 3, 0.5);
 
-        println!("📊 Top {} similar episodes:", results.len());
+        tracing::debug!("Top {} similar episodes:", results.len());
         for (i, (idx, similarity, text)) in results.iter().enumerate() {
-            println!(
+            tracing::debug!(
                 "  {}. [{}] {} (similarity: {:.3})",
                 i + 1,
                 idx,
@@ -246,11 +244,10 @@ pub fn demonstrate_semantic_search() -> Result<()> {
                 similarity
             );
         }
-        println!();
     }
 
     // Demonstrate similarity calculation
-    println!("🔢 Direct Similarity Examples:");
+    tracing::debug!("Direct Similarity Examples:");
     let pairs = vec![
         ("user authentication", "login system"),
         ("REST API", "web service endpoints"),
@@ -262,11 +259,11 @@ pub fn demonstrate_semantic_search() -> Result<()> {
         let emb1 = text_to_embedding(text1);
         let emb2 = text_to_embedding(text2);
         let similarity = cosine_similarity(&emb1, &emb2);
-        println!("  \"{text1}\" <-> \"{text2}\" = {similarity:.3}");
+        tracing::debug!("  \"{}\" <-> \"{}\" = {:.3}", text1, text2, similarity);
     }
 
-    println!("\n💡 For real semantic search, use memory-core::embeddings modules");
-    println!("   with proper ONNX models and sentence transformers.");
+    tracing::info!("For real semantic search, use memory-core::embeddings modules");
+    tracing::info!("with proper ONNX models and sentence transformers.");
 
     Ok(())
 }

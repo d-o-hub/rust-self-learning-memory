@@ -351,6 +351,21 @@ impl SelfLearningMemory {
             }
         }
 
+        // ============================================================================
+        // v0.1.12: Invalidate Query Cache
+        // ============================================================================
+
+        // Invalidate all cached queries since we added a new episode
+        // This ensures future retrievals will include the new episode
+        let metrics_before = self.query_cache.metrics();
+        self.query_cache.invalidate_all();
+        info!(
+            episode_id = %episode_id,
+            invalidated_entries = metrics_before.size,
+            total_invalidations = metrics_before.invalidations + metrics_before.size as u64,
+            "Invalidated query cache after episode completion"
+        );
+
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {
             // Async path: enqueue for background processing
@@ -431,12 +446,14 @@ impl SelfLearningMemory {
 
                     // Store in backends
                     if let Some(cache) = &self.cache_storage {
+                        #[allow(clippy::excessive_nesting)]
                         if let Err(e) = cache.store_heuristic(heuristic).await {
                             warn!("Failed to store heuristic in cache: {}", e);
                         }
                     }
 
                     if let Some(turso) = &self.turso_storage {
+                        #[allow(clippy::excessive_nesting)]
                         if let Err(e) = turso.store_heuristic(heuristic).await {
                             warn!("Failed to store heuristic in Turso: {}", e);
                         }

@@ -1,0 +1,83 @@
+# Memory CLI Configuration - Local Development Preset
+# =====================================================
+# This configuration is optimized for local development and testing.
+# Perfect for developers working on features or running tests locally.
+
+[database]
+# Local SQLite database - no cloud dependencies
+turso_url = "file:./data/memory.db"
+turso_token = ""
+
+# Local redb cache for fast access
+redb_path = "./data/cache.redb"
+
+[storage]
+# Moderate cache size - good for development
+max_episodes_cache = 1000
+
+# 30-minute cache TTL - balanced for development
+cache_ttl_seconds = 1800
+
+# Small pool size - adequate for local use
+pool_size = 5
+
+[cli]
+# Human-readable output - great for interactive use
+default_format = "human"
+
+# Show progress bars for visual feedback
+progress_bars = true
+
+# Moderate batch size
+batch_size = 100
+
+[monitoring]
+# Enable metrics for debugging
+enabled = true
+health_check_interval_seconds = 30
+
+[backup]
+# Local backup directory
+backup_dir = "./backups"
+max_backup_age_days = 7  # Keep backups for 1 week
+compress_backups = true
+
+[logging]
+# Debug level for development
+level = "debug"
+max_log_size_mb = 10
+max_log_files = 5
+
+# Uncomment to log to file:
+# log_file = "./logs/memory-cli.log"
+
+[embeddings]
+# Enable semantic embeddings for similarity search
+enabled = false
+
+# Provider: "local", "openai", "mistral", "azure", or "custom"
+provider = "local"
+
+# Model name or identifier
+model = "sentence-transformers/all-MiniLM-L6-v2"
+
+# Embedding dimension
+dimension = 384
+
+# API key environment variable (for OpenAI, Mistral, Azure)
+# api_key_env = "OPENAI_API_KEY"
+
+# Base URL for custom providers
+# base_url = "http://localhost:1234/v1"
+
+# Similarity threshold for search (0.0 - 1.0)
+similarity_threshold = 0.7
+
+# Batch size for embedding generation
+batch_size = 32
+
+# Cache embeddings to avoid regeneration
+cache_embeddings = true
+
+# Timeout for embedding requests (seconds)
+timeout_seconds = 30

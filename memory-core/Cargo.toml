@@ -20,6 +20,8 @@ openai = ["reqwest"]
 embeddings-full = ["openai"]
 # Enable local embedding models (requires model files)
 local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
+# Enable hybrid search with FTS5
+hybrid_search = []
 
 [dependencies]
 # Async runtime
@@ -43,6 +45,9 @@ tracing = { workspace = true }
 
 # Futures utilities
 futures = { workspace = true }
+
+# LRU cache for query caching
+lru = "0.12"
 
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.12", features = ["json"], optional = true }

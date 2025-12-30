@@ -244,6 +244,7 @@ impl Output for VerifyResult {
 }
 
 // Command implementations
+#[allow(clippy::excessive_nesting)]
 pub async fn create_backup(
     memory: &memory_core::SelfLearningMemory,
     _config: &Config,
@@ -415,6 +416,7 @@ pub async fn create_backup(
     Ok(())
 }
 
+#[allow(clippy::excessive_nesting)]
 pub async fn list_backups(
     _memory: &memory_core::SelfLearningMemory,
     _config: &Config,
@@ -491,6 +493,7 @@ pub async fn list_backups(
     Ok(())
 }
 
+#[allow(clippy::excessive_nesting)]
 pub async fn restore_backup(
     _memory: &memory_core::SelfLearningMemory,
     _config: &Config,
@@ -601,6 +604,7 @@ pub async fn restore_backup(
     Ok(())
 }
 
+#[allow(clippy::excessive_nesting)]
 pub async fn verify_backup(
     _memory: &memory_core::SelfLearningMemory,
     _config: &Config,

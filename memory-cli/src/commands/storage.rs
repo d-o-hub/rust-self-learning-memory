@@ -359,6 +359,7 @@ pub async fn storage_stats(
     Ok(())
 }
 
+#[allow(clippy::excessive_nesting)]
 pub async fn sync_storage(
     memory: &memory_core::SelfLearningMemory,
     _config: &Config,

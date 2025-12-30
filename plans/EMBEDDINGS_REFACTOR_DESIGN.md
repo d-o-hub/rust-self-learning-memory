@@ -53,7 +53,7 @@ fn text_to_embedding(text: &str) -> Vec<f32> {
 
 **Limitation**: Suitable only for testing/development, not production semantic search.
 
-### Target Architecture (v0.2.0)
+### Current Architecture (v0.1.9 - IMPLEMENTED ✅)
 
 **Goal**: Real semantic embeddings that capture meaning
 
@@ -524,17 +524,17 @@ async fn create_provider(config: &EmbeddingConfig) -> Result<Box<dyn EmbeddingPr
 }
 ```
 
-### Phase 3: Production Optimization (FUTURE - v0.2.0)
+### Phase 3: Advanced Optimization (v0.1.15-v0.1.20)
 
 **Goal**: Advanced features for production deployments
 
-**Planned Features**:
-1. [ ] Custom embedding model support (ONNX, PyTorch)
-2. [ ] Fine-tuning for domain-specific embeddings
-3. [ ] Hybrid embedding strategies (local + cloud)
-4. [ ] Embedding caching and optimization
-5. [ ] Vector database integration (Qdrant, Weaviate)
-6. [ ] Batch processing optimizations
+**Planned Features** (v0.1.15+):
+1. [ ] Custom embedding model support (ONNX, PyTorch) - v0.1.15
+2. [ ] Fine-tuning for domain-specific embeddings - v0.1.16
+3. [ ] Hybrid embedding strategies (local + cloud) - v0.1.17
+4. [ ] Embedding caching and optimization - v0.1.18
+5. [ ] Batch processing optimizations - v0.1.19
+6. [ ] Advanced Turso vector search optimizations - v0.1.20
 
 **Custom Model Example**:
 ```rust

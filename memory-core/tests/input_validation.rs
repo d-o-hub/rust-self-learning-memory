@@ -24,6 +24,7 @@ struct LargeInputTest {
     tags_count: usize,
 }
 
+#[allow(clippy::excessive_nesting)]
 #[tokio::test]
 async fn should_handle_large_inputs_without_data_loss() {
     // Given: Various large input scenarios

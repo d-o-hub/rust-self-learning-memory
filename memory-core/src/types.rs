@@ -893,14 +893,20 @@ mod tests {
 
     #[test]
     fn test_memory_config_invalid_eviction_policy() {
+        // Clear any existing value first to avoid pollution from other tests
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
         std::env::set_var("MEMORY_EVICTION_POLICY", "invalid_policy");
         let config = MemoryConfig::from_env();
 
         // Should fall back to default (RelevanceWeighted)
-        assert!(matches!(
-            config.eviction_policy,
-            Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
-        ));
+        assert!(
+            matches!(
+                config.eviction_policy,
+                Some(crate::episodic::EvictionPolicy::RelevanceWeighted)
+            ),
+            "Expected RelevanceWeighted fallback, got {:?}",
+            config.eviction_policy
+        );
 
         std::env::remove_var("MEMORY_EVICTION_POLICY");
     }

@@ -105,6 +105,12 @@ enum Commands {
         #[command(subcommand)]
         command: EvalCommands,
     },
+    /// Embedding provider management and testing
+    #[command(alias = "emb")]
+    Embedding {
+        #[command(subcommand)]
+        command: EmbeddingCommands,
+    },
     /// Generate shell completion scripts
     #[command(alias = "comp")]
     Completion {
@@ -222,6 +228,16 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Eval { command } => {
             handle_eval_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::Embedding { command } => {
+            handle_embedding_command(
                 command,
                 &storage_result.memory,
                 &config,

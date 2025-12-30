@@ -3,10 +3,13 @@ msrv = "1.70"
 
 # Type system and complexity
 type-complexity-threshold = 1000
-cognitive-complexity-threshold = 50
-excessive-nesting-threshold = 6
+cognitive-complexity-threshold = 30  # Reduced from 50 for better code quality
+excessive-nesting-threshold = 5      # Reduced from 6
 too-many-arguments-threshold = 7
 too-many-lines-threshold = 500
+
+# Performance lints (warn about potential issues)
+# These help catch performance problems early
 
 # Async/Tokio specific
 allow-expect-in-tests = true
@@ -26,4 +29,4 @@ warn-on-all-wildcard-imports = true
 missing-docs-in-crate-items = false
 
 # Additional allowances for examples and tests (minor style warnings)
-doc-valid-idents = ["OpenAI", "AzureOpenAI", "multi_provider_embeddings", "embedding_optimization_demo", "async_pattern_extraction", "OpenAI", "AzureOpenAI", "standard API"]
+doc-valid-idents = ["OpenAI", "AzureOpenAI", "multi_provider_embeddings", "embedding_optimization_demo", "async_pattern_extraction", "standard API"]

@@ -24,6 +24,7 @@ impl ConfigWizard {
     }
 
     /// Run the interactive configuration wizard
+    #[allow(clippy::excessive_nesting)]
     pub async fn run(&self) -> Result<Config> {
         println!("\n🚀 Memory CLI Configuration Wizard");
         println!("===================================");
@@ -55,6 +56,7 @@ impl ConfigWizard {
             database: database_config,
             storage: storage_config,
             cli: cli_config,
+            embeddings: crate::config::types::EmbeddingsConfig::default(),
         };
 
         println!("\n✅ Step 5 of 5: Review & Validate");
@@ -95,6 +97,7 @@ impl ConfigWizard {
             database: database_config,
             storage: storage_config,
             cli: cli_config,
+            embeddings: crate::config::types::EmbeddingsConfig::default(),
         };
 
         println!("\n✅ Step 4 of 4: Review & Validate");
@@ -165,6 +168,7 @@ impl ConfigWizard {
     }
 
     /// Configure database settings
+    #[allow(clippy::excessive_nesting)]
     fn configure_database(&self, preset: &ConfigPreset) -> Result<DatabaseConfig> {
         let mut config = preset.create_config().database;
 

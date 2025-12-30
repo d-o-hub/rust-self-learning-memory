@@ -713,6 +713,7 @@ batch_size = 10
     }
 
     #[test]
+    #[allow(clippy::excessive_nesting)]
     fn test_argument_validation_comprehensive() {
         let harness = CliHarness::new();
 

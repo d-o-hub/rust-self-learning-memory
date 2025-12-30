@@ -8,7 +8,10 @@ fn main() {
     println!("MEMORY_DATA_DIR: {:?}", env::var("MEMORY_DATA_DIR").ok());
     println!("MEMORY_CACHE_DIR: {:?}", env::var("MEMORY_CACHE_DIR").ok());
     println!("REDB_PATH: {:?}", env::var("REDB_PATH").ok());
-    println!("LOCAL_DATABASE_URL: {:?}", env::var("LOCAL_DATABASE_URL").ok());
+    println!(
+        "LOCAL_DATABASE_URL: {:?}",
+        env::var("LOCAL_DATABASE_URL").ok()
+    );
     println!("TURSO_URL: {:?}", env::var("TURSO_URL").ok());
     println!("TURSO_TOKEN: {:?}", env::var("TURSO_TOKEN").ok());
 

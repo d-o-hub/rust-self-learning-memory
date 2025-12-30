@@ -12,9 +12,15 @@ keywords = ["turso", "libsql", "storage", "database", "ai-memory"]
 categories = ["database"]
 documentation = "https://docs.rs/memory-storage-turso"
 
+[features]
+# Enable multi-dimension vector schema for Turso (Phase 0)
+turso_multi_dimension = []
+# Enable FTS5 hybrid search for enhanced retrieval
+hybrid_search = []
+
 [dependencies]
 # Core dependencies
-memory-core = { path = "../memory-core" }
+memory-core = { path = "../memory-core", features = ["hybrid_search"] }
 
 # Async runtime
 tokio = { workspace = true }
@@ -42,10 +48,14 @@ tracing = { workspace = true }
 # Synchronization
 parking_lot = "0.12"
 
+# Cryptography for deterministic ID generation
+sha2 = "0.10"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 futures = "0.3"
+test-utils = { path = "../test-utils", features = ["turso"] }
 
 [lints.rust]
 # Allow unsafe only for specific use cases

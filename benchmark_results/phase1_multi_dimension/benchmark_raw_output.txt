@@ -1,0 +1,163 @@
+warning: constant `CREATE_EMBEDDINGS_TABLE` is never used
+  --> memory-storage-turso/src/schema.rs:58:11
+   |
+58 | pub const CREATE_EMBEDDINGS_TABLE: &str = r#"
+   |           ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `CREATE_EMBEDDINGS_VECTOR_INDEX` is never used
+   --> memory-storage-turso/src/schema.rs:145:11
+    |
+145 | pub const CREATE_EMBEDDINGS_VECTOR_INDEX: &str = r#"
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `CREATE_EMBEDDINGS_ITEM_INDEX` is never used
+   --> memory-storage-turso/src/schema.rs:213:11
+    |
+213 | pub const CREATE_EMBEDDINGS_ITEM_INDEX: &str = r#"
+    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: call to `.clone()` on a reference in this situation does nothing
+    --> memory-storage-turso/src/storage.rs:1403:44
+     |
+1403 |                     .query(&sql, params![id.clone()])
+     |                                            ^^^^^^^^ help: remove this redundant call
+     |
+     = note: the type `str` does not implement `Clone`, so calling `clone` on `&str` copies the reference, which does not do anything and can be removed
+     = note: `#[warn(noop_method_call)]` on by default
+
+warning: `memory-storage-turso` (lib) generated 4 warnings (run `cargo fix --lib -p memory-storage-turso` to apply 1 suggestion)
+   Compiling memory-benches v0.1.9 (/workspaces/feat-phase3/benches)
+    Finished `bench` profile [optimized] target(s) in 1m 30s
+     Running turso_vector_performance.rs (/workspaces/feat-phase3/target/release/deps/turso_vector_performance-f3bd6c6ee840017e)
+Gnuplot not found, using plotters backend
+Benchmarking 384_dim_native_search/100
+Benchmarking 384_dim_native_search/100: Warming up for 3.0000 s
+Benchmarking 384_dim_native_search/100: Collecting 20 samples in estimated 22.553 s (1470 iterations)
+Benchmarking 384_dim_native_search/100: Analyzing
+384_dim_native_search/100
+                        time:   [14.470 ms 15.142 ms 15.723 ms]
+                        thrpt:  [6.3600 Kelem/s 6.6043 Kelem/s 6.9109 Kelem/s]
+Benchmarking 384_dim_native_search/1000
+Benchmarking 384_dim_native_search/1000: Warming up for 3.0000 s
+Benchmarking 384_dim_native_search/1000: Collecting 20 samples in estimated 23.144 s (120 iterations)
+Benchmarking 384_dim_native_search/1000: Analyzing
+384_dim_native_search/1000
+                        time:   [147.69 ms 152.86 ms 158.40 ms]
+                        thrpt:  [6.3132 Kelem/s 6.5418 Kelem/s 6.7709 Kelem/s]
+                 change:
+                        time:   [+7.4268% +12.283% +16.990%] (p = 0.00 < 0.05)
+                        thrpt:  [-14.523% -10.939% -6.9134%]
+                        Performance has regressed.
+
+Benchmarking brute_force_search/10
+Benchmarking brute_force_search/10: Warming up for 3.0000 s
+Benchmarking brute_force_search/10: Collecting 20 samples in estimated 20.179 s (7350 iterations)
+Benchmarking brute_force_search/10: Analyzing
+brute_force_search/10   time:   [2.3902 ms 2.4771 ms 2.5975 ms]
+                        thrpt:  [3.8498 Kelem/s 4.0370 Kelem/s 4.1838 Kelem/s]
+Benchmarking brute_force_search/50
+Benchmarking brute_force_search/50: Warming up for 3.0000 s
+Benchmarking brute_force_search/50: Collecting 20 samples in estimated 21.312 s (2730 iterations)
+Benchmarking brute_force_search/50: Analyzing
+brute_force_search/50   time:   [8.3826 ms 8.5790 ms 8.7756 ms]
+                        thrpt:  [5.6976 Kelem/s 5.8282 Kelem/s 5.9647 Kelem/s]
+Benchmarking brute_force_search/100
+Benchmarking brute_force_search/100: Warming up for 3.0000 s
+Benchmarking brute_force_search/100: Collecting 20 samples in estimated 21.074 s (1680 iterations)
+Benchmarking brute_force_search/100: Analyzing
+brute_force_search/100  time:   [13.062 ms 13.357 ms 13.619 ms]
+                        thrpt:  [7.3429 Kelem/s 7.4869 Kelem/s 7.6557 Kelem/s]
+
+Benchmarking embedding_memory_usage/384_dim/1000
+Benchmarking embedding_memory_usage/384_dim/1000: Warming up for 3.0000 s
+Benchmarking embedding_memory_usage/384_dim/1000: Collecting 100 samples in estimated 5.0000 s (35B iterations)
+Benchmarking embedding_memory_usage/384_dim/1000: Analyzing
+embedding_memory_usage/384_dim/1000
+                        time:   [134.90 ps 136.57 ps 138.52 ps]
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+Benchmarking embedding_memory_usage/384_dim/10000
+Benchmarking embedding_memory_usage/384_dim/10000: Warming up for 3.0000 s
+Benchmarking embedding_memory_usage/384_dim/10000: Collecting 100 samples in estimated 5.0000 s (35B iterations)
+Benchmarking embedding_memory_usage/384_dim/10000: Analyzing
+embedding_memory_usage/384_dim/10000
+                        time:   [136.24 ps 137.63 ps 139.34 ps]
+Found 10 outliers among 100 measurements (10.00%)
+  4 (4.00%) high mild
+  6 (6.00%) high severe
+Benchmarking embedding_memory_usage/1536_dim/1000
+Benchmarking embedding_memory_usage/1536_dim/1000: Warming up for 3.0000 s
+Benchmarking embedding_memory_usage/1536_dim/1000: Collecting 100 samples in estimated 5.0000 s (36B iterations)
+Benchmarking embedding_memory_usage/1536_dim/1000: Analyzing
+embedding_memory_usage/1536_dim/1000
+                        time:   [133.78 ps 134.92 ps 136.22 ps]
+Found 8 outliers among 100 measurements (8.00%)
+  6 (6.00%) high mild
+  2 (2.00%) high severe
+Benchmarking embedding_memory_usage/1536_dim/10000
+Benchmarking embedding_memory_usage/1536_dim/10000: Warming up for 3.0000 s
+Benchmarking embedding_memory_usage/1536_dim/10000: Collecting 100 samples in estimated 5.0000 s (36B iterations)
+Benchmarking embedding_memory_usage/1536_dim/10000: Analyzing
+embedding_memory_usage/1536_dim/10000
+                        time:   [133.38 ps 134.66 ps 136.07 ps]
+Found 5 outliers among 100 measurements (5.00%)
+  2 (2.00%) high mild
+  3 (3.00%) high severe
+Benchmarking embedding_memory_usage/3072_dim/1000
+Benchmarking embedding_memory_usage/3072_dim/1000: Warming up for 3.0000 s
+Benchmarking embedding_memory_usage/3072_dim/1000: Collecting 100 samples in estimated 5.0000 s (36B iterations)
+Benchmarking embedding_memory_usage/3072_dim/1000: Analyzing
+embedding_memory_usage/3072_dim/1000
+                        time:   [133.40 ps 134.59 ps 135.90 ps]
+Found 8 outliers among 100 measurements (8.00%)
+  6 (6.00%) high mild
+  2 (2.00%) high severe
+Benchmarking embedding_memory_usage/3072_dim/10000
+Benchmarking embedding_memory_usage/3072_dim/10000: Warming up for 3.0000 s
+Benchmarking embedding_memory_usage/3072_dim/10000: Collecting 100 samples in estimated 5.0000 s (37B iterations)
+Benchmarking embedding_memory_usage/3072_dim/10000: Analyzing
+embedding_memory_usage/3072_dim/10000
+                        time:   [132.65 ps 133.69 ps 134.87 ps]
+Found 7 outliers among 100 measurements (7.00%)
+  5 (5.00%) high mild
+  2 (2.00%) high severe
+
+Benchmarking json_query_performance/rust_deserialization
+Benchmarking json_query_performance/rust_deserialization: Warming up for 3.0000 s
+Benchmarking json_query_performance/rust_deserialization: Collecting 100 samples in estimated 5.0090 s (2.3M iterations)
+Benchmarking json_query_performance/rust_deserialization: Analyzing
+json_query_performance/rust_deserialization
+                        time:   [2.1576 µs 2.1726 µs 2.1900 µs]
+Found 8 outliers among 100 measurements (8.00%)
+  1 (1.00%) low mild
+  3 (3.00%) high mild
+  4 (4.00%) high severe
+
+Benchmarking embedding_storage/384_dim/10
+Benchmarking embedding_storage/384_dim/10: Warming up for 3.0000 s
+Benchmarking embedding_storage/384_dim/10: Collecting 20 samples in estimated 26.540 s (60 iterations)
+Benchmarking embedding_storage/384_dim/10: Analyzing
+embedding_storage/384_dim/10
+                        time:   [377.90 ms 386.28 ms 395.15 ms]
+Benchmarking embedding_storage/384_dim/100
+Benchmarking embedding_storage/384_dim/100: Warming up for 3.0000 s
+
+Warning: Unable to complete 20 samples in 20.0s. You may wish to increase target time to 61.2s, or reduce sample count to 10.
+Benchmarking embedding_storage/384_dim/100: Collecting 20 samples in estimated 61.228 s (20 iterations)
+Benchmarking embedding_storage/384_dim/100: Analyzing
+embedding_storage/384_dim/100
+                        time:   [3.0870 s 3.1186 s 3.1492 s]
+Benchmarking embedding_storage/1536_dim/10
+Benchmarking embedding_storage/1536_dim/10: Warming up for 3.0000 s
+Benchmarking embedding_storage/1536_dim/10: Collecting 20 samples in estimated 25.219 s (40 iterations)
+Benchmarking embedding_storage/1536_dim/10: Analyzing
+embedding_storage/1536_dim/10
+                        time:   [960.69 ms 1.1143 s 1.2585 s]
+Benchmarking embedding_storage/1536_dim/100
+Benchmarking embedding_storage/1536_dim/100: Warming up for 3.0000 s
+
+Warning: Unable to complete 20 samples in 20.0s. You may wish to increase target time to 205.7s, or reduce sample count to 10.
+Benchmarking embedding_storage/1536_dim/100: Collecting 20 samples in estimated 205.70 s (20 iterations)

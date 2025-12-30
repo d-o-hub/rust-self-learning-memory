@@ -1,0 +1,29 @@
+# Memory CLI Configuration - Minimal Setup
+# =========================================
+# Bare minimum configuration with sensible defaults.
+# All optional settings are omitted.
+
+[database]
+turso_url = "file:./data/memory.db"
+redb_path = "./data/cache.redb"
+
+[storage]
+max_episodes_cache = 1000
+cache_ttl_seconds = 3600
+pool_size = 10
+
+[cli]
+default_format = "human"
+progress_bars = true
+batch_size = 100
+
+[embeddings]
+# Embeddings are optional - set enabled = true to activate
+enabled = false
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+similarity_threshold = 0.7
+batch_size = 32
+cache_embeddings = true
+timeout_seconds = 30

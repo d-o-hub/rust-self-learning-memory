@@ -10,6 +10,57 @@ use uuid::Uuid;
 
 use super::SelfLearningMemory;
 
+/// Maximum size for caching episodes (100KB)
+const MAX_CACHEABLE_SIZE: usize = 100 * 1024;
+
+/// Check if episodes should be cached based on estimated size
+///
+/// Skips caching for large result sets to avoid expensive clone operations.
+/// Estimates size based on step count and artifact sizes.
+fn should_cache_episodes(episodes: &[Episode]) -> bool {
+    // Quick check: if >50 episodes, likely too large
+    if episodes.len() > 50 {
+        return false;
+    }
+
+    // Estimate total size
+    let estimated_size: usize = episodes
+        .iter()
+        .map(|ep| {
+            // Base episode overhead: ~1KB
+            let mut size = 1024;
+
+            // Steps: ~100 bytes each
+            size += ep.steps.len() * 100;
+
+            // Outcome artifacts (can be large)
+            if let Some(ref outcome) = ep.outcome {
+                match outcome {
+                    crate::types::TaskOutcome::Success { artifacts, .. } => {
+                        size += artifacts.iter().map(|a| a.len()).sum::<usize>();
+                    }
+                    crate::types::TaskOutcome::PartialSuccess {
+                        completed, failed, ..
+                    } => {
+                        size += completed.iter().map(|a| a.len()).sum::<usize>();
+                        size += failed.iter().map(|a| a.len()).sum::<usize>();
+                    }
+                    crate::types::TaskOutcome::Failure { .. } => {}
+                }
+            }
+
+            // Reflection insights
+            if let Some(ref reflection) = ep.reflection {
+                size += reflection.insights.iter().map(|i| i.len()).sum::<usize>();
+            }
+
+            size
+        })
+        .sum();
+
+    estimated_size < MAX_CACHEABLE_SIZE
+}
+
 /// Generate a simple embedding for an episode based on its metadata
 /// This is a placeholder until full embedding integration is complete
 fn generate_simple_embedding(episode: &Episode) -> Vec<f32> {
@@ -167,6 +218,35 @@ impl SelfLearningMemory {
     ) -> Vec<Episode> {
         use chrono::{TimeZone, Utc};
 
+        // v0.1.12: Check query cache first
+        let cache_key = crate::retrieval::CacheKey::new(task_description.clone())
+            .with_domain(Some(context.domain.clone()))
+            .with_limit(limit);
+
+        if let Some(cached_episodes) = self.query_cache.get(&cache_key) {
+            debug!(
+                cached_count = cached_episodes.len(),
+                "Query cache HIT - returning cached episodes"
+            );
+
+            // Log cache metrics periodically (every 100 hits)
+            let metrics = self.query_cache.metrics();
+            if metrics.hits % 100 == 0 {
+                info!(
+                    hit_rate = format!("{:.1}%", metrics.hit_rate() * 100.0),
+                    cache_size = format!("{}/{}", metrics.size, metrics.capacity),
+                    hits = metrics.hits,
+                    misses = metrics.misses,
+                    evictions = metrics.evictions,
+                    "Query cache metrics"
+                );
+            }
+
+            return cached_episodes;
+        }
+
+        debug!("Query cache MISS - performing retrieval");
+
         // Ensure we have some episodes in memory; if not, try to backfill from storage
         let mut need_backfill = false;
         {
@@ -255,6 +335,18 @@ impl SelfLearningMemory {
                         let semantic_episodes: Vec<Episode> =
                             results.into_iter().map(|result| result.item).collect();
 
+                        // v0.1.12: Cache the results before returning
+                        // Skip caching if result set is too large (>100KB estimated)
+                        if should_cache_episodes(&semantic_episodes) {
+                            self.query_cache
+                                .put(cache_key.clone(), semantic_episodes.clone());
+                        } else {
+                            debug!(
+                                episode_count = semantic_episodes.len(),
+                                "Skipping cache for large result set"
+                            );
+                        }
+
                         return semantic_episodes;
                     }
                 }
@@ -274,9 +366,31 @@ impl SelfLearningMemory {
 
         // Phase 3: Use hierarchical retriever for efficient search (if enabled)
         let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {
+            // Generate query embedding if semantic service is available
+            let query_embedding = if let Some(ref semantic) = self.semantic_service {
+                match semantic.provider.embed_text(&task_description).await {
+                    Ok(embedding) => {
+                        debug!(
+                            embedding_dim = embedding.len(),
+                            "Generated query embedding for hierarchical retrieval"
+                        );
+                        Some(embedding)
+                    }
+                    Err(e) => {
+                        debug!(
+                            error = %e,
+                            "Failed to generate query embedding, falling back to keyword search"
+                        );
+                        None
+                    }
+                }
+            } else {
+                None
+            };
+
             let query = RetrievalQuery {
                 query_text: task_description.clone(),
-                query_embedding: None, // TODO: Add embedding support in future
+                query_embedding,
                 domain: Some(context.domain.clone()),
                 task_type: None,  // Could extract from context if needed
                 limit: limit * 2, // Retrieve more candidates for diversity maximization
@@ -316,6 +430,17 @@ impl SelfLearningMemory {
                 retrieved_count = relevant.len(),
                 "Retrieved episodes using legacy method"
             );
+
+            // v0.1.12: Cache the results before returning
+            if should_cache_episodes(&relevant) {
+                self.query_cache.put(cache_key.clone(), relevant.clone());
+            } else {
+                debug!(
+                    episode_count = relevant.len(),
+                    "Skipping cache for large result set"
+                );
+            }
+
             return relevant;
         }
 
@@ -371,6 +496,17 @@ impl SelfLearningMemory {
                 "Retrieved diverse, relevant episodes using Phase 3 hierarchical retrieval + MMR"
             );
 
+            // v0.1.12: Cache the results before returning
+            if should_cache_episodes(&result_episodes) {
+                self.query_cache
+                    .put(cache_key.clone(), result_episodes.clone());
+            } else {
+                debug!(
+                    episode_count = result_episodes.len(),
+                    "Skipping cache for large result set"
+                );
+            }
+
             return result_episodes;
         }
 
@@ -390,6 +526,16 @@ impl SelfLearningMemory {
             retrieved_count = result_episodes.len(),
             "Retrieved episodes using hierarchical retrieval (diversity disabled)"
         );
+
+        // v0.1.12: Cache the results before returning
+        if should_cache_episodes(&result_episodes) {
+            self.query_cache.put(cache_key, result_episodes.clone());
+        } else {
+            debug!(
+                episode_count = result_episodes.len(),
+                "Skipping cache for large result set"
+            );
+        }
 
         result_episodes
     }

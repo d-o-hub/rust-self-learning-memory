@@ -349,12 +349,13 @@ All measurements remain well under acceptable targets!
 3. **Documentation Enhancement**: Examples and guides for configuration
 4. **Backward Compatibility Testing**: Test with existing configurations
 
-### Medium-term (v0.2.1 - Q1 2026)
+### Medium-term (v0.1.11-v0.1.15 - Q1 2026)
 
-1. **Full Contrastive Learning**: Enhanced embeddings (+5-10% accuracy)
-2. **Adaptive Temporal Clustering**: Dynamic clustering (+10-20% speed)
-3. **Query Caching**: Cache frequently accessed clusters (2-3x speedup)
-4. **Performance Profiling**: Large-scale validation (10,000+ episodes)
+1. **Configuration Polish (v0.1.11)**: Complete wizard UX refinement and remaining optimizations
+2. **Query Caching (v0.1.12)**: LRU cache with TTL, 2-3x speedup for repeated queries
+3. **Full Contrastive Learning (v0.1.13)**: Enhanced embeddings, +5-10% accuracy improvement
+4. **Adaptive Temporal Clustering (v0.1.14)**: Dynamic clustering, +10-20% speed improvement
+5. **Advanced Features (v0.1.15)**: Large-scale validation, custom models, production optimization
 
 ### Long-term (v1.0.0+ - 2026)
 

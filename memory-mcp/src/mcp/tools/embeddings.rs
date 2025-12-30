@@ -668,8 +668,6 @@ mod tests {
         let output = result.unwrap();
         assert!(output.query_time_ms > 0);
         assert_eq!(output.embedding_dimension, 384);
-        // Results may be empty if no episodes in memory
-        assert!(output.results_found >= 0);
     }
 
     #[tokio::test]
@@ -682,7 +680,6 @@ mod tests {
 
         let output = result.unwrap();
         assert!(!output.available); // Not configured by default
-        assert!(output.test_time_ms >= 0);
         assert_eq!(output.sample_embedding.len(), 5);
         assert!(!output.message.is_empty());
     }

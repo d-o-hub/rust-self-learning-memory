@@ -169,6 +169,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::const_is_empty)]
     fn test_error_messages_not_empty() {
         assert!(!errors::EPISODE_NOT_FOUND.is_empty());
         assert!(!errors::PATTERN_NOT_FOUND.is_empty());

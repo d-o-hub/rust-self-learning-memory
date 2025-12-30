@@ -235,8 +235,6 @@ async fn test_query_semantic_memory_basic() {
         "Query should have measurable time"
     );
     assert_eq!(output.embedding_dimension, 384);
-    // Results may be empty if no episodes in memory
-    assert!(output.results_found >= 0);
 }
 
 #[tokio::test]
@@ -303,7 +301,6 @@ async fn test_test_embeddings_tool() {
     assert!(!output.available, "Should not be available by default");
     assert_eq!(output.provider, "not-configured");
     assert_eq!(output.dimension, 384);
-    assert!(output.test_time_ms >= 0);
     assert_eq!(output.sample_embedding.len(), 5);
     assert!(!output.message.is_empty());
     assert!(!output.errors.is_empty());
@@ -404,15 +401,15 @@ async fn test_tool_usage_tracking() {
     // Check usage tracking
     let usage = server.get_tool_usage().await;
     assert!(
-        usage.get("test_embeddings").is_some(),
+        usage.contains_key("test_embeddings"),
         "test_embeddings usage should be tracked"
     );
     assert!(
-        usage.get("configure_embeddings").is_some(),
+        usage.contains_key("configure_embeddings"),
         "configure_embeddings usage should be tracked"
     );
     assert!(
-        usage.get("query_semantic_memory").is_some(),
+        usage.contains_key("query_semantic_memory"),
         "query_semantic_memory usage should be tracked"
     );
 }

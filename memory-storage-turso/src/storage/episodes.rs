@@ -1,7 +1,7 @@
 //! Episode CRUD operations for Turso storage
 
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Result, TaskType};
+use memory_core::{semantic::EpisodeSummary, Episode, Error, Result, TaskType};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -127,6 +127,78 @@ impl TursoStorage {
 
         info!("Successfully deleted episode: {}", episode_id);
         Ok(())
+    }
+
+    /// Store an episode summary
+    pub async fn store_episode_summary(&self, summary: &EpisodeSummary) -> Result<()> {
+        debug!("Storing episode summary: {}", summary.episode_id);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            INSERT OR REPLACE INTO episode_summaries (
+                episode_id, summary_text, key_concepts, key_steps,
+                summary_embedding, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        "#;
+
+        let key_concepts_json =
+            serde_json::to_string(&summary.key_concepts).map_err(Error::Serialization)?;
+        let key_steps_json =
+            serde_json::to_string(&summary.key_steps).map_err(Error::Serialization)?;
+        let embedding_json = summary
+            .summary_embedding
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()
+            .map_err(Error::Serialization)?;
+
+        conn.execute(
+            sql,
+            libsql::params![
+                summary.episode_id.to_string(),
+                summary.summary_text.clone(),
+                key_concepts_json,
+                key_steps_json,
+                embedding_json,
+                summary.created_at.timestamp(),
+            ],
+        )
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store summary: {}", e)))?;
+
+        info!(
+            "Successfully stored summary for episode: {}",
+            summary.episode_id
+        );
+        Ok(())
+    }
+
+    /// Retrieve an episode summary by episode ID
+    pub async fn get_episode_summary(&self, episode_id: Uuid) -> Result<Option<EpisodeSummary>> {
+        debug!("Retrieving episode summary: {}", episode_id);
+        let conn = self.get_connection().await?;
+
+        let sql = r#"
+            SELECT episode_id, summary_text, key_concepts, key_steps,
+                   summary_embedding, created_at
+            FROM episode_summaries WHERE episode_id = ?
+        "#;
+
+        let mut rows = conn
+            .query(sql, libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query summary: {}", e)))?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch summary row: {}", e)))?
+        {
+            let summary = Self::row_to_summary(&row)?;
+            Ok(Some(summary))
+        } else {
+            Ok(None)
+        }
     }
 
     /// Query episodes with filters
@@ -330,6 +402,39 @@ impl TursoStorage {
                 .unwrap_or_default(),
             end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
             metadata,
+        })
+    }
+}
+
+/// Convert a database row to an EpisodeSummary
+impl TursoStorage {
+    fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
+        let episode_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+        let summary_text: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+        let key_concepts_json: String = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
+        let key_steps_json: String = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
+        let embedding_json: Option<String> = row.get(4).ok();
+        let created_at_timestamp: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
+
+        let key_concepts: Vec<String> = serde_json::from_str(&key_concepts_json)
+            .map_err(|e| Error::Storage(format!("Failed to parse key concepts: {}", e)))?;
+        let key_steps: Vec<String> = serde_json::from_str(&key_steps_json)
+            .map_err(|e| Error::Storage(format!("Failed to parse key steps: {}", e)))?;
+        let summary_embedding = embedding_json
+            .as_ref()
+            .map(|s| serde_json::from_str::<Vec<f32>>(s))
+            .transpose()
+            .map_err(|e| Error::Storage(format!("Failed to parse embedding: {}", e)))?;
+
+        Ok(EpisodeSummary {
+            episode_id: uuid::Uuid::parse_str(&episode_id)
+                .map_err(|e| Error::Storage(format!("Invalid episode ID: {}", e)))?,
+            summary_text,
+            key_concepts,
+            key_steps,
+            summary_embedding,
+            created_at: chrono::DateTime::from_timestamp(created_at_timestamp, 0)
+                .unwrap_or_default(),
         })
     }
 }

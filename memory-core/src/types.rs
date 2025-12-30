@@ -194,7 +194,7 @@ impl std::str::FromStr for TaskType {
             "analysis" => Ok(TaskType::Analysis),
             "documentation" => Ok(TaskType::Documentation),
             "other" => Ok(TaskType::Other),
-            _ => Err(format!("Unknown TaskType: {}", s)),
+            _ => Err(format!("Unknown TaskType: {s}")),
         }
     }
 }

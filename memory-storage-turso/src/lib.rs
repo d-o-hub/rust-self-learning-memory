@@ -670,7 +670,10 @@ mod tests {
             .unwrap();
 
         // Retrieve embedding using the internal 3-param method
-        let retrieved = storage._get_embedding_internal(id, "embedding").await.unwrap();
+        let retrieved = storage
+            ._get_embedding_internal(id, "embedding")
+            .await
+            .unwrap();
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap(), embedding);
     }
@@ -713,10 +716,7 @@ mod tests {
     async fn test_delete_nonexistent_embedding() {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
-        let deleted = storage
-            .delete_embedding("nonexistent")
-            .await
-            .unwrap();
+        let deleted = storage.delete_embedding("nonexistent").await.unwrap();
         assert!(!deleted);
     }
 
@@ -795,20 +795,11 @@ mod tests {
         let dim_1536: Vec<f32> = (0..1536).map(|i| i as f32 / 1536.0).collect();
 
         // Store different dimensions
-        storage
-            .store_embedding("dim_384", dim_384)
-            .await
-            .unwrap();
+        storage.store_embedding("dim_384", dim_384).await.unwrap();
 
-        storage
-            .store_embedding("dim_1024", dim_1024)
-            .await
-            .unwrap();
+        storage.store_embedding("dim_1024", dim_1024).await.unwrap();
 
-        storage
-            .store_embedding("dim_1536", dim_1536)
-            .await
-            .unwrap();
+        storage.store_embedding("dim_1536", dim_1536).await.unwrap();
 
         // Retrieve and verify dimensions
         let retrieved_384 = storage.get_embedding("dim_384").await.unwrap();
@@ -858,10 +849,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         // Store empty batch
-        storage
-            .store_embeddings_batch(vec![])
-            .await
-            .unwrap();
+        storage.store_embeddings_batch(vec![]).await.unwrap();
 
         // Get empty batch
         let results = storage.get_embeddings_batch(&[]).await.unwrap();

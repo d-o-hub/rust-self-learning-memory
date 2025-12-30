@@ -17,33 +17,32 @@
 //! cargo run --example embeddings_end_to_end --features openai
 //! ```
 
-use memory_core::embeddings::{EmbeddingProvider, EmbeddingResult, MockEmbeddingProvider};
-use memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
+use memory_core::{
+    ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
+    TaskType,
+};
+use chrono::Utc;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Initialize tracing for logs
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
-
-    println!("🚀 Memory-Core: End-to-End Embeddings Example");
+    println!("\nMemory-Core: End-to-End Embeddings Example");
     println!("{}", "=".repeat(60));
     println!();
 
     // Step 1: Initialize Memory System
-    println!("📦 Step 1: Initializing memory system...");
+    println!("Step 1: Initializing memory system...");
     let memory = SelfLearningMemory::new();
-    println!("✅ Memory system initialized\n");
+    println!("Memory system initialized\n");
 
     // Step 2: Initialize Embedding Provider
-    println!("🧠 Step 2: Initializing embedding provider...");
+    println!("Step 2: Initializing embedding provider...");
     let provider = initialize_provider().await?;
-    println!("✅ Using provider: {}", provider_name(&provider));
-    println!("   Dimension: {}\n", provider.dimension());
+    println!("Using provider: {}", provider_name(&provider));
+    println!("Dimension: {}\n", provider.embedding_dimension());
 
     // Step 3: Create sample episodes with different domains
-    println!("📝 Step 3: Creating sample episodes with embeddings...");
+    println!("Step 3: Creating sample episodes with embeddings...");
     let episodes = vec![
         (
             "Implement REST API authentication",
@@ -72,13 +71,14 @@ async fn main() -> anyhow::Result<()> {
         ),
     ];
 
-    for (desc, domain, tags) in episodes {
+    for (desc, domain, tags) in &episodes {
         // Generate embedding for task description
-        let result = provider.embed_text(desc).await?;
+        let embedding = provider.embed_text(desc).await?;
+        let embedding_len = embedding.len();
         println!(
-            "  • Created episode: '{}' (embedding: {} dims)",
+            "  Created episode: '{}' (embedding: {} dims)",
             desc,
-            result.embedding.len()
+            embedding_len
         );
 
         // Start episode
@@ -91,29 +91,70 @@ async fn main() -> anyhow::Result<()> {
         };
 
         let episode_id = memory
-            .start_episode(desc.to_string(), context, TaskType::Feature)
-            .await?;
+            .start_episode(desc.to_string(), context, TaskType::CodeGeneration)
+            .await;
 
         // Log some steps
-        memory
-            .log_step(episode_id, format!("Analyzing requirements for {}", desc))
-            .await?;
-        memory
-            .log_step(episode_id, format!("Implementing {}", desc))
-            .await?;
-        memory
-            .log_step(episode_id, format!("Testing {}", desc))
-            .await?;
+        let step1 = ExecutionStep {
+            step_number: 1,
+            timestamp: Utc::now(),
+            tool: "analyze".to_string(),
+            action: "Analyzing requirements".to_string(),
+            parameters: serde_json::json!({}),
+            result: Some(ExecutionResult::Success {
+                output: "Requirements analyzed".to_string(),
+            }),
+            latency_ms: 10,
+            tokens_used: None,
+            metadata: std::collections::HashMap::new(),
+        };
+        memory.log_step(episode_id, step1).await;
+
+        let step2 = ExecutionStep {
+            step_number: 2,
+            timestamp: Utc::now(),
+            tool: "implement".to_string(),
+            action: "Implementing solution".to_string(),
+            parameters: serde_json::json!({}),
+            result: Some(ExecutionResult::Success {
+                output: "Implementation complete".to_string(),
+            }),
+            latency_ms: 10,
+            tokens_used: None,
+            metadata: std::collections::HashMap::new(),
+        };
+        memory.log_step(episode_id, step2).await;
+
+        let step3 = ExecutionStep {
+            step_number: 3,
+            timestamp: Utc::now(),
+            tool: "test".to_string(),
+            action: "Testing solution".to_string(),
+            parameters: serde_json::json!({}),
+            result: Some(ExecutionResult::Success {
+                output: "All tests passed".to_string(),
+            }),
+            latency_ms: 10,
+            tokens_used: None,
+            metadata: std::collections::HashMap::new(),
+        };
+        memory.log_step(episode_id, step3).await;
 
         // Complete episode
         memory
-            .complete_episode(episode_id, TaskOutcome::Success, None)
+            .complete_episode(
+                episode_id,
+                TaskOutcome::Success {
+                    verdict: "Task completed successfully".to_string(),
+                    artifacts: vec![],
+                },
+            )
             .await?;
     }
-    println!("✅ Created {} episodes\n", episodes.len());
+    println!("Created {} episodes\n", episodes.len());
 
     // Step 4: Demonstrate semantic search
-    println!("🔍 Step 4: Performing semantic similarity searches...");
+    println!("Step 4: Performing semantic similarity searches...");
     println!();
 
     let queries = vec![
@@ -122,16 +163,14 @@ async fn main() -> anyhow::Result<()> {
         ("frontend UI component", "frontend", vec!["ui"]),
     ];
 
-    for (query, domain, tags) in queries {
+    for (query, domain, tags) in &queries {
         println!("Query: \"{}\"", query);
         println!("{}", "-".repeat(60));
 
         // Generate embedding for query
-        let query_result = provider.embed_text(query).await?;
-        println!(
-            "  Query embedding: {} dimensions",
-            query_result.embedding.len()
-        );
+        let query_embedding = provider.embed_text(query).await?;
+        let query_embedding_len = query_embedding.len();
+        println!("  Query embedding: {} dimensions", query_embedding_len);
 
         // Retrieve relevant episodes
         let context = TaskContext {
@@ -157,7 +196,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Step 5: Demonstrate similarity calculations
-    println!("📊 Step 5: Direct similarity calculations...");
+    println!("Step 5: Direct similarity calculations...");
     println!();
 
     let text_pairs = vec![
@@ -173,34 +212,34 @@ async fn main() -> anyhow::Result<()> {
     println!();
 
     // Step 6: Batch processing demonstration
-    println!("⚡ Step 6: Batch embedding generation...");
+    println!("Step 6: Batch embedding generation...");
     let batch_texts = vec![
-        "Implement user authentication",
-        "Create database migration",
-        "Build API endpoint",
-        "Write unit tests",
+        "Implement user authentication".to_string(),
+        "Create database migration".to_string(),
+        "Build API endpoint".to_string(),
+        "Write unit tests".to_string(),
     ];
 
     let batch_results = provider.embed_batch(&batch_texts).await?;
     println!("  Generated {} embeddings in batch", batch_results.len());
-    for (i, result) in batch_results.iter().enumerate() {
+    for (i, embedding) in batch_results.iter().enumerate() {
         println!(
             "    {}. '{}' → {} dims",
             i + 1,
             batch_texts[i],
-            result.embedding.len()
+            embedding.len()
         );
     }
     println!();
 
     // Summary
-    println!("✨ Example Complete!");
+    println!("Example Complete!");
     println!();
     println!("Key Takeaways:");
-    println!("  • Embeddings enable semantic (meaning-based) search");
-    println!("  • Multiple providers supported (local, OpenAI, etc.)");
-    println!("  • Batch processing available for efficiency");
-    println!("  • Seamlessly integrates with memory system");
+    println!("  - Embeddings enable semantic (meaning-based) search");
+    println!("  - Multiple providers supported (local, OpenAI, etc.)");
+    println!("  - Batch processing available for efficiency");
+    println!("  - Seamlessly integrates with memory system");
     println!();
     println!("Next Steps:");
     println!("  1. Try with different providers (see EMBEDDING_PROVIDERS.md)");
@@ -215,44 +254,44 @@ async fn main() -> anyhow::Result<()> {
 async fn initialize_provider() -> anyhow::Result<Box<dyn EmbeddingProvider>> {
     #[cfg(feature = "local-embeddings")]
     {
-        use memory_core::embeddings::{LocalEmbeddingProvider, ModelConfig};
         match LocalEmbeddingProvider::new(ModelConfig::default()).await {
             Ok(provider) => {
-                println!("  ℹ️  Using Local Embedding Provider (CPU-based)");
+                println!("  Using Local Embedding Provider (CPU-based)");
                 return Ok(Box::new(provider));
             }
             Err(e) => {
-                println!("  ⚠️  Local provider failed: {}", e);
+                println!("  Local provider failed: {}", e);
             }
         }
     }
 
     #[cfg(feature = "openai")]
     {
-        use memory_core::embeddings::{ModelConfig, OpenAIEmbeddingProvider};
         if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
-            match OpenAIEmbeddingProvider::new(api_key, ModelConfig::openai_3_small()) {
+            match memory_core::embeddings::OpenAIEmbeddingProvider::new(
+                api_key,
+                ModelConfig::openai_3_small(),
+            ) {
                 Ok(provider) => {
-                    println!("  ℹ️  Using OpenAI Embedding Provider");
+                    println!("  Using OpenAI Embedding Provider");
                     return Ok(Box::new(provider));
                 }
                 Err(e) => {
-                    println!("  ⚠️  OpenAI provider failed: {}", e);
+                    println!("  OpenAI provider failed: {}", e);
                 }
             }
         }
     }
 
     // Fallback to mock provider
-    println!("  ⚠️  Using Mock Provider (random embeddings - not semantically meaningful)");
-    println!("  ℹ️  For production use, enable 'openai' or 'local-embeddings' feature");
+    println!("  Using Mock Provider (random embeddings - not semantically meaningful)");
+    println!("  For production use, enable 'openai' or 'local-embeddings' feature");
     Ok(Box::new(MockEmbeddingProvider))
 }
 
 /// Get provider name for display
 fn provider_name(provider: &Box<dyn EmbeddingProvider>) -> &str {
-    // This is a simplified check - in production you'd use proper type checking
-    let dim = provider.dimension();
+    let dim = provider.embedding_dimension();
     match dim {
         384 => "Local (sentence-transformers)",
         1536 => "OpenAI (text-embedding-3-small)",
@@ -266,7 +305,7 @@ struct MockEmbeddingProvider;
 
 #[async_trait::async_trait]
 impl EmbeddingProvider for MockEmbeddingProvider {
-    async fn embed_text(&self, text: &str) -> anyhow::Result<EmbeddingResult> {
+    async fn embed_text(&self, text: &str) -> anyhow::Result<Vec<f32>> {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
 
@@ -293,32 +332,10 @@ impl EmbeddingProvider for MockEmbeddingProvider {
             }
         }
 
-        Ok(EmbeddingResult::new(embedding, "mock-provider".to_string()))
+        Ok(embedding)
     }
 
-    async fn embed_batch(&self, texts: &[&str]) -> anyhow::Result<Vec<EmbeddingResult>> {
-        let mut results = Vec::new();
-        for text in texts {
-            results.push(self.embed_text(text).await?);
-        }
-        Ok(results)
-    }
-
-    async fn similarity(&self, text1: &str, text2: &str) -> anyhow::Result<f32> {
-        let emb1 = self.embed_text(text1).await?;
-        let emb2 = self.embed_text(text2).await?;
-
-        let dot_product: f32 = emb1
-            .embedding
-            .iter()
-            .zip(emb2.embedding.iter())
-            .map(|(a, b)| a * b)
-            .sum();
-
-        Ok(dot_product)
-    }
-
-    fn dimension(&self) -> usize {
+    fn embedding_dimension(&self) -> usize {
         768
     }
 

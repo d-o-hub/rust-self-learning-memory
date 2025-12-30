@@ -231,7 +231,7 @@ async fn test_query_semantic_memory_basic() {
 
     let output = result.unwrap();
     assert!(
-        output.query_time_ms > 0,
+        output.query_time_ms > 0.0,
         "Query should have measurable time"
     );
     assert_eq!(output.embedding_dimension, 384);

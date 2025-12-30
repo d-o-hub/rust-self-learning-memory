@@ -1682,9 +1682,9 @@ dependencies = [
 
 [[package]]
 name = "deep_causality"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2638bd9b04a563a8d119f51118813bfcb3deaf4e2bd42c9d907f9ecd3678119e"
+checksum = "0815ee49acd08764a4c692e3be329388cd4dcbe123b991d9612faff27edd6895"
 dependencies = [
  "deep_causality_ast",
  "deep_causality_core",
@@ -3198,7 +3198,7 @@ dependencies = [
  "bitflags 2.10.0",
  "fastrand",
  "quickcheck",
- "rquickjs",
+ "rquickjs 0.10.0",
  "serde",
 ]
 
@@ -3613,7 +3613,7 @@ dependencies = [
  "rand_chacha 0.3.1",
  "regex",
  "serde_json",
- "sysinfo 0.37.2",
+ "sysinfo",
  "tempfile",
  "tokio",
  "uuid",
@@ -3645,7 +3645,7 @@ dependencies = [
  "serde_json",
  "serde_test",
  "serde_yaml",
- "sysinfo 0.30.13",
+ "sysinfo",
  "tempfile",
  "test-utils",
  "thiserror 2.0.17",
@@ -3669,7 +3669,7 @@ dependencies = [
  "lru 0.12.5",
  "memory-storage-redb",
  "memory-storage-turso",
- "ndarray 0.16.1",
+ "ndarray 0.17.1",
  "ort",
  "reqwest",
  "serde",
@@ -3723,7 +3723,7 @@ dependencies = [
  "parking_lot",
  "rand 0.8.5",
  "rayon",
- "rquickjs",
+ "rquickjs 0.11.0",
  "serde",
  "serde_json",
  "streaming_algorithms",
@@ -3957,6 +3957,21 @@ dependencies = [
  "rawpointer",
  "rayon",
  "serde",
+]
+
+[[package]]
+name = "ndarray"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c7c9125e8f6f10c9da3aad044cc918cf8784fa34de857b1aa68038eb05a50a9"
+dependencies = [
+ "matrixmultiply",
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "portable-atomic",
+ "portable-atomic-util",
+ "rawpointer",
 ]
 
 [[package]]
@@ -5099,8 +5114,17 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a135375fbac5ba723bb6a48f432a72f81539cedde422f0121a86c7c4e96d8e0d"
 dependencies = [
- "rquickjs-core",
+ "rquickjs-core 0.10.0",
  "rquickjs-macro",
+]
+
+[[package]]
+name = "rquickjs"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c50dc6d6c587c339edb4769cf705867497a2baf0eca8b4645fa6ecd22f02c77a"
+dependencies = [
+ "rquickjs-core 0.11.0",
 ]
 
 [[package]]
@@ -5109,10 +5133,21 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bccb7121a123865c8ace4dea42e7ed84d78b90cbaf4ca32c59849d8d210c9672"
 dependencies = [
+ "hashbrown 0.16.1",
+ "relative-path 2.0.1",
+ "rquickjs-sys 0.10.0",
+]
+
+[[package]]
+name = "rquickjs-core"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8bf7840285c321c3ab20e752a9afb95548c75cd7f4632a0627cea3507e310c1"
+dependencies = [
  "async-lock",
  "hashbrown 0.16.1",
  "relative-path 2.0.1",
- "rquickjs-sys",
+ "rquickjs-sys 0.11.0",
 ]
 
 [[package]]
@@ -5128,7 +5163,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "rquickjs-core",
+ "rquickjs-core 0.10.0",
  "syn 2.0.111",
 ]
 
@@ -5139,6 +5174,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57b1b6528590d4d65dc86b5159eae2d0219709546644c66408b2441696d1d725"
 dependencies = [
  "bindgen 0.72.1",
+ "cc",
+]
+
+[[package]]
+name = "rquickjs-sys"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27344601ef27460e82d6a4e1ecb9e7e99f518122095f3c51296da8e9be2b9d83"
+dependencies = [
  "cc",
 ]
 
@@ -5518,15 +5562,15 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.146"
+version = "1.0.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "217ca874ae0207aac254aa02c957ded05585a90892cc8d87f9e5fa49669dadd8"
+checksum = "3084b546a1dd6289475996f182a22aba973866ea8e8b02c51d9f46b1336a22da"
 dependencies = [
  "itoa",
  "memchr",
- "ryu",
  "serde",
  "serde_core",
+ "zmij",
 ]
 
 [[package]]
@@ -6173,21 +6217,6 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.30.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a5b4ddaee55fb2bea2bf0e5000747e5f5c0de765e5a5ff87f4cd106439f4bb3"
-dependencies = [
- "cfg-if",
- "core-foundation-sys",
- "libc",
- "ntapi",
- "once_cell",
- "rayon",
- "windows 0.52.0",
-]
-
-[[package]]
-name = "sysinfo"
 version = "0.37.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16607d5caffd1c07ce073528f9ed972d88db15dd44023fa57142963be3feb11f"
@@ -6197,7 +6226,7 @@ dependencies = [
  "ntapi",
  "objc2-core-foundation",
  "objc2-io-kit",
- "windows 0.61.3",
+ "windows",
 ]
 
 [[package]]
@@ -8296,16 +8325,6 @@ dependencies = [
 
 [[package]]
 name = "windows"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e48a53791691ab099e5e2ad123536d0fff50652600abaf43bbf952894110d0be"
-dependencies = [
- "windows-core 0.52.0",
- "windows-targets 0.52.6",
-]
-
-[[package]]
-name = "windows"
 version = "0.61.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9babd3a767a4c1aef6900409f85f5d53ce2544ccdfaa86dad48c91782c6d6893"
@@ -8324,15 +8343,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3beeceb5e5cfd9eb1d76b381630e82c4241ccd0d27f1a39ed41b2760b255c5e8"
 dependencies = [
  "windows-core 0.61.2",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
-dependencies = [
- "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -8907,6 +8917,12 @@ checksum = "0d4e079d30939088cfc89b5318a5d3557d4a92890c917aa40475ea763bd473d5"
 dependencies = [
  "rand 0.8.5",
 ]
+
+[[package]]
+name = "zmij"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f4a4e8e9dc5c62d159f04fcdbe07f4c3fb710415aab4754bf11505501e3251d"
 
 [[package]]
 name = "zstd"

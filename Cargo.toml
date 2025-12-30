@@ -52,7 +52,7 @@ tempfile = "3.24"
 criterion = "0.5"
 
 # WASM and JavaScript execution
-rquickjs = "0.10.0"
+rquickjs = "0.11.0"
 wasmtime = "24.0.5"
 wasmtime-wasi = "24.0.5"
 

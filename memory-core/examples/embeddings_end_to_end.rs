@@ -17,7 +17,7 @@
 //! cargo run --example embeddings_end_to_end --features openai
 //! ```
 
-use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
+use memory_core::embeddings::EmbeddingProvider;
 use memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
@@ -254,6 +254,7 @@ async fn main() -> anyhow::Result<()> {
 async fn initialize_provider() -> anyhow::Result<Box<dyn EmbeddingProvider>> {
     #[cfg(feature = "local-embeddings")]
     {
+        use memory_core::embeddings::{LocalEmbeddingProvider, ModelConfig};
         match LocalEmbeddingProvider::new(ModelConfig::default()).await {
             Ok(provider) => {
                 println!("  Using Local Embedding Provider (CPU-based)");

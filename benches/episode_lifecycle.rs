@@ -16,7 +16,54 @@ use memory_benches::benchmark_helpers::{
     generate_large_episode_description, generate_many_execution_steps, setup_temp_memory,
     setup_temp_turso_memory,
 };
-use memory_core::types::{TaskOutcome, TaskType};
+use memory_core::{
+    episode::ExecutionStep,
+    memory::SelfLearningMemory,
+    types::{TaskContext, TaskOutcome, TaskType},
+};
+use uuid::Uuid;
+
+async fn log_steps(memory: &SelfLearningMemory, episode_id: Uuid, steps: Vec<ExecutionStep>) {
+    for step in steps {
+        memory.log_step(episode_id, step).await;
+    }
+}
+
+async fn log_steps_ref(memory: &SelfLearningMemory, episode_id: Uuid, steps: &[ExecutionStep]) {
+    for step in steps {
+        memory.log_step(episode_id, step.clone()).await;
+    }
+}
+
+async fn run_concurrent_episode(
+    memory: SelfLearningMemory,
+    index: usize,
+    context: TaskContext,
+) -> Uuid {
+    let episode_id = memory
+        .start_episode(
+            generate_episode_description(index),
+            context,
+            TaskType::CodeGeneration,
+        )
+        .await;
+
+    let steps = generate_execution_steps(10);
+    log_steps_ref(&memory, episode_id, &steps).await;
+
+    memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: format!("Concurrent episode {} completed", index),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .expect("Failed to complete episode");
+
+    episode_id
+}
 
 /// Benchmark episode creation performance (start_episode)
 ///
@@ -80,9 +127,7 @@ fn benchmark_step_logging(c: &mut Criterion) {
                         .await;
 
                     let steps = generate_execution_steps(count);
-                    for step in steps {
-                        memory.log_step(episode_id, step).await;
-                    }
+                    log_steps(&memory, episode_id, steps).await;
 
                     black_box(episode_id);
                 });
@@ -178,9 +223,7 @@ fn benchmark_full_lifecycle(c: &mut Criterion) {
                             .await;
 
                         let steps = generate_execution_steps(*steps);
-                        for step in &steps {
-                            memory.log_step(episode_id, step.clone()).await;
-                        }
+                        log_steps_ref(&memory, episode_id, &steps).await;
 
                         memory
                             .complete_episode(
@@ -237,9 +280,7 @@ fn benchmark_episode_retrieval(c: &mut Criterion) {
                             .await;
 
                         let steps = generate_execution_steps(5);
-                        for step in steps {
-                            memory.log_step(episode_id, step).await;
-                        }
+                        log_steps(&memory, episode_id, steps).await;
 
                         memory
                             .complete_episode(
@@ -353,36 +394,11 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                         let memory_clone = memory.clone();
                         let context_clone = context.clone();
 
-                        let handle = tokio::spawn(async move {
-                            #[allow(clippy::excessive_nesting)]
-                            {
-                                let episode_id = memory_clone
-                                    .start_episode(
-                                        generate_episode_description(i),
-                                        context_clone,
-                                        TaskType::CodeGeneration,
-                                    )
-                                    .await;
-
-                                let steps = generate_execution_steps(10);
-                                for step in &steps {
-                                    memory_clone.log_step(episode_id, step.clone()).await;
-                                }
-
-                                memory_clone
-                                    .complete_episode(
-                                        episode_id,
-                                        TaskOutcome::Success {
-                                            verdict: format!("Concurrent episode {} completed", i),
-                                            artifacts: vec![],
-                                        },
-                                    )
-                                    .await
-                                    .expect("Failed to complete episode");
-
-                                episode_id
-                            }
-                        });
+                        let handle = tokio::spawn(run_concurrent_episode(
+                            memory_clone,
+                            i,
+                            context_clone,
+                        ));
 
                         handles.push(handle);
                     }

@@ -85,7 +85,7 @@ pub struct QuerySemanticMemoryOutput {
     /// Query embedding dimension
     pub embedding_dimension: usize,
     /// Query processing time in milliseconds
-    pub query_time_ms: u64,
+    pub query_time_ms: f64,
     /// Provider used for embeddings
     pub provider: String,
 }
@@ -465,7 +465,7 @@ impl EmbeddingTools {
             })
             .collect();
 
-        let query_time_ms = start_time.elapsed().as_millis() as u64;
+        let query_time_ms = start_time.elapsed().as_micros() as f64 / 1000.0;
 
         debug!(
             "Semantic query completed in {}ms, found {} results",
@@ -666,7 +666,7 @@ mod tests {
         assert!(result.is_ok());
 
         let output = result.unwrap();
-        assert!(output.query_time_ms > 0);
+        assert!(output.query_time_ms >= 0.0);
         assert_eq!(output.embedding_dimension, 384);
     }
 

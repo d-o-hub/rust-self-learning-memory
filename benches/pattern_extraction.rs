@@ -9,10 +9,19 @@ use memory_benches::benchmark_helpers::{
     setup_temp_memory,
 };
 use memory_core::{
+    episode::ExecutionStep,
     extraction::PatternExtractor,
+    memory::SelfLearningMemory,
     types::{TaskOutcome, TaskType},
 };
 use regex::Regex;
+use uuid::Uuid;
+
+async fn log_steps(memory: &SelfLearningMemory, episode_id: Uuid, steps: Vec<ExecutionStep>) {
+    for step in steps {
+        memory.log_step(episode_id, step).await;
+    }
+}
 
 fn benchmark_regex_pattern_matching(c: &mut Criterion) {
     let pattern = Regex::new(r"pattern_\d+").unwrap();
@@ -72,9 +81,7 @@ fn benchmark_bulk_pattern_extraction(c: &mut Criterion) {
                             .await;
 
                         let steps = generate_execution_steps(3);
-                        for step in steps {
-                            memory.log_step(episode_id, step).await;
-                        }
+                        log_steps(&memory, episode_id, steps).await;
 
                         memory
                             .complete_episode(

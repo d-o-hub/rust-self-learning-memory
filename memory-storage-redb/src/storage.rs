@@ -33,6 +33,15 @@ impl RedbStorage {
 
         let byte_size = episode_bytes.len();
 
+        if byte_size > 100_000 {
+            warn!(
+                "Large cache payload detected: episode {}, size: {} bytes ({:.2} KB)",
+                episode.episode_id,
+                byte_size,
+                byte_size as f64 / 1024.0
+            );
+        }
+
         tokio::task::spawn_blocking(move || {
             let write_txn = db
                 .begin_write()
@@ -87,6 +96,17 @@ impl RedbStorage {
             {
                 Some(bytes_guard) => {
                     let _bytes = bytes_guard.value();
+                    let payload_size = bytes_guard.value().len();
+                    
+                    if payload_size > 100_000 {
+                        warn!(
+                            "Large cache payload detected: episode {}, deserializing size: {} bytes ({:.2} KB)",
+                            episode_id,
+                            payload_size,
+                            payload_size as f64 / 1024.0
+                        );
+                    }
+                    
                     let episode: Episode =
                         postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                             Error::Storage(format!("Failed to deserialize episode: {}", e))
@@ -193,6 +213,15 @@ impl RedbStorage {
         let pattern_bytes = postcard::to_allocvec(pattern)
             .map_err(|e| Error::Storage(format!("Failed to serialize pattern: {}", e)))?;
 
+        if pattern_bytes.len() > 100_000 {
+            warn!(
+                "Large cache payload detected: pattern {}, size: {} bytes ({:.2} KB)",
+                pattern.id(),
+                pattern_bytes.len(),
+                pattern_bytes.len() as f64 / 1024.0
+            );
+        }
+
         tokio::task::spawn_blocking(move || {
             let write_txn = db
                 .begin_write()
@@ -241,7 +270,17 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get pattern: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let _bytes = bytes_guard.value();
+                    let payload_size = bytes_guard.value().len();
+                    
+                    if payload_size > 100_000 {
+                        warn!(
+                            "Large cache payload detected: pattern {}, deserializing size: {} bytes ({:.2} KB)",
+                            pattern_id,
+                            payload_size,
+                            payload_size as f64 / 1024.0
+                        );
+                    }
+                    
                     let pattern: Pattern =
                         postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                             Error::Storage(format!("Failed to deserialize pattern: {}", e))
@@ -305,6 +344,15 @@ impl RedbStorage {
         let heuristic_bytes = postcard::to_allocvec(heuristic)
             .map_err(|e| Error::Storage(format!("Failed to serialize heuristic: {}", e)))?;
 
+        if heuristic_bytes.len() > 100_000 {
+            warn!(
+                "Large cache payload detected: heuristic {}, size: {} bytes ({:.2} KB)",
+                heuristic.heuristic_id,
+                heuristic_bytes.len(),
+                heuristic_bytes.len() as f64 / 1024.0
+            );
+        }
+
         tokio::task::spawn_blocking(move || {
             let write_txn = db
                 .begin_write()
@@ -353,7 +401,17 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to get heuristic: {}", e)))?
             {
                 Some(bytes_guard) => {
-                    let _bytes = bytes_guard.value();
+                    let payload_size = bytes_guard.value().len();
+                    
+                    if payload_size > 100_000 {
+                        warn!(
+                            "Large cache payload detected: heuristic {}, deserializing size: {} bytes ({:.2} KB)",
+                            heuristic_id,
+                            payload_size,
+                            payload_size as f64 / 1024.0
+                        );
+                    }
+                    
                     let heuristic: Heuristic =
                         postcard::from_bytes(bytes_guard.value()).map_err(|e| {
                             Error::Storage(format!("Failed to deserialize heuristic: {}", e))

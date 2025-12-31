@@ -285,7 +285,20 @@ impl LRUCache {
     /// Get current cache metrics
     pub async fn get_metrics(&self) -> CacheMetrics {
         let state = self.state.read().await;
-        state.metrics.clone()
+        let metrics = state.metrics.clone();
+
+        info!(
+            "Cache metrics: hits={}, misses={}, hit_rate={:.2}%, evictions={}, expirations={}, items={}, size={} bytes",
+            metrics.hits,
+            metrics.misses,
+            metrics.hit_rate * 100.0,
+            metrics.evictions,
+            metrics.expirations,
+            metrics.item_count,
+            metrics.total_size_bytes
+        );
+
+        metrics
     }
 
     /// Clear all cached entries

@@ -23,16 +23,29 @@ async fn test_mcp_server_tools() {
     );
 
     // Test that server initializes with correct tools
-    // Available tools: query_memory, execute_agent_code, analyze_patterns, health_check, get_metrics, advanced_pattern_analysis, quality_metrics
+    // Available tools: query_memory, analyze_patterns, health_check, get_metrics,
+    // advanced_pattern_analysis, quality_metrics, configure_embeddings,
+    // query_semantic_memory, test_embeddings
+    // execute_agent_code is conditionally added when WASM sandbox is available
     let tools = mcp_server.list_tools().await;
-    assert_eq!(tools.len(), 7);
+    let expected_min_tools = 9; // Without WASM
+    assert!(
+        tools.len() >= expected_min_tools,
+        "Expected at least {} tools, got {}",
+        expected_min_tools,
+        tools.len()
+    );
 
     let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
     assert!(tool_names.contains(&"query_memory".to_string()));
-    assert!(tool_names.contains(&"execute_agent_code".to_string()));
     assert!(tool_names.contains(&"analyze_patterns".to_string()));
     assert!(tool_names.contains(&"health_check".to_string()));
     assert!(tool_names.contains(&"get_metrics".to_string()));
+    assert!(tool_names.contains(&"advanced_pattern_analysis".to_string()));
+    assert!(tool_names.contains(&"quality_metrics".to_string()));
+    assert!(tool_names.contains(&"configure_embeddings".to_string()));
+    assert!(tool_names.contains(&"query_semantic_memory".to_string()));
+    assert!(tool_names.contains(&"test_embeddings".to_string()));
 }
 
 #[tokio::test]

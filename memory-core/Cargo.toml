@@ -22,6 +22,8 @@ embeddings-full = ["openai"]
 local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
 # Enable hybrid search with FTS5
 hybrid_search = []
+# Enable telemetry and metrics collection
+telemetry = []
 
 [dependencies]
 # Async runtime

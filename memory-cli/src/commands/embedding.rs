@@ -150,7 +150,7 @@ pub fn show_config(config: &Config) -> Result<()> {
         } else {
             "⚠️  Not set"
         };
-        println!("  api_key_env: {} ({})", api_key_env, key_status);
+        println!("  api_key: {}", key_status);
     }
     println!();
 

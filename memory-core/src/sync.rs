@@ -17,6 +17,7 @@
 //! ```
 
 use crate::{Episode, Error, Heuristic, Pattern, Result};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -30,13 +31,19 @@ pub struct StorageSynchronizer<T, R> {
     pub turso: Arc<T>,
     /// Cache storage (typically redb - best effort)
     pub redb: Arc<R>,
+    /// Counter for cache write failures
+    cache_failures: Arc<AtomicU64>,
 }
 
 impl<T, R> StorageSynchronizer<T, R> {
     /// Create a new storage synchronizer
     #[must_use]
     pub fn new(turso: Arc<T>, redb: Arc<R>) -> Self {
-        Self { turso, redb }
+        Self {
+            turso,
+            redb,
+            cache_failures: Arc::new(AtomicU64::new(0)),
+        }
     }
 }
 
@@ -65,10 +72,15 @@ where
 
         // Cache write is best effort
         if let Err(e) = self.redb.store_episode(episode).await {
+            let failures = self.cache_failures.fetch_add(1, Ordering::Relaxed) + 1;
             warn!(
-                "Cache write failed for episode {}: {}",
-                episode.episode_id, e
+                "Cache write failed for episode {}: {}. Total failures: {}",
+                episode.episode_id, e, failures
             );
+
+            if failures % 100 == 0 {
+                warn!("High cache failure rate detected: {} failures", failures);
+            }
         }
 
         info!("Stored episode {} (write-through)", episode.episode_id);
@@ -93,7 +105,15 @@ where
         // Cache write is best effort
         let pattern_id = pattern.id();
         if let Err(e) = self.redb.store_pattern(pattern).await {
-            warn!("Cache write failed for pattern {}: {}", pattern_id, e);
+            let failures = self.cache_failures.fetch_add(1, Ordering::Relaxed) + 1;
+            warn!(
+                "Cache write failed for pattern {}: {}. Total failures: {}",
+                pattern_id, e, failures
+            );
+
+            if failures % 100 == 0 {
+                warn!("High cache failure rate detected: {} failures", failures);
+            }
         }
 
         info!("Stored pattern {} (write-through)", pattern_id);
@@ -117,10 +137,15 @@ where
 
         // Cache write is best effort
         if let Err(e) = self.redb.store_heuristic(heuristic).await {
+            let failures = self.cache_failures.fetch_add(1, Ordering::Relaxed) + 1;
             warn!(
-                "Cache write failed for heuristic {}: {}",
-                heuristic.heuristic_id, e
+                "Cache write failed for heuristic {}: {}. Total failures: {}",
+                heuristic.heuristic_id, e, failures
             );
+
+            if failures % 100 == 0 {
+                warn!("High cache failure rate detected: {} failures", failures);
+            }
         }
 
         info!(
@@ -146,38 +171,26 @@ where
         info!("Syncing episode {} to cache", episode_id);
 
         // Fetch from Turso (source of truth)
-        let episode = self
-            .turso
-            .get_episode(episode_id)
-            .await?
-            .ok_or_else(|| Error::Storage(format!("Episode {episode_id} not found in Turso")))?;
+        let episode =
+            self.turso.get_episode(episode_id).await?.ok_or_else(|| {
+                Error::Storage(format!("Episode {episode_id} not found in Turso"))
+            })?;
 
         // Store in redb cache (best effort)
         if let Err(e) = self.redb.store_episode(&episode).await {
+            let failures = self.cache_failures.fetch_add(1, Ordering::Relaxed) + 1;
             warn!(
-                "Cache write failed for episode {}: {}",
-                episode.episode_id, e
+                "Cache write failed for episode {}: {}. Total failures: {}",
+                episode.episode_id, e, failures
             );
+
+            if failures % 100 == 0 {
+                warn!("High cache failure rate detected: {} failures", failures);
+            }
         }
 
         info!("Successfully synced episode {} to cache", episode_id);
         Ok(())
-    }
-}
-
-/// Helper trait to get pattern ID from any pattern variant
-trait PatternIdGetter {
-    fn id(&self) -> crate::episode::PatternId;
-}
-
-impl PatternIdGetter for Pattern {
-    fn id(&self) -> crate::episode::PatternId {
-        match self {
-            Pattern::ToolSequence { id, .. } => *id,
-            Pattern::DecisionPoint { id, .. } => *id,
-            Pattern::ErrorRecovery { id, .. } => *id,
-            Pattern::ContextPattern { id, .. } => *id,
-        }
     }
 }
 
@@ -209,9 +222,7 @@ pub fn resolve_episode_conflict(
         ConflictResolution::RedbWins => redb_episode.clone(),
         ConflictResolution::MostRecent => {
             // Compare based on last modification (use end_time or start_time)
-            let turso_time = turso_episode
-                .end_time
-                .unwrap_or(turso_episode.start_time);
+            let turso_time = turso_episode.end_time.unwrap_or(turso_episode.start_time);
             let redb_time = redb_episode.end_time.unwrap_or(redb_episode.start_time);
 
             if turso_time >= redb_time {
@@ -300,7 +311,8 @@ mod tests {
         episode2.episode_id = episode1.episode_id;
         episode2.end_time = Some(chrono::Utc::now());
 
-        let resolved = resolve_episode_conflict(&episode1, &episode2, ConflictResolution::MostRecent);
+        let resolved =
+            resolve_episode_conflict(&episode1, &episode2, ConflictResolution::MostRecent);
         assert_eq!(resolved.task_description, "Newer task");
     }
 }

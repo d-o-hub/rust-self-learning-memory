@@ -71,7 +71,7 @@
 use crate::episode::Episode;
 use lru::LruCache;
 use serde::{Deserialize, Serialize};
-use std::collections::hash_map::DefaultHasher;
+use std::collections::{hash_map::DefaultHasher, HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use std::num::NonZeroUsize;
 use std::sync::{Arc, RwLock};
@@ -210,6 +210,8 @@ impl CacheMetrics {
 pub struct QueryCache {
     /// LRU cache storage
     cache: Arc<RwLock<LruCache<u64, CachedResult>>>,
+    /// Domain index: maps domain names to cache key hashes
+    domain_index: Arc<RwLock<HashMap<String, HashSet<u64>>>>,
     /// Cache metrics
     metrics: Arc<RwLock<CacheMetrics>>,
     /// Default TTL for new entries
@@ -236,6 +238,7 @@ impl QueryCache {
 
         Self {
             cache: Arc::new(RwLock::new(cache)),
+            domain_index: Arc::new(RwLock::new(HashMap::new())),
             metrics: Arc::new(RwLock::new(metrics)),
             default_ttl: ttl,
             max_entries: capacity,
@@ -287,6 +290,9 @@ impl QueryCache {
             .cache
             .write()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
+        let mut domain_index = self.domain_index.write().expect(
+            "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
+        );
         let mut metrics = self.metrics.write().expect(
             "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
         );
@@ -294,6 +300,11 @@ impl QueryCache {
         // Track eviction if cache is at capacity
         if cache.len() >= self.max_entries && !cache.contains(&hash) {
             metrics.evictions += 1;
+        }
+
+        // Track domain association
+        if let Some(ref domain) = key.domain {
+            domain_index.entry(domain.clone()).or_default().insert(hash);
         }
 
         cache.put(hash, result);
@@ -308,30 +319,63 @@ impl QueryCache {
             .cache
             .write()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
+        let mut domain_index = self.domain_index.write().expect(
+            "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
+        );
         let mut metrics = self.metrics.write().expect(
             "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
         );
 
         let size = cache.len();
         cache.clear();
+        domain_index.clear();
         metrics.invalidations += size as u64;
         metrics.size = 0;
     }
 
     /// Invalidate entries matching a domain filter
     ///
-    /// # TODO: Domain-Based Invalidation (v0.1.13+)
+    /// Only clears cache entries associated with the specified domain,
+    /// improving cache hit rates for multi-domain workloads.
     ///
-    /// Current implementation invalidates ALL entries (conservative).
-    /// Future optimization: Only invalidate entries matching the domain.
+    /// # Example
     ///
-    /// See: `plans/GITHUB_ISSUE_domain_based_cache_invalidation.md`
+    /// ```
+    /// use memory_core::retrieval::{QueryCache, CacheKey};
     ///
-    /// **Trigger**: Implement if cache hit rate <30% in production after 2 weeks
-    pub fn invalidate_domain(&self, _domain: &str) {
-        // TODO: Track domain per cache key and invalidate selectively
-        // For now, invalidate all (safe but suboptimal)
-        self.invalidate_all();
+    /// let cache = QueryCache::new();
+    /// let key_web = CacheKey::new("query".to_string())
+    ///     .with_domain(Some("web-api".to_string()));
+    /// let key_data = CacheKey::new("query".to_string())
+    ///     .with_domain(Some("data-processing".to_string()));
+    ///
+    /// cache.put(key_web, vec![]);
+    /// cache.put(key_data, vec![]);
+    ///
+    /// // Only invalidate web-api domain
+    /// cache.invalidate_domain("web-api");
+    /// // data-processing entries remain cached
+    /// ```
+    pub fn invalidate_domain(&self, domain: &str) {
+        let mut cache = self
+            .cache
+            .write()
+            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
+        let mut domain_index = self.domain_index.write().expect(
+            "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
+        );
+        let mut metrics = self.metrics.write().expect(
+            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+        );
+
+        if let Some(hashes) = domain_index.remove(domain) {
+            let count = hashes.len();
+            for hash in hashes {
+                cache.pop(&hash);
+            }
+            metrics.invalidations += count as u64;
+            metrics.size = cache.len();
+        }
     }
 
     /// Get current cache metrics
@@ -538,5 +582,102 @@ mod tests {
         let metrics = cache.metrics();
         assert!(metrics.is_effective()); // Should be > 40% hit rate
         assert!(metrics.hit_rate() > 0.9); // Should be ~90% (10 hits, 1 miss)
+    }
+
+    #[test]
+    fn test_domain_based_invalidation() {
+        let cache = QueryCache::new();
+
+        // Create keys for different domains
+        let key_web = CacheKey::new("query".to_string()).with_domain(Some("web-api".to_string()));
+        let key_data =
+            CacheKey::new("query".to_string()).with_domain(Some("data-processing".to_string()));
+        let key_no_domain = CacheKey::new("query".to_string());
+
+        let episodes = vec![create_test_episode("ep1")];
+
+        // Populate cache
+        cache.put(key_web.clone(), episodes.clone());
+        cache.put(key_data.clone(), episodes.clone());
+        cache.put(key_no_domain.clone(), episodes.clone());
+
+        assert_eq!(cache.size(), 3);
+
+        // Invalidate only web-api domain
+        cache.invalidate_domain("web-api");
+
+        // web-api should be invalidated
+        assert!(cache.get(&key_web).is_none());
+
+        // Other domains should remain
+        assert!(cache.get(&key_data).is_some());
+        assert!(cache.get(&key_no_domain).is_some());
+
+        assert_eq!(cache.size(), 2);
+
+        // Verify metrics
+        let metrics = cache.metrics();
+        assert_eq!(metrics.invalidations, 1);
+    }
+
+    #[test]
+    fn test_domain_invalidation_with_multiple_entries() {
+        let cache = QueryCache::new();
+
+        // Create multiple keys for the same domain
+        let key1 = CacheKey::new("query1".to_string()).with_domain(Some("web-api".to_string()));
+        let key2 = CacheKey::new("query2".to_string()).with_domain(Some("web-api".to_string()));
+        let key3 = CacheKey::new("query3".to_string()).with_domain(Some("data".to_string()));
+
+        let episodes = vec![create_test_episode("ep1")];
+
+        cache.put(key1.clone(), episodes.clone());
+        cache.put(key2.clone(), episodes.clone());
+        cache.put(key3.clone(), episodes.clone());
+
+        assert_eq!(cache.size(), 3);
+
+        // Invalidate web-api domain
+        cache.invalidate_domain("web-api");
+
+        // Both web-api entries should be invalidated
+        assert!(cache.get(&key1).is_none());
+        assert!(cache.get(&key2).is_none());
+
+        // data domain should remain
+        assert!(cache.get(&key3).is_some());
+
+        assert_eq!(cache.size(), 1);
+
+        let metrics = cache.metrics();
+        assert_eq!(metrics.invalidations, 2);
+    }
+
+    #[test]
+    fn test_invalidate_all_clears_domain_index() {
+        let cache = QueryCache::new();
+
+        let key_web = CacheKey::new("query".to_string()).with_domain(Some("web-api".to_string()));
+        let key_data = CacheKey::new("query".to_string()).with_domain(Some("data".to_string()));
+
+        let episodes = vec![create_test_episode("ep1")];
+
+        cache.put(key_web.clone(), episodes.clone());
+        cache.put(key_data.clone(), episodes.clone());
+
+        assert_eq!(cache.size(), 2);
+
+        // Invalidate all
+        cache.invalidate_all();
+
+        assert_eq!(cache.size(), 0);
+        assert!(cache.get(&key_web).is_none());
+        assert!(cache.get(&key_data).is_none());
+
+        // Try to invalidate specific domain (should be no-op)
+        cache.invalidate_domain("web-api");
+
+        // Verify all cleared
+        assert_eq!(cache.size(), 0);
     }
 }

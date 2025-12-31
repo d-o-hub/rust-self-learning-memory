@@ -278,13 +278,21 @@ impl ContextAwareEmbeddings {
         let dim = self.base_embeddings.embedding_dimension();
 
         // Create identity matrix as baseline (MVP implementation)
-        // TODO: Implement full contrastive learning optimization in Phase 4
-        // This would involve:
+        // Current implementation provides backward compatibility without requiring
+        // contrastive learning infrastructure. The identity transformation preserves
+        // base embeddings while allowing future optimization.
+        //
+        // Future Enhancement (Phase 4 - Optional):
+        // Implement full contrastive learning optimization to improve task-specific
+        // similarity by learning transformation matrices. This would involve:
         // 1. Computing embeddings for anchor, positive, negative
         // 2. Learning transformation matrix M that:
         //    - Minimizes distance(M * anchor, M * positive)
         //    - Maximizes distance(M * anchor, M * negative)
         // 3. Using gradient descent or similar optimization
+        //
+        // See: plans/OPTIMIZATION_ROADMAP_V020.md (Phase 4: Advanced Features)
+        // Trigger: Implement only if retrieval accuracy metrics show <80% precision
         let adapter = TaskAdapter::new_identity(task_type, dim);
 
         // Update adapter with training count

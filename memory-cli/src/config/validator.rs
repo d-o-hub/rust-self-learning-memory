@@ -634,3 +634,309 @@ pub fn validate_environment_fitness(config: &Config) -> ValidationResult {
 
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::types::EmbeddingsConfig;
+
+    fn create_test_config() -> Config {
+        Config {
+            embeddings: EmbeddingsConfig::default(),
+            database: DatabaseConfig {
+                turso_url: Some("libsql://test.turso.io/test".to_string()),
+                turso_token: Some("test_token".to_string()),
+                redb_path: Some("./test.redb".to_string()),
+            },
+            storage: StorageConfig {
+                max_episodes_cache: 1000,
+                cache_ttl_seconds: 3600,
+                pool_size: 10,
+            },
+            cli: CliConfig {
+                default_format: "json".to_string(),
+                batch_size: 100,
+                progress_bars: true,
+            },
+        }
+    }
+    #[test]
+    fn test_valid_configuration() {
+        let config = create_test_config();
+        let result = validate_config(&config);
+        assert!(result.is_valid);
+        assert!(result.errors.is_empty());
+    }
+
+    #[test]
+    fn test_missing_database_configuration() {
+        let mut config = create_test_config();
+        config.database.turso_url = None;
+        config.database.redb_path = None;
+
+        let result = validate_database_config(&config.database);
+        assert!(!result.is_valid);
+        assert_eq!(result.errors.len(), 1);
+        assert_eq!(result.errors[0].field, "database");
+    }
+
+    #[test]
+    fn test_empty_turso_url() {
+        let mut config = create_test_config();
+        config.database.turso_url = Some("".to_string());
+
+        let result = validate_database_config(&config.database);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.field == "database.turso_url"));
+    }
+
+    #[test]
+    fn test_invalid_turso_url_format() {
+        let mut config = create_test_config();
+        config.database.turso_url = Some("http://invalid.url".to_string());
+
+        let result = validate_database_config(&config.database);
+        assert!(result.is_valid);
+        assert!(!result.warnings.is_empty());
+    }
+
+    #[test]
+    fn test_path_traversal_in_file_url() {
+        let mut config = create_test_config();
+        config.database.turso_url = Some("file:../../../etc/passwd".to_string());
+
+        let result = validate_database_config(&config.database);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.message.contains("traversal")));
+    }
+
+    #[test]
+    fn test_sensitive_path_access() {
+        let mut config = create_test_config();
+        config.database.turso_url = Some("file:/etc/passwd".to_string());
+
+        let result = validate_database_config(&config.database);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.message.contains("sensitive")));
+    }
+
+    #[test]
+    fn test_zero_cache_size() {
+        let mut config = create_test_config();
+        config.storage.max_episodes_cache = 0;
+
+        let result = validate_storage_config(&config.storage);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.field == "storage.max_episodes_cache"));
+    }
+
+    #[test]
+    fn test_zero_cache_ttl() {
+        let mut config = create_test_config();
+        config.storage.cache_ttl_seconds = 0;
+
+        let result = validate_storage_config(&config.storage);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.field == "storage.cache_ttl_seconds"));
+    }
+
+    #[test]
+    fn test_zero_pool_size() {
+        let mut config = create_test_config();
+        config.storage.pool_size = 0;
+
+        let result = validate_storage_config(&config.storage);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.field == "storage.pool_size"));
+    }
+
+    #[test]
+    fn test_large_cache_size_warning() {
+        let mut config = create_test_config();
+        config.storage.max_episodes_cache = 150000;
+
+        let result = validate_storage_config(&config.storage);
+        assert!(result.is_valid);
+        assert!(!result.warnings.is_empty());
+    }
+
+    #[test]
+    fn test_invalid_output_format() {
+        let mut config = create_test_config();
+        config.cli.default_format = "xml".to_string();
+
+        let result = validate_cli_config(&config.cli);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.field == "cli.default_format"));
+    }
+
+    #[test]
+    fn test_zero_batch_size() {
+        let mut config = create_test_config();
+        config.cli.batch_size = 0;
+
+        let result = validate_cli_config(&config.cli);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.field == "cli.batch_size"));
+    }
+
+    #[test]
+    fn test_cross_validation_cache_smaller_than_batch() {
+        let mut config = create_test_config();
+        config.storage.max_episodes_cache = 50;
+        config.cli.batch_size = 100;
+
+        let result = validate_cross_config(&config);
+        assert!(result.is_valid);
+        assert!(!result.warnings.is_empty());
+    }
+
+    #[test]
+    fn test_validation_error_display() {
+        let error = ValidationError {
+            field: "test.field".to_string(),
+            message: "Test error message".to_string(),
+            suggestion: Some("Try this fix".to_string()),
+            context: Some("Additional context".to_string()),
+        };
+
+        let display = format!("{}", error);
+        assert!(display.contains("Test error message"));
+        assert!(display.contains("Try this fix"));
+        assert!(display.contains("Additional context"));
+    }
+
+    #[test]
+    fn test_validation_warning_display() {
+        let warning = ValidationWarning {
+            field: "test.field".to_string(),
+            message: "Test warning message".to_string(),
+            suggestion: Some("Consider this improvement".to_string()),
+        };
+
+        let display = format!("{}", warning);
+        assert!(display.contains("Test warning message"));
+        assert!(display.contains("Consider this improvement"));
+    }
+
+    #[test]
+    fn test_format_validation_result_valid() {
+        let result = ValidationResult::ok();
+        let formatted = format_validation_result(&result);
+        assert!(formatted.contains("✅"));
+        assert!(formatted.contains("valid"));
+    }
+
+    #[test]
+    fn test_format_validation_result_with_errors() {
+        let errors = vec![ValidationError {
+            field: "test".to_string(),
+            message: "Test error".to_string(),
+            suggestion: None,
+            context: None,
+        }];
+        let result = ValidationResult::with_errors(errors);
+        let formatted = format_validation_result(&result);
+        assert!(formatted.contains("❌"));
+        assert!(formatted.contains("Test error"));
+    }
+
+    #[test]
+    fn test_quick_validation_check() {
+        let mut config = create_test_config();
+        config.database.turso_url = None;
+        config.database.redb_path = None;
+        config.storage.max_episodes_cache = 0;
+
+        let issues = quick_validation_check(&config);
+        assert!(!issues.is_empty());
+        assert!(issues.iter().any(|i| i.contains("database")));
+        assert!(issues.iter().any(|i| i.contains("Cache size")));
+    }
+
+    #[test]
+    fn test_is_valid_turso_url() {
+        assert!(is_valid_turso_url("libsql://test.turso.io/test"));
+        assert!(is_valid_turso_url("file:/tmp/test.db"));
+        assert!(!is_valid_turso_url("http://test.com"));
+        assert!(!is_valid_turso_url("invalid"));
+    }
+
+    #[test]
+    fn test_validation_result_ok() {
+        let result = ValidationResult::ok();
+        assert!(result.is_valid);
+        assert!(result.errors.is_empty());
+        assert!(result.warnings.is_empty());
+    }
+
+    #[test]
+    fn test_validation_result_with_warnings() {
+        let warnings = vec![ValidationWarning {
+            field: "test".to_string(),
+            message: "Test warning".to_string(),
+            suggestion: None,
+        }];
+        let result = ValidationResult::ok().with_warnings(warnings);
+        assert!(result.is_valid);
+        assert!(!result.warnings.is_empty());
+    }
+
+    #[test]
+    fn test_turso_token_warning() {
+        let mut config = create_test_config();
+        config.database.turso_token = None;
+
+        let result = validate_database_config(&config.database);
+        assert!(result.is_valid);
+        assert!(!result.warnings.is_empty());
+        assert!(result.warnings.iter().any(|w| w.field == "database.turso_token"));
+    }
+
+    #[test]
+    fn test_all_valid_output_formats() {
+        let formats = vec!["human", "json", "yaml"];
+        for format in formats {
+            let mut config = create_test_config();
+            config.cli.default_format = format.to_string();
+            let result = validate_cli_config(&config.cli);
+            assert!(result.is_valid, "Format {} should be valid", format);
+        }
+    }
+
+    #[test]
+    fn test_contextual_error_messages() {
+        let mut config = create_test_config();
+        config.storage.max_episodes_cache = 0;
+
+        let result = validate_storage_config(&config.storage);
+        assert!(!result.is_valid);
+        
+        let error = &result.errors[0];
+        assert!(error.suggestion.is_some());
+        assert!(error.context.is_some());
+    }
+
+    #[test]
+    fn test_performance_recommendations() {
+        let mut config = create_test_config();
+        config.storage.cache_ttl_seconds = 30;
+
+        let result = validate_storage_config(&config.storage);
+        assert!(result.is_valid);
+        assert!(!result.warnings.is_empty());
+        assert!(result.warnings.iter().any(|w| w.suggestion.is_some()));
+    }
+
+    #[test]
+    fn test_security_validation() {
+        let mut config = create_test_config();
+        config.database.turso_url = Some("file:../../secret.db".to_string());
+
+        let result = validate_database_config(&config.database);
+        assert!(!result.is_valid);
+        assert!(result.errors.iter().any(|e| e.context.as_ref()
+            .map(|c| c.contains("Security"))
+            .unwrap_or(false)));
+    }
+}

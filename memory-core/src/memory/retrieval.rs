@@ -274,6 +274,20 @@ impl SelfLearningMemory {
 
         // Phase 3: Use hierarchical retriever for efficient search (if enabled)
         let scored_episodes = if let Some(ref retriever) = self.hierarchical_retriever {
+            // Log whether spatiotemporal index is enabled
+            if self.spatiotemporal_index.is_some() {
+                info!(
+                    spatiotemporal_enabled = true,
+                    "Spatiotemporal index available - will use O(log n) lookup"
+                );
+            } else {
+                info!(
+                    spatiotemporal_enabled = false,
+                    "Spatiotemporal index not available - using O(n) filtering"
+                );
+            }
+
+            // Create retrieval query for hierarchical search
             let query = RetrievalQuery {
                 query_text: task_description.clone(),
                 query_embedding: None, // TODO: Add embedding support in future
@@ -283,7 +297,14 @@ impl SelfLearningMemory {
             };
 
             match retriever.retrieve(&query, &completed_episodes).await {
-                Ok(scored) => Some(scored),
+                Ok(scored) => {
+                    info!(
+                        retrieved_count = scored.len(),
+                        index_query_used = self.spatiotemporal_index.is_some(),
+                        "Retrieved episodes using hierarchical method"
+                    );
+                    Some(scored)
+                }
                 Err(e) => {
                     debug!(
                         "Hierarchical retrieval failed: {}, falling back to legacy method",

@@ -207,7 +207,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
 
         // If texts fit in one batch, process directly
         if texts.len() <= max_batch_size {
-            return self.embed_batch_chunk(texts).await;
+            return self.request_batch(texts).await;
         }
 
         // Split into multiple batches
@@ -220,7 +220,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         let mut all_embeddings = Vec::with_capacity(texts.len());
 
         for chunk in texts.chunks(max_batch_size) {
-            let chunk_embeddings = self.embed_batch_chunk(chunk).await?;
+            let chunk_embeddings = self.request_batch(chunk).await?;
             all_embeddings.extend(chunk_embeddings);
         }
 
@@ -235,8 +235,8 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         Ok(all_embeddings)
     }
 
-    /// Process a single batch chunk
-    async fn embed_batch_chunk(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
+    /// Process a single batch request
+    async fn request_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
         let input = EmbeddingInput::Batch(texts.to_vec());
         let response = self.request_embeddings(input).await?;
 

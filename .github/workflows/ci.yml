@@ -147,6 +147,15 @@ jobs:
         run: |
           cargo build -p memory-mcp --features wasm-rquickjs
           cargo test -p memory-mcp --features wasm-rquickjs -- --test-threads=2
+      - name: Free disk space (javy-backend)
+        if: matrix.feature == 'javy-backend'
+        run: |
+          sudo rm -rf /opt/hostedtoolcache/*
+          sudo rm -rf /usr/share/dotnet/*
+          sudo rm -rf /usr/local/lib/android/*
+          sudo rm -rf /opt/ghc/*
+          sudo apt-get clean
+          df -h
       - name: Build (javy-backend)
         if: matrix.feature == 'javy-backend'
         run: |

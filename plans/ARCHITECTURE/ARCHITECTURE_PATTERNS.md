@@ -2,7 +2,7 @@
 
 **Last Updated**: 2025-12-21
 **Version**: 0.1.7
-**Branch**: feat/embeddings-refactor
+**Branch**: develop
 
 ---
 

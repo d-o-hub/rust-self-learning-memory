@@ -539,6 +539,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(not(feature = "javy-backend"))]
     #[tokio::test]
     #[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
     async fn test_unified_sandbox_wasm_backend() -> Result<()> {
@@ -678,6 +679,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(not(feature = "javy-backend"))]
     #[tokio::test]
     #[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
     async fn test_backend_update() -> Result<()> {

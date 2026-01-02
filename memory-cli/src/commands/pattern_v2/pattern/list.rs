@@ -1,10 +1,10 @@
 //! List patterns command implementation
 
-use chrono::{DateTime, Utc};
+use super::types::{PatternList, PatternSummary};
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
+use chrono::{DateTime, Utc};
 use memory_core::SelfLearningMemory;
-use super::types::{PatternSummary, PatternList};
 
 pub async fn list_patterns(
     min_confidence: f32,

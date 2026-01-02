@@ -1,8 +1,11 @@
 //! Pattern output implementations
 
-use crate::output::Output;
-use super::types::{PatternSummary, PatternList, EffectivenessRanking, EffectivenessRankings, PatternDetail, PatternAnalysisResult};
 use super::decay::DecayResult;
+use super::types::{
+    EffectivenessRanking, EffectivenessRankings, PatternAnalysisResult, PatternDetail, PatternList,
+    PatternSummary,
+};
+use crate::output::Output;
 
 impl Output for PatternSummary {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
@@ -87,7 +90,11 @@ impl Output for EffectivenessRankings {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 
-        writeln!(writer, "{}", "Pattern Effectiveness Rankings".bold().underline())?;
+        writeln!(
+            writer,
+            "{}",
+            "Pattern Effectiveness Rankings".bold().underline()
+        )?;
         writeln!(
             writer,
             "Analyzed {} patterns\n",
@@ -142,8 +149,16 @@ impl Output for PatternAnalysisResult {
         writeln!(writer, "{}", "Pattern Analysis".bold().underline())?;
         writeln!(writer, "Pattern ID: {}", self.pattern_id)?;
         writeln!(writer, "Success Rate: {:.2}", self.analysis.success_rate)?;
-        writeln!(writer, "Avg Improvement: {:.2}", self.analysis.average_improvement)?;
-        writeln!(writer, "Episodes Analyzed: {}", self.analysis.episodes_analyzed)?;
+        writeln!(
+            writer,
+            "Avg Improvement: {:.2}",
+            self.analysis.average_improvement
+        )?;
+        writeln!(
+            writer,
+            "Episodes Analyzed: {}",
+            self.analysis.episodes_analyzed
+        )?;
         writeln!(writer)?;
         writeln!(writer, "Recommendations:")?;
         for (i, rec) in self.analysis.recommendations.iter().enumerate() {

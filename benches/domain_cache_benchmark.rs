@@ -37,7 +37,7 @@ fn create_test_episode(id: u32, domain: &str) -> Episode {
 /// Benchmark: Domain invalidation latency (target: <100µs for <1000 entries)
 fn bench_domain_invalidation_latency(c: &mut Criterion) {
     let mut group = c.benchmark_group("domain_invalidation_latency");
-    
+
     for size in [100, 300, 600, 900].iter() {
         group.bench_with_input(BenchmarkId::from_parameter(size), size, |b, &size| {
             b.iter_batched(
@@ -63,7 +63,7 @@ fn bench_domain_invalidation_latency(c: &mut Criterion) {
             );
         });
     }
-    
+
     group.finish();
 }
 
@@ -71,7 +71,7 @@ fn bench_domain_invalidation_latency(c: &mut Criterion) {
 fn bench_invalidation_comparison(c: &mut Criterion) {
     let mut group = c.benchmark_group("invalidation_comparison");
     let size = 300;
-    
+
     group.bench_function("invalidate_all_300_entries", |b| {
         b.iter_batched(
             || {
@@ -82,8 +82,8 @@ fn bench_invalidation_comparison(c: &mut Criterion) {
                         1 => "data-processing",
                         _ => "machine-learning",
                     };
-                    let key = CacheKey::new(format!("query-{}", i))
-                        .with_domain(Some(domain.to_string()));
+                    let key =
+                        CacheKey::new(format!("query-{}", i)).with_domain(Some(domain.to_string()));
                     let episodes = vec![create_test_episode(i, domain)];
                     cache.put(key, episodes);
                 }
@@ -95,7 +95,7 @@ fn bench_invalidation_comparison(c: &mut Criterion) {
             criterion::BatchSize::SmallInput,
         );
     });
-    
+
     group.bench_function("invalidate_domain_100_entries", |b| {
         b.iter_batched(
             || {
@@ -106,8 +106,8 @@ fn bench_invalidation_comparison(c: &mut Criterion) {
                         1 => "data-processing",
                         _ => "machine-learning",
                     };
-                    let key = CacheKey::new(format!("query-{}", i))
-                        .with_domain(Some(domain.to_string()));
+                    let key =
+                        CacheKey::new(format!("query-{}", i)).with_domain(Some(domain.to_string()));
                     let episodes = vec![create_test_episode(i, domain)];
                     cache.put(key, episodes);
                 }
@@ -119,18 +119,18 @@ fn bench_invalidation_comparison(c: &mut Criterion) {
             criterion::BatchSize::SmallInput,
         );
     });
-    
+
     group.finish();
 }
 
 /// Benchmark: put() overhead with domain tracking
 fn bench_put_overhead(c: &mut Criterion) {
     let mut group = c.benchmark_group("put_overhead");
-    
+
     group.bench_function("with_domain", |b| {
         let cache = QueryCache::new();
         let mut counter = 0u32;
-        
+
         b.iter(|| {
             let key = CacheKey::new(format!("query-{}", counter))
                 .with_domain(Some("web-api".to_string()));
@@ -139,11 +139,11 @@ fn bench_put_overhead(c: &mut Criterion) {
             counter += 1;
         });
     });
-    
+
     group.bench_function("without_domain", |b| {
         let cache = QueryCache::new();
         let mut counter = 0u32;
-        
+
         b.iter(|| {
             let key = CacheKey::new(format!("query-{}", counter));
             let episodes = vec![create_test_episode(counter, "general")];
@@ -151,7 +151,7 @@ fn bench_put_overhead(c: &mut Criterion) {
             counter += 1;
         });
     });
-    
+
     group.finish();
 }
 

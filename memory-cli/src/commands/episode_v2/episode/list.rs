@@ -1,18 +1,22 @@
 //! List episodes command implementation
 
+use super::types::{EpisodeCommands, EpisodeList, EpisodeSummary};
 use crate::config::Config;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
-use super::types::{EpisodeCommands, EpisodeSummary, EpisodeList};
 
 #[allow(clippy::too_many_arguments)]
 pub async fn list_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] task_type: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] status: Option<super::types::EpisodeStatus>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] status: Option<
+        super::types::EpisodeStatus,
+    >,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _semantic_search: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _enable_embeddings: bool,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _embedding_provider: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _embedding_provider: Option<
+        String,
+    >,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _embedding_model: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,

@@ -1,10 +1,10 @@
 //! Search episodes command implementation
 
+use super::types::EpisodeSummary;
 use crate::config::Config;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
 use memory_core::TaskContext;
-use super::types::EpisodeSummary;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn search_episodes(
@@ -12,7 +12,9 @@ pub async fn search_episodes(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _semantic: bool,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _enable_embeddings: bool,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _embedding_provider: Option<String>,
+    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _embedding_provider: Option<
+        String,
+    >,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _embedding_model: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,

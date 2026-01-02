@@ -5,17 +5,17 @@
 
 pub mod pattern;
 
-pub use pattern::PatternCommands;
-pub use pattern::PatternType;
-pub use pattern::PatternSummary;
-pub use pattern::PatternList;
-pub use pattern::PatternAnalysis;
-pub use pattern::PatternDetail;
-pub use pattern::EffectivenessRankings;
 pub use pattern::EffectivenessRanking;
+pub use pattern::EffectivenessRankings;
+pub use pattern::PatternAnalysis;
+pub use pattern::PatternCommands;
+pub use pattern::PatternDetail;
+pub use pattern::PatternList;
+pub use pattern::PatternSummary;
+pub use pattern::PatternType;
 
-pub use pattern::list_patterns;
-pub use pattern::view_pattern;
 pub use pattern::analyze_pattern;
-pub use pattern::pattern_effectiveness;
 pub use pattern::decay_patterns;
+pub use pattern::list_patterns;
+pub use pattern::pattern_effectiveness;
+pub use pattern::view_pattern;

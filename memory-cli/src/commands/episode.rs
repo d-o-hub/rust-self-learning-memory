@@ -3,20 +3,20 @@
 //! This module re-exports from episode_v2 for backward compatibility.
 
 pub use crate::episode_v2::EpisodeCommands;
-pub use crate::episode_v2::EpisodeStatus;
-pub use crate::episode_v2::TaskOutcome;
-pub use crate::episode_v2::EpisodeSummary;
-pub use crate::episode_v2::EpisodeList;
 pub use crate::episode_v2::EpisodeDetail;
-pub use crate::episode_v2::EpisodeStep;
+pub use crate::episode_v2::EpisodeList;
 pub use crate::episode_v2::EpisodeSearchResult;
+pub use crate::episode_v2::EpisodeStatus;
+pub use crate::episode_v2::EpisodeStep;
+pub use crate::episode_v2::EpisodeSummary;
+pub use crate::episode_v2::TaskOutcome;
 
+pub use crate::episode_v2::complete_episode;
 pub use crate::episode_v2::create_episode;
 pub use crate::episode_v2::list_episodes;
-pub use crate::episode_v2::view_episode;
-pub use crate::episode_v2::complete_episode;
-pub use crate::episode_v2::search_episodes;
 pub use crate::episode_v2::log_step;
+pub use crate::episode_v2::search_episodes;
+pub use crate::episode_v2::view_episode;
 
 // Keep tests in the main file for now
 #[cfg(test)]

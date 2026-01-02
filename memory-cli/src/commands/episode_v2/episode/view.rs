@@ -135,7 +135,9 @@ pub async fn view_episode(
             },
             created_at: episode.start_time.to_rfc3339(),
             completed_at: episode.end_time.map(|t| t.to_rfc3339()),
-            duration_ms: episode.end_time.map(|end| (end - episode.start_time).num_milliseconds()),
+            duration_ms: episode
+                .end_time
+                .map(|end| (end - episode.start_time).num_milliseconds()),
             steps_count: episode.steps.len(),
             steps: episode
                 .steps
@@ -154,10 +156,12 @@ pub async fn view_episode(
                 })
                 .collect(),
             outcome,
-            reward: episode.reward.map(|r| serde_json::json!({
-                "total": r.total,
-                "components": r.components,
-            })),
+            reward: episode.reward.map(|r| {
+                serde_json::json!({
+                    "total": r.total,
+                    "components": r.components,
+                })
+            }),
             reflection: episode.reflection.map(|r| r.content),
             patterns_count: episode.patterns.len(),
             heuristics_count: episode.heuristics.len(),

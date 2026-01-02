@@ -180,13 +180,15 @@ Execution plans and sprint summaries from Q4 2025.
 
 ### summaries/
 
-**NEW (2025-12-30)**: Summary reports and documentation audits.
+Summary reports and documentation audits.
 
-**Files** (2 total):
+**Files** (4 total):
 1. `PLANS_AUDIT_REPORT.md` - Documentation audit report
 2. `PRODUCTION_READINESS_FINAL_REPORT.md` - Production readiness final report
+3. `QUICK_START_V0110.md` - v0.1.10 quick start guide (archived after v0.1.10 completion)
+4. `VECTOR_SEARCH_OPTIMIZATION.md` - Vector search optimization plan (implemented in v0.1.7)
 
-**Status**: Historical audit reports for reference.
+**Status**: Historical audit reports and planning documents for reference.
 
 ---
 
@@ -424,22 +426,22 @@ Files in plans/archive/ root (subfolder level):
 | 2025-Q4-analyses | 5 | ~8000 |
 | 2025-Q4-execution-plans | 2 | ~5000 |
 | specific-issues | 3 | ~3000 |
-| summaries | 2 | ~2000 |
+| summaries | 4 | ~5000 |
 | completed | 4 + 11 (2025-12) | ~2000 + ~8000 |
 | goap-plans | 22 + 13 (2025-12) + 15 (consolidation) | ~15000 + ~25000 |
 | legacy | 25+ | ~20000 |
 | releases | 15+ | ~8000 |
 | research | 13+ | ~10000 |
 | v0.1.7-prep | 2 | ~500 |
-| **TOTAL** | **~137** | **~119500** |
+| **TOTAL** | **~139** | **~122500** |
 
 **Latest Addition (2025-12-30)**:
 - 22 files archived to `2025-Q1-completed/` structure
 - 5 files archived to `2025-Q4-analyses/`
 - 2 files archived to `2025-Q4-execution-plans/`
 - 3 files archived to `specific-issues/`
-- 2 files archived to `summaries/`
-- Total archived: 34 new files (Phase 2 complete)
+- 4 files archived to `summaries/` (2 new)
+- Total archived: 36 new files (Phase 3 complete)
 
 ---
 

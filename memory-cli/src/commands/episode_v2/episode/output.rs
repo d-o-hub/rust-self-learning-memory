@@ -1,7 +1,7 @@
 //! Episode output implementations
 
+use super::types::{EpisodeDetail, EpisodeList, EpisodeSearchResult, EpisodeSummary};
 use crate::output::Output;
-use super::types::{EpisodeSummary, EpisodeList, EpisodeDetail, EpisodeSearchResult};
 
 impl Output for EpisodeSummary {
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
@@ -92,7 +92,11 @@ impl Output for EpisodeDetail {
 
         for step in &self.steps {
             let status_icon = if step.success { "✓" } else { "✗" };
-            let status_color = if step.success { Color::Green } else { Color::Red };
+            let status_color = if step.success {
+                Color::Green
+            } else {
+                Color::Red
+            };
 
             writeln!(
                 writer,
@@ -142,7 +146,11 @@ impl Output for EpisodeSearchResult {
             format!("{}", relevance_pct).color(relevance_color).bold(),
             self.task_description
         )?;
-        writeln!(writer, "  Status: {} | Created: {}", self.status, self.created_at)?;
+        writeln!(
+            writer,
+            "  Status: {} | Created: {}",
+            self.status, self.created_at
+        )?;
 
         if !self.matched_terms.is_empty() {
             writeln!(writer, "  Matched: {}", self.matched_terms.join(", "))?;

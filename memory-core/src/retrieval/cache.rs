@@ -303,7 +303,7 @@ impl QueryCache {
     #[must_use]
     pub fn get(&self, key: &CacheKey) -> Option<Vec<Episode>> {
         let hash = key.compute_hash();
-        
+
         // Fast path: Check if this entry is marked for lazy invalidation
         {
             let invalidated = self.invalidated_hashes.read().expect(
@@ -318,7 +318,7 @@ impl QueryCache {
                 return None;
             }
         }
-        
+
         let mut cache = self
             .cache
             .write()
@@ -525,7 +525,7 @@ impl QueryCache {
     }
 
     /// Get cache size (number of entries)
-    /// 
+    ///
     /// Note: This returns the physical size of the cache, which may include
     /// entries that are marked for lazy invalidation. These entries will be
     /// filtered out when accessed via `get()`.
@@ -536,14 +536,15 @@ impl QueryCache {
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
             .len()
     }
-    
+
     /// Get effective cache size (excluding invalidated entries)
-    /// 
+    ///
     /// This returns the logical size of the cache, excluding entries that
     /// are marked for lazy invalidation.
     #[must_use]
     pub fn effective_size(&self) -> usize {
-        let cache_size = self.cache
+        let cache_size = self
+            .cache
             .read()
             .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
             .len();
@@ -851,7 +852,7 @@ mod tests {
 
         // Invalidate domain should work correctly after invalidate_all
         cache.invalidate_domain("web-api");
-        
+
         // With lazy invalidation, physical size is still 1, but entry is marked invalid
         assert_eq!(cache.size(), 1); // Physical size
         assert_eq!(cache.effective_size(), 0); // Logical size

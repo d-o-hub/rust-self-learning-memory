@@ -1,9 +1,9 @@
 //! Pattern command types and structures
 
+use crate::output::Output;
 use chrono::{DateTime, Utc};
 use clap::{Subcommand, ValueEnum};
 use serde::Serialize;
-use crate::output::Output;
 
 #[derive(Subcommand)]
 pub enum PatternCommands {

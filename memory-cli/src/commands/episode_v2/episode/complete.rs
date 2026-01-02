@@ -1,11 +1,11 @@
 //! Complete episode command implementation
 
+use super::types::TaskOutcome;
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{helpers, EnhancedError};
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
-use super::types::TaskOutcome;
 use uuid::Uuid;
 
 pub async fn complete_episode(

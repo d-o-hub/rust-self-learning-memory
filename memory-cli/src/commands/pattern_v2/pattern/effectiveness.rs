@@ -1,9 +1,9 @@
 //! Pattern effectiveness command implementation
 
+use super::types::{EffectivenessRanking, EffectivenessRankings};
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 use memory_core::SelfLearningMemory;
-use super::types::{EffectivenessRankings, EffectivenessRanking};
 
 pub async fn pattern_effectiveness(
     top: usize,

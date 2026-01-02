@@ -1,11 +1,11 @@
 //! View pattern command implementation
 
+use super::types::PatternDetail;
 use crate::config::Config;
 use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
 use memory_core::SelfLearningMemory;
 use uuid::Uuid;
-use super::types::PatternDetail;
 
 pub async fn view_pattern(
     pattern_id: String,
@@ -120,9 +120,7 @@ pub async fn view_pattern(
         println!();
         println!("Details:");
         match &pattern {
-            memory_core::pattern::Pattern::ToolSequence {
-                tools, context, ..
-            } => {
+            memory_core::pattern::Pattern::ToolSequence { tools, context, .. } => {
                 println!("  Tools: {}", tools.join(" → "));
                 println!("  Context Domain: {}", context.domain);
             }
@@ -133,7 +131,9 @@ pub async fn view_pattern(
                 println!("  Action: {}", action);
             }
             memory_core::pattern::Pattern::ErrorRecovery {
-                error_type, recovery_steps, ..
+                error_type,
+                recovery_steps,
+                ..
             } => {
                 println!("  Error Type: {}", error_type);
                 println!("  Recovery Steps:");

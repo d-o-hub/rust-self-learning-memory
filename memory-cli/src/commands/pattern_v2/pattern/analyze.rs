@@ -1,11 +1,11 @@
 //! Analyze pattern command implementation
 
+use super::types::{PatternAnalysisData, PatternAnalysisResult};
 use crate::config::Config;
 use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
 use memory_core::SelfLearningMemory;
 use uuid::Uuid;
-use super::types::{PatternAnalysisData, PatternAnalysisResult};
 
 pub async fn analyze_pattern(
     pattern_id: String,

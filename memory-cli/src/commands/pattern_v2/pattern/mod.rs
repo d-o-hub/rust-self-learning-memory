@@ -1,17 +1,17 @@
 //! Pattern command submodules
 
-pub mod types;
-pub mod output;
-pub mod list;
-pub mod view;
 pub mod analyze;
-pub mod effectiveness;
 pub mod decay;
+pub mod effectiveness;
+pub mod list;
+pub mod output;
+pub mod types;
+pub mod view;
 
-pub use types::*;
-pub use output::*;
-pub use list::list_patterns;
-pub use view::view_pattern;
 pub use analyze::analyze_pattern;
-pub use effectiveness::pattern_effectiveness;
 pub use decay::decay_patterns;
+pub use effectiveness::pattern_effectiveness;
+pub use list::list_patterns;
+pub use output::*;
+pub use types::*;
+pub use view::view_pattern;

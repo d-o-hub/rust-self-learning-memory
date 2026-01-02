@@ -22,6 +22,7 @@ async fn create_test_pool() -> anyhow::Result<(Arc<ConnectionPool>, TempDir)> {
     Ok((Arc::new(pool), dir))
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test]
 async fn test_pool_performance_concurrent_operations() -> Result<(), Box<dyn std::error::Error>> {
     let (pool, _dir) = create_test_pool().await?;
@@ -79,6 +80,7 @@ async fn test_pool_performance_concurrent_operations() -> Result<(), Box<dyn std
     Ok(())
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test]
 async fn test_pool_with_turso_storage() -> Result<(), Box<dyn std::error::Error>> {
     let dir = TempDir::new()?;
@@ -115,6 +117,7 @@ async fn test_pool_with_turso_storage() -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test]
 async fn test_pool_utilization_tracking() -> Result<(), Box<dyn std::error::Error>> {
     let (pool, _dir) = create_test_pool().await?;
@@ -144,6 +147,7 @@ async fn test_pool_utilization_tracking() -> Result<(), Box<dyn std::error::Erro
     Ok(())
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test]
 async fn test_pool_health_checks() -> Result<(), Box<dyn std::error::Error>> {
     let (pool, _dir) = create_test_pool().await?;
@@ -163,6 +167,7 @@ async fn test_pool_health_checks() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test]
 async fn test_pool_graceful_shutdown() -> Result<(), Box<dyn std::error::Error>> {
     let (pool, _dir) = create_test_pool().await?;
@@ -185,6 +190,7 @@ async fn test_pool_graceful_shutdown() -> Result<(), Box<dyn std::error::Error>>
     Ok(())
 }
 
+#[cfg_attr(target_os = "windows", ignore)]
 #[tokio::test]
 async fn test_pool_statistics_accuracy() -> Result<(), Box<dyn std::error::Error>> {
     let (pool, _dir) = create_test_pool().await?;

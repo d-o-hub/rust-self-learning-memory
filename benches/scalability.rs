@@ -115,6 +115,7 @@ fn benchmark_dataset_scalability(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_concurrent_user_scalability(c: &mut Criterion) {
     let mut group = c.benchmark_group("concurrent_user_scalability");
     group.sample_size(5);
@@ -325,6 +326,7 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
     group.finish();
 }
 
+#[allow(clippy::excessive_nesting)]
 fn benchmark_throughput_vs_latency(c: &mut Criterion) {
     let mut group = c.benchmark_group("throughput_vs_latency");
     group.sample_size(10);

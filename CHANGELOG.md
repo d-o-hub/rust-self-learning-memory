@@ -1,5 +1,71 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Spatiotemporal Integration**: Full spatiotemporal index integration into retrieval pipeline
+  - Integrated spatiotemporal index for improved temporal and spatial retrieval
+  - Added comprehensive spatiotemporal integration test suite
+  - Performance improvements: 7.5-180x faster retrieval at scale
+  - Archived 12 obsolete plan files (67% reduction in plans/)
+  - Fixed openai.rs embed_batch_chunk method (renamed to request_batch)
+
+- **Domain-Based Cache Invalidation**: Advanced cache invalidation strategy (v0.1.11)
+  - Implemented domain-based invalidation to improve cache hit rates for multi-domain workloads
+  - Added domain_index HashMap to track domain-to-hash mappings
+  - New API: `invalidate_domain(domain)` for selective cache clearing
+  - `invalidate_all()` updated to also clear domain index
+  - **Performance (benchmarked 2026-01-01)**:
+    - Domain invalidation: 19.3µs (100 entries), 56.6µs (300 entries), 107.6µs (600 entries)
+    - Linear scaling: ~0.68µs per entry in domain
+    - Put() overhead: +119ns with domain tracking (negligible)
+    - Target met: <100µs for domains with ≤200 entries
+  - **Benefits**: 15-20% cache hit rate improvement for multi-domain workloads
+    - Preserves 66% of cache when invalidating one of three domains
+    - Real-world: 6.6x more cache hits vs invalidate_all() in multi-domain scenarios
+  - **Test coverage**: 18 tests (11 unit + 4 integration + 3 doctests)
+  - **Benchmark suite**: 7 performance tests validating all claims
+  - Memory overhead: O(d × k) where d=domains, k=keys per domain (~10KB typical)
+  - Backward compatible with single-domain workloads (no regression)
+  - See: `benchmark_results/domain_cache_invalidation_results.txt` for detailed analysis
+  - Resolves: plans/GITHUB_ISSUE_domain_based_cache_invalidation.md
+
+- **Large Payload Detection**: Cache observability enhancement
+  - Added warning logs when cache payloads exceed 100KB for episodes, patterns, and heuristics
+  - Metrics logging in get_metrics() for production observability
+  - Helps identify potential performance issues from oversized data
+
+- **Simple Mode Configuration**: Enhanced configuration UX
+  - Comprehensive Simple Mode user guide for simplified configuration
+  - Configuration validation framework tests
+  - Easier onboarding for new users with streamlined setup
+
+- **Storage Synchronization Improvements**: Write-through pattern
+  - Simplified storage synchronization with write-through caching
+  - Removed dead code and improved cache failure tracking
+  - Better error handling and diagnostics
+
+### Changed
+- **OpenAI Embeddings API**: Fixed embed_batch_chunk method
+  - Renamed method to request_batch to resolve compilation errors
+  - Updated all call sites to use new method name
+
+### Fixed
+- **Security**: Fixed cleartext logging of sensitive information
+  - Resolved code scanning alert #53
+  - Ensured sensitive data is properly redacted from logs
+
+- **CI**: Added disk cleanup for javy-backend job
+  - Mitigates resource constraints in CI/CD pipeline
+  - Prevents disk space issues during builds
+
+- **WASM Backend Tests**: Conditional compilation
+  - Added cfg attribute to skip tests when javy-backend feature is enabled
+  - Prevents duplicate test execution
+
+- **Base64 Import**: Conditional import for WASM
+  - Fixed unused import errors when certain features are disabled
+
 ## [0.1.12] - 2025-12-30
 
 ### Added
@@ -54,13 +120,6 @@
   - Moved `embed_batch_chunk` helper method outside trait impl block
   - Resolved method signature mismatch errors
 
-### Future Work
-- **Domain-Based Invalidation** (v0.1.13+)
-  - Tracked in: `plans/GITHUB_ISSUE_domain_based_cache_invalidation.md`
-  - Trigger: Implement if cache hit rate <30% in production after 2 weeks
-  - Expected improvement: +10-20% hit rate for multi-domain workloads
-  - TODO comment added in `cache.rs:invalidate_domain()`
-
 ### Technical Details
 - All tests passing: 432/432 unit tests, 0 failures
 - Zero cache-specific clippy warnings
@@ -68,6 +127,119 @@
 - Benchmark suite: 322 lines (`benches/query_cache_benchmark.rs`)
 - Total implementation: ~660 lines added/modified
 - Analysis-swarm code quality score: 9.2/10 (improved from 8.5/10)
+
+## [0.1.11] - 2025-12-30
+
+### Added
+- **Episode Management Enhancements**: New storage methods
+  - `store_episode_summary()`: Store episode summaries for quick access
+  - `get_episode_summary()`: Retrieve episode summaries without loading full data
+  - `delete_episode()`: Delete episodes with cascade cleanup
+  - All methods use parameterized SQL for security
+  - Returns proper Result types for error handling
+
+- **Dependency Updates**: Sysinfo bump
+  - Bumped sysinfo from 0.30.13 to 0.37.2
+  - Compatibility fixes for latest version
+
+### Changed
+- **Code Quality**: Extensive clippy and formatting fixes
+  - Fixed excessive_nesting warnings with allow attributes
+  - Fixed unreadable_literal warnings
+  - Fixed assertions_on_constants warnings
+  - Fixed useless_format warnings in tests
+  - Fixed useless_vec warning
+  - Removed unused imports
+  - Cleaned up test assertions
+
+- **Embedding API**: Refactored embedding calls
+  - Updated embedding API calls to 2-parameter signature
+  - Simplified multi-provider embedding support with internal 3-param API
+  - Added namespace support to embedding storage interface
+
+- **Test Improvements**: Enhanced test coverage
+  - Fixed f64 comparison in embeddings_integration test
+  - Added get_episode_by_task_desc method to storage tests
+  - Updated examples to match current API
+
+- **Documentation**: Plan folder updates
+  - Added comprehensive GitHub Actions issues analysis
+  - Cleaned up obsolete documentation
+
+### Fixed
+- **CI/CD**: Workflow improvements
+  - Removed invalid `remove_artifacts` parameter from Release workflow
+  - Skip benchmark jobs on Dependabot PRs to prevent timeouts
+
+- **Build System**: Improved build reliability
+  - Fixed formatting and clippy warnings for sysinfo update
+
+## [0.1.10] - 2025-12-29
+
+### Added
+- **Multi-Dimension Embeddings**: Enhanced vector storage
+  - Added dimension column to embeddings tables for multi-dimension tracking
+  - Support for mixed embedding models with different vector dimensions
+  - Multi-dimension embedding routing for flexible retrieval
+  - Hierarchical retrieval across different vector spaces
+
+- **FTS5 Hybrid Search**: Full-text and vector search integration
+  - FTS5 hybrid search combining vector similarity with full-text matching
+  - Created new search module with hybrid retrieval algorithms
+  - Enhanced semantic search with text matching fallback
+  - Comprehensive search infrastructure for richer queries
+
+- **MCP Embedding Tools**: Expanded MCP server capabilities
+  - Added MCP tools for embedding operations and management
+  - Integration with multi-dimension embedding system
+  - Enhanced pattern statistical analysis with embedding support
+
+- **Comprehensive Testing**: Extensive test coverage
+  - Created comprehensive integration tests for embeddings
+  - Added benchmark scripts for Turso vector performance
+  - Phase 0 and Phase 1 multi-dimension implementation tests
+  - 448+ new tests for multi-dimension validation
+
+- **CLI Enhancements**: Embedding commands and configuration
+  - Added embedding commands to memory-cli
+  - Enhanced configuration with embedding provider settings
+  - Added Simple Mode, minimal, and test configurations
+  - Updated CLI user guide with embedding workflows
+
+- **Documentation**: Comprehensive guides and plans
+  - GOAP execution plan and completion summaries
+  - Turso vector benchmark optimization guide
+  - Hierarchical retrieval integration documentation
+  - Implementation priority plans (217-307 hours identified)
+  - Gap analysis report with optimization roadmap
+
+### Changed
+- **Storage Architecture**: Major refactoring
+  - Moved storage implementation to dedicated modules
+  - Enhanced schema with dimension tracking
+  - FTS5 schema integration for hybrid search
+
+- **Performance**: Optimized retrieval algorithms
+  - 7.5-180x faster retrieval with spatiotemporal index
+  - Improved vector search performance with SIMD optimizations
+
+- **Plans Folder**: Major cleanup and organization
+  - Archived completed documentation (67% reduction)
+  - Updated status files reflecting current implementation state
+  - Added completion summaries for all major features
+
+### Fixed
+- **API Compatibility**: Updated examples and tests
+  - Updated embeddings_end_to_end.rs to match current API
+  - Fixed benchmarks and MCP tools for current API
+  - Resolved capacity tests to match actual API
+
+### Technical Details
+- 84 files changed, 12,461 insertions(+), 3,958 deletions(-)
+- Phase 0 and Phase 1 multi-dimension implementation complete
+- Spatiotemporal index integration complete
+- All 448+ multi-dimension tests passing
+- Maintains 92.5% test coverage
 
 ## [0.1.9] - 2025-12-29
 
@@ -217,14 +389,6 @@ Comprehensive gap analysis completed on 2025-12-29 identifying 217-307 hours of 
 - **Workspace Members**: 8 crates
 - **Quality Gates**: All passing (>90% coverage, 0 clippy warnings)
 - **Security**: Zero known vulnerabilities
-
-## [Unreleased]
-  - Replaced `bincode::serialize`/`deserialize` with `postcard::to_allocvec`/`from_bytes`
-  - Postcard provides better security guarantees and smaller binary sizes
-  - Existing redb databases will need to be recreated or migrated
-  - Updated security tests to reflect postcard's safer design (renamed `bincode_security_test.rs` to `postcard_security_test.rs`)
-- Removed bincode size limit checks in favor of postcard's inherent safety
-- Updated all serialization code in episode, pattern, heuristic, and embedding storage
 
 ## [0.1.6.1] - 2025-12-17
 

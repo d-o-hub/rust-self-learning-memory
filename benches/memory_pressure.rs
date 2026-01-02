@@ -344,23 +344,22 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
                         let monitor = MemoryMonitor::new();
 
                         // Start monitoring
+                        #[allow(clippy::excessive_nesting)]
                         let monitor_handle = tokio::spawn(async move {
-                            #[allow(clippy::excessive_nesting)]
-                            {
-                                let mut monitor = monitor;
-                                let start = std::time::Instant::now();
+                            let mut monitor = monitor;
+                            let start = std::time::Instant::now();
 
-                                while start.elapsed().as_secs() < 30 {
-                                    monitor.record_measurement();
-                                    sleep(Duration::from_millis(100)).await;
-                                }
-
-                                monitor
+                            while start.elapsed().as_secs() < 30 {
+                                monitor.record_measurement();
+                                sleep(Duration::from_millis(100)).await;
                             }
+
+                            monitor
                         });
 
                         // Run the memory pressure scenario
                         let scenario_clone = scenario.clone();
+                        #[allow(clippy::excessive_nesting)]
                         let scenario_handle = tokio::spawn(async move {
                             run_memory_pressure_scenario(memory, scenario_clone, 25).await;
                         });

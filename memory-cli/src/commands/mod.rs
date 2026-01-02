@@ -2,22 +2,26 @@ pub mod backup;
 pub mod config;
 pub mod embedding;
 pub mod episode;
+pub mod episode_v2;
 pub mod eval;
 pub mod health;
 pub mod logs;
 pub mod monitor;
 pub mod pattern;
+pub mod pattern_v2;
 pub mod storage;
 
 pub use backup::*;
 pub use config::*;
 pub use embedding::*;
 pub use episode::*;
+pub use episode_v2::*;
 pub use eval::*;
 pub use health::*;
 pub use logs::*;
 pub use monitor::*;
 pub use pattern::*;
+pub use pattern_v2::*;
 pub use storage::*;
 
 use crate::config::Config;

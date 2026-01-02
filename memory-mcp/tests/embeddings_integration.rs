@@ -1,4 +1,5 @@
 //! Integration tests for embedding MCP tools
+#![allow(clippy::expect_used)]
 
 use memory_core::SelfLearningMemory;
 use memory_mcp::mcp::tools::embeddings::{

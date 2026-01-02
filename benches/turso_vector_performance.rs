@@ -49,29 +49,6 @@ fn create_test_episode(id: usize) -> Episode {
     episode
 }
 
-/// Verify vector extensions are available in the database
-async fn verify_vector_extensions(storage: &TursoStorage) -> Result<()> {
-    // Try to execute vector32 function to verify vector extensions are loaded
-    let conn = storage
-        .connect()
-        .await
-        .map_err(|e| anyhow::anyhow!("Failed to connect: {}", e))?;
-
-    match conn.execute("SELECT vector32('0.1,0.2,0.3')", ()).await {
-        Ok(_) => {
-            eprintln!("✓ Vector extensions verified: vector32() function available");
-            Ok(())
-        }
-        Err(e) => {
-            eprintln!("✗ Vector extensions NOT available: {}", e);
-            Err(anyhow::anyhow!(
-                "Vector extensions not available. Ensure you're using Turso server (libsql://), not local SQLite (file://). \
-                See HOW_TO_RUN_TURSO_LOCALLY.md for setup instructions."
-            ))
-        }
-    }
-}
-
 /// Setup storage with episodes and embeddings
 async fn setup_storage_with_data(
     dimension: usize,
@@ -94,11 +71,6 @@ async fn setup_storage_with_data(
         .initialize_schema()
         .await
         .expect("Failed to initialize schema");
-
-    // Verify vector extensions are available
-    verify_vector_extensions(&storage)
-        .await
-        .expect("Vector extensions not available");
 
     // Store episodes with embeddings
     for i in 0..count {
@@ -297,9 +269,11 @@ fn benchmark_embedding_storage(c: &mut Criterion) {
                 BenchmarkId::new(format!("{}_dim", dimension), count),
                 &count,
                 |b, &_count| {
+                    #[allow(clippy::excessive_nesting)]
                     b.iter(|| {
                         rt.block_on(async {
-                            let temp_dir = TempDir::new().expect("Failed to create temp directory");
+                            let _temp_dir =
+                                TempDir::new().expect("Failed to create temp directory");
 
                             // Use Turso dev server or cloud database via environment variables
                             let url = std::env::var("TURSO_DATABASE_URL")

@@ -39,43 +39,46 @@ fn benchmark_capacity_enforcement_overhead(c: &mut Criterion) {
                 BenchmarkId::from_parameter(&bench_name),
                 &(episode_count, policy),
                 |b, &(&count, &policy)| {
-                    // Setup: Create episodes for capacity check
-                    let episodes: Vec<Episode> = (0..count)
-                        .map(|i| {
-                            let context = create_benchmark_context();
-                            let mut episode = Episode::new(
-                                generate_episode_description(i),
-                                context,
-                                TaskType::CodeGeneration,
-                            );
-                            // Add some steps to make it realistic
-                            let steps = generate_execution_steps(5);
-                            for step in steps {
-                                episode.add_step(step);
-                            }
-                            episode.complete(TaskOutcome::Success {
-                                verdict: "Done".to_string(),
-                                artifacts: vec![],
-                            });
-                            episode
-                        })
-                        .collect();
+                    #[allow(clippy::excessive_nesting)]
+                    {
+                        // Setup: Create episodes for capacity check
+                        let episodes: Vec<Episode> = (0..count)
+                            .map(|i| {
+                                let context = create_benchmark_context();
+                                let mut episode = Episode::new(
+                                    generate_episode_description(i),
+                                    context,
+                                    TaskType::CodeGeneration,
+                                );
+                                // Add some steps to make it realistic
+                                let steps = generate_execution_steps(5);
+                                for step in steps {
+                                    episode.add_step(step);
+                                }
+                                episode.complete(TaskOutcome::Success {
+                                    verdict: "Done".to_string(),
+                                    artifacts: vec![],
+                                });
+                                episode
+                            })
+                            .collect();
 
-                    let manager = CapacityManager::new(count - 1, policy);
+                        let manager = CapacityManager::new(count - 1, policy);
 
-                    b.iter(|| {
-                        let start = Instant::now();
+                        b.iter(|| {
+                            let start = Instant::now();
 
-                        // Measure capacity check
-                        let can_store = manager.can_store(episodes.len());
-                        black_box(can_store);
+                            // Measure capacity check
+                            let can_store = manager.can_store(episodes.len());
+                            black_box(can_store);
 
-                        // Measure eviction decision
-                        let to_evict = manager.evict_if_needed(&episodes);
-                        black_box(to_evict);
+                            // Measure eviction decision
+                            let to_evict = manager.evict_if_needed(&episodes);
+                            black_box(to_evict);
 
-                        start.elapsed()
-                    });
+                            start.elapsed()
+                        });
+                    }
                 },
             );
         }

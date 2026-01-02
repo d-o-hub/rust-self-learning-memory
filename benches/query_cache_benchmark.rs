@@ -221,6 +221,7 @@ fn bench_concurrent_access(c: &mut Criterion) {
 
     c.bench_function("concurrent_access_4_threads", |b| {
         b.iter(|| {
+            #[allow(clippy::excessive_nesting)]
             let mut handles = vec![];
 
             // Spawn 4 threads doing mixed read/write operations
@@ -228,6 +229,7 @@ fn bench_concurrent_access(c: &mut Criterion) {
                 let cache_clone = Arc::clone(&cache);
                 let episodes_clone = episodes.clone();
 
+                #[allow(clippy::excessive_nesting)]
                 let handle = thread::spawn(move || {
                     for i in 0..25 {
                         let query_id = thread_id * 25 + i;

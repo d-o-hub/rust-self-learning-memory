@@ -12,14 +12,14 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 fn create_test_episode(id: u32, domain: &str) -> Episode {
-    let mut context = TaskContext::default();
-    context.domain = domain.to_string();
-
     Episode {
         episode_id: Uuid::new_v4(),
         task_type: TaskType::CodeGeneration,
         task_description: format!("Task {} in {}", id, domain),
-        context,
+        context: TaskContext {
+            domain: domain.to_string(),
+            ..Default::default()
+        },
         start_time: chrono::Utc::now(),
         end_time: None,
         steps: vec![],

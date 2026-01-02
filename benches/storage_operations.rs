@@ -62,6 +62,7 @@ fn benchmark_bulk_episode_operations(c: &mut Criterion) {
             BenchmarkId::from_parameter(episode_count),
             episode_count,
             |b, &count| {
+                #[allow(clippy::excessive_nesting)]
                 b.to_async(FuturesExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
@@ -110,19 +111,17 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
 
     c.bench_function("concurrent_operations", |b| {
         b.iter(|| {
+            #[allow(clippy::excessive_nesting)]
             rt.block_on(async {
                 // Simulate concurrent storage operations
                 let mut handles = Vec::new();
                 for i in 0..black_box(10) {
                     let handle = tokio::spawn(async move {
-                        #[allow(clippy::excessive_nesting)]
-                        {
-                            let mut local_data = Vec::new();
-                            for j in 0..50 {
-                                local_data.push(format!("concurrent_item_{}_{}", i, j));
-                            }
-                            local_data
+                        let mut local_data = Vec::new();
+                        for j in 0..50 {
+                            local_data.push(format!("concurrent_item_{}_{}", i, j));
                         }
+                        local_data
                     });
                     handles.push(handle);
                 }

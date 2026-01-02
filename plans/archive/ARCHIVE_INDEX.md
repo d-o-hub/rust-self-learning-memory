@@ -426,22 +426,22 @@ Files in plans/archive/ root (subfolder level):
 | 2025-Q4-analyses | 5 | ~8000 |
 | 2025-Q4-execution-plans | 2 | ~5000 |
 | specific-issues | 3 | ~3000 |
-| summaries | 4 | ~5000 |
+| summaries | 6 | ~8000 |
 | completed | 4 + 11 (2025-12) | ~2000 + ~8000 |
 | goap-plans | 22 + 13 (2025-12) + 15 (consolidation) | ~15000 + ~25000 |
 | legacy | 25+ | ~20000 |
 | releases | 15+ | ~8000 |
 | research | 13+ | ~10000 |
 | v0.1.7-prep | 2 | ~500 |
-| **TOTAL** | **~139** | **~122500** |
+| **TOTAL** | **~198** | **~129500** |
 
 **Latest Addition (2025-12-30)**:
 - 22 files archived to `2025-Q1-completed/` structure
 - 5 files archived to `2025-Q4-analyses/`
 - 2 files archived to `2025-Q4-execution-plans/`
 - 3 files archived to `specific-issues/`
-- 4 files archived to `summaries/` (2 new)
-- Total archived: 36 new files (Phase 3 complete)
+- 6 files archived to `summaries/` (4 new + 2 existing)
+- Total archived: 38 new files (Phase 3 complete)
 
 ---
 
@@ -469,15 +469,16 @@ Files in plans/archive/ root (subfolder level):
 
 ## Recent Updates
 
-### 2025-12-30: Phase 2 Documentation Cleanup Archive (Complete)
+### 2025-12-30: Phase 3 Documentation Cleanup Complete (3-Phase Execution)
 - Created `2025-Q1-completed/` structure for Q1 2025 completed work
 - Archived 22 research integration and feature completion files
 - Created `2025-Q4-analyses/` for analysis documents
 - Created `2025-Q4-execution-plans/`, `specific-issues/`, and `summaries/`
-- Total files archived: 34 new files (Phase 2 complete)
-- Updated archive index with new structure
-- Total archived files: 137 (up from ~115)
-- Root-level files reduced: 33 → 9 (73% reduction)
+- Deleted 1 duplicate file (README_NAVIGATION.md)
+- Total files archived: 37 new files
+- Total archived files: 198 (up from ~115)
+- Root-level files reduced: 33 → 6 (82% reduction - exceeds 73% target!)
+- All 6 root files are active/current documents
 
 ### 2025-12-28: Phase 3.2 Consolidation Archive
 - Added `goap-plans/2025-12-consolidation/` folder

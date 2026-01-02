@@ -241,35 +241,33 @@ fn benchmark_async_throughput(c: &mut Criterion) {
                         let memory = memory.clone();
                         let context = context.clone();
 
+                        #[allow(clippy::excessive_nesting)]
                         let handle = tokio::spawn(async move {
-                            #[allow(clippy::excessive_nesting)]
-                            {
-                                let episode_id = memory
-                                    .start_episode(
-                                        generate_episode_description(i),
-                                        context,
-                                        TaskType::CodeGeneration,
-                                    )
-                                    .await;
+                            let episode_id = memory
+                                .start_episode(
+                                    generate_episode_description(i),
+                                    context,
+                                    TaskType::CodeGeneration,
+                                )
+                                .await;
 
-                                let steps = generate_execution_steps(1);
-                                for step in steps {
-                                    memory.log_step(episode_id, step).await;
-                                }
-
-                                memory
-                                    .complete_episode(
-                                        episode_id,
-                                        TaskOutcome::Success {
-                                            verdict: format!("Async throughput test {}", i),
-                                            artifacts: vec![],
-                                        },
-                                    )
-                                    .await
-                                    .expect("Failed to complete episode");
-
-                                episode_id
+                            let steps = generate_execution_steps(1);
+                            for step in steps {
+                                memory.log_step(episode_id, step).await;
                             }
+
+                            memory
+                                .complete_episode(
+                                    episode_id,
+                                    TaskOutcome::Success {
+                                        verdict: format!("Async throughput test {}", i),
+                                        artifacts: vec![],
+                                    },
+                                )
+                                .await
+                                .expect("Failed to complete episode");
+
+                            episode_id
                         });
 
                         handles.push(handle);

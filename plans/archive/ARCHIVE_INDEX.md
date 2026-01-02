@@ -11,16 +11,17 @@ This index provides a complete reference to all historical planning documents or
 
 ```
 plans/archive/
-├── 2025-Q1-completed/    # Completed work from Q1 2025 (NEW)
+├── 2025-Q1-completed/    # Completed work from Q1 2025
 │   ├── research-integration/   # Research integration phases
 │   ├── multi-embedding/       # Multi-provider embeddings
 │   ├── fts5-hybrid-search/   # FTS5 hybrid search
 │   ├── configuration-ux/      # Configuration UX polish
 │   ├── domain-cache/         # Domain-based cache invalidation
 │   └── turso-ai/           # Turso AI enhancement phases
-├── 2025-Q4-execution-plans/  # Execution plans from Q4 2025 (NEW)
-├── specific-issues/         # One-off issue fixes (NEW)
-├── summaries/              # Summary reports and audits (NEW)
+├── 2025-Q4-analyses/      # Analyses and plans from Q4 2025 (NEW)
+├── 2025-Q4-execution-plans/  # Execution plans from Q4 2025
+├── specific-issues/         # One-off issue fixes
+├── summaries/              # Summary reports and audits
 ├── completed/          # Implementation completion summaries
 │   └── 2025-12/       # December 2025 completions
 ├── goap-plans/         # GOAP execution planning documents
@@ -137,9 +138,24 @@ Turso AI enhancement phases.
 
 ---
 
+### 2025-Q4-analyses/
+
+**NEW (2025-12-30)**: Analysis documents and plans from Q4 2025.
+
+**Files** (5 total):
+1. `GITHUB_ACTIONS_ISSUES_AND_IMPROVEMENTS.md` - GitHub Actions improvements analysis
+2. `GOAP_GITHUB_RELEASE_WORKFLOW.md` - GOAP GitHub release workflow
+3. `OAUTH_2_1_IMPLEMENTATION_PLAN.md` - OAuth 2.1 implementation plan (not implemented)
+4. `OPTIMIZATION_ANALYSIS_2025-12-29.md` - Optimization analysis from gap analysis
+5. `OPTIMIZATION_ROADMAP_V020.md` - Optimization roadmap for v0.2.0
+
+**Status**: Historical analysis documents and plans for reference.
+
+---
+
 ### 2025-Q4-execution-plans/
 
-**NEW (2025-12-30)**: Execution plans and sprint summaries from Q4 2025.
+Execution plans and sprint summaries from Q4 2025.
 
 **Files** (2 total):
 1. `QUICK_WINS_IMPLEMENTATION_2025-12-29.md` - Quick wins implementation plan
@@ -405,6 +421,7 @@ Files in plans/archive/ root (subfolder level):
 | Category | Files | Total LOC |
 |----------|-------|-----------|
 | 2025-Q1-completed | 22 (research:10, fts5:2, config:2, cache:4, turso:1) | ~15000 |
+| 2025-Q4-analyses | 5 | ~8000 |
 | 2025-Q4-execution-plans | 2 | ~5000 |
 | specific-issues | 3 | ~3000 |
 | summaries | 2 | ~2000 |
@@ -414,14 +431,15 @@ Files in plans/archive/ root (subfolder level):
 | releases | 15+ | ~8000 |
 | research | 13+ | ~10000 |
 | v0.1.7-prep | 2 | ~500 |
-| **TOTAL** | **~132** | **~111500** |
+| **TOTAL** | **~137** | **~119500** |
 
 **Latest Addition (2025-12-30)**:
-- 22 files archived to new `2025-Q1-completed/` structure
+- 22 files archived to `2025-Q1-completed/` structure
+- 5 files archived to `2025-Q4-analyses/`
 - 2 files archived to `2025-Q4-execution-plans/`
 - 3 files archived to `specific-issues/`
 - 2 files archived to `summaries/`
-- Total archived: 29 new files (Phase 2 completion)
+- Total archived: 34 new files (Phase 2 complete)
 
 ---
 

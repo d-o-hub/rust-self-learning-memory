@@ -10,7 +10,7 @@ repository.workspace = true
 # Workspace dependencies
 memory-core = { path = "../memory-core" }
 memory-storage-redb = { path = "../memory-storage-redb" }
-memory-storage-turso = { path = "../memory-storage-turso", features = ["turso_multi_dimension"] }
+memory-storage-turso = { path = "../memory-storage-turso" }
 memory-cli = { path = "../memory-cli" }
 anyhow.workspace = true
 serde.workspace = true

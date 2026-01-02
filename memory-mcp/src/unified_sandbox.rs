@@ -49,10 +49,10 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info};
 
-#[cfg(not(feature = "javy-backend"))]
+#[cfg_attr(feature = "javy-backend", allow(unused_imports))]
 use base64::prelude::BASE64_STANDARD;
 
-#[cfg(not(feature = "javy-backend"))]
+#[cfg_attr(feature = "javy-backend", allow(unused_imports))]
 use base64::Engine;
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};

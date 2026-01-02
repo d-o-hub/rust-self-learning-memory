@@ -200,7 +200,7 @@ impl WasmSandbox {
             }
         }
 
-        return Err(anyhow::anyhow!("internal: exhausted retry loop"));
+        Err(anyhow::anyhow!("internal: exhausted retry loop"))
     }
 
     /// Execute with retry attempt tracking

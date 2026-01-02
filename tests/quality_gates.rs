@@ -49,7 +49,7 @@ fn security_vuln_threshold() -> usize {
         .unwrap_or(0)
 }
 
-/// Whether to skip optional quality gates (default: false)
+/// Whether to skip optional quality gates (default: true)
 fn skip_optional_gates() -> bool {
     env::var("QUALITY_GATE_SKIP_OPTIONAL")
         .ok()

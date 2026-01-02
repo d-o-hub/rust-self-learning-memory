@@ -2,7 +2,13 @@
 //!
 //! Validates that domain-based cache invalidation works correctly in realistic
 //! multi-domain scenarios with episode completion workflows.
-#![allow(clippy::expect_used, clippy::inefficient_to_string, clippy::similar_names, clippy::field_reassign_with_default, clippy::uninlined_format_args)]
+#![allow(
+    clippy::expect_used,
+    clippy::inefficient_to_string,
+    clippy::similar_names,
+    clippy::field_reassign_with_default,
+    clippy::uninlined_format_args
+)]
 
 use memory_core::episode::Episode;
 use memory_core::retrieval::{CacheKey, QueryCache};

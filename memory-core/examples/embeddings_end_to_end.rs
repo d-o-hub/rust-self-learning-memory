@@ -9,7 +9,22 @@
 //!
 //! Run with:
 //! `cargo run --example embeddings_end_to_end --features local-embeddings`
-#![allow(clippy::expect_used, clippy::uninlined_format_args, clippy::unwrap_used, clippy::inefficient_to_string, clippy::unused_async, clippy::similar_names, clippy::field_reassign_with_default, clippy::unnecessary_literal_bound, clippy::cast_precision_loss, clippy::cast_sign_loss, clippy::too_many_lines, clippy::borrowed_box, clippy::redundant_closure_for_method_calls, unused_imports)]
+#![allow(
+    clippy::expect_used,
+    clippy::uninlined_format_args,
+    clippy::unwrap_used,
+    clippy::inefficient_to_string,
+    clippy::unused_async,
+    clippy::similar_names,
+    clippy::field_reassign_with_default,
+    clippy::unnecessary_literal_bound,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::too_many_lines,
+    clippy::borrowed_box,
+    clippy::redundant_closure_for_method_calls,
+    unused_imports
+)]
 //! ```bash
 //! # With local embeddings (CPU-based, no API key needed)
 //! cargo run --example embeddings_end_to_end --features local-embeddings

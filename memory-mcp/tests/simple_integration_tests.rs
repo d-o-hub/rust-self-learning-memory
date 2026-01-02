@@ -9,8 +9,18 @@ use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
+/// Disable WASM sandbox for all tests to ensure consistent tool counts across environments
+fn disable_wasm_for_tests() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        std::env::set_var("MCP_USE_WASM", "false");
+        std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
+    });
+}
+
 #[tokio::test]
 async fn test_mcp_server_tools() {
+    disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
         quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()

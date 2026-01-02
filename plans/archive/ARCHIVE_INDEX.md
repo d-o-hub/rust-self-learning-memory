@@ -467,13 +467,15 @@ Files in plans/archive/ root (subfolder level):
 
 ## Recent Updates
 
-### 2025-12-30: Phase 2 Documentation Cleanup Archive
+### 2025-12-30: Phase 2 Documentation Cleanup Archive (Complete)
 - Created `2025-Q1-completed/` structure for Q1 2025 completed work
 - Archived 22 research integration and feature completion files
+- Created `2025-Q4-analyses/` for analysis documents
 - Created `2025-Q4-execution-plans/`, `specific-issues/`, and `summaries/`
-- Total files archived: 29 new files (Phase 2 completion)
+- Total files archived: 34 new files (Phase 2 complete)
 - Updated archive index with new structure
-- Total archived files: 132 (up from ~115)
+- Total archived files: 137 (up from ~115)
+- Root-level files reduced: 33 → 9 (73% reduction)
 
 ### 2025-12-28: Phase 3.2 Consolidation Archive
 - Added `goap-plans/2025-12-consolidation/` folder

@@ -44,9 +44,10 @@ mod integration_tests {
 
         // Test that server initializes with correct tools
         // Note: WASM is disabled, so execute_agent_code is not available
-        // Available tools: query_memory, analyze_patterns, health_check, get_metrics, advanced_pattern_analysis, quality_metrics
+        // Available tools: query_memory, analyze_patterns, health_check, get_metrics,
+        // advanced_pattern_analysis, quality_metrics, configure_embeddings, query_semantic_memory, test_embeddings
         let tools = mcp_server.list_tools().await;
-        assert_eq!(tools.len(), 6);
+        assert_eq!(tools.len(), 9);
 
         let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
         assert!(tool_names.contains(&"query_memory".to_string()));
@@ -54,6 +55,10 @@ mod integration_tests {
         assert!(tool_names.contains(&"health_check".to_string()));
         assert!(tool_names.contains(&"get_metrics".to_string()));
         assert!(tool_names.contains(&"advanced_pattern_analysis".to_string()));
+        assert!(tool_names.contains(&"quality_metrics".to_string()));
+        assert!(tool_names.contains(&"configure_embeddings".to_string()));
+        assert!(tool_names.contains(&"query_semantic_memory".to_string()));
+        assert!(tool_names.contains(&"test_embeddings".to_string()));
 
         // execute_agent_code should NOT be available when WASM is disabled
         assert!(!tool_names.contains(&"execute_agent_code".to_string()));

@@ -84,3 +84,8 @@ name = "query_cache_benchmark"
 path = "query_cache_benchmark.rs"
 harness = false
 
+[[bench]]
+name = "domain_cache_benchmark"
+path = "domain_cache_benchmark.rs"
+harness = false
+

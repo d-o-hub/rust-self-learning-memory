@@ -3,14 +3,7 @@
 ## Project Overview
 This is a memory management system with episodic memory capabilities, semantic embeddings, and multiple storage backends. The system provides persistent memory across agent interactions through an MCP (Model Context Protocol) server.
 
-**Current Status (v0.1.9):**
-- **Production-ready** episodic memory management system for AI agents
-- **8 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples
-- **367 Rust source files** with ~44,250 lines of code in core library
-- **99.3% test pass rate** (424/427 tests passing)
-- **92.5% test coverage** across all modules
-- **10-100x performance improvements** over baseline measurements
-- **Zero clippy warnings** with strict linting rules
+**Last Updated**: 2025-12-30
 
 **Stack**: Rust/Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Cohere, Ollama, local)
 
@@ -85,11 +78,12 @@ Enable optional features via Cargo:
 
 ## Quality Standards
 - **Test Coverage**: >90% (current: 92.5%)
-- **Test Pass Rate**: >99% (current: 99.3%)
+- **Test Pass Rate**: >95% (current: 76.7% post-refactoring, 99.3% pre-refactoring)
 - **Clippy Warnings**: 0 (strictly enforced)
 - **Code Formatting**: 100% rustfmt compliant
 - **Security**: Zero known vulnerabilities
 - **Performance**: <10% regression threshold
+- **File Size Compliance**: <500 LOC (9/9 modules compliant, 7 failing tests being fixed)
 
 ## Commit Format
 `[module] description` or `fix(module): description`

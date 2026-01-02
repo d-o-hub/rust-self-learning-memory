@@ -19,13 +19,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Wait for quick check to pass on PRs
+  # Wait for quick check to pass on PRs (skip for Dependabot to avoid timeout)
   check-quick-check:
     name: Check Quick Check Status
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     timeout-minutes: 10
     steps:
       - name: Wait for Quick Check

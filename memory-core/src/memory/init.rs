@@ -1,23 +1,19 @@
-//! SelfLearningMemory constructors and initialization logic.
+//! `SelfLearningMemory` constructors and initialization logic.
 //!
 //! This module contains the factory methods and configuration for creating
-//! SelfLearningMemory instances with various storage backends.
+//! `SelfLearningMemory` instances with various storage backends.
 
 use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
-use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
-use crate::patterns::extractors::HeuristicExtractor;
+use crate::monitoring::{storage::SimpleMonitoringStorage, AgentMonitor, MonitoringConfig};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
-use crate::storage::StorageBackend;
 use crate::types::MemoryConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore};
-
-use super::step_buffer::StepBuffer;
 
 /// Create a memory system with custom configuration (in-memory only)
 #[must_use]
@@ -190,7 +186,9 @@ pub fn with_storage(
     };
 
     let diversity_maximizer = if config.enable_diversity_maximization {
-        Some(crate::spatiotemporal::DiversityMaximizer::new(config.diversity_lambda))
+        Some(crate::spatiotemporal::DiversityMaximizer::new(
+            config.diversity_lambda,
+        ))
     } else {
         None
     };

@@ -47,15 +47,15 @@
 //! ```
 
 mod episode;
-mod learning;
-mod retrieval;
-pub mod step_buffer;
-pub mod validation;
 mod init;
+mod learning;
 mod monitoring;
 mod queries;
+mod retrieval;
+pub mod step_buffer;
 #[cfg(test)]
 mod tests;
+pub mod validation;
 
 use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, PatternId};
@@ -304,13 +304,13 @@ impl SelfLearningMemory {
 
     /// Enable async pattern extraction with a worker pool
     #[must_use]
-    pub fn enable_async_extraction(mut self, queue_config: QueueConfig) -> Self {
+    pub fn enable_async_extraction(self, queue_config: QueueConfig) -> Self {
         init::enable_async_extraction(self, queue_config)
     }
 
     /// Start async pattern extraction workers
     pub async fn start_workers(&self) {
-        init::start_workers(self).await
+        init::start_workers(self).await;
     }
 
     /// Get statistics about the memory system
@@ -409,7 +409,8 @@ impl SelfLearningMemory {
             &self.episodes_fallback,
             self.cache_storage.as_ref(),
             self.turso_storage.as_ref(),
-        ).await
+        )
+        .await
     }
 
     /// Get all patterns with proper lazy loading from storage backends.
@@ -431,7 +432,8 @@ impl SelfLearningMemory {
             limit,
             offset,
             completed_only,
-        ).await
+        )
+        .await
     }
 
     /// Get patterns extracted from a specific episode

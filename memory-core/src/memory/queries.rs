@@ -1,4 +1,4 @@
-//! Episode and pattern retrieval queries for SelfLearningMemory.
+//! Episode and pattern retrieval queries for `SelfLearningMemory`.
 //!
 //! This module provides methods for lazy loading episodes and patterns
 //! from storage backends, with proper fallback handling.
@@ -37,10 +37,16 @@ pub async fn get_all_episodes(
     // 2) Try to fetch from cache storage (redb) if we might be missing episodes
     if let Some(cache) = cache_storage {
         // Fetch all episodes from cache (since timestamp 0)
-        let since = Utc.timestamp_millis_opt(0).single().unwrap_or_else(Utc::now);
+        let since = Utc
+            .timestamp_millis_opt(0)
+            .single()
+            .unwrap_or_else(Utc::now);
         match cache.query_episodes_since(since).await {
             Ok(cache_episodes) => {
-                debug!(cache_count = cache_episodes.len(), "Fetched episodes from cache storage");
+                debug!(
+                    cache_count = cache_episodes.len(),
+                    "Fetched episodes from cache storage"
+                );
                 for episode in cache_episodes {
                     all_episodes.entry(episode.episode_id).or_insert(episode);
                 }
@@ -53,10 +59,16 @@ pub async fn get_all_episodes(
 
     // 3) Try to fetch from durable storage (Turso) for completeness
     if let Some(turso) = turso_storage {
-        let since = Utc.timestamp_millis_opt(0).single().unwrap_or_else(Utc::now);
+        let since = Utc
+            .timestamp_millis_opt(0)
+            .single()
+            .unwrap_or_else(Utc::now);
         match turso.query_episodes_since(since).await {
             Ok(turso_episodes) => {
-                debug!(turso_count = turso_episodes.len(), "Fetched episodes from durable storage");
+                debug!(
+                    turso_count = turso_episodes.len(),
+                    "Fetched episodes from durable storage"
+                );
                 for episode in turso_episodes {
                     all_episodes.entry(episode.episode_id).or_insert(episode);
                 }
@@ -78,7 +90,10 @@ pub async fn get_all_episodes(
     }
 
     let total_count = all_episodes.len();
-    info!(total_episodes = total_count, "Retrieved all episodes from all storage backends");
+    info!(
+        total_episodes = total_count,
+        "Retrieved all episodes from all storage backends"
+    );
 
     Ok(all_episodes.into_values().collect())
 }
@@ -110,12 +125,8 @@ pub async fn list_episodes(
     completed_only: Option<bool>,
 ) -> Result<Vec<Episode>> {
     // Get all episodes with lazy loading
-    let mut all_episodes = get_all_episodes(
-        episodes_fallback,
-        cache_storage,
-        turso_storage,
-    )
-    .await?;
+    let mut all_episodes =
+        get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
 
     // Apply filters
     if let Some(true) = completed_only {
@@ -135,7 +146,10 @@ pub async fn list_episodes(
         all_episodes.truncate(limit);
     }
 
-    info!(total_returned = all_episodes.len(), "Listed episodes with filters");
+    info!(
+        total_returned = all_episodes.len(),
+        "Listed episodes with filters"
+    );
 
     Ok(all_episodes)
 }

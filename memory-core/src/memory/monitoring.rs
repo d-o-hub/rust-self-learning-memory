@@ -1,4 +1,4 @@
-//! Agent monitoring and metrics collection for SelfLearningMemory.
+//! Agent monitoring and metrics collection for `SelfLearningMemory`.
 //!
 //! This module provides methods for tracking agent execution, performance metrics,
 //! and system-wide monitoring statistics.
@@ -14,10 +14,9 @@ use std::time::Duration;
 /// Tuple of (total episodes, completed episodes, total patterns)
 pub async fn get_stats(
     episodes_fallback: &tokio::sync::RwLock<std::collections::HashMap<uuid::Uuid, crate::Episode>>,
-    patterns_fallback: &tokio::sync::RwLock<std::collections::HashMap<
-        crate::episode::PatternId,
-        crate::Pattern,
-    >>,
+    patterns_fallback: &tokio::sync::RwLock<
+        std::collections::HashMap<crate::episode::PatternId, crate::Pattern>,
+    >,
 ) -> (usize, usize, usize) {
     let episodes = episodes_fallback.read().await;
     let patterns = patterns_fallback.read().await;

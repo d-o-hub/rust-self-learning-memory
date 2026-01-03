@@ -18,7 +18,7 @@
 |------|-------------|--------|-------|
 | `memory-storage-turso/src/storage.rs` | 2,502 | ✅ Already split | 6 modules in storage/ |
 | `memory-mcp/src/patterns/predictive.rs` | 2,435 | ✅ Already split | predictive/ directory exists |
-| `memory-core/src/memory/mod.rs` | 1,530 | 🔄 In Progress | Methods in submodules |
+| `memory-core/src/memory/mod.rs` | 1,530 | ✅ COMPLETED | Split to init/monitoring/queries/tests |
 | `memory-storage-redb/src/storage.rs` | 1,514 | ⏳ Pending | Needs splitting |
 | `memory-mcp/src/server.rs` | 1,513 | ⏳ Pending | Needs splitting |
 | `memory-mcp/src/patterns/statistical.rs` | 1,132 | ⏳ Pending | Needs splitting |
@@ -42,6 +42,11 @@
 | `memory-mcp/src/patterns/predictive/causal.rs` | 285 |
 | `memory-mcp/src/patterns/predictive/dbscan.rs` | 500 |
 | `memory-mcp/src/patterns/predictive/kdtree.rs` | 400 |
+| `memory-core/src/memory/mod.rs` | 442 |
+| `memory-core/src/memory/init.rs` | 265 |
+| `memory-core/src/memory/monitoring.rs` | 121 |
+| `memory-core/src/memory/queries.rs` | 177 |
+| `memory-core/src/memory/tests.rs` | 565 |
 | `memory-core/src/patterns/mod.rs` | 28 |
 | `memory-core/src/mcp/mod.rs` | 9 |
 | `memory-core/src/reflection/mod.rs` | 110 |

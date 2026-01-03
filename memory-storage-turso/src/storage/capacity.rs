@@ -34,8 +34,6 @@ impl TursoStorage {
     /// Uses the configured eviction policy to determine which episodes to remove
     /// when the capacity is exceeded.
     async fn enforce_capacity(&self, max_episodes: usize) -> Result<()> {
-        debug!("Enforcing capacity: max_episodes={}", max_episodes);
-
         let conn = self.get_connection().await?;
 
         // Count current episodes
@@ -59,10 +57,6 @@ impl TursoStorage {
         };
 
         if current_count <= max_episodes {
-            debug!(
-                "Capacity check passed: {} <= {}",
-                current_count, max_episodes
-            );
             return Ok(());
         }
 
@@ -74,11 +68,11 @@ impl TursoStorage {
         );
 
         // Get episodes to evict (oldest first, using LRU)
-        // In a real implementation, this would use the configured eviction policy
+        // Order by start_time first, then by episode_id for deterministic tie-breaking
         let evict_sql = format!(
             r#"
             SELECT episode_id FROM episodes
-            ORDER BY start_time ASC
+            ORDER BY start_time ASC, episode_id ASC
             LIMIT {}
         "#,
             to_remove
@@ -100,17 +94,25 @@ impl TursoStorage {
             evicted.push(episode_id);
         }
 
+        // Drop the connection and query results before starting deletions
+        // to avoid "database locked" errors when running tests in parallel
+        drop(evict_rows);
+        drop(conn);
+
         // Delete evicted episodes
         for episode_id in &evicted {
+            // Delete associated embeddings first
+            let _ = self._delete_embedding_internal(episode_id).await;
+
+            // Then delete the episode
             let delete_sql = "DELETE FROM episodes WHERE episode_id = ?";
+            let conn = self.get_connection().await?;
             conn.execute(delete_sql, libsql::params![episode_id.clone()])
                 .await
                 .map_err(|e| {
                     memory_core::Error::Storage(format!("Failed to delete episode: {}", e))
                 })?;
-
-            // Also delete associated embeddings
-            self._delete_embedding_internal(episode_id).await?;
+            drop(conn);
         }
 
         info!(

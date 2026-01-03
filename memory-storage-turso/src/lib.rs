@@ -306,6 +306,11 @@ impl TursoStorage {
         info!("Initializing Turso database schema");
         let conn = self.get_connection().await?;
 
+        // Enable WAL mode for better concurrent access (especially for file-based SQLite)
+        // WAL mode allows concurrent reads while writing, reducing "database locked" errors
+        // Use execute_raw that can handle PRAGMA statements returning rows
+        let _ = self.execute_pragmas(&conn).await;
+
         // Create tables
         self.execute_with_retry(&conn, schema::CREATE_EPISODES_TABLE)
             .await?;
@@ -460,6 +465,29 @@ impl TursoStorage {
         }
     }
 
+    /// Execute PRAGMA statements for database configuration
+    ///
+    /// PRAGMA statements may return rows, so we need to consume them before continuing.
+    async fn execute_pragmas(&self, conn: &Connection) -> Result<()> {
+        // Enable WAL mode for better concurrent access
+        // WAL mode allows concurrent reads while writing, reducing "database locked" errors
+        if let Ok(mut rows) = conn.query("PRAGMA journal_mode=WAL", ()).await {
+            // Consume all rows to avoid "Execute returned rows" error
+            while rows.next().await.is_ok_and(|r| r.is_some()) {
+                // Consume each row
+            }
+        }
+
+        // Increase busy timeout to allow more time for lock acquisition
+        if let Ok(mut rows) = conn.query("PRAGMA busy_timeout=30000", ()).await {
+            while rows.next().await.is_ok_and(|r| r.is_some()) {
+                // Consume each row
+            }
+        }
+
+        Ok(())
+    }
+
     /// Execute a SQL statement with retry logic
     async fn execute_with_retry(&self, conn: &Connection, sql: &str) -> Result<()> {
         let mut attempts = 0;
@@ -558,37 +586,37 @@ pub struct StorageStatistics {
 #[async_trait]
 impl StorageBackend for TursoStorage {
     async fn store_episode(&self, episode: &memory_core::Episode) -> Result<()> {
-        self.store_episode(episode).await
+        TursoStorage::store_episode(self, episode).await
     }
 
     async fn get_episode(&self, id: uuid::Uuid) -> Result<Option<memory_core::Episode>> {
-        self.get_episode(id).await
+        TursoStorage::get_episode(self, id).await
     }
 
     async fn store_pattern(&self, pattern: &memory_core::Pattern) -> Result<()> {
-        self.store_pattern(pattern).await
+        TursoStorage::store_pattern(self, pattern).await
     }
 
     async fn get_pattern(
         &self,
         id: memory_core::episode::PatternId,
     ) -> Result<Option<memory_core::Pattern>> {
-        self.get_pattern(id).await
+        TursoStorage::get_pattern(self, id).await
     }
 
     async fn store_heuristic(&self, heuristic: &memory_core::Heuristic) -> Result<()> {
-        self.store_heuristic(heuristic).await
+        TursoStorage::store_heuristic(self, heuristic).await
     }
 
     async fn get_heuristic(&self, id: uuid::Uuid) -> Result<Option<memory_core::Heuristic>> {
-        self.get_heuristic(id).await
+        TursoStorage::get_heuristic(self, id).await
     }
 
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
     ) -> Result<Vec<memory_core::Episode>> {
-        self.query_episodes_since(since).await
+        TursoStorage::query_episodes_since(self, since).await
     }
 
     async fn query_episodes_by_metadata(
@@ -596,27 +624,27 @@ impl StorageBackend for TursoStorage {
         key: &str,
         value: &str,
     ) -> Result<Vec<memory_core::Episode>> {
-        self.query_episodes_by_metadata(key, value).await
+        TursoStorage::query_episodes_by_metadata(self, key, value).await
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        self.store_embedding(id, embedding).await
+        TursoStorage::store_embedding_backend(self, id, embedding).await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
-        self.get_embedding(id).await
+        TursoStorage::get_embedding_backend(self, id).await
     }
 
     async fn delete_embedding(&self, id: &str) -> Result<bool> {
-        self.delete_embedding(id).await
+        TursoStorage::delete_embedding_backend(self, id).await
     }
 
     async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        self.store_embeddings_batch(embeddings).await
+        TursoStorage::store_embeddings_batch_backend(self, embeddings).await
     }
 
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
-        self.get_embeddings_batch(ids).await
+        TursoStorage::get_embeddings_batch_backend(self, ids).await
     }
 }
 
@@ -627,7 +655,7 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
         &self,
         record: &memory_core::monitoring::types::ExecutionRecord,
     ) -> Result<()> {
-        self.store_execution_record(record)
+        TursoStorage::store_execution_record(self, record)
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
@@ -636,7 +664,7 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
         &self,
         metrics: &memory_core::monitoring::types::AgentMetrics,
     ) -> Result<()> {
-        self.store_agent_metrics(metrics)
+        TursoStorage::store_agent_metrics(self, metrics)
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
@@ -645,7 +673,7 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
         &self,
         metrics: &memory_core::monitoring::types::TaskMetrics,
     ) -> Result<()> {
-        self.store_task_metrics(metrics)
+        TursoStorage::store_task_metrics(self, metrics)
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
@@ -654,7 +682,7 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
         &self,
         agent_name: &str,
     ) -> Result<Option<memory_core::monitoring::types::AgentMetrics>> {
-        self.load_agent_metrics(agent_name)
+        TursoStorage::load_agent_metrics(self, agent_name)
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
@@ -664,7 +692,7 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
         agent_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<memory_core::monitoring::types::ExecutionRecord>> {
-        self.load_execution_records(agent_name, limit)
+        TursoStorage::load_execution_records(self, agent_name, limit)
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
@@ -673,7 +701,7 @@ impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage
         &self,
         task_type: &str,
     ) -> Result<Option<memory_core::monitoring::types::TaskMetrics>> {
-        self.load_task_metrics(task_type)
+        TursoStorage::load_task_metrics(self, task_type)
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }

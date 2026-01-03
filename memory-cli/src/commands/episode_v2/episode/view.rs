@@ -3,7 +3,7 @@
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{helpers, EnhancedError};
-use crate::output::OutputFormat;
+use crate::output::{Output, OutputFormat};
 use memory_core::SelfLearningMemory;
 use uuid::Uuid;
 
@@ -117,8 +117,11 @@ pub async fn view_episode(
 
         let outcome = match &episode.outcome {
             Some(outcome) => Some(serde_json::json!({
-                "verdict": outcome.verdict(),
-                "score": outcome.score(),
+                "type": match outcome {
+                    memory_core::TaskOutcome::Success { .. } => "success",
+                    memory_core::TaskOutcome::PartialSuccess { .. } => "partial_success",
+                    memory_core::TaskOutcome::Failure { .. } => "failure",
+                },
             })),
             None => None,
         };
@@ -144,14 +147,26 @@ pub async fn view_episode(
                 .iter()
                 .enumerate()
                 .map(|(i, step)| {
+                    let (success, observation) = match &step.result {
+                        Some(memory_core::ExecutionResult::Success { output }) => {
+                            (true, Some(output.clone()))
+                        }
+                        Some(memory_core::ExecutionResult::Error { message }) => {
+                            (false, Some(message.clone()))
+                        }
+                        Some(memory_core::ExecutionResult::Timeout) => {
+                            (false, Some("Timeout".to_string()))
+                        }
+                        None => (false, None),
+                    };
                     serde_json::json!({
                         "step": i + 1,
                         "tool": step.tool,
                         "action": step.action,
-                        "success": step.success,
+                        "success": success,
                         "latency_ms": step.latency_ms,
-                        "tokens": step.tokens,
-                        "observation": step.observation,
+                        "tokens": step.tokens_used,
+                        "observation": observation,
                     })
                 })
                 .collect(),
@@ -159,10 +174,21 @@ pub async fn view_episode(
             reward: episode.reward.map(|r| {
                 serde_json::json!({
                     "total": r.total,
-                    "components": r.components,
+                    "base": r.base,
+                    "efficiency": r.efficiency,
+                    "complexity_bonus": r.complexity_bonus,
+                    "quality_multiplier": r.quality_multiplier,
+                    "learning_bonus": r.learning_bonus,
                 })
             }),
-            reflection: episode.reflection.map(|r| r.content),
+            reflection: episode.reflection.map(|r| {
+                serde_json::json!({
+                    "successes": r.successes,
+                    "improvements": r.improvements,
+                    "insights": r.insights,
+                    "generated_at": r.generated_at,
+                })
+            }),
             patterns_count: episode.patterns.len(),
             heuristics_count: episode.heuristics.len(),
         };

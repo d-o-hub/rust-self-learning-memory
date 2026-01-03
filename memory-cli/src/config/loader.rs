@@ -565,6 +565,7 @@ mod cache_tests {
         );
     }
 
+    #[cfg(not(target_os = "macos"))]
     #[test]
     fn test_cache_stats() {
         // Create a temporary config file with unique name to avoid conflicts

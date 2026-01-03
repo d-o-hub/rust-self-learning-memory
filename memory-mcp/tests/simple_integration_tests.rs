@@ -33,11 +33,16 @@ async fn test_mcp_server_tools() {
     );
 
     // Test that server initializes with correct tools
-    // execute_agent_code tool is only available if WASM sandbox is available
+    // Note: With restrictive sandbox, execute_agent_code is not available
+    // Available tools: query_memory, analyze_patterns, health_check, get_metrics,
+    // advanced_pattern_analysis, quality_metrics, configure_embeddings, query_semantic_memory, test_embeddings
     let tools = mcp_server.list_tools().await;
+    assert_eq!(tools.len(), 10);
+
     let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
 
     assert!(tool_names.contains(&"query_memory".to_string()));
+    assert!(!tool_names.contains(&"execute_agent_code".to_string())); // Not available with restrictive sandbox
     assert!(tool_names.contains(&"analyze_patterns".to_string()));
     assert!(tool_names.contains(&"health_check".to_string()));
     assert!(tool_names.contains(&"get_metrics".to_string()));
@@ -46,16 +51,6 @@ async fn test_mcp_server_tools() {
     assert!(tool_names.contains(&"configure_embeddings".to_string()));
     assert!(tool_names.contains(&"query_semantic_memory".to_string()));
     assert!(tool_names.contains(&"test_embeddings".to_string()));
-
-    // Check if execute_agent_code is present based on WASM availability
-    let has_execute_code = tool_names.contains(&"execute_agent_code".to_string());
-    if has_execute_code {
-        // If execute_agent_code is available, expect 10 tools
-        assert_eq!(tools.len(), 10);
-    } else {
-        // If execute_agent_code is not available, expect 9 tools
-        assert_eq!(tools.len(), 9);
-    }
 }
 
 #[tokio::test]

@@ -4,7 +4,7 @@ use super::types::TaskOutcome;
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{helpers, EnhancedError};
-use crate::output::OutputFormat;
+use crate::output::{Output, OutputFormat};
 use memory_core::SelfLearningMemory;
 use uuid::Uuid;
 

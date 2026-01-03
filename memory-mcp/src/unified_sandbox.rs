@@ -45,11 +45,15 @@
 //! ```
 
 use anyhow::{anyhow, Result};
-use base64::prelude::BASE64_STANDARD;
-use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info};
+
+#[cfg_attr(feature = "javy-backend", allow(unused_imports))]
+use base64::prelude::BASE64_STANDARD;
+
+#[cfg_attr(feature = "javy-backend", allow(unused_imports))]
+use base64::Engine;
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};

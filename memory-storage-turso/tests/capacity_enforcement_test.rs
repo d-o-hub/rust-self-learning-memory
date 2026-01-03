@@ -42,6 +42,35 @@ fn create_test_episode(task_desc: &str, _quality_score: f32) -> Episode {
     episode
 }
 
+/// Helper to create a test episode with a specific start time offset (for deterministic ordering)
+fn create_test_episode_with_offset(task_desc: &str, seconds_offset: i64) -> Episode {
+    use chrono::{Duration, Utc};
+
+    let mut episode = Episode::new(
+        task_desc.to_string(),
+        TaskContext::default(),
+        TaskType::Testing,
+    );
+
+    // Set start_time with explicit offset for deterministic ordering
+    episode.start_time = Utc::now() - Duration::seconds(seconds_offset);
+
+    // Add a step to make it more realistic
+    let mut step = ExecutionStep::new(1, "tester".to_string(), "Run tests".to_string());
+    step.result = Some(ExecutionResult::Success {
+        output: "Tests passed".to_string(),
+    });
+    episode.add_step(step);
+
+    // Complete the episode
+    episode.complete(TaskOutcome::Success {
+        verdict: "Task completed".to_string(),
+        artifacts: vec![format!("{}.rs", task_desc)],
+    });
+
+    episode
+}
+
 /// Helper to create episode summary
 async fn create_test_summary(episode: &Episode) -> anyhow::Result<EpisodeSummary> {
     let summarizer = SemanticSummarizer::new();
@@ -80,13 +109,15 @@ async fn test_capacity_enforcement_lru() -> Result<(), Box<dyn std::error::Error
 
     let max_episodes = 3;
 
-    // Store 3 episodes at capacity
-    for i in 0..3 {
-        let episode = create_test_episode(&format!("task_{}", i), 0.5);
-        storage
-            .store_episode_with_capacity(&episode, max_episodes)
-            .await?;
-    }
+    // Store 3 episodes at capacity with explicit time ordering
+    // task_0 is oldest (30 seconds ago), task_1 is next (20 seconds ago), etc.
+    let episode0 = create_test_episode_with_offset("task_0", 30);
+    let episode1 = create_test_episode_with_offset("task_1", 20);
+    let episode2 = create_test_episode_with_offset("task_2", 10);
+
+    storage.store_episode(&episode0).await?;
+    storage.store_episode(&episode1).await?;
+    storage.store_episode(&episode2).await?;
 
     // Verify we have 3 episodes
     let count = storage.get_statistics().await?.episode_count;

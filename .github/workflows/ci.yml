@@ -132,11 +132,21 @@ jobs:
       matrix:
         feature: ["default", "wasm-rquickjs", "javy-backend"]
     steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache/*
+          sudo apt-get clean
+          df -h
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2.8.2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Clean up intermediate files for javy-backend
+        if: matrix.feature == 'javy-backend'
+        run: |
+          cargo clean -p memory-mcp -p memory-core 2>/dev/null || true
+          rm -rf target/debug/deps/*memory* 2>/dev/null || true
       - name: Build (default)
         if: matrix.feature == 'default'
         run: |
@@ -168,8 +178,13 @@ jobs:
     steps:
       - name: Free disk space
         run: |
-          sudo rm -rf /opt/hostedtoolcache/* || true
-          sudo apt-get clean || true
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            sudo rm -rf ~/Library/Caches/Homebrew ~/.cargo/registry ~/.cargo/git
+            rm -rf target
+          else
+            sudo rm -rf /opt/hostedtoolcache/* || true
+            sudo apt-get clean || true
+          fi
           df -h
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -197,6 +212,16 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         rust: [stable]
     steps:
+      - name: Free disk space
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            sudo rm -rf ~/Library/Caches/Homebrew ~/.cargo/registry ~/.cargo/git
+            rm -rf target
+          else
+            sudo rm -rf /opt/hostedtoolcache/* || true
+            sudo apt-get clean || true
+          fi
+          df -h
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:

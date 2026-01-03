@@ -232,7 +232,6 @@ impl TursoStorage {
 
     /// Delete an embedding (internal implementation)
     pub async fn _delete_embedding_internal(&self, item_id: &str) -> Result<bool> {
-        debug!("Deleting embedding: item_id={}", item_id);
         let conn = self.get_connection().await?;
 
         let sql = "DELETE FROM embeddings WHERE item_id = ?";

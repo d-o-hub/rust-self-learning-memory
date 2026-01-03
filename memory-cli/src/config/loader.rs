@@ -453,6 +453,9 @@ mod cache_tests {
         )
         .unwrap();
 
+        // Wait for filesystem to settle (helps with mtime precision on some systems)
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
         // Clear cache to ensure clean state
         clear_cache();
 
@@ -589,6 +592,9 @@ mod cache_tests {
             }"#,
         )
         .unwrap();
+
+        // Wait for filesystem to settle (helps with mtime precision on some systems)
+        std::thread::sleep(std::time::Duration::from_millis(100));
 
         // Get baseline stats
         let stats_baseline = cache_stats();

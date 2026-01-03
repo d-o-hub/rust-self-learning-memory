@@ -34,6 +34,14 @@ use uuid::Uuid;
 mod cache;
 mod storage;
 mod tables;
+mod episodes;
+mod episodes_queries;
+mod episodes_summaries;
+mod heuristics;
+mod patterns;
+mod embeddings;
+mod embeddings_backend;
+mod embeddings_impl;
 
 pub use cache::{CacheConfig, CacheMetrics, LRUCache};
 pub use storage::RedbQuery;

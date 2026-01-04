@@ -115,6 +115,7 @@ impl DomainIndex {
     /// # Returns
     ///
     /// Vector of episode IDs matching the criteria.
+    #[must_use]
     pub fn get_episodes_by_task_type_and_time(
         &self,
         task_type: TaskType,
@@ -160,6 +161,7 @@ impl DomainIndex {
     /// # Returns
     ///
     /// Reference to the temporal clusters for the task type.
+    #[must_use]
     pub fn get_clusters_for_task_type(&self, task_type: TaskType) -> Option<&Vec<TemporalCluster>> {
         self.task_type_indices
             .get(&task_type)
@@ -269,6 +271,7 @@ impl SpatiotemporalIndex {
     /// # Returns
     ///
     /// Vector of episode IDs matching the query.
+    #[must_use]
     pub fn query(
         &self,
         domain: &str,
@@ -307,6 +310,7 @@ impl SpatiotemporalIndex {
     /// # Returns
     ///
     /// Vector of domain names with episodes in the time range.
+    #[must_use]
     pub fn get_domains_in_time_range(
         &self,
         start: DateTime<Utc>,
@@ -332,7 +336,7 @@ impl SpatiotemporalIndex {
     ///
     /// # Returns
     ///
-    /// HashMap of domain -> episode count.
+    /// `HashMap` of domain -> episode count.
     #[must_use]
     pub fn get_domain_counts(&self) -> HashMap<String, usize> {
         self.domain_indices
@@ -349,7 +353,8 @@ impl SpatiotemporalIndex {
     ///
     /// # Returns
     ///
-    /// HashMap of granularity -> episode count.
+    /// `HashMap` of granularity -> episode count.
+    #[must_use]
     pub fn get_temporal_distribution(&self, domain: &str) -> HashMap<TemporalGranularity, usize> {
         let mut distribution = HashMap::new();
 

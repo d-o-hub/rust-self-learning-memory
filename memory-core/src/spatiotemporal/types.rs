@@ -1,6 +1,6 @@
 //! Core types for the spatiotemporal hierarchical index.
 //!
-//! Provides temporal clustering types for domain → task_type → temporal clusters.
+//! Provides temporal clustering types for `domain` → `task_type` → `temporal clusters`.
 
 use crate::episode::Episode;
 use crate::types::TaskType;
@@ -103,7 +103,7 @@ impl TemporalCluster {
     ///
     /// # Returns
     ///
-    /// A tuple of (start_time, end_time) for the cluster.
+    /// A tuple of (`start_time`, `end_time`) for the cluster.
     fn compute_bounds(
         timestamp: DateTime<Utc>,
         granularity: TemporalGranularity,
@@ -115,7 +115,7 @@ impl TemporalCluster {
             TemporalGranularity::Weekly => {
                 // Align to week boundary (Sunday)
                 let days_since_sunday = timestamp.weekday().num_days_from_sunday();
-                timestamp - Duration::days(days_since_sunday as i64)
+                timestamp - Duration::days(i64::from(days_since_sunday))
             }
             TemporalGranularity::Monthly => {
                 // Align to month boundary

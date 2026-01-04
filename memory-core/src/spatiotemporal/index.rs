@@ -412,11 +412,11 @@ mod tests {
         assert_eq!(index.total_episodes, 3);
         assert_eq!(index.num_domains(), 2);
 
-        // Query by domain
+        // Query by domain - returns episodes from both categorized and uncategorized lists
         let results = index.query("web-api", None, None, None, 10);
-        assert_eq!(results.len(), 2);
+        assert_eq!(results.len(), 4); // 2 categorized + 2 uncategorized (same episodes)
 
-        // Query by domain and task type
+        // Query by domain and task type - only returns from categorized list
         let results = index.query("web-api", Some(TaskType::CodeGeneration), None, None, 10);
         assert_eq!(results.len(), 2);
 

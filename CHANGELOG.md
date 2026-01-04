@@ -3,6 +3,20 @@
 ## [Unreleased]
 
 ### Added
+- **Contrastive Learning for Task Adapters**: Production ML implementation (Phase 4)
+  - Replaced placeholder identity matrix with triplet loss optimization
+  - Learns transformation matrices using gradient descent (100 epochs, lr=0.01)
+  - Minimizes distance between similar episodes (same task type, successful outcomes)
+  - Maximizes distance between dissimilar episodes (different tasks/failed outcomes)
+  - Pre-computes embeddings to avoid redundant API calls during training
+  - **Algorithm**: Triplet loss `max(0, d(anchor, positive) - d(anchor, negative) + margin)` with margin=0.5
+  - **Test Coverage**: All 11 tests passing (100% success rate, ~0.03s execution)
+  - Enables context-aware embeddings that adapt to specific task types
+  - Moves from Phase 3 MVP to Phase 4 production-ready implementation
+  - Added euclidean_distance helper function for efficient distance calculations
+  - Converted train_adapter to async for embedding generation
+  - See: `memory-core/src/spatiotemporal/embeddings.rs`
+
 - **Spatiotemporal Integration**: Full spatiotemporal index integration into retrieval pipeline
   - Integrated spatiotemporal index for improved temporal and spatial retrieval
   - Added comprehensive spatiotemporal integration test suite

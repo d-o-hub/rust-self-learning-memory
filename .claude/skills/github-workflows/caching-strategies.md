@@ -35,7 +35,7 @@
 ### Method 2: Rust-Cache Action (Automatic)
 
 ```yaml
-- uses: actions/checkout@v4
+- uses: actions/checkout@v5
 
 - name: Install Rust
   uses: dtolnay/rust-toolchain@stable

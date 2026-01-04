@@ -58,7 +58,7 @@ strategy:
         target: x86_64-pc-windows-msvc
 
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v5
 
   - name: Install Rust
     uses: dtolnay/rust-toolchain@stable
@@ -149,7 +149,7 @@ steps:
 deploy-docs:
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable

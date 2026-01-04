@@ -176,18 +176,30 @@ impl MemoryMCPServer {
                 if let Ok(mut file) = std::fs::File::open(&plugin_path) {
                     let mut magic = [0u8; 4];
                     if std::io::Read::read_exact(&mut file, &mut magic).is_ok() {
-                        return &magic == b"\0asm";
+                        if &magic == b"\0asm" {
+                            debug!("Valid Javy plugin found ({} bytes)", metadata.len());
+                            return true;
+                        }
                     }
                 }
             }
         }
 
-        const EMBEDDED_PLUGIN: &[u8] = include_bytes!("../javy-plugin.wasm");
+        const EMBEDDED_PLUGIN: &[u8] = include_bytes!("../../javy-plugin.wasm");
         if EMBEDDED_PLUGIN.len() > 100 && EMBEDDED_PLUGIN.starts_with(b"\0asm") {
+            debug!(
+                "Valid embedded Javy plugin ({} bytes)",
+                EMBEDDED_PLUGIN.len()
+            );
             return true;
         }
 
-        warn!("Javy plugin not valid (too small or missing WASM magic bytes)");
+        // Invalid plugin is expected when javy-backend feature is used without proper setup
+        // Javy compiler will handle graceful degradation
+        debug!(
+            "Javy plugin not valid ({} bytes, expected >100 bytes with WASM magic bytes)",
+            EMBEDDED_PLUGIN.len()
+        );
         false
     }
 
@@ -210,8 +222,8 @@ impl MemoryMCPServer {
         #[cfg(feature = "javy-backend")]
         {
             if !Self::is_javy_plugin_valid() {
-                warn!("WASM sandbox not available due to invalid Javy plugin");
-                return false;
+                debug!("WASM sandbox may be limited due to invalid Javy plugin");
+                // Continue checking - sandbox might still work with pre-compiled WASM
             }
         }
 

@@ -460,6 +460,7 @@ impl JavyCompiler {
     }
 
     /// Check if a WASM file is valid by checking magic bytes and minimum size
+    #[allow(dead_code)]
     fn is_valid_wasm_file(path: &Path) -> bool {
         if let Ok(mut file) = std::fs::File::open(path) {
             let mut magic = [0u8; 4];

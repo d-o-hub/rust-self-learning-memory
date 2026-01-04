@@ -125,7 +125,7 @@ impl TemporalCluster {
                 // Align to quarter boundary
                 let quarter_month = ((timestamp.month0() / 3) * 3) + 1;
                 timestamp
-                    .with_month(quarter_month as u32)
+                    .with_month(quarter_month)
                     .unwrap_or(timestamp)
                     .with_day(1)
                     .unwrap_or(timestamp)
@@ -153,7 +153,7 @@ impl TemporalCluster {
     ///
     /// # Returns
     ///
-    /// `true` if the timestamp is within [start_time, end_time).
+    /// `true` if the timestamp is within [`start_time`, `end_time`).
     #[must_use]
     pub fn contains_timestamp(&self, timestamp: DateTime<Utc>) -> bool {
         timestamp >= self.start_time && timestamp < self.end_time
@@ -290,6 +290,7 @@ impl TaskTypeIndex {
     /// # Returns
     ///
     /// Vector of episode IDs from clusters within the time range.
+    #[must_use]
     pub fn get_episodes_in_range(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> Vec<Uuid> {
         let mut episode_ids = Vec::new();
 

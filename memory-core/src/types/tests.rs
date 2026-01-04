@@ -47,7 +47,10 @@ fn test_memory_config_from_env_with_values() {
     let config = MemoryConfig::from_env();
 
     assert_eq!(config.max_episodes, Some(10000));
-    assert!(matches!(config.eviction_policy, Some(crate::episodic::EvictionPolicy::LRU)));
+    assert!(matches!(
+        config.eviction_policy,
+        Some(crate::episodic::EvictionPolicy::LRU)
+    ));
     assert!(!config.enable_summarization);
 
     // Cleanup
@@ -118,8 +121,14 @@ fn test_task_type_display() {
 
 #[test]
 fn test_task_type_from_str() {
-    assert_eq!("code_generation".parse::<TaskType>().unwrap(), TaskType::CodeGeneration);
-    assert_eq!("debugging".parse::<TaskType>().unwrap(), TaskType::Debugging);
+    assert_eq!(
+        "code_generation".parse::<TaskType>().unwrap(),
+        TaskType::CodeGeneration
+    );
+    assert_eq!(
+        "debugging".parse::<TaskType>().unwrap(),
+        TaskType::Debugging
+    );
     assert!("invalid".parse::<TaskType>().is_err());
 }
 

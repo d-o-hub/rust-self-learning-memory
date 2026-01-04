@@ -1,8 +1,57 @@
 # Implementation Plan - Status Overview
 
-**Document Version**: 4.0 (v0.2.0 Turso AI Enhancements)
+**Document Version**: 4.1 (v0.2.0 File Splitting Update)
 **Created**: 2025-12-19
-**Updated**: 2025-12-30 (Phase 1 Multi-Dimension Complete)
+**Updated**: 2026-01-03 (File Splitting Progress)
+
+---
+
+## Current Status: File Splitting In Progress
+
+**Priority**: P0 - Codebase Standards Compliance
+**Date**: 2026-01-03
+**Status**: IN PROGRESS
+
+### Files Analyzed for Splitting
+
+| File | Current LOC | Status | Notes |
+|------|-------------|--------|-------|
+| `memory-storage-turso/src/storage.rs` | 2,502 | ✅ Already split | 6 modules in storage/ |
+| `memory-mcp/src/patterns/predictive.rs` | 2,435 | ✅ Already split | predictive/ directory exists |
+| `memory-core/src/memory/mod.rs` | 1,530 | ✅ COMPLETED | Split to init/monitoring/queries/tests |
+| `memory-storage-redb/src/storage.rs` | 1,514 | ⏳ Pending | Needs splitting |
+| `memory-mcp/src/server.rs` | 1,513 | ⏳ Pending | Needs splitting |
+| `memory-mcp/src/patterns/statistical.rs` | 1,132 | ⏳ Pending | Needs splitting |
+| `memory-cli/src/config/types.rs` | 1,052 | ⏳ Pending | Needs splitting |
+| `memory-core/src/spatiotemporal/index.rs` | 1,044 | ⏳ Pending | Needs splitting |
+| `memory-core/src/spatiotemporal/retriever.rs` | 1,014 | ⏳ Pending | Needs splitting |
+
+### Already Compliant Files
+
+| File | Current LOC |
+|------|-------------|
+| `memory-storage-turso/src/storage/mod.rs` | ~350 |
+| `memory-storage-turso/src/storage/episodes.rs` | ~500 |
+| `memory-storage-turso/src/storage/patterns.rs` | ~500 |
+| `memory-storage-turso/src/storage/search.rs` | ~500 |
+| `memory-storage-turso/src/storage/capacity.rs` | ~300 |
+| `memory-storage-turso/src/storage/heuristics.rs` | ~400 |
+| `memory-storage-turso/src/storage/monitoring.rs` | ~350 |
+| `memory-mcp/src/patterns/predictive/mod.rs` | 120 |
+| `memory-mcp/src/patterns/predictive/anomaly.rs` | 215 |
+| `memory-mcp/src/patterns/predictive/causal.rs` | 285 |
+| `memory-mcp/src/patterns/predictive/dbscan.rs` | 500 |
+| `memory-mcp/src/patterns/predictive/kdtree.rs` | 400 |
+| `memory-core/src/memory/mod.rs` | 442 |
+| `memory-core/src/memory/init.rs` | 265 |
+| `memory-core/src/memory/monitoring.rs` | 121 |
+| `memory-core/src/memory/queries.rs` | 177 |
+| `memory-core/src/memory/tests.rs` | 565 |
+| `memory-core/src/patterns/mod.rs` | 28 |
+| `memory-core/src/mcp/mod.rs` | 9 |
+| `memory-core/src/reflection/mod.rs` | 110 |
+| `memory-cli/src/main.rs` | 259 |
+| `memory-core/src/learning/mod.rs` | 11 |
 
 ---
 

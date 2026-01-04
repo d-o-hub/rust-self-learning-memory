@@ -36,8 +36,9 @@ async fn test_mcp_server_tools() {
     // Note: With restrictive sandbox, execute_agent_code is not available
     // Available tools: query_memory, analyze_patterns, health_check, get_metrics,
     // advanced_pattern_analysis, quality_metrics, configure_embeddings, query_semantic_memory, test_embeddings
+    // Total: 9 tools (execute_agent_code is excluded with restrictive sandbox)
     let tools = mcp_server.list_tools().await;
-    assert_eq!(tools.len(), 10);
+    assert_eq!(tools.len(), 9);
 
     let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
 

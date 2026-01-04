@@ -255,17 +255,13 @@ impl SelfLearningMemory {
                     // Phase 3: Remove evicted episodes from spatiotemporal index
                     if let Some(ref index) = self.spatiotemporal_index {
                         if let Ok(mut index_write) = index.try_write() {
+                            let mut removed_count = 0;
                             for evicted_id in &evicted_ids {
-                                if let Err(e) = index_write.remove_episode(*evicted_id) {
-                                    warn!(
-                                        episode_id = %evicted_id,
-                                        error = %e,
-                                        "Failed to remove evicted episode from spatiotemporal index"
-                                    );
-                                }
+                                index_write.remove(*evicted_id);
+                                removed_count += 1;
                             }
                             debug!(
-                                evicted_count = evicted_ids.len(),
+                                evicted_count = removed_count,
                                 "Removed evicted episodes from spatiotemporal index"
                             );
                         }
@@ -308,20 +304,13 @@ impl SelfLearningMemory {
         // Update spatiotemporal index if enabled
         if let Some(ref index) = self.spatiotemporal_index {
             if let Ok(mut index_write) = index.try_write() {
-                if let Err(e) = index_write.insert_episode(episode) {
-                    warn!(
-                        episode_id = %episode_id,
-                        error = %e,
-                        "Failed to insert episode into spatiotemporal index"
-                    );
-                } else {
-                    debug!(
-                        episode_id = %episode_id,
-                        domain = %episode.context.domain,
-                        task_type = %episode.task_type,
-                        "Inserted episode into spatiotemporal index"
-                    );
-                }
+                index_write.insert(episode);
+                debug!(
+                    episode_id = %episode_id,
+                    domain = %episode.context.domain,
+                    task_type = %episode.task_type,
+                    "Inserted episode into spatiotemporal index"
+                );
             } else {
                 debug!(
                     episode_id = %episode_id,

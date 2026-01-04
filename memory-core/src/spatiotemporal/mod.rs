@@ -26,10 +26,10 @@ pub mod diversity;
 pub mod embeddings;
 pub mod index;
 pub mod retriever;
+pub mod types;
 
 pub use diversity::{DiversityMaximizer, ScoredEpisode};
 pub use embeddings::{ContextAwareEmbeddings, ContrastivePair, TaskAdapter};
-pub use index::{
-    DomainIndex, SpatiotemporalIndex, TaskTypeIndex, TemporalCluster, TemporalGranularity,
-};
+pub use index::{DomainIndex, SpatiotemporalIndex};
 pub use retriever::{HierarchicalRetriever, RetrievalQuery};
+pub use types::{TaskTypeIndex, TemporalCluster, TemporalGranularity};

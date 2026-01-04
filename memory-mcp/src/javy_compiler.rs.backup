@@ -21,7 +21,6 @@
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
@@ -459,19 +458,6 @@ impl JavyCompiler {
         }
     }
 
-    /// Check if a WASM file is valid by checking magic bytes and minimum size
-    #[allow(dead_code)]
-    fn is_valid_wasm_file(path: &Path) -> bool {
-        if let Ok(mut file) = std::fs::File::open(path) {
-            let mut magic = [0u8; 4];
-            if std::io::Read::read_exact(&mut file, &mut magic).is_ok() {
-                return &magic == b"\0asm"
-                    && file.metadata().map(|m| m.len() > 100).unwrap_or(false);
-            }
-        }
-        false
-    }
-
     /// Perform the actual JavaScript to WASM compilation
     #[cfg(feature = "javy-backend")]
     async fn perform_compilation(&self, js_source: &str) -> Result<Vec<u8>> {
@@ -518,8 +504,7 @@ impl JavyCompiler {
         tokio::task::spawn_blocking(move || {
             // If a JAVY_PLUGIN is provided and looks like a valid WASM, prefer the plugin + codegen path
             if let Ok(plugin_path) = std::env::var("JAVY_PLUGIN") {
-                let plugin = Path::new(&plugin_path);
-                if plugin.exists() && Self::is_valid_wasm_file(plugin) {
+                if std::fs::File::open(&plugin_path).is_ok() {
                     let js = JS::from_string(js_clone);
                     let mut gen = Generator::default();
                     gen.linking(LinkingKind::Dynamic);
@@ -531,18 +516,12 @@ impl JavyCompiler {
                         plugin_path
                     );
                     return Ok(wasm);
-                } else if plugin.exists() {
-                    debug!(
-                        "JAVY_PLUGIN {} exists but is not a valid WASM file (too small or wrong format); attempting CLI fallback",
-                        plugin_path
-                    );
                 }
             }
 
             // Try default bundled plugin path
             let default_path = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
-            let default_plugin = Path::new(&default_path);
-            if default_plugin.exists() && Self::is_valid_wasm_file(default_plugin) {
+            if std::fs::File::open(&default_path).is_ok() {
                 let js = JS::from_string(js_clone);
                 let mut gen = Generator::default();
                 gen.linking(LinkingKind::Dynamic);
@@ -554,15 +533,10 @@ impl JavyCompiler {
                     default_path
                 );
                 return Ok(wasm);
-            } else if default_plugin.exists() {
-                debug!(
-                    "Bundled plugin {} exists but is not a valid WASM file (too small or wrong format); attempting CLI fallback",
-                    default_path
-                );
             }
 
-            // Plugin not available or invalid — attempt CLI fallback
-            debug!("Javy plugin not available or invalid; attempting javy CLI fallback");
+            // Plugin not available — attempt CLI fallback
+            debug!("Javy plugin not found; attempting javy CLI fallback");
             use std::io::Write;
             use std::process::{Command, Stdio};
 
@@ -573,7 +547,7 @@ impl JavyCompiler {
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .spawn()
-                .context("Failed to spawn javy CLI. Please install javy: cargo install javy")?;
+                .context("Failed to spawn javy CLI")?;
 
             if let Some(mut stdin) = child.stdin.take() {
                 stdin
@@ -587,7 +561,7 @@ impl JavyCompiler {
 
             if !output.status.success() {
                 return Err(anyhow::anyhow!(
-                    "javy CLI compilation failed. Error: {}. Please install javy: cargo install javy",
+                    "javy CLI failed: {}",
                     String::from_utf8_lossy(&output.stderr)
                 ));
             }

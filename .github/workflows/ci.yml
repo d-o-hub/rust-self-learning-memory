@@ -131,6 +131,11 @@ jobs:
       fail-fast: false
       matrix:
         feature: ["default", "wasm-rquickjs", "javy-backend"]
+    # javy-backend feature: Optional feature with graceful degradation when Javy plugin unavailable
+    # - Requires: javy-plugin.wasm (>100 bytes, valid WASM) OR javy CLI in PATH
+    # - Current state: 9-byte placeholder, triggers graceful degradation in javy_compiler.rs
+    # - Expected behavior: Builds successfully, tests pass
+    # - See: memory-mcp/src/javy_compiler.rs for implementation details
     steps:
       - name: Free disk space
         run: |
@@ -160,8 +165,15 @@ jobs:
       - name: Build (javy-backend)
         if: matrix.feature == 'javy-backend'
         run: |
+          # Build with javy-backend feature - graceful degradation is expected when plugin is invalid
+          echo "Building memory-mcp with javy-backend feature..."
+          echo "Note: javy-plugin.wasm is currently a 9-byte placeholder (invalid WASM)"
+          echo "The feature will build successfully with graceful degradation behavior"
+          echo ""
           cargo build -p memory-mcp --features javy-backend
           cargo test -p memory-mcp --features javy-backend -- --test-threads=2
+          echo ""
+          echo "✓ javy-backend feature build and tests completed successfully"
 
   mcp-matrix:
     name: MCP Matrix

@@ -48,6 +48,8 @@ use parking_lot::RwLock;
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
+#[cfg(feature = "javy-backend")]
+use tracing::debug;
 use tracing::{info, warn};
 
 /// MCP server for memory integration

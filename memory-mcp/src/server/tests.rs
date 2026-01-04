@@ -51,7 +51,9 @@ async fn test_get_tool() {
 #[tokio::test]
 async fn test_execute_code() {
     if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available() {
-        tracing::info!("Skipping execute_agent_code test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
+        tracing::info!(
+            "Skipping execute_agent_code test (set RUN_WASM_TESTS=1 and ensure WASM is available)"
+        );
         return;
     }
 

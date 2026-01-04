@@ -1,4 +1,4 @@
-//! Tests for SelfLearningMemory
+//! Tests for `SelfLearningMemory`
 //!
 //! This module contains integration tests for the memory system.
 

@@ -117,7 +117,10 @@ pub async fn warm_cache(
 }
 
 /// Warm the episodes cache by loading recent episodes
-async fn warm_episodes_cache(memory: &Arc<SelfLearningMemory>, config: &CacheWarmingConfig) -> Result<()> {
+async fn warm_episodes_cache(
+    memory: &Arc<SelfLearningMemory>,
+    config: &CacheWarmingConfig,
+) -> Result<()> {
     info!(
         "Warming episodes cache with {} recent episodes",
         config.recent_episodes_limit
@@ -147,7 +150,10 @@ async fn warm_episodes_cache(memory: &Arc<SelfLearningMemory>, config: &CacheWar
 }
 
 /// Warm the patterns cache by loading relevant patterns
-async fn warm_patterns_cache(memory: &Arc<SelfLearningMemory>, config: &CacheWarmingConfig) -> Result<()> {
+async fn warm_patterns_cache(
+    memory: &Arc<SelfLearningMemory>,
+    config: &CacheWarmingConfig,
+) -> Result<()> {
     info!(
         "Warming patterns cache with {} patterns per domain",
         config.patterns_per_domain
@@ -190,7 +196,10 @@ async fn warm_patterns_cache(memory: &Arc<SelfLearningMemory>, config: &CacheWar
 }
 
 /// Warm common query patterns by executing typical queries
-async fn warm_query_patterns(memory: &Arc<SelfLearningMemory>, config: &CacheWarmingConfig) -> Result<()> {
+async fn warm_query_patterns(
+    memory: &Arc<SelfLearningMemory>,
+    config: &CacheWarmingConfig,
+) -> Result<()> {
     info!(
         "Warming query patterns with {} sample queries",
         config.sample_queries.len()
@@ -208,11 +217,7 @@ async fn warm_query_patterns(memory: &Arc<SelfLearningMemory>, config: &CacheWar
 
         // Query memory (this will populate caches)
         let _episodes = memory
-            .retrieve_relevant_context(
-                query.description.clone(),
-                context.clone(),
-                5,
-            )
+            .retrieve_relevant_context(query.description.clone(), context.clone(), 5)
             .await;
 
         // Query patterns

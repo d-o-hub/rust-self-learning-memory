@@ -34,9 +34,9 @@
 
 // Submodules
 pub mod cache_warming;
-pub mod tools;
 #[cfg(test)]
 mod tests;
+pub mod tools;
 
 use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
@@ -101,14 +101,28 @@ impl MemoryMCPServer {
             cache: Arc::new(QueryCache::new()),
         };
 
-        info!("MCP server initialized with {} tools", server.tools.read().len());
-        info!("Monitoring system initialized (enabled: {})", server.monitoring.config().enabled);
+        info!(
+            "MCP server initialized with {} tools",
+            server.tools.read().len()
+        );
+        info!(
+            "Monitoring system initialized (enabled: {})",
+            server.monitoring.config().enabled
+        );
 
         // Perform cache warming if enabled
         if cache_warming::is_cache_warming_enabled() {
             info!("Starting cache warming process...");
-            if let Err(e) = cache_warming::warm_cache(&server.memory, &cache_warming::CacheWarmingConfig::from_env()).await {
-                warn!("Cache warming failed, but continuing with server startup: {}", e);
+            if let Err(e) = cache_warming::warm_cache(
+                &server.memory,
+                &cache_warming::CacheWarmingConfig::from_env(),
+            )
+            .await
+            {
+                warn!(
+                    "Cache warming failed, but continuing with server startup: {}",
+                    e
+                );
             } else {
                 info!("Cache warming completed successfully");
             }

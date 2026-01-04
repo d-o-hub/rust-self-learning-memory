@@ -390,7 +390,7 @@ mod tests {
     fn create_test_episode(domain: &str, task_type: TaskType) -> Episode {
         let context = TaskContext {
             domain: domain.to_string(),
-            complexity: crate::types::ComplexityLevel::Low,
+            complexity: crate::types::ComplexityLevel::Simple,
             tags: vec![],
             ..Default::default()
         };
@@ -403,7 +403,7 @@ mod tests {
 
         let episode1 = create_test_episode("web-api", TaskType::CodeGeneration);
         let episode2 = create_test_episode("web-api", TaskType::CodeGeneration);
-        let episode3 = create_test_episode("data-processing", TaskType::DataAnalysis);
+        let episode3 = create_test_episode("data-processing", TaskType::Analysis);
 
         index.insert(&episode1);
         index.insert(&episode2);

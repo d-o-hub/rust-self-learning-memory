@@ -67,6 +67,15 @@ pub struct TaskAdapter {
     pub trained_on_count: usize,
 }
 
+/// Helper function to compute Euclidean distance between two vectors
+fn euclidean_distance(a: &[f32], b: &[f32]) -> f32 {
+    a.iter()
+        .zip(b.iter())
+        .map(|(x, y)| (x - y) * (x - y))
+        .sum::<f32>()
+        .sqrt()
+}
+
 impl TaskAdapter {
     /// Create a new task adapter with identity matrix
     ///
@@ -228,9 +237,14 @@ impl ContextAwareEmbeddings {
 
     /// Train a task-specific adapter using contrastive learning
     ///
-    /// This simplified implementation creates an identity matrix as a baseline.
-    /// Full contrastive learning optimization (minimizing positive distances,
-    /// maximizing negative distances) can be added in Phase 4.
+    /// Uses triplet loss to learn a transformation matrix that brings similar
+    /// episodes (same task type, successful outcomes) closer together while
+    /// pushing dissimilar episodes (different task types or failed outcomes) apart.
+    ///
+    /// The algorithm:
+    /// 1. Embeds anchor, positive, and negative episodes using base provider
+    /// 2. Iteratively optimizes adaptation matrix using gradient descent
+    /// 3. Minimizes triplet loss: max(0, d(anchor, positive) - d(anchor, negative) + margin)
     ///
     /// # Arguments
     ///
@@ -243,7 +257,7 @@ impl ContextAwareEmbeddings {
     ///
     /// # Errors
     ///
-    /// Returns error if training fails
+    /// Returns error if training fails or embeddings cannot be generated
     ///
     /// # Examples
     ///
@@ -261,11 +275,11 @@ impl ContextAwareEmbeddings {
     /// let pairs: Vec<ContrastivePair> = vec![];
     ///
     /// // Train adapter for debugging tasks
-    /// embeddings.train_adapter(TaskType::Debugging, &pairs)?;
+    /// embeddings.train_adapter(TaskType::Debugging, &pairs).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn train_adapter(
+    pub async fn train_adapter(
         &mut self,
         task_type: TaskType,
         contrastive_pairs: &[ContrastivePair],
@@ -277,18 +291,81 @@ impl ContextAwareEmbeddings {
         // Get embedding dimension from base provider
         let dim = self.base_embeddings.embedding_dimension();
 
-        // Create identity matrix as baseline (MVP implementation)
-        // TODO: Implement full contrastive learning optimization in Phase 4
-        // This would involve:
-        // 1. Computing embeddings for anchor, positive, negative
-        // 2. Learning transformation matrix M that:
-        //    - Minimizes distance(M * anchor, M * positive)
-        //    - Maximizes distance(M * anchor, M * negative)
-        // 3. Using gradient descent or similar optimization
-        let adapter = TaskAdapter::new_identity(task_type, dim);
+        // Initialize with identity matrix
+        let mut adapter = TaskAdapter::new_identity(task_type, dim);
 
-        // Update adapter with training count
-        let mut adapter = adapter;
+        // Training hyperparameters
+        const LEARNING_RATE: f32 = 0.01;
+        const EPOCHS: usize = 100;
+        const MARGIN: f32 = 0.5; // Triplet loss margin
+
+        // Embed all episodes once to avoid redundant computation
+        let mut embedded_pairs = Vec::new();
+        for pair in contrastive_pairs {
+            let anchor_emb = self
+                .base_embeddings
+                .embed_text(&pair.anchor.task_description)
+                .await?;
+            let positive_emb = self
+                .base_embeddings
+                .embed_text(&pair.positive.task_description)
+                .await?;
+            let negative_emb = self
+                .base_embeddings
+                .embed_text(&pair.negative.task_description)
+                .await?;
+
+            embedded_pairs.push((anchor_emb, positive_emb, negative_emb));
+        }
+
+        // Gradient descent optimization
+        for _epoch in 0..EPOCHS {
+            let mut gradient = vec![vec![0.0; dim]; dim];
+
+            // Compute gradient across all training pairs
+            for (anchor_emb, positive_emb, negative_emb) in &embedded_pairs {
+                // Apply current adapter
+                let anchor_adapted = adapter.adapt(anchor_emb.clone());
+                let positive_adapted = adapter.adapt(positive_emb.clone());
+                let negative_adapted = adapter.adapt(negative_emb.clone());
+
+                // Compute distances
+                let d_pos = euclidean_distance(&anchor_adapted, &positive_adapted);
+                let d_neg = euclidean_distance(&anchor_adapted, &negative_adapted);
+
+                // Triplet loss: max(0, d_pos - d_neg + margin)
+                let loss = (d_pos - d_neg + MARGIN).max(0.0);
+
+                // Only update gradient if loss > 0 (violation of margin constraint)
+                if loss > 0.0 {
+                    // Compute gradient for this triplet
+                    for i in 0..dim {
+                        for j in 0..dim {
+                            // Gradient w.r.t. positive distance (increase to push apart)
+                            let grad_pos = (anchor_emb[j] - positive_emb[j])
+                                * (anchor_adapted[i] - positive_adapted[i]);
+
+                            // Gradient w.r.t. negative distance (decrease to bring closer)
+                            let grad_neg = (anchor_emb[j] - negative_emb[j])
+                                * (anchor_adapted[i] - negative_adapted[i]);
+
+                            // Total gradient (minimize d_pos, maximize d_neg)
+                            gradient[i][j] += grad_pos - grad_neg;
+                        }
+                    }
+                }
+            }
+
+            // Apply gradient descent update
+            for i in 0..dim {
+                for j in 0..dim {
+                    adapter.adaptation_matrix[i][j] -=
+                        LEARNING_RATE * gradient[i][j] / contrastive_pairs.len() as f32;
+                }
+            }
+        }
+
+        // Update training count
         adapter.trained_on_count = contrastive_pairs.len();
 
         self.task_adapters.insert(task_type, adapter);
@@ -484,8 +561,8 @@ mod tests {
         assert_eq!(output, input);
     }
 
-    #[test]
-    fn test_train_adapter_success() {
+    #[tokio::test]
+    async fn test_train_adapter_success() {
         let provider = Arc::new(MockEmbeddingProvider::new(128));
         let mut embeddings = ContextAwareEmbeddings::new(provider);
 
@@ -503,7 +580,7 @@ mod tests {
             },
         ];
 
-        let result = embeddings.train_adapter(TaskType::CodeGeneration, &pairs);
+        let result = embeddings.train_adapter(TaskType::CodeGeneration, &pairs).await;
         assert!(result.is_ok());
         assert!(embeddings.has_adapter(TaskType::CodeGeneration));
         assert_eq!(embeddings.adapter_count(), 1);
@@ -512,12 +589,12 @@ mod tests {
         assert_eq!(adapter.trained_on_count, 2);
     }
 
-    #[test]
-    fn test_train_adapter_empty_pairs() {
+    #[tokio::test]
+    async fn test_train_adapter_empty_pairs() {
         let provider = Arc::new(MockEmbeddingProvider::new(128));
         let mut embeddings = ContextAwareEmbeddings::new(provider);
 
-        let result = embeddings.train_adapter(TaskType::Debugging, &[]);
+        let result = embeddings.train_adapter(TaskType::Debugging, &[]).await;
         assert!(result.is_err());
         assert!(!embeddings.has_adapter(TaskType::Debugging));
     }
@@ -536,9 +613,10 @@ mod tests {
 
         embeddings
             .train_adapter(TaskType::Refactoring, &pairs)
+            .await
             .unwrap();
 
-        // Get adapted embedding (with identity matrix, should equal base)
+        // Get adapted embedding (should be different from base due to learned transformation)
         let text = "refactor code";
         let adapted = embeddings
             .get_adapted_embedding(text, Some(TaskType::Refactoring))
@@ -547,9 +625,10 @@ mod tests {
 
         assert_eq!(adapted.len(), 128);
 
-        // With identity matrix, adapted should equal base
-        let base = provider.embed_text(text).await.unwrap();
-        assert_eq!(adapted, base);
+        // With trained adapter, adapted may differ from base
+        // Just verify it's a valid embedding
+        assert!(!adapted.is_empty());
+        assert_eq!(adapted.len(), 128);
     }
 
     #[tokio::test]
@@ -570,8 +649,8 @@ mod tests {
         assert_eq!(adapted_some, base);
     }
 
-    #[test]
-    fn test_multiple_adapters() {
+    #[tokio::test]
+    async fn test_multiple_adapters() {
         let provider = Arc::new(MockEmbeddingProvider::new(64));
         let mut embeddings = ContextAwareEmbeddings::new(provider);
 
@@ -590,9 +669,11 @@ mod tests {
 
         embeddings
             .train_adapter(TaskType::CodeGeneration, &coding_pairs)
+            .await
             .unwrap();
         embeddings
             .train_adapter(TaskType::Debugging, &debug_pairs)
+            .await
             .unwrap();
 
         assert_eq!(embeddings.adapter_count(), 2);
@@ -632,6 +713,7 @@ mod tests {
 
         embeddings
             .train_adapter(TaskType::Analysis, &pairs)
+            .await
             .unwrap();
 
         // Check that adapted embeddings maintain dimension

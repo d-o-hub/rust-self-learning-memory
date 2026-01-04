@@ -278,21 +278,18 @@ impl SpatiotemporalIndex {
         limit: usize,
     ) -> Vec<Uuid> {
         if let Some(domain_index) = self.domain_indices.get(domain) {
-            let mut episode_ids = Vec::new();
-
-            if let Some(task_type) = task_type {
+            let episode_ids = if let Some(task_type) = task_type {
                 // Get episodes for specific task type and time range
                 let start = start_time
                     .unwrap_or_else(|| DateTime::from_timestamp(0, 0).unwrap_or_else(Utc::now));
                 let end = end_time.unwrap_or_else(|| {
-                    DateTime::from_timestamp(253402300799, 999999999).unwrap_or_else(Utc::now)
+                    DateTime::from_timestamp(253_402_300_799, 999_999_999).unwrap_or_else(Utc::now)
                 });
-                episode_ids =
-                    domain_index.get_episodes_by_task_type_and_time(task_type, start, end);
+                domain_index.get_episodes_by_task_type_and_time(task_type, start, end)
             } else {
                 // Get all episodes for the domain
-                episode_ids = domain_index.get_recent_episodes(limit);
-            }
+                domain_index.get_recent_episodes(limit)
+            };
 
             return episode_ids.into_iter().take(limit).collect();
         }

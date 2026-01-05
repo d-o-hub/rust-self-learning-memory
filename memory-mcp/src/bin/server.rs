@@ -2331,7 +2331,7 @@ async fn handle_embedding_config(
             Some("text-embedding-ada-002") => 1536,
             _ => 1536, // Default for OpenAI
         },
-        "local" | _ => 384, // all-MiniLM-L6-v2 default
+        _ => 384, // Default for local or other providers (all-MiniLM-L6-v2)
     };
 
     let model_name = embedding_config.model.clone().unwrap_or_else(|| {

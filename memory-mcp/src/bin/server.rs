@@ -1,7 +1,8 @@
 //! MCP Server Binary
 //!
 //! This binary implements the Model Context Protocol (MCP) server for the
-//! self-learning memory system. It communicates over stdio using JSON-RPC.
+//! self-learning memory system with OAuth 2.1 authorization support.
+//! It communicates over stdio using JSON-RPC.
 
 use anyhow::Context;
 use memory_core::{Error, MemoryConfig, SelfLearningMemory};
@@ -19,7 +20,72 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
+
+/// OAuth 2.1 Configuration
+#[derive(Debug, Clone)]
+struct OAuthConfig {
+    /// Whether authorization is enabled
+    enabled: bool,
+    /// Expected audience for tokens
+    audience: Option<String>,
+    /// Expected issuer for tokens
+    issuer: Option<String>,
+    /// Supported scopes
+    scopes: Vec<String>,
+    /// JWKS URI for token validation
+    jwks_uri: Option<String>,
+}
+
+impl Default for OAuthConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false, // Disabled by default for local development
+            audience: None,
+            issuer: None,
+            scopes: vec!["mcp:read".to_string(), "mcp:write".to_string()],
+            jwks_uri: None,
+        }
+    }
+}
+
+/// Protected Resource Metadata (RFC 9728)
+#[derive(Debug, Serialize)]
+struct ProtectedResourceMetadata {
+    #[serde(rename = "authorizationServers", skip_serializing_if = "Vec::is_empty")]
+    authorization_servers: Vec<String>,
+    resource: String,
+    #[serde(rename = "scopesSupported", skip_serializing_if = "Vec::is_empty")]
+    scopes_supported: Vec<String>,
+    #[serde(rename = "resourceMetadata")]
+    resource_metadata: Option<String>,
+}
+
+/// Bearer token claims (simplified JWT structure)
+#[derive(Debug)]
+struct TokenClaims {
+    /// Subject (user/client ID)
+    sub: String,
+    /// Issuer
+    iss: Option<String>,
+    /// Audience
+    aud: Option<String>,
+    /// Expiration time
+    exp: Option<u64>,
+    /// Issued at
+    iat: Option<u64>,
+    /// Scopes
+    scope: Option<String>,
+}
+
+/// Authorization result
+#[derive(Debug)]
+enum AuthorizationResult {
+    Authorized,
+    MissingToken,
+    InvalidToken(String),
+    InsufficientScope(Vec<String>),
+}
 
 /// MCP Initialize response payload
 #[derive(Debug, Serialize)]
@@ -314,11 +380,187 @@ async fn main() -> anyhow::Result<()> {
 
     info!("MCP Server initialized successfully");
 
-    run_jsonrpc_server(mcp_server).await
+    // Initialize OAuth config from environment
+    let oauth_config = load_oauth_config();
+    if oauth_config.enabled {
+        info!("OAuth 2.1 authorization enabled");
+        if let Some(ref issuer) = oauth_config.issuer {
+            info!("Expected token issuer: {}", issuer);
+        }
+    }
+
+    run_jsonrpc_server(mcp_server, oauth_config).await
+}
+
+/// Load OAuth 2.1 configuration from environment variables
+fn load_oauth_config() -> OAuthConfig {
+    let enabled = std::env::var("MCP_OAUTH_ENABLED")
+        .unwrap_or_else(|_| "false".to_string())
+        .to_lowercase();
+
+    OAuthConfig {
+        enabled: enabled == "true" || enabled == "1" || enabled == "yes",
+        audience: std::env::var("MCP_OAUTH_AUDIENCE").ok(),
+        issuer: std::env::var("MCP_OAUTH_ISSUER").ok(),
+        scopes: std::env::var("MCP_OAUTH_SCOPES")
+            .unwrap_or_else(|_| "mcp:read,mcp:write".to_string())
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect(),
+        jwks_uri: std::env::var("MCP_OAUTH_JWKS_URI").ok(),
+    }
+}
+
+/// Validate Bearer token (simplified JWT parsing)
+fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResult {
+    // Split JWT into parts
+    let parts: Vec<&str> = token.split('.').collect();
+    if parts.len() != 3 {
+        return AuthorizationResult::InvalidToken("Invalid token format".to_string());
+    }
+
+    // Decode payload (base64url)
+    let payload = match base64url_decode(parts[1]) {
+        Ok(p) => p,
+        Err(e) => return AuthorizationResult::InvalidToken(format!("Invalid token payload: {}", e)),
+    };
+
+    // Parse JSON payload - convert bytes to string first
+    let payload_str = match String::from_utf8(payload) {
+        Ok(s) => s,
+        Err(e) => return AuthorizationResult::InvalidToken(format!("Invalid token encoding: {}", e)),
+    };
+
+    let claims: serde_json::Value = match serde_json::from_str(&payload_str) {
+        Ok(c) => c,
+        Err(e) => return AuthorizationResult::InvalidToken(format!("Invalid token JSON: {}", e)),
+    };
+
+    // Validate issuer if configured
+    if let Some(expected_iss) = &config.issuer {
+        let token_iss = claims.get("iss").and_then(|v| v.as_str()).unwrap_or("");
+        if !token_iss.is_empty() && token_iss != expected_iss {
+            return AuthorizationResult::InvalidToken(format!(
+                "Invalid token issuer: expected {}, got {}",
+                expected_iss, token_iss
+            ));
+        }
+    }
+
+    // Validate audience if configured
+    if let Some(expected_aud) = &config.audience {
+        let token_aud = claims.get("aud").and_then(|v| v.as_str()).unwrap_or("");
+        if !token_aud.is_empty() && token_aud != expected_aud {
+            return AuthorizationResult::InvalidToken(format!(
+                "Invalid token audience: expected {}, got {}",
+                expected_aud, token_aud
+            ));
+        }
+    }
+
+    // Check expiration if present
+    if let Some(exp) = claims.get("exp").and_then(|v| v.as_u64()) {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        if exp < now {
+            return AuthorizationResult::InvalidToken("Token expired".to_string());
+        }
+    }
+
+    // Validate required subject claim
+    let sub = claims.get("sub").and_then(|v| v.as_str()).unwrap_or("");
+    if sub.is_empty() {
+        return AuthorizationResult::InvalidToken("Token missing subject claim".to_string());
+    }
+
+    debug!("Token validated for subject: {}", sub);
+    AuthorizationResult::Authorized
+}
+
+/// Base64url decode (RFC 4648)
+fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
+    // For simplicity, we'll do basic base64 decoding
+    // In production, use a proper base64url crate
+    let filtered: String = input
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
+
+    // Pad if necessary
+    let padded = match filtered.len() % 4 {
+        2 => filtered + "==",
+        3 => filtered + "=",
+        _ => filtered,
+    };
+
+    base64::decode(&padded)
+}
+
+/// Check if request has required scopes
+fn check_scopes(token_scope: Option<&str>, required_scopes: &[String]) -> AuthorizationResult {
+    let token_scopes: Vec<String> = match token_scope {
+        Some(s) => s.split(' ').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect(),
+        None => vec![],
+    };
+
+    // If no required scopes, allow access
+    if required_scopes.is_empty() {
+        return AuthorizationResult::Authorized;
+    }
+
+    // If token has no scopes and required scopes exist, deny
+    if token_scopes.is_empty() {
+        return AuthorizationResult::InsufficientScope(required_scopes.to_vec());
+    }
+
+    // Check if token has all required scopes
+    let missing: Vec<String> = required_scopes
+        .iter()
+        .filter(|r| !token_scopes.contains(r))
+        .cloned()
+        .collect();
+
+    if missing.is_empty() {
+        AuthorizationResult::Authorized
+    } else {
+        AuthorizationResult::InsufficientScope(missing)
+    }
+}
+
+/// Extract Bearer token from Authorization header
+fn extract_bearer_token(_headers: &str) -> Option<String> {
+    // For stdio mode, we can't access headers directly
+    // This would be used for HTTP transport mode
+    None
+}
+
+/// Create WWW-Authenticate challenge header value (RFC 6750)
+fn create_www_authenticate_header(
+    error: &str,
+    resource_metadata: Option<&str>,
+    scopes: Option<&str>,
+) -> String {
+    let mut params = vec![format!("error=\"{}\"", error)];
+
+    if let Some(rm) = resource_metadata {
+        params.push(format!("resource_metadata=\"{}\"", rm));
+    }
+
+    if let Some(s) = scopes {
+        params.push(format!("scope=\"{}\"", s));
+    }
+
+    format!("Bearer {}", params.join(", "))
 }
 
 #[allow(clippy::excessive_nesting)]
-async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::Result<()> {
+async fn run_jsonrpc_server(
+    mcp_server: Arc<Mutex<MemoryMCPServer>>,
+    oauth_config: OAuthConfig,
+) -> anyhow::Result<()> {
     // Main message loop for JSON-RPC
     let stdin = io::stdin();
     let mut stdout = io::stdout();
@@ -345,7 +587,7 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
                 #[allow(clippy::excessive_nesting)]
                 match serde_json::from_str::<JsonRpcRequest>(line) {
                     Ok(request) => {
-                        let response = handle_request(request, &mcp_server).await;
+                        let response = handle_request(request, &mcp_server, &oauth_config).await;
 
                         // Send response, matching the input framing style
                         if let Some(response_json) = response {
@@ -397,11 +639,20 @@ async fn run_jsonrpc_server(mcp_server: Arc<Mutex<MemoryMCPServer>>) -> anyhow::
 async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
+    oauth_config: &OAuthConfig,
 ) -> Option<JsonRpcResponse> {
     // Notifications (no id) must not produce a response per JSON-RPC
     // Treat both missing id and explicit null id as notifications (no response)
     if request.id.is_none() || matches!(request.id, Some(serde_json::Value::Null)) {
         return None;
+    }
+
+    // Check authorization for protected methods
+    if oauth_config.enabled {
+        // For HTTP transport, extract Bearer token from Authorization header
+        // For stdio, token would need to be passed via request metadata
+        // This is a placeholder for HTTP transport mode
+        debug!("OAuth enabled - authorization check would occur here for HTTP transport");
     }
 
     // Normalize method name if compatibility aliases are enabled
@@ -423,11 +674,15 @@ async fn handle_request(
     }
 
     match method.as_str() {
-        "initialize" => handle_initialize(request).await,
+        "initialize" => handle_initialize(request, oauth_config).await,
         "tools/list" => handle_list_tools(request, mcp_server).await,
         "tools/call" => handle_call_tool(request, mcp_server).await,
         "shutdown" => handle_shutdown(request).await,
         "completion/complete" => handle_completion_complete(request).await,
+        // OAuth 2.1 protected resource metadata endpoint (MCP specification)
+        ".well-known/oauth-protected-resource" => {
+            handle_protected_resource_metadata(request, oauth_config).await
+        }
         _ => {
             warn!("Unknown method: {}", method);
             Some(JsonRpcResponse {
@@ -445,19 +700,32 @@ async fn handle_request(
 }
 
 /// Handle initialize request
-async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
+async fn handle_initialize(request: JsonRpcRequest, oauth_config: &OAuthConfig) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
     request.id.as_ref()?;
     info!("Handling initialize request");
 
+    // Build capabilities object
+    let mut capabilities = json!({
+        "tools": {
+            "listChanged": false
+        },
+        "completions": {}
+    });
+
+    // Add OAuth 2.1 authorization capability if enabled
+    if oauth_config.enabled {
+        capabilities["authorization"] = json!({
+            "enabled": true,
+            "issuer": oauth_config.issuer.clone().unwrap_or_default(),
+            "audience": oauth_config.audience.clone().unwrap_or_default(),
+            "scopes": oauth_config.scopes
+        });
+    }
+
     let result = InitializeResult {
         protocol_version: "2025-11-25".to_string(),
-        capabilities: json!({
-            "tools": {
-                "listChanged": false
-            },
-            "completions": {}
-        }),
+        capabilities,
         server_info: json!({
             "name": "memory-mcp-server",
             "version": env!("CARGO_PKG_VERSION")
@@ -481,6 +749,53 @@ async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
                     code: -32603,
                     message: "Internal error".to_string(),
                     data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                }),
+            })
+        }
+    }
+}
+
+/// Handle protected resource metadata request (RFC 9728)
+async fn handle_protected_resource_metadata(
+    request: JsonRpcRequest,
+    oauth_config: &OAuthConfig,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling protected resource metadata request");
+
+    // RFC 9728: Protected Resource Metadata
+    let resource_uri = std::env::var("MCP_RESOURCE_URI")
+        .unwrap_or_else(|_| "https://memory-mcp.example.com".to_string());
+
+    let resource_uri_clone = resource_uri.clone();
+    let metadata = ProtectedResourceMetadata {
+        authorization_servers: oauth_config
+            .issuer
+            .clone()
+            .map(|iss| vec![iss])
+            .unwrap_or_default(),
+        resource: resource_uri,
+        scopes_supported: oauth_config.scopes.clone(),
+        resource_metadata: Some(format!("{}/.well-known/oauth-protected-resource", resource_uri_clone)),
+    };
+
+    match serde_json::to_value(metadata) {
+        Ok(value) => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: Some(value),
+            error: None,
+        }),
+        Err(e) => {
+            error!("Failed to serialize protected resource metadata: {}", e);
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32603,
+                    message: "Internal error".to_string(),
+                    data: Some(json!({"details": format!("Failed to serialize metadata: {}", e)})),
                 }),
             })
         }

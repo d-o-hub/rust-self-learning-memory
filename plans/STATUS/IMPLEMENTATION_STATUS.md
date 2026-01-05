@@ -24,7 +24,7 @@
 | `memory-mcp/src/patterns/statistical.rs` | 1,132 | ⏳ Pending | Needs splitting |
 | `memory-cli/src/config/types.rs` | 1,052 | ⏳ Pending | Needs splitting |
 | `memory-core/src/spatiotemporal/index.rs` | 1,044 | ⏳ Pending | Needs splitting |
-| `memory-core/src/spatiotemporal/retriever.rs` | 1,014 | ⏳ Pending | Needs splitting |
+| `memory-core/src/spatiotemporal/retriever.rs` | 1,014 | ✅ COMPLETED | Split into 4 modules (2026-01-05) |
 
 ### Already Compliant Files
 
@@ -47,6 +47,10 @@
 | `memory-core/src/memory/monitoring.rs` | 121 |
 | `memory-core/src/memory/queries.rs` | 177 |
 | `memory-core/src/memory/tests.rs` | 565 |
+| `memory-core/src/spatiotemporal/retriever/mod.rs` | 189 |
+| `memory-core/src/spatiotemporal/retriever/types.rs` | 141 |
+| `memory-core/src/spatiotemporal/retriever/scoring.rs` | 168 |
+| `memory-core/src/spatiotemporal/retriever/tests.rs` | 440 |
 | `memory-core/src/patterns/mod.rs` | 28 |
 | `memory-core/src/mcp/mod.rs` | 9 |
 | `memory-core/src/reflection/mod.rs` | 110 |

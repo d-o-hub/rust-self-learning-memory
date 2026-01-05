@@ -172,12 +172,12 @@ impl ContextAwareEmbeddings {
             for (i, grad_row) in gradient.iter_mut().enumerate().take(dim) {
                 for (j, grad_cell) in grad_row.iter_mut().enumerate().take(dim) {
                     // Gradient w.r.t. positive distance (increase to push apart)
-                    let grad_pos =
-                        (anchor_emb[j] - positive_emb[j]) * (anchor_adapted[i] - positive_adapted[i]);
+                    let grad_pos = (anchor_emb[j] - positive_emb[j])
+                        * (anchor_adapted[i] - positive_adapted[i]);
 
                     // Gradient w.r.t. negative distance (decrease to bring closer)
-                    let grad_neg =
-                        (anchor_emb[j] - negative_emb[j]) * (anchor_adapted[i] - negative_adapted[i]);
+                    let grad_neg = (anchor_emb[j] - negative_emb[j])
+                        * (anchor_adapted[i] - negative_adapted[i]);
 
                     // Total gradient (minimize d_pos, maximize d_neg)
                     *grad_cell += grad_pos - grad_neg;
@@ -616,7 +616,9 @@ mod tests {
             },
         ];
 
-        let result = embeddings.train_adapter(TaskType::CodeGeneration, &pairs).await;
+        let result = embeddings
+            .train_adapter(TaskType::CodeGeneration, &pairs)
+            .await;
         assert!(result.is_ok());
         assert!(embeddings.has_adapter(TaskType::CodeGeneration));
         assert_eq!(embeddings.adapter_count(), 1);

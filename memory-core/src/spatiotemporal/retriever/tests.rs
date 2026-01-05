@@ -5,7 +5,12 @@ use crate::episode::Episode;
 use crate::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
 use chrono::{Duration, Utc};
 
-fn create_test_episode(domain: &str, task_type: TaskType, description: &str, days_ago: i64) -> Episode {
+fn create_test_episode(
+    domain: &str,
+    task_type: TaskType,
+    description: &str,
+    days_ago: i64,
+) -> Episode {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,

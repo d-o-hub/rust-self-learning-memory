@@ -102,7 +102,13 @@ pub struct HierarchicalScore {
 pub(crate) fn generate_episode_embedding(episode: &Episode) -> Vec<f32> {
     // Simple feature extraction (placeholder for real embeddings)
     let task_len = episode.task_description.len() as f32 / 100.0; // Normalize
-    let domain_hash = episode.context.domain.chars().map(|c| c as u32).sum::<u32>() as f32 / 1000.0;
+    let domain_hash = episode
+        .context
+        .domain
+        .chars()
+        .map(|c| c as u32)
+        .sum::<u32>() as f32
+        / 1000.0;
     let steps_count = episode.steps.len() as f32 / 10.0;
 
     vec![task_len, domain_hash, steps_count]
@@ -124,11 +130,9 @@ pub(crate) fn generate_episode_embedding(episode: &Episode) -> Vec<f32> {
 pub(crate) fn calculate_text_similarity(query: &str, text: &str) -> f32 {
     let query_lower = query.to_lowercase();
     let text_lower = text.to_lowercase();
-    
-    let query_words: std::collections::HashSet<_> =
-        query_lower.split_whitespace().collect();
-    let text_words: std::collections::HashSet<_> =
-        text_lower.split_whitespace().collect();
+
+    let query_words: std::collections::HashSet<_> = query_lower.split_whitespace().collect();
+    let text_words: std::collections::HashSet<_> = text_lower.split_whitespace().collect();
 
     let common = query_words.intersection(&text_words).count();
     let max_len = query_words.len().max(text_words.len());

@@ -50,7 +50,7 @@ futures = { workspace = true }
 lru = "0.12"
 
 # HTTP client for OpenAI API (optional)
-reqwest = { version = "0.12", features = ["json"], optional = true }
+reqwest = { version = "0.13", features = ["json"], optional = true }
 
 # ONNX Runtime for local embeddings (optional)
 ort = { version = "2.0.0-rc.10", optional = true }

@@ -292,7 +292,7 @@ fn test_text_similarity() {
 fn test_ranking_sorts_by_relevance() {
     let retriever = HierarchicalRetriever::new();
 
-    let mut scored = vec![
+    let scored = vec![
         HierarchicalScore {
             episode_id: uuid::Uuid::new_v4(),
             relevance_score: 0.5,

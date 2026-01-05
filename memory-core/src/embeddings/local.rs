@@ -326,10 +326,9 @@ mod tests {
     async fn test_real_embedding_generation() {
         // This test only runs when local-embeddings feature is enabled
         // and real ONNX models are available
-        use std::path::PathBuf;
 
         // Create a temporary directory for model cache
-        let temp_dir = TempDir::new().unwrap();
+        let temp_dir = tempfile::TempDir::new().unwrap();
         let cache_path = temp_dir.path().join("models");
 
         // Try to load a real model if available

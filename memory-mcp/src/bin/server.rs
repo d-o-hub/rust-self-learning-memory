@@ -192,6 +192,7 @@ struct CompletionValues {
 // ============================================================
 
 /// Elicitation request type - what kind of input is requested
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 enum ElicitationType {
@@ -666,6 +667,12 @@ async fn run_jsonrpc_server(
     // Track active elicitation requests (MCP 2025-11-25)
     let elicitation_tracker: Arc<Mutex<Vec<ActiveElicitation>>> = Arc::new(Mutex::new(Vec::new()));
 
+    // Track active tasks (MCP 2025-11-25)
+    let task_tracker: Arc<Mutex<Vec<ActiveTask>>> = Arc::new(Mutex::new(Vec::new()));
+
+    // Load embedding configuration from environment
+    let embedding_config = load_embedding_config();
+
     // Track last input framing to respond with the same framing style
     #[allow(unused_assignments)]
     let mut last_input_was_lsp = false;
@@ -692,6 +699,8 @@ async fn run_jsonrpc_server(
                             &mcp_server,
                             &oauth_config,
                             &elicitation_tracker,
+                            &task_tracker,
+                            &embedding_config,
                         )
                         .await;
 
@@ -747,6 +756,8 @@ async fn handle_request(
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
     oauth_config: &OAuthConfig,
     elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
+    task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
+    embedding_config: &EmbeddingEnvConfig,
 ) -> Option<JsonRpcResponse> {
     // Notifications (no id) must not produce a response per JSON-RPC
     // Treat both missing id and explicit null id as notifications (no response)
@@ -790,6 +801,14 @@ async fn handle_request(
         "elicitation/request" => handle_elicitation_request(request, elicitation_tracker).await,
         "elicitation/data" => handle_elicitation_data(request, elicitation_tracker).await,
         "elicitation/cancel" => handle_elicitation_cancel(request, elicitation_tracker).await,
+        // Tasks handlers (MCP 2025-11-25)
+        "task/create" => handle_task_create(request, task_tracker).await,
+        "task/update" => handle_task_update(request, task_tracker).await,
+        "task/complete" => handle_task_complete(request, task_tracker).await,
+        "task/cancel" => handle_task_cancel(request, task_tracker).await,
+        "task/list" => handle_task_list(request, task_tracker).await,
+        // Embedding configuration
+        "embedding/config" => handle_embedding_config(request, embedding_config).await,
         // OAuth 2.1 protected resource metadata endpoint (MCP specification)
         ".well-known/oauth-protected-resource" => {
             handle_protected_resource_metadata(request, oauth_config).await
@@ -825,7 +844,12 @@ async fn handle_initialize(
             "listChanged": false
         },
         "completions": {},
-        "elicitation": {}
+        "elicitation": {},
+        "tasks": {
+            "list": true,
+            "create": true,
+            "update": true
+        }
     });
 
     // Add OAuth 2.1 authorization capability if enabled
@@ -1753,4 +1777,592 @@ async fn handle_elicitation_cancel(
             }),
         }),
     }
+}
+
+// ============================================================
+// Tasks Structures (MCP 2025-11-25)
+// ============================================================
+
+/// Task status enumeration
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+enum TaskStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+    Cancelled,
+}
+
+/// Task result type
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+enum TaskResultType {
+    Text,
+    Json,
+    Error,
+}
+
+/// Task result
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct TaskResult {
+    r#type: TaskResultType,
+    content: Value,
+}
+
+/// Task input parameters
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct TaskInput {
+    name: String,
+    input: Option<Value>,
+    metadata: Option<std::collections::HashMap<String, Value>>,
+}
+
+/// Task creation parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TaskCreateParams {
+    task_id: String,
+    task: TaskInput,
+}
+
+/// Task status update parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TaskUpdateParams {
+    task_id: String,
+    status: TaskStatus,
+    progress: Option<u32>,
+    partial_result: Option<Value>,
+}
+
+/// Task completion parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TaskCompleteParams {
+    task_id: String,
+    result: TaskResult,
+}
+
+/// Task cancellation parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TaskCancelParams {
+    task_id: String,
+    reason: Option<String>,
+}
+
+/// Active task tracker
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+struct ActiveTask {
+    id: String,
+    name: String,
+    status: TaskStatus,
+    input: Option<Value>,
+    metadata: Option<std::collections::HashMap<String, Value>>,
+    progress: u32,
+    result: Option<TaskResult>,
+    created_at: std::time::Instant,
+}
+
+/// Task creation response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+struct TaskCreateResult {
+    task_id: String,
+    status: String,
+}
+
+/// Task update response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+struct TaskUpdateResult {
+    task_id: String,
+    status: String,
+    progress: u32,
+}
+
+/// Task completion response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+struct TaskCompleteResult {
+    task_id: String,
+    status: String,
+    elapsed_ms: u64,
+}
+
+/// Task list response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+struct TaskListResult {
+    tasks: Vec<TaskListItem>,
+    total: usize,
+}
+
+/// Task list item
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+struct TaskListItem {
+    task_id: String,
+    name: String,
+    status: String,
+    progress: u32,
+    created_at_secs_ago: u64,
+}
+
+// ============================================================
+// Embedding Configuration (Environment Variables)
+// ============================================================
+
+/// Load embedding configuration from environment variables
+#[allow(dead_code)]
+fn load_embedding_config() -> EmbeddingEnvConfig {
+    let provider = std::env::var("EMBEDDING_PROVIDER")
+        .unwrap_or_else(|_| "local".to_string())
+        .to_lowercase();
+
+    let api_key = std::env::var("OPENAI_API_KEY").ok();
+    let api_key_env =
+        std::env::var("OPENAI_API_KEY_ENV").unwrap_or_else(|_| "OPENAI_API_KEY".to_string());
+
+    let model = std::env::var("EMBEDDING_MODEL")
+        .ok()
+        .filter(|m| !m.is_empty());
+
+    let similarity_threshold: f32 = std::env::var("EMBEDDING_SIMILARITY_THRESHOLD")
+        .unwrap_or_else(|_| "0.7".to_string())
+        .parse()
+        .unwrap_or(0.7);
+
+    let batch_size: usize = std::env::var("EMBEDDING_BATCH_SIZE")
+        .unwrap_or_else(|_| "32".to_string())
+        .parse()
+        .unwrap_or(32);
+
+    EmbeddingEnvConfig {
+        provider,
+        api_key,
+        api_key_env,
+        model,
+        similarity_threshold,
+        batch_size,
+    }
+}
+
+/// Embedding configuration from environment
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+struct EmbeddingEnvConfig {
+    provider: String,
+    api_key: Option<String>,
+    #[allow(dead_code)]
+    api_key_env: String,
+    model: Option<String>,
+    similarity_threshold: f32,
+    batch_size: usize,
+}
+
+/// Embedding configuration output
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+struct EmbeddingConfigResult {
+    success: bool,
+    provider: String,
+    model: String,
+    dimension: usize,
+    message: String,
+    env_config: bool,
+}
+
+// ============================================================
+// Tasks Handlers (MCP 2025-11-25)
+// ============================================================
+
+/// Handle task/create - create a new long-running task
+async fn handle_task_create(
+    request: JsonRpcRequest,
+    task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling task/create");
+
+    let params: TaskCreateParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    let active = ActiveTask {
+        id: params.task_id.clone(),
+        name: params.task.name.clone(),
+        status: TaskStatus::Pending,
+        input: params.task.input.clone(),
+        metadata: params.task.metadata.clone(),
+        progress: 0,
+        result: None,
+        created_at: std::time::Instant::now(),
+    };
+
+    let mut tracker = task_tracker.lock().await;
+    tracker.push(active);
+
+    info!("Task {} created: {}", params.task_id, params.task.name);
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(json!({
+            "taskId": params.task_id,
+            "status": "pending"
+        })),
+        error: None,
+    })
+}
+
+/// Handle task/update - update task status
+async fn handle_task_update(
+    request: JsonRpcRequest,
+    task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling task/update");
+
+    let params: TaskUpdateParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    let mut tracker = task_tracker.lock().await;
+    let index = tracker.iter().position(|t| t.id == params.task_id);
+
+    match index {
+        Some(i) => {
+            let task = &mut tracker[i];
+            task.status = params.status.clone();
+            if let Some(progress) = params.progress {
+                task.progress = progress;
+            }
+            if let Some(_partial) = params.partial_result {
+                info!("Task {} progress: {}%", params.task_id, task.progress);
+            }
+
+            let status_str = format!("{:?}", params.status).to_lowercase();
+
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(json!({
+                    "taskId": params.task_id,
+                    "status": status_str,
+                    "progress": task.progress
+                })),
+                error: None,
+            })
+        }
+        None => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: None,
+            error: Some(JsonRpcError {
+                code: -32602,
+                message: "Task not found".to_string(),
+                data: Some(
+                    json!({"details": format!("No active task with id: {}", params.task_id)}),
+                ),
+            }),
+        }),
+    }
+}
+
+/// Handle task/complete - complete a task with result
+async fn handle_task_complete(
+    request: JsonRpcRequest,
+    task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling task/complete");
+
+    let params: TaskCompleteParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    let mut tracker = task_tracker.lock().await;
+    let index = tracker.iter().position(|t| t.id == params.task_id);
+
+    match index {
+        Some(i) => {
+            let elapsed = tracker[i].created_at.elapsed();
+            let elapsed_ms = elapsed.as_millis() as u64;
+            tracker[i].status = TaskStatus::Completed;
+            tracker[i].result = Some(params.result);
+
+            info!("Task {} completed in {}ms", params.task_id, elapsed_ms);
+
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(json!({
+                    "taskId": params.task_id,
+                    "status": "completed",
+                    "elapsedMs": elapsed_ms
+                })),
+                error: None,
+            })
+        }
+        None => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: None,
+            error: Some(JsonRpcError {
+                code: -32602,
+                message: "Task not found".to_string(),
+                data: Some(
+                    json!({"details": format!("No active task with id: {}", params.task_id)}),
+                ),
+            }),
+        }),
+    }
+}
+
+/// Handle task/cancel - cancel a task
+async fn handle_task_cancel(
+    request: JsonRpcRequest,
+    task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling task/cancel");
+
+    let params: TaskCancelParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    let mut tracker = task_tracker.lock().await;
+    let index = tracker.iter().position(|t| t.id == params.task_id);
+
+    match index {
+        Some(i) => {
+            let _task = tracker.remove(i);
+            info!(
+                "Task {} cancelled: {}",
+                params.task_id,
+                params
+                    .reason
+                    .clone()
+                    .unwrap_or_else(|| "No reason provided".to_string())
+            );
+
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(json!({
+                    "taskId": params.task_id,
+                    "status": "cancelled"
+                })),
+                error: None,
+            })
+        }
+        None => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: None,
+            error: Some(JsonRpcError {
+                code: -32602,
+                message: "Task not found".to_string(),
+                data: Some(
+                    json!({"details": format!("No active task with id: {}", params.task_id)}),
+                ),
+            }),
+        }),
+    }
+}
+
+/// Handle task/list - list all active tasks
+async fn handle_task_list(
+    request: JsonRpcRequest,
+    task_tracker: &Arc<Mutex<Vec<ActiveTask>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling task/list");
+
+    let tracker = task_tracker.lock().await;
+    let now = std::time::Instant::now();
+
+    let tasks: Vec<TaskListItem> = tracker
+        .iter()
+        .map(|t| TaskListItem {
+            task_id: t.id.clone(),
+            name: t.name.clone(),
+            status: format!("{:?}", t.status).to_lowercase(),
+            progress: t.progress,
+            created_at_secs_ago: now.duration_since(t.created_at).as_secs(),
+        })
+        .collect();
+
+    let total = tasks.len();
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(json!({
+            "tasks": tasks,
+            "total": total
+        })),
+        error: None,
+    })
+}
+
+/// Handle embedding/config - query embedding configuration
+async fn handle_embedding_config(
+    request: JsonRpcRequest,
+    embedding_config: &EmbeddingEnvConfig,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling embedding/config");
+
+    // Determine dimension based on provider/model
+    let dimension = match embedding_config.provider.as_str() {
+        "openai" => match embedding_config.model.as_deref() {
+            Some("text-embedding-3-small") => 1536,
+            Some("text-embedding-3-large") => 3072,
+            Some("text-embedding-ada-002") => 1536,
+            _ => 1536, // Default for OpenAI
+        },
+        "local" | _ => 384, // all-MiniLM-L6-v2 default
+    };
+
+    let model_name = embedding_config.model.clone().unwrap_or_else(|| {
+        match embedding_config.provider.as_str() {
+            "openai" => "text-embedding-3-small".to_string(),
+            _ => "all-MiniLM-L6-v2".to_string(),
+        }
+    });
+
+    let has_api_key = embedding_config.api_key.is_some();
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(json!({
+            "success": true,
+            "provider": embedding_config.provider,
+            "model": model_name,
+            "dimension": dimension,
+            "hasApiKey": has_api_key,
+            "similarityThreshold": embedding_config.similarity_threshold,
+            "batchSize": embedding_config.batch_size,
+            "message": if has_api_key {
+                format!("{} embeddings configured", embedding_config.provider)
+            } else {
+                format!(
+                    "{} embeddings configured (no API key set)",
+                    embedding_config.provider
+                )
+            }
+        })),
+        error: None,
+    })
 }

@@ -3669,7 +3669,7 @@ dependencies = [
  "lru 0.12.5",
  "memory-storage-redb",
  "memory-storage-turso",
- "ndarray 0.17.1",
+ "ndarray 0.16.1",
  "ort",
  "reqwest",
  "serde",
@@ -3957,21 +3957,6 @@ dependencies = [
  "rawpointer",
  "rayon",
  "serde",
-]
-
-[[package]]
-name = "ndarray"
-version = "0.17.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c7c9125e8f6f10c9da3aad044cc918cf8784fa34de857b1aa68038eb05a50a9"
-dependencies = [
- "matrixmultiply",
- "num-complex",
- "num-integer",
- "num-traits",
- "portable-atomic",
- "portable-atomic-util",
- "rawpointer",
 ]
 
 [[package]]

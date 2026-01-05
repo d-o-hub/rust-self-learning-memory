@@ -388,8 +388,7 @@ fn test_timeout_error_recovery() {
     let mut episode = create_test_episode();
 
     // Add timeout error
-    let mut timeout_step =
-        ExecutionStep::new(1, "fetcher".to_string(), "Fetch data".to_string());
+    let mut timeout_step = ExecutionStep::new(1, "fetcher".to_string(), "Fetch data".to_string());
     timeout_step.result = Some(ExecutionResult::Timeout);
     episode.add_step(timeout_step);
 

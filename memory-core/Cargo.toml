@@ -59,7 +59,8 @@ ort = { version = "2.0.0-rc.10", optional = true }
 tokenizers = { version = "0.22", optional = true }
 
 # ndarray for tensor operations (required by ort)
-ndarray = { version = "0.17", optional = true }
+# Using 0.16.x to match ort 2.0.0-rc.10's ndarray dependency
+ndarray = { version = "0.16", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Pre-Storage Extractor Refactoring**: File size compliance (2026-01-05)
+  - Split `extractor.rs` (911 LOC) into modular structure under 500 LOC guideline
+  - New structure: `mod.rs` (126), `types.rs` (127), `decisions.rs` (87), `tools.rs` (54), `recovery.rs` (91), `insights.rs` (50), `tests.rs` (407)
+  - Organized by extraction strategy: decisions, tools, recovery patterns, insights
+  - All 15 extractor tests passing (100% success rate)
+  - Zero clippy warnings
+  - Improved separation of concerns by extraction type
+
 - **Spatiotemporal Retriever Refactoring**: File size compliance (2026-01-05)
   - Split `retriever.rs` (1014 LOC) into modular structure under 500 LOC guideline
   - New structure: `mod.rs` (189), `types.rs` (141), `scoring.rs` (168), `tests.rs` (440)

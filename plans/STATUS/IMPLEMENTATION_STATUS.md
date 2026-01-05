@@ -51,6 +51,13 @@
 | `memory-core/src/spatiotemporal/retriever/types.rs` | 141 |
 | `memory-core/src/spatiotemporal/retriever/scoring.rs` | 168 |
 | `memory-core/src/spatiotemporal/retriever/tests.rs` | 440 |
+| `memory-core/src/pre_storage/extractor/mod.rs` | 126 |
+| `memory-core/src/pre_storage/extractor/types.rs` | 127 |
+| `memory-core/src/pre_storage/extractor/decisions.rs` | 87 |
+| `memory-core/src/pre_storage/extractor/tools.rs` | 54 |
+| `memory-core/src/pre_storage/extractor/recovery.rs` | 91 |
+| `memory-core/src/pre_storage/extractor/insights.rs` | 50 |
+| `memory-core/src/pre_storage/extractor/tests.rs` | 407 |
 | `memory-core/src/patterns/mod.rs` | 28 |
 | `memory-core/src/mcp/mod.rs` | 9 |
 | `memory-core/src/reflection/mod.rs` | 110 |

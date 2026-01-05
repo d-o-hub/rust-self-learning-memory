@@ -24,6 +24,7 @@ use tracing::{debug, error, info, warn};
 
 /// OAuth 2.1 Configuration
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct OAuthConfig {
     /// Whether authorization is enabled
     enabled: bool,
@@ -63,6 +64,7 @@ struct ProtectedResourceMetadata {
 
 /// Bearer token claims (simplified JWT structure)
 #[derive(Debug)]
+#[allow(dead_code)]
 struct TokenClaims {
     /// Subject (user/client ID)
     sub: String,
@@ -80,6 +82,7 @@ struct TokenClaims {
 
 /// Authorization result
 #[derive(Debug)]
+#[allow(dead_code)]
 enum AuthorizationResult {
     Authorized,
     MissingToken,
@@ -413,6 +416,7 @@ fn load_oauth_config() -> OAuthConfig {
 }
 
 /// Validate Bearer token (simplified JWT parsing)
+#[allow(dead_code)]
 fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResult {
     // Split JWT into parts
     let parts: Vec<&str> = token.split('.').collect();
@@ -423,13 +427,17 @@ fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResu
     // Decode payload (base64url)
     let payload = match base64url_decode(parts[1]) {
         Ok(p) => p,
-        Err(e) => return AuthorizationResult::InvalidToken(format!("Invalid token payload: {}", e)),
+        Err(e) => {
+            return AuthorizationResult::InvalidToken(format!("Invalid token payload: {}", e))
+        }
     };
 
     // Parse JSON payload - convert bytes to string first
     let payload_str = match String::from_utf8(payload) {
         Ok(s) => s,
-        Err(e) => return AuthorizationResult::InvalidToken(format!("Invalid token encoding: {}", e)),
+        Err(e) => {
+            return AuthorizationResult::InvalidToken(format!("Invalid token encoding: {}", e))
+        }
     };
 
     let claims: serde_json::Value = match serde_json::from_str(&payload_str) {
@@ -481,13 +489,11 @@ fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResu
 }
 
 /// Base64url decode (RFC 4648)
+#[allow(dead_code)]
 fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
     // For simplicity, we'll do basic base64 decoding
     // In production, use a proper base64url crate
-    let filtered: String = input
-        .chars()
-        .filter(|c| !c.is_whitespace())
-        .collect();
+    let filtered: String = input.chars().filter(|c| !c.is_whitespace()).collect();
 
     // Pad if necessary
     let padded = match filtered.len() % 4 {
@@ -496,13 +502,18 @@ fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
         _ => filtered,
     };
 
-    base64::decode(&padded)
+    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &padded)
 }
 
 /// Check if request has required scopes
+#[allow(dead_code)]
 fn check_scopes(token_scope: Option<&str>, required_scopes: &[String]) -> AuthorizationResult {
     let token_scopes: Vec<String> = match token_scope {
-        Some(s) => s.split(' ').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect(),
+        Some(s) => s
+            .split(' ')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect(),
         None => vec![],
     };
 
@@ -531,6 +542,7 @@ fn check_scopes(token_scope: Option<&str>, required_scopes: &[String]) -> Author
 }
 
 /// Extract Bearer token from Authorization header
+#[allow(dead_code)]
 fn extract_bearer_token(_headers: &str) -> Option<String> {
     // For stdio mode, we can't access headers directly
     // This would be used for HTTP transport mode
@@ -538,6 +550,7 @@ fn extract_bearer_token(_headers: &str) -> Option<String> {
 }
 
 /// Create WWW-Authenticate challenge header value (RFC 6750)
+#[allow(dead_code)]
 fn create_www_authenticate_header(
     error: &str,
     resource_metadata: Option<&str>,
@@ -700,7 +713,10 @@ async fn handle_request(
 }
 
 /// Handle initialize request
-async fn handle_initialize(request: JsonRpcRequest, oauth_config: &OAuthConfig) -> Option<JsonRpcResponse> {
+async fn handle_initialize(
+    request: JsonRpcRequest,
+    oauth_config: &OAuthConfig,
+) -> Option<JsonRpcResponse> {
     // Notifications must not produce a response
     request.id.as_ref()?;
     info!("Handling initialize request");
@@ -776,7 +792,10 @@ async fn handle_protected_resource_metadata(
             .unwrap_or_default(),
         resource: resource_uri,
         scopes_supported: oauth_config.scopes.clone(),
-        resource_metadata: Some(format!("{}/.well-known/oauth-protected-resource", resource_uri_clone)),
+        resource_metadata: Some(format!(
+            "{}/.well-known/oauth-protected-resource",
+            resource_uri_clone
+        )),
     };
 
     match serde_json::to_value(metadata) {

@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- **Spatiotemporal Retriever Refactoring**: File size compliance (2026-01-05)
+  - Split `retriever.rs` (1014 LOC) into modular structure under 500 LOC guideline
+  - New structure: `mod.rs` (189), `types.rs` (141), `scoring.rs` (168), `tests.rs` (440)
+  - Renamed `ScoredEpisode` → `HierarchicalScore` to avoid naming conflict with `diversity::ScoredEpisode`
+  - All 16 retriever tests passing (100% success rate)
+  - Zero clippy warnings with `-D warnings`
+  - Improved maintainability and separation of concerns
+
 - **Contrastive Learning for Task Adapters**: Production ML implementation (Phase 4)
   - Replaced placeholder identity matrix with triplet loss optimization
   - Learns transformation matrices using gradient descent (100 epochs, lr=0.01)

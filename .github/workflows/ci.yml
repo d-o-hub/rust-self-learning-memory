@@ -21,7 +21,7 @@ env:
   RUSTFLAGS: "-D warnings"
 
 jobs:
-  # Only run CI if Quick Check succeeded (for workflow_run) or on direct push
+  # Only run CI if Quick Check succeeded (for workflow_run) or on direct push or PR
   ci-guard:
     name: CI Guard
     runs-on: ubuntu-latest
@@ -34,6 +34,9 @@ jobs:
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "should-run=true" >> $GITHUB_OUTPUT
             echo "Running CI on push to ${{ github.ref }}"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "Running CI on pull_request"
           elif [ "${{ github.event_name }}" = "workflow_run" ]; then
             if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
               echo "should-run=true" >> $GITHUB_OUTPUT

@@ -64,6 +64,7 @@ impl HierarchicalRetriever {
     /// Default values:
     /// - `temporal_bias_weight`: 0.3 (30% weight to recency)
     /// - `max_clusters_to_search`: 5 clusters
+    #[must_use]
     pub fn new() -> Self {
         Self {
             temporal_bias_weight: 0.3,
@@ -89,6 +90,7 @@ impl HierarchicalRetriever {
     /// // Broader temporal search
     /// let broad_search = HierarchicalRetriever::with_config(0.2, 10);
     /// ```
+    #[must_use]
     pub fn with_config(temporal_bias_weight: f32, max_clusters_to_search: usize) -> Self {
         Self {
             temporal_bias_weight,

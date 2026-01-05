@@ -8,7 +8,7 @@ use super::types::{
 use crate::episode::Episode;
 use chrono::Utc;
 
-/// Scoring implementation for HierarchicalRetriever
+/// Scoring implementation for `HierarchicalRetriever`
 impl super::HierarchicalRetriever {
     /// Level 1: Filter episodes by domain.
     ///

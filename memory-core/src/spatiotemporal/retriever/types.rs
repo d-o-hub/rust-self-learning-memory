@@ -117,7 +117,7 @@ pub(crate) fn generate_episode_embedding(episode: &Episode) -> Vec<f32> {
 /// Calculate text similarity between query and episode text.
 ///
 /// Uses a simple word overlap metric:
-/// similarity = (common_words) / max(query_words, text_words)
+/// `similarity = (common_words) / max(query_words, text_words)`
 ///
 /// # Arguments
 ///

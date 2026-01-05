@@ -58,7 +58,7 @@ wasmtime-wasi = "24.0.5"
 
 # Additional utilities
 rand = "0.8"
-rand_chacha = "0.3"
+rand_chacha = "0.9"
 clap = { version = "4.0", features = ["derive"] }
 statrs = "0.16"
 futures = "0.3"

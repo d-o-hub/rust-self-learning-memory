@@ -45,11 +45,20 @@ type(scope): Brief description (50 chars max)
 
 ## Before Pushing
 
-1. Run tests to ensure commit is stable
-2. `git pull --rebase` to sync with remote
-3. If conflicts occur: **STOP - DO NOT FIX**
+1. **Run quality gates**: `./scripts/quality-gates.sh`
+   - Validates >90% test coverage
+   - Runs all tests with strict warnings
+   - Checks security vulnerabilities
+   - Verifies code quality standards
+
+2. **Optional additional checks** (recommended for larger changes):
+   - `./scripts/check-doctests.sh` - Validate documentation tests
+   - `./scripts/check_performance_regression.sh` - Ensure no performance regressions
+
+3. **Sync with remote**: `git pull --rebase`
+4. **Handle conflicts**: If conflicts occur: **STOP - DO NOT FIX**
    - Notify immediately for manual resolution
-4. Only push after successful rebase with no conflicts
+5. **Push**: Only after successful rebase with no conflicts
 
 ## Examples
 

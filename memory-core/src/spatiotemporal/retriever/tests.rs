@@ -90,7 +90,7 @@ fn test_domain_filtering_no_filter() {
 fn test_task_type_filtering() {
     let retriever = HierarchicalRetriever::new();
 
-    let episodes = vec![
+    let episodes = [
         create_test_episode("web-api", TaskType::CodeGeneration, "task 1", 1),
         create_test_episode("web-api", TaskType::Debugging, "task 2", 1),
         create_test_episode("web-api", TaskType::CodeGeneration, "task 3", 1),
@@ -117,7 +117,7 @@ fn test_task_type_filtering() {
 fn test_task_type_filtering_no_filter() {
     let retriever = HierarchicalRetriever::new();
 
-    let episodes = vec![
+    let episodes = [
         create_test_episode("web-api", TaskType::CodeGeneration, "task 1", 1),
         create_test_episode("web-api", TaskType::Debugging, "task 2", 1),
     ];
@@ -141,7 +141,7 @@ fn test_temporal_clustering_favors_recent() {
     let retriever = HierarchicalRetriever::new();
 
     // Create episodes with different ages
-    let episodes = vec![
+    let episodes = [
         create_test_episode("web-api", TaskType::CodeGeneration, "old task", 30),
         create_test_episode("web-api", TaskType::CodeGeneration, "recent task", 1),
         create_test_episode("web-api", TaskType::CodeGeneration, "medium task", 15),

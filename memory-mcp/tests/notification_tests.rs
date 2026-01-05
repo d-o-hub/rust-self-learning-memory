@@ -18,7 +18,7 @@ async fn handle_initialize(
         return Ok(None);
     }
     let result = InitializeResult {
-        protocol_version: "2024-11-05".to_string(),
+        protocol_version: "2025-11-25".to_string(),
         capabilities: serde_json::json!({"tools":{"listChanged":false}}),
         server_info: serde_json::json!({"name":"memory-mcp-server","version":"test"}),
     };

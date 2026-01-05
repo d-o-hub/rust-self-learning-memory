@@ -399,7 +399,7 @@ async fn handle_initialize(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
     info!("Handling initialize request");
 
     let result = InitializeResult {
-        protocol_version: "2024-11-05".to_string(),
+        protocol_version: "2025-11-25".to_string(),
         capabilities: json!({
             "tools": {
                 "listChanged": false

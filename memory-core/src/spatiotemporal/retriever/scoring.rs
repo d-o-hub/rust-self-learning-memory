@@ -2,7 +2,9 @@
 //!
 //! Implements the 4-level scoring strategy for episodic memory retrieval.
 
-use super::types::{generate_episode_embedding, calculate_text_similarity, HierarchicalScore, RetrievalQuery};
+use super::types::{
+    calculate_text_similarity, generate_episode_embedding, HierarchicalScore, RetrievalQuery,
+};
 use crate::episode::Episode;
 use chrono::Utc;
 
@@ -157,7 +159,10 @@ impl super::HierarchicalRetriever {
     /// Rank scored episodes by combined relevance score.
     ///
     /// Sorts episodes in descending order of relevance.
-    pub(super) fn rank_by_combined_score(&self, mut scored: Vec<HierarchicalScore>) -> Vec<HierarchicalScore> {
+    pub(super) fn rank_by_combined_score(
+        &self,
+        mut scored: Vec<HierarchicalScore>,
+    ) -> Vec<HierarchicalScore> {
         scored.sort_by(|a, b| {
             b.relevance_score
                 .partial_cmp(&a.relevance_score)

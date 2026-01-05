@@ -187,6 +187,90 @@ struct CompletionValues {
     has_more: Option<bool>,
 }
 
+// ============================================================
+// Elicitation Structures (MCP 2025-11-25)
+// ============================================================
+
+/// Elicitation request type - what kind of input is requested
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+enum ElicitationType {
+    Text,
+    Select,
+    Confirm,
+}
+
+/// Prompt for the user in an elicitation request
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct ElicitationPrompt {
+    /// The prompt text to display to the user
+    r#type: String,
+    /// Human-readable description of what input is needed
+    description: Option<String>,
+    /// Additional data for select type elicitation
+    options: Option<Vec<ElicitationOption>>,
+}
+
+/// Option for select type elicitation
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct ElicitationOption {
+    /// Label displayed to the user
+    label: String,
+    /// Value returned when selected
+    value: Value,
+}
+
+/// Elicitation request parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ElicitationParams {
+    /// Unique identifier for this elicitation
+    elicitation_id: String,
+    /// The prompt to send to the user
+    prompt: ElicitationPrompt,
+    /// Name of the tool that triggered this elicitation
+    trigger: String,
+}
+
+/// Elicitation response parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ElicitationDataParams {
+    /// The elicitation being responded to
+    elicitation_id: String,
+    /// The user's response data
+    data: Value,
+}
+
+/// Elicitation result response
+#[derive(Debug, Serialize)]
+struct ElicitationResult {
+    /// The elicitation that was resolved
+    elicitation_id: String,
+    /// The received data
+    data: Value,
+}
+
+/// Parameters for cancelling an elicitation
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ElicitationCancelParams {
+    /// The elicitation to cancel
+    elicitation_id: String,
+}
+
+/// Active elicitation tracker
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+struct ActiveElicitation {
+    id: String,
+    prompt: ElicitationPrompt,
+    trigger: String,
+    created_at: std::time::Instant,
+}
+
 /// Initialize the memory system with appropriate storage backends
 async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
     // Try Turso local first (default behavior)
@@ -579,6 +663,9 @@ async fn run_jsonrpc_server(
     let mut stdout = io::stdout();
     let mut handle = stdin.lock();
 
+    // Track active elicitation requests (MCP 2025-11-25)
+    let elicitation_tracker: Arc<Mutex<Vec<ActiveElicitation>>> = Arc::new(Mutex::new(Vec::new()));
+
     // Track last input framing to respond with the same framing style
     #[allow(unused_assignments)]
     let mut last_input_was_lsp = false;
@@ -600,7 +687,13 @@ async fn run_jsonrpc_server(
                 #[allow(clippy::excessive_nesting)]
                 match serde_json::from_str::<JsonRpcRequest>(line) {
                     Ok(request) => {
-                        let response = handle_request(request, &mcp_server, &oauth_config).await;
+                        let response = handle_request(
+                            request,
+                            &mcp_server,
+                            &oauth_config,
+                            &elicitation_tracker,
+                        )
+                        .await;
 
                         // Send response, matching the input framing style
                         if let Some(response_json) = response {
@@ -653,6 +746,7 @@ async fn handle_request(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
     oauth_config: &OAuthConfig,
+    elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
 ) -> Option<JsonRpcResponse> {
     // Notifications (no id) must not produce a response per JSON-RPC
     // Treat both missing id and explicit null id as notifications (no response)
@@ -692,6 +786,10 @@ async fn handle_request(
         "tools/call" => handle_call_tool(request, mcp_server).await,
         "shutdown" => handle_shutdown(request).await,
         "completion/complete" => handle_completion_complete(request).await,
+        // Elicitation handlers (MCP 2025-11-25)
+        "elicitation/request" => handle_elicitation_request(request, elicitation_tracker).await,
+        "elicitation/data" => handle_elicitation_data(request, elicitation_tracker).await,
+        "elicitation/cancel" => handle_elicitation_cancel(request, elicitation_tracker).await,
         // OAuth 2.1 protected resource metadata endpoint (MCP specification)
         ".well-known/oauth-protected-resource" => {
             handle_protected_resource_metadata(request, oauth_config).await
@@ -726,7 +824,8 @@ async fn handle_initialize(
         "tools": {
             "listChanged": false
         },
-        "completions": {}
+        "completions": {},
+        "elicitation": {}
     });
 
     // Add OAuth 2.1 authorization capability if enabled
@@ -1413,5 +1512,245 @@ async fn generate_completions(params: &CompletionParams) -> CompletionValues {
         values: vec![],
         total: Some(0),
         has_more: Some(false),
+    }
+}
+
+// ============================================================
+// Elicitation Handlers (MCP 2025-11-25)
+// ============================================================
+
+/// Handle elicitation/request - server asks client for user input
+async fn handle_elicitation_request(
+    request: JsonRpcRequest,
+    elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling elicitation/request");
+
+    let params: ElicitationParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    // Store the active elicitation
+    let active = ActiveElicitation {
+        id: params.elicitation_id.clone(),
+        prompt: params.prompt.clone(),
+        trigger: params.trigger.clone(),
+        created_at: std::time::Instant::now(),
+    };
+
+    let mut tracker = elicitation_tracker.lock().await;
+    tracker.push(active);
+
+    info!(
+        "Elicitation {} created for tool: {}",
+        params.elicitation_id, params.trigger
+    );
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(json!({
+            "elicitationId": params.elicitation_id,
+            "status": "pending"
+        })),
+        error: None,
+    })
+}
+
+/// Handle elicitation/data - client responds with user input
+async fn handle_elicitation_data(
+    request: JsonRpcRequest,
+    elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling elicitation/data");
+
+    let params: ElicitationDataParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    // Find and remove the matching elicitation
+    let mut tracker = elicitation_tracker.lock().await;
+    let index = tracker.iter().position(|e| e.id == params.elicitation_id);
+
+    match index {
+        Some(i) => {
+            let elicitation = tracker.remove(i);
+            info!(
+                "Elicitation {} resolved from tool: {}",
+                params.elicitation_id, elicitation.trigger
+            );
+
+            let result = ElicitationResult {
+                elicitation_id: params.elicitation_id,
+                data: params.data,
+            };
+
+            match serde_json::to_value(result) {
+                Ok(value) => Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(value),
+                    error: None,
+                }),
+                Err(e) => {
+                    error!("Failed to serialize elicitation response: {}", e);
+                    Some(JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32603,
+                            message: "Internal error".to_string(),
+                            data: Some(
+                                json!({"details": format!("Response serialization failed: {}", e)}),
+                            ),
+                        }),
+                    })
+                }
+            }
+        }
+        None => {
+            warn!("Elicitation {} not found", params.elicitation_id);
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Elicitation not found".to_string(),
+                    data: Some(
+                        json!({"details": format!("No active elicitation with id: {}", params.elicitation_id)}),
+                    ),
+                }),
+            })
+        }
+    }
+}
+
+/// Cancel an active elicitation
+async fn handle_elicitation_cancel(
+    request: JsonRpcRequest,
+    elicitation_tracker: &Arc<Mutex<Vec<ActiveElicitation>>>,
+) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    info!("Handling elicitation/cancel");
+
+    let params: ElicitationCancelParams = match request.params {
+        Some(params) => match serde_json::from_value(params) {
+            Ok(p) => p,
+            Err(e) => {
+                return Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: None,
+                    error: Some(JsonRpcError {
+                        code: -32602,
+                        message: "Invalid params".to_string(),
+                        data: Some(json!({"details": e.to_string()})),
+                    }),
+                })
+            }
+        },
+        None => {
+            return Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: None,
+                error: Some(JsonRpcError {
+                    code: -32602,
+                    message: "Missing params".to_string(),
+                    data: None,
+                }),
+            })
+        }
+    };
+
+    let mut tracker = elicitation_tracker.lock().await;
+    let index = tracker.iter().position(|e| e.id == params.elicitation_id);
+
+    match index {
+        Some(i) => {
+            let elicitation = tracker.remove(i);
+            info!(
+                "Elicitation {} cancelled for tool: {}",
+                params.elicitation_id, elicitation.trigger
+            );
+
+            Some(JsonRpcResponse {
+                jsonrpc: "2.0".to_string(),
+                id: request.id,
+                result: Some(json!({
+                    "elicitationId": params.elicitation_id,
+                    "status": "cancelled"
+                })),
+                error: None,
+            })
+        }
+        None => Some(JsonRpcResponse {
+            jsonrpc: "2.0".to_string(),
+            id: request.id,
+            result: None,
+            error: Some(JsonRpcError {
+                code: -32602,
+                message: "Elicitation not found".to_string(),
+                data: Some(
+                    json!({"details": format!("No active elicitation with id: {}", params.elicitation_id)}),
+                ),
+            }),
+        }),
     }
 }

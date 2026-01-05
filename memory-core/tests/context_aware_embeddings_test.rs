@@ -57,7 +57,7 @@ async fn test_context_aware_embeddings_integration() {
         },
     ];
 
-    let result = embeddings.train_adapter(TaskType::CodeGeneration, &coding_pairs);
+    let result = embeddings.train_adapter(TaskType::CodeGeneration, &coding_pairs).await;
     assert!(result.is_ok());
 
     // Verify adapter created
@@ -115,7 +115,7 @@ async fn test_multiple_task_adapters() {
             negative: create_test_episode(TaskType::Analysis, "analyze", "domain"),
         }];
 
-        embeddings.train_adapter(task_type, &pairs).unwrap();
+        embeddings.train_adapter(task_type, &pairs).await.unwrap();
     }
 
     // Verify all adapters created
@@ -126,14 +126,14 @@ async fn test_multiple_task_adapters() {
     assert!(!embeddings.has_adapter(TaskType::Testing));
 }
 
-#[test]
-fn test_empty_training_pairs_error() {
+#[tokio::test]
+async fn test_empty_training_pairs_error() {
     let _config = memory_core::embeddings::EmbeddingConfig::default();
-    // Use mock provider for this synchronous test
+    // Use mock provider for this async test
     let mock = memory_core::embeddings::MockLocalModel::new("mock".to_string(), 128);
     let mut embeddings = ContextAwareEmbeddings::new(Arc::new(mock));
 
-    let result = embeddings.train_adapter(TaskType::CodeGeneration, &[]);
+    let result = embeddings.train_adapter(TaskType::CodeGeneration, &[]).await;
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("empty"));
 }

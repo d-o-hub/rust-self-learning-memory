@@ -144,6 +144,62 @@ pub struct ContrastivePair {
 }
 
 impl ContextAwareEmbeddings {
+    /// Update gradient for a single triplet (extracted to reduce nesting)
+    fn update_gradient_for_triplet(
+        adapter: &TaskAdapter,
+        anchor_emb: &[f32],
+        positive_emb: &[f32],
+        negative_emb: &[f32],
+        gradient: &mut [Vec<f32>],
+        dim: usize,
+        margin: f32,
+    ) {
+        // Apply current adapter
+        let anchor_adapted = adapter.adapt(anchor_emb.to_vec());
+        let positive_adapted = adapter.adapt(positive_emb.to_vec());
+        let negative_adapted = adapter.adapt(negative_emb.to_vec());
+
+        // Compute distances
+        let d_pos = euclidean_distance(&anchor_adapted, &positive_adapted);
+        let d_neg = euclidean_distance(&anchor_adapted, &negative_adapted);
+
+        // Triplet loss: max(0, d_pos - d_neg + margin)
+        let loss = (d_pos - d_neg + margin).max(0.0);
+
+        // Only update gradient if loss > 0 (violation of margin constraint)
+        if loss > 0.0 {
+            // Compute gradient for this triplet
+            for (i, grad_row) in gradient.iter_mut().enumerate().take(dim) {
+                for (j, grad_cell) in grad_row.iter_mut().enumerate().take(dim) {
+                    // Gradient w.r.t. positive distance (increase to push apart)
+                    let grad_pos =
+                        (anchor_emb[j] - positive_emb[j]) * (anchor_adapted[i] - positive_adapted[i]);
+
+                    // Gradient w.r.t. negative distance (decrease to bring closer)
+                    let grad_neg =
+                        (anchor_emb[j] - negative_emb[j]) * (anchor_adapted[i] - negative_adapted[i]);
+
+                    // Total gradient (minimize d_pos, maximize d_neg)
+                    *grad_cell += grad_pos - grad_neg;
+                }
+            }
+        }
+    }
+
+    /// Apply gradient descent update to adaptation matrix (extracted to reduce nesting)
+    fn apply_gradient_update(
+        adaptation_matrix: &mut [Vec<f32>],
+        gradient: &[Vec<f32>],
+        learning_rate: f32,
+        num_pairs: usize,
+        dim: usize,
+    ) {
+        for (i, matrix_row) in adaptation_matrix.iter_mut().enumerate().take(dim) {
+            for (j, matrix_cell) in matrix_row.iter_mut().enumerate().take(dim) {
+                *matrix_cell -= learning_rate * gradient[i][j] / num_pairs as f32;
+            }
+        }
+    }
     /// Create a new context-aware embedding provider
     ///
     /// # Arguments
@@ -324,45 +380,25 @@ impl ContextAwareEmbeddings {
 
             // Compute gradient across all training pairs
             for (anchor_emb, positive_emb, negative_emb) in &embedded_pairs {
-                // Apply current adapter
-                let anchor_adapted = adapter.adapt(anchor_emb.clone());
-                let positive_adapted = adapter.adapt(positive_emb.clone());
-                let negative_adapted = adapter.adapt(negative_emb.clone());
-
-                // Compute distances
-                let d_pos = euclidean_distance(&anchor_adapted, &positive_adapted);
-                let d_neg = euclidean_distance(&anchor_adapted, &negative_adapted);
-
-                // Triplet loss: max(0, d_pos - d_neg + margin)
-                let loss = (d_pos - d_neg + MARGIN).max(0.0);
-
-                // Only update gradient if loss > 0 (violation of margin constraint)
-                if loss > 0.0 {
-                    // Compute gradient for this triplet
-                    for i in 0..dim {
-                        for j in 0..dim {
-                            // Gradient w.r.t. positive distance (increase to push apart)
-                            let grad_pos = (anchor_emb[j] - positive_emb[j])
-                                * (anchor_adapted[i] - positive_adapted[i]);
-
-                            // Gradient w.r.t. negative distance (decrease to bring closer)
-                            let grad_neg = (anchor_emb[j] - negative_emb[j])
-                                * (anchor_adapted[i] - negative_adapted[i]);
-
-                            // Total gradient (minimize d_pos, maximize d_neg)
-                            gradient[i][j] += grad_pos - grad_neg;
-                        }
-                    }
-                }
+                Self::update_gradient_for_triplet(
+                    &adapter,
+                    anchor_emb,
+                    positive_emb,
+                    negative_emb,
+                    &mut gradient,
+                    dim,
+                    MARGIN,
+                );
             }
 
             // Apply gradient descent update
-            for i in 0..dim {
-                for j in 0..dim {
-                    adapter.adaptation_matrix[i][j] -=
-                        LEARNING_RATE * gradient[i][j] / contrastive_pairs.len() as f32;
-                }
-            }
+            Self::apply_gradient_update(
+                &mut adapter.adaptation_matrix,
+                &gradient,
+                LEARNING_RATE,
+                contrastive_pairs.len(),
+                dim,
+            );
         }
 
         // Update training count

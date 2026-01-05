@@ -3666,7 +3666,7 @@ dependencies = [
  "chrono",
  "futures",
  "libsql",
- "lru 0.12.5",
+ "lru 0.16.2",
  "memory-storage-redb",
  "memory-storage-turso",
  "ndarray 0.17.1",

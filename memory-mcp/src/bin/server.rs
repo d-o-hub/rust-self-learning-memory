@@ -137,8 +137,8 @@ enum Content {
 }
 
 /// Completion reference types (MCP 2025-11-25)
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(tag = "type")]
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
 enum CompletionRef {
     #[serde(rename = "ref/prompt")]
     Prompt { name: String },
@@ -160,11 +160,11 @@ struct CompletionContext {
     arguments: std::collections::HashMap<String, Value>,
 }
 
-/// Completion request parameters
+/// Completion request parameters (ref parsed manually due to external tagging)
 #[derive(Debug, Deserialize)]
 struct CompletionParams {
     #[serde(rename = "ref")]
-    reference: CompletionRef,
+    reference: Value,
     argument: CompletionArgument,
     #[serde(default)]
     context: Option<CompletionContext>,
@@ -1296,8 +1296,23 @@ async fn generate_completions(params: &CompletionParams) -> CompletionValues {
     // Get context arguments if available
     let _context_args = params.context.as_ref().map(|c| &c.arguments);
 
+    // Parse the reference Value to extract prompt name or resource URI
+    // External tagging format: {"ref/prompt": {"name": "..."}} or {"ref/resource": {"uri": "..."}}
+    let prompt_name = if let Some(prompt_ref) = params
+        .reference
+        .as_object()
+        .and_then(|o| o.get("ref/prompt"))
+    {
+        prompt_ref
+            .get("name")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+    } else {
+        None
+    };
+
     // Generate domain completions for query_memory tool
-    if let CompletionRef::Prompt { name } = &params.reference {
+    if let Some(ref name) = prompt_name {
         // Handle prompt argument completions
         match name.as_str() {
             "query_memory" => {
@@ -1387,16 +1402,13 @@ async fn generate_completions(params: &CompletionParams) -> CompletionValues {
     }
 
     // Handle resource completions
-    if let CompletionRef::Resource { uri: _ } = &params.reference {
-        // For resource URI completions, return empty for now
-        return CompletionValues {
-            values: vec![],
-            total: Some(0),
-            has_more: Some(false),
-        };
-    }
+    let _is_resource_ref = params
+        .reference
+        .as_object()
+        .and_then(|o| o.get("ref/resource"))
+        .is_some();
 
-    // Default: no completions
+    // For resource URI completions, return empty for now
     CompletionValues {
         values: vec![],
         total: Some(0),

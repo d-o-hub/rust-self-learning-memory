@@ -2,7 +2,30 @@
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-01-05
+
 ### Added
+- **Tasks Utility (MCP 2025-11-25)**: Long-running task support for async operations
+  - `task/create`: Create new long-running tasks with metadata
+  - `task/update`: Update task status and progress with partial results
+  - `task/complete`: Complete tasks with results (Text/Json/Error types)
+  - `task/cancel`: Cancel active tasks with optional reason
+  - `task/list`: List all active tasks with status and progress
+  - TaskStatus enum: Pending, InProgress, Completed, Failed, Cancelled
+  - ActiveTask tracker using Arc<Mutex<>> for thread-safe state management
+  - Zero warnings with `-D warnings`
+
+- **Embedding Configuration (Environment Variables)**: Flexible provider configuration
+  - `EMBEDDING_PROVIDER`: Set provider (openai, local, mistral, azure, cohere)
+  - `OPENAI_API_KEY`: API key for cloud providers
+  - `OPENAI_API_KEY_ENV`: Environment variable name for API key
+  - `EMBEDDING_MODEL`: Override default model per provider
+  - `EMBEDDING_SIMILARITY_THRESHOLD`: Similarity threshold (default: 0.7)
+  - `EMBEDDING_BATCH_SIZE`: Batch size for embedding operations (default: 32)
+  - `handle_embedding_config`: JSON-RPC handler for embedding configuration
+  - Zero warnings with `-D warnings`
+
+### Refactored
 - **Pre-Storage Extractor Refactoring**: File size compliance (2026-01-05)
   - Split `extractor.rs` (911 LOC) into modular structure under 500 LOC guideline
   - New structure: `mod.rs` (126), `types.rs` (127), `decisions.rs` (87), `tools.rs` (54), `recovery.rs` (91), `insights.rs` (50), `tests.rs` (407)

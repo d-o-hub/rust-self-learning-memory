@@ -16,7 +16,7 @@ mod types;
 #[cfg(test)]
 mod tests;
 
-pub use types::{RetrievalQuery, ScoredEpisode};
+pub use types::{HierarchicalScore, RetrievalQuery};
 
 use crate::episode::Episode;
 use anyhow::Result;
@@ -145,7 +145,7 @@ impl HierarchicalRetriever {
         &self,
         query: &RetrievalQuery,
         all_episodes: &[Episode],
-    ) -> Result<Vec<ScoredEpisode>> {
+    ) -> Result<Vec<HierarchicalScore>> {
         debug!("Starting hierarchical retrieval");
 
         // Level 1: Domain filtering

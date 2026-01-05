@@ -288,7 +288,7 @@ fn test_ranking_sorts_by_relevance() {
     let retriever = HierarchicalRetriever::new();
 
     let mut scored = vec![
-        ScoredEpisode {
+        HierarchicalScore {
             episode_id: uuid::Uuid::new_v4(),
             relevance_score: 0.5,
             level_1_score: 0.5,
@@ -296,7 +296,7 @@ fn test_ranking_sorts_by_relevance() {
             level_3_score: 0.5,
             level_4_score: 0.5,
         },
-        ScoredEpisode {
+        HierarchicalScore {
             episode_id: uuid::Uuid::new_v4(),
             relevance_score: 0.9,
             level_1_score: 1.0,
@@ -304,7 +304,7 @@ fn test_ranking_sorts_by_relevance() {
             level_3_score: 0.8,
             level_4_score: 0.8,
         },
-        ScoredEpisode {
+        HierarchicalScore {
             episode_id: uuid::Uuid::new_v4(),
             relevance_score: 0.3,
             level_1_score: 0.3,

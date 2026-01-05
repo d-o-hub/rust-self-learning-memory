@@ -46,7 +46,7 @@ pub struct RetrievalQuery {
     pub limit: usize,
 }
 
-/// Episode with hierarchical relevance scores.
+/// Episode with hierarchical relevance scores from retrieval.
 ///
 /// Contains the episode ID and scores from all 4 retrieval levels,
 /// plus the combined relevance score.
@@ -63,10 +63,10 @@ pub struct RetrievalQuery {
 /// # Examples
 ///
 /// ```
-/// use memory_core::spatiotemporal::retriever::ScoredEpisode;
+/// use memory_core::spatiotemporal::retriever::HierarchicalScore;
 /// use uuid::Uuid;
 ///
-/// let scored = ScoredEpisode {
+/// let scored = HierarchicalScore {
 ///     episode_id: Uuid::new_v4(),
 ///     relevance_score: 0.85,
 ///     level_1_score: 1.0,  // Perfect domain match
@@ -76,7 +76,7 @@ pub struct RetrievalQuery {
 /// };
 /// ```
 #[derive(Debug, Clone)]
-pub struct ScoredEpisode {
+pub struct HierarchicalScore {
     /// Episode unique identifier
     pub episode_id: Uuid,
     /// Combined relevance score (0.0-1.0)

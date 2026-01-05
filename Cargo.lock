@@ -1682,9 +1682,9 @@ dependencies = [
 
 [[package]]
 name = "deep_causality"
-version = "0.13.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0815ee49acd08764a4c692e3be329388cd4dcbe123b991d9612faff27edd6895"
+checksum = "cef42a3555cad81890dcc0bbecb0ec38eba45c4fa00cbff50013f2e440a73b1d"
 dependencies = [
  "deep_causality_ast",
  "deep_causality_core",
@@ -1702,9 +1702,9 @@ checksum = "015679d3d8a6cfdd11a378b8e7fb9d4d5ef46e6bc16a4b43aacb134185f444c0"
 
 [[package]]
 name = "deep_causality_core"
-version = "0.0.2"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "325dbc6ad7bce0e309d3e28f0165123bbace0302c4fd77e06f4ca305ef1f02ee"
+checksum = "55d41beb9e62a1b5d7c0dce744f55b8face97d1a1349b09d9c9dfffbe8cb030c"
 dependencies = [
  "deep_causality_haft",
 ]
@@ -3278,9 +3278,9 @@ checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 
 [[package]]
 name = "libc"
-version = "0.2.178"
+version = "0.2.179"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37c93d8daa9d8a012fd8ab92f088405fb202ea0b6ab73ee2482ae66af4f42091"
+checksum = "c5a2d376baa530d1238d133232d15e239abad80d05838b4b59354e5268af431f"
 
 [[package]]
 name = "libloading"

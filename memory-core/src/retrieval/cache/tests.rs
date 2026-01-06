@@ -3,7 +3,7 @@
 //! Test suite for the query cache.
 
 #[cfg(test)]
-mod tests {
+mod cache_tests {
     use crate::episode::Episode;
     use crate::retrieval::cache::lru::QueryCache;
     use crate::retrieval::cache::types::{CacheKey, DEFAULT_CACHE_TTL};

@@ -2,6 +2,8 @@
 //!
 //! LRU cache with TTL for query results to improve retrieval performance.
 //! Target: 2-3x speedup for repeated queries with ≥40% cache hit rate.
+//!
+//! This module was split from retrieval/cache.rs to meet 500 LOC compliance.
 
 use crate::episode::Episode;
 use crate::retrieval::cache::types::{

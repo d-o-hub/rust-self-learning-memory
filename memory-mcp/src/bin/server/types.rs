@@ -1,0 +1,432 @@
+//! Type definitions for MCP server
+//!
+//! This module contains all struct and enum definitions used by the MCP server,
+//! including OAuth 2.1, MCP protocol, completion, elicitation, tasks, and embedding types.
+
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+// ============================================================
+// OAuth 2.1 Types
+// ============================================================
+
+/// OAuth 2.1 Configuration
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub struct OAuthConfig {
+    /// Whether authorization is enabled
+    pub enabled: bool,
+    /// Expected audience for tokens
+    pub audience: Option<String>,
+    /// Expected issuer for tokens
+    pub issuer: Option<String>,
+    /// Supported scopes
+    pub scopes: Vec<String>,
+    /// JWKS URI for token validation
+    pub jwks_uri: Option<String>,
+}
+
+impl Default for OAuthConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false, // Disabled by default for local development
+            audience: None,
+            issuer: None,
+            scopes: vec!["mcp:read".to_string(), "mcp:write".to_string()],
+            jwks_uri: None,
+        }
+    }
+}
+
+/// Protected Resource Metadata (RFC 9728)
+#[derive(Debug, Serialize)]
+pub struct ProtectedResourceMetadata {
+    #[serde(rename = "authorizationServers", skip_serializing_if = "Vec::is_empty")]
+    pub authorization_servers: Vec<String>,
+    pub resource: String,
+    #[serde(rename = "scopesSupported", skip_serializing_if = "Vec::is_empty")]
+    pub scopes_supported: Vec<String>,
+    #[serde(rename = "resourceMetadata")]
+    pub resource_metadata: Option<String>,
+}
+
+/// Bearer token claims (simplified JWT structure)
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct TokenClaims {
+    /// Subject (user/client ID)
+    pub sub: String,
+    /// Issuer
+    pub iss: Option<String>,
+    /// Audience
+    pub aud: Option<String>,
+    /// Expiration time
+    pub exp: Option<u64>,
+    /// Issued at
+    pub iat: Option<u64>,
+    /// Scopes
+    pub scope: Option<String>,
+}
+
+/// Authorization result
+#[derive(Debug)]
+#[allow(dead_code)]
+pub enum AuthorizationResult {
+    Authorized,
+    MissingToken,
+    InvalidToken(String),
+    InsufficientScope(Vec<String>),
+}
+
+// ============================================================
+// MCP Core Protocol Types
+// ============================================================
+
+/// MCP Initialize response payload
+#[derive(Debug, Serialize)]
+pub struct InitializeResult {
+    #[serde(rename = "protocolVersion")]
+    pub protocol_version: String,
+    pub capabilities: Value,
+    #[serde(rename = "serverInfo")]
+    pub server_info: Value,
+}
+
+/// MCP Tool structure for listing
+#[derive(Debug, Serialize)]
+pub struct McpTool {
+    pub name: String,
+    pub description: String,
+    #[serde(rename = "inputSchema")]
+    pub input_schema: Value,
+}
+
+/// MCP ListTools response
+#[derive(Debug, Serialize)]
+pub struct ListToolsResult {
+    pub tools: Vec<McpTool>,
+}
+
+/// MCP CallTool request parameters
+#[derive(Debug, Deserialize)]
+pub struct CallToolParams {
+    pub name: String,
+    pub arguments: Option<Value>,
+}
+
+/// MCP CallTool response
+#[derive(Debug, Serialize)]
+pub struct CallToolResult {
+    pub content: Vec<Content>,
+}
+
+/// MCP Content structure
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+pub enum Content {
+    #[serde(rename = "text")]
+    Text { text: String },
+}
+
+// ============================================================
+// Completion Types (MCP 2025-11-25)
+// ============================================================
+
+/// Completion reference types (MCP 2025-11-25)
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub enum CompletionRef {
+    #[serde(rename = "ref/prompt")]
+    Prompt { name: String },
+    #[serde(rename = "ref/resource")]
+    Resource { uri: String },
+}
+
+/// Completion argument for completion/complete request
+#[derive(Debug, Deserialize)]
+pub struct CompletionArgument {
+    pub name: String,
+    pub value: String,
+}
+
+/// Completion context (optional additional context)
+#[derive(Debug, Deserialize)]
+pub struct CompletionContext {
+    #[serde(default)]
+    pub arguments: std::collections::HashMap<String, Value>,
+}
+
+/// Completion request parameters (ref parsed manually due to external tagging)
+#[derive(Debug, Deserialize)]
+pub struct CompletionParams {
+    #[serde(rename = "ref")]
+    pub reference: Value,
+    pub argument: CompletionArgument,
+    #[serde(default)]
+    pub context: Option<CompletionContext>,
+}
+
+/// Completion result
+#[derive(Debug, Serialize)]
+pub struct CompletionResult {
+    pub completion: CompletionValues,
+}
+
+/// Completion values response
+#[derive(Debug, Serialize)]
+pub struct CompletionValues {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub values: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total: Option<u64>,
+    #[serde(rename = "hasMore", skip_serializing_if = "Option::is_none")]
+    pub has_more: Option<bool>,
+}
+
+// ============================================================
+// Elicitation Types (MCP 2025-11-25)
+// ============================================================
+
+/// Elicitation request type - what kind of input is requested
+#[allow(dead_code)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum ElicitationType {
+    Text,
+    Select,
+    Confirm,
+}
+
+/// Prompt for the user in an elicitation request
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ElicitationPrompt {
+    /// The prompt text to display to the user
+    pub r#type: String,
+    /// Human-readable description of what input is needed
+    pub description: Option<String>,
+    /// Additional data for select type elicitation
+    pub options: Option<Vec<ElicitationOption>>,
+}
+
+/// Option for select type elicitation
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ElicitationOption {
+    /// Label displayed to the user
+    pub label: String,
+    /// Value returned when selected
+    pub value: Value,
+}
+
+/// Elicitation request parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ElicitationParams {
+    /// Unique identifier for this elicitation
+    pub elicitation_id: String,
+    /// The prompt to send to the user
+    pub prompt: ElicitationPrompt,
+    /// Name of the tool that triggered this elicitation
+    pub trigger: String,
+}
+
+/// Elicitation response parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ElicitationDataParams {
+    /// The elicitation being responded to
+    pub elicitation_id: String,
+    /// The user's response data
+    pub data: Value,
+}
+
+/// Elicitation result response
+#[derive(Debug, Serialize)]
+pub struct ElicitationResult {
+    /// The elicitation that was resolved
+    pub elicitation_id: String,
+    /// The received data
+    pub data: Value,
+}
+
+/// Parameters for cancelling an elicitation
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ElicitationCancelParams {
+    /// The elicitation to cancel
+    pub elicitation_id: String,
+}
+
+/// Active elicitation tracker
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct ActiveElicitation {
+    pub id: String,
+    pub prompt: ElicitationPrompt,
+    pub trigger: String,
+    pub created_at: std::time::Instant,
+}
+
+// ============================================================
+// Task Types (MCP 2025-11-25)
+// ============================================================
+
+/// Task status enumeration
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum TaskStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Failed,
+    Cancelled,
+}
+
+/// Task result type
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum TaskResultType {
+    Text,
+    Json,
+    Error,
+}
+
+/// Task result
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskResult {
+    pub r#type: TaskResultType,
+    pub content: Value,
+}
+
+/// Task input parameters
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskInput {
+    pub name: String,
+    pub input: Option<Value>,
+    pub metadata: Option<std::collections::HashMap<String, Value>>,
+}
+
+/// Task creation parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskCreateParams {
+    pub task_id: String,
+    pub task: TaskInput,
+}
+
+/// Task status update parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskUpdateParams {
+    pub task_id: String,
+    pub status: TaskStatus,
+    pub progress: Option<u32>,
+    pub partial_result: Option<Value>,
+}
+
+/// Task completion parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskCompleteParams {
+    pub task_id: String,
+    pub result: TaskResult,
+}
+
+/// Task cancellation parameters
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskCancelParams {
+    pub task_id: String,
+    pub reason: Option<String>,
+}
+
+/// Active task tracker
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct ActiveTask {
+    pub id: String,
+    pub name: String,
+    pub status: TaskStatus,
+    pub input: Option<Value>,
+    pub metadata: Option<std::collections::HashMap<String, Value>>,
+    pub progress: u32,
+    pub result: Option<TaskResult>,
+    pub created_at: std::time::Instant,
+}
+
+/// Task creation response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct TaskCreateResult {
+    pub task_id: String,
+    pub status: String,
+}
+
+/// Task update response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct TaskUpdateResult {
+    pub task_id: String,
+    pub status: String,
+    pub progress: u32,
+}
+
+/// Task completion response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct TaskCompleteResult {
+    pub task_id: String,
+    pub status: String,
+    pub elapsed_ms: u64,
+}
+
+/// Task list response
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct TaskListResult {
+    pub tasks: Vec<TaskListItem>,
+    pub total: usize,
+}
+
+/// Task list item
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct TaskListItem {
+    pub task_id: String,
+    pub name: String,
+    pub status: String,
+    pub progress: u32,
+    pub created_at_secs_ago: u64,
+}
+
+// ============================================================
+// Embedding Configuration Types
+// ============================================================
+
+/// Embedding configuration from environment
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct EmbeddingEnvConfig {
+    pub provider: String,
+    pub api_key: Option<String>,
+    #[allow(dead_code)]
+    pub api_key_env: String,
+    pub model: Option<String>,
+    pub similarity_threshold: f32,
+    pub batch_size: usize,
+}
+
+/// Embedding configuration output
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct EmbeddingConfigResult {
+    pub success: bool,
+    pub provider: String,
+    pub model: String,
+    pub dimension: usize,
+    pub message: String,
+    pub env_config: bool,
+}

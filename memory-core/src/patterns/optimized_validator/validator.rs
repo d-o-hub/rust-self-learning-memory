@@ -64,7 +64,11 @@ impl OptimizedPatternValidator {
     }
 
     /// Calculate similarity between pattern and target contexts
-    pub(crate) fn calculate_context_similarity(&self, pattern_context: &TaskContext, target_context: &TaskContext) -> f32 {
+    pub(crate) fn calculate_context_similarity(
+        &self,
+        pattern_context: &TaskContext,
+        target_context: &TaskContext,
+    ) -> f32 {
         let mut score = 0.0;
         let mut weight = 0.0;
 
@@ -75,22 +79,23 @@ impl OptimizedPatternValidator {
         weight += 0.4;
 
         // Language match (30% weight)
-        if pattern_context.language == target_context.language && pattern_context.language.is_some() {
+        if pattern_context.language == target_context.language && pattern_context.language.is_some()
+        {
             score += 0.3;
         }
         weight += 0.3;
 
         // Framework match (20% weight)
-        if pattern_context.framework == target_context.framework && pattern_context.framework.is_some() {
+        if pattern_context.framework == target_context.framework
+            && pattern_context.framework.is_some()
+        {
             score += 0.2;
         }
         weight += 0.2;
 
         // Complexity compatibility (10% weight)
-        let complexity_compatible = self.is_complexity_compatible(
-            pattern_context.complexity,
-            target_context.complexity,
-        );
+        let complexity_compatible =
+            self.is_complexity_compatible(pattern_context.complexity, target_context.complexity);
         if complexity_compatible {
             score += 0.1;
         }
@@ -109,7 +114,7 @@ impl OptimizedPatternValidator {
         pattern_complexity: crate::types::ComplexityLevel,
         context_complexity: crate::types::ComplexityLevel,
     ) -> bool {
-        use crate::types::ComplexityLevel::*;
+        use crate::types::ComplexityLevel::{Complex, Moderate, Simple};
 
         // Exact match is always compatible
         if pattern_complexity == context_complexity {
@@ -120,10 +125,7 @@ impl OptimizedPatternValidator {
         // But not the other way around (prevents over-simplification)
         matches!(
             (pattern_complexity, context_complexity),
-            (Simple, Moderate)
-                | (Simple, Complex)
-                | (Moderate, Complex)
-                | (Moderate, Simple)
+            (Simple, Moderate | Complex) | (Moderate, Complex | Simple)
         )
     }
 }

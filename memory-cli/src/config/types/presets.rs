@@ -75,10 +75,7 @@ impl ConfigPreset {
                         redb_path: Some("./data/cache.redb".to_string()), // Consistent path
                     },
                     storage: StorageConfig {
-                        max_episodes_cache: std::cmp::min(
-                            5000,
-                            defaults::suggest_cache_size(),
-                        ),
+                        max_episodes_cache: std::cmp::min(5000, defaults::suggest_cache_size()),
                         cache_ttl_seconds: defaults::suggest_cache_ttl(),
                         pool_size: defaults::suggest_pool_size(),
                     },

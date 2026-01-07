@@ -67,7 +67,7 @@ mod tests {
         };
 
         let compatibility = applicator.assess_tool_compatibility(&tool, &context);
-        
+
         // Should return a neutral score for tools with no history
         assert!(compatibility >= 0.0 && compatibility <= 1.0);
     }
@@ -104,7 +104,7 @@ mod tests {
         assert_eq!(strict_validator.minimum_confidence, 0.95);
         assert_eq!(strict_validator.minimum_sample_size, 10);
         assert_eq!(strict_validator.context_similarity_threshold, 0.9);
-        
+
         assert_eq!(lenient_validator.minimum_confidence, 0.7);
         assert_eq!(lenient_validator.minimum_sample_size, 3);
         assert_eq!(lenient_validator.context_similarity_threshold, 0.6);
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn test_validator_thresholds() {
         let validator = OptimizedPatternValidator::new(0.8, 3, 0.7);
-        
+
         assert_eq!(validator.minimum_confidence, 0.8);
         assert_eq!(validator.minimum_sample_size, 3);
         assert_eq!(validator.context_similarity_threshold, 0.7);
@@ -123,7 +123,7 @@ mod tests {
     fn test_enhanced_applicator_creation() {
         let applicator = EnhancedPatternApplicator::new();
         let default_applicator = EnhancedPatternApplicator::default();
-        
+
         // Both should create valid applicators
         // Test they can assess tool compatibility
         let tool = Tool::new("test".to_string());
@@ -134,10 +134,10 @@ mod tests {
             complexity: ComplexityLevel::Simple,
             tags: vec![],
         };
-        
+
         let score1 = applicator.assess_tool_compatibility(&tool, &context);
         let score2 = default_applicator.assess_tool_compatibility(&tool, &context);
-        
+
         assert!(score1 >= 0.0 && score1 <= 1.0);
         assert_eq!(score1, score2);
     }

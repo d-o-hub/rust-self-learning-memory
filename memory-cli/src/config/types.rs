@@ -11,8 +11,8 @@ mod detection;
 mod enums;
 mod presets;
 mod simple;
-pub mod system_info;
 mod structs;
+pub mod system_info;
 
 // Re-exports for backward compatibility
 pub use defaults::*;

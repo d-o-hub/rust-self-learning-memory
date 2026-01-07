@@ -9,8 +9,8 @@ use tracing::{debug, info, instrument, warn};
 
 use super::bocpd::SimpleBOCPD;
 use super::types::{
-    AnalysisMetadata, BOCPDConfig, ChangeType, ChangepointResult,
-    CorrelationResult, StatisticalConfig, StatisticalResults, TrendDirection, TrendResult,
+    AnalysisMetadata, BOCPDConfig, ChangeType, ChangepointResult, CorrelationResult,
+    StatisticalConfig, StatisticalResults, TrendDirection, TrendResult,
 };
 
 /// Core statistical analysis engine

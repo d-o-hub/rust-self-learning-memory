@@ -8,10 +8,10 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 
-use super::super::ActiveElicitation;
 use super::super::types::{
     ElicitationCancelParams, ElicitationDataParams, ElicitationParams, ElicitationResult,
 };
+use super::super::ActiveElicitation;
 
 /// Handle elicitation/request - server asks client for user input
 pub async fn handle_elicitation_request(

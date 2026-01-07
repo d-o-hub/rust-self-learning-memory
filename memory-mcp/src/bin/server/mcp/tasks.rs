@@ -8,10 +8,10 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::info;
 
-use super::super::ActiveTask;
 use super::super::types::{
     TaskCancelParams, TaskCompleteParams, TaskCreateParams, TaskStatus, TaskUpdateParams,
 };
+use super::super::ActiveTask;
 
 /// Handle task/create - create a new long-running task
 pub async fn handle_task_create(

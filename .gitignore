@@ -48,6 +48,7 @@ libsql-*.db
 # Cache and storage directories
 data/
 cache/
+!/memory-core/src/retrieval/cache
 storage/
 
 # Test database files

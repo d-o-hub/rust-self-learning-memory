@@ -14,7 +14,7 @@ documentation = "https://docs.rs/memory-mcp"
 
 [[bin]]
 name = "memory-mcp-server"
-path = "src/bin/server.rs"
+path = "src/bin/memory-mcp-server.rs"
 
 [dependencies]
 # Workspace dependencies

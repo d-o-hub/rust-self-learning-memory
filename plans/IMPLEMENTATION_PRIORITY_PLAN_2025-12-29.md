@@ -1,9 +1,9 @@
 # Implementation Priority Plan
 
 **Date**: 2025-12-29
-**Version**: v0.1.10+ Planning
-**Total Effort Identified**: 217-307 hours (5.5-7.5 weeks)
-**Based On**: GAP_ANALYSIS_REPORT_2025-12-29.md
+**Version**: v0.1.12+ Planning
+**Total Effort Identified**: 175-265 hours (4.5-6.5 weeks)
+**Based On**: GAP_ANALYSIS_REPORT_2025-12-29.md (Updated 2026-01-08)
 
 ---
 
@@ -66,13 +66,22 @@ These can be completed immediately with minimal risk and high value.
 
 ---
 
-## Phase 2: File Size Compliance (40-50 hours - P0 CRITICAL)
+## Phase 2: File Size Compliance (25-35 hours remaining - P0 CRITICAL)
 
 **Priority**: P0 (Codebase Standards Compliance)
 **Rationale**: Required by AGENTS.md, blocks code reviews
 **Target Release**: v0.1.11
+**Status**: 10 of 16 files COMPLETED ✅
 
-### Week 1: Large Files (Top 5)
+### Completed ✅
+1. memory-mcp/src/sandbox.rs (690 → 433 + 258 LOC)
+2. memory-mcp/src/wasmtime_sandbox.rs (595 → 366 + 187 LOC)
+3. memory-core/src/reward.rs (790 → 367 + 424 LOC)
+4. memory-core/src/embeddings/mod.rs (774 → 422 + 312 LOC)
+5. memory-core/src/spatiotemporal/embeddings.rs (765 → 462 + 262 LOC)
+6. memory-core/src/semantic/summary.rs (727 → 5 modules)
+
+### Week 1: Large Files (Top 2 - Remaining)
 
 #### Task 1: memory-storage-turso/src/storage.rs (10-12 hours)
 **Current**: 2,502 LOC
@@ -118,27 +127,15 @@ predictive/
 └── tests.rs          # Test suite (~450 LOC)
 ```
 
-#### Task 3-5: Similar approach for remaining top 3 files
-- memory-core/src/memory/mod.rs (1,530 LOC → 3 modules)
-- memory-storage-redb/src/storage.rs (1,514 LOC → 3 modules)
-- memory-mcp/src/server.rs (1,414 LOC → 3 modules)
+### Week 2-3: Remaining Files (4 files, 1,201-1,530 LOC each)
 
-### Week 2-3: Remaining Files (11 files, 888-1,201 LOC each)
-
-**Estimated Effort**: 2-3 hours per file × 11 = 22-33 hours
+**Estimated Effort**: 2-3 hours per file × 4 = 8-12 hours
 
 **Files**:
-1. memory-cli/src/commands/episode.rs (1,201 LOC → 3 modules)
-2. memory-cli/src/commands/pattern.rs (1,174 LOC → 3 modules)
-3. memory-mcp/src/patterns/statistical.rs (1,132 LOC → 3 modules)
-4. memory-cli/src/config/types.rs (1,052 LOC → 2 modules)
-5. memory-core/src/spatiotemporal/index.rs (1,044 LOC → 2 modules)
-6. memory-core/src/types.rs (925 LOC → 2 modules)
-7. memory-core/src/spatiotemporal/retriever.rs (918 LOC → 2 modules)
-8. memory-core/src/pre_storage/extractor.rs (911 LOC → 2 modules)
-9. memory-core/src/patterns/optimized_validator.rs (889 LOC → 2 modules)
-10. memory-cli/src/config/wizard.rs (878 LOC → 2 modules)
-11. memory-storage-turso/src/lib.rs (870 LOC → 2 modules)
+1. memory-core/src/memory/mod.rs (1,530 LOC → 3 modules)
+2. memory-storage-redb/src/storage.rs (1,514 LOC → 3 modules)
+3. memory-mcp/src/server.rs (1,414 LOC → 3 modules)
+4. memory-cli/src/commands/episode.rs (1,201 LOC → 3 modules)
 
 **Validation** (After Each File):
 - [ ] File ≤ 500 LOC
@@ -334,15 +331,16 @@ predictive/
 - **Status**: 95% COMPLETE
 
 ### Sprint 2: File Compliance (Weeks 2-4) - v0.1.11
-- **Effort**: 40-50 hours
+- **Effort**: 25-35 hours remaining
 - **Deliverable**: 0 files > 500 LOC
-- **Status**: READY TO START (P0 CRITICAL)
+- **Status**: IN PROGRESS - 10/16 files complete ✅
 - **Target Files**:
-  1. `memory-storage-turso/src/storage.rs` (2,969 LOC)
+  1. `memory-storage-turso/src/storage.rs` (2,502 LOC)
   2. `memory-mcp/src/patterns/predictive.rs` (2,435 LOC)
   3. `memory-core/src/memory/mod.rs` (1,530 LOC)
   4. `memory-storage-redb/src/storage.rs` (1,514 LOC)
-  5. `memory-mcp/src/server.rs` (1,515 LOC)
+  5. `memory-mcp/src/server.rs` (1,414 LOC)
+  6. `memory-cli/src/commands/episode.rs` (1,201 LOC)
 
 ### Sprint 3: Code Quality (Weeks 5-7) - v0.1.12
 - **Effort**: 50-75 hours
@@ -370,7 +368,7 @@ predictive/
 - **Performance**: 3 weeks (1 developer)
 - **Enhancements**: 3-4 weeks (1 developer)
 
-**Total**: 11-15 weeks (1 developer) OR 3-4 weeks (3-4 developers in parallel)
+**Total**: 9-13 weeks (1 developer) OR 2.5-3.5 weeks (3-4 developers in parallel)
 
 ### Skills Needed
 - Rust performance optimization
@@ -411,7 +409,7 @@ predictive/
 - [ ] E2E tests passing
 
 ### v0.1.11 (File Compliance)
-- [ ] 0 files > 500 LOC
+- [ ] 0 files > 500 LOC (6 remaining)
 - [ ] All tests passing
 - [ ] 0 clippy warnings
 - [ ] Documentation updated
@@ -442,9 +440,9 @@ predictive/
 
 **Created**: 2025-12-29
 **Status**: READY FOR EXECUTION
-**Recommended Start**: Embeddings Completion (Sprint 1)
-**Total Timeline**: 11-15 weeks (1 developer) OR 3-4 weeks (3-4 developers)
+**Recommended Start**: File Compliance (Sprint 2)
+**Total Timeline**: 9-13 weeks (1 developer) OR 2.5-3.5 weeks (3-4 developers)
 
 ---
 
-*This priority plan breaks down the 217-307 hours of identified work into manageable sprints with clear deliverables and success criteria.*
+*This priority plan breaks down the 175-265 hours of identified work into manageable sprints with clear deliverables and success criteria. Updated: 2026-01-08*

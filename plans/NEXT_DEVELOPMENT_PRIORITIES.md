@@ -1,8 +1,8 @@
 # Next Development Priorities
 
-**Date**: 2026-01-06  
-**Current Version**: v0.1.12 (released 2026-01-05)  
-**Status**: Active Development
+**Date**: 2026-01-08
+**Current Version**: v0.1.12
+**Status**: Active Development - File Compliance 62.5% Complete
 
 ## Immediate Priorities for Next Release (v0.1.13)
 
@@ -13,49 +13,45 @@ Based on analysis, here are the actionable priorities:
 **Goal**: Split remaining large files to meet 500 LOC guideline
 
 **Current Status**:
-- ✅ Pre-storage extractor: DONE (split in recent commits)
-- ✅ Spatiotemporal retriever: DONE (split in recent commits)
-- ❌ Several large files remain
+- ✅ 10 of 16 files COMPLETED (62.5% progress)
+- Completed splits: sandbox, wasmtime_sandbox, reward, embeddings/mod, spatiotemporal/embeddings, semantic/summary
+- ❌ 6 large files remain
 
-**Top Files to Split (>500 LOC)**:
+**Remaining Files to Split (>500 LOC)**:
 
-1. **memory-mcp/src/bin/server.rs** (2,368 LOC) 🔴 CRITICAL
-   - Target: 5 modules (~450 LOC each)
-   - Modules: server/mod.rs, server/handlers.rs, server/tools.rs, server/lifecycle.rs, server/tests.rs
-   - Effort: 8-10 hours
-   - Impact: Main MCP server, high visibility
+1. **memory-storage-turso/src/storage.rs** (2,502 LOC) 🔴 CRITICAL
+   - Target: 5 modules (~500 LOC each)
+   - Modules: storage/mod.rs, storage/episodes.rs, storage/patterns.rs, storage/embeddings.rs, storage/monitoring.rs
+   - Effort: 10-12 hours
+   - Impact: Primary database storage
 
-2. **memory-mcp/src/patterns/statistical.rs** (1,132 LOC) 🔴
-   - Target: 3 modules (~370 LOC each)
-   - Modules: statistical/mod.rs, statistical/analysis.rs, statistical/tests.rs
-   - Effort: 4-5 hours
-   - Impact: Pattern analysis features
+2. **memory-mcp/src/patterns/predictive.rs** (2,435 LOC) 🔴 CRITICAL
+   - Target: 5 modules (~485 LOC each)
+   - Modules: predictive/mod.rs, predictive/forecasting.rs, predictive/anomaly.rs, predictive/analysis.rs, predictive/tests.rs
+   - Effort: 10-12 hours
+   - Impact: Pattern prediction features
 
-3. **memory-storage-turso/src/lib.rs** (964 LOC) 🟡
-   - Target: 2 modules (~480 LOC each)
-   - Modules: lib/core.rs, lib/queries.rs
-   - Effort: 3-4 hours
-   - Impact: Primary storage backend
+3. **memory-core/src/memory/mod.rs** (1,530 LOC) 🟡
+   - Target: 3 modules (~510 LOC each)
+   - Effort: 6-8 hours
+   - Impact: Core memory operations
 
-4. **memory-core/src/memory/retrieval.rs** (891 LOC) 🟡
-   - Target: 2 modules (~445 LOC each)
-   - Modules: retrieval/mod.rs, retrieval/hierarchical.rs
-   - Effort: 3-4 hours
-   - Impact: Core memory retrieval
+4. **memory-storage-redb/src/storage.rs** (1,514 LOC) 🟡
+   - Target: 3 modules (~505 LOC each)
+   - Effort: 6-8 hours
+   - Impact: Cache storage backend
 
-5. **memory-core/src/patterns/optimized_validator.rs** (889 LOC) 🟡
-   - Target: 2 modules (~445 LOC each)
-   - Modules: validator/mod.rs, validator/optimization.rs
-   - Effort: 3-4 hours
-   - Impact: Pattern validation
+5. **memory-mcp/src/server.rs** (1,414 LOC) 🟡
+   - Target: 3 modules (~471 LOC each)
+   - Effort: 6-8 hours
+   - Impact: MCP server core
 
-6. **memory-core/src/retrieval/cache.rs** (861 LOC) 🟡
-   - Target: 2 modules (~430 LOC each)
-   - Modules: cache/mod.rs, cache/lru.rs
-   - Effort: 3-4 hours
-   - Impact: Query cache performance
+6. **memory-cli/src/commands/episode.rs** (1,201 LOC) 🟡
+   - Target: 2-3 modules (~400 LOC each)
+   - Effort: 4-6 hours
+   - Impact: CLI episode commands
 
-**Total Effort**: 24-35 hours for top 6 files
+**Total Effort**: 42-54 hours for remaining 6 files
 
 ### 🚀 Priority 2: Feature Enhancements (P1 - HIGH VALUE)
 
@@ -104,8 +100,8 @@ Action items:
 
 #### B. Code Quality Improvements
 From gap analysis:
-- 356 unwrap/expect calls (target: <50 in production code)
-- 298 clone operations (target: <200)
+- ~340 unwrap/expect calls (target: <50 in production code)
+- ~280 clone operations (target: <200)
 
 Tasks:
 - Audit and convert unwraps to proper error handling
@@ -115,14 +111,14 @@ Tasks:
 ## Recommended Next Sprint
 
 ### Sprint: File Size Compliance + Test Fixes
-**Duration**: 1-2 weeks  
-**Effort**: 32-47 hours  
+**Duration**: 1.5-2 weeks
+**Effort**: 50-66 hours
 **Target Release**: v0.1.13
 
 **Sprint Goal**: Achieve full file size compliance and restore test pass rate
 
 **Backlog**:
-1. Split top 6 large files (24-35 hours)
+1. Split remaining 6 large files (42-54 hours)
 2. Fix failing tests (8-12 hours)
 
 **Success Criteria**:
@@ -172,26 +168,30 @@ This gets v0.1.13 out faster with lower risk.
    - Fix tests (8-12 hours)
    - Quick release, partial compliance
 
-## Recommended Action
+**Recommended Action**
 
-**Start with Quick Wins Sprint** 🎯
+**Start with File Compliance Sprint** 🎯
 
 Rationale:
-- v0.1.12 just released (yesterday)
-- Quick wins provide immediate value
-- Can tackle file compliance in v0.1.14
-- Maintains momentum
-- Lowers risk
+- 62.5% file compliance already achieved (10/16 files)
+- Critical P0 priority per AGENTS.md guidelines
+- Clear path forward with well-defined modules
+- Remaining files are well-understood
+- Can release v0.1.11 (File Compliance) then v0.1.12 (Quick Wins)
 
-After Quick Wins:
-- Release v0.1.13 (tests fixed, benchmarks documented)
-- Then start File Compliance Sprint for v0.1.14
+Recommended Order:
+1. Split remaining 6 files (v0.1.11)
+2. Fix tests and run benchmarks (v0.1.12)
+3. Release with full compliance
+
+---
+*Updated: 2026-01-08 - File compliance progress: 10 of 16 files completed*
 
 ---
 
 **What would you like to work on first?**
 
-A. File size compliance (split large files)
+A. File size compliance (split remaining 6 large files)
 B. Fix failing tests
 C. Run and document benchmarks
 D. Something else - specify

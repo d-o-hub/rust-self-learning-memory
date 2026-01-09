@@ -13,8 +13,9 @@ use super::mcp::{
     handle_task_list, handle_task_update,
 };
 use super::tools::{
-    handle_advanced_pattern_analysis, handle_analyze_patterns, handle_execute_code,
-    handle_get_metrics, handle_health_check, handle_quality_metrics, handle_query_memory,
+    handle_advanced_pattern_analysis, handle_analyze_patterns, handle_configure_embeddings,
+    handle_execute_code, handle_get_metrics, handle_health_check, handle_quality_metrics,
+    handle_query_memory, handle_query_semantic_memory, handle_test_embeddings,
 };
 use super::types::{
     ActiveElicitation, ActiveTask, CallToolParams, CallToolResult, EmbeddingEnvConfig, OAuthConfig,
@@ -361,6 +362,13 @@ async fn handle_call_tool(
         "health_check" => handle_health_check(&mut server, params.arguments).await,
         "get_metrics" => handle_get_metrics(&mut server, params.arguments).await,
         "quality_metrics" => handle_quality_metrics(&mut server, params.arguments).await,
+        "configure_embeddings" => {
+            handle_configure_embeddings(&mut server, params.arguments).await
+        }
+        "query_semantic_memory" => {
+            handle_query_semantic_memory(&mut server, params.arguments).await
+        }
+        "test_embeddings" => handle_test_embeddings(&mut server, params.arguments).await,
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),

@@ -4,8 +4,7 @@
 //! trait implementations to keep lib.rs under 500 LOC.
 
 use async_trait::async_trait;
-use memory_core::{monitoring, Error, Result, StorageBackend};
-use std::sync::Arc;
+use memory_core::{Error, Result, StorageBackend};
 
 /// Storage statistics
 #[derive(Debug, Clone)]

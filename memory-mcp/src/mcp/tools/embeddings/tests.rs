@@ -1,12 +1,12 @@
 //! Embedding tools tests.
 
+#![allow(unused_imports)]
+
 use std::sync::Arc;
 
 use memory_core::SelfLearningMemory;
 
-use crate::mcp::tools::embeddings::types::{
-    ConfigureEmbeddingsInput, QuerySemanticMemoryInput,
-};
+use crate::mcp::tools::embeddings::types::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
 use crate::mcp::tools::embeddings::EmbeddingTools;
 
 #[test]

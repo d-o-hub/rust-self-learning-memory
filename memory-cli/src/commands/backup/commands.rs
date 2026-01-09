@@ -148,13 +148,46 @@ pub async fn restore_backup(
     let mut patterns_restored = 0usize;
 
     // Parse backup content
-    if let Ok(data) = serde_json::from_str::<serde_json::Value>(&content) {
-        if let Some(episodes) = data.get("episodes").and_then(|e| e.as_array()) {
-            for episode in episodes {
-                if let Ok(_ep) = serde_json::from_value::<serde_json::Value>(episode.clone()) {
-                    // TODO: Implement episode storage
+    let data: Result<serde_json::Value, _> = serde_json::from_str(&content);
+    let episodes = data
+        .as_ref()
+        .ok()
+        .and_then(|e| e.get("episodes").and_then(|ep| ep.as_array()));
+
+    for episode in episodes.into_iter().flatten() {
+        match serde_json::from_value::<memory_core::Episode>(episode.clone()) {
+            Ok(ep) => {
+                // Store episode in available backends
+                let mut stored = false;
+
+                // Try Turso storage first (durable)
+                if let Some(turso) = memory.turso_storage() {
+                    if turso.store_episode(&ep).await.is_err() {
+                        errors.push(format!(
+                            "Failed to restore episode {} to Turso",
+                            ep.episode_id
+                        ));
+                    } else {
+                        stored = true;
+                    }
+                }
+
+                // Try cache storage (fast access)
+                if let Some(cache) = memory.cache_storage() {
+                    if cache.store_episode(&ep).await.is_err() {
+                        errors.push(format!(
+                            "Failed to restore episode {} to cache",
+                            ep.episode_id
+                        ));
+                    }
+                }
+
+                if stored {
                     episodes_restored += 1;
                 }
+            }
+            Err(e) => {
+                errors.push(format!("Failed to parse episode: {}", e));
             }
         }
     }

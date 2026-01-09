@@ -202,6 +202,34 @@ impl SemanticSummarizer {
         Ok(summary)
     }
 
+    /// Extract key concepts from an episode.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode` - The episode to extract concepts from
+    ///
+    /// # Returns
+    ///
+    /// Vector of key concept strings
+    #[must_use]
+    pub fn extract_key_concepts(&self, episode: &Episode) -> Vec<String> {
+        extract_key_concepts(episode)
+    }
+
+    /// Extract key steps from an episode.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode` - The episode to extract steps from
+    ///
+    /// # Returns
+    ///
+    /// Vector of key step descriptions
+    #[must_use]
+    pub fn extract_key_steps(&self, episode: &Episode) -> Vec<String> {
+        extract_key_steps(episode, self.max_key_steps)
+    }
+
     /// Generate summary text from an episode.
     ///
     /// Creates a coherent 100-200 word summary with:

@@ -1,4 +1,4 @@
-//! ScoredEpisode type definition.
+//! `ScoredEpisode` type definition.
 
 use serde::{Deserialize, Serialize};
 

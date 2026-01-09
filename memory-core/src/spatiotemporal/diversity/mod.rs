@@ -26,6 +26,7 @@
 //! retrieval accuracy.
 
 mod maximizer;
+#[cfg(test)]
 mod tests;
 mod types;
 

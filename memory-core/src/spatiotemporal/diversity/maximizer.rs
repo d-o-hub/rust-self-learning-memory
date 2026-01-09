@@ -1,4 +1,4 @@
-//! DiversityMaximizer implementation using Maximal Marginal Relevance (MMR).
+//! `DiversityMaximizer` implementation using Maximal Marginal Relevance (MMR).
 
 use crate::spatiotemporal::diversity::types::ScoredEpisode;
 use std::cmp::Ordering;

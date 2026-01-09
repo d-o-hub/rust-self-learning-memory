@@ -1,10 +1,10 @@
 //! Embedding tools implementation.
 
-use crate::types::Tool;
 use crate::mcp::tools::embeddings::types::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, QuerySemanticMemoryInput,
     QuerySemanticMemoryOutput, SemanticResult, TestEmbeddingsOutput,
 };
+use crate::types::Tool;
 use anyhow::{anyhow, Result};
 use memory_core::embeddings::{EmbeddingConfig, EmbeddingProviderType, ModelConfig};
 use memory_core::SelfLearningMemory;

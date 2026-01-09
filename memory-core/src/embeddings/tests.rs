@@ -12,17 +12,26 @@ fn create_test_episode() -> Episode {
         tags: vec!["test".to_string()],
     };
 
-    let mut episode = Episode::new("test".to_string(), context, crate::types::TaskType::Testing);
-    episode
+    Episode::new("test".to_string(), context, crate::types::TaskType::Testing)
 }
 
 fn create_test_pattern() -> Pattern {
-    Pattern::new(
-        "test".to_string(),
-        "test pattern".to_string(),
-        vec!["test".to_string()],
-        "test domain".to_string(),
-    )
+    use chrono::Duration;
+    Pattern::ToolSequence {
+        id: uuid::Uuid::new_v4(),
+        tools: vec!["test".to_string()],
+        context: TaskContext {
+            language: Some("rust".to_string()),
+            framework: None,
+            complexity: crate::types::ComplexityLevel::Moderate,
+            domain: "test domain".to_string(),
+            tags: vec!["test".to_string()],
+        },
+        success_rate: 1.0,
+        avg_latency: Duration::milliseconds(100),
+        occurrence_count: 1,
+        effectiveness: crate::pattern::PatternEffectiveness::default(),
+    }
 }
 
 #[tokio::test]
@@ -30,10 +39,11 @@ async fn test_embed_episode() {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config,
+    );
 
     let episode = create_test_episode();
     let embedding = service.embed_episode(&episode).await;
@@ -44,97 +54,15 @@ async fn test_embed_episode() {
 }
 
 #[tokio::test]
-async fn test_embed_text() {
-    let storage = Box::new(MockEmbeddingStorage);
-    let config = EmbeddingConfig::default();
-
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
-
-    let embedding = service.embed_text("test query").await;
-
-    assert!(embedding.is_ok());
-    let embedding = embedding.unwrap();
-    assert_eq!(embedding.len(), DEFAULT_EMBEDDING_DIM);
-}
-
-#[tokio::test]
-async fn test_similarity_search() {
-    let storage = Box::new(MockEmbeddingStorage);
-    let config = EmbeddingConfig::default();
-
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
-
-    let query = "test query".to_string();
-    let episodes = vec![create_test_episode()];
-
-    let results = service.semantic_search(&query, &episodes, 5).await;
-
-    assert!(results.is_ok());
-    let results = results.unwrap();
-    assert!(results.len() <= 5);
-}
-
-#[tokio::test]
-async fn test_similarity_threshold_filtering() {
-    let storage = Box::new(MockEmbeddingStorage);
-    let config = EmbeddingConfig {
-        similarity_threshold: 0.9,
-        ..Default::default()
-    };
-
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
-
-    let query = "test query".to_string();
-    let episodes = vec![create_test_episode()];
-
-    let results = service.semantic_search(&query, &episodes, 5).await;
-
-    assert!(results.is_ok());
-    let results = results.unwrap();
-    assert!(results.is_empty() || results[0].score >= 0.9);
-}
-
-#[tokio::test]
-async fn test_batch_embedding() {
-    let storage = Box::new(MockEmbeddingStorage);
-    let config = EmbeddingConfig {
-        batch_size: 2,
-        ..Default::default()
-    };
-
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
-
-    let texts = vec!["test1", "test2", "test3"];
-
-    let results = service.embed_batch(&texts).await;
-
-    assert!(results.is_ok());
-    let results = results.unwrap();
-    assert_eq!(results.len(), 3);
-    assert_eq!(results[0].len(), DEFAULT_EMBEDDING_DIM);
-}
-
-#[tokio::test]
 async fn test_embed_pattern() {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config,
+    );
 
     let pattern = create_test_pattern();
     let embedding = service.embed_pattern(&pattern).await;
@@ -145,30 +73,73 @@ async fn test_embed_pattern() {
 }
 
 #[tokio::test]
-async fn test_search_with_diversity() {
+async fn test_find_similar_episodes() {
     let storage = Box::new(MockEmbeddingStorage);
-    let config = EmbeddingConfig {
-        diversity_threshold: 0.5,
-        ..Default::default()
+    let config = EmbeddingConfig::default();
+
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config,
+    );
+
+    let context = TaskContext {
+        language: Some("rust".to_string()),
+        framework: None,
+        complexity: crate::types::ComplexityLevel::Moderate,
+        domain: "test".to_string(),
+        tags: vec!["test".to_string()],
     };
-
-    let result = SemanticService::new(Box::new(MockLocalModel::new()), storage, config).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
-
-    let query = "test query".to_string();
-    let episodes = vec![create_test_episode(), create_test_episode()];
-
-    let results = service.semantic_search(&query, &episodes, 5).await;
+    let results = service
+        .find_similar_episodes("test query", &context, 5)
+        .await;
 
     assert!(results.is_ok());
     let results = results.unwrap();
-    // Results should be diversity-filtered
-    if results.len() > 1 {
-        // First result should be highest score
-        assert!(results[0].score >= results[1].score);
-    }
+    assert!(results.len() <= 5);
+}
+
+#[tokio::test]
+async fn test_find_similar_patterns() {
+    let storage = Box::new(MockEmbeddingStorage);
+    let config = EmbeddingConfig::default();
+
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config,
+    );
+
+    let context = TaskContext {
+        language: Some("rust".to_string()),
+        framework: None,
+        complexity: crate::types::ComplexityLevel::Moderate,
+        domain: "test".to_string(),
+        tags: vec!["test".to_string()],
+    };
+    let results = service.find_similar_patterns(&context, 5).await;
+
+    assert!(results.is_ok());
+    let results = results.unwrap();
+    assert!(results.len() <= 5);
+}
+
+#[tokio::test]
+async fn test_text_similarity() {
+    let storage = Box::new(MockEmbeddingStorage);
+    let config = EmbeddingConfig::default();
+
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config,
+    );
+
+    let similarity = service.text_similarity("test1", "test2").await;
+
+    assert!(similarity.is_ok());
+    let similarity = similarity.unwrap();
+    assert!(similarity >= 0.0 && similarity <= 1.0);
 }
 
 #[tokio::test]
@@ -195,11 +166,11 @@ async fn test_config_preservation() {
         ..Default::default()
     };
 
-    let result =
-        SemanticService::new(Box::new(MockLocalModel::new()), storage, config.clone()).await;
-
-    assert!(result.is_ok());
-    let service = result.unwrap();
+    let service = SemanticService::new(
+        Box::new(MockLocalModel::new("mock".to_string(), 384)),
+        storage,
+        config.clone(),
+    );
 
     assert_eq!(
         service.config.similarity_threshold,

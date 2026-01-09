@@ -1,13 +1,14 @@
 //! Unified sandbox tests.
 
-use base64::Engine;
+#![allow(unused_imports)]
+
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
-use crate::unified_sandbox::UnifiedSandbox;
+use crate::unified_sandbox::{BackendChoice, SandboxBackend, UnifiedSandbox};
+use base64::Engine;
 
 #[tokio::test]
 async fn test_unified_sandbox_nodejs_backend() -> Result<(), anyhow::Error> {
-    let sandbox =
-        UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::NodeJs).await?;
+    let sandbox = UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::NodeJs).await?;
 
     let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
     let result = sandbox.execute("console.log('test')", context).await?;
@@ -34,8 +35,7 @@ async fn test_unified_sandbox_nodejs_backend() -> Result<(), anyhow::Error> {
 #[tokio::test]
 #[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
 async fn test_unified_sandbox_wasm_backend() -> Result<(), anyhow::Error> {
-    let sandbox =
-        UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::Wasm).await?;
+    let sandbox = UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::Wasm).await?;
 
     // Use pre-compiled WASM module instead of JavaScript (Javy plugin not bundled)
     let wasm_bytes = wat::parse_str(
@@ -49,7 +49,10 @@ async fn test_unified_sandbox_wasm_backend() -> Result<(), anyhow::Error> {
     )?;
 
     let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));
-    let wasm_payload = format!("wasm_base64:{}", base64::prelude::BASE64_STANDARD.encode(wasm_bytes));
+    let wasm_payload = format!(
+        "wasm_base64:{}",
+        base64::prelude::BASE64_STANDARD.encode(wasm_bytes)
+    );
     let result = sandbox.execute(&wasm_payload, context).await?;
 
     match &result {
@@ -203,7 +206,10 @@ async fn test_backend_update() -> Result<(), anyhow::Error> {
         )
     "#,
     )?;
-    let wasm_payload = format!("wasm_base64:{}", base64::prelude::BASE64_STANDARD.encode(wasm_bytes));
+    let wasm_payload = format!(
+        "wasm_base64:{}",
+        base64::prelude::BASE64_STANDARD.encode(wasm_bytes)
+    );
     let result2 = sandbox.execute(&wasm_payload, context).await?;
     match &result2 {
         ExecutionResult::Success { .. } => {} // Success

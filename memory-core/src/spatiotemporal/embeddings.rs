@@ -127,6 +127,12 @@ impl TaskAdapter {
 
         adapted
     }
+
+    /// Alias for `adapt()` - Apply this adapter to a base embedding
+    #[must_use]
+    pub fn apply(&self, base_embedding: &[f32]) -> Vec<f32> {
+        self.adapt(base_embedding.to_vec())
+    }
 }
 
 /// A pair of episodes for contrastive learning
@@ -289,6 +295,23 @@ impl ContextAwareEmbeddings {
 
         // Fallback to base embedding
         Ok(base_embedding)
+    }
+
+    /// Get base embedding for text (without adaptation)
+    ///
+    /// # Arguments
+    ///
+    /// * `text` - Text to embed
+    ///
+    /// # Returns
+    ///
+    /// Base embedding vector
+    ///
+    /// # Errors
+    ///
+    /// Returns error if base embedding generation fails
+    pub async fn get_embedding(&self, text: &str) -> Result<Vec<f32>> {
+        self.base_embeddings.embed_text(text).await
     }
 
     /// Train a task-specific adapter using contrastive learning

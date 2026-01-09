@@ -1,6 +1,7 @@
 //! Tests for spatiotemporal embeddings module.
 
 use super::*;
+use crate::embeddings::cosine_similarity;
 use crate::embeddings::EmbeddingProvider;
 use crate::types::{ComplexityLevel, TaskContext, TaskOutcome};
 use async_trait::async_trait;

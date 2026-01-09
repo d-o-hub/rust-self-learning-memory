@@ -3,6 +3,7 @@
 //! Integration tests for the Turso storage backend.
 
 use super::*;
+use memory_core::StorageBackend;
 use tempfile::TempDir;
 
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

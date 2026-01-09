@@ -1,8 +1,8 @@
 //! Diversity module tests.
 
 use crate::spatiotemporal::diversity::types::ScoredEpisode;
-use crate::spatiotemporal::DiversityMaximizer;
 
+#[allow(dead_code)]
 fn create_test_episode(id: &str, relevance: f32, embedding: Vec<f32>) -> ScoredEpisode {
     ScoredEpisode::new(id.to_string(), relevance, embedding)
 }

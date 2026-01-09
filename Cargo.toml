@@ -35,7 +35,7 @@ postcard = { version = "1.0", features = ["alloc"] }
 
 # Database
 libsql = "0.9"
-redb = "2.1"
+redb = "2.2"
 
 # UUID and time
 uuid = { version = "1.19", features = ["v4", "serde"] }

@@ -362,9 +362,7 @@ async fn handle_call_tool(
         "health_check" => handle_health_check(&mut server, params.arguments).await,
         "get_metrics" => handle_get_metrics(&mut server, params.arguments).await,
         "quality_metrics" => handle_quality_metrics(&mut server, params.arguments).await,
-        "configure_embeddings" => {
-            handle_configure_embeddings(&mut server, params.arguments).await
-        }
+        "configure_embeddings" => handle_configure_embeddings(&mut server, params.arguments).await,
         "query_semantic_memory" => {
             handle_query_semantic_memory(&mut server, params.arguments).await
         }

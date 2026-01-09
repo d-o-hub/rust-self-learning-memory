@@ -13,9 +13,7 @@
 //! - handle_test_embeddings: Test embedding provider
 
 use super::types::Content;
-use memory_mcp::mcp::tools::embeddings::{
-    ConfigureEmbeddingsInput, QuerySemanticMemoryInput,
-};
+use memory_mcp::mcp::tools::embeddings::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
 use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
 use memory_mcp::ExecutionContext;
 use memory_mcp::MemoryMCPServer;

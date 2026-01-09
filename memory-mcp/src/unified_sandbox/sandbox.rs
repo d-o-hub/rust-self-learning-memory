@@ -1,7 +1,7 @@
 //! Unified sandbox implementation.
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
-use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};
+use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
 use anyhow::{anyhow, Result};
 use rand::Rng;
 use std::sync::Arc;

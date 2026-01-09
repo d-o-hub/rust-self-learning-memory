@@ -49,6 +49,7 @@ libsql-*.db
 data/
 cache/
 !/memory-core/src/retrieval/cache
+!/memory-core/src/storage/circuit_breaker
 storage/
 
 # Test database files

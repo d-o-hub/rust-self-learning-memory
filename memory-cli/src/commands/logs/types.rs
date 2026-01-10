@@ -58,7 +58,7 @@ pub enum ExportFormat {
     Txt,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct LogAnalysis {
     pub time_range: String,
     pub total_episodes: usize,

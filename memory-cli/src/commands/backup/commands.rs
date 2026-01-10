@@ -69,12 +69,24 @@ pub async fn create_backup(
         }
     }
 
+    // If path is a directory, append a default filename
+    let backup_path = if path.is_dir() {
+        let filename = format!("backup_{}.{}", backup_id, match backup_format {
+            BackupFormat::Json => "json",
+            BackupFormat::Jsonl => "jsonl",
+            BackupFormat::Sql => "sql",
+        });
+        path.join(filename)
+    } else {
+        path
+    };
+
     // Write backup file
-    fs::write(&path, &content).await?;
+    fs::write(&backup_path, &content).await?;
 
     let result = BackupResult {
         backup_id,
-        path: path.to_string_lossy().to_string(),
+        path: backup_path.to_string_lossy().to_string(),
         format: format!("{:?}", backup_format),
         compressed: false,
         episodes_count: episodes.len(),

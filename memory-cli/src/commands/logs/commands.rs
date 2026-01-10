@@ -25,7 +25,19 @@ pub async fn analyze_logs(
             .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
             .await?
     } else {
-        return Err(anyhow::anyhow!("No storage backend available"));
+        // Return empty analysis when no storage is available
+        let analysis = LogAnalysis {
+            time_range: since,
+            total_episodes: 0,
+            total_steps: 0,
+            average_steps_per_episode: 0.0,
+            success_rate: 0.0,
+            top_tools: Vec::new(),
+            error_patterns: Vec::new(),
+            performance_trends: Vec::new(),
+        };
+        format.print_output(&analysis)?;
+        return Ok(());
     };
 
     let total_episodes = episodes.len();

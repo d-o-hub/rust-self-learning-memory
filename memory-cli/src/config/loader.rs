@@ -616,7 +616,7 @@ mod cache_tests {
         // Verify hit rate calculation works
         let stats = cache_stats();
         assert!(
-            stats.hit_rate >= 0.0 && stats.hit_rate <= 1.0,
+            (0.0..=1.0).contains(&stats.hit_rate),
             "Hit rate should be between 0 and 1"
         );
     }

@@ -63,7 +63,7 @@ pub async fn execute(
         }
     }
 
-    Err(anyhow::anyhow!("internal: exhausted retry loop"))
+    Err(anyhow!("internal: exhausted retry loop"))
 }
 
 /// Execute with retry attempt tracking
@@ -167,7 +167,7 @@ async fn execute_with_runtime(
     runtime_pool: &Arc<RwLock<Vec<PooledRuntime>>>,
     metrics: &Arc<RwLock<WasmMetrics>>,
 ) -> Result<ExecutionResult> {
-    let mut runtime = acquire_runtime(config, runtime_pool, metrics).await?;
+    let runtime = acquire_runtime(config, runtime_pool, metrics).await?;
 
     let result = {
         let ctx = Context::full(&runtime.runtime)?;
@@ -176,35 +176,33 @@ async fn execute_with_runtime(
             // Setup secure environment
             setup_secure_environment(&ctx, config)?;
 
-            // Inject context
+            // Inject context - use 'input' field instead of 'data'
             let global = ctx.globals();
-            let context_str = serde_json::to_string(&context.data)?;
+            let context_str = serde_json::to_string(&context.input)?;
             global.set("__context", context_str)?;
 
             // Execute code
             let result_value: Value = ctx.eval(code)?;
 
-            // Convert result to JSON
-            let result_json = if result_value.is_undefined() || result_value.is_null() {
-                serde_json::Value::Null
+            // Convert result to JSON string using stringify
+            let result_json: String = if result_value.is_undefined() || result_value.is_null() {
+                "null".to_string()
+            } else if let Ok(Some(s)) = ctx.json_stringify(result_value.clone()) {
+                // Convert rquickjs::String to std::String, handling potential error
+                match s.to_string() {
+                    Ok(str) => str,
+                    Err(_) => "null".to_string(),
+                }
             } else {
-                let json_str: String = result_value
-                    .as_string()
-                    .map(|s| s.to_string()?)
-                    .unwrap_or_else(|| {
-                        ctx.json_stringify(result_value)
-                            .ok()
-                            .and_then(|v| v.and_then(|s| s.to_string().ok()))
-                            .unwrap_or_else(|| "null".to_string())
-                    });
-                serde_json::from_str(&json_str).unwrap_or(serde_json::Value::Null)
+                "null".to_string()
             };
 
-            Ok(ExecutionResult {
-                output: result_json,
-                success: true,
-                error: None,
-                execution_time_ms: 0, // Will be set by caller
+            // Return success result
+            Ok(ExecutionResult::Success {
+                output: result_json.clone(),
+                stdout: result_json,
+                stderr: String::new(),
+                execution_time_ms: 0,
             })
         })?
     };
@@ -247,11 +245,10 @@ fn setup_safe_console(ctx: &Ctx) -> Result<()> {
     let global = ctx.globals();
     let console = Object::new(ctx.clone())?;
 
-    // Create log function
-    let log_fn = Function::new(ctx.clone(), |args: Vec<String>| {
-        let message = args.join(" ");
-        info!("[WASM Console] {}", message);
-        Ok(())
+    // Create log function - simplify by just taking one string argument
+    let log_fn = Function::new(ctx.clone(), |_ctx: Ctx, msg: String| {
+        info!("[WASM Console] {}", msg);
+        Ok::<(), rquickjs::Error>(())
     })?;
 
     console.set("log", log_fn.clone())?;

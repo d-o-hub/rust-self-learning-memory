@@ -107,6 +107,7 @@ pub mod jsonrpc;
 pub mod mcp;
 pub mod monitoring;
 pub mod patterns;
+pub mod protocol;
 pub mod sandbox;
 pub mod server;
 pub mod types;

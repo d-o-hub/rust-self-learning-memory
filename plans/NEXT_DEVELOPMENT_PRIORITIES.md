@@ -1,134 +1,143 @@
 # Next Development Priorities
 
-**Date**: 2026-01-08
-**Current Version**: v0.1.12
-**Status**: Active Development - File Compliance 62.5% Complete
+**Date**: 2026-01-09
+**Current Version**: v0.1.13 (In Development)
+**Status**: Active Development - File Compliance In Progress
 
 ## Immediate Priorities for Next Release (v0.1.13)
 
-Based on analysis, here are the actionable priorities:
+Based on current analysis, here are the actionable priorities:
 
 ### 🔥 Priority 1: File Size Compliance (P0 - CRITICAL)
 
 **Goal**: Split remaining large files to meet 500 LOC guideline
 
 **Current Status**:
-- ✅ 10 of 16 files COMPLETED (62.5% progress)
-- Completed splits: sandbox, wasmtime_sandbox, reward, embeddings/mod, spatiotemporal/embeddings, semantic/summary
-- ❌ 6 large files remain
+- ✅ 10+ files successfully split in early January 2026
+- ❌ 20+ large files remain exceeding 500 LOC
 
 **Remaining Files to Split (>500 LOC)**:
 
-1. **memory-storage-turso/src/storage.rs** (2,502 LOC) 🔴 CRITICAL
-   - Target: 5 modules (~500 LOC each)
-   - Modules: storage/mod.rs, storage/episodes.rs, storage/patterns.rs, storage/embeddings.rs, storage/monitoring.rs
-   - Effort: 10-12 hours
-   - Impact: Primary database storage
+#### P0 - Critical (Start Immediately)
 
-2. **memory-mcp/src/patterns/predictive.rs** (2,435 LOC) 🔴 CRITICAL
-   - Target: 5 modules (~485 LOC each)
-   - Modules: predictive/mod.rs, predictive/forecasting.rs, predictive/anomaly.rs, predictive/analysis.rs, predictive/tests.rs
-   - Effort: 10-12 hours
-   - Impact: Pattern prediction features
+**memory-mcp (Server files)**:
+1. `src/wasm_sandbox.rs` (683 LOC) - Split into runtime/instance/modules
+2. `src/javy_compiler.rs` (679 LOC) - Extract compiler phases
+3. `src/unified_sandbox.rs` (533 LOC) - Split handler/implementation
 
-3. **memory-core/src/memory/mod.rs** (1,530 LOC) 🟡
-   - Target: 3 modules (~510 LOC each)
-   - Effort: 6-8 hours
-   - Impact: Core memory operations
+**memory-storage (Storage files)**:
+4. `memory-storage-redb/src/cache.rs` (654 LOC) - Split cache operations
+5. `memory-storage-turso/src/pool.rs` (589 LOC) - Extract pool management
 
-4. **memory-storage-redb/src/storage.rs** (1,514 LOC) 🟡
-   - Target: 3 modules (~505 LOC each)
-   - Effort: 6-8 hours
-   - Impact: Cache storage backend
+#### P1 - High (Next Sprint)
 
-5. **memory-mcp/src/server.rs** (1,414 LOC) 🟡
-   - Target: 3 modules (~471 LOC each)
-   - Effort: 6-8 hours
-   - Impact: MCP server core
+**memory-core (Core files)**:
+6. `src/patterns/clustering.rs` (673 LOC)
+7. `src/memory/learning.rs` (673 LOC)
+8. `src/embeddings/openai.rs` (672 LOC)
+9. `src/pre_storage/quality.rs` (666 LOC)
+10. `src/learning/queue.rs` (662 LOC)
+11. `src/embeddings/config.rs` (660 LOC)
+12. `src/episode.rs` (649 LOC)
 
-6. **memory-cli/src/commands/episode.rs** (1,201 LOC) 🟡
-   - Target: 2-3 modules (~400 LOC each)
-   - Effort: 4-6 hours
-   - Impact: CLI episode commands
+#### P2 - Medium (Future Sprints)
 
-**Total Effort**: 42-54 hours for remaining 6 files
+**memory-core (Continued)**:
+13. `src/embeddings/real_model.rs` (634 LOC)
+14. `src/patterns/effectiveness.rs` (631 LOC)
+15. `src/patterns/validation.rs` (623 LOC)
+16. `src/episodic/capacity.rs` (613 LOC)
+17. `src/monitoring/storage.rs` (598 LOC)
 
-### 🚀 Priority 2: Feature Enhancements (P1 - HIGH VALUE)
+**memory-cli (CLI files)**:
+18. `src/config/validator.rs` (636 LOC)
+19. `src/config/loader.rs` (623 LOC)
+20. `src/config/progressive.rs` (564 LOC)
+
+#### P3 - Low (Cleanup)
+
+21. `src/sync.rs` (511 LOC) - Just over limit
+22. `src/reward/adaptive.rs` (510 LOC) - Just over limit
+
+**Total Effort**: 80-120 hours for full compliance
+
+### 🚀 Priority 2: Code Quality (P1 - HIGH VALUE)
 
 Based on roadmap, embeddings are already complete (100%). Focus on:
 
-#### A. Test Infrastructure Improvements (HIGH)
-**Problem**: Test pass rate dropped from 99.3% to 76.7%
+#### A. Error Handling Audit (HIGH)
+**Problem**: ~340 unwrap/expect calls in production code
+**Goal**: Reduce to <50 with proper error handling
+
+Tasks:
+- [ ] Audit all unwrap/expect locations
+- [ ] Convert hot path unwraps to proper error handling
+- [ ] Add context to error messages
+- [ ] Ensure all error paths are tested
+- Effort: 20-30 hours
+
+#### B. Clone Reduction (MEDIUM)
+**Problem**: ~280 clone operations, some unnecessary
+**Goal**: Reduce to <200 with Arc/Cow/references
+
+Tasks:
+- [ ] Profile clone hotspots
+- [ ] Convert episode/pattern clones to Arc
+- [ ] Use Cow for conditional cloning
+- Effort: 15-25 hours
+
+#### C. Test Infrastructure (MEDIUM)
+**Problem**: Test pass rate dropped from 99.3% to ~85%
 **Goal**: Restore >95% pass rate
 
 Tasks:
-- Investigate failing tests (7 file size compliance tests)
-- Fix test infrastructure issues
-- Update test assertions for refactored code
-- Effort: 8-12 hours
-
-#### B. Performance Benchmarking (MEDIUM)
-**Goal**: Validate and document current performance
-
-Tasks:
-- Run full benchmark suite
-- Document results
-- Compare against v0.1.12 baseline
-- Update performance metrics in docs
-- Effort: 4-6 hours
-
-#### C. Documentation Updates (MEDIUM)
-**Goal**: Keep documentation current with recent changes
-
-Tasks:
-- Update MCP protocol compliance docs
-- Document new refactored modules
-- Add migration guides for API changes
-- Update architecture diagrams
-- Effort: 4-6 hours
+- [ ] Identify and fix failing tests
+- [ ] Update test assertions for refactored code
+- [ ] Add integration tests for new modules
+- Effort: 10-15 hours
 
 ### 🔧 Priority 3: Technical Debt (P2 - QUALITY)
 
-#### A. Security - Unmaintained Dependencies (LOW RISK)
-**Status**: 5 unmaintained transitive dependencies identified
+#### A. Dependency Cleanup (LOW RISK)
+**Status**: 5+ duplicate dependencies identified
 
 Action items:
-1. Monitor upstream updates (wasmtime, augurs, libsql)
-2. Create tracking issues for each dependency
-3. Plan migration if needed
-4. Effort: 2-3 hours (monitoring setup)
+- [ ] Analyze dependency tree
+- [ ] Consolidate duplicate versions
+- [ ] Remove unused dependencies
+- [ ] Optimize feature flags
+- Effort: 10-15 hours
 
-#### B. Code Quality Improvements
-From gap analysis:
-- ~340 unwrap/expect calls (target: <50 in production code)
-- ~280 clone operations (target: <200)
+#### B. Documentation Updates (MEDIUM)
+**Goal**: Keep documentation current with recent changes
 
 Tasks:
-- Audit and convert unwraps to proper error handling
-- Reduce unnecessary clones
-- Effort: 20-30 hours (ongoing)
+- [ ] Update MCP protocol compliance docs
+- [ ] Document new refactored modules
+- [ ] Update architecture diagrams
+- Effort: 5-10 hours
 
 ## Recommended Next Sprint
 
-### Sprint: File Size Compliance + Test Fixes
-**Duration**: 1.5-2 weeks
-**Effort**: 50-66 hours
+### Sprint: P0 File Compliance
+**Duration**: 1-2 weeks
+**Effort**: 25-35 hours (P0 files only)
 **Target Release**: v0.1.13
 
-**Sprint Goal**: Achieve full file size compliance and restore test pass rate
+**Sprint Goal**: Achieve 80% file size compliance
 
 **Backlog**:
-1. Split remaining 6 large files (42-54 hours)
-2. Fix failing tests (8-12 hours)
+1. Split memory-mcp sandbox files (15-20 hours)
+2. Split memory-storage files (10-15 hours)
 
 **Success Criteria**:
-- ✅ All files ≤ 500 LOC
-- ✅ Test pass rate >95%
+- ✅ All P0 files ≤ 500 LOC
+- ✅ Test pass rate >90%
 - ✅ 0 clippy warnings
-- ✅ All benchmarks passing
+- ✅ All tests passing
 
 **Deliverables**:
-- 6+ new modular file structures
+- 5+ new modular file structures
 - Updated test suite
 - Updated documentation
 
@@ -137,13 +146,13 @@ Tasks:
 If you want faster iteration, focus on smaller tasks:
 
 ### Sprint: Quick Improvements
-**Duration**: 3-5 days  
-**Effort**: 12-18 hours
+**Duration**: 3-5 days
+**Effort**: 15-20 hours
 
 **Backlog**:
 1. Fix failing tests (8-12 hours) ✅ HIGH VALUE
-2. Run and document benchmarks (4-6 hours) ✅ VISIBILITY
-3. Update documentation (4-6 hours) ✅ USER VALUE
+2. Update documentation (4-6 hours) ✅ USER VALUE
+3. Run and document benchmarks (3-5 hours) ✅ VISIBILITY
 
 This gets v0.1.13 out faster with lower risk.
 
@@ -164,34 +173,52 @@ This gets v0.1.13 out faster with lower risk.
    - Con: Technical debt remains
 
 3. **Hybrid Path** (1 week)
-   - Split top 3 files only (12-19 hours)
-   - Fix tests (8-12 hours)
+   - Split P0 files only (25-35 hours)
+   - Fix tests (10-15 hours)
    - Quick release, partial compliance
 
 **Recommended Action**
 
-**Start with File Compliance Sprint** 🎯
+**Start with P0 File Compliance Sprint** 🎯
 
 Rationale:
-- 62.5% file compliance already achieved (10/16 files)
+- 10+ files already successfully split (proven pattern)
 - Critical P0 priority per AGENTS.md guidelines
 - Clear path forward with well-defined modules
 - Remaining files are well-understood
-- Can release v0.1.11 (File Compliance) then v0.1.12 (Quick Wins)
+- Can release v0.1.13 with significant progress
 
 Recommended Order:
-1. Split remaining 6 files (v0.1.11)
-2. Fix tests and run benchmarks (v0.1.12)
-3. Release with full compliance
+1. Split P0 memory-mcp files (wasm_sandbox, javy_compiler, unified_sandbox)
+2. Split P0 storage files (cache, pool)
+3. Release v0.1.13
+4. Continue with P1 files in v0.1.14
 
 ---
-*Updated: 2026-01-08 - File compliance progress: 10 of 16 files completed*
+
+## Files Status Summary
+
+| Category | Count | Total LOC | Status |
+|----------|-------|-----------|--------|
+| Compliant (≤500 LOC) | ~180 | ~40,000 | ✅ Good |
+| P0 - Critical | 5 | ~3,138 | 🔴 Needs work |
+| P1 - High | 7 | ~4,550 | 🟡 Next sprint |
+| P2 - Medium | 8 | ~4,780 | 🟢 Future |
+| P3 - Low | 2 | ~1,021 | ⚪ Cleanup |
+
+**Total LOC**: ~53,489 across ~200+ files
+**Compliance Rate**: ~90% (files) | ~75% (LOC)
 
 ---
 
 **What would you like to work on first?**
 
-A. File size compliance (split remaining 6 large files)
-B. Fix failing tests
-C. Run and document benchmarks
-D. Something else - specify
+A. File size compliance (P0 files - memory-mcp sandbox + storage)
+B. Error handling audit (unwrap → proper errors)
+C. Clone reduction (Arc/Cow optimization)
+D. Fix failing tests (restore pass rate)
+E. Something else - specify
+
+---
+
+*Updated: 2026-01-09 - File compliance in progress, 20+ files remain*

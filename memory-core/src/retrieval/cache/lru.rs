@@ -125,8 +125,11 @@ impl QueryCache {
 
         // Check if this is an update to an existing entry
         let was_present = cache.contains(&key_hash);
+        
+        // Check if cache is at capacity before adding (for eviction tracking)
+        let was_at_capacity = cache.len() >= self.max_entries;
 
-        // Add to cache
+        // Add to cache (LruCache automatically evicts oldest if at capacity)
         cache.put(key_hash, cached_result);
 
         // Update domain index if domain is specified
@@ -151,8 +154,8 @@ impl QueryCache {
             return;
         }
 
-        // Check if we evicted something
-        if cache.len() > self.max_entries {
+        // If cache was at capacity and we added a new entry, an eviction occurred
+        if was_at_capacity {
             metrics.evictions += 1;
         }
     }
@@ -195,33 +198,42 @@ impl QueryCache {
     ///
     /// * `domain` - The domain to invalidate
     pub fn invalidate_domain(&self, domain: &str) {
-        let domain_index = self.domain_index.read().expect(
-            "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
-        );
+        // First, check if domain exists and get hashes (read lock)
+        let hashes_to_invalidate = {
+            let domain_index = self.domain_index.read().expect(
+                "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
+            );
+            domain_index.get(domain).cloned()
+        }; // Read lock released here
 
-        if let Some(hashes) = domain_index.get(domain) {
+        if let Some(hashes) = hashes_to_invalidate {
             let count = hashes.len();
 
             // Mark entries for lazy invalidation
-            let mut invalidated = self.invalidated_hashes.write().expect(
-                "QueryCache: invalidated_hashes lock poisoned - this indicates a panic in invalidation tracking",
-            );
-            for &hash in hashes {
-                invalidated.insert(hash);
-            }
-            drop(invalidated);
+            {
+                let mut invalidated = self.invalidated_hashes.write().expect(
+                    "QueryCache: invalidated_hashes lock poisoned - this indicates a panic in invalidation tracking",
+                );
+                for hash in &hashes {
+                    invalidated.insert(*hash);
+                }
+            } // Write lock on invalidated_hashes released here
 
-            // Remove from domain index
-            let mut domain_index = self.domain_index.write().expect(
-                "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
-            );
-            domain_index.remove(domain);
+            // Remove from domain index (now safe to acquire write lock)
+            {
+                let mut domain_index = self.domain_index.write().expect(
+                    "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
+                );
+                domain_index.remove(domain);
+            } // Write lock on domain_index released here
 
             // Update metrics
-            let mut metrics = self.metrics.write().expect(
-                "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-            );
-            metrics.invalidations += count as u64;
+            {
+                let mut metrics = self.metrics.write().expect(
+                    "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
+                );
+                metrics.invalidations += count as u64;
+            } // Write lock on metrics released here
         }
         // If domain not found, no-op (already cleared or never existed)
     }

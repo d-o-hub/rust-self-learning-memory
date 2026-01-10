@@ -6,6 +6,7 @@
 
 use super::core::{
     handle_initialize, handle_list_tools, handle_protected_resource_metadata, handle_shutdown,
+    OAuthConfig,
 };
 use super::mcp::{
     handle_completion_complete, handle_elicitation_cancel, handle_elicitation_data,
@@ -18,7 +19,7 @@ use super::tools::{
     handle_query_memory, handle_query_semantic_memory, handle_test_embeddings,
 };
 use super::types::{
-    ActiveElicitation, ActiveTask, CallToolParams, CallToolResult, EmbeddingEnvConfig, OAuthConfig,
+    ActiveElicitation, ActiveTask, CallToolParams, CallToolResult, EmbeddingEnvConfig,
 };
 use memory_mcp::jsonrpc::{
     read_next_message, write_response_with_length, JsonRpcError, JsonRpcRequest, JsonRpcResponse,

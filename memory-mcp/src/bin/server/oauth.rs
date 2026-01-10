@@ -6,7 +6,8 @@
 //! - Scope checking
 //! - WWW-Authenticate header generation
 
-use super::types::{AuthorizationResult, OAuthConfig};
+use super::types::AuthorizationResult;
+use super::OAuthConfig;
 use tracing::debug;
 
 /// Load OAuth configuration from environment variables

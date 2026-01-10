@@ -69,7 +69,7 @@ mod tests {
         let compatibility = applicator.assess_tool_compatibility(&tool, &context);
 
         // Should return a neutral score for tools with no history
-        assert!(compatibility >= 0.0 && compatibility <= 1.0);
+        assert!((0.0..=1.0).contains(&compatibility));
     }
 
     #[test]
@@ -138,7 +138,7 @@ mod tests {
         let score1 = applicator.assess_tool_compatibility(&tool, &context);
         let score2 = default_applicator.assess_tool_compatibility(&tool, &context);
 
-        assert!(score1 >= 0.0 && score1 <= 1.0);
+        assert!((0.0..=1.0).contains(&score1));
         assert_eq!(score1, score2);
     }
 }

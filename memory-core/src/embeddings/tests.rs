@@ -139,7 +139,7 @@ async fn test_text_similarity() {
 
     assert!(similarity.is_ok());
     let similarity = similarity.unwrap();
-    assert!(similarity >= 0.0 && similarity <= 1.0);
+    assert!((0.0..=1.0).contains(&similarity));
 }
 
 #[tokio::test]

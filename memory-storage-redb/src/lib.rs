@@ -39,7 +39,6 @@ mod episodes;
 mod episodes_queries;
 mod episodes_summaries;
 mod heuristics;
-mod patterns;
 mod storage;
 mod tables;
 

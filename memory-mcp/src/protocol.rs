@@ -123,9 +123,9 @@ pub async fn handle_initialize(
         "completions": {},
         "elicitation": {},
         "tasks": {
-            "list": true,
-            "create": true,
-            "update": true
+            "list": {},
+            "create": {},
+            "update": {}
         }
     });
 

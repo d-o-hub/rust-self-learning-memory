@@ -54,7 +54,10 @@ pub async fn execute(
                 let mut metrics_guard = metrics.write().await;
                 metrics_guard.total_executions += 1;
                 metrics_guard.failed_executions += 1;
-                error!("WASM execution failed after {} attempts: {}", max_retries, e);
+                error!(
+                    "WASM execution failed after {} attempts: {}",
+                    max_retries, e
+                );
                 return Err(e);
             }
         }
@@ -84,14 +87,7 @@ async fn execute_with_retry(
 
     let start_time = Instant::now();
 
-    let result = execute_with_timeout(
-        code,
-        context,
-        config,
-        runtime_pool,
-        metrics,
-    )
-    .await;
+    let result = execute_with_timeout(code, context, config, runtime_pool, metrics).await;
 
     let execution_time = start_time.elapsed();
     info!(
@@ -192,7 +188,8 @@ async fn execute_with_runtime(
             let result_json = if result_value.is_undefined() || result_value.is_null() {
                 serde_json::Value::Null
             } else {
-                let json_str: String = result_value.as_string()
+                let json_str: String = result_value
+                    .as_string()
                     .map(|s| s.to_string()?)
                     .unwrap_or_else(|| {
                         ctx.json_stringify(result_value)

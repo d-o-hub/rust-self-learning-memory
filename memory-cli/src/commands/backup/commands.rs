@@ -71,11 +71,15 @@ pub async fn create_backup(
 
     // If path is a directory, append a default filename
     let backup_path = if path.is_dir() {
-        let filename = format!("backup_{}.{}", backup_id, match backup_format {
-            BackupFormat::Json => "json",
-            BackupFormat::Jsonl => "jsonl",
-            BackupFormat::Sql => "sql",
-        });
+        let filename = format!(
+            "backup_{}.{}",
+            backup_id,
+            match backup_format {
+                BackupFormat::Json => "json",
+                BackupFormat::Jsonl => "jsonl",
+                BackupFormat::Sql => "sql",
+            }
+        );
         path.join(filename)
     } else {
         path

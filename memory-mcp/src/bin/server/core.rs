@@ -7,10 +7,10 @@
 //! - handle_call_tool: Execute a tool call
 //! - handle_shutdown: Shutdown the server (from library)
 
+use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 pub use memory_mcp::protocol::{
     handle_initialize, handle_shutdown, OAuthConfig, ProtectedResourceMetadata,
 };
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use memory_mcp::protocol::{ListToolsResult, McpTool};
 use memory_mcp::MemoryMCPServer;
 use serde_json::json;

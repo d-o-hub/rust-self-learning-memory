@@ -1,8 +1,8 @@
 #[tokio::test]
 async fn test_initialize_protocol_version_negotiation() {
+    use memory_mcp::jsonrpc::JsonRpcRequest;
     use memory_mcp::protocol::handle_initialize;
     use memory_mcp::protocol::OAuthConfig;
-    use memory_mcp::jsonrpc::JsonRpcRequest;
     use serde_json::json;
 
     let oauth_config = OAuthConfig::default();

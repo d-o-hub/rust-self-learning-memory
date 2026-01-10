@@ -125,7 +125,7 @@ impl QueryCache {
 
         // Check if this is an update to an existing entry
         let was_present = cache.contains(&key_hash);
-        
+
         // Check if cache is at capacity before adding (for eviction tracking)
         let was_at_capacity = cache.len() >= self.max_entries;
 

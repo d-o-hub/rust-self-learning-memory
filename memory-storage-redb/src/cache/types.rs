@@ -24,7 +24,7 @@ impl Default for CacheConfig {
     fn default() -> Self {
         Self {
             max_size: 1000,
-            default_ttl_secs: 3600, // 1 hour
+            default_ttl_secs: 3600,     // 1 hour
             cleanup_interval_secs: 300, // 5 minutes
             enable_background_cleanup: true,
         }

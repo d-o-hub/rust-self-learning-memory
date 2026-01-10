@@ -24,9 +24,12 @@ impl WasmSandbox {
     /// Create a new WASM sandbox
     pub fn new(config: WasmConfig) -> Result<Self> {
         let pool_semaphore = Arc::new(Semaphore::new(config.max_pool_size));
-        
-        info!("Initialized WASM sandbox with pool size: {}", config.max_pool_size);
-        
+
+        info!(
+            "Initialized WASM sandbox with pool size: {}",
+            config.max_pool_size
+        );
+
         Ok(Self {
             config,
             runtime_pool: Arc::new(RwLock::new(Vec::new())),
@@ -57,20 +60,20 @@ impl WasmSandbox {
     pub async fn cleanup_expired_runtimes(&self) {
         let mut pool = self.runtime_pool.write().await;
         let timeout = self.config.runtime_idle_timeout;
-        
+
         pool.retain(|runtime| !runtime.is_expired(timeout));
-        
+
         info!("Cleaned up expired runtimes, pool size: {}", pool.len());
     }
 
     /// Warmup the runtime pool
     pub async fn warmup_pool(&self) -> Result<()> {
         let target_size = self.config.max_pool_size / 2;
-        
+
         info!("Warming up runtime pool to {} runtimes", target_size);
-        
+
         let mut pool = self.runtime_pool.write().await;
-        
+
         for i in 0..target_size {
             match PooledRuntime::new(&self.config) {
                 Ok(runtime) => {
@@ -82,9 +85,9 @@ impl WasmSandbox {
                 }
             }
         }
-        
+
         info!("Pool warmup complete: {} runtimes ready", pool.len());
-        
+
         Ok(())
     }
 
@@ -92,15 +95,15 @@ impl WasmSandbox {
     pub async fn get_health_status(&self) -> WasmHealthStatus {
         let pool = self.runtime_pool.read().await;
         let metrics = self.metrics.read().await;
-        
+
         let success_rate = if metrics.total_executions > 0 {
             metrics.successful_executions as f64 / metrics.total_executions as f64
         } else {
             0.0
         };
-        
+
         let avg_time_ms = metrics.average_execution_time.as_millis() as u64;
-        
+
         WasmHealthStatus {
             pool_size: pool.len(),
             max_pool_size: self.config.max_pool_size,

@@ -50,6 +50,7 @@ pub struct InitializeResult {
     #[serde(rename = "protocolVersion")]
     pub protocol_version: String,
     pub capabilities: Value,
+    #[serde(rename = "serverInfo")]
     pub server_info: Value,
 }
 

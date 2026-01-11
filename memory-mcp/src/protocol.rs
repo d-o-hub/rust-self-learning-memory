@@ -58,7 +58,10 @@ pub struct InitializeResult {
 #[derive(Debug, Serialize)]
 pub struct McpTool {
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
     pub description: String,
+    #[serde(rename = "inputSchema")]
     pub input_schema: Value,
 }
 

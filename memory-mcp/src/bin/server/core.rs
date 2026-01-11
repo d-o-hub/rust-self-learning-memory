@@ -84,6 +84,7 @@ pub async fn handle_list_tools(
         .into_iter()
         .map(|tool| McpTool {
             name: tool.name,
+            title: None, // Optional field - can be populated later
             description: tool.description,
             input_schema: tool.input_schema,
         })

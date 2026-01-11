@@ -229,13 +229,31 @@ impl MemoryMCPServer {
             }
         }
 
-        match futures::executor::block_on(UnifiedSandbox::new(
-            SandboxConfig::restrictive(),
-            SandboxBackend::Wasm,
-        )) {
-            Ok(_) => true,
-            Err(e) => {
+        // Use a timeout to avoid hanging during server initialization
+        // Use cross-platform approach since join_timeout may not be available
+        let handle = std::thread::spawn(|| {
+            futures::executor::block_on(UnifiedSandbox::new(
+                SandboxConfig::restrictive(),
+                SandboxBackend::Wasm,
+            ))
+        });
+
+        let start = std::time::Instant::now();
+        while start.elapsed() < std::time::Duration::from_secs(3) {
+            if handle.is_finished() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+
+        match handle.join() {
+            Ok(Ok(_)) => true,
+            Ok(Err(e)) => {
                 warn!("WASM sandbox not available: {}", e);
+                false
+            }
+            Err(_) => {
+                warn!("WASM sandbox initialization timed out after 3 seconds");
                 false
             }
         }

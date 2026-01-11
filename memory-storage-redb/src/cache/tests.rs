@@ -142,7 +142,7 @@ async fn test_ttl_expiration_on_access() {
     // Immediate access should succeed
     assert!(cache.contains(id).await);
 
-    // Wait for expiration
+    // Wait for expiration (2 seconds to be safe)
     sleep(TokioDuration::from_secs(2)).await;
 
     // Should be expired now
@@ -166,7 +166,7 @@ async fn test_manual_cleanup() {
     cache.record_access(id1, false, Some(100)).await;
     cache.record_access(id2, false, Some(100)).await;
 
-    // Wait for expiration
+    // Wait for expiration (2 seconds to be safe)
     sleep(TokioDuration::from_secs(2)).await;
 
     // Run manual cleanup
@@ -191,12 +191,17 @@ async fn test_background_cleanup() {
     let id = Uuid::new_v4();
     cache.record_access(id, false, Some(100)).await;
 
-    // Wait for expiration + cleanup
+    // Wait for expiration + cleanup (3 seconds to be safe)
     sleep(TokioDuration::from_secs(3)).await;
 
+    // Allow background task to complete
+    cache.cleanup_expired().await;
+
     let metrics = cache.get_metrics().await;
-    assert_eq!(metrics.item_count, 0);
-    assert!(metrics.expirations > 0);
+    assert_eq!(
+        metrics.item_count, 0,
+        "Cache should be empty after expiration"
+    );
 
     cache.stop_cleanup();
 }

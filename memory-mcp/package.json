@@ -1,0 +1,13 @@
+{
+  "name": "memory-mcp-server",
+  "version": "0.1.12",
+  "description": "Model Context Protocol server with secure code execution sandbox for AI agents",
+  "main": "index.js",
+  "scripts": {
+    "inspect": "npx @modelcontextprotocol/inspector ../target/debug/memory-mcp-server",
+    "inspect:release": "npx @modelcontextprotocol/inspector ../target/release/memory-mcp-server"
+  },
+  "keywords": ["mcp", "sandbox", "code-execution", "ai", "security"],
+  "author": "",
+  "license": "MIT"
+}

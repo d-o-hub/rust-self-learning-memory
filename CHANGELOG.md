@@ -1,4 +1,13 @@
-# Changelog
+## [Unreleased]
+
+### Changed
+- **Code Organization**: Split 3 large files into 21 modular files for 500 LOC compliance
+  - `memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)
+  - `memory-core/src/memory/retrieval.rs` (891 LOC → 6 files, max 414 LOC)
+  - `memory-core/src/patterns/optimized_validator.rs` (889 LOC → 6 files, max 448 LOC)
+  - All split files now comply with <500 LOC guideline
+  - Improved maintainability through better separation of concerns
+
 
 ## [Unreleased]
 

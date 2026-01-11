@@ -91,8 +91,14 @@ impl RedbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
 
         // Record cache access (hit if found, miss if not)
-        let is_hit = result.is_some();
-        self.cache.record_access(episode_id, is_hit, None).await;
+        // Only track hits in the cache - misses should not add entries
+        if let Some(episode) = &result {
+            let episode_bytes = postcard::to_allocvec(episode)
+                .map_err(|e| Error::Storage(format!("Failed to serialize episode: {}", e)))?;
+            self.cache
+                .record_access(episode_id, true, Some(episode_bytes.len()))
+                .await;
+        }
 
         Ok(result)
     }

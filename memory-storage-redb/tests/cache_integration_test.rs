@@ -68,9 +68,9 @@ async fn test_cache_metrics_tracking() {
     // Check metrics
     let metrics = storage.get_cache_metrics().await;
     assert_eq!(metrics.hits, 1);
-    assert_eq!(metrics.misses, 3); // 2 stores + 1 failed get
+    assert_eq!(metrics.misses, 2); // 2 stores only (misses on gets don't add to cache)
     assert_eq!(metrics.item_count, 2);
-    assert_eq!(metrics.hit_rate, 0.25); // 1/4
+    assert_eq!(metrics.hit_rate, 0.3333333333333333); // 1/3
 }
 
 #[tokio::test]

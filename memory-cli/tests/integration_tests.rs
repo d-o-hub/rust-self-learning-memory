@@ -286,6 +286,7 @@ batch_size = 25
     }
 
     #[test]
+    #[cfg_attr(coverage, ignore)]
     fn test_cli_performance_baseline() {
         let harness = CliHarness::new();
 
@@ -295,6 +296,7 @@ batch_size = 25
         let duration = start.elapsed();
 
         // Help should execute in under 500ms (increased for Windows compatibility)
+        // Note: This test is skipped during coverage runs due to instrumentation overhead
         assert!(duration < Duration::from_millis(500));
     }
 

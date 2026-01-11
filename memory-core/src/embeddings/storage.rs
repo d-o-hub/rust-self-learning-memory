@@ -211,6 +211,52 @@ impl EmbeddingStorageBackend for InMemoryEmbeddingStorage {
     }
 }
 
+/// Mock embedding storage for testing
+#[cfg(test)]
+pub struct MockEmbeddingStorage;
+
+#[cfg(test)]
+#[async_trait]
+impl EmbeddingStorageBackend for MockEmbeddingStorage {
+    async fn store_episode_embedding(&self, _episode_id: Uuid, _embedding: Vec<f32>) -> Result<()> {
+        Ok(())
+    }
+
+    async fn store_pattern_embedding(
+        &self,
+        _pattern_id: PatternId,
+        _embedding: Vec<f32>,
+    ) -> Result<()> {
+        Ok(())
+    }
+
+    async fn get_episode_embedding(&self, _episode_id: Uuid) -> Result<Option<Vec<f32>>> {
+        Ok(None)
+    }
+
+    async fn get_pattern_embedding(&self, _pattern_id: PatternId) -> Result<Option<Vec<f32>>> {
+        Ok(None)
+    }
+
+    async fn find_similar_episodes(
+        &self,
+        _query_embedding: Vec<f32>,
+        _limit: usize,
+        _threshold: f32,
+    ) -> Result<Vec<SimilaritySearchResult<Episode>>> {
+        Ok(Vec::new())
+    }
+
+    async fn find_similar_patterns(
+        &self,
+        _query_embedding: Vec<f32>,
+        _limit: usize,
+        _threshold: f32,
+    ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
+        Ok(Vec::new())
+    }
+}
+
 /// Wrapper around existing storage backends to add embedding support
 pub struct EmbeddingStorage<T: crate::storage::StorageBackend + EmbeddingStorageBackend> {
     storage: std::sync::Arc<T>,

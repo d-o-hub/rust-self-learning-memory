@@ -62,8 +62,10 @@ fn skip_optional_gates() -> bool {
 #[cfg(test)]
 mod unit_tests {
     use super::*;
+    use serial_test::serial;
 
     #[test]
+    #[serial]
     fn skip_optional_default_is_true_when_unset() {
         std::env::remove_var("QUALITY_GATE_SKIP_OPTIONAL");
         assert!(
@@ -73,6 +75,7 @@ mod unit_tests {
     }
 
     #[test]
+    #[serial]
     fn skip_optional_respects_env_var() {
         std::env::set_var("QUALITY_GATE_SKIP_OPTIONAL", "false");
         assert!(

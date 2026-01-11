@@ -12,6 +12,7 @@ memory-storage-redb = { path = "../memory-storage-redb" }
 anyhow.workspace = true
 tokio.workspace = true
 tempfile.workspace = true
+serial_test = "3.0"
 
 [[test]]
 name = "quality_gates"

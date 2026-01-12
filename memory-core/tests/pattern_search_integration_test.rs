@@ -28,11 +28,31 @@ async fn test_search_patterns_basic() {
 
     // Add multiple steps to meet quality threshold
     let steps = vec![
-        ExecutionStep::new(1, "create_project".to_string(), "Create new Rust project".to_string()),
-        ExecutionStep::new(2, "add_dependencies".to_string(), "Add Axum and tower dependencies".to_string()),
-        ExecutionStep::new(3, "create_router".to_string(), "Setup routes and handlers".to_string()),
-        ExecutionStep::new(4, "add_middleware".to_string(), "Add logging and cors middleware".to_string()),
-        ExecutionStep::new(5, "write_tests".to_string(), "Write integration tests".to_string()),
+        ExecutionStep::new(
+            1,
+            "create_project".to_string(),
+            "Create new Rust project".to_string(),
+        ),
+        ExecutionStep::new(
+            2,
+            "add_dependencies".to_string(),
+            "Add Axum and tower dependencies".to_string(),
+        ),
+        ExecutionStep::new(
+            3,
+            "create_router".to_string(),
+            "Setup routes and handlers".to_string(),
+        ),
+        ExecutionStep::new(
+            4,
+            "add_middleware".to_string(),
+            "Add logging and cors middleware".to_string(),
+        ),
+        ExecutionStep::new(
+            5,
+            "write_tests".to_string(),
+            "Write integration tests".to_string(),
+        ),
     ];
 
     for step in steps {

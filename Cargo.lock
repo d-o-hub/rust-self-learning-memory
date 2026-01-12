@@ -1736,9 +1736,9 @@ dependencies = [
 
 [[package]]
 name = "deep_causality"
-version = "0.13.1"
+version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cef42a3555cad81890dcc0bbecb0ec38eba45c4fa00cbff50013f2e440a73b1d"
+checksum = "b26ad3186de76df5aa8b239770bc4977217649585f1e89b8fd9bdfc498aaee0c"
 dependencies = [
  "deep_causality_ast",
  "deep_causality_core",
@@ -1756,9 +1756,9 @@ checksum = "015679d3d8a6cfdd11a378b8e7fb9d4d5ef46e6bc16a4b43aacb134185f444c0"
 
 [[package]]
 name = "deep_causality_core"
-version = "0.0.3"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55d41beb9e62a1b5d7c0dce744f55b8face97d1a1349b09d9c9dfffbe8cb030c"
+checksum = "d97bce8a7e158540887c1f6872eb53c24b719c2dd3ec5f6db52fff3af06fbec6"
 dependencies = [
  "deep_causality_haft",
 ]
@@ -1771,12 +1771,9 @@ checksum = "424c24f7af6b86f24c1b771396e630df96d4dce6d7f8d792eec825ff280a1b3a"
 
 [[package]]
 name = "deep_causality_haft"
-version = "0.2.6"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "543325e5eb2466752b88a4897980ac0df616c44f5a97b6a150c9e5b419f9ba2d"
-dependencies = [
- "deep_causality_num",
-]
+checksum = "eb44942e225dea1b4b477b4759fe13f1c6b8ec5521ded6e91844c09d440d010a"
 
 [[package]]
 name = "deep_causality_num"

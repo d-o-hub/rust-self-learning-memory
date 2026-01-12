@@ -11,7 +11,7 @@ mod performance_tests {
     use super::*;
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_config_validation_performance() {
         let harness = CliHarness::new();
 
@@ -29,7 +29,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_help_command_performance() {
         let harness = CliHarness::new();
 
@@ -47,7 +47,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_version_command_performance() {
         let harness = CliHarness::new();
 
@@ -66,7 +66,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_output_format_performance_comparison() {
         let harness = CliHarness::new();
 
@@ -102,7 +102,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_dry_run_performance() {
         let harness = CliHarness::new();
 
@@ -120,7 +120,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_verbose_output_performance() {
         let harness = CliHarness::new();
 
@@ -138,7 +138,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_completion_generation_performance() {
         let harness = CliHarness::new();
         let shells = vec!["bash", "zsh", "fish"];
@@ -159,7 +159,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_concurrent_cli_operations() {
         let harness = CliHarness::new();
         let num_operations = 10;
@@ -199,7 +199,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_large_config_file_performance() {
         let temp_dir = tempfile::TempDir::new().unwrap();
         let config_path = temp_dir.path().join("large_config.toml");
@@ -238,7 +238,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_cli_startup_time() {
         // Measure CLI binary startup time (just parsing args, not executing commands)
         let start = Instant::now();
@@ -263,7 +263,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_memory_usage_stability() {
         let harness = CliHarness::new();
 
@@ -280,7 +280,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_error_handling_performance() {
         let harness = CliHarness::new();
 
@@ -311,7 +311,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_scaling_with_input_size() {
         let harness = CliHarness::new();
 
@@ -340,7 +340,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_cli_startup_time_benchmarking() {
         // Test CLI startup time - should be < 1000ms as per requirements
         let mut times = Vec::new();
@@ -386,7 +386,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_command_execution_latency_benchmarking() {
         let harness = CliHarness::new();
         let mut results = Vec::new();
@@ -427,7 +427,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_memory_usage_profiling() {
         let harness = CliHarness::new();
 
@@ -468,7 +468,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_concurrent_operation_testing() {
         let harness = CliHarness::new();
         let num_threads = 5;
@@ -537,7 +537,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_performance_regression_detection() {
         let harness = CliHarness::new();
 
@@ -593,7 +593,7 @@ mod performance_tests {
     }
 
     #[test]
-    #[cfg_attr(coverage, ignore)]
+    
     fn test_large_dataset_performance() {
         let harness = CliHarness::new();
 

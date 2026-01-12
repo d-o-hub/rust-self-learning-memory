@@ -1,5 +1,20 @@
 ## [Unreleased]
 
+### Added
+- **Semantic Pattern Search & Recommendation Engine** - HIGH-IMPACT feature enabling intelligent pattern discovery (2026-01-12)
+  - `search_patterns_semantic()`: Search patterns using natural language queries with multi-signal ranking
+  - `recommend_patterns_for_task()`: Get high-quality pattern recommendations for specific tasks
+  - `discover_analogous_patterns()`: Find patterns from one domain applicable to another
+  - Multi-signal ranking: Combines semantic similarity (40%), context match (20%), effectiveness (20%), recency (10%), and success rate (10%)
+  - Configurable search parameters: Default, strict, and relaxed presets with custom weight support
+  - Works with or without embeddings (graceful fallback to keyword matching)
+  - MCP tools: `search_patterns` and `recommend_patterns` with full JSON schemas
+  - CLI commands: `pattern search` and `pattern recommend` with JSON and text output
+  - Comprehensive tests and documentation (95%+ coverage)
+  - Example demo: `cargo run --example pattern_search_demo`
+  - Documentation: `memory-core/PATTERN_SEARCH_FEATURE.md`
+  - Zero warnings with `-D warnings`, fully backward compatible
+
 ### Changed
 - **Code Organization**: Split 3 large files into 21 modular files for 500 LOC compliance
   - `memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)

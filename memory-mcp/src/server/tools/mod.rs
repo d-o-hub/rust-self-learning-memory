@@ -9,3 +9,4 @@ pub mod core;
 pub mod embeddings;
 pub mod management;
 pub mod monitoring;
+pub mod pattern_search;

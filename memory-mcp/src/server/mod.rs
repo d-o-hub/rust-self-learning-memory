@@ -383,6 +383,78 @@ impl MemoryMCPServer {
         tools.push(crate::mcp::tools::embeddings::EmbeddingTools::query_semantic_memory_tool());
         tools.push(crate::mcp::tools::embeddings::EmbeddingTools::test_embeddings_tool());
 
+        // Pattern search and recommendation tools
+        tools.push(Tool::new(
+            "search_patterns".to_string(),
+            "Search for patterns semantically similar to a query using multi-signal ranking".to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Natural language query describing what pattern to search for"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "Domain to search in (e.g., 'web-api', 'cli', 'data-processing')"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional tags for filtering",
+                        "default": []
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of results (default: 5)",
+                        "default": 5
+                    },
+                    "min_relevance": {
+                        "type": "number",
+                        "description": "Minimum relevance score 0.0-1.0 (default: 0.3)",
+                        "default": 0.3
+                    },
+                    "filter_by_domain": {
+                        "type": "boolean",
+                        "description": "Whether to filter by domain (default: false)",
+                        "default": false
+                    }
+                },
+                "required": ["query", "domain"]
+            }),
+        ));
+
+        tools.push(Tool::new(
+            "recommend_patterns".to_string(),
+            "Get pattern recommendations for a specific task with high-quality filtering"
+                .to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "task_description": {
+                        "type": "string",
+                        "description": "Description of the task you're working on"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "Domain of the task (e.g., 'web-api', 'cli')"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional context tags",
+                        "default": []
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of recommendations (default: 3)",
+                        "default": 3
+                    }
+                },
+                "required": ["task_description", "domain"]
+            }),
+        ));
+
         tools
     }
 }

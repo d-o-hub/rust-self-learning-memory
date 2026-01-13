@@ -323,6 +323,17 @@ impl StorageBackend for ResilientStorage {
             })
             .await
     }
+
+    async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
+        let storage = Arc::clone(&self.storage);
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.delete_episode(episode_id).await }
+            })
+            .await
+    }
 }
 
 #[cfg(test)]

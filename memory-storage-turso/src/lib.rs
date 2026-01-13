@@ -47,7 +47,7 @@ pub mod trait_impls;
 // Schema initialization - moved to separate module for file size compliance
 pub mod turso_config;
 
-pub use pool::{ConnectionPool, PoolConfig, PoolStatistics};
+pub use pool::{ConnectionPool, PoolConfig, PoolStatistics, PooledConnection};
 pub use resilient::ResilientStorage;
 pub use storage::capacity::CapacityStatistics;
 pub use storage::episodes::EpisodeQuery;

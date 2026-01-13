@@ -18,153 +18,22 @@
 //! - Comprehensive metrics and health monitoring
 //! - Fuel-based execution timeouts
 
-use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::Path;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
-use tokio::sync::{RwLock, Semaphore};
-use tracing::{debug, warn};
+mod cache;
+mod config;
+
+pub use config::{calculate_ema, JavyConfig, JavyMetrics};
 
 use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
 
-/// Javy compiler configuration
-#[derive(Debug, Clone)]
-pub struct JavyConfig {
-    /// Maximum compilation time
-    pub max_compilation_time: Duration,
-    /// Maximum execution time (after compilation)
-    pub max_execution_time: Duration,
-    /// Enable WASM optimization during compilation
-    pub optimize_wasm: bool,
-    /// Maximum memory for compiled WASM modules
-    pub max_wasm_memory_bytes: usize,
-    /// Cache compiled modules
-    pub enable_caching: bool,
-    /// Maximum cache size (number of modules)
-    pub max_cache_size: usize,
-}
+use anyhow::{anyhow, Context, Result};
+use std::path::Path;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
+use tokio::sync::{RwLock, Semaphore};
+use tracing::{debug, warn};
 
-impl Default for JavyConfig {
-    fn default() -> Self {
-        Self {
-            max_compilation_time: Duration::from_secs(10),
-            max_execution_time: Duration::from_secs(5),
-            optimize_wasm: true,
-            max_wasm_memory_bytes: 128 * 1024 * 1024, // 128MB
-            enable_caching: true,
-            max_cache_size: 100,
-        }
-    }
-}
-
-impl JavyConfig {
-    pub fn restrictive() -> Self {
-        Self {
-            max_compilation_time: Duration::from_secs(5),
-            max_execution_time: Duration::from_secs(2),
-            optimize_wasm: true,
-            max_wasm_memory_bytes: 64 * 1024 * 1024, // 64MB
-            enable_caching: true,
-            max_cache_size: 50,
-        }
-    }
-}
-
-/// Javy execution metrics
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct JavyMetrics {
-    pub total_compilations: u64,
-    pub successful_compilations: u64,
-    pub failed_compilations: u64,
-    pub cache_hits: u64,
-    pub cache_misses: u64,
-    pub total_executions: u64,
-    pub successful_executions: u64,
-    pub failed_executions: u64,
-    pub timeout_count: u64,
-    pub avg_compilation_time_ms: f64,
-    pub avg_execution_time_ms: f64,
-    pub cached_modules: usize,
-}
-
-impl JavyMetrics {
-    pub fn compilation_success_rate(&self) -> f64 {
-        if self.total_compilations == 0 {
-            0.0
-        } else {
-            (self.successful_compilations as f64 / self.total_compilations as f64) * 100.0
-        }
-    }
-
-    pub fn execution_success_rate(&self) -> f64 {
-        if self.total_executions == 0 {
-            0.0
-        } else {
-            (self.successful_executions as f64 / self.total_executions as f64) * 100.0
-        }
-    }
-
-    pub fn cache_hit_rate(&self) -> f64 {
-        let total = self.cache_hits + self.cache_misses;
-        if total == 0 {
-            0.0
-        } else {
-            (self.cache_hits as f64 / total as f64) * 100.0
-        }
-    }
-}
-
-/// Compiled WASM module cache
-#[derive(Debug)]
-struct ModuleCache {
-    modules: HashMap<String, Vec<u8>>,
-    access_order: Vec<String>,
-    max_size: usize,
-}
-
-impl ModuleCache {
-    fn new(max_size: usize) -> Self {
-        Self {
-            modules: HashMap::new(),
-            access_order: Vec::new(),
-            max_size,
-        }
-    }
-
-    fn get(&mut self, key: &str) -> Option<&Vec<u8>> {
-        // Move to end of access order (most recently used)
-        if let Some(pos) = self.access_order.iter().position(|k| k == key) {
-            let key = self.access_order.remove(pos);
-            self.access_order.push(key);
-        }
-        self.modules.get(key)
-    }
-
-    fn insert(&mut self, key: String, module: Vec<u8>) {
-        // Remove oldest if at capacity
-        if self.modules.len() >= self.max_size && !self.modules.contains_key(&key) {
-            if let Some(oldest) = self.access_order.first().cloned() {
-                self.modules.remove(&oldest);
-                self.access_order.remove(0);
-            }
-        }
-
-        self.modules.insert(key.clone(), module);
-
-        // Update access order
-        if let Some(pos) = self.access_order.iter().position(|k| k == &key) {
-            self.access_order.remove(pos);
-        }
-        self.access_order.push(key);
-    }
-
-    fn len(&self) -> usize {
-        self.modules.len()
-    }
-}
+use cache::ModuleCache;
 
 /// Javy JavaScript to WASM compiler
 #[derive(Debug)]
@@ -454,8 +323,7 @@ impl JavyCompiler {
             .ok();
 
         if let Some(ref mut cache) = cache {
-            cache.modules.clear();
-            cache.access_order.clear();
+            cache.clear();
         }
     }
 
@@ -629,51 +497,5 @@ impl JavyCompiler {
         let mut hasher = DefaultHasher::new();
         js_source.hash(&mut hasher);
         format!("js_{:x}", hasher.finish())
-    }
-}
-
-/// Calculate Exponential Moving Average
-fn calculate_ema(current: f64, new_value: f64, count: u64) -> f64 {
-    if count <= 1 {
-        new_value
-    } else {
-        let alpha = 2.0 / (count as f64 + 1.0);
-        current * (1.0 - alpha) + new_value * alpha
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[tokio::test]
-    async fn test_javy_compiler_creation() {
-        let config = JavyConfig::default();
-        let compiler = JavyCompiler::new(config);
-        assert!(compiler.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_js_syntax_validation() {
-        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
-        assert!(compiler.validate_js_syntax("const x = 1;").is_ok());
-        assert!(compiler.validate_js_syntax("const x = {;").is_err());
-    }
-
-    #[tokio::test]
-    async fn test_metrics_initialization() {
-        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
-        let m = compiler.get_metrics().await;
-        assert_eq!(m.total_compilations, 0);
-        assert_eq!(m.successful_compilations, 0);
-    }
-
-    #[tokio::test]
-    async fn test_cache_key_generation() {
-        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
-        let k1 = compiler.generate_cache_key("const x = 1;");
-        let k2 = compiler.generate_cache_key("const x = 1;");
-        let k3 = compiler.generate_cache_key("const x = 2;");
-        assert_eq!(k1, k2);
-        assert_ne!(k1, k3);
     }
 }

@@ -44,6 +44,17 @@ pub trait StorageBackend: Send + Sync {
     /// Returns error if storage operation fails
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>>;
 
+    /// Delete an episode by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Episode UUID
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn delete_episode(&self, id: Uuid) -> Result<()>;
+
     /// Store a pattern
     ///
     /// # Arguments

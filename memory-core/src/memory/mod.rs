@@ -49,6 +49,7 @@
 mod episode;
 mod init;
 mod learning;
+mod management;
 mod monitoring;
 mod pattern_search;
 mod queries;
@@ -405,6 +406,12 @@ impl SelfLearningMemory {
     #[must_use]
     pub fn cache_storage(&self) -> Option<&Arc<dyn StorageBackend>> {
         queries::cache_storage(&self.cache_storage)
+    }
+
+    /// Get a reference to the semantic service (if configured)
+    #[must_use]
+    pub fn semantic_service(&self) -> Option<&Arc<SemanticService>> {
+        self.semantic_service.as_ref()
     }
 
     /// Get all episodes with proper lazy loading from storage backends.

@@ -421,6 +421,10 @@ impl StorageBackend for RedbStorage {
         self.get_episode(id).await
     }
 
+    async fn delete_episode(&self, id: Uuid) -> Result<()> {
+        self.delete_episode(id).await
+    }
+
     async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
         self.store_pattern(pattern).await
     }

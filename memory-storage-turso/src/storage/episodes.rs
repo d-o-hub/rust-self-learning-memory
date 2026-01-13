@@ -27,8 +27,9 @@ impl TursoStorage {
             INSERT OR REPLACE INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
-                reflection, patterns, heuristics, metadata, domain, language
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                reflection, patterns, heuristics, metadata, domain, language,
+                archived_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         let context_json = serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
@@ -58,6 +59,12 @@ impl TursoStorage {
         let metadata_json =
             serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
 
+        // Get archived_at from metadata if present
+        let archived_at = episode
+            .metadata
+            .get("archived_at")
+            .and_then(|v| v.parse::<i64>().ok());
+
         conn.execute(
             sql,
             libsql::params![
@@ -76,6 +83,7 @@ impl TursoStorage {
                 metadata_json,
                 episode.context.domain.clone(),
                 episode.context.language.clone(),
+                archived_at,
             ],
         )
         .await
@@ -93,7 +101,8 @@ impl TursoStorage {
         let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language
+                   reflection, patterns, heuristics, metadata, domain, language,
+                   archived_at
             FROM episodes WHERE episode_id = ?
         "#;
 
@@ -209,7 +218,8 @@ impl TursoStorage {
         let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language
+                   reflection, patterns, heuristics, metadata, domain, language,
+                   archived_at
             FROM episodes WHERE task_description = ?
         "#;
 
@@ -239,7 +249,8 @@ impl TursoStorage {
             r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language
+                   reflection, patterns, heuristics, metadata, domain, language,
+                   archived_at
             FROM episodes WHERE 1=1
         "#,
         );
@@ -300,7 +311,8 @@ impl TursoStorage {
         let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language
+                   reflection, patterns, heuristics, metadata, domain, language,
+                   archived_at
             FROM episodes
             WHERE start_time >= ?
             ORDER BY start_time DESC
@@ -335,7 +347,8 @@ impl TursoStorage {
             r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language
+                   reflection, patterns, heuristics, metadata, domain, language,
+                   archived_at
             FROM episodes
             WHERE metadata LIKE '%"{}": "{}%'
             ORDER BY start_time DESC
@@ -385,6 +398,7 @@ impl TursoStorage {
         let metadata_json: String = row.get(12).map_err(|e| Error::Storage(e.to_string()))?;
         let _domain: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
         let _language: Option<String> = row.get(14).ok();
+        let archived_at: Option<i64> = row.get(15).ok();
 
         let context: memory_core::TaskContext = serde_json::from_str(&context_json)
             .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
@@ -407,9 +421,14 @@ impl TursoStorage {
                 .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
         let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_json)
             .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
-        let metadata: std::collections::HashMap<String, String> =
+        let mut metadata: std::collections::HashMap<String, String> =
             serde_json::from_str(&metadata_json)
                 .map_err(|e| Error::Storage(format!("Failed to parse metadata: {}", e)))?;
+
+        // Add archived_at to metadata if present in database
+        if let Some(ts) = archived_at {
+            metadata.insert("archived_at".to_string(), ts.to_string());
+        }
 
         Ok(Episode {
             episode_id: uuid::Uuid::parse_str(&episode_id)

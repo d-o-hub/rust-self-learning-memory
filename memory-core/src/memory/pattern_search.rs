@@ -134,14 +134,25 @@ pub async fn search_patterns_semantic(
     );
 
     // Generate embedding for query
-    let query_embedding = if let Some(_service) = semantic_service {
+    let query_embedding = if let Some(service) = semantic_service {
         // Use the service to generate embeddings for the query text
-        // For now, we'll use a fallback approach since embed_text might not exist
-        // TODO: Implement proper query embedding generation
-        debug!("Semantic service available but embed_text not implemented yet");
-        vec![]
+        match service.provider.embed_text(query).await {
+            Ok(embedding) => {
+                debug!(
+                    "Generated query embedding with {} dimensions",
+                    embedding.len()
+                );
+                embedding
+            }
+            Err(e) => {
+                debug!(
+                    "Failed to generate query embedding: {}, using keyword-based scoring",
+                    e
+                );
+                vec![]
+            }
+        }
     } else {
-        // Fallback: use keyword matching only
         debug!("No semantic service available, using keyword-based scoring");
         vec![]
     };

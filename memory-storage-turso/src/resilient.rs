@@ -176,6 +176,17 @@ impl StorageBackend for ResilientStorage {
             .await
     }
 
+    async fn delete_episode(&self, id: Uuid) -> Result<()> {
+        let storage = Arc::clone(&self.storage);
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.delete_episode(id).await }
+            })
+            .await
+    }
+
     async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {
         let storage = Arc::clone(&self.storage);
         let pattern_clone = pattern.clone();
@@ -320,17 +331,6 @@ impl StorageBackend for ResilientStorage {
                 let storage = Arc::clone(&storage);
                 let ids = ids_vec;
                 async move { storage.get_embeddings_batch(&ids).await }
-            })
-            .await
-    }
-
-    async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
-        let storage = Arc::clone(&self.storage);
-
-        self.circuit_breaker
-            .call(move || {
-                let storage = Arc::clone(&storage);
-                async move { storage.delete_episode(episode_id).await }
             })
             .await
     }

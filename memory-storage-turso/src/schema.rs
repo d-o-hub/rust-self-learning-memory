@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS episodes (
     metadata TEXT NOT NULL,
     domain TEXT NOT NULL,
     language TEXT,
-    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    archived_at INTEGER
 )
 "#;
 
@@ -238,6 +239,12 @@ ON episodes(start_time DESC)
 pub const CREATE_EPISODES_DOMAIN_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_episodes_domain
 ON episodes(domain)
+"#;
+
+/// Index on episodes archived_at for filtering archived episodes
+pub const CREATE_EPISODES_ARCHIVED_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episodes_archived
+ON episodes(archived_at)
 "#;
 
 /// Index on patterns context for relevance matching

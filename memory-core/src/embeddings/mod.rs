@@ -103,7 +103,13 @@ impl SemanticService {
         }
     }
 
-    /// Create a semantic service with local embedding provider
+    /// Get the embedding configuration
+    #[must_use]
+    pub fn config(&self) -> &EmbeddingConfig {
+        &self.config
+    }
+
+    /// Get the embedding provider type
     pub async fn with_local_provider(
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,

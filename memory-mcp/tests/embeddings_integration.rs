@@ -302,7 +302,8 @@ async fn test_test_embeddings_tool() {
     assert!(!output.available, "Should not be available by default");
     assert_eq!(output.provider, "not-configured");
     assert_eq!(output.dimension, 384);
-    assert_eq!(output.sample_embedding.len(), 5);
+    // When no semantic service is configured, sample_embedding is empty
+    assert_eq!(output.sample_embedding.len(), 0);
     assert!(!output.message.is_empty());
     assert!(!output.errors.is_empty());
 }

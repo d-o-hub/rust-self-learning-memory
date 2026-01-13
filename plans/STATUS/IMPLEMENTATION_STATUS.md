@@ -16,9 +16,9 @@
 
 | File | Original LOC | Status | Notes |
 |------|--------------|--------|-------|
-| `memory-cli/src/config/types.rs` | 1,052 | ✅ COMPLETED | Split to 9 files, max 379 LOC (v0.1.12) |
-| `memory-core/src/memory/retrieval.rs` | 891 | ✅ COMPLETED | Split to 6 files, max 414 LOC (v0.1.12) |
-| `memory-core/src/patterns/optimized_validator.rs` | 889 | ✅ COMPLETED | Split to 6 files, max 448 LOC (v0.1.12) |
+| `memory-cli/src/config/types.rs | 1,052 | ⏳ PENDING | Needs splitting to 9 files, max 379 LOC (v0.1.12) |
+| `memory-core/src/memory/retrieval.rs | 891 | ⏳ PENDING | Needs splitting to 6 files, max 414 LOC (v0.1.12) |
+| `memory-core/src/patterns/optimized_validator.rs | 889 | ⏳ PENDING | Needs splitting to 6 files, max 448 LOC (v0.1.12) |
 | `memory-core/src/pre_storage/extractor.rs` | 911 | ✅ COMPLETED | Split to 7 files (2026-01-05) |
 | `memory-core/src/spatiotemporal/retriever.rs` | 1,014 | ✅ COMPLETED | Split to 4 modules (2026-01-05) |
 | `memory-storage-turso/src/storage.rs` | 2,502 | ✅ Already split | 9 modules in storage/ (2025-12-30) |

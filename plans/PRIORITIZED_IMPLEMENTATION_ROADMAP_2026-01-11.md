@@ -11,21 +11,21 @@
 
 | Priority | Definition | Timeline | Effort |
 |----------|-------------|----------|--------|
-| **P0** | CRITICAL - Must fix, blocks code reviews | 1-3 weeks | 119-161 hrs |
+| **P0** | CRITICAL - Must fix, blocks code reviews | 4-6 weeks | 175-229 hrs |
 | **P1** | HIGH - Strong ROI, production impact | 2-3 weeks | 97-135 hrs |
 | **P2** | MEDIUM - Good value, quality improvements | 3-5 weeks | 146-197 hrs |
 | **P3** | LOW - Future enhancements, nice to have | 4-6 weeks | 180-225 hrs |
 
 ---
 
-## Phase 1: P0 Critical Compliance (Weeks 1-3)
+## Phase 1: P0 Critical Compliance (Weeks 1-6)
 
 ### Goal
 Achieve 100% codebase compliance with AGENTS.md standards
 
 ### Success Criteria
 - ✅ All files ≤ 500 LOC (20+ files)
-- ✅ Unwrap/expect calls < 50
+- ✅ Unwrap/expect calls < 50 (from 598)
 - ✅ Test pass rate > 95%
 - ✅ Zero clippy warnings
 - ✅ All quality gates passing
@@ -113,10 +113,11 @@ Achieve 100% codebase compliance with AGENTS.md standards
 - ✅ No performance regressions
 - ✅ Integration tests passing
 
-### Sprint 2: Error Handling Audit (Week 3)
+### Sprint 2: Error Handling Audit (Weeks 3-5)
 
-#### Task 2.1: Audit and Categorize Unwraps (Days 1-2)
-**Effort**: 10-12 hours
+#### Task 2.1: Audit and Categorize Unwraps (Days 1-3)
+**Effort**: 30-40 hours
+**Note**: **URGENT** - 598 unwrap calls (3.6x higher than initially reported)
 **Priority**: P0
 **Risk**: Low
 
@@ -139,10 +140,11 @@ grep -r "expect(" memory-core/src
 - Category (A/B/C/D)
 - Recommended action
 
-#### Task 2.2: Convert Configuration Unwraps (Days 3-4)
-**Effort**: 8-10 hours
+#### Task 2.2: Convert Configuration Unwraps (Days 4-6)
+**Effort**: 20-25 hours
 **Priority**: P0
 **Risk**: Low
+**Note**: **URGENT** - Scale up 2.5x due to 3.6x more unwraps than initially reported
 
 **Pattern**:
 ```rust
@@ -164,8 +166,9 @@ let max_episodes = config.max_episodes
 - [ ] Error messages descriptive
 - [ ] Error tests updated
 
-#### Task 2.3: Convert Database Unwraps (Days 5-6)
-**Effort**: 8-10 hours
+#### Task 2.3: Convert Database Unwraps (Days 7-9)
+**Effort**: 20-25 hours
+**Note**: Scale up 2.5x due to more unwraps
 **Priority**: P0
 **Risk**: Low
 
@@ -189,8 +192,9 @@ let episode = storage.get_episode(id)?
 - [ ] Error cases handled
 - [ ] Error tests passing
 
-#### Task 2.4: Final Validation (Day 7)
-**Effort**: 5-6 hours
+#### Task 2.4: Final Validation (Days 10-12)
+**Effort**: 15-20 hours
+**Note**: Extended timeframe for comprehensive validation
 **Priority**: P0
 **Risk**: Low
 
@@ -209,12 +213,12 @@ let episode = storage.get_episode(id)?
 
 ### Phase 1 Summary
 
-**Total Effort**: 119-161 hours
-**Timeline**: 3 weeks
+**Total Effort**: 175-229 hours
+**Timeline**: 4-6 weeks (extended from 3 weeks)
 **Deliverables**:
 - ✅ 100% file size compliance
-- ✅ 70% reduction in unwrap calls (168 → <50)
-- ✅ Test pass rate restored (>95%)
+- ✅ 92% reduction in unwrap calls (598 → <50) - **2.4x more work than initially estimated**
+- ✅ Test pass rate validated (>95%)
 - ✅ Zero clippy warnings
 
 ---
@@ -975,12 +979,12 @@ impl CrossModalRetriever {
 
 | Phase | Duration | Effort | Priority | Key Deliverables |
 |--------|----------|--------|-----------|-----------------|
-| **Phase 1: P0 Compliance** | 3 weeks | 119-161 hrs | P0 | File compliance, error handling |
+| **Phase 1: P0 Compliance** | 4-6 weeks | 175-229 hrs | P0 | File compliance, error handling (598 unwraps) |
 | **Phase 2: P1 Optimizations** | 3 weeks | 97-135 hrs | P1 | Security, performance, accuracy |
 | **Phase 3: P2 Quality** | 3 weeks | 146-197 hrs | P2 | Algorithms, config, observability |
 | **Phase 4: P3 Advanced** | 4-6 weeks | 180-225 hrs | P3 | Learning, deployment, HA |
 
-**Total**: 13-18 weeks | 542-718 hours
+**Total**: 14-21 weeks | 598-786 hours (up from 542-718 hours)
 
 ### Immediate Next Steps (This Week)
 
@@ -990,12 +994,13 @@ impl CrossModalRetriever {
 
 ### Recommended Path
 
-**Phase 1 (Weeks 1-3)** - DO FIRST
+**Phase 1 (Weeks 1-6)** - DO FIRST
 - Critical for codebase compliance
 - Blocks code reviews
 - Low risk, high value
+- **NOTE**: Extended from 3 weeks to 4-6 weeks due to 598 unwrap calls (3.6x more than estimated)
 
-**Phase 2 (Weeks 4-6)** - DO SECOND
+**Phase 2 (Weeks 7-9)** - DO SECOND
 - Strong ROI (security + performance + accuracy)
 - Production-ready improvements
 - Low-medium risk

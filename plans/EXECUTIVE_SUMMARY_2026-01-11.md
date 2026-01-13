@@ -11,10 +11,10 @@
 
 ✅ **System is Production-Ready** with excellent quality metrics
 ⚠️ **20+ files exceed 500 LOC limit** (P0 - Must Fix)
-⚠️ **168 unwrap() calls** need reduction to <50 (P0)
-⚠️ **Test pass rate dropped** from 99.3% to ~85% (P1)
-📈 **175-320 hours** of improvement opportunities identified
-🎯 **13-18 weeks** to full implementation
+⚠️ **598 unwrap() calls** need reduction to <50 (P0) - **URGENT: 3.6x higher than initially reported**
+⚠️ **Test pass rate unverified** - needs validation (P1)
+📈 **542-718 hours** of improvement opportunities identified (previously 175-320 hours)
+🎯 **13.5-18 weeks** to full implementation
 
 ---
 
@@ -49,7 +49,7 @@
 5. `memory-storage-turso/src/pool.rs` (589 LOC)
 
 ### 2. Error Handling Audit ⚠️ URGENT
-**Impact**: Production robustness, 168 unwrap() calls in core
+**Impact**: Production robustness, 598 unwrap() calls in core (3.6x higher than previously reported)
 **Effort**: 28-34 hours (1 week)
 **Target**: Reduce to <50 unwrap() calls
 
@@ -146,13 +146,13 @@
 - Integration testing
 
 **Week 3**: Error Handling Audit
-- Categorize 168 unwrap calls
-- Convert 100+ unwraps to proper errors
+- Categorize 598 unwrap calls
+- Convert 500+ unwraps to proper errors
 - Validation
 
 **Success Criteria**:
 - ✅ All P0 files ≤ 500 LOC
-- ✅ Unwrap count < 100
+- ✅ Unwrap count < 50
 - ✅ Test pass rate > 90%
 
 ### Week 4-6: P1 High-Value Optimizations (Strong ROI)
@@ -278,8 +278,8 @@
 |--------|---------|--------|-------------|
 | Clone operations | 183 | <100 | 45% reduction |
 | Files > 500 LOC | 20+ | 0 | 100% compliance |
-| Unwrap calls | 168 | <50 | 70% reduction |
-| Test pass rate | ~85% | >95% | 10% improvement |
+| Unwrap calls | 598 | <50 | 92% reduction |
+| Test pass rate | Unverified | >95% | Needs validation |
 | Query latency | 5.8ms | 2ms | 65% faster |
 | Binary size | 2.1 GB | <1.5 GB | 29% reduction |
 | Retrieval accuracy | 33% F1 | 40% F1 | 21% improvement |

@@ -60,12 +60,12 @@ For specific tasks, refer to these focused documentation files:
 
 ## Feature Flags
 Enable optional features via Cargo:
-- `openai-embeddings`: OpenAI API embeddings
-- `cohere-embeddings`: Cohere API embeddings
-- `ollama-embeddings`: Ollama local embeddings
+- `openai`: OpenAI API embeddings
 - `local-embeddings`: CPU-based local embeddings
-- `mcp`: MCP server tools and protocol
-- `sandbox`: Wasmtime sandbox for code execution
+- `turso`: Enable Turso cloud storage (requires memory-storage-turso)
+- `redb`: Enable redb cache storage (requires memory-storage-redb)
+- `embeddings-full`: Enable all embedding providers
+- `full`: All features enabled (turso, redb, embeddings-full)
 
 ## Performance Targets
 | Operation | Target (P95) | Actual Performance | Status |

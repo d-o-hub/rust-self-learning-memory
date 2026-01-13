@@ -1,8 +1,9 @@
 # Release v0.1.13 - Semantic Pattern Search & Recommendations
 
-**Release Date:** 2026-01-12  
-**Status:** Production Ready  
-**Breaking Changes:** None (100% backward compatible)
+> **⚠️ DRAFT - NOT YET RELEASED**
+> **Planned Release Date:** 2026-01-12
+> **Status:** In Development
+> **Breaking Changes:** None (100% backward compatible)
 
 ---
 
@@ -175,7 +176,11 @@ cargo test --workspace
 
 ---
 
-**Full Changelog:** See `CHANGELOG.md`  
-**Contributors:** Rovo Dev  
-**Implementation Time:** ~3 hours  
+**Full Changelog:** See `CHANGELOG.md`
+**Contributors:** Rovo Dev
+**Implementation Time:** ~3 hours
 **Lines of Code:** ~2,000 (implementation + tests + docs)
+
+---
+
+**⚠️ IMPORTANT**: This is a DRAFT release notes document for v0.1.13. The version is currently in development and has not yet been released. Final release notes will be updated upon official release.

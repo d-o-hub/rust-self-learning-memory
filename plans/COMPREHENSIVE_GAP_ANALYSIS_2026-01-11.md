@@ -28,8 +28,8 @@ The Rust Self-Learning Memory System is **production-ready** with exceptional qu
 
 ### Critical Issues (P0)
 - **File Size Violations**: 20+ files exceed 500 LOC limit (violates AGENTS.md)
-- **Error Handling**: 168 unwrap() calls in core (target: <50)
-- **Test Regression**: Pass rate dropped from 99.3% to ~85% post-refactoring
+- **Error Handling**: 598 unwrap() calls in core (target: <50) - **URGENT: 3.6x higher than initially reported**
+- **Test Regression**: Pass rate unverified - needs validation
 
 ### High Value Opportunities (P1)
 - **Clone Reduction**: 183 clone operations in core (5-15% perf improvement)
@@ -397,9 +397,9 @@ impl HybridRetriever {
 
 **Total File Compliance Effort**: 91-127 hours (2.3-3.2 weeks)
 
-### 3.2 Error Handling Audit (P1 - HIGH VALUE)
+### 3.2 Error Handling Audit (P0 - CRITICAL)
 
-**Current State**: 168 unwrap() calls in `memory-core/src/`
+**Current State**: 598 unwrap() calls in `memory-core/src/` (3.6x higher than initially reported)
 
 **Target**: Reduce to <50 unwrap() calls
 
@@ -407,6 +407,7 @@ impl HybridRetriever {
 - Unwrap/expect calls in production code
 - Some legitimate uses in hot paths
 - Many should be proper error handling
+- **URGENT**: Significant underestimation of work required
 
 **Audit Strategy**:
 1. **Categorize Unwraps**:
@@ -856,9 +857,9 @@ impl PrometheusExporter {
 | # | Recommendation | Effort | Impact | Risk | Dependencies |
 |---|----------------|---------|--------|------|--------------|
 | P0-1 | File Size Compliance (20 files) | 91-127 hrs | High | Low | None |
-| P0-2 | Error Handling Audit (168 unwraps) | 28-34 hrs | High | Low | None |
+| P0-2 | Error Handling Audit (598 unwraps) | 84-102 hrs | High | Low | None |
 
-**Total P0 Effort**: 119-161 hours (3-4 weeks)
+**Total P0 Effort**: 175-229 hours (4.4-5.7 weeks) - **2.4x higher than initially estimated**
 
 ### P1 - HIGH (Strong ROI)
 
@@ -1039,8 +1040,8 @@ impl PrometheusExporter {
 | | Query latency (cached) | 5.8ms | 2ms | 65% faster |
 | | Embedding throughput | 1x | 2x | 100% faster |
 | **Code Quality** | Files > 500 LOC | 20+ | 0 | 100% compliance |
-| | Unwrap calls | 168 | <50 | 70% reduction |
-| | Test pass rate | ~85% | >95% | 10% improvement |
+| | Unwrap calls | 598 | <50 | 92% reduction |
+| | Test pass rate | Unverified | >95% | Needs validation |
 | **Security** | Vulnerabilities | 1 unmaintained | 0 | 100% fixed |
 | | Duplicate deps | 5+ | 0 | 100% fixed |
 | **Architecture** | Binary size | 2.1 GB | <1.5 GB | 29% reduction |

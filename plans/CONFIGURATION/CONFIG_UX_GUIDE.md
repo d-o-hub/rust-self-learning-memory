@@ -76,7 +76,7 @@ Better error:
 ```
 "No storage backend configured
 💡 Fix: Choose one of these options:
-  • Local development: Config::simple(DatabaseType::Local, PerformanceLevel::Standard)
+  • Local development: SimpleMode::setup_local()
   • Cloud setup: Configure database.turso_url and database.turso_token
   • Quick start: Run 'memory-cli config wizard'
 "
@@ -197,6 +197,51 @@ pub enum SimpleCommands {
         with_sample_data: bool,
     },
 }
+```
+
+### Embeddings Configuration
+
+**Structure**:
+
+```rust
+/// Embeddings configuration for semantic search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbeddingsConfig {
+    /// Enable semantic embeddings
+    pub enabled: bool,
+    /// Embedding provider: "local", "openai", "mistral", "azure", or "custom"
+    pub provider: String,
+    /// Model name or identifier
+    pub model: String,
+    /// Embedding dimension
+    pub dimension: usize,
+    /// API key environment variable (e.g., "OPENAI_API_KEY")
+    pub api_key_env: Option<String>,
+    /// Base URL for custom providers
+    pub base_url: Option<String>,
+    /// Similarity threshold for search (0.0 - 1.0)
+    pub similarity_threshold: f32,
+    /// Batch size for embedding generation
+    pub batch_size: usize,
+    /// Cache embeddings to avoid regeneration
+    pub cache_embeddings: bool,
+    /// Timeout for embedding requests (seconds)
+    pub timeout_seconds: u64,
+}
+```
+
+**Configuration Example**:
+
+```toml
+[embeddings]
+enabled = true
+provider = "local"
+model = "all-MiniLM-L6-v2"
+dimension = 384
+similarity_threshold = 0.7
+batch_size = 10
+cache_embeddings = true
+timeout_seconds = 30
 ```
 
 ---

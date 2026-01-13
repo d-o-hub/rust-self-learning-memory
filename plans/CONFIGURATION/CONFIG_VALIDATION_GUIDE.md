@@ -1,6 +1,6 @@
 # Configuration Validation Guide
 
-**Last Updated**: 2025-12-27
+**Last Updated**: 2026-01-13
 **Status**: Implemented and Operational
 **Goal**: Ensure configuration quality through comprehensive validation
 
@@ -61,13 +61,17 @@ pub struct ConfigValidator {
     rules: Vec<Box<dyn ValidationRule>>,
 }
 
-impl ConfigValidator {
+ impl ConfigValidator {
     pub fn new() -> Self {
         Self {
             rules: vec![
                 Box::new(DatabaseValidationRule),
                 Box::new(StorageValidationRule),
                 Box::new(CliValidationRule),
+                Box::new(EmbeddingsValidationRule),
+                Box::new(MonitoringValidationRule),
+                Box::new(BackupValidationRule),
+                Box::new(LoggingValidationRule),
                 Box::new(SecurityValidationRule),
                 Box::new(PerformanceValidationRule),
             ],
@@ -281,6 +285,213 @@ if config.cli.batch_size > 10000 {
         message: "Very large batch size may cause memory issues".to_string(),
         location: "cli.batch_size".to_string(),
         suggestion: Some("Consider smaller batches (100-1000) for better memory management".to_string()),
+    });
+}
+```
+
+### 4. Embeddings Configuration Validation
+
+**Enabled Validation**:
+
+```rust
+// Validate embeddings configuration when enabled
+if config.embeddings.enabled {
+    if config.embeddings.provider.is_empty() {
+        errors.push(ValidationError {
+            category: "embeddings".to_string(),
+            message: "Embeddings provider cannot be empty when enabled".to_string(),
+            severity: ErrorSeverity::High,
+            location: "embeddings.provider".to_string(),
+            suggestion: Some("Set a valid provider:
+  • 'local' - CPU-based local embeddings
+  • 'openai' - OpenAI API embeddings
+  • 'mistral' - Mistral API embeddings".to_string()),
+        });
+    }
+
+    if config.embeddings.model.is_empty() {
+        errors.push(ValidationError {
+            category: "embeddings".to_string(),
+            message: "Embeddings model name cannot be empty when enabled".to_string(),
+            severity: ErrorSeverity::High,
+            location: "embeddings.model".to_string(),
+            suggestion: Some("Specify the model name or path".to_string()),
+        });
+    }
+
+    // Validate dimension
+    if config.embeddings.dimension == 0 {
+        errors.push(ValidationError {
+            category: "embeddings".to_string(),
+            message: "Embedding dimension cannot be zero".to_string(),
+            severity: ErrorSeverity::High,
+            location: "embeddings.dimension".to_string(),
+            suggestion: Some("Set dimension to match your model's output (e.g., 384, 768, 1536)".to_string()),
+        });
+    }
+
+    // Validate API key for non-local providers
+    if config.embeddings.provider != "local" && config.embeddings.api_key_env.is_none() {
+        warnings.push(ValidationWarning {
+            category: "security".to_string(),
+            message: "API key environment variable not configured".to_string(),
+            location: "embeddings.api_key_env".to_string(),
+            suggestion: Some("Set api_key_env to the environment variable containing your API key:
+  • OpenAI: OPENAI_API_KEY
+  • Mistral: MISTRAL_API_KEY".to_string()),
+        });
+    }
+
+    // Validate similarity threshold
+    if config.embeddings.similarity_threshold < 0.0 || config.embeddings.similarity_threshold > 1.0 {
+        errors.push(ValidationError {
+            category: "embeddings".to_string(),
+            message: "Similarity threshold must be between 0.0 and 1.0".to_string(),
+            severity: ErrorSeverity::Medium,
+            location: "embeddings.similarity_threshold".to_string(),
+            suggestion: Some("Set similarity_threshold to a value between 0.0 and 1.0 (recommended: 0.7)".to_string()),
+        });
+    }
+
+    // Validate batch size
+    if config.embeddings.batch_size == 0 {
+        errors.push(ValidationError {
+            category: "embeddings".to_string(),
+            message: "Batch size cannot be zero".to_string(),
+            severity: ErrorSeverity::High,
+            location: "embeddings.batch_size".to_string(),
+            suggestion: Some("Set batch_size to at least 1".to_string()),
+        });
+    }
+
+    if config.embeddings.batch_size > 100 {
+        warnings.push(ValidationWarning {
+            category: "performance".to_string(),
+            message: "Large batch size may cause API rate limits".to_string(),
+            location: "embeddings.batch_size".to_string(),
+            suggestion: Some("Consider smaller batches (10-50) to avoid rate limits".to_string()),
+        });
+    }
+}
+```
+
+### 5. Monitoring Configuration Validation
+
+**Health Check Interval Validation**:
+
+```rust
+// Validate monitoring health check interval
+if config.monitoring.enabled {
+    if config.monitoring.health_check_interval_seconds < 10 {
+        warnings.push(ValidationWarning {
+            category: "performance".to_string(),
+            message: "Health check interval is very short".to_string(),
+            location: "monitoring.health_check_interval_seconds".to_string(),
+            suggestion: Some("Consider increasing to at least 30 seconds to reduce overhead".to_string()),
+        });
+    }
+
+    if config.monitoring.health_check_interval_seconds > 3600 {
+        warnings.push(ValidationWarning {
+            category: "monitoring".to_string(),
+            message: "Health check interval is very long".to_string(),
+            location: "monitoring.health_check_interval_seconds".to_string(),
+            suggestion: Some("Consider reducing to at most 3600 seconds (1 hour) for timely detection".to_string()),
+        });
+    }
+}
+```
+
+### 6. Backup Configuration Validation
+
+**Backup Directory Validation**:
+
+```rust
+// Validate backup directory
+if config.backup.backup_dir.is_empty() {
+    errors.push(ValidationError {
+        category: "backup".to_string(),
+        message: "Backup directory cannot be empty".to_string(),
+        severity: ErrorSeverity::High,
+        location: "backup.backup_dir".to_string(),
+        suggestion: Some("Set backup.backup_dir to a valid directory path".to_string()),
+    });
+}
+
+// Validate max backup age
+if config.backup.max_backup_age_days == 0 {
+    warnings.push(ValidationWarning {
+        category: "backup".to_string(),
+        message: "Max backup age is zero, backups will be deleted immediately".to_string(),
+        location: "backup.max_backup_age_days".to_string(),
+        suggestion: Some("Set max_backup_age_days to at least 1 to retain backups".to_string()),
+    });
+}
+
+if config.backup.max_backup_age_days > 365 {
+    warnings.push(ValidationWarning {
+        category: "storage".to_string(),
+        message: "Max backup age is very large, may consume significant disk space".to_string(),
+        location: "backup.max_backup_age_days".to_string(),
+        suggestion: Some("Consider reducing to 30-90 days for better storage management".to_string()),
+    });
+}
+```
+
+### 7. Logging Configuration Validation
+
+**Log Level Validation**:
+
+```rust
+// Validate log level
+let valid_levels = ["error", "warn", "info", "debug", "trace"];
+if !valid_levels.contains(&config.logging.level.as_str()) {
+    errors.push(ValidationError {
+        category: "logging".to_string(),
+        message: format!("Invalid log level: {}", config.logging.level),
+        severity: ErrorSeverity::Medium,
+        location: "logging.level".to_string(),
+        suggestion: Some("Valid log levels: 'error', 'warn', 'info', 'debug', 'trace'".to_string()),
+    });
+}
+
+// Validate max log size
+if config.logging.max_log_size_mb == 0 {
+    errors.push(ValidationError {
+        category: "logging".to_string(),
+        message: "Max log size cannot be zero".to_string(),
+        severity: ErrorSeverity::High,
+        location: "logging.max_log_size_mb".to_string(),
+        suggestion: Some("Set max_log_size_mb to at least 1 MB".to_string()),
+    });
+}
+
+if config.logging.max_log_size_mb > 1000 {
+    warnings.push(ValidationWarning {
+        category: "storage".to_string(),
+        message: "Max log size is very large, may consume significant disk space".to_string(),
+        location: "logging.max_log_size_mb".to_string(),
+        suggestion: Some("Consider reducing to 10-100 MB for better storage management".to_string()),
+    });
+}
+
+// Validate max log files
+if config.logging.max_log_files == 0 {
+    errors.push(ValidationError {
+        category: "logging".to_string(),
+        message: "Max log files cannot be zero".to_string(),
+        severity: ErrorSeverity::High,
+        location: "logging.max_log_files".to_string(),
+        suggestion: Some("Set max_log_files to at least 1".to_string()),
+    });
+}
+
+if config.logging.max_log_files > 50 {
+    warnings.push(ValidationWarning {
+        category: "storage".to_string(),
+        message: "Max log files is very large, may consume significant disk space".to_string(),
+        location: "logging.max_log_files".to_string(),
+        suggestion: Some("Consider reducing to 5-10 files for better storage management".to_string()),
     });
 }
 ```

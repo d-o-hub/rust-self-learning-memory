@@ -203,20 +203,4 @@ pub trait StorageBackend: Send + Sync {
     ///
     /// Returns error if storage operation fails
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>>;
-
-    // ========== Episode Management Methods ==========
-
-    /// Delete an episode by ID
-    ///
-    /// Permanently removes an episode and its associated data from storage.
-    /// This operation cannot be undone.
-    ///
-    /// # Arguments
-    ///
-    /// * `episode_id` - UUID of the episode to delete
-    ///
-    /// # Errors
-    ///
-    /// Returns error if storage operation fails
-    async fn delete_episode(&self, episode_id: Uuid) -> Result<()>;
 }

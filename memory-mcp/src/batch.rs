@@ -64,8 +64,10 @@ pub struct BatchOperation {
 /// Batch execution mode
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum BatchMode {
     /// Execute independent operations in parallel (default)
+    #[default]
     Parallel,
     /// Execute all operations sequentially
     Sequential,
@@ -73,11 +75,6 @@ pub enum BatchMode {
     FailFast,
 }
 
-impl Default for BatchMode {
-    fn default() -> Self {
-        Self::Parallel
-    }
-}
 
 /// Batch request parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]

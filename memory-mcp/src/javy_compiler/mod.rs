@@ -29,7 +29,6 @@ use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
 
 use anyhow::{anyhow, Context, Result};
-use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tokio::sync::{RwLock, Semaphore};

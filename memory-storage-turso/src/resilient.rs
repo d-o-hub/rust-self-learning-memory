@@ -268,7 +268,6 @@ impl StorageBackend for ResilientStorage {
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
         let storage = Arc::clone(&self.storage);
         let id_string = id.to_string();
-        let embedding = embedding;
 
         self.circuit_breaker
             .call(move || {
@@ -306,7 +305,6 @@ impl StorageBackend for ResilientStorage {
 
     async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
         let storage = Arc::clone(&self.storage);
-        let embeddings = embeddings;
 
         self.circuit_breaker
             .call(move || {

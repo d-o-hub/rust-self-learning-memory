@@ -4,13 +4,18 @@
 
 use chrono::Utc;
 use memory_core::{
-    EpisodeFilter, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
-    TaskType,
+    EpisodeFilter, ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext,
+    TaskOutcome, TaskType,
 };
 
 #[tokio::test]
 async fn test_filter_by_tags_integration() {
-    let memory = SelfLearningMemory::new();
+    // Use lower quality threshold for test episodes
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     // Create episodes with different tags
     let ctx1 = TaskContext {
@@ -93,7 +98,11 @@ async fn test_filter_by_tags_integration() {
 
 #[tokio::test]
 async fn test_filter_by_success_only() {
-    let memory = SelfLearningMemory::new();
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     let ctx = TaskContext::default();
 
@@ -159,7 +168,11 @@ async fn test_filter_by_success_only() {
 
 #[tokio::test]
 async fn test_filter_by_task_type_and_domain() {
-    let memory = SelfLearningMemory::new();
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     // Create episodes with different task types and domains
     let ctx_web = TaskContext {
@@ -197,7 +210,11 @@ async fn test_filter_by_task_type_and_domain() {
 
 #[tokio::test]
 async fn test_filter_with_date_range() {
-    let memory = SelfLearningMemory::new();
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     let now = Utc::now();
     let ctx = TaskContext::default();
@@ -236,7 +253,11 @@ async fn test_filter_with_date_range() {
 
 #[tokio::test]
 async fn test_filter_exclude_archived() {
-    let memory = SelfLearningMemory::new();
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     let ctx = TaskContext::default();
 
@@ -277,7 +298,11 @@ async fn test_filter_exclude_archived() {
 
 #[tokio::test]
 async fn test_filter_complex_query() {
-    let memory = SelfLearningMemory::new();
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     // Create episodes with various properties
     let ctx1 = TaskContext {
@@ -351,7 +376,11 @@ async fn test_filter_complex_query() {
 
 #[tokio::test]
 async fn test_filter_with_pagination() {
-    let memory = SelfLearningMemory::new();
+    let test_config = MemoryConfig {
+        quality_threshold: 0.4,
+        ..Default::default()
+    };
+    let memory = SelfLearningMemory::with_config(test_config);
 
     let ctx = TaskContext::default();
 

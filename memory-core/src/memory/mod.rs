@@ -516,14 +516,15 @@ impl SelfLearningMemory {
     ///
     /// # Example
     /// ```no_run
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use memory_core::{SelfLearningMemory, TaskContext};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
     /// let context = TaskContext {
+    ///     language: Some("rust".to_string()),
     ///     domain: "web-api".to_string(),
-    ///     task_type: TaskType::CodeGeneration,
-    ///     tags: vec!["rust".to_string(), "rest".to_string()],
+    ///     tags: vec!["rest".to_string()],
+    ///     ..Default::default()
     /// };
     ///
     /// let results = memory.search_patterns_semantic(
@@ -590,14 +591,15 @@ impl SelfLearningMemory {
     ///
     /// # Example
     /// ```no_run
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use memory_core::{SelfLearningMemory, TaskContext};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
     /// let context = TaskContext {
+    ///     language: Some("rust".to_string()),
     ///     domain: "web-api".to_string(),
-    ///     task_type: TaskType::CodeGeneration,
     ///     tags: vec!["async".to_string()],
+    ///     ..Default::default()
     /// };
     ///
     /// let recommendations = memory.recommend_patterns_for_task(
@@ -644,14 +646,15 @@ impl SelfLearningMemory {
     ///
     /// # Example
     /// ```no_run
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use memory_core::{SelfLearningMemory, TaskContext};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
     /// let target = TaskContext {
+    ///     language: Some("rust".to_string()),
     ///     domain: "web-api".to_string(),
-    ///     task_type: TaskType::CodeGeneration,
     ///     tags: vec![],
+    ///     ..Default::default()
     /// };
     ///
     /// // Find patterns from CLI work that might apply to web APIs

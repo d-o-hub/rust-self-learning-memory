@@ -214,6 +214,7 @@ pub async fn list_episodes(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn list_episodes_basic(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] task_type: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] limit: usize,

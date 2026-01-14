@@ -1,6 +1,6 @@
 //! Storage synchronizer for coordinating Turso and redb
 
-use crate::{Episode, Error, Result};
+use crate::{Error, Result};
 use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::time::Duration;
@@ -9,9 +9,6 @@ use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use super::types::{SyncState, SyncStats};
-use super::two_phase_commit::TwoPhaseCommit;
-
-use super::conflict::ConflictResolution;
 
 /// Storage synchronizer for coordinating Turso and redb
 pub struct StorageSynchronizer<T, R> {

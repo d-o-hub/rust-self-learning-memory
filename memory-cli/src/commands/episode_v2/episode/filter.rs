@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn get_filter_path() -> PathBuf {
     let base_dir = dirs::data_dir()
@@ -30,7 +30,7 @@ fn load_filters(filter_dir: &PathBuf) -> Vec<SavedFilter> {
 
     let mut filters = Vec::new();
     for entry in entries.filter_map(|e| e.ok()) {
-        if entry.path().extension().map_or(false, |ext| ext == "json") {
+        if entry.path().extension().is_some_and(|ext| ext == "json") {
             if let Ok(content) = fs::read_to_string(entry.path()) {
                 if let Ok(filter) = serde_json::from_str::<SavedFilter>(&content) {
                     filters.push(filter);
@@ -41,7 +41,7 @@ fn load_filters(filter_dir: &PathBuf) -> Vec<SavedFilter> {
     filters
 }
 
-fn save_filter(filter_dir: &PathBuf, filter: &SavedFilter) -> anyhow::Result<()> {
+fn save_filter(filter_dir: &Path, filter: &SavedFilter) -> anyhow::Result<()> {
     if !filter_dir.exists() {
         fs::create_dir_all(filter_dir)?;
     }
@@ -52,7 +52,7 @@ fn save_filter(filter_dir: &PathBuf, filter: &SavedFilter) -> anyhow::Result<()>
     Ok(())
 }
 
-fn delete_filter_file(filter_dir: &PathBuf, name: &str) -> anyhow::Result<()> {
+fn delete_filter_file(filter_dir: &Path, name: &str) -> anyhow::Result<()> {
     let path = filter_dir.join(format!("{}.json", name));
     if path.exists() {
         fs::remove_file(path)?;

@@ -143,7 +143,7 @@ impl DependencyGraph {
 
 impl From<BatchRequest> for DependencyGraph {
     fn from(request: BatchRequest) -> Self {
-        DependencyGraph::new(request.operations).unwrap_or_else(|e| {
+        DependencyGraph::new(request.operations).unwrap_or_else(|_e| {
             // In case of error, create an empty graph
             DependencyGraph {
                 operations: HashMap::new(),
@@ -227,14 +227,12 @@ mod tests {
 
     #[test]
     fn test_dependency_graph_unknown_dependency() {
-        let ops = vec![
-            BatchOperation {
-                id: "op1".to_string(),
-                tool: "tool1".to_string(),
-                arguments: Value::Null,
-                depends_on: vec!["unknown".to_string()],
-            },
-        ];
+        let ops = vec![BatchOperation {
+            id: "op1".to_string(),
+            tool: "tool1".to_string(),
+            arguments: Value::Null,
+            depends_on: vec!["unknown".to_string()],
+        }];
 
         let result = DependencyGraph::new(ops);
         assert!(result.is_err());

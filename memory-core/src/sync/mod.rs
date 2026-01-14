@@ -17,7 +17,10 @@
 //! sync.start_periodic_sync(Duration::from_secs(300)).await;
 //! ```
 
-pub use self::conflict::{resolve_episode_conflict, resolve_heuristic_conflict, resolve_pattern_conflict, ConflictResolution};
+pub use self::conflict::{
+    resolve_episode_conflict, resolve_heuristic_conflict, resolve_pattern_conflict,
+    ConflictResolution,
+};
 pub use self::synchronizer::StorageSynchronizer;
 pub use self::two_phase_commit::TwoPhaseCommit;
 pub use self::types::{SyncConfig, SyncState, SyncStats};

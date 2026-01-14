@@ -139,7 +139,9 @@ mod tests {
     async fn test_two_phase_commit_phase1_failure() {
         let mut commit = TwoPhaseCommit::new();
 
-        let result = commit.phase1(|| async { Err(crate::Error::Storage("phase1 failed".into())) }).await;
+        let result = commit
+            .phase1(|| async { Err(crate::Error::Storage("phase1 failed".into())) })
+            .await;
         assert!(result.is_err());
         assert!(!commit.phase1_complete);
     }

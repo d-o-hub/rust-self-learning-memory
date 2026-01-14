@@ -100,6 +100,7 @@
 //! └─────────────────┘          └──────────────────┘
 //! ```
 
+pub mod batch;
 pub mod cache;
 pub mod error;
 pub mod javy_compiler;
@@ -117,6 +118,10 @@ pub mod wasm_sandbox;
 pub mod wasmtime_sandbox;
 
 // Re-export commonly used types
+pub use batch::{
+    BatchExecutor, BatchMode, BatchOperation, BatchRequest, BatchResponse, BatchStats,
+    DependencyGraph, OperationError, OperationResult,
+};
 pub use cache::{CacheConfig, CacheStats, QueryCache};
 pub use error::{Error, Result};
 pub use sandbox::CodeSandbox;

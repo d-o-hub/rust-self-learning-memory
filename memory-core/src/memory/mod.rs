@@ -47,6 +47,7 @@
 //! ```
 
 mod episode;
+pub mod filters;
 mod init;
 mod learning;
 mod management;
@@ -443,6 +444,52 @@ impl SelfLearningMemory {
             limit,
             offset,
             completed_only,
+        )
+        .await
+    }
+
+    /// List episodes with advanced filtering support.
+    ///
+    /// Provides rich filtering capabilities including tags, date ranges,
+    /// task types, outcomes, and more. Use `EpisodeFilter::builder()` for a fluent API.
+    ///
+    /// # Arguments
+    ///
+    /// * `filter` - Episode filter criteria
+    /// * `limit` - Maximum number of episodes to return
+    /// * `offset` - Number of episodes to skip (for pagination)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Get successful episodes with specific tags
+    /// let filter = EpisodeFilter::builder()
+    ///     .with_any_tags(vec!["async".to_string()])
+    ///     .success_only(true)
+    ///     .build();
+    ///
+    /// let episodes = memory.list_episodes_filtered(filter, Some(10), None).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn list_episodes_filtered(
+        &self,
+        filter: filters::EpisodeFilter,
+        limit: Option<usize>,
+        offset: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        queries::list_episodes_filtered(
+            &self.episodes_fallback,
+            self.cache_storage.as_ref(),
+            self.turso_storage.as_ref(),
+            filter,
+            limit,
+            offset,
         )
         .await
     }

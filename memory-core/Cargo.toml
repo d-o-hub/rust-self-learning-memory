@@ -53,7 +53,7 @@ lru = "0.16"
 reqwest = { version = "0.13", features = ["json"], optional = true }
 
 # ONNX Runtime for local embeddings (optional)
-ort = { version = "2.0.0-rc.10", optional = true }
+ort = { version = "2.0.0-rc.11", optional = true }
 
 # Tokenizers for local embeddings (optional)
 tokenizers = { version = "0.22", optional = true }

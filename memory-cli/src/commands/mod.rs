@@ -36,7 +36,7 @@ pub async fn handle_episode_command(
 ) -> anyhow::Result<()> {
     match command {
         EpisodeCommands::Create { task, context } => {
-            episode::create_episode(task, context, memory, config, format, dry_run).await
+            create_episode(task, context, memory, config, format, dry_run).await
         }
         EpisodeCommands::List {
             task_type,
@@ -46,8 +46,15 @@ pub async fn handle_episode_command(
             enable_embeddings,
             embedding_provider,
             embedding_model,
+            since,
+            until,
+            sort,
+            domain,
+            tags,
+            outcome,
+            offset,
         } => {
-            episode::list_episodes(
+            list_episodes(
                 task_type,
                 limit,
                 status,
@@ -55,19 +62,32 @@ pub async fn handle_episode_command(
                 enable_embeddings,
                 embedding_provider,
                 embedding_model,
+                since,
+                until,
+                sort,
+                domain,
+                tags,
+                outcome,
+                offset,
                 memory,
                 config,
                 format,
             )
             .await
         }
+        EpisodeCommands::Filter {
+            command: filter_cmd,
+        } => handle_filter_command(filter_cmd, memory, config, format, dry_run).await,
         EpisodeCommands::View { episode_id } => {
-            episode::view_episode(episode_id, memory, config, format).await
+            view_episode(episode_id, memory, config, format).await
         }
         EpisodeCommands::Complete {
             episode_id,
             outcome,
-        } => episode::complete_episode(episode_id, outcome, memory, config, format, dry_run).await,
+        } => complete_episode(episode_id, outcome, memory, config, format, dry_run).await,
+        EpisodeCommands::Delete { episode_id } => {
+            delete_episode(episode_id, memory, config, format, dry_run).await
+        }
         EpisodeCommands::Search {
             query,
             limit,
@@ -76,7 +96,7 @@ pub async fn handle_episode_command(
             embedding_provider,
             embedding_model,
         } => {
-            episode::search_episodes(
+            search_episodes(
                 query,
                 limit,
                 semantic,
@@ -98,7 +118,7 @@ pub async fn handle_episode_command(
             tokens,
             observation,
         } => {
-            episode::log_step(
+            log_step(
                 episode_id,
                 tool,
                 action,

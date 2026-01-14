@@ -2,7 +2,7 @@
   "mcpServers": {
     "memory-mcp": {
       "type": "stdio",
-      "command": "./target/release/memory-mcp-server",
+      "command": "/workspaces/feat-phase3/target/release/memory-mcp-server",
       "args": [],
       "env": {
         "TURSO_DATABASE_URL": "file:/workspaces/feat-phase3/data/memory.db",

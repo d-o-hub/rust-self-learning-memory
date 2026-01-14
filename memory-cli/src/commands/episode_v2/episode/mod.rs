@@ -5,6 +5,8 @@
 
 pub mod complete;
 pub mod create;
+pub mod delete;
+pub mod filter;
 pub mod list;
 pub mod log_step;
 pub mod output;
@@ -14,6 +16,9 @@ pub mod view;
 
 pub use complete::complete_episode;
 pub use create::create_episode;
+pub use delete::delete_episode;
+pub use delete::DeletionResult;
+pub use filter::handle_filter_command;
 pub use list::list_episodes;
 pub use log_step::log_step;
 pub use output::*;

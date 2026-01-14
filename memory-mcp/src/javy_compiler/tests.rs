@@ -28,10 +28,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_cache_key_generation() {
-        let compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
-        let k1 = compiler.generate_cache_key("const x = 1;");
-        let k2 = compiler.generate_cache_key("const x = 1;");
-        let k3 = compiler.generate_cache_key("const x = 2;");
+        let _compiler = JavyCompiler::new(JavyConfig::default()).unwrap();
+        let k1 = generate_cache_key("const x = 1;");
+        let k2 = generate_cache_key("const x = 1;");
+        let k3 = generate_cache_key("const x = 2;");
         assert_eq!(k1, k2);
         assert_ne!(k1, k3);
     }

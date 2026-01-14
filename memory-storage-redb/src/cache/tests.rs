@@ -139,14 +139,20 @@ async fn test_ttl_expiration_on_access() {
     let id = Uuid::new_v4();
     cache.record_access(id, false, Some(100)).await;
 
-    // Immediate access should succeed
-    assert!(cache.contains(id).await);
+    // Verify entry was stored
+    assert!(
+        cache.contains(id).await,
+        "Entry should be stored immediately"
+    );
 
-    // Wait for expiration (2 seconds to be safe)
-    sleep(TokioDuration::from_secs(2)).await;
+    // Wait for expiration (3 seconds to be safe under load)
+    sleep(TokioDuration::from_secs(3)).await;
 
     // Should be expired now
-    assert!(!cache.contains(id).await);
+    assert!(
+        !cache.contains(id).await,
+        "Entry should be expired after TTL"
+    );
 
     // Trying to hit expired entry should count as miss
     let hit = cache.record_access(id, true, None).await;
@@ -166,12 +172,16 @@ async fn test_manual_cleanup() {
     cache.record_access(id1, false, Some(100)).await;
     cache.record_access(id2, false, Some(100)).await;
 
-    // Wait for expiration (2 seconds to be safe)
-    sleep(TokioDuration::from_secs(2)).await;
+    // Verify entries were stored
+    assert!(cache.contains(id1).await, "Entry 1 should be stored");
+    assert!(cache.contains(id2).await, "Entry 2 should be stored");
+
+    // Wait for expiration (3 seconds to be safe under load)
+    sleep(TokioDuration::from_secs(3)).await;
 
     // Run manual cleanup
     let cleaned = cache.cleanup_expired().await;
-    assert_eq!(cleaned, 2);
+    assert_eq!(cleaned, 2, "Should have cleaned up 2 expired entries");
 
     let metrics = cache.get_metrics().await;
     assert_eq!(metrics.item_count, 0);

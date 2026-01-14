@@ -20,8 +20,10 @@
 
 mod cache;
 mod config;
+mod utils;
 
 pub use config::{calculate_ema, JavyConfig, JavyMetrics};
+pub use utils::{generate_cache_key, is_valid_wasm_file, validate_js_syntax};
 
 use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
@@ -111,7 +113,7 @@ impl JavyCompiler {
         }
 
         // Check cache first
-        let cache_key = self.generate_cache_key(js_source);
+        let cache_key = generate_cache_key(js_source);
         let cached_module_opt = {
             let mut cache = self
                 .module_cache
@@ -199,82 +201,7 @@ impl JavyCompiler {
 
     /// Validate JavaScript syntax (basic validation)
     pub fn validate_js_syntax(&self, js_source: &str) -> Result<()> {
-        // Basic syntax validation - check for balanced braces, brackets, parentheses
-        let mut brace_count = 0;
-        let mut bracket_count = 0;
-        let mut paren_count = 0;
-        let mut in_string = false;
-        let mut escape_next = false;
-
-        for (i, ch) in js_source.char_indices() {
-            if escape_next {
-                escape_next = false;
-                continue;
-            }
-
-            if ch == '\\' {
-                escape_next = true;
-                continue;
-            }
-
-            if ch == '"' || ch == '\'' {
-                in_string = !in_string;
-                continue;
-            }
-
-            if in_string {
-                continue;
-            }
-
-            match ch {
-                '{' => brace_count += 1,
-                '}' => {
-                    if brace_count == 0 {
-                        return Err(anyhow::anyhow!("Unmatched closing brace at position {}", i));
-                    }
-                    brace_count -= 1;
-                }
-                '[' => bracket_count += 1,
-                ']' => {
-                    if bracket_count == 0 {
-                        return Err(anyhow::anyhow!(
-                            "Unmatched closing bracket at position {}",
-                            i
-                        ));
-                    }
-                    bracket_count -= 1;
-                }
-                '(' => paren_count += 1,
-                ')' => {
-                    if paren_count == 0 {
-                        return Err(anyhow::anyhow!(
-                            "Unmatched closing parenthesis at position {}",
-                            i
-                        ));
-                    }
-                    paren_count -= 1;
-                }
-                _ => {}
-            }
-        }
-
-        if brace_count != 0 {
-            return Err(anyhow::anyhow!("Unmatched opening braces: {}", brace_count));
-        }
-        if bracket_count != 0 {
-            return Err(anyhow::anyhow!(
-                "Unmatched opening brackets: {}",
-                bracket_count
-            ));
-        }
-        if paren_count != 0 {
-            return Err(anyhow::anyhow!(
-                "Unmatched opening parentheses: {}",
-                paren_count
-            ));
-        }
-
-        Ok(())
+        validate_js_syntax(js_source)
     }
 
     /// Get current metrics
@@ -327,19 +254,6 @@ impl JavyCompiler {
         }
     }
 
-    /// Check if a WASM file is valid by checking magic bytes and minimum size
-    #[allow(dead_code)]
-    fn is_valid_wasm_file(path: &Path) -> bool {
-        if let Ok(mut file) = std::fs::File::open(path) {
-            let mut magic = [0u8; 4];
-            if std::io::Read::read_exact(&mut file, &mut magic).is_ok() {
-                return &magic == b"\0asm"
-                    && file.metadata().map(|m| m.len() > 100).unwrap_or(false);
-            }
-        }
-        false
-    }
-
     /// Perform the actual JavaScript to WASM compilation
     #[cfg(feature = "javy-backend")]
     async fn perform_compilation(&self, js_source: &str) -> Result<Vec<u8>> {
@@ -387,7 +301,7 @@ impl JavyCompiler {
             // If a JAVY_PLUGIN is provided and looks like a valid WASM, prefer the plugin + codegen path
             if let Ok(plugin_path) = std::env::var("JAVY_PLUGIN") {
                 let plugin = Path::new(&plugin_path);
-                if plugin.exists() && Self::is_valid_wasm_file(plugin) {
+                if plugin.exists() && is_valid_wasm_file(plugin) {
                     let js = JS::from_string(js_clone);
                     let mut gen = Generator::default();
                     gen.linking(LinkingKind::Dynamic);
@@ -410,7 +324,7 @@ impl JavyCompiler {
             // Try default bundled plugin path
             let default_path = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
             let default_plugin = Path::new(&default_path);
-            if default_plugin.exists() && Self::is_valid_wasm_file(default_plugin) {
+            if default_plugin.exists() && is_valid_wasm_file(default_plugin) {
                 let js = JS::from_string(js_clone);
                 let mut gen = Generator::default();
                 gen.linking(LinkingKind::Dynamic);
@@ -487,15 +401,5 @@ impl JavyCompiler {
              Source: {} bytes",
             js_source.len()
         ))
-    }
-
-    /// Generate a cache key for the JavaScript source
-    fn generate_cache_key(&self, js_source: &str) -> String {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-
-        let mut hasher = DefaultHasher::new();
-        js_source.hash(&mut hasher);
-        format!("js_{:x}", hasher.finish())
     }
 }

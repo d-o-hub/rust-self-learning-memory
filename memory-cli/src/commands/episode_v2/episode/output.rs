@@ -1,6 +1,9 @@
 //! Episode output implementations
 
-use super::types::{EpisodeDetail, EpisodeList, EpisodeSearchResult, EpisodeSummary};
+use super::types::{
+    EpisodeDetail, EpisodeList, EpisodeListFiltered, EpisodeSearchResult, EpisodeSummary,
+    FilterList, SavedFilter,
+};
 use crate::output::Output;
 
 impl Output for EpisodeSummary {
@@ -27,6 +30,75 @@ impl Output for EpisodeList {
             self.total_count,
             self.episodes.len()
         )?;
+        writeln!(writer, "{}", "─".repeat(80))?;
+
+        for episode in &self.episodes {
+            let (status_color, status_icon) = match episode.status.as_str() {
+                "completed" => (Color::Green, "✓"),
+                "in_progress" => (Color::Yellow, "⟳"),
+                _ => (Color::Red, "✗"),
+            };
+
+            let id_display = format!(
+                "{:<8}",
+                &episode.episode_id[..episode.episode_id.len().min(8)]
+            );
+            let task_display = episode
+                .task_description
+                .chars()
+                .take(50)
+                .collect::<String>();
+            let status_display = format!("{} {}", status_icon, episode.status);
+
+            writeln!(
+                writer,
+                "{} {} {}",
+                id_display.dimmed(),
+                task_display,
+                status_display.color(status_color).bold()
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Output for EpisodeListFiltered {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(
+            writer,
+            "{} episodes (showing {}/{})",
+            self.total_count, self.filtered_count, self.total_count
+        )?;
+        writeln!(writer, "{}", "─".repeat(80))?;
+
+        writeln!(writer, "Applied Filters:")?;
+        if let Some(ref task_type) = self.applied_filters.task_type {
+            writeln!(writer, "  • Task Type: {}", task_type)?;
+        }
+        if let Some(ref status) = self.applied_filters.status {
+            writeln!(writer, "  • Status: {}", status)?;
+        }
+        if let Some(ref since) = self.applied_filters.since {
+            writeln!(writer, "  • Since: {}", since)?;
+        }
+        if let Some(ref until) = self.applied_filters.until {
+            writeln!(writer, "  • Until: {}", until)?;
+        }
+        if let Some(ref domain) = self.applied_filters.domain {
+            writeln!(writer, "  • Domain: {}", domain)?;
+        }
+        if let Some(ref tags) = self.applied_filters.tags {
+            writeln!(writer, "  • Tags: {}", tags)?;
+        }
+        if let Some(ref outcome) = self.applied_filters.outcome {
+            writeln!(writer, "  • Outcome: {}", outcome)?;
+        }
+        writeln!(writer, "  • Sort: {}", self.applied_filters.sort)?;
+        writeln!(writer, "  • Offset: {}", self.applied_filters.offset)?;
+        writeln!(writer, "  • Limit: {}", self.applied_filters.limit)?;
         writeln!(writer, "{}", "─".repeat(80))?;
 
         for episode in &self.episodes {
@@ -155,6 +227,71 @@ impl Output for EpisodeSearchResult {
         if !self.matched_terms.is_empty() {
             writeln!(writer, "  Matched: {}", self.matched_terms.join(", "))?;
         }
+
+        Ok(())
+    }
+}
+
+impl Output for SavedFilter {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(writer, "Filter: {}", self.name.bold())?;
+        writeln!(writer, "{}", "─".repeat(60))?;
+
+        if let Some(ref task_type) = self.task_type {
+            writeln!(writer, "  Task Type: {}", task_type)?;
+        }
+        if let Some(ref status) = self.status {
+            writeln!(writer, "  Status: {}", status)?;
+        }
+        if let Some(ref since) = self.since {
+            writeln!(writer, "  Since: {}", since)?;
+        }
+        if let Some(ref until) = self.until {
+            writeln!(writer, "  Until: {}", until)?;
+        }
+        if let Some(ref domain) = self.domain {
+            writeln!(writer, "  Domain: {}", domain)?;
+        }
+        if let Some(ref tags) = self.tags {
+            writeln!(writer, "  Tags: {}", tags)?;
+        }
+        if let Some(ref outcome) = self.outcome {
+            writeln!(writer, "  Outcome: {}", outcome)?;
+        }
+        if let Some(limit) = self.limit {
+            writeln!(writer, "  Default Limit: {}", limit)?;
+        }
+        writeln!(writer, "  Created: {}", self.created_at)?;
+
+        Ok(())
+    }
+}
+
+impl Output for FilterList {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(writer, "Saved Filters ({})", self.total_count)?;
+        writeln!(writer, "{}", "─".repeat(60))?;
+
+        for filter in &self.filters {
+            writeln!(writer, "  {}", filter.name.bold())?;
+            if let Some(ref task_type) = filter.task_type {
+                writeln!(writer, "    Task Type: {}", task_type)?;
+            }
+            if let Some(ref status) = filter.status {
+                writeln!(writer, "    Status: {}", status)?;
+            }
+            if let Some(limit) = filter.limit {
+                writeln!(writer, "    Default Limit: {}", limit)?;
+            }
+            writeln!(writer)?;
+        }
+
+        writeln!(writer, "{}", "─".repeat(60))?;
+        writeln!(writer, "Total: {} filters", self.total_count)?;
 
         Ok(())
     }

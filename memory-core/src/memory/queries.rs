@@ -116,6 +116,10 @@ pub async fn get_all_patterns(
 ///
 /// This is the preferred method for CLI commands and user interfaces
 /// that need to list episodes with optional filters.
+///
+/// # Deprecated Parameters
+///
+/// The `completed_only` parameter is deprecated. Use `filter.completed_only` instead.
 pub async fn list_episodes(
     episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
@@ -128,7 +132,7 @@ pub async fn list_episodes(
     let mut all_episodes =
         get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
 
-    // Apply filters
+    // Apply filters (backward compatibility)
     if let Some(true) = completed_only {
         all_episodes.retain(|e| e.is_complete());
     }
@@ -152,6 +156,73 @@ pub async fn list_episodes(
     );
 
     Ok(all_episodes)
+}
+
+/// List episodes with advanced filtering support.
+///
+/// This is the new preferred method for querying episodes with rich filtering
+/// capabilities including tags, date ranges, task types, and more.
+///
+/// # Arguments
+///
+/// * `episodes_fallback` - In-memory episode cache
+/// * `cache_storage` - Optional cache storage backend (redb)
+/// * `turso_storage` - Optional durable storage backend (Turso)
+/// * `filter` - Episode filter criteria
+/// * `limit` - Maximum number of episodes to return
+/// * `offset` - Number of episodes to skip (for pagination)
+///
+/// # Examples
+///
+/// ```
+/// use memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// let memory = SelfLearningMemory::new();
+///
+/// // Get recent successful episodes
+/// let filter = EpisodeFilter::builder()
+///     .success_only(true)
+///     .exclude_archived(true)
+///     .build();
+///
+/// let episodes = memory.list_episodes_filtered(filter, Some(10), None).await?;
+/// # Ok(())
+/// # }
+/// ```
+pub async fn list_episodes_filtered(
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
+    turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
+    filter: super::filters::EpisodeFilter,
+    limit: Option<usize>,
+    offset: Option<usize>,
+) -> Result<Vec<Episode>> {
+    // Get all episodes with lazy loading
+    let all_episodes = get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
+
+    // Apply filter
+    let mut filtered = filter.apply(all_episodes);
+
+    // Sort by start time (newest first) for consistent ordering
+    filtered.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+
+    // Apply pagination
+    let offset = offset.unwrap_or(0);
+    if offset > 0 {
+        filtered.drain(0..offset.min(filtered.len()));
+    }
+
+    if let Some(limit) = limit {
+        filtered.truncate(limit);
+    }
+
+    info!(
+        total_returned = filtered.len(),
+        "Listed episodes with advanced filters"
+    );
+
+    Ok(filtered)
 }
 
 /// Get patterns extracted from a specific episode

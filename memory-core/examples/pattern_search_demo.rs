@@ -2,7 +2,7 @@
 //!
 //! This example demonstrates the semantic pattern search and recommendation features.
 //!
-//! Run with: cargo run --example pattern_search_demo
+//! Run with: `cargo run --example pattern_search_demo`
 
 use memory_core::{
     ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,

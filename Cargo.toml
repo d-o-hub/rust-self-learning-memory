@@ -57,6 +57,9 @@ wasmtime = "24.0.5"
 wasmtime-wasi = "24.0.5"
 
 # Additional utilities
+parking_lot = "0.12"
+url = "2.5"
+sha2 = "0.10"
 rand = "0.8"
 rand_chacha = "0.3"
 clap = { version = "4.5", features = ["derive"] }

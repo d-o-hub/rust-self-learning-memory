@@ -1,5 +1,7 @@
 //! Storage command implementations.
 
+use std::sync::Arc;
+
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::config::Config;
@@ -67,7 +69,7 @@ pub async fn sync_storage(
 ) -> anyhow::Result<()> {
     // Check if we have both storage backends
     let (turso, redb) = match (memory.turso_storage(), memory.cache_storage()) {
-        (Some(t), Some(r)) => (t.clone(), r.clone()),
+        (Some(t), Some(r)) => (Arc::clone(&t), Arc::clone(&r)),
         _ => {
             return Err(anyhow::anyhow!(helpers::format_error_message(
                 "Storage sync requires both Turso and redb storage backends",

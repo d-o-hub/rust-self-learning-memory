@@ -132,8 +132,11 @@ impl SemanticService {
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
     ) -> Result<Self> {
+        // Clone model config once for all provider attempts
+        let model_config = config.model.clone();
+
         // Try local provider first (default)
-        match LocalEmbeddingProvider::new(config.model.clone()).await {
+        match LocalEmbeddingProvider::new(model_config.clone()).await {
             Ok(provider) => {
                 tracing::info!("Using local embedding provider");
                 return Ok(Self::new(Box::new(provider), storage, config));
@@ -147,7 +150,7 @@ impl SemanticService {
         #[cfg(feature = "openai")]
         {
             if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
-                match OpenAIEmbeddingProvider::new(api_key, config.model.clone()) {
+                match OpenAIEmbeddingProvider::new(api_key, model_config.clone()) {
                     Ok(provider) => {
                         tracing::info!("Using OpenAI embedding provider as fallback");
                         return Ok(Self::new(Box::new(provider), storage, config));
@@ -173,10 +176,10 @@ impl SemanticService {
         #[cfg(feature = "openai")]
         tracing::error!("  2. Set OPENAI_API_KEY environment variable");
 
-        // Use MockLocalModel as the final fallback
+        // Use MockLocalModel as the final fallback (reuse cloned model_config)
         let provider = crate::embeddings::mock_model::MockLocalModel::new(
             "mock-model".to_string(),
-            config.model.embedding_dimension,
+            model_config.embedding_dimension,
         );
         Ok(Self::new(Box::new(provider), storage, config))
     }

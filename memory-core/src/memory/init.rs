@@ -140,7 +140,7 @@ pub fn with_storage(
     };
 
     // Create monitoring storage that uses the primary storage backend
-    let monitoring_storage = SimpleMonitoringStorage::new(turso.clone());
+    let monitoring_storage = SimpleMonitoringStorage::new(Arc::clone(&turso));
     let agent_monitor = AgentMonitor::with_storage(monitoring_config, Arc::new(monitoring_storage));
 
     // Phase 2 (GENESIS) - Initialize capacity manager if max_episodes is configured

@@ -332,7 +332,9 @@ impl RealEmbeddingModel {
             })?;
 
             // Extract embeddings from output (typically last hidden state pooled)
-            let output = outputs.remove("last_hidden_state").unwrap();
+            let output = outputs.remove("last_hidden_state").ok_or_else(|| {
+                anyhow::anyhow!("Missing 'last_hidden_state' output from ONNX model")
+            })?;
             let embedding_array: ndarray::ArrayViewD<f32> = output.try_extract_array()?;
 
             // Average pooling over sequence length
@@ -351,7 +353,9 @@ impl RealEmbeddingModel {
 
             // Average pooling over sequence length
             let mut pooled_embedding = vec![0.0f32; hidden_size];
-            let data = embedding_array.as_slice().unwrap();
+            let data = embedding_array
+                .as_slice()
+                .ok_or_else(|| anyhow::anyhow!("Failed to convert embedding array to slice"))?;
 
             // Clippy: Indexing is necessary for accumulation across sequence dimension
             #[allow(clippy::needless_range_loop)]

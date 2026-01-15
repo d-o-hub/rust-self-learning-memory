@@ -128,7 +128,7 @@ impl ConnectionPool {
         let start = Instant::now();
 
         // Acquire an owned semaphore permit (limits concurrent connections)
-        let owned_permit_fut = self.semaphore.clone().acquire_owned();
+        let owned_permit_fut = Arc::clone(&self.semaphore).acquire_owned();
         let permit = tokio::time::timeout(self.config.connection_timeout, owned_permit_fut)
             .await
             .map_err(|_| {

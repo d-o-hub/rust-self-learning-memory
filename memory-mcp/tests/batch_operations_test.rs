@@ -7,21 +7,9 @@
 //! - Sequential and fail-fast modes
 //! - Performance characteristics
 
-use memory_core::SelfLearningMemory;
-use memory_mcp::{
-    BatchExecutor, BatchMode, BatchOperation, BatchRequest, MemoryMCPServer, SandboxConfig,
-};
+use memory_mcp::{BatchExecutor, BatchMode, BatchOperation, BatchRequest};
 use serde_json::json;
-use std::sync::Arc;
 use std::time::Duration;
-
-/// Helper to create test server
-async fn create_test_server() -> MemoryMCPServer {
-    let memory = Arc::new(SelfLearningMemory::new());
-    MemoryMCPServer::new(SandboxConfig::restrictive(), memory)
-        .await
-        .expect("Failed to create test server")
-}
 
 #[tokio::test]
 async fn test_batch_parallel_independent_operations() {

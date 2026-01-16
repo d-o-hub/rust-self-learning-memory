@@ -2,12 +2,14 @@
 //! Test module for the reflection subsystem
 //!
 //! Contains tests organized by component:
-//! - generator.rs: Tests for ReflectionGenerator
-//! - success_analyzer.rs: Tests for success analysis
-//! - improvement_analyzer.rs: Tests for improvement analysis
-//! - insight_generator.rs: Tests for insight generation
-//! - helpers.rs: Tests for helper functions
+//! - `generator.rs`: Tests for `ReflectionGenerator`
+//! - `success_analyzer.rs`: Tests for success analysis
+//! - `improvement_analyzer.rs`: Tests for improvement analysis
+//! - `insight_generator.rs`: Tests for insight generation
+//! - `helpers.rs`: Tests for helper functions
 //!
+
+#![allow(dead_code)]
 
 use crate::episode::Episode;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};

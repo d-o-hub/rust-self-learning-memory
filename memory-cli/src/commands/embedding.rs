@@ -296,8 +296,14 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
     }
 
     let avg = durations.iter().sum::<std::time::Duration>() / iterations as u32;
-    let min = durations.iter().min().unwrap();
-    let max = durations.iter().max().unwrap();
+    let min = durations
+        .iter()
+        .min()
+        .expect("durations is non-empty: guaranteed by loop with iterations > 0");
+    let max = durations
+        .iter()
+        .max()
+        .expect("durations is non-empty: guaranteed by loop with iterations > 0");
 
     println!("  Iterations: {}", iterations);
     println!("  Average: {:?}", avg);

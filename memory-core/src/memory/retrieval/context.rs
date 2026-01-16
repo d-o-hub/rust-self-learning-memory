@@ -316,7 +316,8 @@ impl SelfLearningMemory {
             return relevant;
         }
 
-        let scored_episodes = scored_episodes.unwrap();
+        let scored_episodes = scored_episodes
+            .expect("scored_episodes is Some: None case handled by early return above");
 
         // Phase 3: Apply MMR diversity maximization (if enabled)
         if let Some(ref maximizer) = self.diversity_maximizer {

@@ -55,9 +55,9 @@ async fn test_delete_episode_with_steps() {
 
     // Add some steps
     for i in 1..=5 {
-        let mut step = ExecutionStep::new(i, format!("tool_{}", i), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i, format!("tool_{i}"), format!("Action {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Output {}", i),
+            output: format!("Output {i}"),
         });
         memory.log_step(episode_id, step).await;
     }
@@ -107,7 +107,7 @@ async fn test_delete_multiple_episodes() {
     for i in 0..5 {
         let id = memory
             .start_episode(
-                format!("Episode {}", i),
+                format!("Episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )

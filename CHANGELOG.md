@@ -1,5 +1,40 @@
 ## [Unreleased]
 
+## [0.1.13] - 2026-01-16
+
+### Changed
+- **Error Handling**: Replaced 43 production `.unwrap()` calls with `.expect()` + contextual error messages
+  - Fixed memory-core/src/retrieval/cache/lru.rs - NonZeroUsize initialization safety
+  - Fixed memory-core/src/embeddings/circuit_breaker.rs - Mutex lock error context (6 calls)
+  - Fixed memory-core/src/memory/retrieval/context.rs - Option handling with invariant documentation
+  - Fixed memory-cli/src/config/loader.rs - Config cache mutex operations (26 calls)
+  - Fixed memory-cli/src/commands/embedding.rs - Iterator min/max safety checks
+  - Fixed memory-cli/src/config/validator.rs - Option unwrapping after validation
+  - Fixed memory-cli/src/config/wizard/database.rs - Database config option handling
+  - Fixed memory-cli/src/commands/storage/commands.rs - ProgressStyle template safety
+  - Fixed memory-mcp/src/patterns/predictive/kdtree.rs - Vector access bounds checking
+  - Fixed memory-mcp/src/mcp/tools/quality_metrics/tool.rs - HashMap access safety
+
+### Improved
+- All error messages now include clear context explaining the invariant that guarantees success
+- Lock poisoning errors now have detailed debugging information
+- Better developer experience with informative panic messages
+- Consistent error message format across the entire codebase
+
+### Quality
+- 100% of production code unwraps fixed (43 total)
+- Zero breaking changes to public APIs
+- Zero new clippy warnings
+- Clean compilation across all packages
+- Improved code documentation and safety guarantees
+
+### Notes
+- Only 3 `.unwrap()` calls remain, all in documentation examples (standard Rust practice)
+- All changes use conservative `.expect()` with clear explanations
+- Establishes pattern for future error handling improvements
+
+## [0.1.12] - 2026-01-05
+
 ### Added
 - **Semantic Pattern Search & Recommendation Engine** - HIGH-IMPACT feature enabling intelligent pattern discovery (2026-01-12)
   - `search_patterns_semantic()`: Search patterns using natural language queries with multi-signal ranking

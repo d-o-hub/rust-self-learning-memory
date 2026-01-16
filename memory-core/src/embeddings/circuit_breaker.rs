@@ -87,7 +87,9 @@ impl CircuitBreaker {
     ///
     /// Returns `Ok(())` if request should proceed, `Err` if circuit is open
     pub fn allow_request(&self) -> Result<(), CircuitOpenError> {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self.state.lock().expect(
+            "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code",
+        );
 
         match *state {
             CircuitState::Closed { .. } => Ok(()),
@@ -126,7 +128,9 @@ impl CircuitBreaker {
 
     /// Record a successful request
     pub fn record_success(&self) {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self.state.lock().expect(
+            "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code",
+        );
 
         match *state {
             CircuitState::Closed { .. } => {
@@ -162,7 +166,9 @@ impl CircuitBreaker {
 
     /// Record a failed request
     pub fn record_failure(&self) {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self.state.lock().expect(
+            "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code",
+        );
 
         match *state {
             CircuitState::Closed {
@@ -200,7 +206,9 @@ impl CircuitBreaker {
     /// Get current circuit state
     #[must_use]
     pub fn state(&self) -> CircuitBreakerState {
-        let state = self.state.lock().unwrap();
+        let state = self.state.lock().expect(
+            "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code",
+        );
         match *state {
             CircuitState::Closed { .. } => CircuitBreakerState::Closed,
             CircuitState::Open { .. } => CircuitBreakerState::Open,
@@ -210,7 +218,9 @@ impl CircuitBreaker {
 
     /// Reset circuit breaker to closed state
     pub fn reset(&self) {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self.state.lock().expect(
+            "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code",
+        );
         *state = CircuitState::Closed {
             consecutive_failures: 0,
         };
@@ -220,7 +230,9 @@ impl CircuitBreaker {
     /// Get circuit breaker statistics
     #[must_use]
     pub fn stats(&self) -> CircuitBreakerStats {
-        let state = self.state.lock().unwrap();
+        let state = self.state.lock().expect(
+            "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code",
+        );
         match *state {
             CircuitState::Closed {
                 consecutive_failures,

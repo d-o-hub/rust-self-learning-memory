@@ -200,6 +200,7 @@ impl QualityMetricsTool {
     }
 
     /// Build quality score distribution histogram
+    #[allow(clippy::expect_used)]
     fn build_distribution(&self, scores: &[f32]) -> HashMap<String, usize> {
         let mut distribution = HashMap::new();
         distribution.insert("0.0-0.3 (Low)".to_string(), 0);
@@ -221,7 +222,9 @@ impl QualityMetricsTool {
                 "0.9-1.0 (Excellent)"
             };
 
-            *distribution.get_mut(bucket).unwrap() += 1;
+            *distribution
+                .get_mut(bucket)
+                .expect("bucket exists: all buckets initialized in distribution HashMap") += 1;
         }
 
         distribution

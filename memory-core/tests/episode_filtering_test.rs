@@ -44,17 +44,17 @@ async fn test_filter_by_tags_integration() {
 
     // Add execution steps to pass quality validation (need multiple steps)
     for i in 1..=3 {
-        let mut step = ExecutionStep::new(i, format!("agent_{}", i), format!("Step {}", i));
+        let mut step = ExecutionStep::new(i, format!("agent_{i}"), format!("Step {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Step {} completed", i),
+            output: format!("Step {i} completed"),
         });
         memory.log_step(ep1, step).await;
     }
 
     for i in 1..=3 {
-        let mut step = ExecutionStep::new(i, format!("agent_{}", i), format!("Step {}", i));
+        let mut step = ExecutionStep::new(i, format!("agent_{i}"), format!("Step {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Step {} completed", i),
+            output: format!("Step {i} completed"),
         });
         memory.log_step(ep2, step).await;
     }
@@ -112,9 +112,9 @@ async fn test_filter_by_success_only() {
         .await;
 
     for i in 1..=3 {
-        let mut step = ExecutionStep::new(i, format!("tester_{}", i), format!("Test {}", i));
+        let mut step = ExecutionStep::new(i, format!("tester_{i}"), format!("Test {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Test {} passed", i),
+            output: format!("Test {i} passed"),
         });
         memory.log_step(ep_success, step).await;
     }
@@ -136,9 +136,9 @@ async fn test_filter_by_success_only() {
         .await;
 
     for i in 1..=3 {
-        let mut step = ExecutionStep::new(i, format!("tester_{}", i), format!("Test {}", i));
+        let mut step = ExecutionStep::new(i, format!("tester_{i}"), format!("Test {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Test {} passed", i),
+            output: format!("Test {i} passed"),
         });
         memory.log_step(ep_failure, step).await;
     }
@@ -337,9 +337,9 @@ async fn test_filter_complex_query() {
 
     // Add steps to ep1
     for i in 1..=3 {
-        let mut step = ExecutionStep::new(i, format!("builder_{}", i), format!("Build step {}", i));
+        let mut step = ExecutionStep::new(i, format!("builder_{i}"), format!("Build step {i}"));
         step.result = Some(ExecutionResult::Success {
-            output: format!("Step {} completed", i),
+            output: format!("Step {i} completed"),
         });
         memory.log_step(ep1, step).await;
     }
@@ -387,7 +387,7 @@ async fn test_filter_with_pagination() {
     // Create 5 episodes
     for i in 1..=5 {
         memory
-            .start_episode(format!("Task {}", i), ctx.clone(), TaskType::Testing)
+            .start_episode(format!("Task {i}"), ctx.clone(), TaskType::Testing)
             .await;
     }
 

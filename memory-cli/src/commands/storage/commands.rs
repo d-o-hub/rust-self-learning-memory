@@ -141,7 +141,7 @@ pub async fn sync_storage(
     progress.set_style(
         ProgressStyle::default_spinner()
             .template("{spinner:.green} [{elapsed_precise}] {msg}")
-            .unwrap(),
+            .expect("ProgressStyle template is valid: uses standard format"),
     );
     progress.set_message("Querying episodes from Turso...");
 
@@ -299,7 +299,7 @@ pub async fn vacuum_storage(
     progress.set_style(
         ProgressStyle::default_spinner()
             .template("{spinner:.blue} [{elapsed_precise}] {msg}")
-            .unwrap(),
+            .expect("ProgressStyle template is valid: uses standard format"),
     );
     progress.set_message("Analyzing storage for optimization opportunities...");
 

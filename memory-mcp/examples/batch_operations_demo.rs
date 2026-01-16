@@ -5,6 +5,7 @@
 //!
 //! Run with: `cargo run --example batch_operations_demo`
 
+use anyhow::Context;
 use memory_core::SelfLearningMemory;
 use memory_mcp::{
     BatchExecutor, BatchMode, BatchOperation, BatchRequest, MemoryMCPServer, SandboxConfig,
@@ -25,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
     let memory = Arc::new(SelfLearningMemory::new());
     let _server = MemoryMCPServer::new(SandboxConfig::restrictive(), memory.clone())
         .await
-        .expect("Failed to create MCP server");
+        .context("Failed to create MCP server")?;
 
     // Demo 1: Parallel independent operations
     println!("Demo 1: Parallel Independent Operations");
@@ -232,8 +233,12 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
         if result.success {
             println!("  {} → Success", result.id);
         } else {
-            let error = result.error.as_ref().unwrap();
-            println!("  {} → Failed: {}", result.id, error.message);
+            let error = result
+                .error
+                .as_ref()
+                .map(|e| e.message.clone())
+                .unwrap_or_else(|| "Unknown error".to_string());
+            println!("  {} → Failed: {}", result.id, error);
         }
     }
 
@@ -326,7 +331,13 @@ async fn demo_complex_workflow() -> anyhow::Result<()> {
     // Show execution timeline
     println!("\n  Execution Timeline:");
     let mut sorted_results = response.results.clone();
-    sorted_results.sort_by_key(|r| response.results.iter().position(|x| x.id == r.id).unwrap());
+    sorted_results.sort_by_key(|r| {
+        response
+            .results
+            .iter()
+            .position(|x| x.id == r.id)
+            .unwrap_or(0)
+    });
 
     for result in sorted_results {
         println!("    {} ({}ms)", result.id, result.duration_ms);

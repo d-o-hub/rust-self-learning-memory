@@ -42,9 +42,14 @@ impl QueryCache {
     /// Create a new query cache with custom capacity and TTL
     #[must_use]
     pub fn with_capacity_and_ttl(capacity: usize, ttl: Duration) -> Self {
-        let cache = LruCache::new(NonZeroUsize::new(capacity).unwrap());
+        // Ensure capacity is at least 1 to create NonZeroUsize
+        let safe_capacity = capacity.max(1);
+        let cache = LruCache::new(
+            NonZeroUsize::new(safe_capacity)
+                .expect("QueryCache: capacity is guaranteed to be non-zero after max(1)"),
+        );
         let metrics = CacheMetrics {
-            capacity,
+            capacity: safe_capacity,
             ..Default::default()
         };
 
@@ -54,7 +59,7 @@ impl QueryCache {
             invalidated_hashes: Arc::new(RwLock::new(HashSet::new())),
             metrics: Arc::new(RwLock::new(metrics)),
             default_ttl: ttl,
-            max_entries: capacity,
+            max_entries: safe_capacity,
         }
     }
 

@@ -2,9 +2,10 @@
 //! Tests for the improvement analyzer module
 //!
 
-use crate::episode::Episode;
+#![allow(unused_imports)]
+
 use crate::reflection::improvement_analyzer;
-use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use crate::types::{ExecutionResult, TaskOutcome, TaskType};
 use crate::ExecutionStep;
 
 use super::create_test_episode;

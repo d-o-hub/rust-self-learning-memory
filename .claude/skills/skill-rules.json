@@ -1,0 +1,31 @@
+{
+  "rules": [
+    {
+      "skill": "rust-async-testing",
+      "triggers": {
+        "keywords": ["async", "tokio", "test", "await", "#[tokio::test]"],
+        "patterns": ["test_.*async", ".*_async_test"],
+        "files": ["**/tests/**/*.rs", "**/src/**/tests.rs"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "episodic-memory-testing",
+      "triggers": {
+        "keywords": ["episode", "pattern", "reward", "memory", "extraction"],
+        "patterns": ["test_episode_.*", "test_pattern_.*"],
+        "files": ["memory-core/**/*.rs"]
+      },
+      "priority": "high"
+    },
+    {
+      "skill": "test-optimization",
+      "triggers": {
+        "keywords": ["nextest", "benchmark", "proptest", "criterion", "optimize"],
+        "patterns": ["bench_.*", "prop_.*"],
+        "files": ["benches/**/*.rs", ".config/nextest.toml"]
+      },
+      "priority": "medium"
+    }
+  ]
+}

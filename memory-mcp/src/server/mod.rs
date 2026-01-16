@@ -212,7 +212,11 @@ impl MemoryMCPServer {
     }
 
     /// Check if WASM sandbox is available for code execution
+    ///
+    /// This function performs a lightweight check to avoid expensive initialization
+    /// during server startup. The actual sandbox creation is deferred to first use.
     fn is_wasm_sandbox_available() -> bool {
+        // Priority 1: Check environment variable for explicit override
         if let Ok(val) = std::env::var("MCP_USE_WASM") {
             match val.to_lowercase().as_str() {
                 "true" | "wasm" => return true,
@@ -221,42 +225,19 @@ impl MemoryMCPServer {
             }
         }
 
+        // Priority 2: Lightweight check - only verify Javy plugin exists if needed
+        // The actual sandbox initialization is deferred to first tool invocation
         #[cfg(feature = "javy-backend")]
         {
             if !Self::is_javy_plugin_valid() {
                 debug!("WASM sandbox may be limited due to invalid Javy plugin");
-                // Continue checking - sandbox might still work with pre-compiled WASM
+                // Continue - sandbox might still work with pre-compiled WASM
             }
         }
 
-        // Use a timeout to avoid hanging during server initialization
-        // Use cross-platform approach since join_timeout may not be available
-        let handle = std::thread::spawn(|| {
-            futures::executor::block_on(UnifiedSandbox::new(
-                SandboxConfig::restrictive(),
-                SandboxBackend::Wasm,
-            ))
-        });
-
-        let start = std::time::Instant::now();
-        while start.elapsed() < std::time::Duration::from_secs(3) {
-            if handle.is_finished() {
-                break;
-            }
-            std::thread::sleep(std::time::Duration::from_millis(10));
-        }
-
-        match handle.join() {
-            Ok(Ok(_)) => true,
-            Ok(Err(e)) => {
-                warn!("WASM sandbox not available: {}", e);
-                false
-            }
-            Err(_) => {
-                warn!("WASM sandbox initialization timed out after 3 seconds");
-                false
-            }
-        }
+        // Default to available - actual initialization happens lazily
+        // This avoids spawning threads with nested async runtimes during startup
+        true
     }
 
     /// Create default tool definitions

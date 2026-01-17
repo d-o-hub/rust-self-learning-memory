@@ -57,6 +57,27 @@ pub struct CallToolParams {
 #[derive(Debug, Serialize)]
 pub struct CallToolResult {
     pub content: Vec<Content>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_error: Option<bool>,
+}
+
+impl CallToolResult {
+    /// Create a successful result
+    pub fn success(content: Vec<Content>) -> Self {
+        Self {
+            content,
+            is_error: None,
+        }
+    }
+
+    /// Create an error result
+    #[allow(dead_code)]
+    pub fn error(content: Vec<Content>) -> Self {
+        Self {
+            content,
+            is_error: Some(true),
+        }
+    }
 }
 
 /// MCP Content structure

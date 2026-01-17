@@ -139,16 +139,33 @@ pub async fn handle_call_tool(
         }
         Err(e) => {
             error!("Tool execution failed: {}", e);
-            Some(JsonRpcResponse {
-                jsonrpc: "2.0".to_string(),
-                id: request.id,
-                result: None,
-                error: Some(JsonRpcError {
-                    code: -32000,
-                    message: "Tool execution failed".to_string(),
-                    data: Some(json!({"details": e.to_string()})),
+            let error_content = vec![Content::Text {
+                text: format!("Tool execution failed: {}", e),
+            }];
+            let call_result = CallToolResult::error(error_content);
+            match serde_json::to_value(call_result) {
+                Ok(value) => Some(JsonRpcResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(value),
+                    error: None,
                 }),
-            })
+                Err(ser_e) => {
+                    error!("Failed to serialize error response: {}", ser_e);
+                    Some(JsonRpcResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                        error: Some(JsonRpcError {
+                            code: -32603,
+                            message: "Internal error".to_string(),
+                            data: Some(
+                                json!({"details": format!("Response serialization failed: {}", ser_e)}),
+                            ),
+                        }),
+                    })
+                }
+            }
         }
     };
 

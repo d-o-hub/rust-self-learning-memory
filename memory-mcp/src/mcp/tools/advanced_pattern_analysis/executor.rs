@@ -7,9 +7,8 @@ use crate::patterns::{predictive, statistical};
 use anyhow::Result;
 use std::collections::HashMap;
 
-use super::types::{AdvancedPatternAnalysisInput, AnalysisConfig};
-
 use super::tool::AdvancedPatternAnalysisTool;
+use super::types::AnalysisConfig;
 
 /// Configuration builder for analysis execution
 pub struct AnalysisConfigBuilder {
@@ -95,47 +94,5 @@ impl AdvancedPatternAnalysisTool {
         }
 
         predictive::run_predictive_analysis(data, predictive_config)
-    }
-
-    /// Build statistical config from input configuration
-    pub(super) fn build_statistical_config(
-        config: &Option<AnalysisConfig>,
-    ) -> statistical::StatisticalConfig {
-        let mut engine_config = statistical::StatisticalConfig::default();
-
-        if let Some(cfg) = config {
-            if let Some(sig) = cfg.significance_level {
-                engine_config.significance_level = sig;
-            }
-            if let Some(max_points) = cfg.max_data_points {
-                engine_config.max_data_points = max_points;
-            }
-            if let Some(parallel) = cfg.parallel_processing {
-                engine_config.parallel_processing = parallel;
-            }
-        }
-
-        engine_config
-    }
-
-    /// Build predictive config from input configuration
-    pub(super) fn build_predictive_config(
-        config: &Option<AnalysisConfig>,
-    ) -> predictive::PredictiveConfig {
-        let mut predictive_config = predictive::PredictiveConfig::default();
-
-        if let Some(cfg) = config {
-            if let Some(horizon) = cfg.forecast_horizon {
-                predictive_config.forecast_horizon = horizon;
-            }
-            if let Some(sens) = cfg.anomaly_sensitivity {
-                predictive_config.anomaly_sensitivity = sens;
-            }
-            if let Some(enable_causal) = cfg.enable_causal_inference {
-                predictive_config.enable_causal_inference = enable_causal;
-            }
-        }
-
-        predictive_config
     }
 }

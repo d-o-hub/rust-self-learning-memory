@@ -224,8 +224,6 @@ impl SpatiotemporalIndex {
 mod tests {
     use super::*;
     use crate::types::{TaskContext, TaskType};
-    #[allow(unused)]
-    use uuid::Uuid;
 
     fn create_test_episode(domain: &str, task_type: TaskType) -> crate::Episode {
         let context = TaskContext {

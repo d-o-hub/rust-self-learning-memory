@@ -389,7 +389,7 @@ async fn handle_call_tool(
     // Process the tool result
     let response = match result {
         Ok(content) => {
-            let call_result = CallToolResult { content };
+            let call_result = CallToolResult::success(content);
             match serde_json::to_value(call_result) {
                 Ok(value) => Some(JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),

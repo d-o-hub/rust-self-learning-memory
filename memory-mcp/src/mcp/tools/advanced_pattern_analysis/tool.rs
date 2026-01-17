@@ -5,7 +5,7 @@
 
 use crate::patterns::{predictive, statistical};
 use crate::types::Tool;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use memory_core::SelfLearningMemory;
 use serde_json::json;
 use std::collections::HashMap;
@@ -17,8 +17,8 @@ use super::time_series::TimeSeriesExtractor;
 use super::validator::{DataPreparer, InputValidator};
 
 use super::types::{
-    AdvancedPatternAnalysisInput, AdvancedPatternAnalysisOutput, AnalysisConfig, AnalysisSummary,
-    AnalysisType, PerformanceMetrics,
+    AdvancedPatternAnalysisInput, AdvancedPatternAnalysisOutput, AnalysisSummary, AnalysisType,
+    PerformanceMetrics,
 };
 
 /// Advanced pattern analysis tool implementation

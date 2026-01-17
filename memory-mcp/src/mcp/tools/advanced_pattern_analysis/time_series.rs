@@ -4,21 +4,11 @@
 
 use memory_core::{ComplexityLevel, TaskOutcome};
 
-use super::tool::AdvancedPatternAnalysisTool;
-
-const EXECUTION_TIME_MS: &str = "execution_time_ms";
-const SUCCESS_RATE: &str = "success_rate";
-const COMPLEXITY_SCORE: &str = "complexity_score";
-const PATTERN_MATCH_SCORE: &str = "pattern_match_score";
-const MEMORY_USAGE_MB: &str = "memory_usage_mb";
-
-const ALL_METRICS: [&str; 5] = [
-    EXECUTION_TIME_MS,
-    SUCCESS_RATE,
-    COMPLEXITY_SCORE,
-    PATTERN_MATCH_SCORE,
-    MEMORY_USAGE_MB,
-];
+const _EXECUTION_TIME_MS: &str = "execution_time_ms";
+const _SUCCESS_RATE: &str = "success_rate";
+const _COMPLEXITY_SCORE: &str = "complexity_score";
+const _PATTERN_MATCH_SCORE: &str = "pattern_match_score";
+const _MEMORY_USAGE_MB: &str = "memory_usage_mb";
 
 /// Extractor for time series data from memory episodes
 pub struct TimeSeriesExtractor;
@@ -37,12 +27,12 @@ impl TimeSeriesExtractor {
         all_episodes: &[memory_core::Episode],
     ) -> Option<f64> {
         match metric {
-            EXECUTION_TIME_MS => {
+            _EXECUTION_TIME_MS => {
                 // Try to extract from execution steps
                 let total_time: u64 = episode.steps.iter().map(|step| step.latency_ms).sum();
                 Some(total_time as f64)
             }
-            SUCCESS_RATE => {
+            _SUCCESS_RATE => {
                 // Calculate success rate from outcomes
                 let success_count = all_episodes
                     .iter()
@@ -51,7 +41,7 @@ impl TimeSeriesExtractor {
                 let rate = success_count as f64 / all_episodes.len() as f64;
                 Some(rate * 100.0) // Convert to percentage
             }
-            COMPLEXITY_SCORE => {
+            _COMPLEXITY_SCORE => {
                 // Use complexity level as numeric score
                 let score = match episode.context.complexity {
                     ComplexityLevel::Simple => 1.0,
@@ -60,11 +50,11 @@ impl TimeSeriesExtractor {
                 };
                 Some(score)
             }
-            PATTERN_MATCH_SCORE => {
+            _PATTERN_MATCH_SCORE => {
                 // Simplified pattern matching score
                 Some(0.8) // Placeholder
             }
-            MEMORY_USAGE_MB => {
+            _MEMORY_USAGE_MB => {
                 // Estimate memory usage
                 Some(50.0) // Placeholder
             }

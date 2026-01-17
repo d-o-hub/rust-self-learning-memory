@@ -31,7 +31,7 @@ thiserror = "2.0"
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-postcard = { version = "1.0", features = ["alloc"] }
+postcard = { version = "1.1.3", features = ["alloc"] }
 
 # Database
 libsql = "0.9"
@@ -53,8 +53,8 @@ criterion = "0.5"
 
 # WASM and JavaScript execution
 rquickjs = "0.11.0"
-wasmtime = "24.0.5"
-wasmtime-wasi = "24.0.5"
+wasmtime = "40.0.2"
+wasmtime-wasi = "40.0.2"
 
 # Additional utilities
 parking_lot = "0.12"
@@ -70,6 +70,15 @@ zipf = "7.0"
 fs_extra = "1.3"
 num_cpus = "1.16"
 rustc-version = "0.4"
+
+# Consolidated duplicate dependencies
+approx = "0.5.1"
+nalgebra = "0.34.1"
+argmin = "0.11.0"
+argmin-math = "0.5.1"
+rv = "0.19.1"
+changepoint = "0.15.0"
+simba = "0.9.1"
 
 [profile.release]
 opt-level = 3

@@ -20,17 +20,16 @@ use uuid::Uuid;
 ///
 /// Used primarily for backfilling embeddings and comprehensive episode retrieval.
 pub async fn get_all_episodes(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
-) -> Result<Vec<Episode>> {
-    // 1) Start with in-memory episodes
-    let mut all_episodes: HashMap<Uuid, Episode> = {
+) -> Result<Vec<Arc<Episode>>> {
+    // 1) Start with in-memory episodes - collect Arcs directly (no clone)
+    let mut all_episodes: HashMap<Uuid, Arc<Episode>> = {
         let episodes = episodes_fallback.read().await;
         episodes
-            .values()
-            .cloned()
-            .map(|e| (e.episode_id, e))
+            .iter()
+            .map(|(id, ep)| (*id, Arc::clone(ep)))
             .collect()
     };
 
@@ -48,7 +47,10 @@ pub async fn get_all_episodes(
                     "Fetched episodes from cache storage"
                 );
                 for episode in cache_episodes {
-                    all_episodes.entry(episode.episode_id).or_insert(episode);
+                    // Only insert if not already present (use entry API to avoid clone)
+                    all_episodes
+                        .entry(episode.episode_id)
+                        .or_insert_with(|| Arc::new(episode));
                 }
             }
             Err(e) => {
@@ -70,7 +72,10 @@ pub async fn get_all_episodes(
                     "Fetched episodes from durable storage"
                 );
                 for episode in turso_episodes {
-                    all_episodes.entry(episode.episode_id).or_insert(episode);
+                    // Only insert if not already present (use entry API to avoid clone)
+                    all_episodes
+                        .entry(episode.episode_id)
+                        .or_insert_with(|| Arc::new(episode));
                 }
             }
             Err(e) => {
@@ -84,7 +89,8 @@ pub async fn get_all_episodes(
         let mut episodes_cache = episodes_fallback.write().await;
         for (id, episode) in &all_episodes {
             if !episodes_cache.contains_key(id) {
-                episodes_cache.insert(*id, episode.clone());
+                // Store Arc instead of cloning the full episode
+                episodes_cache.insert(*id, Arc::clone(episode));
             }
         }
     }
@@ -95,6 +101,7 @@ pub async fn get_all_episodes(
         "Retrieved all episodes from all storage backends"
     );
 
+    // Return Arcs directly (no cloning needed)
     Ok(all_episodes.into_values().collect())
 }
 
@@ -121,13 +128,13 @@ pub async fn get_all_patterns(
 ///
 /// The `completed_only` parameter is deprecated. Use `filter.completed_only` instead.
 pub async fn list_episodes(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
     limit: Option<usize>,
     offset: Option<usize>,
     completed_only: Option<bool>,
-) -> Result<Vec<Episode>> {
+) -> Result<Vec<Arc<Episode>>> {
     // Get all episodes with lazy loading
     let mut all_episodes =
         get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
@@ -191,18 +198,18 @@ pub async fn list_episodes(
 /// # }
 /// ```
 pub async fn list_episodes_filtered(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
     filter: super::filters::EpisodeFilter,
     limit: Option<usize>,
     offset: Option<usize>,
-) -> Result<Vec<Episode>> {
+) -> Result<Vec<Arc<Episode>>> {
     // Get all episodes with lazy loading
     let all_episodes = get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
 
-    // Apply filter
-    let mut filtered = filter.apply(all_episodes);
+    // Apply filter - note: we consume the Vec, so no clone needed
+    let mut filtered = filter.apply_arc(all_episodes);
 
     // Sort by start time (newest first) for consistent ordering
     filtered.sort_by(|a, b| b.start_time.cmp(&a.start_time));

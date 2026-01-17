@@ -102,8 +102,12 @@ pub use memory::SelfLearningMemory;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use pattern::{Heuristic, Pattern, PatternEffectiveness};
 pub use patterns::{
-    ClusterCentroid, ClusteringConfig, EffectivenessTracker, EpisodeCluster, PatternClusterer,
-    PatternMetrics, PatternUsage, PatternValidator, UsageStats, ValidationConfig,
+    Anomaly, AnomalyReason, ChangeDirection, ChangeType, Changepoint, ChangepointConfig,
+    ChangepointDetector, ClusterCentroid, ClusteringConfig,
+    DBSCANClusterCentroid, DBSCANClusterResult, DBSCANConfig, DBSCANStats,
+    DBSCANEpisodeCluster, DBSCANAnomalyDetector, EffectivenessTracker, EpisodeCluster,
+    FeatureWeights, PatternClusterer, PatternMetrics, PatternUsage, PatternValidator,
+    SegmentComparison, SegmentComparisonConfig, SegmentStats, UsageStats, ValidationConfig,
 };
 pub use reflection::ReflectionGenerator;
 pub use retrieval::{CacheKey, CacheMetrics, QueryCache};

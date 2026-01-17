@@ -62,6 +62,12 @@ tokenizers = { version = "0.22", optional = true }
 # Using 0.16.x to match ort 2.0.0-rc.10's ndarray dependency
 ndarray = { version = "0.16", optional = true }
 
+# Changepoint detection using PELT algorithm
+augurs-changepoint = "0.10.1"
+
+# Random number generation for tests
+rand = "0.8"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }

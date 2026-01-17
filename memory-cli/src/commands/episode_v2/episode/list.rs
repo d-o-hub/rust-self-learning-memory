@@ -5,6 +5,7 @@ use super::types::{
 };
 use crate::config::Config;
 use crate::output::OutputFormat;
+use chrono::Utc;
 use memory_core::SelfLearningMemory;
 
 #[allow(clippy::too_many_arguments)]
@@ -89,21 +90,19 @@ pub async fn list_episodes(
             });
         }
 
-        let since_date = since.and_then(|s| {
+        let since_date = since.clone().and_then(|s| {
             chrono::DateTime::parse_from_rfc3339(&s)
                 .ok()
-                .map(|d| d.with_timezone(&chrono::FixedOffset::utc()))
+                .map(|d| d.with_timezone(&Utc))
         });
-        let until_date = until.and_then(|u| {
+        let until_date = until.clone().and_then(|u| {
             chrono::DateTime::parse_from_rfc3339(&u)
                 .ok()
-                .map(|d| d.with_timezone(&chrono::FixedOffset::utc()))
+                .map(|d| d.with_timezone(&Utc))
         });
 
         episodes.retain(|episode| {
-            let episode_start = episode
-                .start_time
-                .with_timezone(&chrono::FixedOffset::utc());
+            let episode_start = episode.start_time.with_timezone(&Utc);
             let after_since = since_date.map_or(true, |d| episode_start >= d);
             let before_until = until_date.map_or(true, |d| episode_start <= d);
             after_since && before_until
@@ -111,35 +110,33 @@ pub async fn list_episodes(
 
         if let Some(ref dom) = domain {
             let dom_lower = dom.to_lowercase();
-            episodes.retain(|episode| {
-                episode
-                    .domain
-                    .as_ref()
-                    .map_or(false, |d| d.to_lowercase().contains(&dom_lower))
+            let domain_clone = domain.clone();
+            episodes.retain(move |episode| {
+                episode.context.domain.to_lowercase().contains(&dom_lower)
             });
+            drop(domain_clone);
         }
 
         if let Some(ref tag_str) = tags {
-            let tag_list: Vec<&str> = tag_str.split(',').map(|s| s.trim()).collect();
+            let tag_list: Vec<String> = tag_str.split(',').map(|s| s.trim().to_string()).collect();
+            let tags_clone = tags.clone();
             episodes.retain(|episode| {
-                let episode_tags: Vec<&str> = episode
-                    .tags
-                    .iter()
-                    .flat_map(|t| t.split(','))
-                    .map(|s| s.trim())
-                    .collect();
-                tag_list.iter().any(|t| episode_tags.contains(t))
+                let episode_tags: &Vec<String> = &episode.context.tags;
+                tag_list.iter().any(|t| episode_tags.iter().any(|et| et.to_lowercase() == t.to_lowercase()))
             });
+            drop(tags_clone);
         }
 
         if let Some(ref out) = outcome {
+            let outcome_clone = outcome.clone();
             episodes.retain(|episode| {
                 episode.outcome.as_ref().map_or(false, |o| {
-                    let o_str = o.to_string().to_lowercase();
+                    let o_str = format!("{:?}", o).to_lowercase();
                     let out_str = format!("{:?}", out).to_lowercase();
                     o_str.contains(&out_str)
                 })
             });
+            drop(outcome_clone);
         }
 
         let mut episode_summaries: Vec<EpisodeSummary> = episodes
@@ -203,10 +200,11 @@ pub async fn list_episodes(
             limit,
         };
 
+        let filtered_count = episode_summaries.len();
         let filtered_list = EpisodeListFiltered {
             episodes: episode_summaries,
             total_count,
-            filtered_count: episode_summaries.len(),
+            filtered_count,
             applied_filters,
         };
 

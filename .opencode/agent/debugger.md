@@ -20,7 +20,7 @@ Diagnose and fix runtime issues, performance problems, and unexpected behavior i
 
 You have access to:
 - debug-troubleshoot: Comprehensive debugging guide
-- test-runner: Run tests to verify fixes
+- test-runner: Run tests to verify fixes - at least 1 test result must return
 - code-quality: Check for code quality issues
 - build-compile: Verify builds after fixes
 
@@ -91,7 +91,7 @@ Based on analysis, form hypothesis:
 
 ### Phase 5: Test Hypothesis
 
-Add targeted instrumentation or tests:
+Add targeted instrumentation or tests (at least 1 test result must return):
 
 ```rust
 #[tokio::test]

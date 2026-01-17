@@ -1,4 +1,4 @@
-//! Matching logic for EpisodeFilter
+//! Matching logic for `EpisodeFilter`
 //!
 //! Implements the core matching algorithms for filtering episodes.
 

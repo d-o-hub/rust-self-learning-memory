@@ -1,11 +1,9 @@
-//! Builder pattern for EpisodeFilter
+//! Builder pattern for `EpisodeFilter`
 //!
-//! Provides a fluent API for constructing EpisodeFilter instances.
+//! Provides a fluent API for constructing `EpisodeFilter` instances.
 
 use super::types::{EpisodeFilter, OutcomeType};
 use chrono::{DateTime, Utc};
-
-/// Builder for constructing episode filters with a fluent API
 
 /// Builder for constructing episode filters with a fluent API
 #[derive(Debug, Clone, Default)]

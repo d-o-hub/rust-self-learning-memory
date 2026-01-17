@@ -68,6 +68,14 @@ You have access to:
 - **Expertise Routing**: Direct specialized tasks to domain-expert agents
 - **Learning Integration**: Improve assignments based on execution outcomes
 
+### 4. Atomic Git Commit Policy
+After each successful todo completion, create an atomic git commit:
+- **Commit only changes** for that specific todo item
+- Use descriptive commit messages following `[module] description` format
+- Do NOT commit changes from incomplete todos
+- This ensures incremental, reversible progress tracking
+- Example: `feat(storage): add episode creation method`
+
 ## Planning Methodology
 
 ### Phase 1: Task Intelligence
@@ -471,6 +479,11 @@ Track for each agent:
 ✓ Learn from execution patterns (episode logging)
 ✓ Communicate plan clearly before execution
 ✓ Adjust coordination strategy based on real-time feedback
+✓ Create atomic git commits after each successful todo completion
+✓ Use descriptive commit messages following project conventions
+✓ Create plan to fix all pre-existing issues
+✓ Never skip lint - always run and resolve
+✓ Always implement changes and verify they work
 
 ### DON'T:
 ✗ Execute without planning for complex tasks
@@ -479,6 +492,10 @@ Track for each agent:
 ✗ Launch agents without clear success criteria
 ✗ Ignore agent feedback during execution
 ✗ Continue with failed subtasks without recovery
+✗ Commit changes from incomplete todos
+✗ Batch multiple todos into single commit
+✗ Leave pre-existing issues unfixed
+✗ Skip lint checks or warnings
 
 ## Integration with Self-Learning Memory
 

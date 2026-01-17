@@ -393,6 +393,14 @@ Phase 3: Agent 3 (code-reviewer) → Validate
 - Validate intermediate results
 - Adjust plan if needed
 
+### Atomic Git Commit Policy
+After each successful todo completion, create an atomic git commit:
+- **Commit only the changes** for that specific todo item
+- Use descriptive commit messages following `[module] description` format
+- Do NOT commit changes from incomplete todos
+- This ensures incremental, reversible progress tracking
+- Example: `feat(storage): add episode creation method`
+
 ## Phase 7: Result Synthesis
 
 ### Aggregate Results
@@ -781,6 +789,9 @@ Phase 3: Validate
 ✓ Learn from execution for future planning
 ✓ Use parallel execution where safe
 ✓ Validate dependencies before execution
+✓ Create plan to fix all pre-existing issues
+✓ Never skip lint - always run and resolve
+✓ Always implement changes and verify they work
 
 ### DON'T:
 ✗ Create monolithic tasks (break them down)
@@ -790,6 +801,8 @@ Phase 3: Validate
 ✗ Over-complicate simple tasks (use sequential)
 ✗ Under-estimate coordination overhead
 ✗ Forget to aggregate and synthesize results
+✗ Leave pre-existing issues unfixed
+✗ Skip lint checks or warnings
 
 ## Integration with Other Skills
 

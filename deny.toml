@@ -10,13 +10,12 @@ version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
 ignore = [
-    # Wasmtime vulnerabilities - requires major version upgrade to fix
-    # TODO: Upgrade wasmtime to >=38.0.4 in a future release
-    "RUSTSEC-2024-0438",
-    "RUSTSEC-2024-0439",
-    "RUSTSEC-2025-0046",
-    "RUSTSEC-2025-0118",
-    "RUSTSEC-2024-0442",
+    # Bincode is dev-dependency only (used for security test comparisons)
+    # Production code uses postcard for serialization
+    "RUSTSEC-2025-0141",
+    # redb 2.6.3 is used which fixes the IterMut Stacked Borrows issue
+    # Advisory database may not be updated for all fixed versions
+    "RUSTSEC-2026-0002",
 ]
 
 [licenses]

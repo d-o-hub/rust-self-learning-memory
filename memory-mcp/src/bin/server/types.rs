@@ -2,53 +2,17 @@
 //!
 //! This module contains all struct and enum definitions used by the MCP server,
 //! including OAuth 2.1, MCP protocol, completion, elicitation, tasks, and embedding types.
+//!
+//! Note: Core protocol types (OAuthConfig, ProtectedResourceMetadata, InitializeResult,
+//! McpTool, ListToolsResult) are now defined in the library's protocol module and re-exported
+//! from core.rs for backward compatibility.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 // ============================================================
-// OAuth 2.1 Types
+// OAuth 2.1 Types (deprecated - use library version)
 // ============================================================
-
-/// OAuth 2.1 Configuration
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
-pub struct OAuthConfig {
-    /// Whether authorization is enabled
-    pub enabled: bool,
-    /// Expected audience for tokens
-    pub audience: Option<String>,
-    /// Expected issuer for tokens
-    pub issuer: Option<String>,
-    /// Supported scopes
-    pub scopes: Vec<String>,
-    /// JWKS URI for token validation
-    pub jwks_uri: Option<String>,
-}
-
-impl Default for OAuthConfig {
-    fn default() -> Self {
-        Self {
-            enabled: false, // Disabled by default for local development
-            audience: None,
-            issuer: None,
-            scopes: vec!["mcp:read".to_string(), "mcp:write".to_string()],
-            jwks_uri: None,
-        }
-    }
-}
-
-/// Protected Resource Metadata (RFC 9728)
-#[derive(Debug, Serialize)]
-pub struct ProtectedResourceMetadata {
-    #[serde(rename = "authorizationServers", skip_serializing_if = "Vec::is_empty")]
-    pub authorization_servers: Vec<String>,
-    pub resource: String,
-    #[serde(rename = "scopesSupported", skip_serializing_if = "Vec::is_empty")]
-    pub scopes_supported: Vec<String>,
-    #[serde(rename = "resourceMetadata")]
-    pub resource_metadata: Option<String>,
-}
 
 /// Bearer token claims (simplified JWT structure)
 #[derive(Debug)]
@@ -79,33 +43,8 @@ pub enum AuthorizationResult {
 }
 
 // ============================================================
-// MCP Core Protocol Types
+// MCP Core Protocol Types (deprecated - use library versions)
 // ============================================================
-
-/// MCP Initialize response payload
-#[derive(Debug, Serialize)]
-pub struct InitializeResult {
-    #[serde(rename = "protocolVersion")]
-    pub protocol_version: String,
-    pub capabilities: Value,
-    #[serde(rename = "serverInfo")]
-    pub server_info: Value,
-}
-
-/// MCP Tool structure for listing
-#[derive(Debug, Serialize)]
-pub struct McpTool {
-    pub name: String,
-    pub description: String,
-    #[serde(rename = "inputSchema")]
-    pub input_schema: Value,
-}
-
-/// MCP ListTools response
-#[derive(Debug, Serialize)]
-pub struct ListToolsResult {
-    pub tools: Vec<McpTool>,
-}
 
 /// MCP CallTool request parameters
 #[derive(Debug, Deserialize)]

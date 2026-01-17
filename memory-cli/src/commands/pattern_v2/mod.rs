@@ -18,4 +18,6 @@ pub use pattern::analyze_pattern;
 pub use pattern::decay_patterns;
 pub use pattern::list_patterns;
 pub use pattern::pattern_effectiveness;
+pub use pattern::recommend_patterns;
+pub use pattern::search_patterns;
 pub use pattern::view_pattern;

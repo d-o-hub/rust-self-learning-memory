@@ -1,8 +1,8 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2025-12-30
-**Status**: Active Branch: `release/v0.1.10` (v0.1.10 ✅ COMPLETE - Production Ready)
-**Next Sprint**: v0.1.11 (Planned)
+**Last Updated**: 2026-01-13
+**Status**: Active Branch: `feat-phase3` (v0.1.12 ✅ RELEASED, v0.1.13 In Development)
+**Next Sprint**: v0.1.13 (In Progress)
 
 ---
 
@@ -10,10 +10,12 @@
 
 ### Active Branch: feat-phase3
 
-**Branch Status**: ✅ Stable - v0.1.10 Production Ready
-**Latest Changes**: 2025-12-30
+**Branch Status**: ✅ Stable - v0.1.12 Released, v0.1.13 In Development
+**Latest Changes**: 2026-01-13
 
 **Recent Achievements**:
+- ✅ **v0.1.13 In Progress** (2026-01-12): Semantic Pattern Search & Recommendation Engine
+- ✅ **v0.1.12 Release** (2026-01-05): Tasks utility, embedding config, pre-storage refactoring, contrastive learning
 - ✅ **v0.1.10 Release**: Multi-embedding support, phase 3 completion
 - ✅ Phase 1 (PREMem): Quality assessment operational (89% accuracy)
 - ✅ Phase 2 (GENESIS): Capacity management exceeds targets by 88-2307x
@@ -24,6 +26,23 @@
 - ✅ Quality gates: ALL PASSING (0 clippy warnings, 92.5% coverage)
 - ✅ Multi-provider embeddings: 5 providers (OpenAI, Cohere, Ollama, Local, Custom)
 - ✅ Security: Path traversal protection, comprehensive sandbox
+
+**v0.1.13 In Progress** (2026-01-12):
+- ⏳ Semantic Pattern Search & Recommendation Engine (NEW!)
+- ⏳ Multi-signal ranking: semantic similarity (40%), context match (20%), effectiveness (20%), recency (10%), success rate (10%)
+- ⏳ MCP tools: search_patterns, recommend_patterns
+- ⏳ CLI commands: pattern search, pattern recommend
+- ⏳ Natural language pattern discovery across domains
+- ⏳ Task-specific pattern recommendations
+
+**v0.1.12 Release** (2026-01-05):
+- ✅ Tasks utility for long-running async operations (5 MCP tools)
+- ✅ Embedding configuration via environment variables (flexible provider setup)
+- ✅ Pre-storage extractor refactoring (911 LOC → modular files)
+- ✅ Spatiotemporal retriever refactoring (1014 LOC → modular files)
+- ✅ Contrastive learning for task adapters (production ML implementation)
+- ✅ Spatiotemporal index integration (7.5-180x retrieval speedup)
+- ✅ Domain-based cache invalidation (15-20% cache hit rate improvement)
 
 **v0.1.9 Highlights**:
 - Multi-provider embedding support with circuit breaker
@@ -48,7 +67,39 @@
 
 ### P0 - Critical (Production Blocking)
 
-**None** - All critical issues resolved ✅
+#### 1. File Size Violations ⚠️ CRITICAL
+
+**Status**: 20+ files exceed 500 LOC limit
+**Impact**: Violates AGENTS.md standards, blocks code reviews
+**Priority**: P0 - CRITICAL (Codebase Standards)
+**Location**: Multiple files across all crates
+
+**Current Status**:
+- 3 large files successfully split in v0.1.12
+- 20+ files still exceeding 500 LOC limit
+- Need 91-127 hours (3-4 weeks) to achieve full compliance
+
+**Top Priority Files**:
+1. `memory-mcp/src/wasm_sandbox.rs` (683 LOC)
+2. `memory-mcp/src/javy_compiler.rs` (679 LOC)
+3. `memory-mcp/src/unified_sandbox.rs` (533 LOC)
+4. `memory-storage-redb/src/cache.rs` (654 LOC)
+5. `memory-storage-turso/src/pool.rs` (589 LOC)
+
+**Estimated Completion**: 3-4 weeks
+
+#### 2. Error Handling Audit ⚠️ CRITICAL
+
+**Status**: 598 unwrap() calls need reduction to <50
+**Impact**: Production robustness, 3.6x more unwraps than previously reported
+**Priority**: P0 - CRITICAL
+**Effort**: 28-34 hours (1 week)
+
+**Action Required**:
+- Audit all unwrap/expect calls
+- Convert configuration unwraps to Result
+- Convert database unwraps to proper error
+- Keep hot path unwraps (legitimate)
 
 ### P1 - High (User Impact)
 
@@ -374,9 +425,9 @@
 
 ---
 
-*Last Updated: 2025-12-29*
+*Last Updated: 2026-01-13*
 *Active Branch: feat-phase3*
-*Current Focus: Gap Analysis Complete - Embeddings Completion Next*
+*Current Focus: v0.1.13 Development - Semantic Pattern Search*
 *Research Integration: ✅ COMPLETE (Phases 1-4)*
-*Gap Analysis: ✅ COMPLETE (150-200 hours identified, prioritized)*
-*Next Sprint: Embeddings Completion (12-17 hours) → v0.1.10*
+*Gap Analysis: ✅ COMPLETE (598 unwraps, 20+ files >500 LOC)*
+*Next Sprint: v0.1.13 Semantic Pattern Search (In Progress)*

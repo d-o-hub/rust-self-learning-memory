@@ -96,6 +96,7 @@ pub use episodic::{CapacityManager, EvictionPolicy};
 pub use error::{Error, Result};
 pub use extraction::PatternExtractor;
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
+pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
 pub use memory::SelfLearningMemory;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};

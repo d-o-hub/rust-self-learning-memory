@@ -23,14 +23,19 @@ mod types;
 #[allow(unused)]
 pub use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 
+// Re-export OAuthConfig from library protocol module
+#[allow(unused)]
+pub use memory_mcp::protocol::OAuthConfig;
+
 // Re-export types needed by other modules
 #[allow(unused)]
 pub use types::{
     ActiveElicitation, ActiveTask, CallToolParams, CallToolResult, Content, EmbeddingEnvConfig,
-    OAuthConfig,
 };
 
 // Re-export all types and functions for convenient access (may be used by external consumers)
+#[allow(unused)]
+pub use core::*;
 #[allow(unused)]
 pub use embedding::*;
 #[allow(unused)]

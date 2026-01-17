@@ -7,6 +7,7 @@ use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
 /// Configuration for query caching
@@ -30,22 +31,22 @@ impl Default for CacheConfig {
     }
 }
 
-/// Cache entry with timestamp and data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct CacheEntry<T> {
-    /// Cached data
-    data: T,
+/// Cache entry with timestamp and data (uses Arc for zero-copy sharing)
+#[derive(Debug, Serialize, Deserialize)]
+struct CacheEntry<T: Clone> {
+    /// Cached data (wrapped in Arc for cheap cloning on cache hit)
+    data: Arc<T>,
     /// Timestamp when entry was created
     created_at: SystemTime,
     /// TTL for this entry
     ttl: Duration,
 }
 
-impl<T> CacheEntry<T> {
+impl<T: Clone> CacheEntry<T> {
     /// Create a new cache entry
     fn new(data: T, ttl: Duration) -> Self {
         Self {
-            data,
+            data: Arc::new(data),
             created_at: SystemTime::now(),
             ttl,
         }
@@ -54,6 +55,11 @@ impl<T> CacheEntry<T> {
     /// Check if entry is expired
     fn is_expired(&self) -> bool {
         self.created_at.elapsed().unwrap_or(Duration::MAX) > self.ttl
+    }
+
+    /// Get data as Arc for cheap sharing across threads
+    fn data_arc(&self) -> &Arc<T> {
+        &self.data
     }
 }
 
@@ -163,7 +169,8 @@ impl QueryCache {
         let cache = self.query_memory_cache.read();
         if let Some(entry) = cache.get(key) {
             if !entry.is_expired() {
-                return Some(entry.data.clone());
+                // Clone from Arc (cheaper than deep clone for shared entries)
+                return Some((**entry.data_arc()).clone());
             }
         }
         None
@@ -196,7 +203,8 @@ impl QueryCache {
         let cache = self.analyze_patterns_cache.read();
         if let Some(entry) = cache.get(key) {
             if !entry.is_expired() {
-                return Some(entry.data.clone());
+                // Clone from Arc (cheaper than deep clone for shared entries)
+                return Some((**entry.data_arc()).clone());
             }
         }
         None
@@ -229,7 +237,8 @@ impl QueryCache {
         let cache = self.execute_code_cache.read();
         if let Some(entry) = cache.get(key) {
             if !entry.is_expired() {
-                return Some(entry.data.clone());
+                // Clone from Arc (cheaper than deep clone for shared entries)
+                return Some((**entry.data_arc()).clone());
             }
         }
         None

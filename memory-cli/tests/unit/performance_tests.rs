@@ -11,6 +11,7 @@ mod performance_tests {
     use super::*;
 
     #[test]
+    
     fn test_config_validation_performance() {
         let harness = CliHarness::new();
 
@@ -20,11 +21,15 @@ mod performance_tests {
         let duration = start.elapsed();
 
         // Config validation should be very fast (< 50ms)
-        assert!(duration < Duration::from_millis(50),
-            "Config validation took {}ms, expected < 50ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(50),
+            "Config validation took {}ms, expected < 50ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_help_command_performance() {
         let harness = CliHarness::new();
 
@@ -34,11 +39,15 @@ mod performance_tests {
         let duration = start.elapsed();
 
         // Help should be very fast (< 20ms)
-        assert!(duration < Duration::from_millis(20),
-            "Help command took {}ms, expected < 20ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(20),
+            "Help command took {}ms, expected < 20ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_version_command_performance() {
         let harness = CliHarness::new();
 
@@ -49,11 +58,15 @@ mod performance_tests {
         let duration = start.elapsed();
 
         // Version should be very fast (< 10ms)
-        assert!(duration < Duration::from_millis(10),
-            "Version command took {}ms, expected < 10ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(10),
+            "Version command took {}ms, expected < 10ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_output_format_performance_comparison() {
         let harness = CliHarness::new();
 
@@ -63,15 +76,22 @@ mod performance_tests {
 
         for format in &formats {
             let start = Instant::now();
-            harness.execute(["--format", format, "config"]).assert().success();
+            harness
+                .execute(["--format", format, "config"])
+                .assert()
+                .success();
             let duration = start.elapsed();
             results.push((format.to_string(), duration));
         }
 
         // All formats should be reasonably fast (< 100ms)
         for (format, duration) in &results {
-            assert!(duration < Duration::from_millis(100),
-                "Format {} took {}ms, expected < 100ms", format, duration.as_millis());
+            assert!(
+                duration < Duration::from_millis(100),
+                "Format {} took {}ms, expected < 100ms",
+                format,
+                duration.as_millis()
+            );
         }
 
         // Print performance comparison for analysis
@@ -82,6 +102,7 @@ mod performance_tests {
     }
 
     #[test]
+    
     fn test_dry_run_performance() {
         let harness = CliHarness::new();
 
@@ -91,11 +112,15 @@ mod performance_tests {
         let duration = start.elapsed();
 
         // Dry run should be fast (< 50ms)
-        assert!(duration < Duration::from_millis(50),
-            "Dry run took {}ms, expected < 50ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(50),
+            "Dry run took {}ms, expected < 50ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_verbose_output_performance() {
         let harness = CliHarness::new();
 
@@ -105,11 +130,15 @@ mod performance_tests {
         let duration = start.elapsed();
 
         // Verbose output should not significantly impact performance (< 100ms)
-        assert!(duration < Duration::from_millis(100),
-            "Verbose output took {}ms, expected < 100ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(100),
+            "Verbose output took {}ms, expected < 100ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_completion_generation_performance() {
         let harness = CliHarness::new();
         let shells = vec!["bash", "zsh", "fish"];
@@ -120,13 +149,17 @@ mod performance_tests {
             let duration = start.elapsed();
 
             // Completion generation should be fast (< 50ms)
-            assert!(duration < Duration::from_millis(50),
+            assert!(
+                duration < Duration::from_millis(50),
                 "Completion generation for {} took {}ms, expected < 50ms",
-                shell, duration.as_millis());
+                shell,
+                duration.as_millis()
+            );
         }
     }
 
     #[test]
+    
     fn test_concurrent_cli_operations() {
         let harness = CliHarness::new();
         let num_operations = 10;
@@ -152,22 +185,32 @@ mod performance_tests {
         let avg_duration = total_duration / num_operations as u32;
 
         // Average operation should be fast (< 20ms per operation)
-        assert!(avg_duration < Duration::from_millis(20),
-            "Average CLI operation took {}ms, expected < 20ms", avg_duration.as_millis());
+        assert!(
+            avg_duration < Duration::from_millis(20),
+            "Average CLI operation took {}ms, expected < 20ms",
+            avg_duration.as_millis()
+        );
 
-        println!("Concurrent operations: {} total, {}ms average per operation",
-            num_operations, avg_duration.as_millis());
+        println!(
+            "Concurrent operations: {} total, {}ms average per operation",
+            num_operations,
+            avg_duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_large_config_file_performance() {
         let temp_dir = tempfile::TempDir::new().unwrap();
         let config_path = temp_dir.path().join("large_config.toml");
 
         // Create a large config file with many entries
         let mut config_content = String::from("[database]\nturso_url = \"file:test.db\"\n");
-        config_content.push_str("[storage]\nmax_episodes_cache = 1000\ncache_ttl_seconds = 3600\npool_size = 10\n");
-        config_content.push_str("[cli]\ndefault_format = \"json\"\nprogress_bars = true\nbatch_size = 100\n");
+        config_content.push_str(
+            "[storage]\nmax_episodes_cache = 1000\ncache_ttl_seconds = 3600\npool_size = 10\n",
+        );
+        config_content
+            .push_str("[cli]\ndefault_format = \"json\"\nprogress_bars = true\nbatch_size = 100\n");
 
         // Add many metadata entries
         for i in 0..100 {
@@ -180,15 +223,22 @@ mod performance_tests {
 
         // Measure loading and validation of large config
         let start = Instant::now();
-        harness.execute(["--config", &config_path.to_string_lossy(), "config"]).assert().success();
+        harness
+            .execute(["--config", &config_path.to_string_lossy(), "config"])
+            .assert()
+            .success();
         let duration = start.elapsed();
 
         // Large config should still load reasonably fast (< 200ms)
-        assert!(duration < Duration::from_millis(200),
-            "Large config loading took {}ms, expected < 200ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(200),
+            "Large config loading took {}ms, expected < 200ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_cli_startup_time() {
         // Measure CLI binary startup time (just parsing args, not executing commands)
         let start = Instant::now();
@@ -205,11 +255,15 @@ mod performance_tests {
         let duration = start.elapsed();
 
         // Startup time should be reasonable (< 500ms including cargo overhead)
-        assert!(duration < Duration::from_millis(500),
-            "CLI startup took {}ms, expected < 500ms", duration.as_millis());
+        assert!(
+            duration < Duration::from_millis(500),
+            "CLI startup took {}ms, expected < 500ms",
+            duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_memory_usage_stability() {
         let harness = CliHarness::new();
 
@@ -226,6 +280,7 @@ mod performance_tests {
     }
 
     #[test]
+    
     fn test_error_handling_performance() {
         let harness = CliHarness::new();
 
@@ -248,11 +303,15 @@ mod performance_tests {
         let avg_duration = duration / invalid_commands.len() as u32;
 
         // Error handling should be fast (< 30ms per error)
-        assert!(avg_duration < Duration::from_millis(30),
-            "Average error handling took {}ms, expected < 30ms", avg_duration.as_millis());
+        assert!(
+            avg_duration < Duration::from_millis(30),
+            "Average error handling took {}ms, expected < 30ms",
+            avg_duration.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_scaling_with_input_size() {
         let harness = CliHarness::new();
 
@@ -269,14 +328,19 @@ mod performance_tests {
 
             // Input processing should scale reasonably (linear or better)
             // Allow up to 100ms for large inputs
-            assert!(duration < Duration::from_millis(100),
-                "Processing input of size {} took {}ms, expected < 100ms", size, duration.as_millis());
+            assert!(
+                duration < Duration::from_millis(100),
+                "Processing input of size {} took {}ms, expected < 100ms",
+                size,
+                duration.as_millis()
+            );
 
             println!("Input size {}: {}ms", size, duration.as_millis());
         }
     }
 
     #[test]
+    
     fn test_cli_startup_time_benchmarking() {
         // Test CLI startup time - should be < 1000ms as per requirements
         let mut times = Vec::new();
@@ -300,19 +364,29 @@ mod performance_tests {
         let avg_time: Duration = times.iter().sum::<Duration>() / times.len() as u32;
         let max_time = times.iter().max().unwrap();
 
-        println!("CLI Startup Time - Average: {}ms, Max: {}ms",
-                 avg_time.as_millis(), max_time.as_millis());
+        println!(
+            "CLI Startup Time - Average: {}ms, Max: {}ms",
+            avg_time.as_millis(),
+            max_time.as_millis()
+        );
 
         // Target: < 1000ms average startup time
-        assert!(avg_time < Duration::from_millis(1000),
-                "Average startup time {}ms exceeds 1000ms target", avg_time.as_millis());
+        assert!(
+            avg_time < Duration::from_millis(1000),
+            "Average startup time {}ms exceeds 1000ms target",
+            avg_time.as_millis()
+        );
 
         // Allow some variance but keep max reasonable
-        assert!(max_time < Duration::from_millis(1500),
-                "Max startup time {}ms exceeds 1500ms limit", max_time.as_millis());
+        assert!(
+            max_time < Duration::from_millis(1500),
+            "Max startup time {}ms exceeds 1500ms limit",
+            max_time.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_command_execution_latency_benchmarking() {
         let harness = CliHarness::new();
         let mut results = Vec::new();
@@ -338,9 +412,12 @@ mod performance_tests {
             results.push((cmd_args.join(" "), avg_time));
 
             // Each list operation should be < 500ms
-            assert!(avg_time < Duration::from_millis(500),
-                    "Command '{}' average {}ms exceeds 500ms target",
-                    cmd_args.join(" "), avg_time.as_millis());
+            assert!(
+                avg_time < Duration::from_millis(500),
+                "Command '{}' average {}ms exceeds 500ms target",
+                cmd_args.join(" "),
+                avg_time.as_millis()
+            );
         }
 
         println!("Command Execution Latency Results:");
@@ -350,6 +427,7 @@ mod performance_tests {
     }
 
     #[test]
+    
     fn test_memory_usage_profiling() {
         let harness = CliHarness::new();
 
@@ -375,16 +453,22 @@ mod performance_tests {
         let total_duration = start.elapsed();
         let avg_operation_time = total_duration / 100;
 
-        println!("Memory Usage Test - 100 operations in {}ms (avg: {}ms per op)",
-                 total_duration.as_millis(), avg_operation_time.as_millis());
+        println!(
+            "Memory Usage Test - 100 operations in {}ms (avg: {}ms per op)",
+            total_duration.as_millis(),
+            avg_operation_time.as_millis()
+        );
 
         // Basic sanity check - operations should complete reasonably fast
-        assert!(avg_operation_time < Duration::from_millis(50),
-                "Average operation time {}ms suggests potential memory issues",
-                avg_operation_time.as_millis());
+        assert!(
+            avg_operation_time < Duration::from_millis(50),
+            "Average operation time {}ms suggests potential memory issues",
+            avg_operation_time.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_concurrent_operation_testing() {
         let harness = CliHarness::new();
         let num_threads = 5;
@@ -424,25 +508,36 @@ mod performance_tests {
         }
 
         let total_duration = start.elapsed();
-        let avg_operation_time: Duration = all_times.iter().sum::<Duration>() / all_times.len() as u32;
+        let avg_operation_time: Duration =
+            all_times.iter().sum::<Duration>() / all_times.len() as u32;
         let max_operation_time = all_times.iter().max().unwrap();
 
         println!("Concurrent Operations Test:");
         println!("  Total operations: {}", all_times.len());
         println!("  Total duration: {}ms", total_duration.as_millis());
-        println!("  Average operation time: {}ms", avg_operation_time.as_millis());
+        println!(
+            "  Average operation time: {}ms",
+            avg_operation_time.as_millis()
+        );
         println!("  Max operation time: {}ms", max_operation_time.as_millis());
 
         // Concurrent operations should still be reasonably fast
-        assert!(avg_operation_time < Duration::from_millis(100),
-                "Average concurrent operation time {}ms too slow", avg_operation_time.as_millis());
+        assert!(
+            avg_operation_time < Duration::from_millis(100),
+            "Average concurrent operation time {}ms too slow",
+            avg_operation_time.as_millis()
+        );
 
         // No operation should take excessively long
-        assert!(max_operation_time < Duration::from_millis(500),
-                "Max operation time {}ms indicates performance issues", max_operation_time.as_millis());
+        assert!(
+            max_operation_time < Duration::from_millis(500),
+            "Max operation time {}ms indicates performance issues",
+            max_operation_time.as_millis()
+        );
     }
 
     #[test]
+    
     fn test_performance_regression_detection() {
         let harness = CliHarness::new();
 
@@ -472,7 +567,12 @@ mod performance_tests {
                 times[(times.len() * 95) / 100]
             };
 
-            println!("  {}: avg {}ms, p95 {}ms", name, avg_time.as_millis(), p95_time.as_millis());
+            println!(
+                "  {}: avg {}ms, p95 {}ms",
+                name,
+                avg_time.as_millis(),
+                p95_time.as_millis()
+            );
 
             // Set reasonable performance expectations
             let max_expected = match name {
@@ -482,12 +582,18 @@ mod performance_tests {
                 _ => 100,
             };
 
-            assert!(avg_time < Duration::from_millis(max_expected),
-                    "{} average {}ms exceeds {}ms baseline", name, avg_time.as_millis(), max_expected);
+            assert!(
+                avg_time < Duration::from_millis(max_expected),
+                "{} average {}ms exceeds {}ms baseline",
+                name,
+                avg_time.as_millis(),
+                max_expected
+            );
         }
     }
 
     #[test]
+    
     fn test_large_dataset_performance() {
         let harness = CliHarness::new();
 
@@ -507,11 +613,18 @@ mod performance_tests {
             println!("Format {}: {}ms", format, cmd_duration.as_millis());
 
             // All formats should be reasonably fast
-            assert!(cmd_duration < Duration::from_millis(100),
-                    "Format {} took {}ms, expected < 100ms", format, cmd_duration.as_millis());
+            assert!(
+                cmd_duration < Duration::from_millis(100),
+                "Format {} took {}ms, expected < 100ms",
+                format,
+                cmd_duration.as_millis()
+            );
         }
 
         let total_duration = start.elapsed();
-        println!("Large dataset test completed in {}ms", total_duration.as_millis());
+        println!(
+            "Large dataset test completed in {}ms",
+            total_duration.as_millis()
+        );
     }
 }

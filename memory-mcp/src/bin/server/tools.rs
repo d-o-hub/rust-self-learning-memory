@@ -8,8 +8,13 @@
 //! - handle_health_check: Health check
 //! - handle_get_metrics: Get metrics
 //! - handle_quality_metrics: Quality metrics
+//! - handle_configure_embeddings: Configure embedding provider
+//! - handle_query_semantic_memory: Semantic memory search
+//! - handle_test_embeddings: Test embedding provider
 
 use super::types::Content;
+use memory_mcp::mcp::tools::embeddings::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
+use memory_mcp::mcp::tools::pattern_search::{RecommendPatternsInput, SearchPatternsInput};
 use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
 use memory_mcp::ExecutionContext;
 use memory_mcp::MemoryMCPServer;
@@ -222,6 +227,80 @@ pub async fn handle_quality_metrics(
     let args: Value = arguments.unwrap_or(json!({}));
     let input: QualityMetricsInput = serde_json::from_value(args)?;
     let result = server.execute_quality_metrics(input).await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle configure_embeddings tool
+pub async fn handle_configure_embeddings(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let input: ConfigureEmbeddingsInput = serde_json::from_value(args)?;
+    let result = server.execute_configure_embeddings(input).await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle query_semantic_memory tool
+pub async fn handle_query_semantic_memory(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let input: QuerySemanticMemoryInput = serde_json::from_value(args)?;
+    let result = server.execute_query_semantic_memory(input).await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle test_embeddings tool
+pub async fn handle_test_embeddings(
+    server: &mut MemoryMCPServer,
+    _arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let result = server.execute_test_embeddings().await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle search_patterns tool
+pub async fn handle_search_patterns(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: SearchPatternsInput = serde_json::from_value(args)?;
+
+    // Access memory through the server's memory field
+    let result = server.execute_search_patterns(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle recommend_patterns tool
+pub async fn handle_recommend_patterns(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: RecommendPatternsInput = serde_json::from_value(args)?;
+
+    // Access memory through the server's memory field
+    let result = server.execute_recommend_patterns(input).await?;
+
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,
     }];

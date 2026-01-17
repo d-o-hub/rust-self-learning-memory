@@ -17,13 +17,15 @@ pub struct SimilaritySearchResult<T> {
 }
 
 /// Metadata about a similarity match
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SimilarityMetadata {
     /// Which embedding was used for the match
+    #[serde(default)]
     pub embedding_model: String,
     /// Timestamp of when the embedding was generated
     pub embedding_timestamp: Option<chrono::DateTime<chrono::Utc>>,
     /// Additional context about the match
+    #[serde(default)]
     pub context: serde_json::Value,
 }
 

@@ -15,4 +15,6 @@ pub use crate::pattern_v2::analyze_pattern;
 pub use crate::pattern_v2::decay_patterns;
 pub use crate::pattern_v2::list_patterns;
 pub use crate::pattern_v2::pattern_effectiveness;
+pub use crate::pattern_v2::recommend_patterns;
+pub use crate::pattern_v2::search_patterns;
 pub use crate::pattern_v2::view_pattern;

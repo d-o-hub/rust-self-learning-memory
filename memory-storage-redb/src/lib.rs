@@ -39,7 +39,6 @@ mod episodes;
 mod episodes_queries;
 mod episodes_summaries;
 mod heuristics;
-mod patterns;
 mod storage;
 mod tables;
 
@@ -420,6 +419,10 @@ impl StorageBackend for RedbStorage {
 
     async fn get_episode(&self, id: Uuid) -> Result<Option<Episode>> {
         self.get_episode(id).await
+    }
+
+    async fn delete_episode(&self, id: Uuid) -> Result<()> {
+        self.delete_episode(id).await
     }
 
     async fn store_pattern(&self, pattern: &Pattern) -> Result<()> {

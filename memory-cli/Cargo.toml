@@ -50,7 +50,7 @@ sysinfo = "0.37"
 # Test utilities dependencies
 assert_cmd = "2.1"
 predicates = "3.0"
-tempfile = "3.24"
+tempfile = { workspace = true }
 test-utils = { path = "../test-utils" }
 
 [features]
@@ -67,7 +67,7 @@ full = ["turso", "redb", "embeddings-full"]
 [dev-dependencies]
 # Testing framework
 tokio-test = "0.4"
-tempfile = "3.24"
+tempfile = { workspace = true }
 assert_cmd = "2.1"
 predicates = "3.0"
 rstest = "0.26"

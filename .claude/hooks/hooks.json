@@ -1,0 +1,50 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "cargo fmt --check \"$CLAUDE_FILE_PATHS\" 2>&1 | head -20",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/post-tool-test.sh",
+          "timeout": 60
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/skill-activation.sh",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "SessionStart": [
+    {
+      "matcher": "*",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "echo 'Episodic Memory Development Session Started' && cargo --version && rustc --version",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}

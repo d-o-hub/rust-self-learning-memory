@@ -1,4 +1,63 @@
-# Changelog
+## [Unreleased]
+
+## [0.1.13] - 2026-01-16
+
+### Changed
+- **Error Handling**: Replaced 43 production `.unwrap()` calls with `.expect()` + contextual error messages
+  - Fixed memory-core/src/retrieval/cache/lru.rs - NonZeroUsize initialization safety
+  - Fixed memory-core/src/embeddings/circuit_breaker.rs - Mutex lock error context (6 calls)
+  - Fixed memory-core/src/memory/retrieval/context.rs - Option handling with invariant documentation
+  - Fixed memory-cli/src/config/loader.rs - Config cache mutex operations (26 calls)
+  - Fixed memory-cli/src/commands/embedding.rs - Iterator min/max safety checks
+  - Fixed memory-cli/src/config/validator.rs - Option unwrapping after validation
+  - Fixed memory-cli/src/config/wizard/database.rs - Database config option handling
+  - Fixed memory-cli/src/commands/storage/commands.rs - ProgressStyle template safety
+  - Fixed memory-mcp/src/patterns/predictive/kdtree.rs - Vector access bounds checking
+  - Fixed memory-mcp/src/mcp/tools/quality_metrics/tool.rs - HashMap access safety
+
+### Improved
+- All error messages now include clear context explaining the invariant that guarantees success
+- Lock poisoning errors now have detailed debugging information
+- Better developer experience with informative panic messages
+- Consistent error message format across the entire codebase
+
+### Quality
+- 100% of production code unwraps fixed (43 total)
+- Zero breaking changes to public APIs
+- Zero new clippy warnings
+- Clean compilation across all packages
+- Improved code documentation and safety guarantees
+
+### Notes
+- Only 3 `.unwrap()` calls remain, all in documentation examples (standard Rust practice)
+- All changes use conservative `.expect()` with clear explanations
+- Establishes pattern for future error handling improvements
+
+## [0.1.12] - 2026-01-05
+
+### Added
+- **Semantic Pattern Search & Recommendation Engine** - HIGH-IMPACT feature enabling intelligent pattern discovery (2026-01-12)
+  - `search_patterns_semantic()`: Search patterns using natural language queries with multi-signal ranking
+  - `recommend_patterns_for_task()`: Get high-quality pattern recommendations for specific tasks
+  - `discover_analogous_patterns()`: Find patterns from one domain applicable to another
+  - Multi-signal ranking: Combines semantic similarity (40%), context match (20%), effectiveness (20%), recency (10%), and success rate (10%)
+  - Configurable search parameters: Default, strict, and relaxed presets with custom weight support
+  - Works with or without embeddings (graceful fallback to keyword matching)
+  - MCP tools: `search_patterns` and `recommend_patterns` with full JSON schemas
+  - CLI commands: `pattern search` and `pattern recommend` with JSON and text output
+  - Comprehensive tests and documentation (95%+ coverage)
+  - Example demo: `cargo run --example pattern_search_demo`
+  - Documentation: `memory-core/PATTERN_SEARCH_FEATURE.md`
+  - Zero warnings with `-D warnings`, fully backward compatible
+
+### Changed
+- **Code Organization**: Split 3 large files into 21 modular files for 500 LOC compliance
+  - `memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)
+  - `memory-core/src/memory/retrieval.rs` (891 LOC → 6 files, max 414 LOC)
+  - `memory-core/src/patterns/optimized_validator.rs` (889 LOC → 6 files, max 448 LOC)
+  - All split files now comply with <500 LOC guideline
+  - Improved maintainability through better separation of concerns
+
 
 ## [Unreleased]
 

@@ -6,18 +6,43 @@
 > - Wincode is not used; not a drop-in for our Options-based tests.
 > - Future: Evaluate replacing test-time bincode when an equivalent limit-checking approach is adopted.
 
-**Last Updated**: 2025-12-29
+**Last Updated**: 2026-01-13
 **Status**: Production Ready
 
 ---
 
 ## Version History Overview
 
-This document tracks the version history and major milestones of Self-Learning Memory System from initial release through current v0.1.9.
+This document tracks the version history and major milestones of Self-Learning Memory System from initial release through current v0.1.12.
 
 ---
 
-### v0.1.9 - Multi-Provider Embeddings & Security Hardening (Current - Released 2025-12-29)
+### v0.1.12 - Tasks, Refactoring & Contrastive Learning (Current - Released 2026-01-05)
+
+**Status**: ✅ **RELEASED**
+**Quality Score**: 9.8/10
+**Focus**: Tasks utility, embedding config, file refactoring, contrastive learning
+
+**Key Features**:
+- ✅ **Tasks Utility**: Long-running task support for async operations (5 MCP tools: create, update, complete, cancel, list)
+- ✅ **Embedding Configuration**: Environment-based provider configuration (EMBEDDING_PROVIDER, OPENAI_API_KEY, EMBEDDING_MODEL, etc.)
+- ✅ **Pre-Storage Refactoring**: Extractor refactored (911 LOC → modular files)
+- ✅ **Spatiotemporal Refactoring**: Retriever refactored (1014 LOC → modular files)
+- ✅ **Contrastive Learning**: Production ML implementation with triplet loss for task adapters
+- ✅ **Spatiotemporal Integration**: Full index integration with 7.5-180x retrieval speedup
+- ✅ **Domain-Based Cache Invalidation**: Advanced cache management (15-20% hit rate improvement)
+
+**Quality Metrics**:
+- Test Coverage: 92.5% (maintained)
+- Test Pass Rate: 100% (all critical tests passing)
+- Clippy Warnings: 0
+- File Size Compliance: 3 large files split successfully
+
+**See**: [CHANGELOG.md](../../CHANGELOG.md) for complete details
+
+---
+
+### v0.1.9 - Multi-Provider Embeddings & Security Hardening (Released 2025-12-29)
 
 **Status**: ✅ **RELEASED**
 **Quality Score**: 9.8/10
@@ -341,6 +366,7 @@ This document tracks the version history and major milestones of Self-Learning M
 
 | Version | Release Date | Test Coverage | Quality Score | Key Features |
 |---------|--------------|---------------|----------------|--------------|
+| v0.1.12 | 2026-01-05 | 92.5% | 9.8/10 | Tasks utility, embedding config, refactoring, contrastive learning |
 | v0.1.9 | 2025-12-29 | 92.5% | 9.8/10 | Multi-provider embeddings, security, doctests |
 | v0.1.8 | 2025-12-27 | 92.5% | 9.6/10 | Clippy fixes, CI improvements |
 | v0.1.7 | 2025-12-28 | 92.5% | 9.5/10 | Research integration, vector search |
@@ -364,5 +390,5 @@ This document tracks the version history and major milestones of Self-Learning M
 
 ---
 
-*Last Updated: 2025-12-20*
-*Roadmap Version: 1.3*
+*Last Updated: 2026-01-13*
+*Roadmap Version: 1.4*

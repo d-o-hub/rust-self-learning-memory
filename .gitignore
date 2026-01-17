@@ -49,6 +49,8 @@ libsql-*.db
 data/
 cache/
 !/memory-core/src/retrieval/cache
+!/memory-core/src/storage/circuit_breaker
+!/memory-storage-redb/src/cache
 storage/
 
 # Test database files

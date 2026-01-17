@@ -6,14 +6,16 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 [![Build Status](https://github.com/d-o-hub/rust-self-learning-memory/workflows/CI/badge.svg)](https://github.com/d-o-hub/rust-self-learning-memory/actions)
 [![codecov](https://codecov.io/gh/d-o-hub/rust-self-learning-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/d-o-hub/rust-self-learning-memory)
-![Version](https://img.shields.io/badge/version-0.1.7-blue)
-![Tests](https://img.shields.io/badge/tests-424%2F427-99.3%25-green)
+![Version](https://img.shields.io/badge/version-0.1.13-blue)
+![Tests](https://img.shields.io/badge/tests-428%2F431-99.3%25-green)
 ![Coverage](https://img.shields.io/badge/coverage-92.5%25-brightgreen)
 ![Clippy](https://img.shields.io/badge/clippy-0%20warnings-success)
 
-**v0.1.7 - Production Ready** • 99.3% Test Pass Rate • 92.5% Coverage • Zero Clippy Warnings
+**v0.1.13 - Production Ready** • 99.3% Test Pass Rate • 92.5% Coverage • Zero Clippy Warnings
 
-A self-learning episodic memory system with semantic embeddings, MCP server, and secure code execution sandbox.
+**NEW:** Semantic Pattern Search & Recommendations 🔍
+
+A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and secure code execution sandbox.
 
 [Overview](#overview) • [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Quality Gates](#quality-gates) • [License](#license)
 
@@ -61,10 +63,14 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **Local SQLite**: Local file-based database (fallback)
 - Automatic caching with TTL-based invalidation
 
-### 🎯 Pattern Recognition
+### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
+- **NEW: Semantic pattern search** with natural language queries
+- **NEW: Intelligent pattern recommendations** for tasks using multi-signal ranking
+- **NEW: Cross-domain pattern discovery** to find analogous patterns
 - Async pattern extraction with queue-based workers
 - Pattern effectiveness tracking with decay over time
+- Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
 - Minimum success rate filtering (default 70%)
 
 ### 🔒 Secure Code Sandbox
@@ -81,7 +87,9 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🔍 MCP Server
 - Standard MCP protocol implementation (v2024-11)
-- 6 MCP tools for memory operations and code execution
+- **8 MCP tools** for memory operations, pattern search, and code execution
+- **NEW: `search_patterns`** - Semantic pattern search with configurable ranking
+- **NEW: `recommend_patterns`** - Task-specific pattern recommendations
 - Progressive tool disclosure based on usage
 - Execution monitoring and metrics tracking
 - Wasmtime-based WASM sandbox for secure code execution
@@ -113,6 +121,55 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Pre-commit and post-commit hooks for code quality
 
 ## Quick Start
+
+### 🔍 Pattern Search Example (NEW in v0.1.13)
+
+```rust
+use memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let memory = SelfLearningMemory::new();
+    
+    // Search for patterns using natural language
+    let context = TaskContext {
+        domain: "web-api".to_string(),
+        language: Some("rust".to_string()),
+        framework: None,
+        complexity: ComplexityLevel::Moderate,
+        tags: vec!["rest".to_string(), "async".to_string()],
+    };
+    
+    let results = memory.search_patterns_semantic(
+        "How to handle API rate limiting with retries",
+        context,
+        5  // limit
+    ).await?;
+    
+    for result in results {
+        println!("Pattern: {:?}", result.pattern);
+        println!("Relevance: {:.2}", result.relevance_score);
+        println!("Success Rate: {:.1}%", result.pattern.success_rate() * 100.0);
+    }
+    
+    // Get task-specific recommendations
+    let recommendations = memory.recommend_patterns_for_task(
+        "Build async HTTP client with connection pooling",
+        context,
+        3
+    ).await?;
+    
+    for rec in recommendations {
+        println!("Recommended: {:?}", rec.pattern);
+    }
+    
+    Ok(())
+}
+```
+
+**Try it yourself:** `cargo run --example pattern_search_demo`
+
+**Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
 - Rust (latest stable)
@@ -161,6 +218,12 @@ memory-cli episode list --limit 10
 
 # Retrieve relevant context
 memory-cli episode search "authentication" --limit 5
+
+# NEW: Search patterns semantically
+memory-cli pattern search --query "How to build REST API" --domain web-api --limit 5
+
+# NEW: Get pattern recommendations
+memory-cli pattern recommend --task "Build async HTTP client" --domain web-api --limit 3
 
 # Analyze patterns
 memory-cli pattern list --min-confidence 0.8

@@ -199,7 +199,11 @@ impl HybridSearch {
         }
 
         // Sort by hybrid score (descending) and take limit
-        combined.sort_by(|a, b| b.hybrid_score.partial_cmp(&a.hybrid_score).unwrap());
+        combined.sort_by(|a, b| {
+            b.hybrid_score
+                .partial_cmp(&a.hybrid_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         combined.truncate(limit);
 
         combined

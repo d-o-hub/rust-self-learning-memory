@@ -1,313 +1,181 @@
 # Plan Gap Analysis Report
 
-**Generated**: 2025-12-29
+**Generated**: 2026-01-09
 **Project**: rust-self-learning-memory
-**Current Version**: v0.1.9 (Production Ready)
-**Branch**: feat-phase3
+**Current Version**: v0.1.13 (In Development)
+**Branch**: develop
 **Analysis Type**: Comprehensive Plan vs Implementation Gap Analysis
 
 ---
 
 ## Executive Summary
 
-Analyzed **229 markdown files** in plans/ folder and **367 Rust source files** (~102,521 LOC) in the codebase. The system is **100% production-ready** (v0.1.9) with excellent quality gates, but several optimization opportunities and incomplete features exist for v0.1.10-v0.2.0.
+Analyzed the current codebase state for the v0.1.13 release. The system is production-ready with excellent quality gates, but file size compliance remains a work in progress with 15+ files exceeding the 500 LOC limit.
 
-**Overall Completeness**: **95.5%** (v0.1.9 Complete, Minor Gaps Remaining)
+**Overall Completeness**: **95%** (Core functionality complete, compliance work ongoing)
 
 **Key Findings**:
-- ✅ **Production Ready**: v0.1.10 complete with 99%+ test pass rate, 92%+ coverage
-- ✅ **Embeddings Integration**: 100% COMPLETE (CLI, MCP, Retrieval, E2E all done)
-- ⚠️ **File Size Violations**: 16 files exceed 500 LOC limit (P0 CRITICAL - 2,969-870 LOC)
-- 🔶 **Code Quality**: 356 unwrap/expect calls, 298 clone operations
-- 📊 **Total Gap**: ~145-195 hours of work for 100% compliance
+- ✅ **Production Ready**: v0.1.12 complete with 92%+ test coverage
+- ✅ **Embeddings Integration**: 100% COMPLETE (all 5 providers integrated)
+- ⚠️ **File Size Violations**: 20+ files exceed 500 LOC limit
+- 🔶 **Code Quality**: Ongoing refactoring for file size compliance
+- 📊 **Total Remaining Effort**: 80-120 hours for full compliance
 
 ---
 
 ## Gap Summary by Priority
 
-### P0 - CRITICAL (Production Compliance)
+### P0 - CRITICAL (Codebase Compliance)
 | Gap | Impact | Effort | Status |
 |-----|--------|--------|--------|
-| File Size Violations | Codebase standards violation | 40-50 hours | 🔴 **Must Fix** |
-| Total P0 Effort | - | **40-50 hours** | - |
+| File Size Violations | Codebase standards violation | 50-70 hours | 🔄 In Progress |
+| memory-mcp sandbox files | Server stability | 15-20 hours | ⏳ Pending |
+| memory-core large files | Core functionality | 25-35 hours | ⏳ Pending |
 
-### P1 - HIGH (User Experience)
+### P1 - HIGH (Quality of Life)
 | Gap | Impact | Effort | Status |
 |-----|--------|--------|--------|
-| Embeddings Integration | CLI, MCP, retrieval fully integrated | 12-17 hours | ✅ **100% Done** |
-| Error Handling Audit | Potential panics in production | 20-30 hours | 🟡 **Ongoing** |
-| Dependency Cleanup | Large binary (2.1 GB), slow builds | 10-15 hours | 🔶 **Planned** |
-| Total P1 Effort | - | **42-62 hours** | - |
+| Embeddings Integration | CLI, MCP, retrieval complete | 0 hours | ✅ **100% Done** |
+| Test Infrastructure | Pass rate recovery | 10-15 hours | ⏳ Pending |
+| Documentation | Keep current | 5-10 hours | ⏳ Planned |
 
-### P2 - MEDIUM (Quality of Life)
+### P2 - MEDIUM (Optimization)
 | Gap | Impact | Effort | Status |
 |-----|--------|--------|--------|
-| Clone Reduction | Performance improvement 5-15% | 20-30 hours | 🔶 **Planned** |
-| Database Optimization | Query performance 10-20% faster | 25-35 hours | 🔶 **Planned** |
-| Memory Optimization | Allocation reduction 10-20% | 15-25 hours | 🔶 **Planned** |
-| Total P2 Effort | - | **60-90 hours** | - |
+| Clone Reduction | Performance improvement | 20-30 hours | 🔶 **Planned** |
+| Error Handling | Production robustness | 15-25 hours | 🔶 **Planned** |
+| Dependency Cleanup | Binary size reduction | 10-15 hours | 🔶 **Planned** |
 
 ### P3 - LOW (Future Enhancements)
 | Gap | Impact | Effort | Status |
 |-----|--------|--------|--------|
-| Benchmarking Framework | Performance tracking | 20-30 hours | 📊 **v0.2.0** |
-| Observability | Production monitoring | 25-35 hours | 📊 **v0.2.0** |
-| Advanced Features | Scalability | 30-40 hours | 📊 **v0.2.0+** |
-| Total P3 Effort | - | **75-105 hours** | - |
+| Benchmarking Framework | Performance tracking | 20-30 hours | 📊 Future |
+| Observability | Production monitoring | 25-35 hours | 📊 Future |
+| Advanced Features | Scalability | 30-40 hours | 📊 Future |
 
-### **TOTAL EFFORT**: **217-307 hours** (5.5-7.5 weeks)
+### **TOTAL REMAINING EFFORT**: **185-275 hours** (4.5-7 weeks)
 
 ---
 
 ## Detailed Gap Analysis
 
-### 1. Embeddings Integration Gap (P1 - HIGH)
+### 1. Embeddings Integration Gap (P1 - COMPLETE ✅)
 
 **Status**: ✅ 100% COMPLETE
-**Estimated Effort**: 12-17 hours → ✅ COMPLETED
-**Plan Reference**: `EMBEDDINGS_COMPLETION_ROADMAP.md`
+**Estimated Effort**: 0 hours (already done)
 
-#### Completed (✅) - ALL ITEMS DONE
-- ✅ Multi-provider architecture (EmbeddingProvider trait)
-- ✅ 5 providers: OpenAI, Mistral, Azure, Local, Custom
+**Completed Components**:
+- ✅ Multi-provider architecture (OpenAI, Mistral, Azure, Local, Custom)
 - ✅ Circuit breaker for resilience
 - ✅ Storage backends for embeddings
 - ✅ Semantic service with fallback
-- ✅ Configuration system
-- ✅ CLI Integration (467 LOC) - `memory-cli/src/commands/embedding.rs`
-- ✅ Hierarchical Retrieval Integration - `memory-core/src/memory/retrieval.rs:369-389`
-- ✅ MCP Server Integration (709+ LOC) - `memory-mcp/src/mcp/tools/embeddings.rs`
+- ✅ CLI Integration - `memory-cli/src/commands/embedding.rs`
+- ✅ MCP Server Integration - `memory-mcp/src/mcp/tools/embeddings.rs`
+- ✅ Hierarchical Retrieval - `memory-core/src/memory/retrieval.rs`
 - ✅ E2E Testing - All tests passing
 
-**Implementation Verified**:
-| Component | File | LOC | Status |
-|-----------|------|-----|--------|
-| CLI Embedding Commands | `memory-cli/src/commands/embedding.rs` | 467 | ✅ DONE |
-| MCP Embedding Tools | `memory-mcp/src/mcp/tools/embeddings.rs` | 709 | ✅ DONE |
-| Hierarchical Retrieval | `memory-core/src/memory/retrieval.rs:369-389` | ~20 | ✅ DONE |
-| E2E Tests | Various integration tests | - | ✅ DONE |
+### 2. File Size Violations Gap (P0 - IN PROGRESS)
 
-#### Implementation Details (Completed)
+**Status**: 20+ files exceed 500 LOC limit
+**Estimated Effort**: 50-70 hours
+**Reference**: `FILE_COMPLIANCE_PROGRESS_2026-01-08.md`
 
-All embedding integration tasks have been completed:
+#### Priority P0 Files (Immediate Action Required)
 
-1. **CLI Integration** - `memory-cli/src/commands/embedding.rs` (467 LOC)
-   - Commands: test, config, list-providers, benchmark, enable, disable
-   - Config: [embeddings] section with all required fields
+**memory-mcp (Critical)**:
+| File | Current LOC | Target LOC | Effort |
+|------|-------------|------------|--------|
+| `src/wasm_sandbox.rs` | 683 | ≤500 | 6-8 hrs |
+| `src/javy_compiler.rs` | 679 | ≤500 | 6-8 hrs |
+| `src/unified_sandbox.rs` | 533 | ≤500 | 4-6 hrs |
 
-2. **MCP Server Integration** - `memory-mcp/src/mcp/tools/embeddings.rs` (709 LOC)
-   - Tools: configure_embeddings, query_semantic_memory, test_embeddings
-   - Full test coverage with unit and integration tests
+**memory-storage (High)**:
+| File | Current LOC | Target LOC | Effort |
+|------|-------------|------------|--------|
+| `memory-storage-redb/src/cache.rs` | 654 | ≤500 | 5-7 hrs |
+| `memory-storage-turso/src/pool.rs` | 589 | ≤500 | 4-6 hrs |
 
-3. **Hierarchical Retrieval** - `memory-core/src/memory/retrieval.rs`
-   - Query embedding generation integrated
-   - Fallback to keyword search when embeddings unavailable
+#### Priority P1 Files (Next Sprint)
 
-4. **E2E Testing** - Complete test suite
-   - CLI integration tests
-   - Semantic retrieval tests
-   - MCP embedding integration tests
+**memory-core (High)**:
+| File | Current LOC | Target LOC | Effort |
+|------|-------------|------------|--------|
+| `src/patterns/clustering.rs` | 673 | ≤500 | 5-7 hrs |
+| `src/memory/learning.rs` | 673 | ≤500 | 5-7 hrs |
+| `src/embeddings/openai.rs` | 672 | ≤500 | 5-7 hrs |
+| `src/pre_storage/quality.rs` | 666 | ≤500 | 5-7 hrs |
+| `src/learning/queue.rs` | 662 | ≤500 | 5-7 hrs |
+| `src/embeddings/config.rs` | 660 | ≤500 | 5-7 hrs |
+| `src/episode.rs` | 649 | ≤500 | 5-7 hrs |
 
----
+#### Priority P2 Files (Future Sprints)
 
-### 2. File Size Violations Gap (P0 - CRITICAL)
+**memory-core (Medium)**:
+| File | Current LOC | Target LOC | Effort |
+|------|-------------|------------|--------|
+| `src/embeddings/real_model.rs` | 634 | ≤500 | 4-5 hrs |
+| `src/patterns/effectiveness.rs` | 631 | ≤500 | 4-5 hrs |
+| `src/patterns/validation.rs` | 623 | ≤500 | 4-5 hrs |
+| `src/episodic/capacity.rs` | 613 | ≤500 | 4-5 hrs |
+| `src/monitoring/storage.rs` | 598 | ≤500 | 4-5 hrs |
 
-**Status**: 16 files exceed 500 LOC limit
-**Estimated Effort**: 40-50 hours
-**Plan Reference**: `OPTIMIZATION_ANALYSIS_2025-12-29.md`
-**Codebase Standard**: AGENTS.md requires ≤500 LOC per file
+**memory-cli (Medium)**:
+| File | Current LOC | Target LOC | Effort |
+|------|-------------|------------|--------|
+| `src/config/validator.rs` | 636 | ≤500 | 4-5 hrs |
+| `src/config/loader.rs` | 623 | ≤500 | 4-5 hrs |
+| `src/config/progressive.rs` | 564 | ≤500 | 3-4 hrs |
 
-#### Files Requiring Splitting
+#### Priority P3 Files (Cleanup)
 
-| File | Current LOC | Target Modules | Effort |
-|------|-------------|----------------|--------|
-| `memory-storage-turso/src/storage.rs` | 2,502 | 5 modules (~500 LOC each) | 10-12 hours |
-| `memory-mcp/src/patterns/predictive.rs` | 2,435 | 5 modules (~450 LOC each) | 10-12 hours |
-| `memory-core/src/memory/mod.rs` | 1,530 | 3 modules (~500 LOC each) | 6-8 hours |
-| `memory-storage-redb/src/storage.rs` | 1,514 | 3 modules (~500 LOC each) | 6-8 hours |
-| `memory-mcp/src/server.rs` | 1,414 | 3 modules (~470 LOC each) | 6-8 hours |
-
-**Plus 11 more files** (888-1,201 LOC each) requiring 2-3 modules
-
-#### Recommended Module Structure
-
-**Example: memory-storage-turso/src/storage.rs (2,502 LOC → 5 modules)**
-```
-storage/
-├── mod.rs               # Core TursoStorage impl (~500 LOC)
-├── episodes.rs          # Episode CRUD operations (~500 LOC)
-├── patterns.rs          # Pattern operations (~500 LOC)
-├── embeddings.rs        # Embedding operations (~500 LOC)
-└── monitoring.rs        # Monitoring operations (~500 LOC)
-```
-
-**Example: memory-mcp/src/patterns/predictive.rs (2,435 LOC → 5 modules)**
-```
-predictive/
-├── mod.rs               # Core types and traits (~450 LOC)
-├── forecasting.rs       # ETS forecasting logic (~450 LOC)
-├── anomaly.rs           # DBSCAN anomaly detection (~450 LOC)
-├── analysis.rs          # Analysis algorithms (~450 LOC)
-└── tests.rs             # Test suite (~450 LOC)
-```
-
----
-
-### 3. Code Quality Gaps (P1 - HIGH)
-
-#### 3.1 Unwrap/Expect Usage (20-30 hours)
-**Status**: 356 instances found
-**Plan Reference**: `OPTIMIZATION_ANALYSIS_2025-12-29.md:116`
-
-**Risk**: Potential panics in production code
-
-**Remediation Strategy**:
-```rust
-// Before: Potential panic
-let value = some_option.unwrap();
-
-// After: Proper error handling
-let value = some_option
-    .ok_or_else(|| Error::MissingValue("Expected value not found"))?;
-```
-
-**Effort Breakdown**:
-- Audit all 356 instances: 8 hours
-- Convert to proper error handling: 10-15 hours
-- Add context to errors: 2-5 hours
-- Update tests: 2-5 hours
-
-#### 3.2 Clone Operations (20-30 hours)
-**Status**: 298 instances found
-**Plan Reference**: `OPTIMIZATION_ANALYSIS_2025-12-29.md:135`
-
-**Impact**: 5-15% performance improvement potential
-
-**Hot Paths Identified**:
-- Episode cloning in storage operations (~50 clones)
-- Pattern cloning during retrieval (~40 clones)
-- Context cloning in async functions (~30 clones)
-
-**Optimization Strategy**:
-```rust
-// Before: Expensive clone
-let episode_copy = episode.clone();
-process(episode_copy).await;
-
-// After: Use Arc
-let episode_ref = Arc::clone(&episode);
-process(episode_ref).await;
-```
-
-**Effort Breakdown**:
-- Profile clone hotspots: 4 hours
-- Convert to Arc/Cow/references: 12-18 hours
-- Benchmark improvements: 2 hours
-- Update API signatures: 2-6 hours
-
-#### 3.3 Dependency Duplication (10-15 hours)
-**Status**: 5+ duplicate dependencies
-**Plan Reference**: `OPTIMIZATION_ANALYSIS_2025-12-29.md:93`
-
-**Impact**: 2.1 GB binary → target <1.5 GB (29% reduction)
-
-**Duplicates Found**:
-- `approx` v0.4.0 and v0.5.1
-- `nalgebra` v0.32.6 and v0.34.1
-- `changepoint` v0.14.2 and v0.15.0
-- `argmin` v0.8.1 and v0.11.0
-- `rv` v0.16.5 and v0.19.1
-
-**Effort Breakdown**:
-- Update dependency tree: 3 hours
-- Test with consolidated versions: 4-6 hours
-- Audit unused dependencies: 2 hours
-- Optimize feature flags: 1-4 hours
-
----
-
-### 4. Other Code TODOs (P2-P3)
-
-#### 4.1 Contrastive Learning (P3)
-**Location**: `memory-core/src/spatiotemporal/embeddings.rs:281`
-**Code**: `// TODO: Implement full contrastive learning optimization in Phase 4`
-**Plan Reference**: `ROADMAP_ACTIVE.md` - v0.1.13
-**Effort**: ~50 hours
-**Status**: Planned for v0.1.13
-
-#### 4.2 Domain-Based Cache Invalidation (P3)
-**Location**: `memory-core/src/retrieval/cache.rs:314`
-**Code**: `// TODO: Domain-Based Invalidation (v0.1.13+)`
-**Plan Reference**: `GITHUB_ISSUE_domain_based_cache_invalidation.md`
-**Effort**: ~15 hours
-**Status**: Planned for v0.1.13+
-
-#### 4.3 Multi-Dimension Verification (P3)
-**Location**: `test-utils/src/multi_dimension.rs:115`
-**Code**: `// TODO: Implement actual verification once dimension tables are accessible`
-**Effort**: ~8 hours
-**Status**: Phase 3 enhancement
+**memory-core (Low)**:
+| File | Current LOC | Target LOC | Effort |
+|------|-------------|------------|--------|
+| `src/sync.rs` | 511 | ≤500 | 2-3 hrs |
+| `src/reward/adaptive.rs` | 510 | ≤500 | 2-3 hrs |
 
 ---
 
 ## Implementation Roadmap
 
-### Phase 1: Critical Compliance (Week 1-3)
+### Phase 1: P0 File Compliance (Week 1-2)
 **Priority**: P0 - Must Fix
-**Effort**: 40-50 hours
-**Target**: Achieve 100% codebase standards compliance
+**Effort**: 25-35 hours
+**Target**: Achieve 80% codebase compliance
 
 **Tasks**:
-- [ ] Week 1: Split top 5 large files (>1,400 LOC)
-  - memory-storage-turso/src/storage.rs (2,502 → 5 modules)
-  - memory-mcp/src/patterns/predictive.rs (2,435 → 5 modules)
-  - memory-core/src/memory/mod.rs (1,530 → 3 modules)
-  - memory-storage-redb/src/storage.rs (1,514 → 3 modules)
-  - memory-mcp/src/server.rs (1,414 → 3 modules)
-- [ ] Week 2-3: Split remaining 11 files (888-1,201 LOC)
-- [ ] Validation: All files ≤ 500 LOC, all tests passing
+- [ ] Week 1: Split memory-mcp sandbox files (wasm_sandbox, javy_compiler, unified_sandbox)
+- [ ] Week 2: Split memory-storage files (cache, pool)
+- [ ] Validation: All split files ≤ 500 LOC, tests passing
 
-### Phase 2: Embeddings Completion (Week 1-2) - ✅ COMPLETED
+### Phase 2: P1 File Compliance (Week 3-4)
 **Priority**: P1 - High Value
-**Effort**: 12-17 hours → ✅ COMPLETED
-**Target**: 100% embeddings integration
-**Status**: ✅ COMPLETE as of 2026-01-02
+**Effort**: 35-45 hours
+**Target**: Achieve 90% codebase compliance
 
 **Tasks**:
-- [x] Day 1-2: CLI Integration (3-4 hours) - `memory-cli/src/commands/embedding.rs` (467 LOC)
-- [x] Day 3: Hierarchical Retrieval Integration (2-3 hours) - `memory-core/src/memory/retrieval.rs`
-- [x] Day 4-5: MCP Server Integration (4-6 hours) - `memory-mcp/src/mcp/tools/embeddings.rs` (709 LOC)
-- [x] Day 6: E2E Testing (3-4 hours) - All tests passing
+- [ ] Week 3: Split memory-core large files (clustering, learning, embeddings)
+- [ ] Week 4: Split memory-core remaining (quality, queue, config, episode)
+- [ ] Validation: Tests passing, clippy clean
 
-### Phase 3: Code Quality (Week 3-5)
-**Priority**: P1 - High Quality
-**Effort**: 50-75 hours
-**Target**: Production-grade error handling and performance
-
-**Tasks**:
-- [ ] Week 3: Error Handling Audit (20-30 hours)
-- [ ] Week 4: Clone Reduction (20-30 hours)
-- [ ] Week 5: Dependency Cleanup (10-15 hours)
-
-### Phase 4: Performance Optimization (Week 6-8)
-**Priority**: P2 - Performance
-**Effort**: 60-90 hours
-**Target**: 15-30% performance improvement
+### Phase 3: P2 File Compliance (Week 5-6)
+**Priority**: P2 - Quality
+**Effort**: 20-30 hours
+**Target**: Achieve 95%+ codebase compliance
 
 **Tasks**:
-- [ ] Week 6: Database Optimization (25-35 hours)
-- [ ] Week 7: Memory Optimization (15-25 hours)
-- [ ] Week 8: Clone Reduction (20-30 hours)
+- [ ] Week 5: Split remaining memory-core files (validation, capacity, storage)
+- [ ] Week 6: Split memory-cli config files
+- [ ] P3 cleanup for edge cases
 
-### Phase 5: Enhancements (Week 9-12)
-**Priority**: P3 - Future Features
-**Effort**: 75-105 hours
-**Target**: Production monitoring and scalability
+### Phase 4: Code Quality (Week 7-8)
+**Priority**: P1 - Production Quality
+**Effort**: 40-60 hours
+**Target**: Production-grade code
 
 **Tasks**:
-- [ ] Week 9: Benchmarking Framework (20-30 hours)
-- [ ] Week 10-11: Observability (25-35 hours)
-- [ ] Week 12: Advanced Features (30-40 hours)
+- [ ] Week 7: Error handling audit (unwrap → proper errors)
+- [ ] Week 8: Clone reduction for hot paths
 
 ---
 
@@ -316,28 +184,25 @@ process(episode_ref).await;
 ### Code Quality
 | Metric | Current | Target | Gap |
 |--------|---------|--------|-----|
-| Files > 500 LOC | 16 | 0 | **16 files to split** |
-| Unwrap/Expect | 356 | <50 | **306 to audit** |
-| Binary Size | 2.1 GB | <1.5 GB | **-29% reduction** |
-| Duplicate Deps | 5+ | 0 | **5+ to consolidate** |
+| Files > 500 LOC | 20+ | 0 | **20+ to split** |
+| Test Pass Rate | ~85% | >95% | **10%+ improvement** |
+| Clippy Warnings | 0 | 0 | ✅ On target |
 
 ### Embeddings Integration
 | Component | Current | Target | Gap |
 |-----------|---------|--------|-----|
 | Core Infrastructure | 100% | 100% | ✅ Done |
-| CLI Integration | 100% | 100% | ✅ Done (467 LOC) |
-| MCP Integration | 100% | 100% | ✅ Done (709 LOC) |
+| CLI Integration | 100% | 100% | ✅ Done |
+| MCP Integration | 100% | 100% | ✅ Done |
 | Hierarchical Retrieval | 100% | 100% | ✅ Done |
-| E2E Tests | 100% | 100% | ✅ Done (10 tests passing) |
-| Documentation | 95% | 100% | **5% remaining** |
-| **Overall** | **98%** | **100%** | **2% remaining** |
+| E2E Tests | 100% | 100% | ✅ Done |
 
 ### Performance
-| Operation | Current | Target | Improvement |
-|-----------|---------|--------|-------------|
-| Clone Operations | 298 | <200 | **-33%** |
-| Memory Allocations | Baseline | -15% | **15% reduction** |
-| Query Performance | Baseline | +15-30% | **2-3x speedup** |
+| Operation | Current | Target | Status |
+|-----------|---------|--------|--------|
+| Episode Creation | <1ms | <50ms | ✅ Exceeds |
+| Pattern Extraction | <10ms | <1000ms | ✅ Exceeds |
+| Memory Retrieval | <1ms | <100ms | ✅ Exceeds |
 
 ---
 
@@ -347,61 +212,60 @@ process(episode_ref).await;
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
 | **File splitting breaks tests** | High | Medium | Incremental changes, full test suite after each split |
-| **API changes from clone reduction** | Medium | High | Deprecation warnings, migration guide |
+| **API changes break consumers** | Medium | Low | Preserve public API through re-exports |
 
 ### Medium Risk
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
-| **Performance regressions** | Medium | Low | Continuous benchmarking, rollback plan |
-| **Dependency conflicts** | Low | Medium | Careful version selection, thorough testing |
+| **Test pass rate drops** | Medium | Low | Run tests after each split, fix immediately |
+| **Build time increases** | Low | Low | Parallel compilation, optimized feature flags |
 
 ### Low Risk
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
 | **Documentation drift** | Low | Medium | Update docs with code changes |
-| **Build time increase** | Low | Low | Optimize feature flags, parallel builds |
 
 ---
 
 ## Recommended Actions
 
 ### Immediate (This Week)
-1. ✅ **Complete Gap Analysis** - DONE
-2. ✅ **Update Implementation Plan** - DONE
-3. ⏳ **Prioritize P0 Tasks** - File splitting
+1. ✅ **File compliance analysis complete** - DONE
+2. ⏳ **Begin P0 file splitting** - Start with memory-mcp sandbox files
 
 ### Short-term (Next 2 Weeks)
-1. ⏳ **File Splitting Sprint**: Split top 5 files (40 hours)
-2. ✅ **Embeddings Completion**: 100% complete (CLI, MCP, Retrieval all done - 2026-01-02)
-3. ⏳ **Error Handling Audit** (20-30 hours)
+1. ⏳ **Split P0 files**: memory-mcp sandbox + memory-storage
+2. ⏳ **Validate**: Tests pass, clippy clean
 
 ### Medium-term (Next 1-2 Months)
-1. ⏳ **Code Quality Sprint**: Error handling + clone reduction (50-75 hours)
-2. ⏳ **Performance Sprint**: Database + memory optimization (60-90 hours)
+1. ⏳ **Complete P1 files**: memory-core large files
+2. ⏳ **Complete P2 files**: remaining files
+3. ⏳ **Code quality improvements**: unwraps, clones
 
 ### Long-term (Q1-Q2 2026)
-1. ⏳ **v0.1.11-v0.1.15 Releases**: Incremental feature releases
-2. ⏳ **v0.2.0 Planning**: Major enhancements and optimization
+1. ⏳ **v0.1.14+ Releases**: Incremental feature releases
+2. ⏳ **v0.2.0 Planning**: Major enhancements
 
 ---
 
 ## Related Documents
 
-- **[EMBEDDINGS_COMPLETION_ROADMAP.md](EMBEDDINGS_COMPLETION_ROADMAP.md)** - Embeddings integration plan
-- **[OPTIMIZATION_ANALYSIS_2025-12-29.md](OPTIMIZATION_ANALYSIS_2025-12-29.md)** - Detailed codebase analysis
-- **[OPTIMIZATION_ROADMAP_V020.md](OPTIMIZATION_ROADMAP_V020.md)** - v0.2.0 optimization roadmap
-- **[STATUS/PROJECT_STATUS_UNIFIED.md](STATUS/PROJECT_STATUS_UNIFIED.md)** - Current project status
-- **[ROADMAPS/ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md)** - Active development roadmap
-- **[AGENTS.md](../AGENTS.md)** - Coding standards and guidelines
+- **[FILE_COMPLIANCE_PROGRESS_2026-01-08.md](FILE_COMPLIANCE_PROGRESS_2026-01-08.md)** - Detailed file-by-file status
+- **[IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md](IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md)** - Implementation roadmap
+- **[NEXT_DEVELOPMENT_PRIORITIES.md](NEXT_DEVELOPMENT_PRIORITIES.md)** - Current priorities
+- **[AGENTS.md](../AGENTS.md)** - Coding standards (500 LOC limit)
+- **[CIRCUIT_BREAKER_CONFIGURATION_GUIDE.md](CIRCUIT_BREAKER_CONFIGURATION_GUIDE.md)** - Circuit breaker docs
+- **[CIRCUIT_BREAKER_INCIDENT_RUNBOOK.md](CIRCUIT_BREAKER_INCIDENT_RUNBOOK.md)** - Incident handling
 
 ---
 
-**Report Status**: ✅ COMPLETE (Updated 2026-01-02)
-**Next Action**: Begin P0 File Splitting (40-50 hours) then P1 Code Quality
-**Total Estimated Effort**: 205-295 hours (5-7 weeks)
-**Production Ready**: v0.1.9 (100%)
-**Gap to 100% Compliance**: ~145-195 hours
+**Report Status**: ✅ UPDATED
+**Last Updated**: 2026-01-09
+**Next Action**: Begin P0 file refactoring (memory-mcp sandbox files)
+**Total Estimated Effort**: 185-275 hours (4.5-7 weeks)
+**Production Ready**: v0.1.12 (100%)
+**Gap to 100% Compliance**: ~50-70 hours for file compliance
 
 ---
 
-*This report provides a comprehensive analysis of all gaps between documented plans and actual implementation. Updated: 2026-01-02*
+*This report provides a comprehensive analysis of all gaps between documented plans and actual implementation. Updated: 2026-01-09*

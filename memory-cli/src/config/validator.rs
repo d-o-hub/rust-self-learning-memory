@@ -193,7 +193,10 @@ pub fn validate_database_config(config: &DatabaseConfig) -> ValidationResult {
     }
 
     if config.turso_url.is_none() && config.redb_path.is_some() {
-        let redb_path = config.redb_path.as_ref().unwrap();
+        let redb_path = config
+            .redb_path
+            .as_ref()
+            .expect("redb_path is Some: checked by is_some() in if condition");
         if redb_path.starts_with("libsql://") {
             warnings.push(ValidationWarning {
                 field: "database.redb_path".to_string(),

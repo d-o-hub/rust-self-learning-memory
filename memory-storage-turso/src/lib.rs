@@ -23,9 +23,8 @@
 //! # }
 //! ```
 
-use async_trait::async_trait;
 use libsql::{Builder, Connection, Database};
-use memory_core::{Error, Result, StorageBackend};
+use memory_core::{Error, Result};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, warn};
@@ -42,11 +41,18 @@ mod fts5_schema;
 // Storage module - split into submodules for file size compliance
 pub mod storage;
 
-pub use pool::{ConnectionPool, PoolConfig, PoolStatistics};
+// Trait implementations - moved to separate module for file size compliance
+pub mod trait_impls;
+
+// Schema initialization - moved to separate module for file size compliance
+pub mod turso_config;
+
+pub use pool::{ConnectionPool, PoolConfig, PoolStatistics, PooledConnection};
 pub use resilient::ResilientStorage;
 pub use storage::capacity::CapacityStatistics;
 pub use storage::episodes::EpisodeQuery;
 pub use storage::patterns::{PatternMetadata, PatternQuery};
+pub use trait_impls::StorageStatistics;
 
 /// Turso storage backend for durable persistence
 pub struct TursoStorage {
@@ -300,138 +306,6 @@ impl TursoStorage {
         })
     }
 
-    /// Initialize the database schema
-    ///
-    /// Creates tables and indexes if they don't exist.
-    /// Safe to call multiple times.
-    pub async fn initialize_schema(&self) -> Result<()> {
-        info!("Initializing Turso database schema");
-        let conn = self.get_connection().await?;
-
-        // Enable WAL mode for better concurrent access (especially for file-based SQLite)
-        // WAL mode allows concurrent reads while writing, reducing "database locked" errors
-        // Use execute_raw that can handle PRAGMA statements returning rows
-        let _ = self.execute_pragmas(&conn).await;
-
-        // Create tables
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PATTERNS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_TABLE)
-            .await?;
-
-        // Create legacy embeddings table only when multi-dimension feature is NOT enabled
-        #[cfg(not(feature = "turso_multi_dimension"))]
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_TABLE)
-            .await?;
-
-        // Create monitoring tables
-        self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_AGENT_METRICS_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_TASK_METRICS_TABLE)
-            .await?;
-
-        // Create indexes
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_TASK_TYPE_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_TIMESTAMP_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EPISODES_DOMAIN_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_PATTERNS_CONTEXT_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_CONFIDENCE_INDEX)
-            .await?;
-
-        // Create legacy embeddings indexes only when multi-dimension feature is NOT enabled
-        #[cfg(not(feature = "turso_multi_dimension"))]
-        {
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_ITEM_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_VECTOR_INDEX)
-                .await?;
-        }
-
-        // Create monitoring indexes
-        self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_TIME_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EXECUTION_RECORDS_AGENT_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_AGENT_METRICS_TYPE_INDEX)
-            .await?;
-
-        // Create Phase 2 (GENESIS) tables and indexes
-        self.execute_with_retry(&conn, schema::CREATE_EPISODE_SUMMARIES_TABLE)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_SUMMARIES_CREATED_AT_INDEX)
-            .await?;
-        self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
-            .await?;
-
-        // Create FTS5 tables for hybrid search (feature-gated)
-        #[cfg(feature = "hybrid_search")]
-        {
-            info!("Initializing FTS5 schema for hybrid search");
-            self.execute_with_retry(&conn, fts5_schema::CREATE_EPISODES_FTS_TABLE)
-                .await?;
-            self.execute_with_retry(&conn, fts5_schema::CREATE_PATTERNS_FTS_TABLE)
-                .await?;
-            self.execute_with_retry(&conn, fts5_schema::CREATE_EPISODES_FTS_TRIGGERS)
-                .await?;
-            self.execute_with_retry(&conn, fts5_schema::CREATE_PATTERNS_FTS_TRIGGERS)
-                .await?;
-            info!("FTS5 schema initialization complete");
-        }
-
-        // Create dimension-specific vector tables (Phase 0)
-        #[cfg(feature = "turso_multi_dimension")]
-        {
-            info!("Initializing dimension-specific vector tables");
-
-            // Create tables
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_384_TABLE)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1024_TABLE)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1536_TABLE)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_3072_TABLE)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_OTHER_TABLE)
-                .await?;
-
-            // Create vector indexes
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_384_VECTOR_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1024_VECTOR_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1536_VECTOR_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_3072_VECTOR_INDEX)
-                .await?;
-
-            // Create item indexes
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_384_ITEM_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1024_ITEM_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1536_ITEM_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_3072_ITEM_INDEX)
-                .await?;
-            self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_OTHER_ITEM_INDEX)
-                .await?;
-
-            info!("Dimension-specific vector tables initialized");
-        }
-
-        info!("Schema initialization complete");
-        Ok(())
-    }
-
     /// Get a database connection
     ///
     /// If connection pooling is enabled, this will use a pooled connection.
@@ -573,138 +447,5 @@ impl TursoStorage {
         } else {
             Ok(0)
         }
-    }
-}
-
-/// Storage statistics
-#[derive(Debug, Clone)]
-pub struct StorageStatistics {
-    pub episode_count: usize,
-    pub pattern_count: usize,
-    pub heuristic_count: usize,
-}
-
-/// Implement the unified StorageBackend trait for TursoStorage
-#[async_trait]
-impl StorageBackend for TursoStorage {
-    async fn store_episode(&self, episode: &memory_core::Episode) -> Result<()> {
-        TursoStorage::store_episode(self, episode).await
-    }
-
-    async fn get_episode(&self, id: uuid::Uuid) -> Result<Option<memory_core::Episode>> {
-        TursoStorage::get_episode(self, id).await
-    }
-
-    async fn store_pattern(&self, pattern: &memory_core::Pattern) -> Result<()> {
-        TursoStorage::store_pattern(self, pattern).await
-    }
-
-    async fn get_pattern(
-        &self,
-        id: memory_core::episode::PatternId,
-    ) -> Result<Option<memory_core::Pattern>> {
-        TursoStorage::get_pattern(self, id).await
-    }
-
-    async fn store_heuristic(&self, heuristic: &memory_core::Heuristic) -> Result<()> {
-        TursoStorage::store_heuristic(self, heuristic).await
-    }
-
-    async fn get_heuristic(&self, id: uuid::Uuid) -> Result<Option<memory_core::Heuristic>> {
-        TursoStorage::get_heuristic(self, id).await
-    }
-
-    async fn query_episodes_since(
-        &self,
-        since: chrono::DateTime<chrono::Utc>,
-    ) -> Result<Vec<memory_core::Episode>> {
-        TursoStorage::query_episodes_since(self, since).await
-    }
-
-    async fn query_episodes_by_metadata(
-        &self,
-        key: &str,
-        value: &str,
-    ) -> Result<Vec<memory_core::Episode>> {
-        TursoStorage::query_episodes_by_metadata(self, key, value).await
-    }
-
-    async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        TursoStorage::store_embedding_backend(self, id, embedding).await
-    }
-
-    async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
-        TursoStorage::get_embedding_backend(self, id).await
-    }
-
-    async fn delete_embedding(&self, id: &str) -> Result<bool> {
-        TursoStorage::delete_embedding_backend(self, id).await
-    }
-
-    async fn store_embeddings_batch(&self, embeddings: Vec<(String, Vec<f32>)>) -> Result<()> {
-        TursoStorage::store_embeddings_batch_backend(self, embeddings).await
-    }
-
-    async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
-        TursoStorage::get_embeddings_batch_backend(self, ids).await
-    }
-}
-
-/// Implement the MonitoringStorageBackend trait for TursoStorage
-#[async_trait]
-impl memory_core::monitoring::storage::MonitoringStorageBackend for TursoStorage {
-    async fn store_execution_record(
-        &self,
-        record: &memory_core::monitoring::types::ExecutionRecord,
-    ) -> Result<()> {
-        TursoStorage::store_execution_record(self, record)
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
-    }
-
-    async fn store_agent_metrics(
-        &self,
-        metrics: &memory_core::monitoring::types::AgentMetrics,
-    ) -> Result<()> {
-        TursoStorage::store_agent_metrics(self, metrics)
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
-    }
-
-    async fn store_task_metrics(
-        &self,
-        metrics: &memory_core::monitoring::types::TaskMetrics,
-    ) -> Result<()> {
-        TursoStorage::store_task_metrics(self, metrics)
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
-    }
-
-    async fn load_agent_metrics(
-        &self,
-        agent_name: &str,
-    ) -> Result<Option<memory_core::monitoring::types::AgentMetrics>> {
-        TursoStorage::load_agent_metrics(self, agent_name)
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
-    }
-
-    async fn load_execution_records(
-        &self,
-        agent_name: Option<&str>,
-        limit: usize,
-    ) -> Result<Vec<memory_core::monitoring::types::ExecutionRecord>> {
-        TursoStorage::load_execution_records(self, agent_name, limit)
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
-    }
-
-    async fn load_task_metrics(
-        &self,
-        task_type: &str,
-    ) -> Result<Option<memory_core::monitoring::types::TaskMetrics>> {
-        TursoStorage::load_task_metrics(self, task_type)
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Storage error: {}", e)))
     }
 }

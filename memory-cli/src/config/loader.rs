@@ -39,7 +39,10 @@ impl ConfigCache {
     /// Get configuration from cache if valid
     #[allow(clippy::excessive_nesting)]
     fn get(&self, path: &Path) -> Option<super::Config> {
-        let entries = self.entries.lock().unwrap();
+        let entries = self
+            .entries
+            .lock()
+            .expect("ConfigCache: entries lock poisoned - this indicates a panic in cache code");
 
         if let Some(entry) = entries.get(path) {
             // Check if file has been modified
@@ -47,7 +50,10 @@ impl ConfigCache {
                 if let Ok(current_mtime) = metadata.modified() {
                     if current_mtime == entry.mtime {
                         // Cache hit
-                        *self.hits.lock().unwrap() += 1;
+                        *self
+                            .hits
+                            .lock()
+                            .expect("ConfigCache: hits lock poisoned - this indicates a panic in metrics tracking") += 1;
                         tracing::debug!("Config cache hit for: {}", path.display());
                         return Some(entry.config.clone());
                     }
@@ -56,7 +62,9 @@ impl ConfigCache {
         }
 
         // Cache miss
-        *self.misses.lock().unwrap() += 1;
+        *self.misses.lock().expect(
+            "ConfigCache: misses lock poisoned - this indicates a panic in metrics tracking",
+        ) += 1;
         tracing::debug!("Config cache miss for: {}", path.display());
         None
     }
@@ -66,7 +74,9 @@ impl ConfigCache {
         if let Ok(metadata) = std::fs::metadata(&path) {
             if let Ok(mtime) = metadata.modified() {
                 let entry = CacheEntry { config, mtime };
-                let mut entries = self.entries.lock().unwrap();
+                let mut entries = self.entries.lock().expect(
+                    "ConfigCache: entries lock poisoned - this indicates a panic in cache code",
+                );
                 entries.insert(path, entry);
             }
         }
@@ -74,20 +84,32 @@ impl ConfigCache {
 
     /// Clear all cached entries
     fn clear(&self) {
-        let mut entries = self.entries.lock().unwrap();
+        let mut entries = self
+            .entries
+            .lock()
+            .expect("ConfigCache: entries lock poisoned - this indicates a panic in cache code");
         entries.clear();
         tracing::debug!("Config cache cleared");
     }
 
     /// Get cache statistics
     fn stats(&self) -> CacheStats {
-        let hits = *self.hits.lock().unwrap();
-        let misses = *self.misses.lock().unwrap();
+        let hits = *self
+            .hits
+            .lock()
+            .expect("ConfigCache: hits lock poisoned - this indicates a panic in metrics tracking");
+        let misses = *self.misses.lock().expect(
+            "ConfigCache: misses lock poisoned - this indicates a panic in metrics tracking",
+        );
 
         CacheStats {
             hits,
             misses,
-            entries: self.entries.lock().unwrap().len(),
+            entries: self
+                .entries
+                .lock()
+                .expect("ConfigCache: entries lock poisoned - this indicates a panic in cache code")
+                .len(),
             hit_rate: if hits + misses > 0 {
                 hits as f64 / (hits + misses) as f64
             } else {
@@ -616,7 +638,7 @@ mod cache_tests {
         // Verify hit rate calculation works
         let stats = cache_stats();
         assert!(
-            stats.hit_rate >= 0.0 && stats.hit_rate <= 1.0,
+            (0.0..=1.0).contains(&stats.hit_rate),
             "Hit rate should be between 0 and 1"
         );
     }

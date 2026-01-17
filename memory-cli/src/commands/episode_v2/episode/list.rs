@@ -111,9 +111,8 @@ pub async fn list_episodes(
         if let Some(ref dom) = domain {
             let dom_lower = dom.to_lowercase();
             let domain_clone = domain.clone();
-            episodes.retain(move |episode| {
-                episode.context.domain.to_lowercase().contains(&dom_lower)
-            });
+            episodes
+                .retain(move |episode| episode.context.domain.to_lowercase().contains(&dom_lower));
             drop(domain_clone);
         }
 
@@ -122,7 +121,11 @@ pub async fn list_episodes(
             let tags_clone = tags.clone();
             episodes.retain(|episode| {
                 let episode_tags: &Vec<String> = &episode.context.tags;
-                tag_list.iter().any(|t| episode_tags.iter().any(|et| et.to_lowercase() == t.to_lowercase()))
+                tag_list.iter().any(|t| {
+                    episode_tags
+                        .iter()
+                        .any(|et| et.to_lowercase() == t.to_lowercase())
+                })
             });
             drop(tags_clone);
         }

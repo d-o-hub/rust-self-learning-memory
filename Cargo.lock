@@ -3725,7 +3725,7 @@ dependencies = [
  "lru 0.16.3",
  "memory-storage-redb",
  "memory-storage-turso",
- "ndarray 0.16.1",
+ "ndarray 0.17.2",
  "ort",
  "reqwest",
  "serde",

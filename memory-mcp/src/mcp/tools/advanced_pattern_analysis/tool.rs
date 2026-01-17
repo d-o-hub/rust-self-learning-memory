@@ -12,6 +12,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, info, instrument};
 
+use super::summary::{MetricsCalculator, SummaryGenerator};
+use super::time_series::TimeSeriesExtractor;
+use super::validator::{DataPreparer, InputValidator};
+
 use super::types::{
     AdvancedPatternAnalysisInput, AdvancedPatternAnalysisOutput, AnalysisConfig, AnalysisSummary,
     AnalysisType, PerformanceMetrics,
@@ -166,42 +170,8 @@ impl AdvancedPatternAnalysisTool {
 
     /// Validate input parameters
     pub fn validate_input(&self, input: &AdvancedPatternAnalysisInput) -> Result<()> {
-        if input.time_series_data.is_empty() {
-            return Err(anyhow!("No time series data provided"));
-        }
-
-        for (var_name, series) in &input.time_series_data {
-            if series.is_empty() {
-                return Err(anyhow!("Variable '{}' has no data points", var_name));
-            }
-            if series.len() < 3 {
-                return Err(anyhow!(
-                    "Variable '{}' has insufficient data points (minimum 3)",
-                    var_name
-                ));
-            }
-            if !series.iter().all(|&x| x.is_finite()) {
-                return Err(anyhow!(
-                    "Variable '{}' contains non-finite values",
-                    var_name
-                ));
-            }
-        }
-
-        if let Some(config) = &input.config {
-            if let Some(sig) = config.significance_level {
-                if !(0.0..=1.0).contains(&sig) {
-                    return Err(anyhow!("Significance level must be between 0.0 and 1.0"));
-                }
-            }
-            if let Some(sens) = config.anomaly_sensitivity {
-                if !(0.0..=1.0).contains(&sens) {
-                    return Err(anyhow!("Anomaly sensitivity must be between 0.0 and 1.0"));
-                }
-            }
-        }
-
-        Ok(())
+        let validator = InputValidator::new();
+        validator.validate(input)
     }
 
     /// Prepare and validate data for analysis
@@ -209,66 +179,8 @@ impl AdvancedPatternAnalysisTool {
         &self,
         raw_data: &HashMap<String, Vec<f64>>,
     ) -> Result<HashMap<String, Vec<f64>>> {
-        let mut prepared_data = HashMap::new();
-
-        for (var_name, series) in raw_data {
-            // Remove any remaining non-finite values (shouldn't happen after validation)
-            let clean_series: Vec<f64> =
-                series.iter().copied().filter(|&x| x.is_finite()).collect();
-
-            if clean_series.len() >= 3 {
-                prepared_data.insert(var_name.clone(), clean_series);
-            }
-        }
-
-        Ok(prepared_data)
-    }
-
-    /// Perform statistical analysis
-    async fn perform_statistical_analysis(
-        &self,
-        data: &HashMap<String, Vec<f64>>,
-        config: &Option<AnalysisConfig>,
-    ) -> Result<statistical::StatisticalResults> {
-        let mut engine_config = statistical::StatisticalConfig::default();
-
-        if let Some(cfg) = config {
-            if let Some(sig) = cfg.significance_level {
-                engine_config.significance_level = sig;
-            }
-            if let Some(max_points) = cfg.max_data_points {
-                engine_config.max_data_points = max_points;
-            }
-            if let Some(parallel) = cfg.parallel_processing {
-                engine_config.parallel_processing = parallel;
-            }
-        }
-
-        let mut engine = statistical::StatisticalEngine::with_config(engine_config)?;
-        engine.analyze_time_series(data)
-    }
-
-    /// Perform predictive analysis
-    async fn perform_predictive_analysis(
-        &self,
-        data: &HashMap<String, Vec<f64>>,
-        config: &Option<AnalysisConfig>,
-    ) -> Result<predictive::PredictiveResults> {
-        let mut predictive_config = predictive::PredictiveConfig::default();
-
-        if let Some(cfg) = config {
-            if let Some(horizon) = cfg.forecast_horizon {
-                predictive_config.forecast_horizon = horizon;
-            }
-            if let Some(sens) = cfg.anomaly_sensitivity {
-                predictive_config.anomaly_sensitivity = sens;
-            }
-            if let Some(enable_causal) = cfg.enable_causal_inference {
-                predictive_config.enable_causal_inference = enable_causal;
-            }
-        }
-
-        predictive::run_predictive_analysis(data, predictive_config)
+        let preparer = DataPreparer::new();
+        preparer.prepare(raw_data)
     }
 
     /// Generate analysis summary and recommendations
@@ -278,153 +190,14 @@ impl AdvancedPatternAnalysisTool {
         predictive: &Option<predictive::PredictiveResults>,
         data: &HashMap<String, Vec<f64>>,
     ) -> AnalysisSummary {
-        let mut key_findings = Vec::new();
-        let mut recommendations = Vec::new();
-        let mut confidence_level = 0.8; // Base confidence
-
-        // Analyze statistical results
-        if let Some(stats) = statistical {
-            // Significant correlations
-            let sig_correlations: Vec<_> = stats
-                .correlations
-                .iter()
-                .filter(|c| c.significant)
-                .collect();
-
-            if !sig_correlations.is_empty() {
-                key_findings.push(format!(
-                    "Found {} significant correlations between variables",
-                    sig_correlations.len()
-                ));
-                recommendations
-                    .push("Consider these correlated variables when making decisions".to_string());
-            }
-
-            // Changepoints
-            if !stats.changepoints.is_empty() {
-                key_findings.push(format!(
-                    "Detected {} behavioral changepoints",
-                    stats.changepoints.len()
-                ));
-                recommendations.push("Investigate causes of detected changepoints".to_string());
-            }
-
-            // Trends
-            let significant_trends: Vec<_> =
-                stats.trends.iter().filter(|t| t.significant).collect();
-
-            if !significant_trends.is_empty() {
-                let increasing: Vec<_> = significant_trends
-                    .iter()
-                    .filter(|t| matches!(t.direction, statistical::TrendDirection::Increasing))
-                    .collect();
-                let decreasing: Vec<_> = significant_trends
-                    .iter()
-                    .filter(|t| matches!(t.direction, statistical::TrendDirection::Decreasing))
-                    .collect();
-
-                if !increasing.is_empty() {
-                    key_findings.push(format!(
-                        "{} variables showing significant increasing trends",
-                        increasing.len()
-                    ));
-                }
-                if !decreasing.is_empty() {
-                    key_findings.push(format!(
-                        "{} variables showing significant decreasing trends",
-                        decreasing.len()
-                    ));
-                }
-            }
-        }
-
-        // Analyze predictive results
-        if let Some(pred) = predictive {
-            // Forecasting quality
-            let avg_forecast_quality: f64 =
-                pred.forecasts.iter().map(|f| f.fit_quality).sum::<f64>()
-                    / pred.forecasts.len() as f64;
-
-            if avg_forecast_quality > 0.7 {
-                key_findings.push(format!(
-                    "High-quality forecasts generated (avg quality: {:.2})",
-                    avg_forecast_quality
-                ));
-                recommendations
-                    .push("Forecasts can be used for planning and decision making".to_string());
-            } else if avg_forecast_quality < 0.5 {
-                key_findings.push(format!(
-                    "Low-quality forecasts (avg quality: {:.2})",
-                    avg_forecast_quality
-                ));
-                recommendations.push(
-                    "Consider collecting more data or using different forecasting methods"
-                        .to_string(),
-                );
-                confidence_level *= 0.8;
-            }
-
-            // Anomalies
-            let total_anomalies: usize =
-                pred.anomalies.iter().map(|a| a.anomaly_indices.len()).sum();
-
-            if total_anomalies > 0 {
-                key_findings.push(format!(
-                    "Detected {} anomalous data points",
-                    total_anomalies
-                ));
-                recommendations
-                    .push("Investigate detected anomalies for potential issues".to_string());
-            }
-
-            // Causal relationships
-            let significant_causal: Vec<_> = pred
-                .causal_relationships
-                .iter()
-                .filter(|c| c.significant)
-                .collect();
-
-            if !significant_causal.is_empty() {
-                key_findings.push(format!(
-                    "Found {} significant causal relationships",
-                    significant_causal.len()
-                ));
-                recommendations
-                    .push("Use causal relationships to understand system dynamics".to_string());
-            }
-        }
-
-        // Adjust confidence based on data quality
-        if data.values().any(|series| series.len() < 10) {
-            confidence_level *= 0.9;
-            recommendations.push(
-                "Consider collecting more data points for more reliable analysis".to_string(),
-            );
-        }
-
-        AnalysisSummary {
-            variables_analyzed: data.len(),
-            key_findings,
-            recommendations,
-            confidence_level,
-        }
+        let generator = SummaryGenerator::new();
+        generator.generate(statistical, predictive, data)
     }
 
     /// Calculate performance metrics
     fn calculate_performance_metrics(&self, start_time: std::time::Instant) -> PerformanceMetrics {
-        let total_time_ms = start_time.elapsed().as_millis() as u64;
-
-        // Estimate memory usage (rough approximation)
-        let memory_usage_bytes = 1024 * 1024; // 1MB base estimate
-
-        // Estimate CPU usage (simplified)
-        let cpu_usage_percent = if total_time_ms > 1000 { 50.0 } else { 10.0 };
-
-        PerformanceMetrics {
-            total_time_ms,
-            memory_usage_bytes,
-            cpu_usage_percent,
-        }
+        let calculator = MetricsCalculator::new();
+        calculator.calculate(start_time)
     }
 
     /// Extract time series data from memory episodes
@@ -452,12 +225,13 @@ impl AdvancedPatternAnalysisTool {
             .await;
 
         if episodes.is_empty() {
-            return Err(anyhow!(
+            return Err(anyhow::anyhow!(
                 "No relevant episodes found for time series extraction"
             ));
         }
 
-        // Extract metrics from episodes
+        // Extract metrics from episodes using TimeSeriesExtractor
+        let extractor = TimeSeriesExtractor::new();
         let mut time_series = HashMap::new();
 
         // Common metrics to extract
@@ -473,48 +247,12 @@ impl AdvancedPatternAnalysisTool {
             let mut values = Vec::new();
 
             for episode in &episodes {
-                // Extract metric value from episode data
-                // This is a simplified extraction - in practice, you'd parse episode JSON
-                match metric {
-                    "execution_time_ms" => {
-                        // Try to extract from execution steps
-                        let total_time: u64 =
-                            episode.steps.iter().map(|step| step.latency_ms).sum();
-                        values.push(total_time as f64);
-                    }
-                    "success_rate" => {
-                        // Calculate success rate from outcomes
-                        let success_count = episodes
-                            .iter()
-                            .filter(|e| {
-                                matches!(e.outcome, Some(memory_core::TaskOutcome::Success { .. }))
-                            })
-                            .count();
-                        let rate = success_count as f64 / episodes.len() as f64;
-                        values.push(rate * 100.0); // Convert to percentage
-                    }
-                    "complexity_score" => {
-                        // Use complexity level as numeric score
-                        let score = match episode.context.complexity {
-                            memory_core::ComplexityLevel::Simple => 1.0,
-                            memory_core::ComplexityLevel::Moderate => 2.0,
-                            memory_core::ComplexityLevel::Complex => 3.0,
-                        };
-                        values.push(score);
-                    }
-                    "pattern_match_score" => {
-                        // Simplified pattern matching score
-                        values.push(0.8); // Placeholder
-                    }
-                    "memory_usage_mb" => {
-                        // Estimate memory usage
-                        values.push(50.0); // Placeholder
-                    }
-                    _ => {}
+                if let Some(value) = extractor.extract_metric(metric, episode, &episodes) {
+                    values.push(value);
                 }
             }
 
-            if !values.is_empty() && values.len() >= 3 {
+            if extractor.meets_threshold(&values, 3) {
                 time_series.insert(metric.to_string(), values);
             }
         }

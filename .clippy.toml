@@ -15,6 +15,13 @@ too-many-lines-threshold = 500
 allow-expect-in-tests = true
 allow-unwrap-in-tests = true
 
+# Error handling - unwrap() usage policy:
+# Production code should avoid unwrap() and use proper error handling:
+# - Use `?` operator for error propagation
+# - Use `unwrap_or()` or `unwrap_or_else()` for safe defaults
+# - Use `ok_or()` to convert Option to Result
+# Test code may use unwrap() for simplicity (allow-unwrap-in-tests = true)
+
 # Allowances for examples and tests (style warnings that don't affect functionality)
 # Type complexity and cognitive complexity thresholds already set above
 

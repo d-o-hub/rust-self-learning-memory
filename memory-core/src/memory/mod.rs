@@ -228,7 +228,8 @@ pub struct SelfLearningMemory {
     /// Cache storage backend (redb)
     pub(super) cache_storage: Option<Arc<dyn StorageBackend>>,
     /// In-memory fallback for episodes (used when no storage configured)
-    pub(super) episodes_fallback: Arc<RwLock<HashMap<Uuid, Episode>>>,
+    /// Uses Arc<Episode> to avoid cloning when sharing episodes across operations
+    pub(super) episodes_fallback: Arc<RwLock<HashMap<Uuid, Arc<Episode>>>>,
     /// In-memory fallback for patterns (used when no storage configured)
     pub(super) patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,
     /// In-memory fallback for heuristics (used when no storage configured)
@@ -272,6 +273,10 @@ pub struct SelfLearningMemory {
     // v0.1.12: Query Caching
     /// Query cache for retrieval performance (LRU + TTL)
     query_cache: Arc<crate::retrieval::QueryCache>,
+
+    // Phase 3 (DBSCAN) - Anomaly Detection
+    /// DBSCAN anomaly detector for identifying unusual episodes
+    dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
 }
 
 impl Default for SelfLearningMemory {

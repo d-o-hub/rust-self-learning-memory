@@ -87,6 +87,9 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     // Initialize query cache with default settings
     let query_cache = Arc::new(crate::retrieval::QueryCache::new());
 
+    // Phase 3 (DBSCAN) - Initialize anomaly detector
+    let dbscan_detector = crate::patterns::DBSCANAnomalyDetector::new();
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -113,6 +116,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         semantic_service,
         semantic_config,
         query_cache,
+        dbscan_detector,
     }
 }
 
@@ -202,6 +206,9 @@ pub fn with_storage(
     // Initialize query cache with default settings
     let query_cache = Arc::new(crate::retrieval::QueryCache::new());
 
+    // Phase 3 (DBSCAN) - Initialize anomaly detector
+    let dbscan_detector = crate::patterns::DBSCANAnomalyDetector::new();
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -228,6 +235,7 @@ pub fn with_storage(
         semantic_service,
         semantic_config,
         query_cache,
+        dbscan_detector,
     }
 }
 

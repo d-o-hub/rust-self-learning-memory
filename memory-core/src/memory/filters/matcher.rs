@@ -150,6 +150,16 @@ impl EpisodeFilter {
         episodes.into_iter().filter(|e| self.matches(e)).collect()
     }
 
+    /// Apply this filter to a collection of Arc-wrapped episodes
+    /// This avoids cloning when filtering Arc<Episode> collections
+    #[must_use]
+    pub fn apply_arc(
+        &self,
+        episodes: Vec<std::sync::Arc<Episode>>,
+    ) -> Vec<std::sync::Arc<Episode>> {
+        episodes.into_iter().filter(|e| self.matches(&e)).collect()
+    }
+
     /// Count how many episodes match this filter
     #[must_use]
     pub fn count_matches(&self, episodes: &[Episode]) -> usize {

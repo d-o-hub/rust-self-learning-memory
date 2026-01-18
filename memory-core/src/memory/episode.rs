@@ -98,8 +98,9 @@ impl SelfLearningMemory {
         }
 
         // Always store in fallback for in-memory access
+        // Store as Arc to avoid cloning when sharing
         let mut episodes = self.episodes_fallback.write().await;
-        episodes.insert(episode_id, episode);
+        episodes.insert(episode_id, Arc::new(episode));
 
         episode_id
     }
@@ -174,6 +175,7 @@ impl SelfLearningMemory {
     #[instrument(skip(self, step), fields(episode_id = %episode_id, step_number = step.step_number))]
     pub async fn log_step(&self, episode_id: Uuid, step: ExecutionStep) {
         // Validate step first (before acquiring locks)
+        // Use Arc::clone to check without consuming
         {
             let episodes = self.episodes_fallback.read().await;
             if let Some(episode) = episodes.get(&episode_id) {
@@ -221,22 +223,28 @@ impl SelfLearningMemory {
             }
         } else {
             // Legacy immediate persistence (batching disabled)
+            // We need to clone, modify, and reinsert since we can't mutate through Arc
             let mut episodes = self.episodes_fallback.write().await;
-            if let Some(episode) = episodes.get_mut(&episode_id) {
+            if let Some(episode_arc) = episodes.get(&episode_id) {
+                // Clone the Arc, then clone the Episode to mutate it
+                let mut episode = (*episode_arc).clone();
                 episode.add_step(step);
 
                 // Update in storage backends
                 if let Some(cache) = &self.cache_storage {
-                    if let Err(e) = cache.store_episode(episode).await {
+                    if let Err(e) = cache.store_episode(&episode).await {
                         warn!("Failed to update episode in cache: {}", e);
                     }
                 }
 
                 if let Some(turso) = &self.turso_storage {
-                    if let Err(e) = turso.store_episode(episode).await {
+                    if let Err(e) = turso.store_episode(&episode).await {
                         warn!("Failed to update episode in Turso: {}", e);
                     }
                 }
+
+                // Re-insert the updated episode as Arc
+                episodes.insert(episode_id, Arc::new(episode));
             }
         }
     }

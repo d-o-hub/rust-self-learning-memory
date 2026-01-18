@@ -191,8 +191,8 @@ pub enum ChangepointError {
 pub struct ChangepointDetector {
     /// Detection configuration
     config: ChangepointConfig,
-    /// PELT algorithm instance
-    pelt: PELT<f64>,
+    /// ARPCP detector instance
+    detector: DefaultArgpcpDetector,
     /// Historical baselines for adaptive thresholding
     baselines: HashMap<String, BaselineStats>,
     /// Cache of recent detections
@@ -226,7 +226,7 @@ impl ChangepointDetector {
 
         Self {
             config: validated_config,
-            pelt: PELT::new(),
+            detector: DefaultArgpcpDetector::default(),
             baselines: HashMap::new(),
             recent_detections: Vec::new(),
         }
@@ -260,19 +260,19 @@ impl ChangepointDetector {
             self.update_baseline("default", values);
         }
 
-        // Run PELT changepoint detection
-        let detection_result = self
-            .pelt
-            .detect(values)
+        // Run changepoint detection using ARPCP algorithm
+        let changepoint_indices = self
+            .detector
+            .detect_changepoints(values)
             .map_err(|e| {
                 anyhow!(ChangepointError::AlgorithmError {
                     message: e.to_string(),
                 })
             })
-            .context("PELT detection failed")?;
+            .context("Changelog detection failed")?;
 
         // Convert raw detections to our Changepoint struct
-        let mut changepoints = self.convert_detections(values, &detection_result);
+        let mut changepoints = self.convert_detections(values, &changepoint_indices);
 
         // Filter by minimum distance between changepoints
         changepoints = self.filter_by_min_distance(changepoints);
@@ -442,21 +442,17 @@ impl ChangepointDetector {
         entry.last_update = chrono::Utc::now();
     }
 
-    /// Convert raw PELT detections to Changepoint structs
+    /// Convert raw detections to Changepoint structs
     fn convert_detections(
         &self,
         values: &[f64],
-        raw: &augurs_changepoint::DetectChangeResult<f64>,
+        changepoint_indices: &[usize],
     ) -> Vec<Changepoint> {
         let mut changepoints = Vec::new();
 
-        for (i, &cp_index) in raw.changepoints().iter().enumerate() {
-            // Calculate probability from log-likelihood
-            let probability = raw
-                .posterior_probabilities()
-                .get(cp_index)
-                .copied()
-                .unwrap_or(0.5);
+        for (i, &cp_index) in changepoint_indices.iter().enumerate() {
+            // Calculate probability based on position and surrounding values
+            let probability = self.calculate_changepoint_probability(values, cp_index, i);
 
             // Determine change type by analyzing adjacent segments
             let change_type = self.classify_change_type(values, cp_index);
@@ -468,7 +464,7 @@ impl ChangepointDetector {
             let direction = self.determine_direction(values, cp_index);
 
             // Calculate confidence interval
-            let ci = self.compute_confidence_interval(values, cp_index, i, raw);
+            let ci = self.compute_confidence_interval(values, cp_index, i);
 
             changepoints.push(Changepoint {
                 id: Uuid::new_v4(),
@@ -483,6 +479,40 @@ impl ChangepointDetector {
         }
 
         changepoints
+    }
+
+    /// Calculate changepoint probability based on surrounding data
+    fn calculate_changepoint_probability(
+        &self,
+        values: &[f64],
+        cp_index: usize,
+        detection_index: usize,
+    ) -> f64 {
+        // Base probability on detection order (earlier detections are more reliable)
+        let base_prob = if detection_index == 0 {
+            self.config.min_probability.max(0.7)
+        } else {
+            self.config.min_probability
+        };
+
+        // Adjust based on local variance
+        let window = 5;
+        let start = cp_index.saturating_sub(window);
+        let end = (cp_index + window).min(values.len().saturating_sub(1));
+
+        if start < end {
+            let segment = &values[start..end];
+            let mean: f64 = segment.iter().sum::<f64>() / segment.len() as f64;
+            let variance: f64 =
+                segment.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / segment.len() as f64;
+            let std_dev = variance.sqrt();
+
+            // Higher variance reduces confidence
+            let variance_factor = (1.0 - (std_dev / mean.abs().max(0.001))).clamp(0.5, 1.0);
+            (base_prob * variance_factor).clamp(0.0, 1.0)
+        } else {
+            base_prob
+        }
     }
 
     /// Classify the type of change at a changepoint
@@ -558,7 +588,6 @@ impl ChangepointDetector {
         values: &[f64],
         cp_index: usize,
         detection_index: usize,
-        raw: &augurs_changepoint::DetectChangeResult<f64>,
     ) -> (usize, usize) {
         let half_window = self.config.min_distance / 2;
 

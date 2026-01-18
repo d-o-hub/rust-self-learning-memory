@@ -71,9 +71,9 @@ impl ChangepointConfig {
     /// Validate configuration values
     #[must_use]
     pub fn validated(mut self) -> Self {
-        self.min_probability = (0.0..=1.0).clamp(self.min_probability);
+        self.min_probability = self.min_probability.clamp(0.0, 1.0);
         self.min_distance = self.min_distance.max(1);
-        self.significance_level = (0.0..=1.0).clamp(self.significance_level);
+        self.significance_level = self.significance_level.clamp(0.0, 1.0);
         self.min_observations = self.min_observations.max(5);
         self
     }

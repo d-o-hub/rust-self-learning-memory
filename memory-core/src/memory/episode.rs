@@ -319,24 +319,30 @@ impl SelfLearningMemory {
         };
 
         // Add steps to episode and persist
+        // We need to clone, modify, and reinsert since we can't mutate through Arc
         let mut episodes = self.episodes_fallback.write().await;
-        if let Some(episode) = episodes.get_mut(&episode_id) {
+        if let Some(episode_arc) = episodes.get_mut(&episode_id) {
+            // Clone the Arc, then clone the Episode to mutate it
+            let mut episode = (*episode_arc).clone();
             for step in steps_to_flush {
                 episode.add_step(step);
             }
 
             // Update in storage backends
             if let Some(cache) = &self.cache_storage {
-                if let Err(e) = cache.store_episode(episode).await {
+                if let Err(e) = cache.store_episode(&episode).await {
                     warn!("Failed to flush episode to cache: {}", e);
                 }
             }
 
             if let Some(turso) = &self.turso_storage {
-                if let Err(e) = turso.store_episode(episode).await {
+                if let Err(e) = turso.store_episode(&episode).await {
                     warn!("Failed to flush episode to Turso: {}", e);
                 }
             }
+
+            // Re-insert the updated episode as Arc
+            episodes.insert(episode_id, Arc::new(episode));
 
             info!(
                 episode_id = %episode_id,

@@ -1,5 +1,6 @@
 use crate::pattern::Pattern;
 use crate::types::TaskContext;
+use crate::Result;
 
 use super::pattern_search;
 

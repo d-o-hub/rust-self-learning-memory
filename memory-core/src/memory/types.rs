@@ -111,14 +111,14 @@ pub struct SelfLearningMemory {
     // Semantic Search Integration
     /// Semantic service for embedding generation and search
     #[allow(dead_code)]
-    semantic_service: Option<Arc<SemanticService>>,
+    pub(super) semantic_service: Option<Arc<SemanticService>>,
     /// Configuration for semantic search
     #[allow(dead_code)]
-    semantic_config: EmbeddingConfig,
+    pub(super) semantic_config: EmbeddingConfig,
 
     // v0.1.12: Query Caching
     /// Query cache for retrieval performance (LRU + TTL)
-    query_cache: Arc<crate::retrieval::QueryCache>,
+    pub(super) query_cache: Arc<crate::retrieval::QueryCache>,
 
     // Phase 3 (DBSCAN) - Anomaly Detection
     /// DBSCAN anomaly detector for identifying unusual episodes

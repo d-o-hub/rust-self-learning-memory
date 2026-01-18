@@ -53,6 +53,7 @@ mod learning;
 mod management;
 mod monitoring;
 mod pattern_api;
+mod pattern_extraction;
 mod pattern_search;
 mod queries;
 pub mod query_api;
@@ -65,6 +66,7 @@ pub mod validation;
 
 use crate::embeddings::SemanticService;
 use crate::types::{MemoryConfig, TaskContext};
+use std::sync::Arc;
 
 // Re-export pattern search types for public API
 pub use pattern_search::{PatternSearchResult, ScoreBreakdown, SearchConfig};

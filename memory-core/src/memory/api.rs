@@ -17,50 +17,6 @@ use uuid::Uuid;
 use super::SelfLearningMemory;
 
 // ============================================================================
-// Initialization and Configuration
-// ============================================================================
-
-impl SelfLearningMemory {
-    /// Create a new self-learning memory system with default configuration (in-memory only)
-    #[must_use]
-    pub fn new() -> Self {
-        super::init::with_config(MemoryConfig::default())
-    }
-
-    /// Create a memory system with custom configuration (in-memory only)
-    #[must_use]
-    pub fn with_config(config: MemoryConfig) -> Self {
-        super::init::with_config(config)
-    }
-
-    /// Create a memory system with storage backends
-    pub fn with_storage(
-        config: MemoryConfig,
-        turso: Arc<dyn StorageBackend>,
-        cache: Arc<dyn StorageBackend>,
-    ) -> Self {
-        super::init::with_storage(config, turso, cache)
-    }
-
-    /// Create memory with custom semantic config
-    #[must_use]
-    pub fn with_semantic_config(config: MemoryConfig, semantic_config: EmbeddingConfig) -> Self {
-        super::init::with_semantic_config(config, semantic_config)
-    }
-
-    /// Enable async pattern extraction with a worker pool
-    #[must_use]
-    pub fn enable_async_extraction(self, queue_config: QueueConfig) -> Self {
-        super::init::enable_async_extraction(self, queue_config)
-    }
-
-    /// Start async pattern extraction workers
-    pub async fn start_workers(&self) {
-        super::init::start_workers(self).await;
-    }
-}
-
-// ============================================================================
 // Monitoring and Statistics
 // ============================================================================
 

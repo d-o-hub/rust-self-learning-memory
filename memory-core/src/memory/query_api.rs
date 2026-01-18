@@ -6,6 +6,7 @@ use crate::Result;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use super::queries;
 use super::SelfLearningMemory;
 
 impl SelfLearningMemory {

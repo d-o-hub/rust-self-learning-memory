@@ -4,9 +4,9 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::patterns::changepoint::algorithms::{compute_segment_stats, normal_cdf};
-    use crate::patterns::changepoint::detector::ChangepointDetector;
-    use crate::patterns::changepoint::types::{
+    use super::algorithms::{compute_segment_stats, normal_cdf};
+    use super::detector::ChangepointDetector;
+    use super::types::{
         ChangeDirection, ChangeType, Changepoint, ChangepointConfig, ChangepointError,
         SegmentComparisonConfig, SegmentStats,
     };

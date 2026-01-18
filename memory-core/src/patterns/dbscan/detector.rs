@@ -108,7 +108,7 @@ impl DBSCANAnomalyDetector {
     }
 
     /// Convert a single episode to a feature vector
-    pub(super) fn episode_to_features(&self, episode: &Episode) -> anyhow::Result<Vec<f64>> {
+    fn episode_to_features(&self, episode: &Episode) -> anyhow::Result<Vec<f64>> {
         let mut features = Vec::with_capacity(20);
 
         // Context encoding (domain, language, tags)

@@ -4,9 +4,13 @@
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::episode::Episode;
+    use crate::pattern::Pattern;
     use crate::pattern::PatternEffectiveness;
-    use crate::types::{ComplexityLevel, ExecutionResult, TaskOutcome};
+    use crate::patterns::clustering::{
+        ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer,
+    };
+    use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome};
     use crate::ExecutionStep;
     use chrono::Utc;
     use uuid::Uuid;

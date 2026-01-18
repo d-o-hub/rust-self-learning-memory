@@ -230,7 +230,7 @@ pub fn calculate_centroid(indices: &[usize], features: &[Vec<f64>]) -> ClusterCe
 }
 
 /// Calculate density of a cluster
-pub fn calculate_density(config: &DBSCANConfig, indices: &[usize], features: &[Vec<f64>]) -> f64 {
+pub fn calculate_density(_config: &DBSCANConfig, indices: &[usize], features: &[Vec<f64>]) -> f64 {
     if indices.len() < 2 {
         return 0.0;
     }

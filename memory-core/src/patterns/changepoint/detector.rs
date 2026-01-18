@@ -301,7 +301,7 @@ impl ChangepointDetector {
     }
 
     /// Calculate changepoint probability based on surrounding data
-    fn calculate_changepoint_probability(
+    pub(super) fn calculate_changepoint_probability(
         &self,
         values: &[f64],
         cp_index: usize,
@@ -316,7 +316,7 @@ impl ChangepointDetector {
     }
 
     /// Classify the type of change at a changepoint
-    fn classify_change_type(&self, values: &[f64], cp_index: usize) -> ChangeType {
+    pub(super) fn classify_change_type(&self, values: &[f64], cp_index: usize) -> ChangeType {
         let window = 5;
         let start = cp_index.saturating_sub(window);
         let end = (cp_index + window).min(values.len());
@@ -344,7 +344,7 @@ impl ChangepointDetector {
     }
 
     /// Calculate the magnitude of change at a changepoint
-    fn calculate_change_magnitude(&self, values: &[f64], cp_index: usize) -> f64 {
+    pub(super) fn calculate_change_magnitude(&self, values: &[f64], cp_index: usize) -> f64 {
         let window = 5;
         let start = cp_index.saturating_sub(window);
         let end = (cp_index + window).min(values.len());
@@ -363,7 +363,7 @@ impl ChangepointDetector {
     }
 
     /// Determine the direction of change
-    fn determine_direction(&self, values: &[f64], cp_index: usize) -> ChangeDirection {
+    pub(super) fn determine_direction(&self, values: &[f64], cp_index: usize) -> ChangeDirection {
         let window = 5;
         let start = cp_index.saturating_sub(window);
         let end = (cp_index + window).min(values.len());
@@ -404,7 +404,10 @@ impl ChangepointDetector {
     }
 
     /// Filter changepoints to ensure minimum distance
-    fn filter_by_min_distance(&self, mut changepoints: Vec<Changepoint>) -> Vec<Changepoint> {
+    pub(super) fn filter_by_min_distance(
+        &self,
+        mut changepoints: Vec<Changepoint>,
+    ) -> Vec<Changepoint> {
         if changepoints.is_empty() {
             return changepoints;
         }

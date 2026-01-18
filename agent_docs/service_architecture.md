@@ -15,45 +15,44 @@ The memory management system provides persistent memory across agent interaction
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## Current Status (v0.1.7)
+## Current Status (v0.1.12)
 
-- **8 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples
-- **367 Rust source files** with ~44,250 lines of code
-- **99.3% test pass rate** (424/427 tests)
-- **92.5% test coverage** across all modules
-- **Zero clippy warnings** with strict linting
+- **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, tests, examples
+- **~250+ Rust source files** with ~39,951 lines of code in memory-core
+- **Test pass rate**: Requires verification after build issues resolved
+- **Test coverage**: >90% target
 
 ## Workspace Members
 
 ### 1. Memory Core (`memory-core/`)
-**Purpose**: Core memory operations and embeddings (~44,250 LOC)
+**Purpose**: Core memory operations and embeddings (~39,951 LOC)
 
 **Module Breakdown** (by size):
-- `patterns/` - Pattern extraction and validation (5,319 LOC)
-  - Optimized pattern validators
-  - Clustering algorithms
-  - Pattern quality scoring
-- `embeddings/` - Vector embeddings for semantic search (5,250 LOC)
-  - Multi-provider support (OpenAI, Cohere, Ollama, local)
-  - Embedding configuration
-  - Similarity search
-- `memory/` - Core memory operations (4,457 LOC)
+- `memory/` - Core memory operations (~6,300 LOC)
   - Episode retrieval
   - Learning algorithms
   - Memory management
-- `spatiotemporal/` - Spatial-temporal indexing (3,377 LOC)
+- `patterns/` - Pattern extraction and validation (~4,230 LOC)
+  - Optimized pattern validators
+  - Clustering algorithms
+  - Pattern quality scoring
+- `embeddings/` - Vector embeddings for semantic search (~3,600 LOC)
+  - Multi-provider support (OpenAI, Cohere, Ollama, local)
+  - Embedding configuration
+  - Similarity search
+- `spatiotemporal/` - Spatial-temporal indexing (~2,400 LOC)
   - Spatial indexing
   - Temporal retrieval
   - Diversity ranking
-- `reflection/` - Reflection generation (1,950 LOC)
+- `reflection/` - Reflection generation (~1,950 LOC)
   - Episode reflection
   - Pattern reflection
   - Learning summaries
-- `pre_storage/` - Pre-storage validation (1,618 LOC)
+- `pre_storage/` - Pre-storage validation (~1,618 LOC)
   - Quality assessment
   - Data extraction
   - Validation pipeline
-- `monitoring/` - System monitoring (1,358 LOC)
+- `monitoring/` - System monitoring (~1,358 LOC)
   - Metrics collection
   - Health checks
   - Performance tracking
@@ -89,7 +88,7 @@ The memory management system provides persistent memory across agent interaction
 
 **Features**:
 - Embedded key-value store
-- Postcard serialization (v0.1.7)
+- Postcard serialization (v0.1.7, now v0.1.12)
 - LRU cache with TTL
 - Fast sub-millisecond lookups
 - Automatic synchronization with Turso
@@ -102,7 +101,7 @@ The memory management system provides persistent memory across agent interaction
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
 ### 4. MCP Server (`memory-mcp/)
-**Purpose**: Model Context Protocol server with secure code execution (~13,707 LOC)
+**Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
 
 **Architecture**:
 - 6-layer security sandbox using Wasmtime
@@ -134,7 +133,7 @@ The memory management system provides persistent memory across agent interaction
 - Security boundaries enforcement
 
 ### 5. CLI Interface (`memory-cli/`)
-**Purpose**: Command-line interface for memory operations (~12,257 LOC)
+**Purpose**: Command-line interface for memory operations (~13,690 LOC)
 
 **Commands** (9 main commands + 9 aliases):
 - `episode` - Episode management (create, list, search, complete)

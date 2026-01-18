@@ -6,9 +6,9 @@ The system uses two primary storage mechanisms:
 1. **Turso (libSQL)**: Primary persistent storage (SQLite-based)
 2. **Redb**: High-performance cache layer with Postcard serialization
 
-## v0.1.7 Breaking Change: Postcard Serialization
+## v0.1.7 Breaking Change: Postcard Serialization (current: v0.1.12)
 
-**IMPORTANT**: Since v0.1.7, the cache layer uses **Postcard** for serialization instead of Bincode:
+**IMPORTANT**: Since v0.1.7, the cache layer uses **Postcard** for serialization instead of Bincode (now at v0.1.12):
 
 ```rust
 // ✅ Use Postcard (v0.1.7+)
@@ -348,7 +348,7 @@ pub async fn get_episode(&self, id: &str) -> Result<Option<Episode>> {
 
 ## Migration Scripts
 
-### Version 0.1.7 (Postcard Migration)
+### Version 0.1.7 (Postcard Migration, current: v0.1.12)
 ```sql
 -- Add embedding model info
 ALTER TABLE embeddings ADD COLUMN model_name TEXT;
@@ -366,10 +366,10 @@ async fn migrate_cache() -> Result<()> {
     // Check version
     let version = self.redb.get("metadata:version").await?;
 
-    if version != Some("0.1.7".to_string()) {
-        // Migrate to postcard
+    if version != Some("0.1.12".to_string()) {
+        // Migrate to postcard (from v0.1.7, now at v0.1.12)
         self.redb.clear().await?;
-        self.redb.set("metadata:version", "0.1.7").await?;
+        self.redb.set("metadata:version", "0.1.12").await?;
     }
 
     Ok(())

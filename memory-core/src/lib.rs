@@ -103,9 +103,8 @@ pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, Ta
 pub use pattern::{Heuristic, Pattern, PatternEffectiveness};
 pub use patterns::{
     Anomaly, AnomalyReason, ChangeDirection, ChangeType, Changepoint, ChangepointConfig,
-    ChangepointDetector, ClusterCentroid, ClusteringConfig,
-    DBSCANClusterCentroid, DBSCANClusterResult, DBSCANConfig, DBSCANStats,
-    DBSCANEpisodeCluster, DBSCANAnomalyDetector, EffectivenessTracker, EpisodeCluster,
+    ChangepointDetector, ClusterCentroid, ClusteringConfig, DBSCANAnomalyDetector,
+    DBSCANClusterResult, DBSCANConfig, DBSCANStats, EffectivenessTracker, EpisodeCluster,
     FeatureWeights, PatternClusterer, PatternMetrics, PatternUsage, PatternValidator,
     SegmentComparison, SegmentComparisonConfig, SegmentStats, UsageStats, ValidationConfig,
 };

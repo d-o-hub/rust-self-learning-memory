@@ -5,7 +5,10 @@
 
 use crate::monitoring::{AgentMetrics, MonitoringSummary};
 use crate::retrieval::CacheMetrics;
+use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::RwLock;
+use uuid::Uuid;
 
 /// Get statistics about the memory system
 ///
@@ -13,7 +16,7 @@ use std::time::Duration;
 ///
 /// Tuple of (total episodes, completed episodes, total patterns)
 pub async fn get_stats(
-    episodes_fallback: &tokio::sync::RwLock<std::collections::HashMap<uuid::Uuid, crate::Episode>>,
+    episodes_fallback: &Arc<RwLock<std::collections::HashMap<Uuid, Arc<crate::Episode>>>>,
     patterns_fallback: &tokio::sync::RwLock<
         std::collections::HashMap<crate::episode::PatternId, crate::Pattern>,
     >,

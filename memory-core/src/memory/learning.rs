@@ -3,6 +3,7 @@
 use crate::error::{Error, Result};
 use crate::pattern::Pattern;
 use crate::types::TaskOutcome;
+use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
@@ -92,24 +93,28 @@ impl SelfLearningMemory {
             self.flush_steps(episode_id).await?;
         }
 
-        let mut episodes = self.episodes_fallback.write().await;
-
-        let episode = episodes
-            .get_mut(&episode_id)
-            .ok_or(Error::NotFound(episode_id))?;
+        // Get the episode Arc and clone it to work with Episode directly
+        let episode_arc = {
+            let episodes = self.episodes_fallback.read().await;
+            episodes
+                .get(&episode_id)
+                .cloned()
+                .ok_or(Error::NotFound(episode_id))?
+        };
+        let mut episode = (*episode_arc).clone();
 
         // Mark episode as complete
-        episode.complete(outcome);
+        episode.complete(outcome.clone());
 
         // Validate total episode size before processing
-        super::validation::validate_episode_size(episode)?;
+        super::validation::validate_episode_size(&episode)?;
 
         // ============================================================================
         // Pre-Storage Reasoning (PREMem Phase 1)
         // ============================================================================
 
         // 1. Assess episode quality before storage
-        let quality_score = self.quality_assessor.assess_episode(episode);
+        let quality_score = self.quality_assessor.assess_episode(&episode);
 
         info!(
             episode_id = %episode_id,
@@ -135,7 +140,7 @@ impl SelfLearningMemory {
         }
 
         // 3. Extract salient features for high-quality episodes
-        let salient_features = self.salient_extractor.extract(episode);
+        let salient_features = self.salient_extractor.extract(&episode);
         episode.salient_features = Some(salient_features.clone());
 
         debug!(
@@ -153,7 +158,7 @@ impl SelfLearningMemory {
         // ============================================================================
 
         // Calculate reward score
-        let reward = self.reward_calculator.calculate(episode);
+        let reward = self.reward_calculator.calculate(&episode);
         episode.reward = Some(reward.clone());
 
         info!(
@@ -165,7 +170,7 @@ impl SelfLearningMemory {
         );
 
         // Generate reflection
-        let reflection = self.reflection_generator.generate(episode);
+        let reflection = self.reflection_generator.generate(&episode);
         episode.reflection = Some(reflection.clone());
 
         debug!(
@@ -181,7 +186,7 @@ impl SelfLearningMemory {
 
         // Generate semantic summary before storage (if enabled)
         let summary = if let Some(ref summarizer) = self.semantic_summarizer {
-            match summarizer.summarize_episode(episode).await {
+            match summarizer.summarize_episode(&episode).await {
                 Ok(summary) => {
                     info!(
                         episode_id = %episode_id,
@@ -205,12 +210,6 @@ impl SelfLearningMemory {
         // Phase 2 (GENESIS) - Capacity-Constrained Storage
         // ============================================================================
 
-        // Clone episode for capacity enforcement (we need to release the write lock)
-        let episode_clone = episode.clone();
-
-        // Release write lock before capacity enforcement to avoid deadlock
-        drop(episodes);
-
         // Store with capacity enforcement if configured, otherwise use normal storage
         if let Some(ref capacity_mgr) = self.capacity_manager {
             // Get all episodes EXCEPT the current one for capacity calculation
@@ -220,7 +219,7 @@ impl SelfLearningMemory {
                 let episodes: Vec<_> = eps
                     .iter()
                     .filter(|(id, _)| **id != episode_id) // Exclude current episode
-                    .map(|(_, ep)| ep.clone())
+                    .map(|(_, ep)| (**ep).clone()) // Dereference twice: &Arc<Episode> -> Episode
                     .collect();
                 (episodes.len(), episodes)
             };
@@ -270,18 +269,18 @@ impl SelfLearningMemory {
             }
         }
 
-        // Use the cloned episode for storage operations
-        let episode = &episode_clone;
+        // Use the episode for storage operations
+        let episode_ref = &episode;
 
         // Store updated episode in backends
         if let Some(cache) = &self.cache_storage {
-            if let Err(e) = cache.store_episode(episode).await {
+            if let Err(e) = cache.store_episode(episode_ref).await {
                 warn!("Failed to store completed episode in cache: {}", e);
             }
         }
 
         if let Some(turso) = &self.turso_storage {
-            if let Err(e) = turso.store_episode(episode).await {
+            if let Err(e) = turso.store_episode(episode_ref).await {
                 warn!("Failed to store completed episode in Turso: {}", e);
             }
         }
@@ -295,8 +294,6 @@ impl SelfLearningMemory {
             );
         }
 
-        // Note: Write lock already released above for capacity enforcement
-
         // ============================================================================
         // Phase 3 (Spatiotemporal) - Update hierarchical index
         // ============================================================================
@@ -304,7 +301,7 @@ impl SelfLearningMemory {
         // Update spatiotemporal index if enabled
         if let Some(ref index) = self.spatiotemporal_index {
             if let Ok(mut index_write) = index.try_write() {
-                index_write.insert(episode);
+                index_write.insert(episode_ref);
                 debug!(
                     episode_id = %episode_id,
                     domain = %episode.context.domain,
@@ -325,7 +322,7 @@ impl SelfLearningMemory {
 
         // Generate and store embedding for semantic search
         if let Some(ref semantic) = self.semantic_service {
-            if let Err(e) = semantic.embed_episode(episode).await {
+            if let Err(e) = semantic.embed_episode(episode_ref).await {
                 warn!(
                     episode_id = %episode_id,
                     error = %e,
@@ -355,6 +352,13 @@ impl SelfLearningMemory {
             "Invalidated query cache after episode completion"
         );
 
+        // ============================================================================
+        // Re-insert the updated episode into the in-memory cache
+        // ============================================================================
+
+        let mut episodes = self.episodes_fallback.write().await;
+        episodes.insert(episode_id, Arc::new(episode));
+
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {
             // Async path: enqueue for background processing
@@ -375,17 +379,19 @@ impl SelfLearningMemory {
         Ok(())
     }
 
-    /// Extract patterns synchronously (internal helper)
-    ///
-    /// Used when async extraction is not enabled.
     pub(super) async fn extract_patterns_sync(&self, episode_id: Uuid) -> Result<()> {
-        let mut episodes = self.episodes_fallback.write().await;
-        let episode = episodes
-            .get_mut(&episode_id)
-            .ok_or(Error::NotFound(episode_id))?;
+        // Get the episode Arc and clone it to work with Episode directly
+        let episode_arc = {
+            let episodes = self.episodes_fallback.read().await;
+            episodes
+                .get(&episode_id)
+                .cloned()
+                .ok_or(Error::NotFound(episode_id))?
+        };
+        let mut episode = (*episode_arc).clone();
 
         // Extract patterns
-        let extracted_patterns = self.pattern_extractor.extract(episode);
+        let extracted_patterns = self.pattern_extractor.extract(&episode);
 
         debug!(
             pattern_count = extracted_patterns.len(),
@@ -419,7 +425,7 @@ impl SelfLearningMemory {
         episode.patterns = pattern_ids;
 
         // Extract heuristics
-        match self.heuristic_extractor.extract(episode).await {
+        match self.heuristic_extractor.extract(&episode).await {
             Ok(extracted_heuristics) => {
                 debug!(
                     heuristic_count = extracted_heuristics.len(),
@@ -460,9 +466,9 @@ impl SelfLearningMemory {
             }
         }
 
-        // Update episode with pattern and heuristic IDs
+        // Update episode with pattern and heuristic IDs in storage backends
         if let Some(cache) = &self.cache_storage {
-            if let Err(e) = cache.store_episode(episode).await {
+            if let Err(e) = cache.store_episode(&episode).await {
                 warn!(
                     "Failed to update episode with patterns and heuristics in cache: {}",
                     e
@@ -471,13 +477,17 @@ impl SelfLearningMemory {
         }
 
         if let Some(turso) = &self.turso_storage {
-            if let Err(e) = turso.store_episode(episode).await {
+            if let Err(e) = turso.store_episode(&episode).await {
                 warn!(
                     "Failed to update episode with patterns and heuristics in Turso: {}",
                     e
                 );
             }
         }
+
+        // Re-insert the updated episode into the in-memory cache
+        let mut episodes = self.episodes_fallback.write().await;
+        episodes.insert(episode_id, Arc::new(episode));
 
         Ok(())
     }
@@ -500,10 +510,15 @@ impl SelfLearningMemory {
         episode_id: Uuid,
         extracted_patterns: Vec<Pattern>,
     ) -> Result<()> {
-        let mut episodes = self.episodes_fallback.write().await;
-        let episode = episodes
-            .get_mut(&episode_id)
-            .ok_or(Error::NotFound(episode_id))?;
+        // Get the episode Arc and clone it to work with Episode directly
+        let episode_arc = {
+            let episodes = self.episodes_fallback.read().await;
+            episodes
+                .get(&episode_id)
+                .cloned()
+                .ok_or(Error::NotFound(episode_id))?
+        };
+        let mut episode = (*episode_arc).clone(); // Deref Arc<Episode> to Episode, then clone
 
         let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
@@ -530,18 +545,22 @@ impl SelfLearningMemory {
 
         episode.patterns = pattern_ids;
 
-        // Update episode with pattern IDs
+        // Update episode with pattern IDs in storage backends
         if let Some(cache) = &self.cache_storage {
-            if let Err(e) = cache.store_episode(episode).await {
+            if let Err(e) = cache.store_episode(&episode).await {
                 warn!("Failed to update episode with patterns in cache: {}", e);
             }
         }
 
         if let Some(turso) = &self.turso_storage {
-            if let Err(e) = turso.store_episode(episode).await {
+            if let Err(e) = turso.store_episode(&episode).await {
                 warn!("Failed to update episode with patterns in Turso: {}", e);
             }
         }
+
+        // Re-insert the updated episode into the in-memory cache
+        let mut episodes = self.episodes_fallback.write().await;
+        episodes.insert(episode_id, Arc::new(episode));
 
         Ok(())
     }

@@ -180,9 +180,26 @@ cd benches && cargo bench -- --output-format html
    - Run `cargo clippy --all -- -D warnings` to see warnings
    - Apply fixes: `cargo clippy --fix --allow-dirty`
    - For intentional violations, add `#[allow(...)]` with justification
-   - See [CLAUDE.md](../CLAUDE.md) for recent changes and best practices
+   - See [CLAUDE.md](../../.claude/CLAUDE.md) for recent changes and best practices
 4. **Test failures**: Check [TESTING.md](../TESTING.md) for debugging
 5. **Build errors**: Ensure Rust toolchain is up to date: `rustup update`
+
+### Known Issues
+**dbscan.rs Compilation Errors (v0.1.12)**
+Currently there are pre-existing compilation errors in `memory-core/src/patterns/dbscan.rs`:
+- Line 266: Type error with `?` operator on `()` type
+- Lines 596-598: Excessive nesting warning
+- Lines 691, 815: Unreadable long literals (missing digit separators)
+
+These issues are being tracked and will be resolved in a future update. As a workaround:
+```bash
+# Check only without building
+cargo check --all
+
+# Build specific crate to isolate issues
+cargo check -p memory-storage-turso
+cargo check -p memory-storage-redb
+```
 
 ### Performance Issues
 - Use `cargo check` for faster compile checks

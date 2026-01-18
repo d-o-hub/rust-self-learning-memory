@@ -3,6 +3,7 @@
 use crate::episode::Episode;
 use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
+use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 
 use super::super::SelfLearningMemory;
@@ -146,7 +147,9 @@ impl SelfLearningMemory {
                     if !fetched.is_empty() {
                         let mut episodes = self.episodes_fallback.write().await;
                         for ep in fetched {
-                            episodes.entry(ep.episode_id).or_insert(ep);
+                            episodes
+                                .entry(ep.episode_id)
+                                .or_insert_with(|| Arc::new(ep));
                         }
                     }
                 }
@@ -158,7 +161,9 @@ impl SelfLearningMemory {
                     if !fetched.is_empty() {
                         let mut episodes = self.episodes_fallback.write().await;
                         for ep in fetched {
-                            episodes.entry(ep.episode_id).or_insert(ep);
+                            episodes
+                                .entry(ep.episode_id)
+                                .or_insert_with(|| Arc::new(ep));
                         }
                     }
                 }
@@ -173,11 +178,11 @@ impl SelfLearningMemory {
             "Retrieving relevant context with Phase 3 hierarchical retrieval"
         );
 
-        // Collect completed episodes
+        // Collect completed episodes - dereference Arc<Episode> to get Episode
         let completed_episodes: Vec<Episode> = episodes
             .values()
             .filter(|e| e.is_complete())
-            .cloned()
+            .map(|ep| (**ep).clone()) // Double deref: &Arc<Episode> -> Episode
             .collect();
 
         if completed_episodes.is_empty() {

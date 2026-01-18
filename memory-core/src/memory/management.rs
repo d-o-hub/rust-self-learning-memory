@@ -5,6 +5,7 @@
 
 use crate::error::{Error, Result};
 use chrono::Utc;
+use std::sync::Arc;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
 
@@ -136,13 +137,10 @@ impl SelfLearningMemory {
             .insert("archived_at".to_string(), archived_timestamp.to_string());
 
         // Update in all storage backends
-        // In-memory cache
+        // In-memory cache - re-insert with updated episode (can't mutate through Arc)
         {
             let mut episodes = self.episodes_fallback.write().await;
-            if let Some(ep) = episodes.get_mut(&episode_id) {
-                ep.metadata
-                    .insert("archived_at".to_string(), archived_timestamp.to_string());
-            }
+            episodes.insert(episode_id, Arc::new(episode.clone()));
         }
 
         // Cache storage (redb)
@@ -197,11 +195,10 @@ impl SelfLearningMemory {
         episode.metadata.remove("archived_at");
 
         // Update in all storage backends
+        // In-memory cache - re-insert with updated episode (can't mutate through Arc)
         {
             let mut episodes = self.episodes_fallback.write().await;
-            if let Some(ep) = episodes.get_mut(&episode_id) {
-                ep.metadata.remove("archived_at");
-            }
+            episodes.insert(episode_id, Arc::new(episode.clone()));
         }
 
         if let Some(cache) = &self.cache_storage {

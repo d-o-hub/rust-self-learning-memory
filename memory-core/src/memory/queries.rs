@@ -3,6 +3,9 @@
 //! This module provides methods for lazy loading episodes and patterns
 //! from storage backends, with proper fallback handling.
 
+// Type alias for complex nested type to avoid parser issues with >>>>
+type EpisodeMap = tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>;
+
 use crate::episode::Episode;
 use crate::pattern::Pattern;
 use crate::Result;
@@ -23,7 +26,7 @@ pub async fn get_all_episodes(
     episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
-) -> Result<Vec<Arc<Episode>>> {
+) -> Result<Vec<Episode>> {
     // 1) Start with in-memory episodes - collect Arcs directly (no clone)
     let mut all_episodes: HashMap<Uuid, Arc<Episode>> = {
         let episodes = episodes_fallback.read().await;
@@ -101,8 +104,11 @@ pub async fn get_all_episodes(
         "Retrieved all episodes from all storage backends"
     );
 
-    // Return Arcs directly (no cloning needed)
-    Ok(all_episodes.into_values().collect())
+    // Convert Arc<Episode> to Episode for public API (dereference and clone each)
+    Ok(all_episodes
+        .into_values()
+        .map(|arc_ep| (*arc_ep).clone())
+        .collect())
 }
 
 /// Get all patterns with proper lazy loading from storage backends.
@@ -134,7 +140,7 @@ pub async fn list_episodes(
     limit: Option<usize>,
     offset: Option<usize>,
     completed_only: Option<bool>,
-) -> Result<Vec<Arc<Episode>>> {
+) -> Result<Vec<Episode>> {
     // Get all episodes with lazy loading
     let mut all_episodes =
         get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
@@ -162,6 +168,7 @@ pub async fn list_episodes(
         "Listed episodes with filters"
     );
 
+    // Episodes are already Vec<Episode> from get_all_episodes
     Ok(all_episodes)
 }
 
@@ -198,18 +205,18 @@ pub async fn list_episodes(
 /// # }
 /// ```
 pub async fn list_episodes_filtered(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>>,
+    episodes_fallback: &EpisodeMap,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
     filter: super::filters::EpisodeFilter,
     limit: Option<usize>,
     offset: Option<usize>,
-) -> Result<Vec<Arc<Episode>>> {
-    // Get all episodes with lazy loading
+) -> Result<Vec<Episode>> {
+    // Get all episodes with lazy loading (now returns Vec<Episode>)
     let all_episodes = get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
 
-    // Apply filter - note: we consume the Vec, so no clone needed
-    let mut filtered = filter.apply_arc(all_episodes);
+    // Apply filter - use apply() for Vec<Episode>
+    let mut filtered = filter.apply(all_episodes);
 
     // Sort by start time (newest first) for consistent ordering
     filtered.sort_by(|a, b| b.start_time.cmp(&a.start_time));

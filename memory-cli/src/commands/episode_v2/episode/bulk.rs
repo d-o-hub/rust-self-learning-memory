@@ -88,8 +88,7 @@ pub async fn bulk_get_episodes(
                 \nRequested {} episode(s), found 0.\n\
                 \nTip: Use 'memory-cli episode list' to see available episodes.",
                 requested_count
-            )
-            .context_with_help("Episodes not found", helpers::EPISODE_NOT_FOUND_HELP));
+            ));
         }
 
         // Create bulk result output
@@ -177,8 +176,8 @@ pub async fn bulk_get_episodes(
 
         let episode_summaries: Vec<EpisodeSummary> = episodes
             .iter()
-            .map(
-                ep | EpisodeSummary {
+            .map(|ep| {
+                EpisodeSummary {
                     episode_id: ep.episode_id.to_string(),
                     task_description: ep.task_description.clone(),
                     task_type: format!("{:?}", ep.task_type),
@@ -195,8 +194,8 @@ pub async fn bulk_get_episodes(
                     steps_count: ep.steps.len(),
                     patterns_count: ep.patterns.len(),
                     heuristics_count: ep.heuristics.len(),
-                },
-            )
+                }
+            })
             .collect();
 
         let result = BulkEpisodeResult {

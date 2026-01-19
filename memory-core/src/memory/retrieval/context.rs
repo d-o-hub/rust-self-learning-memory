@@ -115,7 +115,7 @@ impl SelfLearningMemory {
                 );
             }
 
-            return cached_episodes;
+            return cached_episodes.to_vec();
         }
 
         debug!("Query cache MISS - performing retrieval");

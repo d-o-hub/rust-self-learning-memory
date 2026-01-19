@@ -83,6 +83,15 @@ pub mod helpers {
         "Check database file permissions",
     ];
 
+    /// Storage operation error help
+    #[allow(dead_code)]
+    pub const STORAGE_ERROR_HELP: &[&str] = &[
+        "Verify database connection is healthy: 'memory-cli storage health'",
+        "Check database file exists and has correct permissions",
+        "Try restarting the application to reset connection pool",
+        "Consider recreating the database if corruption is suspected",
+    ];
+
     /// Format enhanced error message
     #[allow(dead_code)]
     pub fn format_error_message(error: &str, context: &str, help: &[&str]) -> String {

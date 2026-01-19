@@ -46,14 +46,16 @@
 //! }
 //! ```
 
+mod api;
 mod completion;
+mod episode;
 pub mod filters;
 mod init;
 mod learning;
+mod learning_ops;
 mod management;
 mod monitoring;
 mod pattern_api;
-mod pattern_extraction;
 mod pattern_search;
 mod queries;
 pub mod query_api;
@@ -65,7 +67,7 @@ pub mod types;
 pub mod validation;
 
 use crate::embeddings::SemanticService;
-use crate::types::{MemoryConfig, TaskContext};
+use crate::types::MemoryConfig;
 use std::sync::Arc;
 
 // Re-export pattern search types for public API
@@ -127,5 +129,24 @@ impl SelfLearningMemory {
     #[must_use]
     pub fn semantic_service(&self) -> Option<&Arc<SemanticService>> {
         self.semantic_service.as_ref()
+    }
+
+    /// Get a reference to the batch configuration.
+    ///
+    /// Returns `Some(&BatchConfig)` if step batching is enabled,
+    /// or `None` if batching is disabled.
+    #[must_use]
+    pub fn batch_config(&self) -> Option<&step_buffer::BatchConfig> {
+        self.config.batch_config.as_ref()
+    }
+
+    /// Get the quality threshold for episode acceptance.
+    ///
+    /// Episodes with quality scores below this threshold are rejected
+    /// during [`complete_episode()`](SelfLearningMemory::complete_episode).
+    /// Value is between 0.0 and 1.0.
+    #[must_use]
+    pub fn quality_threshold(&self) -> f32 {
+        self.config.quality_threshold
     }
 }

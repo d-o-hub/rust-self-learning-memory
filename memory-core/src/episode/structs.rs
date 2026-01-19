@@ -1,4 +1,4 @@
-//! Episode and ExecutionStep structs and implementations.
+//! Episode and `ExecutionStep` structs and implementations.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

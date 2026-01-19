@@ -1,6 +1,6 @@
 //! Embedding tools - Execute implementations.
 
-use super::types::{
+use crate::mcp::tools::embeddings::types::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, QuerySemanticMemoryInput,
     QuerySemanticMemoryOutput, SemanticResult, TestEmbeddingsOutput,
 };

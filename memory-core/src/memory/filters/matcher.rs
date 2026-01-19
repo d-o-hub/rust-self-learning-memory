@@ -157,7 +157,7 @@ impl EpisodeFilter {
         &self,
         episodes: Vec<std::sync::Arc<Episode>>,
     ) -> Vec<std::sync::Arc<Episode>> {
-        episodes.into_iter().filter(|e| self.matches(&e)).collect()
+        episodes.into_iter().filter(|e| self.matches(e)).collect()
     }
 
     /// Count how many episodes match this filter

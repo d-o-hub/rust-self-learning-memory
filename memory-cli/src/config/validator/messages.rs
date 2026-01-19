@@ -112,9 +112,8 @@ pub fn validate_config(config: &Config) -> ValidationResult {
     warnings.extend(cli_validation.warnings);
 
     // Cross-configuration validation
-    let cross_validation = super::rules::validate_cross_config(config);
-    errors.extend(cross_validation.errors);
-    warnings.extend(cross_validation.warnings);
+    let cross_warnings = super::rules::validate_cross_config(config);
+    warnings.extend(cross_warnings);
 
     let is_valid = errors.is_empty();
     let mut result = if is_valid {

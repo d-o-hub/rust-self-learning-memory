@@ -7,14 +7,13 @@ use std::sync::Arc;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
 
-use super::Super;
-
+#[allow(dead_code)]
 pub(super) async fn complete_episode(
-    super_ref: &Super,
+    super_ref: &super::SelfLearningMemory,
     episode_id: Uuid,
     outcome: TaskOutcome,
 ) -> Result<()> {
-    if super_ref.config.batch_config.is_some() {
+    if super_ref.batch_config().is_some() {
         debug!(episode_id = %episode_id, "Flushing buffered steps before episode completion");
         super_ref.flush_steps(episode_id).await?;
     }
@@ -32,13 +31,14 @@ pub(super) async fn complete_episode(
     super::validation::validate_episode_size(&episode)?;
 
     let quality_score = super_ref.quality_assessor.assess_episode(&episode);
-    info!(episode_id = %episode_id, quality_score, quality_threshold = super_ref.config.quality_threshold, "Assessed episode quality");
+    info!(episode_id = %episode_id, quality_score, quality_threshold = super_ref.quality_threshold(), "Assessed episode quality");
 
-    if quality_score < super_ref.config.quality_threshold {
-        warn!(episode_id = %episode_id, quality_score, quality_threshold = super_ref.config.quality_threshold, "Episode rejected: quality score below threshold");
+    if quality_score < super_ref.quality_threshold() {
+        warn!(episode_id = %episode_id, quality_score, quality_threshold = super_ref.quality_threshold(), "Episode rejected: quality score below threshold");
         return Err(Error::ValidationFailed(format!(
             "Episode quality score ({:.2}) below threshold ({:.2})",
-            quality_score, super_ref.config.quality_threshold
+            quality_score,
+            super_ref.quality_threshold()
         )));
     }
 
@@ -96,11 +96,7 @@ pub(super) async fn complete_episode(
                 debug!(evicted_ids = ?evicted_ids, "Episodes evicted");
 
                 if let Some(ref index) = super_ref.spatiotemporal_index {
-                    if let Ok(mut index_write) = index.try_write() {
-                        for evicted_id in &evicted_ids {
-                            index_write.remove(*evicted_id);
-                        }
-                    }
+                    remove_from_index(index, &evicted_ids);
                 }
             }
         }
@@ -149,7 +145,11 @@ pub(super) async fn complete_episode(
     Ok(())
 }
 
-pub(super) async fn extract_patterns_sync(super_ref: &Super, episode_id: Uuid) -> Result<()> {
+#[allow(dead_code)]
+pub(super) async fn extract_patterns_sync(
+    super_ref: &super::SelfLearningMemory,
+    episode_id: Uuid,
+) -> Result<()> {
     let episode_arc = {
         let episodes = super_ref.episodes_fallback.read().await;
         episodes
@@ -233,8 +233,9 @@ pub(super) async fn extract_patterns_sync(super_ref: &Super, episode_id: Uuid) -
     Ok(())
 }
 
+#[allow(dead_code)]
 pub(super) async fn store_patterns(
-    super_ref: &Super,
+    super_ref: &super::SelfLearningMemory,
     episode_id: Uuid,
     extracted_patterns: Vec<Pattern>,
 ) -> Result<()> {
@@ -285,8 +286,9 @@ pub(super) async fn store_patterns(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub(super) async fn get_queue_stats(
-    super_ref: &Super,
+    super_ref: &super::SelfLearningMemory,
 ) -> Option<crate::learning::queue::QueueStats> {
     if let Some(queue) = &super_ref.pattern_queue {
         Some(queue.get_stats().await)
@@ -295,8 +297,9 @@ pub(super) async fn get_queue_stats(
     }
 }
 
+#[allow(dead_code)]
 pub(super) async fn update_heuristic_confidence(
-    super_ref: &Super,
+    super_ref: &super::SelfLearningMemory,
     heuristic_id: Uuid,
     episode_id: Uuid,
     outcome: TaskOutcome,
@@ -330,4 +333,16 @@ pub(super) async fn update_heuristic_confidence(
     }
 
     Ok(())
+}
+
+#[inline]
+fn remove_from_index(
+    index: &std::sync::Arc<tokio::sync::RwLock<crate::spatiotemporal::SpatiotemporalIndex>>,
+    evicted_ids: &[uuid::Uuid],
+) {
+    if let Ok(mut index_write) = index.try_write() {
+        for evicted_id in evicted_ids {
+            index_write.remove(*evicted_id);
+        }
+    }
 }

@@ -8,4 +8,9 @@
 
 pub mod queue;
 
-pub use queue::{PatternExtractionQueue, QueueConfig, QueueStats};
+mod config;
+mod stats;
+
+pub use config::QueueConfig;
+pub use queue::PatternExtractionQueue;
+pub use stats::QueueStats;

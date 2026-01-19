@@ -202,11 +202,11 @@ impl SelfLearningMemory {
         );
 
         // Check if batching is enabled
-        if let Some(batch_config) = &self.config.batch_config {
+        if let Some(batch_config) = self.batch_config() {
             // Use step buffering
             let mut buffers = self.step_buffers.write().await;
             let buffer = buffers.entry(episode_id).or_insert_with(|| {
-                super::step_buffer::StepBuffer::new(episode_id, batch_config.clone())
+                super::step_buffer::StepBuffer::new(episode_id, (*batch_config).clone())
             });
 
             // Add step to buffer

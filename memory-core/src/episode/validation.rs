@@ -1,12 +1,9 @@
 //! Episode validation logic.
 //!
-//! Contains validation methods for Episode and ExecutionStep.
+//! Contains validation methods for Episode and `ExecutionStep`.
 
-use super::structs::{ApplicationOutcome, Episode, ExecutionStep, PatternApplication, PatternId};
-use crate::pre_storage::SalientFeatures;
-use crate::types::{ExecutionResult, Reflection, RewardScore, TaskContext, TaskOutcome, TaskType};
-use chrono::{DateTime, Utc};
-use std::collections::HashMap;
+use super::structs::{Episode, ExecutionStep};
+use crate::types::ExecutionResult;
 
 impl ExecutionStep {
     /// Validate that the step has required fields set.
@@ -69,6 +66,7 @@ impl Episode {
     }
 
     /// Get a summary of the episode for logging purposes.
+    #[must_use]
     pub fn summary(&self) -> String {
         format!(
             "Episode {}: {} ({} steps, {})",
@@ -80,23 +78,5 @@ impl Episode {
                 None => "in progress".to_string(),
             }
         )
-    }
-}
-
-impl TaskOutcome {
-    /// Convert to string representation.
-    pub fn to_string(&self) -> String {
-        match self {
-            TaskOutcome::Success {
-                verdict,
-                artifacts: _,
-            } => format!("success: {verdict}"),
-            TaskOutcome::Failure { verdict, error: _ } => format!("failure: {verdict}"),
-            TaskOutcome::Partial {
-                verdict,
-                completed: _,
-                remaining: _,
-            } => format!("partial: {verdict}"),
-        }
     }
 }

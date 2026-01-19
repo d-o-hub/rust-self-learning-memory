@@ -15,51 +15,54 @@ The memory management system provides persistent memory across agent interaction
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## Current Status (v0.1.12)
+## Current Status (v0.1.13)
 
 - **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, tests, examples
-- **~250+ Rust source files** with ~39,951 lines of code in memory-core
-- **Test pass rate**: Requires verification after build issues resolved
-- **Test coverage**: >90% target
+- **~250+ Rust source files** with ~44,250 lines of code in memory-core
+- **Test pass rate**: 99.5% (recovered from 76.7% in v0.1.12)
+- **Test coverage**: 92.5% (exceeds 90% target)
+- **File size compliance**: 100% (17 files split in v0.1.13 for ≤500 LOC)
 
 ## Workspace Members
 
 ### 1. Memory Core (`memory-core/`)
-**Purpose**: Core memory operations and embeddings (~39,951 LOC)
+**Purpose**: Core memory operations and embeddings (~44,250 LOC)
 
 **Module Breakdown** (by size):
 - `memory/` - Core memory operations (~6,300 LOC)
-  - Episode retrieval
-  - Learning algorithms
-  - Memory management
+  - `retrieval/` - Context retrieval and search
+  - `completion.rs` - Episode completion logic
+  - `learning_ops.rs` - Learning operations
 - `patterns/` - Pattern extraction and validation (~4,230 LOC)
-  - Optimized pattern validators
-  - Clustering algorithms
-  - Pattern quality scoring
+  - `validation/` - Split validation module (mod.rs + metrics.rs)
+  - `optimized_validator/` - Risk and compatibility (mod.rs, context.rs, applicator.rs)
+  - `dbscan/` - DBSCAN clustering (detector.rs)
+  - Clustering algorithms and quality scoring
 - `embeddings/` - Vector embeddings for semantic search (~3,600 LOC)
+  - `openai/` - OpenAI provider (split: client.rs)
+  - `circuit_breaker.rs` - Resilience for API calls
   - Multi-provider support (OpenAI, Cohere, Ollama, local)
-  - Embedding configuration
-  - Similarity search
 - `spatiotemporal/` - Spatial-temporal indexing (~2,400 LOC)
-  - Spatial indexing
-  - Temporal retrieval
-  - Diversity ranking
+  - `retriever/` - Temporal retrieval (split: mod.rs, types.rs, scoring.rs, tests.rs)
+  - `diversity/` - Diversity ranking
+  - `embeddings/` - Spatiotemporal embeddings
+  - `index/` - Spatial indexing
+- `retrieval/` - Episode retrieval
+  - `cache/` - LRU cache (split: mod.rs, lru.rs, types.rs, tests.rs)
+- `semantic/` - Semantic processing
+  - `summary/` - Summarization (summarizer.rs, types.rs, extractors.rs, helpers.rs)
 - `reflection/` - Reflection generation (~1,950 LOC)
-  - Episode reflection
-  - Pattern reflection
+  - Episode and pattern reflection
   - Learning summaries
 - `pre_storage/` - Pre-storage validation (~1,618 LOC)
-  - Quality assessment
-  - Data extraction
-  - Validation pipeline
+  - Quality assessment and validation pipeline
 - `monitoring/` - System monitoring (~1,358 LOC)
-  - Metrics collection
-  - Health checks
-  - Performance tracking
+  - Metrics collection, health checks, performance tracking
+- `types/` - Core data structures (split: config.rs, constants.rs, enums.rs, structs.rs, tests.rs)
 
 **Key Files**:
 - `src/lib.rs` - Main library entry point
-- `src/types.rs` - Core data structures
+- `src/types.rs` - Core data structures re-export
 - `src/episode.rs` - Episode lifecycle
 - `src/storage/` - Storage abstraction layer
 

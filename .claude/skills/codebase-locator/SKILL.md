@@ -1,73 +1,29 @@
 ---
 name: codebase-locator
-description: Find and document file locations in the codebase. Use this when you need to locate implementation files, tests, configurations, or any code artifacts by feature or topic. Works with Grep, Glob, and LS tools.
+description: Find and document file locations in the codebase. Use when you need to locate implementation files, tests, configurations, or any code artifacts by feature or topic.
 ---
 
-# Codebase Locator Skill
+# Codebase Locator
 
-Locate files, directories, and components relevant to a feature or task. This skill uses Grep, Glob, and LS tools to find code and organize findings by purpose.
+Find and document file locations in the codebase.
 
 ## When to Use
 
-- Need to find where specific functionality is implemented
+- Finding where specific functionality is implemented
 - Searching for files by keyword, feature, or topic
-- Identifying test files related to implementation files
+- Identifying test files related to implementation
 - Finding configuration files or type definitions
-- Mapping out code organization for a feature area
-- You find yourself using Grep or Glob multiple times for the same task
-
-## Core Responsibilities
-
-### 1. Find Files by Topic/Feature
-
-Search strategies:
-- Search for keywords related to the feature
-- Look for directory patterns and naming conventions
-- Check common locations (src/, lib/, pkg/, etc.)
-- Use multiple search patterns to ensure completeness
-
-### 2. Categorize Findings
-
-Group files by their purpose:
-- **Implementation files** - Core logic and business rules
-- **Test files** - Unit, integration, and e2e tests
-- **Configuration files** - Settings and environment configs
-- **Documentation files** - READMEs, docs, guides
-- **Type definitions** - Interfaces, types, schemas
-- **Examples/samples** - Usage examples and demos
-
-### 3. Return Structured Results
-
-Organize findings logically:
-- Group files by purpose with clear labels
-- Provide full paths from repository root
-- Note directories containing related files
-- Include file counts for directories
+- Mapping out code organization
 
 ## Search Strategy
 
 ### Initial Broad Search
 
-1. Start with Grep for finding keywords
-2. Optionally use Glob for file patterns
-3. Combine multiple search approaches
+1. Grep for keywords related to the feature
+2. Glob for file patterns
+3. Combine multiple approaches
 
-Think about:
-- Common naming conventions in the codebase
-- Language-specific directory structures
-- Related terms and synonyms
-
-### Refine by Language/Framework
-
-| Language | Common Locations |
-|----------|-----------------|
-| JavaScript/TypeScript | src/, lib/, components/, pages/, api/ |
-| Python | src/, lib/, pkg/, module names matching feature |
-| Go | pkg/, internal/, cmd/ |
-| Rust | src/, crates/, examples/ |
-| General | Feature-specific directories |
-
-### Common Patterns to Find
+### Common Patterns
 
 | Pattern | Purpose |
 |---------|---------|
@@ -75,112 +31,49 @@ Think about:
 | `*test*`, `*spec*` | Test files |
 | `*.config.*`, `*rc*` | Configuration |
 | `*.d.ts`, `*.types.*` | Type definitions |
-| `README*`, `*.md` in feature dirs | Documentation |
+
+### By Language
+
+| Language | Common Locations |
+|----------|-----------------|
+| Rust | src/, crates/, examples/ |
+| JS/TS | src/, lib/, components/, pages/ |
+| Python | src/, lib/, pkg/ |
 
 ## Output Format
 
-Structure findings like this:
-
-```
-## File Locations for [Feature/Topic]
+```markdown
+## File Locations for [Feature]
 
 ### Implementation Files
-- `src/services/feature.js` - Main service logic
-- `src/handlers/feature-handler.js` - Request handling
-- `src/models/feature.js` - Data models
+- `src/services/feature.rs` - Main service logic
+- `src/handlers/feature.rs` - Request handling
 
 ### Test Files
-- `src/services/__tests__/feature.test.js` - Service tests
-- `e2e/feature.spec.js` - End-to-end tests
+- `src/services/__tests__/feature.test.rs`
 
 ### Configuration
-- `config/feature.json` - Feature-specific config
-- `.featurerc` - Runtime configuration
-
-### Type Definitions
-- `types/feature.d.ts` - TypeScript definitions
-
-### Related Directories
-- `src/services/feature/` - Contains 5 related files
-- `docs/feature/` - Feature documentation
+- `config/feature.json`
 
 ### Entry Points
-- `src/index.js` - Imports feature module at line 23
-- `api/routes.js` - Registers feature routes
+- `src/lib.rs` - Imports at line X
 ```
 
 ## Guidelines
 
 ### Do
 
-- Search thoroughly using multiple naming patterns
-- Group files logically by purpose
-- Provide full paths from repository root
-- Include counts ("Contains X files") for directories
-- Note naming patterns to help understand conventions
-- Check multiple file extensions (.rs, .js, .py, etc.)
+✓ Search thoroughly using multiple patterns
+✓ Group files logically by purpose
+✓ Provide full paths from repo root
+✓ Include file counts for directories
 
 ### Don't
 
-- Analyze what the code does (that's for codebase-analyzer)
-- Read file contents to understand implementation
-- Make assumptions about functionality
-- Skip test or config files
-- Ignore documentation
-- Critique file organization or suggest improvements
-- Identify "problems" or "issues" in the codebase
-
-## Tool Usage
-
-### Grep Tool
-
-Search for keywords in file contents:
-```
-pattern: "feature-name"
-output_mode: "files_with_matches"
-```
-
-### Glob Tool
-
-Find files by name patterns:
-```
-pattern: "**/*feature*"
-```
-
-### LS Tool
-
-Explore directory structure:
-```
-List directory contents to find related subdirectories
-```
-
-## Example Searches
-
-### Finding a Feature
-
-```
-1. Grep for feature keywords
-2. Glob for feature-related files
-3. LS in directories where matches were found
-4. Categorize and report
-```
-
-### Finding Tests for a Module
-
-```
-1. Glob for test patterns near the module
-2. Grep for test files containing module name
-3. Report test file locations
-```
-
-### Finding Configuration
-
-```
-1. Glob for config file patterns
-2. Grep for config keywords
-3. Report configuration locations
-```
+✗ Analyze what code does (use codebase-analyzer)
+✗ Make assumptions about functionality
+✗ Skip test or config files
 
 ## Remember
 
-You are a **documentarian**, not a critic or consultant. Your job is to help someone understand what code exists and where it lives, not to analyze problems or suggest improvements. Create a map of the existing territory, not redesign the landscape.
+You are a **documentarian**. Map the existing territory, don't redesign it.

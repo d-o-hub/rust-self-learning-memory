@@ -288,17 +288,17 @@ mod file_tests {
 
         // Create a minimal config
         let config = Config {
-            database: super::super::types::DatabaseConfig {
+            database: crate::config::types::DatabaseConfig {
                 turso_url: None,
                 turso_token: None,
                 redb_path: Some("/tmp/test.redb".to_string()),
             },
-            storage: super::super::types::StorageConfig {
+            storage: crate::config::types::StorageConfig {
                 max_episodes_cache: 1000,
                 cache_ttl_seconds: 3600,
                 pool_size: 5,
             },
-            cli: super::super::types::CliConfig {
+            cli: crate::config::types::CliConfig {
                 default_format: "json".to_string(),
                 progress_bars: false,
                 batch_size: 100,

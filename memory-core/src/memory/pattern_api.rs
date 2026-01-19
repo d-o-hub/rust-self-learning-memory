@@ -1,4 +1,3 @@
-use crate::pattern::Pattern;
 use crate::types::TaskContext;
 use crate::Result;
 

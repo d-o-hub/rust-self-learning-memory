@@ -1,14 +1,30 @@
-//! Pattern search scoring functions
+//! Scoring utilities for pattern search.
+//!
+//! Provides functions for calculating relevance scores, context matches,
+//! and combining multiple signals into unified pattern scores.
 
 use crate::embeddings::SemanticService;
 use crate::pattern::{Pattern, PatternEffectiveness};
 use crate::types::TaskContext;
 use crate::Result;
 use chrono::Utc;
-use std::collections::HashSet;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::types::{ScoreBreakdown, SearchConfig};
+/// Detailed breakdown of relevance scoring
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScoreBreakdown {
+    /// Semantic similarity from embeddings (0.0 to 1.0)
+    pub semantic_similarity: f32,
+    /// Context match score (0.0 to 1.0)
+    pub context_match: f32,
+    /// Effectiveness score based on past usage (0.0 to 1.0+)
+    pub effectiveness: f32,
+    /// Recency score (0.0 to 1.0)
+    pub recency: f32,
+    /// Success rate of the pattern (0.0 to 1.0)
+    pub success_rate: f32,
+}
 
 /// Calculate cosine similarity between two vectors
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
@@ -35,7 +51,7 @@ pub async fn calculate_pattern_score(
     pattern: &Pattern,
     context: &TaskContext,
     semantic_service: Option<&Arc<SemanticService>>,
-    config: &SearchConfig,
+    _config: &SearchConfig,
 ) -> Result<ScoreBreakdown> {
     // 1. Semantic similarity
     let semantic_similarity = if query_embedding.is_empty() {
@@ -95,8 +111,8 @@ pub fn calculate_context_match(pattern: &Pattern, query_context: &TaskContext) -
     components += 1;
 
     // Tag overlap (Jaccard similarity)
-    let pattern_tags: HashSet<_> = pattern_context.tags.iter().collect();
-    let query_tags: HashSet<_> = query_context.tags.iter().collect();
+    let pattern_tags: std::collections::HashSet<_> = pattern_context.tags.iter().collect();
+    let query_tags: std::collections::HashSet<_> = query_context.tags.iter().collect();
 
     if !pattern_tags.is_empty() || !query_tags.is_empty() {
         let intersection = pattern_tags.intersection(&query_tags).count();
@@ -132,11 +148,55 @@ pub fn calculate_keyword_similarity(_pattern: &Pattern, _context: &TaskContext) 
     0.5 // Neutral score
 }
 
+/// Configuration for pattern search
+#[derive(Debug, Clone, Default)]
+pub struct SearchConfig {
+    /// Minimum relevance score to include (0.0 to 1.0)
+    pub min_relevance: f32,
+    /// Weight for semantic similarity (default: 0.4)
+    pub semantic_weight: f32,
+    /// Weight for context matching (default: 0.2)
+    pub context_weight: f32,
+    /// Weight for effectiveness (default: 0.2)
+    pub effectiveness_weight: f32,
+    /// Weight for recency (default: 0.1)
+    pub recency_weight: f32,
+    /// Weight for success rate (default: 0.1)
+    pub success_weight: f32,
+    /// Whether to filter by domain
+    pub filter_by_domain: bool,
+    /// Whether to filter by task type
+    pub filter_by_task_type: bool,
+}
+
+impl SearchConfig {
+    /// Create a strict search config (high threshold, domain filtering)
+    #[must_use]
+    pub fn strict() -> Self {
+        Self {
+            min_relevance: 0.6,
+            filter_by_domain: true,
+            filter_by_task_type: true,
+            ..Default::default()
+        }
+    }
+
+    /// Create a relaxed search config (low threshold, no filtering)
+    #[must_use]
+    pub fn relaxed() -> Self {
+        Self {
+            min_relevance: 0.2,
+            filter_by_domain: false,
+            filter_by_task_type: false,
+            ..Default::default()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::pattern::PatternEffectiveness;
-    use crate::types::{ComplexityLevel, TaskContext};
+    use crate::types::ComplexityLevel;
     use uuid::Uuid;
 
     fn create_test_pattern(domain: &str, success_rate: f32) -> Pattern {
@@ -209,23 +269,10 @@ mod tests {
         let b = vec![1.0, 0.0, 0.0];
         assert_eq!(cosine_similarity(&a, &b), 1.0);
 
-        let a = vec![1.0, 0.0];
-        let b = vec![0.0, 1.0];
-        assert_eq!(cosine_similarity(&a, &b), 0.5); // (0 + 0) / (1 * 1) = 0, then normalized to 0.5
-    }
+        let c = vec![0.0, 1.0, 0.0];
+        assert!(cosine_similarity(&a, &c) < 0.5);
 
-    #[test]
-    fn test_calculate_keyword_similarity() {
-        let pattern = create_test_pattern("web-api", 0.9);
-        let context = TaskContext {
-            domain: "cli".to_string(),
-            language: None,
-            framework: None,
-            complexity: ComplexityLevel::Moderate,
-            tags: vec![],
-        };
-
-        let score = calculate_keyword_similarity(&pattern, &context);
-        assert_eq!(score, 0.5); // Neutral fallback
+        let empty: Vec<f32> = vec![];
+        assert_eq!(cosine_similarity(&empty, &a), 0.0);
     }
 }

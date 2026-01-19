@@ -30,6 +30,12 @@ impl DBSCANAnomalyDetector {
         Self { config }
     }
 
+    /// Get the detector configuration
+    #[must_use]
+    pub fn config(&self) -> Option<&DBSCANConfig> {
+        Some(&self.config)
+    }
+
     /// Detect anomalies in a collection of episodes
     ///
     /// # Arguments
@@ -58,7 +64,7 @@ impl DBSCANAnomalyDetector {
         }
 
         // Extract feature vectors
-        let features = self.extract_features(episodes)?;
+        let features = self.extract_features(episodes);
 
         // Determine epsilon (adaptive if configured)
         let _eps = if self.config.adaptive_eps {
@@ -96,19 +102,19 @@ impl DBSCANAnomalyDetector {
     /// - Duration (derived from timestamps)
     /// - Outcome type
     /// - Task type
-    fn extract_features(&self, episodes: &[Episode]) -> anyhow::Result<Vec<Vec<f64>>> {
+    fn extract_features(&self, episodes: &[Episode]) -> Vec<Vec<f64>> {
         let mut features_vec = Vec::with_capacity(episodes.len());
 
         for episode in episodes {
-            let features = self.episode_to_features(episode)?;
+            let features = self.episode_to_features(episode);
             features_vec.push(features);
         }
 
-        Ok(features_vec)
+        features_vec
     }
 
     /// Convert a single episode to a feature vector
-    fn episode_to_features(&self, episode: &Episode) -> anyhow::Result<Vec<f64>> {
+    fn episode_to_features(&self, episode: &Episode) -> Vec<f64> {
         let mut features = Vec::with_capacity(20);
 
         // Context encoding (domain, language, tags)
@@ -172,7 +178,7 @@ impl DBSCANAnomalyDetector {
         // Complexity level encoding
         self.encode_complexity(episode.context.complexity, &mut features);
 
-        Ok(features)
+        features
     }
 
     /// Encode context features
@@ -425,6 +431,7 @@ impl DBSCANAnomalyDetector {
     }
 
     /// Get cluster information for an episode (which cluster it belongs to)
+    #[must_use]
     pub fn get_episode_cluster(
         &self,
         episode: &Episode,

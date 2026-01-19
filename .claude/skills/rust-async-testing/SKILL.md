@@ -5,92 +5,53 @@ description: Comprehensive async/tokio testing patterns for episodic memory oper
 
 # Rust Async Testing Patterns
 
-This skill provides best practices for testing async Rust code with Tokio in the episodic memory system.
+Best practices for testing async Rust code with Tokio.
 
 ## Core Patterns
 
-### 1. Basic Async Test Setup
+### Basic Async Test
 
 ```rust
-use tokio::test;
-
 #[tokio::test]
 async fn test_episode_creation() {
     let memory = SelfLearningMemory::new(Default::default()).await?;
-    let episode_id = memory.start_episode(
-        "Test task".to_string(),
-        TaskContext::default(),
-        TaskType::CodeGeneration,
-    ).await;
-    assert!(!episode_id.is_empty());
+    let id = memory.start_episode("Test", ctx, TaskType::CodeGen).await;
+    assert!(!id.is_empty());
 }
 ```
 
-### 2. Time-Based Testing with Paused Time
-
-For operations involving `tokio::time::sleep` or timeouts:
+### Time-Based Testing
 
 ```rust
 #[tokio::test(start_paused = true)]
-async fn test_pattern_extraction_timeout() {
-    let memory = setup_memory().await;
-
+async fn test_timeout_behavior() {
     // Time advances only when awaited
     let start = tokio::time::Instant::now();
     tokio::time::sleep(Duration::from_secs(5)).await;
-
-    // Actual elapsed time is near-zero
     assert!(start.elapsed().as_millis() < 100);
 }
 ```
 
-### 3. Concurrent Operation Testing
+### Concurrent Operations
 
 ```rust
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-async fn test_concurrent_episode_operations() {
+async fn test_concurrent_episodes() {
     let memory = Arc::new(setup_memory().await);
 
-    let handles: Vec<_> = (0..10)
-        .map(|i| {
-            let memory = memory.clone();
-            tokio::spawn(async move {
-                memory.start_episode(
-                    format!("Task {}", i),
-                    TaskContext::default(),
-                    TaskType::CodeGeneration,
-                ).await
-            })
+    let handles: Vec<_> = (0..10).map(|i| {
+        let mem = memory.clone();
+        tokio::spawn(async move {
+            mem.start_episode(format!("Task {}", i), ctx, type_).await
         })
-        .collect();
+    }).collect();
 
     let results = futures::future::join_all(handles).await;
     assert_eq!(results.len(), 10);
 }
 ```
 
-### 4. Storage Backend Mocking
-
-```rust
-#[tokio::test]
-async fn test_episode_with_mock_storage() {
-    let mock_turso = MockTursoStorage::new();
-    let mock_redb = MockRedbCache::new();
-
-    mock_turso.expect_create_episode()
-        .times(1)
-        .returning(|_| Ok(()));
-
-    let memory = SelfLearningMemory::with_storage(
-        mock_turso,
-        mock_redb,
-    ).await?;
-
-    memory.start_episode(/* ... */).await;
-}
-```
-
-### 5. Timeout Testing
+### Timeout Testing
 
 ```rust
 #[tokio::test]
@@ -99,100 +60,38 @@ async fn test_operation_timeout() {
         Duration::from_secs(2),
         slow_operation()
     ).await;
-
-    assert!(result.is_err(), "Operation should timeout");
-}
-```
-
-## Memory-Specific Patterns
-
-### Episode Lifecycle Testing
-
-```rust
-#[tokio::test]
-async fn test_complete_episode_lifecycle() {
-    let memory = setup_memory().await;
-
-    // 1. Start episode
-    let episode_id = memory.start_episode(/* ... */).await;
-
-    // 2. Log execution steps
-    memory.log_execution_step(/* ... */).await;
-
-    // 3. Complete episode
-    memory.complete_episode(
-        episode_id,
-        TaskOutcome::Success,
-        None,
-    ).await?;
-
-    // 4. Verify storage
-    let episode = memory.get_episode(&episode_id).await?;
-    assert_eq!(episode.outcome, TaskOutcome::Success);
-}
-```
-
-### Pattern Extraction Testing
-
-```rust
-#[tokio::test]
-async fn test_async_pattern_extraction() {
-    let memory = setup_memory().await;
-    let episode_id = create_test_episode(&memory).await;
-
-    // Pattern extraction runs asynchronously
-    memory.extract_patterns(episode_id).await?;
-
-    // Wait for async workers to complete
-    tokio::time::sleep(Duration::from_millis(100)).await;
-
-    let patterns = memory.get_patterns_for_episode(&episode_id).await?;
-    assert!(!patterns.is_empty());
+    assert!(result.is_err());
 }
 ```
 
 ## Best Practices
 
-1. **Use `#[tokio::test]` instead of `tokio::test::block_on`** - cleaner syntax
-2. **Enable `start_paused = true` for time-dependent tests** - faster execution
-3. **Use `flavor = "multi_thread"` for concurrency tests** - realistic scenarios
-4. **Always clean up test data** - prevent test pollution
-5. **Mock external dependencies** - faster, more reliable tests
-6. **Test error paths** - async error handling is critical
+1. Use `#[tokio::test]` instead of `block_on`
+2. Enable `start_paused = true` for time tests
+3. Use `multi_thread` for concurrency tests
+4. Mock external dependencies
+5. Test error paths
 
 ## Common Pitfalls
 
-- **Don't use blocking operations in async tests**
+| Bad | Good |
+|-----|------|
+| `std::thread::sleep()` | `tokio::time::sleep().await` |
+| `memory.start_episode()` | `memory.start_episode().await` |
+| Single-threaded for concurrency | `multi_thread` runtime |
+
+## Memory-Specific Pattern
+
 ```rust
-// BAD
-std::thread::sleep(Duration::from_secs(1));
-
-// GOOD
-tokio::time::sleep(Duration::from_secs(1)).await;
-```
-
-- **Don't forget to await futures**
-```rust
-// BAD - creates future but doesn't run it
-memory.start_episode(/* ... */);
-
-// GOOD
-memory.start_episode(/* ... */).await;
-```
-
-- **Don't use single-threaded runtime for concurrency tests**
-```rust
-// BAD - uses single-threaded runtime
 #[tokio::test]
-async fn test_concurrent_ops() { /* ... */ }
+async fn test_complete_lifecycle() {
+    let memory = setup_memory().await;
 
-// GOOD
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-async fn test_concurrent_ops() { /* ... */ }
-```
+    // Start → Log Steps → Complete → Verify
+    let id = memory.start_episode("test", ctx, type_).await;
+    memory.log_execution_step(id.clone(), step).await;
+    memory.complete_episode(id.clone(), outcome, None).await?;
 
-## Resources
-
-- View `resources/tokio-patterns.md` for advanced patterns
-- View `resources/concurrent-ops.md` for parallel execution strategies
-- View `resources/mock-storage.md` for storage mocking patterns
+    let episode = memory.get_episode(&id).await?;
+    assert_eq!(episode.outcome, outcome);
+}

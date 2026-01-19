@@ -3670,6 +3670,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+ "uuid",
  "wasmtime 40.0.2",
  "wasmtime-wasi 40.0.2",
  "wat",

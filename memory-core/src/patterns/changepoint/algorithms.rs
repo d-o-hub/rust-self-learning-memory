@@ -37,6 +37,7 @@ pub fn compute_segment_stats(values: &[f64]) -> SegmentStats {
 
 /// Standard normal CDF approximation
 #[inline]
+#[must_use]
 pub fn normal_cdf(x: f64) -> f64 {
     // Approximation of the error function
     let a1 = 0.254_829_592;
@@ -56,6 +57,7 @@ pub fn normal_cdf(x: f64) -> f64 {
 }
 
 /// Calculate changepoint probability based on surrounding data
+#[must_use]
 pub fn calculate_changepoint_probability(
     config: &ChangepointConfig,
     values: &[f64],

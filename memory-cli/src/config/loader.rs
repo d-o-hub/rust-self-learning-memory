@@ -99,7 +99,6 @@ pub fn load_config_with_format(path: &Path) -> Result<super::Config, anyhow::Err
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
 
     #[test]
     fn test_load_config_from_nonexistent() {

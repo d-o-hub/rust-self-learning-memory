@@ -210,3 +210,13 @@ impl ExecutionResult {
         matches!(self, ExecutionResult::Success { .. })
     }
 }
+
+impl std::fmt::Display for TaskOutcome {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TaskOutcome::Success { verdict, .. } => write!(f, "success: {verdict}"),
+            TaskOutcome::Failure { reason, .. } => write!(f, "failure: {reason}"),
+            TaskOutcome::PartialSuccess { verdict, .. } => write!(f, "partial success: {verdict}"),
+        }
+    }
+}

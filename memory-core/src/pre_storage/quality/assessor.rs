@@ -1,8 +1,8 @@
 //! Quality assessor implementation.
 //!
-//! Contains the QualityAssessor struct and its assessment methods.
+//! Contains the `QualityAssessor` struct and its assessment methods.
 
-use super::{QualityConfig, QualityFeature};
+use super::types::{QualityConfig, QualityFeature};
 use crate::episode::Episode;
 use std::collections::HashSet;
 

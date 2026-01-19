@@ -1,17 +1,26 @@
 //! OpenAI embedding provider client implementation.
 //!
-//! Contains the OpenAIEmbeddingProvider struct and its implementation.
+//! Contains the `OpenAIEmbeddingProvider` struct and its implementation.
 
-use super::super::super::config::ModelConfig;
+#[cfg(feature = "openai")]
+use super::super::config::ModelConfig;
+#[cfg(feature = "openai")]
+use super::types::{EmbeddingInput, EmbeddingRequest, EmbeddingResponse};
+#[cfg(feature = "openai")]
 use crate::embeddings::provider::EmbeddingProvider;
+#[cfg(feature = "openai")]
 use anyhow::{Context, Result};
+#[cfg(feature = "openai")]
 use async_trait::async_trait;
+#[cfg(feature = "openai")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "openai")]
 use std::time::Instant;
 
-/// `OpenAI` embedding provider
+#[cfg(feature = "openai")]
+/// OpenAI embedding provider
 ///
-/// Uses `OpenAI`'s embedding API for high-quality semantic embeddings.
+/// Uses OpenAI's embedding API for high-quality semantic embeddings.
 /// Requires an API key and internet connection.
 ///
 /// # Supported Models
@@ -37,25 +46,26 @@ use std::time::Instant;
 /// }
 /// ```
 pub struct OpenAIEmbeddingProvider {
-    /// `OpenAI` API key
+    /// OpenAI API key
     api_key: String,
     /// Model configuration
     config: ModelConfig,
     /// HTTP client for API requests
     client: reqwest::Client,
-    /// Base URL for `OpenAI` API
+    /// Base URL for OpenAI API
     base_url: String,
 }
 
+#[cfg(feature = "openai")]
 impl OpenAIEmbeddingProvider {
-    /// Create a new `OpenAI` embedding provider
+    /// Create a new OpenAI embedding provider
     ///
     /// # Arguments
-    /// * `api_key` - `OpenAI` API key
+    /// * `api_key` - OpenAI API key
     /// * `config` - Model configuration
     ///
     /// # Returns
-    /// Configured `OpenAI` embedding provider
+    /// Configured OpenAI embedding provider
     pub fn new(api_key: String, config: ModelConfig) -> anyhow::Result<Self> {
         let timeout_secs = config.optimization.get_timeout_seconds();
 
@@ -78,7 +88,7 @@ impl OpenAIEmbeddingProvider {
         })
     }
 
-    /// Create provider with custom base URL (for Azure `OpenAI`, etc.)
+    /// Create provider with custom base URL (for Azure OpenAI, etc.)
     pub fn with_custom_url(
         api_key: String,
         config: ModelConfig,
@@ -100,11 +110,8 @@ impl OpenAIEmbeddingProvider {
         })
     }
 
-    /// Make embedding request to `OpenAI` API with retry logic
-    async fn request_embeddings(
-        &self,
-        input: super::EmbeddingsInput,
-    ) -> Result<EmbeddingsResponse> {
+    /// Make embedding request to OpenAI API with retry logic
+    async fn request_embeddings(&self, input: EmbeddingInput) -> Result<EmbeddingResponse> {
         let url = self.config.get_embeddings_url();
         let max_retries = self.config.optimization.max_retries;
         let base_delay_ms = self.config.optimization.retry_delay_ms;
@@ -145,7 +152,7 @@ impl OpenAIEmbeddingProvider {
             let status = response.status();
 
             if status.is_success() {
-                let embedding_response: EmbeddingsResponse = response
+                let embedding_response: EmbeddingResponse = response
                     .json()
                     .await
                     .context("Failed to parse OpenAI API response")?;
@@ -168,8 +175,8 @@ impl OpenAIEmbeddingProvider {
 
     /// Process a single batch chunk
     async fn embed_batch_chunk(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
-        let input = super::EmbeddingsInput::Batch(texts.to_vec());
-        let response = self.request_embeddings(input)?;
+        let input = EmbeddingInput::Batch(texts.to_vec());
+        let response = self.request_embeddings(input).await?;
 
         if response.data.len() != texts.len() {
             anyhow::bail!(
@@ -194,12 +201,13 @@ impl OpenAIEmbeddingProvider {
     }
 }
 
+#[cfg(feature = "openai")]
 #[async_trait]
 impl EmbeddingProvider for OpenAIEmbeddingProvider {
     async fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
         let start_time = Instant::now();
 
-        let input = super::EmbeddingsInput::Single(text.to_string());
+        let input = EmbeddingInput::Single(text.to_string());
         let response = self.request_embeddings(input).await?;
 
         if response.data.is_empty() {
@@ -210,7 +218,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         let generation_time = start_time.elapsed().as_millis() as u64;
 
         tracing::debug!(
-            "Generated `OpenAI` embedding in {generation_time}ms, {} tokens, {} dimensions",
+            "Generated OpenAI embedding in {generation_time}ms, {} tokens, {} dimensions",
             response.usage.total_tokens,
             embedding.len()
         );
@@ -246,7 +254,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
         let generation_time = start_time.elapsed().as_millis() as u64;
 
         tracing::debug!(
-            "Generated {} `OpenAI` embeddings in {generation_time}ms ({} batches)",
+            "Generated {} OpenAI embeddings in {generation_time}ms ({} batches)",
             all_embeddings.len(),
             (texts.len() + max_batch_size - 1) / max_batch_size
         );
@@ -280,41 +288,4 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
             "base_url": self.base_url
         })
     }
-}
-
-/// OpenAI API request structure
-#[derive(Debug, Serialize)]
-struct EmbeddingRequest {
-    input: super::EmbeddingsInput,
-    model: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    encoding_format: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    dimensions: Option<usize>,
-}
-
-/// OpenAI API response structure
-#[derive(Debug, Deserialize)]
-pub struct EmbeddingsResponse {
-    pub data: Vec<EmbeddingData>,
-    #[allow(dead_code)]
-    pub model: String,
-    pub usage: Usage,
-}
-
-/// Individual embedding data from API response
-#[derive(Debug, Deserialize)]
-pub struct EmbeddingData {
-    pub embedding: Vec<f32>,
-    pub index: usize,
-    #[allow(dead_code)]
-    pub object: String,
-}
-
-/// Token usage from API response
-#[derive(Debug, Deserialize)]
-pub struct Usage {
-    #[allow(dead_code)]
-    pub prompt_tokens: usize,
-    pub total_tokens: usize,
 }

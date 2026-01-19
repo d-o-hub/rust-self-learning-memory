@@ -84,7 +84,7 @@ impl SelfLearningMemory {
     pub async fn complete_episode(&self, episode_id: Uuid, outcome: TaskOutcome) -> Result<()> {
         // Flush any buffered steps before completing the episode
         // This ensures all steps are persisted and available for analysis
-        if self.config.batch_config.is_some() {
+        if self.batch_config().is_some() {
             debug!(
                 episode_id = %episode_id,
                 "Flushing buffered steps before episode completion"
@@ -118,23 +118,24 @@ impl SelfLearningMemory {
         info!(
             episode_id = %episode_id,
             quality_score = quality_score,
-            quality_threshold = self.config.quality_threshold,
+            quality_threshold = self.quality_threshold(),
             "Assessed episode quality"
         );
 
         // 2. Check if episode meets quality threshold
-        if quality_score < self.config.quality_threshold {
+        if quality_score < self.quality_threshold() {
             warn!(
                 episode_id = %episode_id,
                 quality_score = quality_score,
-                quality_threshold = self.config.quality_threshold,
+                quality_threshold = self.quality_threshold(),
                 "Episode rejected: quality score below threshold"
             );
 
             // Return error - episode will not be stored
             return Err(Error::ValidationFailed(format!(
                 "Episode quality score ({:.2}) below threshold ({:.2})",
-                quality_score, self.config.quality_threshold
+                quality_score,
+                self.quality_threshold()
             )));
         }
 

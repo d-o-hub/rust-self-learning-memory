@@ -17,8 +17,10 @@ pub use rules::{
 
 #[cfg(test)]
 mod tests {
-    use super::super::types::{CliConfig, Config, DatabaseConfig, EmbeddingsConfig, StorageConfig};
     use super::*;
+    use crate::config::types::{
+        CliConfig, Config, DatabaseConfig, EmbeddingsConfig, StorageConfig,
+    };
 
     fn create_test_config() -> Config {
         Config {

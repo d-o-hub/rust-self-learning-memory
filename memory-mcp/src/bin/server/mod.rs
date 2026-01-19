@@ -12,6 +12,7 @@
 
 mod core;
 mod embedding;
+mod handlers;
 mod jsonrpc;
 mod mcp;
 mod oauth;

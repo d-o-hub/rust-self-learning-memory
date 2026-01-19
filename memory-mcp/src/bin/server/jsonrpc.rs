@@ -9,7 +9,6 @@ use super::mcp::{
     handle_elicitation_request, handle_task_cancel, handle_task_complete, handle_task_create,
     handle_task_list, handle_task_update,
 };
-use super::tools::handle_execute_code;
 use super::types::{ActiveElicitation, ActiveTask, EmbeddingEnvConfig};
 use memory_mcp::jsonrpc::{
     read_next_message, write_response_with_length, JsonRpcError, JsonRpcRequest, JsonRpcResponse,

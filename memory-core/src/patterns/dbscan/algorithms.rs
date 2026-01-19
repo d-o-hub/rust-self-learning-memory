@@ -6,6 +6,7 @@ use crate::patterns::dbscan::{ClusterCentroid, DBSCANConfig, EpisodeCluster};
 
 impl DBSCANConfig {
     /// Calculate adaptive epsilon based on data distribution
+    #[must_use]
     pub fn calculate_adaptive_eps(&self, features: &[Vec<f64>]) -> f64 {
         if features.len() < 2 {
             return self.eps;
@@ -45,6 +46,7 @@ impl DBSCANConfig {
 }
 
 /// Apply DBSCAN algorithm
+#[must_use]
 pub fn dbscan(config: &DBSCANConfig, features: &[Vec<f64>]) -> (Vec<isize>, Vec<bool>, usize) {
     let n = features.len();
     let mut cluster_labels: Vec<isize> = vec![-2; n]; // -2 = unvisited, -1 = noise, >=0 = cluster_id
@@ -112,16 +114,16 @@ fn expand_cluster(
 
     while let Some(p) = queue.pop() {
         // Check if unvisited first (must be done before other checks)
-        if cluster_labels[p as usize] != -2 {
+        if cluster_labels[p] != -2 {
             continue;
         }
 
         // Mark as cluster member
-        cluster_labels[p as usize] = cluster_id;
+        cluster_labels[p] = cluster_id;
 
         // If it's noise (was -1), keep it as cluster_id
         // Get neighbors and expand
-        let p_neighbors = region_query(config, p as usize, features);
+        let p_neighbors = region_query(config, p, features);
 
         if p_neighbors.len() >= config.min_samples {
             // Add unvisited neighbors to queue
@@ -135,6 +137,7 @@ fn expand_cluster(
 }
 
 /// Calculate Euclidean distance between two feature vectors
+#[must_use]
 pub fn euclidean_distance(f1: &[f64], f2: &[f64]) -> f64 {
     let min_len = f1.len().min(f2.len());
     let mut sum = 0.0;
@@ -148,6 +151,7 @@ pub fn euclidean_distance(f1: &[f64], f2: &[f64]) -> f64 {
 }
 
 /// Build cluster objects from DBSCAN labels
+#[must_use]
 pub fn build_clusters(
     config: &DBSCANConfig,
     episodes: &[crate::episode::Episode],
@@ -197,6 +201,7 @@ pub fn build_clusters(
 }
 
 /// Calculate centroid from feature vectors
+#[must_use]
 pub fn calculate_centroid(indices: &[usize], features: &[Vec<f64>]) -> ClusterCentroid {
     if indices.is_empty() {
         return ClusterCentroid {
@@ -230,6 +235,7 @@ pub fn calculate_centroid(indices: &[usize], features: &[Vec<f64>]) -> ClusterCe
 }
 
 /// Calculate density of a cluster
+#[must_use]
 pub fn calculate_density(_config: &DBSCANConfig, indices: &[usize], features: &[Vec<f64>]) -> f64 {
     if indices.len() < 2 {
         return 0.0;
@@ -250,7 +256,7 @@ pub fn calculate_density(_config: &DBSCANConfig, indices: &[usize], features: &[
         return 0.0;
     }
 
-    let avg_dist = total_dist / count as f64;
+    let avg_dist = total_dist / f64::from(count);
     if avg_dist == 0.0 {
         return f64::INFINITY;
     }
@@ -259,6 +265,7 @@ pub fn calculate_density(_config: &DBSCANConfig, indices: &[usize], features: &[
 }
 
 /// Calculate distance from a feature vector to a centroid
+#[must_use]
 pub fn distance_to_centroid(
     config: &DBSCANConfig,
     features: &[f64],
@@ -297,7 +304,7 @@ pub fn calculate_stats(
 ) -> crate::patterns::dbscan::DBSCANStats {
     let clustered_points: usize = clusters.iter().map(|c| c.episodes.len()).sum();
 
-    let (avg_anomaly_distance, max_anomaly_distance) = if !anomalies.is_empty() {
+    let (avg_anomaly_distance, max_anomaly_distance) = if anomalies.is_empty() {
         let sum: f64 = anomalies.iter().map(|a| a.distance_to_cluster).sum();
         let max = anomalies
             .iter()

@@ -1,16 +1,15 @@
 use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, PatternId};
 use crate::extraction::PatternExtractor;
-use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
-use crate::monitoring::{AgentMetrics, AgentMonitor};
+use crate::learning::queue::PatternExtractionQueue;
+use crate::monitoring::AgentMonitor;
 use crate::pattern::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::storage::StorageBackend;
-use crate::types::{MemoryConfig, TaskContext};
-use crate::Result;
+use crate::types::MemoryConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore};
@@ -53,8 +52,7 @@ use super::step_buffer::StepBuffer;
 #[derive(Clone)]
 pub struct SelfLearningMemory {
     /// Configuration
-    #[allow(dead_code)]
-    config: MemoryConfig,
+    pub(super) config: MemoryConfig,
     /// Quality assessor for pre-storage reasoning
     pub(super) quality_assessor: QualityAssessor,
     /// Salient feature extractor for pre-storage reasoning
@@ -122,5 +120,6 @@ pub struct SelfLearningMemory {
 
     // Phase 3 (DBSCAN) - Anomaly Detection
     /// DBSCAN anomaly detector for identifying unusual episodes
-    dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
+    #[allow(dead_code)]
+    pub(super) dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
 }

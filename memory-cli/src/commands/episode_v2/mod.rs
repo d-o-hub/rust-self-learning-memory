@@ -21,6 +21,7 @@ pub use episode::FilterList;
 pub use episode::SavedFilter;
 pub use episode::TaskOutcome;
 
+pub use episode::bulk_get_episodes;
 pub use episode::complete_episode;
 pub use episode::create_episode;
 pub use episode::delete;

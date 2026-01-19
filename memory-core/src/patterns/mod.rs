@@ -30,7 +30,7 @@ pub use dbscan::{
     Anomaly, AnomalyReason, DBSCANAnomalyDetector, DBSCANClusterResult, DBSCANConfig, DBSCANStats,
     FeatureWeights,
 };
-pub use effectiveness::{EffectivenessTracker, PatternUsage, UsageStats};
+pub use effectiveness::{EffectivenessTracker, OverallStats, PatternUsage, UsageStats};
 pub use extractors::{
     ContextPatternExtractor, DecisionPointExtractor, ErrorRecoveryExtractor,
     HybridPatternExtractor, PatternExtractor, ToolSequenceExtractor,

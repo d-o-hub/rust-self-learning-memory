@@ -41,6 +41,7 @@ pub struct ClusterCentroid {
 
 impl ClusterCentroid {
     /// Create a centroid from a single episode
+    #[must_use]
     pub fn from_episode(episode: &crate::episode::Episode) -> Self {
         Self {
             context: episode.context.clone(),

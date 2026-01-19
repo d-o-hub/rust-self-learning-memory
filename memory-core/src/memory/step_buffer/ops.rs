@@ -1,6 +1,6 @@
 //! Operations for step buffer management
 //!
-//! Provides step buffer operations including take_steps and related functionality.
+//! Provides step buffer operations including `take_steps` and related functionality.
 
 use crate::episode::ExecutionStep;
 use std::time::Instant;
@@ -68,7 +68,9 @@ impl StepBuffer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::BatchConfig;
     use std::time::Duration;
+    use uuid::Uuid;
 
     #[test]
     fn test_take_steps() {

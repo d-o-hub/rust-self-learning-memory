@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, Semaphore};
-use tracing::{debug, warn};
 use wasmtime::*;
 
 use crate::types::{ErrorType, ExecutionContext, ExecutionResult};

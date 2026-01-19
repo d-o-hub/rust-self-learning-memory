@@ -1,7 +1,6 @@
-use crate::episode::{Episode, PatternId};
+use crate::episode::Episode;
 use crate::pattern::Pattern;
 use crate::storage::StorageBackend;
-use crate::types::TaskContext;
 use crate::Result;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -117,5 +116,48 @@ impl SelfLearningMemory {
     #[allow(clippy::unused_async)]
     pub async fn get_episode_patterns(&self, episode_id: Uuid) -> Result<Vec<Pattern>> {
         queries::get_episode_patterns(episode_id, &self.patterns_fallback).await
+    }
+
+    /// Get multiple episodes by their IDs in a single operation.
+    ///
+    /// This is more efficient than calling `get_episode()` multiple times,
+    /// as it can batch storage queries and reduce round trips.
+    ///
+    /// Uses the standard lazy-loading pattern for each episode and attempts
+    /// to fetch missing episodes from storage backends in batches where possible.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_ids` - Collection of episode UUIDs to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Vector of episodes that were found. Episodes that don't exist are silently
+    /// omitted (no error is raised for missing episodes).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::SelfLearningMemory;
+    /// use uuid::Uuid;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let ids = vec![Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4()];
+    /// let episodes = memory.get_episodes_by_ids(&ids).await?;
+    ///
+    /// println!("Found {} out of {} episodes", episodes.len(), ids.len());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_episodes_by_ids(&self, episode_ids: &[Uuid]) -> Result<Vec<Episode>> {
+        queries::get_episodes_by_ids(
+            episode_ids,
+            &self.episodes_fallback,
+            self.cache_storage.as_ref(),
+            self.turso_storage.as_ref(),
+        )
+        .await
     }
 }

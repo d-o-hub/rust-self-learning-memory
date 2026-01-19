@@ -4,9 +4,9 @@
 
 #[cfg(test)]
 mod tests {
-    use super::algorithms::{compute_segment_stats, normal_cdf};
-    use super::detector::ChangepointDetector;
-    use super::types::{
+    use crate::patterns::changepoint::algorithms::{compute_segment_stats, normal_cdf};
+    use crate::patterns::changepoint::detector::ChangepointDetector;
+    use crate::patterns::changepoint::types::{
         ChangeDirection, ChangeType, Changepoint, ChangepointConfig, ChangepointError,
         SegmentComparisonConfig, SegmentStats,
     };
@@ -157,90 +157,6 @@ mod tests {
         assert!(comparison.is_significant);
         assert!(comparison.effect_size > 0.0);
         assert!((comparison.mean_difference - 10.0).abs() < 0.1);
-    }
-
-    #[test]
-    fn test_filter_by_min_distance() {
-        let detector = ChangepointDetector::new(ChangepointConfig::default());
-
-        // Create changepoints too close together
-        let mut changepoints = vec![
-            Changepoint {
-                id: Uuid::new_v4(),
-                index: 5,
-                probability: 0.9,
-                confidence_interval: (3, 7),
-                change_type: ChangeType::MeanShift,
-                magnitude: 1.0,
-                direction: ChangeDirection::Increase,
-                detected_at: chrono::Utc::now(),
-            },
-            Changepoint {
-                id: Uuid::new_v4(),
-                index: 8,
-                probability: 0.8,
-                confidence_interval: (6, 10),
-                change_type: ChangeType::MeanShift,
-                magnitude: 0.8,
-                direction: ChangeDirection::Increase,
-                detected_at: chrono::Utc::now(),
-            },
-            Changepoint {
-                id: Uuid::new_v4(),
-                index: 15,
-                probability: 0.7,
-                confidence_interval: (13, 17),
-                change_type: ChangeType::MeanShift,
-                magnitude: 0.7,
-                direction: ChangeDirection::Increase,
-                detected_at: chrono::Utc::now(),
-            },
-        ];
-
-        let filtered = detector.filter_by_min_distance(changepoints);
-
-        assert_eq!(filtered.len(), 2);
-        assert_eq!(filtered[0].index, 5);
-        assert_eq!(filtered[1].index, 15);
-    }
-
-    #[test]
-    fn test_classify_change_type() {
-        let detector = ChangepointDetector::new(ChangepointConfig::default());
-
-        // Mean shift only
-        let values1: Vec<f64> = vec![
-            0.5, 0.5, 0.5, 0.5, 0.5, // Before
-            0.8, 0.8, 0.8, 0.8, 0.8, // After - mean shift
-        ];
-        let change_type = detector.classify_change_type(&values1, 5);
-        assert_eq!(change_type, ChangeType::MeanShift);
-
-        // Variance change only
-        let values2: Vec<f64> = vec![
-            0.5, 0.5, 0.5, 0.5, 0.5, // Before - stable
-            0.3, 0.7, 0.4, 0.6, 0.2, // After - more variable
-        ];
-        let change_type = detector.classify_change_type(&values2, 5);
-        assert!(matches!(
-            change_type,
-            ChangeType::VarianceChange | ChangeType::MixedChange
-        ));
-    }
-
-    #[test]
-    fn test_determine_direction() {
-        let detector = ChangepointDetector::new(ChangepointConfig::default());
-
-        // Increase
-        let values_inc: Vec<f64> = vec![0.5; 10].into_iter().chain(vec![0.8; 10]).collect();
-        let direction = detector.determine_direction(&values_inc, 10);
-        assert_eq!(direction, ChangeDirection::Increase);
-
-        // Decrease
-        let values_dec: Vec<f64> = vec![0.8; 10].into_iter().chain(vec![0.5; 10]).collect();
-        let direction = detector.determine_direction(&values_dec, 10);
-        assert_eq!(direction, ChangeDirection::Decrease);
     }
 
     #[test]

@@ -1,6 +1,6 @@
-//! Buffer implementation for step batching
+//! Buffer implementation for step buffering
 //!
-//! Provides the StepBuffer struct and core buffer operations
+//! Provides the `StepBuffer` struct and core buffer operations
 //! for efficient I/O in episodic memory.
 
 use crate::episode::ExecutionStep;
@@ -331,11 +331,11 @@ impl StepBuffer {
         &mut self.steps
     }
 
-    /// Get mutable reference to last_flush for use by parent module.
+    /// Get mutable reference to `last_flush` for use by parent module.
     ///
     /// # Returns
     ///
-    /// Mutable reference to the last_flush Instant.
+    /// Mutable reference to the `last_flush` Instant.
     pub(super) fn last_flush_mut(&mut self) -> &mut Instant {
         &mut self.last_flush
     }

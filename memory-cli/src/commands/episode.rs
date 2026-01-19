@@ -11,6 +11,7 @@ pub use crate::episode_v2::EpisodeStep;
 pub use crate::episode_v2::EpisodeSummary;
 pub use crate::episode_v2::TaskOutcome;
 
+pub use crate::episode_v2::bulk_get_episodes;
 pub use crate::episode_v2::complete_episode;
 pub use crate::episode_v2::create_episode;
 pub use crate::episode_v2::list_episodes;

@@ -3,6 +3,7 @@
 //! Unit tests for the pattern extraction queue.
 
 #[cfg(test)]
+#[allow(clippy::module_inception)]
 mod tests {
     use crate::episode::ExecutionStep;
     use crate::extraction::PatternExtractor;

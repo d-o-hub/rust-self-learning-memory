@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
     for i in 1..=5 {
         let id = memory
             .start_episode(
-                format!("Task {}: Implement async feature", i),
+                format!("Task {i}: Implement async feature"),
                 context.clone(),
                 TaskType::CodeGeneration,
             )
@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
         memory.log_step(id, step).await;
 
         episode_ids.push(id);
-        println!("  Created episode {}: {}", i, id);
+        println!("  Created episode {i}: {id}");
     }
 
     println!("\n--- Single Episode Retrieval ---");
@@ -52,13 +52,13 @@ async fn main() -> anyhow::Result<()> {
             println!("  Domain: {}", episode.context.domain);
         }
         Err(e) => {
-            println!("✗ Failed to retrieve episode: {}", e);
+            println!("✗ Failed to retrieve episode: {e}");
         }
     }
 
     // 3. Test retrieving a non-existent episode
     let non_existent = Uuid::new_v4();
-    println!("\nTrying to fetch non-existent episode {}...", non_existent);
+    println!("\nTrying to fetch non-existent episode {non_existent}...");
     match memory.get_episode(non_existent).await {
         Ok(_) => println!("✗ Unexpectedly found episode!"),
         Err(e) => println!("✓ Expected error: {e}"),
@@ -109,6 +109,7 @@ async fn main() -> anyhow::Result<()> {
     println!("Bulk lookup (1 call):          {bulk_duration:?}");
 
     if bulk_duration < individual_duration {
+        #[allow(clippy::cast_precision_loss)]
         let speedup = individual_duration.as_micros() as f64 / bulk_duration.as_micros() as f64;
         println!("✓ Bulk lookup is {speedup:.2}x faster!");
     }

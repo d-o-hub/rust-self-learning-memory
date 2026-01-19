@@ -77,7 +77,7 @@ async fn test_get_episodes_by_ids_bulk_retrieval() {
     for i in 1..=5 {
         let id = memory
             .start_episode(
-                format!("Test episode {}", i),
+                format!("Test episode {i}"),
                 context.clone(),
                 TaskType::Testing,
             )
@@ -106,7 +106,7 @@ async fn test_get_episodes_by_ids_partial_found() {
     for i in 1..=3 {
         let id = memory
             .start_episode(
-                format!("Existing episode {}", i),
+                format!("Existing episode {i}"),
                 context.clone(),
                 TaskType::Testing,
             )

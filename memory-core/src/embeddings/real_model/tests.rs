@@ -1,6 +1,7 @@
 //! Tests for real embedding model
 
 #[cfg(test)]
+#[allow(clippy::module_inception)]
 mod tests {
     #[test]
     fn test_url_construction() {

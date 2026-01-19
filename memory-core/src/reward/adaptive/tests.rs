@@ -394,7 +394,7 @@ fn test_optimization_bonus() {
 
     let reward = calculator.calculate(&episode, None);
     // Should get optimization bonus for quick completion
-    assert!(reward.learning_bonus > 0.0 || reward.learning_bonus == 0.0);
+    assert!(reward.learning_bonus >= 0.0);
 }
 
 #[test]

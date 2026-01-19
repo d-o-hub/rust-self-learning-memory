@@ -3,6 +3,7 @@
 //! Unit tests for the changepoint detection system.
 
 #[cfg(test)]
+#[allow(clippy::module_inception)]
 mod tests {
     use crate::patterns::changepoint::algorithms::{compute_segment_stats, normal_cdf};
     use crate::patterns::changepoint::detector::ChangepointDetector;
@@ -94,7 +95,7 @@ mod tests {
     #[test]
     fn test_analyze_segments() {
         let detector = ChangepointDetector::new(ChangepointConfig::default());
-        let values: Vec<f64> = (0..20).map(|i| f64::from(i)).collect();
+        let values: Vec<f64> = (0..20).map(f64::from).collect();
 
         let changepoints = vec![Changepoint {
             id: Uuid::new_v4(),
@@ -143,7 +144,7 @@ mod tests {
     #[test]
     fn test_compare_segments() {
         let detector = ChangepointDetector::new(ChangepointConfig::default());
-        let values: Vec<f64> = (0..20).map(|i| f64::from(i)).collect();
+        let values: Vec<f64> = (0..20).map(f64::from).collect();
 
         let comparison = detector
             .compare_segments(

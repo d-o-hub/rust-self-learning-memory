@@ -163,6 +163,13 @@ pub enum EpisodeCommands {
         #[arg(short, long)]
         observation: Option<String>,
     },
+
+    /// Retrieve multiple episodes by IDs (comma-separated)
+    Bulk {
+        /// Comma-separated episode IDs
+        #[arg(value_name = "EPISODE_IDS")]
+        episode_ids: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, ValueEnum)]

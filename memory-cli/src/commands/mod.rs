@@ -133,6 +133,9 @@ pub async fn handle_episode_command(
             )
             .await
         }
+        EpisodeCommands::Bulk { episode_ids } => {
+            bulk_get_episodes(episode_ids, memory, config, format).await
+        }
     }
 }
 

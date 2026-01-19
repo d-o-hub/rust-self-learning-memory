@@ -257,4 +257,32 @@ impl crate::server::MemoryMCPServer {
             }
         }))
     }
+
+    /// Execute the bulk_episodes tool
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_ids` - List of episode UUIDs to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Returns a result with requested count, found count, and episodes
+    pub async fn get_episodes_by_ids(
+        &self,
+        episode_ids: &[uuid::Uuid],
+    ) -> Result<Vec<memory_core::Episode>> {
+        self.track_tool_usage("bulk_episodes").await;
+
+        debug!("Bulk retrieving {} episodes", episode_ids.len());
+
+        let episodes = self.memory.get_episodes_by_ids(episode_ids).await?;
+
+        debug!(
+            "Found {} of {} requested episodes",
+            episodes.len(),
+            episode_ids.len()
+        );
+
+        Ok(episodes)
+    }
 }

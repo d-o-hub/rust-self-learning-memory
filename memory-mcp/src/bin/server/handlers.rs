@@ -5,18 +5,18 @@
 //! - handle_batch_execute: Handle batch/execute requests
 
 use super::tools::{
-    handle_advanced_pattern_analysis, handle_analyze_patterns, handle_configure_embeddings,
-    handle_execute_code, handle_get_metrics, handle_health_check, handle_quality_metrics,
-    handle_query_memory, handle_query_semantic_memory, handle_recommend_patterns,
-    handle_search_patterns, handle_test_embeddings,
+    handle_advanced_pattern_analysis, handle_analyze_patterns, handle_bulk_episodes,
+    handle_configure_embeddings, handle_execute_code, handle_get_metrics, handle_health_check,
+    handle_quality_metrics, handle_query_memory, handle_query_semantic_memory,
+    handle_recommend_patterns, handle_search_patterns, handle_test_embeddings,
 };
-use super::types::{CallToolParams, CallToolResult, EmbeddingEnvConfig};
+use super::types::{CallToolParams, CallToolResult, Content};
 use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use memory_mcp::MemoryMCPServer;
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{debug, error, info, warn};
+use tracing::{error, info};
 
 /// Handle tools/call request
 #[allow(clippy::excessive_nesting)]
@@ -95,6 +95,7 @@ pub async fn handle_call_tool(
         "test_embeddings" => handle_test_embeddings(&mut server, params.arguments).await,
         "search_patterns" => handle_search_patterns(&mut server, params.arguments).await,
         "recommend_patterns" => handle_recommend_patterns(&mut server, params.arguments).await,
+        "bulk_episodes" => handle_bulk_episodes(&mut server, params.arguments).await,
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
@@ -112,7 +113,7 @@ pub async fn handle_call_tool(
     // Process the tool result
     let response = match result {
         Ok(content) => {
-            let call_result = CallToolResult { content };
+            let call_result = CallToolResult::success(content);
             match serde_json::to_value(call_result) {
                 Ok(value) => Some(JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),
@@ -263,6 +264,7 @@ pub async fn handle_batch_execute(
                 "recommend_patterns" => {
                     handle_recommend_patterns(&mut server, Some(arguments)).await
                 }
+                "bulk_episodes" => handle_bulk_episodes(&mut server, Some(arguments)).await,
                 _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_name)),
             };
 

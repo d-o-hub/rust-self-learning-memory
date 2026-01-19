@@ -360,9 +360,9 @@ impl MemoryMCPServer {
 
         tools.push(crate::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisTool::tool_definition());
         tools.push(crate::mcp::tools::quality_metrics::QualityMetricsTool::tool_definition());
-        tools.push(crate::mcp::tools::embeddings::EmbeddingTools::configure_embeddings_tool());
-        tools.push(crate::mcp::tools::embeddings::EmbeddingTools::query_semantic_memory_tool());
-        tools.push(crate::mcp::tools::embeddings::EmbeddingTools::test_embeddings_tool());
+        tools.push(crate::mcp::tools::embeddings::configure_embeddings_tool());
+        tools.push(crate::mcp::tools::embeddings::query_semantic_memory_tool());
+        tools.push(crate::mcp::tools::embeddings::test_embeddings_tool());
 
         // Pattern search and recommendation tools
         tools.push(Tool::new(
@@ -433,6 +433,23 @@ impl MemoryMCPServer {
                     }
                 },
                 "required": ["task_description", "domain"]
+            }),
+        ));
+
+        // Bulk episode retrieval tool
+        tools.push(Tool::new(
+            "bulk_episodes".to_string(),
+            "Retrieve multiple episodes by their IDs in a single efficient operation".to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "episode_ids": {
+                        "type": "array",
+                        "items": {"type": "string", "description": "Episode UUIDs"},
+                        "description": "Array of episode IDs to retrieve"
+                    }
+                },
+                "required": ["episode_ids"]
             }),
         ));
 

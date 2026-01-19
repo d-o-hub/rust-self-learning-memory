@@ -13,8 +13,6 @@ use anyhow::{Context, Result};
 #[cfg(feature = "openai")]
 use async_trait::async_trait;
 #[cfg(feature = "openai")]
-use serde::{Deserialize, Serialize};
-#[cfg(feature = "openai")]
 use std::time::Instant;
 
 #[cfg(feature = "openai")]

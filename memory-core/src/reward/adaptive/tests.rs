@@ -350,8 +350,7 @@ fn test_novelty_bonus_with_diverse_tools() {
 
     // Add steps with unique tools (at least 5)
     for i in 0..5 {
-        let mut step =
-            ExecutionStep::new(i + 1, format!("unique_tool_{i}"), format!("Action {}", i));
+        let mut step = ExecutionStep::new(i + 1, format!("unique_tool_{i}"), format!("Action {i}"));
         step.result = Some(ExecutionResult::Success {
             output: "OK".to_string(),
         });

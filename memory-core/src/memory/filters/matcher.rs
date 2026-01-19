@@ -151,7 +151,7 @@ impl EpisodeFilter {
     }
 
     /// Apply this filter to a collection of Arc-wrapped episodes
-    /// This avoids cloning when filtering Arc<Episode> collections
+    /// This avoids cloning when filtering `Arc<Episode>` collections
     #[must_use]
     pub fn apply_arc(
         &self,

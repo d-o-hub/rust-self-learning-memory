@@ -208,6 +208,7 @@ mod tests {
     use super::*;
     use crate::types::{ComplexityLevel, TaskContext, TaskType};
 
+    #[allow(dead_code)]
     fn create_test_episode(task_desc: &str) -> Episode {
         let context = TaskContext {
             language: Some("rust".to_string()),

@@ -111,7 +111,7 @@ async fn test_anomaly_detection() {
 
     // Create mostly similar episodes
     let mut episodes = Vec::new();
-    for i in 0..5 {
+    for _i in 0..5 {
         episodes.push(create_test_episode(
             "web-api",
             5,
@@ -218,6 +218,6 @@ async fn test_dbscan_iterations() {
 
     let result = detector.detect_anomalies(&episodes).await.unwrap();
 
-    // Should have run at least some iterations
-    assert!(result.iterations >= 0);
+    // Should have run some iterations
+    assert!(result.iterations > 0);
 }

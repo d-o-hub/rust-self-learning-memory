@@ -1,4 +1,4 @@
-//! Episode-related tests for SelfLearningMemory.
+//! Episode-related tests for `SelfLearningMemory`.
 
 use crate::episode::ExecutionStep;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};

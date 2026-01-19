@@ -33,12 +33,14 @@ mod tests {
 
     #[test]
     fn test_stats_clone() {
-        let mut stats = QueueStats::default();
-        stats.total_enqueued = 10;
-        stats.total_processed = 8;
-        stats.total_failed = 2;
-        stats.current_queue_size = 5;
-        stats.active_workers = 4;
+        let stats = QueueStats {
+            total_enqueued: 10,
+            total_processed: 8,
+            total_failed: 2,
+            current_queue_size: 5,
+            active_workers: 4,
+        };
+        let mut stats = stats;
 
         let cloned = stats.clone();
         assert_eq!(cloned.total_enqueued, 10);

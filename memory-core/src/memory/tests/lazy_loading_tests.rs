@@ -1,10 +1,10 @@
-//! Lazy loading tests for SelfLearningMemory.
+//! Lazy loading tests for `SelfLearningMemory`.
 
 use crate::episode::ExecutionStep;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
 use crate::SelfLearningMemory;
 
-/// Test get_all_episodes with lazy loading.
+/// Test `get_all_episodes` with lazy loading.
 #[tokio::test]
 pub async fn test_get_all_episodes_lazy_loading() {
     let test_config = crate::MemoryConfig {
@@ -79,7 +79,7 @@ pub async fn test_get_all_episodes_lazy_loading() {
     );
 }
 
-/// Test get_episode with lazy loading.
+/// Test `get_episode` with lazy loading.
 #[tokio::test]
 pub async fn test_get_episode_lazy_loading() {
     let memory = SelfLearningMemory::new();

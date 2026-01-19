@@ -40,7 +40,6 @@ mod tests {
             current_queue_size: 5,
             active_workers: 4,
         };
-        let stats = stats;
 
         let cloned = stats.clone();
         assert_eq!(cloned.total_enqueued, 10);

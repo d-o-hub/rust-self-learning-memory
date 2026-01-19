@@ -181,7 +181,7 @@ async fn test_bulk_retrieval_performance() {
     for i in 1..=50 {
         let id = memory
             .start_episode(
-                format!("Performance test episode {}", i),
+                format!("Performance test episode {i}"),
                 context.clone(),
                 TaskType::Testing,
             )
@@ -199,8 +199,7 @@ async fn test_bulk_retrieval_performance() {
     // Should complete quickly (< 100ms for in-memory)
     assert!(
         duration.as_millis() < 100,
-        "Bulk retrieval took too long: {:?}",
-        duration
+        "Bulk retrieval took too long: {duration:?}"
     );
 }
 
@@ -220,7 +219,7 @@ async fn test_get_episode_with_steps() {
 
     // Add several steps
     for i in 1..=10 {
-        let step = ExecutionStep::new(i, format!("tool{}", i), format!("action{}", i));
+        let step = ExecutionStep::new(i, format!("tool{i}"), format!("action{i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -263,7 +262,7 @@ async fn test_bulk_retrieval_preserves_episode_data() {
     for (i, context) in contexts.iter().enumerate() {
         let id = memory
             .start_episode(
-                format!("Episode {}", i),
+                format!("Episode {i}"),
                 context.clone(),
                 TaskType::CodeGeneration,
             )

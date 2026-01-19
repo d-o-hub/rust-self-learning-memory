@@ -72,7 +72,7 @@ pub struct SelfLearningMemory {
     /// Cache storage backend (redb)
     pub(super) cache_storage: Option<Arc<dyn StorageBackend>>,
     /// In-memory fallback for episodes (used when no storage configured)
-    /// Uses Arc<Episode> to avoid cloning when sharing episodes across operations
+    /// Uses `Arc<Episode>` to avoid cloning when sharing episodes across operations
     pub(super) episodes_fallback: Arc<RwLock<HashMap<Uuid, Arc<Episode>>>>,
     /// In-memory fallback for patterns (used when no storage configured)
     pub(super) patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,

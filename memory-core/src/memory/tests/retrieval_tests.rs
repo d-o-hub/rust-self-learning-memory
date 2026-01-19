@@ -1,4 +1,4 @@
-//! Retrieval-related tests for SelfLearningMemory.
+//! Retrieval-related tests for `SelfLearningMemory`.
 
 use crate::episode::ExecutionStep;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};

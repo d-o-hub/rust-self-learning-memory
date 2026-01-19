@@ -20,7 +20,7 @@ use std::time::{Duration, Instant};
 pub struct QueryCache {
     /// LRU cache storage
     cache: Arc<RwLock<LruCache<u64, CachedResult>>>,
-    /// Domain index: maps domain -> set of cache key hashes (Arc<str> avoids cloning)
+    /// Domain index: maps domain -> set of cache key hashes (`Arc<str>` avoids cloning)
     domain_index: Arc<RwLock<HashMap<Arc<str>, HashSet<u64>>>>,
     /// Lazy invalidation: set of cache key hashes marked for removal
     /// Entries are not removed immediately, but filtered on access

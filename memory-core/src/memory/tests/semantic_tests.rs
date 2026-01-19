@@ -1,4 +1,4 @@
-//! Semantic service tests for SelfLearningMemory.
+//! Semantic service tests for `SelfLearningMemory`.
 
 use crate::embeddings::{EmbeddingConfig, EmbeddingProviderType, ModelConfig};
 use crate::episode::ExecutionStep;

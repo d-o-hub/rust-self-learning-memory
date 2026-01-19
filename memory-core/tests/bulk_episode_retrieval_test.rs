@@ -242,7 +242,7 @@ async fn test_bulk_retrieval_preserves_episode_data() {
     let memory = SelfLearningMemory::new();
 
     // Create episodes with different characteristics
-    let contexts = vec![
+    let contexts = [
         TaskContext {
             language: Some("rust".to_string()),
             framework: Some("tokio".to_string()),

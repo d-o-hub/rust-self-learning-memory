@@ -81,7 +81,7 @@ mod tests {
 
         // Create a series with increasing trend
         let values: Vec<f64> = (0..30)
-            .map(|i| 0.5 + (i as f64 * 0.02) + (rand::random::<f64>() * 0.05))
+            .map(|i| 0.5 + (f64::from(i) * 0.02) + (rand::random::<f64>() * 0.05))
             .collect();
 
         let changepoints = detector.detect_changepoints(&values).unwrap();
@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn test_analyze_segments() {
         let detector = ChangepointDetector::new(ChangepointConfig::default());
-        let values: Vec<f64> = (0..20).map(|i| i as f64).collect();
+        let values: Vec<f64> = (0..20).map(|i| f64::from(i)).collect();
 
         let changepoints = vec![Changepoint {
             id: Uuid::new_v4(),
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn test_compare_segments() {
         let detector = ChangepointDetector::new(ChangepointConfig::default());
-        let values: Vec<f64> = (0..20).map(|i| i as f64).collect();
+        let values: Vec<f64> = (0..20).map(|i| f64::from(i)).collect();
 
         let comparison = detector
             .compare_segments(

@@ -61,7 +61,7 @@ async fn main() -> anyhow::Result<()> {
     println!("\nTrying to fetch non-existent episode {}...", non_existent);
     match memory.get_episode(non_existent).await {
         Ok(_) => println!("✗ Unexpectedly found episode!"),
-        Err(e) => println!("✓ Expected error: {}", e),
+        Err(e) => println!("✓ Expected error: {e}"),
     }
 
     println!("\n--- Bulk Episode Retrieval ---");
@@ -105,12 +105,12 @@ async fn main() -> anyhow::Result<()> {
     let _ = memory.get_episodes_by_ids(&episode_ids).await?;
     let bulk_duration = start.elapsed();
 
-    println!("Individual lookups (5 calls): {:?}", individual_duration);
-    println!("Bulk lookup (1 call):          {:?}", bulk_duration);
+    println!("Individual lookups (5 calls): {individual_duration:?}");
+    println!("Bulk lookup (1 call):          {bulk_duration:?}");
 
     if bulk_duration < individual_duration {
         let speedup = individual_duration.as_micros() as f64 / bulk_duration.as_micros() as f64;
-        println!("✓ Bulk lookup is {:.2}x faster!", speedup);
+        println!("✓ Bulk lookup is {speedup:.2}x faster!");
     }
 
     println!("\n=== Demo Complete ===");

@@ -1,52 +1,8 @@
-//! Configuration structs for embedding providers.
+//! Model configuration for embedding providers
 
 use serde::{Deserialize, Serialize};
 
-/// Configuration for the embedding system
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmbeddingConfig {
-    /// Embedding provider type
-    pub provider: EmbeddingProvider,
-    /// Model configuration
-    pub model: ModelConfig,
-    /// Similarity threshold for search (0.0 to 1.0)
-    pub similarity_threshold: f32,
-    /// Maximum batch size for embedding generation
-    pub batch_size: usize,
-    /// Cache embeddings to avoid regeneration
-    pub cache_embeddings: bool,
-    /// Timeout for embedding requests (seconds)
-    pub timeout_seconds: u64,
-}
-
-impl Default for EmbeddingConfig {
-    fn default() -> Self {
-        Self {
-            provider: EmbeddingProvider::Local,
-            model: ModelConfig::default(),
-            similarity_threshold: 0.7,
-            batch_size: 32,
-            cache_embeddings: true,
-            timeout_seconds: 30,
-        }
-    }
-}
-
-/// Supported embedding providers
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[allow(dead_code)]
-pub enum EmbeddingProvider {
-    /// Local embedding using sentence transformers
-    Local,
-    /// `OpenAI`'s text embedding models
-    OpenAI,
-    /// Mistral AI's embedding models
-    Mistral,
-    /// Azure `OpenAI` Service
-    AzureOpenAI,
-    /// Custom provider implementation
-    Custom(String),
-}
+use super::optimization_config::OptimizationConfig;
 
 /// Model configuration for embedding providers
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,92 +22,6 @@ pub struct ModelConfig {
     pub optimization: OptimizationConfig,
     /// Model-specific parameters
     pub parameters: serde_json::Value,
-}
-
-/// Provider-specific optimization configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OptimizationConfig {
-    /// Request timeout in seconds (None = use default)
-    #[serde(default)]
-    pub timeout_seconds: Option<u64>,
-    /// Maximum number of retry attempts for failed requests
-    #[serde(default = "default_max_retries")]
-    pub max_retries: u32,
-    /// Base retry delay in milliseconds (exponential backoff)
-    #[serde(default = "default_retry_delay_ms")]
-    pub retry_delay_ms: u64,
-    /// Maximum batch size for this provider (None = use provider default)
-    #[serde(default)]
-    pub max_batch_size: Option<usize>,
-    /// Rate limit: requests per minute (None = no limit)
-    #[serde(default)]
-    pub rate_limit_rpm: Option<u32>,
-    /// Rate limit: tokens per minute (None = no limit)
-    #[serde(default)]
-    pub rate_limit_tpm: Option<u64>,
-    /// Enable request compression (gzip)
-    #[serde(default = "default_compression")]
-    pub compression_enabled: bool,
-    /// Minimum request size (bytes) to trigger compression
-    #[serde(default = "default_compression_threshold")]
-    pub compression_threshold_bytes: usize,
-    /// Connection pool size
-    #[serde(default = "default_pool_size")]
-    pub connection_pool_size: usize,
-    /// Enable circuit breaker
-    #[serde(default)]
-    pub enable_circuit_breaker: bool,
-    /// Circuit breaker configuration
-    #[serde(default)]
-    pub circuit_breaker_config: Option<super::super::circuit_breaker::CircuitBreakerConfig>,
-    /// Enable performance metrics collection
-    #[serde(default = "default_enable_metrics")]
-    pub enable_metrics: bool,
-}
-
-fn default_max_retries() -> u32 {
-    3
-}
-
-fn default_retry_delay_ms() -> u64 {
-    1000
-}
-
-fn default_compression() -> bool {
-    false
-}
-
-fn default_pool_size() -> usize {
-    10
-}
-
-fn default_compression_threshold() -> usize {
-    1024
-}
-
-fn default_enable_metrics() -> bool {
-    true
-}
-
-impl Default for OptimizationConfig {
-    fn default() -> Self {
-        Self {
-            timeout_seconds: None,
-            max_retries: default_max_retries(),
-            retry_delay_ms: default_retry_delay_ms(),
-            max_batch_size: None,
-            rate_limit_rpm: None,
-            rate_limit_tpm: None,
-            compression_enabled: default_compression(),
-            compression_threshold_bytes: default_compression_threshold(),
-            connection_pool_size: default_pool_size(),
-            enable_circuit_breaker: true,
-            circuit_breaker_config: Some(
-                super::super::circuit_breaker::CircuitBreakerConfig::default(),
-            ),
-            enable_metrics: default_enable_metrics(),
-        }
-    }
 }
 
 impl Default for ModelConfig {
@@ -237,6 +107,12 @@ impl ModelConfig {
     }
 
     /// Create configuration for Azure `OpenAI` Service
+    ///
+    /// # Arguments
+    /// * `deployment_name` - Your Azure deployment name
+    /// * `resource_name` - Your Azure resource name
+    /// * `api_version` - API version (e.g., "2023-05-15")
+    /// * `dimension` - Embedding dimension for your model
     #[must_use]
     pub fn azure_openai(
         deployment_name: &str,
@@ -257,6 +133,12 @@ impl ModelConfig {
     }
 
     /// Create configuration with custom base URL and endpoint
+    ///
+    /// # Arguments
+    /// * `model_name` - Model identifier
+    /// * `dimension` - Embedding dimension
+    /// * `base_url` - Base URL for the API (e.g., `<https://api.example.com/v1>`)
+    /// * `endpoint` - Optional custom endpoint path (defaults to "/embeddings")
     #[must_use]
     pub fn custom(
         model_name: &str,
@@ -288,5 +170,71 @@ impl ModelConfig {
         } else {
             format!("{base}/{endpoint}")
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_model_config_constructors() {
+        let local_config = ModelConfig::local_sentence_transformer("test-model", 512);
+        assert_eq!(local_config.model_name, "test-model");
+        assert_eq!(local_config.embedding_dimension, 512);
+        assert!(local_config.base_url.is_none());
+        assert!(local_config.api_endpoint.is_none());
+
+        let openai_small = ModelConfig::openai_3_small();
+        assert_eq!(openai_small.model_name, "text-embedding-3-small");
+        assert_eq!(openai_small.embedding_dimension, 1536);
+
+        let openai_large = ModelConfig::openai_3_large();
+        assert_eq!(openai_large.model_name, "text-embedding-3-large");
+        assert_eq!(openai_large.embedding_dimension, 3072);
+
+        let openai_ada = ModelConfig::openai_ada_002();
+        assert_eq!(openai_ada.model_name, "text-embedding-ada-002");
+        assert_eq!(openai_ada.embedding_dimension, 1536);
+
+        let mistral = ModelConfig::mistral_embed();
+        assert_eq!(mistral.model_name, "mistral-embed");
+        assert_eq!(mistral.embedding_dimension, 1024);
+
+        let azure = ModelConfig::azure_openai("my-deployment", "my-resource", "2023-05-15", 1536);
+        assert_eq!(azure.model_name, "my-deployment");
+        assert_eq!(azure.embedding_dimension, 1536);
+
+        let custom = ModelConfig::custom(
+            "custom-model",
+            256,
+            "https://api.example.com/v1",
+            Some("/custom-embeddings"),
+        );
+        assert_eq!(custom.model_name, "custom-model");
+        assert_eq!(custom.embedding_dimension, 256);
+    }
+
+    #[test]
+    fn test_model_config_get_embeddings_url() {
+        let config = ModelConfig::default();
+        let url = config.get_embeddings_url();
+        assert_eq!(url, "https://api.openai.com/v1/embeddings");
+
+        let config = ModelConfig {
+            base_url: Some("https://custom.api.com/v1".to_string()),
+            api_endpoint: None,
+            ..Default::default()
+        };
+        let url = config.get_embeddings_url();
+        assert_eq!(url, "https://custom.api.com/v1/embeddings");
+
+        let config = ModelConfig {
+            base_url: Some("https://custom.api.com/v1".to_string()),
+            api_endpoint: Some("/custom-path".to_string()),
+            ..Default::default()
+        };
+        let url = config.get_embeddings_url();
+        assert_eq!(url, "https://custom.api.com/v1/custom-path");
     }
 }

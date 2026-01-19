@@ -1,9 +1,9 @@
 //! Semantic service tests for SelfLearningMemory.
 
 use crate::embeddings::{EmbeddingConfig, EmbeddingProviderType, ModelConfig};
-use crate::SelfLearningMemory;
 use crate::episode::ExecutionStep;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use crate::SelfLearningMemory;
 
 /// Test semantic service initialization.
 #[tokio::test]

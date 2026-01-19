@@ -4,11 +4,9 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::pattern::PatternEffectiveness;
     use crate::pattern::Pattern;
-    use crate::patterns::{
-        ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer,
-    };
+    use crate::pattern::PatternEffectiveness;
+    use crate::patterns::{ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer};
     use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome};
     use crate::Episode;
     use crate::ExecutionStep;

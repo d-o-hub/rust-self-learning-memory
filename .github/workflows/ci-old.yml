@@ -1,0 +1,434 @@
+---
+name: CI
+permissions:
+  contents: read
+  checks: write
+  security-events: write
+
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  # Essential checks - run in parallel for faster feedback
+  essential:
+    name: Essential Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [format, clippy, doctest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
+      - name: Format Check
+        if: matrix.job == 'format'
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        if: matrix.job == 'clippy'
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Documentation Tests
+        if: matrix.job == 'doctest'
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/check-doctests.sh
+
+  # Core testing - optimized for speed with proper timeouts
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache/* || true
+          sudo apt-get clean || true
+          df -h
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Run tests with timeout protection
+        run: |
+          # Run unit tests first (faster feedback)
+          cargo nextest run --profile ci --lib --all --timeout 300
+          # Run integration tests if unit tests pass
+          cargo nextest run --profile ci --tests --all --timeout 600
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-results
+          path: target/nextest/ci/junit.xml
+          retention-days: 7
+
+  # MCP builds - simplified with timeout protection
+  mcp-build:
+    name: MCP Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        feature: [default, wasm-rquickjs]
+    steps:
+      - name: Free disk space for WASM builds
+        run: |
+          sudo rm -rf /opt/hostedtoolcache/*/12.* 2>/dev/null || true
+          sudo rm -rf /usr/share/dotnet/ 2>/dev/null || true
+          sudo rm -rf /usr/local/lib/android/ 2>/dev/null || true
+          sudo rm -rf /opt/ghc/ 2>/dev/null || true
+          docker system prune -af 2>/dev/null || true
+          df -h
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Build and test (default)
+        if: matrix.feature == 'default'
+        run: |
+          cargo build -p memory-mcp --timeout 300
+          cargo test -p memory-mcp --lib --timeout 300
+      - name: Build and test (wasm-rquickjs)
+        if: matrix.feature == 'wasm-rquickjs'
+        run: |
+          cargo build -p memory-mcp --features wasm-rquickjs --timeout 300
+          cargo test -p memory-mcp --features wasm-rquickjs --lib --timeout 300
+
+  # Multi-platform testing - simplified matrix
+  multi-platform:
+    name: Multi-Platform Test
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Run tests on ${{ matrix.os }}
+        run: cargo test --lib --all --timeout 600
+
+  # Quality gates - final validation
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [essential, test, mcp-build, multi-platform]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install required tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov,cargo-audit
+      - name: Run Quality Gates
+        run: |
+          # Security audit
+          cargo audit
+          # Coverage check
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        env:
+          RUST_LOG: info
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./lcov.info
+          fail_ci_if_error: false
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Run tests with nextest
+        run: cargo nextest run --profile ci --workspace
+        env:
+          RUST_LOG: debug
+          QUALITY_GATE_SKIP_OPTIONAL: true
+
+  build-matrix:
+    name: Build (matrix)
+    runs-on: ${{ matrix.os }}
+    needs: [ci-guard, doctest]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    env:
+      CARGO_TARGET_DIR: /tmp/target
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rust: [stable]
+    steps:
+      - name: Free disk space
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            sudo rm -rf ~/Library/Caches/Homebrew ~/.cargo/registry ~/.cargo/git
+            rm -rf target
+          else
+            sudo rm -rf /opt/hostedtoolcache/* || true
+            sudo apt-get clean || true
+          fi
+          df -h
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Run tests with nextest
+        run: cargo nextest run --profile ci --workspace
+        env:
+          RUST_LOG: debug
+          QUALITY_GATE_SKIP_OPTIONAL: true
+
+  cli-test:
+    name: CLI Test
+    runs-on: ubuntu-latest
+    needs: [ci-guard, doctest]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Build CLI
+        run: cargo build --package memory-cli --features full
+      - name: Run CLI unit tests
+        run: cargo test --package memory-cli --features full --lib
+      - name: Run CLI integration tests
+        run: cargo test --package memory-cli --features full --test integration_tests
+      - name: Run CLI security tests
+        run: cargo test --package memory-cli --features full --test security_tests
+      - name: Test CLI binary execution
+        run: |
+          ./target/debug/memory-cli --help
+          ./target/debug/memory-cli --version
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Build all crates with timing
+        run: cargo build --all --release --timings
+      - name: Upload build timing report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-timings
+          path: target/cargo-timings/cargo-timing.html
+          retention-days: 7
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: [ci-guard, doctest]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache/*
+          sudo rm -rf /usr/share/dotnet/*
+          sudo rm -rf /usr/local/lib/android/*
+          sudo rm -rf /opt/ghc/*
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate coverage reports and check threshold
+        run: |
+          cargo llvm-cov clean --workspace
+          cargo llvm-cov --workspace --lcov --output-path lcov.info --ignore-run-fail
+
+          # Extract coverage percentage from LCOV file
+          # LH = lines hit, LF = lines found
+          LH=$(grep -oP '^LH:\K\d+' lcov.info | awk '{s+=$1} END {print s}')
+          LF=$(grep -oP '^LF:\K\d+' lcov.info | awk '{s+=$1} END {print s}')
+
+          if [ -z "$LF" ] || [ "$LF" -eq "0" ]; then
+            echo "::error::No coverage data found in lcov.info"
+            exit 1
+          fi
+
+          COVERAGE=$(awk "BEGIN {printf \"%.2f\", ($LH/$LF)*100}")
+          echo "Coverage: ${COVERAGE}% (${LH}/${LF} lines)"
+
+          # Check coverage threshold
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            THRESHOLD=64
+          else
+            THRESHOLD=70
+          fi
+          # Use bc for proper floating point comparison
+          if [ "$(echo "$COVERAGE < $THRESHOLD" | bc -l)" -eq 1 ]; then
+            echo "::error::Coverage ${COVERAGE}% is below ${THRESHOLD}% threshold"
+            exit 1
+          fi
+          echo "Coverage check passed: ${COVERAGE}% >= ${THRESHOLD}% (${GITHUB_EVENT_NAME})"
+        env:
+          RUST_LOG: debug
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5.5.2
+        with:
+          files: lcov.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-report
+          path: lcov.info
+          retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Run cargo audit
+        run: cargo audit
+
+  supply-chain:
+    name: Supply Chain Security (cargo-deny)
+    runs-on: ubuntu-latest
+    needs: [ci-guard]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
+      - name: Run cargo-deny
+        run: cargo deny check
+      - name: Upload deny report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cargo-deny-report
+          path: target/deny.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    needs: [ci-guard, format, clippy, test, cli-test, coverage, security-audit]
+    if: needs.ci-guard.outputs.should-run == 'true'
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache/*
+          sudo rm -rf /usr/share/dotnet/*
+          sudo rm -rf /usr/local/lib/android/*
+          sudo rm -rf /opt/ghc/*
+          sudo apt-get clean
+          df -h
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt, llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install required tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov,cargo-audit
+      - name: Run Quality Gates
+        run: cargo test --test quality_gates -- --nocapture --skip quality_gate_test_coverage
+        env:
+          RUST_LOG: info
+          QUALITY_GATE_COVERAGE_THRESHOLD: "90"
+          QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"
+          QUALITY_GATE_COMPLEXITY_THRESHOLD: "10"
+          QUALITY_GATE_SECURITY_THRESHOLD: "0"
+      - name: Generate Quality Report
+        if: always()
+        run: |
+          {
+            echo "# Quality Gates Report"
+            echo ""
+            echo "**Date:** $(date)"
+            echo ""
+            echo "## Configuration"
+            echo "- Coverage Threshold: ${QUALITY_GATE_COVERAGE_THRESHOLD}%"
+            echo "- Pattern Accuracy Threshold: ${QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD}%"
+            echo "- Complexity Threshold: ${QUALITY_GATE_COMPLEXITY_THRESHOLD}"
+            echo "- Security Vuln Threshold: ${QUALITY_GATE_SECURITY_THRESHOLD}"
+            echo ""
+          } > quality-report.md
+        env:
+          QUALITY_GATE_COVERAGE_THRESHOLD: "90"
+          QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD: "70"
+          QUALITY_GATE_COMPLEXITY_THRESHOLD: "10"
+          QUALITY_GATE_SECURITY_THRESHOLD: "0"
+      - name: Upload quality report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: quality-gates-report
+          path: quality-report.md
+          retention-days: 30

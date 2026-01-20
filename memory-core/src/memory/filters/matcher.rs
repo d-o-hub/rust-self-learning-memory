@@ -4,6 +4,7 @@
 
 use super::types::{EpisodeFilter, OutcomeType};
 use crate::episode::Episode;
+use crate::search::{fuzzy_match, fuzzy_search_in_text, regex_search, SearchField, SearchMode};
 use crate::types::TaskOutcome;
 
 impl EpisodeFilter {
@@ -132,16 +133,124 @@ impl EpisodeFilter {
             }
         }
 
-        // Check search text
+        // Check search text with configurable search mode
         if let Some(ref search) = self.search_text {
-            let search_lower = search.to_lowercase();
-            let description_lower = episode.task_description.to_lowercase();
-            if !description_lower.contains(&search_lower) {
+            if !self.matches_search_text(episode, search) {
                 return false;
             }
         }
 
         true
+    }
+
+    /// Helper method to check if episode matches search text
+    fn matches_search_text(&self, episode: &Episode, search: &str) -> bool {
+        let search_mode = self.search_mode.as_ref().unwrap_or(&SearchMode::Exact);
+        let search_fields = self
+            .search_fields
+            .as_deref()
+            .unwrap_or(&[SearchField::Description]);
+
+        // Collect texts to search based on selected fields
+        let texts_to_search = self.collect_searchable_texts(episode, search_fields);
+
+        // Perform search based on mode
+        self.search_in_texts(&texts_to_search, search, search_mode)
+    }
+
+    /// Collect texts from episode based on selected fields
+    fn collect_searchable_texts<'a>(
+        &self,
+        episode: &'a Episode,
+        fields: &[SearchField],
+    ) -> Vec<&'a str> {
+        let mut texts = Vec::new();
+
+        for field in fields {
+            match field {
+                SearchField::Description => {
+                    texts.push(episode.task_description.as_str());
+                }
+                SearchField::Steps => {
+                    self.collect_step_texts(episode, &mut texts);
+                }
+                SearchField::Outcome => {
+                    self.collect_outcome_text(episode, &mut texts);
+                }
+                SearchField::Tags => {
+                    texts.extend(episode.context.tags.iter().map(String::as_str));
+                }
+                SearchField::Domain => {
+                    texts.push(episode.context.domain.as_str());
+                }
+                SearchField::All => {
+                    texts.push(episode.task_description.as_str());
+                    texts.push(episode.context.domain.as_str());
+                    texts.extend(episode.context.tags.iter().map(String::as_str));
+                    self.collect_step_texts(episode, &mut texts);
+                    self.collect_outcome_text(episode, &mut texts);
+                }
+            }
+        }
+
+        texts
+    }
+
+    /// Collect searchable text from episode steps
+    fn collect_step_texts<'a>(&self, episode: &'a Episode, texts: &mut Vec<&'a str>) {
+        for step in &episode.steps {
+            texts.push(step.action.as_str());
+            if let Some(ref result) = step.result {
+                match result {
+                    crate::types::ExecutionResult::Success { output } => {
+                        texts.push(output.as_str());
+                    }
+                    crate::types::ExecutionResult::Error { message } => {
+                        texts.push(message.as_str());
+                    }
+                    crate::types::ExecutionResult::Timeout => {
+                        // No text to search
+                    }
+                }
+            }
+        }
+    }
+
+    /// Collect searchable text from episode outcome
+    fn collect_outcome_text<'a>(&self, episode: &'a Episode, texts: &mut Vec<&'a str>) {
+        if let Some(ref outcome) = episode.outcome {
+            let outcome_text = match outcome {
+                TaskOutcome::Success { verdict, .. } => verdict.as_str(),
+                TaskOutcome::PartialSuccess { verdict, .. } => verdict.as_str(),
+                TaskOutcome::Failure { reason, .. } => reason.as_str(),
+            };
+            texts.push(outcome_text);
+        }
+    }
+
+    /// Search for query in collected texts based on search mode
+    fn search_in_texts(&self, texts: &[&str], query: &str, mode: &SearchMode) -> bool {
+        match mode {
+            SearchMode::Exact => {
+                let search_lower = query.to_lowercase();
+                texts
+                    .iter()
+                    .any(|text| text.to_lowercase().contains(&search_lower))
+            }
+            SearchMode::Fuzzy { threshold } => texts.iter().any(|text| {
+                // Try both direct match and search in text
+                fuzzy_match(text, query, *threshold).is_some()
+                    || !fuzzy_search_in_text(text, query, *threshold).is_empty()
+            }),
+            SearchMode::Regex => {
+                // Try regex search on each text
+                texts.iter().any(|text| {
+                    regex_search(text, query)
+                        .map(|matches| !matches.is_empty())
+                        .unwrap_or(false)
+                })
+            }
+        }
     }
 
     /// Apply this filter to a collection of episodes

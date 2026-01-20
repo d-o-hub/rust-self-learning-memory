@@ -131,6 +131,26 @@ pub enum EpisodeCommands {
         /// Override embedding model
         #[arg(long)]
         embedding_model: Option<String>,
+
+        /// Enable fuzzy search (typo-tolerant)
+        #[arg(long)]
+        fuzzy: bool,
+
+        /// Fuzzy search similarity threshold (0.0-1.0, default: 0.8)
+        #[arg(long, default_value = "0.8")]
+        fuzzy_threshold: f64,
+
+        /// Enable regex pattern matching
+        #[arg(long)]
+        regex: bool,
+
+        /// Fields to search in (description, steps, outcome, tags, domain, all)
+        #[arg(long, value_delimiter = ',')]
+        search_fields: Option<Vec<String>>,
+
+        /// Sort order for results (relevance, newest, oldest, duration, success)
+        #[arg(long, default_value = "relevance")]
+        sort: SearchSortOrder,
     },
 
     /// Log an execution step
@@ -200,6 +220,21 @@ pub enum EpisodeSortOrder {
     Duration,
     /// Sort by relevance (semantic search only)
     Relevance,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, ValueEnum, Default)]
+pub enum SearchSortOrder {
+    /// Sort by relevance score (best match first)
+    #[default]
+    Relevance,
+    /// Sort by creation date, newest first
+    Newest,
+    /// Sort by creation date, oldest first
+    Oldest,
+    /// Sort by duration (longest first)
+    Duration,
+    /// Sort by success rate (most successful first)
+    Success,
 }
 
 #[derive(Debug, Clone, PartialEq, Subcommand)]

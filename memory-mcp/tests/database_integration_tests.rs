@@ -106,6 +106,7 @@ mod integration_tests {
                 "database".to_string(),
                 None,
                 10,
+                "relevance".to_string(),
             )
             .await
             .unwrap();
@@ -124,7 +125,13 @@ mod integration_tests {
 
         // Perform some tool operations
         let _ = mcp_server
-            .query_memory("test".to_string(), "test".to_string(), None, 5)
+            .query_memory(
+                "test".to_string(),
+                "test".to_string(),
+                None,
+                5,
+                "relevance".to_string(),
+            )
             .await
             .unwrap();
 

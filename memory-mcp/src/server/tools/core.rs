@@ -4,10 +4,20 @@
 
 use crate::types::Tool;
 use anyhow::Result;
-use memory_core::Pattern;
+use memory_core::{Episode, Pattern, TaskOutcome};
 use serde_json::json;
 use std::collections::HashMap;
 use tracing::debug;
+
+/// Calculate a success score for an episode (higher = more successful)
+fn outcome_score(episode: &Episode) -> u8 {
+    match &episode.outcome {
+        Some(TaskOutcome::Success { .. }) => 3,
+        Some(TaskOutcome::PartialSuccess { .. }) => 2,
+        Some(TaskOutcome::Failure { .. }) => 1,
+        None => 0,
+    }
+}
 
 impl crate::server::MemoryMCPServer {
     /// List all available tools
@@ -44,6 +54,7 @@ impl crate::server::MemoryMCPServer {
     /// * `domain` - Task domain
     /// * `task_type` - Optional task type filter
     /// * `limit` - Maximum results to return
+    /// * `sort` - Sort order (relevance, newest, oldest, duration, success)
     ///
     /// # Returns
     ///
@@ -54,6 +65,7 @@ impl crate::server::MemoryMCPServer {
         domain: String,
         task_type: Option<String>,
         limit: usize,
+        sort: String,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("query_memory").await;
 
@@ -96,7 +108,7 @@ impl crate::server::MemoryMCPServer {
 
         // Strict filtering: only return episodes that actually contain the query.
         let query_lc = query.to_lowercase();
-        let episodes: Vec<_> = episodes
+        let mut episodes: Vec<_> = episodes
             .into_iter()
             .filter(|ep| {
                 if ep.task_description.to_lowercase().contains(&query_lc) {
@@ -127,6 +139,31 @@ impl crate::server::MemoryMCPServer {
                 false
             })
             .collect();
+
+        // Apply sorting
+        match sort.as_str() {
+            "newest" => {
+                episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+            }
+            "oldest" => {
+                episodes.sort_by(|a, b| a.start_time.cmp(&b.start_time));
+            }
+            "duration" => {
+                episodes.sort_by(|a, b| {
+                    let dur_a = a.end_time.map(|e| e - a.start_time);
+                    let dur_b = b.end_time.map(|e| e - b.start_time);
+                    dur_b.cmp(&dur_a)
+                });
+            }
+            "success" => {
+                episodes.sort_by(|a, b| {
+                    let score_a = outcome_score(a);
+                    let score_b = outcome_score(b);
+                    score_b.cmp(&score_a)
+                });
+            }
+            _ => {} // "relevance" - keep default order
+        }
 
         // Also get relevant patterns
         let patterns = self

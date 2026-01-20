@@ -104,7 +104,13 @@ async fn test_progressive_tool_disclosure() {
 
     // Use query_memory once
     let _ = server
-        .query_memory("test".to_string(), "test".to_string(), None, 10)
+        .query_memory(
+            "test".to_string(),
+            "test".to_string(),
+            None,
+            10,
+            "relevance".to_string(),
+        )
         .await;
 
     // List tools - execute_agent_code should be first (most used)
@@ -172,6 +178,7 @@ async fn test_query_memory() {
             "web-api".to_string(),
             Some("code_generation".to_string()),
             10,
+            "relevance".to_string(),
         )
         .await;
 
@@ -191,6 +198,7 @@ async fn test_query_memory_negative_returns_empty() {
             "verification".to_string(),
             Some("analysis".to_string()),
             10,
+            "relevance".to_string(),
         )
         .await
         .unwrap();
@@ -204,6 +212,26 @@ async fn test_query_memory_negative_returns_empty() {
         episodes.is_empty(),
         "expected no episodes for unmatched query"
     );
+}
+
+#[tokio::test]
+async fn test_query_memory_with_sort_options() {
+    let server = create_test_server().await;
+
+    // Test each sort option is accepted
+    for sort in ["relevance", "newest", "oldest", "duration", "success"] {
+        let result = server
+            .query_memory(
+                "test".to_string(),
+                "test".to_string(),
+                None,
+                5,
+                sort.to_string(),
+            )
+            .await;
+
+        assert!(result.is_ok(), "Sort option '{}' should be accepted", sort);
+    }
 }
 
 #[tokio::test]

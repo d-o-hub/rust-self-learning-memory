@@ -104,6 +104,7 @@ async fn test_query_memory(server: &MemoryMCPServer) -> Result<(), Box<dyn std::
             "testing".to_string(),
             Some("code_generation".to_string()),
             5,
+            "relevance".to_string(),
         )
         .await?;
 

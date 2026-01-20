@@ -41,8 +41,15 @@ pub async fn handle_query_memory(
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
     let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+    let sort = args
+        .get("sort")
+        .and_then(|v| v.as_str())
+        .unwrap_or("relevance")
+        .to_string();
 
-    let result = server.query_memory(query, domain, task_type, limit).await?;
+    let result = server
+        .query_memory(query, domain, task_type, limit, sort)
+        .await?;
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,
     }];

@@ -68,6 +68,12 @@ augurs-changepoint = "0.10.1"
 # Random number generation for tests
 rand = "0.8"
 
+# Fuzzy string matching for search
+strsim = "0.11"
+
+# Regular expressions for pattern matching
+regex = "1.10"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }

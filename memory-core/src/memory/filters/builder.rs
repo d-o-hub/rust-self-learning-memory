@@ -3,6 +3,7 @@
 //! Provides a fluent API for constructing `EpisodeFilter` instances.
 
 use super::types::{EpisodeFilter, OutcomeType};
+use crate::search::{SearchField, SearchMode};
 use chrono::{DateTime, Utc};
 
 /// Builder for constructing episode filters with a fluent API
@@ -107,6 +108,34 @@ impl EpisodeFilterBuilder {
     #[must_use]
     pub fn outcome_type(mut self, outcome: OutcomeType) -> Self {
         self.filter.outcome_type = Some(outcome);
+        self
+    }
+
+    /// Set search mode (exact, fuzzy, regex)
+    #[must_use]
+    pub fn search_mode(mut self, mode: SearchMode) -> Self {
+        self.filter.search_mode = Some(mode);
+        self
+    }
+
+    /// Set which fields to search in
+    #[must_use]
+    pub fn search_fields(mut self, fields: Vec<SearchField>) -> Self {
+        self.filter.search_fields = Some(fields);
+        self
+    }
+
+    /// Enable fuzzy search with default threshold (0.8)
+    #[must_use]
+    pub fn fuzzy_search(mut self) -> Self {
+        self.filter.search_mode = Some(SearchMode::Fuzzy { threshold: 0.8 });
+        self
+    }
+
+    /// Enable fuzzy search with custom threshold
+    #[must_use]
+    pub fn fuzzy_search_with_threshold(mut self, threshold: f64) -> Self {
+        self.filter.search_mode = Some(SearchMode::Fuzzy { threshold });
         self
     }
 

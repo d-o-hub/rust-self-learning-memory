@@ -176,25 +176,23 @@ pub async fn bulk_get_episodes(
 
         let episode_summaries: Vec<EpisodeSummary> = episodes
             .iter()
-            .map(|ep| {
-                EpisodeSummary {
-                    episode_id: ep.episode_id.to_string(),
-                    task_description: ep.task_description.clone(),
-                    task_type: format!("{:?}", ep.task_type),
-                    status: if ep.is_complete() {
-                        "completed".to_string()
-                    } else {
-                        "in_progress".to_string()
-                    },
-                    created_at: ep.start_time.to_rfc3339(),
-                    completed_at: ep.end_time.map(|t| t.to_rfc3339()),
-                    duration_ms: ep
-                        .end_time
-                        .map(|end| (end - ep.start_time).num_milliseconds()),
-                    steps_count: ep.steps.len(),
-                    patterns_count: ep.patterns.len(),
-                    heuristics_count: ep.heuristics.len(),
-                }
+            .map(|ep| EpisodeSummary {
+                episode_id: ep.episode_id.to_string(),
+                task_description: ep.task_description.clone(),
+                task_type: format!("{:?}", ep.task_type),
+                status: if ep.is_complete() {
+                    "completed".to_string()
+                } else {
+                    "in_progress".to_string()
+                },
+                created_at: ep.start_time.to_rfc3339(),
+                completed_at: ep.end_time.map(|t| t.to_rfc3339()),
+                duration_ms: ep
+                    .end_time
+                    .map(|end| (end - ep.start_time).num_milliseconds()),
+                steps_count: ep.steps.len(),
+                patterns_count: ep.patterns.len(),
+                heuristics_count: ep.heuristics.len(),
             })
             .collect();
 

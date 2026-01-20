@@ -272,6 +272,12 @@ impl MemoryMCPServer {
                         "type": "integer",
                         "default": 10,
                         "description": "Maximum number of episodes to retrieve"
+                    },
+                    "sort": {
+                        "type": "string",
+                        "enum": ["relevance", "newest", "oldest", "duration", "success"],
+                        "default": "relevance",
+                        "description": "Sort order for results"
                     }
                 },
                 "required": ["query", "domain"]

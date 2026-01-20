@@ -2,6 +2,7 @@
 //!
 //! This module defines the primary types used for filtering and querying episodes.
 
+use crate::search::{SearchField, SearchMode};
 use crate::types::TaskType;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -91,6 +92,12 @@ pub struct EpisodeFilter {
 
     /// Filter by specific outcome type
     pub outcome_type: Option<OutcomeType>,
+
+    /// Search mode (exact, fuzzy, regex)
+    pub search_mode: Option<SearchMode>,
+
+    /// Fields to search in (when using advanced search)
+    pub search_fields: Option<Vec<SearchField>>,
 }
 
 impl EpisodeFilter {

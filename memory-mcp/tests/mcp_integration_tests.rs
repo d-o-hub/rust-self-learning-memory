@@ -125,7 +125,13 @@ mod mcp_integration_tests {
         println!("-----------------------------------");
 
         let episodes_result = mcp_server
-            .query_memory("Web todo".to_string(), "web".to_string(), None, 10)
+            .query_memory(
+                "Web todo".to_string(),
+                "web".to_string(),
+                None,
+                10,
+                "relevance".to_string(),
+            )
             .await
             .unwrap();
 
@@ -186,7 +192,13 @@ mod mcp_integration_tests {
         // Perform some tool operations to generate usage stats
         for _ in 0..3 {
             let _ = mcp_server
-                .query_memory("test".to_string(), "test".to_string(), None, 1)
+                .query_memory(
+                    "test".to_string(),
+                    "test".to_string(),
+                    None,
+                    1,
+                    "relevance".to_string(),
+                )
                 .await;
         }
         let _ = mcp_server
@@ -251,7 +263,13 @@ mod mcp_integration_tests {
 
         // Get final comprehensive view
         let final_query = mcp_server
-            .query_memory("web".to_string(), "web".to_string(), None, 5)
+            .query_memory(
+                "web".to_string(),
+                "web".to_string(),
+                None,
+                5,
+                "relevance".to_string(),
+            )
             .await
             .unwrap();
 

@@ -109,6 +109,7 @@ mod persistent_storage_tests {
                 "persistence".to_string(),
                 None,
                 10,
+                "relevance".to_string(),
             )
             .await
             .unwrap();
@@ -281,6 +282,7 @@ mod persistent_storage_tests {
                 "persistence".to_string(),
                 None,
                 10,
+                "relevance".to_string(),
             )
             .await
             .unwrap();
@@ -365,7 +367,13 @@ mod persistent_storage_tests {
         );
 
         let query_result = mcp_server
-            .query_memory("Sync Test".to_string(), "sync".to_string(), None, 10)
+            .query_memory(
+                "Sync Test".to_string(),
+                "sync".to_string(),
+                None,
+                10,
+                "relevance".to_string(),
+            )
             .await
             .unwrap();
 
@@ -444,7 +452,13 @@ mod persistent_storage_tests {
         );
 
         let query_result = mcp_server
-            .query_memory("Bulk Test".to_string(), "bulk".to_string(), None, 10)
+            .query_memory(
+                "Bulk Test".to_string(),
+                "bulk".to_string(),
+                None,
+                10,
+                "relevance".to_string(),
+            )
             .await
             .unwrap();
 

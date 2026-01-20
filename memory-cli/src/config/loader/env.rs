@@ -138,16 +138,24 @@ mod env_tests {
 
     #[test]
     fn test_env_config_info_summary_with_vars() {
-        // Ensure clean state first
-        std::env::remove_var("MEMORY_CLI_CONFIG");
-        std::env::remove_var("TURSO_URL");
-        std::env::remove_var("TURSO_TOKEN");
-        std::env::remove_var("REDB_PATH");
-        std::env::remove_var("CI");
-        std::env::remove_var("DEVELOPMENT");
-        std::env::remove_var("DEV");
+        // Store original values
+        let original_values: std::collections::HashMap<String, Option<String>> = [
+            "MEMORY_CLI_CONFIG".to_string(),
+            "TURSO_URL".to_string(),
+            "TURSO_TOKEN".to_string(),
+            "REDB_PATH".to_string(),
+            "CI".to_string(),
+            "DEVELOPMENT".to_string(),
+            "DEV".to_string(),
+        ]
+        .iter()
+        .map(|name| {
+            let value = std::env::var(name).ok();
+            (name.clone(), value)
+        })
+        .collect();
 
-        // Now set our test values
+        // Set our test values
         std::env::set_var("MEMORY_CLI_CONFIG", "/path/to/config.toml");
         std::env::set_var("TURSO_URL", "libsql://test.db");
         std::env::set_var("CI", "true");
@@ -174,22 +182,34 @@ mod env_tests {
         assert!(summary.contains("TURSO_URL=set"), "Summary: {}", summary);
         assert!(summary.contains("CI=true"), "Summary: {}", summary);
 
-        // Clean up
-        std::env::remove_var("MEMORY_CLI_CONFIG");
-        std::env::remove_var("TURSO_URL");
-        std::env::remove_var("CI");
+        // Restore original environment
+        for (name, value) in original_values {
+            if let Some(v) = value {
+                std::env::set_var(name, v);
+            } else {
+                std::env::remove_var(name);
+            }
+        }
     }
 
     #[test]
     fn test_env_config_info_summary_with_vars_different() {
-        // Ensure clean state
-        std::env::remove_var("MEMORY_CLI_CONFIG");
-        std::env::remove_var("TURSO_URL");
-        std::env::remove_var("TURSO_TOKEN");
-        std::env::remove_var("REDB_PATH");
-        std::env::remove_var("CI");
-        std::env::remove_var("DEVELOPMENT");
-        std::env::remove_var("DEV");
+        // Store original values
+        let original_values: std::collections::HashMap<String, Option<String>> = [
+            "MEMORY_CLI_CONFIG".to_string(),
+            "TURSO_URL".to_string(),
+            "TURSO_TOKEN".to_string(),
+            "REDB_PATH".to_string(),
+            "CI".to_string(),
+            "DEVELOPMENT".to_string(),
+            "DEV".to_string(),
+        ]
+        .iter()
+        .map(|name| {
+            let value = std::env::var(name).ok();
+            (name.clone(), value)
+        })
+        .collect();
 
         std::env::set_var("MEMORY_CLI_CONFIG", "/path/to/config.toml");
         std::env::set_var("TURSO_URL", "libsql://test.db");
@@ -206,10 +226,14 @@ mod env_tests {
         assert!(summary.contains("TURSO_URL=set"), "Summary: {}", summary);
         assert!(summary.contains("CI=true"), "Summary: {}", summary);
 
-        // Clean up
-        std::env::remove_var("MEMORY_CLI_CONFIG");
-        std::env::remove_var("TURSO_URL");
-        std::env::remove_var("CI");
+        // Restore original environment
+        for (name, value) in original_values {
+            if let Some(v) = value {
+                std::env::set_var(name, v);
+            } else {
+                std::env::remove_var(name);
+            }
+        }
     }
 
     #[test]

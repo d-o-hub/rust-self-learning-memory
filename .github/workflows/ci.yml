@@ -107,13 +107,13 @@ jobs:
       - name: Build and test (default)
         if: matrix.feature == 'default'
         run: |
-          cargo build -p memory-mcp --timeout 300
-          cargo test -p memory-mcp --lib --timeout 300
+          timeout 300 cargo build -p memory-mcp
+          timeout 300 cargo test -p memory-mcp --lib
       - name: Build and test (wasm-rquickjs)
         if: matrix.feature == 'wasm-rquickjs'
         run: |
-          cargo build -p memory-mcp --features wasm-rquickjs --timeout 300
-          cargo test -p memory-mcp --features wasm-rquickjs --lib --timeout 300
+          timeout 300 cargo build -p memory-mcp --features wasm-rquickjs
+          timeout 300 cargo test -p memory-mcp --features wasm-rquickjs --lib
 
   # Multi-platform testing - simplified matrix
   multi-platform:
@@ -134,7 +134,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests on ${{ matrix.os }}
-        run: cargo test --lib --all --timeout 600
+        run: timeout 600 cargo test --lib --all
 
   # Quality gates - final validation
   quality-gates:

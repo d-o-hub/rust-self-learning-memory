@@ -28,6 +28,17 @@ This project implements a **Zero-Trust security model** with multiple layers of 
 - Prevents deserialization attacks
 - Better no-std support for embedded systems
 
+#### Unmaintained Dependencies
+- **bincode v1.3.3 (RUSTSEC-2025-0141)**: Unmaintained crate (advisory date: 2025-12-16)
+  - **Status**: Transitive dependency through streaming_algorithms, libsql, argmin
+  - **Impact**: Low - used only in dependencies, not directly in codebase
+  - **Mitigation**: 
+    - Monitor upstream dependencies for updates
+    - Consider alternatives if upstream doesn't update
+    - Prefer postcard for new serialization requirements
+    - No direct security vulnerability, but unmaintained status indicates higher risk
+  - **References**: https://rustsec.org/advisories/RUSTSEC-2025-0141
+
 #### Input Validation
 - **Task Description**: Max 10KB (10,000 characters)
 - **Execution Step Observation**: Max 10KB (10,000 characters)

@@ -253,7 +253,8 @@ mod tests {
             vec![3.0, 6.0, 9.0],
         ];
 
-        let averaged = utils::average_embeddings(&embeddings).unwrap();
+        let averaged = utils::average_embeddings(&embeddings)
+            .expect("average_embeddings should succeed with valid embedding vectors");
 
         // Average before normalization would be [2.0, 4.0, 6.0]
         // After normalization, it should be a unit vector in that direction

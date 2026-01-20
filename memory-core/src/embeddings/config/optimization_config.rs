@@ -236,8 +236,10 @@ mod tests {
     #[test]
     fn test_optimization_config_serialization() {
         let config = OptimizationConfig::default();
-        let json = serde_json::to_string(&config).unwrap();
-        let deserialized: OptimizationConfig = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&config)
+            .expect("Serialization should succeed for test configuration");
+        let deserialized: OptimizationConfig =
+            serde_json::from_str(&json).expect("Deserialization should succeed for valid JSON");
 
         assert_eq!(deserialized.max_retries, config.max_retries);
         assert_eq!(deserialized.retry_delay_ms, config.retry_delay_ms);

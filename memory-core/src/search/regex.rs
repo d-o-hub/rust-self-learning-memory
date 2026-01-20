@@ -16,9 +16,7 @@ fn check_repetition_count(capture: Option<Match<'_>>, max: usize) -> Result<(), 
     if let Some(m) = capture {
         if let Ok(count) = m.as_str().parse::<usize>() {
             if count > max {
-                return Err(format!(
-                    "Repetition count {count} exceeds maximum {max}"
-                ));
+                return Err(format!("Repetition count {count} exceeds maximum {max}"));
             }
         }
     }

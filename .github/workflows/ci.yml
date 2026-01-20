@@ -69,10 +69,12 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests with timeout protection
         run: |
-          # Run unit tests first (faster feedback)
-          cargo nextest run --profile ci --lib --all --timeout 300
+          # Ensure junit output directory exists
+          mkdir -p target/nextest/ci
+          # Run unit tests first (faster feedback) - nextest uses slow-timeout from config
+          cargo nextest run --profile ci --lib --all
           # Run integration tests if unit tests pass
-          cargo nextest run --profile ci --tests --all --timeout 600
+          cargo nextest run --profile ci --tests --all
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v6
@@ -107,13 +109,13 @@ jobs:
       - name: Build and test (default)
         if: matrix.feature == 'default'
         run: |
-          timeout 300 cargo build -p memory-mcp
-          timeout 300 cargo test -p memory-mcp --lib
+          timeout 300s cargo build -p memory-mcp || exit 1
+          timeout 300s cargo test -p memory-mcp --lib || exit 1
       - name: Build and test (wasm-rquickjs)
         if: matrix.feature == 'wasm-rquickjs'
         run: |
-          timeout 300 cargo build -p memory-mcp --features wasm-rquickjs
-          timeout 300 cargo test -p memory-mcp --features wasm-rquickjs --lib
+          timeout 300s cargo build -p memory-mcp --features wasm-rquickjs || exit 1
+          timeout 300s cargo test -p memory-mcp --features wasm-rquickjs --lib || exit 1
 
   # Multi-platform testing - simplified matrix
   multi-platform:
@@ -134,7 +136,20 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests on ${{ matrix.os }}
-        run: timeout 600 cargo test --lib --all
+        run: |
+          # Cross-platform timeout wrapper
+          # macOS has `gtimeout` from coreutils, or use perl as fallback
+          if command -v timeout >/dev/null 2>&1; then
+            # Linux with GNU timeout
+            timeout 600s cargo test --lib --all
+          elif command -v gtimeout >/dev/null 2>&1; then
+            # macOS with GNU timeout (coreutils)
+            gtimeout 600s cargo test --lib --all
+          else
+            # macOS fallback: use perl for portable timeout
+            # Use -- to separate perl args from command args
+            perl -e 'alarm 600; exec @ARGV' -- cargo test --lib --all
+          fi
 
   # Quality gates - final validation
   quality-gates:

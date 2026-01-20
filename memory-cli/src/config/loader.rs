@@ -115,7 +115,29 @@ mod tests {
     }
 
     #[test]
+    #[test]
     fn test_env_config_info_structure() {
+        // Test the behavior when environment variables are not set
+        // Use a scoped approach to avoid affecting other tests
+        
+        // Store original values
+        let original_values: std::collections::HashMap<String, Option<String>> = [
+            "MEMORY_CLI_CONFIG".to_string(),
+            "TURSO_URL".to_string(),
+            "TURSO_TOKEN".to_string(),
+            "REDB_PATH".to_string(),
+            "CI".to_string(),
+            "DEVELOPMENT".to_string(),
+            "DEV".to_string(),
+        ]
+        .iter()
+        .map(|name| {
+            let value = std::env::var(name).ok();
+            (name.clone(), value)
+        })
+        .collect();
+        
+        // Clear the environment variables we care about
         std::env::remove_var("MEMORY_CLI_CONFIG");
         std::env::remove_var("TURSO_URL");
         std::env::remove_var("TURSO_TOKEN");
@@ -131,5 +153,14 @@ mod tests {
         assert!(!info.redb_path);
         assert!(!info.ci);
         assert!(!info.development);
+        
+        // Restore original environment
+        for (name, value) in original_values {
+            if let Some(v) = value {
+                std::env::set_var(name, v);
+            } else {
+                std::env::remove_var(name);
+            }
+        }
     }
 }

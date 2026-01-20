@@ -1,0 +1,109 @@
+---
+name: File Structure Validation
+permissions:
+  contents: read
+
+"on":
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  file-structure-check:
+    name: File Structure Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate file locations
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "Validating file locations according to AGENTS.md..."
+          echo ""
+
+          # Permanent docs that should stay in root
+          PERMANENT_DOCS=(
+            "README.md"
+            "AGENTS.md"
+            "CONTRIBUTING.md"
+            "SECURITY.md"
+            "DEPLOYMENT.md"
+            "TESTING.md"
+            "LICENSE"
+            "LICENSE-*"
+          )
+
+          # Check for misplaced markdown files in root
+          FOUND_ISSUES=0
+
+          for file in *.md; do
+            # Skip if no .md files exist
+            [ -f "$file" ] || continue
+
+            # Check if file is permanent doc
+            is_permanent=false
+            for perm in "${PERMANENT_DOCS[@]}"; do
+              if [[ "$(basename "$file")" == $perm ]]; then
+                is_permanent=true
+                break
+              fi
+            done
+
+            if [ "$is_permanent" = false ]; then
+              echo "❌ Misplaced markdown file found in root: $file"
+              echo "   Should be in: plans/ directory"
+              FOUND_ISSUES=1
+            fi
+          done
+
+          # Check for misplaced files in docs/ that should be in plans/
+          for file in docs/*.md; do
+            # Skip if no files exist
+            [ -f "$file" ] || continue
+
+            filename=$(basename "$file")
+
+            # Check if it's an analysis/validation/report type file
+            case "$filename" in
+              *analysis*|*report*|*gap*|*validation*|*review*|*plan*|*roadmap*|*strategy*)
+                echo "❌ Misplaced file in docs/: $filename"
+                echo "   Should be in: plans/ directory (check plans/STATUS, plans/ROADMAPS, etc.)"
+                FOUND_ISSUES=1
+                ;;
+            esac
+          done
+
+          # Verify plans/ directory structure exists
+          REQUIRED_PLANS_DIRS=(
+            "plans/ARCHITECTURE"
+            "plans/CONFIGURATION"
+            "plans/ROADMAPS"
+            "plans/STATUS"
+            "plans/research"
+          )
+
+          for dir in "${REQUIRED_PLANS_DIRS[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "⚠️  Required directory missing: $dir"
+              # This is a warning, not a failure
+            fi
+          done
+
+          echo ""
+          if [ $FOUND_ISSUES -ne 0 ]; then
+            echo "❌ File structure validation FAILED"
+            echo ""
+            echo "Fix misplaced files by running:"
+            echo "  ./scripts/fix-file-locations.sh --dry-run"
+            echo "  ./scripts/fix-file-locations.sh"
+            echo ""
+            echo "See AGENTS.md line 28 for file organization rules"
+            exit 1
+          fi
+
+          echo "✅ File structure validation PASSED"
+          echo "All markdown files are in correct locations"

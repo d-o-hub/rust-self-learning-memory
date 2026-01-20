@@ -14,7 +14,8 @@
 //! use memory_core::patterns::DBSCANAnomalyDetector;
 //!
 //! let detector = DBSCANAnomalyDetector::new();
-//! let anomalies = detector.detect_anomalies(&episodes).await;
+//! // Use in async context:
+//! // let anomalies = detector.detect_anomalies(&episodes).await;
 //! ```
 //!
 //! ## Integration

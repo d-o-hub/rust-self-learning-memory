@@ -9,8 +9,8 @@
 //! ```
 //! use memory_core::patterns::changepoint::{ChangepointDetector, ChangepointConfig};
 //!
-//! // Create detector with default settings
-//! let detector = ChangepointDetector::new(ChangepointConfig::default());
+//! // Create detector with default settings (needs to be mutable for detection)
+//! let mut detector = ChangepointDetector::new(ChangepointConfig::default());
 //!
 //! // Simulate pattern success rate time series
 //! let metrics = vec![

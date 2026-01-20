@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn test_best_fuzzy_match() {
-        let texts = vec!["hello", "database", "connection"];
+        let texts = ["hello", "database", "connection"];
         let score = best_fuzzy_match(texts.iter().copied(), "databse", 0.7).unwrap();
 
         assert!(score > 0.7);
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_best_fuzzy_match_no_match() {
-        let texts = vec!["hello", "world"];
+        let texts = ["hello", "world"];
         let score = best_fuzzy_match(texts.iter().copied(), "xyz", 0.8);
 
         assert_eq!(score, None);

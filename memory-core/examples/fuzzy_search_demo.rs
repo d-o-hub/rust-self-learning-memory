@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
         memory
             .start_episode(description.to_string(), context, TaskType::CodeGeneration)
             .await;
-        println!("✓ Created: {}", description);
+        println!("✓ Created: {description}");
     }
 
     println!("\n{}", "=".repeat(60));
@@ -119,16 +119,16 @@ async fn main() -> anyhow::Result<()> {
 
         let results = memory.list_episodes_filtered(filter, None, None).await?;
 
-        println!("\n{}", description);
-        println!("Query: '{}' with threshold {}", query, threshold);
+        println!("\n{description}");
+        println!("Query: '{query}' with threshold {threshold}");
         println!("Results: {} episodes", results.len());
 
-        if !results.is_empty() {
+        if results.is_empty() {
+            println!("  (no matches)");
+        } else {
             for ep in results {
                 println!("  ✓ {}", ep.task_description);
             }
-        } else {
-            println!("  (no matches)");
         }
     }
 

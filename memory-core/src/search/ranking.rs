@@ -399,28 +399,28 @@ mod tests {
         let score = calculate_ranking_score(&episode, &mode, 1.0, &field, &weights);
 
         // Score should be between 0 and 1
-        assert!(score >= 0.0 && score <= 1.0);
+        assert!((0.0..=1.0).contains(&score));
     }
 
     #[test]
     fn test_rank_search_results() {
-        let result1 = SearchResult {
+        let low_score = SearchResult {
             item: "episode1",
             score: 0.5,
             matches: vec![],
         };
-        let result2 = SearchResult {
+        let high_score = SearchResult {
             item: "episode2",
             score: 0.9,
             matches: vec![],
         };
-        let result3 = SearchResult {
+        let mid_score = SearchResult {
             item: "episode3",
             score: 0.7,
             matches: vec![],
         };
 
-        let results = vec![result1, result2, result3];
+        let results = vec![low_score, high_score, mid_score];
         let ranked = rank_search_results(results);
 
         // Should be sorted by score (highest first)

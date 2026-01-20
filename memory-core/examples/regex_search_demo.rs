@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         memory
             .start_episode(description.to_string(), context, TaskType::CodeGeneration)
             .await;
-        println!("✓ Created: {}", description);
+        println!("✓ Created: {description}");
     }
 
     println!("\n{}", "=".repeat(60));
@@ -150,11 +150,11 @@ async fn main() -> anyhow::Result<()> {
     println!("{}", "=".repeat(60));
 
     let dangerous_pattern = "(a+)+b"; // Catastrophic backtracking
-    println!("Attempting dangerous pattern: {}", dangerous_pattern);
+    println!("Attempting dangerous pattern: {dangerous_pattern}");
 
     match memory_core::search::validate_regex_pattern(dangerous_pattern) {
-        Ok(_) => println!("  ❌ Pattern was allowed (should be blocked)"),
-        Err(e) => println!("  ✅ Pattern blocked: {}", e),
+        Ok(()) => println!("  ❌ Pattern was allowed (should be blocked)"),
+        Err(e) => println!("  ✅ Pattern blocked: {e}"),
     }
 
     println!("\n{}", "=".repeat(60));

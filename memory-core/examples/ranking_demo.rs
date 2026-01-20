@@ -35,7 +35,7 @@ fn create_episode(
 
     // Add steps
     for i in 1..=steps {
-        let step = ExecutionStep::new(i, "tool".to_string(), format!("action {}", i));
+        let step = ExecutionStep::new(i, "tool".to_string(), format!("action {i}"));
         episode.steps.push(step);
     }
 
@@ -53,7 +53,7 @@ fn main() {
     println!("Creating test episodes with different characteristics...\n");
 
     // Create episodes with varying qualities
-    let episodes = vec![
+    let episodes = [
         (
             create_episode(
                 "Fix critical database bug",
@@ -122,7 +122,7 @@ fn main() {
     // Display episodes
     for (i, (ep, desc)) in episodes.iter().enumerate() {
         println!("Episode {}: {}", i + 1, ep.task_description);
-        println!("  Description: {}", desc);
+        println!("  Description: {desc}");
         println!("  Age: {} days", (Utc::now() - ep.start_time).num_days());
         println!("  Steps: {}", ep.steps.len());
         println!(
@@ -159,7 +159,7 @@ fn main() {
 
     for (rank, (ep, desc, score)) in scored.iter().enumerate() {
         println!("Rank {}: {:.3} - {}", rank + 1, score, ep.task_description);
-        println!("        ({})", desc);
+        println!("        ({desc})");
     }
 
     println!("\n{}", "=".repeat(60));
@@ -182,7 +182,7 @@ fn main() {
 
     for (rank, (ep, desc, score)) in scored.iter().enumerate() {
         println!("Rank {}: {:.3} - {}", rank + 1, score, ep.task_description);
-        println!("        ({})", desc);
+        println!("        ({desc})");
     }
 
     println!("\n{}", "=".repeat(60));
@@ -205,7 +205,7 @@ fn main() {
 
     for (rank, (ep, desc, score)) in scored.iter().enumerate() {
         println!("Rank {}: {:.3} - {}", rank + 1, score, ep.task_description);
-        println!("        ({})", desc);
+        println!("        ({desc})");
     }
 
     println!("\n{}", "=".repeat(60));

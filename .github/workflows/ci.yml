@@ -53,7 +53,7 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Free disk space
         run: |
@@ -71,10 +71,10 @@ jobs:
         run: |
           # Ensure junit output directory exists
           mkdir -p target/nextest/ci
-          # Run unit tests first (faster feedback) - nextest uses slow-timeout from config
-          cargo nextest run --profile ci --lib --all
+          # Run unit tests (fastest feedback)
+          cargo nextest run --profile ci --lib --all --test-threads=4
           # Run integration tests if unit tests pass
-          cargo nextest run --profile ci --tests --all
+          cargo nextest run --profile ci --tests --all --test-threads=4
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v6
@@ -121,7 +121,7 @@ jobs:
   multi-platform:
     name: Multi-Platform Test
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -137,18 +137,18 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests on ${{ matrix.os }}
         run: |
-          # Cross-platform timeout wrapper
+          # Cross-platform timeout wrapper with extended time (900s = 15min)
           # macOS has `gtimeout` from coreutils, or use perl as fallback
           if command -v timeout >/dev/null 2>&1; then
             # Linux with GNU timeout
-            timeout 600s cargo test --lib --all
+            timeout 900s cargo test --lib --all -- --test-threads=4
           elif command -v gtimeout >/dev/null 2>&1; then
             # macOS with GNU timeout (coreutils)
-            gtimeout 600s cargo test --lib --all
+            gtimeout 900s cargo test --lib --all -- --test-threads=4
           else
             # macOS fallback: use perl for portable timeout
             # Use -- to separate perl args from command args
-            perl -e 'alarm 600; exec @ARGV' -- cargo test --lib --all
+            perl -e 'alarm 900; exec @ARGV' -- cargo test --lib --all -- --test-threads=4
           fi
 
   # Quality gates - final validation

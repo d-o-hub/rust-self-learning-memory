@@ -29,6 +29,9 @@ jobs:
           PERMANENT_DOCS=(
             "README.md"
             "AGENTS.md"
+            "CHANGELOG.md"
+            "CLAUDE.md"
+            "GEMINI.md"
             "CONTRIBUTING.md"
             "SECURITY.md"
             "DEPLOYMENT.md"

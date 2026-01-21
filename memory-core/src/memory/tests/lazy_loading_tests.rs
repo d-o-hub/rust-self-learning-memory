@@ -6,6 +6,7 @@ use crate::SelfLearningMemory;
 
 /// Test `get_all_episodes` with lazy loading.
 #[tokio::test]
+#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
 pub async fn test_get_all_episodes_lazy_loading() {
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.5,

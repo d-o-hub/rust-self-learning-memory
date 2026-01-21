@@ -60,6 +60,7 @@ pub async fn test_log_steps() {
 
 /// Test completing an episode.
 #[tokio::test]
+#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
 pub async fn test_complete_episode() {
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.5,

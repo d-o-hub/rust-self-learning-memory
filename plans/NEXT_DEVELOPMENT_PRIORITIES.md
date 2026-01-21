@@ -61,7 +61,38 @@ Based on current analysis, here are the actionable priorities:
 
 **Total Effort**: 80-120 hours for full compliance
 
-### 🚀 Priority 2: Code Quality (P1 - HIGH VALUE)
+### 🚀 Priority 2: Database Performance Optimization (P1 - HIGH VALUE)
+
+**Status**: NEW - Analysis Complete (2026-01-21)
+**Goal**: 6-8x Turso database performance improvement
+
+**Turso Database Optimization Plan** (Analysis Complete):
+- 📊 **Current Baseline**: 134ms per operation (45ms connection + 18ms insert + 22ms select + 31ms load + 15ms validation + 3ms cache)
+- 🎯 **Target**: 6-8x reduction in latency (134ms → ~20ms)
+- 📈 **Expected Impact**: 4-5x throughput increase (13 → 52-65 episodes/sec)
+
+**Phase 1: Quick Wins** (0-2 weeks) → 3-4x improvement:
+1. **Cache-First Read Strategy** - Check redb before Turso → 85% fewer Turso queries
+2. **Request Batching API** - Group operations → 55% fewer round trips
+3. **Prepared Statement Caching** - Reuse compiled queries → 35% faster queries
+4. **Optimized Metadata Queries** - Use `json_extract()` vs LIKE → 70% faster
+
+**Phase 2: Infrastructure** (2-4 weeks) → +1.5-2x improvement:
+5. Connection Keep-Alive Pool → 89% less connection overhead
+6. Adaptive Pool Sizing → 20% under variable load
+7. Adaptive TTL Based on Access → 20% better cache hit rate
+8. Network-Level Compression → 40% bandwidth reduction
+
+**Phase 3: Advanced** (4-8 weeks) → +1.2-1.5x improvement:
+9. Binary Serialization (MessagePack) → 45% faster serialization
+10. Compression for Large Payloads → 60% smaller payloads
+11. Parallel Batch Operations → 4x throughput for batches
+12. Predictive Eviction (LFU-TLRU Hybrid) → 25% fewer evictions
+
+**Full Plan**: `archive/2026-01-21/TURSO_DATABASE_OPTIMIZATION_PLAN.md`
+**Total Effort**: 80-120 hours across 8-12 weeks
+
+### 🚀 Priority 3: Code Quality (P1 - HIGH VALUE)
 
 Based on roadmap, embeddings are already complete (100%). Focus on:
 

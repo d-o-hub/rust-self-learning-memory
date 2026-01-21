@@ -1,6 +1,6 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-01-13
+**Last Updated**: 2026-01-21
 **Status**: Active Branch: `feat-phase3` (v0.1.12 ✅ RELEASED, v0.1.13 In Development)
 **Next Sprint**: v0.1.13 (In Progress)
 
@@ -64,6 +64,37 @@
 ---
 
 ## Known Issues & Priorities
+
+### P1 - High (User Impact)
+
+#### 0. Turso Database Performance Optimization ⚠️ NEW (2026-01-21)
+
+**Status**: Analysis Complete, Ready for Implementation
+**Impact**: 6-8x performance improvement (134ms → ~20ms per operation)
+**Priority**: P1 - HIGH VALUE (Performance)
+**Location**: Turso database + redb cache
+**Effort**: 80-120 hours (8-12 weeks)
+
+**Current Baseline**:
+- Connection: 45ms (35% of total time)
+- Insert: 18ms, Select: 22ms, Load+Validation: 46ms, Cache: 3ms
+- Total: 134ms per operation
+- Bulk Query: 13 episodes/second
+
+**Phase 1: Quick Wins** (0-2 weeks, 3-4x improvement):
+- Cache-First Read Strategy → 85% fewer Turso queries
+- Request Batching API → 55% fewer round trips
+- Prepared Statement Caching → 35% faster queries
+- Optimized Metadata Queries → 70% faster (json_extract vs LIKE)
+
+**Expected Results**:
+- 6-8x latency reduction
+- 4-5x throughput increase
+- 40-50% bandwidth reduction
+- 30-40% storage reduction
+
+**Full Plan**: `archive/2026-01-21/TURSO_DATABASE_OPTIMIZATION_PLAN.md`
+**Estimated Completion**: 2-4 weeks for Phase 1 (quick wins)
 
 ### P0 - Critical (Production Blocking)
 

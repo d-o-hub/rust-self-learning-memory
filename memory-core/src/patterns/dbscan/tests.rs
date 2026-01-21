@@ -141,8 +141,7 @@ async fn test_anomaly_detection() {
         let max_distance = result.stats.max_anomaly_distance;
         assert!(
             max_distance > 0.05,
-            "Anomaly should be somewhat far from clusters, got {}",
-            max_distance
+            "Anomaly should be somewhat far from clusters, got {max_distance}"
         );
     }
 }

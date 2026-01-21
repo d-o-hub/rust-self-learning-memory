@@ -9,7 +9,7 @@ mod tests {
     use crate::patterns::changepoint::detector::ChangepointDetector;
     use crate::patterns::changepoint::types::{
         ChangeDirection, ChangeType, Changepoint, ChangepointConfig, ChangepointError,
-        SegmentComparisonConfig, SegmentStats,
+        SegmentComparisonConfig,
     };
     use uuid::Uuid;
 
@@ -111,14 +111,14 @@ mod tests {
         assert_eq!(segments[0].0, 0);
         assert_eq!(segments[0].1, 10);
         assert!((segments[0].2.mean - 4.5).abs() < 0.001);
-        assert!((segments[0].2.std_dev - 3.0276503540974917).abs() < 0.001);
+        assert!((segments[0].2.std_dev - 3.027_650_354_097_491_7).abs() < 0.001);
         assert_eq!(segments[0].2.min, 0.0);
         assert_eq!(segments[0].2.max, 9.0);
 
         assert_eq!(segments[1].0, 10);
         assert_eq!(segments[1].1, 20);
         assert!((segments[1].2.mean - 14.5).abs() < 0.001);
-        assert!((segments[1].2.std_dev - 3.0276503540974917).abs() < 0.001);
+        assert!((segments[1].2.std_dev - 3.027_650_354_097_491_7).abs() < 0.001);
         assert_eq!(segments[1].2.min, 10.0);
         assert_eq!(segments[1].2.max, 19.0);
     }
@@ -177,7 +177,7 @@ mod tests {
         let values: Vec<f64> = (0..30)
             .map(|i| {
                 let base = if i < 15 { 0.5 } else { 0.8 };
-                base + (i % 5) as f64 * 0.02
+                base + f64::from(i % 5) * 0.02
             })
             .collect();
 

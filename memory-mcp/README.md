@@ -4,9 +4,12 @@ MCP (Model Context Protocol) server integration for the self-learning memory sys
 
 ## Features
 
-- **MCP Server**: Standard MCP protocol implementation with tool definitions
+- **MCP Server**: Standard MCP protocol implementation with 19 tools
+- **Episode Lifecycle Management**: Programmatic episode creation, tracking, and completion (NEW in v0.1.13)
 - **Secure Code Sandbox**: WASM-based code execution with comprehensive security
 - **Memory Integration**: Query episodic memory and analyze learned patterns
+- **Pattern Analysis**: Advanced pattern extraction and recommendations
+- **Embeddings Support**: Multiple providers (OpenAI, Ollama, local models)
 - **Progressive Tool Disclosure**: Tools prioritized based on usage patterns
 - **Execution Monitoring**: Detailed statistics and performance tracking
 
@@ -160,51 +163,91 @@ let config = SandboxConfig {
 
 ## Available Tools
 
-### 1. `query_memory`
+The MCP server provides **22 tools** organized into categories:
 
-Query episodic memory for relevant past experiences.
+### Episode Lifecycle Management (NEW in v0.1.13)
+
+Programmatically manage episodes through the MCP interface:
+
+- **`create_episode`** - Start tracking a new task with metadata
+- **`add_episode_step`** - Log execution steps to track progress
+- **`complete_episode`** - Finalize episode and trigger learning cycle
+- **`get_episode`** - Retrieve complete episode details
+- **`get_episode_timeline`** - Visualize chronological task progression
+- **`delete_episode`** - Remove episodes permanently (with safeguards)
+
+📖 **[Complete Episode Lifecycle Documentation](EPISODE_LIFECYCLE_TOOLS.md)**
+
+### Batch Operations (NEW in v0.1.13)
+
+High-performance bulk operations for episodes (100x faster than individual calls):
+
+- **`batch_query_episodes`** - Query multiple episodes with filtering and aggregation
+- **`batch_pattern_analysis`** - Analyze patterns across episodes to identify best practices
+- **`batch_compare_episodes`** - Compare episodes to understand performance differences
+
+📖 **[Complete Batch Operations Documentation](BATCH_OPERATIONS_TOOLS.md)**
+
+### Memory & Query Tools
+
+- **`query_memory`** - Query episodic memory for relevant past experiences
+- **`query_semantic_memory`** - Semantic search using embeddings
+- **`bulk_episodes`** - Retrieve multiple episodes efficiently
+
+### Code Execution
+
+- **`execute_agent_code`** - Execute TypeScript/JavaScript in secure WASM sandbox
+
+### Pattern Analysis
+
+- **`analyze_patterns`** - Analyze patterns from past episodes
+- **`advanced_pattern_analysis`** - Deep pattern analysis with statistical methods
+- **`search_patterns`** - Search for specific patterns
+- **`recommend_patterns`** - Get pattern recommendations for tasks
+
+### Embeddings & Configuration
+
+- **`configure_embeddings`** - Configure embedding providers (OpenAI, Ollama, local)
+- **`test_embeddings`** - Test embedding generation
+
+### Monitoring & Health
+
+- **`health_check`** - Server health and status
+- **`get_metrics`** - Performance metrics and statistics
+- **`quality_metrics`** - Episode quality assessment
+
+### Quick Reference
+
+#### 1. `query_memory`
 
 ```json
 {
-  "name": "query_memory",
-  "parameters": {
-    "query": "Search query describing task",
-    "domain": "Task domain (e.g., 'web-api')",
-    "task_type": "code_generation | debugging | refactoring | testing | analysis | documentation",
-    "limit": 10
+  "query": "Search query describing task",
+  "domain": "Task domain (e.g., 'web-api')",
+  "task_type": "code_generation | debugging | refactoring | testing | analysis | documentation",
+  "limit": 10
+}
+```
+
+#### 2. `execute_agent_code`
+
+```json
+{
+  "code": "TypeScript/JavaScript code to execute",
+  "context": {
+    "task": "Task description",
+    "input": { "data": "as JSON" }
   }
 }
 ```
 
-### 2. `execute_agent_code`
-
-Execute TypeScript/JavaScript in secure sandbox.
+#### 3. `analyze_patterns`
 
 ```json
 {
-  "name": "execute_agent_code",
-  "parameters": {
-    "code": "TypeScript/JavaScript code to execute",
-    "context": {
-      "task": "Task description",
-      "input": { "data": "as JSON" }
-    }
-  }
-}
-```
-
-### 3. `analyze_patterns`
-
-Analyze patterns from past episodes.
-
-```json
-{
-  "name": "analyze_patterns",
-  "parameters": {
-    "task_type": "Type of task to analyze",
-    "min_success_rate": 0.7,
-    "limit": 20
-  }
+  "task_type": "Type of task to analyze",
+  "min_success_rate": 0.7,
+  "limit": 20
 }
 ```
 

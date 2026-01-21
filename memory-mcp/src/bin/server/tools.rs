@@ -1,5 +1,7 @@
 //! Memory tool handlers
 //!
+//! This module contains individual tool handler functions for all MCP tools.
+//!
 //! This module contains handlers for all memory-related tools:
 //! - handle_query_memory: Query memories
 //! - handle_execute_code: Execute agent code (WASM)
@@ -386,4 +388,112 @@ pub async fn handle_bulk_episodes(
     }];
 
     Ok(content)
+}
+
+/// Handle create_episode tool
+pub async fn handle_create_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.create_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle add_episode_step tool
+pub async fn handle_add_episode_step(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.add_episode_step_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle complete_episode tool
+pub async fn handle_complete_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.complete_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle get_episode tool
+pub async fn handle_get_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.get_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle delete_episode tool
+pub async fn handle_delete_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.delete_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle get_episode_timeline tool
+pub async fn handle_get_episode_timeline(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.get_episode_timeline_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle batch_query_episodes tool
+pub async fn handle_batch_query_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.batch_query_episodes_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle batch_pattern_analysis tool
+pub async fn handle_batch_pattern_analysis(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.batch_pattern_analysis_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle batch_compare_episodes tool
+pub async fn handle_batch_compare_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.batch_compare_episodes_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
 }

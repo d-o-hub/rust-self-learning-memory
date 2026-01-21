@@ -259,8 +259,8 @@ mod tests {
         let config = SearchConfig::default();
         let score = combine_scores(&breakdown, &config);
 
-        assert!(score > 0.5, "Score should be reasonable: {}", score);
-        assert!(score < 1.0, "Score should not exceed 1.0: {}", score);
+        assert!(score > 0.5, "Score should be reasonable: {score}");
+        assert!(score < 1.0, "Score should not exceed 1.0: {score}");
     }
 
     #[test]

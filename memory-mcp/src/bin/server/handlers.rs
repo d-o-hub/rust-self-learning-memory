@@ -5,10 +5,13 @@
 //! - handle_batch_execute: Handle batch/execute requests
 
 use super::tools::{
-    handle_advanced_pattern_analysis, handle_analyze_patterns, handle_bulk_episodes,
-    handle_configure_embeddings, handle_execute_code, handle_get_metrics, handle_health_check,
-    handle_quality_metrics, handle_query_memory, handle_query_semantic_memory,
-    handle_recommend_patterns, handle_search_patterns, handle_test_embeddings,
+    handle_add_episode_step, handle_advanced_pattern_analysis, handle_analyze_patterns,
+    handle_batch_compare_episodes, handle_batch_pattern_analysis, handle_batch_query_episodes,
+    handle_bulk_episodes, handle_complete_episode, handle_configure_embeddings,
+    handle_create_episode, handle_delete_episode, handle_execute_code, handle_get_episode,
+    handle_get_episode_timeline, handle_get_metrics, handle_health_check, handle_quality_metrics,
+    handle_query_memory, handle_query_semantic_memory, handle_recommend_patterns,
+    handle_search_patterns, handle_test_embeddings,
 };
 use super::types::{CallToolParams, CallToolResult, Content};
 use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
@@ -96,6 +99,19 @@ pub async fn handle_call_tool(
         "search_patterns" => handle_search_patterns(&mut server, params.arguments).await,
         "recommend_patterns" => handle_recommend_patterns(&mut server, params.arguments).await,
         "bulk_episodes" => handle_bulk_episodes(&mut server, params.arguments).await,
+        "create_episode" => handle_create_episode(&mut server, params.arguments).await,
+        "add_episode_step" => handle_add_episode_step(&mut server, params.arguments).await,
+        "complete_episode" => handle_complete_episode(&mut server, params.arguments).await,
+        "get_episode" => handle_get_episode(&mut server, params.arguments).await,
+        "delete_episode" => handle_delete_episode(&mut server, params.arguments).await,
+        "get_episode_timeline" => handle_get_episode_timeline(&mut server, params.arguments).await,
+        "batch_query_episodes" => handle_batch_query_episodes(&mut server, params.arguments).await,
+        "batch_pattern_analysis" => {
+            handle_batch_pattern_analysis(&mut server, params.arguments).await
+        }
+        "batch_compare_episodes" => {
+            handle_batch_compare_episodes(&mut server, params.arguments).await
+        }
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
@@ -265,6 +281,23 @@ pub async fn handle_batch_execute(
                     handle_recommend_patterns(&mut server, Some(arguments)).await
                 }
                 "bulk_episodes" => handle_bulk_episodes(&mut server, Some(arguments)).await,
+                "create_episode" => handle_create_episode(&mut server, Some(arguments)).await,
+                "add_episode_step" => handle_add_episode_step(&mut server, Some(arguments)).await,
+                "complete_episode" => handle_complete_episode(&mut server, Some(arguments)).await,
+                "get_episode" => handle_get_episode(&mut server, Some(arguments)).await,
+                "delete_episode" => handle_delete_episode(&mut server, Some(arguments)).await,
+                "get_episode_timeline" => {
+                    handle_get_episode_timeline(&mut server, Some(arguments)).await
+                }
+                "batch_query_episodes" => {
+                    handle_batch_query_episodes(&mut server, Some(arguments)).await
+                }
+                "batch_pattern_analysis" => {
+                    handle_batch_pattern_analysis(&mut server, Some(arguments)).await
+                }
+                "batch_compare_episodes" => {
+                    handle_batch_compare_episodes(&mut server, Some(arguments)).await
+                }
                 _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_name)),
             };
 

@@ -4,9 +4,11 @@
 //! organized into focused submodules for maintainability.
 
 pub mod advanced;
+pub mod batch_operations;
 pub mod code;
 pub mod core;
 pub mod embeddings;
+pub mod episode_lifecycle;
 pub mod management;
 pub mod monitoring;
 pub mod pattern_search;

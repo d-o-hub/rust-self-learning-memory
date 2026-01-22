@@ -77,32 +77,14 @@ impl DBSCANAnomalyDetector {
         let mut config = self.config.clone();
         config.eps = eps;
 
-        eprintln!(
-            "DBSCAN: {} episodes, adaptive_eps={}, eps={:.6}, min_samples={}",
-            episodes.len(),
-            self.config.adaptive_eps,
-            eps,
-            config.min_samples
-        );
-
         // Apply DBSCAN
         let (cluster_labels, _visited, iterations) = algorithms::dbscan(&config, &features);
-
-        eprintln!("DBSCAN: cluster_labels={:?}", cluster_labels);
 
         // Build clusters
         let clusters = algorithms::build_clusters(&config, episodes, &cluster_labels, &features);
 
-        eprintln!(
-            "DBSCAN: {} clusters, min_cluster_size={}",
-            clusters.len(),
-            config.min_cluster_size
-        );
-
         // Identify anomalies
         let anomalies = self.identify_anomalies(episodes, &cluster_labels, &features, &clusters);
-
-        eprintln!("DBSCAN: {} anomalies", anomalies.len());
 
         // Calculate statistics
         let stats = algorithms::calculate_stats(episodes.len(), &anomalies, &clusters);
@@ -337,12 +319,17 @@ impl DBSCANAnomalyDetector {
     }
 
     /// Simple hash function for string encoding
+    /// Uses FNV-1a hash for better distribution
     fn hash_string(s: &str) -> f64 {
-        let mut hash = 0u64;
-        for (i, c) in s.chars().enumerate() {
-            hash = hash.wrapping_mul(31).wrapping_add(c as u64);
-            if i > 10 {
-                break; // Limit to first 10 characters
+        const FNV_OFFSET: u64 = 14_695_981_039_346_656_037;
+        const FNV_PRIME: u64 = 1_099_511_628_211;
+
+        let mut hash = FNV_OFFSET;
+        for (i, byte) in s.bytes().enumerate() {
+            hash ^= u64::from(byte);
+            hash = hash.wrapping_mul(FNV_PRIME);
+            if i > 20 {
+                break; // Limit to first 20 characters for performance
             }
         }
         // Normalize to 0-1 range

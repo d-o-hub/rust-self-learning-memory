@@ -13,7 +13,7 @@ impl DBSCANConfig {
         }
 
         // Calculate pairwise distances and find the k-nearest neighbor distance for each point
-        let k = (self.min_samples as f64 * 0.5) as usize;
+        let k = (self.min_samples as f64 * 0.5).max(1.0) as usize;
         let mut kth_distances: Vec<f64> = Vec::new();
 
         for (i, f1) in features.iter().enumerate() {
@@ -41,7 +41,11 @@ impl DBSCANConfig {
         };
 
         // Apply scaling factor for better cluster formation
-        (median * 1.5).clamp(0.1, 2.0)
+        // Need a larger multiplier to account for variations in features
+        // Use 3.5x to be more permissive and allow reasonable clusters to form
+        // Minimum 0.3 to handle episodes with different step counts within same domain
+        let adaptive = (median * 3.5).max(0.3);
+        adaptive.min(2.0)
     }
 }
 
@@ -49,37 +53,37 @@ impl DBSCANConfig {
 #[must_use]
 pub fn dbscan(config: &DBSCANConfig, features: &[Vec<f64>]) -> (Vec<isize>, Vec<bool>, usize) {
     let n = features.len();
-    let mut cluster_labels: Vec<isize> = vec![-2; n]; // -2 = unvisited, -1 = noise, >=0 = cluster_id
-    let mut visited: Vec<bool> = vec![false; n];
+    let mut cluster_labels: Vec<isize> = vec![-1; n]; // -1 = noise (unclassified), >=0 = cluster_id
     let mut cluster_id: isize = 0;
     let mut iterations = 0;
 
     for i in 0..n {
-        if visited[i] {
+        // Skip if already classified
+        if cluster_labels[i] != -1 {
             continue;
         }
 
-        visited[i] = true;
         let neighbors = region_query(config, i, features);
 
         if neighbors.len() < config.min_samples {
-            // Mark as noise (anomaly)
-            cluster_labels[i] = -1;
-        } else {
-            // Start a new cluster
-            expand_cluster(
-                config,
-                i,
-                &neighbors,
-                cluster_id,
-                features,
-                &mut cluster_labels,
-            );
-            cluster_id += 1;
-            iterations += 1;
+            // Keep as noise (already -1)
+            continue;
         }
+
+        // Start a new cluster
+        expand_cluster(
+            config,
+            i,
+            &neighbors,
+            cluster_id,
+            features,
+            &mut cluster_labels,
+        );
+        cluster_id += 1;
+        iterations += 1;
     }
 
+    let visited = vec![true; n]; // All points visited
     (cluster_labels, visited, iterations)
 }
 
@@ -113,22 +117,21 @@ fn expand_cluster(
     cluster_labels[i] = cluster_id;
 
     while let Some(p) = queue.pop() {
-        // Check if unvisited first (must be done before other checks)
-        if cluster_labels[p] != -2 {
+        // Skip if already in a cluster
+        if cluster_labels[p] >= 0 {
             continue;
         }
 
-        // Mark as cluster member
+        // Add this point to the cluster
         cluster_labels[p] = cluster_id;
 
-        // If it's noise (was -1), keep it as cluster_id
-        // Get neighbors and expand
+        // Check if this point can expand the cluster
         let p_neighbors = region_query(config, p, features);
 
         if p_neighbors.len() >= config.min_samples {
-            // Add unvisited neighbors to queue
-            for n in p_neighbors {
-                if !queue.contains(&n) {
+            // Add neighbors to queue if not already processed
+            for &n in &p_neighbors {
+                if cluster_labels[n] == -1 && !queue.contains(&n) {
                     queue.push(n);
                 }
             }
@@ -304,7 +307,9 @@ pub fn calculate_stats(
 ) -> crate::patterns::dbscan::DBSCANStats {
     let clustered_points: usize = clusters.iter().map(|c| c.episodes.len()).sum();
 
-    let (avg_anomaly_distance, max_anomaly_distance) = if !anomalies.is_empty() {
+    let (avg_anomaly_distance, max_anomaly_distance) = if anomalies.is_empty() {
+        (0.0, 0.0)
+    } else {
         let sum: f64 = anomalies.iter().map(|a| a.distance_to_cluster).sum();
         let max = anomalies
             .iter()
@@ -312,8 +317,6 @@ pub fn calculate_stats(
             .fold(f64::NEG_INFINITY, f64::max);
 
         (sum / anomalies.len() as f64, max)
-    } else {
-        (0.0, 0.0)
     };
 
     crate::patterns::dbscan::DBSCANStats {

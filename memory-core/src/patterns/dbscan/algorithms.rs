@@ -304,7 +304,7 @@ pub fn calculate_stats(
 ) -> crate::patterns::dbscan::DBSCANStats {
     let clustered_points: usize = clusters.iter().map(|c| c.episodes.len()).sum();
 
-    let (avg_anomaly_distance, max_anomaly_distance) = if anomalies.is_empty() {
+    let (avg_anomaly_distance, max_anomaly_distance) = if !anomalies.is_empty() {
         let sum: f64 = anomalies.iter().map(|a| a.distance_to_cluster).sum();
         let max = anomalies
             .iter()

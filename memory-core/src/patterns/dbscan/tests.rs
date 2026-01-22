@@ -192,8 +192,21 @@ async fn test_multiple_domains() {
 
     let result = detector.detect_anomalies(&episodes).await.unwrap();
 
-    assert_eq!(result.stats.total_points, 3);
-    assert!(result.stats.anomaly_count >= 1);
+    // Should detect 3 clusters (one per domain: web-api, cli, data-processing)
+    assert_eq!(
+        result.clusters.len(),
+        3,
+        "Expected 3 clusters for 3 different domains"
+    );
+    assert_eq!(
+        result.stats.total_points, 15,
+        "Should have 15 total episodes"
+    );
+    // With good clustering, we expect few or no anomalies
+    assert!(
+        result.stats.anomaly_count <= 3,
+        "Should have at most 3 anomalies with 3 well-separated domains"
+    );
     assert!(result.stats.avg_anomaly_distance >= 0.0);
 }
 

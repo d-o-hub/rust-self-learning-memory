@@ -36,7 +36,7 @@ pub fn compute_segment_stats(values: &[f64]) -> SegmentStats {
 }
 
 /// Standard normal CDF approximation using error function
-/// 
+///
 /// Uses the relationship: Φ(x) = 0.5 * (1 + erf(x / sqrt(2)))
 /// where erf is the error function.
 #[inline]
@@ -54,12 +54,13 @@ pub fn normal_cdf(x: f64) -> f64 {
 
     // Scale x for error function: z = x / sqrt(2)
     let z = x / 2_f64.sqrt();
-    
+
     let sign = if z < 0.0 { -1.0 } else { 1.0 };
     let z_abs = z.abs();
 
     let t = 1.0 / (1.0 + p * z_abs);
-    let erf = sign * (1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-z_abs * z_abs).exp());
+    let erf = sign
+        * (1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-z_abs * z_abs).exp());
 
     // CDF(x) = 0.5 * (1 + erf(x / sqrt(2)))
     0.5 * (1.0 + erf)

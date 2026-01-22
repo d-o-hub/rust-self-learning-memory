@@ -67,21 +67,42 @@ impl DBSCANAnomalyDetector {
         let features = self.extract_features(episodes);
 
         // Determine epsilon (adaptive if configured)
-        let _eps = if self.config.adaptive_eps {
+        let eps = if self.config.adaptive_eps {
             self.config.calculate_adaptive_eps(&features)
         } else {
             self.config.eps
         };
 
+        // Create config with the computed epsilon
+        let mut config = self.config.clone();
+        config.eps = eps;
+
+        eprintln!(
+            "DBSCAN: {} episodes, adaptive_eps={}, eps={:.6}, min_samples={}",
+            episodes.len(),
+            self.config.adaptive_eps,
+            eps,
+            config.min_samples
+        );
+
         // Apply DBSCAN
-        let (cluster_labels, _visited, iterations) = algorithms::dbscan(&self.config, &features);
+        let (cluster_labels, _visited, iterations) = algorithms::dbscan(&config, &features);
+
+        eprintln!("DBSCAN: cluster_labels={:?}", cluster_labels);
 
         // Build clusters
-        let clusters =
-            algorithms::build_clusters(&self.config, episodes, &cluster_labels, &features);
+        let clusters = algorithms::build_clusters(&config, episodes, &cluster_labels, &features);
+
+        eprintln!(
+            "DBSCAN: {} clusters, min_cluster_size={}",
+            clusters.len(),
+            config.min_cluster_size
+        );
 
         // Identify anomalies
         let anomalies = self.identify_anomalies(episodes, &cluster_labels, &features, &clusters);
+
+        eprintln!("DBSCAN: {} anomalies", anomalies.len());
 
         // Calculate statistics
         let stats = algorithms::calculate_stats(episodes.len(), &anomalies, &clusters);

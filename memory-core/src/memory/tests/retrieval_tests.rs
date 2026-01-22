@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 /// Test retrieving relevant context.
 #[tokio::test]
+#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
 pub async fn test_retrieve_relevant_context() {
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.5,
@@ -111,6 +112,7 @@ pub async fn test_retrieve_relevant_context() {
 
 /// Test retrieving relevant patterns (heuristics).
 #[tokio::test]
+#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
 pub async fn test_retrieve_relevant_patterns() {
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.4,

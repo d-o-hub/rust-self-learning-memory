@@ -149,7 +149,7 @@ pub fn calculate_keyword_similarity(_pattern: &Pattern, _context: &TaskContext) 
 }
 
 /// Configuration for pattern search
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SearchConfig {
     /// Minimum relevance score to include (0.0 to 1.0)
     pub min_relevance: f32,
@@ -167,6 +167,21 @@ pub struct SearchConfig {
     pub filter_by_domain: bool,
     /// Whether to filter by task type
     pub filter_by_task_type: bool,
+}
+
+impl Default for SearchConfig {
+    fn default() -> Self {
+        Self {
+            min_relevance: 0.3,
+            semantic_weight: 0.4,
+            context_weight: 0.2,
+            effectiveness_weight: 0.2,
+            recency_weight: 0.1,
+            success_weight: 0.1,
+            filter_by_domain: false,
+            filter_by_task_type: false,
+        }
+    }
 }
 
 impl SearchConfig {

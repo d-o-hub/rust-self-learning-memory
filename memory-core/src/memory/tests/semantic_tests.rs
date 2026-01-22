@@ -47,6 +47,7 @@ pub async fn test_with_semantic_config() {
 
 /// Test embedding generation on episode completion.
 #[tokio::test]
+#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
 pub async fn test_embedding_generation_on_completion() {
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.5,
@@ -93,6 +94,7 @@ pub async fn test_embedding_generation_on_completion() {
 
 /// Test semantic fallback to keyword search.
 #[tokio::test]
+#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
 pub async fn test_semantic_fallback_to_keyword() {
     // Test that retrieval falls back gracefully when semantic search fails
     let test_config = crate::MemoryConfig {

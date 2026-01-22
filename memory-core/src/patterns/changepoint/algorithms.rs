@@ -35,11 +35,16 @@ pub fn compute_segment_stats(values: &[f64]) -> SegmentStats {
     }
 }
 
-/// Standard normal CDF approximation
+/// Standard normal CDF approximation using error function
+/// 
+/// Uses the relationship: Φ(x) = 0.5 * (1 + erf(x / sqrt(2)))
+/// where erf is the error function.
 #[inline]
 #[must_use]
 pub fn normal_cdf(x: f64) -> f64 {
-    // Approximation of the error function
+    // Abramowitz and Stegun approximation for error function
+    // erf(z) ≈ sign(z) * (1 - (a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5) * exp(-z^2))
+    // where t = 1 / (1 + p*|z|)
     let a1 = 0.254_829_592;
     let a2 = -0.284_496_736;
     let a3 = 1.421_413_741;
@@ -47,13 +52,17 @@ pub fn normal_cdf(x: f64) -> f64 {
     let a5 = 1.061_405_429;
     let p = 0.327_591_1;
 
-    let sign = if x < 0.0 { -1.0 } else { 1.0 };
-    let x = x.abs();
+    // Scale x for error function: z = x / sqrt(2)
+    let z = x / 2_f64.sqrt();
+    
+    let sign = if z < 0.0 { -1.0 } else { 1.0 };
+    let z_abs = z.abs();
 
-    let t = 1.0 / (1.0 + p * x);
-    let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-x * x).exp();
+    let t = 1.0 / (1.0 + p * z_abs);
+    let erf = sign * (1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-z_abs * z_abs).exp());
 
-    0.5 * (1.0 + sign * y)
+    // CDF(x) = 0.5 * (1 + erf(x / sqrt(2)))
+    0.5 * (1.0 + erf)
 }
 
 /// Calculate changepoint probability based on surrounding data

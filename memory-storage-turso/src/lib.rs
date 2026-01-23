@@ -710,10 +710,10 @@ impl TursoStorage {
     pub async fn pool_utilization(&self) -> Option<f32> {
         if let Some(ref pool) = self.pool {
             Some(pool.utilization().await)
-        } else if let Some(ref adaptive_pool) = self.adaptive_pool {
-            Some(adaptive_pool.utilization() as f32)
         } else {
-            None
+            self.adaptive_pool
+                .as_ref()
+                .map(|adaptive_pool| adaptive_pool.utilization() as f32)
         }
     }
 

@@ -42,7 +42,9 @@ mod heuristics;
 mod storage;
 mod tables;
 
-pub use cache::{CacheConfig, CacheMetrics, LRUCache};
+pub use cache::{
+    AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics, CacheConfig, CacheMetrics, LRUCache,
+};
 pub use storage::RedbQuery;
 
 // ============================================================================

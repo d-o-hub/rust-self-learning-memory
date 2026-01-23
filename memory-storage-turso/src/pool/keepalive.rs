@@ -353,7 +353,7 @@ impl KeepAlivePool {
     pub fn start_background_task(&self) {
         // Create an Arc from self so we can downgrade it to a Weak reference
         // We use a raw pointer dance to avoid requiring Clone on the struct
-        let self_ptr = &*self as *const KeepAlivePool as *mut KeepAlivePool;
+        let self_ptr = self as *const KeepAlivePool as *mut KeepAlivePool;
         #[allow(unsafe_code)]
         let pool_arc = unsafe { Arc::from_raw(self_ptr) };
         let pool_weak = Arc::downgrade(&pool_arc);

@@ -76,7 +76,7 @@ jobs:
           # Run integration tests excluding slow compliance tests
           # (compliance tests run separately or in nightly)
           cargo nextest run --profile ci --tests --all --test-threads=4 \
-            -E 'not test(compliance::)'
+            -E 'not binary(compliance)'
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v6

@@ -15,7 +15,6 @@ fail-fast = true
 slow-timeout = { period = "10s" }
 test-threads = 8
 status-level = "skip"
-output = "never"
 
 [profile.coverage]
 retries = 0

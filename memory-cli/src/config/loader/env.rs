@@ -135,8 +135,10 @@ impl EnvConfigInfo {
 #[cfg(test)]
 mod env_tests {
     use super::*;
+    use serial_test::serial;
 
     #[test]
+    #[serial]
     fn test_env_config_info_summary_with_vars() {
         // Store original values
         let original_values: std::collections::HashMap<String, Option<String>> = [
@@ -193,6 +195,7 @@ mod env_tests {
     }
 
     #[test]
+    #[serial]
     fn test_env_config_info_summary_with_vars_different() {
         // Store original values
         let original_values: std::collections::HashMap<String, Option<String>> = [
@@ -237,6 +240,7 @@ mod env_tests {
     }
 
     #[test]
+    #[serial]
     fn test_load_config_from_env_not_set() {
         std::env::remove_var("MEMORY_CLI_CONFIG");
         let result = load_config_from_env();

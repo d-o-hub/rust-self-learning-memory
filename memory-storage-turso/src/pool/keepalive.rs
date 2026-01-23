@@ -612,8 +612,8 @@ mod tests {
         let stats = pool.statistics();
         // Note: stale detection happens when we try to reuse a connection ID
         // Since we get a new connection with a new ID, the old ID is still stale
-        // Verify the stats are valid (non-negative for unsigned types)
-        assert!(stats.total_stale_detected >= 0 || stats.total_stale_detected == 0);
+        // Verify the stats are accessible
+        let _ = stats.total_stale_detected;
     }
 
     #[tokio::test]

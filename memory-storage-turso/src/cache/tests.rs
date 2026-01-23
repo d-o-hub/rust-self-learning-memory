@@ -258,8 +258,8 @@ async fn test_heuristic_cache_hit() {
     let result = cached.get_heuristic_cached(heuristic_id).await.unwrap();
     assert!(result.is_some());
 
-    // Verify cache operations completed without errors
-    assert!(stats.episode_hits >= 0 || stats.episode_misses >= 0);
+    // Verify cache stats are accessible
+    let _stats = cached.stats();
 }
 
 #[tokio::test]
@@ -285,6 +285,7 @@ async fn test_clear_caches() {
     let _ = cached.get_episode_cached(Uuid::new_v4()).await.unwrap();
 
     // Verify cache was cleared (no hits after clear)
+    let stats_after = cached.stats();
     assert_eq!(stats_after.episode_hits, 0);
     // Note: Some misses may still occur due to internal operations
 }

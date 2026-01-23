@@ -70,7 +70,7 @@ fn create_test_episode(id: Uuid) -> Episode {
 /// Create a test pattern
 fn create_test_pattern(id: Uuid) -> Pattern {
     Pattern::ToolSequence {
-        id: id.into(),
+        id,
         tools: vec![
             "tool1".to_string(),
             "tool2".to_string(),
@@ -294,13 +294,13 @@ fn bench_pattern_retrieval_cached(c: &mut Criterion) {
 
                 // Prime the cache
                 for id in &ids {
-                    let _ = cached.get_pattern_cached((*id).into()).await.unwrap();
+                    let _ = cached.get_pattern_cached(*id).await.unwrap();
                 }
 
                 // Benchmark cached retrieval
                 let start = std::time::Instant::now();
                 for id in &ids {
-                    let _ = cached.get_pattern_cached((*id).into()).await.unwrap();
+                    let _ = cached.get_pattern_cached(*id).await.unwrap();
                     black_box(id);
                 }
                 black_box(start.elapsed());
@@ -430,10 +430,8 @@ fn bench_cache_hit_rate(c: &mut Criterion) {
                 }
 
                 // Access each 5 times (mix of misses and hits)
-                for _ in 0..5 {
-                    for id in &episode_ids {
-                        let _ = cached.get_episode_cached(*id).await.unwrap();
-                    }
+                for id in episode_ids.iter().cycle().take(episode_ids.len() * 5) {
+                    let _ = cached.get_episode_cached(*id).await.unwrap();
                 }
 
                 let stats = cached.stats();

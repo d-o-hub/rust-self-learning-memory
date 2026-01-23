@@ -4,13 +4,14 @@ use super::*;
 use crate::episode::Episode;
 use crate::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
 use chrono::{Duration, Utc};
+use std::sync::Arc;
 
 fn create_test_episode(
     domain: &str,
     task_type: TaskType,
     description: &str,
     days_ago: i64,
-) -> Episode {
+) -> Arc<Episode> {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
@@ -28,7 +29,7 @@ fn create_test_episode(
         artifacts: vec![],
     });
 
-    episode
+    Arc::new(episode)
 }
 
 #[test]
@@ -96,7 +97,7 @@ fn test_task_type_filtering() {
         create_test_episode("web-api", TaskType::CodeGeneration, "task 3", 1),
     ];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "test".to_string(),
@@ -122,7 +123,7 @@ fn test_task_type_filtering_no_filter() {
         create_test_episode("web-api", TaskType::Debugging, "task 2", 1),
     ];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "test".to_string(),
@@ -147,7 +148,7 @@ fn test_temporal_clustering_favors_recent() {
         create_test_episode("web-api", TaskType::CodeGeneration, "medium task", 15),
     ];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "test".to_string(),
@@ -180,7 +181,7 @@ fn test_scoring_domain_match() {
         1,
     )];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "implement auth".to_string(),
@@ -207,7 +208,7 @@ fn test_scoring_task_type_match() {
         1,
     )];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "task".to_string(),
@@ -271,7 +272,7 @@ fn test_text_similarity() {
         1,
     )];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "authentication".to_string(),
@@ -397,7 +398,7 @@ fn test_combined_score_calculation() {
         1,
     )];
 
-    let candidates: Vec<&Episode> = episodes.iter().collect();
+    let candidates: Vec<&Arc<Episode>> = episodes.iter().collect();
 
     let query = RetrievalQuery {
         query_text: "implement authentication".to_string(),

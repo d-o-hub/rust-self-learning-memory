@@ -27,7 +27,7 @@ pub(super) async fn complete_episode(
     };
     let mut episode = (*episode_arc).clone();
 
-    episode.complete(outcome.clone());
+    episode.complete(outcome);
     super::validation::validate_episode_size(&episode)?;
 
     let quality_score = super_ref.quality_assessor.assess_episode(&episode);

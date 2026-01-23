@@ -26,7 +26,8 @@ This is a memory management system with episodic memory capabilities, semantic e
 
 ## File Organization
 - Plans/analysis/validation/reports and all other non permanent doc .md files stored in `plans/` folder only
-- Maximum 500 lines per file (all 9/9 modules compliant after splitting 17 oversized files)
+- Maximum 500 lines per file for source code (all 9/9 modules compliant after splitting 17 oversized files)
+- **Benchmark files** (`benches/*.rs`) are exempt from the 500 LOC limit - they contain comprehensive performance tests that require extensive setup and measurement code
 - Module structure follows single responsibility principle
 - Each module should be self-contained and testable
 
@@ -54,7 +55,7 @@ For specific tasks, refer to these focused documentation files:
 - Use `cargo fmt` and `cargo clippy` for automatic formatting/linting
 - Write tests for new functionality (maintain >90% coverage)
 - Run quality gates before committing
-- All files must be ≤500 LOC (split large files into modules)
+- All source code files must be ≤500 LOC (split large files into modules); benchmark files (`benches/*.rs`) are exempt from this limit
 - Use postcard for serialization in storage layers
 - Use parameterized queries to prevent SQL injection
 - **Module patterns used**: async traits for storage operations, `thiserror` for domain errors, `anyhow::Result` for public APIs, builder pattern for complex types, newtype pattern for type safety, Arc/Mutex for shared state

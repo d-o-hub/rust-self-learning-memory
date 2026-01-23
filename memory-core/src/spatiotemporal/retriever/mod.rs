@@ -20,6 +20,7 @@ pub use types::{HierarchicalScore, RetrievalQuery};
 
 use crate::episode::Episode;
 use anyhow::Result;
+use std::sync::Arc;
 use tracing::{debug, instrument};
 
 /// Hierarchical retriever for spatiotemporal episodic memory.
@@ -138,6 +139,7 @@ impl HierarchicalRetriever {
     /// # }
     /// ```
     #[instrument(skip(self, all_episodes), fields(
+        query_text = %query.query_text,
         query_domain = ?query.domain,
         query_task_type = ?query.task_type,
         total_episodes = all_episodes.len(),
@@ -146,7 +148,7 @@ impl HierarchicalRetriever {
     pub async fn retrieve(
         &self,
         query: &RetrievalQuery,
-        all_episodes: &[Episode],
+        all_episodes: &[Arc<Episode>],
     ) -> Result<Vec<HierarchicalScore>> {
         debug!("Starting hierarchical retrieval");
 

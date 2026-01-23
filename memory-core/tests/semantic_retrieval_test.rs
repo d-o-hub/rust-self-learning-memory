@@ -6,6 +6,7 @@
 use memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
 use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
 use memory_core::Episode;
+use std::sync::Arc;
 
 /// Create a test episode with specific characteristics
 fn create_test_episode(
@@ -13,7 +14,7 @@ fn create_test_episode(
     task_type: TaskType,
     description: &str,
     language: Option<&str>,
-) -> Episode {
+) -> Arc<Episode> {
     let context = TaskContext {
         language: language.map(String::from),
         framework: None,
@@ -30,7 +31,7 @@ fn create_test_episode(
         artifacts: vec!["output.txt".to_string()],
     });
 
-    episode
+    Arc::new(episode)
 }
 
 #[tokio::test]
@@ -449,7 +450,7 @@ async fn test_perfect_embedding_match() {
 #[tokio::test]
 async fn test_no_episodes() {
     // Test retrieval with no episodes available
-    let episodes: Vec<Episode> = vec![];
+    let episodes: Vec<Arc<Episode>> = vec![];
 
     let retriever = HierarchicalRetriever::new();
 

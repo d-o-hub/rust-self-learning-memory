@@ -46,8 +46,8 @@ tracing = { workspace = true }
 # Futures utilities
 futures = { workspace = true }
 
-# LRU cache for query caching
-lru = "0.16"
+# LRU cache for query caching (using workspace version for consistency)
+lru = { workspace = true }
 
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.13", features = ["json"], optional = true }

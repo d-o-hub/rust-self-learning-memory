@@ -1,5 +1,6 @@
 //! Tests for the MemoryMCPServer
 
+use crate::server::sandbox;
 use crate::server::MemoryMCPServer;
 use crate::types::{ExecutionContext, SandboxConfig};
 use memory_core::SelfLearningMemory;
@@ -30,7 +31,7 @@ async fn test_server_creation() {
     assert!(!tools.is_empty());
     assert!(tools.iter().any(|t| t.name == "query_memory"));
     // execute_agent_code tool is only available if WASM sandbox is enabled
-    if MemoryMCPServer::is_wasm_sandbox_available() {
+    if sandbox::is_wasm_sandbox_available() {
         assert!(tools.iter().any(|t| t.name == "execute_agent_code"));
     }
     assert!(tools.iter().any(|t| t.name == "analyze_patterns"));
@@ -50,7 +51,7 @@ async fn test_get_tool() {
 
 #[tokio::test]
 async fn test_execute_code() {
-    if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available() {
+    if std::env::var("RUN_WASM_TESTS").is_err() || !sandbox::is_wasm_sandbox_available() {
         tracing::info!(
             "Skipping execute_agent_code test (set RUN_WASM_TESTS=1 and ensure WASM is available)"
         );
@@ -88,7 +89,7 @@ async fn test_tool_usage_tracking() {
 
 #[tokio::test]
 async fn test_progressive_tool_disclosure() {
-    if std::env::var("RUN_WASM_TESTS").is_err() || !MemoryMCPServer::is_wasm_sandbox_available() {
+    if std::env::var("RUN_WASM_TESTS").is_err() || !sandbox::is_wasm_sandbox_available() {
         tracing::info!("Skipping progressive tool disclosure test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
         return;
     }

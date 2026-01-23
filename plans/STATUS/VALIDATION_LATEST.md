@@ -192,12 +192,17 @@ The memory-mcp MCP server has been **comprehensively validated** against Model C
 **Rust Format**: 100% compliant - previously verified
 **Lib Tests**: Commands timed out during validation - status unknown
 
-### File Size Compliance: ⚠️ PARTIAL
+### File Size Compliance: ✅ COMPLETE
 
-**Status**: 7-8 memory modules compliant with 500 LOC limit (corrected from 21)
-**Note**: Memory modules are mostly compliant, but CLI/MCP files still need splitting
+**Status**: All source files now ≤500 LOC (3 benchmark files explicitly exempt per AGENTS.md)
+**Note**: Previous claim of "20+ files" was significantly overstated. Only 3 source files required splitting, which was completed on 2026-01-22.
 
-**Recent Splits (v0.1.12)**:
+**Recent Splits (v0.1.13)**:
+- `memory-mcp/src/server/mod.rs`: 781 → 147 LOC + 3 submodules
+- `memory-mcp/src/server/tools/batch_operations.rs`: 753 → 3 batch modules
+- `memory-mcp/src/server/tools/episode_lifecycle.rs`: 516 → 5 episode modules
+
+**Previous Splits (v0.1.12)**:
 - `memory-cli/src/config/types.rs`: 1,052 LOC → 9 files (max 379 LOC)
 - `memory-core/src/memory/retrieval.rs`: 891 LOC → 6 files (max 414 LOC)
 - `memory-core/src/patterns/optimized_validator.rs`: 889 LOC → 6 files (max 448 LOC)

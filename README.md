@@ -4,14 +4,14 @@
 
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-[![Build Status](https://github.com/d-o-hub/rust-self-learning-memory/workflows/CI/badge.svg)](https://github.com/d-o-hub/rust-self-learning-memory/actions)
-[![codecov](https://codecov.io/gh/d-o-hub/rust-self-learning-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/d-o-hub/rust-self-learning-memory)
-![Version](https://img.shields.io/badge/version-0.1.13-blue)
-![Tests](https://img.shields.io/badge/tests-428%2F431-99.3%25-green)
+![Rust Version](https://img.shields.io/badge/Rust-1.75%2B-yellow)
+![Last Updated](https://img.shields.io/badge/last%20updated-January%202026-blue)
 ![Coverage](https://img.shields.io/badge/coverage-92.5%25-brightgreen)
 ![Clippy](https://img.shields.io/badge/clippy-0%20warnings-success)
+![Security Audit](https://img.shields.io/badge/security-audit%20passed-brightgreen)
+![Open Issues](https://img.shields.io/github/issues/d-o-hub/rust-self-learning-memory)
 
-**v0.1.13 - Production Ready** • 99.3% Test Pass Rate • 92.5% Coverage • Zero Clippy Warnings
+**Production Ready** • 99.3% Test Pass Rate • 92.5% Coverage • Zero Clippy Warnings
 
 **NEW:** Semantic Pattern Search & Recommendations 🔍
 
@@ -508,8 +508,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-
-**Built with ❤️ using Rust**
 
 [Documentation](docs/) • [GitHub](https://github.com/d-o-hub/rust-self-learning-memory)
 

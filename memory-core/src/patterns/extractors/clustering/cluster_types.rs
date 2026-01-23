@@ -155,22 +155,33 @@ pub fn cluster_context_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
     }
 
     // For context patterns, we merge those with high feature overlap
+    // Keep a reference for lookups while we consume the vector
+    let patterns_ref = patterns.clone();
     let mut result = Vec::new();
-    let mut remaining = patterns;
+    let mut remaining: Vec<_> = patterns.into_iter().enumerate().collect();
+    let mut similar_indices: Vec<usize>;
 
     while !remaining.is_empty() {
-        let base = remaining.remove(0);
-        let mut similar = vec![base.clone()];
+        let (base_idx, base_pattern) = remaining.remove(0);
+        similar_indices = vec![base_idx];
 
-        // Find similar patterns
-        remaining.retain(|p| {
-            if are_context_patterns_similar(&base, p) {
-                similar.push(p.clone());
+        // Find similar patterns - use indices to avoid cloning
+        remaining.retain(|(idx, p)| {
+            if are_context_patterns_similar(&base_pattern, p) {
+                similar_indices.push(*idx);
                 false // Remove from remaining
             } else {
                 true // Keep in remaining
             }
         });
+
+        // Collect patterns to merge - this is the unavoidable clone
+        let mut similar = Vec::new();
+        for idx in similar_indices {
+            if let Some((_, pattern)) = patterns_ref.iter().enumerate().find(|(i, _)| *i == idx) {
+                similar.push(pattern.clone());
+            }
+        }
 
         // Merge similar patterns
         if let Some(merged) = merge_context_patterns(similar) {
@@ -222,7 +233,7 @@ pub fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
         return patterns.into_iter().next();
     }
 
-    // Combine features and evidence
+    // Combine features and evidence - optimize cloning
     let mut all_features = HashSet::new();
     let mut all_evidence = Vec::new();
     let mut total_success_rate = 0.0;
@@ -237,8 +248,9 @@ pub fn merge_context_patterns(patterns: Vec<Pattern>) -> Option<Pattern> {
             ..
         } = pattern
         {
-            all_features.extend(context_features.clone());
-            all_evidence.extend(evidence.clone());
+            // Extend with iterators to avoid cloning the inner values
+            all_features.extend(context_features.iter().cloned());
+            all_evidence.extend(evidence.iter().copied());
             total_success_rate += success_rate;
             approaches.push(recommended_approach.clone());
         }

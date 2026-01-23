@@ -284,33 +284,34 @@ impl SemanticService {
 
     /// Convert episode to searchable text representation
     fn episode_to_text(&self, episode: &Episode) -> String {
-        let mut parts = Vec::new();
-
-        // Task description
-        parts.push(episode.task_description.clone());
+        // Build text directly using format! to avoid intermediate Vec clones
+        let mut text = episode.task_description.clone();
 
         // Context information
-        parts.push(format!("domain: {}", episode.context.domain));
+        use std::fmt::Write;
+        let _ = write!(text, ". domain: {}", episode.context.domain);
         if let Some(lang) = &episode.context.language {
-            parts.push(format!("language: {lang}"));
+            let _ = write!(text, ". language: {lang}");
         }
         if let Some(framework) = &episode.context.framework {
-            parts.push(format!("framework: {framework}"));
+            let _ = write!(text, ". framework: {framework}");
         }
         if !episode.context.tags.is_empty() {
-            parts.push(format!("tags: {}", episode.context.tags.join(", ")));
+            let _ = write!(text, ". tags: {}", episode.context.tags.join(", "));
         }
 
         // Execution summary
         if !episode.steps.is_empty() {
             // Collect unique tools while preserving order
+            use std::collections::HashSet;
+            let mut seen_tools = HashSet::new();
             let mut tools = Vec::new();
             for step in &episode.steps {
-                if !tools.contains(&step.tool) {
+                if seen_tools.insert(step.tool.clone()) {
                     tools.push(step.tool.clone());
                 }
             }
-            parts.push(format!("tools used: {}", tools.join(", ")));
+            let _ = write!(text, ". tools used: {}", tools.join(", "));
 
             let actions: Vec<String> = episode
                 .steps
@@ -318,25 +319,25 @@ impl SemanticService {
                 .take(3) // Take first few actions
                 .map(|step| step.action.clone())
                 .collect();
-            parts.push(format!("actions: {}", actions.join(", ")));
+            let _ = write!(text, ". actions: {}", actions.join(", "));
         }
 
         // Outcome summary
         if let Some(outcome) = &episode.outcome {
             match outcome {
                 crate::types::TaskOutcome::Success { verdict, .. } => {
-                    parts.push(format!("outcome: success - {verdict}"));
+                    let _ = write!(text, ". outcome: success - {verdict}");
                 }
                 crate::types::TaskOutcome::PartialSuccess { verdict, .. } => {
-                    parts.push(format!("outcome: partial success - {verdict}"));
+                    let _ = write!(text, ". outcome: partial success - {verdict}");
                 }
                 crate::types::TaskOutcome::Failure { reason, .. } => {
-                    parts.push(format!("outcome: failure - {reason}"));
+                    let _ = write!(text, ". outcome: failure - {reason}");
                 }
             }
         }
 
-        parts.join(". ")
+        text
     }
 
     /// Convert pattern to searchable text representation

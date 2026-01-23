@@ -3,6 +3,7 @@
 
 use memory_core::SelfLearningMemory;
 use memory_mcp::mcp::tools::embeddings::{
+    configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool,
     ConfigureEmbeddingsInput, EmbeddingTools, QuerySemanticMemoryInput,
 };
 use memory_mcp::server::MemoryMCPServer;
@@ -420,7 +421,7 @@ async fn test_tool_usage_tracking() {
 async fn test_tool_definitions_json_rpc_compliant() {
     // Verify tool definitions are valid JSON-RPC 2.0 compatible
 
-    let configure_tool = EmbeddingTools::configure_embeddings_tool();
+    let configure_tool = configure_embeddings_tool();
     assert_eq!(configure_tool.name, "configure_embeddings");
     assert!(!configure_tool.description.is_empty());
 
@@ -436,13 +437,13 @@ async fn test_tool_definitions_json_rpc_compliant() {
     assert!(required.contains(&serde_json::json!("provider")));
 
     // Similar checks for query tool
-    let query_tool = EmbeddingTools::query_semantic_memory_tool();
+    let query_tool = query_semantic_memory_tool();
     let schema = query_tool.input_schema.as_object().unwrap();
     let required = schema.get("required").unwrap().as_array().unwrap();
     assert!(required.contains(&serde_json::json!("query")));
 
     // Test tool has no required properties
-    let test_tool = EmbeddingTools::test_embeddings_tool();
+    let test_tool = test_embeddings_tool();
     let schema = test_tool.input_schema.as_object().unwrap();
     let properties = schema.get("properties").unwrap().as_object().unwrap();
     assert!(properties.is_empty());

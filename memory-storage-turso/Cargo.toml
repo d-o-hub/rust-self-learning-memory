@@ -17,10 +17,23 @@ documentation = "https://docs.rs/memory-storage-turso"
 turso_multi_dimension = []
 # Enable FTS5 hybrid search for enhanced retrieval
 hybrid_search = []
+# Enable keep-alive connection pool (reduces connection overhead from 45ms to ~5ms)
+keepalive-pool = []
+
+# Compression features for network bandwidth reduction (40% reduction target)
+# Enable all compression algorithms (recommended for production)
+compression = ["compression-lz4", "compression-zstd", "compression-gzip", "base64"]
+# LZ4 compression - fast, low CPU overhead
+compression-lz4 = ["lz4_flex"]
+# Zstd compression - best compression ratio
+compression-zstd = ["zstd"]
+# Gzip compression - widely compatible
+compression-gzip = ["flate2"]
 
 [dependencies]
 # Core dependencies
 memory-core = { path = "../memory-core", features = ["hybrid_search"] }
+memory-storage-redb = { path = "../memory-storage-redb" }
 
 # Async runtime
 tokio = { workspace = true }
@@ -50,6 +63,16 @@ parking_lot = "0.12"
 
 # Cryptography for deterministic ID generation
 sha2 = { workspace = true }
+
+# Compression libraries (optional, enabled by compression feature)
+# Using lz4_flex for safe LZ4 implementation (no unsafe code)
+lz4_flex = { version = "0.12", optional = true, default-features = false }
+# Zstd for best compression ratio
+zstd = { version = "0.13", optional = true }
+# Flate2 for Gzip (uses miniz_oxide by default, no C dependency)
+flate2 = { version = "1.1", optional = true, default-features = true, features = ["rust_backend"] }
+# Base64 encoding for compressed data storage
+base64 = { version = "0.22", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

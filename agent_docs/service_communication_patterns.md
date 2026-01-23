@@ -4,10 +4,12 @@
 
 The memory system uses several communication patterns between components:
 
-1. **MCP (Model Context Protocol)**: Primary client-server communication (v2025-11-25)
+1. **MCP (Model Context Protocol)**: Primary client-server communication (verify version at https://modelcontextprotocol.io/docs/tools/inspector)
 2. **Internal Rust Communication**: Inter-component messaging with Tokio
 3. **Database Communication**: Storage layer interactions (Turso + redb)
-4. **Cache Communication**: Performance optimization layer (Postcard-based)
+4. **Cache Communication**: Performance optimization layer (Postcard-based, v0.1.12)
+
+> **Note**: MCP specification versions may have changed. Verify the current version at https://modelcontextprotocol.io/docs/tools/inspector
 
 ## MCP Protocol Communication
 
@@ -159,6 +161,9 @@ impl ServerCapabilities {
 ```
 
 ### MCP Inspector (2025 Best Practice)
+
+> **Verification**: Use the MCP Inspector to validate implementation against the latest specification: https://modelcontextprotocol.io/docs/tools/inspector
+
 ```bash
 # Test MCP server with Inspector
 npx @modelcontextprotocol/inspector \

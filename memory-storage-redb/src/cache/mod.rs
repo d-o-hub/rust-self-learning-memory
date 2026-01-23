@@ -6,8 +6,10 @@
 //! - `types`: Core type definitions (CacheConfig, CacheEntry, CacheMetrics)
 //! - `state`: Internal cache state management
 //! - `lru`: Main LRUCache implementation
+//! - `adaptive`: Adaptive TTL cache with access pattern-based TTL adjustment
 //! - `tests`: Test suite
 
+mod adaptive;
 mod lru;
 mod state;
 mod types;
@@ -16,5 +18,6 @@ mod types;
 mod tests;
 
 // Re-export public types
+pub use adaptive::{AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics};
 pub use lru::LRUCache;
 pub use types::{CacheConfig, CacheMetrics};

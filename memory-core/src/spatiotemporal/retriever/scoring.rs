@@ -7,6 +7,7 @@ use super::types::{
 };
 use crate::episode::Episode;
 use chrono::Utc;
+use std::sync::Arc;
 
 /// Scoring implementation for `HierarchicalRetriever`
 impl super::HierarchicalRetriever {
@@ -16,9 +17,9 @@ impl super::HierarchicalRetriever {
     /// Otherwise, return all episodes.
     pub(super) fn filter_by_domain<'a>(
         &self,
-        episodes: &'a [Episode],
+        episodes: &'a [Arc<Episode>],
         query: &RetrievalQuery,
-    ) -> Vec<&'a Episode> {
+    ) -> Vec<&'a Arc<Episode>> {
         if let Some(ref domain) = query.domain {
             episodes
                 .iter()
@@ -35,9 +36,9 @@ impl super::HierarchicalRetriever {
     /// Otherwise, return all candidates.
     pub(super) fn filter_by_task_type<'a>(
         &self,
-        candidates: &[&'a Episode],
+        candidates: &[&'a Arc<Episode>],
         query: &RetrievalQuery,
-    ) -> Vec<&'a Episode> {
+    ) -> Vec<&'a Arc<Episode>> {
         if let Some(task_type) = query.task_type {
             candidates
                 .iter()
@@ -55,9 +56,9 @@ impl super::HierarchicalRetriever {
     /// Applies temporal bias to favor recent episodes in scoring.
     pub(super) fn select_temporal_clusters<'a>(
         &self,
-        candidates: &[&'a Episode],
+        candidates: &[&'a Arc<Episode>],
         _query: &RetrievalQuery,
-    ) -> Vec<&'a Episode> {
+    ) -> Vec<&'a Arc<Episode>> {
         if candidates.is_empty() {
             return vec![];
         }
@@ -80,7 +81,7 @@ impl super::HierarchicalRetriever {
     /// Uses embedding-based similarity when available, falls back to text similarity.
     pub(super) fn score_episodes(
         &self,
-        candidates: &[&Episode],
+        candidates: &[&Arc<Episode>],
         query: &RetrievalQuery,
     ) -> Vec<HierarchicalScore> {
         let now = Utc::now();

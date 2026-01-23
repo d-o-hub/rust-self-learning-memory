@@ -105,6 +105,11 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
         retry_base_delay_ms: 100,
         retry_max_delay_ms: 5000,
         enable_pooling: true,
+        compression_threshold: 1024,
+        compress_episodes: true,
+        compress_patterns: true,
+        compress_embeddings: true,
+        cache_config: None,
     };
 
     let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;
@@ -161,6 +166,11 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
         retry_base_delay_ms: 50,
         retry_max_delay_ms: 1000,
         enable_pooling: false, // No pooling needed for local
+        compression_threshold: 1024,
+        compress_episodes: true,
+        compress_patterns: true,
+        compress_embeddings: true,
+        cache_config: None,
     };
 
     let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;

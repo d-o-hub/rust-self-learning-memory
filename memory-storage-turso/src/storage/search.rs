@@ -120,7 +120,7 @@ impl TursoStorage {
             results.sort_by(|a, b| {
                 b.similarity
                     .partial_cmp(&a.similarity)
-                    .expect("Similarity comparison should never have NaN")
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             results.truncate(limit);
 
@@ -223,7 +223,7 @@ impl TursoStorage {
             all_results.sort_by(|a, b| {
                 b.similarity
                     .partial_cmp(&a.similarity)
-                    .expect("Similarity comparison should never have NaN")
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             all_results.truncate(limit);
 
@@ -281,7 +281,7 @@ impl TursoStorage {
             results.sort_by(|a, b| {
                 b.similarity
                     .partial_cmp(&a.similarity)
-                    .expect("Similarity comparison should never have NaN")
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             results.truncate(limit);
 
@@ -373,7 +373,7 @@ impl TursoStorage {
             results.sort_by(|a, b| {
                 b.similarity
                     .partial_cmp(&a.similarity)
-                    .expect("Similarity comparison should never have NaN")
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             results.truncate(limit);
 
@@ -429,7 +429,7 @@ impl TursoStorage {
         results.sort_by(|a, b| {
             b.similarity
                 .partial_cmp(&a.similarity)
-                .expect("Similarity comparison should never have NaN")
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
         results.truncate(limit);
 

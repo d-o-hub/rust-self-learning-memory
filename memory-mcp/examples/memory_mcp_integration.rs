@@ -155,6 +155,7 @@ async fn main() -> anyhow::Result<()> {
             "web-api".to_string(),
             Some("code_generation".to_string()),
             10,
+            "relevance".to_string(),
         )
         .await?;
     println!(

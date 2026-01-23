@@ -1,0 +1,23 @@
+# CODEOWNERS file
+# Format: <file pattern> <username or team>
+
+# All changes
+* @d-o-hub
+
+# Code
+*.rs @d-o-hub
+memory-*/ @d-o-hub
+
+# Workflows
+.github/workflows/*.yml @d-o-hub
+
+# Documentation
+*.md @d-o-hub
+docs/ @d-o-hub
+
+# Configuration files
+Cargo.toml @d-o-hub
+Cargo.lock @d-o-hub
+rust-toolchain.toml @d-o-hub
+.env.example @d-o-hub
+scripts/ @d-o-hub

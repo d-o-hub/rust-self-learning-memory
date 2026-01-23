@@ -6,6 +6,7 @@ use crate::episode::Episode;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 /// Default cache TTL (60 seconds)
@@ -20,7 +21,7 @@ pub struct CacheKey {
     /// Query text or description
     pub query: String,
     /// Task domain filter (optional)
-    pub domain: Option<String>,
+    pub domain: Option<Arc<str>>,
     /// Task type filter (optional)
     pub task_type: Option<String>,
     /// Time range start (unix timestamp, optional)
@@ -48,7 +49,7 @@ impl CacheKey {
     /// Set domain filter
     #[must_use]
     pub fn with_domain(mut self, domain: Option<String>) -> Self {
-        self.domain = domain;
+        self.domain = domain.map(|s| Arc::from(s.as_str()));
         self
     }
 
@@ -86,8 +87,8 @@ impl CacheKey {
 /// Cached query result with expiration time
 #[derive(Debug, Clone)]
 pub struct CachedResult {
-    /// Cached episodes
-    pub episodes: Vec<Episode>,
+    /// Cached episodes (Arc for zero-copy retrieval)
+    pub episodes: Arc<[Episode]>,
     /// Time when this entry was cached
     pub cached_at: Instant,
     /// Time-to-live for this entry

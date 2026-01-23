@@ -1,7 +1,6 @@
 pub mod backup;
 pub mod config;
 pub mod embedding;
-pub mod episode;
 pub mod episode_v2;
 pub mod eval;
 pub mod health;
@@ -14,7 +13,6 @@ pub mod storage;
 pub use backup::*;
 pub use config::*;
 pub use embedding::*;
-pub use episode::*;
 pub use episode_v2::*;
 pub use eval::*;
 pub use health::*;
@@ -95,6 +93,11 @@ pub async fn handle_episode_command(
             enable_embeddings,
             embedding_provider,
             embedding_model,
+            fuzzy,
+            fuzzy_threshold,
+            regex,
+            search_fields,
+            sort,
         } => {
             search_episodes(
                 query,
@@ -103,6 +106,11 @@ pub async fn handle_episode_command(
                 enable_embeddings,
                 embedding_provider,
                 embedding_model,
+                fuzzy,
+                fuzzy_threshold,
+                regex,
+                search_fields,
+                sort,
                 memory,
                 config,
                 format,
@@ -132,6 +140,9 @@ pub async fn handle_episode_command(
                 dry_run,
             )
             .await
+        }
+        EpisodeCommands::Bulk { episode_ids } => {
+            bulk_get_episodes(episode_ids, memory, config, format).await
         }
     }
 }

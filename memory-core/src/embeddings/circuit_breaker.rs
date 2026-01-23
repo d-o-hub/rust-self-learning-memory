@@ -331,7 +331,8 @@ mod tests {
         cb.record_failure();
         std::thread::sleep(Duration::from_millis(10));
 
-        cb.allow_request().unwrap();
+        cb.allow_request()
+            .expect("Circuit breaker should allow request in test context");
         cb.record_success();
         assert_eq!(cb.state(), CircuitBreakerState::Closed);
     }

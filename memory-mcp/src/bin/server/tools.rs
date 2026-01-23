@@ -1,5 +1,7 @@
 //! Memory tool handlers
 //!
+//! This module contains individual tool handler functions for all MCP tools.
+//!
 //! This module contains handlers for all memory-related tools:
 //! - handle_query_memory: Query memories
 //! - handle_execute_code: Execute agent code (WASM)
@@ -41,8 +43,15 @@ pub async fn handle_query_memory(
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
     let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+    let sort = args
+        .get("sort")
+        .and_then(|v| v.as_str())
+        .unwrap_or("relevance")
+        .to_string();
 
-    let result = server.query_memory(query, domain, task_type, limit).await?;
+    let result = server
+        .query_memory(query, domain, task_type, limit, sort)
+        .await?;
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,
     }];
@@ -305,4 +314,186 @@ pub async fn handle_recommend_patterns(
         text: serde_json::to_string_pretty(&result)?,
     }];
     Ok(content)
+}
+
+/// Handle bulk_episodes tool
+pub async fn handle_bulk_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use uuid::Uuid;
+
+    let args: Value = arguments.unwrap_or(json!({}));
+
+    // Parse episode_ids as a comma-separated string or array
+    let episode_ids_value = args
+        .get("episode_ids")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'episode_ids' parameter"))?;
+
+    let episode_ids: Vec<Uuid> = match episode_ids_value {
+        Value::String(s) => {
+            // Parse comma-separated UUIDs
+            s.split(',')
+                .map(|id| {
+                    let id = id.trim();
+                    Uuid::parse_str(id).map_err(|_| anyhow::anyhow!("Invalid UUID: {}", id))
+                })
+                .collect::<anyhow::Result<Vec<_>>>()?
+        }
+        Value::Array(arr) => {
+            // Parse array of UUID strings
+            arr.iter()
+                .map(|v| {
+                    let id = v
+                        .as_str()
+                        .ok_or_else(|| anyhow::anyhow!("Expected string in episode_ids array"))?;
+                    Uuid::parse_str(id).map_err(|_| anyhow::anyhow!("Invalid UUID: {}", id))
+                })
+                .collect::<anyhow::Result<Vec<_>>>()?
+        }
+        _ => {
+            return Err(anyhow::anyhow!(
+                "episode_ids must be a string (comma-separated) or array of UUIDs"
+            ))
+        }
+    };
+
+    let result = server.get_episodes_by_ids(&episode_ids).await?;
+
+    #[derive(serde::Serialize)]
+    struct BulkEpisodeResult {
+        requested_count: usize,
+        found_count: usize,
+        missing_count: usize,
+        episodes: Vec<serde_json::Value>,
+    }
+
+    let mut episodes_json = Vec::with_capacity(result.len());
+    for ep in result.iter() {
+        episodes_json.push(
+            serde_json::to_value(ep)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize episode: {}", e))?,
+        );
+    }
+
+    let bulk_result = BulkEpisodeResult {
+        requested_count: episode_ids.len(),
+        found_count: episodes_json.len(),
+        missing_count: episode_ids.len() - episodes_json.len(),
+        episodes: episodes_json,
+    };
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&bulk_result)?,
+    }];
+
+    Ok(content)
+}
+
+/// Handle create_episode tool
+pub async fn handle_create_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.create_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle add_episode_step tool
+pub async fn handle_add_episode_step(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.add_episode_step_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle complete_episode tool
+pub async fn handle_complete_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.complete_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle get_episode tool
+pub async fn handle_get_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.get_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle delete_episode tool
+pub async fn handle_delete_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.delete_episode_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle get_episode_timeline tool
+pub async fn handle_get_episode_timeline(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.get_episode_timeline_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle batch_query_episodes tool
+pub async fn handle_batch_query_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.batch_query_episodes_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle batch_pattern_analysis tool
+pub async fn handle_batch_pattern_analysis(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.batch_pattern_analysis_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
+}
+
+/// Handle batch_compare_episodes tool
+pub async fn handle_batch_compare_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let result = server.batch_compare_episodes_tool(args).await?;
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }])
 }

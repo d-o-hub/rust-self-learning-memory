@@ -150,6 +150,9 @@ impl TursoStorage {
     // ========== Internal Embedding Methods ==========
 
     /// Store an embedding (internal implementation)
+    ///
+    /// When compression is enabled, embeddings are compressed using the configured
+    /// algorithm (LZ4, Zstd, or Gzip) to reduce network bandwidth.
     pub async fn _store_embedding_internal(
         &self,
         item_id: &str,
@@ -164,7 +167,45 @@ impl TursoStorage {
         );
         let conn = self.get_connection().await?;
 
-        let embedding_json =
+        // Get compression threshold from config
+        #[cfg(feature = "compression")]
+        let compression_threshold = self.config.compression_threshold;
+        #[cfg(not(feature = "compression"))]
+        let _compression_threshold = 0;
+
+        #[cfg(feature = "compression")]
+        let should_compress = self.config.compress_embeddings;
+        #[cfg(not(feature = "compression"))]
+        let _should_compress = false;
+
+        #[cfg(feature = "compression")]
+        let embedding_data: String = if should_compress {
+            // Convert f32 to bytes and compress
+            let bytes: Vec<u8> = embedding.iter().flat_map(|&f| f.to_le_bytes()).collect();
+
+            use crate::compression::CompressedPayload;
+            let compressed = CompressedPayload::compress(&bytes, compression_threshold)?;
+
+            if compressed.algorithm == crate::CompressionAlgorithm::None {
+                // No compression, store as JSON
+                serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?
+            } else {
+                // Store compressed data with header
+                use base64::Engine;
+                format!(
+                    "__compressed__:{}:{}\n{}",
+                    compressed.algorithm,
+                    compressed.original_size,
+                    base64::engine::general_purpose::STANDARD.encode(&compressed.data)
+                )
+            }
+        } else {
+            // No compression, store as JSON
+            serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?
+        };
+
+        #[cfg(not(feature = "compression"))]
+        let embedding_data: String =
             serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?;
 
         let sql = r#"
@@ -179,7 +220,7 @@ impl TursoStorage {
                 embedding_id,
                 item_id.to_string(),
                 item_type.to_string(),
-                embedding_json,
+                embedding_data,
                 embedding.len() as i64,
                 "default"
             ],
@@ -192,6 +233,8 @@ impl TursoStorage {
     }
 
     /// Get an embedding (internal implementation)
+    ///
+    /// Automatically decompresses embeddings if they were stored compressed.
     pub async fn _get_embedding_internal(
         &self,
         item_id: &str,
@@ -218,12 +261,87 @@ impl TursoStorage {
         if let Some(row) = rows.next().await.map_err(|e| {
             memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
         })? {
-            let embedding_json: String = row
+            let embedding_data: String = row
                 .get(0)
                 .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
-            let embedding: Vec<f32> = serde_json::from_str(&embedding_json).map_err(|e| {
+
+            // Check if data is compressed (only when compression is enabled)
+            #[cfg(feature = "compression")]
+            let embedding: Vec<f32> = if embedding_data.starts_with("__compressed__:") {
+                // Parse compressed format
+                use base64::Engine;
+                let remainder = &embedding_data["__compressed__:".len()..];
+                let newline_pos = remainder.find('\n').ok_or_else(|| {
+                    memory_core::Error::Storage(
+                        "Invalid compressed data format: missing newline".to_string(),
+                    )
+                })?;
+                let header = &remainder[..newline_pos];
+                let encoded_data = &remainder[newline_pos + 1..];
+
+                // Parse header
+                let colon_pos = header.find(':').ok_or_else(|| {
+                    memory_core::Error::Storage("Invalid compressed header format".to_string())
+                })?;
+                let algorithm_str = &header[..colon_pos];
+                let original_size: usize = header[colon_pos + 1..].parse().map_err(|_| {
+                    memory_core::Error::Storage(
+                        "Invalid original size in compressed header".to_string(),
+                    )
+                })?;
+
+                let algorithm = match algorithm_str {
+                    "lz4" => crate::CompressionAlgorithm::Lz4,
+                    "zstd" => crate::CompressionAlgorithm::Zstd,
+                    "gzip" => crate::CompressionAlgorithm::Gzip,
+                    _ => {
+                        return Err(memory_core::Error::Storage(format!(
+                            "Unknown compression algorithm: {}",
+                            algorithm_str
+                        )))
+                    }
+                };
+
+                let compressed_data = base64::Engine::decode(
+                    &base64::engine::general_purpose::STANDARD,
+                    encoded_data,
+                )
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!(
+                        "Failed to decode base64 compressed data: {}",
+                        e
+                    ))
+                })?;
+
+                let payload = crate::CompressedPayload {
+                    original_size,
+                    compressed_size: compressed_data.len(),
+                    compression_ratio: compressed_data.len() as f64 / original_size as f64,
+                    data: compressed_data,
+                    algorithm,
+                };
+
+                let bytes = payload.decompress()?;
+                bytes
+                    .chunks_exact(4)
+                    .map(|chunk| {
+                        let mut arr = [0u8; 4];
+                        arr.copy_from_slice(chunk);
+                        f32::from_le_bytes(arr)
+                    })
+                    .collect()
+            } else {
+                // Not compressed, parse as JSON
+                serde_json::from_str(&embedding_data).map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to parse embedding: {}", e))
+                })?
+            };
+
+            #[cfg(not(feature = "compression"))]
+            let embedding: Vec<f32> = serde_json::from_str(&embedding_data).map_err(|e| {
                 memory_core::Error::Storage(format!("Failed to parse embedding: {}", e))
             })?;
+
             Ok(Some(embedding))
         } else {
             Ok(None)

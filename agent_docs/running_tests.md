@@ -80,10 +80,10 @@ cargo llvm-cov --all-features --workspace --html --output-dir coverage
 ```
 
 ### Coverage Targets (Enforced)
-- **Line coverage**: >90% (Current: 92.5%)
+- **Line coverage**: >90% target
 - **Branch coverage**: >85%
 - All public APIs must be tested
-- Test pass rate: >99% (Current: 99.3%)
+- Test pass rate: >99% target
 
 ### View Coverage
 ```bash
@@ -106,9 +106,10 @@ QUALITY_GATE_COVERAGE_THRESHOLD=95 ./scripts/quality-gates.sh
 # Skip optional tools
 QUALITY_GATE_SKIP_OPTIONAL=true ./scripts/quality-gates.sh
 
-# Skip GOAP checks
-QUALITY_GATE_SKIP_GOAP=true ./scripts/quality-gates.sh
+# GOAP checks run as non-blocking (cannot be skipped)
 ```
+
+> **Note**: GOAP checks run as non-blocking checks and cannot be skipped. They check documentation hygiene and feedback loop markers.
 
 ## Performance Testing
 

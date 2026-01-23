@@ -19,6 +19,9 @@ async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
     let storage = TursoStorage {
         db: Arc::new(db),
         pool: None,
+        #[cfg(feature = "keepalive-pool")]
+        keepalive_pool: None,
+        adaptive_pool: None,
         config: TursoConfig::default(),
     };
 
@@ -254,4 +257,175 @@ async fn test_empty_embeddings_batch() {
     // Get empty batch
     let results = storage.get_embeddings_batch(&[]).await.unwrap();
     assert!(results.is_empty());
+}
+
+// ========== Compression Integration Tests ==========
+
+#[cfg(feature = "compression")]
+mod compression_tests {
+    use super::*;
+    use memory_core::StorageBackend;
+
+    /// Test that large episodes are compressed and retrieved correctly
+    #[tokio::test]
+    async fn test_large_episode_compression() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Create a large episode with many steps
+        let mut steps = Vec::new();
+        for i in 0..100 {
+            steps.push(memory_core::episode::ExecutionStep {
+                step_number: i,
+                tool: format!("tool_{}", i % 10),
+                action: format!("action_{}", i),
+                parameters: serde_json::json!({
+                    "param": format!("value_{}", i),
+                    "data": "x".repeat(100) // Add some repeatable data
+                }),
+                result: Some(memory_core::types::ExecutionResult::Success {
+                    output: format!("output_{}", i),
+                }),
+                latency_ms: i as u64,
+                timestamp: chrono::Utc::now(),
+                tokens_used: None,
+                metadata: std::collections::HashMap::new(),
+            });
+        }
+
+        let episode = memory_core::Episode {
+            episode_id: uuid::Uuid::new_v4(),
+            task_type: memory_core::TaskType::CodeGeneration,
+            task_description: "Test large episode compression".to_string(),
+            context: memory_core::TaskContext {
+                domain: "test".to_string(),
+                language: Some("rust".to_string()),
+                framework: None,
+                complexity: memory_core::types::ComplexityLevel::Complex,
+                tags: vec!["compression".to_string()],
+            },
+            steps,
+            outcome: None,
+            reward: None,
+            reflection: None,
+            patterns: vec![],
+            heuristics: vec![],
+            applied_patterns: vec![],
+            salient_features: None,
+            start_time: chrono::Utc::now(),
+            end_time: None,
+            metadata: std::collections::HashMap::new(),
+        };
+
+        // Store episode
+        storage.store_episode(&episode).await.unwrap();
+
+        // Retrieve episode
+        let retrieved = storage.get_episode(episode.episode_id).await.unwrap();
+        assert!(retrieved.is_some());
+
+        let retrieved_episode = retrieved.unwrap();
+        assert_eq!(retrieved_episode.steps.len(), 100);
+        assert_eq!(retrieved_episode.task_description, episode.task_description);
+    }
+
+    /// Test that compression is skipped for small episodes
+    #[tokio::test]
+    async fn test_small_episode_no_compression() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Create a small episode
+        let episode = memory_core::Episode {
+            episode_id: uuid::Uuid::new_v4(),
+            task_type: memory_core::TaskType::Analysis,
+            task_description: "Test small episode without compression".to_string(),
+            context: memory_core::TaskContext {
+                domain: "test".to_string(),
+                language: Some("rust".to_string()),
+                framework: None,
+                complexity: memory_core::types::ComplexityLevel::Simple,
+                tags: vec![],
+            },
+            steps: vec![],
+            outcome: None,
+            reward: None,
+            reflection: None,
+            patterns: vec![],
+            heuristics: vec![],
+            applied_patterns: vec![],
+            salient_features: None,
+            start_time: chrono::Utc::now(),
+            end_time: None,
+            metadata: std::collections::HashMap::new(),
+        };
+
+        // Store and retrieve
+        storage.store_episode(&episode).await.unwrap();
+        let retrieved = storage.get_episode(episode.episode_id).await.unwrap();
+
+        assert!(retrieved.is_some());
+        assert_eq!(
+            retrieved.unwrap().task_description,
+            episode.task_description
+        );
+    }
+
+    /// Test embedding compression
+    #[tokio::test]
+    async fn test_embedding_compression() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Create a large embedding (1536 dimensions is common for embeddings)
+        let embedding: Vec<f32> = (0..1536).map(|i| (i as f32 / 1536.0).sin()).collect();
+
+        // Store embedding
+        storage
+            .store_embedding("test_compressed_embedding", embedding.clone())
+            .await
+            .unwrap();
+
+        // Retrieve embedding
+        let retrieved = storage
+            .get_embedding("test_compressed_embedding")
+            .await
+            .unwrap();
+        assert!(retrieved.is_some());
+
+        let retrieved_embedding = retrieved.unwrap();
+        assert_eq!(retrieved_embedding.len(), 1536);
+
+        // Verify values match (with some tolerance for float precision)
+        for (original, retrieved) in embedding.iter().zip(retrieved_embedding.iter()) {
+            assert!((original - retrieved).abs() < 1e-5);
+        }
+    }
+
+    /// Test compression statistics
+    #[tokio::test]
+    async fn test_compression_statistics() {
+        use crate::CompressionStatistics;
+
+        let mut stats = CompressionStatistics::new();
+
+        // Record some fake compression operations
+        stats.record_compression(1000, 400, 50);
+        stats.record_compression(2000, 800, 100);
+        stats.record_skipped();
+        stats.record_decompression(75);
+
+        // Verify statistics
+        assert_eq!(stats.total_original_bytes, 3000);
+        assert_eq!(stats.total_compressed_bytes, 1200);
+        assert_eq!(stats.compression_count, 2);
+        assert_eq!(stats.skipped_count, 1);
+        assert_eq!(stats.compression_time_us, 150);
+        assert_eq!(stats.decompression_time_us, 75);
+
+        // Verify compression ratio (1200/3000 = 0.4)
+        let ratio = stats.compression_ratio();
+        assert!(ratio > 0.35 && ratio < 0.45);
+
+        // Verify bandwidth savings (60%)
+        let savings = stats.bandwidth_savings_percent();
+        assert!(savings > 55.0 && savings < 65.0);
+    }
 }

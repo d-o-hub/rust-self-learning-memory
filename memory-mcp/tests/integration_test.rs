@@ -69,6 +69,7 @@ async fn test_query_memory_integration() {
             "test-domain".to_string(),
             Some("code_generation".to_string()),
             5,
+            "relevance".to_string(),
         )
         .await;
 
@@ -299,7 +300,13 @@ async fn test_progressive_tool_disclosure() {
     let _ = server.execute_agent_code(code.to_string(), ctx).await;
 
     let _ = server
-        .query_memory("test".to_string(), "domain".to_string(), None, 10)
+        .query_memory(
+            "test".to_string(),
+            "domain".to_string(),
+            None,
+            10,
+            "relevance".to_string(),
+        )
         .await;
 
     // Get usage stats
@@ -364,7 +371,13 @@ async fn test_memory_integration_with_data() {
 
     // Query memory through MCP
     let result = server
-        .query_memory("REST API".to_string(), "web-api".to_string(), None, 10)
+        .query_memory(
+            "REST API".to_string(),
+            "web-api".to_string(),
+            None,
+            10,
+            "relevance".to_string(),
+        )
         .await;
 
     assert!(result.is_ok());

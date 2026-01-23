@@ -69,7 +69,7 @@ Quality Gates (mandatory):
 - All CI checks green before merge
 
 Plan Files:
-- Read: @plans/*.md for context
-- Create: @plans/TASK_PROGRESS_git-workflow.md
+- Read: plans/*.md for context
+- Create: plans/TASK_PROGRESS_git-workflow.md
 - Update: Track workflow steps and CI fixes
-- Only modify files in @plans/ folder
+- Only modify files in plans/ folder

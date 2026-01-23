@@ -62,16 +62,9 @@ impl ConfigWizard {
                     .interact_text()?;
 
                 config.turso_token = if turso_token.is_empty() {
-                    if config
-                        .turso_url
-                        .as_ref()
-                        .expect("turso_url is Some: just set on line 50")
-                        .starts_with("libsql://")
-                    {
-                        println!(
-                            "⚠️  Warning: Remote database without token - connection may fail!"
-                        );
-                    }
+                    // turso_url is guaranteed Some here (set on line 51), and we're inside
+                    // the libsql:// branch (line 54), so this warning always applies
+                    println!("⚠️  Warning: Remote database without token - connection may fail!");
                     None
                 } else {
                     Some(turso_token)

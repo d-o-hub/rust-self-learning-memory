@@ -23,6 +23,7 @@ futures = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 fs_extra = "1.3"
+once_cell = "1.19"
 
 [[bench]]
 name = "episode_lifecycle"
@@ -87,5 +88,10 @@ harness = false
 [[bench]]
 name = "domain_cache_benchmark"
 path = "domain_cache_benchmark.rs"
+harness = false
+
+[[bench]]
+name = "cache_benchmarks"
+path = "cache_benchmarks.rs"
 harness = false
 

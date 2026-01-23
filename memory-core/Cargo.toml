@@ -46,8 +46,8 @@ tracing = { workspace = true }
 # Futures utilities
 futures = { workspace = true }
 
-# LRU cache for query caching
-lru = "0.16"
+# LRU cache for query caching (using workspace version for consistency)
+lru = { workspace = true }
 
 # HTTP client for OpenAI API (optional)
 reqwest = { version = "0.13", features = ["json"], optional = true }
@@ -61,6 +61,18 @@ tokenizers = { version = "0.22", optional = true }
 # ndarray for tensor operations (required by ort)
 # Using 0.16.x to match ort 2.0.0-rc.10's ndarray dependency
 ndarray = { version = "0.16", optional = true }
+
+# Changepoint detection using PELT algorithm
+augurs-changepoint = "0.10.1"
+
+# Random number generation for tests
+rand = "0.8"
+
+# Fuzzy string matching for search
+strsim = "0.11"
+
+# Regular expressions for pattern matching
+regex = "1.10"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

@@ -3,22 +3,22 @@ Implement missing features from plan files or implement a new feature using GOAP
 Guide through the complete feature implementation with multi-agent handoff coordination.
 
 Usage:
-- `/implement-feature-goap` - Read @plans/ folder and implement missing/incomplete tasks
+- `/implement-feature-goap` - Read plans/ folder and implement missing/incomplete tasks
 - `/implement-feature-goap [feature description]` - Implement a new feature from description
 
 Orchestration: goap-agent with 1-8 agents based on task complexity
 
-Workflow (no argument - read @plans/ folder):
-1. Scan @plans/ folder for *.md files
+Workflow (no argument - read plans/ folder):
+1. Scan plans/ folder for *.md files
 2. Parse each plan file to identify tasks
 3. Filter for tasks marked as "incomplete" or "pending"
 4. GOAP agent decomposes each incomplete task into subtasks
 5. Spawn specialized agents (1-8) with handoff coordination
 6. Update plan files with completion status
-7. Archive completed plan files to @plans/archive/
+7. Archive completed plan files to plans/archive/
 
 Workflow (with feature description):
-1. Create new plan file: @plans/TASK_PROGRESS_[task_name].md
+1. Create new plan file: plans/TASK_PROGRESS_[task_name].md
 2. GOAP agent decomposes task into subtasks
 3. Spawn specialized agents (1-8) with handoff coordination:
    - feature-implementer: Core implementation
@@ -27,7 +27,7 @@ Workflow (with feature description):
    - build-compile: Verify compilation
    - specialist agents based on the task
 4. Each agent hands off to next on completion
-5. Update progress in @plans/TASK_PROGRESS_*.md
+5. Update progress in plans/TASK_PROGRESS_*.md
 
 Plan File Format:
 ```markdown
@@ -62,8 +62,8 @@ GitHub Integration:
 - All CI checks must be green before commit
 
 Plan Files:
-- Read: @plans/*.md for context
-- Create: @plans/TASK_PROGRESS_[task].md
+- Read: plans/*.md for context
+- Create: plans/TASK_PROGRESS_[task].md
 - Update: Modify status and steps in existing plan files
-- Archive: Move to @plans/archive/ when complete
-- Only modify files in @plans/ folder
+- Archive: Move to plans/archive/ when complete
+- Only modify files in plans/ folder

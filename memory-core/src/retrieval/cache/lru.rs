@@ -12,15 +12,16 @@ use crate::retrieval::cache::types::{
 use lru::LruCache;
 use std::collections::{HashMap, HashSet};
 use std::num::NonZeroUsize;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
 /// Query cache with LRU eviction and TTL
 pub struct QueryCache {
     /// LRU cache storage
     cache: Arc<RwLock<LruCache<u64, CachedResult>>>,
-    /// Domain index: maps domain -> set of cache key hashes
-    domain_index: Arc<RwLock<HashMap<String, HashSet<u64>>>>,
+    /// Domain index: maps domain -> set of cache key hashes (`Arc<str>` avoids cloning)
+    domain_index: Arc<RwLock<HashMap<Arc<str>, HashSet<u64>>>>,
     /// Lazy invalidation: set of cache key hashes marked for removal
     /// Entries are not removed immediately, but filtered on access
     invalidated_hashes: Arc<RwLock<HashSet<u64>>>,
@@ -65,7 +66,7 @@ impl QueryCache {
 
     /// Get a cached query result
     #[must_use]
-    pub fn get(&self, key: &CacheKey) -> Option<Vec<Episode>> {
+    pub fn get(&self, key: &CacheKey) -> Option<Arc<[Episode]>> {
         let key_hash = key.compute_hash();
 
         // Fast path: Check if this entry is marked for lazy invalidation
@@ -103,9 +104,9 @@ impl QueryCache {
                 return None;
             }
 
-            // Cache hit
+            // Cache hit - Arc clone is cheap (just ref count increment)
             metrics.hits += 1;
-            Some(result.episodes.clone())
+            Some(Arc::clone(&result.episodes))
         } else {
             // Cache miss
             metrics.misses += 1;
@@ -118,7 +119,7 @@ impl QueryCache {
     pub fn put(&self, key: CacheKey, episodes: Vec<Episode>) {
         let key_hash = key.compute_hash();
         let cached_result = CachedResult {
-            episodes,
+            episodes: Arc::from(episodes),
             cached_at: Instant::now(),
             ttl: self.default_ttl,
         };
@@ -142,8 +143,9 @@ impl QueryCache {
             let mut domain_index = self.domain_index.write().expect(
                 "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
             );
+            // Arc<str> clone is cheap (just ref count increment)
             domain_index
-                .entry(domain.clone())
+                .entry(Arc::clone(domain))
                 .or_default()
                 .insert(key_hash);
         }

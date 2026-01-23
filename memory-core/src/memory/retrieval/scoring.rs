@@ -2,6 +2,7 @@
 
 use crate::episode::Episode;
 use crate::types::TaskContext;
+use std::sync::Arc;
 
 use super::super::SelfLearningMemory;
 
@@ -9,7 +10,7 @@ impl SelfLearningMemory {
     /// Check if episode is relevant to the query
     pub(super) fn is_relevant_episode(
         &self,
-        episode: &Episode,
+        episode: &Arc<Episode>,
         context: &TaskContext,
         task_description: &str,
     ) -> bool {
@@ -56,33 +57,38 @@ impl SelfLearningMemory {
     /// Calculate relevance score for an episode
     pub(super) fn calculate_relevance_score(
         &self,
-        episode: &Episode,
+        episode: &Arc<Episode>,
         context: &TaskContext,
         task_description: &str,
     ) -> f32 {
+        let episode_ref: &Episode = episode.as_ref();
         let mut score = 0.0;
 
         // Reward quality (30% weight)
-        if let Some(reward) = &episode.reward {
+        if let Some(reward) = &episode_ref.reward {
             score += reward.total * 0.3;
         }
 
         // Context match (40% weight)
         let mut context_score = 0.0;
 
-        if episode.context.domain == context.domain {
+        if episode_ref.context.domain == context.domain {
             context_score += 0.4;
         }
 
-        if episode.context.language == context.language && episode.context.language.is_some() {
+        if episode_ref.context.language == context.language
+            && episode_ref.context.language.is_some()
+        {
             context_score += 0.3;
         }
 
-        if episode.context.framework == context.framework && episode.context.framework.is_some() {
+        if episode_ref.context.framework == context.framework
+            && episode_ref.context.framework.is_some()
+        {
             context_score += 0.2;
         }
 
-        let common_tags: Vec<_> = episode
+        let common_tags: Vec<_> = episode_ref
             .context
             .tags
             .iter()
@@ -97,7 +103,7 @@ impl SelfLearningMemory {
 
         // Description similarity (30% weight)
         let desc_lower = task_description.to_lowercase();
-        let episode_desc_lower = episode.task_description.to_lowercase();
+        let episode_desc_lower = episode_ref.task_description.to_lowercase();
 
         let desc_words: Vec<_> = desc_lower.split_whitespace().collect();
         let common_words: Vec<_> = desc_words

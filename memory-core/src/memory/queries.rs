@@ -3,6 +3,9 @@
 //! This module provides methods for lazy loading episodes and patterns
 //! from storage backends, with proper fallback handling.
 
+// Type alias for complex nested type to avoid parser issues with >>>>
+type EpisodeMap = tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>;
+
 use crate::episode::Episode;
 use crate::pattern::Pattern;
 use crate::Result;
@@ -20,17 +23,16 @@ use uuid::Uuid;
 ///
 /// Used primarily for backfilling embeddings and comprehensive episode retrieval.
 pub async fn get_all_episodes(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
 ) -> Result<Vec<Episode>> {
-    // 1) Start with in-memory episodes
-    let mut all_episodes: HashMap<Uuid, Episode> = {
+    // 1) Start with in-memory episodes - collect Arcs directly (no clone)
+    let mut all_episodes: HashMap<Uuid, Arc<Episode>> = {
         let episodes = episodes_fallback.read().await;
         episodes
-            .values()
-            .cloned()
-            .map(|e| (e.episode_id, e))
+            .iter()
+            .map(|(id, ep)| (*id, Arc::clone(ep)))
             .collect()
     };
 
@@ -48,7 +50,10 @@ pub async fn get_all_episodes(
                     "Fetched episodes from cache storage"
                 );
                 for episode in cache_episodes {
-                    all_episodes.entry(episode.episode_id).or_insert(episode);
+                    // Only insert if not already present (use entry API to avoid clone)
+                    all_episodes
+                        .entry(episode.episode_id)
+                        .or_insert_with(|| Arc::new(episode));
                 }
             }
             Err(e) => {
@@ -70,7 +75,10 @@ pub async fn get_all_episodes(
                     "Fetched episodes from durable storage"
                 );
                 for episode in turso_episodes {
-                    all_episodes.entry(episode.episode_id).or_insert(episode);
+                    // Only insert if not already present (use entry API to avoid clone)
+                    all_episodes
+                        .entry(episode.episode_id)
+                        .or_insert_with(|| Arc::new(episode));
                 }
             }
             Err(e) => {
@@ -84,7 +92,8 @@ pub async fn get_all_episodes(
         let mut episodes_cache = episodes_fallback.write().await;
         for (id, episode) in &all_episodes {
             if !episodes_cache.contains_key(id) {
-                episodes_cache.insert(*id, episode.clone());
+                // Store Arc instead of cloning the full episode
+                episodes_cache.insert(*id, Arc::clone(episode));
             }
         }
     }
@@ -95,7 +104,11 @@ pub async fn get_all_episodes(
         "Retrieved all episodes from all storage backends"
     );
 
-    Ok(all_episodes.into_values().collect())
+    // Convert Arc<Episode> to Episode for public API (dereference and clone each)
+    Ok(all_episodes
+        .into_values()
+        .map(|arc_ep| (*arc_ep).clone())
+        .collect())
 }
 
 /// Get all patterns with proper lazy loading from storage backends.
@@ -121,7 +134,7 @@ pub async fn get_all_patterns(
 ///
 /// The `completed_only` parameter is deprecated. Use `filter.completed_only` instead.
 pub async fn list_episodes(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
     limit: Option<usize>,
@@ -155,6 +168,7 @@ pub async fn list_episodes(
         "Listed episodes with filters"
     );
 
+    // Episodes are already Vec<Episode> from get_all_episodes
     Ok(all_episodes)
 }
 
@@ -191,17 +205,17 @@ pub async fn list_episodes(
 /// # }
 /// ```
 pub async fn list_episodes_filtered(
-    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Episode>>,
+    episodes_fallback: &EpisodeMap,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
     turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
     filter: super::filters::EpisodeFilter,
     limit: Option<usize>,
     offset: Option<usize>,
 ) -> Result<Vec<Episode>> {
-    // Get all episodes with lazy loading
+    // Get all episodes with lazy loading (now returns Vec<Episode>)
     let all_episodes = get_all_episodes(episodes_fallback, cache_storage, turso_storage).await?;
 
-    // Apply filter
+    // Apply filter - use apply() for Vec<Episode>
     let mut filtered = filter.apply(all_episodes);
 
     // Sort by start time (newest first) for consistent ordering
@@ -259,4 +273,140 @@ pub fn cache_storage(
     cache_storage: &Option<Arc<dyn crate::StorageBackend>>,
 ) -> Option<&Arc<dyn crate::StorageBackend>> {
     cache_storage.as_ref()
+}
+
+/// Get multiple episodes by their IDs with batched lazy loading.
+///
+/// More efficient than calling `get_episode()` in a loop, as it can batch
+/// storage queries where possible and reduces lock contention.
+///
+/// # Arguments
+///
+/// * `episode_ids` - Slice of episode UUIDs to retrieve
+/// * `episodes_fallback` - In-memory episode cache
+/// * `cache_storage` - Optional cache storage backend (redb)
+/// * `turso_storage` - Optional durable storage backend (Turso)
+///
+/// # Returns
+///
+/// Vector of episodes that were found. Missing episodes are silently omitted.
+///
+/// # Examples
+///
+/// If you pass 5 IDs and only 3 exist, you'll get back 3 episodes.
+pub async fn get_episodes_by_ids(
+    episode_ids: &[Uuid],
+    episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
+    cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
+    turso_storage: Option<&Arc<dyn crate::StorageBackend>>,
+) -> Result<Vec<Episode>> {
+    if episode_ids.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let mut found_episodes: HashMap<Uuid, Episode> = HashMap::new();
+    let mut missing_ids: Vec<Uuid> = Vec::new();
+
+    // 1) Check in-memory cache first (batch operation)
+    {
+        let episodes = episodes_fallback.read().await;
+        for &id in episode_ids {
+            if let Some(ep) = episodes.get(&id) {
+                found_episodes.insert(id, (**ep).clone());
+            } else {
+                missing_ids.push(id);
+            }
+        }
+    }
+
+    debug!(
+        requested = episode_ids.len(),
+        found_in_memory = found_episodes.len(),
+        missing = missing_ids.len(),
+        "Bulk episode lookup: checked memory cache"
+    );
+
+    // Early return if all found
+    if missing_ids.is_empty() {
+        return Ok(found_episodes.into_values().collect());
+    }
+
+    // 2) Try cache storage (redb) for missing episodes
+    if let Some(cache) = cache_storage {
+        let mut still_missing = Vec::new();
+        for id in &missing_ids {
+            match cache.get_episode(*id).await {
+                Ok(Some(episode)) => {
+                    found_episodes.insert(*id, episode);
+                }
+                Ok(None) => {
+                    still_missing.push(*id);
+                }
+                Err(e) => {
+                    debug!(episode_id = %id, error = %e, "Failed to query cache storage");
+                    still_missing.push(*id);
+                }
+            }
+        }
+        missing_ids = still_missing;
+
+        debug!(
+            found_in_cache = found_episodes.len(),
+            still_missing = missing_ids.len(),
+            "Bulk episode lookup: checked cache storage"
+        );
+    }
+
+    // Early return if all found
+    if missing_ids.is_empty() {
+        // Update in-memory cache with newly found episodes
+        let mut episodes = episodes_fallback.write().await;
+        for (id, episode) in &found_episodes {
+            if !episodes.contains_key(id) {
+                episodes.insert(*id, Arc::new(episode.clone()));
+            }
+        }
+        return Ok(found_episodes.into_values().collect());
+    }
+
+    // 3) Try durable storage (Turso) for remaining missing episodes
+    if let Some(turso) = turso_storage {
+        for id in &missing_ids {
+            match turso.get_episode(*id).await {
+                Ok(Some(episode)) => {
+                    found_episodes.insert(*id, episode);
+                }
+                Ok(None) => {
+                    // Episode doesn't exist anywhere
+                }
+                Err(e) => {
+                    debug!(episode_id = %id, error = %e, "Failed to query durable storage");
+                }
+            }
+        }
+
+        debug!(
+            total_found = found_episodes.len(),
+            total_requested = episode_ids.len(),
+            "Bulk episode lookup: checked durable storage"
+        );
+    }
+
+    // 4) Update in-memory cache with all newly found episodes
+    {
+        let mut episodes = episodes_fallback.write().await;
+        for (id, episode) in &found_episodes {
+            if !episodes.contains_key(id) {
+                episodes.insert(*id, Arc::new(episode.clone()));
+            }
+        }
+    }
+
+    info!(
+        requested = episode_ids.len(),
+        found = found_episodes.len(),
+        "Completed bulk episode retrieval"
+    );
+
+    Ok(found_episodes.into_values().collect())
 }

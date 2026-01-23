@@ -15,13 +15,13 @@ The memory management system provides persistent memory across agent interaction
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## Current Status (v0.1.7)
+## Current Status (v0.1.13)
 
-- **8 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples
-- **367 Rust source files** with ~44,250 lines of code
-- **99.3% test pass rate** (424/427 tests)
-- **92.5% test coverage** across all modules
-- **Zero clippy warnings** with strict linting
+- **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, tests, examples
+- **~250+ Rust source files** with ~44,250 lines of code in memory-core
+- **Test pass rate**: 99.5% (recovered from 76.7% in v0.1.12)
+- **Test coverage**: 92.5% (exceeds 90% target)
+- **File size compliance**: 100% (17 files split in v0.1.13 for ≤500 LOC)
 
 ## Workspace Members
 
@@ -29,38 +29,40 @@ The memory management system provides persistent memory across agent interaction
 **Purpose**: Core memory operations and embeddings (~44,250 LOC)
 
 **Module Breakdown** (by size):
-- `patterns/` - Pattern extraction and validation (5,319 LOC)
-  - Optimized pattern validators
-  - Clustering algorithms
-  - Pattern quality scoring
-- `embeddings/` - Vector embeddings for semantic search (5,250 LOC)
+- `memory/` - Core memory operations (~6,300 LOC)
+  - `retrieval/` - Context retrieval and search
+  - `completion.rs` - Episode completion logic
+  - `learning_ops.rs` - Learning operations
+- `patterns/` - Pattern extraction and validation (~4,230 LOC)
+  - `validation/` - Split validation module (mod.rs + metrics.rs)
+  - `optimized_validator/` - Risk and compatibility (mod.rs, context.rs, applicator.rs)
+  - `dbscan/` - DBSCAN clustering (detector.rs)
+  - Clustering algorithms and quality scoring
+- `embeddings/` - Vector embeddings for semantic search (~3,600 LOC)
+  - `openai/` - OpenAI provider (split: client.rs)
+  - `circuit_breaker.rs` - Resilience for API calls
   - Multi-provider support (OpenAI, Cohere, Ollama, local)
-  - Embedding configuration
-  - Similarity search
-- `memory/` - Core memory operations (4,457 LOC)
-  - Episode retrieval
-  - Learning algorithms
-  - Memory management
-- `spatiotemporal/` - Spatial-temporal indexing (3,377 LOC)
-  - Spatial indexing
-  - Temporal retrieval
-  - Diversity ranking
-- `reflection/` - Reflection generation (1,950 LOC)
-  - Episode reflection
-  - Pattern reflection
+- `spatiotemporal/` - Spatial-temporal indexing (~2,400 LOC)
+  - `retriever/` - Temporal retrieval (split: mod.rs, types.rs, scoring.rs, tests.rs)
+  - `diversity/` - Diversity ranking
+  - `embeddings/` - Spatiotemporal embeddings
+  - `index/` - Spatial indexing
+- `retrieval/` - Episode retrieval
+  - `cache/` - LRU cache (split: mod.rs, lru.rs, types.rs, tests.rs)
+- `semantic/` - Semantic processing
+  - `summary/` - Summarization (summarizer.rs, types.rs, extractors.rs, helpers.rs)
+- `reflection/` - Reflection generation (~1,950 LOC)
+  - Episode and pattern reflection
   - Learning summaries
-- `pre_storage/` - Pre-storage validation (1,618 LOC)
-  - Quality assessment
-  - Data extraction
-  - Validation pipeline
-- `monitoring/` - System monitoring (1,358 LOC)
-  - Metrics collection
-  - Health checks
-  - Performance tracking
+- `pre_storage/` - Pre-storage validation (~1,618 LOC)
+  - Quality assessment and validation pipeline
+- `monitoring/` - System monitoring (~1,358 LOC)
+  - Metrics collection, health checks, performance tracking
+- `types/` - Core data structures (split: config.rs, constants.rs, enums.rs, structs.rs, tests.rs)
 
 **Key Files**:
 - `src/lib.rs` - Main library entry point
-- `src/types.rs` - Core data structures
+- `src/types.rs` - Core data structures re-export
 - `src/episode.rs` - Episode lifecycle
 - `src/storage/` - Storage abstraction layer
 
@@ -89,7 +91,7 @@ The memory management system provides persistent memory across agent interaction
 
 **Features**:
 - Embedded key-value store
-- Postcard serialization (v0.1.7)
+- Postcard serialization (v0.1.7, now v0.1.12)
 - LRU cache with TTL
 - Fast sub-millisecond lookups
 - Automatic synchronization with Turso
@@ -102,7 +104,7 @@ The memory management system provides persistent memory across agent interaction
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
 ### 4. MCP Server (`memory-mcp/)
-**Purpose**: Model Context Protocol server with secure code execution (~13,707 LOC)
+**Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
 
 **Architecture**:
 - 6-layer security sandbox using Wasmtime
@@ -134,7 +136,7 @@ The memory management system provides persistent memory across agent interaction
 - Security boundaries enforcement
 
 ### 5. CLI Interface (`memory-cli/`)
-**Purpose**: Command-line interface for memory operations (~12,257 LOC)
+**Purpose**: Command-line interface for memory operations (~13,690 LOC)
 
 **Commands** (9 main commands + 9 aliases):
 - `episode` - Episode management (create, list, search, complete)

@@ -110,7 +110,13 @@ async fn test_comprehensive_database_operations() {
     println!("\n🔍 Test 2: MCP Memory Query");
 
     let query_result = mcp_server
-        .query_memory("Web todo list".to_string(), "web".to_string(), None, 10)
+        .query_memory(
+            "Web todo list".to_string(),
+            "web".to_string(),
+            None,
+            10,
+            "relevance".to_string(),
+        )
         .await
         .unwrap();
 
@@ -160,7 +166,13 @@ async fn test_comprehensive_database_operations() {
 
     // Perform additional tool operations
     let _ = mcp_server
-        .query_memory("test".to_string(), "test".to_string(), None, 1)
+        .query_memory(
+            "test".to_string(),
+            "test".to_string(),
+            None,
+            1,
+            "relevance".to_string(),
+        )
         .await
         .unwrap();
     let _ = mcp_server
@@ -229,7 +241,13 @@ async fn test_comprehensive_database_operations() {
 
     // Query the same episode again to verify persistence
     let verify_result = mcp_server
-        .query_memory("Web todo list".to_string(), "web".to_string(), None, 10)
+        .query_memory(
+            "Web todo list".to_string(),
+            "web".to_string(),
+            None,
+            10,
+            "relevance".to_string(),
+        )
         .await
         .unwrap();
 

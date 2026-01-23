@@ -3,6 +3,7 @@
 use crate::episode::{Episode, ExecutionStep};
 use crate::error::{Error, Result};
 use crate::types::{TaskContext, TaskType};
+use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 use uuid::Uuid;
 
@@ -98,8 +99,9 @@ impl SelfLearningMemory {
         }
 
         // Always store in fallback for in-memory access
+        // Store as Arc to avoid cloning when sharing
         let mut episodes = self.episodes_fallback.write().await;
-        episodes.insert(episode_id, episode);
+        episodes.insert(episode_id, Arc::new(episode));
 
         episode_id
     }
@@ -174,6 +176,7 @@ impl SelfLearningMemory {
     #[instrument(skip(self, step), fields(episode_id = %episode_id, step_number = step.step_number))]
     pub async fn log_step(&self, episode_id: Uuid, step: ExecutionStep) {
         // Validate step first (before acquiring locks)
+        // Use Arc::clone to check without consuming
         {
             let episodes = self.episodes_fallback.read().await;
             if let Some(episode) = episodes.get(&episode_id) {
@@ -199,11 +202,11 @@ impl SelfLearningMemory {
         );
 
         // Check if batching is enabled
-        if let Some(batch_config) = &self.config.batch_config {
+        if let Some(batch_config) = self.batch_config() {
             // Use step buffering
             let mut buffers = self.step_buffers.write().await;
             let buffer = buffers.entry(episode_id).or_insert_with(|| {
-                super::step_buffer::StepBuffer::new(episode_id, batch_config.clone())
+                super::step_buffer::StepBuffer::new(episode_id, (*batch_config).clone())
             });
 
             // Add step to buffer
@@ -221,22 +224,30 @@ impl SelfLearningMemory {
             }
         } else {
             // Legacy immediate persistence (batching disabled)
+            // We need to clone, modify, and reinsert since we can't mutate through Arc
             let mut episodes = self.episodes_fallback.write().await;
-            if let Some(episode) = episodes.get_mut(&episode_id) {
+            if let Some(episode_arc) = episodes.get(&episode_id) {
+                // Clone the Episode from the Arc to mutate it
+                // episode_arc is &Arc<Episode>, so *episode_arc gives Arc<Episode>
+                // We need **episode_arc to get Episode via Deref, then clone it
+                let mut episode = (**episode_arc).clone();
                 episode.add_step(step);
 
                 // Update in storage backends
                 if let Some(cache) = &self.cache_storage {
-                    if let Err(e) = cache.store_episode(episode).await {
+                    if let Err(e) = cache.store_episode(&episode).await {
                         warn!("Failed to update episode in cache: {}", e);
                     }
                 }
 
                 if let Some(turso) = &self.turso_storage {
-                    if let Err(e) = turso.store_episode(episode).await {
+                    if let Err(e) = turso.store_episode(&episode).await {
                         warn!("Failed to update episode in Turso: {}", e);
                     }
                 }
+
+                // Re-insert the updated episode as Arc
+                episodes.insert(episode_id, Arc::new(episode));
             }
         }
     }
@@ -311,28 +322,37 @@ impl SelfLearningMemory {
         };
 
         // Add steps to episode and persist
+        // We need to clone, modify, and reinsert since we can't mutate through Arc
         let mut episodes = self.episodes_fallback.write().await;
-        if let Some(episode) = episodes.get_mut(&episode_id) {
+        if let Some(episode_arc) = episodes.get(&episode_id) {
+            // Clone the Episode from the Arc to mutate it
+            // episode_arc is &Arc<Episode>, so **episode_arc gives Episode via Deref
+            let episode = (**episode_arc).clone();
+            let total_steps = episode.steps.len();
+            let mut episode = episode;
             for step in steps_to_flush {
                 episode.add_step(step);
             }
 
             // Update in storage backends
             if let Some(cache) = &self.cache_storage {
-                if let Err(e) = cache.store_episode(episode).await {
+                if let Err(e) = cache.store_episode(&episode).await {
                     warn!("Failed to flush episode to cache: {}", e);
                 }
             }
 
             if let Some(turso) = &self.turso_storage {
-                if let Err(e) = turso.store_episode(episode).await {
+                if let Err(e) = turso.store_episode(&episode).await {
                     warn!("Failed to flush episode to Turso: {}", e);
                 }
             }
 
+            // Re-insert the updated episode as Arc
+            episodes.insert(episode_id, Arc::new(episode));
+
             info!(
                 episode_id = %episode_id,
-                total_steps = episode.steps.len(),
+                total_steps = total_steps,
                 "Successfully flushed buffered steps"
             );
         } else {
@@ -359,21 +379,17 @@ impl SelfLearningMemory {
             let episodes = self.episodes_fallback.read().await;
             episodes.get(&episode_id).cloned()
         } {
-            return Ok(ep);
+            // ep is Arc<Episode>, dereference to get Episode
+            return Ok((*ep).clone());
         }
-
-        // Helper to insert into in-memory cache
-        let insert_into_cache =
-            |episode: &Episode, map: &mut std::collections::HashMap<Uuid, Episode>| {
-                map.insert(episode.episode_id, episode.clone());
-            };
 
         // 2) Try cache storage (redb) next
         if let Some(cache) = &self.cache_storage {
             match cache.get_episode(episode_id).await {
                 Ok(Some(episode)) => {
+                    // Store in cache as Arc<Episode> for cheap cloning
                     let mut episodes = self.episodes_fallback.write().await;
-                    insert_into_cache(&episode, &mut episodes);
+                    episodes.insert(episode_id, Arc::new(episode.clone()));
                     return Ok(episode);
                 }
                 Ok(None) => {
@@ -391,7 +407,7 @@ impl SelfLearningMemory {
                 Ok(Some(episode)) => {
                     // Populate in-memory cache for subsequent accesses
                     let mut episodes = self.episodes_fallback.write().await;
-                    insert_into_cache(&episode, &mut episodes);
+                    episodes.insert(episode_id, Arc::new(episode.clone()));
                     return Ok(episode);
                 }
                 Ok(None) => {}

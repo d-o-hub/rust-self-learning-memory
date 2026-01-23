@@ -1,7 +1,6 @@
 //! Type definitions for spatiotemporal indexing.
 
 use chrono::{DateTime, Utc};
-use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::types::TaskType;

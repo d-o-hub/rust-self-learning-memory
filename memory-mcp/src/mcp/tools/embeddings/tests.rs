@@ -6,12 +6,14 @@ use std::sync::Arc;
 
 use memory_core::SelfLearningMemory;
 
+use crate::mcp::tools::embeddings::tool::{
+    configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool, EmbeddingTools,
+};
 use crate::mcp::tools::embeddings::types::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
-use crate::mcp::tools::embeddings::EmbeddingTools;
 
 #[test]
 fn test_configure_embeddings_tool_definition() {
-    let tool = EmbeddingTools::configure_embeddings_tool();
+    let tool = configure_embeddings_tool();
     assert_eq!(tool.name, "configure_embeddings");
     assert!(!tool.description.is_empty());
     assert!(tool.input_schema.is_object());
@@ -34,7 +36,7 @@ fn test_configure_embeddings_tool_definition() {
 
 #[test]
 fn test_query_semantic_memory_tool_definition() {
-    let tool = EmbeddingTools::query_semantic_memory_tool();
+    let tool = query_semantic_memory_tool();
     assert_eq!(tool.name, "query_semantic_memory");
     assert!(!tool.description.is_empty());
     assert!(tool.input_schema.is_object());
@@ -48,7 +50,7 @@ fn test_query_semantic_memory_tool_definition() {
 
 #[test]
 fn test_test_embeddings_tool_definition() {
-    let tool = EmbeddingTools::test_embeddings_tool();
+    let tool = test_embeddings_tool();
     assert_eq!(tool.name, "test_embeddings");
     assert!(!tool.description.is_empty());
     assert!(tool.input_schema.is_object());

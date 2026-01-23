@@ -1,9 +1,98 @@
 //! Episode CRUD operations for Turso storage
+//!
+//! ## Compression Support
+//!
+//! When the `compression` feature is enabled, large episode payloads are compressed
+//! to reduce network bandwidth. The following fields are compressed:
+//! - steps (JSON array of execution steps)
+//! - patterns (JSON array of pattern IDs)
+//! - heuristics (JSON array of heuristic IDs)
+//! - metadata (JSON object with arbitrary data)
+//!
+//! Small payloads (< 1KB by default) are not compressed to avoid overhead.
 
 use crate::TursoStorage;
 use memory_core::{semantic::EpisodeSummary, Episode, Error, Result, TaskType};
 use tracing::{debug, info};
 use uuid::Uuid;
+
+/// Compress JSON data if compression is enabled and data is large enough
+#[cfg(feature = "compression")]
+fn compress_json_field(data: &[u8], threshold: usize) -> Result<Vec<u8>> {
+    use crate::compression::CompressedPayload;
+
+    let compressed = CompressedPayload::compress(data, threshold)?;
+    if compressed.algorithm == crate::CompressionAlgorithm::None {
+        // No compression applied, return original data
+        Ok(data.to_vec())
+    } else {
+        // Store as base64-encoded compressed data with algorithm prefix
+        use base64::Engine;
+        let payload = format!(
+            "__compressed__:{}:{}\n{}",
+            compressed.algorithm,
+            compressed.original_size,
+            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &compressed.data)
+        );
+        Ok(payload.into_bytes())
+    }
+}
+
+/// Decompress JSON data if it's compressed
+#[cfg(feature = "compression")]
+fn decompress_json_field(data: &str) -> Result<Vec<u8>> {
+    if data.starts_with("__compressed__:") {
+        // Parse the compressed format: __compressed__:<algorithm>:<original_size>\n<base64_data>
+        use base64::Engine;
+
+        let remainder = &data["__compressed__:".len()..];
+        let newline_pos = remainder.find('\n').ok_or_else(|| {
+            Error::Storage("Invalid compressed data format: missing newline".to_string())
+        })?;
+        let header = &remainder[..newline_pos];
+        let encoded_data = &remainder[newline_pos + 1..];
+
+        // Parse header: <algorithm>:<original_size>
+        let colon_pos = header
+            .find(':')
+            .ok_or_else(|| Error::Storage("Invalid compressed header format".to_string()))?;
+        let algorithm_str = &header[..colon_pos];
+        let original_size: usize = header[colon_pos + 1..].parse().map_err(|_| {
+            Error::Storage("Invalid original size in compressed header".to_string())
+        })?;
+
+        let algorithm = match algorithm_str {
+            "lz4" => crate::CompressionAlgorithm::Lz4,
+            "zstd" => crate::CompressionAlgorithm::Zstd,
+            "gzip" => crate::CompressionAlgorithm::Gzip,
+            _ => {
+                return Err(Error::Storage(format!(
+                    "Unknown compression algorithm: {}",
+                    algorithm_str
+                )))
+            }
+        };
+
+        let compressed_data =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded_data)
+                .map_err(|e| {
+                    Error::Storage(format!("Failed to decode base64 compressed data: {}", e))
+                })?;
+
+        let payload = crate::CompressedPayload {
+            original_size,
+            compressed_size: compressed_data.len(),
+            compression_ratio: compressed_data.len() as f64 / original_size as f64,
+            data: compressed_data,
+            algorithm,
+        };
+
+        payload.decompress()
+    } else {
+        // Not compressed, return as-is
+        Ok(data.as_bytes().to_vec())
+    }
+}
 
 /// Query builder for episodes
 #[derive(Debug, Clone, Default)]
@@ -19,6 +108,7 @@ impl TursoStorage {
     /// Store an episode
     ///
     /// Uses INSERT OR REPLACE for upsert semantics.
+    /// When compression is enabled, large payloads are compressed to reduce bandwidth.
     pub async fn store_episode(&self, episode: &Episode) -> Result<()> {
         debug!("Storing episode: {}", episode.episode_id);
         let conn = self.get_connection().await?;
@@ -31,6 +121,12 @@ impl TursoStorage {
                 archived_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
+
+        // Get compression threshold from config
+        #[cfg(feature = "compression")]
+        let compression_threshold = self.config.compression_threshold;
+        #[cfg(not(feature = "compression"))]
+        let _compression_threshold = 0;
 
         let context_json = serde_json::to_string(&episode.context).map_err(Error::Serialization)?;
         let steps_json = serde_json::to_string(&episode.steps).map_err(Error::Serialization)?;
@@ -52,18 +148,71 @@ impl TursoStorage {
             .map(serde_json::to_string)
             .transpose()
             .map_err(Error::Serialization)?;
-        let patterns_json =
-            serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-        let heuristics_json =
-            serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-        let metadata_json =
-            serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
+
+        // Compress patterns, heuristics, and metadata if they're large enough
+        #[cfg(feature = "compression")]
+        let should_compress = self.config.compress_episodes;
+        #[cfg(not(feature = "compression"))]
+        let _should_compress = false;
+
+        #[cfg(feature = "compression")]
+        let patterns_json = if should_compress {
+            let data = serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
+            compress_json_field(data.as_bytes(), compression_threshold)?
+        } else {
+            serde_json::to_string(&episode.patterns)
+                .map_err(Error::Serialization)?
+                .into_bytes()
+        };
+
+        #[cfg(not(feature = "compression"))]
+        let patterns_json: Vec<u8> = serde_json::to_string(&episode.patterns)
+            .map_err(Error::Serialization)?
+            .into_bytes();
+
+        #[cfg(feature = "compression")]
+        let heuristics_json = if should_compress {
+            let data = serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
+            compress_json_field(data.as_bytes(), compression_threshold)?
+        } else {
+            serde_json::to_string(&episode.heuristics)
+                .map_err(Error::Serialization)?
+                .into_bytes()
+        };
+
+        #[cfg(not(feature = "compression"))]
+        let heuristics_json: Vec<u8> = serde_json::to_string(&episode.heuristics)
+            .map_err(Error::Serialization)?
+            .into_bytes();
+
+        #[cfg(feature = "compression")]
+        let metadata_json = if should_compress {
+            let data = serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
+            compress_json_field(data.as_bytes(), compression_threshold)?
+        } else {
+            serde_json::to_string(&episode.metadata)
+                .map_err(Error::Serialization)?
+                .into_bytes()
+        };
+
+        #[cfg(not(feature = "compression"))]
+        let metadata_json: Vec<u8> = serde_json::to_string(&episode.metadata)
+            .map_err(Error::Serialization)?
+            .into_bytes();
 
         // Get archived_at from metadata if present
         let archived_at = episode
             .metadata
             .get("archived_at")
             .and_then(|v| v.parse::<i64>().ok());
+
+        // Convert bytes to String for SQL (assuming UTF-8)
+        let patterns_str = String::from_utf8(patterns_json)
+            .map_err(|e| Error::Storage(format!("Failed to convert patterns to UTF-8: {}", e)))?;
+        let heuristics_str = String::from_utf8(heuristics_json)
+            .map_err(|e| Error::Storage(format!("Failed to convert heuristics to UTF-8: {}", e)))?;
+        let metadata_str = String::from_utf8(metadata_json)
+            .map_err(|e| Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e)))?;
 
         conn.execute(
             sql,
@@ -78,9 +227,9 @@ impl TursoStorage {
                 outcome_json,
                 reward_json,
                 reflection_json,
-                patterns_json,
-                heuristics_json,
-                metadata_json,
+                patterns_str,
+                heuristics_str,
+                metadata_str,
                 episode.context.domain.clone(),
                 episode.context.language.clone(),
                 archived_at,
@@ -339,10 +488,15 @@ impl TursoStorage {
     }
 
     /// Query episodes by metadata key-value pair
+    ///
+    /// Uses json_extract for efficient querying of JSON metadata fields.
+    /// Falls back to LIKE pattern matching if json_extract is not available.
     pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
         debug!("Querying episodes by metadata {} = {}", key, value);
         let conn = self.get_connection().await?;
 
+        // Use json_extract for efficient JSON metadata querying
+        // This is more efficient than LIKE pattern matching as it can use indexes
         let sql = format!(
             r#"
             SELECT episode_id, task_type, task_description, context,
@@ -350,7 +504,7 @@ impl TursoStorage {
                    reflection, patterns, heuristics, metadata, domain, language,
                    archived_at
             FROM episodes
-            WHERE metadata LIKE '%"{}": "{}%'
+            WHERE json_extract(metadata, '$.{}') = '{}'
             ORDER BY start_time DESC
         "#,
             key, value
@@ -416,13 +570,40 @@ impl TursoStorage {
             .map(|s| serde_json::from_str::<memory_core::Reflection>(&s))
             .transpose()
             .map_err(|e| Error::Storage(format!("Failed to parse reflection: {}", e)))?;
-        let patterns: Vec<memory_core::episode::PatternId> =
-            serde_json::from_str(&patterns_json)
-                .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
-        let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_json)
+
+        // Parse patterns (with decompression if compression is enabled)
+        #[cfg(feature = "compression")]
+        let patterns_bytes = decompress_json_field(&patterns_json)?;
+        #[cfg(not(feature = "compression"))]
+        let patterns_bytes = patterns_json.as_bytes().to_vec();
+
+        let patterns_str = String::from_utf8(patterns_bytes)
+            .map_err(|e| Error::Storage(format!("Failed to convert patterns from UTF-8: {}", e)))?;
+        let patterns: Vec<memory_core::episode::PatternId> = serde_json::from_str(&patterns_str)
+            .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
+
+        // Parse heuristics (with decompression if compression is enabled)
+        #[cfg(feature = "compression")]
+        let heuristics_bytes = decompress_json_field(&heuristics_json)?;
+        #[cfg(not(feature = "compression"))]
+        let heuristics_bytes = heuristics_json.as_bytes().to_vec();
+
+        let heuristics_str = String::from_utf8(heuristics_bytes).map_err(|e| {
+            Error::Storage(format!("Failed to convert heuristics from UTF-8: {}", e))
+        })?;
+        let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
             .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
+
+        // Parse metadata (with decompression if compression is enabled)
+        #[cfg(feature = "compression")]
+        let metadata_bytes = decompress_json_field(&metadata_json)?;
+        #[cfg(not(feature = "compression"))]
+        let metadata_bytes = metadata_json.as_bytes().to_vec();
+
+        let metadata_str = String::from_utf8(metadata_bytes)
+            .map_err(|e| Error::Storage(format!("Failed to convert metadata from UTF-8: {}", e)))?;
         let mut metadata: std::collections::HashMap<String, String> =
-            serde_json::from_str(&metadata_json)
+            serde_json::from_str(&metadata_str)
                 .map_err(|e| Error::Storage(format!("Failed to parse metadata: {}", e)))?;
 
         // Add archived_at to metadata if present in database

@@ -43,7 +43,7 @@
     "memory-mcp": {
       "type": "local",
       "command": [
-        "./target/release/memory-mcp-server"
+        "./target/debug/memory-mcp-server"
       ],
       "enabled": true,
       "environment": {

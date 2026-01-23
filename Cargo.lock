@@ -3595,6 +3595,7 @@ dependencies = [
  "serde_json",
  "serde_test",
  "serde_yaml",
+ "serial_test",
  "sysinfo",
  "tempfile",
  "test-utils",

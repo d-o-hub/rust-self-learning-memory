@@ -3,19 +3,22 @@
 ## Project Overview
 This is a memory management system with episodic memory capabilities, semantic embeddings, and multiple storage backends. The system provides persistent memory across agent interactions through an MCP (Model Context Protocol) server.
 
-**Last Updated**: 2026-01-17 (v0.1.13)
+**Last Updated**: 2026-01-24 (v0.1.12, Phase 2 75% complete, Phase 3 planning)
 
 **Stack**: Rust/Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Cohere, Ollama, local)
 
+**Codebase Stats**: 632 Rust files, ~140K LOC, 811+ lib tests, 9 workspace members
+
 **Crates**:
-- `memory-core`: Core memory operations and embeddings (~44,250 LOC)
-- `memory-storage-turso`: Primary database storage (libSQL)
+- `memory-core`: Core memory operations and embeddings
+- `memory-storage-turso`: Primary database storage (libSQL) with connection pooling & compression
 - `memory-storage-redb`: Cache layer (postcard serialization)
 - `memory-mcp`: MCP server with 6-layer security sandbox
 - `memory-cli`: Full-featured CLI (9 commands, 9 aliases)
 - `test-utils`: Shared testing utilities
 - `benches`: Comprehensive benchmark suite
 - `examples`: Usage examples and demonstrations
+- `tests`: Integration tests
 
 ## Quick Reference
 - **Build & Test**: `cargo build --all && cargo test --all`

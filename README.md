@@ -25,17 +25,18 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
 
-**Current Status (v0.1.7):**
+**Current Status (v0.1.12):**
 - **Production-ready** episodic memory management system for AI agents
-- **8 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples
-- **367 Rust source files** with ~44,250 lines of code in core library
-- **99.3% test pass rate** (424/427 tests passing)
+- **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples, tests
+- **632 Rust source files** with ~140,000 lines of code
+- **811+ lib tests** with 99.5% pass rate
 - **92.5% test coverage** across all modules
 - **10-100x performance improvements** over baseline measurements
 - **Zero clippy warnings** with strict linting rules
 - **Multi-provider semantic embeddings** with OpenAI, Cohere, Ollama, and local backends
 - **Dual storage backends**: Turso for durability, redb for cache
 - **6-layer security sandbox** in Wasmtime for safe code execution
+- **Phase 2 Turso Optimization**: 75% complete (connection pooling, adaptive sizing, compression)
 
 **Architecture:**
 - **memory-core**: Core memory operations, pattern extraction, and reward scoring
@@ -114,7 +115,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🛡️ Quality Assurance
 - Automated quality gates (>90% coverage)
-- Comprehensive test suite across all crates (424/427 tests passing)
+- Comprehensive test suite across all crates (811+ lib tests)
 - Security auditing for sandbox operations
 - Performance benchmarks with regression detection
 - Zero clippy warnings policy

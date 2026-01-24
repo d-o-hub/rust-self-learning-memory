@@ -18,7 +18,6 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> Result<Vec<u8>> {
         Ok(data.to_vec())
     } else {
         // Store as base64-encoded compressed data with algorithm prefix
-        use base64::Engine;
         let payload = format!(
             "__compressed__:{}:{}\n{}",
             compressed.algorithm,
@@ -34,7 +33,6 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> Result<Vec<u8>> {
 pub fn decompress_json_field(data: &str) -> Result<Vec<u8>> {
     if data.starts_with("__compressed__:") {
         // Parse the compressed format: __compressed__:<algorithm>:<original_size>\n<base64_data>
-        use base64::Engine;
 
         let remainder = &data["__compressed__:".len()..];
         let newline_pos = remainder.find('\n').ok_or_else(|| {

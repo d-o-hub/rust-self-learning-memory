@@ -269,7 +269,6 @@ impl TursoStorage {
             #[cfg(feature = "compression")]
             let embedding: Vec<f32> = if embedding_data.starts_with("__compressed__:") {
                 // Parse compressed format
-                use base64::Engine;
                 let remainder = &embedding_data["__compressed__:".len()..];
                 let newline_pos = remainder.find('\n').ok_or_else(|| {
                     memory_core::Error::Storage(

@@ -2,9 +2,10 @@
 //!
 //! Tests verify the 89% reduction in connection overhead (45ms → 5ms)
 
-use memory_storage_turso::{KeepAliveConfig, PoolConfig, TursoConfig, TursoStorage};
-use std::sync::Arc;
-use std::time::{Duration, Instant};
+#![allow(clippy::expect_used)]
+
+use memory_storage_turso::{TursoConfig, TursoStorage};
+use std::time::Duration;
 use tempfile::TempDir;
 
 /// Helper to create a test database with keep-alive pool enabled
@@ -12,10 +13,16 @@ async fn create_test_storage_with_keepalive() -> (TursoStorage, TempDir) {
     let dir = tempfile::tempdir().expect("Failed to create temp dir");
     let db_path = dir.path().join("test.db");
 
-    let mut config = TursoConfig::default();
-    config.enable_keepalive = true;
-    config.keepalive_interval_secs = 1; // Short interval for testing
-    config.stale_threshold_secs = 2;
+    #[cfg(feature = "keepalive-pool")]
+    let config = TursoConfig {
+        enable_keepalive: true,
+        keepalive_interval_secs: 1, // Short interval for testing
+        stale_threshold_secs: 2,
+        ..Default::default()
+    };
+
+    #[cfg(not(feature = "keepalive-pool"))]
+    let config = TursoConfig::default();
 
     let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
         .await
@@ -96,8 +103,14 @@ async fn test_keepalive_disabled() {
     let dir = tempfile::tempdir().expect("Failed to create temp dir");
     let db_path = dir.path().join("test.db");
 
-    let mut config = TursoConfig::default();
-    config.enable_keepalive = false; // Explicitly disable
+    #[cfg(feature = "keepalive-pool")]
+    let config = TursoConfig {
+        enable_keepalive: false, // Explicitly disable
+        ..Default::default()
+    };
+
+    #[cfg(not(feature = "keepalive-pool"))]
+    let config = TursoConfig::default();
 
     let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
         .await

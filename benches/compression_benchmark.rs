@@ -4,19 +4,21 @@
 //! - Baseline (no compression): Full payload size
 //! - With compression: ~40% reduction in size
 
+#![allow(unexpected_cfgs)]
+
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use memory_core::{ContextBuilder, Episode, TaskType};
+use memory_core::{Episode, TaskContext, TaskType};
 use memory_storage_turso::{TursoConfig, TursoStorage};
-use std::sync::Arc;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
 
 /// Helper to create episode of specific size
 fn create_episode_with_size(size_kb: usize) -> Episode {
-    let data_size = size_kb * 1024;
-    let context = ContextBuilder::new("benchmark")
-        .with_metadata("data", &"x".repeat(data_size / 2))
-        .build();
+    let _data_size = size_kb * 1024;
+    let context = TaskContext {
+        domain: "benchmark".to_string(),
+        ..Default::default()
+    };
 
     let episode = Episode::new(
         format!("compression_benchmark_{}kb", size_kb),
@@ -34,9 +36,11 @@ fn setup_storage_with_compression() -> (TursoStorage, tempfile::TempDir) {
 
     let rt = Runtime::new().unwrap();
     let storage = rt.block_on(async {
-        let mut config = TursoConfig::default();
-        config.compression_threshold = 1024; // 1KB
-        config.compress_episodes = true;
+        let config = TursoConfig {
+            compression_threshold: 1024, // 1KB
+            compress_episodes: true,
+            ..Default::default()
+        };
 
         let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
             .await
@@ -60,8 +64,10 @@ fn setup_storage_without_compression() -> (TursoStorage, tempfile::TempDir) {
 
     let rt = Runtime::new().unwrap();
     let storage = rt.block_on(async {
-        let mut config = TursoConfig::default();
-        config.compress_episodes = false; // Disable compression
+        let config = TursoConfig {
+            compress_episodes: false, // Disable compression
+            ..Default::default()
+        };
 
         let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
             .await
@@ -80,7 +86,7 @@ fn setup_storage_without_compression() -> (TursoStorage, tempfile::TempDir) {
 
 /// Benchmark compression overhead
 fn bench_compression_overhead(c: &mut Criterion) {
-    let group = c.benchmark_group("compression_overhead");
+    let mut group = c.benchmark_group("compression_overhead");
 
     for size_kb in [1, 5, 10, 50, 100].iter() {
         let episode = create_episode_with_size(*size_kb);
@@ -167,7 +173,7 @@ fn bench_compression_ratio(c: &mut Criterion) {
 
 /// Benchmark storage operations with/without compression
 fn bench_storage_with_compression(c: &mut Criterion) {
-    let group = c.benchmark_group("storage_operations");
+    let mut group = c.benchmark_group("storage_operations");
 
     let rt = Runtime::new().unwrap();
 

@@ -31,10 +31,8 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> Result<Vec<u8>> {
 /// Decompress JSON data if it's compressed
 #[cfg(feature = "compression")]
 pub fn decompress_json_field(data: &str) -> Result<Vec<u8>> {
-    if data.starts_with("__compressed__:") {
+    if let Some(remainder) = data.strip_prefix("__compressed__:") {
         // Parse the compressed format: __compressed__:<algorithm>:<original_size>\n<base64_data>
-
-        let remainder = &data["__compressed__:".len()..];
         let newline_pos = remainder.find('\n').ok_or_else(|| {
             Error::Storage("Invalid compressed data format: missing newline".to_string())
         })?;

@@ -5,7 +5,7 @@
 //! - With compression: ~40% reduction in size
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use memory_core::{ContextBuilder, Episode, ExecutionStatus};
+use memory_core::{ContextBuilder, Episode, TaskType};
 use memory_storage_turso::{TursoConfig, TursoStorage};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -14,22 +14,16 @@ use uuid::Uuid;
 /// Helper to create episode of specific size
 fn create_episode_with_size(size_kb: usize) -> Episode {
     let data_size = size_kb * 1024;
-    let context = ContextBuilder::new(&format!("bench-{}", size_kb))
+    let context = ContextBuilder::new("benchmark")
         .with_metadata("data", &"x".repeat(data_size / 2))
         .build();
 
-    let mut episode = Episode::new(context);
-    episode.id = Uuid::new_v4();
+    let episode = Episode::new(
+        format!("compression_benchmark_{}kb", size_kb),
+        context,
+        TaskType::CodeGeneration,
+    );
 
-    // Add steps to reach target size
-    let steps_needed = (data_size / 200).max(1);
-    for i in 0..steps_needed {
-        episode
-            .add_step(format!("step_{}", i), "x".repeat(100))
-            .expect("Failed to add step");
-    }
-
-    episode.status = ExecutionStatus::Success;
     episode
 }
 
@@ -86,7 +80,7 @@ fn setup_storage_without_compression() -> (TursoStorage, tempfile::TempDir) {
 
 /// Benchmark compression overhead
 fn bench_compression_overhead(c: &mut Criterion) {
-    let mut group = c.benchmark_group("compression_overhead");
+    let group = c.benchmark_group("compression_overhead");
 
     for size_kb in [1, 5, 10, 50, 100].iter() {
         let episode = create_episode_with_size(*size_kb);
@@ -134,7 +128,7 @@ fn bench_compression_overhead(c: &mut Criterion) {
 
 /// Benchmark compression ratio for different payload sizes
 fn bench_compression_ratio(c: &mut Criterion) {
-    let mut group = c.benchmark_group("compression_ratio");
+    let group = c.benchmark_group("compression_ratio");
 
     #[cfg(feature = "compression")]
     {
@@ -173,7 +167,7 @@ fn bench_compression_ratio(c: &mut Criterion) {
 
 /// Benchmark storage operations with/without compression
 fn bench_storage_with_compression(c: &mut Criterion) {
-    let mut group = c.benchmark_group("storage_operations");
+    let group = c.benchmark_group("storage_operations");
 
     let rt = Runtime::new().unwrap();
 
@@ -188,12 +182,12 @@ fn bench_storage_with_compression(c: &mut Criterion) {
             |b, _| {
                 b.to_async(&rt).iter(|| async {
                     let mut ep = episode.clone();
-                    ep.id = Uuid::new_v4();
+                    ep.episode_id = Uuid::new_v4();
                     storage_compressed
                         .store_episode(&ep)
                         .await
                         .expect("Failed to store");
-                    black_box(ep.id)
+                    black_box(ep.episode_id)
                 });
             },
         );
@@ -206,12 +200,12 @@ fn bench_storage_with_compression(c: &mut Criterion) {
             |b, _| {
                 b.to_async(&rt).iter(|| async {
                     let mut ep = episode.clone();
-                    ep.id = Uuid::new_v4();
+                    ep.episode_id = Uuid::new_v4();
                     storage_uncompressed
                         .store_episode(&ep)
                         .await
                         .expect("Failed to store");
-                    black_box(ep.id)
+                    black_box(ep.episode_id)
                 });
             },
         );
@@ -222,7 +216,7 @@ fn bench_storage_with_compression(c: &mut Criterion) {
 
 /// Benchmark decompression performance
 fn bench_decompression(c: &mut Criterion) {
-    let mut group = c.benchmark_group("decompression");
+    let group = c.benchmark_group("decompression");
 
     #[cfg(feature = "compression")]
     {
@@ -250,7 +244,7 @@ fn bench_decompression(c: &mut Criterion) {
 
 /// Benchmark different compression algorithms
 fn bench_compression_algorithms(c: &mut Criterion) {
-    let mut group = c.benchmark_group("compression_algorithms");
+    let group = c.benchmark_group("compression_algorithms");
 
     #[cfg(feature = "compression")]
     {

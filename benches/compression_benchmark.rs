@@ -44,13 +44,9 @@ fn setup_storage_with_compression() -> (TursoStorage, tempfile::TempDir) {
         config.compression_threshold = 1024; // 1KB
         config.compress_episodes = true;
 
-        let storage = TursoStorage::with_config(
-            &format!("file:{}", db_path.display()),
-            "",
-            config,
-        )
-        .await
-        .expect("Failed to create storage");
+        let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
+            .await
+            .expect("Failed to create storage");
 
         storage
             .initialize_schema()
@@ -73,13 +69,9 @@ fn setup_storage_without_compression() -> (TursoStorage, tempfile::TempDir) {
         let mut config = TursoConfig::default();
         config.compress_episodes = false; // Disable compression
 
-        let storage = TursoStorage::with_config(
-            &format!("file:{}", db_path.display()),
-            "",
-            config,
-        )
-        .await
-        .expect("Failed to create storage");
+        let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
+            .await
+            .expect("Failed to create storage");
 
         storage
             .initialize_schema()
@@ -166,17 +158,13 @@ fn bench_compression_ratio(c: &mut Criterion) {
             );
 
             group.throughput(Throughput::Bytes(original_size as u64));
-            group.bench_with_input(
-                BenchmarkId::new("compress", size_kb),
-                size_kb,
-                |b, _| {
-                    b.iter(|| {
-                        let compressed = CompressedPayload::compress(serialized.as_bytes(), 1024)
-                            .expect("Compression failed");
-                        black_box(compressed)
-                    });
-                },
-            );
+            group.bench_with_input(BenchmarkId::new("compress", size_kb), size_kb, |b, _| {
+                b.iter(|| {
+                    let compressed = CompressedPayload::compress(serialized.as_bytes(), 1024)
+                        .expect("Compression failed");
+                    black_box(compressed)
+                });
+            });
         }
     }
 
@@ -248,16 +236,12 @@ fn bench_decompression(c: &mut Criterion) {
                 .expect("Compression failed");
 
             group.throughput(Throughput::Bytes(compressed.compressed_size as u64));
-            group.bench_with_input(
-                BenchmarkId::new("decompress", size_kb),
-                size_kb,
-                |b, _| {
-                    b.iter(|| {
-                        let decompressed = compressed.decompress().expect("Decompression failed");
-                        black_box(decompressed)
-                    });
-                },
-            );
+            group.bench_with_input(BenchmarkId::new("decompress", size_kb), size_kb, |b, _| {
+                b.iter(|| {
+                    let decompressed = compressed.decompress().expect("Decompression failed");
+                    black_box(decompressed)
+                });
+            });
         }
     }
 

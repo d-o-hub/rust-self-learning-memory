@@ -100,3 +100,8 @@ name = "keepalive_pool_benchmark"
 path = "keepalive_pool_benchmark.rs"
 harness = false
 
+[[bench]]
+name = "compression_benchmark"
+path = "compression_benchmark.rs"
+harness = false
+

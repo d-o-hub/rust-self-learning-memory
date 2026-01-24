@@ -15,9 +15,11 @@ fn setup_storage_without_keepalive() -> (TursoStorage, tempfile::TempDir) {
 
     let rt = Runtime::new().unwrap();
     let storage = rt.block_on(async {
-        let mut config = TursoConfig::default();
-        config.enable_pooling = true;
-        config.enable_keepalive = false; // Disable keep-alive
+        let config = TursoConfig {
+            enable_pooling: true,
+            enable_keepalive: false,
+            ..Default::default()
+        };
 
         let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
             .await
@@ -41,11 +43,13 @@ fn setup_storage_with_keepalive() -> (TursoStorage, tempfile::TempDir) {
 
     let rt = Runtime::new().unwrap();
     let storage = rt.block_on(async {
-        let mut config = TursoConfig::default();
-        config.enable_pooling = true;
-        config.enable_keepalive = true; // Enable keep-alive
-        config.keepalive_interval_secs = 30;
-        config.stale_threshold_secs = 60;
+        let config = TursoConfig {
+            enable_pooling: true,
+            enable_keepalive: true,
+            keepalive_interval_secs: 30,
+            stale_threshold_secs: 60,
+            ..Default::default()
+        };
 
         let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
             .await

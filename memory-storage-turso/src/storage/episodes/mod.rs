@@ -28,7 +28,6 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> Result<Vec<u8>> {
     if compressed.algorithm == crate::CompressionAlgorithm::None {
         Ok(data.to_vec())
     } else {
-        use base64::Engine;
         let payload = format!(
             "__compressed__:{}:{}\n{}",
             compressed.algorithm,
@@ -43,8 +42,6 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> Result<Vec<u8>> {
 #[cfg(feature = "compression")]
 pub fn decompress_json_field(data: &str) -> Result<Vec<u8>> {
     if data.starts_with("__compressed__:") {
-        use base64::Engine;
-
         let remainder = &data["__compressed__:".len()..];
         let newline_pos = remainder.find('\n').ok_or_else(|| {
             Error::Storage("Invalid compressed data format: missing newline".to_string())

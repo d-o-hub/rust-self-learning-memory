@@ -16,11 +16,20 @@ async fn main() -> anyhow::Result<()> {
     let db_path = temp_dir.path().join("demo.db");
 
     // Configure storage with keep-alive pool enabled
-    let mut config = TursoConfig::default();
-    config.enable_pooling = true;
-    config.enable_keepalive = true;
-    config.keepalive_interval_secs = 30;
-    config.stale_threshold_secs = 60;
+    #[cfg(feature = "keepalive-pool")]
+    let config = TursoConfig {
+        enable_pooling: true,
+        enable_keepalive: true,
+        keepalive_interval_secs: 30,
+        stale_threshold_secs: 60,
+        ..Default::default()
+    };
+
+    #[cfg(not(feature = "keepalive-pool"))]
+    let config = TursoConfig {
+        enable_pooling: true,
+        ..Default::default()
+    };
 
     println!("Creating storage with keep-alive pool...");
     let storage =
@@ -30,6 +39,7 @@ async fn main() -> anyhow::Result<()> {
     println!("✓ Storage initialized\n");
 
     // Display keep-alive configuration
+    #[cfg(feature = "keepalive-pool")]
     if let Some(config) = storage.keepalive_config() {
         println!("Keep-Alive Configuration:");
         println!("  Interval: {:?}", config.keep_alive_interval);
@@ -60,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
     println!();
 
     // Display keep-alive statistics
+    #[cfg(feature = "keepalive-pool")]
     if let Some(stats) = storage.keepalive_statistics() {
         println!("Keep-Alive Statistics:");
         println!(

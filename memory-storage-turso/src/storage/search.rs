@@ -3,6 +3,8 @@
 #![allow(unexpected_cfgs)]
 
 #[allow(unused_imports)]
+use super::episodes::row_to_episode;
+#[allow(unused_imports)]
 use super::patterns::row_to_pattern;
 use crate::TursoStorage;
 use libsql::Connection;
@@ -75,7 +77,7 @@ impl TursoStorage {
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
             {
-                let episode = TursoStorage::row_to_episode(&row)?;
+                let episode = row_to_episode(&row)?;
 
                 // Get embedding for this episode
                 let embedding_sql = format!(
@@ -255,7 +257,7 @@ impl TursoStorage {
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
             {
-                let episode = TursoStorage::row_to_episode(&row)?;
+                let episode = row_to_episode(&row)?;
 
                 if let Some(embedding) = self
                     ._get_embedding_internal(&episode.episode_id.to_string(), "episode")

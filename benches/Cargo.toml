@@ -95,3 +95,8 @@ name = "cache_benchmarks"
 path = "cache_benchmarks.rs"
 harness = false
 
+[[bench]]
+name = "keepalive_pool_benchmark"
+path = "keepalive_pool_benchmark.rs"
+harness = false
+

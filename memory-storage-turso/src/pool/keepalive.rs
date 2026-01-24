@@ -350,24 +350,22 @@ impl KeepAlivePool {
     }
 
     /// Start the background keep-alive task
-    pub fn start_background_task(&self) {
-        // Create an Arc from self so we can downgrade it to a Weak reference
-        // We use a raw pointer dance to avoid requiring Clone on the struct
-        let self_ptr = self as *const KeepAlivePool as *mut KeepAlivePool;
-        #[allow(unsafe_code)]
-        let pool_arc = unsafe { Arc::from_raw(self_ptr) };
-        let pool_weak = Arc::downgrade(&pool_arc);
+    ///
+    /// This method should be called after the pool is wrapped in an Arc.
+    /// It spawns a background task that periodically pings connections.
+    pub fn start_background_task(self: &Arc<Self>) {
+        let pool_weak = Arc::downgrade(self);
         let interval = self.config.keep_alive_interval;
-        let _config = self.config.clone();
 
         let _handle = tokio::spawn(async move {
-            let mut interval = tokio::time::interval(interval);
+            let mut interval_timer = tokio::time::interval(interval);
 
             loop {
-                interval.tick().await;
+                interval_timer.tick().await;
                 if let Some(pool) = pool_weak.upgrade() {
                     pool.proactive_ping().await;
                 } else {
+                    debug!("Keep-alive pool dropped, stopping background task");
                     break;
                 }
             }

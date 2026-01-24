@@ -283,12 +283,13 @@ impl TursoStorage {
                 };
                 let keepalive_pool =
                     KeepAlivePool::new(Arc::clone(pool), Some(keepalive_config)).await?;
-                keepalive_pool.start_background_task();
+                let keepalive_arc = Arc::new(keepalive_pool);
+                keepalive_arc.start_background_task();
                 info!(
                     "Keep-alive pool enabled (interval={}s, stale_threshold={}s)",
                     config.keepalive_interval_secs, config.stale_threshold_secs
                 );
-                Some(Arc::new(keepalive_pool))
+                Some(keepalive_arc)
             } else {
                 warn!("Keep-alive requested but pooling disabled, skipping");
                 None
@@ -415,12 +416,13 @@ impl TursoStorage {
             };
             let keepalive_pool =
                 KeepAlivePool::new(Arc::clone(&pool_arc), Some(keepalive_config)).await?;
-            keepalive_pool.start_background_task();
+            let keepalive_arc = Arc::new(keepalive_pool);
+            keepalive_arc.start_background_task();
             info!(
                 "Keep-alive pool enabled (interval={}s, stale_threshold={}s)",
                 config.keepalive_interval_secs, config.stale_threshold_secs
             );
-            Some(Arc::new(keepalive_pool))
+            Some(keepalive_arc)
         } else {
             None
         };
@@ -529,11 +531,12 @@ impl TursoStorage {
         let pool_arc = Arc::new(pool);
         let keepalive_pool =
             KeepAlivePool::with_config(Arc::clone(&pool_arc), keepalive_config).await?;
-        keepalive_pool.start_background_task();
+        let keepalive_arc = Arc::new(keepalive_pool);
+        keepalive_arc.start_background_task();
         info!(
             "Keep-alive pool enabled (interval={:?}, stale_threshold={:?})",
-            keepalive_pool.config().keep_alive_interval,
-            keepalive_pool.config().stale_threshold
+            keepalive_arc.config().keep_alive_interval,
+            keepalive_arc.config().stale_threshold
         );
 
         info!("Successfully connected to Turso database");
@@ -541,7 +544,7 @@ impl TursoStorage {
         Ok(Self {
             db,
             pool: Some(pool_arc),
-            keepalive_pool: Some(Arc::new(keepalive_pool)),
+            keepalive_pool: Some(keepalive_arc),
             adaptive_pool: None,
             config,
         })

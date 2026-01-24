@@ -64,7 +64,7 @@ fn setup_storage_with_keepalive() -> (TursoStorage, tempfile::TempDir) {
 
 /// Benchmark connection acquisition without keep-alive pool
 fn bench_without_keepalive(c: &mut Criterion) {
-    let group = c.benchmark_group("connection_overhead");
+    let mut group = c.benchmark_group("connection_overhead");
     group.throughput(Throughput::Elements(1));
 
     let (storage, _dir) = setup_storage_without_keepalive();
@@ -82,7 +82,7 @@ fn bench_without_keepalive(c: &mut Criterion) {
 
 /// Benchmark connection acquisition with keep-alive pool
 fn bench_with_keepalive(c: &mut Criterion) {
-    let group = c.benchmark_group("connection_overhead");
+    let mut group = c.benchmark_group("connection_overhead");
     group.throughput(Throughput::Elements(1));
 
     let (storage, _dir) = setup_storage_with_keepalive();
@@ -107,7 +107,7 @@ fn bench_with_keepalive(c: &mut Criterion) {
 
 /// Benchmark concurrent access patterns with keep-alive
 fn bench_concurrent_access(c: &mut Criterion) {
-    let group = c.benchmark_group("concurrent_access");
+    let mut group = c.benchmark_group("concurrent_access");
 
     for num_tasks in [5, 10, 20].iter() {
         let (_storage, _dir) = setup_storage_with_keepalive();
@@ -116,15 +116,12 @@ fn bench_concurrent_access(c: &mut Criterion) {
         group.throughput(Throughput::Elements(*num_tasks as u64));
         group.bench_function(format!("concurrent_{}", num_tasks), |b| {
             b.to_async(&rt).iter(|| async {
+                // Spawn all tasks concurrently
                 let handles: Vec<_> = (0..*num_tasks)
-                    .map(|_| {
-                        tokio::spawn(async {
-                            // Simple operation to test concurrent access
-                            black_box(true);
-                        })
-                    })
+                    .map(|_| tokio::spawn(async { black_box(true) }))
                     .collect();
 
+                // Wait for all tasks to complete
                 for handle in handles {
                     handle.await.expect("Task failed");
                 }

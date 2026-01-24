@@ -158,7 +158,6 @@ mod tests {
     use super::*;
     use memory_core::{Episode, TaskContext, TaskType};
     use tempfile::TempDir;
-    use uuid::Uuid;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
         let dir = TempDir::new().unwrap();

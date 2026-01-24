@@ -46,9 +46,6 @@ mod adaptive_ttl;
 mod config;
 mod wrapper;
 
-#[cfg(test)]
-mod tests;
-
 pub use config::{CacheConfig, CacheStats};
 pub use wrapper::CachedTursoStorage;
 

@@ -6,7 +6,7 @@ use std::time::Duration;
 use tempfile::TempDir;
 
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
-    let dir = TempDir::new().unwrap();
+    let dir = TempDir::new()?;
     let db_path = dir.path().join("test.db");
 
     let storage = TursoStorage::new(&format!("file:{}", db_path.display()), "").await?;

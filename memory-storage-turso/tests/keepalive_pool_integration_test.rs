@@ -5,24 +5,19 @@
 #![allow(clippy::expect_used)]
 
 use memory_storage_turso::{TursoConfig, TursoStorage};
-use std::time::Duration;
-use tempfile::TempDir;
 
 /// Helper to create a test database with keep-alive pool enabled
-async fn create_test_storage_with_keepalive() -> (TursoStorage, TempDir) {
+#[cfg(feature = "keepalive-pool")]
+async fn create_test_storage_with_keepalive() -> (TursoStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("Failed to create temp dir");
     let db_path = dir.path().join("test.db");
 
-    #[cfg(feature = "keepalive-pool")]
     let config = TursoConfig {
         enable_keepalive: true,
         keepalive_interval_secs: 1, // Short interval for testing
         stale_threshold_secs: 2,
         ..Default::default()
     };
-
-    #[cfg(not(feature = "keepalive-pool"))]
-    let config = TursoConfig::default();
 
     let storage = TursoStorage::with_config(&format!("file:{}", db_path.display()), "", config)
         .await
@@ -37,6 +32,7 @@ async fn create_test_storage_with_keepalive() -> (TursoStorage, TempDir) {
 }
 
 #[tokio::test]
+#[cfg(feature = "keepalive-pool")]
 async fn test_keepalive_reduces_connection_overhead() {
     let (storage, _dir) = create_test_storage_with_keepalive().await;
 
@@ -51,6 +47,7 @@ async fn test_keepalive_reduces_connection_overhead() {
 }
 
 #[tokio::test]
+#[cfg(feature = "keepalive-pool")]
 async fn test_keepalive_config_applied() {
     let (storage, _dir) = create_test_storage_with_keepalive().await;
 
@@ -59,12 +56,14 @@ async fn test_keepalive_config_applied() {
         .keepalive_config()
         .expect("Keep-alive config should be available");
 
+    use std::time::Duration;
     assert_eq!(config.keep_alive_interval, Duration::from_secs(1));
     assert_eq!(config.stale_threshold, Duration::from_secs(2));
     assert!(config.enable_proactive_ping);
 }
 
 #[tokio::test]
+#[cfg(feature = "keepalive-pool")]
 async fn test_keepalive_with_health_check() {
     let (storage, _dir) = create_test_storage_with_keepalive().await;
 
@@ -82,6 +81,7 @@ async fn test_keepalive_with_health_check() {
 }
 
 #[tokio::test]
+#[cfg(feature = "keepalive-pool")]
 async fn test_keepalive_statistics_updated() {
     let (storage, _dir) = create_test_storage_with_keepalive().await;
 
@@ -121,7 +121,19 @@ async fn test_keepalive_disabled() {
         .await
         .expect("Failed to initialize schema");
 
-    // Keep-alive stats should not be available
-    let stats = storage.keepalive_statistics();
-    assert!(stats.is_none(), "Keep-alive should be disabled");
+    // Keep-alive stats should not be available when feature is not enabled
+    // When feature IS enabled but explicitly disabled, stats should be None
+    #[cfg(feature = "keepalive-pool")]
+    {
+        let stats = storage.keepalive_statistics();
+        assert!(stats.is_none(), "Keep-alive should be disabled");
+    }
+
+    // When feature is not enabled, the method doesn't exist, so we skip this check
+    #[cfg(not(feature = "keepalive-pool"))]
+    {
+        // Just verify the storage was created successfully
+        let is_healthy = storage.health_check().await.expect("Health check failed");
+        assert!(is_healthy, "Storage should be healthy");
+    }
 }

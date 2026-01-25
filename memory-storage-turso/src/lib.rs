@@ -210,7 +210,9 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool: None,
             adaptive_pool: None,
-            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(
+                PreparedCacheConfig::default(),
+            )),
             config: TursoConfig::default(),
         })
     }
@@ -317,7 +319,9 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool,
             adaptive_pool: None,
-            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(
+                PreparedCacheConfig::default(),
+            )),
             config,
         };
 
@@ -446,7 +450,9 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool,
             adaptive_pool: None,
-            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(
+                PreparedCacheConfig::default(),
+            )),
             config,
         })
     }
@@ -555,7 +561,9 @@ impl TursoStorage {
             pool: Some(pool_arc),
             keepalive_pool: Some(keepalive_arc),
             adaptive_pool: None,
-            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(
+                PreparedCacheConfig::default(),
+            )),
             config,
         })
     }
@@ -666,7 +674,9 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool: None,
             adaptive_pool: Some(Arc::new(adaptive_pool)),
-            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(
+                PreparedCacheConfig::default(),
+            )),
             config,
         })
     }

@@ -6,7 +6,7 @@ use criterion::async_executor::AsyncExecutor;
 use std::future::Future;
 
 /// Tokio-based executor for Criterion benchmarks
-/// 
+///
 /// Unlike FuturesExecutor, this provides a full tokio runtime which is required
 /// when code uses tokio::spawn, tokio::task::spawn_blocking, or other tokio features.
 pub struct TokioExecutor;

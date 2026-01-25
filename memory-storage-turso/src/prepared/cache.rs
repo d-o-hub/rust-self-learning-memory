@@ -222,9 +222,9 @@ impl PreparedStatementCache {
                 .get(sql)
                 .filter(|cached| !cached.needs_refresh(&self.config))
                 .map(|cached| Arc::clone(&cached.statement));
-            
+
             drop(cache);
-            
+
             if result.is_some() {
                 trace!("Cache hit for SQL: {}", sql);
                 self.stats.write().record_hit();
@@ -232,7 +232,7 @@ impl PreparedStatementCache {
                 trace!("Cache miss for SQL: {}", sql);
                 self.stats.write().record_miss();
             }
-            
+
             result
         };
 

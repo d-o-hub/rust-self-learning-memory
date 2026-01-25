@@ -9,6 +9,7 @@ use memory_core::episode::Episode;
 use memory_core::retrieval::{CacheKey, QueryCache};
 use memory_core::types::{TaskContext, TaskType};
 use std::collections::HashMap;
+use std::sync::Arc;
 use uuid::Uuid;
 
 fn create_test_episode(id: u32, domain: &str) -> Episode {
@@ -51,7 +52,7 @@ fn bench_domain_invalidation_latency(c: &mut Criterion) {
                         };
                         let key = CacheKey::new(format!("query-{}", i))
                             .with_domain(Some(domain.to_string()));
-                        let episodes = vec![create_test_episode(i, domain)];
+                        let episodes = vec![Arc::new(create_test_episode(i, domain))];
                         cache.put(key, episodes);
                     }
                     cache
@@ -84,7 +85,7 @@ fn bench_invalidation_comparison(c: &mut Criterion) {
                     };
                     let key =
                         CacheKey::new(format!("query-{}", i)).with_domain(Some(domain.to_string()));
-                    let episodes = vec![create_test_episode(i, domain)];
+                    let episodes = vec![Arc::new(create_test_episode(i, domain))];
                     cache.put(key, episodes);
                 }
                 cache
@@ -108,7 +109,7 @@ fn bench_invalidation_comparison(c: &mut Criterion) {
                     };
                     let key =
                         CacheKey::new(format!("query-{}", i)).with_domain(Some(domain.to_string()));
-                    let episodes = vec![create_test_episode(i, domain)];
+                    let episodes = vec![Arc::new(create_test_episode(i, domain))];
                     cache.put(key, episodes);
                 }
                 cache
@@ -134,7 +135,7 @@ fn bench_put_overhead(c: &mut Criterion) {
         b.iter(|| {
             let key = CacheKey::new(format!("query-{}", counter))
                 .with_domain(Some("web-api".to_string()));
-            let episodes = vec![create_test_episode(counter, "web-api")];
+            let episodes = vec![Arc::new(create_test_episode(counter, "web-api"))];
             cache.put(key, episodes);
             counter += 1;
         });
@@ -146,7 +147,7 @@ fn bench_put_overhead(c: &mut Criterion) {
 
         b.iter(|| {
             let key = CacheKey::new(format!("query-{}", counter));
-            let episodes = vec![create_test_episode(counter, "general")];
+            let episodes = vec![Arc::new(create_test_episode(counter, "general"))];
             cache.put(key, episodes);
             counter += 1;
         });

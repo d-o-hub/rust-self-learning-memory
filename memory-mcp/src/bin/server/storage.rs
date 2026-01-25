@@ -100,6 +100,7 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
     info!("Connecting to Turso database at {}", turso_url);
 
     // Initialize Turso storage with connection pooling
+    #[allow(clippy::field_reassign_with_default)]
     let turso_config = TursoConfig {
         max_retries: 3,
         retry_base_delay_ms: 100,
@@ -162,6 +163,7 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     info!("Connecting to Turso database at {}", turso_url);
 
     // Initialize Turso storage with basic config for local use
+    #[allow(clippy::field_reassign_with_default)]
     let turso_config = TursoConfig {
         max_retries: 1, // Fewer retries for local
         retry_base_delay_ms: 50,

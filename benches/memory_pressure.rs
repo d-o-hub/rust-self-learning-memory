@@ -6,9 +6,8 @@
 //! - Memory fragmentation
 //! - Peak memory usage under concurrent load
 
-use criterion::{
-    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
-};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -334,7 +333,7 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
             BenchmarkId::new(scenario.name(), scenario.description()),
             &scenario,
             |b, scenario| {
-                b.to_async(FuturesExecutor).iter_custom(|iters| async move {
+                b.to_async(TokioExecutor).iter_custom(|iters| async move {
                     let mut total_time = std::time::Duration::ZERO;
 
                     for _ in 0..iters {
@@ -391,7 +390,7 @@ fn benchmark_memory_fragmentation(c: &mut Criterion) {
 
     // Test memory fragmentation by creating/deleting many small episodes
     group.bench_function("fragmentation_test", |b| {
-        b.to_async(FuturesExecutor).iter(|| async {
+        b.to_async(TokioExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 

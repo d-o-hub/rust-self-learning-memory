@@ -6,9 +6,8 @@
 //! - Query complexity
 //! - Storage backend differences
 
-use criterion::{
-    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
-};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -93,7 +92,7 @@ fn benchmark_dataset_scalability(c: &mut Criterion) {
             BenchmarkId::new("dataset_query_scalability", size),
             &size,
             |b, &_size| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let memory = Arc::new(memory);
                     let context = create_benchmark_context();
@@ -129,7 +128,7 @@ fn benchmark_concurrent_user_scalability(c: &mut Criterion) {
             BenchmarkId::new("concurrent_users", user_count),
             &user_count,
             |b, &users| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let memory = Arc::new(memory);
 
@@ -227,7 +226,7 @@ fn benchmark_query_complexity_scalability(c: &mut Criterion) {
             BenchmarkId::new("query_result_limit", limit),
             &limit,
             |b, &query_limit| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let context = create_benchmark_context();
 
                     let results = memory
@@ -259,7 +258,7 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
             BenchmarkId::new("batch_operations", batch_size),
             &batch_size,
             |b, &size| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -340,7 +339,7 @@ fn benchmark_throughput_vs_latency(c: &mut Criterion) {
             BenchmarkId::new("operation_rate", rate),
             &rate,
             |b, &target_rate| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 

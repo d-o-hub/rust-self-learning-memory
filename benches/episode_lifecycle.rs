@@ -8,9 +8,8 @@
 //! - Episode retrieval (retrieve_relevant_context)
 //! - Pattern extraction and scoring performance
 
-use criterion::{
-    async_executor::FuturesExecutor, black_box, criterion_group, criterion_main, Criterion,
-};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     generate_large_episode_description, generate_many_execution_steps, setup_temp_memory,
@@ -78,7 +77,7 @@ fn benchmark_episode_creation(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(batch_size),
             batch_size,
             |b, &size| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -114,7 +113,7 @@ fn benchmark_step_logging(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -151,7 +150,7 @@ fn benchmark_episode_completion(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -209,7 +208,7 @@ fn benchmark_full_lifecycle(c: &mut Criterion) {
             ),
             &(episode_count, steps_per_episode),
             |b, &(episodes, steps)| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -265,7 +264,7 @@ fn benchmark_episode_retrieval(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(total_episodes),
             total_episodes,
             |b, &episode_count| {
-                b.to_async(FuturesExecutor).iter_custom(|iters| async move {
+                b.to_async(TokioExecutor).iter_custom(|iters| async move {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -329,7 +328,7 @@ fn benchmark_scoring_and_patterns(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -384,7 +383,7 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
             criterion::BenchmarkId::from_parameter(concurrent_episodes),
             concurrent_episodes,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
 
@@ -420,7 +419,7 @@ fn benchmark_memory_pressure(c: &mut Criterion) {
     group.sample_size(10);
 
     group.bench_function("large_episode_lifecycle", |b| {
-        b.to_async(FuturesExecutor).iter(|| async {
+        b.to_async(TokioExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 
@@ -470,7 +469,7 @@ fn benchmark_storage_backends(c: &mut Criterion) {
 
     // Benchmark redb storage
     group.bench_function("redb_lifecycle", |b| {
-        b.to_async(FuturesExecutor).iter(|| async {
+        b.to_async(TokioExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 
@@ -504,7 +503,7 @@ fn benchmark_storage_backends(c: &mut Criterion) {
 
     // Benchmark Turso storage (if available)
     group.bench_function("turso_lifecycle", |b| {
-        b.to_async(FuturesExecutor).iter(|| async {
+        b.to_async(TokioExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_turso_memory().await;
             let context = create_benchmark_context();
 

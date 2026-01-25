@@ -16,7 +16,10 @@ pub async fn setup_temp_memory() -> (SelfLearningMemory, TempDir) {
     let primary_path = temp_dir.path().join("benchmark_primary.redb");
     let cache_path = temp_dir.path().join("benchmark_cache.redb");
 
-    let memory_config = MemoryConfig::default();
+    let memory_config = MemoryConfig {
+        quality_threshold: 0.3,
+        ..Default::default()
+    };
 
     let primary_storage = RedbStorage::new(&primary_path)
         .await
@@ -38,7 +41,10 @@ pub async fn setup_temp_turso_memory() -> (SelfLearningMemory, TempDir) {
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
     let db_path = temp_dir.path().join("benchmark.db");
 
-    let memory_config = MemoryConfig::default();
+    let memory_config = MemoryConfig {
+        quality_threshold: 0.3,
+        ..Default::default()
+    };
 
     let turso_storage = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
         .await

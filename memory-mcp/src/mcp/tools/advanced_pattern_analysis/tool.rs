@@ -210,7 +210,7 @@ impl AdvancedPatternAnalysisTool {
     ) -> Result<HashMap<String, Vec<f64>>> {
         info!("Extracting time series data from memory episodes");
 
-        // Query memory for relevant episodes
+        // Query memory for relevant episodes (returns Vec<Arc<Episode>>)
         let context = memory_core::TaskContext {
             domain: domain.to_string(),
             language: None,
@@ -219,16 +219,22 @@ impl AdvancedPatternAnalysisTool {
             tags: vec![],
         };
 
-        let episodes = self
+        let arc_episodes = self
             .memory
             .retrieve_relevant_context(query.to_string(), context, limit)
             .await;
 
-        if episodes.is_empty() {
+        if arc_episodes.is_empty() {
             return Err(anyhow::anyhow!(
                 "No relevant episodes found for time series extraction"
             ));
         }
+
+        // Convert Vec<Arc<Episode>> to Vec<Episode> for the extractor
+        let episodes: Vec<memory_core::Episode> = arc_episodes
+            .into_iter()
+            .map(|arc_ep| arc_ep.as_ref().clone())
+            .collect();
 
         // Extract metrics from episodes using TimeSeriesExtractor
         let extractor = TimeSeriesExtractor::new();

@@ -34,9 +34,9 @@ pub async fn analyze_pattern(
             ))
         })?;
 
-    // Get recent episodes to analyze
+    // Get recent episodes to analyze (returns Vec<Arc<Episode>>)
     let context = memory_core::types::TaskContext::default();
-    let recent_episodes = memory
+    let arc_episodes = memory
         .retrieve_relevant_context("".to_string(), context, episodes)
         .await;
 
@@ -45,7 +45,8 @@ pub async fn analyze_pattern(
     let mut total_applications = 0;
     let mut improvement_scores = Vec::new();
 
-    for episode in recent_episodes {
+    for arc_ep in arc_episodes {
+        let episode = arc_ep.as_ref();
         // Check if this episode used the pattern
         if episode.patterns.contains(&pattern_uuid) {
             total_applications += 1;

@@ -100,17 +100,19 @@ impl crate::server::MemoryMCPServer {
                 .unwrap_or_default(),
         };
 
-        // Query actual memory for relevant episodes
-        let episodes = self
+        // Query actual memory for relevant episodes (returns Vec<Arc<Episode>>)
+        let arc_episodes = self
             .memory
             .retrieve_relevant_context(query.clone(), context.clone(), limit)
             .await;
 
         // Strict filtering: only return episodes that actually contain the query.
+        // Dereference Arc<Episode> to access Episode fields
         let query_lc = query.to_lowercase();
-        let mut episodes: Vec<_> = episodes
+        let mut episodes: Vec<_> = arc_episodes
             .into_iter()
-            .filter(|ep| {
+            .filter(|arc_ep| {
+                let ep = arc_ep.as_ref();
                 if ep.task_description.to_lowercase().contains(&query_lc) {
                     return true;
                 }
@@ -138,6 +140,7 @@ impl crate::server::MemoryMCPServer {
                 }
                 false
             })
+            .map(|arc_ep| arc_ep.as_ref().clone())
             .collect();
 
         // Apply sorting

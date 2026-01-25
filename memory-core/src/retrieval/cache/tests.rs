@@ -10,11 +10,12 @@ mod cache_tests {
     use crate::types::{TaskContext, TaskType};
     use chrono;
     use std::collections::HashMap;
+    use std::sync::Arc;
     use std::time::Duration;
     use uuid::Uuid;
 
-    fn create_test_episode(id: &str) -> Episode {
-        Episode {
+    fn create_test_episode(id: &str) -> Arc<Episode> {
+        Arc::new(Episode {
             episode_id: Uuid::parse_str(id).unwrap_or_else(|_| Uuid::new_v4()),
             task_type: TaskType::CodeGeneration,
             task_description: "test task".to_string(),
@@ -30,7 +31,7 @@ mod cache_tests {
             applied_patterns: vec![],
             salient_features: None,
             metadata: HashMap::new(),
-        }
+        })
     }
 
     #[test]
@@ -43,7 +44,7 @@ mod cache_tests {
         assert!(cache.get(&key).is_none());
 
         // Put in cache
-        cache.put(key.clone(), episodes.clone());
+        cache.put(key.clone(), episodes);
 
         // Cache hit
         let result = cache.get(&key);

@@ -1,6 +1,7 @@
 //! Helper functions for retrieval operations
 
 use crate::episode::Episode;
+use std::sync::Arc;
 
 /// Maximum size for caching episodes (100KB)
 pub const MAX_CACHEABLE_SIZE: usize = 100 * 1024;
@@ -9,7 +10,7 @@ pub const MAX_CACHEABLE_SIZE: usize = 100 * 1024;
 ///
 /// Skips caching for large result sets to avoid expensive clone operations.
 /// Estimates size based on step count and artifact sizes.
-pub fn should_cache_episodes(episodes: &[Episode]) -> bool {
+pub fn should_cache_episodes(episodes: &[Arc<Episode>]) -> bool {
     // Quick check: if >50 episodes, likely too large
     if episodes.len() > 50 {
         return false;
@@ -18,7 +19,8 @@ pub fn should_cache_episodes(episodes: &[Episode]) -> bool {
     // Estimate total size
     let estimated_size: usize = episodes
         .iter()
-        .map(|ep| {
+        .map(|arc_ep| {
+            let ep = arc_ep.as_ref();
             // Base episode overhead: ~1KB
             let mut size = 1024;
 

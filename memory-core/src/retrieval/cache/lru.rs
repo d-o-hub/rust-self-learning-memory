@@ -66,7 +66,7 @@ impl QueryCache {
 
     /// Get a cached query result
     #[must_use]
-    pub fn get(&self, key: &CacheKey) -> Option<Arc<[Episode]>> {
+    pub fn get(&self, key: &CacheKey) -> Option<Vec<Arc<Episode>>> {
         let key_hash = key.compute_hash();
 
         // Fast path: Check if this entry is marked for lazy invalidation
@@ -104,9 +104,15 @@ impl QueryCache {
                 return None;
             }
 
-            // Cache hit - Arc clone is cheap (just ref count increment)
+            // Cache hit - convert Arc<[Episode]> to Vec<Arc<Episode>>
+            // Dereference each Episode to get &Episode, then clone into Arc<Episode>
             metrics.hits += 1;
-            Some(Arc::clone(&result.episodes))
+            let episodes: Vec<Arc<Episode>> = result
+                .episodes
+                .iter()
+                .map(|ep| Arc::new(ep.clone()))
+                .collect();
+            Some(episodes)
         } else {
             // Cache miss
             metrics.misses += 1;
@@ -116,10 +122,13 @@ impl QueryCache {
     }
 
     /// Store a query result in the cache
-    pub fn put(&self, key: CacheKey, episodes: Vec<Episode>) {
+    pub fn put(&self, key: CacheKey, episodes: Vec<Arc<Episode>>) {
         let key_hash = key.compute_hash();
+        // Convert Vec<Arc<Episode>> to Arc<[Episode]> by cloning each Episode
+        let episodes_slice: Arc<[Episode]> =
+            episodes.iter().map(|ep| ep.as_ref().clone()).collect();
         let cached_result = CachedResult {
-            episodes: Arc::from(episodes),
+            episodes: episodes_slice,
             cached_at: Instant::now(),
             ttl: self.default_ttl,
         };

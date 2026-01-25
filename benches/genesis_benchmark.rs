@@ -7,10 +7,8 @@
 //! 4. Summary generation: ≤ 20ms per episode
 //! 5. Total overhead: ≤ 10ms average (combined PREMem + GENESIS)
 
-use criterion::{
-    async_executor::FuturesExecutor, black_box, criterion_group, criterion_main, BenchmarkId,
-    Criterion,
-};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -119,7 +117,7 @@ fn benchmark_summary_generation_time(c: &mut Criterion) {
                     artifacts: vec!["auth.rs".to_string(), "jwt.rs".to_string()],
                 });
 
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let start = Instant::now();
                     let summary = summarizer.summarize_episode(&episode).await.unwrap();
                     let elapsed = start.elapsed();
@@ -146,7 +144,7 @@ fn benchmark_storage_compression_ratio(c: &mut Criterion) {
             BenchmarkId::from_parameter(step_count),
             step_count,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let summarizer = SemanticSummarizer::new();
                     let context = create_benchmark_context();
                     let mut episode = Episode::new(
@@ -265,7 +263,7 @@ fn benchmark_combined_premem_genesis_overhead(c: &mut Criterion) {
 
     // Baseline: complete_episode without any Phase 2 features
     group.bench_function("baseline_no_phase2", |b| {
-        b.to_async(FuturesExecutor).iter(|| async {
+        b.to_async(TokioExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 
@@ -303,7 +301,7 @@ fn benchmark_combined_premem_genesis_overhead(c: &mut Criterion) {
 
     // GENESIS only: with semantic summarization
     group.bench_function("genesis_only_summarization", |b| {
-        b.to_async(FuturesExecutor).iter(|| async {
+        b.to_async(TokioExecutor).iter(|| async {
             let (memory, _temp_dir) = setup_temp_memory().await;
             let context = create_benchmark_context();
 

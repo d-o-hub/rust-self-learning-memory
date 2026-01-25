@@ -3,9 +3,12 @@
 //! Optimized batch operations for patterns using transactions.
 
 use crate::TursoStorage;
-use memory_core::{episode::PatternId, Episode, Error, Pattern, Result};
+use memory_core::{Episode, Error, Pattern, Result};
 use tracing::{debug, error, info};
 use uuid::Uuid;
+
+#[cfg(feature = "compression")]
+use crate::storage::episodes::compress_json_field;
 
 impl TursoStorage {
     /// Store multiple episodes with custom IDs
@@ -104,7 +107,7 @@ impl TursoStorage {
             let patterns_json = if should_compress {
                 let data =
                     serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-                super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                compress_json_field(data.as_bytes(), compression_threshold)?
             } else {
                 serde_json::to_string(&episode.patterns)
                     .map_err(Error::Serialization)?
@@ -120,7 +123,7 @@ impl TursoStorage {
             let heuristics_json = if should_compress {
                 let data =
                     serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-                super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                compress_json_field(data.as_bytes(), compression_threshold)?
             } else {
                 serde_json::to_string(&episode.heuristics)
                     .map_err(Error::Serialization)?
@@ -136,7 +139,7 @@ impl TursoStorage {
             let metadata_json = if should_compress {
                 let data =
                     serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
-                super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                compress_json_field(data.as_bytes(), compression_threshold)?
             } else {
                 serde_json::to_string(&episode.metadata)
                     .map_err(Error::Serialization)?
@@ -270,11 +273,11 @@ impl TursoStorage {
                     occurrence_count,
                     effectiveness: _,
                 } => {
-                    let tools_vec = tools.clone();
-                    let desc = format!("Tool sequence: {}", tools_vec.join(" -> "));
+                    // Use tools directly without cloning - join() accepts IntoIterator
+                    let desc = format!("Tool sequence: {}", tools.join(" -> "));
                     let heur = memory_core::Heuristic::new(
-                        format!("When need tools: {}", tools_vec.join(", ")),
-                        format!("Use sequence: {}", tools_vec.join(" -> ")),
+                        format!("When need tools: {}", tools.join(", ")),
+                        format!("Use sequence: {}", tools.join(" -> ")),
                         *success_rate,
                     );
                     (
@@ -355,9 +358,9 @@ impl TursoStorage {
 
             // Create pattern_data JSON blob
             let pattern_data = crate::storage::patterns::PatternDataJson {
-                description: description.clone(),
+                description,
                 context: context.clone(),
-                heuristic: heuristic.clone(),
+                heuristic,
             };
             let pattern_data_json =
                 serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
@@ -477,9 +480,10 @@ mod tests {
                 success_count: 5,
                 failure_count: 1,
                 total_count: 6,
+                avg_duration_secs: 0.0,
             },
             context: memory_core::TaskContext::default(),
-            effectiveness: None,
+            effectiveness: memory_core::pattern::PatternEffectiveness::default(),
         }];
 
         let result = storage.store_patterns_batch(patterns).await;

@@ -440,7 +440,7 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         let id1 = Uuid::new_v4();
-        let id2 = Uuid::new_v4();
+        let _id2 = Uuid::new_v4(); // Reserved for future batch testing
 
         let episodes = vec![(
             id1,

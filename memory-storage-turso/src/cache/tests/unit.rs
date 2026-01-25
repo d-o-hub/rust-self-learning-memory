@@ -1,12 +1,12 @@
-//! Cache wrapper tests
+//! Cache wrapper tests - Unit tests
 //!
-//! Unit and integration tests for the CachedTursoStorage wrapper.
-//! Tests cover cache hit/miss behavior, invalidation, eviction, and concurrent access.
+//! Unit tests for the CachedTursoStorage wrapper.
+//! Tests cover cache hit/miss behavior, invalidation, and basic operations.
 
 use super::{CacheConfig, CachedTursoStorage};
 use crate::TursoStorage;
 use libsql::Builder;
-use memory_core::{Episode, Evidence, Heuristic, Pattern, StorageBackend, TaskContext, TaskType};
+use memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use std::sync::Arc;
 use tempfile::TempDir;
 use uuid::Uuid;
@@ -290,159 +290,6 @@ async fn test_clear_caches() {
     // Note: Some misses may still occur due to internal operations
 }
 
-// ========== Integration Tests ==========
-
-#[tokio::test]
-async fn test_storage_backend_trait_episode() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    let episode = create_test_episode(Uuid::new_v4());
-
-    // Use StorageBackend trait methods
-    cached.store_episode(&episode).await.unwrap();
-    let result = cached.get_episode(episode.episode_id).await.unwrap();
-
-    assert!(result.is_some());
-    assert_eq!(result.unwrap().episode_id, episode.episode_id);
-}
-
-#[tokio::test]
-async fn test_storage_backend_trait_pattern() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    let pattern_id = Uuid::new_v4();
-    let pattern = create_test_pattern(pattern_id);
-
-    // Use StorageBackend trait methods
-    cached.store_pattern(&pattern).await.unwrap();
-    let result = cached.get_pattern(pattern_id).await.unwrap();
-
-    assert!(result.is_some());
-}
-
-#[tokio::test]
-async fn test_storage_backend_trait_heuristic() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    let heuristic_id = Uuid::new_v4();
-    let heuristic = create_test_heuristic(heuristic_id);
-
-    // Use StorageBackend trait methods
-    cached.store_heuristic(&heuristic).await.unwrap();
-    let result = cached.get_heuristic(heuristic_id).await.unwrap();
-
-    assert!(result.is_some());
-}
-
-// ========== Concurrent Access Tests ==========
-
-#[tokio::test]
-async fn test_concurrent_episode_access() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = Arc::new(CachedTursoStorage::new(storage, CacheConfig::default()));
-
-    let episode_id = Uuid::new_v4();
-    let episode = create_test_episode(episode_id);
-
-    // Store episode
-    cached.store_episode_cached(&episode).await.unwrap();
-
-    // Spawn multiple concurrent reads
-    let mut handles = Vec::new();
-    for _ in 0..10 {
-        let cached_clone = Arc::clone(&cached);
-        let handle = tokio::spawn(async move { cached_clone.get_episode_cached(episode_id).await });
-        handles.push(handle);
-    }
-
-    // Wait for all reads to complete
-    let results: Vec<_> = futures::future::join_all(handles)
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
-
-    // All should return the episode
-    for result in results {
-        assert!(result.is_ok());
-        let episode_opt = result.unwrap();
-        assert!(episode_opt.is_some());
-        assert_eq!(episode_opt.unwrap().episode_id, episode_id);
-    }
-}
-
-#[tokio::test]
-async fn test_concurrent_episode_updates() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = Arc::new(CachedTursoStorage::new(storage, CacheConfig::default()));
-
-    let episode_id = Uuid::new_v4();
-
-    // Spawn multiple concurrent writes
-    let mut handles = Vec::new();
-    for i in 0..5 {
-        let cached_clone = Arc::clone(&cached);
-        let handle = tokio::spawn(async move {
-            let episode = create_test_episode(episode_id);
-            let mut updated = episode.clone();
-            updated.task_description = format!("Updated episode {}", i);
-            let _ = cached_clone.store_episode_cached(&updated).await;
-        });
-        handles.push(handle);
-    }
-
-    // Wait for all writes to complete
-    let _results: Vec<()> = futures::future::join_all(handles)
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
-
-    // Verify final state exists
-    let result = cached.get_episode_cached(episode_id).await.unwrap();
-    assert!(result.is_some());
-}
-
-#[tokio::test]
-async fn test_mixed_read_write_operations() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = Arc::new(CachedTursoStorage::new(storage, CacheConfig::default()));
-
-    let mut handles = Vec::new();
-
-    // Mix of read and write operations
-    for i in 0..20 {
-        let cached_clone = Arc::clone(&cached);
-        let id = Uuid::new_v4();
-
-        let handle = tokio::spawn(async move {
-            if i % 3 == 0 {
-                // Write
-                let episode = create_test_episode(id);
-                let _ = cached_clone.store_episode_cached(&episode).await;
-            } else {
-                // Read (might hit or miss)
-                let _ = cached_clone.get_episode_cached(id).await;
-            }
-        });
-        handles.push(handle);
-    }
-
-    // Wait for all operations
-    let _results: Vec<()> = futures::future::join_all(handles)
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
-
-    // All should complete without panicking
-}
-
-// ========== Cache Configuration Tests ==========
-
 #[tokio::test]
 async fn test_cache_config_validation() {
     let cache_config = CacheConfig::default();
@@ -497,43 +344,4 @@ async fn test_underlying_storage_access() {
         .await
         .unwrap();
     assert!(result.is_some());
-}
-
-// ========== Error Handling Tests ==========
-
-#[tokio::test]
-async fn test_get_nonexistent_episode() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    let result = cached.get_episode_cached(Uuid::new_v4()).await.unwrap();
-    assert!(result.is_none());
-}
-
-#[tokio::test]
-async fn test_get_nonexistent_pattern() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    let result = cached.get_pattern_cached(Uuid::new_v4()).await.unwrap();
-    assert!(result.is_none());
-}
-
-#[tokio::test]
-async fn test_get_nonexistent_heuristic() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    let result = cached.get_heuristic_cached(Uuid::new_v4()).await.unwrap();
-    assert!(result.is_none());
-}
-
-#[tokio::test]
-async fn test_delete_nonexistent_episode() {
-    let (storage, _dir) = create_test_turso_storage().await;
-    let cached = CachedTursoStorage::new(storage, CacheConfig::default());
-
-    // Should not error when deleting non-existent episode
-    let result = cached.delete_episode_cached(Uuid::new_v4()).await;
-    assert!(result.is_ok());
 }

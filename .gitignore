@@ -51,7 +51,11 @@ cache/
 !/memory-core/src/retrieval/cache
 !/memory-core/src/storage/circuit_breaker
 !/memory-storage-redb/src/cache
-storage/
+!/memory-storage-turso/src/cache
+!/memory-storage-turso/src/storage
+/storage/
+/cache/
+/data/
 
 # Test database files
 test*.db

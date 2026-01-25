@@ -110,6 +110,7 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
         compress_patterns: true,
         compress_embeddings: true,
         cache_config: None,
+        ..Default::default()
     };
 
     let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;
@@ -171,6 +172,7 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
         compress_patterns: true,
         compress_embeddings: true,
         cache_config: None,
+        ..Default::default()
     };
 
     let turso_storage = TursoStorage::with_config(&turso_url, &turso_token, turso_config).await?;

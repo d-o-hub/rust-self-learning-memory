@@ -189,13 +189,14 @@ async fn should_handle_missing_episode_gracefully() {
 fn should_resolve_conflicts_with_turso_wins_strategy() {
     // Given: Two episodes with same ID but different content
     let context = TaskContext::default();
-    let episode1 = Episode::new(
+    let episode1 = Arc::new(Episode::new(
         "Task from Turso".to_string(),
         context.clone(),
         TaskType::Testing,
-    );
+    ));
     let mut episode2 = Episode::new("Task from redb".to_string(), context, TaskType::Testing);
     episode2.episode_id = episode1.episode_id;
+    let episode2 = Arc::new(episode2);
 
     // When: Resolving conflict with TursoWins strategy
     let resolved = memory_core::sync::resolve_episode_conflict(
@@ -212,13 +213,14 @@ fn should_resolve_conflicts_with_turso_wins_strategy() {
 fn should_resolve_conflicts_with_redb_wins_strategy() {
     // Given: Two episodes with same ID but different content
     let context = TaskContext::default();
-    let episode1 = Episode::new(
+    let episode1 = Arc::new(Episode::new(
         "Task from Turso".to_string(),
         context.clone(),
         TaskType::Testing,
-    );
+    ));
     let mut episode2 = Episode::new("Task from redb".to_string(), context, TaskType::Testing);
     episode2.episode_id = episode1.episode_id;
+    let episode2 = Arc::new(episode2);
 
     // When: Resolving conflict with RedbWins strategy
     let resolved = memory_core::sync::resolve_episode_conflict(
@@ -235,10 +237,15 @@ fn should_resolve_conflicts_with_redb_wins_strategy() {
 fn should_resolve_conflicts_with_most_recent_strategy() {
     // Given: Two episodes with same ID but different timestamps
     let context = TaskContext::default();
-    let episode1 = Episode::new("Older task".to_string(), context.clone(), TaskType::Testing);
+    let episode1 = Arc::new(Episode::new(
+        "Older task".to_string(),
+        context.clone(),
+        TaskType::Testing,
+    ));
     let mut episode2 = Episode::new("Newer task".to_string(), context, TaskType::Testing);
     episode2.episode_id = episode1.episode_id;
     episode2.end_time = Some(chrono::Utc::now());
+    let episode2 = Arc::new(episode2);
 
     // When: Resolving conflict with MostRecent strategy
     let resolved = memory_core::sync::resolve_episode_conflict(

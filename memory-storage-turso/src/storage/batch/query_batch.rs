@@ -282,7 +282,7 @@ mod tests {
             uuid::Uuid::parse_str("00000000-0000-0000-0000-000000000003").unwrap(),
         ];
 
-        let retrieved = storage.get_episodes_batch(&ids).await.unwrap();
+        let _retrieved = storage.get_episodes_batch(&ids).await.unwrap();
         // Episodes should be in storage (we're checking by generated IDs)
     }
 }

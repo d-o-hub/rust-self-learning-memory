@@ -7,20 +7,22 @@
     clippy::inefficient_to_string,
     clippy::similar_names,
     clippy::field_reassign_with_default,
-    clippy::uninlined_format_args
+    clippy::uninlined_format_args,
+    clippy::vec_init_then_push
 )]
 
 use memory_core::episode::Episode;
 use memory_core::retrieval::{CacheKey, QueryCache};
 use memory_core::types::{TaskContext, TaskType};
 use std::collections::HashMap;
+use std::sync::Arc;
 use uuid::Uuid;
 
-fn create_episode(id: &str, domain: &str) -> Episode {
+fn create_episode(id: &str, domain: &str) -> Arc<Episode> {
     let mut context = TaskContext::default();
     context.domain = domain.to_string();
 
-    Episode {
+    Arc::new(Episode {
         episode_id: Uuid::parse_str(id).unwrap_or_else(|_| Uuid::new_v4()),
         task_type: TaskType::CodeGeneration,
         task_description: format!("Task in {} domain", domain),
@@ -36,7 +38,7 @@ fn create_episode(id: &str, domain: &str) -> Episode {
         applied_patterns: vec![],
         salient_features: None,
         metadata: HashMap::new(),
-    }
+    })
 }
 
 #[test]

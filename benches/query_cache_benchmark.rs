@@ -11,6 +11,7 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use memory_core::retrieval::{CacheKey, QueryCache};
 use memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskType};
+use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
 
@@ -69,7 +70,9 @@ fn bench_cache_hit(c: &mut Criterion) {
             .with_domain(Some("web-api".to_string()))
             .with_limit(10);
 
-        let episodes: Vec<Episode> = (0..*episode_count).map(create_test_episode).collect();
+        let episodes: Vec<Arc<Episode>> = (0..*episode_count)
+            .map(|i| Arc::new(create_test_episode(i)))
+            .collect();
 
         cache.put(key.clone(), episodes);
 
@@ -111,7 +114,9 @@ fn bench_cache_put(c: &mut Criterion) {
     let mut group = c.benchmark_group("cache_put");
 
     for episode_count in [1, 5, 10, 20].iter() {
-        let episodes: Vec<Episode> = (0..*episode_count).map(create_test_episode).collect();
+        let episodes: Vec<Arc<Episode>> = (0..*episode_count)
+            .map(|i| Arc::new(create_test_episode(i)))
+            .collect();
 
         group.throughput(Throughput::Elements(*episode_count as u64));
         group.bench_with_input(
@@ -139,7 +144,7 @@ fn bench_cache_put(c: &mut Criterion) {
 /// Benchmark LRU eviction performance
 fn bench_cache_eviction(c: &mut Criterion) {
     let cache = QueryCache::with_capacity_and_ttl(100, Duration::from_secs(60));
-    let episodes: Vec<Episode> = (0..5).map(create_test_episode).collect();
+    let episodes: Vec<Arc<Episode>> = (0..5).map(|i| Arc::new(create_test_episode(i))).collect();
 
     // Fill cache to capacity
     for i in 0..100 {
@@ -170,7 +175,8 @@ fn bench_cache_invalidation(c: &mut Criterion) {
 
     for cache_size in [10, 100, 1000, 5000].iter() {
         let cache = QueryCache::new();
-        let episodes: Vec<Episode> = (0..5).map(create_test_episode).collect();
+        let episodes: Vec<Arc<Episode>> =
+            (0..5).map(|i| Arc::new(create_test_episode(i))).collect();
 
         // Fill cache with entries
         for i in 0..*cache_size {
@@ -205,11 +211,10 @@ fn bench_cache_invalidation(c: &mut Criterion) {
 
 /// Benchmark concurrent cache access
 fn bench_concurrent_access(c: &mut Criterion) {
-    use std::sync::Arc;
     use std::thread;
 
     let cache = Arc::new(QueryCache::new());
-    let episodes: Vec<Episode> = (0..5).map(create_test_episode).collect();
+    let episodes: Vec<Arc<Episode>> = (0..5).map(|i| Arc::new(create_test_episode(i))).collect();
 
     // Pre-populate cache
     for i in 0..100 {

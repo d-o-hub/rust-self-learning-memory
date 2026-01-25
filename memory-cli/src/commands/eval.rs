@@ -250,11 +250,17 @@ pub async fn calibration(
 ) -> anyhow::Result<()> {
     use memory_core::DomainStatisticsCache;
 
-    // Get all episodes to calculate statistics
+    // Get all episodes to calculate statistics (returns Vec<Arc<Episode>>)
     let context = memory_core::types::TaskContext::default();
-    let all_episodes = memory
+    let arc_episodes = memory
         .retrieve_relevant_context("".to_string(), context, 10000)
         .await;
+
+    // Convert Vec<Arc<Episode>> to Vec<Episode> for grouping
+    let all_episodes: Vec<memory_core::Episode> = arc_episodes
+        .iter()
+        .map(|arc_ep| arc_ep.as_ref().clone())
+        .collect();
 
     // Group episodes by domain
     let mut domain_episodes: std::collections::HashMap<String, Vec<_>> =
@@ -321,14 +327,20 @@ pub async fn domain_stats(
 ) -> anyhow::Result<()> {
     use memory_core::DomainStatisticsCache;
 
-    // Get all episodes for this domain
+    // Get all episodes for this domain (returns Vec<Arc<Episode>>)
     let context = memory_core::types::TaskContext {
         domain: domain.clone(),
         ..Default::default()
     };
-    let episodes = memory
+    let arc_episodes = memory
         .retrieve_relevant_context("".to_string(), context, 10000)
         .await;
+
+    // Convert Vec<Arc<Episode>> to Vec<Episode> for filtering
+    let episodes: Vec<memory_core::Episode> = arc_episodes
+        .iter()
+        .map(|arc_ep| arc_ep.as_ref().clone())
+        .collect();
 
     let domain_episodes: Vec<_> = episodes
         .iter()

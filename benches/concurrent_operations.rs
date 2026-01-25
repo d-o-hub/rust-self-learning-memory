@@ -3,9 +3,8 @@
 //! Tests concurrent read/write operations across multiple storage backends
 //! following patterns from rust-storage-bench and YCSB workloads.
 
-use criterion::{
-    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
-};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use memory_benches::TokioExecutor;
 use futures::future::join_all;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
@@ -176,7 +175,7 @@ fn benchmark_concurrent_operations(c: &mut Criterion) {
                 ),
                 &(pattern.clone(), *concurrency),
                 |b, (pattern, concurrency)| {
-                    b.to_async(FuturesExecutor).iter(|| async {
+                    b.to_async(TokioExecutor).iter(|| async {
                         let (memory, _temp_dir) = setup_temp_memory().await;
                         let memory = Arc::new(memory);
 
@@ -229,7 +228,7 @@ fn benchmark_async_throughput(c: &mut Criterion) {
             BenchmarkId::from_parameter(operations),
             operations,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let memory = Arc::new(memory);
                     let context = create_benchmark_context();

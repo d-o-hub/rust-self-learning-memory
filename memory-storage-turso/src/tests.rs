@@ -22,6 +22,7 @@ async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
         #[cfg(feature = "keepalive-pool")]
         keepalive_pool: None,
         adaptive_pool: None,
+        prepared_cache: Arc::new(crate::PreparedStatementCache::with_config(crate::PreparedCacheConfig::default())),
         config: TursoConfig::default(),
     };
 

@@ -3,9 +3,11 @@
 //! Configuration options for batch operations.
 
 use crate::TursoStorage;
-use memory_core::{episode::PatternId, Episode, Error, Pattern, Result};
-use tracing::{debug, error, info, warn};
-use uuid::Uuid;
+use memory_core::{Episode, Error, Result};
+use tracing::{debug, error, info};
+
+#[cfg(feature = "compression")]
+use crate::storage::episodes::compress_json_field;
 
 /// Configuration for batch operations
 #[derive(Debug, Clone)]
@@ -135,7 +137,7 @@ impl TursoStorage {
             let patterns_json = if should_compress {
                 let data =
                     serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-                super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                compress_json_field(data.as_bytes(), compression_threshold)?
             } else {
                 serde_json::to_string(&episode.patterns)
                     .map_err(Error::Serialization)?
@@ -151,7 +153,7 @@ impl TursoStorage {
             let heuristics_json = if should_compress {
                 let data =
                     serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-                super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                compress_json_field(data.as_bytes(), compression_threshold)?
             } else {
                 serde_json::to_string(&episode.heuristics)
                     .map_err(Error::Serialization)?
@@ -167,7 +169,7 @@ impl TursoStorage {
             let metadata_json = if should_compress {
                 let data =
                     serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
-                super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                compress_json_field(data.as_bytes(), compression_threshold)?
             } else {
                 serde_json::to_string(&episode.metadata)
                     .map_err(Error::Serialization)?

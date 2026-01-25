@@ -17,6 +17,7 @@ use tracing::{debug, info};
 use uuid::Uuid;
 
 // Re-export submodules
+pub mod batch;
 pub mod capacity;
 pub mod episodes;
 pub mod heuristics;
@@ -24,6 +25,7 @@ pub mod monitoring;
 pub mod patterns;
 pub mod search;
 
+pub use batch::BatchConfig;
 pub use episodes::EpisodeQuery;
 #[allow(unused)]
 pub use patterns::PatternMetadata;

@@ -184,11 +184,17 @@ impl QualityMetricsTool {
             tags: vec![],
         };
 
-        // Retrieve a large batch of recent episodes
-        let mut episodes = self
+        // Retrieve a large batch of recent episodes (returns Vec<Arc<Episode>>)
+        let arc_episodes = self
             .memory
             .retrieve_relevant_context("all tasks".to_string(), context, 1000)
             .await;
+
+        // Convert Vec<Arc<Episode>> to Vec<Episode> by cloning
+        let mut episodes: Vec<memory_core::Episode> = arc_episodes
+            .into_iter()
+            .map(|arc_ep| arc_ep.as_ref().clone())
+            .collect();
 
         // Filter by time range if specified
         if let Some(cutoff) = time_cutoff {

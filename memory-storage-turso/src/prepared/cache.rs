@@ -114,6 +114,7 @@ struct CachedStatement {
     /// Number of times this statement was used
     use_count: u64,
     /// The SQL string (for reference)
+    #[allow(dead_code)]
     sql: String,
 }
 
@@ -129,6 +130,7 @@ impl CachedStatement {
     }
 
     /// Increment use count
+    #[allow(dead_code)]
     fn increment_use(&mut self) {
         self.use_count += 1;
     }
@@ -216,25 +218,22 @@ impl PreparedStatementCache {
         // Check cache first for a hit
         let cached_statement = {
             let cache = self.cache.read();
-            match cache
+            let result = cache
                 .get(sql)
                 .filter(|cached| !cached.needs_refresh(&self.config))
-            {
-                Some(cached) => {
-                    // Cache hit - clone the Arc before releasing the read lock
-                    trace!("Cache hit for SQL: {}", sql);
-                    drop(cache);
-                    self.stats.write().record_hit();
-                    Some(Arc::clone(&cached.statement))
-                }
-                None => {
-                    // Cache miss or needs refresh
-                    trace!("Cache miss for SQL: {}", sql);
-                    drop(cache);
-                    self.stats.write().record_miss();
-                    None
-                }
+                .map(|cached| Arc::clone(&cached.statement));
+            
+            drop(cache);
+            
+            if result.is_some() {
+                trace!("Cache hit for SQL: {}", sql);
+                self.stats.write().record_hit();
+            } else {
+                trace!("Cache miss for SQL: {}", sql);
+                self.stats.write().record_miss();
             }
+            
+            result
         };
 
         // Return cached statement if we have one
@@ -253,13 +252,13 @@ impl PreparedStatementCache {
         {
             let mut cache = self.cache.write();
 
+            // Check if we need to evict before checking vacancy
+            if cache.len() >= self.config.max_size && !cache.contains_key(sql) {
+                self.evict_lru(&mut cache);
+            }
+
             // Check if still not present (another thread may have prepared it)
             if let Entry::Vacant(e) = cache.entry(sql.to_string()) {
-                // Check if we need to evict
-                if cache.len() >= self.config.max_size {
-                    self.evict_lru(&mut cache);
-                }
-
                 e.insert(CachedStatement::new(
                     Arc::clone(&statement_arc),
                     sql.to_string(),

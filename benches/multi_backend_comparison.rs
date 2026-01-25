@@ -7,9 +7,8 @@
 //!
 //! Following patterns from rust-storage-bench for fair comparisons.
 
-use criterion::{
-    async_executor::FuturesExecutor, criterion_group, criterion_main, BenchmarkId, Criterion,
-};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
 };
@@ -110,7 +109,7 @@ fn benchmark_backend_write_performance(c: &mut Criterion) {
             BenchmarkId::new("single_episode_write", backend.name()),
             &backend,
             |b, backend| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = backend.setup_memory().await;
                     let context = create_benchmark_context();
 
@@ -157,7 +156,7 @@ fn benchmark_backend_read_performance(c: &mut Criterion) {
             BenchmarkId::new("episode_retrieval", backend.name()),
             &backend,
             |b, backend| {
-                b.to_async(FuturesExecutor).iter_custom(|iters| async move {
+                b.to_async(TokioExecutor).iter_custom(|iters| async move {
                     let mut total_time = std::time::Duration::ZERO;
 
                     for _ in 0..iters {
@@ -229,7 +228,7 @@ fn benchmark_backend_bulk_operations(c: &mut Criterion) {
                 BenchmarkId::new(format!("bulk_write_{}", bulk_size), backend.name()),
                 &(backend.clone(), bulk_size),
                 |b, (backend, size)| {
-                    b.to_async(FuturesExecutor).iter(|| async {
+                    b.to_async(TokioExecutor).iter(|| async {
                         let (memory, _temp_dir) = backend.setup_memory().await;
                         let context = create_benchmark_context();
 
@@ -289,7 +288,7 @@ fn benchmark_backend_concurrent_performance(c: &mut Criterion) {
                 BenchmarkId::new(format!("concurrent_{}", concurrency), backend.name()),
                 &(backend.clone(), concurrency),
                 |b, (backend, concurrency)| {
-                    b.to_async(FuturesExecutor).iter(|| async {
+                    b.to_async(TokioExecutor).iter(|| async {
                         let (memory, _temp_dir) = backend.setup_memory().await;
                         let memory = std::sync::Arc::new(memory);
 
@@ -382,7 +381,7 @@ fn benchmark_backend_storage_efficiency(c: &mut Criterion) {
                 BenchmarkId::new(format!("storage_efficiency_{}", size), backend.name()),
                 &(backend.clone(), size),
                 |b, (backend, dataset_size)| {
-                    b.to_async(FuturesExecutor).iter_custom(|iters| async move {
+                    b.to_async(TokioExecutor).iter_custom(|iters| async move {
                         let mut total_bytes = 0u64;
 
                         for _ in 0..iters {

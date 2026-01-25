@@ -1,9 +1,7 @@
 //! Benchmarks for pattern extraction
 
-use criterion::{
-    async_executor::FuturesExecutor, black_box, criterion_group, criterion_main, BenchmarkId,
-    Criterion,
-};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -65,7 +63,7 @@ fn benchmark_bulk_pattern_extraction(c: &mut Criterion) {
             BenchmarkId::from_parameter(episode_count),
             episode_count,
             |b, &count| {
-                b.to_async(FuturesExecutor).iter(|| async {
+                b.to_async(TokioExecutor).iter(|| async {
                     let (memory, _temp_dir) = setup_temp_memory().await;
                     let context = create_benchmark_context();
                     let mut episode_ids = Vec::new();

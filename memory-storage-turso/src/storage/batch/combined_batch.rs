@@ -2,9 +2,14 @@
 //!
 //! Batch operations for storing episodes with their associated patterns.
 
+#![allow(clippy::excessive_nesting)]
+
 use crate::TursoStorage;
 use memory_core::{Episode, Error, Pattern, Result};
 use tracing::{debug, error, info};
+
+#[cfg(feature = "compression")]
+use crate::storage::episodes::compress_json_field;
 
 impl TursoStorage {
     /// Store episodes with their associated patterns in a single transaction
@@ -106,7 +111,7 @@ impl TursoStorage {
                 let patterns_json = if should_compress {
                     let data =
                         serde_json::to_string(&episode.patterns).map_err(Error::Serialization)?;
-                    super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                    compress_json_field(data.as_bytes(), compression_threshold)?
                 } else {
                     serde_json::to_string(&episode.patterns)
                         .map_err(Error::Serialization)?
@@ -122,7 +127,7 @@ impl TursoStorage {
                 let heuristics_json = if should_compress {
                     let data =
                         serde_json::to_string(&episode.heuristics).map_err(Error::Serialization)?;
-                    super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                    compress_json_field(data.as_bytes(), compression_threshold)?
                 } else {
                     serde_json::to_string(&episode.heuristics)
                         .map_err(Error::Serialization)?
@@ -138,7 +143,7 @@ impl TursoStorage {
                 let metadata_json = if should_compress {
                     let data =
                         serde_json::to_string(&episode.metadata).map_err(Error::Serialization)?;
-                    super::episodes::compress_json_field(data.as_bytes(), compression_threshold)?
+                    compress_json_field(data.as_bytes(), compression_threshold)?
                 } else {
                     serde_json::to_string(&episode.metadata)
                         .map_err(Error::Serialization)?
@@ -189,9 +194,9 @@ impl TursoStorage {
                     )
                     .await
                 {
-                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                        error!("Failed to rollback transaction: {}", rollback_err);
-                    }
+                    let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
+                        error!("Failed to rollback transaction: {}", rollback_err)
+                    });
                     return Err(Error::Storage(format!(
                         "Failed to store episode in combined batch: {}",
                         e
@@ -336,9 +341,9 @@ impl TursoStorage {
                     )
                     .await
                 {
-                    if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
-                        error!("Failed to rollback transaction: {}", rollback_err);
-                    }
+                    let _ = conn.execute("ROLLBACK", ()).await.map_err(|rollback_err| {
+                        error!("Failed to rollback transaction: {}", rollback_err)
+                    });
                     return Err(Error::Storage(format!(
                         "Failed to store pattern in combined batch: {}",
                         e
@@ -366,7 +371,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, Pattern, PatternId, TaskContext, TaskType};
+    use memory_core::{Episode, PatternId, TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
@@ -422,9 +427,10 @@ mod tests {
                 success_count: 10,
                 failure_count: 2,
                 total_count: 12,
+                avg_duration_secs: 0.0,
             },
             context: TaskContext::default(),
-            effectiveness: None,
+            effectiveness: memory_core::pattern::PatternEffectiveness::default(),
         }];
 
         let result = storage
@@ -449,7 +455,7 @@ mod tests {
             recommended_approach: "Break down into smaller parts".to_string(),
             evidence: vec![],
             success_rate: 0.85,
-            effectiveness: None,
+            effectiveness: memory_core::pattern::PatternEffectiveness::default(),
         }];
 
         let result = storage

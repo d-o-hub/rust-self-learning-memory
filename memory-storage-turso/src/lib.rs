@@ -49,6 +49,9 @@ pub mod trait_impls;
 // Schema initialization - moved to separate module for file size compliance
 pub mod turso_config;
 
+// Prepared statement caching for query optimization
+pub mod prepared;
+
 // Compression module for network bandwidth reduction (40% target)
 #[cfg(feature = "compression")]
 pub mod compression;
@@ -61,7 +64,9 @@ pub use pool::{
 pub use pool::{ConnectionPool, PoolConfig, PoolStatistics, PooledConnection};
 #[cfg(feature = "keepalive-pool")]
 pub use pool::{KeepAliveConfig, KeepAlivePool, KeepAliveStatistics};
+pub use prepared::{PreparedCacheConfig, PreparedCacheStats, PreparedStatementCache};
 pub use resilient::ResilientStorage;
+pub use storage::batch::BatchConfig;
 pub use storage::capacity::CapacityStatistics;
 pub use storage::episodes::EpisodeQuery;
 pub use storage::patterns::{PatternMetadata, PatternQuery};
@@ -81,6 +86,7 @@ pub struct TursoStorage {
     #[cfg(feature = "keepalive-pool")]
     keepalive_pool: Option<Arc<KeepAlivePool>>,
     adaptive_pool: Option<Arc<AdaptiveConnectionPool>>,
+    prepared_cache: Arc<PreparedStatementCache>,
     config: TursoConfig,
 }
 
@@ -204,6 +210,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool: None,
             adaptive_pool: None,
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
             config: TursoConfig::default(),
         })
     }
@@ -310,6 +317,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool,
             adaptive_pool: None,
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
             config,
         };
 
@@ -438,6 +446,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool,
             adaptive_pool: None,
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
             config,
         })
     }
@@ -546,6 +555,7 @@ impl TursoStorage {
             pool: Some(pool_arc),
             keepalive_pool: Some(keepalive_arc),
             adaptive_pool: None,
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
             config,
         })
     }
@@ -656,6 +666,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool: None,
             adaptive_pool: Some(Arc::new(adaptive_pool)),
+            prepared_cache: Arc::new(PreparedStatementCache::with_config(PreparedCacheConfig::default())),
             config,
         })
     }
@@ -874,6 +885,16 @@ impl TursoStorage {
     /// Get the cache configuration if set
     pub fn cache_config(&self) -> Option<&CacheConfig> {
         self.config.cache_config.as_ref()
+    }
+
+    /// Get prepared statement cache statistics
+    pub fn prepared_cache_stats(&self) -> PreparedCacheStats {
+        self.prepared_cache.stats()
+    }
+
+    /// Get a reference to the prepared statement cache
+    pub fn prepared_cache(&self) -> &PreparedStatementCache {
+        &self.prepared_cache
     }
 
     /// Get database statistics

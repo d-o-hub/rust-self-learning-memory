@@ -211,10 +211,14 @@ impl EmbeddingTools {
                         .retrieve_relevant_context(input.query.clone(), fallback_context, limit)
                         .await
                         .into_iter()
-                        .map(|ep| memory_core::embeddings::SimilaritySearchResult {
-                            item: ep,
-                            similarity: 0.5,
-                            metadata: memory_core::embeddings::SimilarityMetadata::default(),
+                        .map(|arc_ep| {
+                            // Dereference Arc<Episode> to Episode
+                            let episode = arc_ep.as_ref().clone();
+                            memory_core::embeddings::SimilaritySearchResult {
+                                item: episode,
+                                similarity: 0.5,
+                                metadata: memory_core::embeddings::SimilarityMetadata::default(),
+                            }
                         })
                         .collect()
                 }
@@ -283,20 +287,22 @@ impl EmbeddingTools {
         };
 
         let limit = input.limit.unwrap_or(10);
-        let episodes = self
+        let arc_episodes = self
             .memory
             .retrieve_relevant_context(input.query.clone(), context, limit)
             .await;
 
-        // Convert episodes to semantic results with simulated scores
-        let results: Vec<SemanticResult> = episodes
+        // Convert Arc<Episode> episodes to semantic results with simulated scores
+        let results: Vec<SemanticResult> = arc_episodes
             .into_iter()
             .enumerate()
-            .map(|(idx, ep)| {
+            .map(|(idx, arc_ep)| {
+                // Dereference Arc<Episode> to access Episode
+                let episode = arc_ep.as_ref();
                 // Simulate similarity score (decreasing with rank)
                 let similarity_score = 0.95 - (idx as f32 * 0.05);
 
-                let outcome = ep.outcome.as_ref().map(|o| match o {
+                let outcome = episode.outcome.as_ref().map(|o| match o {
                     TaskOutcome::Success { verdict, .. } => {
                         format!("Success: {}", verdict)
                     }
@@ -309,13 +315,13 @@ impl EmbeddingTools {
                 });
 
                 SemanticResult {
-                    episode_id: ep.episode_id.to_string(),
+                    episode_id: episode.episode_id.to_string(),
                     similarity_score,
-                    task_description: ep.task_description.clone(),
-                    domain: ep.context.domain.clone(),
-                    task_type: format!("{:?}", ep.task_type),
+                    task_description: episode.task_description.clone(),
+                    domain: episode.context.domain.clone(),
+                    task_type: format!("{:?}", episode.task_type),
                     outcome,
-                    timestamp: ep.start_time.timestamp(),
+                    timestamp: episode.start_time.timestamp(),
                 }
             })
             .collect();

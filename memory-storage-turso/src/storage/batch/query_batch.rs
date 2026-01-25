@@ -66,11 +66,11 @@ impl TursoStorage {
         // Convert UUIDs to strings for the query
         let params: Vec<libsql::Value> = ids
             .iter()
-            .map(|id| libsql::Value::String(id.to_string()))
+            .map(|id| libsql::Value::Text(id.to_string()))
             .collect();
 
         let mut rows = conn
-            .query(&sql, &params)
+            .query(&sql, libsql::params_from_iter(params))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query episodes batch: {}", e)))?;
 
@@ -152,11 +152,11 @@ impl TursoStorage {
         // Convert IDs to strings for the query
         let params: Vec<libsql::Value> = ids
             .iter()
-            .map(|id| libsql::Value::String(id.to_string()))
+            .map(|id| libsql::Value::Text(id.to_string()))
             .collect();
 
         let mut rows = conn
-            .query(&sql, &params)
+            .query(&sql, libsql::params_from_iter(params))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query patterns batch: {}", e)))?;
 
@@ -187,7 +187,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, Pattern, PatternId, TaskContext, TaskType};
+    use memory_core::{Episode, TaskContext, TaskType};
     use tempfile::TempDir;
     use uuid::Uuid;
 

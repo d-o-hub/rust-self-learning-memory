@@ -31,10 +31,10 @@ pub struct PatternMetadata {
 
 /// Internal structure for pattern_data JSON field (matches storage schema)
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-struct PatternDataJson {
-    description: String,
-    context: TaskContext,
-    heuristic: Heuristic,
+pub(crate) struct PatternDataJson {
+    pub(crate) description: String,
+    pub(crate) context: TaskContext,
+    pub(crate) heuristic: Heuristic,
 }
 
 /// Storage-specific Pattern struct for database operations
@@ -70,11 +70,11 @@ impl TursoStorage {
                 occurrence_count,
                 effectiveness: _,
             } => {
-                let tools_vec = tools.clone();
-                let desc = format!("Tool sequence: {}", tools_vec.join(" -> "));
+                // Use tools directly without cloning - join() accepts IntoIterator
+                let desc = format!("Tool sequence: {}", tools.join(" -> "));
                 let heur = Heuristic::new(
-                    format!("When need tools: {}", tools_vec.join(", ")),
-                    format!("Use sequence: {}", tools_vec.join(" -> ")),
+                    format!("When need tools: {}", tools.join(", ")),
+                    format!("Use sequence: {}", tools.join(" -> ")),
                     *success_rate,
                 );
                 (
@@ -153,11 +153,11 @@ impl TursoStorage {
             }
         };
 
-        // Create pattern_data JSON blob
+        // Create pattern_data JSON blob - clone context for JSON serialization
         let pattern_data = PatternDataJson {
-            description: description.clone(),
+            description,
             context: context.clone(),
-            heuristic: heuristic.clone(),
+            heuristic,
         };
         let pattern_data_json =
             serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;

@@ -105,3 +105,8 @@ name = "compression_benchmark"
 path = "compression_benchmark.rs"
 harness = false
 
+
+[[bench]]
+name = "phase3_cache_performance"
+path = "phase3_cache_performance.rs"
+harness = false

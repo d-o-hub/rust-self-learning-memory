@@ -9,12 +9,12 @@
 //! - Pattern extraction and scoring performance
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     generate_large_episode_description, generate_many_execution_steps, setup_temp_memory,
     setup_temp_turso_memory,
 };
+use memory_benches::TokioExecutor;
 use memory_core::{
     episode::ExecutionStep,
     memory::SelfLearningMemory,

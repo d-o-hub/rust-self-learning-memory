@@ -24,19 +24,37 @@
 //! ## Usage
 //!
 //! ```no_run
+//! use memory_storage_turso::{TursoStorage, CacheConfig};
+//!
+//! # async fn example() -> anyhow::Result<()> {
+//! // Use default cache configuration
+//! let storage = TursoStorage::new("file:test.db", "").await?;
+//! let cached = storage.with_cache_default();
+//!
+//! // Or create a custom cache configuration
+//! let storage2 = TursoStorage::new("file:test2.db", "").await?;
+//! let config = CacheConfig::default();
+//! let cached2 = storage2.with_cache(config);
+//!
+//! // Use cached storage for all operations
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Advanced Usage (adaptive-cache feature)
+//!
+//! ```no_run,ignore
+//! #[cfg(feature = "adaptive-cache")]
 //! use memory_storage_turso::{TursoStorage, CacheConfig, AdaptiveTtlCache, AdaptiveTtlConfig};
 //!
+//! #[cfg(feature = "adaptive-cache")]
 //! # async fn example() -> anyhow::Result<()> {
 //! let storage = TursoStorage::new("file:test.db", "").await?;
 //!
-//! // Use default adaptive cache configuration
-//! let cached = storage.with_cache_default();
-//!
-//! // Or create a custom adaptive TTL cache
+//! // Create a custom adaptive TTL cache
 //! let adaptive_config = AdaptiveTtlConfig::default();
 //! let adaptive_cache = AdaptiveTtlCache::<String>::new(adaptive_config);
 //!
-//! // Use cached storage for all operations
 //! # Ok(())
 //! # }
 //! ```
@@ -44,6 +62,7 @@
 #[cfg(feature = "adaptive-cache")]
 mod adaptive_ttl;
 mod config;
+pub mod query_cache;
 mod wrapper;
 
 pub use config::{CacheConfig, CacheStats};

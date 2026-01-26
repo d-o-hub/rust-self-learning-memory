@@ -160,6 +160,28 @@ impl TursoMetrics {
     pub fn connection_wait_time_us(&self) -> u64 {
         self.connection_wait_time_us.load(Ordering::Relaxed)
     }
+
+    /// Get cache evictions count
+    pub fn cache_evictions(&self) -> u64 {
+        self.cache_evictions.load(Ordering::Relaxed)
+    }
+
+    /// Reset all atomic counters to zero
+    #[allow(clippy::rest_pat_in_fully_bound_struct)]
+    pub fn reset(&self) {
+        self.total_queries.store(0, Ordering::Relaxed);
+        self.successful_queries.store(0, Ordering::Relaxed);
+        self.failed_queries.store(0, Ordering::Relaxed);
+        self.bytes_read.store(0, Ordering::Relaxed);
+        self.bytes_written.store(0, Ordering::Relaxed);
+        self.connection_acquisitions.store(0, Ordering::Relaxed);
+        self.connection_wait_time_us.store(0, Ordering::Relaxed);
+        self.cache_hits.store(0, Ordering::Relaxed);
+        self.cache_misses.store(0, Ordering::Relaxed);
+        self.cache_evictions.store(0, Ordering::Relaxed);
+        self.active_connections.store(0, Ordering::Relaxed);
+        self.idle_connections.store(0, Ordering::Relaxed);
+    }
 }
 
 #[cfg(test)]

@@ -12,7 +12,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Run slow integration tests before release
+  pre-release-tests:
+    name: Pre-Release Full Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - uses: Swatinem/rust-cache@v2.8.2
+
+      - name: Run all tests including slow integration tests
+        run: |
+          # Run regular tests
+          cargo nextest run --profile ci --all --test-threads=4
+          # Run slow tests (marked with #[ignore])
+          cargo test --all -- --ignored --test-threads=2
+
   build-release:
+    needs: pre-release-tests
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     permissions:

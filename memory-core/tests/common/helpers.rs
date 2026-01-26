@@ -419,6 +419,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "slow integration test - run with --ignored or in release CI"]
     async fn test_setup_memory_with_n_episodes() {
         let memory = setup_memory_with_n_episodes(5).await;
         let (total, completed, _) = memory.get_stats().await;
@@ -448,6 +449,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "slow integration test - run with --ignored or in release CI"]
     async fn test_create_test_episode_with_domain() {
         let memory = setup_test_memory();
         let episode_id = create_test_episode_with_domain(&memory, "test-domain").await;

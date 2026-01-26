@@ -304,6 +304,7 @@ async fn test_backward_compatibility_no_capacity() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_summarization_with_capacity() {
     // Test that both summarization and capacity work together
 
@@ -352,6 +353,7 @@ async fn test_summarization_with_capacity() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_eviction_preserves_high_quality() {
     // Test that eviction correctly preserves high-quality episodes
 

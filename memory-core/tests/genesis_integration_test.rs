@@ -36,6 +36,7 @@ async fn create_test_episode(
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_complete_episode_with_summary() {
     // Test that episodes are summarized when summarization is enabled
 
@@ -115,6 +116,7 @@ async fn test_complete_episode_with_capacity() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_eviction_during_completion() {
     // Test that eviction occurs correctly when completing episodes at capacity
 

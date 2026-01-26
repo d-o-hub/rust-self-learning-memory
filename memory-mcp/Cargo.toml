@@ -32,11 +32,11 @@ memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
 
 # MCP-specific dependencies
-async-trait = "0.1"
-parking_lot = "0.12"
-url = "2.5"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-futures = "0.3"
+async-trait = "0.1.89"
+parking_lot = "0.12.5"
+url = "2.5.8"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+futures = "0.3.31"
 
 # WASM JavaScript execution dependencies
 rquickjs = { version = "0.11.0", features = ["parallel", "loader", "futures"], optional = true }  # DEPRECATED: gated behind feature `wasm-rquickjs`
@@ -55,7 +55,7 @@ rand = { workspace = true }
 # Advanced pattern analysis dependencies
 # Note: Not using augurs changepoint feature since memory-core handles changepoint detection
 augurs = { version = "0.10.1", features = ["forecaster", "ets", "mstl", "outlier"] }
-deep_causality = "0.13.2"
+deep_causality = "0.13.3"
 streaming_algorithms = "0.3.3"
 rayon = "1.8"
 base64 = "0.22.1"

@@ -551,6 +551,7 @@ async fn test_memory_fallback_to_keyword() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_memory_with_multiple_episodes() {
     let mut config = memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;

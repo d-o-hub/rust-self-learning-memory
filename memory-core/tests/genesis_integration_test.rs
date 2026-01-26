@@ -74,6 +74,7 @@ async fn test_complete_episode_with_summary() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_complete_episode_with_capacity() {
     // Test that capacity limits are enforced during episode completion
 
@@ -186,6 +187,7 @@ async fn test_eviction_during_completion() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_capacity_performance_overhead() {
     // Test that capacity enforcement doesn't add significant overhead
 
@@ -265,6 +267,7 @@ async fn test_capacity_performance_overhead() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_backward_compatibility_no_capacity() {
     // Test that episodes work correctly when capacity is not configured
 

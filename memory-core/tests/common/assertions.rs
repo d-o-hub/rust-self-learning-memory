@@ -227,6 +227,7 @@ mod tests {
     use memory_core::{Episode, TaskType};
 
     #[tokio::test]
+    #[ignore = "slow integration test - run with --ignored or in release CI"]
     async fn test_assert_episode_completed() {
         use super::super::helpers::setup_test_memory;
 

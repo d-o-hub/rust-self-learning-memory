@@ -506,6 +506,7 @@ async fn test_heuristic_filtering_by_confidence() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_end_to_end_heuristic_learning() {
     // Given: A memory system
     let memory = setup_test_memory();

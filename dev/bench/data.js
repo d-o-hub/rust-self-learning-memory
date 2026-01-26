@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1769395011949,
+  "lastUpdate": 1769431097355,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -9798,6 +9798,95 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/0952f631c481da99d8138df50067e6f9efde32a8"
         },
         "date": 1769395011246,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "test@example.com",
+            "name": "Test User"
+          },
+          "committer": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "distinct": true,
+          "id": "65ee8e9f4a83a8abb4f85da2aa93060cd5e5c5bc",
+          "message": "ci: add nightly workflow for slow integration tests\n\n- Add nightly-tests.yml: runs all tests including #[ignore] slow tests\n  - Scheduled at 2 AM UTC daily\n  - Triggered on release tags\n  - Manual dispatch available\n  - Cross-platform testing (ubuntu, macos)\n\n- Update release.yml: add pre-release-tests job\n  - Runs slow integration tests before building release\n  - Ensures full test coverage before any release",
+          "timestamp": "2026-01-26T12:59:56+01:00",
+          "tree_id": "01df7466f331dd6641dc9a89577e2c234001339d",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/65ee8e9f4a83a8abb4f85da2aa93060cd5e5c5bc"
+        },
+        "date": 1769431096711,
         "tool": "cargo",
         "benches": [
           {

@@ -110,7 +110,6 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
         compress_episodes: true,
         compress_patterns: true,
         compress_embeddings: true,
-        cache_config: None,
         ..Default::default()
     };
 
@@ -173,7 +172,6 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
         compress_episodes: true,
         compress_patterns: true,
         compress_embeddings: true,
-        cache_config: None,
         ..Default::default()
     };
 

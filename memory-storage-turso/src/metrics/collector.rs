@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::Arc;
 use std::time::Duration;
 
 use parking_lot::RwLock;
@@ -181,22 +182,10 @@ impl MetricsCollector {
     }
 
     /// Reset all metrics
+    #[allow(clippy::rest_pat_in_fully_bound_struct)]
     pub fn reset(&self) {
-        // Reset atomic counters
-        self.metrics.total_queries.store(0, Ordering::Relaxed);
-        self.metrics.successful_queries.store(0, Ordering::Relaxed);
-        self.metrics.failed_queries.store(0, Ordering::Relaxed);
-        self.metrics.bytes_read.store(0, Ordering::Relaxed);
-        self.metrics.bytes_written.store(0, Ordering::Relaxed);
-        self.metrics
-            .connection_acquisitions
-            .store(0, Ordering::Relaxed);
-        self.metrics
-            .connection_wait_time_us
-            .store(0, Ordering::Relaxed);
-        self.metrics.cache_hits.store(0, Ordering::Relaxed);
-        self.metrics.cache_misses.store(0, Ordering::Relaxed);
-        self.metrics.cache_evictions.store(0, Ordering::Relaxed);
+        // Reset TursoMetrics atomic counters
+        self.metrics.reset();
 
         // Reset operation maps
         let mut operations = self.operations.write();

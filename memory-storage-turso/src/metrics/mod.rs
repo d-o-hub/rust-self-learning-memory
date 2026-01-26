@@ -20,6 +20,7 @@
 // Submodules
 pub mod collector;
 pub mod core;
+// pub mod performance; // Temporarily disabled - standalone module
 pub mod types;
 
 // Re-exports from submodules
@@ -28,4 +29,4 @@ pub use core::TursoMetrics;
 pub use types::{CacheStats, LatencyStats, OperationMetrics, OperationType, PoolStats};
 
 // Convenience re-exports
-pub use collector::{CacheStats as CollectorCacheStats, PoolStats as CollectorPoolStats};
+// Note: CacheStats and PoolStats are private in collector, removed from public exports

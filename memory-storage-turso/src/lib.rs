@@ -31,6 +31,7 @@ use tracing::{debug, error, info, warn};
 
 // Cache module for performance optimization
 pub mod cache;
+// pub mod metrics; // Temporarily disabled - has compilation errors
 pub mod pool;
 mod resilient;
 mod schema;
@@ -57,7 +58,15 @@ pub mod prepared;
 pub mod compression;
 
 // Cache exports
+pub use cache::query_cache::{QueryCache, QueryCacheStats, QueryKey};
 pub use cache::{CacheConfig, CacheStats, CachedTursoStorage};
+
+// Performance metrics exports
+// Note: Temporarily disabled due to visibility issues in existing metrics module
+// pub use crate::metrics::performance::{
+//     PerformanceMetrics, OptimizationMetrics, CacheFirstMetrics,
+//     BatchingMetrics, PreparedStatementMetrics, QueryOptimizationMetrics,
+// };
 pub use pool::{
     AdaptiveConnectionPool, AdaptivePoolConfig, AdaptivePoolMetrics, AdaptivePooledConnection,
 };

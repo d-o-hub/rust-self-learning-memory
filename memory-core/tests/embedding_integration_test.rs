@@ -92,6 +92,7 @@ async fn test_end_to_end_batch_embeddings() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_episode_embedding_workflow() {
     let mut config = memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
@@ -487,6 +488,7 @@ async fn test_pattern_embedding_with_service() {
 // SelfLearningMemory Integration Tests (3 tests)
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_memory_semantic_retrieval() {
     let mut config = memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;

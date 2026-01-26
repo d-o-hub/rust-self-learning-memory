@@ -81,7 +81,7 @@ argmin-math = "0.5.1"
 rv = "0.19.1"
 simba = "0.9.1"
 base64 = "0.22.1"
-lru = "0.12"
+lru = "0.16"
 
 # Note: Some duplicates are from transitive dependencies we cannot easily control:
 # - argmin 0.8.1 and argmin-math 0.3.0 come from augurs-changepoint -> changepoint -> rv

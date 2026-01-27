@@ -53,8 +53,6 @@ chrono = { workspace = true }
 rand = { workspace = true }
 
 # Advanced pattern analysis dependencies
-# Note: Not using augurs changepoint feature since memory-core handles changepoint detection
-augurs = { version = "0.10.1", features = ["forecaster", "ets", "mstl", "outlier"] }
 deep_causality = "0.13.3"
 streaming_algorithms = "0.3.3"
 rayon = "1.8"

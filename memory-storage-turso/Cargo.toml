@@ -50,9 +50,6 @@ postcard = { workspace = true }
 
  # Database
  libsql = { workspace = true }
- # Force hyper-rustls to use version 0.27.7 to fix RUSTSEC-2025-0134
- # (rustls-pemfile 2.2.0 is unmaintained, replaced by rustls-native-certs 0.8.3)
- hyper-rustls = { workspace = true }
 
 # UUID and time
 uuid = { workspace = true }

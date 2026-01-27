@@ -84,7 +84,7 @@ pub async fn get_episode_tags(
 ) -> Result<Vec<String>> {
     let episode_id_str = episode_id.to_string();
     
-    let mut stmt = conn
+    let stmt = conn
         .prepare("SELECT tag FROM episode_tags WHERE episode_id = ? ORDER BY tag")
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
@@ -157,7 +157,7 @@ pub async fn find_episodes_by_tags_or(
     
     let params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
     
-    let mut stmt = conn
+    let stmt = conn
         .prepare(&query)
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
@@ -211,7 +211,7 @@ pub async fn find_episodes_by_tags_and(
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
     params.push((tag_count as i64).into());
     
-    let mut stmt = conn
+    let stmt = conn
         .prepare(&query)
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
@@ -236,7 +236,7 @@ pub async fn find_episodes_by_tags_and(
 
 /// Get all unique tags in the system
 pub async fn get_all_tags(conn: &Connection) -> Result<Vec<String>> {
-    let mut stmt = conn
+    let stmt = conn
         .prepare("SELECT tag FROM tag_metadata ORDER BY tag")
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
@@ -259,7 +259,7 @@ pub async fn get_all_tags(conn: &Connection) -> Result<Vec<String>> {
 
 /// Get statistics for all tags
 pub async fn get_tag_statistics(conn: &Connection) -> Result<HashMap<String, TagStats>> {
-    let mut stmt = conn
+    let stmt = conn
         .prepare("SELECT tag, usage_count, first_used, last_used FROM tag_metadata ORDER BY usage_count DESC")
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;

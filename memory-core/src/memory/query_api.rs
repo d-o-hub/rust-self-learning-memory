@@ -160,4 +160,91 @@ impl SelfLearningMemory {
         )
         .await
     }
+
+    /// List episodes by tags
+    ///
+    /// Returns episodes that match the specified tags.
+    ///
+    /// # Arguments
+    ///
+    /// * `tags` - Tags to search for
+    /// * `match_all` - If true, episodes must have ALL tags; if false, ANY tag
+    /// * `limit` - Maximum number of episodes to return
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::SelfLearningMemory;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// // Find episodes with "bug-fix" OR "critical" tag
+    /// let episodes = memory.list_episodes_by_tags(
+    ///     vec!["bug-fix".to_string(), "critical".to_string()],
+    ///     false,  // match ANY
+    ///     Some(10),
+    /// ).await?;
+    ///
+    /// // Find episodes with BOTH "feature" AND "async" tags
+    /// let episodes = memory.list_episodes_by_tags(
+    ///     vec!["feature".to_string(), "async".to_string()],
+    ///     true,  // match ALL
+    ///     None,
+    /// ).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn list_episodes_by_tags(
+        &self,
+        tags: Vec<String>,
+        match_all: bool,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        queries::list_episodes_by_tags(self, tags, match_all, limit).await
+    }
+
+    /// Get all unique tags used across all episodes
+    ///
+    /// Returns a sorted list of all tags.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::SelfLearningMemory;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    /// let tags = memory.get_all_tags().await?;
+    /// println!("Available tags: {:?}", tags);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_all_tags(&self) -> Result<Vec<String>> {
+        queries::get_all_tags(self).await
+    }
+
+    /// Get tag statistics
+    ///
+    /// Returns usage counts and timestamps for all tags.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use memory_core::SelfLearningMemory;
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    /// let stats = memory.get_tag_statistics().await?;
+    /// for (tag, stat) in stats {
+    ///     println!("{}: used {} times", tag, stat.usage_count);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_tag_statistics(
+        &self,
+    ) -> Result<std::collections::HashMap<String, queries::TagStats>> {
+        queries::get_tag_statistics(self).await
+    }
 }

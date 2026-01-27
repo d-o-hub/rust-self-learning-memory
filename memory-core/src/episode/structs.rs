@@ -212,23 +212,25 @@ impl Episode {
     /// Normalize a tag: lowercase, trim whitespace, validate characters
     fn normalize_tag(tag: &str) -> Result<String, String> {
         let normalized = tag.trim().to_lowercase();
-        
+
         if normalized.is_empty() {
             return Err("Tag cannot be empty".to_string());
         }
-        
+
         if normalized.len() > 100 {
             return Err("Tag cannot exceed 100 characters".to_string());
         }
-        
+
         // Allow alphanumeric, hyphens, underscores
-        if !normalized.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+        if !normalized
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+        {
             return Err(format!(
-                "Tag '{}' contains invalid characters. Only alphanumeric, hyphens, and underscores allowed",
-                tag
+                "Tag '{tag}' contains invalid characters. Only alphanumeric, hyphens, and underscores allowed"
             ));
         }
-        
+
         Ok(normalized)
     }
 
@@ -236,11 +238,11 @@ impl Episode {
     /// Returns `Ok(true)` if tag was added, `Ok(false)` if already exists, `Err` if invalid
     pub fn add_tag(&mut self, tag: String) -> Result<bool, String> {
         let normalized = Self::normalize_tag(&tag)?;
-        
+
         if self.tags.contains(&normalized) {
             return Ok(false);
         }
-        
+
         self.tags.push(normalized);
         Ok(true)
     }

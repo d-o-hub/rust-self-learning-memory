@@ -312,7 +312,6 @@ mod tests {
             applied_patterns: vec![],
             salient_features: None,
             tags: vec![],
-            tags: vec![],
         }
     }
 

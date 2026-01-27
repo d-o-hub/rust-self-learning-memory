@@ -129,6 +129,9 @@ pub struct Episode {
     pub salient_features: Option<SalientFeatures>,
     /// Additional metadata
     pub metadata: HashMap<String, String>,
+    /// Tags for episode categorization (e.g., "bug-fix", "feature", "refactor")
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 impl Episode {
@@ -151,6 +154,7 @@ impl Episode {
             applied_patterns: Vec::new(),
             salient_features: None,
             metadata: HashMap::new(),
+            tags: Vec::new(),
         }
     }
 
@@ -203,6 +207,75 @@ impl Episode {
     #[must_use]
     pub fn failed_steps_count(&self) -> usize {
         self.steps.iter().filter(|s| !s.is_success()).count()
+    }
+
+    /// Normalize a tag: lowercase, trim whitespace, validate characters
+    fn normalize_tag(tag: &str) -> Result<String, String> {
+        let normalized = tag.trim().to_lowercase();
+        
+        if normalized.is_empty() {
+            return Err("Tag cannot be empty".to_string());
+        }
+        
+        if normalized.len() > 100 {
+            return Err("Tag cannot exceed 100 characters".to_string());
+        }
+        
+        // Allow alphanumeric, hyphens, underscores
+        if !normalized.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+            return Err(format!(
+                "Tag '{}' contains invalid characters. Only alphanumeric, hyphens, and underscores allowed",
+                tag
+            ));
+        }
+        
+        Ok(normalized)
+    }
+
+    /// Add a tag to this episode (normalized, no duplicates)
+    /// Returns `Ok(true)` if tag was added, `Ok(false)` if already exists, `Err` if invalid
+    pub fn add_tag(&mut self, tag: String) -> Result<bool, String> {
+        let normalized = Self::normalize_tag(&tag)?;
+        
+        if self.tags.contains(&normalized) {
+            return Ok(false);
+        }
+        
+        self.tags.push(normalized);
+        Ok(true)
+    }
+
+    /// Remove a tag from this episode
+    /// Returns `true` if tag was removed, `false` if not found
+    pub fn remove_tag(&mut self, tag: &str) -> bool {
+        if let Ok(normalized) = Self::normalize_tag(tag) {
+            if let Some(pos) = self.tags.iter().position(|t| t == &normalized) {
+                self.tags.remove(pos);
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Check if episode has a specific tag
+    #[must_use]
+    pub fn has_tag(&self, tag: &str) -> bool {
+        if let Ok(normalized) = Self::normalize_tag(tag) {
+            self.tags.contains(&normalized)
+        } else {
+            false
+        }
+    }
+
+    /// Clear all tags from this episode
+    pub fn clear_tags(&mut self) {
+        self.tags.clear();
+    }
+
+    /// Get all tags for this episode
+    #[must_use]
+    pub fn get_tags(&self) -> &[String] {
+        &self.tags
     }
 }
 
@@ -282,5 +355,119 @@ mod tests {
         assert_eq!(episode.steps.len(), 3);
         assert_eq!(episode.successful_steps_count(), 3);
         assert_eq!(episode.failed_steps_count(), 0);
+    }
+
+    #[test]
+    fn test_add_tag() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add valid tag
+        assert_eq!(episode.add_tag("bug-fix".to_string()).unwrap(), true);
+        assert!(episode.has_tag("bug-fix"));
+        assert_eq!(episode.tags.len(), 1);
+
+        // Add duplicate (normalized)
+        assert_eq!(episode.add_tag("BUG-FIX".to_string()).unwrap(), false);
+        assert_eq!(episode.tags.len(), 1);
+
+        // Add another tag
+        assert_eq!(episode.add_tag("feature".to_string()).unwrap(), true);
+        assert_eq!(episode.tags.len(), 2);
+    }
+
+    #[test]
+    fn test_tag_normalization() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Test case normalization
+        episode.add_tag("Feature-123".to_string()).unwrap();
+        assert!(episode.has_tag("feature-123"));
+        assert!(episode.has_tag("FEATURE-123"));
+        assert_eq!(episode.tags[0], "feature-123");
+
+        // Test whitespace trimming
+        episode.add_tag("  refactor  ".to_string()).unwrap();
+        assert!(episode.has_tag("refactor"));
+        assert_eq!(episode.tags[1], "refactor");
+    }
+
+    #[test]
+    fn test_tag_validation() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Empty tag
+        assert!(episode.add_tag("".to_string()).is_err());
+        assert!(episode.add_tag("   ".to_string()).is_err());
+
+        // Invalid characters
+        assert!(episode.add_tag("bug fix".to_string()).is_err());
+        assert!(episode.add_tag("bug@fix".to_string()).is_err());
+        assert!(episode.add_tag("bug/fix".to_string()).is_err());
+
+        // Valid characters
+        assert!(episode.add_tag("bug-fix".to_string()).is_ok());
+        assert!(episode.add_tag("bug_fix".to_string()).is_ok());
+        assert!(episode.add_tag("bugfix123".to_string()).is_ok());
+        assert_eq!(episode.tags.len(), 3);
+
+        // Too long (>100 chars)
+        let long_tag = "a".repeat(101);
+        assert!(episode.add_tag(long_tag).is_err());
+    }
+
+    #[test]
+    fn test_remove_tag() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("feature".to_string()).unwrap();
+        episode.add_tag("refactor".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 3);
+
+        // Remove existing tag
+        assert!(episode.remove_tag("feature"));
+        assert_eq!(episode.tags.len(), 2);
+        assert!(!episode.has_tag("feature"));
+
+        // Remove with different case
+        assert!(episode.remove_tag("BUG-FIX"));
+        assert_eq!(episode.tags.len(), 1);
+        assert!(!episode.has_tag("bug-fix"));
+
+        // Remove non-existent tag
+        assert!(!episode.remove_tag("nonexistent"));
+        assert_eq!(episode.tags.len(), 1);
+    }
+
+    #[test]
+    fn test_clear_tags() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("feature".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 2);
+
+        episode.clear_tags();
+        assert_eq!(episode.tags.len(), 0);
+        assert!(!episode.has_tag("bug-fix"));
+    }
+
+    #[test]
+    fn test_get_tags() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("critical".to_string()).unwrap();
+
+        let tags = episode.get_tags();
+        assert_eq!(tags.len(), 2);
+        assert!(tags.contains(&"bug-fix".to_string()));
+        assert!(tags.contains(&"critical".to_string()));
     }
 }

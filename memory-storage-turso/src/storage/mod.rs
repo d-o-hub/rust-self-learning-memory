@@ -24,9 +24,11 @@ pub mod heuristics;
 pub mod monitoring;
 pub mod patterns;
 pub mod search;
+pub mod tag_operations;
 
 pub use batch::BatchConfig;
 pub use episodes::EpisodeQuery;
+pub use tag_operations::TagStats;
 #[allow(unused)]
 pub use patterns::PatternMetadata;
 pub use patterns::PatternQuery;

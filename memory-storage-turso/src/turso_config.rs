@@ -77,6 +77,16 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
             .await?;
 
+        // Create Episode Tags tables and indexes
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TAG_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_EPISODE_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_TAG_METADATA_TABLE)
+            .await?;
+
         // Create FTS5 tables for hybrid search (feature-gated)
         #[cfg(feature = "hybrid_search")]
         self.initialize_fts5_schema(&conn).await?;

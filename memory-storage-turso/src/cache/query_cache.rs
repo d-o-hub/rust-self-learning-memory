@@ -311,6 +311,8 @@ mod tests {
             metadata: HashMap::new(),
             applied_patterns: vec![],
             salient_features: None,
+            tags: vec![],
+            tags: vec![],
         }
     }
 

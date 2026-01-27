@@ -19,9 +19,17 @@ rustflags = [
     "-C", "link-arg=-Wl,-z,relro,-z,now",
 ]
 
-[alias]
-# Custom cargo commands for development workflow
-security-check = "audit && deny check"
-full-test = "test --all-features --all-targets"
-coverage = "llvm-cov --all-features --workspace --lcov --output-path lcov.info"
-quality = "clippy --all-targets --all-features -- -D warnings"
+ [alias]
+ # Custom cargo commands for development workflow
+ security-check = "audit && deny check"
+ full-test = "test --all-features --all-targets"
+ coverage = "llvm-cov --all-features --workspace --lcov --output-path lcov.info"
+ quality = "clippy --all-targets --all-features -- -D warnings"
+
+# Security advisory tracking for transitive dependencies
+# These advisories are tracked but not blocking due to upstream constraints
+# See SECURITY.md for detailed mitigation strategies
+[term]
+verbose = false
+color = "auto"
+

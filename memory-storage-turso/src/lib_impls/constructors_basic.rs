@@ -14,6 +14,8 @@ use tracing::info;
 use super::super::{
     ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, TursoConfig,
 };
+#[cfg(feature = "keepalive-pool")]
+use super::super::{KeepAliveConfig, KeepAlivePool};
 use super::storage::TursoStorage;
 
 impl TursoStorage {

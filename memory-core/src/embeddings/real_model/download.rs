@@ -5,11 +5,6 @@
 #[cfg(feature = "local-embeddings")]
 use anyhow::Context;
 
-#[cfg(feature = "local-embeddings")]
-use {
-    ort::execution_providers::CPUExecutionProvider, ort::session::Session, tokenizers::Tokenizer,
-};
-
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
 use reqwest::Client;
 
@@ -35,7 +30,7 @@ use reqwest::Client;
 /// - Disk is full
 /// - Downloaded files are invalid
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
-pub async fn download_model(model_name: &str, cache_dir: &std::path::Path) -> Result<()> {
+pub async fn download_model(model_name: &str, cache_dir: &std::path::Path) -> anyhow::Result<()> {
     tracing::info!("Starting model download from HuggingFace: {}", model_name);
 
     // Sanitize model name for file paths
@@ -90,7 +85,7 @@ pub async fn download_model(model_name: &str, cache_dir: &std::path::Path) -> Re
 
 /// Download a single file with progress reporting and retry logic
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
-async fn download_file_with_progress(url: &str, path: &std::path::Path) -> Result<()> {
+async fn download_file_with_progress(url: &str, path: &std::path::Path) -> anyhow::Result<()> {
     use std::time::Duration;
 
     let max_retries = 3;
@@ -132,7 +127,7 @@ async fn download_file_with_progress(url: &str, path: &std::path::Path) -> Resul
 
 /// Attempt a single download attempt
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
-async fn attempt_download(url: &str, path: &std::path::Path) -> Result<()> {
+async fn attempt_download(url: &str, path: &std::path::Path) -> anyhow::Result<()> {
     use futures::StreamExt;
     use std::time::Duration;
     use tokio::io::{AsyncWriteExt, BufWriter};
@@ -223,7 +218,7 @@ async fn attempt_download(url: &str, path: &std::path::Path) -> Result<()> {
 
 /// Validate that a downloaded file exists and is readable
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
-fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> Result<()> {
+fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> anyhow::Result<()> {
     if !path.exists() {
         return Err(anyhow::anyhow!(
             "Downloaded file not found: {}",

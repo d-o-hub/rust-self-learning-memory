@@ -5,8 +5,8 @@
 
 use crate::{Error, Result};
 use libsql::Connection;
-use uuid::Uuid;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Tag statistics
 #[derive(Debug, Clone)]
@@ -31,11 +31,12 @@ pub async fn save_episode_tags(
     tags: &[String],
 ) -> Result<()> {
     let episode_id_str = episode_id.to_string();
-    
+
     // Start transaction
-    conn.execute("BEGIN", ()).await
+    conn.execute("BEGIN", ())
+        .await
         .map_err(|e| Error::Storage(format!("Failed to begin transaction: {}", e)))?;
-    
+
     // Delete existing tags
     conn.execute(
         "DELETE FROM episode_tags WHERE episode_id = ?",
@@ -43,7 +44,7 @@ pub async fn save_episode_tags(
     )
     .await
     .map_err(|e| Error::Storage(format!("Failed to delete existing tags: {}", e)))?;
-    
+
     // Insert new tags and update metadata
     let now = chrono::Utc::now().timestamp();
     for tag in tags {
@@ -54,7 +55,7 @@ pub async fn save_episode_tags(
         )
         .await
         .map_err(|e| Error::Storage(format!("Failed to insert tag: {}", e)))?;
-        
+
         // Update tag metadata (insert or update)
         conn.execute(
             r#"
@@ -69,39 +70,41 @@ pub async fn save_episode_tags(
         .await
         .map_err(|e| Error::Storage(format!("Failed to update tag metadata: {}", e)))?;
     }
-    
+
     // Commit transaction
-    conn.execute("COMMIT", ()).await
+    conn.execute("COMMIT", ())
+        .await
         .map_err(|e| Error::Storage(format!("Failed to commit transaction: {}", e)))?;
-    
+
     Ok(())
 }
 
 /// Get all tags for an episode
-pub async fn get_episode_tags(
-    conn: &Connection,
-    episode_id: &Uuid,
-) -> Result<Vec<String>> {
+pub async fn get_episode_tags(conn: &Connection, episode_id: &Uuid) -> Result<Vec<String>> {
     let episode_id_str = episode_id.to_string();
-    
+
     let stmt = conn
         .prepare("SELECT tag FROM episode_tags WHERE episode_id = ? ORDER BY tag")
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
-    
+
     let mut rows = stmt
         .query(libsql::params![episode_id_str])
         .await
         .map_err(|e| Error::Storage(format!("Failed to query tags: {}", e)))?;
-    
+
     let mut tags = Vec::new();
-    while let Some(row) = rows.next().await
-        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))? {
-        let tag: String = row.get(0)
+    while let Some(row) = rows
+        .next()
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+    {
+        let tag: String = row
+            .get(0)
             .map_err(|e| Error::Storage(format!("Failed to get tag: {}", e)))?;
         tags.push(tag);
     }
-    
+
     Ok(tags)
 }
 
@@ -114,26 +117,26 @@ pub async fn delete_episode_tags(
     if tags.is_empty() {
         return Ok(());
     }
-    
+
     let episode_id_str = episode_id.to_string();
-    
+
     // Build placeholders for IN clause
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let query = format!(
         "DELETE FROM episode_tags WHERE episode_id = ? AND tag IN ({})",
         placeholders
     );
-    
+
     // Build params: episode_id + tags
     let mut params: Vec<libsql::Value> = vec![episode_id_str.into()];
     params.extend(tags.iter().map(|t| t.clone().into()));
-    
+
     conn.execute(&query, libsql::params_from_iter(params))
         .await
         .map_err(|e| Error::Storage(format!("Failed to delete tags: {}", e)))?;
-    
+
     // Note: We don't decrement usage_count in tag_metadata to keep historical stats
-    
+
     Ok(())
 }
 
@@ -146,37 +149,41 @@ pub async fn find_episodes_by_tags_or(
     if tags.is_empty() {
         return Ok(Vec::new());
     }
-    
+
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let limit_clause = limit.map(|l| format!(" LIMIT {}", l)).unwrap_or_default();
-    
+
     let query = format!(
         "SELECT DISTINCT episode_id FROM episode_tags WHERE tag IN ({}) ORDER BY created_at DESC{}",
         placeholders, limit_clause
     );
-    
+
     let params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
-    
+
     let stmt = conn
         .prepare(&query)
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
-    
+
     let mut rows = stmt
         .query(libsql::params_from_iter(params))
         .await
         .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
-    
+
     let mut episode_ids = Vec::new();
-    while let Some(row) = rows.next().await
-        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))? {
-        let id_str: String = row.get(0)
+    while let Some(row) = rows
+        .next()
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+    {
+        let id_str: String = row
+            .get(0)
             .map_err(|e| Error::Storage(format!("Failed to get episode_id: {}", e)))?;
-        let id = Uuid::parse_str(&id_str)
-            .map_err(|e| Error::Storage(format!("Invalid UUID: {}", e)))?;
+        let id =
+            Uuid::parse_str(&id_str).map_err(|e| Error::Storage(format!("Invalid UUID: {}", e)))?;
         episode_ids.push(id);
     }
-    
+
     Ok(episode_ids)
 }
 
@@ -189,11 +196,11 @@ pub async fn find_episodes_by_tags_and(
     if tags.is_empty() {
         return Ok(Vec::new());
     }
-    
+
     let tag_count = tags.len();
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let limit_clause = limit.map(|l| format!(" LIMIT {}", l)).unwrap_or_default();
-    
+
     // Query: Find episodes that have all specified tags
     let query = format!(
         r#"
@@ -207,30 +214,34 @@ pub async fn find_episodes_by_tags_and(
         "#,
         placeholders, limit_clause
     );
-    
+
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
     params.push((tag_count as i64).into());
-    
+
     let stmt = conn
         .prepare(&query)
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
-    
+
     let mut rows = stmt
         .query(libsql::params_from_iter(params))
         .await
         .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
-    
+
     let mut episode_ids = Vec::new();
-    while let Some(row) = rows.next().await
-        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))? {
-        let id_str: String = row.get(0)
+    while let Some(row) = rows
+        .next()
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+    {
+        let id_str: String = row
+            .get(0)
             .map_err(|e| Error::Storage(format!("Failed to get episode_id: {}", e)))?;
-        let id = Uuid::parse_str(&id_str)
-            .map_err(|e| Error::Storage(format!("Invalid UUID: {}", e)))?;
+        let id =
+            Uuid::parse_str(&id_str).map_err(|e| Error::Storage(format!("Invalid UUID: {}", e)))?;
         episode_ids.push(id);
     }
-    
+
     Ok(episode_ids)
 }
 
@@ -240,20 +251,24 @@ pub async fn get_all_tags(conn: &Connection) -> Result<Vec<String>> {
         .prepare("SELECT tag FROM tag_metadata ORDER BY tag")
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
-    
+
     let mut rows = stmt
         .query(())
         .await
         .map_err(|e| Error::Storage(format!("Failed to query tags: {}", e)))?;
-    
+
     let mut tags = Vec::new();
-    while let Some(row) = rows.next().await
-        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))? {
-        let tag: String = row.get(0)
+    while let Some(row) = rows
+        .next()
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+    {
+        let tag: String = row
+            .get(0)
             .map_err(|e| Error::Storage(format!("Failed to get tag: {}", e)))?;
         tags.push(tag);
     }
-    
+
     Ok(tags)
 }
 
@@ -263,43 +278,56 @@ pub async fn get_tag_statistics(conn: &Connection) -> Result<HashMap<String, Tag
         .prepare("SELECT tag, usage_count, first_used, last_used FROM tag_metadata ORDER BY usage_count DESC")
         .await
         .map_err(|e| Error::Storage(format!("Failed to prepare query: {}", e)))?;
-    
+
     let mut rows = stmt
         .query(())
         .await
         .map_err(|e| Error::Storage(format!("Failed to query tag statistics: {}", e)))?;
-    
+
     let mut stats = HashMap::new();
-    while let Some(row) = rows.next().await
-        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))? {
-        let tag: String = row.get(0)
+    while let Some(row) = rows
+        .next()
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to fetch row: {}", e)))?
+    {
+        let tag: String = row
+            .get(0)
             .map_err(|e| Error::Storage(format!("Failed to get tag: {}", e)))?;
-        let usage_count: i64 = row.get(1)
+        let usage_count: i64 = row
+            .get(1)
             .map_err(|e| Error::Storage(format!("Failed to get usage_count: {}", e)))?;
-        let first_used: i64 = row.get(2)
+        let first_used: i64 = row
+            .get(2)
             .map_err(|e| Error::Storage(format!("Failed to get first_used: {}", e)))?;
-        let last_used: i64 = row.get(3)
+        let last_used: i64 = row
+            .get(3)
             .map_err(|e| Error::Storage(format!("Failed to get last_used: {}", e)))?;
-        
-        stats.insert(tag.clone(), TagStats {
-            tag,
-            usage_count,
-            first_used,
-            last_used,
-        });
+
+        stats.insert(
+            tag.clone(),
+            TagStats {
+                tag,
+                usage_count,
+                first_used,
+                last_used,
+            },
+        );
     }
-    
+
     Ok(stats)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     async fn setup_test_db() -> Connection {
-        let db = libsql::Builder::new_local(":memory:").build().await.unwrap();
+        let db = libsql::Builder::new_local(":memory:")
+            .build()
+            .await
+            .unwrap();
         let conn = db.connect().unwrap();
-        
+
         // Create tables
         conn.execute(
             r#"
@@ -308,8 +336,10 @@ mod tests {
             )
             "#,
             (),
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         conn.execute(
             r#"
             CREATE TABLE episode_tags (
@@ -320,8 +350,10 @@ mod tests {
             )
             "#,
             (),
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         conn.execute(
             r#"
             CREATE TABLE tag_metadata (
@@ -332,116 +364,151 @@ mod tests {
             )
             "#,
             (),
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         conn
     }
-    
+
     #[tokio::test]
     async fn test_save_and_get_tags() {
         let conn = setup_test_db().await;
         let episode_id = Uuid::new_v4();
-        
+
         // Insert episode
         conn.execute(
             "INSERT INTO episodes (episode_id) VALUES (?)",
             [episode_id.to_string()],
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         let tags = vec!["bug-fix".to_string(), "critical".to_string()];
-        
+
         save_episode_tags(&conn, &episode_id, &tags).await.unwrap();
-        
+
         let retrieved_tags = get_episode_tags(&conn, &episode_id).await.unwrap();
         assert_eq!(retrieved_tags.len(), 2);
         assert!(retrieved_tags.contains(&"bug-fix".to_string()));
         assert!(retrieved_tags.contains(&"critical".to_string()));
     }
-    
+
     #[tokio::test]
     async fn test_delete_tags() {
         let conn = setup_test_db().await;
         let episode_id = Uuid::new_v4();
-        
+
         conn.execute(
             "INSERT INTO episodes (episode_id) VALUES (?)",
             [episode_id.to_string()],
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         let tags = vec!["tag1".to_string(), "tag2".to_string(), "tag3".to_string()];
         save_episode_tags(&conn, &episode_id, &tags).await.unwrap();
-        
-        delete_episode_tags(&conn, &episode_id, &["tag2".to_string()]).await.unwrap();
-        
+
+        delete_episode_tags(&conn, &episode_id, &["tag2".to_string()])
+            .await
+            .unwrap();
+
         let remaining_tags = get_episode_tags(&conn, &episode_id).await.unwrap();
         assert_eq!(remaining_tags.len(), 2);
         assert!(!remaining_tags.contains(&"tag2".to_string()));
     }
-    
+
     #[tokio::test]
     async fn test_find_by_tags_or() {
         let conn = setup_test_db().await;
         let ep1 = Uuid::new_v4();
         let ep2 = Uuid::new_v4();
-        
+
         for ep in [&ep1, &ep2] {
             conn.execute(
                 "INSERT INTO episodes (episode_id) VALUES (?)",
                 [ep.to_string()],
-            ).await.unwrap();
+            )
+            .await
+            .unwrap();
         }
-        
-        save_episode_tags(&conn, &ep1, &["tag1".to_string(), "tag2".to_string()]).await.unwrap();
-        save_episode_tags(&conn, &ep2, &["tag2".to_string(), "tag3".to_string()]).await.unwrap();
-        
-        let results = find_episodes_by_tags_or(&conn, &["tag1".to_string()], None).await.unwrap();
+
+        save_episode_tags(&conn, &ep1, &["tag1".to_string(), "tag2".to_string()])
+            .await
+            .unwrap();
+        save_episode_tags(&conn, &ep2, &["tag2".to_string(), "tag3".to_string()])
+            .await
+            .unwrap();
+
+        let results = find_episodes_by_tags_or(&conn, &["tag1".to_string()], None)
+            .await
+            .unwrap();
         assert_eq!(results.len(), 1);
         assert!(results.contains(&ep1));
-        
-        let results = find_episodes_by_tags_or(&conn, &["tag2".to_string()], None).await.unwrap();
+
+        let results = find_episodes_by_tags_or(&conn, &["tag2".to_string()], None)
+            .await
+            .unwrap();
         assert_eq!(results.len(), 2);
     }
-    
+
     #[tokio::test]
     async fn test_find_by_tags_and() {
         let conn = setup_test_db().await;
         let ep1 = Uuid::new_v4();
         let ep2 = Uuid::new_v4();
-        
+
         for ep in [&ep1, &ep2] {
             conn.execute(
                 "INSERT INTO episodes (episode_id) VALUES (?)",
                 [ep.to_string()],
-            ).await.unwrap();
+            )
+            .await
+            .unwrap();
         }
-        
-        save_episode_tags(&conn, &ep1, &["tag1".to_string(), "tag2".to_string()]).await.unwrap();
-        save_episode_tags(&conn, &ep2, &["tag2".to_string(), "tag3".to_string()]).await.unwrap();
-        
-        let results = find_episodes_by_tags_and(&conn, &["tag1".to_string(), "tag2".to_string()], None).await.unwrap();
+
+        save_episode_tags(&conn, &ep1, &["tag1".to_string(), "tag2".to_string()])
+            .await
+            .unwrap();
+        save_episode_tags(&conn, &ep2, &["tag2".to_string(), "tag3".to_string()])
+            .await
+            .unwrap();
+
+        let results =
+            find_episodes_by_tags_and(&conn, &["tag1".to_string(), "tag2".to_string()], None)
+                .await
+                .unwrap();
         assert_eq!(results.len(), 1);
         assert!(results.contains(&ep1));
-        
-        let results = find_episodes_by_tags_and(&conn, &["tag2".to_string()], None).await.unwrap();
+
+        let results = find_episodes_by_tags_and(&conn, &["tag2".to_string()], None)
+            .await
+            .unwrap();
         assert_eq!(results.len(), 2);
     }
-    
+
     #[tokio::test]
     async fn test_tag_statistics() {
         let conn = setup_test_db().await;
         let ep1 = Uuid::new_v4();
         let ep2 = Uuid::new_v4();
-        
+
         for ep in [&ep1, &ep2] {
             conn.execute(
                 "INSERT INTO episodes (episode_id) VALUES (?)",
                 [ep.to_string()],
-            ).await.unwrap();
+            )
+            .await
+            .unwrap();
         }
-        
-        save_episode_tags(&conn, &ep1, &["tag1".to_string()]).await.unwrap();
-        save_episode_tags(&conn, &ep2, &["tag1".to_string(), "tag2".to_string()]).await.unwrap();
-        
+
+        save_episode_tags(&conn, &ep1, &["tag1".to_string()])
+            .await
+            .unwrap();
+        save_episode_tags(&conn, &ep2, &["tag1".to_string(), "tag2".to_string()])
+            .await
+            .unwrap();
+
         let stats = get_tag_statistics(&conn).await.unwrap();
         assert_eq!(stats.len(), 2);
         assert_eq!(stats.get("tag1").unwrap().usage_count, 2);

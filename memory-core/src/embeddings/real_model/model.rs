@@ -123,7 +123,7 @@ impl RealEmbeddingModel {
         .map_err(|e| anyhow::anyhow!("Task execution failed: {e}"))??;
 
         // Normalize the embedding
-        let normalized_embedding = utils::normalize_vector(embedding);
+        let normalized_embedding = crate::embeddings::provider::utils::normalize_vector(embedding);
 
         Ok(normalized_embedding)
     }

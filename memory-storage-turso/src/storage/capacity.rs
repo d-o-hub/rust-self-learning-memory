@@ -37,9 +37,10 @@ impl TursoStorage {
         let conn = self.get_connection().await?;
 
         // Count current episodes
-        let count_sql = "SELECT COUNT(*) as count FROM episodes";
+        const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
+
         let mut count_rows = conn
-            .query(count_sql, ())
+            .query(COUNT_SQL, ())
             .await
             .map_err(|e| memory_core::Error::Storage(format!("Failed to count episodes: {}", e)))?;
 
@@ -100,14 +101,25 @@ impl TursoStorage {
         drop(conn);
 
         // Delete evicted episodes
+        const DELETE_SQL: &str = "DELETE FROM episodes WHERE episode_id = ?";
+
         for episode_id in &evicted {
             // Delete associated embeddings first
             let _ = self._delete_embedding_internal(episode_id).await;
 
             // Then delete the episode
-            let delete_sql = "DELETE FROM episodes WHERE episode_id = ?";
             let conn = self.get_connection().await?;
-            conn.execute(delete_sql, libsql::params![episode_id.clone()])
+
+            // Use prepared statement cache
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, DELETE_SQL)
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
+
+            stmt.execute(libsql::params![episode_id.clone()])
                 .await
                 .map_err(|e| {
                     memory_core::Error::Storage(format!("Failed to delete episode: {}", e))

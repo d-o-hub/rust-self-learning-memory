@@ -1,9 +1,10 @@
 //! # Turso Storage Tests
 //!
-//! Integration tests for the Turso storage backend.
+//! Integration tests for Turso storage backend.
 
 use super::*;
 use memory_core::StorageBackend;
+use std::sync::Arc;
 use tempfile::TempDir;
 
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

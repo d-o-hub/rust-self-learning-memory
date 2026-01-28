@@ -2,8 +2,6 @@
 //!
 //! This module contains the TursoConfig struct and its implementation.
 
-use std::time::Duration;
-
 /// Configuration for Turso storage
 #[derive(Debug, Clone)]
 pub struct TursoConfig {

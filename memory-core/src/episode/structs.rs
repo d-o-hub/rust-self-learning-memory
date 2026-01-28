@@ -365,16 +365,16 @@ mod tests {
         let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
         // Add valid tag
-        assert_eq!(episode.add_tag("bug-fix".to_string()).unwrap(), true);
+        assert!(episode.add_tag("bug-fix".to_string()).unwrap());
         assert!(episode.has_tag("bug-fix"));
         assert_eq!(episode.tags.len(), 1);
 
         // Add duplicate (normalized)
-        assert_eq!(episode.add_tag("BUG-FIX".to_string()).unwrap(), false);
+        assert!(!episode.add_tag("BUG-FIX".to_string()).unwrap());
         assert_eq!(episode.tags.len(), 1);
 
         // Add another tag
-        assert_eq!(episode.add_tag("feature".to_string()).unwrap(), true);
+        assert!(episode.add_tag("feature".to_string()).unwrap());
         assert_eq!(episode.tags.len(), 2);
     }
 
@@ -401,7 +401,7 @@ mod tests {
         let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
         // Empty tag
-        assert!(episode.add_tag("".to_string()).is_err());
+        assert!(episode.add_tag(String::new()).is_err());
         assert!(episode.add_tag("   ".to_string()).is_err());
 
         // Invalid characters

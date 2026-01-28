@@ -4,21 +4,26 @@
 //! - new_with_pool_config()
 //! - new_with_keepalive()
 
+#[cfg(feature = "keepalive-pool")]
 use libsql::Builder;
+#[cfg(feature = "keepalive-pool")]
 use memory_core::Result;
+#[cfg(feature = "keepalive-pool")]
 use std::sync::Arc;
+#[cfg(feature = "keepalive-pool")]
 use std::time::Duration;
+#[cfg(feature = "keepalive-pool")]
 use tracing::info;
 
+#[cfg(feature = "keepalive-pool")]
 use super::super::{
-    ConnectionPool, PoolConfig, PreparedCacheConfig, PreparedStatementCache, TursoConfig,
+    ConnectionPool, KeepAliveConfig, KeepAlivePool, PoolConfig, PreparedCacheConfig,
+    PreparedStatementCache, TursoConfig,
 };
+#[cfg(feature = "keepalive-pool")]
 use super::storage::TursoStorage;
 
 #[cfg(feature = "keepalive-pool")]
-use super::super::{KeepAliveConfig, KeepAlivePool};
-#[cfg(feature = "keepalive-pool")]
-
 impl TursoStorage {
     /// Create a new Turso storage instance with custom pool configuration
     ///

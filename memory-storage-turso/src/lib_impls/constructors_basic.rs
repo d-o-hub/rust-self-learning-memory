@@ -8,7 +8,6 @@
 use libsql::{Builder, Database};
 use memory_core::Result;
 use std::sync::Arc;
-use std::time::Duration;
 use tracing::info;
 
 use super::super::{
@@ -17,6 +16,8 @@ use super::super::{
 #[cfg(feature = "keepalive-pool")]
 use super::super::{KeepAliveConfig, KeepAlivePool};
 use super::storage::TursoStorage;
+#[cfg(feature = "keepalive-pool")]
+use std::time::Duration;
 
 impl TursoStorage {
     /// Create a new Turso storage instance

@@ -32,6 +32,7 @@ fn create_test_episode(id: u32, domain: &str) -> Episode {
         applied_patterns: vec![],
         salient_features: None,
         metadata: HashMap::new(),
+        tags: Vec::new(),
     }
 }
 

@@ -6,7 +6,10 @@ use crate::mcp::tools::embeddings::types::{
 };
 use crate::mcp::tools::embeddings::EmbeddingTools;
 use anyhow::{anyhow, Result};
-use memory_core::embeddings::{EmbeddingConfig, EmbeddingProviderType, ModelConfig};
+use memory_core::embeddings::config::{
+    AzureOpenAIConfig, CustomConfig, EmbeddingConfig, EmbeddingProvider, LocalConfig,
+    ProviderConfig,
+};
 use memory_core::{ComplexityLevel, TaskContext, TaskOutcome};
 use tracing::{debug, info, instrument, warn};
 
@@ -23,15 +26,15 @@ impl EmbeddingTools {
 
         // Parse provider type
         let provider_type = match input.provider.to_lowercase().as_str() {
-            "openai" => EmbeddingProviderType::OpenAI,
-            "local" => EmbeddingProviderType::Local,
-            "mistral" => EmbeddingProviderType::Mistral,
-            "azure" => EmbeddingProviderType::AzureOpenAI,
+            "openai" => EmbeddingProvider::OpenAI,
+            "local" => EmbeddingProvider::Local,
+            "mistral" => EmbeddingProvider::Mistral,
+            "azure" => EmbeddingProvider::AzureOpenAI,
             "cohere" => {
                 warnings.push(
                     "Cohere provider not yet implemented, using Local as fallback".to_string(),
                 );
-                EmbeddingProviderType::Local
+                EmbeddingProvider::Local
             }
             _ => {
                 return Err(anyhow!(
@@ -44,9 +47,7 @@ impl EmbeddingTools {
         // Validate API key for cloud providers
         if matches!(
             provider_type,
-            EmbeddingProviderType::OpenAI
-                | EmbeddingProviderType::Mistral
-                | EmbeddingProviderType::AzureOpenAI
+            EmbeddingProvider::OpenAI | EmbeddingProvider::Mistral | EmbeddingProvider::AzureOpenAI
         ) {
             if let Some(api_key_env) = &input.api_key_env {
                 if std::env::var(api_key_env).is_err() {
@@ -64,24 +65,24 @@ impl EmbeddingTools {
         }
 
         // Build model configuration based on provider
-        let model_config =
+        let provider_config =
             match provider_type {
-                EmbeddingProviderType::OpenAI => {
+                EmbeddingProvider::OpenAI => {
                     let model_name = input.model.as_deref().unwrap_or("text-embedding-3-small");
                     match model_name {
-                        "text-embedding-3-small" => ModelConfig::openai_3_small(),
-                        "text-embedding-3-large" => ModelConfig::openai_3_large(),
-                        "text-embedding-ada-002" => ModelConfig::openai_ada_002(),
+                        "text-embedding-3-small" => ProviderConfig::openai_3_small(),
+                        "text-embedding-3-large" => ProviderConfig::openai_3_large(),
+                        "text-embedding-ada-002" => ProviderConfig::openai_ada_002(),
                         _ => {
                             warnings.push(format!(
                                 "Unknown OpenAI model '{}', using text-embedding-3-small",
                                 model_name
                             ));
-                            ModelConfig::openai_3_small()
+                            ProviderConfig::openai_3_small()
                         }
                     }
                 }
-                EmbeddingProviderType::Mistral => {
+                EmbeddingProvider::Mistral => {
                     let model_name = input.model.as_deref().unwrap_or("mistral-embed");
                     if model_name != "mistral-embed" {
                         warnings.push(format!(
@@ -89,9 +90,9 @@ impl EmbeddingTools {
                             model_name
                         ));
                     }
-                    ModelConfig::mistral_embed()
+                    ProviderConfig::mistral_embed()
                 }
-                EmbeddingProviderType::AzureOpenAI => {
+                EmbeddingProvider::AzureOpenAI => {
                     let deployment = input.deployment_name.as_ref().ok_or_else(|| {
                         anyhow!("deployment_name required for Azure OpenAI provider")
                     })?;
@@ -102,30 +103,34 @@ impl EmbeddingTools {
 
                     // Azure dimension depends on the underlying model
                     let dimension = 1536; // Default for ada-002 and text-embedding-3-small
-                    ModelConfig::azure_openai(deployment, resource, api_version, dimension)
+                    ProviderConfig::AzureOpenAI(AzureOpenAIConfig::new(
+                        deployment,
+                        resource,
+                        api_version,
+                        dimension,
+                    ))
                 }
-                EmbeddingProviderType::Local => {
+                EmbeddingProvider::Local => {
                     let model_name = input
                         .model
                         .as_deref()
                         .unwrap_or("sentence-transformers/all-MiniLM-L6-v2");
                     let dimension = 384; // Default for MiniLM
-                    ModelConfig::local_sentence_transformer(model_name, dimension)
+                    ProviderConfig::Local(LocalConfig::new(model_name, dimension))
                 }
-                EmbeddingProviderType::Custom(_) => {
+                EmbeddingProvider::Custom(_) => {
                     let model_name = input.model.as_deref().unwrap_or("custom-model");
                     let base_url = input
                         .base_url
                         .as_deref()
                         .ok_or_else(|| anyhow!("base_url required for custom provider"))?;
-                    ModelConfig::custom(model_name, 384, base_url, None)
+                    ProviderConfig::Custom(CustomConfig::new(model_name, 384, base_url))
                 }
             };
 
         // Build embedding configuration
         let embedding_config = EmbeddingConfig {
-            provider: provider_type,
-            model: model_config.clone(),
+            provider: provider_config.clone(),
             similarity_threshold: input.similarity_threshold.unwrap_or(0.7),
             batch_size: input.batch_size.unwrap_or(32),
             cache_embeddings: true,
@@ -138,18 +143,19 @@ impl EmbeddingTools {
 
         debug!(
             "Configured embedding provider: {:?} with model: {}",
-            embedding_config.provider, embedding_config.model.model_name
+            embedding_config.provider,
+            embedding_config.provider.model_name()
         );
 
         let provider_name = input.provider.clone();
         Ok(ConfigureEmbeddingsOutput {
             success: true,
             provider: input.provider,
-            model: model_config.model_name.clone(),
-            dimension: model_config.embedding_dimension,
+            model: provider_config.model_name().clone(),
+            dimension: provider_config.effective_dimension(),
             message: format!(
                 "Successfully configured {} provider with model {} (dimension: {})",
-                provider_name, model_config.model_name, model_config.embedding_dimension
+                provider_name, provider_config.model_name(), provider_config.effective_dimension()
             ),
             warnings,
         })
@@ -265,7 +271,7 @@ impl EmbeddingTools {
             return Ok(QuerySemanticMemoryOutput {
                 results_found: results.len(),
                 results,
-                embedding_dimension: config.model.embedding_dimension,
+                embedding_dimension: config.provider.effective_dimension(),
                 query_time_ms,
                 provider: format!("{:?}", config.provider),
             });
@@ -360,8 +366,8 @@ impl EmbeddingTools {
                     debug!("Embedding provider test completed in {}ms", test_time_ms);
 
                     let config = semantic_service.config();
-                    let model_name = config.model.model_name.clone();
-                    let dimension = config.model.embedding_dimension;
+                    let model_name = config.provider.model_name();
+                    let dimension = config.provider.effective_dimension();
                     let provider = format!("{:?}", config.provider);
                     let embedding_len = test_embedding.len();
                     let model_name_for_msg = model_name.clone();
@@ -387,8 +393,8 @@ impl EmbeddingTools {
                     return Ok(TestEmbeddingsOutput {
                         available: false,
                         provider: provider.clone(),
-                        model: config.model.model_name.clone(),
-                        dimension: config.model.embedding_dimension,
+                        model: config.provider.model_name(),
+                        dimension: config.provider.effective_dimension(),
                         test_time_ms,
                         sample_embedding: vec![],
                         message: format!("Embedding provider test failed: {}", e),

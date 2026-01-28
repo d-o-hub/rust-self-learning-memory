@@ -16,7 +16,7 @@ name: Nightly Full Tests
       run_slow_tests:
         description: 'Run slow integration tests'
         required: false
-        default: 'true'
+        default: true
         type: boolean
 
 permissions:
@@ -26,6 +26,10 @@ permissions:
 env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   # Run all tests including slow ones
@@ -40,7 +44,7 @@ jobs:
           sudo apt-get clean || true
           df -h
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -68,7 +72,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: nightly-test-results
           path: target/nextest/nightly/
@@ -84,7 +88,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
 

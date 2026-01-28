@@ -20,12 +20,16 @@
 // Submodules
 pub mod collector;
 pub mod core;
-// pub mod performance; // Temporarily disabled - standalone module
+pub mod performance;
 pub mod types;
 
 // Re-exports from submodules
 pub use collector::MetricsCollector;
 pub use core::TursoMetrics;
+pub use performance::{
+    BatchingMetrics, CacheFirstMetrics, OptimizationMetrics, PerformanceMetrics,
+    PreparedStatementMetrics, QueryOptimizationMetrics,
+};
 pub use types::{CacheStats, LatencyStats, OperationMetrics, OperationType, PoolStats};
 
 // Convenience re-exports

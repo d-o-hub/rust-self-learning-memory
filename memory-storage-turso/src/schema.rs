@@ -358,3 +358,43 @@ CREATE TABLE IF NOT EXISTS metadata (
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
 "#;
+
+// ======= Episode Tags Schema =======
+
+/// SQL to create the episode_tags table
+///
+/// Stores tags for episodes in a many-to-many relationship.
+/// Tags are normalized (lowercase, trimmed) and validated.
+pub const CREATE_EPISODE_TAGS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS episode_tags (
+    episode_id TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    PRIMARY KEY (episode_id, tag),
+    FOREIGN KEY (episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE
+)
+"#;
+
+/// Index on episode_tags for fast tag-based queries
+pub const CREATE_EPISODE_TAGS_TAG_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episode_tags_tag
+ON episode_tags(tag)
+"#;
+
+/// Index on episode_tags for fast episode lookup
+pub const CREATE_EPISODE_TAGS_EPISODE_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_episode_tags_episode
+ON episode_tags(episode_id)
+"#;
+
+/// SQL to create the tag_metadata table
+///
+/// Stores statistics and metadata about tags for analytics.
+pub const CREATE_TAG_METADATA_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS tag_metadata (
+    tag TEXT PRIMARY KEY NOT NULL,
+    usage_count INTEGER NOT NULL DEFAULT 0,
+    first_used INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    last_used INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;

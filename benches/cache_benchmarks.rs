@@ -64,6 +64,7 @@ fn create_test_episode(id: Uuid) -> Episode {
         start_time: chrono::Utc::now(),
         end_time: None,
         metadata: std::collections::HashMap::new(),
+        tags: Vec::new(),
     }
 }
 

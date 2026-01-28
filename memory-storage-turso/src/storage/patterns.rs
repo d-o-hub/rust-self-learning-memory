@@ -162,7 +162,7 @@ impl TursoStorage {
         let pattern_data_json =
             serde_json::to_string(&pattern_data).map_err(Error::Serialization)?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO patterns (
                 pattern_id, pattern_type, pattern_data, success_rate,
                 context_domain, context_language, context_tags, occurrence_count,
@@ -175,21 +175,25 @@ impl TursoStorage {
 
         let now = chrono::Utc::now();
 
-        conn.execute(
-            sql,
-            libsql::params![
-                pattern.id().to_string(),
-                format!("{:?}", pattern),
-                pattern_data_json,
-                success_rate,
-                context.domain.clone(),
-                context.language.clone(),
-                context_tags_json,
-                occurrence_count as i64,
-                now.timestamp(),
-                now.timestamp(),
-            ],
-        )
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            pattern.id().to_string(),
+            format!("{:?}", pattern),
+            pattern_data_json,
+            success_rate,
+            context.domain.clone(),
+            context.language.clone(),
+            context_tags_json,
+            occurrence_count as i64,
+            now.timestamp(),
+            now.timestamp(),
+        ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store pattern: {}", e)))?;
 
@@ -202,15 +206,22 @@ impl TursoStorage {
         debug!("Retrieving pattern: {}", pattern_id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
                    context_domain, context_language, context_tags, occurrence_count,
                    created_at, updated_at
             FROM patterns WHERE pattern_id = ?
         "#;
 
-        let mut rows = conn
-            .query(sql, libsql::params![pattern_id.to_string()])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![pattern_id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query pattern: {}", e)))?;
 

@@ -1,10 +1,10 @@
 # Project Status - Memory System (Unified)
 
-**Last Updated:** 2026-01-24
+**Last Updated:** 2026-01-27
 **Version:** v0.1.12 (Production Ready - Semantic Pattern Search Complete)
-**Branch:** feat-phase3
+**Branch:** feat-episode-tagging
 **Status:** ✅ Production Ready - All quality gates passing
-**Next Version:** v0.1.13 (Phase 3 Caching Optimization)
+**Next Version:** v0.1.14 (Episode Tags & Labels Feature)
 
 ---
 
@@ -285,6 +285,50 @@ Major refactoring for 500 LOC compliance - **7-8 memory modules compliant**:
 ### Immediate (This Week)
 1. **📊 Production Monitoring**: Monitor pattern search performance and metrics
 2. **🔝 Documentation Updates**: Update all docs with semantic search features
+
+### Current Development (v0.1.13 - Episode Tags & Labels)
+
+**Start Date**: 2026-01-27  
+**Target Completion**: 2026-02-17 (3 weeks)  
+**Status**: 🚀 In Progress - Phase 1 Starting
+
+#### Feature Overview
+Comprehensive tagging system for episodes enabling:
+- Tag-based categorization (e.g., "bug-fix", "feature", "refactor")
+- Fast tag-based filtering and search
+- Tag statistics and analytics
+- Full integration across core, MCP, CLI, and storage backends
+
+#### Implementation Phases
+- **Phase 1**: Core Data Model & Storage (12h) - 🔄 In Progress
+  - Episode struct updates with tags field
+  - Database schema (episode_tags, tag_metadata tables)
+  - Turso and redb storage backend implementation
+  - Integration tests
+- **Phase 2**: Core API Implementation (8h) - ⏳ Pending
+  - Tag management methods (add, remove, set, get)
+  - Tag-based query functions
+  - Episode filtering integration
+- **Phase 3**: MCP Server Integration (10h) - ⏳ Pending
+  - 6 MCP tools for tag operations
+  - Tool schemas and validation
+- **Phase 4**: CLI Integration (8h) - ⏳ Pending
+  - CLI commands: tag add/remove/set/list/search/show
+  - User-friendly output formatting
+- **Phase 5**: Documentation & Examples (4h) - ⏳ Pending
+  - Usage guide, examples, benchmarks
+
+#### Documentation
+- 📋 Feature Spec: `plans/EPISODE_TAGGING_FEATURE_SPEC.md`
+- 🗺️ Roadmap: `plans/EPISODE_TAGGING_IMPLEMENTATION_ROADMAP.md`
+
+#### Success Metrics
+- Performance: All operations <50ms (P95)
+- Coverage: >90% for new code
+- Quality: Zero clippy warnings, all files <500 LOC
+- Adoption: 50%+ episodes tagged within first month
+
+---
 
 ### Short-term (Next 2 Weeks)
 1. **🚀 Turso Database Optimization** (NEW 2026-01-21): Implement Phase 1 quick wins for 6-8x performance improvement

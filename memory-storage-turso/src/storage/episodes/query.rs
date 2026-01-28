@@ -76,7 +76,7 @@ impl TursoStorage {
         debug!("Querying episodes since {}", since);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
@@ -88,8 +88,15 @@ impl TursoStorage {
 
         let since_timestamp = since.timestamp();
 
-        let mut rows = conn
-            .query(sql, libsql::params![since_timestamp])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![since_timestamp])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
 

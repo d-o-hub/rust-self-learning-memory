@@ -30,6 +30,7 @@ mod cache_tests {
             heuristics: vec![],
             applied_patterns: vec![],
             salient_features: None,
+            tags: vec![],
             metadata: HashMap::new(),
         })
     }

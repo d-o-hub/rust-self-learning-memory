@@ -210,21 +210,21 @@ impl PerformanceMetrics {
     pub fn record_cache_read(&self, hit: bool, latency: Duration) {
         let mut metrics = self.metrics.write();
         metrics.cache_first.total_reads += 1;
-        
+
         let latency_us = latency.as_micros() as u64;
-        
+
         if hit {
             metrics.cache_first.cache_hits += 1;
             metrics.cache_first.queries_avoided += 1;
             // Update moving average for cache hits
             let n = metrics.cache_first.cache_hits;
-            metrics.cache_first.avg_cache_hit_latency_us = 
+            metrics.cache_first.avg_cache_hit_latency_us =
                 ((metrics.cache_first.avg_cache_hit_latency_us * (n - 1)) + latency_us) / n;
         } else {
             metrics.cache_first.cache_misses += 1;
             // Update moving average for cache misses
             let n = metrics.cache_first.cache_misses;
-            metrics.cache_first.avg_cache_miss_latency_us = 
+            metrics.cache_first.avg_cache_miss_latency_us =
                 ((metrics.cache_first.avg_cache_miss_latency_us * (n - 1)) + latency_us) / n;
         }
     }
@@ -234,22 +234,23 @@ impl PerformanceMetrics {
         let mut metrics = self.metrics.write();
         metrics.batching.total_operations += batch_size as u64;
         metrics.batching.batched_operations += batch_size as u64;
-        
+
         // Update average batch size
         let total_batches = metrics.batching.batched_operations / batch_size as u64;
-        metrics.batching.avg_batch_size = 
-            ((metrics.batching.avg_batch_size * (total_batches - 1) as f64) + batch_size as f64) 
-            / total_batches as f64;
-        
+        metrics.batching.avg_batch_size =
+            ((metrics.batching.avg_batch_size * (total_batches - 1) as f64) + batch_size as f64)
+                / total_batches as f64;
+
         // Each batch operation saves (batch_size - 1) round trips
         metrics.batching.round_trips_avoided += (batch_size - 1) as u64;
-        
+
         // Update average batch latency per operation
         let latency_per_op = latency.as_micros() as u64 / batch_size as u64;
         let n = metrics.batching.batched_operations;
-        metrics.batching.avg_batch_latency_us = 
-            ((metrics.batching.avg_batch_latency_us * (n - batch_size as u64)) + 
-             (latency_per_op * batch_size as u64)) / n;
+        metrics.batching.avg_batch_latency_us = ((metrics.batching.avg_batch_latency_us
+            * (n - batch_size as u64))
+            + (latency_per_op * batch_size as u64))
+            / n;
     }
 
     /// Record an individual operation (non-batched)
@@ -257,10 +258,10 @@ impl PerformanceMetrics {
         let mut metrics = self.metrics.write();
         metrics.batching.total_operations += 1;
         metrics.batching.individual_operations += 1;
-        
+
         let latency_us = latency.as_micros() as u64;
         let n = metrics.batching.individual_operations;
-        metrics.batching.avg_individual_latency_us = 
+        metrics.batching.avg_individual_latency_us =
             ((metrics.batching.avg_individual_latency_us * (n - 1)) + latency_us) / n;
     }
 
@@ -268,19 +269,20 @@ impl PerformanceMetrics {
     pub fn record_prepared_statement(&self, cached: bool, latency: Duration) {
         let mut metrics = self.metrics.write();
         metrics.prepared_statements.total_queries += 1;
-        
+
         let latency_us = latency.as_micros() as u64;
-        
+
         if cached {
             metrics.prepared_statements.cached_statements += 1;
             let n = metrics.prepared_statements.cached_statements;
-            metrics.prepared_statements.avg_cached_execution_us = 
+            metrics.prepared_statements.avg_cached_execution_us =
                 ((metrics.prepared_statements.avg_cached_execution_us * (n - 1)) + latency_us) / n;
         } else {
             metrics.prepared_statements.uncached_statements += 1;
             let n = metrics.prepared_statements.uncached_statements;
-            metrics.prepared_statements.avg_uncached_execution_us = 
-                ((metrics.prepared_statements.avg_uncached_execution_us * (n - 1)) + latency_us) / n;
+            metrics.prepared_statements.avg_uncached_execution_us =
+                ((metrics.prepared_statements.avg_uncached_execution_us * (n - 1)) + latency_us)
+                    / n;
         }
     }
 
@@ -288,19 +290,21 @@ impl PerformanceMetrics {
     pub fn record_metadata_query(&self, uses_json_extract: bool, latency: Duration) {
         let mut metrics = self.metrics.write();
         metrics.query_optimization.total_metadata_queries += 1;
-        
+
         let latency_us = latency.as_micros() as u64;
-        
+
         if uses_json_extract {
             metrics.query_optimization.json_extract_queries += 1;
             let n = metrics.query_optimization.json_extract_queries;
-            metrics.query_optimization.avg_json_extract_latency_us = 
-                ((metrics.query_optimization.avg_json_extract_latency_us * (n - 1)) + latency_us) / n;
+            metrics.query_optimization.avg_json_extract_latency_us =
+                ((metrics.query_optimization.avg_json_extract_latency_us * (n - 1)) + latency_us)
+                    / n;
         } else {
             metrics.query_optimization.like_pattern_queries += 1;
             let n = metrics.query_optimization.like_pattern_queries;
-            metrics.query_optimization.avg_like_pattern_latency_us = 
-                ((metrics.query_optimization.avg_like_pattern_latency_us * (n - 1)) + latency_us) / n;
+            metrics.query_optimization.avg_like_pattern_latency_us =
+                ((metrics.query_optimization.avg_like_pattern_latency_us * (n - 1)) + latency_us)
+                    / n;
         }
     }
 
@@ -318,7 +322,7 @@ impl PerformanceMetrics {
     pub fn report(&self) -> String {
         let metrics = self.snapshot();
         let uptime = self.uptime();
-        
+
         format!(
             r#"
 ╔══════════════════════════════════════════════════════════════════╗
@@ -367,38 +371,43 @@ impl PerformanceMetrics {
 ╚══════════════════════════════════════════════════════════════════╝
 "#,
             uptime.as_secs_f64() / 3600.0,
-            
             // Cache-first metrics
             metrics.cache_first.total_reads,
-            metrics.cache_first.cache_hits, metrics.cache_first.hit_rate(),
-            metrics.cache_first.cache_misses, 100.0 - metrics.cache_first.hit_rate(),
+            metrics.cache_first.cache_hits,
+            metrics.cache_first.hit_rate(),
+            metrics.cache_first.cache_misses,
+            100.0 - metrics.cache_first.hit_rate(),
             metrics.cache_first.queries_avoided,
             metrics.cache_first.avg_cache_hit_latency_us,
             metrics.cache_first.avg_cache_miss_latency_us,
             metrics.cache_first.latency_improvement_pct(),
-            
             // Batching metrics
             metrics.batching.total_operations,
-            metrics.batching.batched_operations, metrics.batching.batching_efficiency(),
-            metrics.batching.individual_operations, 100.0 - metrics.batching.batching_efficiency(),
+            metrics.batching.batched_operations,
+            metrics.batching.batching_efficiency(),
+            metrics.batching.individual_operations,
+            100.0 - metrics.batching.batching_efficiency(),
             metrics.batching.avg_batch_size,
-            metrics.batching.round_trips_avoided, metrics.batching.round_trip_reduction_pct(),
+            metrics.batching.round_trips_avoided,
+            metrics.batching.round_trip_reduction_pct(),
             metrics.batching.avg_batch_latency_us,
             metrics.batching.avg_individual_latency_us,
             metrics.batching.latency_improvement_pct(),
-            
             // Prepared statement metrics
             metrics.prepared_statements.total_queries,
-            metrics.prepared_statements.cached_statements, metrics.prepared_statements.cache_hit_rate() * 100.0,
-            metrics.prepared_statements.uncached_statements, 100.0 - metrics.prepared_statements.cache_hit_rate() * 100.0,
+            metrics.prepared_statements.cached_statements,
+            metrics.prepared_statements.cache_hit_rate() * 100.0,
+            metrics.prepared_statements.uncached_statements,
+            100.0 - metrics.prepared_statements.cache_hit_rate() * 100.0,
             metrics.prepared_statements.avg_cached_execution_us,
             metrics.prepared_statements.avg_uncached_execution_us,
             metrics.prepared_statements.query_speedup_pct(),
-            
             // Query optimization metrics
             metrics.query_optimization.total_metadata_queries,
-            metrics.query_optimization.json_extract_queries, metrics.query_optimization.optimization_rate(),
-            metrics.query_optimization.like_pattern_queries, 100.0 - metrics.query_optimization.optimization_rate(),
+            metrics.query_optimization.json_extract_queries,
+            metrics.query_optimization.optimization_rate(),
+            metrics.query_optimization.like_pattern_queries,
+            100.0 - metrics.query_optimization.optimization_rate(),
             metrics.query_optimization.avg_json_extract_latency_us,
             metrics.query_optimization.avg_like_pattern_latency_us,
             metrics.query_optimization.query_speedup_pct(),

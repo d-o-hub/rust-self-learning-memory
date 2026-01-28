@@ -127,7 +127,12 @@ pub fn fuzzy_search_in_text(text: &str, query: &str, threshold: f64) -> Vec<(usi
     }
 
     // Sort by score (highest first), then by position (earliest first)
-    matches.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap().then(a.0.cmp(&b.0)));
+    // Use unwrap_or(Ordering::Equal) to handle NaN safely (treat NaN as equal)
+    matches.sort_by(|a, b| {
+        b.1.partial_cmp(&a.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then(a.0.cmp(&b.0))
+    });
 
     // Deduplicate matches that are too close together
     let mut deduped = Vec::new();
@@ -166,7 +171,7 @@ where
     texts
         .into_iter()
         .filter_map(|text| fuzzy_match(text, query, threshold))
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
 }
 
 #[cfg(test)]

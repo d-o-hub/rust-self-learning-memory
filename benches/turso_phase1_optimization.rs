@@ -10,7 +10,7 @@
 //! Expected after Phase 1: ~20-40ms per operation (3-6x improvement)
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use memory_core::{Episode, EpisodeContext, Pattern, StorageBackend, TaskType};
+use memory_core::{Episode, Pattern, StorageBackend, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, TursoStorage};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -27,10 +27,12 @@ fn create_test_episode(id: Uuid, domain: &str) -> Episode {
         episode_id: id,
         task_type: TaskType::CodeGeneration,
         task_description: format!("Test task {}", id),
-        context: EpisodeContext {
+        context: TaskContext {
             domain: domain.to_string(),
-            language: "rust".to_string(),
-            additional_context: HashMap::new(),
+            language: Some("rust".to_string()),
+            framework: None,
+            complexity: memory_core::types::ComplexityLevel::Simple,
+            tags: vec![],
         },
         start_time: chrono::Utc::now(),
         end_time: Some(chrono::Utc::now()),
@@ -40,7 +42,10 @@ fn create_test_episode(id: Uuid, domain: &str) -> Episode {
         reflection: None,
         patterns: vec![],
         heuristics: vec![],
+        applied_patterns: vec![],
+        salient_features: None,
         metadata,
+        tags: Vec::new(),
     }
 }
 
@@ -132,7 +137,7 @@ fn phase1_optimization_benchmarks(c: &mut Criterion) {
         b.to_async(&runtime).iter(|| async {
             let storage = TursoStorage::new(&db_url, "").await.unwrap();
             storage.initialize_schema().await.unwrap();
-            
+
             let cache_config = CacheConfig {
                 enable_episode_cache: true,
                 max_episodes: 10_000,

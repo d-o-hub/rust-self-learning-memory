@@ -37,6 +37,7 @@ fn create_episode(id: &str, domain: &str) -> Arc<Episode> {
         heuristics: vec![],
         applied_patterns: vec![],
         salient_features: None,
+        tags: vec![],
         metadata: HashMap::new(),
     })
 }

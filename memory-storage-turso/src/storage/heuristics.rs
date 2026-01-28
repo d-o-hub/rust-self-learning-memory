@@ -12,7 +12,7 @@ impl TursoStorage {
         debug!("Storing heuristic: {}", heuristic.heuristic_id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO heuristics (
                 heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -21,18 +21,22 @@ impl TursoStorage {
         let evidence_json =
             serde_json::to_string(&heuristic.evidence).map_err(Error::Serialization)?;
 
-        conn.execute(
-            sql,
-            libsql::params![
-                heuristic.heuristic_id.to_string(),
-                heuristic.condition.clone(),
-                heuristic.action.clone(),
-                heuristic.confidence,
-                evidence_json,
-                heuristic.created_at.timestamp(),
-                heuristic.updated_at.timestamp(),
-            ],
-        )
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            heuristic.heuristic_id.to_string(),
+            heuristic.condition.clone(),
+            heuristic.action.clone(),
+            heuristic.confidence,
+            evidence_json,
+            heuristic.created_at.timestamp(),
+            heuristic.updated_at.timestamp(),
+        ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store heuristic: {}", e)))?;
 
@@ -45,13 +49,20 @@ impl TursoStorage {
         debug!("Retrieving heuristic: {}", id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
             FROM heuristics WHERE heuristic_id = ?
         "#;
 
-        let mut rows = conn
-            .query(sql, libsql::params![id.to_string()])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query heuristic: {}", e)))?;
 
@@ -72,13 +83,20 @@ impl TursoStorage {
         debug!("Retrieving all heuristics");
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
             FROM heuristics ORDER BY confidence DESC
         "#;
 
-        let mut rows = conn
-            .query(sql, ())
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(())
             .await
             .map_err(|e| Error::Storage(format!("Failed to query heuristics: {}", e)))?;
 

@@ -20,8 +20,8 @@
 )]
 
 use memory_core::embeddings::{
-    config::mistral::{MistralConfig, MistralModel, OutputDtype},
-    config::openai::{OpenAIConfig, OpenAIModel},
+    config::mistral::{MistralConfig, OutputDtype},
+    config::openai::OpenAIConfig,
     EmbeddingConfig, ProviderConfig,
 };
 

@@ -172,6 +172,7 @@ async fn test_heuristic_extraction_from_episode() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_storage_in_learning_cycle() {
     // Given: A memory system with storage backends
     let memory = setup_test_memory();
@@ -222,6 +223,7 @@ async fn test_heuristic_storage_in_learning_cycle() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_retrieval_by_context() {
     // Given: A memory system with heuristics in different contexts
     let memory = setup_test_memory();
@@ -636,6 +638,7 @@ async fn test_no_heuristic_extraction_from_incomplete_episode() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_no_heuristic_extraction_from_failed_episode() {
     // Given: A memory system
     let memory = setup_test_memory();

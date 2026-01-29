@@ -1,6 +1,6 @@
 //! Utility functions for OpenAI provider.
 
-use super::super::config::ModelConfig;
+use crate::embeddings::config::OpenAIConfig;
 use anyhow::Result;
 
 /// Validate OpenAI API key format
@@ -23,11 +23,11 @@ pub fn validate_api_key(api_key: &str) -> Result<()> {
 
 /// Get the appropriate model configuration for different use cases
 #[allow(dead_code)]
-pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> ModelConfig {
+pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> OpenAIConfig {
     match use_case {
-        OpenAIModelUseCase::Balanced => ModelConfig::openai_3_small(),
-        OpenAIModelUseCase::Quality => ModelConfig::openai_3_large(),
-        OpenAIModelUseCase::Legacy => ModelConfig::openai_ada_002(),
+        OpenAIModelUseCase::Balanced => OpenAIConfig::text_embedding_3_small(),
+        OpenAIModelUseCase::Quality => OpenAIConfig::text_embedding_3_large(),
+        OpenAIModelUseCase::Legacy => OpenAIConfig::ada_002(),
     }
 }
 

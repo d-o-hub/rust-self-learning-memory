@@ -16,8 +16,10 @@ documentation = "https://docs.rs/memory-core"
 default = []
 # Enable OpenAI embedding provider
 openai = ["reqwest"]
+# Enable Mistral AI embedding provider
+mistral = ["reqwest"]
 # Enable all embedding providers
-embeddings-full = ["openai"]
+embeddings-full = ["openai", "mistral"]
 # Enable local embedding models (requires model files)
 local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
 # Enable hybrid search with FTS5

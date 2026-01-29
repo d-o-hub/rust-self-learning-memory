@@ -6,7 +6,9 @@
 use crate::config::Config;
 use anyhow::Result;
 use clap::Subcommand;
-use memory_core::embeddings::{EmbeddingProvider, ModelConfig};
+use memory_core::embeddings::{
+    AzureOpenAIConfig, CustomConfig, EmbeddingProvider, LocalConfig, MistralConfig, OpenAIConfig,
+};
 use std::env;
 
 #[derive(Subcommand)]
@@ -349,7 +351,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
             #[cfg(feature = "local-embeddings")]
             {
                 use memory_core::embeddings::LocalEmbeddingProvider;
-                let model_config = ModelConfig::default();
+                let model_config = LocalConfig::default();
                 let provider = LocalEmbeddingProvider::new(model_config).await?;
                 Ok(Box::new(provider))
             }
@@ -365,7 +367,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
             {
                 use memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config)?;
-                let model_config = ModelConfig::openai_3_small();
+                let model_config = OpenAIConfig::text_embedding_3_small();
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
                 Ok(Box::new(provider))
             }
@@ -381,7 +383,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
             {
                 use memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config)?;
-                let model_config = ModelConfig::mistral_embed();
+                let model_config = MistralConfig::mistral_embed();
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
                 Ok(Box::new(provider))
             }
@@ -404,7 +406,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
                 let api_version =
                     env::var("AZURE_API_VERSION").unwrap_or_else(|_| "2023-05-15".to_string());
 
-                let model_config = ModelConfig::azure_openai(
+                let model_config = AzureOpenAIConfig::new(
                     &deployment,
                     &resource,
                     &api_version,
@@ -431,11 +433,10 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("base_url required for custom provider"))?;
 
-                let model_config = ModelConfig::custom(
+                let model_config = CustomConfig::new(
                     &config.embeddings.model,
                     config.embeddings.dimension,
                     base_url,
-                    None,
                 );
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
                 Ok(Box::new(provider))

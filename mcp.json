@@ -12,7 +12,8 @@
         "MCP_CACHE_WARMING_ENABLED": "true",
         "MEMORY_MAX_EPISODES_CACHE": "1000",
         "MEMORY_CACHE_TTL_SECONDS": "1800",
-        "RUST_LOG": "off"
+        "RUST_LOG": "info",
+        "MISTRAL_API_KEY": "goRbahHgIZoa10NVKpBGsb96IUK2wAfB"
       }
     }
   }

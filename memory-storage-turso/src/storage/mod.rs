@@ -218,25 +218,46 @@ impl TursoStorage {
 
         let embedding_id = self.generate_embedding_id(item_id, item_type);
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+        // Use prepared statement cache only when connection pooling is enabled
+        // Without pooling, each get_connection() returns a new connection,
+        // making cached statements invalid
+        if self.has_connection_pool() {
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
+            stmt.execute(libsql::params![
+                embedding_id,
+                item_id.to_string(),
+                item_type.to_string(),
+                embedding_data,
+                embedding.len() as i64,
+                "default"
+            ])
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                memory_core::Error::Storage(format!("Failed to store embedding: {}", e))
             })?;
-
-        stmt.execute(libsql::params![
-            embedding_id,
-            item_id.to_string(),
-            item_type.to_string(),
-            embedding_data,
-            embedding.len() as i64,
-            "default"
-        ])
-        .await
-        .map_err(|e| memory_core::Error::Storage(format!("Failed to store embedding: {}", e)))?;
+        } else {
+            conn.execute(
+                SQL,
+                libsql::params![
+                    embedding_id,
+                    item_id.to_string(),
+                    item_type.to_string(),
+                    embedding_data,
+                    embedding.len() as i64,
+                    "default"
+                ],
+            )
+            .await
+            .map_err(|e| {
+                memory_core::Error::Storage(format!("Failed to store embedding: {}", e))
+            })?;
+        }
 
         info!("Successfully stored embedding: {}", item_id);
         Ok(())
@@ -259,21 +280,30 @@ impl TursoStorage {
         const SQL: &str =
             "SELECT embedding_data FROM embeddings WHERE item_id = ? AND item_type = ?";
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
+        // Use prepared statement cache only when connection pooling is enabled
+        // Without pooling, each get_connection() returns a new connection,
+        // making cached statements invalid
+        let mut rows = if self.has_connection_pool() {
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
+            stmt.query(libsql::params![item_id.to_string(), item_type.to_string()])
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
+                })?
+        } else {
+            conn.query(
+                SQL,
+                libsql::params![item_id.to_string(), item_type.to_string()],
+            )
             .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-            })?;
-
-        let mut rows = stmt
-            .query(libsql::params![item_id.to_string(), item_type.to_string()])
-            .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
-            })?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to query embedding: {}", e)))?
+        };
 
         if let Some(row) = rows.next().await.map_err(|e| {
             memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
@@ -370,21 +400,29 @@ impl TursoStorage {
 
         const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-            })?;
-
-        let rows_affected = stmt
-            .execute(libsql::params![item_id.to_string()])
-            .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
-            })?;
+        // Use prepared statement cache only when connection pooling is enabled
+        // Without pooling, each get_connection() returns a new connection,
+        // making cached statements invalid
+        let rows_affected = if self.has_connection_pool() {
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
+            stmt.execute(libsql::params![item_id.to_string()])
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
+                })?
+        } else {
+            conn.execute(SQL, libsql::params![item_id.to_string()])
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
+                })? as usize
+        };
 
         Ok(rows_affected > 0)
     }
@@ -401,33 +439,60 @@ impl TursoStorage {
             INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)
         "#;
 
-        // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-            })?;
+        // Use prepared statement cache only when connection pooling is enabled
+        // Without pooling, each get_connection() returns a new connection,
+        // making cached statements invalid
+        if self.has_connection_pool() {
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
 
-        for (item_id, embedding) in embeddings {
-            let embedding_json =
-                serde_json::to_string(&embedding).map_err(memory_core::Error::Serialization)?;
+            for (item_id, embedding) in embeddings {
+                let embedding_json =
+                    serde_json::to_string(&embedding).map_err(memory_core::Error::Serialization)?;
 
-            let embedding_id = self.generate_embedding_id(&item_id, "embedding");
+                let embedding_id = self.generate_embedding_id(&item_id, "embedding");
 
-            stmt.execute(libsql::params![
-                embedding_id,
-                item_id,
-                "embedding",
-                embedding_json,
-                embedding.len() as i64,
-                "default"
-            ])
-            .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to store batch embedding: {}", e))
-            })?;
+                stmt.execute(libsql::params![
+                    embedding_id,
+                    item_id,
+                    "embedding",
+                    embedding_json,
+                    embedding.len() as i64,
+                    "default"
+                ])
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to store batch embedding: {}", e))
+                })?;
+            }
+        } else {
+            for (item_id, embedding) in embeddings {
+                let embedding_json =
+                    serde_json::to_string(&embedding).map_err(memory_core::Error::Serialization)?;
+
+                let embedding_id = self.generate_embedding_id(&item_id, "embedding");
+
+                conn.execute(
+                    SQL,
+                    libsql::params![
+                        embedding_id,
+                        item_id,
+                        "embedding",
+                        embedding_json,
+                        embedding.len() as i64,
+                        "default"
+                    ],
+                )
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to store batch embedding: {}", e))
+                })?;
+            }
         }
 
         info!("Successfully stored embedding batch");

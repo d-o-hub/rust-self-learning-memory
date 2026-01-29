@@ -155,7 +155,9 @@ impl EmbeddingTools {
             dimension: provider_config.effective_dimension(),
             message: format!(
                 "Successfully configured {} provider with model {} (dimension: {})",
-                provider_name, provider_config.model_name(), provider_config.effective_dimension()
+                provider_name,
+                provider_config.model_name(),
+                provider_config.effective_dimension()
             ),
             warnings,
         })

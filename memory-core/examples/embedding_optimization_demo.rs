@@ -14,7 +14,7 @@
     clippy::unnecessary_wraps
 )]
 
-use memory_core::embeddings::{ModelConfig, OptimizationConfig};
+use memory_core::embeddings::{MistralConfig, OpenAIConfig, OptimizationConfig, ProviderConfig};
 
 fn main() {
     println!("🚀 Embedding Provider Optimization Demo\n");
@@ -24,23 +24,33 @@ fn main() {
     println!("\n📊 Example 1: Default Provider Optimizations");
     println!("{}", "-".repeat(70));
 
-    let openai_config = ModelConfig::openai_3_small();
+    let openai_config = OpenAIConfig::text_embedding_3_small();
     print_optimization_config("OpenAI (3-small)", &openai_config.optimization);
 
-    let mistral_config = ModelConfig::mistral_embed();
+    let mistral_config = MistralConfig::mistral_embed();
     print_optimization_config("Mistral AI", &mistral_config.optimization);
 
-    let azure_config = ModelConfig::azure_openai("deployment", "resource", "2023-05-15", 1536);
-    print_optimization_config("Azure OpenAI", &azure_config.optimization);
+    let azure_config =
+        ProviderConfig::AzureOpenAI(memory_core::embeddings::AzureOpenAIConfig::new(
+            "deployment",
+            "resource",
+            "2023-05-15",
+            1536,
+        ));
+    print_optimization_config("Azure OpenAI", &azure_config.optimization());
 
-    let custom_config = ModelConfig::custom("model", 768, "http://localhost:1234/v1", None);
-    print_optimization_config("Local/Custom", &custom_config.optimization);
+    let custom_config = ProviderConfig::Custom(memory_core::embeddings::CustomConfig::new(
+        "model",
+        768,
+        "http://localhost:1234/v1",
+    ));
+    print_optimization_config("Local/Custom", &custom_config.optimization());
 
     // Example 2: Custom High-Reliability Configuration
     println!("\n🛡️  Example 2: High-Reliability Configuration");
     println!("{}", "-".repeat(70));
 
-    let mut high_reliability = ModelConfig::openai_3_small();
+    let mut high_reliability = OpenAIConfig::text_embedding_3_small();
     high_reliability.optimization = OptimizationConfig {
         timeout_seconds: Some(120),
         max_retries: 5,
@@ -65,7 +75,7 @@ fn main() {
     println!("\n💰 Example 3: Cost-Optimized Configuration");
     println!("{}", "-".repeat(70));
 
-    let mut cost_optimized = ModelConfig::openai_3_small();
+    let mut cost_optimized = OpenAIConfig::text_embedding_3_small();
     cost_optimized.optimization = OptimizationConfig {
         timeout_seconds: Some(30),
         max_retries: 2,
@@ -90,7 +100,7 @@ fn main() {
     println!("\n🔧 Example 4: Development/Testing Configuration");
     println!("{}", "-".repeat(70));
 
-    let mut dev_config = ModelConfig::openai_3_small();
+    let mut dev_config = OpenAIConfig::text_embedding_3_small();
     dev_config.optimization = OptimizationConfig {
         timeout_seconds: Some(10),
         max_retries: 1,

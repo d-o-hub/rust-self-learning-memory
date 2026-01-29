@@ -11,6 +11,19 @@ use super::storage::TursoStorage;
 // These are extension methods for TursoStorage
 // They are attached via the impl block below
 impl TursoStorage {
+    /// Check if a connection pool is available
+    ///
+    /// Returns true if any connection pool (standard, keepalive, or adaptive) is configured.
+    ///
+    /// NOTE: Currently returns false always because the prepared statement cache
+    /// is not connection-aware. Even with pooling, different connections may be
+    /// returned, causing cached statements to be invalid.
+    pub(crate) fn has_connection_pool(&self) -> bool {
+        // Disable prepared statement cache for now due to connection-safety issues
+        // TODO: Make prepared statement cache connection-aware
+        false
+    }
+
     /// Get a database connection
     ///
     /// If connection pooling is enabled, this will use a pooled connection.

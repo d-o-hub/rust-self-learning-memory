@@ -17,7 +17,7 @@
 
 use memory_core::embeddings::{
     cosine_similarity, EmbeddingConfig, EmbeddingProvider, EmbeddingStorageBackend,
-    InMemoryEmbeddingStorage, LocalEmbeddingProvider, ModelConfig, SemanticService,
+    InMemoryEmbeddingStorage, LocalConfig, LocalEmbeddingProvider, SemanticService,
 };
 use memory_core::episode::{ExecutionStep, PatternId};
 use memory_core::memory::SelfLearningMemory;
@@ -423,8 +423,7 @@ async fn test_concurrent_storage_access() {
 
 #[tokio::test]
 async fn test_model_loading() {
-    let config =
-        ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384);
+    let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
     let provider = LocalEmbeddingProvider::new(config).await;
     assert!(provider.is_ok());
@@ -436,7 +435,7 @@ async fn test_model_loading() {
 
 #[tokio::test]
 async fn test_model_deterministic_embeddings() {
-    let config = ModelConfig::local_sentence_transformer("test-model", 384);
+    let config = LocalConfig::new("test-model", 384);
     let provider = LocalEmbeddingProvider::new(config)
         .await
         .expect("Should create provider");

@@ -68,9 +68,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Install nextest
         uses: taiki-e/install-action@nextest
-      - uses: Swatinem/rust-cache@v2.8.2
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests with timeout protection
         run: |
           # Run library tests first (fastest feedback) with 10 minute timeout

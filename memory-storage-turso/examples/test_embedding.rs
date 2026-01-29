@@ -1,15 +1,17 @@
-use std::sync::Arc;
 use tempfile::TempDir;
 
 #[tokio::main]
 async fn main() {
-    let dir = TempDir::new().unwrap();
+    let dir = TempDir::new().expect("Failed to create temp directory");
     let db_path = dir.path().join("test.db");
 
     // Use Builder::new_local for file-based databases
-    let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+    let db = libsql::Builder::new_local(&db_path)
+        .build()
+        .await
+        .expect("Failed to build database");
 
-    let conn = db.connect().unwrap();
+    let conn = db.connect().expect("Failed to connect to database");
 
     // Create table with F32_BLOB(384)
     conn.execute(
@@ -28,11 +30,11 @@ async fn main() {
         (),
     )
     .await
-    .unwrap();
+    .expect("Failed to create embeddings table");
 
     // Try to insert 1024 dimension embedding
     let embedding: Vec<f32> = (0..1024).map(|i| i as f32 / 1024.0).collect();
-    let embedding_json = serde_json::to_string(&embedding).unwrap();
+    let embedding_json = serde_json::to_string(&embedding).expect("Failed to serialize embedding");
 
     println!("Inserting 1024-dimension embedding...");
     let result = conn.execute(
@@ -52,11 +54,11 @@ async fn main() {
             libsql::params!["dim_1024", "embedding"],
         )
         .await
-        .unwrap();
+        .expect("Failed to query embeddings");
 
-    if let Some(row) = rows.next().await.unwrap() {
-        let data: String = row.get(0).unwrap();
-        let parsed: Vec<f32> = serde_json::from_str(&data).unwrap();
+    if let Some(row) = rows.next().await.expect("Failed to get next row") {
+        let data: String = row.get(0).expect("Failed to get embedding data");
+        let parsed: Vec<f32> = serde_json::from_str(&data).expect("Failed to parse embedding JSON");
         println!("Retrieved embedding with {} dimensions", parsed.len());
     } else {
         println!("No embedding found!");

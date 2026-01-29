@@ -3,7 +3,10 @@
 use serde_json::json;
 
 use super::*;
-use crate::types::{ErrorType, ExecutionContext, ExecutionResult, SecurityViolationType};
+use crate::types::{ExecutionContext, ExecutionResult, SecurityViolationType};
+
+#[cfg(not(feature = "wasm-rquickjs"))]
+use crate::types::ErrorType;
 
 /// Create a test execution context
 fn create_test_context() -> ExecutionContext {

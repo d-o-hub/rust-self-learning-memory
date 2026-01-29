@@ -111,3 +111,49 @@ Examples:
 - Document any unsafe code blocks
 - Run security checks before committing
 - Never edit `.env` or credential files
+
+## CI/CD Quality Standards (CRITICAL)
+
+### Pre-existing Issue Resolution Policy
+**NEVER skip or ignore pre-existing issues. All warnings and errors must be resolved.**
+
+When running lint, build, test, or CI checks:
+1. **First Pass**: Run checks and identify ALL issues (new AND pre-existing)
+2. **Categorize**: Separate issues by type (lint, test, security, performance)
+3. **Prioritize**: Fix critical errors first, then warnings
+4. **Loop Until Clean**: Use iterative approach with @loop-agent until ALL issues resolved
+5. **Web Research**: If unable to resolve after first loop, use @perplexity-researcher-reasoning-pro for solutions
+6. **Handoff Coordination**: Spawn 1-9 agents with GOAP orchestration for complex fixes
+7. **Verify**: Re-run checks after each fix iteration
+8. **Never Skip**: Do not commit or push until ALL checks pass
+
+### Iterative Fix Process
+```
+Loop 1: Identify and fix obvious issues
+├─ If all resolved → Success
+└─ If issues remain → Continue
+
+Loop 2: Research remaining issues
+├─ Use @perplexity-researcher-reasoning-pro for unknown errors
+├─ Use @web-search-researcher for best practices
+└─ Apply researched solutions
+
+Loop 3+: Continue until convergence
+├─ Spawn specialized agents for specific issue types
+├─ Use parallel execution where possible
+└─ Stop only when ALL checks pass
+```
+
+### Agent Coordination for CI Fixes
+- **1-3 agents**: For simple lint/format issues
+- **4-6 agents**: For test failures across multiple modules
+- **7-9 agents**: For complex multi-category issues (lint + tests + security)
+
+### Required Checks Before Any Commit
+- [ ] `cargo fmt --all -- --check` passes
+- [ ] `cargo clippy --all -- -D warnings` passes (zero warnings)
+- [ ] `cargo build --all` succeeds
+- [ ] `cargo test --all` passes (or identify pre-existing failures to fix)
+- [ ] `./scripts/quality-gates.sh` passes
+- [ ] All GitHub Actions workflows that can pass, DO pass
+- [ ] Security audit passes (or secrets properly excluded)

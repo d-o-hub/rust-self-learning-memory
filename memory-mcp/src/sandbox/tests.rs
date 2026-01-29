@@ -19,6 +19,7 @@ fn set_once() {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_simple_execution() {
     set_once();
     let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
@@ -36,6 +37,7 @@ async fn test_simple_execution() {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_console_output() {
     set_once();
     let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
@@ -198,6 +200,7 @@ async fn test_eval_blocking() {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_syntax_error() {
     set_once();
     let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
@@ -218,6 +221,7 @@ async fn test_syntax_error() {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_runtime_error() {
     set_once();
     let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();

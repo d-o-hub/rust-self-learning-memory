@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use tempfile::TempDir;
 
 #[tokio::main]

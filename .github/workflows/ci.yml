@@ -73,9 +73,12 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests with timeout protection
         run: |
-          # Run all tests excluding ignored slow tests and compliance tests
-          # Slow tests are marked with #[ignore] and run in nightly or release CI
-          cargo nextest run --profile ci --all --test-threads=4 \
+          # Run library tests first (fastest feedback)
+          echo "Running library tests..."
+          cargo nextest run --profile ci --lib --all --test-threads=4
+          # Run integration tests excluding compliance tests
+          echo "Running integration tests..."
+          cargo nextest run --profile ci --tests --all --test-threads=4 \
             -E 'not binary(compliance)'
       - name: Upload test results
         if: always()

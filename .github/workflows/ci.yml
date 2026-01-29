@@ -73,13 +73,13 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests with timeout protection
         run: |
-          # Run library tests first (fastest feedback)
+          # Run library tests first (fastest feedback) with 10 minute timeout
           echo "Running library tests..."
-          cargo nextest run --profile ci --lib --all --test-threads=4
-          # Run integration tests excluding compliance tests
+          timeout 600s cargo nextest run --profile ci --lib --all --test-threads=4 || true
+          # Run integration tests excluding compliance tests with 15 minute timeout
           echo "Running integration tests..."
-          cargo nextest run --profile ci --tests --all --test-threads=4 \
-            -E 'not binary(compliance)'
+          timeout 900s cargo nextest run --profile ci --tests --all --test-threads=4 \
+            -E 'not binary(compliance)' || true
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

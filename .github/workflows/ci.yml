@@ -75,11 +75,10 @@ jobs:
         run: |
           # Run library tests first (fastest feedback) with 10 minute timeout
           echo "Running library tests..."
-          timeout 600s cargo nextest run --profile ci --lib --all --test-threads=4 || true
+          timeout 600s cargo test --lib --all -- --test-threads=4 || true
           # Run integration tests excluding compliance tests with 15 minute timeout
           echo "Running integration tests..."
-          timeout 900s cargo nextest run --profile ci --tests --all --test-threads=4 \
-            -E 'not binary(compliance)' || true
+          timeout 900s cargo test --tests --all -- --test-threads=4 || true
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

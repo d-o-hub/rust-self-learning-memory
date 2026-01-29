@@ -80,7 +80,7 @@ jobs:
           # Run integration tests excluding slow tests and compliance tests
           # Slow tests are marked with #[ignore] and run in nightly or release CI
           cargo nextest run --profile ci --tests --all --test-threads=4 \
-            -E 'not binary(compliance)' --run-ignored=default-only
+            -E 'not binary(compliance)' --run-ignored=default
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

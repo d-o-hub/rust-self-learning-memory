@@ -20,8 +20,9 @@
 )]
 
 use memory_core::embeddings::{
-    EmbeddingConfig, MistralConfig, MistralModel, OpenAIConfig, OpenAIModel, OutputDtype,
-    ProviderConfig,
+    config::mistral::{MistralConfig, MistralModel, OutputDtype},
+    config::openai::{OpenAIConfig, OpenAIModel},
+    EmbeddingConfig, ProviderConfig,
 };
 
 fn main() {
@@ -35,14 +36,7 @@ fn main() {
     println!("{}", "-".repeat(70));
 
     // Create OpenAI config with 512 dimensions (instead of default 1536)
-    let openai_512 = OpenAIConfig {
-        model: OpenAIModel::TextEmbedding3Small,
-        dimensions: Some(512),
-        encoding_format: memory_core::embeddings::EncodingFormat::Float,
-        api_key: None,
-        base_url: None,
-        optimization: memory_core::embeddings::OptimizationConfig::openai(),
-    };
+    let openai_512 = OpenAIConfig::text_embedding_3_small().with_dimensions(512);
 
     println!("Configuration:");
     println!("  Model: text-embedding-3-small");
@@ -69,20 +63,15 @@ fn main() {
     println!("\n🟣 Example 2: Mistral Codestral with Int8 Quantization");
     println!("{}", "-".repeat(70));
 
-    let mistral_codestral = MistralConfig {
-        model: MistralModel::CodestralEmbed,
-        embedding_dimension: 1024,
-        output_dimension: Some(512),
-        output_dtype: OutputDtype::Int8,
-        api_key: None,
-        optimization: memory_core::embeddings::OptimizationConfig::mistral(),
-    };
+    let mistral_codestral = MistralConfig::codestral_embed()
+        .with_output_dimension(512)
+        .with_output_dtype(OutputDtype::Int8);
 
     println!("Configuration:");
     println!("  Model: codestral-embed");
     println!(
-        "  Embedding dimension: {}",
-        mistral_codestral.embedding_dimension
+        "  Effective dimension: {}",
+        mistral_codestral.effective_dimension()
     );
     println!(
         "  Output dimension: {:?}",
@@ -104,20 +93,13 @@ fn main() {
     println!("\n🔢 Example 3: Mistral Codestral with Binary Embeddings");
     println!("{}", "-".repeat(70));
 
-    let mistral_binary = MistralConfig {
-        model: MistralModel::CodestralEmbed,
-        embedding_dimension: 1024,
-        output_dimension: Some(1024),
-        output_dtype: OutputDtype::Binary,
-        api_key: None,
-        optimization: memory_core::embeddings::OptimizationConfig::mistral(),
-    };
+    let mistral_binary = MistralConfig::codestral_binary();
 
     println!("Configuration:");
     println!("  Model: codestral-embed");
     println!(
-        "  Embedding dimension: {}",
-        mistral_binary.embedding_dimension
+        "  Effective dimension: {}",
+        mistral_binary.effective_dimension()
     );
     println!("  Output dimension: {:?}", mistral_binary.output_dimension);
     println!("  Output dtype: {:?}", mistral_binary.output_dtype);
@@ -162,14 +144,8 @@ fn main() {
     println!("{}", "-".repeat(70));
 
     // Serialize to JSON
-    let provider = ProviderConfig::OpenAI(OpenAIConfig {
-        model: OpenAIModel::TextEmbedding3Small,
-        dimensions: Some(512),
-        encoding_format: memory_core::embeddings::EncodingFormat::Float,
-        api_key: None,
-        base_url: None,
-        optimization: memory_core::embeddings::OptimizationConfig::openai(),
-    });
+    let provider =
+        ProviderConfig::OpenAI(OpenAIConfig::text_embedding_3_small().with_dimensions(512));
 
     let json = serde_json::to_string_pretty(&provider).unwrap();
     println!("Serialized ProviderConfig:");
@@ -219,7 +195,7 @@ fn main() {
 
     let codestral_binary = ProviderConfig::codestral_binary();
     println!(
-        "  Codestral binary: {} dims (int8)",
+        "  Codestral binary: {} dims (binary)",
         codestral_binary.effective_dimension()
     );
 
@@ -234,17 +210,13 @@ fn main() {
 
     // Create full embedding configuration
     let embedding_config = EmbeddingConfig {
-        provider: ProviderConfig::OpenAI(OpenAIConfig {
-            model: OpenAIModel::TextEmbedding3Small,
-            dimensions: Some(512),
-            encoding_format: memory_core::embeddings::EncodingFormat::Float,
-            api_key: None,
-            base_url: None,
-            optimization: memory_core::embeddings::OptimizationConfig::openai(),
-        }),
+        provider: ProviderConfig::OpenAI(
+            OpenAIConfig::text_embedding_3_small().with_dimensions(512),
+        ),
         similarity_threshold: 0.7,
-        enable_caching: true,
-        batch_size: Some(100),
+        cache_embeddings: true,
+        batch_size: 100,
+        timeout_seconds: 30,
     };
 
     println!("Complete EmbeddingConfig:");
@@ -257,8 +229,8 @@ fn main() {
         "  Similarity threshold: {}",
         embedding_config.similarity_threshold
     );
-    println!("  Caching enabled: {}", embedding_config.enable_caching);
-    println!("  Batch size: {:?}", embedding_config.batch_size);
+    println!("  Caching enabled: {}", embedding_config.cache_embeddings);
+    println!("  Batch size: {}", embedding_config.batch_size);
 
     println!("\nJSON representation:");
     let json = serde_json::to_string_pretty(&embedding_config).unwrap();
@@ -270,36 +242,22 @@ fn main() {
     println!("\n🚀 Example 8: Optimization Configuration");
     println!("{}", "-".repeat(70));
 
-    let optimized_config = MistralConfig {
-        model: MistralModel::CodestralEmbed,
-        embedding_dimension: 1024,
-        output_dimension: Some(512),
-        output_dtype: OutputDtype::Int8,
-        api_key: None,
-        optimization: memory_core::embeddings::OptimizationConfig {
-            timeout_seconds: Some(30),
-            max_retries: 3,
-            retry_delay_ms: 1000,
-            max_batch_size: Some(128),
-            rate_limit_rpm: Some(100),
-            rate_limit_tpm: Some(10000),
-            compression_enabled: true,
-            connection_pool_size: 10,
-        },
-    };
+    let optimized_config = MistralConfig::codestral_embed()
+        .with_output_dimension(512)
+        .with_output_dtype(OutputDtype::Int8);
 
     println!("Optimized Mistral Config:");
     println!("  Model: codestral-embed");
     println!(
         "  Output: {} dims (int8)",
-        optimized_config.output_dimension.unwrap()
+        optimized_config.effective_dimension()
     );
-    println!("  Timeout: 30s");
-    println!("  Max retries: 3");
-    println!("  Batch size: 128");
-    println!("  Compression: enabled");
-    println!("  Rate limit: 100 RPM, 10k TPM");
-    println!("  Connection pool: 10");
+    println!("  Timeout: 30s (from optimization config)");
+    println!("  Max retries: 3 (from optimization config)");
+    println!("  Batch size: 128 (from optimization config)");
+    println!("  Compression: enabled (from optimization config)");
+    println!("  Rate limit: 100 RPM, 10k TPM (from optimization config)");
+    println!("  Connection pool: 10 (from optimization config)");
 
     // ========================================================================
     // Summary

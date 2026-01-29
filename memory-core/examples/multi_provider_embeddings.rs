@@ -20,8 +20,8 @@ fn main() {
     println!("{}", "-".repeat(60));
     let openai_config = OpenAIConfig::text_embedding_3_small();
     println!("Model: {}", openai_config.model.model_name());
-    println!("Dimension: {}", openai_config.embedding_dimension);
-    println!("Full Endpoint: {}", openai_config.get_embeddings_url());
+    println!("Dimension: {}", openai_config.effective_dimension());
+    println!("Full Endpoint: {}", openai_config.embeddings_url());
 
     #[cfg(feature = "openai")]
     {
@@ -36,7 +36,7 @@ fn main() {
     println!("{}", "-".repeat(60));
     let mistral_config = MistralConfig::mistral_embed();
     println!("Model: {}", mistral_config.model.model_name());
-    println!("Dimension: {}", mistral_config.embedding_dimension);
+    println!("Dimension: {}", mistral_config.effective_dimension());
 
     #[cfg(feature = "openai")]
     {
@@ -105,21 +105,21 @@ fn main() {
     println!(
         "Legacy: {} ({} dims) - Most cost-effective",
         ada_002.model.model_name(),
-        ada_002.embedding_dimension
+        ada_002.effective_dimension()
     );
 
     let small = OpenAIConfig::text_embedding_3_small();
     println!(
         "Balanced: {} ({} dims) - Best price/performance",
         small.model.model_name(),
-        small.embedding_dimension
+        small.effective_dimension()
     );
 
     let large = OpenAIConfig::text_embedding_3_large();
     println!(
         "Quality: {} ({} dims) - Highest quality",
         large.model.model_name(),
-        large.embedding_dimension
+        large.effective_dimension()
     );
 
     println!("\n✅ Configuration examples complete!");

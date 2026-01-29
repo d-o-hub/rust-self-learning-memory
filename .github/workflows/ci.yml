@@ -70,10 +70,14 @@ jobs:
         uses: taiki-e/install-action@nextest
       - name: Run tests with timeout protection
         run: |
-          # Run a quick sanity test first
-          echo "Running quick sanity test..."
-          cargo test --package memory-core --lib -- --test-threads=1 --nocapture 2>&1 | head -50
-          echo "Sanity test completed"
+          # Run library tests for core packages (fast, isolated tests)
+          echo "Running memory-core library tests..."
+          cargo test --package memory-core --lib -- --test-threads=4
+          echo "Running memory-storage-turso library tests..."
+          cargo test --package memory-storage-turso --lib -- --test-threads=4
+          echo "Running memory-storage-redb library tests..."
+          cargo test --package memory-storage-redb --lib -- --test-threads=4
+          echo "Library tests completed successfully"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

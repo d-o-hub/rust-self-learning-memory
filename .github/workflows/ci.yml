@@ -73,14 +73,10 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests with timeout protection
         run: |
-          # Ensure junit output directory exists
-          mkdir -p target/nextest/ci
-          # Run unit tests (fastest feedback)
-          cargo nextest run --profile ci --lib --all --test-threads=4
-          # Run integration tests excluding slow tests and compliance tests
+          # Run all tests excluding ignored slow tests and compliance tests
           # Slow tests are marked with #[ignore] and run in nightly or release CI
-          cargo nextest run --profile ci --tests --all --test-threads=4 \
-            -E 'not binary(compliance)' --run-ignored=default
+          cargo nextest run --profile ci --all --test-threads=4 \
+            -E 'not binary(compliance)'
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

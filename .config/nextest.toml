@@ -10,6 +10,8 @@ fail-fast = false
 # Tests taking >60s per period are terminated after 2 periods (120s max)
 slow-timeout = { period = "60s", terminate-after = 2 }
 test-threads = 4
+# JUnit output for test results
+junit = { path = "target/nextest/ci/junit.xml" }
 
 [profile.quick]
 # Fast feedback loop for development

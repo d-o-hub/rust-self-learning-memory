@@ -92,7 +92,7 @@ mod tests {
             .with_encoding_format(EncodingFormat::Base64);
 
         let json = serde_json::to_string(&config).unwrap();
-        println!("Serialized: {}", json);
+        println!("Serialized: {json}");
 
         // Test deserialization
         let deserialized: OpenAIConfig = serde_json::from_str(&json).unwrap();

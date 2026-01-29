@@ -355,8 +355,7 @@ mod tests {
         // Verify the tag is present - use either quoted or unquoted format
         assert!(
             json.contains("\"provider\":\"openai\"") || json.contains("\"openai\""),
-            "Expected provider tag in JSON, got: {}",
-            json
+            "Expected provider tag in JSON, got: {json}"
         );
 
         let deserialized: ProviderConfig = serde_json::from_str(&json).unwrap();

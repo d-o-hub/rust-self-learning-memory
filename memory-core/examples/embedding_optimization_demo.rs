@@ -37,14 +37,14 @@ fn main() {
             "2023-05-15",
             1536,
         ));
-    print_optimization_config("Azure OpenAI", &azure_config.optimization());
+    print_optimization_config("Azure OpenAI", azure_config.optimization());
 
     let custom_config = ProviderConfig::Custom(memory_core::embeddings::CustomConfig::new(
         "model",
         768,
         "http://localhost:1234/v1",
     ));
-    print_optimization_config("Local/Custom", &custom_config.optimization());
+    print_optimization_config("Local/Custom", custom_config.optimization());
 
     // Example 2: Custom High-Reliability Configuration
     println!("\n🛡️  Example 2: High-Reliability Configuration");

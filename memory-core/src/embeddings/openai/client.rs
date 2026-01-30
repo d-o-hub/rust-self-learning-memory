@@ -3,9 +3,7 @@
 //! Contains the `OpenAIEmbeddingProvider` struct and its implementation.
 
 #[cfg(feature = "openai")]
-use super::super::config::ModelConfig;
-#[cfg(feature = "openai")]
-use super::types::{EmbeddingInput, EmbeddingRequest, EmbeddingResponse};
+use super::super::config::openai::{EncodingFormat, OpenAIConfig, OpenAIEmbeddingInput};
 #[cfg(feature = "openai")]
 use crate::embeddings::provider::EmbeddingProvider;
 #[cfg(feature = "openai")]
@@ -19,7 +17,7 @@ use std::time::Instant;
 /// OpenAI embedding provider
 ///
 /// Uses OpenAI's embedding API for high-quality semantic embeddings.
-/// Requires an API key and internet connection.
+/// Supports text-embedding-3.x features including custom dimensions.
 ///
 /// # Supported Models
 /// - `text-embedding-ada-002` (1536 dimensions, legacy)
@@ -28,15 +26,16 @@ use std::time::Instant;
 ///
 /// # Example
 /// ```no_run
-/// use memory_core::embeddings::{OpenAIEmbeddingProvider, ModelConfig};
+/// use memory_core::embeddings::openai::{OpenAIEmbeddingProvider, OpenAIConfig};
+/// use memory_core::embeddings::config::openai::OpenAIModel;
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let config = ModelConfig::openai_3_small();
+///     let config = OpenAIConfig::text_embedding_3_small();
 ///     let provider = OpenAIEmbeddingProvider::new(
 ///         "your-api-key".to_string(),
 ///         config
-///     );
+///     )?;
 ///
 ///     let embedding = provider.embed_text("Hello world").await?;
 ///     println!("Generated embedding with {} dimensions", embedding.len());
@@ -46,12 +45,10 @@ use std::time::Instant;
 pub struct OpenAIEmbeddingProvider {
     /// OpenAI API key
     api_key: String,
-    /// Model configuration
-    config: ModelConfig,
+    /// OpenAI-specific configuration
+    config: OpenAIConfig,
     /// HTTP client for API requests
     client: reqwest::Client,
-    /// Base URL for OpenAI API
-    base_url: String,
 }
 
 #[cfg(feature = "openai")]
@@ -60,38 +57,13 @@ impl OpenAIEmbeddingProvider {
     ///
     /// # Arguments
     /// * `api_key` - OpenAI API key
-    /// * `config` - Model configuration
+    /// * `config` - OpenAI-specific configuration
     ///
     /// # Returns
     /// Configured OpenAI embedding provider
-    pub fn new(api_key: String, config: ModelConfig) -> anyhow::Result<Self> {
-        let timeout_secs = config.optimization.get_timeout_seconds();
+    pub fn new(api_key: String, config: OpenAIConfig) -> anyhow::Result<Self> {
+        config.validate()?;
 
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(timeout_secs))
-            .pool_max_idle_per_host(config.optimization.connection_pool_size)
-            .build()
-            .context("Failed to create HTTP client")?;
-
-        let base_url = config
-            .base_url
-            .clone()
-            .unwrap_or_else(|| "https://api.openai.com/v1".to_string());
-
-        Ok(Self {
-            api_key,
-            config,
-            client,
-            base_url,
-        })
-    }
-
-    /// Create provider with custom base URL (for Azure OpenAI, etc.)
-    pub fn with_custom_url(
-        api_key: String,
-        config: ModelConfig,
-        base_url: String,
-    ) -> anyhow::Result<Self> {
         let timeout_secs = config.optimization.get_timeout_seconds();
 
         let client = reqwest::Client::builder()
@@ -104,21 +76,29 @@ impl OpenAIEmbeddingProvider {
             api_key,
             config,
             client,
-            base_url,
         })
     }
 
     /// Make embedding request to OpenAI API with retry logic
-    async fn request_embeddings(&self, input: EmbeddingInput) -> Result<EmbeddingResponse> {
-        let url = self.config.get_embeddings_url();
+    async fn request_embeddings(
+        &self,
+        input: OpenAIEmbeddingInput,
+    ) -> Result<super::types::EmbeddingResponse> {
+        use super::super::config::openai::OpenAIEmbeddingRequest;
+
+        let url = self.config.embeddings_url();
         let max_retries = self.config.optimization.max_retries;
         let base_delay_ms = self.config.optimization.retry_delay_ms;
 
-        let request = EmbeddingRequest {
+        // Build request with provider-specific parameters
+        let request = OpenAIEmbeddingRequest {
             input,
-            model: self.config.model_name.clone(),
-            encoding_format: Some("float".to_string()),
-            dimensions: None,
+            model: self.config.model.model_name().to_string(),
+            encoding_format: Some(match self.config.encoding_format {
+                EncodingFormat::Float => "float".to_string(),
+                EncodingFormat::Base64 => "base64".to_string(),
+            }),
+            dimensions: self.config.dimensions,
         };
 
         let mut last_error = None;
@@ -150,7 +130,7 @@ impl OpenAIEmbeddingProvider {
             let status = response.status();
 
             if status.is_success() {
-                let embedding_response: EmbeddingResponse = response
+                let embedding_response: super::types::EmbeddingResponse = response
                     .json()
                     .await
                     .context("Failed to parse OpenAI API response")?;
@@ -173,7 +153,7 @@ impl OpenAIEmbeddingProvider {
 
     /// Process a single batch chunk
     async fn embed_batch_chunk(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
-        let input = EmbeddingInput::Batch(texts.to_vec());
+        let input = OpenAIEmbeddingInput::Batch(texts.to_vec());
         let response = self.request_embeddings(input).await?;
 
         if response.data.len() != texts.len() {
@@ -205,7 +185,7 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
     async fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
         let start_time = Instant::now();
 
-        let input = EmbeddingInput::Single(text.to_string());
+        let input = OpenAIEmbeddingInput::Single(text.to_string());
         let response = self.request_embeddings(input).await?;
 
         if response.data.is_empty() {
@@ -261,11 +241,11 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
     }
 
     fn embedding_dimension(&self) -> usize {
-        self.config.embedding_dimension
+        self.config.effective_dimension()
     }
 
     fn model_name(&self) -> &str {
-        &self.config.model_name
+        self.config.model.model_name()
     }
 
     async fn is_available(&self) -> bool {
@@ -283,7 +263,11 @@ impl EmbeddingProvider for OpenAIEmbeddingProvider {
             "dimension": self.embedding_dimension(),
             "type": "openai",
             "provider": "OpenAI",
-            "base_url": self.base_url
+            "encoding_format": match self.config.encoding_format {
+                EncodingFormat::Float => "float",
+                EncodingFormat::Base64 => "base64",
+            },
+            "base_url": self.config.base_url
         })
     }
 }

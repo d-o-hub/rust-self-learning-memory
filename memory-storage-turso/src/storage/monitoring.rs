@@ -14,25 +14,29 @@ impl TursoStorage {
         debug!("Storing execution record for: {}", record.agent_name);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO execution_records (
                 agent_name, agent_type, task_description, success,
                 duration_ms, started_at, error_message
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        conn.execute(
-            sql,
-            libsql::params![
-                record.agent_name.clone(),
-                record.agent_type.to_string(),
-                record.task_description.as_deref().unwrap_or(""),
-                record.success,
-                record.duration.as_millis() as i64,
-                record.started_at.timestamp(),
-                record.error_message.as_deref().unwrap_or(""),
-            ],
-        )
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            record.agent_name.clone(),
+            record.agent_type.to_string(),
+            record.task_description.as_deref().unwrap_or(""),
+            record.success,
+            record.duration.as_millis() as i64,
+            record.started_at.timestamp(),
+            record.error_message.as_deref().unwrap_or(""),
+        ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store execution record: {}", e)))?;
 
@@ -48,25 +52,29 @@ impl TursoStorage {
         debug!("Storing agent metrics: {}", metrics.agent_name);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO agent_metrics (
                 agent_name, agent_type, total_executions, successful_executions,
                 total_duration_ms, avg_duration_ms, last_execution_time
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        conn.execute(
-            sql,
-            libsql::params![
-                metrics.agent_name.clone(),
-                metrics.agent_type.to_string(),
-                metrics.total_executions as i64,
-                metrics.successful_executions as i64,
-                metrics.total_duration.as_millis() as i64,
-                metrics.avg_duration.as_secs_f64(),
-                metrics.last_execution.map(|t| t.timestamp()),
-            ],
-        )
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            metrics.agent_name.clone(),
+            metrics.agent_type.to_string(),
+            metrics.total_executions as i64,
+            metrics.successful_executions as i64,
+            metrics.total_duration.as_millis() as i64,
+            metrics.avg_duration.as_secs_f64(),
+            metrics.last_execution.map(|t| t.timestamp()),
+        ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store agent metrics: {}", e)))?;
 
@@ -79,21 +87,25 @@ impl TursoStorage {
         debug!("Storing task metrics: {}", metrics.task_type);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO task_metrics (
                 task_type, total_tasks, completed_tasks, avg_completion_time
             ) VALUES (?, ?, ?, ?)
         "#;
 
-        conn.execute(
-            sql,
-            libsql::params![
-                metrics.task_type.clone(),
-                metrics.total_tasks as i64,
-                metrics.completed_tasks as i64,
-                metrics.avg_completion_time.as_millis() as i64,
-            ],
-        )
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            metrics.task_type.clone(),
+            metrics.total_tasks as i64,
+            metrics.completed_tasks as i64,
+            metrics.avg_completion_time.as_millis() as i64,
+        ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store task metrics: {}", e)))?;
 
@@ -106,14 +118,21 @@ impl TursoStorage {
         debug!("Loading agent metrics: {}", agent_name);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT agent_name, agent_type, total_executions, successful_executions,
                    total_duration_ms, avg_duration_ms, last_execution_time
             FROM agent_metrics WHERE agent_name = ?
         "#;
 
-        let mut rows = conn
-            .query(sql, libsql::params![agent_name])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![agent_name])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query agent metrics: {}", e)))?;
 
@@ -182,13 +201,20 @@ impl TursoStorage {
         debug!("Loading task metrics: {}", task_type);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT task_type, total_tasks, completed_tasks, avg_completion_time
             FROM task_metrics WHERE task_type = ?
         "#;
 
-        let mut rows = conn
-            .query(sql, libsql::params![task_type])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![task_type])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query task metrics: {}", e)))?;
 

@@ -497,6 +497,113 @@ Track for each agent:
 ✗ Leave pre-existing issues unfixed
 ✗ Skip lint checks or warnings
 
+## Pre-existing Issue Resolution Protocol (CRITICAL)
+
+**NEVER skip or ignore pre-existing issues. All warnings and errors must be resolved before considering a task complete.**
+
+### Resolution Strategy
+
+When encountering issues during lint, build, test, or CI:
+
+1. **Identify ALL Issues** (First Pass)
+   - Run all checks: `cargo fmt`, `cargo clippy`, `cargo build`, `cargo test`
+   - Categorize by type: lint, build, test, security, performance
+   - Document each issue with location and severity
+
+2. **Prioritize Fixes**
+   - P0: Critical errors (build failures, security vulnerabilities)
+   - P1: Warnings that block CI (clippy warnings, test failures)
+   - P2: Quality issues (formatting, documentation)
+
+3. **Iterative Resolution Loop**
+   ```
+   Loop 1: Fix obvious issues
+   ├─ Use 1-3 agents for simple fixes (formatting, simple clippy warnings)
+   ├─ Use 4-6 agents for moderate issues (test failures, complex warnings)
+   └─ Use 7-9 agents for complex multi-category issues
+   
+   Loop 2+: Research and resolve remaining issues
+   ├─ If issues remain, use @perplexity-researcher-reasoning-pro for solutions
+   ├─ Use @web-search-researcher for best practices and patterns
+   └─ Apply researched solutions with specialized agents
+   
+   Continue until ALL checks pass
+   ```
+
+4. **Handoff Coordination**
+   - Spawn specialized agents based on issue types:
+     - `code-reviewer`: For lint/format issues
+     - `test-runner`: For test failures
+     - `debugger`: For runtime issues
+     - `refactorer`: For code quality improvements
+   - Use parallel execution where issues are independent
+   - Use sequential execution where fixes have dependencies
+
+5. **Verification After Each Loop**
+   - Re-run all checks after each iteration
+   - Verify fixes don't introduce new issues
+   - Track progress toward zero warnings/errors
+
+6. **Success Criteria**
+   - `cargo fmt --all -- --check` passes
+   - `cargo clippy --all -- -D warnings` passes (zero warnings)
+   - `cargo build --all` succeeds
+   - `cargo test --all` passes
+   - All GitHub Actions workflows pass (except infrastructure issues)
+
+### Web Research Integration
+
+When standard fixes don't resolve issues:
+
+1. **Trigger Research** (after Loop 1 if issues remain)
+   - Use @perplexity-researcher-reasoning-pro for:
+     - Complex Rust compilation errors
+     - Unfamiliar CI/CD failures
+     - Security vulnerability remediation
+     - Performance optimization strategies
+   
+2. **Apply Research Findings**
+   - Create targeted fix plan based on research
+   - Spawn appropriate agents with specific instructions
+   - Implement fixes following researched best practices
+
+3. **Validate Research-Based Fixes**
+   - Verify fixes resolve original issues
+   - Ensure no regressions introduced
+   - Document solutions for future reference
+
+### Example: Resolving Pre-existing CI Failures
+
+```
+Scenario: CI fails with multiple pre-existing issues
+
+Phase 1: Issue Identification (Parallel)
+├─ Agent 1: Run cargo fmt → 3 formatting issues
+├─ Agent 2: Run cargo clippy → 7 clippy warnings
+├─ Agent 3: Run cargo test → 2 test timeouts
+└─ Agent 4: Check CI logs → Security scan failure
+
+Phase 2: First Fix Loop (Parallel where possible)
+├─ Agent 5: Fix formatting issues → ✓ Resolved
+├─ Agent 6: Fix simple clippy warnings (4/7) → ✓ Resolved
+└─ Agent 7: Investigate test timeouts → Complex issue identified
+
+Phase 3: Research Loop (for remaining issues)
+└─ @perplexity-researcher-reasoning-pro:
+   - Research: "Rust test timeout in heuristic_learning tests"
+   - Findings: Tests need async runtime configuration
+   
+Phase 4: Apply Research (Sequential)
+└─ Agent 8: Implement async test fixes based on research
+   → ✓ Test timeouts resolved
+
+Phase 5: Final Verification
+└─ All agents: Re-run complete check suite
+   → ✓ All checks pass
+
+Result: All pre-existing issues resolved, CI passes
+```
+
 ## Integration with Self-Learning Memory
 
 As a GOAP Agent, track all coordination activities as episodes:

@@ -2,10 +2,7 @@
 //!
 //! Type definitions and statistics structures for metrics collection.
 
-use std::collections::HashMap;
-use std::f64::consts::PI;
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
-use std::time::{Duration, Instant};
+// Type definitions and statistics structures for metrics collection.
 
 /// Maximum number of latency samples to retain per operation
 const MAX_LATENCY_SAMPLES: usize = 1000;

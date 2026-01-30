@@ -1,9 +1,9 @@
 //! Real embedding model implementation using ONNX runtime
 //!
-//! This module provides the actual ONNX-based embedding model implementation
+//! This module provides actual ONNX-based embedding model implementation
 //! that runs locally when the 'local-embeddings' feature is enabled.
 
-use crate::embeddings::config::ModelConfig;
+use crate::embeddings::config::LocalConfig;
 use anyhow::Result;
 
 #[cfg(feature = "local-embeddings")]
@@ -123,7 +123,7 @@ impl RealEmbeddingModel {
         .map_err(|e| anyhow::anyhow!("Task execution failed: {e}"))??;
 
         // Normalize the embedding
-        let normalized_embedding = utils::normalize_vector(embedding);
+        let normalized_embedding = crate::embeddings::provider::utils::normalize_vector(embedding);
 
         Ok(normalized_embedding)
     }
@@ -135,7 +135,7 @@ impl RealEmbeddingModel {
     /// from `HuggingFace` Hub.
     #[allow(clippy::unused_async)] // Required for API compatibility with async trait methods
     pub async fn try_load_from_cache(
-        config: &ModelConfig,
+        config: &LocalConfig,
         cache_dir: &std::path::Path,
     ) -> Result<Self> {
         // Model file paths
@@ -230,7 +230,7 @@ impl RealEmbeddingModel {
     #[allow(dead_code)]
     #[allow(clippy::unused_async)]
     pub async fn try_load_from_cache(
-        _config: &ModelConfig,
+        _config: &LocalConfig,
         _cache_dir: &std::path::Path,
     ) -> Result<Self> {
         Err(anyhow::anyhow!(

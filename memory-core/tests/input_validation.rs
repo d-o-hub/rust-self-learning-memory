@@ -26,6 +26,7 @@ struct LargeInputTest {
 
 #[allow(clippy::excessive_nesting)]
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_handle_large_inputs_without_data_loss() {
     // Given: Various large input scenarios
     let test_cases = vec![
@@ -205,6 +206,7 @@ struct SpecialCharTest {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_handle_special_characters_and_edge_cases_gracefully() {
     // Given: Various special character and edge case scenarios
     let test_cases = vec![

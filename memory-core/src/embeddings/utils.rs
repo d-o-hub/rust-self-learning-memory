@@ -3,15 +3,15 @@
 //! This module provides helper functions and configuration types
 //! for managing local embedding models.
 
-use super::config::ModelConfig;
+use super::config::LocalConfig;
 
 /// List available local models
 #[must_use]
-pub fn list_available_models() -> Vec<ModelConfig> {
+pub fn list_available_models() -> Vec<LocalConfig> {
     vec![
-        ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384),
-        ModelConfig::local_sentence_transformer("sentence-transformers/all-mpnet-base-v2", 768),
-        ModelConfig::local_sentence_transformer(
+        LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384),
+        LocalConfig::new("sentence-transformers/all-mpnet-base-v2", 768),
+        LocalConfig::new(
             "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             384,
         ),
@@ -20,15 +20,13 @@ pub fn list_available_models() -> Vec<ModelConfig> {
 
 /// Get recommended model configuration for different use cases
 #[must_use]
-pub fn get_recommended_model(use_case: LocalModelUseCase) -> ModelConfig {
+pub fn get_recommended_model(use_case: LocalModelUseCase) -> LocalConfig {
     match use_case {
-        LocalModelUseCase::Fast => {
-            ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384)
-        }
+        LocalModelUseCase::Fast => LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384),
         LocalModelUseCase::Quality => {
-            ModelConfig::local_sentence_transformer("sentence-transformers/all-mpnet-base-v2", 768)
+            LocalConfig::new("sentence-transformers/all-mpnet-base-v2", 768)
         }
-        LocalModelUseCase::Multilingual => ModelConfig::local_sentence_transformer(
+        LocalModelUseCase::Multilingual => LocalConfig::new(
             "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
             384,
         ),

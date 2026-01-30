@@ -1,6 +1,6 @@
 //! Semantic service tests for `SelfLearningMemory`.
 
-use crate::embeddings::{EmbeddingConfig, EmbeddingProviderType, ModelConfig};
+use crate::embeddings::{EmbeddingConfig, ProviderConfig};
 use crate::episode::ExecutionStep;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
 use crate::SelfLearningMemory;
@@ -25,8 +25,7 @@ pub async fn test_semantic_service_initialization() {
 #[tokio::test]
 pub async fn test_with_semantic_config() {
     let custom_config = EmbeddingConfig {
-        provider: EmbeddingProviderType::Local,
-        model: ModelConfig::default(),
+        provider: ProviderConfig::local_default(),
         similarity_threshold: 0.8,
         batch_size: 16,
         cache_embeddings: false,

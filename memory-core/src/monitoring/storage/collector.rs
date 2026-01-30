@@ -99,6 +99,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             heuristics: vec![],
             applied_patterns: vec![],
             salient_features: None,
+            tags: vec![],
             metadata,
         };
 
@@ -144,6 +145,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             heuristics: vec![],
             applied_patterns: vec![],
             salient_features: None,
+            tags: vec![],
             metadata,
         };
 
@@ -188,6 +190,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             heuristics: vec![],
             applied_patterns: vec![],
             salient_features: None,
+            tags: vec![],
             metadata,
         };
 

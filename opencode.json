@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode/glm-4.7-free",
+  "model": "zai-coding-plan/glm-4.7",
   "provider": {
     "perplexity": {
       "npm": "@ai-sdk/perplexity",

@@ -89,3 +89,4 @@ mcp*.sqlite
 opencodetmp/opencode
 .claude/settings.local.json
 :memory:
+.env

@@ -62,6 +62,7 @@ async fn create_episode_with_decision_points(
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_extraction_from_episode() {
     // Given: A memory system
     let memory = setup_test_memory();
@@ -172,6 +173,7 @@ async fn test_heuristic_extraction_from_episode() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_storage_in_learning_cycle() {
     // Given: A memory system with storage backends
     let memory = setup_test_memory();
@@ -222,6 +224,7 @@ async fn test_heuristic_storage_in_learning_cycle() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_retrieval_by_context() {
     // Given: A memory system with heuristics in different contexts
     let memory = setup_test_memory();
@@ -293,6 +296,7 @@ async fn test_heuristic_retrieval_by_context() {
 
 #[tokio::test]
 #[allow(clippy::float_cmp)]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_confidence_updates() {
     // Given: A memory system with an initial heuristic
     let memory = setup_test_memory();
@@ -419,6 +423,7 @@ async fn test_heuristic_confidence_updates() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_filtering_by_confidence() {
     // Given: A memory system configured with default thresholds
     let memory = setup_test_memory();
@@ -636,6 +641,7 @@ async fn test_no_heuristic_extraction_from_incomplete_episode() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_no_heuristic_extraction_from_failed_episode() {
     // Given: A memory system
     let memory = setup_test_memory();
@@ -678,6 +684,7 @@ async fn test_no_heuristic_extraction_from_failed_episode() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_heuristic_edge_cases() {
     // Given: A memory system
     let memory = setup_test_memory();

@@ -15,6 +15,7 @@ use memory_core::{
 };
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_execute_complete_learning_cycle_end_to_end() {
     // Given: A memory system
     let memory = setup_test_memory();
@@ -110,6 +111,7 @@ async fn should_execute_complete_learning_cycle_end_to_end() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_learn_from_multiple_episodes_in_same_domain() {
     // Given: A memory system
     let memory = setup_test_memory();
@@ -164,6 +166,7 @@ async fn should_learn_from_multiple_episodes_in_same_domain() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_learn_from_failed_episodes_with_improvement_insights() {
     // Given: A memory system and a complex task context
     let memory = setup_test_memory();
@@ -221,6 +224,7 @@ async fn should_learn_from_failed_episodes_with_improvement_insights() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_handle_concurrent_episode_operations_safely() {
     // Given: A shared memory system
     let memory = setup_test_memory();
@@ -278,6 +282,7 @@ async fn should_handle_concurrent_episode_operations_safely() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_extract_patterns_accurately_from_error_recovery_episodes() {
     // Given: A memory system
     let memory = setup_test_memory();

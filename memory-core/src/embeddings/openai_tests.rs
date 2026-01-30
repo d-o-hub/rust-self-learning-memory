@@ -60,201 +60,34 @@ mod tests {
     #[cfg(feature = "openai")]
     #[tokio::test]
     async fn test_provider_creation() -> anyhow::Result<()> {
-        let config = ModelConfig::openai_3_small();
+        use crate::embeddings::config::openai::OpenAIConfig;
+
+        let config = OpenAIConfig::text_embedding_3_small();
         let provider = OpenAIEmbeddingProvider::new("sk-test-key-1234567890".to_string(), config)?;
 
         assert_eq!(provider.model_name(), "text-embedding-3-small");
         assert_eq!(provider.embedding_dimension(), 1536);
-        assert_eq!(provider.base_url, "https://api.openai.com/v1");
+
+        // Verify base_url through metadata
+        let metadata = provider.metadata();
+        assert_eq!(metadata["base_url"], "https://api.openai.com/v1");
         Ok(())
     }
 
     #[cfg(feature = "openai")]
     #[tokio::test]
     async fn test_custom_url_provider() -> anyhow::Result<()> {
-        let config = ModelConfig::openai_3_small();
-        let custom_url = "https://custom.openai.azure.com/v1";
-        let provider = OpenAIEmbeddingProvider::with_custom_url(
-            "sk-test-key-1234567890".to_string(),
-            config,
-            custom_url.to_string(),
-        )?;
+        use crate::embeddings::config::openai::{EncodingFormat, OpenAIConfig};
 
-        assert_eq!(provider.base_url, custom_url);
+        let config = OpenAIConfig::text_embedding_3_small()
+            .with_base_url("https://custom.openai.azure.com/v1")
+            .with_encoding_format(EncodingFormat::Base64);
+        let provider = OpenAIEmbeddingProvider::new("sk-test-key-1234567890".to_string(), config)?;
+
+        // Verify custom URL through metadata
+        let metadata = provider.metadata();
+        assert_eq!(metadata["base_url"], "https://custom.openai.azure.com/v1");
+        assert_eq!(metadata["encoding_format"], "base64");
         Ok(())
     }
 
-    #[test]
-    fn test_mistral_config() {
-        let config = ModelConfig::mistral_embed();
-        assert_eq!(config.model_name, "mistral-embed");
-        assert_eq!(config.embedding_dimension, 1024);
-        assert_eq!(
-            config.base_url,
-            Some("https://api.mistral.ai/v1".to_string())
-        );
-        assert_eq!(
-            config.get_embeddings_url(),
-            "https://api.mistral.ai/v1/embeddings"
-        );
-    }
-
-    #[test]
-    fn test_azure_openai_config() {
-        let config = ModelConfig::azure_openai("my-deployment", "my-resource", "2023-05-15", 1536);
-        assert_eq!(config.model_name, "my-deployment");
-        assert_eq!(config.embedding_dimension, 1536);
-        assert_eq!(
-            config.base_url,
-            Some("https://my-resource.openai.azure.com".to_string())
-        );
-        assert!(config.api_endpoint.is_some());
-        assert!(config.get_embeddings_url().contains("my-deployment"));
-        assert!(config.get_embeddings_url().contains("2023-05-15"));
-    }
-
-    #[test]
-    fn test_custom_config() {
-        let config = ModelConfig::custom(
-            "custom-model",
-            768,
-            "https://api.example.com/v1",
-            Some("/custom/embeddings"),
-        );
-        assert_eq!(config.model_name, "custom-model");
-        assert_eq!(config.embedding_dimension, 768);
-        assert_eq!(
-            config.get_embeddings_url(),
-            "https://api.example.com/v1/custom/embeddings"
-        );
-    }
-
-    #[test]
-    fn test_custom_config_default_endpoint() {
-        let config = ModelConfig::custom("custom-model", 768, "https://api.example.com/v1", None);
-        assert_eq!(
-            config.get_embeddings_url(),
-            "https://api.example.com/v1/embeddings"
-        );
-    }
-
-    #[cfg(feature = "openai")]
-    #[tokio::test]
-    async fn test_mistral_provider_creation() -> anyhow::Result<()> {
-        let config = ModelConfig::mistral_embed();
-        let provider = OpenAIEmbeddingProvider::new("test-api-key".to_string(), config)?;
-
-        assert_eq!(provider.model_name(), "mistral-embed");
-        assert_eq!(provider.embedding_dimension(), 1024);
-        assert_eq!(provider.base_url, "https://api.mistral.ai/v1");
-        Ok(())
-    }
-
-    #[test]
-    fn test_optimization_config_defaults() {
-        use super::super::config::OptimizationConfig;
-
-        let config = OptimizationConfig::default();
-        assert_eq!(config.max_retries, 3);
-        assert_eq!(config.retry_delay_ms, 1000);
-        assert_eq!(config.get_timeout_seconds(), 60);
-        assert_eq!(config.get_max_batch_size(), 100);
-    }
-
-    #[test]
-    fn test_optimization_config_openai() {
-        use super::super::config::OptimizationConfig;
-
-        let config = OptimizationConfig::openai();
-        assert_eq!(config.max_retries, 3);
-        assert_eq!(config.retry_delay_ms, 1000);
-        assert_eq!(config.timeout_seconds, Some(60));
-        assert_eq!(config.max_batch_size, Some(2048));
-        assert_eq!(config.rate_limit_rpm, Some(3000));
-        assert_eq!(config.rate_limit_tpm, Some(1_000_000));
-        assert!(config.compression_enabled);
-        assert_eq!(config.connection_pool_size, 20);
-    }
-
-    #[test]
-    fn test_optimization_config_mistral() {
-        use super::super::config::OptimizationConfig;
-
-        let config = OptimizationConfig::mistral();
-        assert_eq!(config.max_retries, 3);
-        assert_eq!(config.retry_delay_ms, 500);
-        assert_eq!(config.timeout_seconds, Some(30));
-        assert_eq!(config.max_batch_size, Some(128));
-        assert_eq!(config.rate_limit_rpm, Some(100));
-        assert!(config.compression_enabled);
-        assert_eq!(config.connection_pool_size, 10);
-    }
-
-    #[test]
-    fn test_optimization_config_azure() {
-        use super::super::config::OptimizationConfig;
-
-        let config = OptimizationConfig::azure();
-        assert_eq!(config.max_retries, 4);
-        assert_eq!(config.retry_delay_ms, 2000);
-        assert_eq!(config.timeout_seconds, Some(90));
-        assert_eq!(config.max_batch_size, Some(2048));
-        assert_eq!(config.rate_limit_rpm, Some(300));
-        assert!(config.compression_enabled);
-        assert_eq!(config.connection_pool_size, 15);
-    }
-
-    #[test]
-    fn test_optimization_config_local() {
-        use super::super::config::OptimizationConfig;
-
-        let config = OptimizationConfig::local();
-        assert_eq!(config.max_retries, 2);
-        assert_eq!(config.retry_delay_ms, 100);
-        assert_eq!(config.timeout_seconds, Some(10));
-        assert_eq!(config.max_batch_size, Some(32));
-        assert_eq!(config.rate_limit_rpm, None); // No rate limiting for local
-        assert!(!config.compression_enabled);
-        assert_eq!(config.connection_pool_size, 5);
-    }
-
-    #[test]
-    fn test_model_config_includes_optimization() {
-        let config = ModelConfig::openai_3_small();
-        assert_eq!(config.optimization.max_batch_size, Some(2048));
-        assert_eq!(config.optimization.timeout_seconds, Some(60));
-
-        let mistral_config = ModelConfig::mistral_embed();
-        assert_eq!(mistral_config.optimization.max_batch_size, Some(128));
-        assert_eq!(mistral_config.optimization.timeout_seconds, Some(30));
-
-        let azure_config = ModelConfig::azure_openai("dep", "res", "2023-05-15", 1536);
-        assert_eq!(azure_config.optimization.max_retries, 4);
-        assert_eq!(azure_config.optimization.retry_delay_ms, 2000);
-    }
-
-    #[cfg(feature = "openai")]
-    #[tokio::test]
-    async fn test_provider_uses_optimization_timeout() -> anyhow::Result<()> {
-        let mut config = ModelConfig::openai_3_small();
-        config.optimization.timeout_seconds = Some(120);
-
-        let provider = OpenAIEmbeddingProvider::new("sk-test-key".to_string(), config)?;
-
-        // Verify the config has the custom timeout
-        assert_eq!(provider.config.optimization.timeout_seconds, Some(120));
-        Ok(())
-    }
-
-    #[cfg(feature = "openai")]
-    #[tokio::test]
-    async fn test_provider_uses_optimization_batch_size() -> anyhow::Result<()> {
-        let mut config = ModelConfig::openai_3_small();
-        config.optimization.max_batch_size = Some(500);
-
-        let provider = OpenAIEmbeddingProvider::new("sk-test-key".to_string(), config)?;
-
-        assert_eq!(provider.config.optimization.get_max_batch_size(), 500);
-        Ok(())
-    }
-}

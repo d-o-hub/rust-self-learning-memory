@@ -35,7 +35,7 @@
 //! ```
 
 use chrono::Utc;
-use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
+use memory_core::embeddings::{EmbeddingProvider, LocalConfig, LocalEmbeddingProvider};
 use memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
@@ -270,7 +270,7 @@ async fn main() -> anyhow::Result<()> {
 async fn initialize_provider() -> anyhow::Result<Box<dyn EmbeddingProvider>> {
     #[cfg(feature = "local-embeddings")]
     {
-        match LocalEmbeddingProvider::new(ModelConfig::default()).await {
+        match LocalEmbeddingProvider::new(LocalConfig::default()).await {
             Ok(provider) => {
                 println!("  Using Local Embedding Provider (CPU-based)");
                 return Ok(Box::new(provider));
@@ -284,9 +284,10 @@ async fn initialize_provider() -> anyhow::Result<Box<dyn EmbeddingProvider>> {
     #[cfg(feature = "openai")]
     {
         if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
+            use memory_core::embeddings::OpenAIConfig;
             match memory_core::embeddings::OpenAIEmbeddingProvider::new(
                 api_key,
-                ModelConfig::openai_3_small(),
+                OpenAIConfig::text_embedding_3_small(),
             ) {
                 Ok(provider) => {
                     println!("  Using OpenAI Embedding Provider");

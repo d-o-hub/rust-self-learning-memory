@@ -3,7 +3,7 @@
 //! This provider runs embedding models locally using candle-transformers,
 //! providing offline capability with no external API dependencies.
 
-use super::config::ModelConfig;
+use super::config::LocalConfig;
 use super::provider::EmbeddingProvider;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
@@ -22,11 +22,11 @@ use tokio::sync::RwLock;
 ///
 /// # Example
 /// ```no_run
-/// use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
+/// use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, LocalConfig};
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let config = ModelConfig::local_sentence_transformer(
+///     let config = LocalConfig::new(
 ///         "sentence-transformers/all-MiniLM-L6-v2",
 ///         384
 ///     );
@@ -39,7 +39,7 @@ use tokio::sync::RwLock;
 /// ```
 pub struct LocalEmbeddingProvider {
     /// Model configuration
-    config: ModelConfig,
+    config: LocalConfig,
     /// Embedding model (placeholder for actual model implementation)
     #[allow(dead_code)]
     model: Arc<RwLock<Option<Box<dyn LocalEmbeddingModel>>>>,
@@ -55,7 +55,7 @@ impl LocalEmbeddingProvider {
     ///
     /// # Returns
     /// Configured local embedding provider
-    pub async fn new(config: ModelConfig) -> Result<Self> {
+    pub async fn new(config: LocalConfig) -> Result<Self> {
         let cache_dir = Self::get_cache_dir()?;
 
         let provider = Self {
@@ -254,7 +254,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_local_provider_creation() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
         assert!(provider.is_loaded().await);
@@ -264,7 +264,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_embed_text() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -282,7 +282,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_embed_batch() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -302,7 +302,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_similarity_calculation() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -338,8 +338,7 @@ mod tests {
             return;
         }
 
-        let config =
-            ModelConfig::local_sentence_transformer("sentence-transformers/all-MiniLM-L6-v2", 384);
+        let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -386,7 +385,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_embedding_vector_properties() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -407,8 +406,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_model_metadata() {
-        let config =
-            ModelConfig::local_sentence_transformer("sentence-transformers/test-model", 768);
+        let config = LocalConfig::new("sentence-transformers/test-model", 768);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -416,7 +414,6 @@ mod tests {
         assert_eq!(metadata["model"], "sentence-transformers/test-model");
         assert_eq!(metadata["dimension"], 768);
         assert_eq!(metadata["type"], "local");
-        assert_eq!(metadata["provider"], "sentence-transformers");
 
         let model_info = provider.model_info();
         assert_eq!(model_info["name"], "sentence-transformers/test-model");
@@ -426,7 +423,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_error_handling() {
-        let config = ModelConfig::local_sentence_transformer("nonexistent-model", 384);
+        let config = LocalConfig::new("nonexistent-model", 384);
 
         // Test with non-existent model - should fall back to mock or fail gracefully
         let result = LocalEmbeddingProvider::new(config).await;
@@ -447,7 +444,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_warmup_functionality() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();
 
@@ -481,7 +478,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_production_warning_behavior() {
-        let config = ModelConfig::local_sentence_transformer("test-model", 384);
+        let config = LocalConfig::new("test-model", 384);
 
         // This should emit a warning if not in test mode
         let provider = LocalEmbeddingProvider::new(config).await.unwrap();

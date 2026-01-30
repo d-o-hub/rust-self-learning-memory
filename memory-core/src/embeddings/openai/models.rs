@@ -2,6 +2,9 @@
 //!
 //! Contains request/response structures and shared types.
 
+use crate::embeddings::config::OpenAIConfig;
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use serde::{Deserialize, Serialize};
 
 /// Input for embedding request (single text or batch)
@@ -14,7 +17,7 @@ pub enum EmbeddingsInput {
 
 /// Utility functions for `OpenAI` provider
 pub mod utils {
-    use super::{ModelConfig, Result};
+    use super::OpenAIConfig;
 
     /// Validate `OpenAI` API key format
     #[allow(dead_code)]
@@ -36,11 +39,11 @@ pub mod utils {
 
     /// Get the appropriate model configuration for different use cases
     #[allow(dead_code)]
-    pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> ModelConfig {
+    pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> OpenAIConfig {
         match use_case {
-            OpenAIModelUseCase::Balanced => ModelConfig::openai_3_small(),
-            OpenAIModelUseCase::Quality => ModelConfig::openai_3_large(),
-            OpenAIModelUseCase::Legacy => ModelConfig::openai_ada_002(),
+            OpenAIModelUseCase::Balanced => OpenAIConfig::text_embedding_3_small(),
+            OpenAIModelUseCase::Quality => OpenAIConfig::text_embedding_3_large(),
+            OpenAIModelUseCase::Legacy => OpenAIConfig::ada_002(),
         }
     }
 

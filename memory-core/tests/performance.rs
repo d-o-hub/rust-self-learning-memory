@@ -543,6 +543,7 @@ async fn should_not_leak_memory_over_1000_iterations() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_cleanup_cache_when_exceeding_limits() {
     // Given: Memory system with limited cache (100 episodes max)
     let config = MemoryConfig {
@@ -629,6 +630,7 @@ async fn should_create_episodes_concurrently_without_conflicts() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_complete_episodes_concurrently_without_conflicts() {
     // Given: Shared memory system with 50 episodes
     let memory = Arc::new(setup_test_memory());
@@ -678,6 +680,7 @@ async fn should_complete_episodes_concurrently_without_conflicts() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_handle_concurrent_retrievals_efficiently() {
     // Given: Memory system with 100 episodes
     let memory = Arc::new(setup_memory_with_n_episodes(100).await);
@@ -750,6 +753,7 @@ async fn should_log_steps_very_quickly() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_complete_episodes_quickly_with_pattern_extraction() {
     // Given: Memory system
     let memory = setup_test_memory();

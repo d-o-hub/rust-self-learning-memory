@@ -90,7 +90,7 @@ impl TursoStorage {
         debug!("Storing episode: {}", episode.episode_id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
@@ -191,9 +191,14 @@ impl TursoStorage {
         let metadata_str = String::from_utf8(metadata_json)
             .map_err(|e| Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e)))?;
 
-        conn.execute(
-            sql,
-            libsql::params![
+        // Use prepared statement cache only when connection pooling is enabled
+        if self.has_connection_pool() {
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            stmt.execute(libsql::params![
                 episode.episode_id.to_string(),
                 episode.task_type.to_string(),
                 episode.task_description.clone(),
@@ -210,10 +215,34 @@ impl TursoStorage {
                 episode.context.domain.clone(),
                 episode.context.language.clone(),
                 archived_at,
-            ],
-        )
-        .await
-        .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
+            ])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
+        } else {
+            conn.execute(
+                SQL,
+                libsql::params![
+                    episode.episode_id.to_string(),
+                    episode.task_type.to_string(),
+                    episode.task_description.clone(),
+                    context_json,
+                    episode.start_time.timestamp(),
+                    episode.end_time.map(|t| t.timestamp()),
+                    steps_json,
+                    outcome_json,
+                    reward_json,
+                    reflection_json,
+                    patterns_str,
+                    heuristics_str,
+                    metadata_str,
+                    episode.context.domain.clone(),
+                    episode.context.language.clone(),
+                    archived_at,
+                ],
+            )
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
+        }
 
         info!("Successfully stored episode: {}", episode.episode_id);
         Ok(())
@@ -224,7 +253,7 @@ impl TursoStorage {
         debug!("Retrieving episode: {}", episode_id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
@@ -232,10 +261,21 @@ impl TursoStorage {
             FROM episodes WHERE episode_id = ?
         "#;
 
-        let mut rows = conn
-            .query(sql, libsql::params![episode_id.to_string()])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?;
+        // Use prepared statement cache only when connection pooling is enabled
+        let mut rows = if self.has_connection_pool() {
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            stmt.query(libsql::params![episode_id.to_string()])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?
+        } else {
+            conn.query(SQL, libsql::params![episode_id.to_string()])
+                .await
+                .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?
+        };
 
         if let Some(row) = rows
             .next()
@@ -254,9 +294,16 @@ impl TursoStorage {
         debug!("Deleting episode: {}", episode_id);
         let conn = self.get_connection().await?;
 
-        let sql = "DELETE FROM episodes WHERE episode_id = ?";
+        const SQL: &str = "DELETE FROM episodes WHERE episode_id = ?";
 
-        conn.execute(sql, libsql::params![episode_id.to_string()])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![episode_id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
 
@@ -269,7 +316,7 @@ impl TursoStorage {
         debug!("Storing episode summary: {}", summary.episode_id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             INSERT OR REPLACE INTO episode_summaries (
                 episode_id, summary_text, key_concepts, key_steps,
                 summary_embedding, created_at
@@ -287,17 +334,21 @@ impl TursoStorage {
             .transpose()
             .map_err(Error::Serialization)?;
 
-        conn.execute(
-            sql,
-            libsql::params![
-                summary.episode_id.to_string(),
-                summary.summary_text.clone(),
-                key_concepts_json,
-                key_steps_json,
-                embedding_json,
-                summary.created_at.timestamp(),
-            ],
-        )
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![
+            summary.episode_id.to_string(),
+            summary.summary_text.clone(),
+            key_concepts_json,
+            key_steps_json,
+            embedding_json,
+            summary.created_at.timestamp(),
+        ])
         .await
         .map_err(|e| Error::Storage(format!("Failed to store summary: {}", e)))?;
 
@@ -313,14 +364,21 @@ impl TursoStorage {
         debug!("Retrieving episode summary: {}", episode_id);
         let conn = self.get_connection().await?;
 
-        let sql = r#"
+        const SQL: &str = r#"
             SELECT episode_id, summary_text, key_concepts, key_steps,
                    summary_embedding, created_at
             FROM episode_summaries WHERE episode_id = ?
         "#;
 
-        let mut rows = conn
-            .query(sql, libsql::params![episode_id.to_string()])
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        let mut rows = stmt
+            .query(libsql::params![episode_id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query summary: {}", e)))?;
 

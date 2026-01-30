@@ -42,7 +42,7 @@ impl TursoMetrics {
     }
 
     /// Record a query execution
-    pub fn record_query(&self, success: bool, duration_us: u64) {
+    pub fn record_query(&self, success: bool, _duration_us: u64) {
         self.total_queries.fetch_add(1, Ordering::Relaxed);
         if success {
             self.successful_queries.fetch_add(1, Ordering::Relaxed);
@@ -167,7 +167,6 @@ impl TursoMetrics {
     }
 
     /// Reset all atomic counters to zero
-    #[allow(clippy::rest_pat_in_fully_bound_struct)]
     pub fn reset(&self) {
         self.total_queries.store(0, Ordering::Relaxed);
         self.successful_queries.store(0, Ordering::Relaxed);

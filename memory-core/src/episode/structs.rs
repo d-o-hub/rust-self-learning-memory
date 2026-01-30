@@ -129,6 +129,9 @@ pub struct Episode {
     pub salient_features: Option<SalientFeatures>,
     /// Additional metadata
     pub metadata: HashMap<String, String>,
+    /// Tags for episode categorization (e.g., "bug-fix", "feature", "refactor")
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 impl Episode {
@@ -151,6 +154,7 @@ impl Episode {
             applied_patterns: Vec::new(),
             salient_features: None,
             metadata: HashMap::new(),
+            tags: Vec::new(),
         }
     }
 
@@ -203,6 +207,81 @@ impl Episode {
     #[must_use]
     pub fn failed_steps_count(&self) -> usize {
         self.steps.iter().filter(|s| !s.is_success()).count()
+    }
+
+    /// Normalize a tag: lowercase, trim whitespace, validate characters
+    fn normalize_tag(tag: &str) -> Result<String, String> {
+        let normalized = tag.trim().to_lowercase();
+
+        if normalized.is_empty() {
+            return Err("Tag cannot be empty".to_string());
+        }
+
+        if normalized.len() < 2 {
+            return Err("Tag must be at least 2 characters long".to_string());
+        }
+
+        if normalized.len() > 100 {
+            return Err("Tag cannot exceed 100 characters".to_string());
+        }
+
+        // Allow alphanumeric, hyphens, underscores
+        if !normalized
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+        {
+            return Err(format!(
+                "Tag '{tag}' contains invalid characters. Only alphanumeric, hyphens, and underscores allowed"
+            ));
+        }
+
+        Ok(normalized)
+    }
+
+    /// Add a tag to this episode (normalized, no duplicates)
+    /// Returns `Ok(true)` if tag was added, `Ok(false)` if already exists, `Err` if invalid
+    pub fn add_tag(&mut self, tag: String) -> Result<bool, String> {
+        let normalized = Self::normalize_tag(&tag)?;
+
+        if self.tags.contains(&normalized) {
+            return Ok(false);
+        }
+
+        self.tags.push(normalized);
+        Ok(true)
+    }
+
+    /// Remove a tag from this episode
+    /// Returns `true` if tag was removed, `false` if not found
+    pub fn remove_tag(&mut self, tag: &str) -> bool {
+        if let Ok(normalized) = Self::normalize_tag(tag) {
+            if let Some(pos) = self.tags.iter().position(|t| t == &normalized) {
+                self.tags.remove(pos);
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Check if episode has a specific tag
+    #[must_use]
+    pub fn has_tag(&self, tag: &str) -> bool {
+        if let Ok(normalized) = Self::normalize_tag(tag) {
+            self.tags.contains(&normalized)
+        } else {
+            false
+        }
+    }
+
+    /// Clear all tags from this episode
+    pub fn clear_tags(&mut self) {
+        self.tags.clear();
+    }
+
+    /// Get all tags for this episode
+    #[must_use]
+    pub fn get_tags(&self) -> &[String] {
+        &self.tags
     }
 }
 
@@ -282,5 +361,438 @@ mod tests {
         assert_eq!(episode.steps.len(), 3);
         assert_eq!(episode.successful_steps_count(), 3);
         assert_eq!(episode.failed_steps_count(), 0);
+    }
+
+    #[test]
+    fn test_add_tag() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add valid tag
+        assert!(episode.add_tag("bug-fix".to_string()).unwrap());
+        assert!(episode.has_tag("bug-fix"));
+        assert_eq!(episode.tags.len(), 1);
+
+        // Add duplicate (normalized)
+        assert!(!episode.add_tag("BUG-FIX".to_string()).unwrap());
+        assert_eq!(episode.tags.len(), 1);
+
+        // Add another tag
+        assert!(episode.add_tag("feature".to_string()).unwrap());
+        assert_eq!(episode.tags.len(), 2);
+    }
+
+    #[test]
+    fn test_tag_normalization() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Test case normalization
+        episode.add_tag("Feature-123".to_string()).unwrap();
+        assert!(episode.has_tag("feature-123"));
+        assert!(episode.has_tag("FEATURE-123"));
+        assert_eq!(episode.tags[0], "feature-123");
+
+        // Test whitespace trimming
+        episode.add_tag("  refactor  ".to_string()).unwrap();
+        assert!(episode.has_tag("refactor"));
+        assert_eq!(episode.tags[1], "refactor");
+    }
+
+    #[test]
+    fn test_tag_validation() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Empty tag
+        assert!(episode.add_tag(String::new()).is_err());
+        assert!(episode.add_tag("   ".to_string()).is_err());
+
+        // Invalid characters
+        assert!(episode.add_tag("bug fix".to_string()).is_err());
+        assert!(episode.add_tag("bug@fix".to_string()).is_err());
+        assert!(episode.add_tag("bug/fix".to_string()).is_err());
+
+        // Valid characters
+        assert!(episode.add_tag("bug-fix".to_string()).is_ok());
+        assert!(episode.add_tag("bug_fix".to_string()).is_ok());
+        assert!(episode.add_tag("bugfix123".to_string()).is_ok());
+        assert_eq!(episode.tags.len(), 3);
+
+        // Too long (>100 chars)
+        let long_tag = "a".repeat(101);
+        assert!(episode.add_tag(long_tag).is_err());
+    }
+
+    #[test]
+    fn test_remove_tag() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("feature".to_string()).unwrap();
+        episode.add_tag("refactor".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 3);
+
+        // Remove existing tag
+        assert!(episode.remove_tag("feature"));
+        assert_eq!(episode.tags.len(), 2);
+        assert!(!episode.has_tag("feature"));
+
+        // Remove with different case
+        assert!(episode.remove_tag("BUG-FIX"));
+        assert_eq!(episode.tags.len(), 1);
+        assert!(!episode.has_tag("bug-fix"));
+
+        // Remove non-existent tag
+        assert!(!episode.remove_tag("nonexistent"));
+        assert_eq!(episode.tags.len(), 1);
+    }
+
+    #[test]
+    fn test_clear_tags() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("feature".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 2);
+
+        episode.clear_tags();
+        assert_eq!(episode.tags.len(), 0);
+        assert!(!episode.has_tag("bug-fix"));
+    }
+
+    #[test]
+    fn test_get_tags() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("critical".to_string()).unwrap();
+
+        let tags = episode.get_tags();
+        assert_eq!(tags.len(), 2);
+        assert!(tags.contains(&"bug-fix".to_string()));
+        assert!(tags.contains(&"critical".to_string()));
+    }
+
+    #[test]
+    fn test_tag_validation_error_messages() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Empty tag error message
+        let result = episode.add_tag(String::new());
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Tag cannot be empty");
+
+        // Whitespace-only tag error message
+        let result = episode.add_tag("   ".to_string());
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Tag cannot be empty");
+
+        // Invalid characters error message
+        let result = episode.add_tag("bug fix".to_string());
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err();
+        assert!(error_msg.contains("invalid characters"));
+        assert!(error_msg.contains("bug fix"));
+
+        // Too long tag error message
+        let long_tag = "a".repeat(101);
+        let result = episode.add_tag(long_tag.clone());
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Tag cannot exceed 100 characters");
+    }
+
+    #[test]
+    fn test_tag_minimum_length() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Single character should be invalid
+        let result = episode.add_tag("a".to_string());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("at least 2 characters"));
+
+        // Two characters should be valid
+        let result = episode.add_tag("ab".to_string());
+        assert!(result.is_ok());
+        assert!(episode.has_tag("ab"));
+    }
+
+    #[test]
+    fn test_tag_boundary_lengths() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Exactly 2 characters
+        assert!(episode.add_tag("ab".to_string()).is_ok());
+        assert_eq!(episode.tags[0], "ab");
+
+        // Exactly 100 characters
+        let tag_100 = "a".repeat(100);
+        assert!(episode.add_tag(tag_100.clone()).is_ok());
+        assert_eq!(episode.tags[1].len(), 100);
+
+        // 101 characters should fail
+        let tag_101 = "b".repeat(101);
+        assert!(episode.add_tag(tag_101).is_err());
+    }
+
+    #[test]
+    fn test_add_tag_with_combined_normalization() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Test combined normalization: trim + lowercase
+        let result = episode.add_tag("  FEATURE-123  ".to_string());
+        assert!(result.is_ok());
+        assert_eq!(episode.tags[0], "feature-123");
+
+        // Verify case-insensitive duplicate detection
+        let result = episode.add_tag("feature-123".to_string());
+        assert!(result.is_ok());
+        assert!(!result.unwrap(), "Should return false for duplicate");
+        assert_eq!(episode.tags.len(), 1);
+
+        let result = episode.add_tag("  FEATURE-123  ".to_string());
+        assert!(result.is_ok());
+        assert!(
+            !result.unwrap(),
+            "Should return false for duplicate with whitespace"
+        );
+        assert_eq!(episode.tags.len(), 1);
+    }
+
+    #[test]
+    fn test_tag_ordering() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add tags in non-alphabetical order
+        episode.add_tag("zebra".to_string()).unwrap();
+        episode.add_tag("alpha".to_string()).unwrap();
+        episode.add_tag("beta".to_string()).unwrap();
+
+        // Tags should maintain insertion order (not sorted)
+        assert_eq!(episode.tags, vec!["zebra", "alpha", "beta"]);
+    }
+
+    #[test]
+    fn test_remove_tag_with_invalid_input() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("feature".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 2);
+
+        // Try to remove invalid tag (should return false, not panic)
+        assert!(!episode.remove_tag("")); // Empty
+        assert!(!episode.remove_tag("   ")); // Whitespace only
+        assert!(!episode.remove_tag("invalid tag")); // Space in tag
+        assert!(!episode.remove_tag("tag@invalid")); // Invalid characters
+        assert_eq!(episode.tags.len(), 2); // Tags should remain unchanged
+    }
+
+    #[test]
+    fn test_has_tag_with_invalid_input() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+
+        // Invalid tags should return false, not panic
+        assert!(!episode.has_tag(""));
+        assert!(!episode.has_tag("   "));
+        assert!(!episode.has_tag("invalid tag"));
+        assert!(!episode.has_tag("tag@invalid"));
+        assert!(!episode.has_tag("nonexistent"));
+    }
+
+    #[test]
+    fn test_get_tags_on_empty_episode() {
+        let context = TaskContext::default();
+        let episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        let tags = episode.get_tags();
+        assert!(tags.is_empty());
+        assert_eq!(tags.len(), 0);
+    }
+
+    #[test]
+    fn test_has_tag_on_empty_episode() {
+        let context = TaskContext::default();
+        let episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Should return false for any tag when episode has no tags
+        assert!(!episode.has_tag("bug-fix"));
+        assert!(!episode.has_tag("feature"));
+        assert!(!episode.has_tag("anything"));
+    }
+
+    #[test]
+    fn test_multiple_tags_with_special_characters_valid() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Test all valid character combinations
+        assert!(episode.add_tag("bug-fix".to_string()).is_ok()); // Hyphen
+        assert!(episode.add_tag("bug_fix".to_string()).is_ok()); // Underscore
+        assert!(episode.add_tag("bug123".to_string()).is_ok()); // Numbers
+        assert!(episode.add_tag("123bug".to_string()).is_ok()); // Starts with number
+        assert!(episode.add_tag("priority_high".to_string()).is_ok()); // Underscore
+        assert!(episode.add_tag("test-123".to_string()).is_ok()); // Hyphen with numbers
+        assert!(episode.add_tag("A1B2_C3-D4".to_string()).is_ok()); // Mixed
+
+        assert_eq!(episode.tags.len(), 7);
+    }
+
+    #[test]
+    fn test_tags_with_only_numbers() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Tags with only numbers should be valid
+        assert!(episode.add_tag("123".to_string()).is_ok());
+        assert!(episode.add_tag("456".to_string()).is_ok());
+        assert!(episode.has_tag("123"));
+        assert!(episode.has_tag("456"));
+        assert_eq!(episode.tags.len(), 2);
+    }
+
+    #[test]
+    fn test_tag_serialization() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        episode.add_tag("bug-fix".to_string()).unwrap();
+        episode.add_tag("feature".to_string()).unwrap();
+        episode.add_tag("priority_high".to_string()).unwrap();
+
+        // Serialize to JSON
+        let json = serde_json::to_string(&episode).unwrap();
+        assert!(json.contains("bug-fix"));
+        assert!(json.contains("feature"));
+        assert!(json.contains("priority_high"));
+
+        // Deserialize from JSON
+        let deserialized: Episode = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.tags.len(), 3);
+        assert!(deserialized.has_tag("bug-fix"));
+        assert!(deserialized.has_tag("feature"));
+        assert!(deserialized.has_tag("priority_high"));
+    }
+
+    #[test]
+    fn test_tag_operations_chain() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add multiple tags
+        episode.add_tag("tag1".to_string()).unwrap();
+        episode.add_tag("tag2".to_string()).unwrap();
+        episode.add_tag("tag3".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 3);
+
+        // Check presence
+        assert!(episode.has_tag("tag1"));
+        assert!(episode.has_tag("tag2"));
+        assert!(episode.has_tag("tag3"));
+
+        // Remove middle tag
+        assert!(episode.remove_tag("tag2"));
+        assert_eq!(episode.tags.len(), 2);
+        assert!(!episode.has_tag("tag2"));
+
+        // Add new tag
+        episode.add_tag("tag4".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 3);
+
+        // Clear all
+        episode.clear_tags();
+        assert_eq!(episode.tags.len(), 0);
+        assert!(!episode.has_tag("tag1"));
+        assert!(!episode.has_tag("tag3"));
+        assert!(!episode.has_tag("tag4"));
+    }
+
+    #[test]
+    fn test_tag_persistence_after_operations() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add tags with various operations
+        let mut added = episode.add_tag("persistent".to_string()).unwrap();
+        assert!(added);
+
+        added = episode.add_tag("PERSISTENT".to_string()).unwrap();
+        assert!(!added, "Duplicate should return false");
+
+        // Verify tag is still there after failed add
+        assert!(episode.has_tag("persistent"));
+
+        // Try to remove with wrong case (should still work due to normalization)
+        let removed = episode.remove_tag("PERSISTENT");
+        assert!(removed);
+        assert!(!episode.has_tag("persistent"));
+    }
+
+    #[test]
+    fn test_tags_are_case_insensitive() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add tag in uppercase
+        episode.add_tag("BUG-FIX".to_string()).unwrap();
+
+        // Should find it with various cases
+        assert!(episode.has_tag("bug-fix"));
+        assert!(episode.has_tag("BUG-FIX"));
+        assert!(episode.has_tag("Bug-Fix"));
+        assert!(episode.has_tag("  bug-fix  "));
+
+        // Should be able to remove with different case
+        assert!(episode.remove_tag("BuG-FiX"));
+        assert!(!episode.has_tag("bug-fix"));
+    }
+
+    #[test]
+    fn test_tag_whitespace_variations() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        // Add tag with leading whitespace
+        episode.add_tag("  tag1".to_string()).unwrap();
+        assert_eq!(episode.tags[0], "tag1");
+
+        // Add tag with trailing whitespace
+        episode.add_tag("tag2  ".to_string()).unwrap();
+        assert_eq!(episode.tags[1], "tag2");
+
+        // Add tag with both
+        episode.add_tag("  tag3  ".to_string()).unwrap();
+        assert_eq!(episode.tags[2], "tag3");
+
+        // All should be found without whitespace
+        assert!(episode.has_tag("tag1"));
+        assert!(episode.has_tag("tag2"));
+        assert!(episode.has_tag("tag3"));
+
+        // Verify no duplicates from whitespace variations
+        episode.add_tag(" tag1 ".to_string()).unwrap();
+        assert_eq!(episode.tags.len(), 3);
+    }
+
+    #[test]
+    fn test_clear_tags_on_empty_episode() {
+        let context = TaskContext::default();
+        let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
+
+        assert_eq!(episode.tags.len(), 0);
+        episode.clear_tags(); // Should not panic
+        assert_eq!(episode.tags.len(), 0);
     }
 }

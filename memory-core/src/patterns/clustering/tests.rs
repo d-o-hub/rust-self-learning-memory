@@ -151,6 +151,7 @@ mod tests {
             heuristics: Vec::new(),
             applied_patterns: Vec::new(),
             salient_features: None,
+            tags: vec![],
             metadata: std::collections::HashMap::new(),
         };
 

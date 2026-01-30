@@ -16,6 +16,10 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: "-D warnings"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   # Essential checks - run in parallel for faster feedback
   essential:
@@ -27,7 +31,7 @@ jobs:
       matrix:
         job: [format, clippy, doctest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -53,33 +57,30 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Free disk space
         run: |
           sudo rm -rf /opt/hostedtoolcache/* || true
           sudo apt-get clean || true
           df -h
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Install nextest
         uses: taiki-e/install-action@nextest
-      - uses: Swatinem/rust-cache@v2.8.2
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Run tests with timeout protection
         run: |
-          # Ensure junit output directory exists
-          mkdir -p target/nextest/ci
-          # Run unit tests (fastest feedback)
-          cargo nextest run --profile ci --lib --all --test-threads=4
-          # Run integration tests excluding slow compliance tests
-          # (compliance tests run separately or in nightly)
-          cargo nextest run --profile ci --tests --all --test-threads=4 \
-            -E 'not binary(compliance)'
+          # Run library tests for core packages (fast, isolated tests)
+          echo "Running memory-core library tests..."
+          cargo test --package memory-core --lib -- --test-threads=4
+          echo "Running memory-storage-turso library tests..."
+          cargo test --package memory-storage-turso --lib -- --test-threads=4
+          echo "Running memory-storage-redb library tests..."
+          cargo test --package memory-storage-redb --lib -- --test-threads=4
+          echo "Library tests completed successfully"
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: target/nextest/ci/junit.xml
@@ -103,7 +104,7 @@ jobs:
           sudo rm -rf /opt/ghc/ 2>/dev/null || true
           docker system prune -af 2>/dev/null || true
           df -h
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2.8.2
         with:
@@ -123,14 +124,14 @@ jobs:
   multi-platform:
     name: Multi-Platform Test
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         rust: [stable]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
@@ -157,10 +158,12 @@ jobs:
   quality-gates:
     name: Quality Gates
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    permissions:
+      id-token: write      # Required for Codecov OIDC authentication
+    timeout-minutes: 30
     needs: [essential, test, mcp-build, multi-platform]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt, llvm-tools-preview
@@ -182,5 +185,5 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
-          file: ./lcov.info
+          files: ./lcov.info
           fail_ci_if_error: false

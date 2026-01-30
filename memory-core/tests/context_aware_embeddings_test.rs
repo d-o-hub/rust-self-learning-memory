@@ -29,7 +29,14 @@ fn create_test_episode(task_type: TaskType, description: &str, domain: &str) -> 
 async fn test_context_aware_embeddings_integration() {
     // Create base provider (using mock in this test)
     let config = memory_core::embeddings::EmbeddingConfig::default();
-    let base = if let Ok(provider) = LocalEmbeddingProvider::new(config.model).await {
+    let local_config = if let memory_core::embeddings::ProviderConfig::Local(cfg) = &config.provider
+    {
+        cfg.clone()
+    } else {
+        eprintln!("Skipping test - default config is not local");
+        return;
+    };
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new(local_config).await {
         Arc::new(provider)
     } else {
         // Skip test if model not available
@@ -94,7 +101,14 @@ async fn test_context_aware_embeddings_integration() {
 #[tokio::test]
 async fn test_multiple_task_adapters() {
     let config = memory_core::embeddings::EmbeddingConfig::default();
-    let base = if let Ok(provider) = LocalEmbeddingProvider::new(config.model).await {
+    let local_config = if let memory_core::embeddings::ProviderConfig::Local(cfg) = &config.provider
+    {
+        cfg.clone()
+    } else {
+        eprintln!("Skipping test - default config is not local");
+        return;
+    };
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new(local_config).await {
         Arc::new(provider)
     } else {
         eprintln!("Skipping test - embedding model not available");
@@ -145,7 +159,14 @@ async fn test_empty_training_pairs_error() {
 #[tokio::test]
 async fn test_backward_compatibility_no_adapters() {
     let config = memory_core::embeddings::EmbeddingConfig::default();
-    let base = if let Ok(provider) = LocalEmbeddingProvider::new(config.model).await {
+    let local_config = if let memory_core::embeddings::ProviderConfig::Local(cfg) = &config.provider
+    {
+        cfg.clone()
+    } else {
+        eprintln!("Skipping test - default config is not local");
+        return;
+    };
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new(local_config).await {
         Arc::new(provider)
     } else {
         eprintln!("Skipping test - embedding model not available");

@@ -41,6 +41,7 @@ fn create_test_episode(id: usize) -> Episode {
         applied_patterns: vec![],
         salient_features: None,
         metadata: std::collections::HashMap::new(),
+        tags: Vec::new(),
     };
 
     // Add 20 execution steps to make it realistic

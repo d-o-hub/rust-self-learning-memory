@@ -12,17 +12,19 @@
 //!
 //! The embedding system supports multiple providers:
 //! - **Local**: sentence-transformers via candle-transformers (offline)
-//! - **`OpenAI`**: text-embedding-ada-002 (cloud)
+//! - **`OpenAI`**: text-embedding-ada-002 and text-embedding-3.x (cloud)
+//! - **Mistral**: mistral-embed and codestral-embed (cloud)
+//! - **Azure `OpenAI`**: Azure-hosted OpenAI embeddings
 //! - **Custom**: User-provided embedding functions
 //!
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ModelConfig};
+//! use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ProviderConfig, LocalConfig};
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! // Local embedding provider (offline)
-//! let config = ModelConfig::default();
+//! let config = LocalConfig::default();
 //! let provider = LocalEmbeddingProvider::new(config).await?;
 //!
 //! // Generate embedding for text
@@ -35,9 +37,11 @@
 //! ```
 
 mod circuit_breaker;
-mod config;
+pub mod config;
 mod local;
 mod metrics;
+#[cfg(feature = "mistral")]
+mod mistral;
 mod mock_model;
 mod openai;
 mod provider;
@@ -47,13 +51,17 @@ mod storage;
 mod utils;
 
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState};
+// New configuration types
 pub use config::{
-    EmbeddingConfig, EmbeddingProvider as EmbeddingProviderType, ModelConfig, OptimizationConfig,
+    AzureOpenAIConfig, CustomConfig, EmbeddingConfig, LocalConfig, MistralConfig, OpenAIConfig,
+    OptimizationConfig, ProviderConfig,
 };
 pub use local::{
     get_recommended_model, list_available_models, LocalEmbeddingProvider, LocalModelUseCase,
 };
 pub use metrics::{LatencyTimer, MetricsSnapshot, ProviderMetrics};
+#[cfg(feature = "mistral")]
+pub use mistral::MistralEmbeddingProvider;
 pub use mock_model::MockLocalModel;
 #[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
@@ -63,6 +71,8 @@ pub use similarity::{
 };
 pub use storage::{EmbeddingStorage, EmbeddingStorageBackend, InMemoryEmbeddingStorage};
 
+#[cfg(all(test, feature = "mistral"))]
+mod mistral_tests;
 #[cfg(test)]
 pub mod tests;
 
@@ -114,7 +124,11 @@ impl SemanticService {
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
     ) -> Result<Self> {
-        let provider = Box::new(LocalEmbeddingProvider::new(config.model.clone()).await?);
+        let local_config = match &config.provider {
+            ProviderConfig::Local(cfg) => cfg.clone(),
+            _ => LocalConfig::default(),
+        };
+        let provider = Box::new(LocalEmbeddingProvider::new(local_config).await?);
         Ok(Self::new(provider, storage, config))
     }
 
@@ -132,11 +146,17 @@ impl SemanticService {
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
     ) -> Result<Self> {
-        // Clone model config once for all provider attempts
-        let model_config = config.model.clone();
+        // Get the preferred provider and its dimension for fallback scenarios
+        let preferred_provider = config.provider.clone();
+        let default_dimension = preferred_provider.effective_dimension();
 
-        // Try local provider first (default)
-        match LocalEmbeddingProvider::new(model_config.clone()).await {
+        // Try local provider first
+        match LocalEmbeddingProvider::new(LocalConfig::new(
+            "sentence-transformers/all-MiniLM-L6-v2",
+            default_dimension,
+        ))
+        .await
+        {
             Ok(provider) => {
                 tracing::info!("Using local embedding provider");
                 return Ok(Self::new(Box::new(provider), storage, config));
@@ -150,7 +170,13 @@ impl SemanticService {
         #[cfg(feature = "openai")]
         {
             if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
-                match OpenAIEmbeddingProvider::new(api_key, model_config.clone()) {
+                // Try to use OpenAI config if preferred, otherwise use default
+                let openai_config = match &preferred_provider {
+                    ProviderConfig::OpenAI(cfg) => cfg.clone(),
+                    _ => OpenAIConfig::default(),
+                };
+
+                match OpenAIEmbeddingProvider::new(api_key, openai_config) {
                     Ok(provider) => {
                         tracing::info!("Using OpenAI embedding provider as fallback");
                         return Ok(Self::new(Box::new(provider), storage, config));
@@ -176,10 +202,10 @@ impl SemanticService {
         #[cfg(feature = "openai")]
         tracing::error!("  2. Set OPENAI_API_KEY environment variable");
 
-        // Use MockLocalModel as the final fallback (reuse cloned model_config)
+        // Use MockLocalModel as the final fallback
         let provider = crate::embeddings::mock_model::MockLocalModel::new(
             "mock-model".to_string(),
-            model_config.embedding_dimension,
+            default_dimension,
         );
         Ok(Self::new(Box::new(provider), storage, config))
     }
@@ -191,7 +217,12 @@ impl SemanticService {
         storage: Box<dyn EmbeddingStorageBackend>,
         config: EmbeddingConfig,
     ) -> Result<Self> {
-        let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, config.model.clone())?);
+        // Extract OpenAI config from ProviderConfig
+        let openai_config = match &config.provider {
+            ProviderConfig::OpenAI(cfg) => cfg.clone(),
+            _ => OpenAIConfig::default(),
+        };
+        let provider = Box::new(OpenAIEmbeddingProvider::new(api_key, openai_config)?);
         Ok(Self::new(provider, storage, config))
     }
 

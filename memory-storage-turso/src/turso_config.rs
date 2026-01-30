@@ -77,6 +77,16 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_METADATA_TABLE)
             .await?;
 
+        // Create Episode Tags tables and indexes
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_TAG_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_TAGS_EPISODE_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_TAG_METADATA_TABLE)
+            .await?;
+
         // Create FTS5 tables for hybrid search (feature-gated)
         #[cfg(feature = "hybrid_search")]
         self.initialize_fts5_schema(&conn).await?;
@@ -94,13 +104,13 @@ impl TursoStorage {
     async fn initialize_fts5_schema(&self, conn: &libsql::Connection) -> Result<()> {
         use crate::fts5_schema;
         info!("Initializing FTS5 schema for hybrid search");
-        self.execute_with_retry(&conn, fts5_schema::CREATE_EPISODES_FTS_TABLE)
+        self.execute_with_retry(conn, fts5_schema::CREATE_EPISODES_FTS_TABLE)
             .await?;
-        self.execute_with_retry(&conn, fts5_schema::CREATE_PATTERNS_FTS_TABLE)
+        self.execute_with_retry(conn, fts5_schema::CREATE_PATTERNS_FTS_TABLE)
             .await?;
-        self.execute_with_retry(&conn, fts5_schema::CREATE_EPISODES_FTS_TRIGGERS)
+        self.execute_with_retry(conn, fts5_schema::CREATE_EPISODES_FTS_TRIGGERS)
             .await?;
-        self.execute_with_retry(&conn, fts5_schema::CREATE_PATTERNS_FTS_TRIGGERS)
+        self.execute_with_retry(conn, fts5_schema::CREATE_PATTERNS_FTS_TRIGGERS)
             .await?;
         info!("FTS5 schema initialization complete");
         Ok(())
@@ -118,37 +128,37 @@ impl TursoStorage {
         info!("Initializing dimension-specific vector tables");
 
         // Create tables
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_384_TABLE)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_384_TABLE)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1024_TABLE)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_1024_TABLE)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1536_TABLE)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_1536_TABLE)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_3072_TABLE)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_3072_TABLE)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_OTHER_TABLE)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_OTHER_TABLE)
             .await?;
 
         // Create vector indexes
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_384_VECTOR_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_384_VECTOR_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1024_VECTOR_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_1024_VECTOR_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1536_VECTOR_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_1536_VECTOR_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_3072_VECTOR_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_3072_VECTOR_INDEX)
             .await?;
 
         // Create item indexes
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_384_ITEM_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_384_ITEM_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1024_ITEM_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_1024_ITEM_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_1536_ITEM_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_1536_ITEM_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_3072_ITEM_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_3072_ITEM_INDEX)
             .await?;
-        self.execute_with_retry(&conn, schema::CREATE_EMBEDDINGS_OTHER_ITEM_INDEX)
+        self.execute_with_retry(conn, schema::CREATE_EMBEDDINGS_OTHER_ITEM_INDEX)
             .await?;
 
         info!("Dimension-specific vector tables initialized");

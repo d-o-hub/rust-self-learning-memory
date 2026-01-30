@@ -4,7 +4,6 @@
 //! and operation counts.
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -71,9 +70,7 @@ impl MetricsCollector {
 
         // Update operation-specific latency
         let mut operations = self.operations.write();
-        let stats = operations
-            .entry(operation.to_string())
-            .or_insert_with(LatencyStats::new);
+        let stats = operations.entry(operation.to_string()).or_default();
         stats.record(duration_us);
     }
 
@@ -182,7 +179,6 @@ impl MetricsCollector {
     }
 
     /// Reset all metrics
-    #[allow(clippy::rest_pat_in_fully_bound_struct)]
     pub fn reset(&self) {
         // Reset TursoMetrics atomic counters
         self.metrics.reset();

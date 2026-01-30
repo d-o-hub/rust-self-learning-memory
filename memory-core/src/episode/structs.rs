@@ -511,10 +511,15 @@ mod tests {
         let context = TaskContext::default();
         let mut episode = Episode::new("Test task".to_string(), context, TaskType::Analysis);
 
-        // Single character should be valid
+        // Single character should be invalid
         let result = episode.add_tag("a".to_string());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("at least 2 characters"));
+
+        // Two characters should be valid
+        let result = episode.add_tag("ab".to_string());
         assert!(result.is_ok());
-        assert!(episode.has_tag("a"));
+        assert!(episode.has_tag("ab"));
     }
 
     #[test]

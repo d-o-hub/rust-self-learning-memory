@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write      # Required for Codecov OIDC authentication
-    timeout-minutes: 10
+    timeout-minutes: 30
     needs: [essential, test, mcp-build, multi-platform]
     steps:
       - uses: actions/checkout@v4

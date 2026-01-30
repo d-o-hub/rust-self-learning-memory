@@ -30,11 +30,7 @@ async fn test_invalid_uuid_formats() {
             })
             .await;
 
-        assert!(
-            result.is_err(),
-            "Should fail with invalid UUID: {}",
-            invalid_id
-        );
+        assert!(result.is_err(), "Should fail with invalid UUID format");
     }
 }
 

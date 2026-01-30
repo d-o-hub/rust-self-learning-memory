@@ -217,6 +217,10 @@ impl Episode {
             return Err("Tag cannot be empty".to_string());
         }
 
+        if normalized.len() < 2 {
+            return Err("Tag must be at least 2 characters long".to_string());
+        }
+
         if normalized.len() > 100 {
             return Err("Tag cannot exceed 100 characters".to_string());
         }

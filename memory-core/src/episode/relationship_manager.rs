@@ -1194,7 +1194,7 @@ mod tests {
             );
 
             // Acyclic types should work on fresh nodes
-            assert!(result.is_ok(), "Failed to add {:?} relationship", rel_type);
+            assert!(result.is_ok(), "Failed to add {rel_type:?} relationship");
         }
     }
 

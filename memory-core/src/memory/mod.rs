@@ -60,6 +60,7 @@ mod pattern_search;
 mod queries;
 pub mod query_api;
 pub mod relationship_query;
+mod relationships;
 mod retrieval;
 pub mod step_buffer;
 #[cfg(test)]

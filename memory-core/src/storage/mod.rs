@@ -7,7 +7,7 @@
 
 pub mod circuit_breaker;
 
-use crate::episode::PatternId;
+use crate::episode::{Direction, EpisodeRelationship, PatternId, RelationshipType};
 use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -214,4 +214,82 @@ pub trait StorageBackend: Send + Sync {
     ///
     /// Returns error if storage operation fails
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>>;
+
+    // ========== Relationship Storage Methods ==========
+
+    /// Store a relationship between two episodes
+    ///
+    /// # Arguments
+    ///
+    /// * `relationship` - The relationship to store
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
+        let _ = relationship;
+        Ok(())
+    }
+
+    /// Remove a relationship by ID
+    ///
+    /// # Arguments
+    ///
+    /// * `relationship_id` - The UUID of the relationship to remove
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
+        let _ = relationship_id;
+        Ok(())
+    }
+
+    /// Get relationships for an episode
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_id` - The episode to query
+    /// * `direction` - Which relationships to return (Outgoing, Incoming, or Both)
+    ///
+    /// # Returns
+    ///
+    /// Vector of relationships matching the query
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn get_relationships(
+        &self,
+        episode_id: Uuid,
+        direction: Direction,
+    ) -> Result<Vec<EpisodeRelationship>> {
+        let _ = (episode_id, direction);
+        Ok(Vec::new())
+    }
+
+    /// Check if a relationship exists
+    ///
+    /// # Arguments
+    ///
+    /// * `from_episode_id` - Source episode
+    /// * `to_episode_id` - Target episode  
+    /// * `relationship_type` - Type of relationship
+    ///
+    /// # Returns
+    ///
+    /// `true` if the relationship exists
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn relationship_exists(
+        &self,
+        from_episode_id: Uuid,
+        to_episode_id: Uuid,
+        relationship_type: RelationshipType,
+    ) -> Result<bool> {
+        let _ = (from_episode_id, to_episode_id, relationship_type);
+        Ok(false)
+    }
 }

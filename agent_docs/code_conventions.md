@@ -173,7 +173,7 @@ pub async fn create_memory(config: MemoryConfig) -> Result<SelfLearningMemory> {
 }
 ```
 
-#### Postcard Serialization (v0.1.7, current: v0.1.12)
+#### Postcard Serialization (v0.1.7+, current: v0.1.13)
 **IMPORTANT**: Use Postcard for serialization, NOT bincode:
 
 ```rust
@@ -196,7 +196,7 @@ storage.store(&id, &bytes).await?;
 - Safer: Uses `#[no_std]` compatible format
 - Smaller: More compact binary representation
 - No unsafe code: Bincode uses unsafe operations
-- Breaking change in v0.1.7 (migrated to v0.1.12): All storage must use postcard
+- Breaking change in v0.1.7 (current: v0.1.13): All storage must use postcard
 
 ## Formatting & Linting
 
@@ -355,7 +355,7 @@ cargo llvm-cov --html --output-dir coverage
 6. **Follow Rust Idioms**: Use Result, Option, iterators, etc.
 7. **Apply 2025 Best Practices**: Modern format strings, From trait conversions, range contains
 8. **Zero Warnings**: Strictly enforced, fix all clippy warnings
-9. **Postcard Serialization**: Use Postcard, not bincode (v0.1.7 breaking change, now v0.1.12)
+9. **Postcard Serialization**: Use Postcard, not bincode (v0.1.7 breaking change, current: v0.1.13)
 10. **Safe Database Access**: Always use parameterized queries
 
 The best way to learn conventions is to examine the codebase structure and follow the patterns you see in similar files. For recent changes, see [CLAUDE.md](../../.claude/CLAUDE.md).

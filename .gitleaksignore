@@ -7,6 +7,7 @@ adf26d76370e7d4a125b80b2af2c16796cd6b847:.claude/skills/rust-code-quality/SKILL.
 1dca33a85bc7ba697afad76d0312c029de6d7262:README.md:generic-api-key:161
 3d7b483ba8785a287fea688cded1c6756f1d2a1c:.claude/settings.local.json:jwt:4
 144e3a2173a67a23252ec73835d9e43cabdefdaa:.claude/settings.local.json:jwt:4
+f7ac6d16c31493c968be71640a6cc73e0776e8a1:.claude/settings.local.json:jwt:4
 # Documentation examples showing Gitleaks output
 e88026cb5788d30544ac3382888e8a6ed74aaae1:README.md:sidekiq-secret:47
 e88026cb5788d30544ac3382888e8a6ed74aaae1:README.md:generic-api-key:574

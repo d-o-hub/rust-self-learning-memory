@@ -39,6 +39,8 @@ todo_example*.redb
 data/cache.redb
 memory-mcp/data/cache.redb
 
+.env
+
 # Additional database-related files
 *.turso
 *.libsql*

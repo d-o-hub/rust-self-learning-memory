@@ -87,6 +87,18 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_TAG_METADATA_TABLE)
             .await?;
 
+        // Create Episode Relationships table and indexes
+        self.execute_with_retry(&conn, schema::CREATE_EPISODE_RELATIONSHIPS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TYPE_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX)
+            .await?;
+
         // Create FTS5 tables for hybrid search (feature-gated)
         #[cfg(feature = "hybrid_search")]
         self.initialize_fts5_schema(&conn).await?;

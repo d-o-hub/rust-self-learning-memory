@@ -28,6 +28,7 @@ use memory_core::{Error, Result};
 // Cache module for performance optimization
 pub mod cache;
 pub mod pool;
+mod relationships;
 mod resilient;
 mod schema;
 #[cfg(test)]

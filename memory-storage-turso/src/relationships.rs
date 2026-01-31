@@ -6,7 +6,7 @@ use crate::{Result, TursoStorage};
 use memory_core::episode::{Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType};
 use serde_json;
 use std::collections::HashMap;
-use tracing::{debug, warn};
+use tracing::debug;
 use uuid::Uuid;
 
 impl TursoStorage {
@@ -23,14 +23,7 @@ impl TursoStorage {
         let created_at = chrono::Utc::now().timestamp();
 
         let metadata_json = serde_json::to_string(&metadata.custom_fields)
-            .map_err(|e| memory_core::Error::SerializationError(e.to_string()))?;
-
-        let sql = r#"
-            INSERT INTO episode_relationships (
-                relationship_id, from_episode_id, to_episode_id, 
-                relationship_type, reason, created_by, priority, metadata, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        "#;
+            .map_err(|e| memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
 
         self.execute_with_retry(
             &conn,
@@ -96,22 +89,22 @@ impl TursoStorage {
             ),
         };
 
-        let mut stmt = conn
+        let stmt = conn
             .prepare(&sql)
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to prepare query: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to prepare query: {}", e)))?;
 
         let mut rows = stmt
             .query(())
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to execute query: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to execute query: {}", e)))?;
 
         let mut relationships = Vec::new();
 
         while let Some(row) = rows
             .next()
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to fetch row: {}", e)))?
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
         {
             let relationship = self.row_to_relationship(&row)?;
             relationships.push(relationship);
@@ -151,22 +144,22 @@ impl TursoStorage {
             ),
         };
 
-        let mut stmt = conn
+        let stmt = conn
             .prepare(&sql)
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to prepare query: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to prepare query: {}", e)))?;
 
         let mut rows = stmt
             .query(())
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to execute query: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to execute query: {}", e)))?;
 
         let mut relationships = Vec::new();
 
         while let Some(row) = rows
             .next()
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to fetch row: {}", e)))?
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
         {
             let relationship = self.row_to_relationship(&row)?;
             relationships.push(relationship);
@@ -189,24 +182,24 @@ impl TursoStorage {
             from_episode_id, to_episode_id, relationship_type.as_str()
         );
 
-        let mut stmt = conn
+        let stmt = conn
             .prepare(&sql)
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to prepare query: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to prepare query: {}", e)))?;
 
         let mut rows = stmt
             .query(())
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to execute query: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to execute query: {}", e)))?;
 
         if let Some(row) = rows
             .next()
             .await
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to fetch row: {}", e)))?
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to fetch row: {}", e)))?
         {
             let count: i64 = row
                 .get(0)
-                .map_err(|e| memory_core::Error::StorageError(format!("Failed to get count: {}", e)))?;
+                .map_err(|e| memory_core::Error::Storage(format!("Failed to get count: {}", e)))?;
             Ok(count > 0)
         } else {
             Ok(false)
@@ -217,39 +210,39 @@ impl TursoStorage {
     fn row_to_relationship(&self, row: &libsql::Row) -> Result<EpisodeRelationship> {
         let relationship_id_str: String = row
             .get(0)
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to get relationship_id: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to get relationship_id: {}", e)))?;
         let from_episode_id_str: String = row
             .get(1)
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to get from_episode_id: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to get from_episode_id: {}", e)))?;
         let to_episode_id_str: String = row
             .get(2)
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to get to_episode_id: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to get to_episode_id: {}", e)))?;
         let relationship_type_str: String = row
             .get(3)
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to get relationship_type: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to get relationship_type: {}", e)))?;
         
         let reason: Option<String> = row.get(4).ok();
         let created_by: Option<String> = row.get(5).ok();
         let priority: Option<i64> = row.get(6).ok();
         let metadata_json: String = row
             .get(7)
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to get metadata: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to get metadata: {}", e)))?;
         let created_at_timestamp: i64 = row
             .get(8)
-            .map_err(|e| memory_core::Error::StorageError(format!("Failed to get created_at: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Failed to get created_at: {}", e)))?;
 
         let relationship_id = Uuid::parse_str(&relationship_id_str)
-            .map_err(|e| memory_core::Error::StorageError(format!("Invalid relationship_id UUID: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Invalid relationship_id UUID: {}", e)))?;
         let from_episode_id = Uuid::parse_str(&from_episode_id_str)
-            .map_err(|e| memory_core::Error::StorageError(format!("Invalid from_episode_id UUID: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Invalid from_episode_id UUID: {}", e)))?;
         let to_episode_id = Uuid::parse_str(&to_episode_id_str)
-            .map_err(|e| memory_core::Error::StorageError(format!("Invalid to_episode_id UUID: {}", e)))?;
+            .map_err(|e| memory_core::Error::Storage(format!("Invalid to_episode_id UUID: {}", e)))?;
 
         let relationship_type = RelationshipType::from_str(&relationship_type_str)
-            .map_err(|e| memory_core::Error::StorageError(e))?;
+            .map_err(|e| memory_core::Error::Storage(e))?;
 
         let custom_fields: HashMap<String, String> = serde_json::from_str(&metadata_json)
-            .map_err(|e| memory_core::Error::DeserializationError(e.to_string()))?;
+            .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
 
         let metadata = RelationshipMetadata {
             reason,
@@ -259,7 +252,7 @@ impl TursoStorage {
         };
 
         let created_at = chrono::DateTime::from_timestamp(created_at_timestamp, 0)
-            .ok_or_else(|| memory_core::Error::StorageError("Invalid timestamp".to_string()))?;
+            .ok_or_else(|| memory_core::Error::Storage("Invalid timestamp".to_string()))?;
 
         Ok(EpisodeRelationship {
             id: relationship_id,
@@ -300,7 +293,7 @@ mod tests {
     use memory_core::{TaskContext, TaskType};
 
     async fn create_test_storage() -> TursoStorage {
-        let storage = TursoStorage::new_in_memory()
+        let storage = TursoStorage::new(":memory:", "")
             .await
             .expect("Failed to create in-memory storage");
         storage
@@ -318,7 +311,7 @@ mod tests {
         );
         let episode_id = episode.episode_id;
         storage
-            .store_episode(episode)
+            .store_episode(&episode)
             .await
             .expect("Failed to store episode");
         episode_id

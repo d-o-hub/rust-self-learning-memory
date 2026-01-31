@@ -50,9 +50,9 @@
    - Fill out PR template
    - Link related issues
 
-## Current Status (v0.1.7)
+## Current Status (v0.1.13)
 
-- **Test Pass Rate**: 99.3% (424/427 tests passing)
+- **Test Pass Rate**: 99.5% (811+ tests passing)
 - **Test Coverage**: 92.5% across all modules
 - **Clippy Warnings**: 0 (strictly enforced)
 - **Performance**: 10-100x faster than baselines

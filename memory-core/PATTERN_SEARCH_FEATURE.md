@@ -1,6 +1,6 @@
 # Semantic Pattern Search & Recommendation Engine
 
-**Status**: ✅ Implemented (v0.1.12+)  
+**Status**: ✅ Implemented (v0.1.13+)  
 **Date**: 2026-01-12  
 **Impact**: HIGH - Enables intelligent pattern discovery across domains
 
@@ -277,7 +277,7 @@ No additional configuration required. Works with existing memory system setup.
 
 ## Migration Guide
 
-No migration needed. Simply upgrade to v0.1.12+ and start using the new APIs.
+No migration needed. Simply upgrade to v0.1.13+ and start using the new APIs.
 
 ## Related Documentation
 

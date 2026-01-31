@@ -352,5 +352,109 @@ pub fn create_extended_tools() -> Vec<Tool> {
         }),
     ));
 
+    // Episode tagging tools - add tags
+    tools.push(Tool::new(
+        "add_episode_tags".to_string(),
+        "Add tags to an episode. Tags are validated and normalized (lowercase, trimmed). Duplicate tags are ignored.".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "string",
+                    "description": "Episode ID to add tags to"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Tags to add"
+                }
+            },
+            "required": ["episode_id", "tags"]
+        }),
+    ));
+
+    // Episode tagging tools - remove tags
+    tools.push(Tool::new(
+        "remove_episode_tags".to_string(),
+        "Remove tags from an episode. Non-existent tags are silently ignored. Matching is case-insensitive.".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "string",
+                    "description": "Episode ID to remove tags from"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Tags to remove"
+                }
+            },
+            "required": ["episode_id", "tags"]
+        }),
+    ));
+
+    // Episode tagging tools - set tags
+    tools.push(Tool::new(
+        "set_episode_tags".to_string(),
+        "Set/replace all tags on an episode. Useful for complete tag reorganization. Empty tag list will clear all tags.".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "string",
+                    "description": "Episode ID to set tags on"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "New tags to set (replaces all existing)"
+                }
+            },
+            "required": ["episode_id", "tags"]
+        }),
+    ));
+
+    // Episode tagging tools - get tags
+    tools.push(Tool::new(
+        "get_episode_tags".to_string(),
+        "Get tags for an episode".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "string",
+                    "description": "Episode ID to get tags for"
+                }
+            },
+            "required": ["episode_id"]
+        }),
+    ));
+
+    // Episode tagging tools - search by tags
+    tools.push(Tool::new(
+        "search_episodes_by_tags".to_string(),
+        "Search episodes by tags using AND or OR logic. Matching is case-insensitive.".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Tags to search for"
+                },
+                "require_all": {
+                    "type": "boolean",
+                    "description": "Whether to require all tags (AND) or any tag (OR). Default: false (OR)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of results. Default: 100"
+                }
+            },
+            "required": ["tags"]
+        }),
+    ));
+
     tools
 }

@@ -32,7 +32,9 @@
 //! assert!(episode.is_complete());
 //! ```
 
+pub mod relationships;
 pub mod structs;
 pub mod validation;
 
+pub use relationships::{Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType};
 pub use structs::{ApplicationOutcome, Episode, ExecutionStep, PatternApplication, PatternId};

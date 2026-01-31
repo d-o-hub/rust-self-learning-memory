@@ -398,3 +398,48 @@ CREATE TABLE IF NOT EXISTS tag_metadata (
     last_used INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 )
 "#;
+
+/// SQL to create the episode_relationships table
+///
+/// Stores relationships between episodes for dependency tracking,
+/// hierarchical organization, and workflow modeling.
+pub const CREATE_EPISODE_RELATIONSHIPS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS episode_relationships (
+    relationship_id TEXT PRIMARY KEY NOT NULL,
+    from_episode_id TEXT NOT NULL,
+    to_episode_id TEXT NOT NULL,
+    relationship_type TEXT NOT NULL,
+    reason TEXT,
+    created_by TEXT,
+    priority INTEGER,
+    metadata TEXT NOT NULL DEFAULT '{}',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (from_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
+    FOREIGN KEY (to_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE,
+    UNIQUE(from_episode_id, to_episode_id, relationship_type)
+)
+"#;
+
+/// Index on relationships for efficient outgoing relationship queries
+pub const CREATE_RELATIONSHIPS_FROM_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_relationships_from 
+    ON episode_relationships(from_episode_id)
+"#;
+
+/// Index on relationships for efficient incoming relationship queries
+pub const CREATE_RELATIONSHIPS_TO_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_relationships_to 
+    ON episode_relationships(to_episode_id)
+"#;
+
+/// Index on relationships for efficient type-based queries
+pub const CREATE_RELATIONSHIPS_TYPE_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_relationships_type 
+    ON episode_relationships(relationship_type)
+"#;
+
+/// Index on relationships for efficient bidirectional queries
+pub const CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_relationships_bidirectional 
+    ON episode_relationships(from_episode_id, to_episode_id)
+"#;

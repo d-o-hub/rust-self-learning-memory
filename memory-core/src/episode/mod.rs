@@ -32,9 +32,18 @@
 //! assert!(episode.is_complete());
 //! ```
 
+pub mod graph_algorithms;
+pub mod relationship_errors;
+pub mod relationship_manager;
 pub mod relationships;
 pub mod structs;
 pub mod validation;
 
+pub use graph_algorithms::{
+    find_all_cycles_from_node, find_path_dfs, get_ancestors, get_transitive_closure, has_cycle,
+    has_path_dfs, topological_sort,
+};
+pub use relationship_errors::{GraphError, RemovalError, ValidationError};
+pub use relationship_manager::RelationshipManager;
 pub use relationships::{Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType};
 pub use structs::{ApplicationOutcome, Episode, ExecutionStep, PatternApplication, PatternId};

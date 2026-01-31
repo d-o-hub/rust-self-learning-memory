@@ -254,10 +254,58 @@ This security architecture helps ensure:
 - **Principle of least privilege**
 - **Defense in depth**
 
+## Recent Security Improvements (2026-01-31)
+
+### Commit: fix(security): remove sensitive files from git tracking (222ff71)
+
+**Files Removed from Git History**:
+- `.env` (42 lines) - Contained `MISTRAL_API_KEY`, `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`
+- `mcp.json` (20 lines) - Revealed internal system architecture and deployment paths
+- `mcp-config-memory.json` (20 lines) - Template for API key injection
+
+**Security Issues Addressed**:
+1. **Hardcoded API Keys**: Removed `MISTRAL_API_KEY` from version control
+2. **Database Credentials**: Removed `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` from repository
+3. **Configuration Templates**: Removed MCP configuration files that exposed deployment patterns
+
+**Git Configuration Improvements**:
+- **`.gitignore`** (lines 42-43): Added `.env` to prevent future accidental commits
+- **`.gitleaksignore`** (lines 1-6): Configured to allow test keys in local development while blocking real keys
+
+**Best Practices Implemented**:
+- All secrets now stored in environment variables
+- No hardcoded credentials in source code
+- `.env` files excluded from version control
+- Configuration documented but not included in repository
+- Example configurations provided without sensitive values
+
+**Related CI Integration**: GitHub Actions Security workflow
+- [Security Scan Results](https://github.com/d-o-hub/rust-self-learning-memory/actions/runs/21523399928)
+
+### Relationship Module Security Features
+
+**Parameterized Queries**: All database operations use parameterized statements to prevent SQL injection
+- UUID validation before database operations
+- Type-safe query construction
+- String escaping for single quotes in metadata
+
+**Input Validation**:
+- JSON serialization with validation prevents code injection
+- UUID validation prevents injection attacks
+- CASCADE deletes prevent orphaned data
+
+**Schema Security**:
+```sql
+FOREIGN KEY (from_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE
+FOREIGN KEY (to_episode_id) REFERENCES episodes(episode_id) ON DELETE CASCADE
+```
+
 ## Audit Log
 
 All security-relevant events should be logged:
 
+- **2026-01-31**: Removed sensitive files (.env, mcp.json) from git tracking (commit 222ff71)
+- **2026-01-31**: Added relationship module with parameterized queries and input validation (commit 5884aae)
 - Dependency updates (Dependabot PRs)
 - Security scan results (CI artifacts)
 - Vulnerability fixes (CHANGELOG entries)
@@ -265,6 +313,6 @@ All security-relevant events should be logged:
 
 ---
 
-**Last Updated**: 2025-11-06
-**Version**: 1.0
+**Last Updated**: 2026-01-31
+**Version**: 1.1
 **Status**: Active

@@ -3,8 +3,9 @@
 //! Provides CRUD operations for managing relationships between episodes.
 
 use crate::{Result, TursoStorage};
-use memory_core::episode::{Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType};
-use serde_json;
+use memory_core::episode::{
+    Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType,
+};
 use std::collections::HashMap;
 use tracing::debug;
 use uuid::Uuid;
@@ -208,19 +209,19 @@ impl TursoStorage {
 
     /// Helper to convert a database row to an EpisodeRelationship
     fn row_to_relationship(&self, row: &libsql::Row) -> Result<EpisodeRelationship> {
-        let relationship_id_str: String = row
-            .get(0)
-            .map_err(|e| memory_core::Error::Storage(format!("Failed to get relationship_id: {}", e)))?;
-        let from_episode_id_str: String = row
-            .get(1)
-            .map_err(|e| memory_core::Error::Storage(format!("Failed to get from_episode_id: {}", e)))?;
-        let to_episode_id_str: String = row
-            .get(2)
-            .map_err(|e| memory_core::Error::Storage(format!("Failed to get to_episode_id: {}", e)))?;
-        let relationship_type_str: String = row
-            .get(3)
-            .map_err(|e| memory_core::Error::Storage(format!("Failed to get relationship_type: {}", e)))?;
-        
+        let relationship_id_str: String = row.get(0).map_err(|e| {
+            memory_core::Error::Storage(format!("Failed to get relationship_id: {}", e))
+        })?;
+        let from_episode_id_str: String = row.get(1).map_err(|e| {
+            memory_core::Error::Storage(format!("Failed to get from_episode_id: {}", e))
+        })?;
+        let to_episode_id_str: String = row.get(2).map_err(|e| {
+            memory_core::Error::Storage(format!("Failed to get to_episode_id: {}", e))
+        })?;
+        let relationship_type_str: String = row.get(3).map_err(|e| {
+            memory_core::Error::Storage(format!("Failed to get relationship_type: {}", e))
+        })?;
+
         let reason: Option<String> = row.get(4).ok();
         let created_by: Option<String> = row.get(5).ok();
         let priority: Option<i64> = row.get(6).ok();
@@ -231,15 +232,18 @@ impl TursoStorage {
             .get(8)
             .map_err(|e| memory_core::Error::Storage(format!("Failed to get created_at: {}", e)))?;
 
-        let relationship_id = Uuid::parse_str(&relationship_id_str)
-            .map_err(|e| memory_core::Error::Storage(format!("Invalid relationship_id UUID: {}", e)))?;
-        let from_episode_id = Uuid::parse_str(&from_episode_id_str)
-            .map_err(|e| memory_core::Error::Storage(format!("Invalid from_episode_id UUID: {}", e)))?;
-        let to_episode_id = Uuid::parse_str(&to_episode_id_str)
-            .map_err(|e| memory_core::Error::Storage(format!("Invalid to_episode_id UUID: {}", e)))?;
+        let relationship_id = Uuid::parse_str(&relationship_id_str).map_err(|e| {
+            memory_core::Error::Storage(format!("Invalid relationship_id UUID: {}", e))
+        })?;
+        let from_episode_id = Uuid::parse_str(&from_episode_id_str).map_err(|e| {
+            memory_core::Error::Storage(format!("Invalid from_episode_id UUID: {}", e))
+        })?;
+        let to_episode_id = Uuid::parse_str(&to_episode_id_str).map_err(|e| {
+            memory_core::Error::Storage(format!("Invalid to_episode_id UUID: {}", e))
+        })?;
 
-        let relationship_type = RelationshipType::from_str(&relationship_type_str)
-            .map_err(|e| memory_core::Error::Storage(e))?;
+        let relationship_type =
+            RelationshipType::parse(&relationship_type_str).map_err(memory_core::Error::Storage)?;
 
         let custom_fields: HashMap<String, String> = serde_json::from_str(&metadata_json)
             .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
@@ -291,16 +295,36 @@ mod tests {
     use super::*;
     use memory_core::episode::Episode;
     use memory_core::{TaskContext, TaskType};
+    use std::sync::Arc;
+    use tempfile::TempDir;
 
-    async fn create_test_storage() -> TursoStorage {
-        let storage = TursoStorage::new(":memory:", "")
+    async fn create_test_storage() -> (TursoStorage, TempDir) {
+        let dir = TempDir::new().expect("Failed to create temp dir");
+        let db_path = dir.path().join("test.db");
+
+        let db = libsql::Builder::new_local(&db_path)
+            .build()
             .await
-            .expect("Failed to create in-memory storage");
+            .expect("Failed to create test database");
+
+        let storage = TursoStorage {
+            db: Arc::new(db),
+            pool: None,
+            #[cfg(feature = "keepalive-pool")]
+            keepalive_pool: None,
+            adaptive_pool: None,
+            prepared_cache: Arc::new(crate::PreparedStatementCache::with_config(
+                crate::PreparedCacheConfig::default(),
+            )),
+            config: crate::TursoConfig::default(),
+        };
+
         storage
             .initialize_schema()
             .await
             .expect("Failed to initialize schema");
-        storage
+
+        (storage, dir)
     }
 
     async fn create_test_episode(storage: &TursoStorage) -> Uuid {
@@ -319,7 +343,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_add_relationship() {
-        let storage = create_test_storage().await;
+        let (storage, _dir) = create_test_storage().await;
         let from_id = create_test_episode(&storage).await;
         let to_id = create_test_episode(&storage).await;
 
@@ -334,7 +358,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_relationships() {
-        let storage = create_test_storage().await;
+        let (storage, _dir) = create_test_storage().await;
         let from_id = create_test_episode(&storage).await;
         let to_id = create_test_episode(&storage).await;
 
@@ -361,7 +385,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_remove_relationship() {
-        let storage = create_test_storage().await;
+        let (storage, _dir) = create_test_storage().await;
         let from_id = create_test_episode(&storage).await;
         let to_id = create_test_episode(&storage).await;
 
@@ -385,7 +409,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_relationship_exists() {
-        let storage = create_test_storage().await;
+        let (storage, _dir) = create_test_storage().await;
         let from_id = create_test_episode(&storage).await;
         let to_id = create_test_episode(&storage).await;
 
@@ -410,7 +434,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_dependencies() {
-        let storage = create_test_storage().await;
+        let (storage, _dir) = create_test_storage().await;
         let ep1 = create_test_episode(&storage).await;
         let ep2 = create_test_episode(&storage).await;
         let ep3 = create_test_episode(&storage).await;

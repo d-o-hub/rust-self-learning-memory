@@ -39,6 +39,8 @@ mod episodes;
 mod episodes_queries;
 mod episodes_summaries;
 mod heuristics;
+mod patterns;
+mod relationships;
 mod storage;
 mod tables;
 
@@ -81,6 +83,8 @@ pub(crate) const EMBEDDINGS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("embeddings");
 pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("metadata");
 pub(crate) const SUMMARIES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("summaries");
+pub(crate) const RELATIONSHIPS_TABLE: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("relationships");
 
 /// redb storage backend for fast caching
 pub struct RedbStorage {
@@ -185,6 +189,9 @@ impl RedbStorage {
                     .map_err(|e| Error::Storage(format!("Failed to open metadata table: {}", e)))?;
                 let _summaries = write_txn.open_table(SUMMARIES_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open summaries table: {}", e))
+                })?;
+                let _relationships = write_txn.open_table(RELATIONSHIPS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open relationships table: {}", e))
                 })?;
             }
 
@@ -388,6 +395,40 @@ impl RedbStorage {
                     })?;
                 }
                 drop(metadata);
+
+                // Clear summaries table
+                let mut summaries = write_txn.open_table(SUMMARIES_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open summaries table: {}", e))
+                })?;
+                let keys: Vec<String> = summaries
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate summaries: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    summaries.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove summary key: {}", e))
+                    })?;
+                }
+                drop(summaries);
+
+                // Clear relationships table
+                let mut relationships = write_txn.open_table(RELATIONSHIPS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open relationships table: {}", e))
+                })?;
+                let keys: Vec<String> = relationships
+                    .iter()
+                    .map_err(|e| Error::Storage(format!("Failed to iterate relationships: {}", e)))?
+                    .filter_map(|item| item.ok())
+                    .map(|(k, _v)| k.value().to_string())
+                    .collect();
+                for key in keys {
+                    relationships.remove(key.as_str()).map_err(|e| {
+                        Error::Storage(format!("Failed to remove relationship key: {}", e))
+                    })?;
+                }
+                drop(relationships);
             }
 
             write_txn

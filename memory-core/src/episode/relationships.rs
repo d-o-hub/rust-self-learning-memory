@@ -73,7 +73,11 @@ impl RelationshipType {
     }
 
     /// Parse from string representation
-    pub fn from_str(s: &str) -> Result<Self, String> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the string doesn't match a known relationship type.
+    pub fn parse(s: &str) -> Result<Self, String> {
         match s {
             "parent_child" => Ok(Self::ParentChild),
             "depends_on" => Ok(Self::DependsOn),
@@ -131,7 +135,7 @@ impl RelationshipMetadata {
         }
     }
 
-    /// Create metadata with reason and created_by
+    /// Create metadata with reason and `created_by`
     #[must_use]
     pub fn with_creator(reason: String, created_by: String) -> Self {
         Self {
@@ -264,14 +268,14 @@ mod tests {
     fn test_relationship_type_str_conversion() {
         for rel_type in RelationshipType::all() {
             let s = rel_type.as_str();
-            let parsed = RelationshipType::from_str(s).unwrap();
+            let parsed = RelationshipType::parse(s).unwrap();
             assert_eq!(rel_type, parsed);
         }
     }
 
     #[test]
     fn test_relationship_type_from_str_invalid() {
-        let result = RelationshipType::from_str("invalid_type");
+        let result = RelationshipType::parse("invalid_type");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Unknown relationship type"));
     }
@@ -309,10 +313,7 @@ mod tests {
 
         assert_eq!(rel.from_episode_id, from_id);
         assert_eq!(rel.to_episode_id, to_id);
-        assert_eq!(
-            rel.metadata.reason,
-            Some("Requires API design".to_string())
-        );
+        assert_eq!(rel.metadata.reason, Some("Requires API design".to_string()));
     }
 
     #[test]

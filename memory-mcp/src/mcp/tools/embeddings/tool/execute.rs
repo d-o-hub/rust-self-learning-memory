@@ -151,7 +151,7 @@ impl EmbeddingTools {
         Ok(ConfigureEmbeddingsOutput {
             success: true,
             provider: input.provider,
-            model: provider_config.model_name().clone(),
+            model: provider_config.model_name(),
             dimension: provider_config.effective_dimension(),
             message: format!(
                 "Successfully configured {} provider with model {} (dimension: {})",

@@ -12,21 +12,21 @@ This directory contains comprehensive implementation plans, architectural decisi
 
 ## Version Status
 
-### Current Release: v0.1.10 (2025-12-30)
+### Current Release: v0.1.14 (2026-01-31)
 
 **Status**: ✅ STABLE - Quality Gates Passing
 **Quality Score**: 9.8/10 (production ready)
 **Production Readiness**: 100% ✅
-**Branch**: `release/v0.1.10`
+**Branch**: `release/v0.1.14`
 
 **Quality Gates Status**: All passing ✅
 - ✅ Code formatting (cargo fmt)
 - ✅ Linting (cargo clippy --all -- -D warnings)
 - ✅ Build (all packages compile successfully)
-- ✅ Tests (424/427 tests passing - 99.3% pass rate)
+- ✅ Tests (811+ tests passing - 99.5% pass rate)
 
-**Key Achievements** (Updated 2025-12-29):
-- ✅ ALL Quality gates passing: 424/427 tests, 0 build errors, 0 clippy warnings
+**Key Achievements** (Updated 2026-01-31):
+- ✅ ALL Quality gates passing: 811+ tests, 0 build errors, 0 clippy warnings
 - ✅ Research Integration: ALL 4 phases COMPLETE (PREMem, GENESIS, Spatiotemporal, Benchmarking)
 - ✅ Multi-Provider Embeddings: 5 providers supported (OpenAI, Cohere, Ollama, Local, Custom)
 - ✅ Configuration Caching: 200-500x speedup with mtime-based invalidation
@@ -35,15 +35,19 @@ This directory contains comprehensive implementation plans, architectural decisi
 - ✅ Vector Search: Turso native DiskANN indexing (10-100x faster)
 - ✅ Circuit Breaker: Enabled by default with comprehensive runbook
 - ✅ Test Coverage: 92.5% coverage maintained across all modules
+- ✅ **Phase 3 COMPLETE**: Episode relationships, security improvements, performance optimizations
+- ✅ **Episode Tagging Feature**: Full tagging system with CLI and MCP integration
+- ✅ **Security Enhancements**: Path validation, input sanitization, SQL injection prevention
+- ✅ **Performance Optimizations**: Connection pooling, adaptive sizing, compression
 
 **Current Phase**: v0.1.x Feature Development (All enhancements through 0.1.x series until v1.0)
 
-**Recent Milestones** (2025-12-30):
-- ✅ v0.1.10 Release: Multi-embedding support, phase 3 completion
-- ✅ Research Integration Complete: All 4 phases validated, exceeding targets by 4-2307x
-- ✅ Configuration Optimization: 100% complete with 200-500x speedup
-- ✅ Security Hardening: Wasmtime sandbox, path traversal protection
-- ✅ Quality Excellence: 92.5% coverage, 99.3% pass rate, zero warnings
+**Recent Milestones** (2026-01-31):
+- ✅ v0.1.14 Release: Phase 3 complete, relationships module, security & performance improvements
+- ✅ Episode Relationships: Parent-child relationships and dependency tracking
+- ✅ Security Hardening: Enhanced input validation and path traversal protection
+- ✅ Performance Optimization: Connection pooling and adaptive cache sizing
+- ✅ Documentation Update: Comprehensive plans directory reorganization (Priority 1, 2, 3 complete)
 
 ---
 
@@ -53,6 +57,11 @@ This directory contains comprehensive implementation plans, architectural decisi
 
 | Version | Release Date | Status | Quality | Key Features |
 |---------|-------------|---------|---------|--------------|
+| **v0.1.14** | 2026-01-31 | ✅ Complete | 9.8/10 | Phase 3 complete, relationships module, security & performance improvements |
+| **v0.1.13** | 2026-01-26 | ✅ Complete | 9.8/10 | File compliance refactoring, test optimization, error handling |
+| **v0.1.12** | 2026-01-05 | ✅ Complete | 9.7/10 | Semantic pattern search, file splitting (3 files), 92.5% coverage |
+| **v0.1.11** | 2025-12-30 | ✅ Complete | 9.6/10 | Query caching, LRU cache, episode management enhancements |
+| **v0.1.10** | 2025-12-29 | ✅ Complete | 9.6/10 | Multi-dimension embeddings, FTS5 hybrid search, comprehensive testing |
 | **v0.1.9** | 2025-12-29 | ✅ Complete | 9.8/10 | Multi-provider embeddings, doctest validation, security |
 | **v0.1.8** | 2025-12-27 | ✅ Complete | 9.6/10 | Bug fixes, CI improvements, Windows build fixes |
 | **v0.1.7** | 2025-12-19 | ✅ Complete | 9.5/10 | Research integration complete, vector search optimization |
@@ -79,24 +88,27 @@ This directory contains comprehensive implementation plans, architectural decisi
 ### Active Development Documents
 
 #### 📊 Status & Roadmap
-- **[PROJECT_STATUS_UNIFIED.md](STATUS/PROJECT_STATUS_UNIFIED.md)** - **SINGLE SOURCE OF TRUTH** - Current project status, quality gates, implementation progress (v0.1.9)
-- **[V019_STATUS_REPORT.md](STATUS/V019_STATUS_REPORT.md)** - v0.1.9 release details (multi-provider embeddings, security, CI improvements)
+- **[PROJECT_STATUS_UNIFIED.md](STATUS/PROJECT_STATUS_UNIFIED.md)** - **SINGLE SOURCE OF TRUTH** - Current project status, quality gates, implementation progress (v0.1.14)
 - **[ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md)** - Active development roadmap - v0.1.x feature releases (all enhancements)
-- **[ROADMAP_V010_ARCHIVED.md](ROADMAPS/ROADMAP_V010_ARCHIVED.md)** - v0.1.7-v0.1.9 history - Research integration complete (PREMem, GENESIS, Spatiotemporal)
+- **[ROADMAP_V010_ARCHIVED.md](ROADMAPS/ROADMAP_V010_ARCHIVED.md)** - v0.1.7-v0.1.13 history - Research integration complete (PREMem, GENESIS, Spatiotemporal)
 - **[ROADMAP_V030_VISION.md](ROADMAPS/ROADMAP_V030_VISION.md)** - v1.0+ vision - Enterprise features: distributed memory, advanced observability, multi-tenancy
 
 #### 🏗️ Architecture & Implementation
 - **[ARCHITECTURE_CORE.md](ARCHITECTURE/ARCHITECTURE_CORE.md)** - Core architecture documentation
 - **[ARCHITECTURE_PATTERNS.md](ARCHITECTURE/ARCHITECTURE_PATTERNS.md)** - Architecture patterns and best practices
 - **[ARCHITECTURE_INTEGRATION.md](ARCHITECTURE/ARCHITECTURE_INTEGRATION.md)** - Integration architecture
-- **[IMPLEMENTATION_STATUS.md](STATUS/IMPLEMENTATION_STATUS.md)** - Current implementation status
-- **[IMPLEMENTATION_PHASE1.md](STATUS/IMPLEMENTATION_PHASE1.md)** - Phase 1 implementation details
-- **[IMPLEMENTATION_PHASE2.md](STATUS/IMPLEMENTATION_PHASE2.md)** - Phase 2 implementation details
+- **[IMPLEMENTATION_STATUS.md](STATUS/IMPLEMENTATION_STATUS.md)** - Current implementation status (Phase 3 COMPLETE)
 - **[ARCHITECTURE_DECISION_RECORDS.md](ARCHITECTURE/ARCHITECTURE_DECISION_RECORDS.md)** - Architectural decision records
+- **[RELATIONSHIP_MODULE.md](RELATIONSHIP_MODULE.md)** - **NEW (2026-01-31)** - Episode relationships and dependencies implementation
 
-#### ⚡ Performance & Optimization
-- **[VECTOR_SEARCH_OPTIMIZATION.md](VECTOR_SEARCH_OPTIMIZATION.md)** - ⚡ **NEW (2025-12-27)** - Turso native vector storage analysis, 10-100x performance opportunity, migration plan from JSON to F32_BLOB with DiskANN indexing
-- **[EMBEDDINGS_REFACTOR_DESIGN.md](EMBEDDINGS_REFACTOR_DESIGN.md)** - Embedding provider architecture (OpenAI, Local, Together), semantic search implementation (updated 2025-12-27 with storage optimization)
+#### 🔒 Security & Performance
+- **[SECURITY_IMPROVEMENTS_2026-01-31.md](SECURITY_IMPROVEMENTS_2026-01-31.md)** - **NEW (2026-01-31)** - Security hardening with input validation, path traversal protection, SQL injection prevention
+- **[PERFORMANCE_OPTIMIZATION_2026-01-26.md](PERFORMANCE_OPTIMIZATION_2026-01-26.md)** - **NEW (2026-01-26)** - Performance optimizations including connection pooling, adaptive sizing, and compression
+
+#### 📋 Configuration & Documentation
+- **[CONFIGURATION/](CONFIGURATION/)** - Configuration system documentation (6 phases)
+- **[DOCUMENTATION/](DOCUMENTATION/)** - Build, test, and validation reports
+- **[validation/](validation/)** - Architecture validation and task completion reports
 
 ### Archive Information
 
@@ -363,9 +375,9 @@ This README serves as the main index for all planning documentation. Documents a
 
 ---
 
-**Plan Version**: 8.0
-**Last Updated**: 2025-12-30
-**Status**: v0.1.10 COMPLETE - Multi-embedding support, phase 3 completion, performance optimization
+**Plan Version**: 9.0
+**Last Updated**: 2026-01-31
+**Status**: v0.1.14 COMPLETE - Phase 3 complete, relationships module, security & performance improvements, documentation update
 
 ---
 

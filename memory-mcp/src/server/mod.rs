@@ -144,4 +144,13 @@ impl MemoryMCPServer {
         let monitoring_config = MonitoringConfig::default();
         Arc::new(MonitoringSystem::new(monitoring_config))
     }
+
+    /// Get a reference to the memory system
+    ///
+    /// # Returns
+    ///
+    /// Returns a clone of the Arc<SelfLearningMemory>
+    pub fn memory(&self) -> Arc<SelfLearningMemory> {
+        Arc::clone(&self.memory)
+    }
 }

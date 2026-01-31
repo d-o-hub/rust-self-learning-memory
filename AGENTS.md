@@ -3,7 +3,7 @@
 ## Project Overview
 This is a memory management system with episodic memory capabilities, semantic embeddings, and multiple storage backends. The system provides persistent memory across agent interactions through an MCP (Model Context Protocol) server.
 
-**Last Updated**: 2026-01-24 (v0.1.12, Phase 2 75% complete, Phase 3 planning)
+**Last Updated**: 2026-01-31 (v0.1.13, Phase 2 75% complete, Phase 3 planning)
 
 **Stack**: Rust/Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Cohere, Ollama, local)
 

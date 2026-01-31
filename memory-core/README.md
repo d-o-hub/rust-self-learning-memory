@@ -4,7 +4,7 @@
 [![Documentation](https://docs.rs/memory-core/badge.svg)](https://docs.rs/memory-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version: v0.1.7** | Production-ready core episodic learning system for AI agents
+**Version: v0.1.13** | Production-ready core episodic learning system for AI agents
 
 ## Overview
 
@@ -42,9 +42,8 @@ Enable optional embedding providers via Cargo features:
 
 ```toml
 # Individual providers
-memory-core = { version = "0.1", features = ["openai-embeddings"] }
-memory-core = { version = "0.1", features = ["cohere-embeddings"] }
-memory-core = { version = "0.1", features = ["ollama-embeddings"] }
+memory-core = { version = "0.1", features = ["openai"] }
+memory-core = { version = "0.1", features = ["mistral"] }
 memory-core = { version = "0.1", features = ["local-embeddings"] }
 
 # All providers
@@ -66,7 +65,7 @@ memory-core = { version = "0.1", features = ["embeddings-full"] }
 - Frequency and success rate tracking
 
 ### Semantic Search (Optional)
-- Multi-provider embeddings: OpenAI, Cohere, Ollama, local CPU-based
+- Multi-provider embeddings: OpenAI, Mistral, local CPU-based
 - Vector similarity search for context-aware retrieval
 - Automatic embedding generation and caching
 - Batch processing for efficiency
@@ -158,7 +157,7 @@ async fn main() -> anyhow::Result<()> {
 
 ```toml
 [dependencies]
-memory-core = { version = "0.1", features = ["openai-embeddings"] }
+memory-core = { version = "0.1", features = ["openai"] }
 ```
 
 ```rust
@@ -245,10 +244,10 @@ All operations meet or exceed performance targets:
 - **tracing**: Structured logging
 
 ### Optional Embedding Dependencies
-- **openai-embeddings**: OpenAI API client
-- **cohere-embeddings**: Cohere API client
-- **ollama-embeddings**: Ollama local embeddings
+- **openai**: OpenAI API embeddings
+- **mistral**: Mistral AI embeddings
 - **local-embeddings**: CPU-based local embeddings
+- **embeddings-full**: All embedding providers (openai + mistral)
 
 ## Documentation
 
@@ -285,5 +284,5 @@ Contributions are welcome! Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for 
 
 This crate is part of the [rust-self-learning-memory](https://github.com/d-o-hub/rust-self-learning-memory) project.
 
-**Version**: v0.1.7 (Production-ready)
+**Version**: v0.1.13 (Production-ready)
 **Status**: Stable, 99.3% test pass rate, 92.5% coverage, 0 clippy warnings

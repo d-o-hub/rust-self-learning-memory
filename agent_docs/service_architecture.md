@@ -18,10 +18,10 @@ The memory management system provides persistent memory across agent interaction
 ## Current Status (v0.1.13)
 
 - **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, tests, examples
-- **~250+ Rust source files** with ~44,250 lines of code in memory-core
+- **632 Rust source files** with ~140,000 lines of code
 - **Test pass rate**: 99.5% (recovered from 76.7% in v0.1.12)
 - **Test coverage**: 92.5% (exceeds 90% target)
-- **File size compliance**: 100% (17 files split in v0.1.13 for ≤500 LOC)
+- **File size compliance**: 100% (17 files split for ≤500 LOC)
 
 ## Workspace Members
 
@@ -91,7 +91,7 @@ The memory management system provides persistent memory across agent interaction
 
 **Features**:
 - Embedded key-value store
-- Postcard serialization (v0.1.7, now v0.1.12)
+- Postcard serialization (v0.1.7+, current: v0.1.13)
 - LRU cache with TTL
 - Fast sub-millisecond lookups
 - Automatic synchronization with Turso

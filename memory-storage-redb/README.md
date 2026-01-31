@@ -58,15 +58,15 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-## ⚠️ IMPORTANT: v0.1.7 Breaking Change
+## ⚠️ IMPORTANT: v0.1.7+ Breaking Change (Current: v0.1.13)
 
 ### Postcard Serialization (NOT bincode)
 
-**Version v0.1.7 introduces a breaking change**: The serialization format has changed from **bincode** to **postcard**.
+**Version v0.1.7 introduced a breaking change**: The serialization format changed from **bincode** to **postcard** (current version: v0.1.13).
 
 ### What Changed?
 - **Old (< v0.1.7)**: Used `bincode` for serialization
-- **New (≥ v0.1.7)**: Uses `postcard` for serialization
+- **New (≥ v0.1.7)**: Uses `postcard` for serialization (v0.1.13)
 - **Why**: Postcard provides better memory safety and is more Rust-idiomatic
 
 ### Migration Requirements
@@ -135,7 +135,7 @@ Optimized for extremely fast read operations:
 
 ### Real-world Performance
 
-In production with memory-core (v0.1.7):
+In production with memory-core (v0.1.13):
 - **Cache hit rate**: 85-95% (varies by workload)
 - **Average read latency**: 5-8µs (cache hits)
 - **Average write latency**: 50-80µs
@@ -346,10 +346,10 @@ cargo test -p memory-storage-redb -- --ignored
 - **async-trait**: Async trait support
 - **anyhow**: Error handling
 - **serde**: Serialization framework
-- **postcard**: Serialization format (v0.1.7+)
+- **postcard**: Serialization format (v0.1.7+, current: v0.1.13)
 
 ### Breaking Change Dependencies
-- **postcard** (v0.1.7+): Replaces bincode for safer serialization
+- **postcard** (v0.1.7+, current: v0.1.13): Replaces bincode for safer serialization
 
 ## Documentation
 
@@ -429,5 +429,6 @@ Part of the [rust-self-learning-memory](https://github.com/d-o-hub/rust-self-lea
 
 ## Version History
 
-- **v0.1.7** (Current): Postcard serialization, improved performance
+- **v0.1.13** (Current): Postcard serialization, improved performance
+- **v0.1.7**: Postcard serialization introduced
 - **v0.1.6**: Initial release with bincode serialization

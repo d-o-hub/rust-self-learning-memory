@@ -16,3 +16,7 @@ e88026cb5788d30544ac3382888e8a6ed74aaae1:README.md:generic-api-key:574
 b4d37e51795bfe09395e0c82264bd8062de9aa15:.env:generic-api-key:41
 b4d37e51795bfe09395e0c82264bd8062de9aa15:mcp.json:generic-api-key:16
 b4d37e51795bfe09395e0c82264bd8062de9aa15:mcp-config-memory.json:generic-api-key:16
+# Same keys re-added in later commit (now removed)
+571e8c0e42d286ba59cd54e133269ef96379630e:.env:generic-api-key:41
+571e8c0e42d286ba59cd54e133269ef96379630e:mcp.json:generic-api-key:16
+571e8c0e42d286ba59cd54e133269ef96379630e:mcp-config-memory.json:generic-api-key:16

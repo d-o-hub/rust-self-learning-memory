@@ -90,3 +90,5 @@ opencodetmp/opencode
 .claude/settings.local.json
 :memory:
 .env
+mcp.json
+mcp-config-*.json

@@ -10,6 +10,11 @@ adf26d76370e7d4a125b80b2af2c16796cd6b847:.claude/skills/rust-code-quality/SKILL.
 # Documentation examples showing Gitleaks output
 e88026cb5788d30544ac3382888e8a6ed74aaae1:README.md:sidekiq-secret:47
 e88026cb5788d30544ac3382888e8a6ed74aaae1:README.md:generic-api-key:574
+# Same examples in different commits
+40fbec6155d3ad005b55cf48301ca2a003447387:README.md:sidekiq-secret:47
+40fbec6155d3ad005b55cf48301ca2a003447387:README.md:generic-api-key:574
+46c7019d2a48eeea6459d6f3f23160504db249be:README.md:sidekiq-secret:47
+46c7019d2a48eeea6459d6f3f23160504db249be:README.md:generic-api-key:574
 # Test/development API keys (not production secrets)
 # These are example/test keys used for local development and CI testing
 # The actual production keys are managed via environment variables

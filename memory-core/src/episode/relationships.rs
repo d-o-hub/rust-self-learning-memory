@@ -379,9 +379,9 @@ mod tests {
 
     #[test]
     fn test_direction_enum() {
-        let _outgoing = Direction::Outgoing;
-        let _incoming = Direction::Incoming;
-        let _both = Direction::Both;
-        // Just ensure it compiles and can be used
+        // Just ensure the Direction enum variants compile
+        let _ = Direction::Outgoing;
+        let _ = Direction::Incoming;
+        let _ = Direction::Both;
     }
 }

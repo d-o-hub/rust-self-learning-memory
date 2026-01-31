@@ -666,38 +666,34 @@ mod tests {
         let to_id = Uuid::new_v4();
 
         // Valid priority (1)
-        let mut metadata = RelationshipMetadata::default();
-        metadata.priority = Some(1);
-        let result = manager.add_with_validation(
-            from_id,
-            to_id,
-            RelationshipType::DependsOn,
-            metadata.clone(),
-        );
+        let metadata = RelationshipMetadata {
+            priority: Some(1),
+            ..Default::default()
+        };
+        let result =
+            manager.add_with_validation(from_id, to_id, RelationshipType::DependsOn, metadata);
         assert!(result.is_ok());
 
         // Valid priority (10)
         let from_id2 = Uuid::new_v4();
         let to_id2 = Uuid::new_v4();
-        metadata.priority = Some(10);
-        let result = manager.add_with_validation(
-            from_id2,
-            to_id2,
-            RelationshipType::DependsOn,
-            metadata.clone(),
-        );
+        let metadata = RelationshipMetadata {
+            priority: Some(10),
+            ..Default::default()
+        };
+        let result =
+            manager.add_with_validation(from_id2, to_id2, RelationshipType::DependsOn, metadata);
         assert!(result.is_ok());
 
         // Invalid priority (0)
         let from_id3 = Uuid::new_v4();
         let to_id3 = Uuid::new_v4();
-        metadata.priority = Some(0);
-        let result = manager.add_with_validation(
-            from_id3,
-            to_id3,
-            RelationshipType::DependsOn,
-            metadata.clone(),
-        );
+        let metadata = RelationshipMetadata {
+            priority: Some(0),
+            ..Default::default()
+        };
+        let result =
+            manager.add_with_validation(from_id3, to_id3, RelationshipType::DependsOn, metadata);
         assert!(matches!(
             result,
             Err(ValidationError::InvalidPriority { .. })
@@ -706,7 +702,10 @@ mod tests {
         // Invalid priority (11)
         let from_id4 = Uuid::new_v4();
         let to_id4 = Uuid::new_v4();
-        metadata.priority = Some(11);
+        let metadata = RelationshipMetadata {
+            priority: Some(11),
+            ..Default::default()
+        };
         let result =
             manager.add_with_validation(from_id4, to_id4, RelationshipType::DependsOn, metadata);
         assert!(matches!(
@@ -1111,48 +1110,48 @@ mod tests {
         // B -> D
         // C -> D
         // D -> E
-        let a = Uuid::new_v4();
-        let b = Uuid::new_v4();
-        let c = Uuid::new_v4();
-        let d = Uuid::new_v4();
-        let e = Uuid::new_v4();
+        let episode_a = Uuid::new_v4();
+        let episode_b = Uuid::new_v4();
+        let episode_c = Uuid::new_v4();
+        let episode_d = Uuid::new_v4();
+        let episode_e = Uuid::new_v4();
 
         manager
             .add_with_validation(
-                a,
-                b,
+                episode_a,
+                episode_b,
                 RelationshipType::DependsOn,
                 RelationshipMetadata::default(),
             )
             .unwrap();
         manager
             .add_with_validation(
-                a,
-                c,
+                episode_a,
+                episode_c,
                 RelationshipType::DependsOn,
                 RelationshipMetadata::default(),
             )
             .unwrap();
         manager
             .add_with_validation(
-                b,
-                d,
+                episode_b,
+                episode_d,
                 RelationshipType::DependsOn,
                 RelationshipMetadata::default(),
             )
             .unwrap();
         manager
             .add_with_validation(
-                c,
-                d,
+                episode_c,
+                episode_d,
                 RelationshipType::DependsOn,
                 RelationshipMetadata::default(),
             )
             .unwrap();
         manager
             .add_with_validation(
-                d,
-                e,
+                episode_d,
+                episode_e,
                 RelationshipType::DependsOn,
                 RelationshipMetadata::default(),
             )
@@ -1162,17 +1161,17 @@ mod tests {
         assert_eq!(manager.episode_count(), 5);
 
         // Check outgoing from A
-        let outgoing_a = manager.get_outgoing(a);
+        let outgoing_a = manager.get_outgoing(episode_a);
         assert_eq!(outgoing_a.len(), 2);
 
         // Check incoming to D
-        let incoming_d = manager.get_incoming(d);
+        let incoming_d = manager.get_incoming(episode_d);
         assert_eq!(incoming_d.len(), 2);
 
         // Verify topological order
         let order = manager.topological_order().unwrap();
-        let a_pos = order.iter().position(|&x| x == a).unwrap();
-        let e_pos = order.iter().position(|&x| x == e).unwrap();
+        let a_pos = order.iter().position(|&x| x == episode_a).unwrap();
+        let e_pos = order.iter().position(|&x| x == episode_e).unwrap();
         assert!(a_pos < e_pos);
     }
 

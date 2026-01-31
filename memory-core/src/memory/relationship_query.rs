@@ -123,6 +123,7 @@ impl RelationshipGraph {
     /// The DOT format can be rendered by Graphviz or other graph visualization tools.
     #[must_use]
     pub fn to_dot(&self) -> String {
+        use std::fmt::Write;
         let mut dot = String::from("digraph RelationshipGraph {\n");
         dot.push_str("  rankdir=LR;\n");
         dot.push_str("  node [shape=box, style=rounded];\n\n");
@@ -136,11 +137,11 @@ impl RelationshipGraph {
                 .collect::<String>()
                 .replace('"', "\\\"");
             let truncated_label = if episode.task_description.len() > 30 {
-                format!("{}...", label)
+                format!("{label}...")
             } else {
                 label
             };
-            dot.push_str(&format!("  \"{}\" [label=\"{}\"];\n", id, truncated_label));
+            let _ = writeln!(dot, "  \"{id}\" [label=\"{truncated_label}\"];");
         }
 
         dot.push('\n');
@@ -148,10 +149,11 @@ impl RelationshipGraph {
         // Add edges
         for edge in &self.edges {
             let label = format!("{:?}", edge.relationship_type);
-            dot.push_str(&format!(
-                "  \"{}\" -> \"{}\" [label=\"{}\"];\n",
-                edge.from_episode_id, edge.to_episode_id, label
-            ));
+            let _ = writeln!(
+                dot,
+                "  \"{}\" -> \"{}\" [label=\"{label}\"];",
+                edge.from_episode_id, edge.to_episode_id
+            );
         }
 
         dot.push_str("}\n");
@@ -236,7 +238,7 @@ mod tests {
     use crate::types::{TaskContext, TaskType};
     use crate::Episode;
 
-    fn create_test_episode(id: Uuid, description: &str) -> Episode {
+    fn create_test_episode(_id: Uuid, description: &str) -> Episode {
         Episode::new(
             description.to_string(),
             TaskContext::default(),

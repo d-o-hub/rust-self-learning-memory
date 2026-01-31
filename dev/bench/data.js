@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1769793838928,
+  "lastUpdate": 1769888597735,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -10156,6 +10156,95 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/571e8c0e42d286ba59cd54e133269ef96379630e"
         },
         "date": 1769793838646,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "test@example.com",
+            "name": "Test User"
+          },
+          "committer": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "distinct": true,
+          "id": "b62e88f4fade90fd1d1bd78a6c6bdf3e00d342bb",
+          "message": "ci(workflows): optimize quality gates timeout and add independent coverage workflow\n\n- Increase Quality Gates timeout from 30 to 45 minutes\n- Add individual command timeouts (audit: 20min, coverage: 40min)\n- Optimize coverage: use --lib instead of --workspace for faster execution\n- Create separate coverage.yml workflow that runs independently\n- Coverage workflow has 60min timeout and doesn't block CI\n- Maintain >90% coverage reporting while improving CI speed\n\nFixes workflow timeouts that were causing cancelled checks and\npending status on PR requirements.",
+          "timestamp": "2026-01-31T20:05:01+01:00",
+          "tree_id": "5ca32d6428de7f0996eb75a99e29043cfdef0f4f",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/b62e88f4fade90fd1d1bd78a6c6bdf3e00d342bb"
+        },
+        "date": 1769888597466,
         "tool": "cargo",
         "benches": [
           {

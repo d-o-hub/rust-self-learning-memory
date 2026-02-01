@@ -294,6 +294,12 @@ impl AdaptiveConnectionPool {
     pub async fn get(&self) -> Result<AdaptivePooledConnection> {
         let permit = self.try_acquire(self.config.check_interval).await?;
 
+        // Create a new database connection from the database
+        let connection = self
+            .db
+            .connect()
+            .map_err(|e| Error::Storage(format!("Failed to create connection: {}", e)))?;
+
         let metrics_ptr = Arc::as_ptr(&self.metrics) as *mut AdaptiveMetrics;
         let current_max_ptr = Arc::as_ptr(&self.current_max) as *mut AtomicU32;
 
@@ -301,6 +307,7 @@ impl AdaptiveConnectionPool {
             metrics_ptr,
             current_max_ptr,
             permit: Some(permit),
+            connection: Some(connection),
         })
     }
 
@@ -345,6 +352,7 @@ pub struct AdaptivePooledConnection {
     metrics_ptr: *mut AdaptiveMetrics,
     current_max_ptr: *mut AtomicU32,
     permit: Option<OwnedSemaphorePermit>,
+    connection: Option<libsql::Connection>,
 }
 
 #[allow(unsafe_code)]
@@ -353,8 +361,14 @@ unsafe impl Send for AdaptivePooledConnection {}
 unsafe impl Sync for AdaptivePooledConnection {}
 
 impl AdaptivePooledConnection {
+    /// Get a reference to the underlying database connection
     pub fn connection(&self) -> Option<&libsql::Connection> {
-        None
+        self.connection.as_ref()
+    }
+
+    /// Take ownership of the underlying connection
+    pub fn into_inner(mut self) -> Option<libsql::Connection> {
+        self.connection.take()
     }
 }
 
@@ -522,5 +536,46 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(50)).await;
 
         pool.shutdown().await;
+    }
+
+    #[tokio::test]
+    async fn test_connection_exposure() {
+        let (pool, _dir) = create_test_pool().await;
+
+        // Get a connection from the pool
+        let pooled_conn = pool.get().await.unwrap();
+
+        // Verify we can access the underlying connection
+        let conn_ref = pooled_conn.connection();
+        assert!(conn_ref.is_some(), "Connection should be exposed");
+
+        // Verify the connection is usable by running a query
+        let conn = conn_ref.unwrap();
+        let result = conn.query("SELECT 1", ()).await;
+        assert!(result.is_ok(), "Connection should be usable for queries");
+
+        // Test into_inner to take ownership
+        let conn = pooled_conn.into_inner();
+        assert!(conn.is_some(), "into_inner should return the connection");
+    }
+
+    #[tokio::test]
+    async fn test_connection_query_after_into_inner() {
+        let (pool, _dir) = create_test_pool().await;
+
+        // Get a connection and take ownership
+        let pooled_conn = pool.get().await.unwrap();
+        let conn = pooled_conn.into_inner().unwrap();
+
+        // Verify the connection is still usable
+        let result = conn.query("SELECT 1 as value", ()).await;
+        assert!(result.is_ok());
+
+        let mut rows = result.unwrap();
+        let row = rows.next().await.unwrap();
+        assert!(row.is_some());
+
+        let value: i32 = row.unwrap().get(0).unwrap();
+        assert_eq!(value, 1);
     }
 }

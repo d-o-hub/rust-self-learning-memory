@@ -33,7 +33,9 @@
 //! ```
 
 // Submodules
+pub mod audit;
 pub mod cache_warming;
+pub mod rate_limiter;
 pub mod sandbox;
 #[cfg(test)]
 mod tests;
@@ -43,6 +45,7 @@ pub mod tools;
 
 use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
+use crate::server::audit::{AuditConfig, AuditLogger};
 use crate::types::{ExecutionStats, SandboxConfig, Tool};
 use crate::unified_sandbox::UnifiedSandbox;
 use anyhow::Result;
@@ -71,6 +74,8 @@ pub struct MemoryMCPServer {
     /// Query result cache
     #[allow(dead_code)]
     cache: Arc<QueryCache>,
+    /// Audit logger for security events
+    audit_logger: Arc<AuditLogger>,
 }
 
 impl MemoryMCPServer {
@@ -97,6 +102,10 @@ impl MemoryMCPServer {
         let monitoring = Self::initialize_monitoring();
         let monitoring_endpoints = Arc::new(MonitoringEndpoints::new(Arc::clone(&monitoring)));
 
+        // Initialize audit logger
+        let audit_config = AuditConfig::from_env();
+        let audit_logger = Arc::new(AuditLogger::new(audit_config).await?);
+
         let server = Self {
             sandbox,
             tools,
@@ -106,6 +115,7 @@ impl MemoryMCPServer {
             monitoring,
             monitoring_endpoints,
             cache: Arc::new(QueryCache::new()),
+            audit_logger,
         };
 
         info!(
@@ -116,6 +126,7 @@ impl MemoryMCPServer {
             "Monitoring system initialized (enabled: {})",
             server.monitoring.config().enabled
         );
+        info!("Audit logging system initialized");
 
         // Perform cache warming if enabled
         if cache_warming::is_cache_warming_enabled() {
@@ -152,5 +163,14 @@ impl MemoryMCPServer {
     /// Returns a clone of the Arc<SelfLearningMemory>
     pub fn memory(&self) -> Arc<SelfLearningMemory> {
         Arc::clone(&self.memory)
+    }
+
+    /// Get a reference to the audit logger
+    ///
+    /// # Returns
+    ///
+    /// Returns a clone of the Arc<AuditLogger>
+    pub fn audit_logger(&self) -> Arc<AuditLogger> {
+        Arc::clone(&self.audit_logger)
     }
 }

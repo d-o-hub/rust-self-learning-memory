@@ -32,6 +32,7 @@ pub use memory_mcp::protocol::OAuthConfig;
 #[allow(unused)]
 pub use types::{
     ActiveElicitation, ActiveTask, CallToolParams, CallToolResult, Content, EmbeddingEnvConfig,
+    RateLimitEnvConfig,
 };
 
 // Re-export all types and functions for convenient access (may be used by external consumers)

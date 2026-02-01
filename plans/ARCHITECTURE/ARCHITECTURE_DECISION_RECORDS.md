@@ -473,6 +473,214 @@ This document records significant architectural decisions made throughout the Se
 
 ---
 
+## ADR-020: Dynamic Tool Loading for MCP Server
+
+**Status**: Proposed
+**Date**: 2026-01-31
+**Context**: MCP server currently loads all tool schemas at startup and transmits them in every `tools/list` response, causing significant token overhead (~12,000 tokens/session) even when clients only use 2-3 tools.
+
+**Business Impact**: Estimated 144M tokens/year wasted on tool discovery (based on 1,000 sessions/month @ 12,000 tokens/session)
+
+**Decision**: Implement lazy loading with TTL cache for tool schemas
+
+### Alternatives Considered
+1. **Eager Loading (Current)**
+   - Pros: Simple implementation, all tools available immediately
+   - Cons: 12,000 tokens/session overhead, 144M tokens/year waste, poor scalability
+
+2. **Lazy Loading without Cache**
+   - Pros: <500 tokens/session (96% reduction), minimal memory overhead
+   - Cons: 10-20ms overhead per schema request, repeated requests for same tools
+   - **REJECTED**: Performance concerns with repeated requests
+
+3. **Lazy Loading with TTL Cache (Chosen)**
+   - Pros: <500 tokens/session, <10ms overhead (cached), 80%+ cache hit rate, 138M tokens/year savings
+   - Cons: ~400 LOC ToolRegistry implementation, 1-2MB cache memory overhead
+
+### Decision
+**Implement ToolRegistry with 5-minute TTL cache and 50-entry LRU eviction**
+
+### Rationale
+- **Massive Token Reduction**: 96% reduction (12,000 → <500 tokens/session)
+- **Cost Savings**: 138M tokens/year saved (144M → 6M)
+- **Acceptable Latency**: <10ms overhead for cached tools, <20ms for cold cache
+- **Backwards Compatible**: Optional feature, clients can opt-in
+- **Proven Pattern**: LRU cache with TTL is standard for schema registries
+
+### Tradeoffs
+- **Implementation Complexity**: ~400 LOC for ToolRegistry (manageable)
+- **Memory Overhead**: 1-2MB for cache (acceptable)
+- **Additional Request**: First access requires extra request for schema (10-20ms)
+- **Cache Invalidation**: Need strategy for schema updates (TTL handles this)
+
+### Consequences
+- **Positive**: 96% token reduction on tools/list responses
+- **Positive**: Reduced network overhead and faster transmission
+- **Positive**: Better scalability (bandwidth and token cost)
+- **Positive**: Cache hit rate >80% for repeated tool access
+- **Negative**: Additional round-trip for first tool access (10-20ms)
+- **Negative**: ~400 LOC implementation complexity
+- **Neutral**: 1-2MB memory overhead for cache
+
+### Implementation Status
+⏳ **PROPOSED** - Not yet implemented
+
+**Planned Implementation**:
+- ToolRegistry with 5-minute TTL cache
+- 50-entry LRU eviction policy
+- Lazy loading in tools/list handler
+- Cache warming for popular tools
+- Feature flag for backwards compatibility
+
+**Estimated Effort**: 2-3 days (16-24 hours)
+**Risk Level**: Low (backwards compatible, optional feature)
+
+**Files Affected** (Planned):
+- `memory-mcp/src/tools/registry.rs` (new, ~200 LOC)
+- `memory-mcp/src/tools/lazy_loader.rs` (new, ~200 LOC)
+- `memory-mcp/src/handlers/tools.rs` (modify for lazy loading)
+- `memory-mcp/Cargo.toml` (add lru crate)
+
+**Success Metrics**:
+- Token reduction ≥90% (target: 96%)
+- Latency <20ms for cold cache, <10ms for warm cache
+- Cache hit rate >80%
+- All existing tests pass
+- Backwards compatible (clients without flag unaffected)
+
+**Next Steps**:
+- [ ] Implement ToolRegistry with LRU cache
+- [ ] Add lazy loading to tools/list handler
+- [ ] Add feature flag for backwards compatibility
+- [ ] Write integration tests for cache behavior
+- [ ] Performance benchmarking (token count, latency)
+- [ ] Documentation updates
+
+**Timeline**: 2-3 days (16-24 hours)
+**References**:
+- `plans/research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md`
+- `plans/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md`
+
+---
+
+## ADR-021: Field Selection for MCP Tool Responses
+
+**Status**: Proposed
+**Date**: 2026-01-31
+**Context**: MCP tools currently return complete objects (all fields) even when clients only need specific fields, resulting in 20-60% larger responses than necessary.
+
+**Business Impact**: Estimated 36M tokens/year wasted on unnecessary fields
+
+**Decision**: Implement simple `include_fields` parameter for selective field projection
+
+### Alternatives Considered
+1. **Return Complete Objects (Current)**
+   - Pros: Simple implementation, all data available
+   - Cons: 20-60% unnecessary tokens, 36M tokens/year waste, slower serialization
+
+2. **GraphQL-like Query Language**
+   - Pros: 40-60% token savings, powerful filtering capabilities
+   - Cons: 40-60 hours implementation effort, high complexity, steep learning curve
+   - **REJECTED**: Overkill for current use case
+
+3. **Simple Field List Parameter (Chosen)**
+   - Pros: 20-60% token savings, 4-6 hours effort, low complexity, easy to understand
+   - Cons: Must document all fields, slight complexity in tool handlers
+
+### Decision
+**Add optional `include_fields: Vec<String>` parameter to relevant MCP tools**
+
+### Rationale
+- **Simple Implementation**: 4-6 hours vs 40-60 hours for GraphQL
+- **Easy to Understand**: Array of field names is intuitive
+- **Significant Savings**: 20-60% token reduction
+- **Backwards Compatible**: Optional parameter, defaults to all fields
+- **Idiomatic for JSON-RPC/MCP**: Follows existing patterns
+- **Low Risk**: Minimal code changes, easy to test
+
+### Tradeoffs
+- **Documentation Effort**: Must document all available fields for each tool
+- **Handler Complexity**: Slight increase in complexity for field projection
+- **Validation Overhead**: Need to validate field names
+- **Type Safety**: Runtime field validation (vs compile-time for GraphQL)
+
+### Consequences
+- **Positive**: 20-60% token reduction on responses
+- **Positive**: Faster serialization (less data to serialize)
+- **Positive**: Backwards compatible (optional parameter)
+- **Positive**: Easy to understand and use
+- **Negative**: Slight complexity increase in tool handlers
+- **Negative**: Must maintain field documentation
+- **Neutral**: <1ms latency overhead for projection
+
+### Implementation Status
+⏳ **PROPOSED** - Not yet implemented
+
+**Planned Implementation**:
+```rust
+// Add parameter to tool inputs
+pub struct QueryMemoryInput {
+    pub query: String,
+    pub domain: String,
+    pub include_fields: Option<Vec<String>>,  // NEW
+}
+
+// Field projection helper
+pub fn project_fields<T: Serialize>(
+    value: &T,
+    fields: &[String]
+) -> Result<Value, Error>
+
+// Example usage in handlers
+let result = query_memory(...)?;
+let output = if let Some(fields) = input.include_fields {
+    project_fields(&result, &fields)?
+} else {
+    serde_json::to_value(result)?
+};
+```
+
+**Tools to Update**:
+- `query_memory` - episode fields (id, task_description, domain, status, created_at, outcome_type, etc.)
+- `get_episode` - episode fields
+- `analyze_patterns` - pattern fields
+- `batch_query_episodes` - episode fields
+- Other high-volume response tools
+
+**Estimated Effort**: 1-2 days (4-6 hours)
+**Risk Level**: Very Low (backwards compatible, optional parameter)
+
+**Files Affected** (Planned):
+- `memory-mcp/src/tools/queries.rs` (add field projection)
+- `memory-mcp/src/tools/episodes.rs` (add field projection)
+- `memory-mcp/src/tools/patterns.rs` (add field projection)
+- `memory-mcp/src/utils/serialization.rs` (new, projection helpers, ~50 LOC)
+- `docs/MCP_TOOLS.md` (document available fields)
+
+**Success Metrics**:
+- Token reduction ≥20% (target: 40% average)
+- Serialization overhead <1ms
+- All tools support include_fields parameter
+- Test coverage >90% for field projection
+- Backwards compatible (clients without parameter unaffected)
+
+**Next Steps**:
+- [ ] Implement project_fields helper function
+- [ ] Add include_fields parameter to query_memory
+- [ ] Add include_fields parameter to get_episode
+- [ ] Add include_fields parameter to other high-volume tools
+- [ ] Write integration tests for field projection
+- [ ] Document all available fields per tool
+- [ ] Performance benchmarking (token count, serialization time)
+- [ ] Documentation updates
+
+**Timeline**: 1-2 days (4-6 hours)
+**References**:
+- `plans/research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md`
+- `plans/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md`
+
+---
+
 ## Decision Log
 
 | ADR | Date | Decision | Status | Files Affected |
@@ -483,6 +691,8 @@ This document records significant architectural decisions made throughout the Se
 | ADR-004 | 2025-12-24 | Postcard Serialization | ✅ Complete | storage.rs, security tests |
 | ADR-005 | 2025-12-22 | Configuration Simplification | 🟡 67% Complete | config/*.rs |
 | ADR-006 | 2025-12-25 | ETS Seasonality | ✅ Complete | predictive.rs |
+| ADR-020 | 2026-01-31 | Dynamic Tool Loading for MCP Server | ⏳ Proposed | registry.rs, lazy_loader.rs, handlers/tools.rs |
+| ADR-021 | 2026-01-31 | Field Selection for MCP Tool Responses | ⏳ Proposed | queries.rs, episodes.rs, patterns.rs, utils/serialization.rs |
 
 ---
 
@@ -544,4 +754,4 @@ This document records significant architectural decisions made throughout the Se
 
 **Document Maintainer**: Project Maintainers
 **Review Frequency**: Quarterly or with each major architectural change
-**Last Updated**: 2025-12-25
+**Last Updated**: 2026-01-31

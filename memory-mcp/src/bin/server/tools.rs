@@ -1,18 +1,16 @@
-//! Memory tool handlers
+//! Memory tool handlers with audit logging
 //!
 //! This module contains individual tool handler functions for all MCP tools.
+//! All security-relevant operations are logged to the audit logger.
 //!
-//! This module contains handlers for all memory-related tools:
-//! - handle_query_memory: Query memories
-//! - handle_execute_code: Execute agent code (WASM)
-//! - handle_analyze_patterns: Analyze patterns
-//! - handle_advanced_pattern_analysis: Advanced pattern analysis
-//! - handle_health_check: Health check
-//! - handle_get_metrics: Get metrics
-//! - handle_quality_metrics: Quality metrics
-//! - handle_configure_embeddings: Configure embedding provider
-//! - handle_query_semantic_memory: Semantic memory search
-//! - handle_test_embeddings: Test embedding provider
+//! ## Audit Logging
+//!
+//! The following operations are logged:
+//! - Episode creation/modification/deletion
+//! - Relationship changes
+//! - Configuration changes
+//! - Authentication events
+//! - Rate limit violations
 
 use super::types::Content;
 use memory_mcp::mcp::tools::embeddings::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
@@ -22,12 +20,21 @@ use memory_mcp::ExecutionContext;
 use memory_mcp::MemoryMCPServer;
 use serde_json::{json, Value};
 
+/// Extract client ID from arguments or use default
+fn get_client_id(args: &Value) -> String {
+    args.get("client_id")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| "anonymous".to_string())
+}
+
 /// Handle query_memory tool
 pub async fn handle_query_memory(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
     let query = args
         .get("query")
         .and_then(|v| v.as_str())
@@ -50,10 +57,19 @@ pub async fn handle_query_memory(
         .to_string();
 
     let result = server
-        .query_memory(query, domain, task_type, limit, sort)
-        .await?;
+        .query_memory(query.clone(), domain, task_type, limit, sort)
+        .await;
+
+    // Audit log the operation
+    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_memory_query(&client_id, &query, result_count, success)
+        .await;
+
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
 
     Ok(content)
@@ -65,6 +81,7 @@ pub async fn handle_execute_code(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
     let code = args
         .get("code")
         .and_then(|v| v.as_str())
@@ -96,14 +113,35 @@ pub async fn handle_execute_code(
     {
         Ok(_) => {
             // WASM sandbox is working, proceed with actual execution
-            let result = server.execute_agent_code(code, context).await?;
+            let start_time = std::time::Instant::now();
+            let result = server.execute_agent_code(code, context).await;
+            let execution_time_ms = start_time.elapsed().as_millis() as u64;
+
+            // Audit log the execution
+            let success = result.is_ok();
+            let error = result.as_ref().err().map(|e| e.to_string());
+            server
+                .audit_logger()
+                .log_code_execution(
+                    &client_id,
+                    "wasmtime",
+                    execution_time_ms,
+                    success,
+                    error.as_deref(),
+                )
+                .await;
+
             let content = vec![Content::Text {
-                text: serde_json::to_string_pretty(&result)?,
+                text: serde_json::to_string_pretty(&result?)?,
             }];
             Ok(content)
         }
         Err(e) => {
             // WASM sandbox is not available, return proper error
+            server
+                .audit_logger()
+                .log_code_execution(&client_id, "wasmtime", 0, false, Some("WASM unavailable"))
+                .await;
             Err(anyhow::anyhow!(
                 "Code execution is currently unavailable due to WASM sandbox compilation issues. Error: {}",
                 e
@@ -118,6 +156,7 @@ pub async fn handle_analyze_patterns(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
     let task_type = args
         .get("task_type")
         .and_then(|v| v.as_str())
@@ -130,10 +169,19 @@ pub async fn handle_analyze_patterns(
     let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(20) as usize;
 
     let result = server
-        .analyze_patterns(task_type, min_success_rate, limit)
-        .await?;
+        .analyze_patterns(task_type.clone(), min_success_rate, limit)
+        .await;
+
+    // Audit log the operation
+    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_pattern_analysis(&client_id, &task_type, result_count, success)
+        .await;
+
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
 
     Ok(content)
@@ -145,6 +193,7 @@ pub async fn handle_advanced_pattern_analysis(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
 
     // Parse analysis type
     let analysis_type_str = args
@@ -182,15 +231,22 @@ pub async fn handle_advanced_pattern_analysis(
         .and_then(|c| serde_json::from_value(c.clone()).ok());
 
     let input = memory_mcp::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisInput {
-        analysis_type,
+        analysis_type: analysis_type.clone(),
         time_series_data,
         config,
     };
 
-    let result = server.execute_advanced_pattern_analysis(input).await?;
+    let result = server.execute_advanced_pattern_analysis(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_advanced_pattern_analysis(&client_id, analysis_type_str, success)
+        .await;
 
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
 
     Ok(content)
@@ -248,10 +304,28 @@ pub async fn handle_configure_embeddings(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
     let input: ConfigureEmbeddingsInput = serde_json::from_value(args)?;
-    let result = server.execute_configure_embeddings(input).await?;
+
+    let provider = input.provider.clone();
+    let model = input.model.clone();
+
+    let result = server.execute_configure_embeddings(input).await;
+
+    // Audit log the configuration change
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_embedding_config(
+            &client_id,
+            &format!("{:?}", provider),
+            model.as_deref(),
+            success,
+        )
+        .await;
+
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
     Ok(content)
 }
@@ -262,10 +336,22 @@ pub async fn handle_query_semantic_memory(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
     let input: QuerySemanticMemoryInput = serde_json::from_value(args)?;
-    let result = server.execute_query_semantic_memory(input).await?;
+    let query = input.query.clone();
+
+    let result = server.execute_query_semantic_memory(input).await;
+
+    // Audit log the operation
+    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_semantic_query(&client_id, &query, result_count, success)
+        .await;
+
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
     Ok(content)
 }
@@ -288,13 +374,23 @@ pub async fn handle_search_patterns(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
     let input: SearchPatternsInput = serde_json::from_value(args)?;
+    let domain = input.domain.clone();
 
     // Access memory through the server's memory field
-    let result = server.execute_search_patterns(input).await?;
+    let result = server.execute_search_patterns(input).await;
+
+    // Audit log the operation
+    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_pattern_search(&client_id, &domain, result_count, success)
+        .await;
 
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
     Ok(content)
 }
@@ -305,13 +401,23 @@ pub async fn handle_recommend_patterns(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
     let input: RecommendPatternsInput = serde_json::from_value(args)?;
+    let domain = input.domain.clone();
 
     // Access memory through the server's memory field
-    let result = server.execute_recommend_patterns(input).await?;
+    let result = server.execute_recommend_patterns(input).await;
+
+    // Audit log the operation
+    let recommendation_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_recommend_patterns(&client_id, &domain, recommendation_count, success)
+        .await;
 
     let content = vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }];
     Ok(content)
 }
@@ -324,6 +430,7 @@ pub async fn handle_bulk_episodes(
     use uuid::Uuid;
 
     let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
 
     // Parse episode_ids as a comma-separated string or array
     let episode_ids_value = args
@@ -358,7 +465,23 @@ pub async fn handle_bulk_episodes(
         }
     };
 
-    let result = server.get_episodes_by_ids(&episode_ids).await?;
+    let result = server.get_episodes_by_ids(&episode_ids).await;
+
+    // Audit log the operation
+    let episode_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_bulk_episodes(&client_id, episode_count, success)
+        .await;
+
+    let mut episodes_json = Vec::with_capacity(result.as_ref().map(|r| r.len()).unwrap_or(0));
+    for ep in result?.iter() {
+        episodes_json.push(
+            serde_json::to_value(ep)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize episode: {}", e))?,
+        );
+    }
 
     #[derive(serde::Serialize)]
     struct BulkEpisodeResult {
@@ -366,14 +489,6 @@ pub async fn handle_bulk_episodes(
         found_count: usize,
         missing_count: usize,
         episodes: Vec<serde_json::Value>,
-    }
-
-    let mut episodes_json = Vec::with_capacity(result.len());
-    for ep in result.iter() {
-        episodes_json.push(
-            serde_json::to_value(ep)
-                .map_err(|e| anyhow::anyhow!("Failed to serialize episode: {}", e))?,
-        );
     }
 
     let bulk_result = BulkEpisodeResult {
@@ -396,9 +511,37 @@ pub async fn handle_create_episode(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.create_episode_tool(args).await?;
+    let client_id = get_client_id(&args);
+    let task_description = args
+        .get("task_description")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+
+    let result = server.create_episode_tool(args).await;
+
+    // Audit log the operation
+    let episode_id = result
+        .as_ref()
+        .ok()
+        .and_then(|r| r.get("episode_id"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let success = result.is_ok();
+    let error = result.as_ref().err().map(|e| e.to_string());
+    server
+        .audit_logger()
+        .log_episode_creation(
+            &client_id,
+            episode_id,
+            &task_description,
+            success,
+            error.as_deref(),
+        )
+        .await;
+
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -408,9 +551,33 @@ pub async fn handle_add_episode_step(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.add_episode_step_tool(args).await?;
+    let client_id = get_client_id(&args);
+    let episode_id = args
+        .get("episode_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let step_number = args
+        .get("step_number")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as u32;
+    let tool = args
+        .get("tool")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+
+    let result = server.add_episode_step_tool(args).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_episode_step(&client_id, &episode_id, step_number, &tool, success)
+        .await;
+
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -420,9 +587,29 @@ pub async fn handle_complete_episode(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.complete_episode_tool(args).await?;
+    let client_id = get_client_id(&args);
+    let episode_id = args
+        .get("episode_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let outcome = args
+        .get("outcome_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+
+    let result = server.complete_episode_tool(args).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_episode_completion(&client_id, &episode_id, &outcome, success)
+        .await;
+
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -444,9 +631,25 @@ pub async fn handle_delete_episode(
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.delete_episode_tool(args).await?;
+    let client_id = get_client_id(&args);
+    let episode_id = args
+        .get("episode_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+
+    let result = server.delete_episode_tool(args).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let error = result.as_ref().err().map(|e| e.to_string());
+    server
+        .audit_logger()
+        .log_episode_deletion(&client_id, &episode_id, success, error.as_deref())
+        .await;
+
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -506,13 +709,23 @@ pub async fn handle_add_episode_tags(
     use memory_mcp::mcp::tools::episode_tags::{AddEpisodeTagsInput, EpisodeTagTools};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
     let input: AddEpisodeTagsInput = serde_json::from_value(args)?;
+    let episode_id = input.episode_id.to_string();
+    let tags: Vec<String> = input.tags.clone();
 
     let tools = EpisodeTagTools::new(server.memory());
-    let result = tools.add_tags(input).await?;
+    let result = tools.add_tags(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_add_tags(&client_id, &episode_id, &tags, success)
+        .await;
 
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -524,13 +737,23 @@ pub async fn handle_remove_episode_tags(
     use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, RemoveEpisodeTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
     let input: RemoveEpisodeTagsInput = serde_json::from_value(args)?;
+    let episode_id = input.episode_id.to_string();
+    let tags: Vec<String> = input.tags.clone();
 
     let tools = EpisodeTagTools::new(server.memory());
-    let result = tools.remove_tags(input).await?;
+    let result = tools.remove_tags(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_remove_tags(&client_id, &episode_id, &tags, success)
+        .await;
 
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -542,13 +765,23 @@ pub async fn handle_set_episode_tags(
     use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SetEpisodeTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
     let input: SetEpisodeTagsInput = serde_json::from_value(args)?;
+    let episode_id = input.episode_id.to_string();
+    let tags: Vec<String> = input.tags.clone();
 
     let tools = EpisodeTagTools::new(server.memory());
-    let result = tools.set_tags(input).await?;
+    let result = tools.set_tags(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_set_tags(&client_id, &episode_id, &tags, success)
+        .await;
 
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }
 
@@ -578,12 +811,22 @@ pub async fn handle_search_episodes_by_tags(
     use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SearchEpisodesByTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
     let input: SearchEpisodesByTagsInput = serde_json::from_value(args)?;
+    let tags: Vec<String> = input.tags.clone();
 
     let tools = EpisodeTagTools::new(server.memory());
-    let result = tools.search_by_tags(input).await?;
+    let result = tools.search_by_tags(input).await;
+
+    // Audit log the operation
+    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_search_tags(&client_id, &tags, result_count)
+        .await;
 
     Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
+        text: serde_json::to_string_pretty(&result?)?,
     }])
 }

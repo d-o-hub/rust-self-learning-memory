@@ -1,5 +1,6 @@
 //! Episode command types and output structures
 
+use crate::commands::episode_v2::relationships::RelationshipCommands;
 use clap::{Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 
@@ -190,6 +191,10 @@ pub enum EpisodeCommands {
         #[arg(value_name = "EPISODE_IDS")]
         episode_ids: String,
     },
+
+    /// Manage episode relationships
+    #[command(subcommand)]
+    Relationships(RelationshipCommands),
 }
 
 #[derive(Debug, Clone, PartialEq, ValueEnum)]

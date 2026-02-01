@@ -10,7 +10,7 @@ impl TursoStorage {
     /// Store a heuristic
     pub async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         debug!("Storing heuristic: {}", heuristic.heuristic_id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO heuristics (
@@ -47,7 +47,7 @@ impl TursoStorage {
     /// Retrieve a heuristic by ID
     pub async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
         debug!("Retrieving heuristic: {}", id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
@@ -81,7 +81,7 @@ impl TursoStorage {
     /// Get all heuristics
     pub async fn get_heuristics(&self) -> Result<Vec<Heuristic>> {
         debug!("Retrieving all heuristics");
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at

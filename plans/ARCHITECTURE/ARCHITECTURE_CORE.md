@@ -29,7 +29,7 @@ The Self-Learning Memory System is a production-ready Rust-based episodic learni
 | **memory-core** | Core episodic learning system | tokio, serde, anyhow | ✅ Stable |
 | **memory-storage-turso** | Durable storage (libSQL/Turso) | libsql, tokio | ✅ Stable |
 | **memory-storage-redb** | High-speed cache (embedded) | redb, tokio | ✅ Stable |
-| **memory-mcp** | MCP protocol server | wasmtime, tokio | ✅ Stable |
+| **memory-mcp** | MCP protocol server | wasmtime, tokio | ✅ Stable (v0.1.14) 🔄 Planning Complete (2026-01-31) |
 | **memory-cli** | CLI for operations | clap, dialoguer | ✅ Stable |
 | **test-utils** | Shared test utilities | tokio-test | ✅ Stable |
 | **benches** | Performance benchmarks | criterion | ✅ Stable |
@@ -521,13 +521,110 @@ pub struct SyncConfig {
 
 ---
 
+## MCP Tool Architecture (2026-01-31)
+
+### Current Implementation (v0.1.14)
+
+The Memory-MCP server provides **~20 tools** for episodic memory operations across 4 categories:
+
+#### Tool Categories
+1. **Episode Management** (5 tools)
+   - `create_episode`, `add_episode_step`, `complete_episode`
+   - `get_episode`, `delete_episode`
+
+2. **Memory Queries** (4 tools)
+   - `query_memory`, `query_semantic_memory`
+   - `bulk_episodes`, `search_episodes_by_tags`
+
+3. **Pattern Analysis** (6 tools)
+   - `analyze_patterns`, `search_patterns`, `recommend_patterns`
+   - `advanced_pattern_analysis`, `batch_pattern_analysis`
+   - `pattern_effectiveness_tracking`
+
+4. **System & Monitoring** (5 tools)
+   - `health_check`, `get_metrics`, `quality_metrics`
+   - `execute_agent_code`, `configure_embeddings`
+
+#### Tool Loading Mechanism (Pre-Optimization)
+
+**Current State**:
+- All tool schemas loaded at MCP server startup
+- Full tool definitions included in `tools/list` response
+- Tool discovery cost: ~12,000 tokens per session
+- All schemas transmitted even if client only uses 2-3 tools
+
+**Architecture**:
+```rust
+// memory-mcp/src/server/tools/mod.rs
+pub struct ToolSet {
+    pub tools: HashMap<String, Tool>,
+    // All schemas loaded eagerly
+}
+
+impl ToolSet {
+    pub fn list_tools(&self) -> Vec<Tool> {
+        self.tools.values().cloned().collect()
+        // Returns full schemas for all 20 tools
+    }
+}
+```
+
+**Performance Impact**:
+- Network overhead: ~50KB for tool discovery
+- Token cost: ~12,000 tokens (JSON-RPC response)
+- Latency: ~100-200ms for schema transmission
+- Scalability: Linear growth with tool count
+
+### Optimization Opportunities
+
+Based on research documents:
+- [P0] Dynamic/Lazy Tool Loading: 90-96% input reduction (2-3 days)
+- [P0] Field Selection/Projection: 20-60% output reduction (1-2 days)
+- [P1] Semantic Tool Selection: 91% overall reduction (3-5 days)
+- [P1] Response Compression: 30-40% output reduction (2-3 days)
+- [P2] Pagination: 50-80% reduction (1-2 days)
+- [P2] Semantic Caching: 20-40% reduction (3-4 days)
+
+### Integration with Existing Systems
+
+#### SemanticService Integration
+- **Location**: `memory-core/src/embeddings/semantic/`
+- **Current Use**: Episode/pattern semantic search
+- **Extension**: Tool embedding index for semantic selection
+- **Dependencies**: OpenAI/local embedding providers
+
+#### Storage Backend Integration
+- **Turso**: Primary storage for episodes/patterns
+- **Redb**: Cache layer for hot data
+- **Impact**: Field projection reduces storage I/O
+
+#### WASM Sandbox Integration
+- **Current**: `execute_agent_code` tool uses WASM sandbox
+- **Impact**: No changes needed (isolated execution)
+
+### Performance Targets (Post-Optimization)
+
+| Metric | Current | Target (P0) | Target (P0-P2) |
+|--------|---------|------------|---------------|
+| Tool Discovery | 12,000 tokens | <500 tokens | <200 tokens |
+| Query Response | 3,000 tokens | 1,200-2,400 | 600-1,200 |
+| Bulk Operations | 50,000 tokens | 20,000-40,000 | 10,000-20,000 |
+| Annual Usage | 780M tokens | 332M tokens | 220M tokens |
+
+---
+
 ## Cross-References
 
 - **Architecture Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
 - **Configuration**: See [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG_IMPLEMENTATION_ROADMAP.md)
 - **Current Status**: See [ROADMAP_V017_CURRENT.md](ROADMAP_V017_CURRENT.md)
+- **MCP Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
+- **Implementation Roadmap**: See [MCP_OPTIMIZATION_IMPLEMENTATION_ROADMAP.md](../MCP_OPTIMIZATION_IMPLEMENTATION_ROADMAP.md)
+- **Phase 1 Plan**: See [MCP_TOKEN_REDUCTION_PHASE1_PLAN.md](../MCP_TOKEN_REDUCTION_PHASE1_PLAN.md)
+- **Status Tracking**: See [MCP_OPTIMIZATION_STATUS.md](../MCP_OPTIMIZATION_STATUS.md)
+- **Categorization Analysis**: See [CATEGORIZATION_ALTERNATIVES_RESEARCH.md](../research/CATEGORIZATION_ALTERNATIVES_RESEARCH.md)
 
 ---
 
-*Last Updated: 2026-01-18*
+*Last Updated: 2026-01-31*

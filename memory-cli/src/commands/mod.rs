@@ -7,8 +7,8 @@ pub mod health;
 pub mod logs;
 pub mod monitor;
 pub mod pattern;
-pub mod pattern_v2;
 pub mod storage;
+pub mod tag;
 
 pub use backup::*;
 pub use config::*;
@@ -19,8 +19,8 @@ pub use health::*;
 pub use logs::*;
 pub use monitor::*;
 pub use pattern::*;
-pub use pattern_v2::*;
 pub use storage::*;
+pub use tag::*;
 
 use crate::config::Config;
 use crate::output::OutputFormat;
@@ -143,6 +143,107 @@ pub async fn handle_episode_command(
         }
         EpisodeCommands::Bulk { episode_ids } => {
             bulk_get_episodes(episode_ids, memory, config, format).await
+        }
+        EpisodeCommands::Relationships(cmd) => {
+            handle_relationships_command(cmd, memory, config, format, dry_run).await
+        }
+    }
+}
+
+pub async fn handle_relationships_command(
+    command: crate::commands::episode_v2::RelationshipCommands,
+    memory: &memory_core::SelfLearningMemory,
+    config: &Config,
+    format: OutputFormat,
+    dry_run: bool,
+) -> anyhow::Result<()> {
+    use crate::commands::episode_v2::*;
+
+    match command {
+        RelationshipCommands::AddRelationship {
+            from_episode_id,
+            to,
+            r#type,
+            reason,
+            priority,
+            created_by,
+        } => {
+            add_relationship(
+                from_episode_id,
+                to,
+                r#type,
+                reason,
+                priority,
+                created_by,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::RemoveRelationship { relationship_id } => {
+            remove_relationship(relationship_id, memory, config, format, dry_run).await
+        }
+        RelationshipCommands::ListRelationships {
+            episode_id,
+            direction,
+            r#type,
+            format: list_format,
+        } => {
+            list_relationships(
+                episode_id,
+                direction,
+                r#type,
+                list_format,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::FindRelated {
+            episode_id,
+            r#type,
+            limit,
+            format: list_format,
+        } => {
+            find_related(
+                episode_id,
+                r#type,
+                limit,
+                list_format,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::DependencyGraph {
+            episode_id,
+            depth,
+            format: graph_format,
+            output,
+        } => {
+            dependency_graph(
+                episode_id,
+                depth,
+                graph_format,
+                output,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::ValidateCycles { episode_id, r#type } => {
+            validate_cycles(episode_id, r#type, memory, config, format, dry_run).await
+        }
+        RelationshipCommands::TopologicalSort { episode_ids } => {
+            topological_sort(episode_ids, memory, config, format, dry_run).await
         }
     }
 }
@@ -358,4 +459,14 @@ pub async fn handle_embedding_command(
         EmbeddingCommands::Enable => embedding::enable_embeddings(),
         EmbeddingCommands::Disable => embedding::disable_embeddings(),
     }
+}
+
+pub async fn handle_tag_command(
+    command: TagCommands,
+    memory: &memory_core::SelfLearningMemory,
+    config: &Config,
+    format: OutputFormat,
+    dry_run: bool,
+) -> anyhow::Result<()> {
+    tag::handle_tag_command(command, memory, config, format, dry_run).await
 }

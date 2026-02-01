@@ -6,13 +6,11 @@
 //! ## Modules
 //!
 //! - `episode_batch` - Episode batch operations
-//! - `pattern_batch` - Pattern batch operations
 //! - `combined_batch` - Combined episode + pattern batch
 //! - `query_batch` - Batch query operations
 
 pub mod combined_batch;
 pub mod episode_batch;
-pub mod pattern_batch;
 pub mod query_batch;
 
 /// Configuration for batch operations

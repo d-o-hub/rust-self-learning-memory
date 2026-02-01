@@ -88,7 +88,7 @@ impl TursoStorage {
     /// When compression is enabled, large payloads are compressed to reduce bandwidth.
     pub async fn store_episode(&self, episode: &Episode) -> Result<()> {
         debug!("Storing episode: {}", episode.episode_id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO episodes (
@@ -191,13 +191,9 @@ impl TursoStorage {
         let metadata_str = String::from_utf8(metadata_json)
             .map_err(|e| Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e)))?;
 
-        // Use prepared statement cache only when connection pooling is enabled
+        // Use prepared statement cache when connection pooling is enabled
         if self.has_connection_pool() {
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare(&conn, SQL)
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
             stmt.execute(libsql::params![
                 episode.episode_id.to_string(),
                 episode.task_type.to_string(),
@@ -244,6 +240,9 @@ impl TursoStorage {
             .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
         }
 
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
+
         info!("Successfully stored episode: {}", episode.episode_id);
         Ok(())
     }
@@ -251,7 +250,7 @@ impl TursoStorage {
     /// Retrieve an episode by ID
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Option<Episode>> {
         debug!("Retrieving episode: {}", episode_id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
@@ -261,13 +260,9 @@ impl TursoStorage {
             FROM episodes WHERE episode_id = ?
         "#;
 
-        // Use prepared statement cache only when connection pooling is enabled
+        // Use prepared statement cache when connection pooling is enabled
         let mut rows = if self.has_connection_pool() {
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare(&conn, SQL)
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+            let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
             stmt.query(libsql::params![episode_id.to_string()])
                 .await
                 .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?
@@ -277,7 +272,7 @@ impl TursoStorage {
                 .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?
         };
 
-        if let Some(row) = rows
+        let result = if let Some(row) = rows
             .next()
             .await
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
@@ -286,26 +281,30 @@ impl TursoStorage {
             Ok(Some(episode))
         } else {
             Ok(None)
-        }
+        };
+
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
+
+        result
     }
 
     /// Delete an episode by ID
     pub async fn delete_episode(&self, episode_id: Uuid) -> Result<()> {
         debug!("Deleting episode: {}", episode_id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = "DELETE FROM episodes WHERE episode_id = ?";
 
         // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
 
         stmt.execute(libsql::params![episode_id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to delete episode: {}", e)))?;
+
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
 
         info!("Successfully deleted episode: {}", episode_id);
         Ok(())
@@ -314,7 +313,7 @@ impl TursoStorage {
     /// Store an episode summary
     pub async fn store_episode_summary(&self, summary: &EpisodeSummary) -> Result<()> {
         debug!("Storing episode summary: {}", summary.episode_id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO episode_summaries (
@@ -335,11 +334,7 @@ impl TursoStorage {
             .map_err(Error::Serialization)?;
 
         // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
 
         stmt.execute(libsql::params![
             summary.episode_id.to_string(),
@@ -352,6 +347,9 @@ impl TursoStorage {
         .await
         .map_err(|e| Error::Storage(format!("Failed to store summary: {}", e)))?;
 
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
+
         info!(
             "Successfully stored summary for episode: {}",
             summary.episode_id
@@ -362,7 +360,7 @@ impl TursoStorage {
     /// Retrieve an episode summary by episode ID
     pub async fn get_episode_summary(&self, episode_id: Uuid) -> Result<Option<EpisodeSummary>> {
         debug!("Retrieving episode summary: {}", episode_id);
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT episode_id, summary_text, key_concepts, key_steps,
@@ -371,18 +369,14 @@ impl TursoStorage {
         "#;
 
         // Use prepared statement cache
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
 
         let mut rows = stmt
             .query(libsql::params![episode_id.to_string()])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query summary: {}", e)))?;
 
-        if let Some(row) = rows
+        let result = if let Some(row) = rows
             .next()
             .await
             .map_err(|e| Error::Storage(format!("Failed to fetch summary row: {}", e)))?
@@ -391,7 +385,12 @@ impl TursoStorage {
             Ok(Some(summary))
         } else {
             Ok(None)
-        }
+        };
+
+        // Clear the prepared statement cache for this connection when done
+        self.clear_prepared_cache(conn_id);
+
+        result
     }
 
     /// Retrieve an episode by task description

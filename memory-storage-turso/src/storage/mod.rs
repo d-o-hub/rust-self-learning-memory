@@ -74,7 +74,7 @@ impl EmbeddingStorageBackend for TursoStorage {
             limit, threshold
         );
 
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         // Try to use native vector search if migration is applied
         if let Ok(results) = self
@@ -105,7 +105,7 @@ impl EmbeddingStorageBackend for TursoStorage {
             limit, threshold
         );
 
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         // Try to use native vector search if migration is applied
         if let Ok(results) = self
@@ -169,7 +169,7 @@ impl TursoStorage {
             item_type,
             embedding.len()
         );
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         // Get compression threshold from config
         #[cfg(feature = "compression")]
@@ -275,7 +275,7 @@ impl TursoStorage {
             "Retrieving embedding: item_id={}, item_type={}",
             item_id, item_type
         );
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str =
             "SELECT embedding_data FROM embeddings WHERE item_id = ? AND item_type = ?";
@@ -396,7 +396,7 @@ impl TursoStorage {
 
     /// Delete an embedding (internal implementation)
     pub async fn _delete_embedding_internal(&self, item_id: &str) -> Result<bool> {
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
 
@@ -433,7 +433,7 @@ impl TursoStorage {
         embeddings: Vec<(String, Vec<f32>)>,
     ) -> Result<()> {
         debug!("Storing embedding batch: {} items", embeddings.len());
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)

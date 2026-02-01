@@ -231,7 +231,7 @@ mod tests {
             ),
         )];
         storage
-            .store_episodes_batch_with_ids(episodes)
+            .store_episodes_batch(episodes.into_iter().map(|(_, e)| e).collect())
             .await
             .unwrap();
 

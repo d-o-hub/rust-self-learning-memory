@@ -342,6 +342,20 @@ pub async fn handle_batch_execute(
                 response.success_count, response.failure_count, response.total_duration_ms
             );
 
+            // Audit log batch execution
+            let client_id = "batch-client"; // Batch operations don't have individual client IDs
+            let server = mcp_server.lock().await;
+            server
+                .audit_logger()
+                .log_batch_execution(
+                    client_id,
+                    response.success_count + response.failure_count,
+                    response.success_count,
+                    response.failure_count,
+                    true,
+                )
+                .await;
+
             match serde_json::to_value(response) {
                 Ok(value) => Some(JsonRpcResponse {
                     jsonrpc: "2.0".to_string(),

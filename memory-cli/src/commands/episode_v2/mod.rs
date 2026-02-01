@@ -4,6 +4,7 @@
 //! It is split into submodules to keep each file under 500 LOC.
 
 pub mod episode;
+pub mod relationships;
 
 pub use episode::AppliedFilters;
 pub use episode::DeletionResult;
@@ -32,6 +33,29 @@ pub use episode::list_episodes;
 pub use episode::log_step;
 pub use episode::search_episodes;
 pub use episode::view_episode;
+
+// Re-export relationship commands and types
+pub use relationships::add_relationship;
+pub use relationships::dependency_graph;
+pub use relationships::find_related;
+pub use relationships::list_relationships;
+pub use relationships::remove_relationship;
+pub use relationships::topological_sort;
+pub use relationships::validate_cycles;
+pub use relationships::AddRelationshipResult;
+pub use relationships::DependencyGraphResult;
+pub use relationships::DirectionArg;
+pub use relationships::FindRelatedResult;
+pub use relationships::GraphFormat;
+pub use relationships::ListFormat;
+pub use relationships::ListRelationshipsResult;
+pub use relationships::RelatedEpisodeItem;
+pub use relationships::RelationshipCommands;
+pub use relationships::RelationshipListItem;
+pub use relationships::RelationshipTypeArg;
+pub use relationships::RemoveRelationshipResult;
+pub use relationships::TopologicalSortResult;
+pub use relationships::ValidateCyclesResult;
 
 #[cfg(test)]
 mod tests {

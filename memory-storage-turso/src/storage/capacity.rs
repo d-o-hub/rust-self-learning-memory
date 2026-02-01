@@ -34,7 +34,7 @@ impl TursoStorage {
     /// Uses the configured eviction policy to determine which episodes to remove
     /// when the capacity is exceeded.
     async fn enforce_capacity(&self, max_episodes: usize) -> Result<()> {
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         // Count current episodes
         const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
@@ -108,7 +108,7 @@ impl TursoStorage {
             let _ = self._delete_embedding_internal(episode_id).await;
 
             // Then delete the episode
-            let conn = self.get_connection().await?;
+            let (conn, conn_id) = self.get_connection_with_id().await?;
 
             // Use prepared statement cache
             let stmt = self
@@ -138,7 +138,7 @@ impl TursoStorage {
 
     /// Get storage statistics including capacity info
     pub async fn get_capacity_statistics(&self) -> Result<CapacityStatistics> {
-        let conn = self.get_connection().await?;
+        let (conn, conn_id) = self.get_connection_with_id().await?;
 
         // Count records in each table
         let tables = [

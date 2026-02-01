@@ -140,32 +140,7 @@ impl PreparedCacheStats {
     }
 }
 
-/// Unique identifier for a database connection
-///
-/// This is a wrapper type that provides a unique, hashable identifier
-/// for tracking connections in the cache.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ConnectionId(u64);
-
-impl ConnectionId {
-    /// Generate a unique connection ID
-    pub fn new() -> Self {
-        static COUNTER: AtomicU64 = AtomicU64::new(1);
-        Self(COUNTER.fetch_add(1, Ordering::SeqCst))
-    }
-
-    /// Create from a raw value (for testing)
-    #[cfg(test)]
-    pub fn from_raw(id: u64) -> Self {
-        Self(id)
-    }
-}
-
-impl Default for ConnectionId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// ConnectionId is now imported from crate::pool::ConnectionId (type alias for u64)
 
 /// Metadata for a cached prepared statement
 struct CachedStatementMetadata {

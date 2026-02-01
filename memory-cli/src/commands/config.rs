@@ -2,7 +2,7 @@ use clap::Subcommand;
 use colored::Colorize;
 use serde::Serialize;
 
-use crate::config::Config;
+use crate::config::{Config, ConfigWizard};
 use crate::output::{Output, OutputFormat};
 
 #[derive(Subcommand)]
@@ -13,6 +13,8 @@ pub enum ConfigCommands {
     Check,
     /// Show current configuration (with sensitive data masked)
     Show,
+    /// Run interactive configuration wizard
+    Wizard,
 }
 
 #[derive(Debug, Serialize)]
@@ -466,4 +468,13 @@ pub async fn show_config(
 
     format.print_output(&display)?;
     Ok(())
+}
+
+/// Run the interactive configuration wizard
+///
+/// This launches the step-by-step configuration wizard that helps users
+/// set up their memory-cli configuration with optimal defaults.
+pub async fn run_wizard() -> anyhow::Result<()> {
+    let wizard = ConfigWizard::new();
+    wizard.run().await
 }

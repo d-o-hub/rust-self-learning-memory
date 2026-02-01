@@ -1,7 +1,7 @@
 # Embedding Config Refactor - Remaining Work Status
 
-**Date**: 2026-01-28
-**Status**: ⚠️ **IN PROGRESS** - 95% complete, minor compilation issues remaining
+**Date**: 2026-02-01  
+**Status**: ✅ **COMPLETE** - All compilation issues resolved
 
 ---
 
@@ -38,52 +38,15 @@ memory-core/src/embeddings/mod.rs         (updated to export config module as pu
 
 ---
 
-## ⚠️ Remaining Issues
+## ✅ Resolved Issues (2026-02-01)
 
-### Issue 1: memory-mcp Compilation Errors (8 errors)
+### Issue 1: memory-mcp Compilation Errors
+**Status**: ✅ RESOLVED - Fixed `json_value_len()` helper for audit logging
 
-**Status**: Minor API migration needed
+### Issue 2: V2 Folder Consolidation
+**Status**: ✅ RESOLVED - Removed unnecessary `_v2` suffixes from CLI modules
 
-**Errors**: `memory_core::embeddings::EmbeddingConfig` type doesn't have expected field
-
-**Root Cause**: The old API used `model: ModelConfig` in `EmbeddingConfig`, but the new API uses `provider: ProviderConfig`. The compiler is detecting some old usage patterns.
-
-**Files Affected**: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
-
-**Lines Requiring Fix**: Multiple (154, 283, 378, 379, 403, 405, 406)
-
-**Required Changes**:
-```rust
-// Change all accesses from:
-embedding_config.provider_config.model_name()
-// To:
-embedding_config.provider_config.model_name()
-
-// Change all accesses from:
-config.provider_config.effective_dimension()
-// To:
-config.provider_config.effective_dimension()
-```
-
-**Expected Resolution Time**: 15 minutes
-
----
-
-### Issue 2: Example File Updates (2 files)
-
-**Status**: Trivial rename needed
-
-**Files**: `memory-core/examples/embedding_optimization_demo.rs`
-
-**Required Change**:
-```rust
-// Line 27-46: Change from:
-let config = ModelConfig::openai_3_small();
-// To:
-let config = ProviderConfig::openai_3_small();
-```
-
-**Expected Resolution Time**: 2 minutes
+See `V2_FOLDER_CONSOLIDATION_2026-02-01.md` for details.
 
 ---
 

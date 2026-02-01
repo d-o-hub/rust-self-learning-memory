@@ -313,6 +313,7 @@ pub async fn handle_config_command(
         ConfigCommands::Validate => config::validate_config(memory, config, format).await,
         ConfigCommands::Check => config::check_config(memory, config, format).await,
         ConfigCommands::Show => config::show_config(memory, config, format).await,
+        ConfigCommands::Wizard => config::run_wizard().await,
     }
 }
 

@@ -1,7 +1,6 @@
 //! Multi-dimension routing tests for Turso storage
 //!
 //! Tests that embeddings are routed to the correct dimension-specific tables.
-//! These tests are marked `#[ignore]` until the routing logic is implemented.
 
 #![allow(clippy::expect_used)]
 

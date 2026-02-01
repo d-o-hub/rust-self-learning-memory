@@ -11,7 +11,7 @@ impl TursoStorage {
     /// Query episodes with filters
     pub async fn query_episodes(&self, query: &EpisodeQuery) -> Result<Vec<Episode>> {
         debug!("Querying episodes with filters: {:?}", query);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         let mut sql = String::from(
             r#"
@@ -74,7 +74,7 @@ impl TursoStorage {
         since: chrono::DateTime<chrono::Utc>,
     ) -> Result<Vec<Episode>> {
         debug!("Querying episodes since {}", since);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
@@ -119,7 +119,7 @@ impl TursoStorage {
     /// Falls back to LIKE pattern matching if json_extract is not available.
     pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
         debug!("Querying episodes by metadata {} = {}", key, value);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Use json_extract for efficient JSON metadata querying
         // This is more efficient than LIKE pattern matching as it can use indexes

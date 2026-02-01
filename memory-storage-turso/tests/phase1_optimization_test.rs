@@ -229,22 +229,9 @@ async fn test_query_cache_expiration() {
     assert_eq!(stats.expirations, 1, "Should have 1 expiration");
 }
 
-#[tokio::test]
-#[ignore] // Temporarily disabled - PerformanceMetrics module has visibility issues
-async fn test_performance_metrics_tracking() {
-    // Metrics tracking disabled - module has compilation issues
-    // This test validates the metrics API design, not the actual tracking
-    return; // Skip for now
-
-    /*
-    let metrics = PerformanceMetrics::new();
-    metrics.record_cache_read(true, Duration::from_micros(50));
-    // ... rest of metrics calls
-    let snapshot = metrics.snapshot();
-
-    // Assertions disabled - metrics module temporarily unavailable
-    */
-}
+// Removed test_performance_metrics_tracking - PerformanceMetrics module not available
+// The test was already disabled and returning early. When metrics module is
+// made available in the future, this test can be re-added.
 
 #[tokio::test]
 async fn test_metadata_query_optimization() {

@@ -28,6 +28,11 @@ fn get_client_id(args: &Value) -> String {
         .unwrap_or_else(|| "anonymous".to_string())
 }
 
+/// Get length from a JSON Value (array length or 0)
+fn json_value_len(value: &Value) -> usize {
+    value.as_array().map(|a| a.len()).unwrap_or(0)
+}
+
 /// Handle query_memory tool
 pub async fn handle_query_memory(
     server: &mut MemoryMCPServer,
@@ -61,7 +66,7 @@ pub async fn handle_query_memory(
         .await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
     let success = result.is_ok();
     server
         .audit_logger()
@@ -173,7 +178,7 @@ pub async fn handle_analyze_patterns(
         .await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
     let success = result.is_ok();
     server
         .audit_logger()
@@ -343,7 +348,7 @@ pub async fn handle_query_semantic_memory(
     let result = server.execute_query_semantic_memory(input).await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
     let success = result.is_ok();
     server
         .audit_logger()
@@ -382,7 +387,7 @@ pub async fn handle_search_patterns(
     let result = server.execute_search_patterns(input).await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
     let success = result.is_ok();
     server
         .audit_logger()
@@ -409,7 +414,7 @@ pub async fn handle_recommend_patterns(
     let result = server.execute_recommend_patterns(input).await;
 
     // Audit log the operation
-    let recommendation_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let recommendation_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
     let success = result.is_ok();
     server
         .audit_logger()
@@ -819,7 +824,7 @@ pub async fn handle_search_episodes_by_tags(
     let result = tools.search_by_tags(input).await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| r.len()).unwrap_or(0);
+    let result_count = result.as_ref().map(|r| r.count).unwrap_or(0);
     let success = result.is_ok();
     server
         .audit_logger()

@@ -4,7 +4,6 @@ use super::types::{PatternList, PatternSummary};
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 use chrono::{DateTime, Utc};
-use memory_core::SelfLearningMemory;
 
 pub async fn list_patterns(
     min_confidence: f32,

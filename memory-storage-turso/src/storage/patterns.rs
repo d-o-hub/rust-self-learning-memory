@@ -57,7 +57,7 @@ impl TursoStorage {
     /// Store a pattern
     pub async fn store_pattern(&self, pattern: &CorePattern) -> Result<()> {
         debug!("Storing pattern: {}", pattern.id());
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Extract data from Pattern enum
         let (description, context, heuristic, success_rate, occurrence_count) = match pattern {
@@ -204,7 +204,7 @@ impl TursoStorage {
     /// Retrieve a pattern by ID
     pub async fn get_pattern(&self, pattern_id: PatternId) -> Result<Option<CorePattern>> {
         debug!("Retrieving pattern: {}", pattern_id);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT pattern_id, pattern_type, pattern_data, success_rate,
@@ -240,7 +240,7 @@ impl TursoStorage {
     /// Query patterns with filters
     pub async fn query_patterns(&self, query: &super::PatternQuery) -> Result<Vec<CorePattern>> {
         debug!("Querying patterns with filters: {:?}", query);
-        let (conn, conn_id) = self.get_connection_with_id().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         let mut sql = String::from(
             r#"

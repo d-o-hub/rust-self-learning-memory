@@ -4,7 +4,6 @@ use clap::Subcommand;
 use serde::Serialize;
 
 use crate::config::Config;
-use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
 
 #[derive(Subcommand)]

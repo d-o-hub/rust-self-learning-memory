@@ -2,7 +2,6 @@
 
 use crate::config::Config;
 use crate::output::{Output, OutputFormat};
-use memory_core::SelfLearningMemory;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]

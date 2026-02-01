@@ -3,36 +3,36 @@
 //! This module provides commands for managing episodes in the memory system.
 //! It is split into submodules to keep each file under 500 LOC.
 
-pub mod episode;
+pub mod core;
 pub mod relationships;
 
-pub use episode::AppliedFilters;
-pub use episode::DeletionResult;
-pub use episode::EpisodeCommands;
-pub use episode::EpisodeDetail;
-pub use episode::EpisodeList;
-pub use episode::EpisodeListFiltered;
-pub use episode::EpisodeSearchResult;
-pub use episode::EpisodeSortOrder;
-pub use episode::EpisodeStatus;
-pub use episode::EpisodeStep;
-pub use episode::EpisodeSummary;
-pub use episode::FilterCommands;
-pub use episode::FilterList;
-pub use episode::SavedFilter;
-pub use episode::TaskOutcome;
+pub use core::AppliedFilters;
+pub use core::DeletionResult;
+pub use core::EpisodeCommands;
+pub use core::EpisodeDetail;
+pub use core::EpisodeList;
+pub use core::EpisodeListFiltered;
+pub use core::EpisodeSearchResult;
+pub use core::EpisodeSortOrder;
+pub use core::EpisodeStatus;
+pub use core::EpisodeStep;
+pub use core::EpisodeSummary;
+pub use core::FilterCommands;
+pub use core::FilterList;
+pub use core::SavedFilter;
+pub use core::TaskOutcome;
 
-pub use episode::bulk_get_episodes;
-pub use episode::complete_episode;
-pub use episode::create_episode;
-pub use episode::delete;
-pub use episode::delete_episode;
-pub use episode::filter;
-pub use episode::handle_filter_command;
-pub use episode::list_episodes;
-pub use episode::log_step;
-pub use episode::search_episodes;
-pub use episode::view_episode;
+pub use core::bulk_get_episodes;
+pub use core::complete_episode;
+pub use core::create_episode;
+pub use core::delete;
+pub use core::delete_episode;
+pub use core::filter;
+pub use core::handle_filter_command;
+pub use core::list_episodes;
+pub use core::log_step;
+pub use core::search_episodes;
+pub use core::view_episode;
 
 // Re-export relationship commands and types
 pub use relationships::add_relationship;

@@ -6,9 +6,7 @@
 use crate::config::Config;
 use anyhow::Result;
 use clap::Subcommand;
-use memory_core::embeddings::{
-    AzureOpenAIConfig, CustomConfig, EmbeddingProvider, LocalConfig, MistralConfig, OpenAIConfig,
-};
+use memory_core::embeddings::EmbeddingProvider;
 use std::env;
 
 #[derive(Subcommand)]

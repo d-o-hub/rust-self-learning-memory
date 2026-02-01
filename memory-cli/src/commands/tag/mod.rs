@@ -8,15 +8,12 @@
 //! - tag search: Search episodes by tags
 //! - tag show: Show episode with its tags
 
-use clap::Subcommand;
-use serde::Serialize;
 
 pub mod core;
 pub mod output;
 pub mod types;
 
 pub use core::*;
-pub use output::*;
 pub use types::*;
 
 #[cfg(test)]

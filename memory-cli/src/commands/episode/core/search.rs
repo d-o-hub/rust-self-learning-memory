@@ -1,10 +1,9 @@
 //! Search episodes command implementation
 
-use super::types::{EpisodeSummary, SearchSortOrder};
+use super::types::SearchSortOrder;
 use crate::config::Config;
 use crate::output::OutputFormat;
-use memory_core::search::{SearchField, SearchMode};
-use memory_core::{Episode, EpisodeFilter, SelfLearningMemory, TaskOutcome};
+use memory_core::{Episode, SelfLearningMemory, TaskOutcome};
 
 /// Calculate a success score for an episode (higher = more successful)
 fn outcome_score(episode: &Episode) -> u8 {

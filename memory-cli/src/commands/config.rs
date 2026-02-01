@@ -476,5 +476,6 @@ pub async fn show_config(
 /// set up their memory-cli configuration with optimal defaults.
 pub async fn run_wizard() -> anyhow::Result<()> {
     let wizard = ConfigWizard::new();
-    wizard.run().await
+    let _config = wizard.run().await?;
+    Ok(())
 }

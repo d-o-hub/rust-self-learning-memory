@@ -5,9 +5,8 @@
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{helpers, EnhancedError};
-use crate::output::{Output, OutputFormat};
+use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
-use uuid::Uuid;
 
 /// Retrieve multiple episodes by their IDs in a single efficient operation
 ///

@@ -4,7 +4,6 @@ use super::types::PatternDetail;
 use crate::config::Config;
 use crate::errors::{helpers, EnhancedError};
 use crate::output::{Output, OutputFormat};
-use memory_core::SelfLearningMemory;
 use uuid::Uuid;
 
 pub async fn view_pattern(

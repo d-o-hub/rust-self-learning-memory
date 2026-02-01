@@ -215,6 +215,7 @@ impl CachedStatementMetadata {
 }
 
 /// Per-connection statement cache with LRU eviction tracking
+#[allow(dead_code)]
 struct ConnectionCache {
     /// The statements metadata for this connection
     statements: HashMap<String, CachedStatementMetadata>,
@@ -288,11 +289,13 @@ impl ConnectionCache {
     }
 
     /// Check if cache is empty
+    #[allow(dead_code)]
     fn is_empty(&self) -> bool {
         self.statements.is_empty()
     }
 
     /// Clear all statements
+    #[allow(dead_code)]
     fn clear(&mut self) {
         self.statements.clear();
         self.access_order.clear();

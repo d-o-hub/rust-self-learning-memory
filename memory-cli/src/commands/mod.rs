@@ -1,3 +1,5 @@
+#![allow(ambiguous_glob_reexports)]
+
 pub mod backup;
 pub mod config;
 pub mod embedding;

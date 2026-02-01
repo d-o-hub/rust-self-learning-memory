@@ -14,7 +14,7 @@ use crate::output::{Output, OutputFormat};
 use clap::{Subcommand, ValueEnum};
 use colored::Colorize;
 use memory_core::episode::{
-    Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType,
+    Direction, RelationshipMetadata, RelationshipType,
 };
 use memory_core::memory::relationship_query::RelationshipFilter;
 use memory_core::SelfLearningMemory;

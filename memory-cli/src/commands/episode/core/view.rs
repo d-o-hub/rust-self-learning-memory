@@ -3,9 +3,8 @@
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{helpers, EnhancedError};
-use crate::output::{Output, OutputFormat};
+use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
-use uuid::Uuid;
 
 pub async fn view_episode(
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] episode_id: String,

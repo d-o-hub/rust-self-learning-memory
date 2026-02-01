@@ -1,11 +1,8 @@
 //! List episodes command implementation
 
-use super::types::{
-    AppliedFilters, EpisodeList, EpisodeListFiltered, EpisodeSortOrder, EpisodeSummary,
-};
+use super::types::EpisodeSortOrder;
 use crate::config::Config;
 use crate::output::OutputFormat;
-use chrono::Utc;
 use memory_core::SelfLearningMemory;
 
 #[allow(clippy::too_many_arguments)]

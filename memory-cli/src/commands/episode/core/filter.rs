@@ -1,6 +1,6 @@
 //! Filter management command implementation
 
-use super::types::{FilterCommands, FilterList, SavedFilter};
+use super::types::{FilterCommands, SavedFilter};
 use crate::config::Config;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;

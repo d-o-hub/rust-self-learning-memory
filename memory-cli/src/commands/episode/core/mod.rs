@@ -23,7 +23,6 @@ pub use delete::DeletionResult;
 pub use filter::handle_filter_command;
 pub use list::list_episodes;
 pub use log_step::log_step;
-pub use output::*;
 pub use search::search_episodes;
 pub use types::*;
 pub use view::view_episode;

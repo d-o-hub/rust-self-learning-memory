@@ -31,6 +31,7 @@ pub mod keepalive;
 
 pub use adaptive::{
     AdaptiveConnectionPool, AdaptivePoolConfig, AdaptivePoolMetrics, AdaptivePooledConnection,
+    ConnectionId,
 };
 pub use config::{PoolConfig, PoolStatistics, PooledConnection};
 pub use keepalive::{KeepAliveConfig, KeepAliveConnection, KeepAlivePool, KeepAliveStatistics};

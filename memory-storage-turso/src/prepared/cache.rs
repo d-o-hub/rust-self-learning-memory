@@ -22,6 +22,7 @@
 //! Each connection has its own cache of prepared statement metadata.
 //! When a connection is closed/returned to pool, its cache is cleared.
 
+use crate::pool::ConnectionId;
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};

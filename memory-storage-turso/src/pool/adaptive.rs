@@ -8,6 +8,9 @@ use std::time::{Duration, Instant};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use tracing::{debug, info};
 
+/// Unique identifier for a connection
+pub type ConnectionId = u64;
+
 #[derive(Debug, Clone)]
 pub struct AdaptivePoolConfig {
     pub min_connections: u32,
@@ -90,6 +93,7 @@ pub struct AdaptiveConnectionPool {
     semaphore: Arc<Semaphore>,
     current_max: Arc<AtomicU32>,
     metrics: Arc<AdaptiveMetrics>,
+    next_conn_id: Arc<AtomicU64>,
     _monitor_task: tokio::task::JoinHandle<()>,
 }
 
@@ -115,6 +119,7 @@ impl AdaptiveConnectionPool {
             semaphore,
             current_max: Arc::new(AtomicU32::new(min_conn)),
             metrics,
+            next_conn_id: Arc::new(AtomicU64::new(1)),
             _monitor_task: tokio::task::spawn(async {}),
         };
 
@@ -152,6 +157,7 @@ impl AdaptiveConnectionPool {
             semaphore,
             current_max: Arc::new(AtomicU32::new(min_conn)),
             metrics,
+            next_conn_id: Arc::new(AtomicU64::new(1)),
             _monitor_task: tokio::task::spawn(async {}),
         })
     }
@@ -294,6 +300,9 @@ impl AdaptiveConnectionPool {
     pub async fn get(&self) -> Result<AdaptivePooledConnection> {
         let permit = self.try_acquire(self.config.check_interval).await?;
 
+        // Generate unique connection ID
+        let conn_id = self.next_conn_id.fetch_add(1, Ordering::Relaxed);
+
         // Create a new database connection from the database
         let connection = self
             .db
@@ -303,7 +312,10 @@ impl AdaptiveConnectionPool {
         let metrics_ptr = Arc::as_ptr(&self.metrics) as *mut AdaptiveMetrics;
         let current_max_ptr = Arc::as_ptr(&self.current_max) as *mut AtomicU32;
 
+        debug!("Created connection with ID: {}", conn_id);
+
         Ok(AdaptivePooledConnection {
+            conn_id,
             metrics_ptr,
             current_max_ptr,
             permit: Some(permit),
@@ -349,6 +361,7 @@ impl AdaptiveConnectionPool {
 
 #[derive(Debug)]
 pub struct AdaptivePooledConnection {
+    conn_id: ConnectionId,
     metrics_ptr: *mut AdaptiveMetrics,
     current_max_ptr: *mut AtomicU32,
     permit: Option<OwnedSemaphorePermit>,
@@ -361,6 +374,14 @@ unsafe impl Send for AdaptivePooledConnection {}
 unsafe impl Sync for AdaptivePooledConnection {}
 
 impl AdaptivePooledConnection {
+    /// Get the unique connection identifier
+    ///
+    /// This ID is stable for the lifetime of the connection and can be used
+    /// to associate cached data (like prepared statements) with the connection.
+    pub fn connection_id(&self) -> ConnectionId {
+        self.conn_id
+    }
+
     /// Get a reference to the underlying database connection
     pub fn connection(&self) -> Option<&libsql::Connection> {
         self.connection.as_ref()

@@ -1,6 +1,6 @@
 //! Episode command types and output structures
 
-use crate::commands::episode_v2::relationships::RelationshipCommands;
+use crate::commands::episode::relationships::RelationshipCommands;
 use clap::{Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 

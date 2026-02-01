@@ -432,14 +432,18 @@ impl PreparedStatementCache {
         let metadata = CachedStatementMetadata::new(sql.to_string());
         conn_cache.insert(sql.to_string(), metadata);
 
+        // Calculate sizes before dropping the lock
+        let total_size = cache.values().map(|c| c.len()).sum();
+        let connection_count = cache.len();
+
         drop(cache);
 
         // Update stats
         let mut stats = self.stats.write();
         stats.record_miss();
         stats.record_prepared(prepare_time_us);
-        stats.update_size(self.total_size());
-        stats.update_active_connections(self.cache.read().len());
+        stats.update_size(total_size);
+        stats.update_active_connections(connection_count);
 
         trace!("Recorded cache miss for SQL on {:?}: {}", conn_id, sql);
     }

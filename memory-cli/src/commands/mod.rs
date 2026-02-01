@@ -1,7 +1,7 @@
 pub mod backup;
 pub mod config;
 pub mod embedding;
-pub mod episode_v2;
+pub mod episode;
 pub mod eval;
 pub mod health;
 pub mod logs;
@@ -13,7 +13,7 @@ pub mod tag;
 pub use backup::*;
 pub use config::*;
 pub use embedding::*;
-pub use episode_v2::*;
+pub use episode::*;
 pub use eval::*;
 pub use health::*;
 pub use logs::*;
@@ -151,13 +151,13 @@ pub async fn handle_episode_command(
 }
 
 pub async fn handle_relationships_command(
-    command: crate::commands::episode_v2::RelationshipCommands,
+    command: crate::commands::episode::RelationshipCommands,
     memory: &memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    use crate::commands::episode_v2::*;
+    use crate::commands::episode::*;
 
     match command {
         RelationshipCommands::AddRelationship {

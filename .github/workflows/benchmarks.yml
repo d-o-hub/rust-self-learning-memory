@@ -86,7 +86,7 @@ jobs:
         with:
           tool: sccache
       - name: Cache sccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/sccache
           key: ${{ runner.os }}-bench-sccache-${{ hashFiles('**/Cargo.lock') }}
@@ -217,7 +217,7 @@ jobs:
         run: sccache --show-stats || true
 
       - name: Download previous benchmark results
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./cache
           key: benchmark-results-${{ github.ref }}

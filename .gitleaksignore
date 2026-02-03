@@ -26,3 +26,5 @@ b4d37e51795bfe09395e0c82264bd8062de9aa15:mcp-config-memory.json:generic-api-key:
 571e8c0e42d286ba59cd54e133269ef96379630e:.env:generic-api-key:41
 571e8c0e42d286ba59cd54e133269ef96379630e:mcp.json:generic-api-key:16
 571e8c0e42d286ba59cd54e133269ef96379630e:mcp-config-memory.json:generic-api-key:16
+# Test file with fake API key for testing error handling
+69b0d7a0fce85e6bdf6277e9c98a2b9d00987b60:tests/e2e/embeddings_openai_test.rs:generic-api-key:254

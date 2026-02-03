@@ -142,8 +142,6 @@ impl AsyncCompressor {
         W: AsyncWriteExt + Unpin,
     {
         let start = std::time::Instant::now();
-        let mut total_read = 0;
-        let mut total_written = 0;
 
         // Read entire content for compression (simplified - for true streaming,
         // we'd use a streaming compression library)
@@ -171,8 +169,8 @@ impl AsyncCompressor {
             .await
             .map_err(|e| TransportCompressionError::StreamFailed(e.to_string()))?;
 
-        total_read = content.len();
-        total_written = header.len() + compressed.data.len();
+        let total_read = content.len();
+        let total_written = header.len() + compressed.data.len();
 
         let elapsed = start.elapsed().as_micros() as u64;
 
@@ -282,7 +280,7 @@ impl AsyncCompressor {
     }
 
     /// Create stream header
-    fn create_stream_header(payload: &CompressedPayload) -> [u8; 16] {
+    pub fn create_stream_header(payload: &CompressedPayload) -> [u8; 16] {
         let mut header = [0u8; 16];
         header[0..8].copy_from_slice(&(payload.original_size as u64).to_le_bytes());
         header[8..16].copy_from_slice(&(payload.compressed_size as u64).to_le_bytes());

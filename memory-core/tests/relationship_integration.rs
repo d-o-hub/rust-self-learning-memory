@@ -10,8 +10,6 @@
 use memory_core::episode::{RelationshipMetadata, RelationshipType};
 use memory_core::memory::SelfLearningMemory;
 use memory_core::{TaskContext, TaskOutcome, TaskType};
-use std::sync::Arc;
-use tempfile::TempDir;
 use uuid::Uuid;
 
 /// Helper to create a test episode and return its ID
@@ -26,6 +24,7 @@ async fn create_test_episode(memory: &SelfLearningMemory, description: &str) -> 
 }
 
 /// Helper to complete an episode successfully
+#[allow(dead_code)]
 async fn complete_test_episode(memory: &SelfLearningMemory, episode_id: Uuid) {
     let outcome = TaskOutcome::Success {
         verdict: "Test completed successfully".to_string(),

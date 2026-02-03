@@ -109,7 +109,6 @@ harness = false
 [[test]]
 name = "cli_pattern_workflow"
 path = "e2e/cli_pattern_workflow.rs"
-harness = false
 
 [[test]]
 name = "mcp_episode_chain"

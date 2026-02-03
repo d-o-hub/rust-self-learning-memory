@@ -10,7 +10,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::{SelfLearningMemory, TaskOutcome, TaskType};
+use memory_core::SelfLearningMemory;
 use memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;

@@ -146,7 +146,10 @@ mod tests {
     #[test]
     fn test_metric_value_display() {
         assert_eq!(MetricValue::Integer(42).to_string(), "42");
-        assert_eq!(MetricValue::Float(3.14159).to_string(), "3.141590");
+        assert_eq!(
+            MetricValue::Float(std::f64::consts::PI).to_string(),
+            "3.141593"
+        );
         assert_eq!(MetricValue::DurationMicros(1000).to_string(), "1000");
     }
 

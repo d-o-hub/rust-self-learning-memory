@@ -7,7 +7,7 @@
 //! - Tag case and whitespace handling is correct
 
 use memory_core::episode::Episode;
-use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+use memory_core::types::{TaskContext, TaskType};
 use proptest::prelude::*;
 use std::collections::HashSet;
 
@@ -79,7 +79,7 @@ proptest! {
 
         // Add all tags
         for tag in &tags {
-            episode.add_tag(tag).ok();
+            episode.add_tag(tag.to_string()).ok();
         }
 
         // Check no duplicates
@@ -199,7 +199,7 @@ proptest! {
 
         // Add tags
         for tag in &tags {
-            episode.add_tag(tag).ok();
+            episode.add_tag(tag.to_string()).ok();
         }
 
         // Clear once
@@ -216,16 +216,20 @@ proptest! {
 // Tag Validation Properties
 // ============================================================================
 
+/// Empty tags are rejected
+#[test]
+fn empty_tag_rejected() {
+    let mut episode = Episode::new(
+        "Test".to_string(),
+        TaskContext::default(),
+        TaskType::CodeGeneration,
+    );
+
+    let result = episode.add_tag("".to_string());
+    assert!(result.is_err());
+}
+
 proptest! {
-    /// Empty tags are rejected
-    #[test]
-    fn empty_tag_rejected() {
-        let mut episode = Episode::new("Test".to_string(), TaskContext::default(), TaskType::CodeGeneration);
-
-        let result = episode.add_tag("".to_string());
-        assert!(result.is_err());
-    }
-
     /// Whitespace-only tags are rejected
     #[test]
     fn whitespace_only_tag_rejected(whitespace in "[ \t\n\r]+") {
@@ -268,10 +272,11 @@ proptest! {
             assert!(result.is_err());
         }
     }
+}
 
-    /// Tags length limit is enforced
-    #[test]
-    fn tag_length_limit_enforced() {
+/// Tags length limit is enforced
+#[test]
+fn tag_length_limit_enforced() {
         let mut episode = Episode::new("Test".to_string(), TaskContext::default(), TaskType::CodeGeneration);
 
         // Valid tag (length 100 should be max limit based on implementation)
@@ -302,7 +307,7 @@ proptest! {
 
         // Add tags
         for tag in &tags {
-            episode.add_tag(tag).ok();
+            episode.add_tag(tag.to_string()).ok();
         }
 
         // Normalize query tags for comparison
@@ -344,7 +349,7 @@ proptest! {
         episode.add_tag(tag.clone()).ok();
 
         // Check with whitespace variations
-        assert!(episode.has_tag(tag));
+        assert!(episode.has_tag(&tag));
         assert!(episode.has_tag(&format!("  {}", tag)));
         assert!(episode.has_tag(&format!("{}  ", tag)));
         assert!(episode.has_tag(&format!("  {}  ", tag)));
@@ -358,9 +363,10 @@ proptest! {
         // Add tags
         let mut normalized_tags = HashSet::new();
         for tag in &tags {
-            if episode.add_tag(tag).ok() == Some(true) {
+            let add_result = episode.add_tag(tag.to_string()).ok();
+            if add_result == Some(true) {
                 // Get the normalized version
-                if let Some(ref stored_tag) = episode.tags.last() {
+                if let Some(stored_tag) = episode.tags.last() {
                     normalized_tags.insert(stored_tag.clone());
                 }
             }
@@ -393,7 +399,7 @@ proptest! {
 
         let mut added_count = 0;
         for tag in &tags {
-            if episode.add_tag(tag).ok() == Some(true) {
+            if episode.add_tag(tag.to_string()).ok() == Some(true) {
                 added_count += 1;
             }
         }
@@ -438,7 +444,7 @@ proptest! {
         }
 
         for tag in &unique_tags {
-            episode.add_tag(tag).ok();
+            episode.add_tag(tag.to_string()).ok();
         }
 
         // Tags should be in order of first addition

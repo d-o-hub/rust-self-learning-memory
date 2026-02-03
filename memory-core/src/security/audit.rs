@@ -26,14 +26,18 @@
 //! Audit logging is **disabled by default** for development environments.
 //! Enable via configuration:
 //!
-//! ```rust
-//! use memory_core::security::audit::{AuditConfig, AuditLogger};
+//! ```no_run
+//! use memory_core::security::audit::{AuditConfig, AuditLogger, AuditLogLevel, AuditOutput};
 //!
 //! let config = AuditConfig {
 //!     enabled: true,
 //!     log_level: AuditLogLevel::Info,
 //!     output_destination: AuditOutput::Stdout,
 //!     retention_days: 90,
+//!     include_state_changes: true,
+//!     include_ip_address: false,
+//!     include_session_info: false,
+//!     buffer_size: 100,
 //! };
 //!
 //! let logger = AuditLogger::new(config);

@@ -122,6 +122,8 @@ impl HierarchicalRetriever {
     /// ```no_run
     /// # use memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
     /// # use memory_core::TaskType;
+    /// # use std::collections::HashMap;
+    /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
     /// let retriever = HierarchicalRetriever::new();
     ///
@@ -131,6 +133,7 @@ impl HierarchicalRetriever {
     ///     domain: Some("web-api".to_string()),
     ///     task_type: Some(TaskType::CodeGeneration),
     ///     limit: 5,
+    ///     episode_embeddings: HashMap::new(),
     /// };
     ///
     /// // let episodes = vec![/* ... */];

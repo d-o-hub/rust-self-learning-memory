@@ -95,40 +95,35 @@
 //!
 //! ### Pattern-Based Learning
 //!
+//! The system automatically extracts reusable patterns from completed episodes:
+//!
 //! ```no_run
 //! use memory_core::memory::SelfLearningMemory;
-//! use memory_core::patterns::PatternExtractor;
-//! use memory_core::patterns::DBSCANConfig;
+//! use memory_core::patterns::HybridPatternExtractor;
+//! use memory_core::episode::Episode;
 //!
 //! # #[tokio::main]
 //! # async fn main() {
 //! # let memory = SelfLearningMemory::new();
-//! // Configure pattern extraction with DBSCAN clustering
-//! let config = DBSCANConfig::default();
-//! let extractor = PatternExtractor::new(config);
+//! // Configure hybrid pattern extraction
+//! let extractor = HybridPatternExtractor::new();
 //!
-//! // Extract patterns from completed episodes
-//! let patterns = extractor.extract_patterns(&memory).await.unwrap();
-//!
-//! for pattern in &patterns {
-//!     println!("Pattern: {} (effectiveness: {:.2})",
-//!              pattern.description,
-//!              pattern.effectiveness.score());
-//! }
+//! // Patterns are automatically extracted during episode completion
+//! // The system tracks pattern effectiveness over time
 //! # }
 //! ```
 //!
 //! ### Semantic Search with Embeddings
 //!
 //! ```no_run
-//! use memory_core::embeddings::{SemanticService, EmbeddingConfig};
+//! use memory_core::embeddings::{SemanticService, EmbeddingConfig, InMemoryEmbeddingStorage};
 //! use memory_core::episode::Episode;
+//! use memory_core::TaskContext;
 //!
 //! # #[tokio::main]
 //! # async fn main() {
 //! # let config = EmbeddingConfig::default();
 //! // Use semantic similarity to find related episodes
-//! # use memory_core::embeddings::storage::InMemoryEmbeddingStorage;
 //! # let storage = Box::new(InMemoryEmbeddingStorage::new());
 //! let semantic = SemanticService::default(storage).await.unwrap();
 //!

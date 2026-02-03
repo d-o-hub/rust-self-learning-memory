@@ -225,7 +225,7 @@ fn test_tag_search_result_json_output() {
     let output = String::from_utf8(buffer).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
     assert_eq!(parsed["count"], 1);
-    assert!(parsed["episodes"].as_array().unwrap().is_empty() == false);
+    assert!(!parsed["episodes"].as_array().unwrap().is_empty());
 }
 
 #[test]
@@ -330,5 +330,5 @@ fn test_tag_stats_result_json_output() {
     assert_eq!(parsed["total_tags"], 1);
     assert_eq!(parsed["total_usage"], 5);
     assert_eq!(parsed["sort_by"], "name");
-    assert!(parsed["tags"].as_array().unwrap().is_empty() == false);
+    assert!(!parsed["tags"].as_array().unwrap().is_empty());
 }

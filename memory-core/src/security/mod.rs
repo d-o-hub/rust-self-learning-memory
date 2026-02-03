@@ -17,8 +17,9 @@
 //!
 //! ## Usage
 //!
-//! ```rust
-//! use memory_core::security::audit::{AuditLogger, AuditConfig, AuditContext};
+//! ```no_run
+//! use memory_core::security::audit::{AuditLogger, AuditConfig, AuditContext, AuditOutput, episode_created};
+//! use uuid::Uuid;
 //!
 //! // Create a logger
 //! let config = AuditConfig::from_env();
@@ -26,7 +27,8 @@
 //!
 //! // Log operations
 //! let context = AuditContext::system();
-//! let entry = audit::episode_created(&context, episode_id, "Task", "code_generation");
+//! let episode_id = Uuid::new_v4();
+//! let entry = episode_created(&context, episode_id, "Task", "code_generation");
 //! logger.log(entry);
 //! ```
 

@@ -94,6 +94,7 @@ impl Default for ConcurrencyConfig {
 ///
 /// ```
 /// use memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy};
+/// use memory_core::security::audit::AuditConfig;
 ///
 /// // Default configuration
 /// let config = MemoryConfig::default();
@@ -118,6 +119,10 @@ impl Default for ConcurrencyConfig {
 ///     enable_spatiotemporal_indexing: true,
 ///     temporal_bias_weight: 0.3,
 ///     max_clusters_to_search: 5,
+///     semantic_search_mode: "hybrid".to_string(),
+///     enable_query_embedding_cache: true,
+///     semantic_similarity_threshold: 0.6,
+///     audit_config: AuditConfig::default(),
 /// };
 /// ```
 #[derive(Debug, Clone)]

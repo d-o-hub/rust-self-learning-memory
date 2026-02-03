@@ -111,6 +111,7 @@ async fn test_progressive_tool_disclosure() {
             None,
             10,
             "relevance".to_string(),
+            None,
         )
         .await;
 
@@ -180,6 +181,7 @@ async fn test_query_memory() {
             Some("code_generation".to_string()),
             10,
             "relevance".to_string(),
+            None,
         )
         .await;
 
@@ -200,6 +202,7 @@ async fn test_query_memory_negative_returns_empty() {
             Some("analysis".to_string()),
             10,
             "relevance".to_string(),
+            None,
         )
         .await
         .unwrap();
@@ -228,6 +231,7 @@ async fn test_query_memory_with_sort_options() {
                 None,
                 5,
                 sort.to_string(),
+                None,
             )
             .await;
 
@@ -240,7 +244,7 @@ async fn test_analyze_patterns() {
     let server = create_test_server().await;
 
     let result = server
-        .analyze_patterns("code_generation".to_string(), 0.7, 20)
+        .analyze_patterns("code_generation".to_string(), 0.7, 20, None)
         .await;
 
     assert!(result.is_ok());

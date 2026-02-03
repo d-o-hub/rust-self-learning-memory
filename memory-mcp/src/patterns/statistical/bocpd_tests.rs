@@ -279,7 +279,10 @@ mod bocpd_unit_tests {
 
         // All probabilities should be in [0, 1]
         for &p in &normalized {
-            assert!(p >= 0.0 && p <= 1.0, "Probabilities should be in [0, 1]");
+            assert!(
+                (0.0..=1.0).contains(&p),
+                "Probabilities should be in [0, 1]"
+            );
         }
 
         Ok(())

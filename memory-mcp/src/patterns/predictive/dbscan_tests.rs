@@ -420,7 +420,7 @@ mod dbscan_integration_tests {
             .collect();
 
         assert!(
-            cluster_ids.len() >= 1,
+            !cluster_ids.is_empty(),
             "Should identify at least one cluster"
         );
     }

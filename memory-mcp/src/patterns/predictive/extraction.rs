@@ -524,7 +524,7 @@ mod tests {
         let characteristics = extractor.compute_cluster_characteristics(&cluster).unwrap();
         let quality = extractor.compute_quality_score(&cluster, &characteristics);
 
-        assert!(quality >= 0.0 && quality <= 1.0);
+        assert!((0.0..=1.0).contains(&quality));
     }
 
     #[test]

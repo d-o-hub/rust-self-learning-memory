@@ -139,23 +139,24 @@ mod tests {
     async fn test_merge_metadata() {
         let memory = memory_core::SelfLearningMemory::new();
 
-        // Create an episode with initial metadata
+        // Create an episode
         let episode_id = memory
             .start_episode(
                 "Test task".to_string(),
-                TaskContext {
-                    metadata: {
-                        let mut map = HashMap::new();
-                        map.insert("initial_key".to_string(), "initial_value".to_string());
-                        map
-                    },
-                    ..Default::default()
-                },
+                TaskContext::default(),
                 TaskType::Testing,
             )
             .await;
 
-        // Add more metadata
+        // Add initial metadata
+        let mut initial_metadata = HashMap::new();
+        initial_metadata.insert("initial_key".to_string(), "initial_value".to_string());
+        memory
+            .update_episode(episode_id, None, Some(initial_metadata))
+            .await
+            .unwrap();
+
+        // Add more metadata (merging with existing)
         let mut metadata = HashMap::new();
         metadata.insert("new_key".to_string(), "new_value".to_string());
 

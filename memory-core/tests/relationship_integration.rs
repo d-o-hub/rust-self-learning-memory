@@ -152,6 +152,9 @@ async fn test_remove_episode_relationship() {
 
 #[tokio::test]
 async fn test_find_related_episodes() {
+    use memory_core::episode::Direction;
+    use memory_core::memory::relationship_query::RelationshipFilter;
+
     let memory = SelfLearningMemory::new();
 
     // Create episodes
@@ -171,8 +174,6 @@ async fn test_find_related_episodes() {
         .expect("Failed to add ep1->ep3");
 
     // Find related episodes with DependsOn filter
-    use memory_core::episode::Direction;
-    use memory_core::memory::relationship_query::RelationshipFilter;
 
     let related = memory
         .find_related_episodes(

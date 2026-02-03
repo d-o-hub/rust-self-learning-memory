@@ -849,9 +849,11 @@ mod tests {
 
     #[test]
     fn test_audit_config_should_log() {
-        let mut config = AuditConfig::default();
-        config.enabled = true;
-        config.log_level = AuditLogLevel::Warn;
+        let config = AuditConfig {
+            enabled: true,
+            log_level: AuditLogLevel::Warn,
+            ..Default::default()
+        };
 
         assert!(!config.should_log(AuditLogLevel::Debug));
         assert!(!config.should_log(AuditLogLevel::Info));
@@ -862,8 +864,10 @@ mod tests {
 
     #[test]
     fn test_audit_config_disabled() {
-        let mut config = AuditConfig::default();
-        config.enabled = false;
+        let config = AuditConfig {
+            enabled: false,
+            ..Default::default()
+        };
 
         assert!(!config.should_log(AuditLogLevel::Critical));
     }

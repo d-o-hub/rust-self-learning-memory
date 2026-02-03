@@ -94,7 +94,7 @@ proptest! {
         let mut manager = RelationshipManager::new();
 
         // Create a chain of depends_on relationships
-        let mut episode_ids: Vec<Uuid> = (0..=relationship_chain_length)
+        let episode_ids: Vec<Uuid> = (0..=relationship_chain_length)
             .map(|_| Uuid::new_v4())
             .collect();
 
@@ -127,7 +127,7 @@ proptest! {
     fn parent_child_prevents_cycles(chain_length in 2..10usize) {
         let mut manager = RelationshipManager::new();
 
-        let mut episode_ids: Vec<Uuid> = (0..=chain_length)
+        let episode_ids: Vec<Uuid> = (0..=chain_length)
             .map(|_| Uuid::new_v4())
             .collect();
 
@@ -160,7 +160,7 @@ proptest! {
     fn blocks_prevents_cycles(chain_length in 2..10usize) {
         let mut manager = RelationshipManager::new();
 
-        let mut episode_ids: Vec<Uuid> = (0..=chain_length)
+        let episode_ids: Vec<Uuid> = (0..=chain_length)
             .map(|_| Uuid::new_v4())
             .collect();
 
@@ -201,7 +201,7 @@ proptest! {
         for rel_type in non_acyclic_types {
             let mut manager = RelationshipManager::new();
 
-            let mut episode_ids: Vec<Uuid> = (0..=chain_length)
+            let episode_ids: Vec<Uuid> = (0..=chain_length)
                 .map(|_| Uuid::new_v4())
                 .collect();
 

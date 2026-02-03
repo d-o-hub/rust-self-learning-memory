@@ -7,7 +7,7 @@
 //!
 //! Target: 6+ test scenarios
 
-#![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::unwrap_used, clippy::expect_used, dead_code)]
 
 use memory_core::types::MemoryConfig;
 use memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
@@ -19,8 +19,8 @@ fn setup_test_memory() -> Arc<SelfLearningMemory> {
     // Use zero quality threshold for test episodes and disable features that may hang
     let config = MemoryConfig {
         quality_threshold: 0.0,                // Zero threshold for test episodes
-        pattern_extraction_threshold: 1.0,     // Skip pattern extraction (threshold > any quality)
-        enable_summarization: false,           // Disable semantic summarization to avoid hangs
+        pattern_extraction_threshold: 1.0,     // Skip pattern extraction
+        enable_summarization: false,           // Disable semantic summarization
         enable_spatiotemporal_indexing: false, // Disable spatiotemporal indexing
         enable_embeddings: false,              // Disable embeddings
         batch_config: None,                    // Disable step batching
@@ -36,30 +36,24 @@ async fn create_completed_episode(
     description: &str,
     domain: &str,
 ) -> Uuid {
-    println!("  Creating context...");
     let context = TaskContext {
         domain: domain.to_string(),
         ..TaskContext::default()
     };
-    println!("  Starting episode...");
     let id = memory
         .start_episode(description.to_string(), context, TaskType::CodeGeneration)
         .await;
-    println!("  Episode started: {}", id);
 
-    println!("  Completing episode...");
-    let outcome = TaskOutcome::Success {
-        verdict: "Done".to_string(),
-        artifacts: vec![],
-    };
-    println!("  Calling complete_episode...");
-    match memory.complete_episode(id, outcome).await {
-        Ok(()) => println!("  Episode completed successfully"),
-        Err(e) => {
-            println!("  Episode completion failed: {:?}", e);
-            panic!("Failed to complete episode: {:?}", e);
-        }
-    }
+    memory
+        .complete_episode(
+            id,
+            TaskOutcome::Success {
+                verdict: "Done".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .unwrap();
 
     id
 }
@@ -69,14 +63,10 @@ async fn create_completed_episode(
 // ============================================================================
 
 async fn test_mcp_tag_full_chain() {
-    println!("Setting up memory...");
     let memory = setup_test_memory();
-    println!("Memory setup complete");
 
     // Create episode
-    println!("Creating episode...");
     let episode_id = create_completed_episode(&memory, "Tag chain test", "tag-chain-test").await;
-    println!("Episode created: {}", episode_id);
 
     // Step 1: add_episode_tags
     memory
@@ -549,10 +539,64 @@ fn main() {
     let mut passed = 0;
     let mut failed = 0;
 
-    // Run only first test for debugging
+    // Run all tests
     run_test(
         "test_mcp_tag_full_chain",
         test_mcp_tag_full_chain(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_normalization",
+        test_mcp_tag_normalization(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_case_insensitive_search",
+        test_mcp_tag_case_insensitive_search(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_multi_tag_search",
+        test_mcp_tag_multi_tag_search(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_statistics",
+        test_mcp_tag_statistics(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_set_replace",
+        test_mcp_tag_set_replace(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_empty_handling",
+        test_mcp_tag_empty_handling(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_large_number",
+        test_mcp_tag_large_number(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_based_episode_filtering",
+        test_mcp_tag_based_episode_filtering(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tag_deduplication",
+        test_mcp_tag_deduplication(),
         &mut passed,
         &mut failed,
     );

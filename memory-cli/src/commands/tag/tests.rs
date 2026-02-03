@@ -2,9 +2,9 @@
 
 use super::types::{
     TagAddResult, TagListResult, TagRemoveResult, TagSearchEpisode, TagSearchResult, TagSetResult,
-    TagShowResult,
+    TagShowResult, TagStatEntry, TagStatsResult,
 };
-use crate::output::{Output, OutputFormat};
+use crate::output::Output;
 
 #[test]
 fn test_tag_add_result_output() {
@@ -249,4 +249,86 @@ fn test_tag_show_result_json_output() {
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
     assert_eq!(parsed["episode_id"], "550e8400-e29b-41d4-a716-446655440000");
     assert_eq!(parsed["tags_count"], 2);
+}
+
+#[test]
+fn test_tag_stats_result_output() {
+    let tags = vec![
+        TagStatEntry {
+            tag: "bug".to_string(),
+            usage_count: 5,
+            first_used: "2023-01-01 10:00".to_string(),
+            last_used: "2023-01-05 15:00".to_string(),
+        },
+        TagStatEntry {
+            tag: "feature".to_string(),
+            usage_count: 3,
+            first_used: "2023-01-02 11:00".to_string(),
+            last_used: "2023-01-06 16:00".to_string(),
+        },
+    ];
+
+    let result = TagStatsResult {
+        tags,
+        total_tags: 2,
+        total_usage: 8,
+        sort_by: "count".to_string(),
+    };
+
+    let mut buffer = Vec::new();
+    result.write_human(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    assert!(output.contains("All Tags"));
+    assert!(output.contains("Total: 2 unique tag(s), 8 total usage(s)"));
+    assert!(output.contains("Sorted by: count"));
+    assert!(output.contains("bug"));
+    assert!(output.contains("feature"));
+    assert!(output.contains("5"));
+    assert!(output.contains("3"));
+}
+
+#[test]
+fn test_tag_stats_result_empty_output() {
+    let result = TagStatsResult {
+        tags: vec![],
+        total_tags: 0,
+        total_usage: 0,
+        sort_by: "name".to_string(),
+    };
+
+    let mut buffer = Vec::new();
+    result.write_human(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    assert!(output.contains("All Tags"));
+    assert!(output.contains("Total: 0 unique tag(s), 0 total usage(s)"));
+    assert!(output.contains("No tags found"));
+}
+
+#[test]
+fn test_tag_stats_result_json_output() {
+    let tags = vec![TagStatEntry {
+        tag: "bug".to_string(),
+        usage_count: 5,
+        first_used: "2023-01-01 10:00".to_string(),
+        last_used: "2023-01-05 15:00".to_string(),
+    }];
+
+    let result = TagStatsResult {
+        tags,
+        total_tags: 1,
+        total_usage: 5,
+        sort_by: "name".to_string(),
+    };
+
+    let mut buffer = Vec::new();
+    result.write_json(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    assert_eq!(parsed["total_tags"], 1);
+    assert_eq!(parsed["total_usage"], 5);
+    assert_eq!(parsed["sort_by"], "name");
+    assert!(parsed["tags"].as_array().unwrap().len() > 0);
 }

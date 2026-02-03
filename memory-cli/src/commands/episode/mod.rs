@@ -32,6 +32,7 @@ pub use core::handle_filter_command;
 pub use core::list_episodes;
 pub use core::log_step;
 pub use core::search_episodes;
+pub use core::update_episode;
 pub use core::view_episode;
 
 // Re-export relationship commands and types
@@ -60,7 +61,7 @@ pub use relationships::ValidateCyclesResult;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::output::{Output, OutputFormat};
+    use crate::output::Output;
 
     #[test]
     fn test_episode_status_enum() {

@@ -5,7 +5,6 @@
 #[cfg(test)]
 mod tests {
     use super::super::heuristic_types::{HeuristicBatchProgress, HeuristicBatchResult};
-    use super::super::*;
     use memory_core::{types::Evidence, Heuristic};
     use tempfile::TempDir;
     use uuid::Uuid;
@@ -212,5 +211,86 @@ mod tests {
         let retrieved = storage.get_heuristic(existing.heuristic_id).await.unwrap();
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap().condition, existing.condition);
+    }
+
+    #[tokio::test]
+    async fn test_delete_heuristics_batch_empty() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let result = storage.delete_heuristics_batch(vec![]).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_delete_heuristics_batch_single() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let heuristic = create_test_heuristic("1");
+        storage
+            .store_heuristics_batch(vec![heuristic.clone()])
+            .await
+            .unwrap();
+
+        let result = storage
+            .delete_heuristics_batch(vec![heuristic.heuristic_id])
+            .await;
+        assert!(result.is_ok());
+
+        let retrieved = storage.get_heuristic(heuristic.heuristic_id).await.unwrap();
+        assert!(retrieved.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_delete_heuristics_batch_multiple() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let heuristics = vec![
+            create_test_heuristic("1"),
+            create_test_heuristic("2"),
+            create_test_heuristic("3"),
+        ];
+        let ids: Vec<Uuid> = heuristics.iter().map(|h| h.heuristic_id).collect();
+        storage
+            .store_heuristics_batch(heuristics.clone())
+            .await
+            .unwrap();
+
+        let result = storage.delete_heuristics_batch(ids.clone()).await;
+        assert!(result.is_ok());
+
+        for id in ids {
+            let retrieved = storage.get_heuristic(id).await.unwrap();
+            assert!(retrieved.is_none());
+        }
+    }
+
+    #[tokio::test]
+    async fn test_delete_heuristics_batch_with_progress() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let heuristics: Vec<Heuristic> = (0..25)
+            .map(|i| create_test_heuristic(&i.to_string()))
+            .collect();
+        let ids: Vec<Uuid> = heuristics.iter().map(|h| h.heuristic_id).collect();
+        storage.store_heuristics_batch(heuristics).await.unwrap();
+
+        let result = storage
+            .delete_heuristics_batch_with_progress(ids, 10)
+            .await
+            .unwrap();
+
+        assert_eq!(result.total_processed, 25);
+        assert_eq!(result.succeeded, 25);
+        assert_eq!(result.failed, 0);
+        assert!(result.all_succeeded);
+    }
+
+    #[tokio::test]
+    async fn test_delete_heuristic_single() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let heuristic = create_test_heuristic("1");
+        storage.store_heuristic(&heuristic).await.unwrap();
+
+        let result = storage.delete_heuristic(heuristic.heuristic_id).await;
+        assert!(result.is_ok());
+
+        let retrieved = storage.get_heuristic(heuristic.heuristic_id).await.unwrap();
+        assert!(retrieved.is_none());
     }
 }

@@ -118,13 +118,10 @@ impl ExportedMetric {
         };
 
         // Add value line
-        if self.timestamp.is_some() {
+        if let Some(ts) = self.timestamp {
             output.push_str(&format!(
                 "{}{} {} {}\n",
-                self.name,
-                label_str,
-                self.value,
-                self.timestamp.unwrap()
+                self.name, label_str, self.value, ts
             ));
         } else {
             output.push_str(&format!("{}{} {}\n", self.name, label_str, self.value));

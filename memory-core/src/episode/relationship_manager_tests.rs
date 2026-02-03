@@ -826,10 +826,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(rel.metadata.priority, Some(5));
-        assert_eq!(
-            rel.metadata.reason,
-            Some("Test relationship".to_string())
-        );
+        assert_eq!(rel.metadata.reason, Some("Test relationship".to_string()));
 
         // Verify metadata is preserved in queries
         let outgoing = manager.get_outgoing(from_id);

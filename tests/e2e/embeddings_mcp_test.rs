@@ -36,24 +36,23 @@ async fn create_test_server() -> MemoryMCPServer {
 // Day 2: MCP Integration E2E Tests
 // ============================================================================
 
-#[tokio::test]
 async fn test_mcp_embedding_tools_registered() {
     let server = create_test_server().await;
     let tools = server.list_tools().await;
 
     // Verify all embedding tools are registered
-    let tool_names: Vec<_> = tools.iter().map(|t| &t.name).collect();
+    let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
 
     assert!(
-        tool_names.contains(&"configure_embeddings"),
+        tool_names.contains(&"configure_embeddings".to_string()),
         "configure_embeddings should be registered"
     );
     assert!(
-        tool_names.contains(&"query_semantic_memory"),
+        tool_names.contains(&"query_semantic_memory".to_string()),
         "query_semantic_memory should be registered"
     );
     assert!(
-        tool_names.contains(&"test_embeddings"),
+        tool_names.contains(&"test_embeddings".to_string()),
         "test_embeddings should be registered"
     );
 
@@ -66,7 +65,6 @@ async fn test_mcp_embedding_tools_registered() {
     }
 }
 
-#[tokio::test]
 async fn test_mcp_configure_embeddings_local() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
@@ -100,7 +98,6 @@ async fn test_mcp_configure_embeddings_local() {
     println!("Local provider configured: {}", output.message);
 }
 
-#[tokio::test]
 async fn test_mcp_configure_embeddings_openai() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
@@ -136,7 +133,6 @@ async fn test_mcp_configure_embeddings_openai() {
     }
 }
 
-#[tokio::test]
 async fn test_mcp_configure_embeddings_azure() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
@@ -184,7 +180,6 @@ async fn test_mcp_configure_embeddings_azure() {
     }
 }
 
-#[tokio::test]
 async fn test_mcp_configure_embeddings_invalid_provider() {
     let memory = Arc::new(SelfLearningMemory::new());
     let tools = EmbeddingTools::new(memory);
@@ -208,7 +203,6 @@ async fn test_mcp_configure_embeddings_invalid_provider() {
     assert!(error.to_string().contains("provider") || error.to_string().contains("Unsupported"));
 }
 
-#[tokio::test]
 async fn test_mcp_query_semantic_memory_basic() {
     let server = create_test_server().await;
 
@@ -243,7 +237,6 @@ async fn test_mcp_query_semantic_memory_basic() {
     println!("Query found {} results", results_found);
 }
 
-#[tokio::test]
 async fn test_mcp_query_semantic_memory_with_filters() {
     let server = create_test_server().await;
 
@@ -284,7 +277,6 @@ async fn test_mcp_query_semantic_memory_with_filters() {
     assert!(result.is_ok());
 }
 
-#[tokio::test]
 async fn test_mcp_query_semantic_memory_default_params() {
     let server = create_test_server().await;
 
@@ -312,7 +304,6 @@ async fn test_mcp_query_semantic_memory_default_params() {
     assert!(results.len() <= 10, "Should respect default limit");
 }
 
-#[tokio::test]
 async fn test_mcp_test_embeddings_tool() {
     let server = create_test_server().await;
 
@@ -346,7 +337,6 @@ async fn test_mcp_test_embeddings_tool() {
     );
 }
 
-#[tokio::test]
 async fn test_mcp_tool_chaining_create_and_query() {
     // Test workflow: create episode → query semantic memory
     let server = create_test_server().await;
@@ -361,7 +351,7 @@ async fn test_mcp_tool_chaining_create_and_query() {
     };
 
     let episode_id = server
-        .memory
+        .memory()
         .start_episode(
             "Implement JWT authentication for REST API".to_string(),
             context.clone(),
@@ -372,7 +362,7 @@ async fn test_mcp_tool_chaining_create_and_query() {
     // Add steps
     for i in 1..=5 {
         let step = ExecutionStep::new(i, format!("tool_{}", i), format!("Action {}", i));
-        server.memory.log_step(episode_id, step).await;
+        server.memory().log_step(episode_id, step).await;
     }
 
     // Complete episode
@@ -381,7 +371,7 @@ async fn test_mcp_tool_chaining_create_and_query() {
         artifacts: vec!["auth.rs".to_string(), "jwt.rs".to_string()],
     };
     server
-        .memory
+        .memory()
         .complete_episode(episode_id, outcome)
         .await
         .expect("Should complete episode");
@@ -414,7 +404,6 @@ async fn test_mcp_tool_chaining_create_and_query() {
     assert!(results_found >= 0);
 }
 
-#[tokio::test]
 async fn test_mcp_tool_usage_tracking() {
     let server = create_test_server().await;
 
@@ -453,7 +442,6 @@ async fn test_mcp_tool_usage_tracking() {
     println!("Tool usage: {:?}", usage);
 }
 
-#[tokio::test]
 async fn test_mcp_error_handling_invalid_query() {
     let server = create_test_server().await;
 
@@ -490,7 +478,6 @@ async fn test_mcp_error_handling_invalid_query() {
     }
 }
 
-#[tokio::test]
 async fn test_mcp_tool_definitions_valid() {
     // Verify tool definitions match JSON-RPC schema
 
@@ -532,7 +519,6 @@ async fn test_mcp_tool_definitions_valid() {
     assert!(required.is_empty(), "test should have no required fields");
 }
 
-#[tokio::test]
 async fn test_mcp_similarity_threshold_filtering() {
     let server = create_test_server().await;
 
@@ -553,10 +539,11 @@ async fn test_mcp_similarity_threshold_filtering() {
         let result = server.execute_query_semantic_memory(input).await;
 
         if let Ok(output) = result {
+            let empty_vec = vec![];
             let results = output
                 .get("results")
                 .and_then(|v| v.as_array())
-                .unwrap_or(&vec![]);
+                .unwrap_or(&empty_vec);
 
             // All results should have similarity >= threshold
             for result in results {
@@ -573,7 +560,6 @@ async fn test_mcp_similarity_threshold_filtering() {
     }
 }
 
-#[tokio::test]
 async fn test_mcp_limit_parameter() {
     let server = create_test_server().await;
 
@@ -594,10 +580,11 @@ async fn test_mcp_limit_parameter() {
         let result = server.execute_query_semantic_memory(input).await;
 
         if let Ok(output) = result {
+            let empty_vec = vec![];
             let results = output
                 .get("results")
                 .and_then(|v| v.as_array())
-                .unwrap_or(&vec![]);
+                .unwrap_or(&empty_vec);
 
             assert!(
                 results.len() <= limit,
@@ -609,9 +596,8 @@ async fn test_mcp_limit_parameter() {
     }
 }
 
-#[tokio::test]
 async fn test_mcp_concurrent_tool_execution() {
-    let server = create_test_server().await;
+    let server = Arc::new(create_test_server().await);
 
     // Execute multiple queries concurrently
     let queries = vec!["authentication", "database", "API", "testing"];
@@ -619,7 +605,7 @@ async fn test_mcp_concurrent_tool_execution() {
     let handles: Vec<_> = queries
         .into_iter()
         .map(|query| {
-            let server_clone = server.clone();
+            let server_clone = Arc::clone(&server);
             tokio::spawn(async move {
                 let input = QuerySemanticMemoryInput {
                     query: query.to_string(),
@@ -641,14 +627,15 @@ async fn test_mcp_concurrent_tool_execution() {
         .collect();
 
     // All should succeed
-    assert_eq!(results.len(), 4);
+    let result_count = results.len();
+    assert_eq!(result_count, 4);
     for result in results {
         assert!(result.is_ok());
     }
 
     println!(
         "Concurrent execution: All {} queries succeeded",
-        results.len()
+        result_count
     );
 }
 
@@ -656,7 +643,6 @@ async fn test_mcp_concurrent_tool_execution() {
 // Integration Tests with Episodes
 // ============================================================================
 
-#[tokio::test]
 async fn test_mcp_episode_to_embedding_workflow() {
     let server = create_test_server().await;
 
@@ -670,7 +656,7 @@ async fn test_mcp_episode_to_embedding_workflow() {
     };
 
     let episode_id = server
-        .memory
+        .memory()
         .start_episode(
             "Create database migration for users table".to_string(),
             context.clone(),
@@ -681,7 +667,7 @@ async fn test_mcp_episode_to_embedding_workflow() {
     // Add steps
     for i in 1..=3 {
         let step = ExecutionStep::new(i, format!("tool_{}", i), format!("Migration step {}", i));
-        server.memory.log_step(episode_id, step).await;
+        server.memory().log_step(episode_id, step).await;
     }
 
     // Complete
@@ -690,7 +676,7 @@ async fn test_mcp_episode_to_embedding_workflow() {
         artifacts: vec!["migrations/001_create_users.sql".to_string()],
     };
     server
-        .memory
+        .memory()
         .complete_episode(episode_id, outcome)
         .await
         .expect("Should complete");
@@ -709,10 +695,11 @@ async fn test_mcp_episode_to_embedding_workflow() {
     assert!(query_result.is_ok());
 
     let output = query_result.unwrap();
+    let empty_vec = vec![];
     let results = output
         .get("results")
         .and_then(|v| v.as_array())
-        .unwrap_or(&vec![]);
+        .unwrap_or(&empty_vec);
 
     println!("Workflow test: Found {} similar episodes", results.len());
 
@@ -720,7 +707,6 @@ async fn test_mcp_episode_to_embedding_workflow() {
     // (even if embeddings are mocked, the structure should work)
 }
 
-#[tokio::test]
 async fn test_mcp_multi_domain_queries() {
     let server = create_test_server().await;
 
@@ -751,5 +737,151 @@ async fn test_mcp_multi_domain_queries() {
             .unwrap_or(0);
 
         println!("Domain {}: {} results", domain, results_found);
+    }
+}
+
+// ============================================================================
+// Main function for harness = false test
+// ============================================================================
+
+use std::future::Future;
+
+fn run_test<F>(name: &str, test: F, passed: &mut i32, _failed: &mut i32)
+where
+    F: Future<Output = ()>,
+{
+    print!("Running {} ... ", name);
+    let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+    rt.block_on(async {
+        test.await;
+    });
+    println!("✓ PASSED");
+    *passed += 1;
+}
+
+fn main() {
+    println!("\n========================================");
+    println!("Running embeddings_mcp E2E tests");
+    println!("========================================\n");
+
+    let mut passed = 0;
+    let mut failed = 0;
+
+    // Run all tests
+    run_test(
+        "test_mcp_embedding_tools_registered",
+        test_mcp_embedding_tools_registered(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_configure_embeddings_local",
+        test_mcp_configure_embeddings_local(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_configure_embeddings_openai",
+        test_mcp_configure_embeddings_openai(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_configure_embeddings_azure",
+        test_mcp_configure_embeddings_azure(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_configure_embeddings_invalid_provider",
+        test_mcp_configure_embeddings_invalid_provider(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_query_semantic_memory_basic",
+        test_mcp_query_semantic_memory_basic(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_query_semantic_memory_with_filters",
+        test_mcp_query_semantic_memory_with_filters(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_query_semantic_memory_default_params",
+        test_mcp_query_semantic_memory_default_params(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_test_embeddings_tool",
+        test_mcp_test_embeddings_tool(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tool_chaining_create_and_query",
+        test_mcp_tool_chaining_create_and_query(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tool_usage_tracking",
+        test_mcp_tool_usage_tracking(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_error_handling_invalid_query",
+        test_mcp_error_handling_invalid_query(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_tool_definitions_valid",
+        test_mcp_tool_definitions_valid(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_similarity_threshold_filtering",
+        test_mcp_similarity_threshold_filtering(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_limit_parameter",
+        test_mcp_limit_parameter(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_concurrent_tool_execution",
+        test_mcp_concurrent_tool_execution(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_episode_to_embedding_workflow",
+        test_mcp_episode_to_embedding_workflow(),
+        &mut passed,
+        &mut failed,
+    );
+    run_test(
+        "test_mcp_multi_domain_queries",
+        test_mcp_multi_domain_queries(),
+        &mut passed,
+        &mut failed,
+    );
+
+    println!("\n========================================");
+    println!("Results: {} passed, {} failed", passed, failed);
+    println!("========================================\n");
+
+    if failed > 0 {
+        std::process::exit(1);
     }
 }

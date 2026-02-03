@@ -9,10 +9,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::embeddings::config::embedding_config::InMemoryEmbeddingStorage;
 use memory_core::embeddings::{
-    cosine_similarity, EmbeddingConfig, EmbeddingProvider, LocalConfig, LocalEmbeddingProvider,
-    SemanticService,
+    cosine_similarity, EmbeddingProvider, InMemoryEmbeddingStorage, LocalConfig,
+    LocalEmbeddingProvider, SemanticService,
 };
 use std::time::{Duration, Instant};
 

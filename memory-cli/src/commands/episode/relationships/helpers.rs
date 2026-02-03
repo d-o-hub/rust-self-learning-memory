@@ -43,6 +43,14 @@ pub(super) fn topological_sort_kahn(nodes: &[Uuid], edges: &[(Uuid, Uuid)]) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::episode::relationships::{
+        AddRelationshipResult, FindRelatedResult, ListRelationshipsResult, RelatedEpisodeItem,
+        RelationshipListItem, RemoveRelationshipResult, TopologicalSortResult,
+        ValidateCyclesResult,
+    };
+    use crate::commands::episode::{DirectionArg, RelationshipTypeArg};
+    use crate::output::Output;
+    use memory_core::episode::Direction;
 
     #[test]
     fn test_relationship_type_arg_conversion() {

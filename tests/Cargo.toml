@@ -73,17 +73,17 @@ harness = true
 [[test]]
 name = "embeddings_openai"
 path = "e2e/embeddings_openai_test.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "embeddings_local"
 path = "e2e/embeddings_local_test.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "embeddings_cli"
 path = "e2e/embeddings_cli_test.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "embeddings_mcp"

@@ -10,15 +10,12 @@
 //! - Generate periodic metrics
 
 use memory_core::{types::ExecutionResult, Episode, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::{
-    CacheConfig, CachedTursoStorage, PoolConfig, TursoConfig, TursoStorage,
-};
+use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
 use tokio::task::JoinSet;
-use uuid::Uuid;
 
 /// Test duration for normal runs (shorter than 24h for CI)
 #[cfg(not(feature = "full-soak"))]
@@ -41,7 +38,7 @@ const WORKER_COUNT: usize = 4;
 const EPISODES_PER_CYCLE: usize = 10;
 
 /// Memory usage statistics
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 struct MemoryUsageStats {
     /// Current resident set size in bytes
     rss: Option<u64>,
@@ -51,6 +48,17 @@ struct MemoryUsageStats {
     threads: Option<usize>,
     /// Timestamp of measurement
     timestamp: std::time::SystemTime,
+}
+
+impl Default for MemoryUsageStats {
+    fn default() -> Self {
+        Self {
+            rss: None,
+            vms: None,
+            threads: None,
+            timestamp: std::time::SystemTime::now(),
+        }
+    }
 }
 
 impl MemoryUsageStats {
@@ -92,7 +100,7 @@ impl MemoryUsageStats {
 }
 
 /// Performance snapshot
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 struct PerformanceSnapshot {
     /// Episodes created
     episodes_created: usize,
@@ -112,6 +120,22 @@ struct PerformanceSnapshot {
     memory_usage: MemoryUsageStats,
     /// Timestamp
     timestamp: std::time::SystemTime,
+}
+
+impl Default for PerformanceSnapshot {
+    fn default() -> Self {
+        Self {
+            episodes_created: 0,
+            episodes_completed: 0,
+            total_operations: 0,
+            failed_operations: 0,
+            avg_latency_ms: 0.0,
+            p95_latency_ms: 0.0,
+            p99_latency_ms: 0.0,
+            memory_usage: MemoryUsageStats::default(),
+            timestamp: std::time::SystemTime::now(),
+        }
+    }
 }
 
 /// Soak test state
@@ -248,16 +272,18 @@ async fn create_test_storage() -> (CachedTursoStorage, TempDir) {
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
     let db_path = temp_dir.path().join("test.db");
 
-    let pool_config = PoolConfig {
-        max_pool_size: 50,
-        min_pool_size: 5,
-        connection_timeout: Duration::from_secs(5),
-        idle_timeout: Duration::from_secs(60),
-        keepalive_interval: Duration::from_secs(10),
-    };
-
     let config = TursoConfig {
-        pool_config,
+        max_retries: 3,
+        retry_base_delay_ms: 100,
+        retry_max_delay_ms: 5000,
+        enable_pooling: true,
+        compression_threshold: 1024,
+        compress_episodes: true,
+        compress_patterns: true,
+        compress_embeddings: true,
+        compression_level: 3,
+        enable_transport_compression: true,
+        cache_config: None, // We'll use CachedTursoStorage separately
         ..Default::default()
     };
 
@@ -274,10 +300,20 @@ async fn create_test_storage() -> (CachedTursoStorage, TempDir) {
     let cache_config = CacheConfig {
         enable_episode_cache: true,
         enable_pattern_cache: true,
+        enable_query_cache: true,
         max_episodes: 5000,
         max_patterns: 2000,
-        ttl_seconds: None,
-        enable_metrics: true,
+        max_query_results: 1000,
+        episode_ttl: Duration::from_secs(1800),
+        pattern_ttl: Duration::from_secs(3600),
+        query_ttl: Duration::from_secs(300),
+        min_ttl: Duration::from_secs(60),
+        max_ttl: Duration::from_secs(7200),
+        hot_threshold: 10,
+        cold_threshold: 2,
+        adaptation_rate: 0.25,
+        enable_background_cleanup: true,
+        cleanup_interval_secs: 60,
     };
 
     let cached_storage = CachedTursoStorage::new(storage, cache_config);
@@ -291,6 +327,8 @@ async fn worker_task(
     state: Arc<SoakTestState>,
     worker_id: usize,
 ) {
+    use memory_core::StorageBackend;
+
     let mut cycle = 0u64;
 
     println!("Worker {} started", worker_id);
@@ -304,23 +342,23 @@ async fn worker_task(
                 break;
             }
 
-            let episode_id = storage
-                .start_episode(
-                    format!(
-                        "Soak test worker {} cycle {} episode {}",
-                        worker_id, cycle, i
-                    ),
-                    TaskContext {
-                        domain: "soak_test".to_string(),
-                        language: Some("rust".to_string()),
-                        framework: Some("tokio".to_string()),
-                        complexity: memory_core::types::ComplexityLevel::Moderate,
-                        tags: vec!["soak_test".to_string(), format!("worker_{}", worker_id)],
-                    },
-                    TaskType::CodeGeneration,
-                )
-                .await;
+            // Create a new episode
+            let mut episode = Episode::new(
+                format!(
+                    "Soak test worker {} cycle {} episode {}",
+                    worker_id, cycle, i
+                ),
+                TaskContext {
+                    domain: "soak_test".to_string(),
+                    language: Some("rust".to_string()),
+                    framework: Some("tokio".to_string()),
+                    complexity: memory_core::types::ComplexityLevel::Moderate,
+                    tags: vec!["soak_test".to_string(), format!("worker_{}", worker_id)],
+                },
+                TaskType::CodeGeneration,
+            );
 
+            let _episode_id = episode.episode_id;
             state.record_episode_created();
 
             // Add some steps
@@ -335,30 +373,25 @@ async fn worker_task(
                 });
                 step.latency_ms = 50 + (step_num as u64 * 10);
 
-                if let Err(e) = storage.log_step(episode_id, step).await {
-                    eprintln!("Worker {}: Failed to log step: {}", worker_id, e);
-                    state.record_operation_failure();
-                }
+                episode.add_step(step);
             }
 
             // Complete episode
             let start = Instant::now();
-            let result = storage
-                .complete_episode(
-                    episode_id,
-                    TaskOutcome::Success {
-                        verdict: format!("Completed on worker {} cycle {}", worker_id, cycle),
-                        artifacts: vec![],
-                    },
-                )
-                .await;
+            episode.complete(TaskOutcome::Success {
+                verdict: format!("Completed on worker {} cycle {}", worker_id, cycle),
+                artifacts: vec![],
+            });
+
+            // Store the episode
+            let result = storage.store_episode(&episode).await;
 
             let latency_ms = start.elapsed().as_millis() as u64;
 
             match result {
                 Ok(_) => state.record_episode_completed(latency_ms),
                 Err(e) => {
-                    eprintln!("Worker {}: Failed to complete episode: {}", worker_id, e);
+                    eprintln!("Worker {}: Failed to store episode: {}", worker_id, e);
                     state.record_operation_failure();
                 }
             }
@@ -376,7 +409,7 @@ async fn worker_task(
 }
 
 /// Monitor task that captures periodic metrics
-async fn monitor_task(state: Arc<SoakTestState>, storage: Arc<CachedTursoStorage>) {
+async fn monitor_task(state: Arc<SoakTestState>, _storage: Arc<CachedTursoStorage>) {
     println!("Monitor task started");
 
     let mut snapshot_timer = tokio::time::interval(SNAPSHOT_INTERVAL);

@@ -15,7 +15,7 @@ memory-storage-redb = { path = "../memory-storage-redb", optional = true }
 
 
 # CLI framework
-clap = { version = "4.5.54", features = ["derive", "color", "suggestions"] }
+clap = { version = "4.5.56", features = ["derive", "color", "suggestions"] }
 clap_complete = "4.5.24"
 
 # Serialization

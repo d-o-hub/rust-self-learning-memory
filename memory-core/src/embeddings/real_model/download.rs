@@ -218,7 +218,7 @@ async fn attempt_download(url: &str, path: &std::path::Path) -> anyhow::Result<(
 
 /// Validate that a downloaded file exists and is readable
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
-fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> anyhow::Result<()> {
+pub fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> anyhow::Result<()> {
     if !path.exists() {
         return Err(anyhow::anyhow!(
             "Downloaded file not found: {}",

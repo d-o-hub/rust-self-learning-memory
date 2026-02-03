@@ -17,7 +17,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_storage_redb::persistence::{CachePersistence, PersistenceConfig};
+//! use memory_storage_redb::{CachePersistence, PersistenceConfig};
 //!
 //! let config = PersistenceConfig::default();
 //! let persistence = CachePersistence::new(config);

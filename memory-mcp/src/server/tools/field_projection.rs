@@ -13,6 +13,8 @@
 //! ## Usage
 //!
 //! ```rust
+//! # use anyhow::Result;
+//! # fn main() -> Result<()> {
 //! use memory_mcp::server::tools::field_projection::FieldSelector;
 //! use serde_json::json;
 //!
@@ -21,8 +23,10 @@
 //! let selector = FieldSelector::from_request(&args);
 //!
 //! // Apply to result
-//! let result = json!({"episode": {"id": "123", "task_description": "test", ...}});
+//! let result = json!({"episode": {"id": "123", "task_description": "test"}});
 //! let filtered = selector.apply(&result)?;
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Token Savings

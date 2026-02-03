@@ -381,6 +381,7 @@ impl AdaptiveConnectionPool {
     /// ```no_run
     /// use std::sync::Arc;
     /// use memory_storage_turso::pool::{AdaptiveConnectionPool, ConnectionId};
+    /// use memory_storage_turso::PreparedStatementCache;
     ///
     /// # async fn example(pool: AdaptiveConnectionPool) {
     /// let cache = Arc::new(PreparedStatementCache::new(100));

@@ -307,7 +307,7 @@ impl TursoStorage {
     ///     PatternId::new_v4(),
     /// ];
     ///
-    /// let patterns = storage.get_patterns_batch(ids).await?;
+    /// let patterns = storage.get_patterns_batch(&ids).await?;
     /// # Ok(())
     /// # }
     /// ```

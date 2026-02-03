@@ -14,6 +14,7 @@
 //! ```rust
 //! use memory_storage_turso::transport::{
 //!     CompressedTransport, Transport, TransportCompressionConfig, TransportMetadata,
+//!     TransportResponse,
 //! };
 //!
 //! # async fn example() -> anyhow::Result<()> {
@@ -24,8 +25,8 @@
 //! # struct MockTransport;
 //! # #[async_trait]
 //! # impl Transport for MockTransport {
-//! #     async fn send(&self, data: &[u8]) -> anyhow::Result<super::TransportResponse> {
-//! #         Ok(super::TransportResponse::success(data.to_vec()))
+//! #     async fn send(&self, data: &[u8]) -> anyhow::Result<TransportResponse> {
+//! #         Ok(TransportResponse::success(data.to_vec()))
 //! #     }
 //! #     async fn send_async(&self, _data: &[u8]) -> anyhow::Result<()> { Ok(()) }
 //! #     async fn health_check(&self) -> anyhow::Result<bool> { Ok(true) }
@@ -82,6 +83,7 @@ impl CompressedTransport {
     /// ```rust
     /// use memory_storage_turso::transport::{
     ///     CompressedTransport, TransportCompressionConfig, Transport, TransportMetadata,
+    ///     TransportResponse,
     /// };
     /// # use async_trait::async_trait;
     /// # use std::fmt::Debug;
@@ -89,8 +91,8 @@ impl CompressedTransport {
     /// # struct MockTransport;
     /// # #[async_trait]
     /// # impl Transport for MockTransport {
-    /// #     async fn send(&self, data: &[u8]) -> anyhow::Result<super::TransportResponse> {
-    /// #         Ok(super::TransportResponse::success(data.to_vec()))
+    /// #     async fn send(&self, data: &[u8]) -> anyhow::Result<TransportResponse> {
+    /// #         Ok(TransportResponse::success(data.to_vec()))
     /// #     }
     /// #     async fn send_async(&self, _data: &[u8]) -> anyhow::Result<()> { Ok(()) }
     /// #     async fn health_check(&self) -> anyhow::Result<bool> { Ok(true) }

@@ -38,6 +38,7 @@ impl TursoStorage {
     ///
     /// ```no_run
     /// use memory_storage_turso::{TursoStorage, TursoConfig, PoolConfig};
+    /// use std::time::Duration;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let config = TursoConfig::default();

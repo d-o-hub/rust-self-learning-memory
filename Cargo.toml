@@ -55,7 +55,7 @@ criterion = "0.5"
 
 # WASM and JavaScript execution
 rquickjs = "0.11.0"
-wasmtime = "40.0.2"
+wasmtime = "41.0.1"
 wasmtime-wasi = "40.0.2"
 
 # Additional utilities
@@ -64,7 +64,7 @@ url = "2.5.8"
 sha2 = "0.10"
 rand = "0.8"
 rand_chacha = "0.3"
-clap = { version = "4.5.54", features = ["derive"] }
+clap = { version = "4.5.56", features = ["derive"] }
 statrs = "0.16"
 futures = "0.3.31"
 sysinfo = "0.38"

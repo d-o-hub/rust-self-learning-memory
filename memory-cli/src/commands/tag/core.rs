@@ -1,8 +1,8 @@
 //! Tag command implementations
 
 use super::types::{
-    TagAddResult, TagCommands, TagListResult, TagRemoveResult, TagSearchEpisode, TagSearchResult,
-    TagSetResult, TagShowResult,
+    TagAddResult, TagCommands, TagRemoveResult, TagSearchEpisode, TagSearchResult, TagSetResult,
+    TagShowResult, TagStatEntry, TagStatsResult,
 };
 use crate::config::Config;
 use crate::output::OutputFormat;
@@ -27,7 +27,7 @@ pub async fn handle_tag_command(
         TagCommands::Set { episode_id, tags } => {
             set_tags(episode_id, tags, memory, format, dry_run).await
         }
-        TagCommands::List { episode_id } => list_tags(episode_id, memory, format, dry_run).await,
+        TagCommands::List { sort_by } => list_all_tags(sort_by, memory, format, dry_run).await,
         TagCommands::Search { tags, all, limit } => {
             search_by_tags(tags, all, limit, memory, format, dry_run).await
         }
@@ -163,27 +163,75 @@ pub async fn set_tags(
     format.print_output(&result)
 }
 
-/// List all tags for an episode
-pub async fn list_tags(
-    episode_id: String,
+/// List all tags with statistics (system-wide)
+pub async fn list_all_tags(
+    sort_by: String,
     memory: &SelfLearningMemory,
     format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     if dry_run {
-        println!("Would list tags for episode {}", episode_id);
+        println!(
+            "Would list all tags with statistics (sorted by: {})",
+            sort_by
+        );
         return Ok(());
     }
 
-    let uuid = parse_episode_id(&episode_id)?;
+    // Validate sort_by parameter
+    let sort_by = sort_by.to_lowercase();
+    if !["count", "name", "recent"].contains(&sort_by.as_str()) {
+        return Err(anyhow::anyhow!(
+            "Invalid sort-by value: '{}'. Must be one of: count, name, recent",
+            sort_by
+        ));
+    }
 
-    // Get tags
-    let tags = memory.get_episode_tags(uuid).await?;
+    // Get tag statistics from memory
+    let stats = memory.get_tag_statistics().await?;
 
-    let result = TagListResult {
-        episode_id,
-        count: tags.len(),
-        tags,
+    // Convert to tag entries
+    let mut tag_entries: Vec<TagStatEntry> = stats
+        .into_iter()
+        .map(|(tag, stat)| TagStatEntry {
+            tag,
+            usage_count: stat.usage_count,
+            first_used: stat.first_used.format("%Y-%m-%d %H:%M").to_string(),
+            last_used: stat.last_used.format("%Y-%m-%d %H:%M").to_string(),
+        })
+        .collect();
+
+    // Sort according to the sort_by parameter
+    match sort_by.as_str() {
+        "count" => {
+            // Sort by usage count (descending), then by name
+            tag_entries.sort_by(|a, b| {
+                b.usage_count
+                    .cmp(&a.usage_count)
+                    .then_with(|| a.tag.cmp(&b.tag))
+            });
+        }
+        "recent" => {
+            // Sort by last used (descending), then by name
+            tag_entries.sort_by(|a, b| {
+                b.last_used
+                    .cmp(&a.last_used)
+                    .then_with(|| a.tag.cmp(&b.tag))
+            });
+        }
+        _ => {
+            // Default: sort by name (alphabetical)
+            tag_entries.sort_by(|a, b| a.tag.cmp(&b.tag));
+        }
+    }
+
+    let total_usage: usize = tag_entries.iter().map(|e| e.usage_count).sum();
+
+    let result = TagStatsResult {
+        total_tags: tag_entries.len(),
+        total_usage,
+        sort_by,
+        tags: tag_entries,
     };
 
     format.print_output(&result)

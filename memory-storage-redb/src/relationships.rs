@@ -1,12 +1,50 @@
 //! Redb cache layer for episode relationships.
 
 use crate::{RedbStorage, Result, RELATIONSHIPS_TABLE};
-use memory_core::episode::{Direction, EpisodeRelationship};
+use memory_core::episode::{Direction, EpisodeRelationship, RelationshipType};
+#[allow(unused_imports)] // False positive - import is used in error mapping
+use memory_core::Error;
 use redb::{ReadableTable, ReadableTableMetadata};
 use tracing::debug;
 use uuid::Uuid;
 
 impl RedbStorage {
+    // StorageBackend trait implementations
+
+    /// Store a relationship (StorageBackend trait)
+    pub async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
+        self.cache_relationship(relationship)
+    }
+
+    /// Remove a relationship (StorageBackend trait)
+    pub async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
+        self.remove_cached_relationship(relationship_id)
+    }
+
+    /// Get relationships (StorageBackend trait)
+    pub async fn get_relationships(
+        &self,
+        episode_id: Uuid,
+        direction: Direction,
+    ) -> Result<Vec<EpisodeRelationship>> {
+        self.get_cached_relationships(episode_id, direction)
+    }
+
+    /// Check if relationship exists (StorageBackend trait)
+    pub async fn relationship_exists(
+        &self,
+        from_episode_id: Uuid,
+        to_episode_id: Uuid,
+        relationship_type: RelationshipType,
+    ) -> Result<bool> {
+        let relationships = self.get_cached_relationships(from_episode_id, Direction::Outgoing)?;
+        Ok(relationships
+            .iter()
+            .any(|r| r.to_episode_id == to_episode_id && r.relationship_type == relationship_type))
+    }
+
+    // Original redb-specific methods
+
     /// Cache a relationship
     pub fn cache_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
         let write_txn = self

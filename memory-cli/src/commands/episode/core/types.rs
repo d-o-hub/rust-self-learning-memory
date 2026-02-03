@@ -107,6 +107,33 @@ pub enum EpisodeCommands {
         episode_id: String,
     },
 
+    /// Update an episode
+    Update {
+        /// Episode ID
+        #[arg(value_name = "EPISODE_ID")]
+        episode_id: String,
+
+        /// New task description
+        #[arg(short, long)]
+        description: Option<String>,
+
+        /// Tags to add (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        add_tag: Option<Vec<String>>,
+
+        /// Tags to remove (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        remove_tag: Option<Vec<String>>,
+
+        /// Set tags (replaces all existing, comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        set_tags: Option<Vec<String>>,
+
+        /// Metadata key=value pairs (can be specified multiple times)
+        #[arg(long, value_name = "KEY=VALUE")]
+        metadata: Option<Vec<String>>,
+    },
+
     /// Search episodes
     Search {
         /// Search query

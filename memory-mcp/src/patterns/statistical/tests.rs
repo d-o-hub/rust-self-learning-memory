@@ -81,7 +81,11 @@ fn test_correlation_calculation() -> Result<()> {
     let corr = &results.correlations[0];
     assert_eq!(corr.variables, ("x".to_string(), "y".to_string()));
     // Allow small floating point differences
-    assert!((corr.coefficient - 1.0).abs() < 0.01, "Correlation coefficient should be close to 1.0, got {}", corr.coefficient);
+    assert!(
+        (corr.coefficient - 1.0).abs() < 0.01,
+        "Correlation coefficient should be close to 1.0, got {}",
+        corr.coefficient
+    );
     assert!(corr.significant);
 
     Ok(())

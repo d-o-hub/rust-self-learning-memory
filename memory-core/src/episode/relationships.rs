@@ -105,6 +105,12 @@ impl RelationshipType {
     }
 }
 
+impl std::fmt::Display for RelationshipType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 /// Additional metadata for a relationship.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct RelationshipMetadata {

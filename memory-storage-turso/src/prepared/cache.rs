@@ -346,7 +346,11 @@ impl PreparedStatementCache {
     /// The ID should be stored alongside the connection and used for all
     /// cache operations with that connection.
     pub fn get_connection_id(&self) -> ConnectionId {
-        ConnectionId::new()
+        use std::sync::atomic::AtomicU64;
+        use std::sync::atomic::Ordering;
+
+        static NEXT_ID: AtomicU64 = AtomicU64::new(1);
+        NEXT_ID.fetch_add(1, Ordering::Relaxed)
     }
 
     /// Record a cache hit for a statement

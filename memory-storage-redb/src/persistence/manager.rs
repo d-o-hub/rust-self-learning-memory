@@ -35,7 +35,7 @@ impl PersistenceManager {
     }
 
     /// Create with default configuration
-    pub fn default() -> Self {
+    pub fn with_default_config() -> Self {
         Self::new(PersistenceConfig::default())
     }
 

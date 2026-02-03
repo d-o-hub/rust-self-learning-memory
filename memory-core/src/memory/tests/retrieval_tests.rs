@@ -6,11 +6,14 @@ use crate::SelfLearningMemory;
 use uuid::Uuid;
 
 /// Test retrieving relevant context.
-#[tokio::test]
-#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
+#[tokio::test(flavor = "multi_thread")]
 pub async fn test_retrieve_relevant_context() {
+    // Optimized config for fast test execution
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.5,
+        pattern_extraction_threshold: 1.0, // Skip pattern extraction
+        enable_summarization: false,       // Skip semantic summarization
+        enable_embeddings: false,          // Skip embedding generation
         ..Default::default()
     };
     let memory = SelfLearningMemory::with_config(test_config);
@@ -111,11 +114,14 @@ pub async fn test_retrieve_relevant_context() {
 }
 
 /// Test retrieving relevant patterns (heuristics).
-#[tokio::test]
-#[ignore = "Slow test - complete_episode with pattern extraction takes too long in CI"]
+#[tokio::test(flavor = "multi_thread")]
 pub async fn test_retrieve_relevant_patterns() {
+    // Optimized config for fast test execution
     let test_config = crate::MemoryConfig {
         quality_threshold: 0.4,
+        pattern_extraction_threshold: 1.0, // Skip pattern extraction
+        enable_summarization: false,       // Skip semantic summarization
+        enable_embeddings: false,          // Skip embedding generation
         ..Default::default()
     };
     let memory = SelfLearningMemory::with_config(test_config);

@@ -55,7 +55,7 @@ test-utils = { path = "../test-utils" }
 
 [features]
 default = ["redb"]
-turso = ["memory-storage-turso", "memory-storage-redb"]
+turso = ["memory-storage-turso", "memory-storage-turso/keepalive-pool", "memory-storage-redb"]
 redb = ["memory-storage-redb"]
 # Embedding provider features (pass through to memory-core)
 openai = ["memory-core/openai"]

@@ -91,7 +91,6 @@ async fn should_extract_patterns_asynchronously_in_background() {
 }
 
 #[tokio::test]
-#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_complete_faster_with_async_extraction_than_sync() {
     // Given: Sync memory system
     let sync_memory = SelfLearningMemory::with_config(test_memory_config());
@@ -415,7 +414,6 @@ async fn should_complete_episodes_in_under_100ms_with_async_extraction() {
 }
 
 #[tokio::test]
-#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn should_work_with_sync_extraction_when_async_disabled() {
     // Given: Memory system without async extraction enabled
     let memory = SelfLearningMemory::with_config(test_memory_config());

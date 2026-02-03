@@ -102,14 +102,16 @@ mod tests {
         assert_eq!(stats.active_workers, 2);
     }
 
-    #[tokio::test]
-    #[ignore = "Slow test - worker processing with pattern extraction takes too long in CI"]
+    #[tokio::test(flavor = "multi_thread")]
     async fn test_worker_processes_episodes() {
         use crate::types::MemoryConfig;
 
-        // Use lower quality threshold for test episodes
+        // Optimized config for fast test execution
         let test_config = MemoryConfig {
             quality_threshold: 0.5,
+            pattern_extraction_threshold: 1.0, // Skip pattern extraction
+            enable_summarization: false,       // Skip semantic summarization
+            enable_embeddings: false,          // Skip embedding generation
             ..Default::default()
         };
         let memory = Arc::new(SelfLearningMemory::with_config(test_config));
@@ -163,14 +165,16 @@ mod tests {
         // Note: total_processed might be 0 or 1 depending on timing and implementation
     }
 
-    #[tokio::test]
-    #[ignore = "Slow test - parallel processing with workers takes too long in CI"]
+    #[tokio::test(flavor = "multi_thread")]
     async fn test_parallel_processing() {
         use crate::types::MemoryConfig;
 
-        // Use lower quality threshold for test episodes
+        // Optimized config for fast test execution
         let test_config = MemoryConfig {
             quality_threshold: 0.5,
+            pattern_extraction_threshold: 1.0, // Skip pattern extraction
+            enable_summarization: false,       // Skip semantic summarization
+            enable_embeddings: false,          // Skip embedding generation
             ..Default::default()
         };
         let memory = Arc::new(SelfLearningMemory::with_config(test_config));

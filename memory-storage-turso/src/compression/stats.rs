@@ -17,6 +17,8 @@ pub struct CompressionStatistics {
     pub compression_time_us: u64,
     /// Total time spent decompressing (microseconds)
     pub decompression_time_us: u64,
+    /// Number of failed compression operations
+    pub failed_count: u64,
 }
 
 impl CompressionStatistics {
@@ -60,5 +62,10 @@ impl CompressionStatistics {
     /// Record a decompression operation
     pub fn record_decompression(&mut self, time_us: u64) {
         self.decompression_time_us += time_us;
+    }
+
+    /// Record a failed compression operation
+    pub fn record_failed(&mut self) {
+        self.failed_count += 1;
     }
 }

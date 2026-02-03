@@ -3,7 +3,7 @@
 //! Implements the 4-level scoring strategy for episodic memory retrieval.
 
 use super::types::{
-    calculate_text_similarity, generate_episode_embedding, HierarchicalScore, RetrievalQuery,
+    calculate_text_similarity, get_or_generate_episode_embedding, HierarchicalScore, RetrievalQuery,
 };
 use crate::episode::Episode;
 use chrono::Utc;
@@ -118,8 +118,9 @@ impl super::HierarchicalRetriever {
 
                 // Level 4 score: Embedding similarity (if available) or text similarity
                 let level_4_score = if let Some(ref query_emb) = query.query_embedding {
-                    // Generate episode embedding (simple metadata-based for now)
-                    let episode_emb = generate_episode_embedding(episode);
+                    // Get pre-loaded episode embedding or generate fallback
+                    let episode_emb =
+                        get_or_generate_episode_embedding(episode, &query.episode_embeddings);
 
                     // Calculate cosine similarity between query and episode embeddings
                     // Note: cosine_similarity returns a value in [-1, 1], normalize to [0, 1]

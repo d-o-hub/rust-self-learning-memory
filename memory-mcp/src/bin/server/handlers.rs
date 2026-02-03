@@ -5,14 +5,39 @@
 //! - handle_batch_execute: Handle batch/execute requests
 
 use super::tools::{
-    handle_add_episode_step, handle_add_episode_tags, handle_advanced_pattern_analysis,
-    handle_analyze_patterns, handle_batch_compare_episodes, handle_batch_pattern_analysis,
-    handle_batch_query_episodes, handle_bulk_episodes, handle_complete_episode,
-    handle_configure_embeddings, handle_create_episode, handle_delete_episode, handle_execute_code,
-    handle_get_episode, handle_get_episode_tags, handle_get_episode_timeline, handle_get_metrics,
-    handle_health_check, handle_quality_metrics, handle_query_memory, handle_query_semantic_memory,
-    handle_recommend_patterns, handle_remove_episode_tags, handle_search_episodes_by_tags,
-    handle_search_patterns, handle_set_episode_tags, handle_test_embeddings,
+    handle_add_episode_relationship,
+    handle_add_episode_step,
+    handle_add_episode_tags,
+    handle_advanced_pattern_analysis,
+    handle_analyze_patterns,
+    // TODO: Re-enable when batch module is fixed
+    // handle_batch_compare_episodes, handle_batch_pattern_analysis, handle_batch_query_episodes,
+    handle_bulk_episodes,
+    handle_check_relationship_exists,
+    handle_complete_episode,
+    handle_configure_embeddings,
+    handle_create_episode,
+    handle_delete_episode,
+    handle_execute_code,
+    handle_find_related_episodes,
+    handle_get_dependency_graph,
+    handle_get_episode,
+    handle_get_episode_relationships,
+    handle_get_episode_tags,
+    handle_get_episode_timeline,
+    handle_get_metrics,
+    handle_health_check,
+    handle_quality_metrics,
+    handle_query_memory,
+    handle_query_semantic_memory,
+    handle_recommend_patterns,
+    handle_remove_episode_relationship,
+    handle_remove_episode_tags,
+    handle_search_episodes_by_tags,
+    handle_search_patterns,
+    handle_set_episode_tags,
+    handle_test_embeddings,
+    handle_update_episode,
 };
 use super::types::{CallToolParams, CallToolResult, Content};
 use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
@@ -105,14 +130,16 @@ pub async fn handle_call_tool(
         "complete_episode" => handle_complete_episode(&mut server, params.arguments).await,
         "get_episode" => handle_get_episode(&mut server, params.arguments).await,
         "delete_episode" => handle_delete_episode(&mut server, params.arguments).await,
+        "update_episode" => handle_update_episode(&mut server, params.arguments).await,
         "get_episode_timeline" => handle_get_episode_timeline(&mut server, params.arguments).await,
-        "batch_query_episodes" => handle_batch_query_episodes(&mut server, params.arguments).await,
-        "batch_pattern_analysis" => {
-            handle_batch_pattern_analysis(&mut server, params.arguments).await
-        }
-        "batch_compare_episodes" => {
-            handle_batch_compare_episodes(&mut server, params.arguments).await
-        }
+        // TODO: Re-enable when batch module is fixed
+        // "batch_query_episodes" => handle_batch_query_episodes(&mut server, params.arguments).await,
+        // "batch_pattern_analysis" => {
+        //     handle_batch_pattern_analysis(&mut server, params.arguments).await
+        // }
+        // "batch_compare_episodes" => {
+        //     handle_batch_compare_episodes(&mut server, params.arguments).await
+        // }
         "add_episode_tags" => handle_add_episode_tags(&mut server, params.arguments).await,
         "remove_episode_tags" => handle_remove_episode_tags(&mut server, params.arguments).await,
         "set_episode_tags" => handle_set_episode_tags(&mut server, params.arguments).await,
@@ -120,6 +147,22 @@ pub async fn handle_call_tool(
         "search_episodes_by_tags" => {
             handle_search_episodes_by_tags(&mut server, params.arguments).await
         }
+        "add_episode_relationship" => {
+            handle_add_episode_relationship(&mut server, params.arguments).await
+        }
+        "remove_episode_relationship" => {
+            handle_remove_episode_relationship(&mut server, params.arguments).await
+        }
+        "get_episode_relationships" => {
+            handle_get_episode_relationships(&mut server, params.arguments).await
+        }
+        "find_related_episodes" => {
+            handle_find_related_episodes(&mut server, params.arguments).await
+        }
+        "check_relationship_exists" => {
+            handle_check_relationship_exists(&mut server, params.arguments).await
+        }
+        "get_dependency_graph" => handle_get_dependency_graph(&mut server, params.arguments).await,
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
@@ -294,17 +337,18 @@ pub async fn handle_batch_execute(
                 "complete_episode" => handle_complete_episode(&mut server, Some(arguments)).await,
                 "get_episode" => handle_get_episode(&mut server, Some(arguments)).await,
                 "delete_episode" => handle_delete_episode(&mut server, Some(arguments)).await,
+                "update_episode" => handle_update_episode(&mut server, Some(arguments)).await,
                 "get_episode_timeline" => {
                     handle_get_episode_timeline(&mut server, Some(arguments)).await
-                }
-                "batch_query_episodes" => {
-                    handle_batch_query_episodes(&mut server, Some(arguments)).await
-                }
-                "batch_pattern_analysis" => {
-                    handle_batch_pattern_analysis(&mut server, Some(arguments)).await
-                }
-                "batch_compare_episodes" => {
-                    handle_batch_compare_episodes(&mut server, Some(arguments)).await
+                    //                 }
+                    //                 "batch_query_episodes" => {
+                    //                     handle_batch_query_episodes(&mut server, Some(arguments)).await
+                    //                 }
+                    //                 "batch_pattern_analysis" => {
+                    //                     handle_batch_pattern_analysis(&mut server, Some(arguments)).await
+                    //                 }
+                    //                 "batch_compare_episodes" => {
+                    //                     handle_batch_compare_episodes(&mut server, Some(arguments)).await
                 }
                 "add_episode_tags" => handle_add_episode_tags(&mut server, Some(arguments)).await,
                 "remove_episode_tags" => {
@@ -314,6 +358,24 @@ pub async fn handle_batch_execute(
                 "get_episode_tags" => handle_get_episode_tags(&mut server, Some(arguments)).await,
                 "search_episodes_by_tags" => {
                     handle_search_episodes_by_tags(&mut server, Some(arguments)).await
+                }
+                "add_episode_relationship" => {
+                    handle_add_episode_relationship(&mut server, Some(arguments)).await
+                }
+                "remove_episode_relationship" => {
+                    handle_remove_episode_relationship(&mut server, Some(arguments)).await
+                }
+                "get_episode_relationships" => {
+                    handle_get_episode_relationships(&mut server, Some(arguments)).await
+                }
+                "find_related_episodes" => {
+                    handle_find_related_episodes(&mut server, Some(arguments)).await
+                }
+                "check_relationship_exists" => {
+                    handle_check_relationship_exists(&mut server, Some(arguments)).await
+                }
+                "get_dependency_graph" => {
+                    handle_get_dependency_graph(&mut server, Some(arguments)).await
                 }
                 _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_name)),
             };

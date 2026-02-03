@@ -16,6 +16,8 @@ pub use core::PatternType;
 
 pub use core::analyze_pattern;
 pub use core::decay_patterns;
+#[cfg(feature = "turso")]
+pub use core::execute_pattern_batch_command;
 pub use core::list_patterns;
 pub use core::pattern_effectiveness;
 pub use core::recommend_patterns;

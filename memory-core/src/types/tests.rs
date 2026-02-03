@@ -1,6 +1,7 @@
 //! Tests for memory-core types.
 
 use super::*;
+use serial_test::serial;
 
 #[test]
 fn test_memory_config_default() {
@@ -18,7 +19,7 @@ fn test_memory_config_default() {
 }
 
 #[test]
-#[ignore = "test isolation issues with parallel execution and env vars"]
+#[serial]
 fn test_memory_config_from_env_defaults() {
     // Clear any environment variables that might be set
     std::env::remove_var("MEMORY_MAX_EPISODES");
@@ -37,7 +38,7 @@ fn test_memory_config_from_env_defaults() {
 }
 
 #[test]
-#[ignore = "test isolation issues with parallel execution and env vars"]
+#[serial]
 fn test_memory_config_from_env_with_values() {
     // Set environment variables
     std::env::set_var("MEMORY_MAX_EPISODES", "10000");

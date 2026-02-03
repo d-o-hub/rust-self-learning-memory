@@ -71,8 +71,8 @@ impl MistralEmbeddingProvider {
 
         for attempt in 0..=max_retries {
             if attempt > 0 {
-                let delay = base_delay_ms * 2_usize.pow(attempt as u32 - 1);
-                tokio::time::sleep(std::time::Duration::from_millis(delay as u64)).await;
+                let delay = base_delay_ms * 2_u64.pow(attempt as u32 - 1);
+                tokio::time::sleep(std::time::Duration::from_millis(delay)).await;
                 tracing::warn!("Retry attempt {} for Mistral embedding request", attempt);
             }
 
@@ -152,7 +152,7 @@ impl MistralEmbeddingProvider {
         }
     }
 
-    fn dequantize_binary_embeddings(&self, packed: Vec<f32>) -> Result<Vec<f32>> {
+    fn dequantize_binary_embeddings(&self, _packed: Vec<f32>) -> Result<Vec<f32>> {
         // Convert packed binary representation back to float embeddings
         // This is a simplified version - see Mistral's dequantization cookbook for full implementation
         anyhow::bail!("Binary dequantization not yet implemented")

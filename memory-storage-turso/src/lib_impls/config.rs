@@ -35,6 +35,13 @@ pub struct TursoConfig {
     /// Enable compression for embeddings (default: true)
     /// Only used when compression feature is enabled
     pub compress_embeddings: bool,
+    /// Compression level for zstd (1-22, default: 3)
+    /// 1 = fastest, 22 = best compression
+    /// Only used when compression feature is enabled
+    pub compression_level: i32,
+    /// Enable transport compression for network operations (default: true)
+    /// Only used when compression feature is enabled
+    pub enable_transport_compression: bool,
     /// Cache configuration for performance optimization
     /// When None, caching is disabled (default: Some(CacheConfig::default()))
     pub cache_config: Option<crate::cache::CacheConfig>,
@@ -58,6 +65,8 @@ impl Default for TursoConfig {
             compress_episodes: true,
             compress_patterns: true,
             compress_embeddings: true,
+            compression_level: 3, // Default zstd level (good balance of speed/ratio)
+            enable_transport_compression: true,
             // Cache configuration (enabled by default)
             cache_config: Some(crate::cache::CacheConfig::default()),
         }

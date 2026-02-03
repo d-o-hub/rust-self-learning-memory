@@ -8,7 +8,6 @@
 //! - tag search: Search episodes by tags
 //! - tag show: Show episode with its tags
 
-
 pub mod core;
 pub mod output;
 pub mod types;

@@ -352,6 +352,68 @@ impl SelfLearningMemory {
         Ok(episode.tags.clone())
     }
 
+    /// Update episode fields
+    ///
+    /// Updates specified fields of an episode. Only provided fields are updated.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode_id` - Episode to update
+    /// * `description` - Optional new task description
+    /// * `metadata` - Optional metadata to merge with existing metadata
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if update succeeds
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::NotFound` if episode doesn't exist
+    /// Returns `Error::Storage` if update fails
+    pub async fn update_episode(
+        &self,
+        episode_id: Uuid,
+        description: Option<String>,
+        metadata: Option<std::collections::HashMap<String, String>>,
+    ) -> Result<()> {
+        debug!("Updating episode: {}", episode_id);
+
+        // Get the episode
+        let mut episode = self.get_episode(episode_id).await?;
+
+        // Track if any changes were made
+        let mut changes_made = false;
+
+        // Update description if provided
+        if let Some(new_description) = description {
+            if episode.task_description != new_description {
+                episode.task_description = new_description;
+                changes_made = true;
+                debug!("Updated task description for episode: {}", episode_id);
+            }
+        }
+
+        // Merge metadata if provided
+        if let Some(new_metadata) = metadata {
+            if !new_metadata.is_empty() {
+                episode.metadata.extend(new_metadata);
+                changes_made = true;
+                debug!("Updated metadata for episode: {}", episode_id);
+            }
+        }
+
+        if !changes_made {
+            debug!("No changes to apply for episode: {}", episode_id);
+            return Ok(());
+        }
+
+        // Update in all storage backends
+        self.update_episode_in_storage(&episode).await?;
+
+        info!("Successfully updated episode: {}", episode_id);
+        Ok(())
+    }
+
     /// Helper to update episode in all storage backends
     async fn update_episode_in_storage(&self, episode: &crate::Episode) -> Result<()> {
         let episode_id = episode.episode_id;

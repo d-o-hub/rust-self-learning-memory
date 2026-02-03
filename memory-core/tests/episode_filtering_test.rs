@@ -9,7 +9,6 @@ use memory_core::{
 };
 
 #[tokio::test]
-#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_filter_by_tags_integration() {
     // Use lower quality threshold for test episodes
     let test_config = MemoryConfig {
@@ -98,7 +97,6 @@ async fn test_filter_by_tags_integration() {
 }
 
 #[tokio::test]
-#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_filter_by_success_only() {
     let test_config = MemoryConfig {
         quality_threshold: 0.4,
@@ -299,7 +297,6 @@ async fn test_filter_exclude_archived() {
 }
 
 #[tokio::test]
-#[ignore = "slow integration test - run with --ignored or in release CI"]
 async fn test_filter_complex_query() {
     let test_config = MemoryConfig {
         quality_threshold: 0.4,

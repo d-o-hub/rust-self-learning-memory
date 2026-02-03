@@ -5,6 +5,7 @@
 use crate::TursoStorage;
 use memory_core::{Error, Heuristic, Result};
 use tracing::{debug, error, info, warn};
+use uuid::Uuid;
 
 use super::heuristic_types::{HeuristicBatchProgress, HeuristicBatchResult};
 
@@ -314,6 +315,141 @@ impl TursoStorage {
 
         info!(
             "Batch heuristic update complete: {} succeeded, {} failed",
+            result.succeeded, result.failed
+        );
+
+        Ok(result)
+    }
+
+    /// Delete multiple heuristics in a single transaction
+    ///
+    /// Uses transactions for atomic deletion - if any fails, all are rolled back.
+    ///
+    /// # Arguments
+    ///
+    /// * `ids` - Vector of heuristic IDs to delete
+    ///
+    /// # Returns
+    ///
+    /// Result indicating success or failure
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_turso::TursoStorage;
+    /// # use uuid::Uuid;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let storage = TursoStorage::new("file:test.db", "").await?;
+    ///
+    /// let ids = vec![Uuid::new_v4(), Uuid::new_v4()];
+    /// storage.delete_heuristics_batch(ids).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn delete_heuristics_batch(&self, ids: Vec<Uuid>) -> Result<()> {
+        if ids.is_empty() {
+            debug!("Empty heuristics batch received for deletion, skipping");
+            return Ok(());
+        }
+
+        debug!("Deleting heuristics batch: {} items", ids.len());
+        let conn = self.get_connection().await?;
+
+        conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| {
+            Error::Storage(format!(
+                "Failed to begin transaction for heuristics delete batch: {}",
+                e
+            ))
+        })?;
+
+        let sql = "DELETE FROM heuristics WHERE heuristic_id = ?";
+
+        for id in &ids {
+            if let Err(e) = conn.execute(sql, libsql::params![id.to_string()]).await {
+                if let Err(rollback_err) = conn.execute("ROLLBACK", ()).await {
+                    error!("Failed to rollback transaction: {}", rollback_err);
+                }
+                return Err(Error::Storage(format!(
+                    "Failed to delete heuristic {} in batch: {}",
+                    id, e
+                )));
+            }
+        }
+
+        conn.execute("COMMIT", ()).await.map_err(|e| {
+            Error::Storage(format!(
+                "Failed to commit heuristics delete batch transaction: {}",
+                e
+            ))
+        })?;
+
+        info!("Successfully deleted heuristics batch: {} items", ids.len());
+        Ok(())
+    }
+
+    /// Delete heuristics in batches with progress tracking
+    pub async fn delete_heuristics_batch_with_progress(
+        &self,
+        ids: Vec<Uuid>,
+        batch_size: usize,
+    ) -> Result<HeuristicBatchResult> {
+        if ids.is_empty() {
+            return Ok(HeuristicBatchResult::success(0));
+        }
+
+        let batch_size = batch_size.max(1);
+        let total = ids.len();
+        let mut progress = HeuristicBatchProgress::new(total, batch_size);
+        let mut errors = Vec::new();
+
+        info!(
+            "Starting batch heuristic deletion: {} items in {} batches",
+            total, progress.total_batches
+        );
+
+        for chunk in ids.chunks(batch_size) {
+            let chunk_vec = chunk.to_vec();
+            let chunk_len = chunk_vec.len();
+
+            match self.delete_heuristics_batch(chunk_vec).await {
+                Ok(()) => {
+                    progress.update(chunk_len, chunk_len, 0);
+                    debug!(
+                        "Batch {}/{} complete: {} items",
+                        progress.current_batch, progress.total_batches, chunk_len
+                    );
+                }
+                Err(e) => {
+                    progress.update(chunk_len, 0, chunk_len);
+                    let error_msg = format!("Batch {} failed: {}", progress.current_batch, e);
+                    warn!("{}", error_msg);
+                    errors.push(error_msg);
+                }
+            }
+
+            if progress.current_batch % 10 == 0 || progress.is_complete() {
+                info!(
+                    "Progress: {:.1}% ({}/{} batches, {}/{} items)",
+                    progress.percent_complete(),
+                    progress.current_batch,
+                    progress.total_batches,
+                    progress.processed,
+                    total
+                );
+            }
+        }
+
+        let all_succeeded = errors.is_empty();
+        let result = HeuristicBatchResult {
+            total_processed: progress.processed,
+            succeeded: progress.succeeded,
+            failed: progress.failed,
+            all_succeeded,
+            errors,
+        };
+
+        info!(
+            "Batch heuristic deletion complete: {} succeeded, {} failed",
             result.succeeded, result.failed
         );
 

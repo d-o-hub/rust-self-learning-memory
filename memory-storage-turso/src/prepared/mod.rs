@@ -38,4 +38,10 @@
 //! ```
 
 pub mod cache;
-pub use cache::{ConnectionId, PreparedCacheConfig, PreparedCacheStats, PreparedStatementCache};
+pub use cache::{PreparedCacheConfig, PreparedCacheStats, PreparedStatementCache};
+
+// Re-export ConnectionId from pool module
+pub use crate::pool::ConnectionId;
+
+#[cfg(test)]
+mod tests;

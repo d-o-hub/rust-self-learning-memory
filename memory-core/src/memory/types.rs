@@ -8,6 +8,7 @@ use crate::patterns::extractors::HeuristicExtractor;
 use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
+use crate::security::audit::AuditLogger;
 use crate::storage::StorageBackend;
 use crate::types::MemoryConfig;
 use std::collections::HashMap;
@@ -122,4 +123,8 @@ pub struct SelfLearningMemory {
     /// DBSCAN anomaly detector for identifying unusual episodes
     #[allow(dead_code)]
     pub(super) dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
+
+    // Security - Audit logging
+    /// Audit logger for security compliance and incident investigation
+    pub(super) audit_logger: AuditLogger,
 }

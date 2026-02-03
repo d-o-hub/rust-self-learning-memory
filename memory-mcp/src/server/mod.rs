@@ -47,7 +47,7 @@ use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
 use crate::server::audit::{AuditConfig, AuditLogger};
 use crate::server::tools::registry::ToolRegistry;
-use crate::types::{ExecutionStats, SandboxConfig, Tool};
+use crate::types::{ExecutionStats, SandboxConfig};
 use crate::unified_sandbox::UnifiedSandbox;
 use anyhow::Result;
 use memory_core::SelfLearningMemory;

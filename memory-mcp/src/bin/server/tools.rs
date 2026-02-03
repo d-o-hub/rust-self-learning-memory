@@ -62,15 +62,14 @@ pub async fn handle_query_memory(
         .to_string();
 
     let result = server
-        .query_memory(query.clone(), domain, task_type, limit, sort)
+        .query_memory(query.clone(), domain, task_type, limit, sort, None)
         .await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
-    let success = result.is_ok();
+    let result_count = result.as_ref().map(json_value_len).unwrap_or(0);
     server
         .audit_logger()
-        .log_memory_query(&client_id, &query, result_count, success)
+        .log_memory_query(&client_id, &query, result_count, result.is_ok())
         .await;
 
     let content = vec![Content::Text {
@@ -174,15 +173,14 @@ pub async fn handle_analyze_patterns(
     let limit = args.get("limit").and_then(|v| v.as_u64()).unwrap_or(20) as usize;
 
     let result = server
-        .analyze_patterns(task_type.clone(), min_success_rate, limit)
+        .analyze_patterns(task_type.clone(), min_success_rate, limit, None)
         .await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
-    let success = result.is_ok();
+    let result_count = result.as_ref().map(json_value_len).unwrap_or(0);
     server
         .audit_logger()
-        .log_pattern_analysis(&client_id, &task_type, result_count, success)
+        .log_pattern_analysis(&client_id, &task_type, result_count, result.is_ok())
         .await;
 
     let content = vec![Content::Text {
@@ -348,11 +346,10 @@ pub async fn handle_query_semantic_memory(
     let result = server.execute_query_semantic_memory(input).await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
-    let success = result.is_ok();
+    let result_count = result.as_ref().map(json_value_len).unwrap_or(0);
     server
         .audit_logger()
-        .log_semantic_query(&client_id, &query, result_count, success)
+        .log_semantic_query(&client_id, &query, result_count, result.is_ok())
         .await;
 
     let content = vec![Content::Text {
@@ -387,11 +384,10 @@ pub async fn handle_search_patterns(
     let result = server.execute_search_patterns(input).await;
 
     // Audit log the operation
-    let result_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
-    let success = result.is_ok();
+    let result_count = result.as_ref().map(json_value_len).unwrap_or(0);
     server
         .audit_logger()
-        .log_pattern_search(&client_id, &domain, result_count, success)
+        .log_pattern_search(&client_id, &domain, result_count, result.is_ok())
         .await;
 
     let content = vec![Content::Text {
@@ -414,11 +410,10 @@ pub async fn handle_recommend_patterns(
     let result = server.execute_recommend_patterns(input).await;
 
     // Audit log the operation
-    let recommendation_count = result.as_ref().map(|r| json_value_len(r)).unwrap_or(0);
-    let success = result.is_ok();
+    let recommendation_count = result.as_ref().map(json_value_len).unwrap_or(0);
     server
         .audit_logger()
-        .log_recommend_patterns(&client_id, &domain, recommendation_count, success)
+        .log_recommend_patterns(&client_id, &domain, recommendation_count, result.is_ok())
         .await;
 
     let content = vec![Content::Text {
@@ -658,6 +653,34 @@ pub async fn handle_delete_episode(
     }])
 }
 
+/// Handle update_episode tool
+pub async fn handle_update_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let episode_id = args
+        .get("episode_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+
+    let result = server.update_episode_tool(args).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let error = result.as_ref().err().map(|e| e.to_string());
+    server
+        .audit_logger()
+        .log_episode_modification(&client_id, &episode_id, "update", success, error.as_deref())
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
 /// Handle get_episode_timeline tool
 pub async fn handle_get_episode_timeline(
     server: &mut MemoryMCPServer,
@@ -670,41 +693,9 @@ pub async fn handle_get_episode_timeline(
     }])
 }
 
-/// Handle batch_query_episodes tool
-pub async fn handle_batch_query_episodes(
-    server: &mut MemoryMCPServer,
-    arguments: Option<Value>,
-) -> anyhow::Result<Vec<Content>> {
-    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.batch_query_episodes_tool(args).await?;
-    Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
-    }])
-}
-
-/// Handle batch_pattern_analysis tool
-pub async fn handle_batch_pattern_analysis(
-    server: &mut MemoryMCPServer,
-    arguments: Option<Value>,
-) -> anyhow::Result<Vec<Content>> {
-    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.batch_pattern_analysis_tool(args).await?;
-    Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
-    }])
-}
-
-/// Handle batch_compare_episodes tool
-pub async fn handle_batch_compare_episodes(
-    server: &mut MemoryMCPServer,
-    arguments: Option<Value>,
-) -> anyhow::Result<Vec<Content>> {
-    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let result = server.batch_compare_episodes_tool(args).await?;
-    Ok(vec![Content::Text {
-        text: serde_json::to_string_pretty(&result)?,
-    }])
-}
+// TODO: Re-enable batch tools when batch module is fixed
+// See: memory-mcp/src/server/tools/mod.rs:7-8
+// Commented out: handle_batch_query_episodes, handle_batch_pattern_analysis, handle_batch_compare_episodes
 
 /// Handle add_episode_tags tool
 pub async fn handle_add_episode_tags(
@@ -825,10 +816,292 @@ pub async fn handle_search_episodes_by_tags(
 
     // Audit log the operation
     let result_count = result.as_ref().map(|r| r.count).unwrap_or(0);
-    let success = result.is_ok();
     server
         .audit_logger()
         .log_search_tags(&client_id, &tags, result_count)
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+/// Handle add_episode_relationship tool
+pub async fn handle_add_episode_relationship(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        AddEpisodeRelationshipInput, EpisodeRelationshipTools,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: AddEpisodeRelationshipInput = serde_json::from_value(args)?;
+    let from_id = input.from_episode_id.clone();
+    let to_id = input.to_episode_id.clone();
+    let rel_type = input.relationship_type.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.add_relationship(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let relationship_id = result
+        .as_ref()
+        .map(|r| r.relationship_id.clone())
+        .unwrap_or_default();
+    server
+        .audit_logger()
+        .log_add_relationship(
+            &client_id,
+            &from_id,
+            &to_id,
+            &rel_type,
+            &relationship_id,
+            success,
+        )
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+/// Handle remove_episode_relationship tool
+pub async fn handle_remove_episode_relationship(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        EpisodeRelationshipTools, RemoveEpisodeRelationshipInput,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: RemoveEpisodeRelationshipInput = serde_json::from_value(args)?;
+    let relationship_id = input.relationship_id.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.remove_relationship(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_remove_relationship(&client_id, &relationship_id, success)
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+/// Handle get_episode_relationships tool (Tool 3)
+///
+/// Get relationships for an episode with direction filtering (outgoing/incoming/both)
+pub async fn handle_get_episode_relationships(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        EpisodeRelationshipTools, GetEpisodeRelationshipsInput,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: GetEpisodeRelationshipsInput = serde_json::from_value(args)?;
+    let episode_id = input.episode_id.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.get_relationships(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let total_count = result.as_ref().map(|r| r.total_count).unwrap_or(0);
+    server
+        .audit_logger()
+        .log_get_relationships(&client_id, &episode_id, total_count, success)
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+/// Handle find_related_episodes tool (Tool 4)
+///
+/// Find episodes related to a given episode with optional type filtering
+pub async fn handle_find_related_episodes(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        EpisodeRelationshipTools, FindRelatedEpisodesInput,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: FindRelatedEpisodesInput = serde_json::from_value(args)?;
+    let episode_id = input.episode_id.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.find_related(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let count = result.as_ref().map(|r| r.count).unwrap_or(0);
+    server
+        .audit_logger()
+        .log_find_related(&client_id, &episode_id, count, success)
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+/// Handle check_relationship_exists tool (Tool 5)
+///
+/// Check if a specific relationship exists between two episodes
+pub async fn handle_check_relationship_exists(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        CheckRelationshipExistsInput, EpisodeRelationshipTools,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: CheckRelationshipExistsInput = serde_json::from_value(args)?;
+    let from_id = input.from_episode_id.clone();
+    let to_id = input.to_episode_id.clone();
+    let rel_type = input.relationship_type.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.check_exists(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let exists = result.as_ref().map(|r| r.exists).unwrap_or(false);
+    server
+        .audit_logger()
+        .log_check_relationship(&client_id, &from_id, &to_id, &rel_type, exists, success)
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+/// Handle get_dependency_graph tool (Tool 6)
+///
+/// Get relationship graph for visualization in JSON or DOT format
+pub async fn handle_get_dependency_graph(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        DependencyGraphInput, EpisodeRelationshipTools,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: DependencyGraphInput = serde_json::from_value(args)?;
+    let episode_id = input.episode_id.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.get_dependency_graph(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    let node_count = result.as_ref().map(|r| r.node_count).unwrap_or(0);
+    let edge_count = result.as_ref().map(|r| r.edge_count).unwrap_or(0);
+    server
+        .audit_logger()
+        .log_dependency_graph(&client_id, &episode_id, node_count, edge_count, success)
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+// TODO: Re-enable validate_no_cycles when fully integrated
+// Handle validate_no_cycles tool (Tool 7)
+#[allow(dead_code)]
+async fn _handle_validate_no_cycles(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        EpisodeRelationshipTools, ValidateNoCyclesInput,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: ValidateNoCyclesInput = serde_json::from_value(args)?;
+    let from_id = input.from_episode_id.clone();
+    let to_id = input.to_episode_id.clone();
+    let rel_type = input.relationship_type.clone();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.validate_no_cycles(input).await;
+
+    // Audit log the operation
+    let would_create_cycle = result
+        .as_ref()
+        .map(|r| r.would_create_cycle)
+        .unwrap_or(false);
+    server
+        .audit_logger()
+        .log_validate_cycles(
+            &client_id,
+            &from_id,
+            &to_id,
+            &rel_type,
+            would_create_cycle,
+            result.is_ok(),
+        )
+        .await;
+
+    Ok(vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }])
+}
+
+// TODO: Re-enable get_topological_order when fully integrated
+// Handle get_topological_order tool (Tool 8)
+#[allow(dead_code)]
+async fn _handle_get_topological_order(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    use memory_mcp::mcp::tools::episode_relationships::{
+        EpisodeRelationshipTools, GetTopologicalOrderInput,
+    };
+
+    let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let client_id = get_client_id(&args);
+    let input: GetTopologicalOrderInput = serde_json::from_value(args)?;
+    let episode_count = input.episode_ids.len();
+
+    let tools = EpisodeRelationshipTools::new(server.memory());
+    let result = tools.get_topological_order(input).await;
+
+    // Audit log the operation
+    let has_cycles = result.as_ref().map(|r| r.has_cycles).unwrap_or(false);
+    let output_count = result.as_ref().map(|r| r.count).unwrap_or(0);
+    server
+        .audit_logger()
+        .log_topological_order(
+            &client_id,
+            episode_count,
+            output_count,
+            has_cycles,
+            result.is_ok(),
+        )
         .await;
 
     Ok(vec![Content::Text {

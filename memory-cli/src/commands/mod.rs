@@ -88,6 +88,28 @@ pub async fn handle_episode_command(
         EpisodeCommands::Delete { episode_id } => {
             delete_episode(episode_id, memory, config, format, dry_run).await
         }
+        EpisodeCommands::Update {
+            episode_id,
+            description,
+            add_tag,
+            remove_tag,
+            set_tags,
+            metadata,
+        } => {
+            update_episode(
+                episode_id,
+                description,
+                add_tag,
+                remove_tag,
+                set_tags,
+                metadata,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
         EpisodeCommands::Search {
             query,
             limit,
@@ -280,6 +302,17 @@ pub async fn handle_pattern_command(
             dry_run: decay_dry_run,
             force,
         } => pattern::decay_patterns(memory, config, format, decay_dry_run || dry_run, force).await,
+        #[cfg(feature = "turso")]
+        PatternCommands::Batch { command } => {
+            // Get storage backend for batch operations
+            // TODO: This is a workaround - batch commands should not need direct storage access
+            use memory_storage_turso::TursoStorage;
+            let storage = TursoStorage::from_config(&config.database)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to create Turso storage: {}", e))?;
+
+            pattern::execute_pattern_batch_command(command, storage).await
+        }
     }
 }
 

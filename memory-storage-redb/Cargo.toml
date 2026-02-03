@@ -39,6 +39,12 @@ chrono = { workspace = true }
 # Logging
 tracing = { workspace = true }
 
+# Compression for cache persistence
+lz4_flex = { version = "0.12", default-features = false }
+
+# Synchronization
+parking_lot = "0.12.5"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }

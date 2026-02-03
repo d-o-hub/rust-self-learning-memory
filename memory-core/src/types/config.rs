@@ -3,6 +3,7 @@
 // ============================================================================
 
 use crate::memory::step_buffer::BatchConfig;
+use crate::security::audit::AuditConfig;
 
 /// Configuration for storage backend behavior.
 ///
@@ -162,6 +163,23 @@ pub struct MemoryConfig {
     pub temporal_bias_weight: f32,
     /// Maximum temporal clusters to search (default: 5)
     pub max_clusters_to_search: usize,
+
+    // Phase 3 (Enhanced) - Semantic Search Configuration
+    /// Semantic search mode: "hybrid" (default), "semantic-only", or "keyword-only"
+    /// - hybrid: Combine semantic embeddings with temporal/domain filtering
+    /// - semantic-only: Use only semantic similarity for ranking
+    /// - keyword-only: Use traditional keyword matching only
+    pub semantic_search_mode: String,
+    /// Enable query embedding caching (default: true)
+    /// Caches query embeddings to avoid regenerating for identical queries
+    pub enable_query_embedding_cache: bool,
+    /// Similarity threshold for semantic search (0.0-1.0, default: 0.6)
+    /// Episodes with similarity below this threshold are filtered out
+    pub semantic_similarity_threshold: f32,
+
+    // Security - Audit logging
+    /// Audit logging configuration
+    pub audit_config: AuditConfig,
 }
 
 impl Default for MemoryConfig {
@@ -189,6 +207,14 @@ impl Default for MemoryConfig {
             diversity_lambda: 0.7,
             temporal_bias_weight: 0.3,
             max_clusters_to_search: 5,
+
+            // Phase 3 (Enhanced) - Semantic search defaults
+            semantic_search_mode: "hybrid".to_string(),
+            enable_query_embedding_cache: true,
+            semantic_similarity_threshold: 0.6,
+
+            // Security - Audit logging (disabled by default for development)
+            audit_config: AuditConfig::default(),
         }
     }
 }
@@ -292,6 +318,38 @@ impl MemoryConfig {
                 config.max_clusters_to_search = value;
             }
         }
+
+        // Phase 3 (Enhanced) - Semantic search configuration
+        if let Ok(mode) = std::env::var("MEMORY_SEMANTIC_MODE") {
+            config.semantic_search_mode = match mode.to_lowercase().as_str() {
+                "semantic-only" | "semantic_only" | "semanticonly" => "semantic-only".to_string(),
+                "keyword-only" | "keyword_only" | "keywordonly" => "keyword-only".to_string(),
+                "hybrid" => "hybrid".to_string(),
+                _ => {
+                    tracing::warn!(
+                        "Invalid MEMORY_SEMANTIC_MODE '{}', using default 'hybrid'",
+                        mode
+                    );
+                    "hybrid".to_string()
+                }
+            };
+        }
+
+        if let Ok(enable_cache) = std::env::var("MEMORY_QUERY_CACHE") {
+            config.enable_query_embedding_cache = matches!(
+                enable_cache.to_lowercase().as_str(),
+                "true" | "1" | "yes" | "on"
+            );
+        }
+
+        if let Ok(threshold) = std::env::var("MEMORY_SIMILARITY_THRESHOLD") {
+            if let Ok(value) = threshold.parse::<f32>() {
+                config.semantic_similarity_threshold = value.clamp(0.0, 1.0);
+            }
+        }
+
+        // Security - Audit logging configuration from environment
+        config.audit_config = AuditConfig::from_env();
 
         config
     }

@@ -2,6 +2,7 @@
 
 use super::types::{
     TagAddResult, TagListResult, TagRemoveResult, TagSearchResult, TagSetResult, TagShowResult,
+    TagStatsResult,
 };
 use crate::output::Output;
 
@@ -216,6 +217,53 @@ impl Output for TagShowResult {
             }
         } else {
             writeln!(writer, "  (none)")?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Output for TagStatsResult {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(writer, "{}", "All Tags".bold())?;
+        writeln!(writer, "{}", "─".repeat(80))?;
+
+        writeln!(
+            writer,
+            "Total: {} unique tag(s), {} total usage(s)",
+            self.total_tags, self.total_usage
+        )?;
+        writeln!(writer, "Sorted by: {}", self.sort_by.cyan())?;
+        writeln!(writer)?;
+
+        if self.tags.is_empty() {
+            writeln!(writer, "{}", "No tags found in the system.".yellow())?;
+            return Ok(());
+        }
+
+        // Table header
+        writeln!(
+            writer,
+            "{:<20} {:>8} {:>20} {:>20}",
+            "Tag".bold(),
+            "Count".bold(),
+            "First Used".bold(),
+            "Last Used".bold()
+        )?;
+        writeln!(writer, "{}", "─".repeat(80))?;
+
+        // Table rows
+        for entry in &self.tags {
+            writeln!(
+                writer,
+                "{:<20} {:>8} {:>20} {:>20}",
+                entry.tag.cyan(),
+                entry.usage_count,
+                entry.first_used.dimmed(),
+                entry.last_used.dimmed()
+            )?;
         }
 
         Ok(())

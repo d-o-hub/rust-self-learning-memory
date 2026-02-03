@@ -8,7 +8,6 @@ use crate::types::{ExecutionStats, Tool};
 use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::info;
 
 impl crate::server::MemoryMCPServer {
     /// Get execution statistics
@@ -29,32 +28,12 @@ impl crate::server::MemoryMCPServer {
 
     /// Add a custom tool to the server
     pub async fn add_tool(&self, tool: Tool) -> Result<()> {
-        let mut tools = self.tools.write();
-
-        // Check for duplicate names
-        if tools.iter().any(|t| t.name == tool.name) {
-            anyhow::bail!("Tool with name '{}' already exists", tool.name);
-        }
-
-        info!("Adding custom tool: {}", tool.name);
-        tools.push(tool);
-
-        Ok(())
+        self.tool_registry.add_tool(tool)
     }
 
     /// Remove a tool from the server
     pub async fn remove_tool(&self, tool_name: &str) -> Result<()> {
-        let mut tools = self.tools.write();
-
-        let initial_len = tools.len();
-        tools.retain(|t| t.name != tool_name);
-
-        if tools.len() == initial_len {
-            anyhow::bail!("Tool '{}' not found", tool_name);
-        }
-
-        info!("Removed tool: {}", tool_name);
-        Ok(())
+        self.tool_registry.remove_tool(tool_name)
     }
 
     /// Get monitoring endpoints

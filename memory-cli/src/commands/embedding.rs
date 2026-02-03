@@ -6,7 +6,10 @@
 use crate::config::Config;
 use anyhow::Result;
 use clap::Subcommand;
-use memory_core::embeddings::EmbeddingProvider;
+#[allow(unused_imports)] // All configs are used in match statements
+use memory_core::embeddings::{
+    AzureOpenAIConfig, CustomConfig, EmbeddingProvider, LocalConfig, MistralConfig, OpenAIConfig,
+};
 use std::env;
 
 #[derive(Subcommand)]

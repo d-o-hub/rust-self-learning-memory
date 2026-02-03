@@ -4,41 +4,31 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 /// Persistence mode
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum PersistenceMode {
     /// Full snapshots only
     Full,
     /// Incremental updates only
     Incremental,
     /// Hybrid: full snapshots with incremental updates
+    #[default]
     Hybrid,
     /// Disabled
     Disabled,
 }
 
-impl Default for PersistenceMode {
-    fn default() -> Self {
-        Self::Hybrid
-    }
-}
-
 /// Persistence strategy
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum PersistenceStrategy {
     /// Persist on every change (high durability, lower performance)
     Immediate,
     /// Persist at regular intervals
+    #[default]
     Interval,
     /// Persist on shutdown only
     OnShutdown,
     /// Persist when cache reaches threshold
     Threshold,
-}
-
-impl Default for PersistenceStrategy {
-    fn default() -> Self {
-        Self::Interval
-    }
 }
 
 /// Configuration for cache persistence

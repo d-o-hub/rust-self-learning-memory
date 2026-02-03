@@ -26,14 +26,18 @@
 //! - 20% better performance under variable load
 
 pub mod adaptive;
+pub mod caching_pool;
 mod config;
+pub mod connection_wrapper;
 pub mod keepalive;
 
 pub use adaptive::{
     AdaptiveConnectionPool, AdaptivePoolConfig, AdaptivePoolMetrics, AdaptivePooledConnection,
-    ConnectionId,
+    ConnectionCleanupCallback, ConnectionId,
 };
+pub use caching_pool::{CachingPool, CachingPoolConfig, CachingPoolStats, ConnectionGuard};
 pub use config::{PoolConfig, PoolStatistics, PooledConnection};
+pub use connection_wrapper::PooledConnection as WrappedPooledConnection;
 pub use keepalive::{KeepAliveConfig, KeepAliveConnection, KeepAlivePool, KeepAliveStatistics};
 
 use libsql::{Connection, Database};

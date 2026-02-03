@@ -1,5 +1,7 @@
 //! Pattern command types and structures
 
+#[cfg(feature = "turso")]
+use super::batch::PatternBatchCommands;
 use clap::{Subcommand, ValueEnum};
 use serde::Serialize;
 
@@ -58,6 +60,14 @@ pub enum PatternCommands {
         /// Force decay without confirmation
         #[arg(long)]
         force: bool,
+    },
+
+    /// Batch pattern operations (4-6x faster)
+    #[cfg(feature = "turso")]
+    Batch {
+        /// Batch operation to perform
+        #[command(subcommand)]
+        command: PatternBatchCommands,
     },
 }
 

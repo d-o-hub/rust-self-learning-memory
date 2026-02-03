@@ -2,8 +2,7 @@
 
 use super::decay::DecayResult;
 use super::types::{
-    EffectivenessRankings, PatternAnalysisResult, PatternDetail, PatternList,
-    PatternSummary,
+    EffectivenessRankings, PatternAnalysisResult, PatternDetail, PatternList, PatternSummary,
 };
 use crate::output::Output;
 

@@ -82,6 +82,42 @@ impl StorageBackend for super::TursoStorage {
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
         super::TursoStorage::get_embeddings_batch_backend(self, ids).await
     }
+
+    // ========== Relationship Storage Methods ==========
+
+    async fn store_relationship(
+        &self,
+        relationship: &memory_core::episode::EpisodeRelationship,
+    ) -> Result<()> {
+        super::TursoStorage::store_relationship(self, relationship).await
+    }
+
+    async fn remove_relationship(&self, relationship_id: uuid::Uuid) -> Result<()> {
+        super::TursoStorage::remove_relationship(self, relationship_id).await
+    }
+
+    async fn get_relationships(
+        &self,
+        episode_id: uuid::Uuid,
+        direction: memory_core::episode::Direction,
+    ) -> Result<Vec<memory_core::episode::EpisodeRelationship>> {
+        super::TursoStorage::get_relationships(self, episode_id, direction).await
+    }
+
+    async fn relationship_exists(
+        &self,
+        from_episode_id: uuid::Uuid,
+        to_episode_id: uuid::Uuid,
+        relationship_type: memory_core::episode::RelationshipType,
+    ) -> Result<bool> {
+        super::TursoStorage::relationship_exists(
+            self,
+            from_episode_id,
+            to_episode_id,
+            relationship_type,
+        )
+        .await
+    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage

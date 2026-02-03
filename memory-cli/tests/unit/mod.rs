@@ -5,6 +5,7 @@
 pub mod command_parsing;
 pub mod compatibility_tests;
 pub mod config_validation;
+pub mod config_wizard_tests;
 pub mod input_validation;
 pub mod output_formatting;
 pub mod performance_tests;

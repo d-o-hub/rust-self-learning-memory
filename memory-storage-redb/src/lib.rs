@@ -40,12 +40,17 @@ mod episodes_queries;
 mod episodes_summaries;
 mod heuristics;
 mod patterns;
+mod persistence;
 mod relationships;
 mod storage;
 mod tables;
 
 pub use cache::{
     AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics, CacheConfig, CacheMetrics, LRUCache,
+};
+pub use persistence::{
+    CachePersistence, CacheSnapshot, PersistedCacheEntry, PersistenceConfig, PersistenceManager,
+    PersistenceMode, PersistenceStats, PersistenceStrategy,
 };
 pub use storage::RedbQuery;
 
@@ -513,6 +518,37 @@ impl StorageBackend for RedbStorage {
 
     async fn get_embeddings_batch(&self, ids: &[String]) -> Result<Vec<Option<Vec<f32>>>> {
         self.get_embeddings_batch_impl(ids).await
+    }
+
+    // ========== Relationship Storage Methods ==========
+
+    async fn store_relationship(
+        &self,
+        relationship: &memory_core::episode::EpisodeRelationship,
+    ) -> Result<()> {
+        self.store_relationship(relationship).await
+    }
+
+    async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
+        self.remove_relationship(relationship_id).await
+    }
+
+    async fn get_relationships(
+        &self,
+        episode_id: Uuid,
+        direction: memory_core::episode::Direction,
+    ) -> Result<Vec<memory_core::episode::EpisodeRelationship>> {
+        self.get_relationships(episode_id, direction).await
+    }
+
+    async fn relationship_exists(
+        &self,
+        from_episode_id: Uuid,
+        to_episode_id: Uuid,
+        relationship_type: memory_core::episode::RelationshipType,
+    ) -> Result<bool> {
+        self.relationship_exists(from_episode_id, to_episode_id, relationship_type)
+            .await
     }
 }
 

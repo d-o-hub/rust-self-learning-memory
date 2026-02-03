@@ -45,6 +45,7 @@ pub mod core;
 pub mod episode_ops;
 pub mod pattern_ops;
 pub mod query_ops;
+pub mod relationship_ops;
 pub mod security_ops;
 pub mod tag_ops;
 pub mod types;

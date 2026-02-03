@@ -45,6 +45,7 @@ mod mistral;
 mod mock_model;
 mod openai;
 mod provider;
+#[cfg(feature = "local-embeddings")]
 mod real_model;
 mod similarity;
 mod storage;
@@ -311,6 +312,23 @@ impl SemanticService {
     /// Calculate similarity between two texts
     pub async fn text_similarity(&self, text1: &str, text2: &str) -> Result<f32> {
         self.provider.similarity(text1, text2).await
+    }
+
+    /// Get embeddings for multiple episodes in batch
+    ///
+    /// This method retrieves embeddings for multiple episode IDs efficiently.
+    /// For backends that don't support batch operations, it falls back to individual lookups.
+    pub async fn get_embeddings_batch(
+        &self,
+        episode_ids: &[uuid::Uuid],
+    ) -> Result<Vec<Option<Vec<f32>>>> {
+        // Use individual lookups for now (batch optimization can be added later)
+        let mut results = Vec::with_capacity(episode_ids.len());
+        for episode_id in episode_ids {
+            let embedding = self.storage.get_episode_embedding(*episode_id).await?;
+            results.push(embedding);
+        }
+        Ok(results)
     }
 
     /// Convert episode to searchable text representation

@@ -2,6 +2,7 @@
 
 use crate::episode::{Episode, ExecutionStep};
 use crate::error::{Error, Result};
+use crate::security::audit::{episode_created, AuditContext};
 use crate::types::{TaskContext, TaskType};
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
@@ -102,6 +103,16 @@ impl SelfLearningMemory {
         // Store as Arc to avoid cloning when sharing
         let mut episodes = self.episodes_fallback.write().await;
         episodes.insert(episode_id, Arc::new(episode));
+
+        // Audit log: episode created
+        let context = AuditContext::system();
+        let audit_entry = episode_created(
+            &context,
+            episode_id,
+            &task_description,
+            &task_type.to_string(),
+        );
+        self.audit_logger.log(audit_entry);
 
         episode_id
     }

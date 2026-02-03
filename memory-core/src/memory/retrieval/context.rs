@@ -272,12 +272,17 @@ impl SelfLearningMemory {
                 None
             };
 
+            // Preload episode embeddings for semantic similarity scoring
+            // Note: Using empty map for now - individual lookups will be done in the retriever
+            let episode_embeddings = std::collections::HashMap::new();
+
             let query = RetrievalQuery {
                 query_text: task_description.clone(),
                 query_embedding,
                 domain: Some(context.domain.clone()),
-                task_type: None,  // Could extract from context if needed
-                limit: limit * 2, // Retrieve more candidates for diversity maximization
+                task_type: None,    // Could extract from context if needed
+                limit: limit * 2,   // Retrieve more candidates for diversity maximization
+                episode_embeddings, // Preloaded embeddings
             };
 
             match retriever

@@ -207,6 +207,26 @@ mkdir -p ./data ./backups
 
 ### Basic Usage
 
+#### Setup Configuration
+
+```bash
+# Run interactive configuration wizard
+memory config wizard
+
+# Follow the prompts to configure:
+# - Database (local SQLite or remote Turso)
+# - Storage (cache size, TTL, connection pool)
+# - CLI (output format, progress bars, batch size)
+
+# Validate configuration
+memory config validate
+
+# Check configuration status
+memory config check
+```
+
+**NEW:** Configuration Wizard - Interactive step-by-step setup with sensible defaults and validation.
+
 #### CLI Interaction
 
 ```bash
@@ -268,6 +288,7 @@ async fn main() -> anyhow::Result<()> {
 
 | Document | Description |
 |----------|-------------|
+| [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |

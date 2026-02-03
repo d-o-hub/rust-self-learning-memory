@@ -191,54 +191,29 @@ impl TursoStorage {
         let metadata_str = String::from_utf8(metadata_json)
             .map_err(|e| Error::Storage(format!("Failed to convert metadata to UTF-8: {}", e)))?;
 
-        // Use prepared statement cache when connection pooling is enabled
-        if self.has_connection_pool() {
-            let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-            stmt.execute(libsql::params![
-                episode.episode_id.to_string(),
-                episode.task_type.to_string(),
-                episode.task_description.clone(),
-                context_json,
-                episode.start_time.timestamp(),
-                episode.end_time.map(|t| t.timestamp()),
-                steps_json,
-                outcome_json,
-                reward_json,
-                reflection_json,
-                patterns_str,
-                heuristics_str,
-                metadata_str,
-                episode.context.domain.clone(),
-                episode.context.language.clone(),
-                archived_at,
-            ])
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
-        } else {
-            conn.execute(
-                SQL,
-                libsql::params![
-                    episode.episode_id.to_string(),
-                    episode.task_type.to_string(),
-                    episode.task_description.clone(),
-                    context_json,
-                    episode.start_time.timestamp(),
-                    episode.end_time.map(|t| t.timestamp()),
-                    steps_json,
-                    outcome_json,
-                    reward_json,
-                    reflection_json,
-                    patterns_str,
-                    heuristics_str,
-                    metadata_str,
-                    episode.context.domain.clone(),
-                    episode.context.language.clone(),
-                    archived_at,
-                ],
-            )
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
-        }
+        // Use prepared statement cache for optimal performance
+        // The cache is connection-aware and handles all connection types
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
+        stmt.execute(libsql::params![
+            episode.episode_id.to_string(),
+            episode.task_type.to_string(),
+            episode.task_description.clone(),
+            context_json,
+            episode.start_time.timestamp(),
+            episode.end_time.map(|t| t.timestamp()),
+            steps_json,
+            outcome_json,
+            reward_json,
+            reflection_json,
+            patterns_str,
+            heuristics_str,
+            metadata_str,
+            episode.context.domain.clone(),
+            episode.context.language.clone(),
+            archived_at,
+        ])
+        .await
+        .map_err(|e| Error::Storage(format!("Failed to store episode: {}", e)))?;
 
         // Clear the prepared statement cache for this connection when done
         self.clear_prepared_cache(conn_id);
@@ -260,17 +235,12 @@ impl TursoStorage {
             FROM episodes WHERE episode_id = ?
         "#;
 
-        // Use prepared statement cache when connection pooling is enabled
-        let mut rows = if self.has_connection_pool() {
-            let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-            stmt.query(libsql::params![episode_id.to_string()])
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?
-        } else {
-            conn.query(SQL, libsql::params![episode_id.to_string()])
-                .await
-                .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?
-        };
+        // Use prepared statement cache for optimal performance
+        let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
+        let mut rows = stmt
+            .query(libsql::params![episode_id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query episode: {}", e)))?;
 
         let result = if let Some(row) = rows
             .next()

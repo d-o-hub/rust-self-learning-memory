@@ -4,9 +4,10 @@
 
 pub mod definitions;
 
+pub use definitions::create_default_registry;
+
 use crate::types::Tool;
 use anyhow::Result;
-use definitions::create_default_registry;
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -174,6 +175,51 @@ impl ToolRegistry {
         let cleared_count = loaded.len();
         loaded.clear();
         debug!("Cleared session cache ({} tools)", cleared_count);
+    }
+
+    /// Add a custom tool to the session
+    ///
+    /// # Arguments
+    ///
+    /// * `tool` - The tool to add
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(())` if successful, or an error if the tool already exists
+    pub fn add_tool(&self, tool: Tool) -> Result<()> {
+        let name = tool.name.clone();
+
+        if self.tool_exists(&name) {
+            anyhow::bail!("Tool with name '{}' already exists", name);
+        }
+
+        let mut loaded = self.session_loaded.write();
+        info!("Adding custom tool: {}", name);
+        loaded.insert(name, tool);
+        Ok(())
+    }
+
+    /// Remove a tool from the session (cannot remove core tools)
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - Tool name to remove
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(())` if successful, or an error if the tool doesn't exist or is a core tool
+    pub fn remove_tool(&self, name: &str) -> Result<()> {
+        if self.core_tools.iter().any(|t| t.name == name) {
+            anyhow::bail!("Cannot remove core tool '{}'", name);
+        }
+
+        let mut loaded = self.session_loaded.write();
+        if loaded.remove(name).is_none() && !self.extended_tools.contains_key(name) {
+            anyhow::bail!("Tool '{}' not found", name);
+        }
+
+        info!("Removed tool: {}", name);
+        Ok(())
     }
 
     /// Track tool usage for progressive disclosure

@@ -234,6 +234,12 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         diversity_lambda: 0.7,
         temporal_bias_weight: 0.3,
         max_clusters_to_search: 5,
+        // Semantic search configuration
+        semantic_search_mode: "hybrid".to_string(),
+        enable_query_embedding_cache: true,
+        semantic_similarity_threshold: 0.7,
+        // Audit configuration
+        audit_config: memory_core::AuditConfig::default(),
     }
 }
 

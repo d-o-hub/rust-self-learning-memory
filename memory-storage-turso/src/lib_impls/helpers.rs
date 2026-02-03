@@ -99,6 +99,8 @@ impl TursoStorage {
     /// ```
     pub async fn get_connection_with_id(&self) -> Result<(Connection, ConnectionId)> {
         let conn = self.get_connection().await?;
+        // Generate a connection ID for this checkout
+        // This ID tracks statement preparation for statistics
         let conn_id = self.prepared_cache.get_connection_id();
         Ok((conn, conn_id))
     }

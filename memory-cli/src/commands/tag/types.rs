@@ -39,11 +39,11 @@ pub enum TagCommands {
         tags: Vec<String>,
     },
 
-    /// List all tags for an episode
+    /// List all tags with statistics (system-wide)
     List {
-        /// Episode ID
-        #[arg(value_name = "EPISODE_ID")]
-        episode_id: String,
+        /// Sort by: count (most used), name (alphabetical), recent (last used)
+        #[arg(long, value_name = "SORT", default_value = "name")]
+        sort_by: String,
     },
 
     /// Search episodes by tags
@@ -102,6 +102,24 @@ pub struct TagListResult {
     pub episode_id: String,
     pub tags: Vec<String>,
     pub count: usize,
+}
+
+/// Tag statistics entry for system-wide tag list
+#[derive(Debug, Serialize)]
+pub struct TagStatEntry {
+    pub tag: String,
+    pub usage_count: usize,
+    pub first_used: String,
+    pub last_used: String,
+}
+
+/// Result of listing all tags with statistics (system-wide)
+#[derive(Debug, Serialize)]
+pub struct TagStatsResult {
+    pub tags: Vec<TagStatEntry>,
+    pub total_tags: usize,
+    pub total_usage: usize,
+    pub sort_by: String,
 }
 
 /// Episode information for tag search results

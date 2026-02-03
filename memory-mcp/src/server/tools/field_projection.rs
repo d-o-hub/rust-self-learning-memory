@@ -31,8 +31,8 @@
 //! - **After**: Selected fields only (~200 tokens, 60% reduction)
 
 use anyhow::Result;
-use serde::{Deserialize, Serialize, Serializer};
-use serde_json::{json, Value};
+use serde::Serialize;
+use serde_json::Value;
 use std::collections::HashSet;
 use tracing::{debug, trace};
 
@@ -134,7 +134,10 @@ impl FieldSelector {
             return Ok(full);
         }
 
-        let allowed = self.allowed_fields.as_ref().expect("Should have fields");
+        let allowed = match self.allowed_fields.as_ref() {
+            Some(fields) => fields,
+            None => return Ok(full),
+        };
         Ok(self.filter_value(&full, allowed, ""))
     }
 

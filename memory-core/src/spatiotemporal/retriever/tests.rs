@@ -59,6 +59,7 @@ fn test_domain_filtering() {
         domain: Some("web-api".to_string()),
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let filtered = retriever.filter_by_domain(&episodes, &query);
@@ -81,6 +82,7 @@ fn test_domain_filtering_no_filter() {
         domain: None,
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let filtered = retriever.filter_by_domain(&episodes, &query);
@@ -105,6 +107,7 @@ fn test_task_type_filtering() {
         domain: None,
         task_type: Some(TaskType::CodeGeneration),
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let filtered = retriever.filter_by_task_type(&candidates, &query);
@@ -131,6 +134,7 @@ fn test_task_type_filtering_no_filter() {
         domain: None,
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let filtered = retriever.filter_by_task_type(&candidates, &query);
@@ -156,6 +160,7 @@ fn test_temporal_clustering_favors_recent() {
         domain: None,
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let clustered = retriever.select_temporal_clusters(&candidates, &query);
@@ -189,6 +194,7 @@ fn test_scoring_domain_match() {
         domain: Some("web-api".to_string()),
         task_type: None,
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let scored = retriever.score_episodes(&candidates, &query);
@@ -216,6 +222,7 @@ fn test_scoring_task_type_match() {
         domain: None,
         task_type: Some(TaskType::CodeGeneration),
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let scored = retriever.score_episodes(&candidates, &query);
@@ -239,6 +246,7 @@ fn test_scoring_temporal_proximity() {
         domain: None,
         task_type: None,
         limit: 2,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let scored = retriever.score_episodes(&candidates, &query);
@@ -280,6 +288,7 @@ fn test_text_similarity() {
         domain: None,
         task_type: None,
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let scored = retriever.score_episodes(&candidates, &query);
@@ -356,6 +365,7 @@ async fn test_full_retrieval_workflow() {
         domain: Some("web-api".to_string()),
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await.unwrap();
@@ -380,6 +390,7 @@ async fn test_retrieval_empty_episodes() {
         domain: Some("web-api".to_string()),
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let scored = retriever.retrieve(&query, &episodes).await.unwrap();
@@ -406,6 +417,7 @@ fn test_combined_score_calculation() {
         domain: Some("web-api".to_string()),
         task_type: Some(TaskType::CodeGeneration),
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let scored = retriever.score_episodes(&candidates, &query);
@@ -437,6 +449,7 @@ async fn test_retrieval_with_no_filters() {
         domain: None,
         task_type: None,
         limit: 10,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await.unwrap();

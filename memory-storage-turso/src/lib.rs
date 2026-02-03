@@ -1,4 +1,17 @@
 #![allow(clippy::expect_used)]
+// Intentional allows for memory-storage-turso
+#![allow(unsafe_code)] // Intentional unsafe for performance in connection pooling
+#![allow(clippy::unwrap_used)] // Intentional .unwrap() on mutex locks
+#![allow(invalid_value)] // Intentional zero-initialization in connection pool
+#![allow(dead_code)] // Public API methods not used internally
+// Additional allows for complex code patterns
+#![allow(clippy::excessive_nesting)] // Complex control flow in cache logic
+#![allow(unused_mut)] // Variables used conditionally
+#![allow(unused_assignments)] // Variables assigned in loops
+#![allow(clippy::derivable_impls)] // Prefer explicit impls for clarity
+#![allow(clippy::should_implement_trait)] // Custom default methods
+#![allow(clippy::unnecessary_map_or)] // Explicit is better than implicit
+#![allow(clippy::useless_asref)] // Clarity in type conversions
 
 //! # Memory Storage - Turso
 //!
@@ -49,9 +62,16 @@ pub mod turso_config;
 // Prepared statement caching for query optimization
 pub mod prepared;
 
+// Performance metrics and export module
+pub mod metrics;
+
 // Compression module for network bandwidth reduction (40% target)
 #[cfg(feature = "compression")]
 pub mod compression;
+
+// Transport layer with compression support
+#[cfg(feature = "compression")]
+pub mod transport;
 
 // Lib implementation submodules - split for file size compliance
 mod lib_impls;
@@ -61,8 +81,11 @@ pub use lib_impls::TursoConfig;
 pub use lib_impls::TursoStorage;
 
 // Cache exports
-pub use cache::query_cache::{QueryCache, QueryCacheStats, QueryKey};
-pub use cache::{CacheConfig, CacheStats, CachedTursoStorage};
+pub use cache::query_cache::{AdvancedCacheStats, AdvancedQueryCache, QueryKey};
+pub use cache::{
+    AdaptiveTTLCache, CacheConfig, CacheEntry, CacheStats, CacheStatsSnapshot, CachedTursoStorage,
+    TTLConfig, TTLConfigError,
+};
 
 // Performance metrics exports
 pub use pool::{
@@ -73,7 +96,13 @@ pub use pool::{ConnectionPool, PoolConfig, PoolStatistics, PooledConnection};
 pub use pool::{KeepAliveConfig, KeepAlivePool, KeepAliveStatistics};
 pub use prepared::{PreparedCacheConfig, PreparedCacheStats, PreparedStatementCache};
 pub use resilient::ResilientStorage;
-pub use storage::batch::BatchConfig;
+
+// Metrics export re-exports
+pub use metrics::{
+    ExportConfig, ExportFormat, ExportStats, ExportTarget, ExportedMetric, MetricType, MetricValue,
+    MetricsCollector, MetricsHttpServer, PrometheusExporter, TursoMetrics,
+};
+pub use storage::batch::episode_batch::BatchConfig;
 pub use storage::capacity::CapacityStatistics;
 pub use storage::episodes::EpisodeQuery;
 pub use storage::patterns::{PatternMetadata, PatternQuery};
@@ -84,6 +113,13 @@ pub use trait_impls::StorageStatistics;
 pub use compression::{
     compress, compress_embedding, compress_json, decompress, decompress_embedding,
     CompressedPayload, CompressionAlgorithm, CompressionStatistics,
+};
+
+// Transport exports (when compression feature is enabled)
+#[cfg(feature = "compression")]
+pub use transport::{
+    CompressedTransport, Transport, TransportCompressionConfig, TransportCompressionError,
+    TransportCompressionStats, TransportMetadata, TransportResponse,
 };
 
 // Include constructor implementations from lib_impls modules

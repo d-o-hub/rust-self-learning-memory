@@ -28,7 +28,7 @@ This is a memory management system with episodic memory capabilities, semantic e
 - **Clippy**: `cargo clippy --all -- -D warnings` (zero warnings enforced)
 
 ## File Organization
-- Plans/analysis/validation/reports and all other non permanent doc .md files stored in `plans/` folder only
+- Plans/analysis/validation/reports and all other non-permanent documentation files (.md, .txt, .rst, etc.) stored in `plans/` folder only
 - Maximum 500 lines per file for source code (all 9/9 modules compliant after splitting 17 oversized files)
 - **Benchmark files** (`benches/*.rs`) are exempt from the 500 LOC limit - they contain comprehensive performance tests that require extensive setup and measurement code
 - Module structure follows single responsibility principle

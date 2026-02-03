@@ -212,6 +212,46 @@ pub fn create_extended_tools() -> Vec<Tool> {
         }),
     ));
 
+    // Episode lifecycle management tools - update
+    tools.push(Tool::new(
+        "update_episode".to_string(),
+        "Update episode fields (description, tags, metadata)".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "string",
+                    "description": "UUID of the episode to update"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "New task description (optional)"
+                },
+                "add_tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Tags to add to the episode (optional)"
+                },
+                "remove_tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Tags to remove from the episode (optional)"
+                },
+                "set_tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Replace all existing tags with these (optional)"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"},
+                    "description": "Metadata key-value pairs to merge (optional)"
+                }
+            },
+            "required": ["episode_id"]
+        }),
+    ));
+
     // Episode lifecycle management tools - timeline
     tools.push(Tool::new(
         "get_episode_timeline".to_string(),

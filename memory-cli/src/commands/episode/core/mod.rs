@@ -13,6 +13,7 @@ pub mod log_step;
 pub mod output;
 pub mod search;
 pub mod types;
+pub mod update;
 pub mod view;
 
 pub use bulk::bulk_get_episodes;
@@ -25,4 +26,6 @@ pub use list::list_episodes;
 pub use log_step::log_step;
 pub use search::search_episodes;
 pub use types::*;
+pub use update::update_episode;
+pub use update::UpdateResult;
 pub use view::view_episode;

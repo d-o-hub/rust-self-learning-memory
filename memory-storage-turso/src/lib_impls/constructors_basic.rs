@@ -77,6 +77,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool: None,
             adaptive_pool: None,
+            caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
                 PreparedCacheConfig::default(),
             )),
@@ -187,6 +188,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool,
             adaptive_pool: None,
+            caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
                 PreparedCacheConfig::default(),
             )),

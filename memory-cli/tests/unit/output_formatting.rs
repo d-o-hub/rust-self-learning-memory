@@ -49,7 +49,11 @@ mod output_formatting_tests {
                 enabled: true,
                 count: 5,
             },
-            list: vec!["item1".to_string(), "item2".to_string(), "item3".to_string()],
+            list: vec![
+                "item1".to_string(),
+                "item2".to_string(),
+                "item3".to_string(),
+            ],
         }
     }
 
@@ -236,7 +240,10 @@ mod output_formatting_tests {
         data.write_yaml(&mut buffer).unwrap();
         let yaml_output = String::from_utf8(buffer).unwrap();
         let parsed: serde_yaml::Value = serde_yaml::from_str(&yaml_output).unwrap();
-        assert_eq!(parsed["special_string"].as_str().unwrap(), "Special chars: <>&\"'");
+        assert_eq!(
+            parsed["special_string"].as_str().unwrap(),
+            "Special chars: <>&\"'"
+        );
         assert_eq!(parsed["unicode"].as_str().unwrap(), "Unicode: 🚀 🔥 💯");
     }
 

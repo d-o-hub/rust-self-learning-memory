@@ -103,12 +103,39 @@ impl EmbeddingProvider for MockLocalModel {
     }
 }
 
+/// Implement `LocalEmbeddingModel` trait for `MockLocalModel`
+/// Note: This is always available for fallback/testing
+#[async_trait]
+impl super::local::LocalEmbeddingModel for MockLocalModel {
+    async fn embed(&self, text: &str) -> Result<Vec<f32>> {
+        Ok(self.generate_mock_embedding(text))
+    }
+
+    async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>> {
+        let mut embeddings = Vec::with_capacity(texts.len());
+        for text in texts {
+            embeddings.push(self.generate_mock_embedding(text));
+        }
+        Ok(embeddings)
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn dimension(&self) -> usize {
+        self.dimension
+    }
+}
+
 /// Real embedding model with graceful fallback to mock
+#[cfg(feature = "local-embeddings")]
 pub struct RealEmbeddingModelWithFallback {
     real_model: Option<super::real_model::RealEmbeddingModel>,
     mock_model: MockLocalModel,
 }
 
+#[cfg(feature = "local-embeddings")]
 impl RealEmbeddingModelWithFallback {
     pub fn new(
         name: String,
@@ -185,6 +212,7 @@ impl RealEmbeddingModelWithFallback {
     }
 }
 
+#[cfg(feature = "local-embeddings")]
 #[async_trait]
 impl EmbeddingProvider for RealEmbeddingModelWithFallback {
     async fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
@@ -230,6 +258,7 @@ impl EmbeddingProvider for RealEmbeddingModelWithFallback {
     }
 }
 
+#[cfg(feature = "local-embeddings")]
 #[async_trait]
 impl super::local::LocalEmbeddingModel for RealEmbeddingModelWithFallback {
     async fn embed(&self, text: &str) -> Result<Vec<f32>> {

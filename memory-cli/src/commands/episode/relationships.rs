@@ -13,9 +13,7 @@ use crate::config::Config;
 use crate::output::{Output, OutputFormat};
 use clap::{Subcommand, ValueEnum};
 use colored::Colorize;
-use memory_core::episode::{
-    Direction, RelationshipMetadata, RelationshipType,
-};
+use memory_core::episode::{Direction, RelationshipMetadata, RelationshipType};
 use memory_core::memory::relationship_query::RelationshipFilter;
 use memory_core::SelfLearningMemory;
 use serde::Serialize;

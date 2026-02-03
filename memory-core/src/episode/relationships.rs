@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[cfg(test)]
+#[cfg(feature = "proptest-arbitrary")]
 use proptest::prelude::*;
 
 /// Type of relationship between two episodes.
@@ -114,7 +114,7 @@ impl std::fmt::Display for RelationshipType {
     }
 }
 
-#[cfg(test)]
+#[cfg(feature = "proptest-arbitrary")]
 impl Arbitrary for RelationshipType {
     type Parameters = ();
     type Strategy = BoxedStrategy<Self>;

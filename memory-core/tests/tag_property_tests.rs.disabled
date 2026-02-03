@@ -216,20 +216,16 @@ proptest! {
 // Tag Validation Properties
 // ============================================================================
 
-/// Empty tags are rejected
-#[test]
-fn empty_tag_rejected() {
-    let mut episode = Episode::new(
-        "Test".to_string(),
-        TaskContext::default(),
-        TaskType::CodeGeneration,
-    );
-
-    let result = episode.add_tag("".to_string());
-    assert!(result.is_err());
-}
-
 proptest! {
+    /// Empty tags are rejected
+    #[test]
+    fn empty_tag_rejected(_unused in 0..1i32) {
+        let mut episode = Episode::new("Test".to_string(), TaskContext::default(), TaskType::CodeGeneration);
+
+        let result = episode.add_tag("".to_string());
+        assert!(result.is_err());
+    }
+
     /// Whitespace-only tags are rejected
     #[test]
     fn whitespace_only_tag_rejected(whitespace in "[ \t\n\r]+") {

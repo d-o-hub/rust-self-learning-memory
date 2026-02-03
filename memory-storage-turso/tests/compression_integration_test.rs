@@ -5,9 +5,9 @@
 #![allow(clippy::expect_used)]
 
 use memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::TursoStorage;
 #[cfg(feature = "compression")]
 use memory_storage_turso::TursoConfig;
+use memory_storage_turso::TursoStorage;
 #[cfg(feature = "compression")]
 use tempfile::TempDir;
 

@@ -277,19 +277,22 @@ proptest! {
 /// Tags length limit is enforced
 #[test]
 fn tag_length_limit_enforced() {
-        let mut episode = Episode::new("Test".to_string(), TaskContext::default(), TaskType::CodeGeneration);
+    let mut episode = Episode::new(
+        "Test".to_string(),
+        TaskContext::default(),
+        TaskType::CodeGeneration,
+    );
 
-        // Valid tag (length 100 should be max limit based on implementation)
-        let valid_tag = "a".repeat(100);
-        let result = episode.add_tag(valid_tag.clone());
-        // The implementation allows up to 100 chars, so this should succeed
-        assert!(result.is_ok() || result.unwrap_err().contains("100"));
+    // Valid tag (length 100 should be max limit based on implementation)
+    let valid_tag = "a".repeat(100);
+    let result = episode.add_tag(valid_tag.clone());
+    // The implementation allows up to 100 chars, so this should succeed
+    assert!(result.is_ok() || result.unwrap_err().contains("100"));
 
-        // Invalid tag (too long)
-        let invalid_tag = "a".repeat(101);
-        let result = episode.add_tag(invalid_tag);
-        assert!(result.is_err());
-    }
+    // Invalid tag (too long)
+    let invalid_tag = "a".repeat(101);
+    let result = episode.add_tag(invalid_tag);
+    assert!(result.is_err());
 }
 
 // ============================================================================

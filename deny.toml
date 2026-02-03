@@ -34,6 +34,8 @@ allow = [
     "Unlicense",
     "Zlib",
     "BSL-1.0",
+    "OpenSSL",
+    "MPL-2.0",
 ]
 exceptions = [
     { name = "colored", allow = ["MPL-2.0"] },

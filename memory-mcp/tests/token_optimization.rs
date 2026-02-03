@@ -4,12 +4,9 @@
 //! 1. Dynamic tool loading (only core tools in initial list_tools response)
 //! 2. Field projection (only requested fields in query responses)
 
-use memory_core::SelfLearningMemory;
 use memory_mcp::server::tools::field_projection::FieldSelector;
-use memory_mcp::server::tools::registry::{create_default_registry, ToolRegistry};
-use memory_mcp::server::MemoryMCPServer;
+use memory_mcp::server::tools::registry::create_default_registry;
 use serde_json::json;
-use std::sync::Arc;
 
 /// Estimate token count for a JSON value
 ///
@@ -224,23 +221,21 @@ async fn test_lazy_loading_extended_tools() {
     let core_tools = registry.get_core_tools();
     assert_eq!(initial_count, core_tools.len());
 
-    // Find an extended tool that's not in core
-    let extended_tool_names: Vec<_> = registry
-        .extended_tools
-        .keys()
-        .filter(|name| !core_tools.iter().any(|t| &t.name == *name))
-        .take(1)
-        .cloned()
-        .collect();
+    // Use a known extended tool (bulk_episodes is an extended tool, not in core)
+    let extended_name = "bulk_episodes";
 
-    if let Some(extended_name) = extended_tool_names.first() {
-        // Load the extended tool
-        let tool = registry.load_tool(extended_name).await;
-        assert!(tool.is_some());
+    // Verify it's not in core tools
+    assert!(
+        !core_tools.iter().any(|t| t.name == extended_name),
+        "bulk_episodes should be an extended tool, not in core"
+    );
 
-        // Now it should be loaded
-        assert_eq!(registry.loaded_tool_count(), initial_count + 1);
-    }
+    // Load the extended tool
+    let tool = registry.load_tool(extended_name).await;
+    assert!(tool.is_some());
+
+    // Now it should be loaded
+    assert_eq!(registry.loaded_tool_count(), initial_count + 1);
 }
 
 /// Test that tool registry tracks usage correctly

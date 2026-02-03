@@ -116,6 +116,7 @@ async fn test_comprehensive_database_operations() {
             None,
             10,
             "relevance".to_string(),
+            None,
         )
         .await
         .unwrap();
@@ -148,6 +149,7 @@ async fn test_comprehensive_database_operations() {
             "CodeGeneration".to_string(),
             0.0, // Include all patterns
             10,
+            None,
         )
         .await
         .unwrap();
@@ -172,11 +174,12 @@ async fn test_comprehensive_database_operations() {
             None,
             1,
             "relevance".to_string(),
+            None,
         )
         .await
         .unwrap();
     let _ = mcp_server
-        .analyze_patterns("test".to_string(), 0.5, 5)
+        .analyze_patterns("test".to_string(), 0.5, 5, None)
         .await
         .unwrap();
 
@@ -247,6 +250,7 @@ async fn test_comprehensive_database_operations() {
             None,
             10,
             "relevance".to_string(),
+            None,
         )
         .await
         .unwrap();

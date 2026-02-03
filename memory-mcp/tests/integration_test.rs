@@ -70,6 +70,7 @@ async fn test_query_memory_integration() {
             Some("code_generation".to_string()),
             5,
             "relevance".to_string(),
+            None,
         )
         .await;
 
@@ -92,7 +93,7 @@ async fn test_analyze_patterns_integration() {
     .unwrap();
 
     let result = server
-        .analyze_patterns("debugging".to_string(), 0.8, 10)
+        .analyze_patterns("debugging".to_string(), 0.8, 10, None)
         .await;
 
     assert!(result.is_ok());
@@ -293,7 +294,9 @@ async fn test_progressive_tool_disclosure() {
     .unwrap();
 
     // Use tools in different order
-    let _ = server.analyze_patterns("test".to_string(), 0.7, 10).await;
+    let _ = server
+        .analyze_patterns("test".to_string(), 0.7, 10, None)
+        .await;
 
     let code = "return 1;";
     let ctx = ExecutionContext::new("test".to_string(), json!({}));
@@ -306,6 +309,7 @@ async fn test_progressive_tool_disclosure() {
             None,
             10,
             "relevance".to_string(),
+            None,
         )
         .await;
 
@@ -377,6 +381,7 @@ async fn test_memory_integration_with_data() {
             None,
             10,
             "relevance".to_string(),
+            None,
         )
         .await;
 

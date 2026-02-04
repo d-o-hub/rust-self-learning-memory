@@ -94,3 +94,13 @@ opencodetmp/opencode
 .env
 mcp.json
 mcp-config-*.json
+
+# Agent coordination and workflow state (local development only)
+.claude-flow/
+.hive-mind/
+.swarm/
+.mcp.json
+
+# Claude local configuration files only
+.claude/**/*.local.*
+.claude/**/.local/

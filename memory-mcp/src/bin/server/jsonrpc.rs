@@ -1,7 +1,8 @@
 //! JSON-RPC server infrastructure
 
 use super::core::{
-    handle_initialize, handle_list_tools, handle_protected_resource_metadata, handle_shutdown,
+    handle_describe_tool, handle_describe_tools, handle_initialize, handle_list_tools,
+    handle_protected_resource_metadata, handle_shutdown,
 };
 use super::handlers::{handle_batch_execute, handle_call_tool};
 use super::mcp::{
@@ -288,6 +289,8 @@ pub async fn handle_request(
     let response = match method.as_str() {
         "initialize" => handle_initialize(request, oauth_config).await,
         "tools/list" => handle_list_tools(request, mcp_server).await,
+        "tools/describe" => handle_describe_tool(request, mcp_server).await,
+        "tools/describe_batch" => handle_describe_tools(request, mcp_server).await,
         "tools/call" => handle_call_tool(request, mcp_server).await,
         "batch/execute" => handle_batch_execute(request, mcp_server).await,
         "shutdown" => handle_shutdown(request).await,

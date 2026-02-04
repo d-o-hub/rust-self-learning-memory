@@ -6,7 +6,9 @@
 //! - tools/describe_batch loads multiple schemas efficiently
 
 use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
-use memory_mcp::protocol::{DescribeToolResult, DescribeToolsResult, ListToolStubsResult, ListToolsResult, ToolStub};
+use memory_mcp::protocol::{
+    DescribeToolResult, DescribeToolsResult, ListToolStubsResult, ListToolsResult, ToolStub,
+};
 use serde_json::json;
 
 #[tokio::test]
@@ -30,7 +32,10 @@ async fn test_lazy_tool_loading_reduces_tokens() {
     // Verify stub is much smaller than full tool (no input_schema)
     let stub_json = serde_json::to_string(&stub).unwrap();
     assert!(stub_json.len() < 500, "Stub should be small (<500 bytes)");
-    assert!(!stub_json.contains("inputSchema"), "Stub should not contain inputSchema");
+    assert!(
+        !stub_json.contains("inputSchema"),
+        "Stub should not contain inputSchema"
+    );
 }
 
 #[tokio::test]
@@ -46,7 +51,11 @@ async fn test_full_tool_loading_backward_compatible() {
     // Verify request structure is valid
     assert_eq!(request.method, "tools/list");
     assert_eq!(
-        request.params.as_ref().and_then(|p| p.get("lazy")).and_then(|v| v.as_bool()),
+        request
+            .params
+            .as_ref()
+            .and_then(|p| p.get("lazy"))
+            .and_then(|v| v.as_bool()),
         Some(false)
     );
 }
@@ -100,12 +109,16 @@ fn test_token_reduction_calculation() {
     // Full schema: ~2000 tokens per tool * 20 tools = 40,000 tokens
     // Stub: ~50 tokens per tool * 20 tools = 1,000 tokens
     // Reduction: (40,000 - 1,000) / 40,000 = 97.5% reduction
-    
+
     let full_schema_tokens = 40_000;
     let stub_tokens = 1_000;
-    let reduction_percent = ((full_schema_tokens - stub_tokens) as f64 / full_schema_tokens as f64) * 100.0;
-    
-    assert!(reduction_percent >= 90.0, "Should achieve at least 90% token reduction");
+    let reduction_percent =
+        ((full_schema_tokens - stub_tokens) as f64 / full_schema_tokens as f64) * 100.0;
+
+    assert!(
+        reduction_percent >= 90.0,
+        "Should achieve at least 90% token reduction"
+    );
     println!("Token reduction: {:.1}%", reduction_percent);
 }
 

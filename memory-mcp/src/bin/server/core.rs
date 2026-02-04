@@ -124,7 +124,9 @@ pub async fn handle_list_tools(
                     error: Some(JsonRpcError {
                         code: -32603,
                         message: "Internal error".to_string(),
-                        data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                        data: Some(
+                            json!({"details": format!("Response serialization failed: {}", e)}),
+                        ),
                     }),
                 })
             }
@@ -159,7 +161,9 @@ pub async fn handle_list_tools(
                     error: Some(JsonRpcError {
                         code: -32603,
                         message: "Internal error".to_string(),
-                        data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                        data: Some(
+                            json!({"details": format!("Response serialization failed: {}", e)}),
+                        ),
                     }),
                 })
             }
@@ -233,7 +237,9 @@ pub async fn handle_describe_tool(
                         error: Some(JsonRpcError {
                             code: -32603,
                             message: "Internal error".to_string(),
-                            data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                            data: Some(
+                                json!({"details": format!("Response serialization failed: {}", e)}),
+                            ),
                         }),
                     })
                 }
@@ -295,18 +301,19 @@ pub async fn handle_describe_tools(
         }
     };
 
-    let server = mcp_server.lock().await;
-    let tools = server.tool_registry.load_tools(&tool_names).await;
-
-    let mcp_tools: Vec<McpTool> = tools
-        .into_iter()
-        .map(|tool| McpTool {
-            name: tool.name,
-            title: None,
-            description: tool.description,
-            input_schema: tool.input_schema,
-        })
-        .collect();
+    // Load tools by name using the public get_tool method
+    let mut mcp_tools = Vec::new();
+    for tool_name in &tool_names {
+        let server = mcp_server.lock().await;
+        if let Some(tool) = server.get_tool(tool_name).await {
+            mcp_tools.push(McpTool {
+                name: tool.name,
+                title: None,
+                description: tool.description,
+                input_schema: tool.input_schema,
+            });
+        }
+    }
 
     let result = DescribeToolsResult { tools: mcp_tools };
 

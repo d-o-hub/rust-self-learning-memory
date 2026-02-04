@@ -248,6 +248,12 @@ fn create_core_tools() -> Vec<Tool> {
                         "type": "string",
                         "description": "UUID of the episode to retrieve",
                         "format": "uuid"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Fields to return (e.g., ['episode.id', 'episode.task_description', 'episode.outcome'])",
+                        "default": null
                     }
                 },
                 "required": ["episode_id"]

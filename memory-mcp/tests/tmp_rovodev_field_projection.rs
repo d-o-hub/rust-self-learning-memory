@@ -14,9 +14,9 @@ fn test_field_selector_basic() {
     let mut fields = HashSet::new();
     fields.insert("episode.id".to_string());
     fields.insert("episode.task_description".to_string());
-    
+
     let selector = FieldSelector::new(fields);
-    
+
     // Apply to a full result
     let full_result = json!({
         "episode": {
@@ -30,24 +30,27 @@ fn test_field_selector_basic() {
             "reflection": "Long reflection text here..."
         }
     });
-    
+
     let filtered = selector.apply(&full_result).unwrap();
-    
+
     // Verify only requested fields are present
     let filtered_str = serde_json::to_string(&filtered).unwrap();
     assert!(filtered_str.contains("\"id\""));
     assert!(filtered_str.contains("\"task_description\""));
-    
+
     // Verify size reduction
     let full_size = serde_json::to_string(&full_result).unwrap().len();
     let filtered_size = filtered_str.len();
     let reduction_percent = ((full_size - filtered_size) as f64 / full_size as f64) * 100.0;
-    
+
     println!("Full size: {} bytes", full_size);
     println!("Filtered size: {} bytes", filtered_size);
     println!("Reduction: {:.1}%", reduction_percent);
-    
-    assert!(reduction_percent > 20.0, "Should achieve at least 20% reduction");
+
+    assert!(
+        reduction_percent > 20.0,
+        "Should achieve at least 20% reduction"
+    );
 }
 
 #[test]
@@ -57,9 +60,9 @@ fn test_field_selector_from_request() {
         "episode_id": "123",
         "fields": ["episode.id", "episode.task_description"]
     });
-    
+
     let selector = FieldSelector::from_request(&args);
-    
+
     let result = json!({
         "episode": {
             "id": "123",
@@ -68,10 +71,10 @@ fn test_field_selector_from_request() {
             "outcome": "success"
         }
     });
-    
+
     let filtered = selector.apply(&result).unwrap();
     let filtered_str = serde_json::to_string(&filtered).unwrap();
-    
+
     assert!(filtered_str.len() < serde_json::to_string(&result).unwrap().len());
 }
 
@@ -81,9 +84,9 @@ fn test_field_selector_no_fields_returns_all() {
     let args = json!({
         "episode_id": "123"
     });
-    
+
     let selector = FieldSelector::from_request(&args);
-    
+
     let result = json!({
         "episode": {
             "id": "123",
@@ -91,9 +94,9 @@ fn test_field_selector_no_fields_returns_all() {
             "steps": []
         }
     });
-    
+
     let filtered = selector.apply(&result).unwrap();
-    
+
     // Should be identical
     assert_eq!(
         serde_json::to_string(&result).unwrap(),
@@ -107,9 +110,9 @@ fn test_field_selector_nested_fields() {
     let mut fields = HashSet::new();
     fields.insert("patterns.success_rate".to_string());
     fields.insert("insights.total_episodes".to_string());
-    
+
     let selector = FieldSelector::new(fields);
-    
+
     let result = json!({
         "episodes": [],
         "patterns": {
@@ -123,10 +126,10 @@ fn test_field_selector_nested_fields() {
             "avg_duration": 120
         }
     });
-    
+
     let filtered = selector.apply(&result).unwrap();
     let filtered_str = serde_json::to_string(&filtered).unwrap();
-    
+
     // Should contain only selected nested fields
     assert!(filtered_str.contains("success_rate"));
     assert!(filtered_str.contains("total_episodes"));
@@ -172,26 +175,37 @@ fn test_token_reduction_calculation() {
             "success_rate": 0.915
         }
     });
-    
+
     // Request only IDs and descriptions
     let mut fields = HashSet::new();
     fields.insert("episodes.id".to_string());
     fields.insert("episodes.task_description".to_string());
     fields.insert("insights.total_episodes".to_string());
-    
+
     let selector = FieldSelector::new(fields);
     let filtered = selector.apply(&full_response).unwrap();
-    
+
     let full_size = serde_json::to_string(&full_response).unwrap().len();
     let filtered_size = serde_json::to_string(&filtered).unwrap().len();
     let reduction_percent = ((full_size - filtered_size) as f64 / full_size as f64) * 100.0;
-    
-    println!("Full response: {} bytes (~{} tokens)", full_size, full_size / 4);
-    println!("Filtered response: {} bytes (~{} tokens)", filtered_size, filtered_size / 4);
+
+    println!(
+        "Full response: {} bytes (~{} tokens)",
+        full_size,
+        full_size / 4
+    );
+    println!(
+        "Filtered response: {} bytes (~{} tokens)",
+        filtered_size,
+        filtered_size / 4
+    );
     println!("Token reduction: {:.1}%", reduction_percent);
-    
+
     // Should achieve significant reduction
-    assert!(reduction_percent >= 40.0, "Should achieve at least 40% reduction for selective fields");
+    assert!(
+        reduction_percent >= 40.0,
+        "Should achieve at least 40% reduction for selective fields"
+    );
 }
 
 #[test]
@@ -200,12 +214,12 @@ fn test_empty_fields_array() {
     let args = json!({
         "fields": []
     });
-    
+
     let selector = FieldSelector::from_request(&args);
-    
+
     let result = json!({"test": "data"});
     let filtered = selector.apply(&result).unwrap();
-    
+
     assert_eq!(result, filtered);
 }
 
@@ -215,11 +229,11 @@ fn test_invalid_fields_parameter() {
     let args = json!({
         "fields": "not_an_array"
     });
-    
+
     let selector = FieldSelector::from_request(&args);
-    
+
     let result = json!({"test": "data"});
     let filtered = selector.apply(&result).unwrap();
-    
+
     assert_eq!(result, filtered);
 }

@@ -63,7 +63,7 @@ impl MemoryMCPServer {
                     .iter()
                     .filter_map(|v| v.as_str().map(|s| s.to_string()))
                     .collect();
-                
+
                 if !field_list.is_empty() {
                     use crate::server::tools::field_projection::FieldSelector;
                     let selector = FieldSelector::new(field_list.into_iter().collect());

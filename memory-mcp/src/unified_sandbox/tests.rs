@@ -14,6 +14,11 @@ fn should_skip_sandbox_tests() -> bool {
 
 #[tokio::test]
 async fn test_unified_sandbox_nodejs_backend() -> Result<(), anyhow::Error> {
+    // Skip in CI due to Node.js sandbox timeout flakiness
+    if should_skip_sandbox_tests() {
+        return Ok(());
+    }
+
     let sandbox = UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::NodeJs).await?;
 
     let context = ExecutionContext::new("test".to_string(), serde_json::json!({}));

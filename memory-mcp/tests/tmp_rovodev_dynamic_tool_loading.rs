@@ -5,17 +5,15 @@
 //! - tools/describe loads full schema on-demand
 //! - tools/describe_batch loads multiple schemas efficiently
 
-use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
-use memory_mcp::protocol::{
-    DescribeToolResult, DescribeToolsResult, ListToolStubsResult, ListToolsResult, ToolStub,
-};
+use memory_mcp::jsonrpc::JsonRpcRequest;
+use memory_mcp::protocol::ToolStub;
 use serde_json::json;
 
 #[tokio::test]
 async fn test_lazy_tool_loading_reduces_tokens() {
     // Test 1: tools/list with lazy=true returns stubs
-    let request = JsonRpcRequest {
-        jsonrpc: "2.0".to_string(),
+    let _request = JsonRpcRequest {
+        jsonrpc: Some("2.0".to_string()),
         id: Some(json!(1)),
         method: "tools/list".to_string(),
         params: Some(json!({"lazy": true})),
@@ -42,7 +40,7 @@ async fn test_lazy_tool_loading_reduces_tokens() {
 async fn test_full_tool_loading_backward_compatible() {
     // Test 2: tools/list with lazy=false returns full schemas (backward compatible)
     let request = JsonRpcRequest {
-        jsonrpc: "2.0".to_string(),
+        jsonrpc: Some("2.0".to_string()),
         id: Some(json!(2)),
         method: "tools/list".to_string(),
         params: Some(json!({"lazy": false})),
@@ -64,7 +62,7 @@ async fn test_full_tool_loading_backward_compatible() {
 async fn test_describe_tool_on_demand() {
     // Test 3: tools/describe loads single tool schema on-demand
     let request = JsonRpcRequest {
-        jsonrpc: "2.0".to_string(),
+        jsonrpc: Some("2.0".to_string()),
         id: Some(json!(3)),
         method: "tools/describe".to_string(),
         params: Some(json!({"name": "query_memory"})),
@@ -84,7 +82,7 @@ async fn test_describe_tool_on_demand() {
 async fn test_describe_tools_batch() {
     // Test 4: tools/describe_batch loads multiple tool schemas efficiently
     let request = JsonRpcRequest {
-        jsonrpc: "2.0".to_string(),
+        jsonrpc: Some("2.0".to_string()),
         id: Some(json!(4)),
         method: "tools/describe_batch".to_string(),
         params: Some(json!({

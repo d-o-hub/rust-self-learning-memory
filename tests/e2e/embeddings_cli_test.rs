@@ -180,7 +180,7 @@ fn test_cli_embedding_subcommand_help() {
 
         let output = cmd
             .output()
-            .expect(&format!("{} help should succeed", subcmd));
+            .unwrap_or_else(|_| panic!("{} help should succeed", subcmd));
         assert!(output.status.success(), "{} help should succeed", subcmd);
     }
 }

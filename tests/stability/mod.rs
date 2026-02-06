@@ -175,11 +175,11 @@ pub struct TestMetrics {
     /// Total latency in microseconds
     total_latency_us: AtomicU64,
     /// Latency samples for percentile calculation
-    latency_samples: Mutex<VecDeque<u64>>,
+    latency_samples: Arc<Mutex<VecDeque<u64>>>,
     /// Memory usage samples
-    memory_samples: Mutex<VecDeque<MemorySample>>,
+    memory_samples: Arc<Mutex<VecDeque<MemorySample>>>,
     /// Performance snapshots
-    snapshots: Mutex<Vec<PerformanceSnapshot>>,
+    snapshots: Arc<Mutex<Vec<PerformanceSnapshot>>>,
     /// Test start time
     start_time: Instant,
     /// Test running flag
@@ -194,9 +194,9 @@ impl TestMetrics {
             successful_operations: AtomicUsize::new(0),
             failed_operations: AtomicUsize::new(0),
             total_latency_us: AtomicU64::new(0),
-            latency_samples: Mutex::new(VecDeque::with_capacity(MAX_LATENCY_SAMPLES)),
-            memory_samples: Mutex::new(VecDeque::new()),
-            snapshots: Mutex::new(Vec::new()),
+            latency_samples: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_LATENCY_SAMPLES))),
+            memory_samples: Arc::new(Mutex::new(VecDeque::new())),
+            snapshots: Arc::new(Mutex::new(Vec::new())),
             start_time: Instant::now(),
             running: AtomicBool::new(true),
         }
@@ -480,7 +480,7 @@ impl StabilityTest {
     /// Run the stability test with the given operation function
     pub async fn run<F, Fut>(&self, operation: F)
     where
-        F: Fn(Arc<TestMetrics>) -> Fut + Send + Sync + 'static,
+        F: Fn(Arc<TestMetrics>) -> Fut + Send + Sync + 'static + Clone,
         Fut: std::future::Future<Output = ()> + Send + 'static,
     {
         println!("\n=== Starting Stability Test ===");
@@ -547,18 +547,21 @@ impl StabilityTest {
 
         // Start worker tasks
         let mut worker_handles = vec![];
+        let duration = self.config.duration;
         for _ in 0..self.config.worker_count {
             let metrics = self.metrics.clone();
-            let operation = &operation;
 
-            let handle = tokio::spawn(async move {
-                while metrics.is_running() {
-                    // Check duration
-                    if metrics.elapsed() >= self.config.duration {
-                        break;
+            let handle = tokio::spawn({
+                let operation = operation.clone();
+                async move {
+                    while metrics.is_running() {
+                        // Check duration
+                        if metrics.elapsed() >= duration {
+                            break;
+                        }
+
+                        operation(metrics.clone()).await;
                     }
-
-                    operation(metrics.clone()).await;
                 }
             });
 

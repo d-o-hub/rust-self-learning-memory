@@ -390,7 +390,6 @@ mod performance_benchmarks {
     /// Benchmark accuracy vs performance trade-offs
     #[test]
     fn benchmark_accuracy_performance_tradeoff() {
-<<<<<<< HEAD
         let configs = vec![(0.1, 2, 1000), (0.5, 5, 500), (1.0, 10, 200)];
 
         for (density, min_samples, max_distance) in configs {

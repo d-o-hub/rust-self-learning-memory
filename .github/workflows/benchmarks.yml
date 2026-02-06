@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Wait for Quick Check
-        uses: lewagon/wait-on-check-action@v1.4.1
+        uses: lewagon/wait-on-check-action@v1.5.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
@@ -260,7 +260,7 @@ jobs:
            } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Archive benchmark results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: benchmark-results-${{ github.sha }}
           path: |

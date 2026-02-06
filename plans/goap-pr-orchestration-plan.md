@@ -152,10 +152,18 @@ gh pr comment <number> --body "@dependabot rebase"
 gh pr view <number>
 ```
 
+## Execution Log
+
+### 2026-02-06 14:29 UTC
+- ✅ Enabled auto-merge on PR #264 (security fix)
+- ✅ Enabled auto-merge on PR #263 (feature)
+- ⏳ CI running on both PRs
+- ⏳ Waiting for CI to complete for auto-merge
+
 ## Success Criteria
 
-- [ ] PR #264 merged to main
+- [ ] PR #264 merged to main (auto-merge enabled ✅)
 - [ ] All 6 Dependabot PRs rebased and merged
-- [ ] PR #263 merged to main
+- [ ] PR #263 merged to main (auto-merge enabled ✅)
 - [ ] Zero open PRs remaining
 - [ ] Main branch has all security fixes

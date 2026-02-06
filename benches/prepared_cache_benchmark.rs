@@ -21,7 +21,8 @@ fn bench_cache_basic_operations(c: &mut Criterion) {
 
         b.iter(|| {
             black_box(cache.is_cached(black_box(conn_id), black_box(sql)));
-            black_box(cache.record_hit(conn_id, sql));
+            cache.record_hit(conn_id, sql);
+            black_box(());
         });
     });
 
@@ -31,7 +32,8 @@ fn bench_cache_basic_operations(c: &mut Criterion) {
 
         b.iter(|| {
             let sql = format!("SELECT * FROM episodes WHERE id = {}", black_box(42));
-            black_box(cache.record_miss(conn_id, &sql, 100));
+            cache.record_miss(conn_id, &sql, 100);
+            black_box(());
         });
     });
 
@@ -97,7 +99,8 @@ fn bench_cache_eviction(c: &mut Criterion) {
             // Add 15 statements (should trigger evictions)
             for i in 0..15 {
                 let sql = format!("SELECT * FROM table_{} WHERE id = ?", i);
-                black_box(cache.record_miss(conn_id, &sql, 100));
+                cache.record_miss(conn_id, &sql, 100);
+                black_box(());
             }
         });
     });
@@ -128,7 +131,8 @@ fn bench_cache_sql_patterns(c: &mut Criterion) {
         b.iter(|| {
             for query in &queries {
                 black_box(cache.is_cached(conn_id, query));
-                black_box(cache.record_hit(conn_id, query));
+                cache.record_hit(conn_id, query);
+                black_box(());
             }
         });
     });
@@ -151,7 +155,8 @@ fn bench_cache_sql_patterns(c: &mut Criterion) {
         b.iter(|| {
             for template in &templates {
                 black_box(cache.is_cached(conn_id, template));
-                black_box(cache.record_hit(conn_id, template));
+                cache.record_hit(conn_id, template);
+                black_box(());
             }
         });
     });
@@ -201,7 +206,8 @@ fn bench_cache_cleanup(c: &mut Criterion) {
 
         b.iter(|| {
             let test_conn_id = black_box(conn_id);
-            black_box(cache.clear_connection(test_conn_id));
+            cache.clear_connection(test_conn_id);
+            black_box(());
         });
     });
 
@@ -218,7 +224,8 @@ fn bench_cache_cleanup(c: &mut Criterion) {
         }
 
         b.iter(|| {
-            black_box(cache.clear());
+            cache.clear();
+            black_box(());
         });
     });
 

@@ -14,7 +14,7 @@ memory-storage-turso = { path = "../memory-storage-turso", features = ["keepaliv
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
 tempfile = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
-sysinfo = "0.37"
+sysinfo = "0.38"
 zipf = "7.0"
 rand = { workspace = true }
 rand_chacha = { workspace = true }

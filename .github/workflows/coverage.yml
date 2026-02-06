@@ -58,6 +58,7 @@ jobs:
           echo "Generating coverage report for library code..."
           # Use --lib for faster coverage of library code only
           # Use --jobs to parallelize
+          # Use shell timeout to prevent hanging tests
           timeout 2400s cargo llvm-cov --lib --lcov --output-path lcov.info --jobs 4
           echo "Coverage report generated successfully"
         env:

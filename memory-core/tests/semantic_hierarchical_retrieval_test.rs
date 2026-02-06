@@ -1,14 +1,11 @@
 //!
 //! Tests for semantic retrieval integration with hierarchical retrieval
-//!
 
-use std::sync::Arc;
 use std::time::Instant;
 
 use memory_core::{
-    embeddings::{EmbeddingConfig, InMemoryEmbeddingStorage, SemanticService},
+    embeddings::{InMemoryEmbeddingStorage, SemanticService},
     memory::SelfLearningMemory,
-    spatiotemporal::{HierarchicalRetriever, RetrievalQuery},
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome,
     TaskType,
 };
@@ -42,24 +39,23 @@ async fn create_test_episode(
             step_number: i + 1,
             timestamp: chrono::Utc::now(),
             tool: format!("tool-{}", i % 3),
-            action: format!("action-{}", i),
+            action: format!("action-{i}"),
             parameters: serde_json::json!({}),
             result: Some(ExecutionResult::Success {
-                output: format!("output-{}", i),
-                metadata: Default::default(),
+                output: format!("output-{i}"),
             }),
             latency_ms: 10,
             tokens_used: None,
-            metadata: Default::default(),
+            metadata: std::collections::HashMap::default(),
         };
-        memory.log_step(episode_id, step).await.unwrap();
+        memory.log_step(episode_id, step).await;
     }
 
     memory
         .complete_episode(
             episode_id,
             TaskOutcome::Success {
-                verdict: format!("Completed: {}", description),
+                verdict: format!("Completed: {description}"),
                 artifacts: vec![],
             },
         )
@@ -100,8 +96,7 @@ async fn test_query_embedding_generation() {
     for &val in &embedding {
         assert!(
             val.is_finite(),
-            "Embedding values should be finite, got {}",
-            val
+            "Embedding values should be finite, got {val}"
         );
     }
 
@@ -139,10 +134,7 @@ async fn test_query_embedding_consistency() {
     for (i, (&v1, &v2)) in embedding1.iter().zip(embedding2.iter()).enumerate() {
         assert!(
             (v1 - v2).abs() < f32::EPSILON,
-            "Embedding dimension {} differs: {} vs {}",
-            i,
-            v1,
-            v2
+            "Embedding dimension {i} differs: {v1} vs {v2}"
         );
     }
 }
@@ -221,7 +213,7 @@ async fn test_hybrid_retrieval() {
             &memory,
             "data-science",
             TaskType::Analysis,
-            &format!("Old data analysis task {}", i),
+            &format!("Old data analysis task {i}"),
             8,
         )
         .await;
@@ -234,7 +226,7 @@ async fn test_hybrid_retrieval() {
             &memory,
             "data-science",
             TaskType::Analysis,
-            &format!("Recent data analysis task {}", i),
+            &format!("Recent data analysis task {i}"),
             8,
         )
         .await;
@@ -288,7 +280,7 @@ async fn test_episode_embedding_preloading() {
             &memory,
             "test-domain",
             TaskType::CodeGeneration,
-            &format!("Task {}", i),
+            &format!("Task {i}"),
             5,
         )
         .await;
@@ -316,8 +308,7 @@ async fn test_episode_embedding_preloading() {
     // Performance should be reasonable (< 1 second)
     assert!(
         elapsed.as_secs() < 1,
-        "Retrieval should be fast, got {:?}",
-        elapsed
+        "Retrieval should be fast, got {elapsed:?}"
     );
 }
 
@@ -473,7 +464,7 @@ async fn test_semantic_retrieval_performance() {
             &memory,
             domain,
             TaskType::CodeGeneration,
-            &format!("Task {} in {}", i, domain),
+            &format!("Task {i} in {domain}"),
             5,
         )
         .await;
@@ -510,13 +501,12 @@ async fn test_semantic_retrieval_performance() {
         assert!(!results.is_empty(), "Should return results");
     }
 
-    let avg_time = total_time / query_count as u128;
-    println!("Average query time: {}ms", avg_time);
+    let avg_time = total_time / u128::try_from(query_count).unwrap();
+    println!("Average query time: {avg_time}ms");
 
     // Average query time should be reasonable (< 500ms)
     assert!(
         avg_time < 500,
-        "Average query time should be < 500ms, got {}ms",
-        avg_time
+        "Average query time should be < 500ms, got {avg_time}ms"
     );
 }

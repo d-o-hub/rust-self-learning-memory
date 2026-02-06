@@ -153,6 +153,10 @@ impl TursoStorage {
 
         let mut table_counts = HashMap::new();
         for table in tables {
+            // SAFETY: Table names are hardcoded in the local `tables` array above.
+            // These are not user-controlled values, preventing SQL injection.
+            // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+            #[allow(clippy::literal_string_with_formatting_args)]
             let sql = format!("SELECT COUNT(*) FROM {}", table);
             let mut rows = conn.query(&sql, ()).await.map_err(|e| {
                 memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))

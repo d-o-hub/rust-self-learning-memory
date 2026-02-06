@@ -10,10 +10,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::embeddings::config::embedding_config::InMemoryEmbeddingStorage;
 use memory_core::embeddings::{
-    cosine_similarity, EmbeddingConfig, EmbeddingProvider, LocalConfig, LocalEmbeddingProvider,
-    SemanticService,
+    cosine_similarity, EmbeddingProvider, EmbeddingStorageBackend, InMemoryEmbeddingStorage,
+    LocalConfig, LocalEmbeddingProvider,
 };
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -513,21 +512,19 @@ async fn test_performance_text_length_impact() {
         .await
         .expect("Should create provider");
 
-    let text_lengths = vec![
+    // Create owned strings to avoid temporary value issues
+    let medium_text = "Medium length text with some details. ".repeat(3);
+    let longer_text = "Longer text description with more content. ".repeat(7);
+    let very_long_text = "Very long text with extensive content and details. ".repeat(15);
+    let extremely_long_text =
+        "Extremely long text document with comprehensive information. ".repeat(35);
+
+    let text_lengths: Vec<(usize, &str)> = vec![
         (10, "Short text"),
-        (50, &"Medium length text with some details. ".repeat(3)),
-        (
-            100,
-            &"Longer text description with more content. ".repeat(7),
-        ),
-        (
-            200,
-            &"Very long text with extensive content and details. ".repeat(15),
-        ),
-        (
-            500,
-            &"Extremely long text document with comprehensive information. ".repeat(35),
-        ),
+        (50, &medium_text),
+        (100, &longer_text),
+        (200, &very_long_text),
+        (500, &extremely_long_text),
     ];
 
     println!("\nText Length Impact on Performance:");
@@ -537,7 +534,7 @@ async fn test_performance_text_length_impact() {
     );
     println!("{}", "-".repeat(45));
 
-    for (expected_len, text) in text_lengths {
+    for (_expected_len, text) in text_lengths {
         let actual_len = text.len();
         let iterations = 10;
 

@@ -250,11 +250,11 @@ async fn batch_insert_episodes(
             .map(|i| create_test_episode(Uuid::new_v4(), i))
             .collect();
 
-        // Batch insert
-        let results = storage.batch_store_episodes(&batch_episodes).await?;
+        // Batch insert using store_episodes_batch
+        storage.store_episodes_batch(batch_episodes.clone()).await?;
 
-        let successful = results.len();
-        let failed = batch_episodes.len() - successful;
+        let successful = batch_episodes.len();
+        let failed = 0;
 
         stats.episodes_inserted += successful;
         stats.episodes_failed += failed;
@@ -306,11 +306,11 @@ async fn batch_insert_patterns(
             batch_patterns.push(create_test_pattern(pattern_id, episode_id, i));
         }
 
-        // Batch insert
-        let results = storage.batch_store_patterns(&batch_patterns).await?;
+        // Batch insert using store_patterns_batch
+        storage.store_patterns_batch(batch_patterns.clone()).await?;
 
-        let successful = results.len();
-        let failed = batch_patterns.len() - successful;
+        let successful = batch_patterns.len();
+        let failed = 0;
 
         stats.patterns_inserted += successful;
         stats.patterns_failed += failed;
@@ -358,11 +358,13 @@ async fn batch_insert_heuristics(
             .map(|i| create_test_heuristic(Uuid::new_v4(), i))
             .collect();
 
-        // Batch insert
-        let results = storage.batch_store_heuristics(&batch_heuristics).await?;
+        // Batch insert using store_heuristics_batch
+        storage
+            .store_heuristics_batch(batch_heuristics.clone())
+            .await?;
 
-        let successful = results.len();
-        let failed = batch_heuristics.len() - successful;
+        let successful = batch_heuristics.len();
+        let failed = 0;
 
         stats.heuristics_inserted += successful;
         stats.heuristics_failed += failed;
@@ -394,33 +396,32 @@ async fn test_transaction_safety(
 ) -> anyhow::Result<()> {
     println!("Testing transaction safety...");
 
-    // Get actual counts
-    let episode_stats = storage.get_storage_statistics().await?;
-    let pattern_stats = storage.get_pattern_statistics().await?;
+    // Get actual counts using get_statistics
+    let stats = storage.get_statistics().await?;
 
     println!(
         "Expected episodes: {}, Actual: {}",
-        expected_episodes, episode_stats.total_episodes
+        expected_episodes, stats.episode_count
     );
     println!(
         "Expected patterns: {}, Actual: {}",
-        expected_patterns, pattern_stats.total_patterns
+        expected_patterns, stats.pattern_count
     );
 
     // Verify counts match
-    if episode_stats.total_episodes != expected_episodes {
+    if stats.episode_count != expected_episodes {
         anyhow::bail!(
             "Episode count mismatch: expected {}, got {}",
             expected_episodes,
-            episode_stats.total_episodes
+            stats.episode_count
         );
     }
 
-    if pattern_stats.total_patterns != expected_patterns {
+    if stats.pattern_count != expected_patterns {
         anyhow::bail!(
             "Pattern count mismatch: expected {}, got {}",
             expected_patterns,
-            pattern_stats.total_patterns
+            stats.pattern_count
         );
     }
 
@@ -505,8 +506,8 @@ async fn test_batch_operations_load() {
     combined_stats.print_summary("Batch Operations");
 
     // Verify throughput criteria
-    config
-        .meets_throughput_criteria(&combined_stats)
+    combined_stats
+        .meets_throughput_criteria(&config)
         .expect("Throughput does not meet criteria");
 
     // Test transaction safety

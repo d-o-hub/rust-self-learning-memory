@@ -55,7 +55,7 @@ impl LinearScanIndex {
 fn bench_insertion(c: &mut Criterion) {
     let mut group = c.benchmark_group("insertion");
 
-    for size in [100, 1000, 10000].iter() {
+    for size in &[100, 1000, 10000] {
         group.bench_with_input(BenchmarkId::new("spatiotemporal", size), size, |b, _| {
             let now = Utc::now();
             let episodes: Vec<_> = (0..*size)
@@ -63,7 +63,7 @@ fn bench_insertion(c: &mut Criterion) {
                     create_test_episode_with_time(
                         "web-api",
                         TaskType::CodeGeneration,
-                        now - Duration::hours(i as i64),
+                        now - Duration::hours(i64::from(i)),
                     )
                 })
                 .collect();
@@ -83,7 +83,7 @@ fn bench_insertion(c: &mut Criterion) {
                     create_test_episode_with_time(
                         "web-api",
                         TaskType::CodeGeneration,
-                        now - Duration::hours(i as i64),
+                        now - Duration::hours(i64::from(i)),
                     )
                 })
                 .collect();
@@ -103,7 +103,7 @@ fn bench_insertion(c: &mut Criterion) {
                     create_test_episode_with_time(
                         "web-api",
                         TaskType::CodeGeneration,
-                        now - Duration::hours(i as i64),
+                        now - Duration::hours(i64::from(i)),
                     )
                 })
                 .collect();
@@ -123,7 +123,7 @@ fn bench_insertion(c: &mut Criterion) {
 fn bench_range_query(c: &mut Criterion) {
     let mut group = c.benchmark_group("range_query");
 
-    for size in [100, 1000, 10000].iter() {
+    for size in &[100, 1000, 10000] {
         // Setup spatiotemporal index
         let now = Utc::now();
         let mut spatiotemporal = SpatiotemporalIndex::new();
@@ -132,7 +132,7 @@ fn bench_range_query(c: &mut Criterion) {
                 create_test_episode_with_time(
                     "web-api",
                     TaskType::CodeGeneration,
-                    now - Duration::hours(i as i64),
+                    now - Duration::hours(i64::from(i)),
                 )
             })
             .collect();
@@ -170,7 +170,7 @@ fn bench_range_query(c: &mut Criterion) {
 fn bench_hierarchical_query(c: &mut Criterion) {
     let mut group = c.benchmark_group("hierarchical_query");
 
-    for size in [100, 1000, 10000].iter() {
+    for size in &[100, 1000, 10000] {
         let now = Utc::now();
         let mut index = HierarchicalIndex::new();
 
@@ -193,8 +193,11 @@ fn bench_hierarchical_query(c: &mut Criterion) {
                 TaskType::Testing
             };
 
-            let episode =
-                create_test_episode_with_time(domain, task_type, now - Duration::hours(i as i64));
+            let episode = create_test_episode_with_time(
+                domain,
+                task_type,
+                now - Duration::hours(i64::from(i)),
+            );
             index.insert(&episode);
         }
 
@@ -246,7 +249,7 @@ fn bench_hierarchical_query(c: &mut Criterion) {
 fn bench_memory_overhead(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_overhead");
 
-    for size in [100, 1000, 10000].iter() {
+    for size in &[100, 1000, 10000] {
         group.bench_with_input(
             BenchmarkId::new("spatiotemporal_memory", size),
             size,
@@ -257,7 +260,7 @@ fn bench_memory_overhead(c: &mut Criterion) {
                         create_test_episode_with_time(
                             "web-api",
                             TaskType::CodeGeneration,
-                            now - Duration::hours(i as i64),
+                            now - Duration::hours(i64::from(i)),
                         )
                     })
                     .collect();
@@ -282,7 +285,7 @@ fn bench_memory_overhead(c: &mut Criterion) {
                         create_test_episode_with_time(
                             "web-api",
                             TaskType::CodeGeneration,
-                            now - Duration::hours(i as i64),
+                            now - Duration::hours(i64::from(i)),
                         )
                     })
                     .collect();

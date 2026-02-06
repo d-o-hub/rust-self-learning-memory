@@ -1,0 +1,44 @@
+# CodeQL Configuration
+# This file configures CodeQL analysis to reduce false positives while maintaining security
+
+name: "CodeQL Config"
+
+# Use security-and-quality query suite for comprehensive analysis
+queries:
+  - uses: security-and-quality
+
+# Paths to ignore during analysis (test files, benchmarks, etc.)
+paths-ignore:
+  - '**/tests/**'
+  - '**/benches/**'
+  - '**/examples/**'
+  - '**/test_*/**'
+  - '**/*_test.rs'
+  - '**/*_tests.rs'
+  - 'memory-cli/tests/**'
+  - 'memory-core/tests/**'
+  - 'memory-mcp/tests/**'
+  - 'memory-storage-turso/src/**/tests/**'
+  - 'memory-storage-redb/src/**/tests/**'
+
+# Disable specific queries that produce false positives for this codebase
+disable-default-queries: false
+
+# Query filters to suppress known false positives
+query-filters:
+  # SQL injection in table name formatting - these are false positives
+  # because table names come from a fixed whitelist
+  - exclude:
+      id: rust/sql-injection
+      path:
+        - memory-storage-turso/src/storage/search.rs
+        - memory-storage-turso/src/storage/capacity.rs
+        - memory-storage-turso/src/lib_impls/helpers.rs
+
+  # Unsafe code blocks are properly documented with SAFETY comments
+  - exclude:
+      id: rust/unsafe-block
+      path:
+        - memory-storage-turso/src/pool/adaptive.rs
+        - memory-storage-turso/src/pool/caching_pool.rs
+        - memory-mcp/src/sandbox/isolation.rs

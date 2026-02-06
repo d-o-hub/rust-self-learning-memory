@@ -374,9 +374,7 @@ mod tests {
         // Semantically similar texts should have higher similarity
         assert!(
             similarity_ai_ml > similarity_cooking,
-            "AI/ML similarity ({}) should be higher than ML/cooking ({})",
-            similarity_ai_ml,
-            similarity_cooking
+            "AI/ML similarity ({similarity_ai_ml}) should be higher than ML/cooking ({similarity_cooking})"
         );
 
         // Both should be positive (cosine similarity range)

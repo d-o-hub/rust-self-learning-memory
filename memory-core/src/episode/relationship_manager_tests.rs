@@ -1,4 +1,4 @@
-//! Tests for RelationshipManager
+//! Tests for `RelationshipManager`
 
 #[cfg(test)]
 mod tests {

@@ -9,10 +9,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::embeddings::config::embedding_config::InMemoryEmbeddingStorage;
 use memory_core::embeddings::{
-    cosine_similarity, EmbeddingConfig, EmbeddingProvider, LocalConfig, LocalEmbeddingProvider,
-    SemanticService,
+    cosine_similarity, EmbeddingConfig, EmbeddingProvider, InMemoryEmbeddingStorage, LocalConfig,
+    LocalEmbeddingProvider, SemanticService,
 };
 use memory_core::episode::ExecutionStep;
 use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};

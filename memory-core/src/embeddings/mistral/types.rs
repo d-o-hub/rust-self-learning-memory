@@ -1,6 +1,4 @@
 //! Re-export Mistral types from config module
 
-pub use crate::embeddings::config::mistral::{
-    MistralEmbeddingData, MistralEmbeddingInput, MistralEmbeddingRequest, MistralEmbeddingResponse,
-    MistralUsage,
-};
+// Types are now re-exported from config::mistral module directly
+// This file exists for backward compatibility

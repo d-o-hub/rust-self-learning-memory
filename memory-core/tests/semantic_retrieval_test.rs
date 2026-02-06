@@ -70,6 +70,7 @@ async fn test_retrieval_with_embeddings_enabled() {
         domain: Some("web-api".to_string()),
         task_type: Some(TaskType::CodeGeneration),
         limit: 2,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     // Execute retrieval
@@ -133,6 +134,7 @@ async fn test_retrieval_with_embeddings_disabled() {
         domain: Some("web-api".to_string()),
         task_type: None,
         limit: 3,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     // Execute retrieval
@@ -194,6 +196,7 @@ async fn test_fallback_when_embedding_generation_fails() {
         domain: Some("web-api".to_string()),
         task_type: Some(TaskType::CodeGeneration),
         limit: 2,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await;
@@ -241,6 +244,7 @@ async fn test_embedding_dimension_mismatch_handling() {
         domain: Some("web-api".to_string()),
         task_type: None,
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await;
@@ -296,6 +300,7 @@ async fn test_compare_accuracy_embeddings_vs_keywords() {
         domain: Some("web-api".to_string()),
         task_type: Some(TaskType::CodeGeneration),
         limit: 2,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results_with_emb = retriever
@@ -310,6 +315,7 @@ async fn test_compare_accuracy_embeddings_vs_keywords() {
         domain: Some("web-api".to_string()),
         task_type: Some(TaskType::CodeGeneration),
         limit: 2,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results_without_emb = retriever
@@ -367,6 +373,7 @@ async fn test_empty_query_embedding() {
         domain: None,
         task_type: None,
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await;
@@ -396,6 +403,7 @@ async fn test_zero_embedding_similarity() {
         domain: None,
         task_type: None,
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await.unwrap();
@@ -434,6 +442,7 @@ async fn test_perfect_embedding_match() {
         domain: Some("web-api".to_string()),
         task_type: Some(TaskType::CodeGeneration),
         limit: 1,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await.unwrap();
@@ -460,6 +469,7 @@ async fn test_no_episodes() {
         domain: None,
         task_type: None,
         limit: 5,
+        episode_embeddings: std::collections::HashMap::new(),
     };
 
     let results = retriever.retrieve(&query, &episodes).await.unwrap();
@@ -512,6 +522,7 @@ async fn test_level_4_score_range() {
             domain: None,
             task_type: None,
             limit: 3,
+            episode_embeddings: std::collections::HashMap::new(),
         };
 
         let results = retriever.retrieve(&query, &episodes).await.unwrap();

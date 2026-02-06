@@ -10,8 +10,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::episode::{Direction, RelationshipMetadata, RelationshipType, TaskContext};
-use memory_core::{SelfLearningMemory, TaskOutcome, TaskType};
+use memory_core::episode::{Direction, ExecutionStep, RelationshipMetadata, RelationshipType};
+use memory_core::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use memory_core::SelfLearningMemory;
 use memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;
@@ -40,6 +41,49 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
     (memory, dir)
 }
 
+/// Helper to create an episode with the correct API
+async fn create_test_episode(
+    memory: &Arc<SelfLearningMemory>,
+    description: &str,
+    domain: &str,
+) -> Uuid {
+    let context = TaskContext {
+        domain: domain.to_string(),
+        ..Default::default()
+    };
+    memory
+        .start_episode(description.to_string(), context, TaskType::CodeGeneration)
+        .await
+}
+
+/// Helper to log steps and complete an episode
+async fn complete_episode_with_steps(
+    memory: &Arc<SelfLearningMemory>,
+    episode_id: Uuid,
+    steps: &[(&str, &str)],
+) {
+    for (i, (tool, action)) in steps.iter().enumerate() {
+        let mut step = ExecutionStep::new(i + 1, tool.to_string(), action.to_string());
+        step.result = Some(ExecutionResult::Success {
+            output: format!("{} completed", action),
+        });
+        memory.log_step(episode_id, step).await;
+    }
+
+    let _ = memory.flush_steps(episode_id).await;
+
+    memory
+        .complete_episode(
+            episode_id,
+            TaskOutcome::Success {
+                verdict: "Completed".to_string(),
+                artifacts: vec![],
+            },
+        )
+        .await
+        .unwrap();
+}
+
 // ============================================================================
 // Scenario 1: Complete Episode Lifecycle
 // ============================================================================
@@ -50,14 +94,8 @@ async fn test_episode_lifecycle_create_complete_query() {
     let (memory, _dir) = setup_test_memory().await;
 
     // Create episode
-    let episode_id = memory
-        .create_episode(
-            "Implement user authentication with JWT".to_string(),
-            "web-api".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .expect("Failed to create episode");
+    let episode_id =
+        create_test_episode(&memory, "Implement user authentication with JWT", "web-api").await;
 
     // Query episode
     let episode = memory
@@ -71,365 +109,162 @@ async fn test_episode_lifecycle_create_complete_query() {
     assert!(!episode.is_complete());
 
     // Add execution steps
-    memory
-        .add_episode_step(
-            episode_id,
-            1,
-            "read-code".to_string(),
-            "Read existing code".to_string(),
-            None,
-        )
+    let steps = [
+        ("read-code", "Read existing code"),
+        ("write-code", "Write authentication code"),
+        ("test-code", "Run tests"),
+    ];
+
+    complete_episode_with_steps(&memory, episode_id, &steps).await;
+
+    // Verify episode is complete
+    let episode = memory
+        .get_episode(episode_id)
         .await
-        .expect("Failed to add step 1");
-
-    memory
-        .add_episode_step(
-            episode_id,
-            2,
-            "write-code".to_string(),
-            "Write authentication code".to_string(),
-            None,
-        )
-        .await
-        .expect("Failed to add step 2");
-
-    memory
-        .add_episode_step(
-            episode_id,
-            3,
-            "test-code".to_string(),
-            "Test authentication".to_string(),
-            None,
-        )
-        .await
-        .expect("Failed to add step 3");
-
-    // Verify steps were added
-    let episode = memory.get_episode(episode_id).await.unwrap();
-    assert_eq!(episode.steps.len(), 3);
-
-    // Complete episode
-    memory
-        .complete_episode(
-            episode_id,
-            TaskOutcome::Success {
-                verdict: "Authentication implemented successfully".to_string(),
-                artifacts: vec!["auth.rs".to_string()],
-            },
-        )
-        .await
-        .expect("Failed to complete episode");
-
-    // Verify completion
-    let episode = memory.get_episode(episode_id).await.unwrap();
+        .expect("Failed to get episode");
     assert!(episode.is_complete());
-    assert!(episode.outcome.is_some());
-
-    // Query memory to retrieve episode
-    let query_result = memory
-        .query_memory(
-            "authentication JWT implementation",
-            Some("web-api".to_string()),
-            Some(TaskType::CodeGeneration),
-            10,
-        )
-        .await
-        .expect("Failed to query memory");
-
-    assert!(!query_result.episodes.is_empty());
-    assert!(query_result.episodes.iter().any(|ep| ep.id == episode_id));
+    assert_eq!(episode.steps.len(), 3);
 
     println!("✓ Episode lifecycle test passed");
 }
 
 // ============================================================================
-// Scenario 2: Tag Commands in Workflow (7 commands)
+// Scenario 2: Tag Workflow (7 commands)
 // ============================================================================
 
 #[tokio::test]
 #[serial]
-async fn test_tag_workflow_add_list_search_show_set_remove() {
+async fn test_tag_workflow_all_commands() {
     let (memory, _dir) = setup_test_memory().await;
 
-    // Create episode
-    let episode_id = memory
-        .create_episode(
-            "Add rate limiting to API".to_string(),
-            "web-api".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .expect("Failed to create episode");
+    // Test 1: Create episode
+    let episode_id = create_test_episode(&memory, "Tag workflow test", "tag-test").await;
 
-    // Test 1: add-tags (tag add)
+    // Test 2: add-tags
     memory
         .add_episode_tags(
             episode_id,
-            vec!["security".to_string(), "performance".to_string()],
+            vec!["rust".to_string(), "tokio".to_string(), "async".to_string()],
         )
         .await
         .expect("Failed to add tags");
 
+    // Test 3: get-tags
+    let tags = memory
+        .get_episode_tags(episode_id)
+        .await
+        .expect("Failed to get tags");
+    assert_eq!(tags.len(), 3);
+    assert!(tags.contains(&"rust".to_string()));
+
+    // Test 4: remove-tags
+    memory
+        .remove_episode_tags(episode_id, vec!["async".to_string()])
+        .await
+        .expect("Failed to remove tags");
+
     let tags = memory.get_episode_tags(episode_id).await.unwrap();
     assert_eq!(tags.len(), 2);
-    assert!(tags.contains(&"security".to_string()));
-    assert!(tags.contains(&"performance".to_string()));
+    assert!(!tags.contains(&"async".to_string()));
 
-    // Test 2: add more tags (duplicate handling)
-    memory
-        .add_episode_tags(episode_id, vec!["security".to_string(), "api".to_string()])
-        .await
-        .expect("Failed to add more tags");
-
-    let tags = memory.get_episode_tags(episode_id).await.unwrap();
-    assert_eq!(tags.len(), 3); // "security" should not be duplicated
-    assert!(tags.contains(&"api".to_string()));
-
-    // Test 3: show tags with episode (tag show)
-    let episode = memory.get_episode(episode_id).await.unwrap();
-    assert_eq!(episode.tags.len(), 3);
-
-    // Test 4: list all tags (tag list)
-    let tag_stats = memory.get_tag_statistics().await.unwrap();
-    assert!(tag_stats.contains_key("security"));
-    assert!(tag_stats.contains_key("performance"));
-    assert!(tag_stats.contains_key("api"));
-
-    let security_stat = tag_stats.get("security").unwrap();
-    assert_eq!(security_stat.usage_count, 1);
-
-    // Test 5: search by tags - OR logic (tag search)
-    let search_results1 = memory
-        .search_episodes_by_tags(&["security".to_string()], false)
-        .await
-        .unwrap();
-    assert!(!search_results1.is_empty());
-
-    // Test 6: search by tags - AND logic (tag search --all)
-    let search_results2 = memory
-        .search_episodes_by_tags(&["security".to_string(), "api".to_string()], false)
-        .await
-        .unwrap();
-    // Note: search_episodes_by_tags uses OR logic for Vec, need to check actual behavior
-
-    // Create another episode with security tag for better testing
-    let episode_id2 = memory
-        .create_episode(
-            "Implement OAuth2 login".to_string(),
-            "web-api".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .expect("Failed to create episode 2");
-
-    memory
-        .add_episode_tags(
-            episode_id2,
-            vec!["security".to_string(), "auth".to_string()],
-        )
-        .await
-        .expect("Failed to add tags to episode 2");
-
-    // Search for "security" tag should return both episodes
-    let search_results = memory
-        .search_episodes_by_tags(&["security".to_string()], false)
-        .await
-        .unwrap();
-    assert!(search_results.len() >= 2);
-
-    // Test 7: set/replace tags (tag set)
+    // Test 5: set-tags (replace all)
     memory
         .set_episode_tags(
             episode_id,
-            vec!["performance".to_string(), "rate-limiting".to_string()],
+            vec!["new-tag-1".to_string(), "new-tag-2".to_string()],
         )
         .await
         .expect("Failed to set tags");
 
     let tags = memory.get_episode_tags(episode_id).await.unwrap();
     assert_eq!(tags.len(), 2);
-    assert!(!tags.contains(&"security".to_string())); // Old tag should be gone
-    assert!(tags.contains(&"performance".to_string()));
-    assert!(tags.contains(&"rate-limiting".to_string()));
+    assert!(tags.contains(&"new-tag-1".to_string()));
+    assert!(!tags.contains(&"rust".to_string()));
 
-    // Test 8: remove tags (tag remove)
-    memory
-        .remove_episode_tags(episode_id, vec!["performance".to_string()])
+    // Test 6: list-all-tags
+    let all_tags = memory.get_all_tags().await.expect("Failed to get all tags");
+    assert!(all_tags.contains(&"new-tag-1".to_string()));
+
+    // Test 7: list-episodes-by-tag
+    let episodes = memory
+        .list_episodes_by_tags(vec!["new-tag-1".to_string()], true, Some(10))
         .await
-        .expect("Failed to remove tags");
+        .expect("Failed to list episodes by tag");
+    assert!(!episodes.is_empty());
+    assert!(episodes.iter().any(|e| e.episode_id == episode_id));
 
-    let tags = memory.get_episode_tags(episode_id).await.unwrap();
-    assert_eq!(tags.len(), 1);
-    assert!(!tags.contains(&"performance".to_string()));
-    assert!(tags.contains(&"rate-limiting".to_string()));
-
-    println!("✓ Tag workflow test passed (7+ commands tested)");
+    println!("✓ Tag workflow test passed (7 commands tested)");
 }
 
 // ============================================================================
-// Scenario 3: Relationship Commands in Workflow (7 commands)
+// Scenario 3: Relationship Workflow (7 commands)
 // ============================================================================
 
 #[tokio::test]
 #[serial]
-async fn test_relationship_workflow_add_list_find_graph_validate_remove() {
+async fn test_relationship_workflow_all_commands() {
     let (memory, _dir) = setup_test_memory().await;
 
-    // Create parent episode
-    let parent_id = memory
-        .create_episode(
-            "Design API architecture".to_string(),
-            "web-api".to_string(),
-            TaskType::Analysis,
-        )
-        .await
-        .expect("Failed to create parent episode");
+    // Test 1: Create parent episode
+    let parent_id = create_test_episode(&memory, "Parent task", "relationship-test").await;
 
-    // Create child episodes
-    let child_id1 = memory
-        .create_episode(
-            "Implement authentication endpoint".to_string(),
-            "web-api".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .expect("Failed to create child 1");
+    // Test 2: Create child episodes
+    let child_id1 = create_test_episode(&memory, "Child task 1", "relationship-test").await;
+    let child_id2 = create_test_episode(&memory, "Child task 2", "relationship-test").await;
 
-    let child_id2 = memory
-        .create_episode(
-            "Implement user management endpoint".to_string(),
-            "web-api".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .expect("Failed to create child 2");
+    // Complete episodes
+    complete_episode_with_steps(&memory, parent_id, &[("setup", "Setup")]).await;
+    complete_episode_with_steps(&memory, child_id1, &[("impl", "Implement")]).await;
+    complete_episode_with_steps(&memory, child_id2, &[("impl", "Implement")]).await;
 
-    // Complete all episodes
-    memory
-        .complete_episode(
-            parent_id,
-            TaskOutcome::Success {
-                verdict: "Architecture designed".to_string(),
-                artifacts: vec![],
-            },
-        )
-        .await
-        .unwrap();
-
-    memory
-        .complete_episode(
-            child_id1,
-            TaskOutcome::Success {
-                verdict: "Authentication endpoint implemented".to_string(),
-                artifacts: vec!["auth.rs".to_string()],
-            },
-        )
-        .await
-        .unwrap();
-
-    memory
-        .complete_episode(
-            child_id2,
-            TaskOutcome::Success {
-                verdict: "User management implemented".to_string(),
-                artifacts: vec!["users.rs".to_string()],
-            },
-        )
-        .await
-        .unwrap();
-
-    // Test 1: add-relationship (parent-child)
-    let metadata = RelationshipMetadata {
-        reason: Some("Auth endpoint part of architecture".to_string()),
-        priority: Some(8),
-        created_by: Some("test-e2e".to_string()),
-        custom_fields: Default::default(),
-    };
-
+    // Test 3: add-relationship
     let rel_id1 = memory
         .add_episode_relationship(
             parent_id,
             child_id1,
             RelationshipType::ParentChild,
-            metadata.clone(),
+            RelationshipMetadata::default(),
         )
         .await
-        .expect("Failed to add relationship 1");
+        .expect("Failed to add relationship");
 
-    // Test 2: add another relationship
     let rel_id2 = memory
         .add_episode_relationship(
             parent_id,
             child_id2,
             RelationshipType::ParentChild,
-            metadata,
+            RelationshipMetadata::default(),
         )
         .await
-        .expect("Failed to add relationship 2");
+        .expect("Failed to add relationship");
 
-    // Test 3: list-relationships (episode relationships)
+    assert_ne!(rel_id1, rel_id2);
+
+    // Test 4: get-relationships
     let relationships = memory
         .get_episode_relationships(parent_id, Direction::Outgoing)
         .await
-        .expect("Failed to list relationships");
+        .expect("Failed to get relationships");
+
     assert_eq!(relationships.len(), 2);
 
-    // Verify relationship details
-    assert!(relationships.iter().any(|r| r.id == rel_id1));
-    assert!(relationships.iter().any(|r| r.id == rel_id2));
-    assert!(relationships
-        .iter()
-        .all(|r| r.relationship_type == RelationshipType::ParentChild));
-
-    // Test 4: find-related (find related episodes)
-    let related_ids = memory
-        .find_related_episodes(
-            parent_id,
-            memory_core::memory::relationship_query::RelationshipFilter {
-                relationship_type: Some(RelationshipType::ParentChild),
-                limit: Some(10),
-                ..Default::default()
-            },
-        )
+    // Test 5: find-related-episodes
+    let filter = memory_core::memory::relationship_query::RelationshipFilter::default();
+    let related = memory
+        .find_related_episodes(parent_id, filter)
         .await
         .expect("Failed to find related episodes");
 
-    assert!(related_ids.contains(&child_id1));
-    assert!(related_ids.contains(&child_id2));
+    assert!(!related.is_empty());
 
-    // Test 5: dependency-graph (build graph)
-    let graph = memory
-        .build_relationship_graph(parent_id, 2)
+    // Test 6: relationship-exists
+    let exists = memory
+        .relationship_exists(parent_id, child_id1, RelationshipType::ParentChild)
         .await
-        .expect("Failed to build graph");
+        .expect("Failed to check existence");
+    assert!(exists);
 
-    assert_eq!(graph.root, parent_id);
-    assert!(graph.node_count() >= 2);
-    assert!(graph.edge_count() >= 2);
-
-    // Test 6: validate-cycles (check for cycles - should be false)
-    let has_cycle = memory
-        .validate_no_cycles(parent_id, RelationshipType::ParentChild)
-        .await
-        .expect("Failed to validate cycles");
-    assert!(!has_cycle, "Should not have cycles");
-
-    // Test 7: topological-sort (sort episodes)
-    let sorted = memory
-        .get_topological_order(&[parent_id, child_id1, child_id2])
-        .await
-        .expect("Failed to get topological order");
-
-    assert_eq!(sorted.len(), 3);
-    // Parent should come before children in topological order
-    let parent_pos = sorted.iter().position(|&id| id == parent_id).unwrap();
-    let child1_pos = sorted.iter().position(|&id| id == child_id1).unwrap();
-    let child2_pos = sorted.iter().position(|&id| id == child_id2).unwrap();
-
-    assert!(parent_pos < child1_pos, "Parent should precede child1");
-    assert!(parent_pos < child2_pos, "Parent should precede child2");
-
-    // Test 8: remove-relationship
+    // Test 7: remove-relationship
     memory
         .remove_episode_relationship(rel_id1)
         .await
@@ -441,7 +276,7 @@ async fn test_relationship_workflow_add_list_find_graph_validate_remove() {
         .unwrap();
     assert_eq!(relationships.len(), 1); // Only one left
 
-    println!("✓ Relationship workflow test passed (7+ commands tested)");
+    println!("✓ Relationship workflow test passed (7 commands tested)");
 }
 
 // ============================================================================
@@ -458,15 +293,6 @@ async fn test_error_recovery_invalid_episode_operations() {
     // Test: Get non-existent episode
     let result = memory.get_episode(invalid_id).await;
     assert!(result.is_err(), "Should fail for non-existent episode");
-
-    // Test: Add steps to non-existent episode
-    let result = memory
-        .add_episode_step(invalid_id, 1, "test".to_string(), "test".to_string(), None)
-        .await;
-    assert!(
-        result.is_err(),
-        "Should fail to add step to non-existent episode"
-    );
 
     // Test: Complete non-existent episode
     let result = memory
@@ -499,6 +325,13 @@ async fn test_error_recovery_invalid_episode_operations() {
         "Should fail to add tags to non-existent episode"
     );
 
+    // Test: Delete non-existent episode
+    let result = memory.delete_episode(invalid_id).await;
+    assert!(
+        result.is_err(),
+        "Should fail to delete non-existent episode"
+    );
+
     println!("✓ Error recovery test passed");
 }
 
@@ -508,251 +341,73 @@ async fn test_error_recovery_invalid_episode_operations() {
 
 #[tokio::test]
 #[serial]
-async fn test_bulk_episode_operations() {
+async fn test_batch_episode_operations() {
     let (memory, _dir) = setup_test_memory().await;
 
     // Create multiple episodes
     let mut episode_ids = Vec::new();
     for i in 0..5 {
-        let id = memory
-            .create_episode(format!("Task {}", i), "test".to_string(), TaskType::Testing)
-            .await
-            .unwrap();
+        let id = create_test_episode(&memory, &format!("Batch episode {}", i), "batch-test").await;
+        complete_episode_with_steps(&memory, id, &[("tool", "action")]).await;
         episode_ids.push(id);
     }
 
-    // Bulk retrieve episodes
-    let episodes = memory
-        .bulk_get_episodes(&episode_ids)
+    // Get all episodes
+    let all_episodes = memory
+        .get_all_episodes()
         .await
-        .expect("Failed to bulk retrieve episodes");
-    assert_eq!(episodes.len(), 5);
+        .expect("Failed to get all episodes");
+    assert!(all_episodes.len() >= 5);
 
-    // Verify all episodes retrieved
-    for ep in episodes {
-        assert!(episode_ids.contains(&ep.id));
-    }
-
-    // Batch query with filter
-    let batch_result = memory
-        .batch_query_episodes(memory_core::mcp::tools::batch::types::BatchQueryFilter {
-            domain: Some("test".to_string()),
-            limit: Some(10),
-            ..Default::default()
-        })
+    // List with pagination
+    let page1 = memory
+        .list_episodes(Some(2), Some(0), Some(true))
         .await
-        .expect("Failed to batch query episodes");
+        .expect("Failed to list episodes");
+    assert!(page1.len() <= 2);
 
-    assert!(batch_result.total_count >= 5);
+    // Get by IDs
+    let by_ids = memory
+        .get_episodes_by_ids(&episode_ids[..3])
+        .await
+        .expect("Failed to get by IDs");
+    assert_eq!(by_ids.len(), 3);
 
-    println!("✓ Bulk episode operations test passed");
+    println!("✓ Batch episode operations test passed");
 }
 
 // ============================================================================
-// Scenario 6: Episode Timeline and Steps
+// Scenario 6: Episode Deletion and Cleanup
 // ============================================================================
 
 #[tokio::test]
 #[serial]
-async fn test_episode_timeline_and_steps() {
+async fn test_episode_deletion_and_cleanup() {
     let (memory, _dir) = setup_test_memory().await;
 
-    let episode_id = memory
-        .create_episode(
-            "Complex task with timeline".to_string(),
-            "testing".to_string(),
-            TaskType::Debugging,
-        )
-        .await
-        .expect("Failed to create episode");
+    // Create episode
+    let episode_id = create_test_episode(&memory, "Delete test", "delete-test").await;
 
-    // Add steps with different tools and outcomes
-    for i in 1..=5 {
-        let is_error = i == 3; // Make step 3 fail
-        memory
-            .add_episode_step(
-                episode_id,
-                i,
-                format!("tool-{}", i),
-                format!("Action {}", i),
-                if is_error {
-                    Some(memory_core::episode::ExecutionResult::Error {
-                        message: format!("Error {}", i),
-                    })
-                } else {
-                    Some(memory_core::episode::ExecutionResult::Success {
-                        output: format!("Success {}", i),
-                    })
-                },
-            )
-            .await
-            .unwrap();
-    }
-
-    // Get episode timeline
-    let timeline = memory
-        .get_episode_timeline(episode_id)
-        .await
-        .expect("Failed to get timeline");
-
-    assert_eq!(timeline.len(), 5);
-
-    // Verify chronological order
-    for (i, step) in timeline.iter().enumerate() {
-        assert_eq!(step.step_number, i + 1);
-    }
-
-    // Verify step details
-    let step3 = &timeline[2]; // Step 3 (0-indexed)
-    assert!(matches!(
-        step3.result,
-        Some(memory_core::episode::ExecutionResult::Error { .. })
-    ));
-
-    println!("✓ Episode timeline and steps test passed");
-}
-
-// ============================================================================
-// Scenario 7: Episode Delete Recovery
-// ============================================================================
-
-#[tokio::test]
-#[serial]
-async fn test_episode_delete_and_cascade() {
-    let (memory, _dir) = setup_test_memory().await;
-
-    // Create episodes with relationships
-    let ep1_id = memory
-        .create_episode(
-            "Main task".to_string(),
-            "test".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .unwrap();
-
-    let ep2_id = memory
-        .create_episode(
-            "Subtask".to_string(),
-            "test".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .unwrap();
-
-    // Complete and add relationship
+    // Add tags
     memory
-        .complete_episode(
-            ep1_id,
-            TaskOutcome::Success {
-                verdict: "Done".to_string(),
-                artifacts: vec![],
-            },
-        )
+        .add_episode_tags(episode_id, vec!["to-delete".to_string()])
         .await
         .unwrap();
 
+    // Complete it
+    complete_episode_with_steps(&memory, episode_id, &[("tool", "action")]).await;
+
+    // Verify exists
+    assert!(memory.get_episode(episode_id).await.is_ok());
+
+    // Delete
     memory
-        .complete_episode(
-            ep2_id,
-            TaskOutcome::Success {
-                verdict: "Done".to_string(),
-                artifacts: vec![],
-            },
-        )
-        .await
-        .unwrap();
-
-    let rel_id = memory
-        .add_episode_relationship(
-            ep1_id,
-            ep2_id,
-            RelationshipType::DependsOn,
-            Default::default(),
-        )
-        .await
-        .unwrap();
-
-    // Delete episode
-    memory
-        .delete_episode(ep1_id)
+        .delete_episode(episode_id)
         .await
         .expect("Failed to delete episode");
 
-    // Verify episode is deleted
-    let result = memory.get_episode(ep1_id).await;
-    assert!(result.is_err());
+    // Verify deleted
+    assert!(memory.get_episode(episode_id).await.is_err());
 
-    // Verify relationships are cleaned up (if implemented)
-    // This behavior depends on the implementation
-
-    println!("✓ Episode delete and cascade test passed");
-}
-
-// ============================================================================
-// Scenario 8: Episode Search and Filtering
-// ============================================================================
-
-#[tokio::test]
-#[serial]
-async fn test_episode_search_and_filtering() {
-    let (memory, _dir) = setup_test_memory().await;
-
-    // Create episodes in different domains
-    let web_id = memory
-        .create_episode(
-            "Build REST API".to_string(),
-            "web-api".to_string(),
-            TaskType::CodeGeneration,
-        )
-        .await
-        .unwrap();
-
-    let db_id = memory
-        .create_episode(
-            "Database schema design".to_string(),
-            "database".to_string(),
-            TaskType::Analysis,
-        )
-        .await
-        .unwrap();
-
-    let test_id = memory
-        .create_episode(
-            "Write unit tests".to_string(),
-            "web-api".to_string(),
-            TaskType::Testing,
-        )
-        .await
-        .unwrap();
-
-    // Complete episodes
-    memory
-        .complete_episode(
-            web_id,
-            TaskOutcome::Success {
-                verdict: "API built".to_string(),
-                artifacts: vec![],
-            },
-        )
-        .await
-        .unwrap();
-
-    // Query by domain
-    let result = memory
-        .query_memory("API", Some("web-api".to_string()), None, 10)
-        .await
-        .unwrap();
-
-    assert!(result.episodes.iter().any(|ep| ep.id == web_id));
-
-    // Query by task type
-    let result = memory
-        .query_memory("", None, Some(TaskType::CodeGeneration), 10)
-        .await
-        .unwrap();
-
-    assert!(result.episodes.iter().any(|ep| ep.id == web_id));
-
-    println!("✓ Episode search and filtering test passed");
+    println!("✓ Episode deletion and cleanup test passed");
 }

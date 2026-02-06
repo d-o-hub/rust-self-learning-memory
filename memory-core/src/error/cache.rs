@@ -140,7 +140,7 @@ mod tests {
         let msg = err.to_string();
         assert!(msg.contains("Invalid cache configuration"));
         assert!(msg.contains("max_entries"));
-        assert!(msg.contains("0"));
+        assert!(msg.contains('0'));
     }
 
     #[test]

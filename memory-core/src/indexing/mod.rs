@@ -289,7 +289,7 @@ mod tests {
             total_episodes: 1000,
             domain_count: 5,
             task_type_count: 10,
-            memory_usage_bytes: 102400,
+            memory_usage_bytes: 102_400,
             avg_query_time_us: 5.5,
             speedup_factor: 10.0,
             cache_hit_rate: 0.85,

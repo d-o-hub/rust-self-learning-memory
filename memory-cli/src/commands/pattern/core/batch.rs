@@ -1,4 +1,3 @@
-#![cfg(feature = "turso")]
 //! Batch pattern operations CLI commands
 
 use anyhow::Result;

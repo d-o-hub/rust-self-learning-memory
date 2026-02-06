@@ -103,7 +103,9 @@ impl Error {
             // Cache errors - some are recoverable
             Error::Cache(cache_err) => matches!(
                 cache_err,
-                CacheError::EvictionFailed { .. } | CacheError::SerializationFailed { .. }
+                CacheError::EvictionFailed { .. }
+                    | CacheError::SerializationFailed { .. }
+                    | CacheError::EntryTooLarge { .. }
             ),
         }
     }

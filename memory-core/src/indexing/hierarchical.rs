@@ -746,7 +746,6 @@ mod tests {
         let mut index = HierarchicalIndex::new();
 
         let episode = create_test_episode("web-api", TaskType::CodeGeneration);
-        let _id = episode.episode_id;
 
         index.insert(&episode);
         assert_eq!(index.len(), 1);

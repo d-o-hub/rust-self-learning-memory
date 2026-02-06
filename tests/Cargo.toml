@@ -88,23 +88,23 @@ harness = true
 [[test]]
 name = "embeddings_mcp"
 path = "e2e/embeddings_mcp_test.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "embeddings_quality"
 path = "e2e/embeddings_quality_test.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "embeddings_performance"
 path = "e2e/embeddings_performance_test.rs"
-harness = false
+harness = true
 
 # CLI and MCP E2E tests (30+ scenarios for >95% coverage)
 [[test]]
 name = "cli_episode_workflow"
 path = "e2e/cli_episode_workflow.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "cli_pattern_workflow"
@@ -113,30 +113,30 @@ path = "e2e/cli_pattern_workflow.rs"
 [[test]]
 name = "mcp_episode_chain"
 path = "e2e/mcp_episode_chain.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "mcp_relationship_chain"
 path = "e2e/mcp_relationship_chain.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "mcp_tag_chain"
 path = "e2e/mcp_tag_chain.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "error_handling"
 path = "e2e/error_handling.rs"
-harness = false
+harness = true
 
 # New comprehensive E2E tests
 [[test]]
 name = "cli_workflows"
 path = "e2e/cli_workflows.rs"
-harness = false
+harness = true
 
 [[test]]
 name = "mcp_integration"
 path = "e2e/mcp_integration.rs"
-harness = false
+harness = true

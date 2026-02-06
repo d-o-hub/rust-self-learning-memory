@@ -5,6 +5,7 @@
 mod tests {
     use crate::embeddings::config::mistral::{MistralConfig, MistralModel, OutputDtype};
     use crate::embeddings::mistral::MistralEmbeddingProvider;
+    use crate::embeddings::provider::EmbeddingProvider;
 
     #[test]
     fn test_mistral_provider_creation() {

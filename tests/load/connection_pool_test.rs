@@ -462,8 +462,8 @@ async fn test_connection_pool_load() {
     stats.print_summary("Connection Pool Load");
 
     // Verify success criteria
-    config
-        .meets_criteria(&stats)
+    stats
+        .meets_criteria(&config)
         .expect("Test failed criteria check");
 
     // Test pool scaling behavior
@@ -472,7 +472,7 @@ async fn test_connection_pool_load() {
         .expect("Pool scaling behavior test failed");
 
     // Test connection pool stats
-    if let Ok(pool_stats) = storage.get_pool_statistics().await {
+    if let Some(pool_stats) = storage.pool_statistics().await {
         println!("\n=== Connection Pool Statistics ===");
         println!("Active connections: {}", pool_stats.active_connections);
         println!("Idle connections: {}", pool_stats.idle_connections);

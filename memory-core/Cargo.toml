@@ -92,6 +92,7 @@ memory-storage-turso = { path = "../memory-storage-turso", features = ["keepaliv
 memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
 serial_test = "3.2"
+criterion = "0.5"
 # Enable proptest-arbitrary feature for tests
 memory-core = { path = ".", features = ["proptest-arbitrary"] }
 

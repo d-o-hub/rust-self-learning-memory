@@ -1,7 +1,7 @@
 //! Property-based tests for Episode Relationships
 //!
 //! Tests invariants that must hold regardless of input values:
-//! - Relationships cannot create cycles in depends_on
+//! - Relationships cannot create cycles in `depends_on`
 //! - Relationship deletion is idempotent
 //! - Relationship types are valid
 //! - Bidirectional relationships are consistent
@@ -417,9 +417,8 @@ proptest! {
         // Directional types should have inverse, non-directional should not
         let has_inverse = rel_type.inverse().is_some();
 
-        assert_eq!(
+        assert!(
             is_directional || !has_inverse,
-            true,
             "Directional types should have inverse, non-directional should not"
         );
     }

@@ -58,10 +58,12 @@ jobs:
           echo "Generating coverage report for library code..."
           # Use --lib for faster coverage of library code only
           # Use --jobs to parallelize
-          timeout 2400s cargo llvm-cov --lib --lcov --output-path lcov.info --jobs 4
+          # Use --timeout to prevent hanging tests
+          timeout 2400s cargo llvm-cov --lib --lcov --output-path lcov.info --jobs 4 --timeout 120
           echo "Coverage report generated successfully"
         env:
           RUST_LOG: info
+          RUST_BACKTRACE: 1
 
       - name: Generate Coverage Report (Full Workspace - Optional)
         if: github.ref == 'refs/heads/main'

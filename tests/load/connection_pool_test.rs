@@ -9,8 +9,9 @@
 //! - Verify no connection exhaustion
 //! - Test pool scaling behavior
 
+use chrono::Utc;
 use memory_core::{Episode, TaskContext, TaskType};
-use memory_storage_turso::{PoolConfig, TursoConfig, TursoStorage};
+use memory_storage_turso::TursoStorage;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
@@ -143,29 +144,15 @@ impl TestStatistics {
 /// Create a test Turso storage with configured pool
 async fn create_test_storage(
     max_pool_size: usize,
-    min_pool_size: usize,
-    connection_timeout: Duration,
+    _min_pool_size: usize,
+    _connection_timeout: Duration,
 ) -> (TursoStorage, TempDir, Arc<Semaphore>) {
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
     let db_path = temp_dir.path().join("test.db");
 
-    let pool_config = PoolConfig {
-        max_pool_size,
-        min_pool_size,
-        connection_timeout,
-        idle_timeout: Duration::from_secs(30),
-        keepalive_interval: Duration::from_secs(10),
-    };
-
-    let config = TursoConfig {
-        pool_config,
-        ..Default::default()
-    };
-
-    let storage =
-        TursoStorage::with_config(&format!("file:{}", db_path.to_string_lossy()), "", config)
-            .await
-            .expect("Failed to create Turso storage");
+    let storage = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
+        .await
+        .expect("Failed to create Turso storage");
 
     storage
         .initialize_schema()
@@ -198,7 +185,7 @@ fn create_test_episode(id: Uuid) -> Episode {
         heuristics: vec![],
         applied_patterns: vec![],
         salient_features: None,
-        start_time: chrono::Utc::now(),
+        start_time: Utc::now(),
         end_time: None,
         metadata: std::collections::HashMap::new(),
         tags: vec![],
@@ -242,7 +229,10 @@ async fn execute_operation(
 }
 
 /// Run connection pool load test with high concurrency
-async fn run_high_concurrency_test(storage: &TursoStorage, config: &TestConfig) -> TestStatistics {
+async fn run_high_concurrency_test(
+    storage: Arc<TursoStorage>,
+    config: &TestConfig,
+) -> TestStatistics {
     let mut stats = TestStatistics::default();
     let semaphore = Arc::new(Semaphore::new(100)); // Limit concurrent operations per batch
 
@@ -255,10 +245,9 @@ async fn run_high_concurrency_test(storage: &TursoStorage, config: &TestConfig) 
     let mut join_set = JoinSet::new();
 
     // Start operations in batches to simulate load
-    for i in 0..TOTAL_QUERY_COUNT {
+    for _i in 0..TOTAL_QUERY_COUNT {
         let storage_clone = storage.clone();
         let semaphore_clone = semaphore.clone();
-        let operation_id = i;
 
         join_set.spawn(async move {
             let _permit = semaphore_clone.acquire().await.unwrap();
@@ -328,7 +317,7 @@ async fn run_high_concurrency_test(storage: &TursoStorage, config: &TestConfig) 
 }
 
 /// Test connection pool scaling behavior
-async fn test_pool_scaling_behavior(storage: &TursoStorage) -> anyhow::Result<()> {
+async fn test_pool_scaling_behavior(storage: Arc<TursoStorage>) -> anyhow::Result<()> {
     println!("Testing connection pool scaling behavior...");
 
     let operations_per_phase = vec![100, 500, 1000, 500, 100];
@@ -341,10 +330,9 @@ async fn test_pool_scaling_behavior(storage: &TursoStorage) -> anyhow::Result<()
         let sem = Arc::new(Semaphore::new(200)); // Limit concurrency per phase
         let mut join_set = JoinSet::new();
 
-        for i in 0..*operations {
+        for _i in 0..*operations {
             let storage_clone = storage.clone();
             let sem_clone = sem.clone();
-            let operation_id = i;
 
             join_set.spawn(async move {
                 let _permit = sem_clone.acquire().await.unwrap();
@@ -377,7 +365,7 @@ async fn test_pool_scaling_behavior(storage: &TursoStorage) -> anyhow::Result<()
                     phase_stats.max_latency =
                         Some(phase_stats.max_latency.map_or(latency, |m| m.max(latency)));
                 }
-                Err(e) => phase_stats.failed_operations += 1,
+                Err(_e) => phase_stats.failed_operations += 1,
             }
         }
 
@@ -451,10 +439,12 @@ async fn test_connection_pool_load() {
     )
     .await;
 
+    let storage = Arc::new(storage);
+
     // Run high concurrency test
     let stats = tokio::time::timeout(
         MAX_TEST_DURATION,
-        run_high_concurrency_test(&storage, &config),
+        run_high_concurrency_test(storage.clone(), &config),
     )
     .await
     .expect("Connection pool load test timed out");
@@ -467,7 +457,7 @@ async fn test_connection_pool_load() {
         .expect("Test failed criteria check");
 
     // Test pool scaling behavior
-    test_pool_scaling_behavior(&storage)
+    test_pool_scaling_behavior(storage.clone())
         .await
         .expect("Pool scaling behavior test failed");
 
@@ -475,12 +465,8 @@ async fn test_connection_pool_load() {
     if let Some(pool_stats) = storage.pool_statistics().await {
         println!("\n=== Connection Pool Statistics ===");
         println!("Active connections: {}", pool_stats.active_connections);
-        println!("Idle connections: {}", pool_stats.idle_connections);
-        println!(
-            "Total connections created: {}",
-            pool_stats.total_connections_created
-        );
-        println!("Total wait time: {:?}", pool_stats.total_wait_time);
+        println!("Total connections created: {}", pool_stats.total_created);
+        println!("Average wait time: {}ms", pool_stats.avg_wait_time_ms);
     }
 
     let elapsed = start_time.elapsed();

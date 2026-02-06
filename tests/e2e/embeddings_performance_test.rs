@@ -265,6 +265,7 @@ async fn test_performance_large_dataset_scaling() {
 }
 
 #[tokio::test]
+#[allow(clippy::excessive_nesting)]
 async fn test_performance_concurrent_embeddings() {
     let provider = Arc::new(
         LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
@@ -308,8 +309,7 @@ async fn test_performance_concurrent_embeddings() {
         let results: Vec<_> = futures::future::join_all(handles)
             .await
             .into_iter()
-            .map(|r| r.unwrap())
-            .flatten()
+            .flat_map(|r| r.unwrap())
             .collect();
 
         let total_time = start.elapsed();
@@ -631,18 +631,12 @@ fn get_memory_usage() -> (f64, f64) {
 
     if let Ok(status) = fs::read_to_string("/proc/self/status") {
         for line in status.lines() {
-            if line.starts_with("VmRSS:") {
-                let parts: Vec<_> = line.split_whitespace().collect();
-                if let Some(kb) = parts.get(1) {
-                    if let Ok(kb_val) = kb.parse::<f64>() {
-                        rss = kb_val / 1024.0; // Convert to MB
-                    }
-                }
-            } else if line.starts_with("VmSize:") {
-                let parts: Vec<_> = line.split_whitespace().collect();
-                if let Some(kb) = parts.get(1) {
-                    if let Ok(kb_val) = kb.parse::<f64>() {
-                        total = kb_val / 1024.0; // Convert to MB
+            if let Some((prefix, value_str)) = line.split_once(':') {
+                if let Ok(kb_val) = value_str.trim().parse::<f64>() {
+                    match prefix {
+                        "VmRSS" => rss = kb_val / 1024.0,
+                        "VmSize" => total = kb_val / 1024.0,
+                        _ => {}
                     }
                 }
             }

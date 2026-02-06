@@ -227,10 +227,18 @@ mod performance_benchmarks {
         // Test DBSCAN memory with 10000 points by measuring vector capacity
         let size = 10000;
 
-        // Measure initial capacity of data structures
-        let values: Vec<f64> = (0..size).map(|i| i as f64).collect();
+        let values: Vec<f64> = (0..size)
+            .map(|i| 10.0 + (i as f64 / size as f64) * 10.0)
+            .collect();
         let timestamps: Vec<f64> = (0..size).map(|i| i as f64).collect();
 
+        use rand::seq::SliceRandom;
+        let mut indexed_values: Vec<(f64, f64)> =
+            values.into_iter().zip(timestamps.into_iter()).collect();
+        indexed_values.shuffle(&mut rand::thread_rng());
+
+        let values: Vec<f64> = indexed_values.iter().map(|(v, _)| *v).collect();
+        let timestamps: Vec<f64> = indexed_values.iter().map(|(_, t)| *t).collect();
         let values_capacity_mb =
             (values.capacity() * std::mem::size_of::<f64>()) as f64 / (1024.0 * 1024.0);
         let timestamps_capacity_mb =
@@ -382,11 +390,8 @@ mod performance_benchmarks {
     /// Benchmark accuracy vs performance trade-offs
     #[test]
     fn benchmark_accuracy_performance_tradeoff() {
-        let configs = vec![
-            (0.1, 2, 1000), // Fast, less accurate
-            (0.5, 5, 500),  // Balanced
-            (1.0, 10, 200), // Slower, more accurate
-        ];
+<<<<<<< HEAD
+        let configs = vec![(0.1, 2, 1000), (0.5, 5, 500), (1.0, 10, 200)];
 
         for (density, min_samples, max_distance) in configs {
             let config = DBSCANConfig {

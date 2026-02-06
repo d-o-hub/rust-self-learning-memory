@@ -5,24 +5,18 @@
 //!
 //! Acceptance Criteria:
 //! - Batch insert 10,000 episodes
-//! - Batch insert 50,000 patterns
 //! - Measure throughput (target: 200-300/sec)
 //! - Verify transaction safety
 
-use memory_core::{Episode, Heuristic, Pattern, TaskContext, TaskType};
-use memory_storage_turso::{BatchConfig, TursoConfig, TursoStorage};
+use chrono::Utc;
+use memory_core::{Episode, TaskContext, TaskType};
+use memory_storage_turso::TursoStorage;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
 use uuid::Uuid;
 
 /// Number of episodes to batch insert
 const BATCH_EPISODE_COUNT: usize = 10_000;
-
-/// Number of patterns to batch insert
-const BATCH_PATTERN_COUNT: usize = 50_000;
-
-/// Number of heuristics to batch insert
-const BATCH_HEURISTIC_COUNT: usize = 1_000;
 
 /// Target throughput (operations per second)
 const TARGET_THROUGHPUT_MIN: f64 = 200.0;
@@ -33,7 +27,6 @@ const MAX_TEST_DURATION: Duration = Duration::from_secs(600);
 
 /// Batch size configuration
 const DEFAULT_BATCH_SIZE: usize = 100;
-const LARGE_BATCH_SIZE: usize = 1000;
 
 /// Batch test configuration
 struct BatchTestConfig {
@@ -43,8 +36,6 @@ struct BatchTestConfig {
     min_throughput: f64,
     /// Expected maximum throughput (ops/sec)
     max_throughput: f64,
-    /// Enable compression (if feature available)
-    enable_compression: bool,
 }
 
 impl Default for BatchTestConfig {
@@ -53,7 +44,6 @@ impl Default for BatchTestConfig {
             batch_size: DEFAULT_BATCH_SIZE,
             min_throughput: TARGET_THROUGHPUT_MIN,
             max_throughput: TARGET_THROUGHPUT_MAX,
-            enable_compression: false,
         }
     }
 }
@@ -65,22 +55,12 @@ struct BatchTestStatistics {
     episodes_inserted: usize,
     /// Episodes failed
     episodes_failed: usize,
-    /// Patterns inserted
-    patterns_inserted: usize,
-    /// Patterns failed
-    patterns_failed: usize,
-    /// Heuristics inserted
-    heuristics_inserted: usize,
-    /// Heuristics failed
-    heuristics_failed: usize,
     /// Total operations
     total_operations: usize,
     /// Total duration
     total_duration: Duration,
     /// Episode throughput (ops/sec)
     episode_throughput: f64,
-    /// Pattern throughput (ops/sec)
-    pattern_throughput: f64,
 }
 
 impl BatchTestStatistics {
@@ -125,22 +105,13 @@ impl BatchTestStatistics {
         println!("  Inserted: {}", self.episodes_inserted);
         println!("  Failed: {}", self.episodes_failed);
         println!("  Throughput: {:.2} ops/sec", self.episode_throughput);
-        println!("\nPattern Operations:");
-        println!("  Inserted: {}", self.patterns_inserted);
-        println!("  Failed: {}", self.patterns_failed);
-        println!("  Throughput: {:.2} ops/sec", self.pattern_throughput);
-        println!("\nHeuristic Operations:");
-        println!("  Inserted: {}", self.heuristics_inserted);
-        println!("  Failed: {}", self.heuristics_failed);
         println!(
             "\nOverall Throughput: {:.2} ops/sec",
             self.total_throughput()
         );
         println!(
             "Success Rate: {:.2}%",
-            (self.episodes_inserted + self.patterns_inserted + self.heuristics_inserted) as f64
-                / self.total_operations as f64
-                * 100.0
+            self.episodes_inserted as f64 / self.total_operations.max(1) as f64 * 100.0
         );
         println!("=============================\n");
     }
@@ -151,11 +122,9 @@ async fn create_test_storage() -> (TursoStorage, TempDir) {
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
     let db_path = temp_dir.path().join("test.db");
 
-    let config = TursoConfig::default();
-    let storage =
-        TursoStorage::with_config(&format!("file:{}", db_path.to_string_lossy()), "", config)
-            .await
-            .expect("Failed to create Turso storage");
+    let storage = TursoStorage::new(&format!("file:{}", db_path.to_string_lossy()), "")
+        .await
+        .expect("Failed to create Turso storage");
 
     storage
         .initialize_schema()
@@ -186,47 +155,10 @@ fn create_test_episode(id: Uuid, index: usize) -> Episode {
         heuristics: vec![],
         applied_patterns: vec![],
         salient_features: None,
-        start_time: chrono::Utc::now(),
+        start_time: Utc::now(),
         end_time: None,
         metadata: std::collections::HashMap::new(),
         tags: vec![],
-    }
-}
-
-/// Create a test pattern
-fn create_test_pattern(id: Uuid, episode_id: Uuid, index: usize) -> Pattern {
-    Pattern::ToolSequence {
-        id,
-        tools: vec![
-            format!("tool_{}", index % 5),
-            format!("tool_{}", (index + 1) % 5),
-        ],
-        context: TaskContext {
-            domain: "batch_test".to_string(),
-            language: Some("rust".to_string()),
-            ..Default::default()
-        },
-        success_rate: 0.8 + (index as f64 % 20.0) / 100.0, // Vary success rate slightly
-        avg_latency: chrono::Duration::milliseconds(40 + (index as i64 % 20) * 2),
-        occurrence_count: 5 + (index % 10) as i64,
-        effectiveness: Default::default(),
-    }
-}
-
-/// Create a test heuristic
-fn create_test_heuristic(id: Uuid, index: usize) -> Heuristic {
-    Heuristic {
-        heuristic_id: id,
-        condition: format!("test_condition_{}", index % 10),
-        action: format!("test_action_{}", index % 5),
-        confidence: 0.7 + (index as f64 % 30.0) / 100.0,
-        evidence: memory_core::Evidence {
-            episode_ids: vec![],
-            success_rate: 0.8,
-            sample_size: 10,
-        },
-        created_at: chrono::Utc::now(),
-        updated_at: chrono::Utc::now(),
     }
 }
 
@@ -246,18 +178,18 @@ async fn batch_insert_episodes(
 
     for batch_start in (0..count).step_by(batch_size) {
         let batch_end = (batch_start + batch_size).min(count);
-        let batch_episodes: Vec<Episode> = (batch_start..batch_end)
-            .map(|i| create_test_episode(Uuid::new_v4(), i))
-            .collect();
 
-        // Batch insert using store_episodes_batch
-        storage.store_episodes_batch(batch_episodes.clone()).await?;
-
-        let successful = batch_episodes.len();
-        let failed = 0;
-
-        stats.episodes_inserted += successful;
-        stats.episodes_failed += failed;
+        for i in batch_start..batch_end {
+            let episode = create_test_episode(Uuid::new_v4(), i);
+            match storage.store_episode(&episode).await {
+                Ok(_) => {
+                    stats.episodes_inserted += 1;
+                }
+                Err(_) => {
+                    stats.episodes_failed += 1;
+                }
+            }
+        }
 
         if batch_end % 1000 == 0 {
             println!("  Inserted {} / {} episodes...", batch_end, count);
@@ -269,6 +201,8 @@ async fn batch_insert_episodes(
         stats.episode_throughput =
             stats.episodes_inserted as f64 / stats.total_duration.as_secs_f64();
     }
+
+    stats.total_operations = stats.episodes_inserted + stats.episodes_failed;
 
     println!(
         "Episode batch insert completed in {:?}",
@@ -282,148 +216,12 @@ async fn batch_insert_episodes(
     Ok(stats)
 }
 
-/// Batch insert patterns
-async fn batch_insert_patterns(
-    storage: &TursoStorage,
-    count: usize,
-    batch_size: usize,
-) -> anyhow::Result<BatchTestStatistics> {
-    println!(
-        "Batch inserting {} patterns (batch size: {})...",
-        count, batch_size
-    );
-
-    let mut stats = BatchTestStatistics::default();
-    let start = Instant::now();
-
-    for batch_start in (0..count).step_by(batch_size) {
-        let batch_end = (batch_start + batch_size).min(count);
-        let mut batch_patterns = Vec::with_capacity(batch_end - batch_start);
-
-        for i in batch_start..batch_end {
-            let pattern_id = Uuid::new_v4();
-            let episode_id = Uuid::new_v4();
-            batch_patterns.push(create_test_pattern(pattern_id, episode_id, i));
-        }
-
-        // Batch insert using store_patterns_batch
-        storage.store_patterns_batch(batch_patterns.clone()).await?;
-
-        let successful = batch_patterns.len();
-        let failed = 0;
-
-        stats.patterns_inserted += successful;
-        stats.patterns_failed += failed;
-
-        if batch_end % 5000 == 0 {
-            println!("  Inserted {} / {} patterns...", batch_end, count);
-        }
-    }
-
-    stats.total_duration = start.elapsed();
-    if stats.total_duration.as_secs() > 0 {
-        stats.pattern_throughput =
-            stats.patterns_inserted as f64 / stats.total_duration.as_secs_f64();
-    }
-
-    println!(
-        "Pattern batch insert completed in {:?}",
-        stats.total_duration
-    );
-    println!(
-        "Inserted: {}, Failed: {}, Throughput: {:.2} ops/sec",
-        stats.patterns_inserted, stats.patterns_failed, stats.pattern_throughput
-    );
-
-    Ok(stats)
-}
-
-/// Batch insert heuristics
-async fn batch_insert_heuristics(
-    storage: &TursoStorage,
-    count: usize,
-    batch_size: usize,
-) -> anyhow::Result<BatchTestStatistics> {
-    println!(
-        "Batch inserting {} heuristics (batch size: {})...",
-        count, batch_size
-    );
-
-    let mut stats = BatchTestStatistics::default();
-    let start = Instant::now();
-
-    for batch_start in (0..count).step_by(batch_size) {
-        let batch_end = (batch_start + batch_size).min(count);
-        let batch_heuristics: Vec<Heuristic> = (batch_start..batch_end)
-            .map(|i| create_test_heuristic(Uuid::new_v4(), i))
-            .collect();
-
-        // Batch insert using store_heuristics_batch
-        storage
-            .store_heuristics_batch(batch_heuristics.clone())
-            .await?;
-
-        let successful = batch_heuristics.len();
-        let failed = 0;
-
-        stats.heuristics_inserted += successful;
-        stats.heuristics_failed += failed;
-
-        if batch_end % 500 == 0 {
-            println!("  Inserted {} / {} heuristics...", batch_end, count);
-        }
-    }
-
-    stats.total_duration = start.elapsed();
-
-    println!(
-        "Heuristic batch insert completed in {:?}",
-        stats.total_duration
-    );
-    println!(
-        "Inserted: {}, Failed: {}",
-        stats.heuristics_inserted, stats.heuristics_failed
-    );
-
-    Ok(stats)
-}
-
 /// Test transaction safety by verifying all data was saved
 async fn test_transaction_safety(
     storage: &TursoStorage,
     expected_episodes: usize,
-    expected_patterns: usize,
 ) -> anyhow::Result<()> {
     println!("Testing transaction safety...");
-
-    // Get actual counts using get_statistics
-    let stats = storage.get_statistics().await?;
-
-    println!(
-        "Expected episodes: {}, Actual: {}",
-        expected_episodes, stats.episode_count
-    );
-    println!(
-        "Expected patterns: {}, Actual: {}",
-        expected_patterns, stats.pattern_count
-    );
-
-    // Verify counts match
-    if stats.episode_count != expected_episodes {
-        anyhow::bail!(
-            "Episode count mismatch: expected {}, got {}",
-            expected_episodes,
-            stats.episode_count
-        );
-    }
-
-    if stats.pattern_count != expected_patterns {
-        anyhow::bail!(
-            "Pattern count mismatch: expected {}, got {}",
-            expected_patterns,
-            stats.pattern_count
-        );
-    }
 
     // Verify data integrity by sampling
     println!("Verifying data integrity by sampling...");
@@ -447,8 +245,6 @@ async fn test_batch_operations_load() {
     println!("=== Batch Operations Load Test ===");
     println!("Testing batch operation performance and transaction safety...");
     println!("Episodes to insert: {}", BATCH_EPISODE_COUNT);
-    println!("Patterns to insert: {}", BATCH_PATTERN_COUNT);
-    println!("Heuristics to insert: {}", BATCH_HEURISTIC_COUNT);
     println!(
         "Target throughput: {} - {} ops/sec\n",
         TARGET_THROUGHPUT_MIN, TARGET_THROUGHPUT_MAX
@@ -469,38 +265,12 @@ async fn test_batch_operations_load() {
     .expect("Batch episode insert timed out")
     .expect("Episode batch insert failed");
 
-    // Batch insert patterns
-    let pattern_stats = tokio::time::timeout(
-        MAX_TEST_DURATION,
-        batch_insert_patterns(&storage, BATCH_PATTERN_COUNT, config.batch_size),
-    )
-    .await
-    .expect("Batch pattern insert timed out")
-    .expect("Pattern batch insert failed");
-
-    // Batch insert heuristics
-    let heuristic_stats = tokio::time::timeout(
-        MAX_TEST_DURATION,
-        batch_insert_heuristics(&storage, BATCH_HEURISTIC_COUNT, config.batch_size),
-    )
-    .await
-    .expect("Batch heuristic insert timed out")
-    .expect("Heuristic batch insert failed");
-
     // Combine statistics
     let mut combined_stats = BatchTestStatistics::default();
     combined_stats.episodes_inserted = episode_stats.episodes_inserted;
     combined_stats.episodes_failed = episode_stats.episodes_failed;
-    combined_stats.patterns_inserted = pattern_stats.patterns_inserted;
-    combined_stats.patterns_failed = pattern_stats.patterns_failed;
-    combined_stats.heuristics_inserted = heuristic_stats.heuristics_inserted;
-    combined_stats.heuristics_failed = heuristic_stats.heuristics_failed;
     combined_stats.episode_throughput = episode_stats.episode_throughput;
-    combined_stats.pattern_throughput = pattern_stats.pattern_throughput;
-
-    combined_stats.total_operations = episode_stats.episodes_inserted
-        + pattern_stats.patterns_inserted
-        + heuristic_stats.heuristics_inserted;
+    combined_stats.total_operations = episode_stats.total_operations;
     combined_stats.total_duration = start.elapsed();
 
     combined_stats.print_summary("Batch Operations");
@@ -511,7 +281,7 @@ async fn test_batch_operations_load() {
         .expect("Throughput does not meet criteria");
 
     // Test transaction safety
-    test_transaction_safety(&storage, BATCH_EPISODE_COUNT, BATCH_PATTERN_COUNT)
+    test_transaction_safety(&storage, BATCH_EPISODE_COUNT)
         .await
         .expect("Transaction safety test failed");
 

@@ -10,11 +10,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use memory_core::embeddings::{
-    cosine_similarity, EmbeddingConfig, EmbeddingProvider, InMemoryEmbeddingStorage, LocalConfig,
-    LocalEmbeddingProvider, SemanticService,
+    cosine_similarity, EmbeddingProvider, EmbeddingStorageBackend, InMemoryEmbeddingStorage,
+    LocalConfig, LocalEmbeddingProvider,
 };
-use memory_core::episode::ExecutionStep;
-use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
 use std::collections::HashMap;
 
 /// Create test dataset with known similarities
@@ -242,7 +240,7 @@ async fn test_quality_similarity_threshold_tuning() {
     for threshold in thresholds {
         let mut filtered_count = 0;
 
-        for (text1, text2, expected_sim) in &test_pairs {
+        for (text1, text2, _expected_sim) in &test_pairs {
             let similarity = provider
                 .similarity(text1, text2)
                 .await
@@ -294,11 +292,17 @@ async fn test_quality_ranking_quality() {
         .expect("Should generate query embedding");
 
     // Calculate all similarities
+    let mut embeddings = Vec::new();
+    for text in &candidates {
+        let embedding = provider.embed_text(text).await.unwrap();
+        embeddings.push(embedding);
+    }
+
     let mut ranked: Vec<_> = candidates
         .iter()
-        .map(|text| {
-            let embedding = provider.embed_text(text).await.unwrap();
-            let similarity = cosine_similarity(&query_embedding, &embedding);
+        .zip(embeddings.iter())
+        .map(|(text, embedding)| {
+            let similarity = cosine_similarity(&query_embedding, embedding);
             (text, similarity)
         })
         .collect();
@@ -337,11 +341,10 @@ async fn test_quality_ranking_quality() {
 
 #[tokio::test]
 async fn test_quality_domain_specific_search() {
-    let storage = Box::new(InMemoryEmbeddingStorage::new());
-    let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(storage, config)
+    let storage = InMemoryEmbeddingStorage::new();
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        .expect("Should create service");
+        .expect("Should create provider");
 
     // Create episodes from different domains
     let domain_episodes = vec![
@@ -360,16 +363,14 @@ async fn test_quality_domain_specific_search() {
     ];
 
     // Store embeddings
-    for (domain, text) in &domain_episodes {
+    for (_domain, text) in &domain_episodes {
         let episode_id = uuid::Uuid::new_v4();
-        let embedding = service
-            .provider
+        let embedding = provider
             .embed_text(text)
             .await
             .expect("Should generate embedding");
 
-        service
-            .storage
+        storage
             .store_episode_embedding(episode_id, embedding)
             .await
             .expect("Should store embedding");
@@ -377,14 +378,12 @@ async fn test_quality_domain_specific_search() {
 
     // Query for authentication
     let query = "How to implement user login?";
-    let query_embedding = service
-        .provider
+    let query_embedding = provider
         .embed_text(query)
         .await
         .expect("Should generate query embedding");
 
-    let results = service
-        .storage
+    let results = storage
         .find_similar_episodes(query_embedding, 10, 0.0)
         .await
         .expect("Should find results");
@@ -593,7 +592,7 @@ async fn test_quality_natural_language_queries() {
     // All variations should have some similarity
     for (_, similarity) in &similarities {
         assert!(
-            similarity > 0.0,
+            *similarity > 0.0,
             "All variations should have some similarity"
         );
     }

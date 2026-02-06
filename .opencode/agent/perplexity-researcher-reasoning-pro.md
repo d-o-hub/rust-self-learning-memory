@@ -24,7 +24,7 @@ Risk assessment and mitigation strategies
 Integration of contradictory evidence
 Confidence interval estimation
 Repository maintenance analysis (last commit frequency, issue handling, release activity)
-Website source validation for 2025 relevance and freshness
+Website source validation for 2025 and 2026 relevance and freshness
 Source credibility assessment based on maintenance status
 Usage Examples:
 

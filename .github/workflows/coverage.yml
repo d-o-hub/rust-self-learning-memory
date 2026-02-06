@@ -63,6 +63,7 @@ jobs:
           echo "Coverage report generated successfully"
         env:
           RUST_LOG: info
+          RUST_BACKTRACE: 1
 
       - name: Generate Coverage Report (Full Workspace - Optional)
         if: github.ref == 'refs/heads/main'
@@ -93,6 +94,13 @@ jobs:
           echo "Coverage report uploaded to Codecov"
           echo "View detailed coverage at: https://codecov.io/gh/${{ github.repository }}"
 
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./lcov.info
+          retention-days: 7
+
   # Coverage badge generation
   coverage-badge:
     name: Generate Coverage Badge
@@ -113,5 +121,52 @@ jobs:
 
       - name: Generate badge
         run: |
-          echo "Coverage badge generation would go here"
-          echo "This is a placeholder for future badge automation"
+          echo "=== Coverage Badge Generation ==="
+
+          # Check if coverage report exists
+          if [ ! -f ./coverage/lcov.info ]; then
+            echo "Warning: Coverage report not found at ./coverage/lcov.info"
+            echo "Badge generation skipped"
+            exit 0
+          fi
+
+          # Extract coverage percentage from lcov.info
+          # This is a simplified calculation - sum of hits / sum of total lines
+          TOTAL_LINES=$(grep -c '^DA:' ./coverage/lcov.info || echo "0")
+          HIT_LINES=$(grep '^DA:' ./coverage/lcov.info | awk -F',' '{if ($2 > 0) print}' | wc -l || echo "0")
+
+          if [ "$TOTAL_LINES" -gt 0 ]; then
+            COVERAGE=$(( HIT_LINES * 100 / TOTAL_LINES ))
+          else
+            COVERAGE=0
+          fi
+
+          echo "Calculated coverage: ${COVERAGE}%"
+          echo "coverage=${COVERAGE}" >> "$GITHUB_ENV"
+
+          # Determine badge color based on coverage
+          if [ "$COVERAGE" -ge 90 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE" -ge 80 ]; then
+            COLOR="green"
+          elif [ "$COVERAGE" -ge 70 ]; then
+            COLOR="yellowgreen"
+          elif [ "$COVERAGE" -ge 60 ]; then
+            COLOR="yellow"
+          elif [ "$COVERAGE" -ge 50 ]; then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+
+          echo "Badge color: ${COLOR}"
+          echo "color=${COLOR}" >> "$GITHUB_ENV"
+
+          echo "=== Badge Generation Complete ==="
+
+      - name: Upload badge artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-badge
+          path: ./coverage/lcov.info
+          retention-days: 7

@@ -24,6 +24,8 @@ embeddings-full = ["openai", "mistral"]
 local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
 # Enable hybrid search with FTS5
 hybrid_search = []
+# Enable proptest Arbitrary implementations for property testing
+proptest-arbitrary = ["proptest"]
 
 [dependencies]
 # Async runtime
@@ -60,11 +62,11 @@ ort = { version = "2.0.0-rc.11", optional = true }
 # Tokenizers for local embeddings (optional)
 tokenizers = { version = "0.22.2", optional = true }
 
-  # ndarray for tensor operations (required by ort)
-  # Using 0.17.x to match ort 2.0.0-rc.11's ndarray dependency
-  ndarray = { version = "0.16", optional = true }
+# ndarray for tensor operations (required by ort)
+# Using 0.17.x to match ort 2.0.0-rc.11's ndarray dependency
+ndarray = { version = "0.17", optional = true }
 
-  # Changepoint detection using PELT algorithm
+# Changepoint detection using PELT algorithm
   # augurs-changepoint wraps changepoint crate for time series analysis
   augurs-changepoint = "0.10.1"
   # Direct dependency to force changepoint 0.15.0 which uses fixed rv
@@ -80,12 +82,19 @@ strsim = "0.11.1"
 # Regular expressions for pattern matching
 regex = "1.12"
 
+# Property testing (optional, enabled via feature flag)
+proptest = { version = "1.5", optional = true }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
-memory-storage-turso = { path = "../memory-storage-turso" }
+memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool"] }
 memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
+serial_test = "3.2"
+criterion = "0.5"
+# Enable proptest-arbitrary feature for tests
+memory-core = { path = ".", features = ["proptest-arbitrary"] }
 
 [lints.clippy]
 # Core library gets pedantic linting for best practices

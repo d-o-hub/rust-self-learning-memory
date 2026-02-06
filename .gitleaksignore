@@ -26,3 +26,41 @@ b4d37e51795bfe09395e0c82264bd8062de9aa15:mcp-config-memory.json:generic-api-key:
 571e8c0e42d286ba59cd54e133269ef96379630e:.env:generic-api-key:41
 571e8c0e42d286ba59cd54e133269ef96379630e:mcp.json:generic-api-key:16
 571e8c0e42d286ba59cd54e133269ef96379630e:mcp-config-memory.json:generic-api-key:16
+# Test file with fake API key for testing error handling (sk-invalid-key-12345)
+# This is a placeholder key used to test OpenAI error handling - not a real secret
+tests/e2e/embeddings_openai_test.rs:generic-api-key:254
+
+# Documentation examples with placeholder keys (not real secrets)
+# Agentic payments documentation showing example API usage
+db20ad15e93529fea961c4bce8663e817d1311ab:.claude/agents/payments/agentic-payments.md:generic-api-key:35
+# Security training documentation showing bad practice example
+bd5e388:.github/SECURITY_TRAINING.md:generic-api-key:647
+
+# Test files with fake API keys for unit testing
+# OpenAI embeddings tests with test keys
+571e8c0:memory-core/src/embeddings/openai_tests.rs:generic-api-key:10
+571e8c0:memory-core/src/embeddings/openai_tests.rs:generic-api-key:66
+571e8c0:memory-core/src/embeddings/openai_tests.rs:generic-api-key:85
+
+# Example files with commented placeholder keys
+571e8c0:memory-core/examples/multi_provider_embeddings.rs:generic-api-key:29
+571e8c0:memory-core/examples/multi_provider_embeddings.rs:generic-api-key:44
+571e8c0:memory-core/examples/multi_provider_embeddings.rs:generic-api-key:65
+571e8c0:memory-core/examples/multi_provider_embeddings.rs:generic-api-key:85
+
+# End-to-end test examples with placeholder keys
+571e8c0:memory-core/examples/embeddings_end_to_end.rs:generic-api-key:286
+
+# MCP server embedding configuration with env var reference
+de6ec38:memory-mcp/src/bin/server/embedding.rs:generic-api-key:26
+
+# MCP server jsonrpc with env var reference
+0e7b749:memory-mcp/src/bin/server/jsonrpc.rs:generic-api-key:31
+0e7b749:memory-mcp/src/bin/server/jsonrpc.rs:generic-api-key:32
+
+# CLI test files with example configurations
+286a499:memory-cli/tests/unit/semantic_search_test.rs:generic-api-key:111
+286a499:memory-cli/tests/unit/semantic_search_test.rs:generic-api-key:141
+
+# CLI embedding command with placeholder
+286a499:memory-cli/src/commands/embedding.rs:generic-api-key:430

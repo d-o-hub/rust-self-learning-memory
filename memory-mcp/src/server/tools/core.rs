@@ -24,26 +24,25 @@ impl crate::server::MemoryMCPServer {
     ///
     /// Returns tools based on progressive disclosure - commonly used tools
     /// are returned first, advanced tools are shown after usage patterns indicate need.
+    ///
+    /// With lazy loading, this initially returns only core tools to significantly
+    /// reduce input token usage. Extended tools are loaded on-demand.
     pub async fn list_tools(&self) -> Vec<Tool> {
-        let tools = self.tools.read();
-        let usage = self.tool_usage.read();
+        // Get currently loaded tools (core + session-loaded extended)
+        let loaded_tools = self.tool_registry.get_loaded_tools();
 
-        // Sort tools by usage frequency
-        let mut sorted_tools: Vec<_> = tools.iter().cloned().collect();
-        sorted_tools.sort_by(|a, b| {
-            let usage_a = usage.get(&a.name).unwrap_or(&0);
-            let usage_b = usage.get(&b.name).unwrap_or(&0);
-            usage_b.cmp(usage_a)
-        });
-
-        debug!("Listed {} tools (sorted by usage)", sorted_tools.len());
-        sorted_tools
+        debug!(
+            "Listed {} tools (core + session-loaded, extended tools available on-demand)",
+            loaded_tools.len()
+        );
+        loaded_tools
     }
 
     /// Get a specific tool by name
+    ///
+    /// Loads the tool on-demand from the registry if not already loaded.
     pub async fn get_tool(&self, name: &str) -> Option<Tool> {
-        let tools = self.tools.read();
-        tools.iter().find(|t| t.name == name).cloned()
+        self.tool_registry.load_tool(name).await
     }
 
     /// Execute the query_memory tool
@@ -59,6 +58,17 @@ impl crate::server::MemoryMCPServer {
     /// # Returns
     ///
     /// Returns a JSON array of relevant episodes
+    ///
+    /// # Field Selection
+    ///
+    /// Clients can request specific fields using the `fields` parameter:
+    /// ```json
+    /// {
+    ///   "query": "test",
+    ///   "domain": "web-api",
+    ///   "fields": ["episodes.id", "episodes.task_description", "patterns.success_rate"]
+    /// }
+    /// ```
     pub async fn query_memory(
         &self,
         query: String,
@@ -66,6 +76,7 @@ impl crate::server::MemoryMCPServer {
         task_type: Option<String>,
         limit: usize,
         sort: String,
+        fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("query_memory").await;
 
@@ -193,7 +204,8 @@ impl crate::server::MemoryMCPServer {
 
         debug!("Memory query completed in {}ms", duration_ms);
 
-        Ok(json!({
+        // Build result
+        let result = json!({
             "episodes": episodes,
             "patterns": patterns,
             "insights": {
@@ -201,7 +213,16 @@ impl crate::server::MemoryMCPServer {
                 "relevant_patterns": patterns.len(),
                 "success_rate": avg_success_rate
             }
-        }))
+        });
+
+        // Apply field projection if requested
+        if let Some(field_list) = fields {
+            use crate::server::tools::field_projection::FieldSelector;
+            let selector = FieldSelector::new(field_list.into_iter().collect());
+            return selector.apply(&result);
+        }
+
+        Ok(result)
     }
 
     /// Execute the analyze_patterns tool
@@ -215,11 +236,22 @@ impl crate::server::MemoryMCPServer {
     /// # Returns
     ///
     /// Returns a JSON array of patterns with statistics
+    ///
+    /// # Field Selection
+    ///
+    /// Clients can request specific fields:
+    /// ```json
+    /// {
+    ///   "task_type": "code_generation",
+    ///   "fields": ["patterns.tool_sequence", "statistics.most_common_tools"]
+    /// }
+    /// ```
     pub async fn analyze_patterns(
         &self,
         task_type: String,
         min_success_rate: f32,
         limit: usize,
+        fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("analyze_patterns").await;
 
@@ -288,14 +320,24 @@ impl crate::server::MemoryMCPServer {
             .map(|(tool, _)| tool)
             .collect();
 
-        Ok(json!({
+        // Build result
+        let result = json!({
             "patterns": filtered_patterns,
             "statistics": {
                 "total_patterns": total_patterns,
                 "avg_success_rate": avg_success_rate,
                 "most_common_tools": most_common_tools
             }
-        }))
+        });
+
+        // Apply field projection if requested
+        if let Some(field_list) = fields {
+            use crate::server::tools::field_projection::FieldSelector;
+            let selector = FieldSelector::new(field_list.into_iter().collect());
+            return selector.apply(&result);
+        }
+
+        Ok(result)
     }
 
     /// Execute the bulk_episodes tool

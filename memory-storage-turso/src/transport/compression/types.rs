@@ -1,8 +1,6 @@
 //! Types and configuration for transport compression
 
-use crate::compression::{
-    CompressedPayload, CompressionAlgorithm, CompressionStatistics as BaseCompressionStats,
-};
+use crate::compression::{CompressionAlgorithm, CompressionStatistics as BaseCompressionStats};
 use thiserror::Error;
 
 /// Errors specific to transport compression operations

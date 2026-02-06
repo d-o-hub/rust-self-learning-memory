@@ -28,7 +28,7 @@ pub use types::{
 ///
 /// This is a convenience function that creates a temporary compressor
 /// for single-shot compression operations.
-pub async fn compress_transport(data: &[u8]) -> Result<CompressedPayload> {
+pub async fn compress_transport(data: &[u8]) -> anyhow::Result<CompressedPayload> {
     let config = TransportCompressionConfig::default();
     let compressor = AsyncCompressor::new(config);
     compressor.compress(data).await
@@ -38,7 +38,7 @@ pub async fn compress_transport(data: &[u8]) -> Result<CompressedPayload> {
 ///
 /// This is a convenience function that creates a temporary compressor
 /// for single-shot decompression operations.
-pub async fn decompress_transport(payload: &CompressedPayload) -> Result<Vec<u8>> {
+pub async fn decompress_transport(payload: &CompressedPayload) -> anyhow::Result<Vec<u8>> {
     let config = TransportCompressionConfig::default();
     let compressor = AsyncCompressor::new(config);
     compressor.decompress(payload).await
@@ -47,6 +47,7 @@ pub async fn decompress_transport(payload: &CompressedPayload) -> Result<Vec<u8>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::compression::CompressionAlgorithm;
 
     #[tokio::test]
     async fn test_basic_compression() {

@@ -118,6 +118,12 @@ enum Commands {
         #[arg(value_enum)]
         shell: clap_complete::Shell,
     },
+    /// Tag management commands for episodes
+    #[command(alias = "tg")]
+    Tag {
+        #[command(subcommand)]
+        command: TagCommands,
+    },
 }
 
 #[tokio::main]
@@ -254,6 +260,16 @@ async fn main() -> anyhow::Result<()> {
                 &mut std::io::stdout(),
             );
             Ok(())
+        }
+        Commands::Tag { command } => {
+            handle_tag_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
         }
     }
 }

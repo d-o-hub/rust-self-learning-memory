@@ -3,6 +3,9 @@
 #[cfg(test)]
 #[allow(clippy::module_inception)]
 mod tests {
+    #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
+    use crate::embeddings::real_model::download::validate_downloaded_file;
+
     #[test]
     fn test_url_construction() {
         let model_name = "sentence-transformers/all-MiniLM-L6-v2";

@@ -24,8 +24,11 @@ mod input_validation_tests {
         ];
 
         for input in safe_inputs {
-            assert!(security::test_input_sanitization(input).is_ok(),
-                "Input '{}' should be considered safe", input);
+            assert!(
+                security::test_input_sanitization(input).is_ok(),
+                "Input '{}' should be considered safe",
+                input
+            );
         }
     }
 
@@ -55,8 +58,11 @@ mod input_validation_tests {
         ];
 
         for input in dangerous_inputs {
-            assert!(security::test_input_sanitization(input).is_err(),
-                "Input '{}' should be considered dangerous", input);
+            assert!(
+                security::test_input_sanitization(input).is_err(),
+                "Input '{}' should be considered dangerous",
+                input
+            );
         }
     }
 
@@ -76,8 +82,11 @@ mod input_validation_tests {
         ];
 
         for path in safe_paths {
-            assert!(security::test_path_traversal_protection(path).is_ok(),
-                "Path '{}' should be considered safe", path);
+            assert!(
+                security::test_path_traversal_protection(path).is_ok(),
+                "Path '{}' should be considered safe",
+                path
+            );
         }
     }
 
@@ -96,8 +105,11 @@ mod input_validation_tests {
         ];
 
         for path in dangerous_paths {
-            assert!(security::test_path_traversal_protection(path).is_err(),
-                "Path '{}' should be considered dangerous", path);
+            assert!(
+                security::test_path_traversal_protection(path).is_err(),
+                "Path '{}' should be considered dangerous",
+                path
+            );
         }
     }
 
@@ -112,8 +124,11 @@ mod input_validation_tests {
         ];
 
         for uuid_str in valid_uuids {
-            assert!(Uuid::parse_str(uuid_str).is_ok(),
-                "UUID '{}' should be valid", uuid_str);
+            assert!(
+                Uuid::parse_str(uuid_str).is_ok(),
+                "UUID '{}' should be valid",
+                uuid_str
+            );
         }
 
         // Test invalid UUIDs
@@ -121,17 +136,20 @@ mod input_validation_tests {
             "",
             "not-a-uuid",
             "123",
-            "123e4567-e89b-12d3-a456", // too short
+            "123e4567-e89b-12d3-a456",                    // too short
             "123e4567-e89b-12d3-a456-426614174000-extra", // too long
-            "gggggggg-e89b-12d3-a456-426614174000", // invalid characters
-            "123e4567-e89b-12d3-a456-42661417400g", // invalid hex
-            "../../../etc/passwd", // path traversal
-            "; drop table episodes;", // SQL injection
+            "gggggggg-e89b-12d3-a456-426614174000",       // invalid characters
+            "123e4567-e89b-12d3-a456-42661417400g",       // invalid hex
+            "../../../etc/passwd",                        // path traversal
+            "; drop table episodes;",                     // SQL injection
         ];
 
         for uuid_str in invalid_uuids {
-            assert!(Uuid::parse_str(uuid_str).is_err(),
-                "UUID '{}' should be invalid", uuid_str);
+            assert!(
+                Uuid::parse_str(uuid_str).is_err(),
+                "UUID '{}' should be invalid",
+                uuid_str
+            );
         }
     }
 
@@ -152,8 +170,11 @@ mod input_validation_tests {
         ];
 
         for task_type in valid_task_types {
-            assert!(security::test_input_sanitization(task_type).is_ok(),
-                "Task type '{}' should be valid", task_type);
+            assert!(
+                security::test_input_sanitization(task_type).is_ok(),
+                "Task type '{}' should be valid",
+                task_type
+            );
         }
 
         // Invalid task types (contain dangerous characters)
@@ -169,8 +190,11 @@ mod input_validation_tests {
         ];
 
         for task_type in invalid_task_types {
-            assert!(security::test_input_sanitization(task_type).is_err(),
-                "Task type '{}' should be invalid", task_type);
+            assert!(
+                security::test_input_sanitization(task_type).is_err(),
+                "Task type '{}' should be invalid",
+                task_type
+            );
         }
     }
 
@@ -188,8 +212,11 @@ mod input_validation_tests {
         ];
 
         for context in valid_contexts {
-            assert!(security::test_input_sanitization(context).is_ok(),
-                "Context '{}' should be valid", context);
+            assert!(
+                security::test_input_sanitization(context).is_ok(),
+                "Context '{}' should be valid",
+                context
+            );
         }
 
         // Invalid context strings (contain dangerous characters)
@@ -205,38 +232,40 @@ mod input_validation_tests {
         ];
 
         for context in invalid_contexts {
-            assert!(security::test_input_sanitization(context).is_err(),
-                "Context '{}' should be invalid", context);
+            assert!(
+                security::test_input_sanitization(context).is_err(),
+                "Context '{}' should be invalid",
+                context
+            );
         }
     }
 
     #[test]
     fn test_numeric_validation() {
         // Test valid numbers (latency_ms, tokens, etc.)
-        let valid_numbers = vec![
-            "0",
-            "1",
-            "100",
-            "1000",
-            "999999",
-            "123456789",
-        ];
+        let valid_numbers = vec!["0", "1", "100", "1000", "999999", "123456789"];
 
         for num_str in valid_numbers {
-            assert!(num_str.parse::<u64>().is_ok(),
-                "Number '{}' should be valid", num_str);
-            assert!(security::test_input_sanitization(num_str).is_ok(),
-                "Number '{}' should pass sanitization", num_str);
+            assert!(
+                num_str.parse::<u64>().is_ok(),
+                "Number '{}' should be valid",
+                num_str
+            );
+            assert!(
+                security::test_input_sanitization(num_str).is_ok(),
+                "Number '{}' should pass sanitization",
+                num_str
+            );
         }
 
         // Test invalid numbers
         let invalid_numbers = vec![
-            "-1", // negative
-            "1.5", // float
+            "-1",    // negative
+            "1.5",   // float
             "1,000", // comma
             "1 000", // space
             "0x100", // hex
-            "1e10", // scientific
+            "1e10",  // scientific
             "not-a-number",
             "100; rm -rf /",
             "50 && echo 'hack'",
@@ -246,8 +275,11 @@ mod input_validation_tests {
             // Some might parse as numbers but contain dangerous chars
             if num_str.parse::<u64>().is_ok() {
                 // If it parses as a number, check sanitization
-                assert!(security::test_input_sanitization(num_str).is_err(),
-                    "Number '{}' should fail sanitization", num_str);
+                assert!(
+                    security::test_input_sanitization(num_str).is_err(),
+                    "Number '{}' should fail sanitization",
+                    num_str
+                );
             }
         }
     }
@@ -268,8 +300,11 @@ mod input_validation_tests {
         ];
 
         for observation in valid_observations {
-            assert!(security::test_input_sanitization(observation).is_ok(),
-                "Observation '{}' should be valid", observation);
+            assert!(
+                security::test_input_sanitization(observation).is_ok(),
+                "Observation '{}' should be valid",
+                observation
+            );
         }
 
         // Invalid observations (contain dangerous characters)
@@ -285,8 +320,11 @@ mod input_validation_tests {
         ];
 
         for observation in invalid_observations {
-            assert!(security::test_input_sanitization(observation).is_err(),
-                "Observation '{}' should be invalid", observation);
+            assert!(
+                security::test_input_sanitization(observation).is_err(),
+                "Observation '{}' should be invalid",
+                observation
+            );
         }
     }
 
@@ -307,8 +345,11 @@ mod input_validation_tests {
         ];
 
         for tool in valid_tools {
-            assert!(security::test_input_sanitization(tool).is_ok(),
-                "Tool name '{}' should be valid", tool);
+            assert!(
+                security::test_input_sanitization(tool).is_ok(),
+                "Tool name '{}' should be valid",
+                tool
+            );
         }
 
         // Invalid tool names
@@ -324,8 +365,11 @@ mod input_validation_tests {
         ];
 
         for tool in invalid_tools {
-            assert!(security::test_input_sanitization(tool).is_err(),
-                "Tool name '{}' should be invalid", tool);
+            assert!(
+                security::test_input_sanitization(tool).is_err(),
+                "Tool name '{}' should be invalid",
+                tool
+            );
         }
     }
 
@@ -346,8 +390,11 @@ mod input_validation_tests {
         ];
 
         for action in valid_actions {
-            assert!(security::test_input_sanitization(action).is_ok(),
-                "Action '{}' should be valid", action);
+            assert!(
+                security::test_input_sanitization(action).is_ok(),
+                "Action '{}' should be valid",
+                action
+            );
         }
 
         // Invalid actions
@@ -363,27 +410,27 @@ mod input_validation_tests {
         ];
 
         for action in invalid_actions {
-            assert!(security::test_input_sanitization(action).is_err(),
-                "Action '{}' should be invalid", action);
+            assert!(
+                security::test_input_sanitization(action).is_err(),
+                "Action '{}' should be invalid",
+                action
+            );
         }
     }
 
     #[test]
     fn test_empty_and_whitespace_inputs() {
         // Empty inputs should generally be invalid for most fields
-        let empty_inputs = vec![
-            "",
-            "   ",
-            "\t",
-            "\n",
-            "\r\n",
-        ];
+        let empty_inputs = vec!["", "   ", "\t", "\n", "\r\n"];
 
         for input in empty_inputs {
             // Empty strings might be allowed for some optional fields,
             // but they should at least pass sanitization
-            assert!(security::test_input_sanitization(input).is_ok(),
-                "Empty input '{}' should pass sanitization", input);
+            assert!(
+                security::test_input_sanitization(input).is_ok(),
+                "Empty input '{}' should pass sanitization",
+                input
+            );
         }
     }
 
@@ -391,12 +438,16 @@ mod input_validation_tests {
     fn test_extremely_long_inputs() {
         // Test with very long inputs (should still work)
         let long_input = "a".repeat(10000);
-        assert!(security::test_input_sanitization(&long_input).is_ok(),
-            "Very long input should pass sanitization");
+        assert!(
+            security::test_input_sanitization(&long_input).is_ok(),
+            "Very long input should pass sanitization"
+        );
 
         // But dangerous chars in long input should still be caught
         let long_dangerous = "a".repeat(5000) + "; rm -rf /" + &"b".repeat(5000);
-        assert!(security::test_input_sanitization(&long_dangerous).is_err(),
-            "Long input with dangerous chars should fail sanitization");
+        assert!(
+            security::test_input_sanitization(&long_dangerous).is_err(),
+            "Long input with dangerous chars should fail sanitization"
+        );
     }
 }

@@ -34,8 +34,16 @@
 //!                    └─────────────────────┘
 //! ```
 
+pub mod compatibility;
 pub mod predictive;
 pub mod statistical;
 
+#[cfg(test)]
+mod benchmarks;
+
+pub use compatibility::{
+    AssessmentConfig, CompatibilityAssessment, CompatibilityAssessor, PatternContext, RiskFactor,
+    RiskFactorType, RiskLevel,
+};
 pub use predictive::{AnomalyDetector, CausalAnalyzer, ForecastingEngine};
 pub use statistical::{ChangepointDetector, CorrelationAnalyzer, StatisticalEngine};

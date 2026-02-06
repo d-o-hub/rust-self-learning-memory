@@ -1,7 +1,10 @@
 //! Mistral-specific embedding configuration and types
 
 pub use config::{MistralConfig, MistralModel, OutputDtype};
-// Note: Request/Response types are used internally, not re-exported
+pub use types::{
+    MistralEmbeddingData, MistralEmbeddingInput, MistralEmbeddingRequest, MistralEmbeddingResponse,
+    MistralUsage,
+};
 
 mod config;
 mod types;

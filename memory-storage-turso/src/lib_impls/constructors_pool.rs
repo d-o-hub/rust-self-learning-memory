@@ -38,6 +38,7 @@ impl TursoStorage {
     ///
     /// ```no_run
     /// use memory_storage_turso::{TursoStorage, TursoConfig, PoolConfig};
+    /// use std::time::Duration;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let config = TursoConfig::default();
@@ -146,6 +147,7 @@ impl TursoStorage {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool,
             adaptive_pool: None,
+            caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
                 PreparedCacheConfig::default(),
             )),
@@ -257,6 +259,7 @@ impl TursoStorage {
             pool: Some(pool_arc),
             keepalive_pool: Some(keepalive_arc),
             adaptive_pool: None,
+            caching_pool: None,
             prepared_cache: Arc::new(PreparedStatementCache::with_config(
                 PreparedCacheConfig::default(),
             )),

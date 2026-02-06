@@ -52,6 +52,45 @@ impl TursoStorage {
         Ok(relationship_id)
     }
 
+    /// Store a relationship between two episodes
+    ///
+    /// This is the StorageBackend trait implementation that takes a pre-built EpisodeRelationship.
+    pub async fn store_relationship(&self, relationship: &EpisodeRelationship) -> Result<()> {
+        let conn = self.get_connection().await?;
+        let created_at = relationship.created_at.timestamp();
+
+        let metadata_json = serde_json::to_string(&relationship.metadata.custom_fields)
+            .map_err(|e| memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
+
+        self.execute_with_retry(
+            &conn,
+            &format!(
+                "{} VALUES ('{}', '{}', '{}', '{}', {}, {}, {}, '{}', {})",
+                "INSERT INTO episode_relationships (relationship_id, from_episode_id, to_episode_id, relationship_type, reason, created_by, priority, metadata, created_at)",
+                relationship.id,
+                relationship.from_episode_id,
+                relationship.to_episode_id,
+                relationship.relationship_type.as_str(),
+                relationship.metadata.reason.as_ref().map(|r| format!("'{}'", r.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
+                relationship.metadata.created_by.as_ref().map(|c| format!("'{}'", c.replace('\'', "''"))).unwrap_or_else(|| "NULL".to_string()),
+                relationship.metadata.priority.map(|p| p.to_string()).unwrap_or_else(|| "NULL".to_string()),
+                metadata_json.replace('\'', "''"),
+                created_at
+            ),
+        )
+        .await?;
+
+        debug!(
+            "Stored relationship {} from {} to {} (type: {:?})",
+            relationship.id,
+            relationship.from_episode_id,
+            relationship.to_episode_id,
+            relationship.relationship_type
+        );
+
+        Ok(())
+    }
+
     /// Remove a relationship by ID
     pub async fn remove_relationship(&self, relationship_id: Uuid) -> Result<()> {
         let conn = self.get_connection().await?;
@@ -313,6 +352,7 @@ mod tests {
             #[cfg(feature = "keepalive-pool")]
             keepalive_pool: None,
             adaptive_pool: None,
+            caching_pool: None,
             prepared_cache: Arc::new(crate::PreparedStatementCache::with_config(
                 crate::PreparedCacheConfig::default(),
             )),

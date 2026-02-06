@@ -19,6 +19,17 @@ impl MemoryMCPServer {
     /// # Arguments (from JSON)
     ///
     /// * `episode_id` - UUID of the episode to retrieve
+    /// * `fields` - Optional array of field paths to return (e.g., ["episode.id", "episode.task_description"])
+    ///
+    /// # Field Selection
+    ///
+    /// Clients can request specific fields to reduce token usage:
+    /// ```json
+    /// {
+    ///   "episode_id": "123e4567-e89b-12d3-a456-426614174000",
+    ///   "fields": ["episode.id", "episode.task_description", "episode.outcome"]
+    /// }
+    /// ```
     pub async fn get_episode_tool(&self, args: Value) -> Result<Value> {
         debug!("Getting episode with args: {}", args);
 
@@ -40,10 +51,28 @@ impl MemoryMCPServer {
         let episode_json = serde_json::to_value(&episode)
             .map_err(|e| anyhow!("Failed to serialize episode: {}", e))?;
 
-        Ok(json!({
+        let result = json!({
             "success": true,
             "episode": episode_json
-        }))
+        });
+
+        // Apply field projection if requested
+        if let Some(fields_value) = args.get("fields") {
+            if let Some(field_array) = fields_value.as_array() {
+                let field_list: Vec<String> = field_array
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect();
+
+                if !field_list.is_empty() {
+                    use crate::server::tools::field_projection::FieldSelector;
+                    let selector = FieldSelector::new(field_list.into_iter().collect());
+                    return selector.apply(&result);
+                }
+            }
+        }
+
+        Ok(result)
     }
 
     /// Delete an episode permanently

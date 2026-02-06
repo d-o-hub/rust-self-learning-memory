@@ -25,7 +25,7 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
 
-**Current Status (v0.1.12):**
+**Current Status (v0.1.13):**
 - **Production-ready** episodic memory management system for AI agents
 - **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples, tests
 - **632 Rust source files** with ~140,000 lines of code
@@ -33,7 +33,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **92.5% test coverage** across all modules
 - **10-100x performance improvements** over baseline measurements
 - **Zero clippy warnings** with strict linting rules
-- **Multi-provider semantic embeddings** with OpenAI, Cohere, Ollama, and local backends
+- **Multi-provider semantic embeddings** with OpenAI, Mistral, and local backends
 - **Dual storage backends**: Turso for durability, redb for cache
 - **6-layer security sandbox** in Wasmtime for safe code execution
 - **Phase 2 Turso Optimization**: 75% complete (connection pooling, adaptive sizing, compression)
@@ -48,7 +48,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **benches**: Comprehensive benchmark suite
 - **examples**: Usage examples and demonstrations
 
-**Tech Stack:** Rust/Tokio + Turso/libSQL + redb cache + Wasmtime WASM + optional embeddings (OpenAI, Cohere, Ollama, local)
+**Tech Stack:** Rust/Tokio + Turso/libSQL + redb cache + Wasmtime WASM + optional embeddings (OpenAI, Mistral, local)
 
 ## Features
 
@@ -107,8 +107,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🌐 Multi-Provider Embeddings
 - OpenAI embeddings integration (text-embedding-3-small, text-embedding-3-large, ada-002)
-- Cohere embeddings (embed-english-v3.0, embed-multilingual-v3.0)
-- Ollama local embeddings (nomic-embed-text, mxbai-embed-large)
+- Mistral AI embeddings integration
 - Local CPU-based embeddings
 - Semantic search with cosine similarity
 - Automatic embedding caching and batch processing
@@ -208,6 +207,26 @@ mkdir -p ./data ./backups
 
 ### Basic Usage
 
+#### Setup Configuration
+
+```bash
+# Run interactive configuration wizard
+memory config wizard
+
+# Follow the prompts to configure:
+# - Database (local SQLite or remote Turso)
+# - Storage (cache size, TTL, connection pool)
+# - CLI (output format, progress bars, batch size)
+
+# Validate configuration
+memory config validate
+
+# Check configuration status
+memory config check
+```
+
+**NEW:** Configuration Wizard - Interactive step-by-step setup with sensible defaults and validation.
+
 #### CLI Interaction
 
 ```bash
@@ -269,6 +288,7 @@ async fn main() -> anyhow::Result<()> {
 
 | Document | Description |
 |----------|-------------|
+| [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
@@ -332,17 +352,17 @@ cargo build
 cargo build --all-features
 
 # Specific features
-cargo build --features openai-embeddings
-cargo build --features cohere-embeddings
-cargo build --features ollama-embeddings
+cargo build --features openai
+cargo build --features mistral
 cargo build --features local-embeddings
+cargo build --features embeddings-full
 ```
 
 **Available Features:**
-- `openai-embeddings`: OpenAI API embeddings support
-- `cohere-embeddings`: Cohere API embeddings support
-- `ollama-embeddings`: Ollama local embeddings support
+- `openai`: OpenAI API embeddings support
+- `mistral`: Mistral AI embeddings support
 - `local-embeddings`: CPU-based local embeddings
+- `embeddings-full`: All embedding providers (openai + mistral)
 - `mcp`: MCP server tools and protocol support
 - `sandbox`: Wasmtime sandbox for code execution
 

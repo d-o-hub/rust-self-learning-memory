@@ -1,10 +1,10 @@
 //! Mistral embedding provider client implementation
 
 use super::super::config::mistral::{
-    MistralConfig, MistralEmbeddingInput, MistralEmbeddingRequest, OutputDtype,
+    MistralConfig, MistralEmbeddingInput, MistralEmbeddingRequest, MistralEmbeddingResponse,
+    OutputDtype,
 };
 use super::super::provider::EmbeddingProvider;
-use super::types::MistralEmbeddingResponse;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::time::Instant;
@@ -71,8 +71,8 @@ impl MistralEmbeddingProvider {
 
         for attempt in 0..=max_retries {
             if attempt > 0 {
-                let delay = base_delay_ms * 2_usize.pow(attempt as u32 - 1);
-                tokio::time::sleep(std::time::Duration::from_millis(delay as u64)).await;
+                let delay = base_delay_ms * 2_u64.pow(attempt - 1);
+                tokio::time::sleep(std::time::Duration::from_millis(delay)).await;
                 tracing::warn!("Retry attempt {} for Mistral embedding request", attempt);
             }
 
@@ -85,54 +85,57 @@ impl MistralEmbeddingProvider {
                 .send()
                 .await;
 
-            match response {
-                Ok(resp) => {
-                    let status = resp.status();
-                    let response_text = match resp.text().await {
-                        Ok(text) => text,
-                        Err(e) => {
-                            last_error =
-                                Some(anyhow::anyhow!("Failed to read response body: {}", e));
-                            continue;
-                        }
-                    };
-
-                    if status.is_success() {
-                        match serde_json::from_str::<MistralEmbeddingResponse>(&response_text) {
-                            Ok(embedding_response) => return Ok(embedding_response),
-                            Err(e) => {
-                                last_error = Some(anyhow::anyhow!(
-                                    "Failed to parse embedding response: {}. Response: {}",
-                                    e,
-                                    response_text
-                                ));
-                                continue;
-                            }
-                        }
-                    } else {
-                        last_error = Some(anyhow::anyhow!(
-                            "Mistral API error (status {}): {}",
-                            status,
-                            response_text
-                        ));
-                        // Don't retry on client errors (4xx)
-                        if status.is_client_error() {
-                            break;
-                        }
+            let result = self.handle_response(response).await;
+            match result {
+                Ok(embedding_response) => return Ok(embedding_response),
+                Err((error, is_client_error)) => {
+                    last_error = Some(error);
+                    if is_client_error {
+                        break;
                     }
-                }
-                Err(e) => {
-                    last_error = Some(anyhow::anyhow!("HTTP request failed: {}", e));
                 }
             }
         }
 
         Err(last_error.unwrap_or_else(|| {
-            anyhow::anyhow!(
-                "Mistral embedding request failed after {} retries",
-                max_retries
-            )
+            anyhow::anyhow!("Mistral embedding request failed after {max_retries} retries")
         }))
+    }
+
+    /// Handle the HTTP response and return either the embedding response or an error
+    /// with a flag indicating if it's a client error (4xx) that shouldn't be retried
+    async fn handle_response(
+        &self,
+        response: Result<reqwest::Response, reqwest::Error>,
+    ) -> Result<MistralEmbeddingResponse, (anyhow::Error, bool)> {
+        let resp = match response {
+            Ok(r) => r,
+            Err(e) => return Err((anyhow::anyhow!("HTTP request failed: {e}"), false)),
+        };
+
+        let status = resp.status();
+        let response_text = match resp.text().await {
+            Ok(text) => text,
+            Err(e) => {
+                return Err((anyhow::anyhow!("Failed to read response body: {e}"), false));
+            }
+        };
+
+        if status.is_success() {
+            match serde_json::from_str::<MistralEmbeddingResponse>(&response_text) {
+                Ok(embedding_response) => Ok(embedding_response),
+                Err(e) => Err((
+                    anyhow::anyhow!(
+                        "Failed to parse embedding response: {e}. Response: {response_text}"
+                    ),
+                    false,
+                )),
+            }
+        } else {
+            let error = anyhow::anyhow!("Mistral API error (status {status}): {response_text}");
+            let is_client_error = status.is_client_error();
+            Err((error, is_client_error))
+        }
     }
 
     // Handle different output dtypes
@@ -142,7 +145,7 @@ impl MistralEmbeddingProvider {
             OutputDtype::Int8 | OutputDtype::Uint8 => {
                 // Convert integer embeddings back to float for uniform interface
                 // In production, you might want to keep as integers for efficiency
-                Ok(data.into_iter().map(|v| v as f32).collect())
+                Ok(data)
             }
             OutputDtype::Binary | OutputDtype::Ubinary => {
                 // Dequantize binary embeddings
@@ -152,7 +155,7 @@ impl MistralEmbeddingProvider {
         }
     }
 
-    fn dequantize_binary_embeddings(&self, packed: Vec<f32>) -> Result<Vec<f32>> {
+    fn dequantize_binary_embeddings(&self, _packed: Vec<f32>) -> Result<Vec<f32>> {
         // Convert packed binary representation back to float embeddings
         // This is a simplified version - see Mistral's dequantization cookbook for full implementation
         anyhow::bail!("Binary dequantization not yet implemented")
@@ -270,6 +273,11 @@ impl EmbeddingProvider for MistralEmbeddingProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::embeddings::config::{
+        mistral::{MistralModel, OutputDtype},
+        OptimizationConfig,
+    };
+    use crate::embeddings::provider::EmbeddingProvider;
 
     #[test]
     fn test_provider_creation() {

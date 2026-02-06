@@ -121,6 +121,31 @@ run_goap_checks() {
     check_doc "$f"
   done
 
+  # Check for non-permanent documentation files in root directory
+  echo -e "${BLUE}Checking for non-permanent documentation in root...${NC}"
+  local root_docs=()
+  for f in *.md *.txt *.rst; do
+    [ -e "$f" ] || continue
+    case "$f" in
+      README.md|CHANGELOG.md|CONTRIBUTING.md|SECURITY.md|DEPLOYMENT.md|TESTING.md|AGENTS.md|CLAUDE.md|GEMINI.md|ADVANCED_PATTERNS_QUICK_START.md)
+        # These are permanent project documentation files allowed in root
+        ;;
+      *)
+        root_docs+=("$f")
+        ;;
+    esac
+  done
+  
+  if [ ${#root_docs[@]} -gt 0 ]; then
+    echo -e "  ${YELLOW}⚠${NC} Non-permanent documentation files found in root:"
+    for f in "${root_docs[@]}"; do
+      echo -e "    - $f (should be in plans/)"
+    done
+    failed=1
+  else
+    echo -e "  ${GREEN}✓${NC} No non-permanent documentation files in root"
+  fi
+
   # Optional memory-mcp feedback loop markers (informational only)
   echo -e "${BLUE}memory-mcp feedback loop markers:${NC}"
   echo "  - health_check: ensure MCP server is reachable during plan execution"

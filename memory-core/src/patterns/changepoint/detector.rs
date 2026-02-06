@@ -67,18 +67,18 @@ impl ChangepointDetector {
     /// are provided, or `ChangepointError::InvalidData` if the data contains invalid values.
     #[instrument(skip(self))]
     pub fn detect_changepoints(&mut self, values: &[f64]) -> Result<Vec<Changepoint>> {
-        // Validate input
+        // Check for NaN or infinite values first (data quality check)
+        if values.iter().any(|v| !v.is_finite()) {
+            return Err(anyhow!(ChangepointError::InvalidData {
+                message: "Data contains NaN or infinite values".to_string(),
+            }));
+        }
+
+        // Validate input size
         if values.len() < self.config.min_observations {
             return Err(anyhow!(ChangepointError::InsufficientData {
                 have: values.len(),
                 need: self.config.min_observations,
-            }));
-        }
-
-        // Check for NaN or infinite values
-        if values.iter().any(|v| !v.is_finite()) {
-            return Err(anyhow!(ChangepointError::InvalidData {
-                message: "Data contains NaN or infinite values".to_string(),
             }));
         }
 

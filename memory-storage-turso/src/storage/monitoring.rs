@@ -12,7 +12,7 @@ impl TursoStorage {
     /// Store an execution record
     pub async fn store_execution_record(&self, record: &ExecutionRecord) -> Result<()> {
         debug!("Storing execution record for: {}", record.agent_name);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO execution_records (
@@ -50,7 +50,7 @@ impl TursoStorage {
     /// Store agent metrics
     pub async fn store_agent_metrics(&self, metrics: &AgentMetrics) -> Result<()> {
         debug!("Storing agent metrics: {}", metrics.agent_name);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO agent_metrics (
@@ -85,7 +85,7 @@ impl TursoStorage {
     /// Store task metrics
     pub async fn store_task_metrics(&self, metrics: &TaskMetrics) -> Result<()> {
         debug!("Storing task metrics: {}", metrics.task_type);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO task_metrics (
@@ -116,7 +116,7 @@ impl TursoStorage {
     /// Load agent metrics
     pub async fn load_agent_metrics(&self, agent_name: &str) -> Result<Option<AgentMetrics>> {
         debug!("Loading agent metrics: {}", agent_name);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT agent_name, agent_type, total_executions, successful_executions,
@@ -158,7 +158,7 @@ impl TursoStorage {
             "Loading execution records: agent={:?}, limit={}",
             agent_name, limit
         );
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         let mut sql = String::from(
             r#"
@@ -199,7 +199,7 @@ impl TursoStorage {
     /// Load task metrics
     pub async fn load_task_metrics(&self, task_type: &str) -> Result<Option<TaskMetrics>> {
         debug!("Loading task metrics: {}", task_type);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT task_type, total_tasks, completed_tasks, avg_completion_time

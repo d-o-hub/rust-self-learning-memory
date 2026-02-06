@@ -10,7 +10,7 @@ impl TursoStorage {
     /// Store a heuristic
     pub async fn store_heuristic(&self, heuristic: &Heuristic) -> Result<()> {
         debug!("Storing heuristic: {}", heuristic.heuristic_id);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO heuristics (
@@ -47,7 +47,7 @@ impl TursoStorage {
     /// Retrieve a heuristic by ID
     pub async fn get_heuristic(&self, id: Uuid) -> Result<Option<Heuristic>> {
         debug!("Retrieving heuristic: {}", id);
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
@@ -81,7 +81,7 @@ impl TursoStorage {
     /// Get all heuristics
     pub async fn get_heuristics(&self) -> Result<Vec<Heuristic>> {
         debug!("Retrieving all heuristics");
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
             SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
@@ -112,10 +112,32 @@ impl TursoStorage {
         info!("Found {} heuristics", heuristics.len());
         Ok(heuristics)
     }
+
+    /// Delete a heuristic by ID
+    pub async fn delete_heuristic(&self, id: Uuid) -> Result<()> {
+        debug!("Deleting heuristic: {}", id);
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        const SQL: &str = "DELETE FROM heuristics WHERE heuristic_id = ?";
+
+        // Use prepared statement cache
+        let stmt = self
+            .prepared_cache
+            .get_or_prepare(&conn, SQL)
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
+
+        stmt.execute(libsql::params![id.to_string()])
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to delete heuristic: {}", e)))?;
+
+        info!("Successfully deleted heuristic: {}", id);
+        Ok(())
+    }
 }
 
 /// Convert a database row to a Heuristic
-fn row_to_heuristic(row: &Row) -> Result<Heuristic> {
+pub fn row_to_heuristic(row: &Row) -> Result<Heuristic> {
     let id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
     let heuristic_id = Uuid::parse_str(&id).map_err(|e| Error::Storage(e.to_string()))?;
     let condition: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;

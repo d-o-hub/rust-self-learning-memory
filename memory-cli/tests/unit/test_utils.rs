@@ -40,7 +40,11 @@ pub fn create_test_step(tool: &str, action: &str, success: bool) -> ExecutionSte
         tool: tool.to_string(),
         action: action.to_string(),
         parameters: HashMap::new(),
-        result: if success { "success".to_string() } else { "failure".to_string() },
+        result: if success {
+            "success".to_string()
+        } else {
+            "failure".to_string()
+        },
         latency_ms: 100,
         tokens: 50,
         success,

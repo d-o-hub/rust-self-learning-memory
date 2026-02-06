@@ -54,7 +54,7 @@ pub struct InitializeResult {
     pub server_info: Value,
 }
 
-/// MCP Tool structure for listing
+/// MCP Tool structure for listing (full schema)
 #[derive(Debug, Serialize)]
 pub struct McpTool {
     pub name: String,
@@ -65,9 +65,47 @@ pub struct McpTool {
     pub input_schema: Value,
 }
 
+/// MCP Tool stub for lightweight listing (lazy loading optimization)
+/// This reduces token usage by 90-96% by omitting the large inputSchema field
+#[derive(Debug, Serialize, Clone)]
+pub struct ToolStub {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    pub description: String,
+}
+
+impl From<McpTool> for ToolStub {
+    fn from(tool: McpTool) -> Self {
+        Self {
+            name: tool.name,
+            title: tool.title,
+            description: tool.description,
+        }
+    }
+}
+
 /// MCP ListTools response
 #[derive(Debug, Serialize)]
 pub struct ListToolsResult {
+    pub tools: Vec<McpTool>,
+}
+
+/// MCP ListTools response with stubs (for lazy loading)
+#[derive(Debug, Serialize)]
+pub struct ListToolStubsResult {
+    pub tools: Vec<ToolStub>,
+}
+
+/// MCP DescribeTool response (for on-demand schema loading)
+#[derive(Debug, Serialize)]
+pub struct DescribeToolResult {
+    pub tool: McpTool,
+}
+
+/// MCP DescribeTools (batch) response
+#[derive(Debug, Serialize)]
+pub struct DescribeToolsResult {
     pub tools: Vec<McpTool>,
 }
 

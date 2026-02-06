@@ -106,6 +106,7 @@ async fn test_memory_query_with_episode() {
             None,
             10,
             "relevance".to_string(),
+            None,
         )
         .await
         .unwrap();
@@ -139,12 +140,13 @@ async fn test_tool_usage_tracking() {
             None,
             5,
             "relevance".to_string(),
+            None,
         )
         .await
         .unwrap();
 
     let _ = mcp_server
-        .analyze_patterns("test".to_string(), 0.7, 5)
+        .analyze_patterns("test".to_string(), 0.7, 5, None)
         .await
         .unwrap();
 

@@ -39,7 +39,11 @@ mod compatibility_tests {
             let stderr = String::from_utf8_lossy(&output.stderr);
 
             // Should not be empty error and should be informative
-            assert!(!stderr.trim().is_empty(), "Command {:?} produced empty error", cmd);
+            assert!(
+                !stderr.trim().is_empty(),
+                "Command {:?} produced empty error",
+                cmd
+            );
         }
     }
 
@@ -83,7 +87,9 @@ batch_size = 10
             fs::write(&config_path, config_content).unwrap();
 
             // Test that CLI can load config from this path
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            ));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -98,7 +104,9 @@ batch_size = 10
 
         // Test different configuration formats
         let config_formats = vec![
-            ("toml", r#"
+            (
+                "toml",
+                r#"
 [database]
 turso_url = "file:test.db"
 redb_path = "test.redb"
@@ -112,8 +120,11 @@ pool_size = 5
 default_format = "json"
 progress_bars = false
 batch_size = 10
-"#),
-            ("json", r#"{
+"#,
+            ),
+            (
+                "json",
+                r#"{
   "database": {
     "turso_url": "file:test.db",
     "redb_path": "test.redb"
@@ -128,8 +139,11 @@ batch_size = 10
     "progress_bars": false,
     "batch_size": 10
   }
-}"#),
-            ("yaml", r#"---
+}"#,
+            ),
+            (
+                "yaml",
+                r#"---
 database:
   turso_url: "file:test.db"
   redb_path: "test.redb"
@@ -141,14 +155,17 @@ cli:
   default_format: "json"
   progress_bars: false
   batch_size: 10
-"#),
+"#,
+            ),
         ];
 
         for (format_name, config_content) in config_formats {
             let config_path = temp_dir.path().join(format!("config.{}", format_name));
             fs::write(&config_path, config_content).unwrap();
 
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            ));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -174,7 +191,9 @@ cli:
 
         for (scenario_name, env_vars) in env_scenarios {
             // Set environment variables for this test
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            ));
             cmd.arg("--config").arg(harness.config_path());
             cmd.arg("config");
 
@@ -196,7 +215,9 @@ cli:
 
         // Test configs with missing optional fields (backward compatibility)
         let backward_compat_configs = vec![
-            ("minimal config", r#"
+            (
+                "minimal config",
+                r#"
 [database]
 turso_url = "file:test.db"
 
@@ -205,8 +226,11 @@ max_episodes_cache = 100
 
 [cli]
 default_format = "human"
-"#),
-            ("missing optional fields", r#"
+"#,
+            ),
+            (
+                "missing optional fields",
+                r#"
 [database]
 redb_path = "test.redb"
 
@@ -216,21 +240,29 @@ cache_ttl_seconds = 1800
 
 [cli]
 default_format = "json"
-"#),
+"#,
+            ),
         ];
 
         for (config_name, config_content) in backward_compat_configs {
-            let config_path = temp_dir.path().join(format!("{}.toml", config_name.replace(" ", "_")));
+            let config_path = temp_dir
+                .path()
+                .join(format!("{}.toml", config_name.replace(" ", "_")));
             fs::write(&config_path, config_content).unwrap();
 
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            ));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
             // Should load successfully with defaults for missing fields
             cmd.assert().success();
 
-            println!("Backward compatibility config '{}' loaded successfully", config_name);
+            println!(
+                "Backward compatibility config '{}' loaded successfully",
+                config_name
+            );
         }
     }
 
@@ -240,7 +272,8 @@ default_format = "json"
         let config_path = temp_dir.path().join("large_config.toml");
 
         // Create a large configuration file with many entries
-        let mut config_content = String::from(r#"
+        let mut config_content = String::from(
+            r#"
 [database]
 turso_url = "file:test.db"
 redb_path = "test.redb"
@@ -254,7 +287,8 @@ pool_size = 10
 default_format = "json"
 progress_bars = true
 batch_size = 100
-"#);
+"#,
+        );
 
         // Add many metadata-like entries
         for i in 0..1000 {
@@ -263,15 +297,19 @@ batch_size = 100
 
         fs::write(&config_path, config_content).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
+            |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+        ));
         cmd.arg("--config").arg(&config_path);
         cmd.arg("config");
 
         // Should handle large config files without issues
         cmd.assert().success();
 
-        println!("Large configuration file ({} bytes) loaded successfully",
-                 fs::metadata(&config_path).unwrap().len());
+        println!(
+            "Large configuration file ({} bytes) loaded successfully",
+            fs::metadata(&config_path).unwrap().len()
+        );
     }
 
     #[test]
@@ -295,11 +333,17 @@ batch_size = 100
             let output = result.output().unwrap();
 
             // Should not crash - exit code can be failure due to features
-            assert!(output.status.code().is_some(),
-                    "Unicode scenario '{}' caused crash", scenario_name);
+            assert!(
+                output.status.code().is_some(),
+                "Unicode scenario '{}' caused crash",
+                scenario_name
+            );
 
-            println!("Unicode scenario '{}' handled correctly (exit code: {:?})",
-                     scenario_name, output.status.code());
+            println!(
+                "Unicode scenario '{}' handled correctly (exit code: {:?})",
+                scenario_name,
+                output.status.code()
+            );
         }
     }
 
@@ -328,7 +372,9 @@ batch_size = 10
         let config_path = temp_dir.path().join("utf8_config.toml");
         fs::write(&config_path, utf8_config).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
+            |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+        ));
         cmd.arg("--config").arg(&config_path);
         cmd.arg("config");
 
@@ -370,13 +416,21 @@ batch_size = 10
         std::env::set_current_dir(&temp_dir).unwrap();
 
         // Test relative path
-        let mut cmd_relative = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        let mut cmd_relative = Command::new(
+            std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| {
+                "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()
+            }),
+        );
         cmd_relative.arg("--config").arg(config_path_relative);
         cmd_relative.arg("config");
         cmd_relative.assert().success();
 
         // Test absolute path
-        let mut cmd_absolute = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+        let mut cmd_absolute = Command::new(
+            std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| {
+                "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()
+            }),
+        );
         cmd_absolute.arg("--config").arg(&config_path_absolute);
         cmd_absolute.arg("config");
         cmd_absolute.assert().success();

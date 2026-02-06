@@ -156,6 +156,7 @@ async fn main() -> anyhow::Result<()> {
             Some("code_generation".to_string()),
             10,
             "relevance".to_string(),
+            None,
         )
         .await?;
     println!(
@@ -212,7 +213,7 @@ async fn main() -> anyhow::Result<()> {
     // Test pattern analysis
     println!("   4.3 Testing pattern analysis...");
     let pattern_result = mcp_server
-        .analyze_patterns("code_generation".to_string(), 0.7, 10)
+        .analyze_patterns("code_generation".to_string(), 0.7, 10, None)
         .await
         .unwrap();
     println!(

@@ -105,6 +105,7 @@ async fn test_query_memory(server: &MemoryMCPServer) -> Result<(), Box<dyn std::
             Some("code_generation".to_string()),
             5,
             "relevance".to_string(),
+            None,
         )
         .await?;
 
@@ -142,7 +143,7 @@ async fn test_execute_agent_code(
 
 async fn test_analyze_patterns(server: &MemoryMCPServer) -> Result<(), Box<dyn std::error::Error>> {
     let result = server
-        .analyze_patterns("code_generation".to_string(), 0.7, 10)
+        .analyze_patterns("code_generation".to_string(), 0.7, 10, None)
         .await?;
 
     // Validate JSON structure

@@ -84,4 +84,6 @@ pub struct SelfLearningMemory {
     query_cache: Arc<crate::retrieval::QueryCache>,
     /// DBSCAN anomaly detector for identifying unusual episodes
     dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
+    /// Audit logger for security compliance and incident investigation
+    pub(super) audit_logger: crate::security::audit::AuditLogger,
 }

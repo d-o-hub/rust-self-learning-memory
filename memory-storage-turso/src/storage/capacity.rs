@@ -34,7 +34,7 @@ impl TursoStorage {
     /// Uses the configured eviction policy to determine which episodes to remove
     /// when the capacity is exceeded.
     async fn enforce_capacity(&self, max_episodes: usize) -> Result<()> {
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Count current episodes
         const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
@@ -108,7 +108,7 @@ impl TursoStorage {
             let _ = self._delete_embedding_internal(episode_id).await;
 
             // Then delete the episode
-            let conn = self.get_connection().await?;
+            let (conn, _conn_id) = self.get_connection_with_id().await?;
 
             // Use prepared statement cache
             let stmt = self
@@ -138,7 +138,7 @@ impl TursoStorage {
 
     /// Get storage statistics including capacity info
     pub async fn get_capacity_statistics(&self) -> Result<CapacityStatistics> {
-        let conn = self.get_connection().await?;
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Count records in each table
         let tables = [
@@ -153,6 +153,10 @@ impl TursoStorage {
 
         let mut table_counts = HashMap::new();
         for table in tables {
+            // SAFETY: Table names are hardcoded in the local `tables` array above.
+            // These are not user-controlled values, preventing SQL injection.
+            // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+            #[allow(clippy::literal_string_with_formatting_args)]
             let sql = format!("SELECT COUNT(*) FROM {}", table);
             let mut rows = conn.query(&sql, ()).await.map_err(|e| {
                 memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))

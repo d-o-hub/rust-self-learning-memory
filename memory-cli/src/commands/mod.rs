@@ -1,26 +1,28 @@
+#![allow(ambiguous_glob_reexports)]
+
 pub mod backup;
 pub mod config;
 pub mod embedding;
-pub mod episode_v2;
+pub mod episode;
 pub mod eval;
 pub mod health;
 pub mod logs;
 pub mod monitor;
 pub mod pattern;
-pub mod pattern_v2;
 pub mod storage;
+pub mod tag;
 
 pub use backup::*;
 pub use config::*;
 pub use embedding::*;
-pub use episode_v2::*;
+pub use episode::*;
 pub use eval::*;
 pub use health::*;
 pub use logs::*;
 pub use monitor::*;
 pub use pattern::*;
-pub use pattern_v2::*;
 pub use storage::*;
+pub use tag::*;
 
 use crate::config::Config;
 use crate::output::OutputFormat;
@@ -86,6 +88,28 @@ pub async fn handle_episode_command(
         EpisodeCommands::Delete { episode_id } => {
             delete_episode(episode_id, memory, config, format, dry_run).await
         }
+        EpisodeCommands::Update {
+            episode_id,
+            description,
+            add_tag,
+            remove_tag,
+            set_tags,
+            metadata,
+        } => {
+            update_episode(
+                episode_id,
+                description,
+                add_tag,
+                remove_tag,
+                set_tags,
+                metadata,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
         EpisodeCommands::Search {
             query,
             limit,
@@ -144,6 +168,107 @@ pub async fn handle_episode_command(
         EpisodeCommands::Bulk { episode_ids } => {
             bulk_get_episodes(episode_ids, memory, config, format).await
         }
+        EpisodeCommands::Relationships(cmd) => {
+            handle_relationships_command(cmd, memory, config, format, dry_run).await
+        }
+    }
+}
+
+pub async fn handle_relationships_command(
+    command: crate::commands::episode::RelationshipCommands,
+    memory: &memory_core::SelfLearningMemory,
+    config: &Config,
+    format: OutputFormat,
+    dry_run: bool,
+) -> anyhow::Result<()> {
+    use crate::commands::episode::*;
+
+    match command {
+        RelationshipCommands::AddRelationship {
+            from_episode_id,
+            to,
+            r#type,
+            reason,
+            priority,
+            created_by,
+        } => {
+            add_relationship(
+                from_episode_id,
+                to,
+                r#type,
+                reason,
+                priority,
+                created_by,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::RemoveRelationship { relationship_id } => {
+            remove_relationship(relationship_id, memory, config, format, dry_run).await
+        }
+        RelationshipCommands::ListRelationships {
+            episode_id,
+            direction,
+            r#type,
+            format: list_format,
+        } => {
+            list_relationships(
+                episode_id,
+                direction,
+                r#type,
+                list_format,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::FindRelated {
+            episode_id,
+            r#type,
+            limit,
+            format: list_format,
+        } => {
+            find_related(
+                episode_id,
+                r#type,
+                limit,
+                list_format,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::DependencyGraph {
+            episode_id,
+            depth,
+            format: graph_format,
+            output,
+        } => {
+            dependency_graph(
+                episode_id,
+                depth,
+                graph_format,
+                output,
+                memory,
+                config,
+                format,
+                dry_run,
+            )
+            .await
+        }
+        RelationshipCommands::ValidateCycles { episode_id, r#type } => {
+            validate_cycles(episode_id, r#type, memory, config, format, dry_run).await
+        }
+        RelationshipCommands::TopologicalSort { episode_ids } => {
+            topological_sort(episode_ids, memory, config, format, dry_run).await
+        }
     }
 }
 
@@ -177,6 +302,17 @@ pub async fn handle_pattern_command(
             dry_run: decay_dry_run,
             force,
         } => pattern::decay_patterns(memory, config, format, decay_dry_run || dry_run, force).await,
+        #[cfg(feature = "turso")]
+        PatternCommands::Batch { command } => {
+            // Get storage backend for batch operations
+            // TODO: This is a workaround - batch commands should not need direct storage access
+            use memory_storage_turso::TursoStorage;
+            let storage = TursoStorage::from_config(&config.database)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to create Turso storage: {}", e))?;
+
+            pattern::execute_pattern_batch_command(command, storage).await
+        }
     }
 }
 
@@ -212,6 +348,7 @@ pub async fn handle_config_command(
         ConfigCommands::Validate => config::validate_config(memory, config, format).await,
         ConfigCommands::Check => config::check_config(memory, config, format).await,
         ConfigCommands::Show => config::show_config(memory, config, format).await,
+        ConfigCommands::Wizard => config::run_wizard().await,
     }
 }
 
@@ -358,4 +495,14 @@ pub async fn handle_embedding_command(
         EmbeddingCommands::Enable => embedding::enable_embeddings(),
         EmbeddingCommands::Disable => embedding::disable_embeddings(),
     }
+}
+
+pub async fn handle_tag_command(
+    command: TagCommands,
+    memory: &memory_core::SelfLearningMemory,
+    config: &Config,
+    format: OutputFormat,
+    dry_run: bool,
+) -> anyhow::Result<()> {
+    tag::handle_tag_command(command, memory, config, format, dry_run).await
 }

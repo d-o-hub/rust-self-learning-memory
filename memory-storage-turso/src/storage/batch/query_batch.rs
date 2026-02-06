@@ -5,7 +5,7 @@
 use super::super::episodes::row_to_episode;
 use super::super::patterns::row_to_pattern;
 use crate::TursoStorage;
-use memory_core::{episode::PatternId, Episode, Error, Pattern, Result};
+use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -182,6 +182,92 @@ impl TursoStorage {
         );
         Ok(result)
     }
+
+    /// Retrieve multiple heuristics by IDs efficiently
+    ///
+    /// Uses a single query with IN clause for efficient batch retrieval.
+    ///
+    /// # Arguments
+    ///
+    /// * `ids` - Slice of heuristic UUIDs to retrieve
+    ///
+    /// # Returns
+    ///
+    /// Vector of optional heuristics (None if heuristic not found)
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_turso::TursoStorage;
+    /// # use uuid::Uuid;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let storage = TursoStorage::new("file:test.db", "").await?;
+    ///
+    /// let ids = vec![Uuid::new_v4(), Uuid::new_v4()];
+    /// let heuristics = storage.get_heuristics_batch(&ids).await?;
+    ///
+    /// for heuristic in heuristics {
+    ///     if let Some(h) = heuristic {
+    ///         println!("Found heuristic: {}", h.heuristic_id);
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_heuristics_batch(&self, ids: &[Uuid]) -> Result<Vec<Option<Heuristic>>> {
+        if ids.is_empty() {
+            debug!("Empty IDs batch received for heuristic retrieval");
+            return Ok(Vec::new());
+        }
+
+        debug!("Retrieving heuristics batch: {} items", ids.len());
+        let conn = self.get_connection().await?;
+
+        // Build the IN clause with placeholders
+        let placeholders: Vec<String> = ids.iter().map(|_| "?".to_string()).collect();
+        let sql = format!(
+            r#"
+            SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at
+            FROM heuristics WHERE heuristic_id IN ({})
+        "#,
+            placeholders.join(", ")
+        );
+
+        // Convert UUIDs to strings for the query
+        let params: Vec<libsql::Value> = ids
+            .iter()
+            .map(|id| libsql::Value::Text(id.to_string()))
+            .collect();
+
+        let mut rows = conn
+            .query(&sql, libsql::params_from_iter(params))
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to query heuristics batch: {}", e)))?;
+
+        // Create a map of heuristic_id -> Heuristic for efficient lookup
+        let mut heuristic_map = std::collections::HashMap::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to fetch heuristic row: {}", e)))?
+        {
+            let heuristic = super::super::heuristics::row_to_heuristic(&row)?;
+            heuristic_map.insert(heuristic.heuristic_id, heuristic);
+        }
+
+        // Return heuristics in the same order as the input IDs
+        let result: Vec<Option<Heuristic>> = ids
+            .iter()
+            .map(|id| heuristic_map.get(id).cloned())
+            .collect();
+
+        info!(
+            "Retrieved {} of {} requested heuristics",
+            result.iter().filter(|e| e.is_some()).count(),
+            ids.len()
+        );
+        Ok(result)
+    }
 }
 
 #[cfg(test)]
@@ -231,7 +317,7 @@ mod tests {
             ),
         )];
         storage
-            .store_episodes_batch_with_ids(episodes)
+            .store_episodes_batch(episodes.into_iter().map(|(_, e)| e).collect())
             .await
             .unwrap();
 
@@ -284,5 +370,88 @@ mod tests {
 
         let _retrieved = storage.get_episodes_batch(&ids).await.unwrap();
         // Episodes should be in storage (we're checking by generated IDs)
+    }
+
+    #[tokio::test]
+    async fn test_get_heuristics_batch_empty() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let result = storage.get_heuristics_batch(&[]).await.unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_get_heuristics_batch_with_missing() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+
+        // Store only one heuristic
+        let heuristic = create_test_heuristic_with_id(id1);
+        storage
+            .store_heuristics_batch(vec![heuristic])
+            .await
+            .unwrap();
+
+        // Retrieve both - one should exist, one should be None
+        let result = storage.get_heuristics_batch(&[id1, id2]).await.unwrap();
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_some());
+        assert!(result[1].is_none());
+    }
+
+    #[tokio::test]
+    async fn test_store_and_get_heuristics_batch() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let id3 = Uuid::new_v4();
+
+        let heuristics = vec![
+            create_test_heuristic_with_id(id1),
+            create_test_heuristic_with_id(id2),
+            create_test_heuristic_with_id(id3),
+        ];
+
+        // Store heuristics
+        storage
+            .store_heuristics_batch(heuristics.clone())
+            .await
+            .unwrap();
+
+        // Retrieve them in batch
+        let retrieved = storage
+            .get_heuristics_batch(&[id1, id2, id3])
+            .await
+            .unwrap();
+        assert_eq!(retrieved.len(), 3);
+        assert!(retrieved[0].is_some());
+        assert!(retrieved[1].is_some());
+        assert!(retrieved[2].is_some());
+
+        // Verify the retrieved heuristics match
+        assert_eq!(retrieved[0].as_ref().unwrap().heuristic_id, id1);
+        assert_eq!(retrieved[1].as_ref().unwrap().heuristic_id, id2);
+        assert_eq!(retrieved[2].as_ref().unwrap().heuristic_id, id3);
+    }
+
+    fn create_test_heuristic_with_id(id: Uuid) -> Heuristic {
+        use memory_core::types::Evidence;
+
+        Heuristic {
+            heuristic_id: id,
+            condition: format!("test condition {}", id),
+            action: format!("test action {}", id),
+            confidence: 0.85,
+            evidence: Evidence {
+                episode_ids: vec![],
+                success_rate: 0.9,
+                sample_size: 10,
+            },
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        }
     }
 }

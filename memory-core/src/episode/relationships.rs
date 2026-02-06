@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+#[cfg(feature = "proptest-arbitrary")]
+use proptest::prelude::{prop_oneof, Arbitrary, BoxedStrategy, Just, Strategy};
+
 /// Type of relationship between two episodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -102,6 +105,31 @@ impl RelationshipType {
             Self::Duplicates,
             Self::References,
         ]
+    }
+}
+
+impl std::fmt::Display for RelationshipType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+#[cfg(feature = "proptest-arbitrary")]
+impl Arbitrary for RelationshipType {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary_with(_args: Self::Parameters) -> Self::Strategy {
+        prop_oneof![
+            Just(Self::ParentChild),
+            Just(Self::DependsOn),
+            Just(Self::Follows),
+            Just(Self::RelatedTo),
+            Just(Self::Blocks),
+            Just(Self::Duplicates),
+            Just(Self::References),
+        ]
+        .boxed()
     }
 }
 

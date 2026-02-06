@@ -8,6 +8,8 @@
 //! - [`tests`](tests/index.html) - Test suite
 
 pub mod analysis;
+#[cfg(test)]
+pub mod bocpd_tests;
 #[allow(unused)]
 pub mod tests;
 

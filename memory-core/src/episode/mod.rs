@@ -35,6 +35,8 @@
 pub mod graph_algorithms;
 pub mod relationship_errors;
 pub mod relationship_manager;
+#[cfg(test)]
+mod relationship_manager_tests;
 pub mod relationships;
 pub mod structs;
 pub mod validation;

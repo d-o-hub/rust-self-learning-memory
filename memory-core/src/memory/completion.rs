@@ -1,6 +1,7 @@
 //! Episode completion and storage
 
 use crate::error::{Error, Result};
+use crate::security::audit::{episode_completed, AuditContext};
 use crate::types::TaskOutcome;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
@@ -375,6 +376,17 @@ impl SelfLearningMemory {
                 "Episode completed and patterns extracted synchronously"
             );
         }
+
+        // Audit log: episode completed
+        let context = AuditContext::system();
+        let outcome_str = match &outcome {
+            TaskOutcome::Success { verdict, .. } => verdict.clone(),
+            TaskOutcome::PartialSuccess { verdict, .. } => verdict.clone(),
+            TaskOutcome::Failure { reason, .. } => reason.clone(),
+        };
+        let success = matches!(outcome, TaskOutcome::Success { .. });
+        let audit_entry = episode_completed(&context, episode_id, &outcome_str, success);
+        self.audit_logger.log(audit_entry);
 
         Ok(())
     }

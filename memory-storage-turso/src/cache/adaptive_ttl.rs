@@ -1,506 +1,678 @@
-//! # Adaptive TTL Cache for Turso Storage
+//! Adaptive TTL Cache Implementation
 //!
-//! Advanced cache layer with intelligent TTL management that adapts based on:
-//! - Access frequency patterns (hot/cold detection)
-//! - Memory pressure indicators
-//! - Time-based decay algorithms
-//!
-//! This module provides a higher-level cache abstraction on top of the redb
-//! adaptive cache, adding memory pressure awareness and hybrid eviction policies.
+//! This module provides a generic adaptive TTL cache that:
+//! - Adjusts TTL based on access patterns (hot items get longer TTL, cold items get shorter)
+//! - Performs background cleanup of expired entries
+//! - Tracks statistics (hit rate, avg TTL, evictions)
+//! - Provides thread-safe operations
 //!
 //! ## Architecture
 //!
 //! ```text
-//! Client → AdaptiveTtlCache → redb AdaptiveCache → TursoStorage
-//!                    ↓
-//!          Memory Pressure Monitor
-//!          Eviction Policy Manager
-//!          TTL Adaptation Engine
+//! ┌─────────────────────────────────────────────────────────────┐
+//! │                    AdaptiveTTLCache<K, V>                   │
+//! ├─────────────────────────────────────────────────────────────┤
+//! │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+//! │  │   entries   │  │    stats    │  │   cleanup_task      │  │
+//! │  │  HashMap    │  │ CacheStats  │  │   (background)      │  │
+//! │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+//! └─────────────────────────────────────────────────────────────┘
+//!                              │
+//!                    ┌─────────┴─────────┐
+//!                    ▼                   ▼
+//!           ┌────────────────┐  ┌────────────────┐
+//!           │  CacheEntry<V> │  │   TTLConfig    │
+//!           │ - value: V     │  │ - base_ttl     │
+//!           │ - created_at   │  │ - min/max_ttl  │
+//!           │ - access_count │  │ - thresholds   │
+//!           │ - last_access  │  │ - adaptation   │
+//!           └────────────────┘  └────────────────┘
 //! ```
-//!
-//! ## Features
-//!
-//! - **Adaptive TTL**: Dynamically adjusts TTL based on access patterns
-//! - **Memory Pressure**: Detects and responds to memory pressure
-//! - **Hybrid Eviction**: LRU + LFU hybrid policy for optimal cache efficiency
-//! - **Metrics**: Comprehensive cache effectiveness tracking
 
-mod config;
-mod snapshot;
-
-pub use config::{AdaptiveTtlConfig, AdaptiveTtlStats, CacheEffectivenessReport, PressureLevel};
-pub use snapshot::AdaptiveTtlStatsSnapshot;
-
-use config::{
-    estimate_heap_size, AdaptiveTtlStats, CacheEffectivenessReport, HybridEvictionState,
-    MemoryPressureState, PressureLevel,
-};
-use memory_storage_redb::AdaptiveCache;
+use super::ttl_config::{TTLConfig, TTLConfigError};
+use std::collections::HashMap;
+use std::hash::Hash;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio::time::{interval, Duration as TokioDuration};
-use tracing::{debug, info, warn};
-use uuid::Uuid;
+use tracing::{debug, info, trace};
 
-/// Adaptive TTL cache with memory pressure awareness and hybrid eviction.
-///
-/// This cache extends the redb AdaptiveCache with:
-/// - Memory pressure monitoring and automatic eviction
-/// - Hybrid LRU/LFU eviction policy
-/// - Enhanced metrics for cache effectiveness
-/// - Background maintenance tasks
-///
-/// ## Example
-///
-/// ```rust,ignore
-/// use memory_storage_turso::cache::adaptive_ttl::{AdaptiveTtlCache, AdaptiveTtlConfig};
-///
-/// let config = AdaptiveTtlConfig::default();
-/// let cache = AdaptiveTtlCache::new(config);
-/// ```
-pub struct AdaptiveTtlCache<V: Clone + Send + Sync + 'static> {
-    /// Inner redb adaptive cache
-    inner: Arc<AdaptiveCache<V>>,
-    /// Configuration
-    config: AdaptiveTtlConfig,
-    /// Memory pressure state
-    memory_state: Arc<RwLock<MemoryPressureState>>,
-    /// Hybrid eviction state
-    eviction_state: Arc<RwLock<HybridEvictionState>>,
-    /// Statistics
-    stats: AdaptiveTtlStats,
-    /// Background task handles
-    _maintenance_task: JoinHandle<()>,
-    _pressure_task: JoinHandle<()>,
+/// A cache entry with metadata for adaptive TTL management
+#[derive(Debug, Clone)]
+pub struct CacheEntry<V> {
+    /// The cached value
+    pub value: V,
+    /// When the entry was created
+    pub created_at: Instant,
+    /// Number of times this entry has been accessed
+    pub access_count: u64,
+    /// When the entry was last accessed
+    pub last_accessed: Instant,
+    /// Current TTL for this entry (adaptive)
+    pub current_ttl: Duration,
+    /// Access timestamps for pattern analysis (sliding window)
+    access_history: Vec<Instant>,
 }
 
-impl<V: Clone + Send + Sync + 'static> AdaptiveTtlCache<V> {
-    /// Create a new AdaptiveTtlCache with default configuration
-    pub fn new(config: AdaptiveTtlConfig) -> Self {
-        let inner = Arc::new(AdaptiveCache::new(config.base_config.clone()));
-        let memory_state = Arc::new(RwLock::new(MemoryPressureState::default()));
-        let eviction_state = Arc::new(RwLock::new(HybridEvictionState::default()));
-        let stats = AdaptiveTtlStats::default();
+impl<V> CacheEntry<V> {
+    /// Create a new cache entry with the given value and initial TTL
+    pub fn new(value: V, initial_ttl: Duration) -> Self {
+        let now = Instant::now();
+        Self {
+            value,
+            created_at: now,
+            access_count: 0,
+            last_accessed: now,
+            current_ttl: initial_ttl,
+            access_history: Vec::with_capacity(20),
+        }
+    }
 
-        // Start background maintenance tasks
-        let maintenance_task = Self::start_maintenance_task(
-            Arc::clone(&inner),
-            Arc::clone(&memory_state),
-            Arc::clone(&eviction_state),
-            Arc::clone(&stats),
-            config.clone(),
-        );
+    /// Record an access to this entry
+    pub fn record_access(&mut self, config: &TTLConfig) {
+        let now = Instant::now();
+        self.access_count += 1;
+        self.last_accessed = now;
 
-        let pressure_task = Self::start_pressure_task(
-            Arc::clone(&inner),
-            Arc::clone(&memory_state),
-            Arc::clone(&stats),
-            config.clone(),
-        );
+        // Add to access history
+        self.access_history.push(now);
+
+        // Trim access history to window size
+        let window_start = now - Duration::from_secs(config.access_window_secs);
+        self.access_history.retain(|&t| t >= window_start);
+
+        // Update TTL based on access pattern
+        if config.enable_adaptive_ttl {
+            let window_accesses = self.access_history.len() as u64;
+            self.current_ttl = config.calculate_ttl(self.current_ttl, window_accesses);
+        }
+    }
+
+    /// Check if this entry has expired
+    pub fn is_expired(&self) -> bool {
+        Instant::now().duration_since(self.created_at) > self.current_ttl
+    }
+
+    /// Get the remaining TTL for this entry
+    pub fn remaining_ttl(&self) -> Duration {
+        let elapsed = Instant::now().duration_since(self.created_at);
+        self.current_ttl.saturating_sub(elapsed)
+    }
+
+    /// Get the access frequency (accesses per minute) over the window
+    pub fn access_frequency(&self, window_secs: u64) -> f64 {
+        if self.access_history.is_empty() {
+            return 0.0;
+        }
+
+        let window_duration = Duration::from_secs(window_secs);
+        let actual_window = Instant::now()
+            .duration_since(self.created_at)
+            .min(window_duration);
+
+        if actual_window.as_secs() == 0 {
+            return self.access_history.len() as f64;
+        }
+
+        let accesses = self.access_history.len() as f64;
+        let minutes = actual_window.as_secs_f64() / 60.0;
+        accesses / minutes
+    }
+
+    /// Reset the entry with a new value and TTL
+    pub fn reset(&mut self, value: V, ttl: Duration) {
+        let now = Instant::now();
+        self.value = value;
+        self.created_at = now;
+        self.access_count = 0;
+        self.last_accessed = now;
+        self.current_ttl = ttl;
+        self.access_history.clear();
+    }
+}
+
+/// Statistics for the adaptive TTL cache
+#[derive(Debug, Default)]
+pub struct CacheStats {
+    /// Total number of cache hits
+    hits: AtomicU64,
+    /// Total number of cache misses
+    misses: AtomicU64,
+    /// Total number of evictions (size limit)
+    evictions: AtomicU64,
+    /// Total number of TTL-based expirations
+    ttl_expirations: AtomicU64,
+    /// Total number of explicit removals
+    removals: AtomicU64,
+    /// Total number of TTL adaptations
+    ttl_adaptations: AtomicU64,
+    /// Sum of all TTL values (for calculating average)
+    ttl_sum_micros: AtomicU64,
+    /// Number of TTL samples
+    ttl_samples: AtomicU64,
+    /// Current number of entries
+    entry_count: AtomicU64,
+    /// Peak number of entries
+    peak_entries: AtomicU64,
+    /// Total cleanup operations performed
+    cleanup_operations: AtomicU64,
+    /// Total bytes evicted (estimated)
+    bytes_evicted: AtomicU64,
+}
+
+impl CacheStats {
+    /// Create new empty stats
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Record a cache hit
+    pub fn record_hit(&self) {
+        self.hits.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Record a cache miss
+    pub fn record_miss(&self) {
+        self.misses.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Record an eviction
+    pub fn record_eviction(&self, estimated_bytes: u64) {
+        self.evictions.fetch_add(1, Ordering::Relaxed);
+        self.bytes_evicted
+            .fetch_add(estimated_bytes, Ordering::Relaxed);
+    }
+
+    /// Record a TTL expiration
+    pub fn record_ttl_expiration(&self) {
+        self.ttl_expirations.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Record a removal
+    pub fn record_removal(&self) {
+        self.removals.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Record a TTL adaptation
+    pub fn record_ttl_adaptation(&self, ttl: Duration) {
+        self.ttl_adaptations.fetch_add(1, Ordering::Relaxed);
+        self.ttl_sum_micros
+            .fetch_add(ttl.as_micros() as u64, Ordering::Relaxed);
+        self.ttl_samples.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Update entry count
+    pub fn update_entry_count(&self, count: usize) {
+        let count_u64 = count as u64;
+        self.entry_count.store(count_u64, Ordering::Relaxed);
+
+        // Update peak if needed
+        let mut peak = self.peak_entries.load(Ordering::Relaxed);
+        while count_u64 > peak {
+            match self.peak_entries.compare_exchange_weak(
+                peak,
+                count_u64,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            ) {
+                Ok(_) => break,
+                Err(actual) => peak = actual,
+            }
+        }
+    }
+
+    /// Record a cleanup operation
+    pub fn record_cleanup(&self) {
+        self.cleanup_operations.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Get the current hit rate (0.0 - 1.0)
+    pub fn hit_rate(&self) -> f64 {
+        let hits = self.hits.load(Ordering::Relaxed);
+        let misses = self.misses.load(Ordering::Relaxed);
+        let total = hits + misses;
+
+        if total == 0 {
+            0.0
+        } else {
+            hits as f64 / total as f64
+        }
+    }
+
+    /// Get the current hit rate as a percentage
+    pub fn hit_rate_percent(&self) -> f64 {
+        self.hit_rate() * 100.0
+    }
+
+    /// Get total number of hits
+    pub fn hits(&self) -> u64 {
+        self.hits.load(Ordering::Relaxed)
+    }
+
+    /// Get total number of misses
+    pub fn misses(&self) -> u64 {
+        self.misses.load(Ordering::Relaxed)
+    }
+
+    /// Get total number of evictions
+    pub fn evictions(&self) -> u64 {
+        self.evictions.load(Ordering::Relaxed)
+    }
+
+    /// Get total number of TTL expirations
+    pub fn ttl_expirations(&self) -> u64 {
+        self.ttl_expirations.load(Ordering::Relaxed)
+    }
+
+    /// Get total number of removals
+    pub fn removals(&self) -> u64 {
+        self.removals.load(Ordering::Relaxed)
+    }
+
+    /// Get total number of TTL adaptations
+    pub fn ttl_adaptations(&self) -> u64 {
+        self.ttl_adaptations.load(Ordering::Relaxed)
+    }
+
+    /// Get average TTL in seconds
+    pub fn average_ttl_secs(&self) -> f64 {
+        let sum = self.ttl_sum_micros.load(Ordering::Relaxed);
+        let samples = self.ttl_samples.load(Ordering::Relaxed);
+
+        if samples == 0 {
+            0.0
+        } else {
+            (sum as f64 / samples as f64) / 1_000_000.0
+        }
+    }
+
+    /// Get current entry count
+    pub fn entry_count(&self) -> usize {
+        self.entry_count.load(Ordering::Relaxed) as usize
+    }
+
+    /// Get peak entry count
+    pub fn peak_entries(&self) -> usize {
+        self.peak_entries.load(Ordering::Relaxed) as usize
+    }
+
+    /// Get total cleanup operations
+    pub fn cleanup_operations(&self) -> u64 {
+        self.cleanup_operations.load(Ordering::Relaxed)
+    }
+
+    /// Get total bytes evicted
+    pub fn bytes_evicted(&self) -> u64 {
+        self.bytes_evicted.load(Ordering::Relaxed)
+    }
+
+    /// Get a snapshot of all statistics
+    pub fn snapshot(&self) -> CacheStatsSnapshot {
+        CacheStatsSnapshot {
+            hits: self.hits(),
+            misses: self.misses(),
+            evictions: self.evictions(),
+            ttl_expirations: self.ttl_expirations(),
+            removals: self.removals(),
+            ttl_adaptations: self.ttl_adaptations(),
+            hit_rate: self.hit_rate(),
+            hit_rate_percent: self.hit_rate_percent(),
+            average_ttl_secs: self.average_ttl_secs(),
+            entry_count: self.entry_count(),
+            peak_entries: self.peak_entries(),
+            cleanup_operations: self.cleanup_operations(),
+            bytes_evicted: self.bytes_evicted(),
+        }
+    }
+}
+
+/// A snapshot of cache statistics at a point in time
+#[derive(Debug, Clone)]
+pub struct CacheStatsSnapshot {
+    /// Total cache hits
+    pub hits: u64,
+    /// Total cache misses
+    pub misses: u64,
+    /// Total evictions
+    pub evictions: u64,
+    /// Total TTL expirations
+    pub ttl_expirations: u64,
+    /// Total removals
+    pub removals: u64,
+    /// Total TTL adaptations
+    pub ttl_adaptations: u64,
+    /// Hit rate (0.0 - 1.0)
+    pub hit_rate: f64,
+    /// Hit rate percentage
+    pub hit_rate_percent: f64,
+    /// Average TTL in seconds
+    pub average_ttl_secs: f64,
+    /// Current entry count
+    pub entry_count: usize,
+    /// Peak entry count
+    pub peak_entries: usize,
+    /// Total cleanup operations
+    pub cleanup_operations: u64,
+    /// Total bytes evicted
+    pub bytes_evicted: u64,
+}
+
+impl CacheStatsSnapshot {
+    /// Check if the cache is performing well (hit rate > 80%)
+    pub fn is_effective(&self) -> bool {
+        self.hit_rate > 0.8
+    }
+
+    /// Get the total number of operations (hits + misses)
+    pub fn total_operations(&self) -> u64 {
+        self.hits + self.misses
+    }
+
+    /// Get the eviction rate (evictions per 1000 operations)
+    pub fn eviction_rate(&self) -> f64 {
+        let total = self.total_operations();
+        if total == 0 {
+            0.0
+        } else {
+            (self.evictions as f64 / total as f64) * 1000.0
+        }
+    }
+}
+
+/// Adaptive TTL cache with generic key and value types
+///
+/// This cache automatically adjusts the TTL of entries based on their access patterns:
+/// - Frequently accessed items (hot) get extended TTL
+/// - Rarely accessed items (cold) get reduced TTL
+/// - Expired entries are cleaned up in the background
+pub struct AdaptiveTTLCache<K, V> {
+    /// Cache entries
+    entries: Arc<RwLock<HashMap<K, CacheEntry<V>>>>,
+    /// Cache configuration
+    config: TTLConfig,
+    /// Cache statistics
+    stats: Arc<CacheStats>,
+    /// Background cleanup task handle
+    cleanup_task: Option<JoinHandle<()>>,
+}
+
+impl<K, V> AdaptiveTTLCache<K, V>
+where
+    K: Eq + Hash + Clone + Send + Sync + 'static,
+    V: Clone + Send + Sync + 'static,
+{
+    /// Create a new adaptive TTL cache with the given configuration
+    ///
+    /// # Errors
+    ///
+    /// Returns `TTLConfigError` if the configuration is invalid
+    pub fn new(config: TTLConfig) -> Result<Self, TTLConfigError> {
+        config.validate()?;
+
+        let entries = Arc::new(RwLock::new(HashMap::new()));
+        let stats = Arc::new(CacheStats::new());
+
+        // Start background cleanup task if enabled
+        let cleanup_task = if config.enable_background_cleanup {
+            Some(Self::start_cleanup_task(
+                Arc::clone(&entries),
+                Arc::clone(&stats),
+                config.cleanup_interval,
+                config.max_entries,
+            ))
+        } else {
+            None
+        };
 
         info!(
-            "AdaptiveTtlCache initialized: max_size={}, default_ttl={:?}",
-            config.base_config.max_size, config.base_config.default_ttl
+            "AdaptiveTTLCache initialized: max_entries={}, base_ttl={:?}, cleanup_interval={:?}",
+            config.max_entries, config.base_ttl, config.cleanup_interval
         );
 
-        Self {
-            inner,
+        Ok(Self {
+            entries,
             config,
-            memory_state,
-            eviction_state,
             stats,
-            _maintenance_task: maintenance_task,
-            _pressure_task: pressure_task,
-        }
+            cleanup_task,
+        })
     }
 
-    /// Create from existing CacheConfig
-    pub fn from_cache_config(cache_config: crate::cache::CacheConfig) -> Self {
-        use memory_storage_redb::AdaptiveCacheConfig;
-        let base_config = AdaptiveCacheConfig {
-            max_size: cache_config.max_episodes,
-            default_ttl: cache_config.episode_ttl,
-            min_ttl: cache_config.min_ttl,
-            max_ttl: cache_config.max_ttl,
-            hot_threshold: cache_config.hot_threshold,
-            cold_threshold: cache_config.cold_threshold,
-            adaptation_rate: cache_config.adaptation_rate,
-            window_size: 20,
-            cleanup_interval_secs: cache_config.cleanup_interval_secs,
-            enable_background_cleanup: cache_config.enable_background_cleanup,
-        };
-
-        let config = AdaptiveTtlConfig {
-            base_config,
-            enable_memory_pressure: true,
-            memory_threshold: 0.8,
-            heap_size_threshold: 100 * 1024 * 1024,
-            enable_hybrid_eviction: true,
-            lru_weight: 0.5,
-            time_decay_factor: 0.1,
-            decay_interval_secs: 60,
-            enable_time_decay: true,
-            min_items_to_keep: 100,
-            pressure_multiplier: 2.0,
-        };
-
-        Self::new(config)
+    /// Create a new cache with default configuration
+    pub fn default_config() -> Result<Self, TTLConfigError> {
+        Self::new(TTLConfig::default())
     }
 
-    /// Get a value from cache (returns None if not found or expired)
-    pub async fn get(&self, id: Uuid) -> Option<V> {
-        self.inner.get(id).await
-    }
+    /// Get a value from the cache
+    ///
+    /// Returns `Some(value)` if the key exists and hasn't expired,
+    /// `None` otherwise.
+    pub async fn get(&self, key: &K) -> Option<V> {
+        let mut entries = self.entries.write().await;
 
-    /// Get and record access (updates TTL based on access pattern)
-    pub async fn get_and_record(&self, id: Uuid) -> Option<V> {
-        let result = self.inner.get_and_record(id).await;
-        if result.is_some() {
+        if let Some(entry) = entries.get_mut(key) {
+            if entry.is_expired() {
+                // Entry has expired, remove it
+                trace!("Entry expired for key, removing");
+                self.stats.record_ttl_expiration();
+                entries.remove(key);
+                self.stats.update_entry_count(entries.len());
+                return None;
+            }
+
+            // Record the access and update TTL
+            entry.record_access(&self.config);
             self.stats.record_hit();
+            self.stats.record_ttl_adaptation(entry.current_ttl);
+
+            Some(entry.value.clone())
         } else {
             self.stats.record_miss();
+            None
         }
-        result
     }
 
-    /// Insert or update a value in cache
-    pub async fn insert(&self, id: Uuid, value: V) {
-        self.inner.record_access(id, false, Some(value)).await;
+    /// Insert a value into the cache
+    ///
+    /// If the key already exists, the value is updated and the entry is reset.
+    pub async fn insert(&self, key: K, value: V) {
+        let mut entries = self.entries.write().await;
+
+        // Check if we need to evict entries
+        if entries.len() >= self.config.max_entries && !entries.contains_key(&key) {
+            self.evict_oldest(&mut entries).await;
+        }
+
+        let entry = CacheEntry::new(value, self.config.base_ttl);
+        entries.insert(key, entry);
+        self.stats.update_entry_count(entries.len());
+
+        debug!(
+            "Inserted entry, cache size: {}/{}",
+            entries.len(),
+            self.config.max_entries
+        );
     }
 
-    /// Remove a value from cache
-    pub async fn remove(&self, id: Uuid) {
-        self.inner.remove(id).await;
+    /// Remove a value from the cache
+    ///
+    /// Returns `true` if the key existed and was removed, `false` otherwise.
+    pub async fn remove(&self, key: &K) -> bool {
+        let mut entries = self.entries.write().await;
+
+        if entries.remove(key).is_some() {
+            self.stats.record_removal();
+            self.stats.update_entry_count(entries.len());
+            true
+        } else {
+            false
+        }
     }
 
-    /// Check if key exists (and is not expired)
-    pub async fn contains(&self, id: Uuid) -> bool {
-        self.inner.contains(id).await
+    /// Check if a key exists in the cache (and hasn't expired)
+    pub async fn contains(&self, key: &K) -> bool {
+        let entries = self.entries.read().await;
+
+        if let Some(entry) = entries.get(key) {
+            !entry.is_expired()
+        } else {
+            false
+        }
     }
 
-    /// Get current TTL for an entry
-    pub async fn ttl(&self, id: Uuid) -> Option<Duration> {
-        self.inner.ttl(id).await
+    /// Get the current TTL for an entry
+    pub async fn ttl(&self, key: &K) -> Option<Duration> {
+        let entries = self.entries.read().await;
+        entries.get(key).map(|e| e.current_ttl)
     }
 
-    /// Get access count for an entry
-    pub async fn access_count(&self, id: Uuid) -> Option<usize> {
-        self.inner.access_count(id).await
+    /// Get the remaining TTL for an entry
+    pub async fn remaining_ttl(&self, key: &K) -> Option<Duration> {
+        let entries = self.entries.read().await;
+        entries.get(key).map(|e| e.remaining_ttl())
     }
 
-    /// Get cache size (number of entries)
+    /// Get the access count for an entry
+    pub async fn access_count(&self, key: &K) -> Option<u64> {
+        let entries = self.entries.read().await;
+        entries.get(key).map(|e| e.access_count)
+    }
+
+    /// Get the number of entries in the cache
     pub async fn len(&self) -> usize {
-        self.inner.len().await
+        let entries = self.entries.read().await;
+        entries.len()
     }
 
-    /// Check if cache is empty
+    /// Check if the cache is empty
     pub async fn is_empty(&self) -> bool {
-        self.inner.is_empty().await
+        self.len().await == 0
     }
 
-    /// Clear all entries
+    /// Clear all entries from the cache
     pub async fn clear(&self) {
-        self.inner.clear().await;
+        let mut entries = self.entries.write().await;
+        let count = entries.len();
+        entries.clear();
+        self.stats.update_entry_count(0);
+        info!("Cleared {} entries from cache", count);
     }
 
-    /// Get comprehensive cache effectiveness report
-    pub async fn effectiveness_report(&self) -> CacheEffectivenessReport {
-        let hit_rate = self.stats.hit_rate_percent();
-        let pressure = self.stats.pressure_level();
-        let cache_size = self.inner.len().await;
-
-        let evictions = self
-            .stats
-            .evictions
-            .load(std::sync::atomic::Ordering::Relaxed);
-        let pressure_evictions = self
-            .stats
-            .pressure_evictions
-            .load(std::sync::atomic::Ordering::Relaxed);
-        let ttl_adaptations = self
-            .stats
-            .ttl_adaptations
-            .load(std::sync::atomic::Ordering::Relaxed);
-
-        // Clone pressure for multiple uses
-        let pressure_clone = pressure.clone();
-
-        // Calculate effectiveness score
-        let effectiveness_score =
-            self.calculate_effectiveness_score(hit_rate, pressure, cache_size, evictions);
-
-        // Generate recommendations
-        let recommendations =
-            self.generate_recommendations(hit_rate, pressure_clone.clone(), cache_size, evictions);
-
-        CacheEffectivenessReport {
-            hit_rate_percent: hit_rate,
-            pressure_level: pressure_clone,
-            cache_size,
-            item_count: cache_size,
-            total_evictions: evictions,
-            pressure_evictions,
-            ttl_adaptations,
-            effectiveness_score,
-            recommendations,
-        }
+    /// Get a snapshot of the current statistics
+    pub fn stats(&self) -> CacheStatsSnapshot {
+        self.stats.snapshot()
     }
 
-    /// Calculate effectiveness score
-    fn calculate_effectiveness_score(
-        &self,
-        hit_rate: f64,
-        pressure: PressureLevel,
-        cache_size: usize,
-        evictions: u64,
-    ) -> f64 {
-        // Base score from hit rate (0-70 points)
-        let hit_score = hit_rate.min(70.0);
-
-        // Penalty for memory pressure (0-20 points)
-        let pressure_penalty = match pressure {
-            PressureLevel::Normal => 0.0,
-            PressureLevel::Low => 5.0,
-            PressureLevel::High => 12.0,
-            PressureLevel::Critical => 20.0,
-        };
-
-        // Efficiency bonus for cache utilization (0-10 points)
-        let utilization_bonus = if cache_size > 0 {
-            (cache_size as f64 / self.config.base_config.max_size as f64 * 10.0).min(10.0)
-        } else {
-            0.0
-        };
-
-        // Eviction rate penalty (0-10 points)
-        let eviction_rate = if cache_size > 0 {
-            (evictions as f64 / cache_size as f64 * 10.0).min(10.0)
-        } else {
-            0.0
-        };
-
-        let raw_score = hit_score - pressure_penalty + utilization_bonus - eviction_rate;
-        (raw_score / 100.0).clamp(0.0, 1.0)
+    /// Get the cache configuration
+    pub fn config(&self) -> &TTLConfig {
+        &self.config
     }
 
-    /// Generate tuning recommendations
-    fn generate_recommendations(
-        &self,
-        hit_rate: f64,
-        pressure: PressureLevel,
-        cache_size: usize,
-        evictions: u64,
-    ) -> Vec<String> {
-        let mut recommendations = Vec::new();
+    /// Manually trigger cleanup of expired entries
+    ///
+    /// Returns the number of entries removed.
+    pub async fn cleanup_expired(&self) -> usize {
+        let mut entries = self.entries.write().await;
+        let before_count = entries.len();
 
-        // Hit rate recommendations
-        if hit_rate < 40.0 {
-            recommendations.push(
-                "Low cache hit rate (<40%). Consider increasing cache size or adjusting TTL"
-                    .to_string(),
-            );
-        } else if hit_rate > 80.0 {
-            recommendations.push(
-                "Excellent cache hit rate (>80%). Current configuration is effective".to_string(),
-            );
+        entries.retain(|_key, entry| {
+            if entry.is_expired() {
+                self.stats.record_ttl_expiration();
+                false
+            } else {
+                true
+            }
+        });
+
+        let removed = before_count - entries.len();
+        self.stats.update_entry_count(entries.len());
+        self.stats.record_cleanup();
+
+        if removed > 0 {
+            debug!("Cleaned up {} expired entries", removed);
         }
 
-        // Memory pressure recommendations
-        if pressure == PressureLevel::Critical {
-            recommendations.push(
-                "Critical memory pressure detected. Consider reducing cache size or enabling aggressive eviction".to_string(),
-            );
-        } else if pressure == PressureLevel::High {
-            recommendations.push(
-                "High memory pressure. Monitor cache size and consider incremental eviction"
-                    .to_string(),
-            );
-        }
-
-        // Eviction rate recommendations
-        let eviction_rate = if cache_size > 0 {
-            evictions as f64 / cache_size as f64
-        } else {
-            0.0
-        };
-        if eviction_rate > 0.5 {
-            recommendations.push(
-                "High eviction rate. Consider increasing cache size or reducing TTL".to_string(),
-            );
-        }
-
-        // Cache size recommendations
-        let utilization = cache_size as f64 / self.config.base_config.max_size as f64;
-        if utilization < 0.3 {
-            recommendations.push(
-                "Low cache utilization. Consider reducing max_size to save memory".to_string(),
-            );
-        }
-
-        if recommendations.is_empty() {
-            recommendations.push("Cache is operating optimally".to_string());
-        }
-
-        recommendations
+        removed
     }
 
-    /// Get current statistics
-    pub async fn get_stats(&self) -> AdaptiveTtlStatsSnapshot {
-        let metrics = self.inner.get_metrics().await;
+    /// Get all keys in the cache (that haven't expired)
+    pub async fn keys(&self) -> Vec<K> {
+        let entries = self.entries.read().await;
+        entries
+            .iter()
+            .filter(|(_, entry)| !entry.is_expired())
+            .map(|(key, _)| key.clone())
+            .collect()
+    }
 
-        AdaptiveTtlStatsSnapshot {
-            hits: self.stats.hits.load(std::sync::atomic::Ordering::Relaxed),
-            misses: self.stats.misses.load(std::sync::atomic::Ordering::Relaxed),
-            evictions: self
-                .stats
-                .evictions
-                .load(std::sync::atomic::Ordering::Relaxed),
-            pressure_evictions: self
-                .stats
-                .pressure_evictions
-                .load(std::sync::atomic::Ordering::Relaxed),
-            size_evictions: self
-                .stats
-                .size_evictions
-                .load(std::sync::atomic::Ordering::Relaxed),
-            ttl_evictions: self
-                .stats
-                .ttl_evictions
-                .load(std::sync::atomic::Ordering::Relaxed),
-            ttl_adaptations: self
-                .stats
-                .ttl_adaptations
-                .load(std::sync::atomic::Ordering::Relaxed),
-            hit_rate_percent: self.stats.hit_rate_percent(),
-            pressure_level: self.stats.pressure_level(),
-            hot_item_count: metrics.hot_item_count,
-            cold_item_count: metrics.cold_item_count,
-            base_hits: metrics.base.hits,
-            base_misses: metrics.base.misses,
-            base_evictions: metrics.base.evictions,
-            base_expirations: metrics.base.expirations,
+    /// Evict the oldest entry (LRU eviction)
+    async fn evict_oldest(&self, entries: &mut HashMap<K, CacheEntry<V>>) {
+        if let Some(oldest_key) = entries
+            .iter()
+            .min_by_key(|(_, entry)| entry.last_accessed)
+            .map(|(key, _)| key.clone())
+        {
+            if let Some(entry) = entries.remove(&oldest_key) {
+                // Estimate bytes (simplified - just use size of value)
+                let estimated_bytes = std::mem::size_of_val(&entry.value) as u64;
+                self.stats.record_eviction(estimated_bytes);
+                debug!("Evicted oldest entry");
+            }
         }
     }
 
-    /// Start background maintenance task
-    fn start_maintenance_task(
-        inner: Arc<AdaptiveCache<V>>,
-        memory_state: Arc<RwLock<MemoryPressureState>>,
-        eviction_state: Arc<RwLock<HybridEvictionState>>,
-        stats: Arc<AdaptiveTtlStats>,
-        config: AdaptiveTtlConfig,
+    /// Start the background cleanup task
+    fn start_cleanup_task(
+        entries: Arc<RwLock<HashMap<K, CacheEntry<V>>>>,
+        stats: Arc<CacheStats>,
+        interval_duration: Duration,
+        _max_entries: usize,
     ) -> JoinHandle<()> {
         tokio::spawn(async move {
-            let mut ticker = interval(TokioDuration::from_secs(config.decay_interval_secs));
+            let mut ticker = interval(TokioDuration::from_secs(interval_duration.as_secs()));
 
             loop {
                 ticker.tick().await;
 
-                if config.enable_time_decay {
-                    let start = std::time::Instant::now();
+                let mut entries_guard = entries.write().await;
+                let before_count = entries_guard.len();
 
-                    // Apply time decay to access counts
-                    // This would require modifying the inner cache state
-                    // For now, we just log the decay operation
-                    debug!("Applying time decay to cache entries");
-
-                    let elapsed = start.elapsed();
-                    stats.decay_time_us.fetch_add(
-                        elapsed.as_micros() as u64,
-                        std::sync::atomic::Ordering::Relaxed,
-                    );
+                // Remove expired entries
+                entries_guard.retain(|_key, entry| !entry.is_expired());
+                let expired_count = before_count - entries_guard.len();
+                for _ in 0..expired_count {
+                    stats.record_ttl_expiration();
                 }
 
-                // Update hybrid eviction scores if enabled
-                if config.enable_hybrid_eviction {
-                    let mut state = eviction_state.write().await;
-                    state.last_recalc = std::time::Instant::now();
-                    debug!("Updated hybrid eviction scores");
+                let removed = before_count - entries_guard.len();
+                stats.update_entry_count(entries_guard.len());
+                stats.record_cleanup();
+
+                if removed > 0 {
+                    debug!("Background cleanup removed {} expired entries", removed);
                 }
+
+                drop(entries_guard);
             }
         })
     }
 
-    /// Start memory pressure monitoring task
-    fn start_pressure_task(
-        _inner: Arc<AdaptiveCache<V>>,
-        memory_state: Arc<RwLock<MemoryPressureState>>,
-        stats: Arc<AdaptiveTtlStats>,
-        config: AdaptiveTtlConfig,
-    ) -> JoinHandle<()> {
-        tokio::spawn(async move {
-            let mut ticker = interval(TokioDuration::from_secs(5)); // Check every 5 seconds
+    /// Stop the background cleanup task
+    pub fn stop_cleanup(&mut self) {
+        if let Some(task) = self.cleanup_task.take() {
+            task.abort();
+            info!("Background cleanup task stopped");
+        }
+    }
+}
 
-            loop {
-                ticker.tick().await;
-
-                if !config.enable_memory_pressure {
-                    continue;
-                }
-
-                // Estimate memory usage (simplified - uses heap size)
-                let heap_size = estimate_heap_size();
-                let mut state = memory_state.write().await;
-                state.last_heap_size = heap_size;
-                state.last_check = std::time::Instant::now();
-
-                // Determine pressure level
-                let new_level = if heap_size >= config.heap_size_threshold {
-                    PressureLevel::Critical
-                } else if heap_size >= (config.heap_size_threshold as f64 * 0.9) as usize {
-                    PressureLevel::High
-                } else if heap_size >= (config.heap_size_threshold as f64 * 0.7) as usize {
-                    PressureLevel::Low
-                } else {
-                    PressureLevel::Normal
-                };
-
-                // Update pressure level if changed
-                if state.pressure_level != new_level {
-                    let old_level = state.pressure_level.clone();
-                    state.pressure_level = new_level.clone();
-                    stats
-                        .pressure_changes
-                        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-
-                    // Update atomic pressure level
-                    let atomic_level = match new_level {
-                        PressureLevel::Normal => 0,
-                        PressureLevel::Low => 1,
-                        PressureLevel::High => 2,
-                        PressureLevel::Critical => 3,
-                    };
-                    stats
-                        .current_pressure
-                        .store(atomic_level, std::sync::atomic::Ordering::Relaxed);
-
-                    warn!(
-                        "Memory pressure level changed from {:?} to {:?}",
-                        old_level, new_level
-                    );
-
-                    // Trigger eviction under pressure
-                    if new_level == PressureLevel::Critical || new_level == PressureLevel::High {
-                        let evict_count = (config.min_items_to_keep as f64
-                            * config.pressure_multiplier
-                            * if new_level == PressureLevel::Critical {
-                                2.0
-                            } else {
-                                1.0
-                            }) as usize;
-
-                        // Evict oldest entries
-                        debug!("Evicting {} items due to memory pressure", evict_count);
-                        state.pressure_evictions += evict_count as u64;
-                        stats
-                            .pressure_evictions
-                            .fetch_add(evict_count as u64, std::sync::atomic::Ordering::Relaxed);
-                    }
-                }
-            }
-        })
+impl<K, V> Drop for AdaptiveTTLCache<K, V> {
+    fn drop(&mut self) {
+        if let Some(task) = self.cleanup_task.take() {
+            task.abort();
+        }
     }
 }
 
@@ -510,136 +682,151 @@ mod tests {
 
     #[tokio::test]
     async fn test_cache_basic_operations() {
-        let config = AdaptiveTtlConfig::default();
-        let cache = AdaptiveTtlCache::<String>::new(config);
+        let cache = AdaptiveTTLCache::default_config().unwrap();
 
         // Test insert and get
-        cache.insert(1, "value1".to_string()).await;
-        let result = cache.get(1).await;
-        assert_eq!(result, Some("value1".to_string()));
-
-        // Test get_and_record
-        let result = cache.get_and_record(1).await;
+        cache.insert("key1", "value1".to_string()).await;
+        let result = cache.get(&"key1").await;
         assert_eq!(result, Some("value1".to_string()));
 
         // Test miss
-        let result = cache.get(999).await;
+        let result = cache.get(&"nonexistent").await;
         assert_eq!(result, None);
 
         // Test contains
-        assert!(cache.contains(1).await);
-        assert!(!cache.contains(999).await);
+        assert!(cache.contains(&"key1").await);
+        assert!(!cache.contains(&"nonexistent").await);
 
         // Test remove
-        cache.remove(1).await;
-        assert!(!cache.contains(1).await);
-
-        // Test clear
-        cache.insert(2, "value2".to_string()).await;
-        cache.clear().await;
-        assert!(cache.is_empty().await);
+        assert!(cache.remove(&"key1").await);
+        assert!(!cache.contains(&"key1").await);
+        assert!(!cache.remove(&"key1").await);
     }
 
     #[tokio::test]
     async fn test_cache_stats() {
-        let config = AdaptiveTtlConfig::default();
-        let cache = AdaptiveTtlCache::<String>::new(config);
+        let cache = AdaptiveTTLCache::default_config().unwrap();
 
-        // Initial stats should be zero
-        let stats = cache.get_stats().await;
+        // Initial stats
+        let stats = cache.stats();
         assert_eq!(stats.hits, 0);
         assert_eq!(stats.misses, 0);
 
         // Generate some hits and misses
-        cache.insert(1, "value".to_string()).await;
-        let _ = cache.get_and_record(1).await; // Hit
-        let _ = cache.get_and_record(2).await; // Miss
+        cache.insert("key1", "value1".to_string()).await;
+        let _ = cache.get(&"key1").await; // Hit
+        let _ = cache.get(&"nonexistent").await; // Miss
 
-        let stats = cache.get_stats().await;
+        let stats = cache.stats();
         assert_eq!(stats.hits, 1);
         assert_eq!(stats.misses, 1);
-        assert!((stats.hit_rate_percent() - 50.0).abs() < 0.1);
+        assert!((stats.hit_rate - 0.5).abs() < 0.01);
     }
 
     #[tokio::test]
-    async fn test_effectiveness_report() {
-        let config = AdaptiveTtlConfig::default();
-        let cache = AdaptiveTtlCache::<String>::new(config);
+    async fn test_cache_clear() {
+        let cache = AdaptiveTTLCache::default_config().unwrap();
 
-        // Generate some activity
         for i in 0..10 {
             cache.insert(i, format!("value{}", i)).await;
         }
 
-        // Some hits
-        for i in 0..5 {
-            let _ = cache.get_and_record(i).await;
+        assert_eq!(cache.len().await, 10);
+
+        cache.clear().await;
+
+        assert_eq!(cache.len().await, 0);
+        assert!(cache.is_empty().await);
+    }
+
+    #[tokio::test]
+    async fn test_cache_eviction() {
+        let config = TTLConfig::default().with_max_entries(5);
+        let cache = AdaptiveTTLCache::new(config).unwrap();
+
+        // Insert more entries than max
+        for i in 0..10 {
+            cache.insert(i, format!("value{}", i)).await;
         }
 
-        // Some misses
-        for i in 10..20 {
-            let _ = cache.get_and_record(i).await;
+        // Should only have max_entries
+        assert_eq!(cache.len().await, 5);
+
+        let stats = cache.stats();
+        assert_eq!(stats.evictions, 5);
+    }
+
+    #[tokio::test]
+    async fn test_ttl_adaptation() {
+        let config = TTLConfig::default()
+            .with_hot_threshold(3)
+            .with_adaptation_rate(0.5);
+
+        let cache = AdaptiveTTLCache::new(config).unwrap();
+
+        cache.insert("key1", "value1".to_string()).await;
+        let initial_ttl = cache.ttl(&"key1").await.unwrap();
+
+        // Access multiple times to trigger TTL extension
+        for _ in 0..5 {
+            let _ = cache.get(&"key1").await;
         }
 
-        let report = cache.effectiveness_report().await;
-
-        assert!(report.hit_rate_percent() > 0.0);
-        assert!(report.effectiveness_score >= 0.0 && report.effectiveness_score <= 1.0);
-        assert!(!report.recommendations.is_empty());
+        let new_ttl = cache.ttl(&"key1").await.unwrap();
+        assert!(new_ttl > initial_ttl);
     }
 
     #[tokio::test]
-    async fn test_from_cache_config() {
-        use crate::cache::CacheConfig;
-        let cache_config = CacheConfig {
-            enable_episode_cache: true,
-            enable_pattern_cache: true,
-            enable_query_cache: true,
-            max_episodes: 500,
-            max_patterns: 250,
-            max_query_results: 50,
-            episode_ttl: Duration::from_secs(1800),
-            pattern_ttl: Duration::from_secs(3600),
-            query_ttl: Duration::from_secs(300),
-            min_ttl: Duration::from_secs(60),
-            max_ttl: Duration::from_secs(7200),
-            hot_threshold: 10,
-            cold_threshold: 2,
-            adaptation_rate: 0.25,
-            enable_background_cleanup: true,
-            cleanup_interval_secs: 60,
-        };
+    async fn test_cache_entry_expiration() {
+        let config = TTLConfig::default().with_base_ttl(Duration::from_millis(50));
+        let cache = AdaptiveTTLCache::new(config).unwrap();
 
-        let cache = AdaptiveTtlCache::<String>::from_cache_config(cache_config);
+        cache.insert("key1", "value1".to_string()).await;
+        assert!(cache.contains(&"key1").await);
 
-        // Verify basic operations work
-        cache.insert(1, "test".to_string()).await;
-        let result = cache.get(1).await;
-        assert_eq!(result, Some("test".to_string()));
+        // Wait for expiration
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        // Entry should be expired
+        assert!(!cache.contains(&"key1").await);
+        let result = cache.get(&"key1").await;
+        assert_eq!(result, None);
     }
 
     #[tokio::test]
-    async fn test_hybrid_eviction_config() {
-        let config = AdaptiveTtlConfig {
-            enable_hybrid_eviction: true,
-            lru_weight: 0.7, // Favor LRU
-            ..Default::default()
-        };
+    async fn test_cache_keys() {
+        let cache = AdaptiveTTLCache::default_config().unwrap();
 
-        let cache = AdaptiveTtlCache::<String>::new(config);
-        let stats = cache.get_stats().await;
+        cache.insert("key1", 1).await;
+        cache.insert("key2", 2).await;
+        cache.insert("key3", 3).await;
 
-        // Should initialize without error
-        assert!(stats.hits >= 0);
+        let keys = cache.keys().await;
+        assert_eq!(keys.len(), 3);
+        assert!(keys.contains(&"key1"));
+        assert!(keys.contains(&"key2"));
+        assert!(keys.contains(&"key3"));
     }
 
-    #[tokio::test]
-    async fn test_pressure_level_tracking() {
-        let config = AdaptiveTtlConfig::default();
-        let cache = AdaptiveTtlCache::<String>::new(config);
+    #[test]
+    fn test_cache_entry_access_frequency() {
+        let entry = CacheEntry::new("value", Duration::from_secs(300));
 
-        // Initial pressure should be normal
-        let stats = cache.get_stats().await;
-        assert_eq!(stats.pressure_level, PressureLevel::Normal);
+        // Initially zero
+        assert_eq!(entry.access_frequency(300), 0.0);
+    }
+
+    #[test]
+    fn test_cache_stats_snapshot() {
+        let stats = CacheStats::new();
+        stats.record_hit();
+        stats.record_hit();
+        stats.record_miss();
+
+        let snapshot = stats.snapshot();
+        assert_eq!(snapshot.hits, 2);
+        assert_eq!(snapshot.misses, 1);
+        assert!((snapshot.hit_rate - 0.666).abs() < 0.01);
+        assert!(snapshot.is_effective());
     }
 }

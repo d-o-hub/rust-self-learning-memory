@@ -115,10 +115,9 @@ impl LocalEmbeddingProvider {
             tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly");
             tracing::warn!("To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available");
 
-            let mock_fallback = Box::new(RealEmbeddingModelWithFallback::new(
+            let mock_fallback = Box::new(super::mock_model::MockLocalModel::new(
                 self.config.model_name.clone(),
                 self.config.embedding_dimension,
-                None,
             ));
 
             let mut model_guard = self.model.write().await;
@@ -235,10 +234,12 @@ pub trait LocalEmbeddingModel: Send + Sync {
 }
 
 /// Import real model implementation
+#[cfg(feature = "local-embeddings")]
 #[allow(unused)]
 pub use crate::embeddings::real_model::RealEmbeddingModel;
 
 /// Import mock model implementations
+#[cfg(feature = "local-embeddings")]
 #[allow(unused)]
 pub use crate::embeddings::mock_model::{MockLocalModel, RealEmbeddingModelWithFallback};
 
@@ -373,9 +374,7 @@ mod tests {
         // Semantically similar texts should have higher similarity
         assert!(
             similarity_ai_ml > similarity_cooking,
-            "AI/ML similarity ({}) should be higher than ML/cooking ({})",
-            similarity_ai_ml,
-            similarity_cooking
+            "AI/ML similarity ({similarity_ai_ml}) should be higher than ML/cooking ({similarity_cooking})"
         );
 
         // Both should be positive (cosine similarity range)

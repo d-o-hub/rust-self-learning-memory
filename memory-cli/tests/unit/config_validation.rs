@@ -3,7 +3,7 @@
 //! These tests verify that configuration files are loaded correctly,
 //! validation works as expected, and defaults are applied properly.
 
-use memory_cli::config::{CliConfig, Config, DatabaseConfig, StorageConfig, initialize_storage};
+use memory_cli::config::{initialize_storage, CliConfig, Config, DatabaseConfig, StorageConfig};
 use std::fs;
 use tempfile::TempDir;
 
@@ -45,7 +45,10 @@ mod config_tests {
 
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("max_episodes_cache must be greater than 0"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("max_episodes_cache must be greater than 0"));
     }
 
     #[test]
@@ -55,7 +58,10 @@ mod config_tests {
 
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("pool_size must be greater than 0"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("pool_size must be greater than 0"));
     }
 
     #[test]
@@ -65,7 +71,10 @@ mod config_tests {
 
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("default_format must be 'human', 'json', or 'yaml'"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("default_format must be 'human', 'json', or 'yaml'"));
     }
 
     #[test]
@@ -75,7 +84,10 @@ mod config_tests {
 
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("batch_size must be greater than 0"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("batch_size must be greater than 0"));
     }
 
     #[test]
@@ -284,7 +296,10 @@ max_episodes_cache = 150
         fs::write(&config_path, config_content).unwrap();
 
         let config = Config::load(None).unwrap();
-        assert_eq!(config.database.turso_url, Some("file:default.db".to_string()));
+        assert_eq!(
+            config.database.turso_url,
+            Some("file:default.db".to_string())
+        );
         assert_eq!(config.storage.max_episodes_cache, 150);
 
         // Restore original directory
@@ -343,7 +358,10 @@ default_format = "json"
         // Test that it can be deserialized back
         let deserialized: Config = toml::from_str(&toml).unwrap();
         assert_eq!(deserialized.database.redb_path, config.database.redb_path);
-        assert_eq!(deserialized.storage.max_episodes_cache, config.storage.max_episodes_cache);
+        assert_eq!(
+            deserialized.storage.max_episodes_cache,
+            config.storage.max_episodes_cache
+        );
         assert_eq!(deserialized.cli.default_format, config.cli.default_format);
     }
 
@@ -355,7 +373,10 @@ default_format = "json"
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: Config = serde_json::from_str(&json).unwrap();
         assert_eq!(deserialized.database.redb_path, config.database.redb_path);
-        assert_eq!(deserialized.storage.max_episodes_cache, config.storage.max_episodes_cache);
+        assert_eq!(
+            deserialized.storage.max_episodes_cache,
+            config.storage.max_episodes_cache
+        );
     }
 
     #[test]
@@ -366,6 +387,9 @@ default_format = "json"
         let yaml = serde_yaml::to_string(&config).unwrap();
         let deserialized: Config = serde_yaml::from_str(&yaml).unwrap();
         assert_eq!(deserialized.database.redb_path, config.database.redb_path);
-        assert_eq!(deserialized.storage.max_episodes_cache, config.storage.max_episodes_cache);
+        assert_eq!(
+            deserialized.storage.max_episodes_cache,
+            config.storage.max_episodes_cache
+        );
     }
 }

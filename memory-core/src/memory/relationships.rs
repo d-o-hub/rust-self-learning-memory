@@ -7,6 +7,7 @@ use crate::episode::{
     Direction, EpisodeRelationship, RelationshipManager, RelationshipMetadata, RelationshipType,
 };
 use crate::error::Result;
+use crate::security::audit::{relationship_added, relationship_removed, AuditContext};
 use uuid::Uuid;
 
 use super::relationship_query::{EpisodeWithRelationships, RelationshipFilter, RelationshipGraph};
@@ -93,6 +94,17 @@ impl SelfLearningMemory {
             let _ = cache.store_relationship(&relationship).await;
         }
 
+        // Audit log: relationship added
+        let context = AuditContext::system();
+        let audit_entry = relationship_added(
+            &context,
+            relationship_id,
+            from_episode_id,
+            to_episode_id,
+            relationship_type.as_str(),
+        );
+        self.audit_logger.log(audit_entry);
+
         Ok(relationship_id)
     }
 
@@ -115,6 +127,11 @@ impl SelfLearningMemory {
         if let Some(cache) = &self.cache_storage {
             let _ = cache.remove_relationship(relationship_id).await;
         }
+
+        // Audit log: relationship removed
+        let context = AuditContext::system();
+        let audit_entry = relationship_removed(&context, relationship_id);
+        self.audit_logger.log(audit_entry);
 
         Ok(())
     }

@@ -14,12 +14,12 @@ use tracing::{info, instrument};
 pub mod anomaly;
 pub mod causal;
 pub mod dbscan;
+pub mod extraction;
 pub mod forecasting;
 pub mod kdtree;
 
-// Temporarily disabled - tests need refactoring for new module structure
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod dbscan_tests;
 
 // Re-export main types for convenience
 pub use anomaly::AnomalyDetector;
@@ -35,6 +35,9 @@ pub use kdtree::{KDTree, Point};
 // Re-export result types
 pub use anomaly::AnomalyResult;
 pub use causal::{CausalResult, CausalType};
+pub use extraction::{
+    ClusterCharacteristics, ExtractedPattern, ExtractionConfig, PatternExtractor, PatternType,
+};
 
 /// Comprehensive predictive analysis combining all methods
 #[instrument(skip(data))]

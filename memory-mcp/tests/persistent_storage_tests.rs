@@ -110,6 +110,7 @@ mod persistent_storage_tests {
                 None,
                 10,
                 "relevance".to_string(),
+                None,
             )
             .await
             .unwrap();
@@ -195,7 +196,7 @@ mod persistent_storage_tests {
         );
 
         let pattern_result = mcp_server
-            .analyze_patterns("CodeGeneration".to_string(), 0.0, 10)
+            .analyze_patterns("CodeGeneration".to_string(), 0.0, 10, None)
             .await
             .unwrap();
 
@@ -283,6 +284,7 @@ mod persistent_storage_tests {
                 None,
                 10,
                 "relevance".to_string(),
+                None,
             )
             .await
             .unwrap();
@@ -373,6 +375,7 @@ mod persistent_storage_tests {
                 None,
                 10,
                 "relevance".to_string(),
+                None,
             )
             .await
             .unwrap();
@@ -458,6 +461,7 @@ mod persistent_storage_tests {
                 None,
                 10,
                 "relevance".to_string(),
+                None,
             )
             .await
             .unwrap();

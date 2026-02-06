@@ -10,8 +10,10 @@ use crate::monitoring::{storage::SimpleMonitoringStorage, AgentMonitor, Monitori
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
+use crate::security::audit::AuditLogger;
 use crate::types::MemoryConfig;
 use std::collections::HashMap;
+#[allow(unused_imports)]
 use std::sync::Arc;
 use tokio::sync::{RwLock, Semaphore};
 
@@ -117,6 +119,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         semantic_config,
         query_cache,
         dbscan_detector,
+        audit_logger: AuditLogger::new(config.audit_config.clone()),
     }
 }
 
@@ -209,6 +212,9 @@ pub fn with_storage(
     // Phase 3 (DBSCAN) - Initialize anomaly detector
     let dbscan_detector = crate::patterns::DBSCANAnomalyDetector::new();
 
+    // Security - Initialize audit logger
+    let audit_logger = AuditLogger::new(config.audit_config.clone());
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -236,6 +242,7 @@ pub fn with_storage(
         semantic_config,
         query_cache,
         dbscan_detector,
+        audit_logger,
     }
 }
 

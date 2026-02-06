@@ -5,10 +5,14 @@
 #![allow(clippy::expect_used)]
 
 use memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::{TursoConfig, TursoStorage};
+#[cfg(feature = "compression")]
+use memory_storage_turso::TursoConfig;
+use memory_storage_turso::TursoStorage;
+#[cfg(feature = "compression")]
 use tempfile::TempDir;
 
 /// Helper to create test storage with compression enabled
+#[cfg(feature = "compression")]
 async fn create_test_storage_with_compression() -> (TursoStorage, TempDir) {
     let dir = tempfile::tempdir().expect("Failed to create temp dir");
     let db_path = dir.path().join("test.db");
@@ -32,6 +36,7 @@ async fn create_test_storage_with_compression() -> (TursoStorage, TempDir) {
 }
 
 /// Helper to create a large episode (>1KB) that should be compressed
+#[cfg(feature = "compression")]
 fn create_large_episode() -> Episode {
     let task_desc = format!("Large task: {}", "x".repeat(2000)); // 2KB
     let context = TaskContext {
@@ -60,6 +65,7 @@ fn create_large_episode() -> Episode {
 }
 
 /// Helper to create a small episode (<1KB)
+#[cfg(feature = "compression")]
 fn create_small_episode() -> Episode {
     let context = TaskContext {
         domain: "test".to_string(),

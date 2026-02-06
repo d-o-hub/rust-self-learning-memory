@@ -34,7 +34,12 @@ impl TursoStorage {
             let table = self.get_embedding_table_for_dimension(query_embedding.len());
             let _vector_index = self.get_vector_index_for_dimension(query_embedding.len());
 
-            // Check if table exists and has data
+            // SAFETY: Table name comes from a fixed whitelist in get_embedding_table_for_dimension().
+            // The function only returns predefined table names (embeddings_384, embeddings_1024,
+            // embeddings_1536, embeddings_3072, or embeddings_other) based on dimension size.
+            // No user input can influence the table name, preventing SQL injection.
+            // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+            #[allow(clippy::literal_string_with_formatting_args)]
             let check_sql = format!("SELECT COUNT(*) FROM {}", table);
             let mut check_rows = conn
                 .query(&check_sql, ())
@@ -54,15 +59,22 @@ impl TursoStorage {
             }
 
             // Query episodes with their embeddings and compute similarity
-            let episodes_sql = r#"
+            // SAFETY: Table name comes from a fixed whitelist in get_embedding_table_for_dimension().
+            // The function only returns predefined table names based on dimension size.
+            // No user input can influence the table name, preventing SQL injection.
+            // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+            #[allow(clippy::literal_string_with_formatting_args)]
+            let episodes_sql = format!(
+                r#"
                 SELECT e.episode_id, e.task_type, e.task_description, e.context,
                        e.start_time, e.end_time, e.steps, e.outcome, e.reward,
                        e.reflection, e.patterns, e.heuristics, e.metadata, e.domain, e.language
                 FROM episodes e
                 INNER JOIN {} et ON e.episode_id = et.item_id
                 WHERE et.item_type = 'episode'
-            "#
-            .replace("{}", table);
+                "#,
+                table
+            );
 
             let mut episode_rows = conn
                 .query(&episodes_sql, ())
@@ -80,6 +92,11 @@ impl TursoStorage {
                 let episode = row_to_episode(&row)?;
 
                 // Get embedding for this episode
+                // SAFETY: Table name comes from a fixed whitelist in get_embedding_table_for_dimension().
+                // The function only returns predefined table names based on dimension size.
+                // No user input can influence the table name, preventing SQL injection.
+                // CodeQL may flag this as a potential SQL injection, but it is a false positive.
+                #[allow(clippy::literal_string_with_formatting_args)]
                 let embedding_sql = format!(
                     "SELECT embedding FROM {} WHERE item_id = ? AND item_type = 'episode'",
                     table

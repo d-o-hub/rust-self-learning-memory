@@ -8,6 +8,7 @@
 //! - **Cache Hit/Miss Statistics**: Cache layer performance monitoring
 //! - **Connection Pool Statistics**: Pool utilization and health metrics
 //! - **Export for Monitoring**: Structured metrics for monitoring integration
+//! - **Prometheus Export**: Prometheus-compatible metrics endpoint
 //!
 //! ## Usage
 //!
@@ -20,6 +21,7 @@
 // Submodules
 pub mod collector;
 pub mod core;
+pub mod export;
 pub mod performance;
 pub mod types;
 
@@ -32,5 +34,8 @@ pub use performance::{
 };
 pub use types::{CacheStats, LatencyStats, OperationMetrics, OperationType, PoolStats};
 
-// Convenience re-exports
-// Note: CacheStats and PoolStats are private in collector, removed from public exports
+// Export module re-exports
+pub use export::{
+    ExportConfig, ExportFormat, ExportStats, ExportTarget, ExportedMetric, MetricType, MetricValue,
+    MetricsHttpServer, PrometheusExporter,
+};

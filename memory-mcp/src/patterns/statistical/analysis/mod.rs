@@ -13,6 +13,6 @@ pub use types::{
 
 pub use SimpleBOCPD as BocpdDetector;
 
-mod bocpd;
+pub mod bocpd;
 mod engine;
-mod types;
+pub mod types;

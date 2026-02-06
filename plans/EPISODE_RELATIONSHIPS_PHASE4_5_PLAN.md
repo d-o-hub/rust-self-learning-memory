@@ -1,11 +1,26 @@
 # Episode Relationships Phase 4-5: MCP Tools & CLI Commands
 
 **Phase**: 4 & 5 of 6 (Combined)  
-**Status**: ⏳ Not Started  
+**Status**: ⏳ PENDING - Ready for Implementation  
 **Estimated Effort**: 4-5 days (can be parallelized)  
 **Estimated LOC**: ~1,100 (600 MCP + 500 CLI)  
 **Estimated Tests**: 30+  
-**Dependencies**: Phase 1 (✅), Phase 2 (⏳), Phase 3 (⏳)
+**Dependencies**: Phase 1 (✅), Phase 2 (✅), Phase 3 (✅ Complete 2026-02-01)
+
+---
+
+## Current Status Summary
+
+| Phase | Status | Completion Date |
+|-------|--------|-----------------|
+| Phase 1: Storage Foundation | ✅ Complete | 2026-01-31 |
+| Phase 2: Core API & Business Logic | ✅ Complete | 2026-01-31 |
+| Phase 3: Memory Layer Integration | ✅ Complete | 2026-02-01 |
+| **Phase 4: MCP Tools** | ⏳ **PENDING** | 8 tools to implement |
+| **Phase 5: CLI Commands** | ⏳ **PENDING** | 7 commands to implement |
+| Phase 6: Testing & Documentation | ⏳ Planned | After Phase 4-5 |
+
+**Overall Progress**: 50% Complete (3 of 6 phases)
 
 ---
 
@@ -16,6 +31,29 @@ Phases 4 and 5 expose the relationship functionality to users through:
 - **Phase 5**: 7 CLI commands (terminal interface)
 
 These can be implemented in parallel by different developers.
+
+---
+
+## What's Pending
+
+### Phase 4: MCP Tools (8 tools to implement)
+1. ❌ `add_episode_relationship` - Create relationship with validation
+2. ❌ `remove_episode_relationship` - Delete relationship by ID
+3. ❌ `get_episode_relationships` - Query relationships for an episode
+4. ❌ `find_related_episodes` - Find episodes related to a given episode
+5. ❌ `check_relationship_exists` - Check if a specific relationship exists
+6. ❌ `get_dependency_graph` - Get relationship graph for visualization
+7. ❌ `validate_no_cycles` - Check if adding relationship would create cycle
+8. ❌ `get_topological_order` - Get topological ordering of episodes
+
+### Phase 5: CLI Commands (7 commands to implement)
+1. ❌ `episode add-relationship` - Create relationship
+2. ❌ `episode remove-relationship` - Delete relationship
+3. ❌ `episode list-relationships` - List with filters
+4. ❌ `episode find-related` - Find related episodes
+5. ❌ `episode dependency-graph` - Export graph (DOT/JSON/ASCII)
+6. ❌ `episode validate-cycles` - Check for cycles
+7. ❌ `episode topological-sort` - Sort episodes
 
 ---
 
@@ -505,10 +543,23 @@ fn test_cli_add_relationship() {
 
 ## Dependencies
 
-- Phase 1: Complete ✅
-- Phase 2: Required for validation ⏳
-- Phase 3: Required for MemoryManager API ⏳
+- Phase 1: Complete ✅ (Storage foundation)
+- Phase 2: Complete ✅ (Graph algorithms, validation, RelationshipManager)
+- Phase 3: Complete ✅ (MemoryManager API with relationship methods)
+
+**All dependencies satisfied - ready to begin implementation**
 
 ---
 
-**Status**: Ready for implementation after Phase 3 completion
+## Implementation Priority
+
+### Recommended Order:
+1. **Phase 4 MCP Tools** (2-3 days)
+   - Can be developed independently
+   - Follow existing MCP tool patterns in `memory-mcp/src/bin/server/handlers.rs`
+   
+2. **Phase 5 CLI Commands** (2 days)
+   - Can be developed in parallel with Phase 4 by different developer
+   - Follow existing CLI patterns in `memory-cli/src/commands/episode_v2/`
+
+**Status**: ✅ Ready for implementation NOW

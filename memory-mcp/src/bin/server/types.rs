@@ -390,3 +390,68 @@ pub struct EmbeddingConfigResult {
     pub message: String,
     pub env_config: bool,
 }
+
+// ============================================================
+// Rate Limiting Types
+// ============================================================
+
+/// Rate limit configuration from environment
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct RateLimitEnvConfig {
+    pub enabled: bool,
+    pub read_rps: u32,
+    pub read_burst: u32,
+    pub write_rps: u32,
+    pub write_burst: u32,
+    pub cleanup_interval_secs: u64,
+    pub client_id_header: String,
+}
+
+impl Default for RateLimitEnvConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            read_rps: 100,
+            read_burst: 150,
+            write_rps: 20,
+            write_burst: 30,
+            cleanup_interval_secs: 60,
+            client_id_header: "X-Client-ID".to_string(),
+        }
+    }
+}
+
+impl RateLimitEnvConfig {
+    /// Load configuration from environment variables
+    pub fn from_env() -> Self {
+        Self {
+            enabled: std::env::var("MCP_RATE_LIMIT_ENABLED")
+                .ok()
+                .and_then(|v| v.parse::<bool>().ok())
+                .unwrap_or(true),
+            read_rps: std::env::var("MCP_RATE_LIMIT_READ_RPS")
+                .ok()
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(100),
+            read_burst: std::env::var("MCP_RATE_LIMIT_READ_BURST")
+                .ok()
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(150),
+            write_rps: std::env::var("MCP_RATE_LIMIT_WRITE_RPS")
+                .ok()
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(20),
+            write_burst: std::env::var("MCP_RATE_LIMIT_WRITE_BURST")
+                .ok()
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(30),
+            cleanup_interval_secs: std::env::var("MCP_RATE_LIMIT_CLEANUP_INTERVAL_SECS")
+                .ok()
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(60),
+            client_id_header: std::env::var("MCP_RATE_LIMIT_CLIENT_ID_HEADER")
+                .unwrap_or_else(|_| "X-Client-ID".to_string()),
+        }
+    }
+}

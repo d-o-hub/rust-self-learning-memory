@@ -131,6 +131,7 @@ mod mcp_integration_tests {
                 None,
                 10,
                 "relevance".to_string(),
+                None,
             )
             .await
             .unwrap();
@@ -163,7 +164,7 @@ mod mcp_integration_tests {
         println!("-----------------------------------");
 
         let patterns_result = mcp_server
-            .analyze_patterns("CodeGeneration".to_string(), 0.0, 10)
+            .analyze_patterns("CodeGeneration".to_string(), 0.0, 10, None)
             .await
             .unwrap();
 
@@ -198,11 +199,12 @@ mod mcp_integration_tests {
                     None,
                     1,
                     "relevance".to_string(),
+                    None,
                 )
                 .await;
         }
         let _ = mcp_server
-            .analyze_patterns("test".to_string(), 0.5, 2)
+            .analyze_patterns("test".to_string(), 0.5, 2, None)
             .await;
         let _ = mcp_server
             .execute_agent_code(
@@ -269,6 +271,7 @@ mod mcp_integration_tests {
                 None,
                 5,
                 "relevance".to_string(),
+                None,
             )
             .await
             .unwrap();

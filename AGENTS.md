@@ -3,7 +3,7 @@
 ## Project Overview
 This is a memory management system with episodic memory capabilities, semantic embeddings, and multiple storage backends. The system provides persistent memory across agent interactions through an MCP (Model Context Protocol) server.
 
-**Last Updated**: 2026-01-24 (v0.1.12, Phase 2 75% complete, Phase 3 planning)
+**Last Updated**: 2026-01-31 (v0.1.13, Phase 2 75% complete, Phase 3 planning)
 
 **Stack**: Rust/Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Cohere, Ollama, local)
 
@@ -28,7 +28,7 @@ This is a memory management system with episodic memory capabilities, semantic e
 - **Clippy**: `cargo clippy --all -- -D warnings` (zero warnings enforced)
 
 ## File Organization
-- Plans/analysis/validation/reports and all other non permanent doc .md files stored in `plans/` folder only
+- Plans/analysis/validation/reports and all other non-permanent documentation files (.md, .txt, .rst, etc.) stored in `plans/` folder only
 - Maximum 500 lines per file for source code (all 9/9 modules compliant after splitting 17 oversized files)
 - **Benchmark files** (`benches/*.rs`) are exempt from the 500 LOC limit - they contain comprehensive performance tests that require extensive setup and measurement code
 - Module structure follows single responsibility principle

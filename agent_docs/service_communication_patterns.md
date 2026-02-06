@@ -7,7 +7,7 @@ The memory system uses several communication patterns between components:
 1. **MCP (Model Context Protocol)**: Primary client-server communication (verify version at https://modelcontextprotocol.io/docs/tools/inspector)
 2. **Internal Rust Communication**: Inter-component messaging with Tokio
 3. **Database Communication**: Storage layer interactions (Turso + redb)
-4. **Cache Communication**: Performance optimization layer (Postcard-based, v0.1.12)
+4. **Cache Communication**: Performance optimization layer (Postcard-based, v0.1.13)
 
 > **Note**: MCP specification versions may have changed. Verify the current version at https://modelcontextprotocol.io/docs/tools/inspector
 

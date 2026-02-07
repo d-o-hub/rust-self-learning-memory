@@ -1028,10 +1028,10 @@ pub async fn handle_get_dependency_graph(
     }])
 }
 
-// TODO: Re-enable validate_no_cycles when fully integrated
-// Handle validate_no_cycles tool (Tool 7)
-#[allow(dead_code)]
-async fn _handle_validate_no_cycles(
+/// Handle validate_no_cycles tool (Tool 7)
+///
+/// Check if adding a relationship would create a cycle in the dependency graph
+pub async fn handle_validate_no_cycles(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
@@ -1071,10 +1071,10 @@ async fn _handle_validate_no_cycles(
     }])
 }
 
-// TODO: Re-enable get_topological_order when fully integrated
-// Handle get_topological_order tool (Tool 8)
-#[allow(dead_code)]
-async fn _handle_get_topological_order(
+/// Handle get_topological_order tool (Tool 8)
+///
+/// Get topological ordering of episodes where dependencies come before dependents
+pub async fn handle_get_topological_order(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {

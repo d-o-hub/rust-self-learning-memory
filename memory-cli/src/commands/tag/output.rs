@@ -1,8 +1,8 @@
 //! Tag command output implementations
 
 use super::types::{
-    TagAddResult, TagListResult, TagRemoveResult, TagSearchResult, TagSetResult, TagShowResult,
-    TagStatsResult,
+    TagAddResult, TagListResult, TagRemoveResult, TagRenameResult, TagSearchResult, TagSetResult,
+    TagShowResult, TagStatsDetailedResult, TagStatsResult,
 };
 use crate::output::Output;
 
@@ -261,6 +261,110 @@ impl Output for TagStatsResult {
                 "{:<20} {:>8} {:>20} {:>20}",
                 entry.tag.cyan(),
                 entry.usage_count,
+                entry.first_used.dimmed(),
+                entry.last_used.dimmed()
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Output for TagRenameResult {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        if self.success {
+            writeln!(
+                writer,
+                "{}",
+                format!(
+                    "Renamed tag '{}' to '{}' across {} episode(s)",
+                    self.old_tag, self.new_tag, self.episodes_affected
+                )
+                .green()
+            )?;
+        } else if self.episodes_affected == 0 {
+            writeln!(
+                writer,
+                "{}",
+                format!("Tag '{}' not found in any episodes", self.old_tag).yellow()
+            )?;
+        } else {
+            writeln!(writer, "{}", "Failed to rename tag".red())?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Output for TagStatsDetailedResult {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(writer, "{}", "Tag Statistics".bold())?;
+        writeln!(writer, "{}", "═".repeat(80))?;
+
+        // Summary section
+        writeln!(writer)?;
+        writeln!(writer, "{}", "Summary".bold())?;
+        writeln!(
+            writer,
+            "  Total Tags: {}",
+            self.total_tags.to_string().cyan()
+        )?;
+        writeln!(
+            writer,
+            "  Total Usage: {}",
+            self.total_usage.to_string().cyan()
+        )?;
+        writeln!(
+            writer,
+            "  Total Episodes: {}",
+            self.total_episodes.to_string().cyan()
+        )?;
+        writeln!(
+            writer,
+            "  Avg Tags/Episode: {:.2}",
+            self.avg_tags_per_episode
+        )?;
+
+        if let Some(ref most) = self.most_used_tag {
+            writeln!(writer, "  Most Used: {}", most.cyan())?;
+        }
+        if let Some(ref least) = self.least_used_tag {
+            writeln!(writer, "  Least Used: {}", least.cyan())?;
+        }
+
+        writeln!(writer)?;
+        writeln!(writer, "Sorted by: {}", self.sort_by.cyan())?;
+        writeln!(writer)?;
+
+        if self.tags.is_empty() {
+            writeln!(writer, "{}", "No tags found in the system.".yellow())?;
+            return Ok(());
+        }
+
+        // Table header
+        writeln!(
+            writer,
+            "{:<20} {:>8} {:>10} {:>20} {:>20}",
+            "Tag".bold(),
+            "Count".bold(),
+            "%".bold(),
+            "First Used".bold(),
+            "Last Used".bold()
+        )?;
+        writeln!(writer, "{}", "─".repeat(80))?;
+
+        // Table rows
+        for entry in &self.tags {
+            writeln!(
+                writer,
+                "{:<20} {:>8} {:>9.1}% {:>20} {:>20}",
+                entry.tag.cyan(),
+                entry.usage_count,
+                entry.percentage,
                 entry.first_used.dimmed(),
                 entry.last_used.dimmed()
             )?;

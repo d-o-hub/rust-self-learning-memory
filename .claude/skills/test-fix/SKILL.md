@@ -7,6 +7,11 @@ description: Systematic approach to diagnosing and fixing failing tests in Rust 
 
 Systematic approach to diagnosing and fixing failing tests.
 
+## Quick Reference
+
+- **[Examples](examples.md)** - Real-world test fixes with before/after
+- **[Reference](reference.md)** - Debugging commands and error patterns
+
 ## Process
 
 ### Step 1: Identify Failing Tests
@@ -33,6 +38,8 @@ cargo test test_name -- --test-threads=1
 | Race | Intermittent assertion failure | Add Mutex, sequential execution |
 | Type | "expected X, found Y" | Update signatures, add conversions |
 | Lifetime | "borrowed value" | Clone data, adjust lifetimes |
+
+**See [Examples](examples.md)** for detailed before/after fix walkthroughs.
 
 ### Step 4: Verify Fix
 ```bash

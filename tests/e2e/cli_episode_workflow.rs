@@ -11,7 +11,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use memory_core::episode::{Direction, ExecutionStep, RelationshipMetadata, RelationshipType};
-use memory_core::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use memory_core::types::{ExecutionResult, MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use memory_core::SelfLearningMemory;
 use memory_storage_redb::RedbStorage;
 use serial_test::serial;
@@ -19,7 +19,11 @@ use std::sync::Arc;
 use tempfile::tempdir;
 use uuid::Uuid;
 
-/// Test helper to create a memory instance with storage
+/// Test helper to create a memory instance with storage.
+///
+/// Uses a lowered quality threshold (0.0) so test episodes are not rejected
+/// by the pre-storage quality gate — reflection and patterns are generated
+/// *after* the quality check, making 0.70 unreachable for any test episode.
 async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
     let dir = tempdir().unwrap();
     let turso_path = dir.path().join("test_turso.redb");
@@ -32,8 +36,13 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .await
         .expect("Failed to create cache storage");
 
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        ..Default::default()
+    };
+
     let memory = Arc::new(SelfLearningMemory::with_storage(
-        Default::default(),
+        config,
         Arc::new(turso_storage),
         Arc::new(cache_storage),
     ));

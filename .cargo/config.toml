@@ -5,6 +5,7 @@
 # Enable overflow checks in release mode for security
 # This catches integer overflows that could lead to vulnerabilities
 jobs = 4
+target-dir = "./rust-target"
 
 [profile.release]
 overflow-checks = true
@@ -19,12 +20,12 @@ rustflags = [
     "-C", "link-arg=-Wl,-z,relro,-z,now",
 ]
 
- [alias]
- # Custom cargo commands for development workflow
- security-check = "audit && deny check"
- full-test = "test --all-features --all-targets"
- coverage = "llvm-cov --all-features --workspace --lcov --output-path lcov.info"
- quality = "clippy --all-targets --all-features -- -D warnings"
+[alias]
+# Custom cargo commands for development workflow
+security-check = "audit && deny check"
+full-test = "test --all-features --all-targets"
+coverage = "llvm-cov --all-features --workspace --lcov --output-path lcov.info"
+quality = "clippy --all-targets --all-features -- -D warnings"
 
 # Security advisory tracking for transitive dependencies
 # These advisories are tracked but not blocking due to upstream constraints
@@ -32,4 +33,3 @@ rustflags = [
 [term]
 verbose = false
 color = "auto"
-

@@ -1,73 +1,235 @@
 ---
 name: skill-creator
-description: Create new Claude Code skills with proper structure, YAML frontmatter, and best practices. Use when creating reusable knowledge modules, adding specialized guidance, or building domain-specific expertise.
+description: >
+  Create new Claude Code skills following the agentskills.io specification.
+  Use when creating reusable knowledge modules, adding specialized guidance,
+  or building domain-specific expertise. Ensures proper YAML frontmatter,
+  directory structure, and progressive disclosure. Validates against
+  agentskills.io specification.
 ---
 
 # Skill Creator
 
-Create new Claude Code skills following the official format and best practices.
+Create Claude Code skills following the official agentskills.io specification.
 
 ## Quick Reference
 
-- **[Structure Guide](structure.md)** - Directory format and file organization
-- **[Naming Rules](naming.md)** - Skill naming requirements
-- **[Description Guide](description.md)** - Writing effective descriptions
-- **[Templates](templates.md)** - Process, knowledge, and tool skill templates
-- **[Examples](examples.md)** - Complete skill creation walkthroughs
-- **[Validation](validation.md)** - Commands to validate new skills
+| Resource | Purpose |
+|----------|---------|
+| **[Specification](specification.md)** | agentskills.io spec compliance |
+| **[Structure Guide](structure.md)** | Directory format and organization |
+| **[Naming Rules](naming.md)** | Skill naming requirements |
+| **[Description Guide](description.md)** | Writing effective descriptions |
+| **[Templates](templates.md)** | Ready-to-use skill templates |
+| **[Examples](examples.md)** | Complete walkthroughs |
+| **[Validation](validation.md)** | Validation commands |
 
 ## When to Use
 
-- Creating a new reusable knowledge module
-- Adding specialized guidance for specific tasks
-- Building domain-specific expertise into Claude Code
-- Need to ensure proper skill format and structure
+- Creating new reusable knowledge modules
+- Adding specialized task guidance
+- Building domain-specific expertise
+- Ensuring spec compliance
+- Validating existing skills
 
-## Required SKILL.md Format
+## Quick Start
 
-Every skill requires a `SKILL.md` file with two parts:
+### 1. Create Directory Structure
 
-1. **YAML frontmatter** (metadata between `---` markers on line 1)
-2. **Markdown instructions** (guidance for Claude)
+```bash
+mkdir -p .claude/skills/my-skill/{rules,references,scripts}
+```
+
+### 2. Write SKILL.md
 
 ```markdown
 ---
-name: skill-name
-description: Brief description of what this skill does and when to use it
+name: my-skill
+description: >
+  What this skill does and when to use it.
+  Include trigger terms for matching.
 ---
 
-# Skill Title
+# My Skill
 
-## Instructions
-Step-by-step guidance for Claude...
+## Overview
+Brief description...
+
+## Quick Reference
+- **[Rules](rules/)** - Detailed rules
+- **[Reference](references/)** - Technical details
+
+## Usage
+When to invoke this skill...
 ```
 
-## YAML Frontmatter Fields
+### 3. Validate
 
-| Field | Required | Description |
+```bash
+# Check line count (< 250 lines)
+wc -l .claude/skills/my-skill/SKILL.md
+
+# Check frontmatter syntax
+head -5 .claude/skills/my-skill/SKILL.md
+```
+
+## Required SKILL.md Format
+
+### YAML Frontmatter (Line 1)
+
+```yaml
+---
+name: skill-name                    # Required
+description: >                     # Required (max 1024 chars)
+  Multi-line description of what
+  this skill does and when to use it.
+license: MIT                        # Optional
+metadata:                           # Optional
+  author: your-name
+  version: "1.0.0"
+  source: https://github.com/...
+---
+```
+
+### Field Specifications
+
+| Field | Required | Constraints |
 |-------|----------|-------------|
-| `name` | Yes | Lowercase letters, numbers, hyphens only (max 64 chars). Must match directory name. |
-| `description` | Yes | What the skill does and when to use it (max 1024 chars). Claude uses this to match requests. |
-| `allowed-tools` | No | Tools Claude can use without permission |
-| `model` | No | Specific model to use |
-| `context` | No | Set to `fork` for isolated sub-agent context |
+| `name` | Yes | 1-64 chars, lowercase, alphanumeric + hyphens, no leading/trailing hyphen, no consecutive hyphens, matches directory name |
+| `description` | Yes | 1-1024 chars, describes what AND when to use, include trigger terms |
+| `license` | No | Short license name or file reference |
+| `compatibility` | No | Max 500 chars, environment requirements |
+| `metadata` | No | Key-value mapping for extra properties |
+| `allowed-tools` | No | Space-delimited pre-approved tools (experimental) |
 
-## File Structure
+### Validation Rules
 
+**Name:** lowercase, alphanumeric + hyphens, 1-64 chars, no leading/trailing/consecutive hyphens
+
+**Description:** 1-1024 chars, explains what AND when to use, include trigger terms
+
+## Directory Structure
+
+### Minimal Structure
 ```
 skill-name/
-├── SKILL.md              # Required - overview and navigation
-├── reference.md          # Detailed docs - loaded when needed
-├── examples.md           # Usage examples - loaded when needed
-└── scripts/
-    └── helper.sh         # Utility script - executed, not loaded
+└── SKILL.md              # Required
 ```
 
-## Best Practices
+### Recommended Structure
+```
+skill-name/
+├── SKILL.md              # Overview & navigation (< 250 lines)
+├── rules/                # Detailed rule files
+│   ├── category1.md
+│   └── category2.md
+├── references/           # Technical references
+│   ├── REFERENCE.md
+│   └── api.md
+├── scripts/              # Executable scripts
+│   └── validate.sh
+└── assets/               # Static resources
+    └── diagram.png
+```
 
-- **Keep SKILL.md under 250 lines** - Use progressive disclosure
-- **Write specific descriptions** - Include trigger terms users would naturally use
-- **Link supporting files** - From SKILL.md using markdown links
-- **Validate structure** - Check YAML syntax and file organization
+## Progressive Disclosure
 
-See **[naming.md](naming.md)** for naming conventions and **[templates.md](templates.md)** for ready-to-use templates.
+Structure skills for efficient context usage:
+
+| Level | Content | Size | When Loaded |
+|-------|---------|------|-------------|
+| 1 | Metadata | ~100 tokens | Startup |
+| 2 | Instructions | < 5000 tokens (~250 lines) | Skill activation |
+| 3 | Resources | As needed | On-demand |
+
+### SKILL.md Length Limits
+
+- **Maximum:** 250 lines
+- **Recommended:** 150-200 lines
+- **Goal:** Comprehensive but concise
+
+### Reference File Guidelines
+
+- Load on demand via markdown links
+- Keep files focused and small
+- Avoid deeply nested references
+- Maximum one level deep from SKILL.md
+
+## File References
+
+Use relative paths from skill root:
+
+```markdown
+See [detailed rules](rules/category.md) for specifics.
+
+Run [validation script](scripts/validate.sh).
+
+Check [API reference](references/api.md).
+```
+
+## Validation Checklist
+
+Before using a skill, verify:
+
+- [ ] `name` matches directory name
+- [ ] `name` is 1-64 lowercase alphanumeric + hyphens
+- [ ] No leading/trailing hyphens in name
+- [ ] No consecutive hyphens in name
+- [ ] `description` is 1-1024 characters
+- [ ] `description` includes trigger terms
+- [ ] SKILL.md is under 250 lines
+- [ ] YAML frontmatter is valid
+- [ ] Markdown body follows frontmatter
+- [ ] Relative links work correctly
+
+## Example: Complete Skill
+
+```
+rust-testing/
+├── SKILL.md
+├── rules/
+│   ├── unit-tests.md
+│   ├── integration-tests.md
+│   └── mocking.md
+└── references/
+    └── cargo-commands.md
+```
+
+**SKILL.md:**
+```markdown
+---
+name: rust-testing
+description: >
+  Rust testing patterns and best practices.
+  Use when writing tests, debugging failures,
+  or improving test coverage.
+---
+
+# Rust Testing
+
+## Quick Reference
+
+| Category | Rules |
+|----------|-------|
+| Unit Tests | [6 rules](rules/unit-tests.md) |
+| Integration | [5 rules](rules/integration-tests.md) |
+| Mocking | [4 rules](rules/mocking.md) |
+
+## Basic Usage
+
+```rust
+#[test]
+fn test_addition() {
+    assert_eq!(2 + 2, 4);
+}
+```
+
+See [cargo commands](references/cargo-commands.md) for details.
+```
+
+## See Also
+
+- **[agentskills.io/specification](https://agentskills.io/specification)** - Official spec
+- **[Structure Guide](structure.md)** - Detailed directory layout
+- **[Templates](templates.md)** - Copy-paste templates
+- **[Validation](validation.md)** - Validation commands

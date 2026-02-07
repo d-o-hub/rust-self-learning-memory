@@ -124,6 +124,12 @@ enum Commands {
         #[command(subcommand)]
         command: TagCommands,
     },
+    /// Relationship management commands for episodes
+    #[command(alias = "rel")]
+    Relationship {
+        #[command(subcommand)]
+        command: crate::commands::relationships::StandaloneRelationshipCommands,
+    },
 }
 
 #[tokio::main]
@@ -263,6 +269,16 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Tag { command } => {
             handle_tag_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::Relationship { command } => {
+            handle_relationship_command(
                 command,
                 &storage_result.memory,
                 &config,

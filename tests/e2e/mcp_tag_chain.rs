@@ -252,7 +252,7 @@ async fn test_mcp_tag_statistics() {
     let memory = setup_test_memory();
 
     // Create multiple episodes with overlapping tags
-    let episodes = vec!["Episode 1", "Episode 2", "Episode 3"];
+    let episodes = ["Episode 1", "Episode 2", "Episode 3"];
 
     for (i, ep_desc) in episodes.iter().enumerate() {
         let ep_id = create_completed_episode(&memory, ep_desc, "tag-stats-test").await;
@@ -278,7 +278,7 @@ async fn test_mcp_tag_statistics() {
         let tag = format!("unique-{}", i);
         let stat = tag_stats
             .get(&tag)
-            .expect(&format!("tag {} should exist", tag));
+            .unwrap_or_else(|| panic!("tag {} should exist", tag));
         assert_eq!(stat.usage_count, 1);
     }
 

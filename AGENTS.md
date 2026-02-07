@@ -117,6 +117,12 @@ Examples:
 ### Pre-existing Issue Resolution Policy
 **NEVER skip or ignore pre-existing issues. All warnings and errors must be resolved.**
 
+**IMPORTANT - Pre-Version 1.0**: Until we reach version 1.0, we do NOT need to maintain backward compatibility. This means:
+- Fix all pre-existing issues aggressively without worrying about breaking changes
+- Refactor and improve code quality freely
+- Update APIs as needed without deprecation cycles
+- Remove dead code and legacy patterns
+
 When running lint, build, test, or CI checks:
 1. **First Pass**: Run checks and identify ALL issues (new AND pre-existing)
 2. **Categorize**: Separate issues by type (lint, test, security, performance)

@@ -169,7 +169,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Viewed episode: {}", viewed_id);
 
     // Step 4: Add step (update)
-    let (step_result, success) = run_cli(
+    let (_step_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -191,7 +191,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Added step to episode");
 
     // Step 5: Complete episode
-    let (complete_result, success) = run_cli(
+    let (_complete_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -211,7 +211,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Completed episode");
 
     // Step 6: Delete episode
-    let (delete_result, success) = run_cli(
+    let (_delete_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "delete", "--id", episode_id, "--confirm"],
@@ -222,7 +222,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Deleted episode");
 
     // Verify episode is deleted
-    let (view_after_delete, success) = run_cli(
+    let (_view_after_delete, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "view", "--id", episode_id],
@@ -472,7 +472,7 @@ async fn test_tag_workflow() {
     );
 
     // List all tags
-    let (list_result, success) =
+    let (_list_result, success) =
         run_cli(&cli_path, &config_path, &["tag", "list"]).expect("Failed to list tags");
 
     assert!(success, "List tags should succeed");
@@ -608,7 +608,7 @@ async fn test_pattern_discovery() {
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // Analyze patterns
-    let (pattern_result, success) = run_cli(
+    let (_pattern_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["pattern", "analyze", "--domain", "pattern-test"],
@@ -642,7 +642,7 @@ async fn test_pattern_discovery() {
     println!("  ✓ Found {} patterns", patterns);
 
     // Get pattern recommendations
-    let (rec_result, success) = run_cli(
+    let (_rec_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -676,7 +676,7 @@ async fn test_episode_search_and_filter() {
     println!("🧪 Testing episode search and filter...");
 
     // Create episodes in different domains
-    let domains = vec!["web-api", "database", "cli"];
+    let domains = ["web-api", "database", "cli"];
 
     for (i, domain) in domains.iter().enumerate() {
         let (_, success) = run_cli(
@@ -716,7 +716,7 @@ async fn test_episode_search_and_filter() {
     println!("  ✓ Found {} episodes in 'web-api' domain", episodes.len());
 
     // Search by type
-    let (type_result, success) = run_cli(
+    let (_type_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "search", "--type", "code-generation"],
@@ -727,7 +727,7 @@ async fn test_episode_search_and_filter() {
     println!("  ✓ Searched by task type");
 
     // Query by text
-    let (query_result, success) = run_cli(
+    let (_query_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "query", "--query", "search test"],
@@ -854,7 +854,7 @@ async fn test_cli_error_handling() {
     let output = Command::new(&cli_path)
         .arg(format!("--config={}", config_path.display()))
         .args([
-            &"episode", "create",
+            "episode", "create",
             // Missing required --description
         ])
         .output()
@@ -896,21 +896,21 @@ async fn test_health_and_status() {
     println!("🧪 Testing health and status commands...");
 
     // Health check
-    let (health_result, success) =
+    let (_health_result, success) =
         run_cli(&cli_path, &config_path, &["health", "check"]).expect("Failed to run health check");
 
     assert!(success, "Health check should succeed");
     println!("  ✓ Health check passed");
 
     // Storage status
-    let (storage_result, success) = run_cli(&cli_path, &config_path, &["storage", "status"])
+    let (_storage_result, success) = run_cli(&cli_path, &config_path, &["storage", "status"])
         .expect("Failed to get storage status");
 
     assert!(success, "Storage status should succeed");
     println!("  ✓ Storage status retrieved");
 
     // Config validate
-    let (config_result, success) = run_cli(&cli_path, &config_path, &["config", "validate"])
+    let (_config_result, success) = run_cli(&cli_path, &config_path, &["config", "validate"])
         .expect("Failed to validate config");
 
     assert!(success, "Config validate should succeed");

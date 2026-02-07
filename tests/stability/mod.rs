@@ -25,6 +25,8 @@
 //! }
 //! ```
 
+#![allow(clippy::excessive_nesting, dead_code)]
+
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;

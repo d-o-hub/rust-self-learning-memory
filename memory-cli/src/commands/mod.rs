@@ -9,6 +9,7 @@ pub mod health;
 pub mod logs;
 pub mod monitor;
 pub mod pattern;
+pub mod relationships;
 pub mod storage;
 pub mod tag;
 
@@ -21,6 +22,7 @@ pub use health::*;
 pub use logs::*;
 pub use monitor::*;
 pub use pattern::*;
+pub use relationships::*;
 pub use storage::*;
 pub use tag::*;
 

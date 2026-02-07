@@ -1,8 +1,9 @@
 //! Tag command tests
 
 use super::types::{
-    TagAddResult, TagListResult, TagRemoveResult, TagSearchEpisode, TagSearchResult, TagSetResult,
-    TagShowResult, TagStatEntry, TagStatsResult,
+    TagAddResult, TagListResult, TagRemoveResult, TagRenameResult, TagSearchEpisode,
+    TagSearchResult, TagSetResult, TagShowResult, TagStatEntry, TagStatsDetailedEntry,
+    TagStatsDetailedResult, TagStatsResult,
 };
 use crate::output::Output;
 
@@ -331,4 +332,155 @@ fn test_tag_stats_result_json_output() {
     assert_eq!(parsed["total_usage"], 5);
     assert_eq!(parsed["sort_by"], "name");
     assert!(!parsed["tags"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn test_tag_rename_result_output() {
+    let result = TagRenameResult {
+        old_tag: "bug".to_string(),
+        new_tag: "issue".to_string(),
+        episodes_affected: 5,
+        success: true,
+    };
+
+    let mut buffer = Vec::new();
+    result.write_human(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    assert!(output.contains("Renamed tag 'bug' to 'issue'"));
+    assert!(output.contains("5 episode(s)"));
+}
+
+#[test]
+fn test_tag_rename_result_empty_output() {
+    let result = TagRenameResult {
+        old_tag: "nonexistent".to_string(),
+        new_tag: "something".to_string(),
+        episodes_affected: 0,
+        success: false,
+    };
+
+    let mut buffer = Vec::new();
+    result.write_human(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    assert!(output.contains("not found in any episodes"));
+}
+
+#[test]
+fn test_tag_rename_result_json_output() {
+    let result = TagRenameResult {
+        old_tag: "bug".to_string(),
+        new_tag: "issue".to_string(),
+        episodes_affected: 5,
+        success: true,
+    };
+
+    let mut buffer = Vec::new();
+    result.write_json(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    assert_eq!(parsed["old_tag"], "bug");
+    assert_eq!(parsed["new_tag"], "issue");
+    assert_eq!(parsed["episodes_affected"], 5);
+    assert_eq!(parsed["success"], true);
+}
+
+#[test]
+fn test_tag_stats_detailed_result_output() {
+    let tags = vec![
+        TagStatsDetailedEntry {
+            tag: "bug".to_string(),
+            usage_count: 5,
+            percentage: 50.0,
+            first_used: "2023-01-01 10:00".to_string(),
+            last_used: "2023-01-05 15:00".to_string(),
+            average_per_episode: 0.5,
+        },
+        TagStatsDetailedEntry {
+            tag: "feature".to_string(),
+            usage_count: 3,
+            percentage: 30.0,
+            first_used: "2023-01-02 11:00".to_string(),
+            last_used: "2023-01-06 16:00".to_string(),
+            average_per_episode: 0.3,
+        },
+    ];
+
+    let result = TagStatsDetailedResult {
+        tags,
+        total_tags: 2,
+        total_usage: 10,
+        total_episodes: 10,
+        avg_tags_per_episode: 1.0,
+        most_used_tag: Some("bug".to_string()),
+        least_used_tag: Some("feature".to_string()),
+        sort_by: "count".to_string(),
+    };
+
+    let mut buffer = Vec::new();
+    result.write_human(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    assert!(output.contains("Tag Statistics"));
+    assert!(output.contains("Summary"));
+    assert!(output.contains("Total Tags: 2"));
+    assert!(output.contains("Most Used: bug"));
+    assert!(output.contains("bug"));
+    assert!(output.contains("50.0%"));
+}
+
+#[test]
+fn test_tag_stats_detailed_result_empty_output() {
+    let result = TagStatsDetailedResult {
+        tags: vec![],
+        total_tags: 0,
+        total_usage: 0,
+        total_episodes: 0,
+        avg_tags_per_episode: 0.0,
+        most_used_tag: None,
+        least_used_tag: None,
+        sort_by: "count".to_string(),
+    };
+
+    let mut buffer = Vec::new();
+    result.write_human(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    assert!(output.contains("Tag Statistics"));
+    assert!(output.contains("No tags found"));
+}
+
+#[test]
+fn test_tag_stats_detailed_result_json_output() {
+    let tags = vec![TagStatsDetailedEntry {
+        tag: "bug".to_string(),
+        usage_count: 5,
+        percentage: 50.0,
+        first_used: "2023-01-01 10:00".to_string(),
+        last_used: "2023-01-05 15:00".to_string(),
+        average_per_episode: 0.5,
+    }];
+
+    let result = TagStatsDetailedResult {
+        tags,
+        total_tags: 1,
+        total_usage: 5,
+        total_episodes: 10,
+        avg_tags_per_episode: 0.5,
+        most_used_tag: Some("bug".to_string()),
+        least_used_tag: Some("bug".to_string()),
+        sort_by: "count".to_string(),
+    };
+
+    let mut buffer = Vec::new();
+    result.write_json(&mut buffer).unwrap();
+
+    let output = String::from_utf8(buffer).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+    assert_eq!(parsed["total_tags"], 1);
+    assert_eq!(parsed["total_usage"], 5);
+    assert_eq!(parsed["sort_by"], "count");
+    assert!(parsed["most_used_tag"].is_string());
 }

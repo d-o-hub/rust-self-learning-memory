@@ -95,7 +95,7 @@ jobs:
           echo "View detailed coverage at: https://codecov.io/gh/${{ github.repository }}"
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: ./lcov.info
@@ -165,7 +165,7 @@ jobs:
           echo "=== Badge Generation Complete ==="
 
       - name: Upload badge artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-badge
           path: ./coverage/lcov.info

@@ -162,7 +162,7 @@ impl MemoryMCPServer {
     ///
     /// # Returns
     ///
-    /// Returns a clone of the Arc<SelfLearningMemory>
+    /// Returns a clone of the `Arc<SelfLearningMemory>`
     pub fn memory(&self) -> Arc<SelfLearningMemory> {
         Arc::clone(&self.memory)
     }
@@ -171,7 +171,7 @@ impl MemoryMCPServer {
     ///
     /// # Returns
     ///
-    /// Returns a clone of the Arc<AuditLogger>
+    /// Returns a clone of the `Arc<AuditLogger>`
     pub fn audit_logger(&self) -> Arc<AuditLogger> {
         Arc::clone(&self.audit_logger)
     }

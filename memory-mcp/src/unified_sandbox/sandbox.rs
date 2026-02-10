@@ -163,7 +163,7 @@ impl UnifiedSandbox {
             let mut metrics = self.metrics.write().await;
 
             // Track routing decision
-            metrics.routing_decisions.push(RoutingDecision {
+            metrics.routing_decisions.push_back(RoutingDecision {
                 backend: backend_name.to_string(),
                 reason: self.get_routing_reason(&backend_choice, code).await,
                 code_length: code.len(),
@@ -173,7 +173,7 @@ impl UnifiedSandbox {
 
             // Keep only last 100 routing decisions
             if metrics.routing_decisions.len() > 100 {
-                metrics.routing_decisions.remove(0);
+                metrics.routing_decisions.pop_front();
             }
 
             // Update backend-specific metrics

@@ -10,11 +10,19 @@ use memory_mcp::server::MemoryMCPServer;
 use memory_mcp::types::SandboxConfig;
 use std::sync::Arc;
 
+/// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
+fn disable_wasm_for_tests() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        std::env::set_var("MCP_USE_WASM", "false");
+        std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
+    });
+}
+
 /// Create a test MCP server
 async fn create_test_server() -> MemoryMCPServer {
     // Disable WASM for tests
-    std::env::set_var("MCP_USE_WASM", "false");
-    std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
+    disable_wasm_for_tests();
 
     let memory = Arc::new(SelfLearningMemory::new());
     MemoryMCPServer::new(SandboxConfig::default(), memory)
@@ -373,7 +381,7 @@ async fn test_server_execute_test_embeddings() {
 }
 
 #[tokio::test]
-async fn test_tool_usage_tracking() {
+async fn test_embeddings_tool_usage_tracking() {
     let server = create_test_server().await;
 
     // Execute embedding tools

@@ -4,7 +4,7 @@
 //! self-learning memory system with OAuth 2.1 authorization support.
 //! It communicates over stdio using JSON-RPC.
 
-mod server;
+mod server_impl;
 
 use memory_mcp::SandboxConfig;
 use std::sync::Arc;
@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting Memory MCP Server in JSON-RPC mode");
 
     // Initialize memory system with storage backends
-    let memory = server::initialize_memory_system().await?;
+    let memory = server_impl::initialize_memory_system().await?;
 
     // Create MCP server with restrictive sandbox
     let sandbox_config = SandboxConfig::restrictive();
@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
     info!("MCP Server initialized successfully");
 
     // Initialize OAuth config from environment
-    let oauth_config = server::load_oauth_config();
+    let oauth_config = server_impl::load_oauth_config();
     if oauth_config.enabled {
         info!("OAuth 2.1 authorization enabled");
         if let Some(ref issuer) = oauth_config.issuer {
@@ -41,5 +41,5 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    server::run_jsonrpc_server(mcp_server, oauth_config).await
+    server_impl::run_jsonrpc_server(mcp_server, oauth_config).await
 }

@@ -102,7 +102,7 @@ async fn test_describe_tools_batch() {
 }
 
 #[test]
-fn test_token_reduction_calculation() {
+fn test_dynamic_tool_loading_token_reduction() {
     // Simulate token counts
     // Full schema: ~2000 tokens per tool * 20 tools = 40,000 tokens
     // Stub: ~50 tokens per tool * 20 tools = 1,000 tokens

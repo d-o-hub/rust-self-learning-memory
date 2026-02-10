@@ -121,7 +121,7 @@ mod integration_tests {
     }
 
     #[tokio::test]
-    async fn test_tool_usage_tracking() {
+    async fn test_database_tool_usage_tracking() {
         let (_memory, mcp_server) = setup_test_environment().await;
 
         // Perform some tool operations

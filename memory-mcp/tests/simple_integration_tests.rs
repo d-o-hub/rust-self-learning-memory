@@ -120,7 +120,7 @@ async fn test_memory_query_with_episode() {
 }
 
 #[tokio::test]
-async fn test_tool_usage_tracking() {
+async fn test_simple_tool_usage_tracking() {
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
         quality_threshold: 0.0, // Zero threshold for test episodes
         ..Default::default()

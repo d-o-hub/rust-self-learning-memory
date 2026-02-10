@@ -340,15 +340,6 @@ pub async fn handle_batch_execute(
                 "update_episode" => handle_update_episode(&mut server, Some(arguments)).await,
                 "get_episode_timeline" => {
                     handle_get_episode_timeline(&mut server, Some(arguments)).await
-                    //                 }
-                    //                 "batch_query_episodes" => {
-                    //                     handle_batch_query_episodes(&mut server, Some(arguments)).await
-                    //                 }
-                    //                 "batch_pattern_analysis" => {
-                    //                     handle_batch_pattern_analysis(&mut server, Some(arguments)).await
-                    //                 }
-                    //                 "batch_compare_episodes" => {
-                    //                     handle_batch_compare_episodes(&mut server, Some(arguments)).await
                 }
                 "add_episode_tags" => handle_add_episode_tags(&mut server, Some(arguments)).await,
                 "remove_episode_tags" => {
@@ -406,17 +397,19 @@ pub async fn handle_batch_execute(
 
             // Audit log batch execution
             let client_id = "batch-client"; // Batch operations don't have individual client IDs
-            let server = mcp_server.lock().await;
-            server
-                .audit_logger()
-                .log_batch_execution(
-                    client_id,
-                    response.success_count + response.failure_count,
-                    response.success_count,
-                    response.failure_count,
-                    true,
-                )
-                .await;
+            {
+                let server = mcp_server.lock().await;
+                server
+                    .audit_logger()
+                    .log_batch_execution(
+                        client_id,
+                        response.success_count + response.failure_count,
+                        response.success_count,
+                        response.failure_count,
+                        true,
+                    )
+                    .await;
+            }
 
             match serde_json::to_value(response) {
                 Ok(value) => Some(JsonRpcResponse {

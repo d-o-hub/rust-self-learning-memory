@@ -240,7 +240,7 @@ async fn test_lazy_loading_extended_tools() {
 
 /// Test that tool registry tracks usage correctly
 #[tokio::test]
-async fn test_tool_usage_tracking() {
+async fn test_token_tool_usage_tracking() {
     let registry = create_default_registry();
 
     // Use a core tool multiple times

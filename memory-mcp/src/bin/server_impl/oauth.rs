@@ -37,6 +37,9 @@ pub fn load_oauth_config() -> OAuthConfig {
     }
 }
 
+/// ⚠️ SECURITY WARNING: This is simplified JWT validation for stdio mode only.
+/// It does NOT verify signatures. For production HTTP mode, use a proper JWT library.
+///
 /// Validate Bearer token (simplified JWT parsing)
 ///
 /// This performs basic JWT validation including:
@@ -139,7 +142,7 @@ pub fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
         _ => filtered,
     };
 
-    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &padded)
+    base64::Engine::decode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &padded)
 }
 
 /// Check if token has required scopes

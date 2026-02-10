@@ -169,7 +169,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Viewed episode: {}", viewed_id);
 
     // Step 4: Add step (update)
-    let (step_result, success) = run_cli(
+    let (_step_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -191,7 +191,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Added step to episode");
 
     // Step 5: Complete episode
-    let (complete_result, success) = run_cli(
+    let (_complete_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[

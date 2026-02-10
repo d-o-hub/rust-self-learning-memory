@@ -117,6 +117,7 @@ impl TestConfig {
 
 /// Individual operation result
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct OperationResult {
     /// Whether the operation succeeded
     pub success: bool,
@@ -130,6 +131,7 @@ pub struct OperationResult {
 
 /// Memory usage sample
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct MemorySample {
     /// Resident set size in MB
     pub rss_mb: f64,
@@ -366,6 +368,7 @@ impl TestMetrics {
     }
 
     /// Get throughput (ops/sec)
+    #[allow(dead_code)]
     pub fn throughput(&self) -> f64 {
         let total = self.total_operations();
         let elapsed = self.elapsed().as_secs_f64();
@@ -475,11 +478,13 @@ impl StabilityTest {
     }
 
     /// Get reference to metrics
+    #[allow(dead_code)]
     pub fn metrics(&self) -> Arc<TestMetrics> {
         self.metrics.clone()
     }
 
     /// Run the stability test with the given operation function
+    #[allow(clippy::excessive_nesting)]
     pub async fn run<F, Fut>(&self, operation: F)
     where
         F: Fn(Arc<TestMetrics>) -> Fut + Send + Sync + 'static + Clone,
@@ -646,6 +651,7 @@ impl StabilityTest {
 /// Get current memory usage in MB
 ///
 /// Returns (RSS, VMS) memory usage in megabytes
+#[allow(clippy::excessive_nesting)]
 pub fn get_memory_usage() -> (f64, f64) {
     #[cfg(target_os = "linux")]
     {

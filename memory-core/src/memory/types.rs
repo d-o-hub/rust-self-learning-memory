@@ -1,5 +1,5 @@
 use crate::embeddings::{EmbeddingConfig, SemanticService};
-use crate::episode::{Episode, PatternId};
+use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::PatternExtractionQueue;
 use crate::monitoring::AgentMonitor;
@@ -79,6 +79,8 @@ pub struct SelfLearningMemory {
     pub(super) patterns_fallback: Arc<RwLock<HashMap<PatternId, Pattern>>>,
     /// In-memory fallback for heuristics (used when no storage configured)
     pub(super) heuristics_fallback: Arc<RwLock<HashMap<Uuid, Heuristic>>>,
+    /// In-memory fallback for relationships (used when no storage configured)
+    pub(super) relationships_fallback: Arc<RwLock<HashMap<Uuid, EpisodeRelationship>>>,
     /// Async pattern extraction queue (optional)
     pub(super) pattern_queue: Option<Arc<PatternExtractionQueue>>,
     /// Step buffers for batching I/O operations

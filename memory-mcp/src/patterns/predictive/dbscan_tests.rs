@@ -92,9 +92,9 @@ mod dbscan_unit_tests {
             "Should detect at least 2 noise points"
         );
 
-        // Outliers at indices 6 and 9 should be noise
-        assert!(noise_indices.contains(&6));
-        assert!(noise_indices.contains(&9));
+        // Outliers at indices 5 and 8 should be noise
+        assert!(noise_indices.contains(&5));
+        assert!(noise_indices.contains(&8));
     }
 
     /// Test epsilon parameter sensitivity

@@ -31,7 +31,6 @@ mod simple_config_tests {
 
     /// Helper function to clean up all environment variables before each test
     fn clean_environment() {
-        env::remove_var("CI");
         env::remove_var("TURSO_URL");
         env::remove_var("TURSO_TOKEN");
         env::remove_var("TURSO_DATABASE_URL");

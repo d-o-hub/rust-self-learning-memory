@@ -236,8 +236,7 @@ mod performance_benchmarks {
         let timestamps: Vec<f64> = (0..size).map(|i| i as f64).collect();
 
         use rand::seq::SliceRandom;
-        let mut indexed_values: Vec<(f64, f64)> =
-            values.into_iter().zip(timestamps.into_iter()).collect();
+        let mut indexed_values: Vec<(f64, f64)> = values.into_iter().zip(timestamps).collect();
         indexed_values.shuffle(&mut rand::thread_rng());
 
         let values: Vec<f64> = indexed_values.iter().map(|(v, _)| *v).collect();

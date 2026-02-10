@@ -94,6 +94,12 @@ impl SelfLearningMemory {
             let _ = cache.store_relationship(&relationship).await;
         }
 
+        // In-memory fallback storage (when no backends configured)
+        if self.turso_storage.is_none() && self.cache_storage.is_none() {
+            let mut relationships = self.relationships_fallback.write().await;
+            relationships.insert(relationship_id, relationship.clone());
+        }
+
         // Audit log: relationship added
         let context = AuditContext::system();
         let audit_entry = relationship_added(
@@ -126,6 +132,12 @@ impl SelfLearningMemory {
         // Remove from cache
         if let Some(cache) = &self.cache_storage {
             let _ = cache.remove_relationship(relationship_id).await;
+        }
+
+        // In-memory fallback removal (when no backends configured)
+        if self.turso_storage.is_none() && self.cache_storage.is_none() {
+            let mut relationships = self.relationships_fallback.write().await;
+            relationships.remove(&relationship_id);
         }
 
         // Audit log: relationship removed
@@ -163,6 +175,23 @@ impl SelfLearningMemory {
         // Fall back to durable storage
         if let Some(storage) = &self.turso_storage {
             return storage.get_relationships(episode_id, direction).await;
+        }
+
+        // In-memory fallback (no storage configured)
+        if self.turso_storage.is_none() && self.cache_storage.is_none() {
+            let relationships = self.relationships_fallback.read().await;
+            let filtered = relationships
+                .values()
+                .filter(|rel| match direction {
+                    Direction::Outgoing => rel.from_episode_id == episode_id,
+                    Direction::Incoming => rel.to_episode_id == episode_id,
+                    Direction::Both => {
+                        rel.from_episode_id == episode_id || rel.to_episode_id == episode_id
+                    }
+                })
+                .cloned()
+                .collect();
+            return Ok(filtered);
         }
 
         Ok(Vec::new())
@@ -316,6 +345,15 @@ impl SelfLearningMemory {
                 .relationship_exists(from_episode_id, to_episode_id, relationship_type)
                 .await;
         }
+        if self.turso_storage.is_none() && self.cache_storage.is_none() {
+            let relationships = self.relationships_fallback.read().await;
+            let exists = relationships.values().any(|rel| {
+                rel.from_episode_id == from_episode_id
+                    && rel.to_episode_id == to_episode_id
+                    && rel.relationship_type == relationship_type
+            });
+            return Ok(exists);
+        }
         Ok(false)
     }
 
@@ -375,6 +413,10 @@ impl SelfLearningMemory {
         if let Some(_storage) = &self.turso_storage {
             // This would need a method to get all relationships
             // For now, return empty vec
+        }
+        if self.turso_storage.is_none() && self.cache_storage.is_none() {
+            let relationships = self.relationships_fallback.read().await;
+            return Ok(relationships.values().cloned().collect());
         }
         Ok(Vec::new())
     }

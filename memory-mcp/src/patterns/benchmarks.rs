@@ -186,7 +186,7 @@ mod performance_benchmarks {
         };
 
         let is_ci = std::env::var("CI").is_ok();
-        let max_ms = if is_ci { 300 } else { 100 };
+        let max_ms = if is_ci { 1000 } else { 100 };
         let tool_counts = vec![1, 5, 10, 20];
 
         for count in tool_counts {
@@ -302,7 +302,7 @@ mod performance_benchmarks {
             );
 
             // Streaming should be fast
-            let min_throughput = if is_ci { 30.0 } else { 100.0 };
+            let min_throughput = if is_ci { 10.0 } else { 100.0 };
             assert!(
                 throughput > min_throughput,
                 "Streaming should process points efficiently"

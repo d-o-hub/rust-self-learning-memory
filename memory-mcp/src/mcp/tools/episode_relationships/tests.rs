@@ -497,10 +497,11 @@ async fn test_get_topological_order_with_dependencies() {
         .position(|e| e.episode_id == ep3.to_string())
         .unwrap();
 
-    // In topological order, dependencies come first
-    // So ep3 (no deps) < ep2 (depends on ep3) < ep1 (depends on ep2)
-    assert!(pos3 < pos2);
-    assert!(pos2 < pos1);
+    // Topological sort follows edge direction: from appears before to.
+    // ep1 depends_on ep2 (edge ep1→ep2), ep2 depends_on ep3 (edge ep2→ep3)
+    // So order is: ep1, ep2, ep3 (dependents before their dependencies)
+    assert!(pos1 < pos2);
+    assert!(pos2 < pos3);
 }
 
 #[tokio::test]

@@ -147,10 +147,11 @@ mod bocpd_unit_tests {
     #[test]
     fn test_concept_drift_handling() -> Result<()> {
         let config = BOCPDConfig {
-            hazard_rate: 0.01,     // Much lower hazard rate for gradual drift
-            alert_threshold: 0.90, // Higher confidence threshold
-            max_run_length: 150,   // Allow longer runs before resetting
-            min_samples: 10,
+            hazard_rate: 0.01,        // Much lower hazard rate for gradual drift
+            alert_threshold: 0.90,    // Higher confidence threshold
+            expected_run_length: 150, // Allow longer runs before resetting
+            max_run_length_hypotheses: 200,
+            buffer_size: 100,
         };
 
         let mut bocpd = SimpleBOCPD::new(config);
@@ -596,8 +597,9 @@ mod bocpd_integration_tests {
             // Lower hazard rate for seasonal data (requires stronger evidence)
             hazard_rate: 0.5,
             alert_threshold: 0.95, // Higher confidence threshold
-            max_run_length: 100,
-            min_samples: 10,
+            expected_run_length: 100,
+            max_run_length_hypotheses: 150,
+            buffer_size: 100,
         };
         let mut bocpd = SimpleBOCPD::new(config);
 

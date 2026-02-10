@@ -188,7 +188,11 @@ mod performance_benchmarks {
         let is_ci = std::env::var("CI").is_ok();
         let max_ms = if is_ci { 3000 } else { 200 };
         let tool_counts = vec![1, 5, 10, 20];
-        let known_tools = ["query_memory", "analyze_patterns", "advanced_pattern_analysis"];
+        let known_tools = [
+            "query_memory",
+            "analyze_patterns",
+            "advanced_pattern_analysis",
+        ];
 
         for count in tool_counts {
             let tools: Vec<String> = known_tools

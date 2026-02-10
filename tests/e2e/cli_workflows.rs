@@ -211,7 +211,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Completed episode");
 
     // Step 6: Delete episode
-    let (delete_result, success) = run_cli(
+    let (_delete_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "delete", "--id", episode_id, "--confirm"],
@@ -222,7 +222,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Deleted episode");
 
     // Verify episode is deleted
-    let (view_after_delete, success) = run_cli(
+    let (_view_after_delete, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "view", "--id", episode_id],
@@ -472,7 +472,7 @@ async fn test_tag_workflow() {
     );
 
     // List all tags
-    let (list_result, success) =
+    let (_list_result, success) =
         run_cli(&cli_path, &config_path, &["tag", "list"]).expect("Failed to list tags");
 
     assert!(success, "List tags should succeed");
@@ -608,7 +608,7 @@ async fn test_pattern_discovery() {
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // Analyze patterns
-    let (pattern_result, success) = run_cli(
+    let (_pattern_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["pattern", "analyze", "--domain", "pattern-test"],

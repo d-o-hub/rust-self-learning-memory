@@ -81,7 +81,10 @@ fn test_correlation_calculation() -> Result<()> {
     let corr = results
         .correlations
         .iter()
-        .find(|corr| corr.variables == ("x".to_string(), "y".to_string()))
+        .find(|corr| {
+            corr.variables == ("x".to_string(), "y".to_string())
+                || corr.variables == ("y".to_string(), "x".to_string())
+        })
         .expect("Expected correlation for (x, y)");
     // Allow small floating point differences
     assert!(

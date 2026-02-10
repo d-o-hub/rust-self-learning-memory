@@ -452,11 +452,11 @@ async fn test_mcp_relationship_metadata() {
         rel.metadata
             .reason
             .as_ref()
-            .map_or(false, |d| d.contains("Important")),
+            .is_some_and(|d| d.contains("Important")),
         "Should have reason"
     );
     assert!(
-        rel.metadata.priority.map_or(false, |p| p >= 9),
+        rel.metadata.priority.is_some_and(|p| p >= 9),
         "Should have high priority"
     );
 

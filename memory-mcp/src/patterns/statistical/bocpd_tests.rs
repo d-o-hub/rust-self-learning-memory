@@ -147,9 +147,10 @@ mod bocpd_unit_tests {
     #[test]
     fn test_concept_drift_handling() -> Result<()> {
         let config = BOCPDConfig {
-            hazard_rate: 50.0,
-            alert_threshold: 0.6,
-            ..Default::default()
+            hazard_rate: 0.01,     // Much lower hazard rate for gradual drift
+            alert_threshold: 0.90, // Higher confidence threshold
+            max_run_length: 150,   // Allow longer runs before resetting
+            min_samples: 10,
         };
 
         let mut bocpd = SimpleBOCPD::new(config);
@@ -164,13 +165,14 @@ mod bocpd_unit_tests {
 
         let results = bocpd.detect_changepoints(&data)?;
 
-        // Should detect some changepoints even with gradual drift
-        // (though may be fewer than abrupt changes)
+        // Should detect very few changepoints for gradual drift
         let is_ci = std::env::var("CI").is_ok();
-        let max_changepoints = if is_ci { 95 } else { 80 };
+        let max_changepoints = if is_ci { 2 } else { 1 };
         assert!(
             results.len() <= max_changepoints,
-            "Gradual drift should not produce an excessive number of changepoints"
+            "Gradual drift should not produce many changepoints: got {}, max allowed {}",
+            results.len(),
+            max_changepoints
         );
 
         Ok(())
@@ -590,7 +592,13 @@ mod bocpd_integration_tests {
     /// Test temporal consistency
     #[test]
     fn test_temporal_consistency() -> Result<()> {
-        let config = BOCPDConfig::default();
+        let config = BOCPDConfig {
+            // Lower hazard rate for seasonal data (requires stronger evidence)
+            hazard_rate: 0.5,
+            alert_threshold: 0.95, // Higher confidence threshold
+            max_run_length: 100,
+            min_samples: 10,
+        };
         let mut bocpd = SimpleBOCPD::new(config);
 
         // Create data with seasonal pattern (no true changepoints)
@@ -603,11 +611,12 @@ mod bocpd_integration_tests {
         // Seasonal data should not produce many high-confidence changepoints
         let high_confidence = results.iter().filter(|r| r.confidence > 0.8).count();
         let is_ci = std::env::var("CI").is_ok();
-        let max_high_confidence = if is_ci { 60 } else { 30 };
+        let max_high_confidence = if is_ci { 3 } else { 2 };
 
         assert!(
             high_confidence <= max_high_confidence,
-            "Seasonal data should not produce excessive high-confidence changepoints"
+            "Seasonal data should not produce excessive high-confidence changepoints: got {}, max allowed {}",
+            high_confidence, max_high_confidence
         );
 
         Ok(())

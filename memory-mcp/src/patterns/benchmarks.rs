@@ -194,6 +194,30 @@ mod performance_benchmarks {
             "advanced_pattern_analysis",
         ];
 
+        // Pre-allocate assessor to avoid repeated initialization
+        let assessor = CompatibilityAssessor::new(AssessmentConfig::default());
+
+        // Verify tool registry is properly initialized
+        for tool_name in &known_tools {
+            let result = assessor.assess_compatibility(
+                "test_pattern",
+                tool_name,
+                &PatternContext {
+                    domain: "test".to_string(),
+                    data_quality: 0.8,
+                    occurrences: 10,
+                    temporal_stability: 0.9,
+                    available_memory_mb: 200,
+                    complexity: 0.5,
+                },
+            );
+            assert!(
+                result.is_ok(),
+                "Tool {} should be properly registered",
+                tool_name
+            );
+        }
+
         for count in tool_counts {
             let tools: Vec<String> = known_tools
                 .iter()
@@ -211,24 +235,44 @@ mod performance_benchmarks {
                 complexity: 0.5,
             };
 
-            let assessor = CompatibilityAssessor::new(AssessmentConfig::default());
+            // Warm up the assessor to avoid cold start effects
+            if count == 1 {
+                let _warmup = assessor.batch_assess("warmup", &tools, &context);
+            }
 
             let start = Instant::now();
-            let _assessments = assessor
-                .batch_assess("test_pattern", &tools, &context)
-                .unwrap();
+            let assessments = assessor.batch_assess("test_pattern", &tools, &context);
+
+            // Handle the result properly for better error reporting
+            let assessments = match assessments {
+                Ok(a) => a,
+                Err(e) => {
+                    panic!("Batch assessment failed for {} tools: {:?}", count, e);
+                }
+            };
+
             let duration = start.elapsed();
 
+            // Verify we got the expected number of assessments
+            assert_eq!(
+                assessments.len(),
+                tools.len(),
+                "Should get one assessment per tool"
+            );
+
             println!(
-                "Compatibility assessment for {} tools: {:?}",
+                "Compatibility assessment for {} tools: {:?} ({} assessments)",
                 count,
-                duration.as_micros()
+                duration.as_micros(),
+                assessments.len()
             );
 
             // Assessment should be fast
             assert!(
                 duration.as_millis() < max_ms,
-                "Compatibility assessment should be fast"
+                "Compatibility assessment should be fast: got {}ms, max allowed {}ms",
+                duration.as_millis(),
+                max_ms
             );
         }
     }

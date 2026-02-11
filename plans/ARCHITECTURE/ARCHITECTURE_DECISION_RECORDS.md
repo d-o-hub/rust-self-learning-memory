@@ -693,6 +693,7 @@ let output = if let Some(fields) = input.include_fields {
 | ADR-006 | 2025-12-25 | ETS Seasonality | ✅ Complete | predictive.rs |
 | ADR-020 | 2026-01-31 | Dynamic Tool Loading for MCP Server | ⏳ Proposed | registry.rs, lazy_loader.rs, handlers/tools.rs |
 | ADR-021 | 2026-01-31 | Field Selection for MCP Tool Responses | ⏳ Proposed | queries.rs, episodes.rs, patterns.rs, utils/serialization.rs |
+| ADR-022 | 2026-02-10 | GOAP Agent System for Multi-Agent Coordination | ✅ Complete | .claude/skills/goap-agent/*.md |
 
 ---
 
@@ -754,4 +755,4 @@ let output = if let Some(fields) = input.include_fields {
 
 **Document Maintainer**: Project Maintainers
 **Review Frequency**: Quarterly or with each major architectural change
-**Last Updated**: 2026-01-31
+**Last Updated**: 2026-02-10

@@ -357,8 +357,10 @@ impl SelfLearningMemory {
         // Re-insert the updated episode into the in-memory cache
         // ============================================================================
 
-        let mut episodes = self.episodes_fallback.write().await;
-        episodes.insert(episode_id, Arc::new(episode));
+        {
+            let mut episodes = self.episodes_fallback.write().await;
+            episodes.insert(episode_id, Arc::new(episode));
+        }
 
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {

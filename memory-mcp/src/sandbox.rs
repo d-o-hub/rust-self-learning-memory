@@ -227,9 +227,8 @@ impl CodeSandbox {
             .replace('\\', "\\\\") // Escape backslashes first
             .replace('`', "\\`") // Escape template literal backticks
             .replace("${", "\\${") // Escape template literal expressions
-            .replace('\n', "\\n") // Escape newlines
-            .replace('\r', "\\r") // Escape carriage returns
-            .replace('\t', "\\t") // Escape tabs
+            // Note: Newlines, carriage returns, and tabs are NOT escaped
+            // They work correctly in JavaScript template literals
             .replace("<", "\\x3c") // Escape < to prevent </script> injection
             .replace("\x00", "\\x00") // Escape null bytes
             .replace("\x0b", "\\x0b") // Escape vertical tabs

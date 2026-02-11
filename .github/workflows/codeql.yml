@@ -37,10 +37,11 @@ jobs:
           fetch-depth: 0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          config-file: ./.github/codeql/codeql-config.yml
+          # Using GitHub Default Setup - custom config disabled to avoid conflict
+          # See: https://github.com/rust-self-learning-memory/issues/P0-3
           queries: security-and-quality
 
       - name: Setup Rust toolchain
@@ -66,7 +67,7 @@ jobs:
           CARGO_TERM_COLOR: always
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
           upload: true

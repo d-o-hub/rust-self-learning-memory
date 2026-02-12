@@ -19,7 +19,6 @@ pub struct PersistedCacheEntry {
     /// Last access timestamp (Unix seconds)
     pub last_accessed: u64,
     /// Optional TTL in seconds
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub ttl_secs: Option<u64>,
 }
 

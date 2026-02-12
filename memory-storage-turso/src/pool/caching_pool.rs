@@ -241,7 +241,7 @@ impl CachingPool {
 
         Ok(ConnectionGuard {
             pool: self as *const Self as usize, // Store as pointer-sized integer
-            connection: pooled_conn.unwrap(),
+            connection: Some(pooled_conn.unwrap()),
             _permit: Some(permit),
         })
     }
@@ -352,24 +352,24 @@ impl CachingPool {
 /// Automatically returns the connection to the pool when dropped.
 pub struct ConnectionGuard {
     pool: usize,
-    connection: PooledConnection,
+    connection: Option<PooledConnection>,
     _permit: Option<tokio::sync::OwnedSemaphorePermit>,
 }
 
 impl ConnectionGuard {
     /// Get the stable connection ID
     pub fn id(&self) -> u64 {
-        self.connection.id()
+        self.connection.as_ref().unwrap().id()
     }
 
     /// Get a reference to the underlying connection
     pub fn connection(&self) -> &libsql::Connection {
-        self.connection.connection()
+        self.connection.as_ref().unwrap().connection()
     }
 
     /// Get the pooled connection wrapper
-    pub fn pooled(&self) -> &PooledConnection {
-        &self.connection
+    pub fn pooled(&self) -> Option<&PooledConnection> {
+        self.connection.as_ref()
     }
 }
 
@@ -379,11 +379,8 @@ impl Drop for ConnectionGuard {
         let pool = unsafe { &*(self.pool as *const CachingPool) };
 
         // Return connection to pool instead of destroying it
-        if let Some(_permit) = self._permit.take() {
-            pool.return_connection(std::mem::replace(
-                &mut self.connection,
-                unsafe { std::mem::zeroed() }, // Will be dropped, replaced with dummy
-            ));
+        if let (Some(_permit), Some(connection)) = (self._permit.take(), self.connection.take()) {
+            pool.return_connection(connection);
         }
     }
 }

@@ -5,7 +5,6 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use memory_storage_turso::prepared::PreparedStatementCache;
-use std::time::Duration;
 
 /// Benchmark basic cache operations
 fn bench_cache_basic_operations(c: &mut Criterion) {
@@ -215,7 +214,7 @@ fn bench_cache_cleanup(c: &mut Criterion) {
         let cache = PreparedStatementCache::new(100);
 
         // Populate multiple connections
-        for i in 0..10 {
+        for _i in 0..10 {
             let conn_id = cache.get_connection_id();
             for j in 0..10 {
                 let sql = format!("SELECT * FROM episodes WHERE id = {}", j);
@@ -242,29 +241,32 @@ fn bench_cache_concurrent(c: &mut Criterion) {
         let cache = std::sync::Arc::new(PreparedStatementCache::new(100));
 
         b.to_async(tokio::runtime::Runtime::new().unwrap())
-            .iter(|| async {
-                let handles: Vec<_> = (0..10)
-                    .map(|_| {
-                        let cache = std::sync::Arc::clone(&cache);
-                        tokio::spawn(async move {
-                            let conn_id = cache.get_connection_id();
-                            for i in 0..100 {
-                                let sql = format!("SELECT * FROM episodes WHERE id = {}", i);
-                                cache.record_miss(conn_id, &sql, 100);
-                                cache.is_cached(conn_id, &sql);
-                                cache.record_hit(conn_id, &sql);
-                            }
-                        })
-                    })
-                    .collect();
-
-                for handle in handles {
-                    handle.await.unwrap();
-                }
-            });
+            .iter(|| run_concurrent_bench(std::sync::Arc::clone(&cache)));
     });
 
     group.finish();
+}
+
+/// Helper function for concurrent benchmark to reduce nesting
+async fn run_concurrent_bench(cache: std::sync::Arc<PreparedStatementCache>) {
+    let handles: Vec<_> = (0..10)
+        .map(|_| {
+            let cache = std::sync::Arc::clone(&cache);
+            tokio::spawn(async move {
+                let conn_id = cache.get_connection_id();
+                for i in 0..100 {
+                    let sql = format!("SELECT * FROM episodes WHERE id = {}", i);
+                    cache.record_miss(conn_id, &sql, 100);
+                    cache.is_cached(conn_id, &sql);
+                    cache.record_hit(conn_id, &sql);
+                }
+            })
+        })
+        .collect();
+
+    for handle in handles {
+        handle.await.unwrap();
+    }
 }
 
 criterion_group!(

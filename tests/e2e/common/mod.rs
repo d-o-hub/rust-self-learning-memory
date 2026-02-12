@@ -220,8 +220,13 @@ pub async fn setup_test_memory() -> Result<(Arc<SelfLearningMemory>, TempDir)> {
         .await
         .expect("Failed to create cache storage");
 
+    // Lower quality threshold in tests to avoid PREMem rejections for small
+    // example episodes that lack reflections/patterns.
+    let mut cfg = Default::default();
+    cfg.quality_threshold = 0.3;
+
     let memory = Arc::new(SelfLearningMemory::with_storage(
-        Default::default(),
+        cfg,
         Arc::new(turso_storage),
         Arc::new(cache_storage),
     ));

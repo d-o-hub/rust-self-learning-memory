@@ -75,7 +75,7 @@ async fn test_timeout_enforcement() {
     let sandbox = CodeSandbox::new(config).unwrap();
     let code = r#"
         let sum = 0;
-        for (let i = 0; i < 10000000000; i++) {
+        for (let i = 0; i !== 10000000000; i++) {
             sum += i;
             if (i % 1000000 === 0) {
                 const x = sum;

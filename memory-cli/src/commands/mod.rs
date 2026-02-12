@@ -9,6 +9,7 @@ pub mod health;
 pub mod logs;
 pub mod monitor;
 pub mod pattern;
+pub mod relationships;
 pub mod storage;
 pub mod tag;
 
@@ -21,6 +22,7 @@ pub use health::*;
 pub use logs::*;
 pub use monitor::*;
 pub use pattern::*;
+pub use relationships::*;
 pub use storage::*;
 pub use tag::*;
 
@@ -307,11 +309,18 @@ pub async fn handle_pattern_command(
             // Get storage backend for batch operations
             // TODO: This is a workaround - batch commands should not need direct storage access
             use memory_storage_turso::TursoStorage;
-            let storage = TursoStorage::from_config(&config.database)
+            let turso_url = config
+                .database
+                .turso_url
+                .as_deref()
+                .unwrap_or("")
+                .trim_start_matches("file:");
+            let turso_token = config.database.turso_token.as_deref().unwrap_or("");
+            let mut storage = TursoStorage::new(turso_url, turso_token)
                 .await
                 .map_err(|e| anyhow::anyhow!("Failed to create Turso storage: {}", e))?;
 
-            pattern::execute_pattern_batch_command(command, storage).await
+            pattern::execute_pattern_batch_command(command, &mut storage).await
         }
     }
 }

@@ -10,10 +10,12 @@ Goal-Oriented Action Planning for complex multi-step tasks with intelligent plan
 ## Quick Reference
 
 - **[Methodology](methodology.md)** - Core GOAP planning cycle and phases
+- **[Execution Strategies](execution-strategies.md)** - Parallel, Sequential, Swarm, Hybrid patterns
 - **[Skills Reference](skills.md)** - Available skills by category
 - **[Agents Reference](agents.md)** - Available task agents and capabilities
 - **[Patterns](patterns.md)** - Common GOAP execution patterns
 - **[Examples](examples.md)** - Complete GOAP workflow examples
+- **[ADR-022](../../../plans/adr/ADR-022-GOAP-Agent-System.md)** - Architecture Decision Record
 
 ## When to Use
 

@@ -222,10 +222,17 @@ impl CodeSandbox {
             serde_json::to_string(context).context("Failed to serialize execution context")?;
 
         // Escape user code for safe inclusion in template
+        // This prevents command injection and script termination attacks
         let escaped_code = user_code
-            .replace('\\', "\\\\")
-            .replace('`', "\\`")
-            .replace("${", "\\${");
+            .replace('\\', "\\\\") // Escape backslashes first
+            .replace('`', "\\`") // Escape template literal backticks
+            .replace("${", "\\${") // Escape template literal expressions
+            // Note: Newlines, carriage returns, and tabs are NOT escaped
+            // They work correctly in JavaScript template literals
+            .replace("<", "\\x3c") // Escape < to prevent </script> injection
+            .replace("\x00", "\\x00") // Escape null bytes
+            .replace("\x0b", "\\x0b") // Escape vertical tabs
+            .replace("\x0c", "\\x0c"); // Escape form feeds
 
         // Create wrapper that:
         // 1. Sets up restricted environment

@@ -1,0 +1,40 @@
+# Performance and Quality Configuration for AGENTS.md
+# This file replaces magic numbers with configurable values
+
+# Performance targets (P95 latency)
+performance_targets:
+  episode_creation_max_ms: 50
+  step_logging_max_ms: 20
+  episode_completion_max_ms: 500
+  pattern_extraction_max_ms: 1000
+  memory_retrieval_max_ms: 100
+
+# Quality thresholds
+quality_thresholds:
+  test_coverage_percent: 90
+  test_pass_rate_percent: 95
+  max_file_loc: 500
+  performance_regression_percent: 10
+  clippy_warnings_max: 0
+
+# File organization limits
+file_limits:
+  max_lines_per_file: 500
+  benchmark_files_exempt: true
+  documentation_max_lines: null  # No limit for docs
+
+# Codebase statistics (generated dynamically)
+# Note: These are updated by scripts/generate-codebase-stats.sh
+codebase_stats:
+  rust_files: 0  # Generated
+  total_lines: 0  # Generated  
+  test_files: 0  # Generated
+  workspace_members: 0  # Generated
+  version: "unknown"  # Generated from Cargo.toml
+  last_updated: "unknown"  # Generated timestamp
+
+# CI/CD settings
+cicd:
+  quality_gates_script: "./scripts/quality-gates.sh"
+  stats_generation_script: "./scripts/generate-codebase-stats.sh"
+  auto_update_stats: true  # Set to false to disable automatic updates

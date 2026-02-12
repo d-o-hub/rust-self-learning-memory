@@ -47,22 +47,26 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
 
 /// Helper to create a test config file
 fn create_test_config(temp_dir: &TempDir) -> Result<std::path::PathBuf> {
-    let config_path = temp_dir.path().join("config.yaml");
+    let config_path = temp_dir.path().join("config.toml");
     let db_dir = temp_dir.path().join("db");
     std::fs::create_dir_all(&db_dir)?;
 
     let config_content = format!(
-        r#"storage:
-  turso_path: {}
-  cache_path: {}
-  enable_compression: true
+        r#"[database]
+turso_url = "file:{0}/memory.db"
+redb_path = "{0}/cache.redb"
 
-cli:
-  default_output_format: json
-  verbose: false
+[storage]
+max_episodes_cache = 100
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "json"
+progress_bars = false
+batch_size = 100
 "#,
-        db_dir.join("turso.redb").display(),
-        db_dir.join("cache.redb").display()
+        db_dir.display()
     );
 
     std::fs::write(&config_path, config_content)?;
@@ -70,6 +74,9 @@ cli:
 }
 
 /// Run a CLI command and return output
+///
+/// Filters out log messages before parsing JSON.
+/// This handles the case where CLI outputs logging (WARN, INFO) mixed with JSON response.
 fn run_cli(
     cli_path: &std::path::Path,
     config_path: &std::path::Path,
@@ -84,12 +91,19 @@ fn run_cli(
     let stdout = String::from_utf8_lossy(&output.stdout);
     let success = output.status.success();
 
-    // Try to parse as JSON, but don't fail if it's not valid JSON
+    // Filter out log messages and find the JSON response
     let json = if stdout.trim().is_empty() {
         serde_json::json!({})
     } else {
-        serde_json::from_str(&stdout)
-            .unwrap_or_else(|_| serde_json::json!({ "raw_output": stdout.to_string() }))
+        // Strategy: Find the first line that looks like JSON (starts with '{')
+        // This filters out log messages (INFO, WARN, ERROR) that appear before the JSON result
+        let json_line = stdout
+            .lines()
+            .find(|line| line.trim().starts_with('{'))
+            .ok_or_else(|| anyhow::anyhow!("No JSON found in output"))?;
+
+        serde_json::from_str(json_line)
+            .map_err(|e| anyhow::anyhow!("Failed to parse JSON: {} - line: {}", e, json_line))?
     };
 
     Ok((json, success))
@@ -112,16 +126,7 @@ async fn test_episode_full_lifecycle() {
     let (create_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "episode",
-            "create",
-            "--description",
-            "Test episode for lifecycle",
-            "--domain",
-            "cli-test",
-            "--type",
-            "code-generation",
-        ],
+        &["episode", "create", "--task", "Test episode for lifecycle"],
     )
     .expect("Failed to run create command");
 
@@ -169,7 +174,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Viewed episode: {}", viewed_id);
 
     // Step 4: Add step (update)
-    let (step_result, success) = run_cli(
+    let (_step_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -191,7 +196,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Added step to episode");
 
     // Step 5: Complete episode
-    let (complete_result, success) = run_cli(
+    let (_complete_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -211,7 +216,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Completed episode");
 
     // Step 6: Delete episode
-    let (delete_result, success) = run_cli(
+    let (_delete_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "delete", "--id", episode_id, "--confirm"],
@@ -222,7 +227,7 @@ async fn test_episode_full_lifecycle() {
     println!("  ✓ Deleted episode");
 
     // Verify episode is deleted
-    let (view_after_delete, success) = run_cli(
+    let (_view_after_delete, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "view", "--id", episode_id],
@@ -472,7 +477,7 @@ async fn test_tag_workflow() {
     );
 
     // List all tags
-    let (list_result, success) =
+    let (_list_result, success) =
         run_cli(&cli_path, &config_path, &["tag", "list"]).expect("Failed to list tags");
 
     assert!(success, "List tags should succeed");
@@ -608,7 +613,7 @@ async fn test_pattern_discovery() {
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
     // Analyze patterns
-    let (pattern_result, success) = run_cli(
+    let (_pattern_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["pattern", "analyze", "--domain", "pattern-test"],
@@ -642,7 +647,7 @@ async fn test_pattern_discovery() {
     println!("  ✓ Found {} patterns", patterns);
 
     // Get pattern recommendations
-    let (rec_result, success) = run_cli(
+    let (_rec_result, success) = run_cli(
         &cli_path,
         &config_path,
         &[
@@ -676,7 +681,7 @@ async fn test_episode_search_and_filter() {
     println!("🧪 Testing episode search and filter...");
 
     // Create episodes in different domains
-    let domains = vec!["web-api", "database", "cli"];
+    let domains = ["web-api", "database", "cli"];
 
     for (i, domain) in domains.iter().enumerate() {
         let (_, success) = run_cli(
@@ -716,7 +721,7 @@ async fn test_episode_search_and_filter() {
     println!("  ✓ Found {} episodes in 'web-api' domain", episodes.len());
 
     // Search by type
-    let (type_result, success) = run_cli(
+    let (_type_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "search", "--type", "code-generation"],
@@ -727,7 +732,7 @@ async fn test_episode_search_and_filter() {
     println!("  ✓ Searched by task type");
 
     // Query by text
-    let (query_result, success) = run_cli(
+    let (_query_result, success) = run_cli(
         &cli_path,
         &config_path,
         &["episode", "query", "--query", "search test"],
@@ -853,10 +858,7 @@ async fn test_cli_error_handling() {
     // Test missing required argument
     let output = Command::new(&cli_path)
         .arg(format!("--config={}", config_path.display()))
-        .args([
-            &"episode", "create",
-            // Missing required --description
-        ])
+        .args(["episode", "create"]) // Missing required --description
         .output()
         .expect("Failed to run command");
 
@@ -896,21 +898,21 @@ async fn test_health_and_status() {
     println!("🧪 Testing health and status commands...");
 
     // Health check
-    let (health_result, success) =
+    let (_health_result, success) =
         run_cli(&cli_path, &config_path, &["health", "check"]).expect("Failed to run health check");
 
     assert!(success, "Health check should succeed");
     println!("  ✓ Health check passed");
 
-    // Storage status
-    let (storage_result, success) = run_cli(&cli_path, &config_path, &["storage", "status"])
-        .expect("Failed to get storage status");
+    // Storage health
+    let (_storage_result, success) = run_cli(&cli_path, &config_path, &["storage", "health"])
+        .expect("Failed to get storage health");
 
-    assert!(success, "Storage status should succeed");
-    println!("  ✓ Storage status retrieved");
+    assert!(success, "Storage health should succeed");
+    println!("  ✓ Storage health retrieved");
 
     // Config validate
-    let (config_result, success) = run_cli(&cli_path, &config_path, &["config", "validate"])
+    let (_config_result, success) = run_cli(&cli_path, &config_path, &["config", "validate"])
         .expect("Failed to validate config");
 
     assert!(success, "Config validate should succeed");

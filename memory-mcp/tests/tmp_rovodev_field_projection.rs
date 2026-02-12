@@ -138,7 +138,7 @@ fn test_field_selector_nested_fields() {
 }
 
 #[test]
-fn test_token_reduction_calculation() {
+fn test_field_projection_token_reduction() {
     // Simulate realistic query_memory response
     let full_response = json!({
         "episodes": [

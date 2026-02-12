@@ -26,9 +26,21 @@ async fn create_test_cache() -> (PreparedStatementCache, libsql::Database, TempD
     (cache, db, dir)
 }
 
+/// Helper to create just a cache without database (for cache-only tests)
+fn create_test_cache_only() -> PreparedStatementCache {
+    let config = PreparedCacheConfig {
+        max_size: 100,
+        max_connections: 10,
+        enable_refresh: true,
+        refresh_threshold: 1000,
+    };
+
+    PreparedStatementCache::with_config(config)
+}
+
 #[tokio::test]
 async fn test_cache_stores_metadata() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
     let sql = "SELECT * FROM episodes WHERE id = ?";
 
@@ -50,7 +62,7 @@ async fn test_cache_stores_metadata() {
 
 #[tokio::test]
 async fn test_cache_tracks_hits_and_misses() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
     let sql = "SELECT * FROM episodes WHERE id = ?";
 
@@ -72,7 +84,7 @@ async fn test_cache_tracks_hits_and_misses() {
 
 #[tokio::test]
 async fn test_cache_per_connection_isolation() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
 
     let conn_id1 = cache.get_connection_id();
     let conn_id2 = cache.get_connection_id();
@@ -103,7 +115,7 @@ async fn test_cache_per_connection_isolation() {
 
 #[tokio::test]
 async fn test_cache_lru_eviction() {
-    let (_cache, _db, _dir) = create_test_cache().await;
+    let _cache = create_test_cache_only();
 
     let config = PreparedCacheConfig {
         max_size: 3,
@@ -128,7 +140,7 @@ async fn test_cache_lru_eviction() {
 
 #[tokio::test]
 async fn test_connection_cleanup() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
 
     // Add some statements
@@ -154,7 +166,7 @@ async fn test_connection_cleanup() {
 
 #[tokio::test]
 async fn test_cache_statistics_tracking() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
 
     // Record some operations
@@ -181,7 +193,7 @@ async fn test_cache_statistics_tracking() {
 
 #[tokio::test]
 async fn test_cache_cleanup_idle_connections() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
 
     // Create multiple connections
     let conn_ids: Vec<_> = (0..5).map(|_| cache.get_connection_id()).collect();
@@ -204,7 +216,7 @@ async fn test_cache_cleanup_idle_connections() {
 
 #[tokio::test]
 async fn test_cache_statement_removal() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
 
     let sql = "SELECT * FROM episodes WHERE id = ?";
@@ -226,7 +238,7 @@ async fn test_cache_statement_removal() {
 
 #[tokio::test]
 async fn test_cache_clear_all() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
 
     // Create multiple connections with statements
     for _ in 0..3 {
@@ -250,76 +262,84 @@ async fn test_cache_clear_all() {
 
 #[tokio::test]
 async fn test_cache_concurrent_access() {
-    let (cache, _db, _dir): (PreparedStatementCache, _, _) = create_test_cache().await;
-    let cache = std::sync::Arc::new(cache);
+    tokio::time::timeout(Duration::from_secs(10), async {
+        let (cache, _db, _dir): (PreparedStatementCache, _, _) = create_test_cache().await;
+        let cache = std::sync::Arc::new(cache);
 
-    let handles: Vec<_> = (0..10)
-        .map(|_i| {
-            let cache = std::sync::Arc::clone(&cache);
-            tokio::spawn(async move {
-                let conn_id = cache.get_connection_id();
-                for j in 0..100 {
-                    let sql = format!("SELECT * FROM episodes WHERE id = {}", j);
-                    cache.record_miss(conn_id, &sql, 100);
-                    cache.is_cached(conn_id, &sql);
-                    cache.record_hit(conn_id, &sql);
-                }
+        let handles: Vec<_> = (0..10)
+            .map(|_i| {
+                let cache = std::sync::Arc::clone(&cache);
+                tokio::spawn(async move {
+                    let conn_id = cache.get_connection_id();
+                    for j in 0..100 {
+                        let sql = format!("SELECT * FROM episodes WHERE id = {}", j);
+                        cache.record_miss(conn_id, &sql, 100);
+                        cache.is_cached(conn_id, &sql);
+                        cache.record_hit(conn_id, &sql);
+                    }
+                })
             })
-        })
-        .collect();
+            .collect();
 
-    // Wait for all tasks
-    for handle in handles {
-        handle.await.unwrap();
-    }
+        // Wait for all tasks
+        for handle in handles {
+            handle.await.unwrap();
+        }
 
-    let stats = cache.stats();
-    // Should have 10 connections * 100 statements each
-    assert_eq!(stats.active_connections, 10);
-    assert_eq!(stats.current_size, 1000);
-    assert_eq!(stats.misses, 1000);
-    assert_eq!(stats.hits, 1000);
+        let stats = cache.stats();
+        // Should have 10 connections * 100 statements each
+        assert_eq!(stats.active_connections, 10);
+        assert_eq!(stats.current_size, 1000);
+        assert_eq!(stats.misses, 1000);
+        assert_eq!(stats.hits, 1000);
+    })
+    .await
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]
 async fn test_cache_with_actual_db_queries() {
-    let (cache, db, _dir) = create_test_cache().await;
+    tokio::time::timeout(Duration::from_secs(10), async {
+        let (cache, db, _dir) = create_test_cache().await;
 
-    let conn = db.connect().unwrap();
-    let conn_id = cache.get_connection_id();
+        let conn = db.connect().unwrap();
+        let conn_id = cache.get_connection_id();
 
-    // Create a table
-    conn.execute(
-        "CREATE TABLE test_cache (id INTEGER PRIMARY KEY, value TEXT)",
-        (),
-    )
+        // Create a table
+        conn.execute(
+            "CREATE TABLE test_cache (id INTEGER PRIMARY KEY, value TEXT)",
+            (),
+        )
+        .await
+        .unwrap();
+
+        // Prepare and execute a statement
+        let sql = "INSERT INTO test_cache (id, value) VALUES (?, ?)";
+
+        // Record cache miss
+        cache.record_miss(conn_id, sql, 150);
+
+        // Actually prepare and execute
+        let stmt = conn.prepare(sql).await.unwrap();
+        stmt.execute((1, "test")).await.unwrap();
+
+        // Verify cache knows about this statement
+        assert!(cache.is_cached(conn_id, sql));
+
+        // Record a hit for subsequent use
+        cache.record_hit(conn_id, sql);
+
+        let stats = cache.stats();
+        assert_eq!(stats.hits, 1);
+        assert_eq!(stats.misses, 1);
+    })
     .await
-    .unwrap();
-
-    // Prepare and execute a statement
-    let sql = "INSERT INTO test_cache (id, value) VALUES (?, ?)";
-
-    // Record cache miss
-    cache.record_miss(conn_id, sql, 150);
-
-    // Actually prepare and execute
-    let stmt = conn.prepare(sql).await.unwrap();
-    stmt.execute((1, "test")).await.unwrap();
-
-    // Verify cache knows about this statement
-    assert!(cache.is_cached(conn_id, sql));
-
-    // Record a hit for subsequent use
-    cache.record_hit(conn_id, sql);
-
-    let stats = cache.stats();
-    assert_eq!(stats.hits, 1);
-    assert_eq!(stats.misses, 1);
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]
 async fn test_cache_hit_rate_calculation() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
 
     // Simulate repeated query pattern
@@ -370,7 +390,7 @@ async fn test_cache_max_connections_enforcement() {
 
 #[tokio::test]
 async fn test_cache_size_tracking() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
 
     let conn_id = cache.get_connection_id();
 
@@ -390,7 +410,7 @@ async fn test_cache_size_tracking() {
 
 #[tokio::test]
 async fn test_cache_use_count_tracking() {
-    let (cache, _db, _dir) = create_test_cache().await;
+    let cache = create_test_cache_only();
     let conn_id = cache.get_connection_id();
 
     let sql = "SELECT * FROM episodes WHERE id = ?";

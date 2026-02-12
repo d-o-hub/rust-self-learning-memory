@@ -78,8 +78,14 @@ fn test_correlation_calculation() -> Result<()> {
     let results = engine.analyze_time_series(&data)?;
     assert!(!results.correlations.is_empty());
 
-    let corr = &results.correlations[0];
-    assert_eq!(corr.variables, ("x".to_string(), "y".to_string()));
+    let corr = results
+        .correlations
+        .iter()
+        .find(|corr| {
+            corr.variables == ("x".to_string(), "y".to_string())
+                || corr.variables == ("y".to_string(), "x".to_string())
+        })
+        .expect("Expected correlation for (x, y)");
     // Allow small floating point differences
     assert!(
         (corr.coefficient - 1.0).abs() < 0.01,

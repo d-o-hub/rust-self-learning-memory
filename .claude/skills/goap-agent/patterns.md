@@ -122,3 +122,7 @@ Phase 3: Validate
 ✗ Over-complicate simple tasks
 ✗ Under-estimate coordination overhead
 ✗ Forget to aggregate results
+
+## Architecture Reference
+
+- **ADR-022**: [GOAP Agent System ADR](../../../plans/adr/ADR-022-GOAP-Agent-System.md) - Architecture decision and rationale

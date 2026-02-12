@@ -26,6 +26,7 @@ use super::tools::{
     handle_get_episode_tags,
     handle_get_episode_timeline,
     handle_get_metrics,
+    handle_get_topological_order,
     handle_health_check,
     handle_quality_metrics,
     handle_query_memory,
@@ -38,6 +39,7 @@ use super::tools::{
     handle_set_episode_tags,
     handle_test_embeddings,
     handle_update_episode,
+    handle_validate_no_cycles,
 };
 use super::types::{CallToolParams, CallToolResult, Content};
 use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
@@ -163,6 +165,10 @@ pub async fn handle_call_tool(
             handle_check_relationship_exists(&mut server, params.arguments).await
         }
         "get_dependency_graph" => handle_get_dependency_graph(&mut server, params.arguments).await,
+        "validate_no_cycles" => handle_validate_no_cycles(&mut server, params.arguments).await,
+        "get_topological_order" => {
+            handle_get_topological_order(&mut server, params.arguments).await
+        }
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),
@@ -340,15 +346,6 @@ pub async fn handle_batch_execute(
                 "update_episode" => handle_update_episode(&mut server, Some(arguments)).await,
                 "get_episode_timeline" => {
                     handle_get_episode_timeline(&mut server, Some(arguments)).await
-                    //                 }
-                    //                 "batch_query_episodes" => {
-                    //                     handle_batch_query_episodes(&mut server, Some(arguments)).await
-                    //                 }
-                    //                 "batch_pattern_analysis" => {
-                    //                     handle_batch_pattern_analysis(&mut server, Some(arguments)).await
-                    //                 }
-                    //                 "batch_compare_episodes" => {
-                    //                     handle_batch_compare_episodes(&mut server, Some(arguments)).await
                 }
                 "add_episode_tags" => handle_add_episode_tags(&mut server, Some(arguments)).await,
                 "remove_episode_tags" => {
@@ -376,6 +373,12 @@ pub async fn handle_batch_execute(
                 }
                 "get_dependency_graph" => {
                     handle_get_dependency_graph(&mut server, Some(arguments)).await
+                }
+                "validate_no_cycles" => {
+                    handle_validate_no_cycles(&mut server, Some(arguments)).await
+                }
+                "get_topological_order" => {
+                    handle_get_topological_order(&mut server, Some(arguments)).await
                 }
                 _ => Err(anyhow::anyhow!("Unknown tool: {}", tool_name)),
             };
@@ -406,17 +409,19 @@ pub async fn handle_batch_execute(
 
             // Audit log batch execution
             let client_id = "batch-client"; // Batch operations don't have individual client IDs
-            let server = mcp_server.lock().await;
-            server
-                .audit_logger()
-                .log_batch_execution(
-                    client_id,
-                    response.success_count + response.failure_count,
-                    response.success_count,
-                    response.failure_count,
-                    true,
-                )
-                .await;
+            {
+                let server = mcp_server.lock().await;
+                server
+                    .audit_logger()
+                    .log_batch_execution(
+                        client_id,
+                        response.success_count + response.failure_count,
+                        response.success_count,
+                        response.failure_count,
+                        true,
+                    )
+                    .await;
+            }
 
             match serde_json::to_value(response) {
                 Ok(value) => Some(JsonRpcResponse {

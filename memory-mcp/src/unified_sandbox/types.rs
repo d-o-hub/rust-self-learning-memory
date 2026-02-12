@@ -1,6 +1,7 @@
 //! Unified sandbox types and configuration.
 
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 /// Sandbox backend selection
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,7 +38,7 @@ pub struct UnifiedMetrics {
     pub wasm_success_rate: f64,
     pub node_avg_latency_ms: f64,
     pub wasm_avg_latency_ms: f64,
-    pub routing_decisions: Vec<RoutingDecision>,
+    pub routing_decisions: VecDeque<RoutingDecision>,
 }
 
 /// Routing decision tracking

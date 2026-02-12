@@ -19,22 +19,25 @@ mod tests {
         assert!(!config.redact_fields.is_empty());
     }
 
+    /// Setup audit environment variables with proper isolation
+    fn setup_audit_test_env() {
+        static ONCE: std::sync::Once = std::sync::Once::new();
+        ONCE.call_once(|| {
+            std::env::set_var("AUDIT_LOG_ENABLED", "false");
+            std::env::set_var("AUDIT_LOG_DESTINATION", "file");
+            std::env::set_var("AUDIT_LOG_LEVEL", "debug");
+        });
+    }
+
     #[test]
     fn test_audit_config_from_env() {
-        // Set environment variables
-        std::env::set_var("AUDIT_LOG_ENABLED", "false");
-        std::env::set_var("AUDIT_LOG_DESTINATION", "file");
-        std::env::set_var("AUDIT_LOG_LEVEL", "debug");
+        // Set environment variables with proper isolation
+        setup_audit_test_env();
 
         let config = AuditConfig::from_env();
         assert!(!config.enabled);
         assert_eq!(config.destination, AuditDestination::File);
         assert_eq!(config.log_level, AuditLogLevel::Debug);
-
-        // Clean up
-        std::env::remove_var("AUDIT_LOG_ENABLED");
-        std::env::remove_var("AUDIT_LOG_DESTINATION");
-        std::env::remove_var("AUDIT_LOG_LEVEL");
     }
 
     #[test]

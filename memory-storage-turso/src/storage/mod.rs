@@ -401,21 +401,20 @@ impl TursoStorage {
             INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)
         "#;
 
-        // Use prepared statement cache for optimal performance
-        // The cache is connection-aware and handles all connection types properly
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-            })?;
-
         for (item_id, embedding) in embeddings {
             let embedding_json =
                 serde_json::to_string(&embedding).map_err(memory_core::Error::Serialization)?;
 
             let embedding_id = self.generate_embedding_id(&item_id, "embedding");
+
+            // Prepare statement for each iteration to avoid statement reuse issues
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| {
+                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
 
             stmt.execute(libsql::params![
                 embedding_id,

@@ -3,11 +3,9 @@
 ## Project Overview
 This is a memory management system with episodic memory capabilities, semantic embeddings, and multiple storage backends. The system provides persistent memory across agent interactions through an MCP (Model Context Protocol) server.
 
-**Last Updated**: 2026-01-31 (v0.1.13, Phase 2 75% complete, Phase 3 planning)
+**Last Updated**: 2026-02-10 (v0.1.14)\n\n**Codebase Stats**: 791 Rust files, ~198K LOC, 147+ test files, unknown workspace members
 
 **Stack**: Rust/Tokio + Turso/libSQL + redb cache + optional embeddings (OpenAI, Cohere, Ollama, local)
-
-**Codebase Stats**: 632 Rust files, ~140K LOC, 811+ lib tests, 9 workspace members
 
 **Crates**:
 - `memory-core`: Core memory operations and embeddings
@@ -58,7 +56,6 @@ For specific tasks, refer to these focused documentation files:
 - Use `cargo fmt` and `cargo clippy` for automatic formatting/linting
 - Write tests for new functionality (maintain >90% coverage)
 - Run quality gates before committing
-- All source code files must be ≤500 LOC (split large files into modules); benchmark files (`benches/*.rs`) are exempt from this limit
 - Use postcard for serialization in storage layers
 - Use parameterized queries to prevent SQL injection
 - **Module patterns used**: async traits for storage operations, `thiserror` for domain errors, `anyhow::Result` for public APIs, builder pattern for complex types, newtype pattern for type safety, Arc/Mutex for shared state
@@ -73,22 +70,24 @@ Enable optional features via Cargo:
 - `full`: All features enabled (turso, redb, embeddings-full)
 
 ## Performance Targets
-| Operation | Target (P95) | Actual Performance | Status |
-|-----------|-------------|-------------------|--------|
-| Episode Creation | < 50ms | ~2.5 µs (19,531x faster) | ✅ |
-| Step Logging | < 20ms | ~1.1 µs (17,699x faster) | ✅ |
-| Episode Completion | < 500ms | ~3.8 µs (130,890x faster) | ✅ |
-| Pattern Extraction | < 1000ms | ~10.4 µs (95,880x faster) | ✅ |
-| Memory Retrieval | < 100ms | ~721 µs (138x faster) | ✅ |
+Performance targets are configured in [performance-config.yaml](performance-config.yaml):
+
+| Operation | Target (P95) | Status |
+|-----------|-------------|--------|
+| Episode Creation | < 50ms | ✅ |
+| Step Logging | < 20ms | ✅ |
+| Episode Completion | < 500ms | ✅ |
+| Pattern Extraction | < 1000ms | ✅ |
+| Memory Retrieval | < 100ms | ✅ |
 
 ## Quality Standards
-- **Test Coverage**: >90% (current: 92.5%)
-- **Test Pass Rate**: >95% (current: 99.5%)
-- **Clippy Warnings**: 0 (strictly enforced)
-- **Code Formatting**: 100% rustfmt compliant
-- **Security**: Zero known vulnerabilities
-- **Performance**: <10% regression threshold
-- **File Size Compliance**: <500 LOC (all modules compliant)
+See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for comprehensive quality thresholds and configuration options.
+
+### Key Requirements
+- **Test Coverage**: >90% ([configured via](docs/QUALITY_GATES.md#configuration) `QUALITY_GATE_COVERAGE_THRESHOLD`)
+- **File Size**: <500 LOC ([enforced by](docs/QUALITY_GATES.md#code-complexity-gate) quality gates)
+- **Zero Warnings**: Strict clippy compliance ([see](agent_docs/code_conventions.md#zero-warnings-policy))
+- **Performance**: <10% regression threshold ([monitored by](performance-config.yaml) performance targets)
 
 ## Commit Format
 `[module] description` or `fix(module): description`
@@ -123,31 +122,9 @@ When running lint, build, test, or CI checks:
 3. **Prioritize**: Fix critical errors first, then warnings
 4. **Loop Until Clean**: Use iterative approach with @loop-agent until ALL issues resolved
 5. **Web Research**: If unable to resolve after first loop, use @perplexity-researcher-reasoning-pro for solutions
-6. **Handoff Coordination**: Spawn 1-9 agents with GOAP orchestration for complex fixes
+6. **Handoff Coordination**: Spawn 1-12 agents with grouping and skills with GOAP orchestration for complex fixes
 7. **Verify**: Re-run checks after each fix iteration
 8. **Never Skip**: Do not commit or push until ALL checks pass
-
-### Iterative Fix Process
-```
-Loop 1: Identify and fix obvious issues
-├─ If all resolved → Success
-└─ If issues remain → Continue
-
-Loop 2: Research remaining issues
-├─ Use @perplexity-researcher-reasoning-pro for unknown errors
-├─ Use @web-search-researcher for best practices
-└─ Apply researched solutions
-
-Loop 3+: Continue until convergence
-├─ Spawn specialized agents for specific issue types
-├─ Use parallel execution where possible
-└─ Stop only when ALL checks pass
-```
-
-### Agent Coordination for CI Fixes
-- **1-3 agents**: For simple lint/format issues
-- **4-6 agents**: For test failures across multiple modules
-- **7-9 agents**: For complex multi-category issues (lint + tests + security)
 
 ### Required Checks Before Any Commit
 - [ ] `cargo fmt --all -- --check` passes

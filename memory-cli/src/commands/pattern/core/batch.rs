@@ -193,7 +193,7 @@ async fn execute_batch_get(
     println!("📦 Retrieving {} patterns...", ids.len());
 
     let start = std::time::Instant::now();
-    let patterns = storage.get_patterns_batch(ids).await?;
+    let patterns = storage.get_patterns_batch(&ids).await?;
     let duration = start.elapsed();
 
     match format {
@@ -207,25 +207,29 @@ async fn execute_batch_get(
                 patterns.len(),
                 duration
             );
-            for (i, pattern) in patterns.iter().enumerate() {
-                println!(
-                    "  {}. ID: {} | Type: {:?} | Success Rate: {:.2}",
-                    i + 1,
-                    pattern.id(),
-                    pattern,
-                    pattern.success_rate()
-                );
+            for (i, pattern_opt) in patterns.iter().enumerate() {
+                if let Some(pattern) = pattern_opt {
+                    println!(
+                        "  {}. ID: {} | Type: {:?} | Success Rate: {:.2}",
+                        i + 1,
+                        pattern.id(),
+                        pattern,
+                        pattern.success_rate()
+                    );
+                }
             }
         }
         OutputFormat::Csv => {
             println!("pattern_id,pattern_type,success_rate");
-            for pattern in &patterns {
-                println!(
-                    "{},{:?},{:.2}",
-                    pattern.id(),
-                    pattern,
-                    pattern.success_rate()
-                );
+            for pattern_opt in &patterns {
+                if let Some(pattern) = pattern_opt {
+                    println!(
+                        "{},{:?},{:.2}",
+                        pattern.id(),
+                        pattern,
+                        pattern.success_rate()
+                    );
+                }
             }
         }
     }
@@ -253,16 +257,18 @@ async fn execute_batch_update(
     println!("📦 Updating {} patterns...", ids.len());
 
     // First retrieve the patterns
-    let mut patterns = storage.get_patterns_batch(ids).await?;
+    let patterns = storage.get_patterns_batch(&ids).await?;
 
     if patterns.is_empty() {
         println!("❌ No patterns found with provided IDs");
         return Ok(());
     }
 
-    // Apply updates
+    // Filter out None values and apply updates
+    let mut updated_patterns: Vec<Pattern> = patterns.into_iter().flatten().collect();
+
     if let Some(rate) = success_rate {
-        for pattern in &mut patterns {
+        for pattern in &mut updated_patterns {
             if let Pattern::DecisionPoint {
                 ref mut outcome_stats,
                 ..
@@ -276,14 +282,16 @@ async fn execute_batch_update(
     }
 
     let start = std::time::Instant::now();
-    let result = storage.update_patterns_batch(patterns.clone()).await;
+    let result = storage
+        .update_patterns_batch(updated_patterns.clone())
+        .await;
     let duration = start.elapsed();
 
     match result {
         Ok(()) => {
             println!(
                 "✅ Successfully updated {} patterns in {:?}",
-                patterns.len(),
+                updated_patterns.len(),
                 duration
             );
             Ok(())
@@ -382,7 +390,7 @@ async fn execute_benchmark(
 
     // Benchmark 2: Batch Get
     let start = std::time::Instant::now();
-    let _retrieved = storage.get_patterns_batch(ids.clone()).await?;
+    let _retrieved = storage.get_patterns_batch(&ids).await?;
     let get_duration = start.elapsed();
     let get_throughput = count as f64 / get_duration.as_secs_f64();
 

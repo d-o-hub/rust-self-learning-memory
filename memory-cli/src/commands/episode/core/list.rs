@@ -3,6 +3,8 @@
 use super::types::EpisodeSortOrder;
 use crate::config::Config;
 use crate::output::OutputFormat;
+#[cfg(feature = "turso")]
+use chrono::Utc;
 use memory_core::SelfLearningMemory;
 
 #[allow(clippy::too_many_arguments)]
@@ -130,7 +132,7 @@ pub async fn list_episodes(
         if let Some(ref out) = outcome {
             let outcome_clone = outcome.clone();
             episodes.retain(|episode| {
-                episode.outcome.as_ref().map_or(false, |o| {
+                episode.outcome.as_ref().is_some_and(|o| {
                     let o_str = format!("{:?}", o).to_lowercase();
                     let out_str = format!("{:?}", out).to_lowercase();
                     o_str.contains(&out_str)

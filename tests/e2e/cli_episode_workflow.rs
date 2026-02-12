@@ -11,7 +11,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use memory_core::episode::{Direction, ExecutionStep, RelationshipMetadata, RelationshipType};
-use memory_core::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use memory_core::types::{ExecutionResult, MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use memory_core::SelfLearningMemory;
 use memory_storage_redb::RedbStorage;
 use serial_test::serial;
@@ -32,8 +32,15 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .await
         .expect("Failed to create cache storage");
 
+    // Use a lower quality threshold for tests to avoid PREMem rejections for
+    // concise example episodes. See plans/ for test guidance on thresholds.
+    let cfg: MemoryConfig = MemoryConfig {
+        quality_threshold: 0.3,
+        ..Default::default()
+    };
+
     let memory = Arc::new(SelfLearningMemory::with_storage(
-        Default::default(),
+        cfg,
         Arc::new(turso_storage),
         Arc::new(cache_storage),
     ));

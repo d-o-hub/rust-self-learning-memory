@@ -33,10 +33,15 @@ jobs:
     timeout-minutes: 60    # Extended timeout for comprehensive coverage
     steps:
       - name: Free disk space
-        run: |
-          sudo rm -rf /opt/hostedtoolcache/* || true
-          sudo apt-get clean || true
-          df -h
+        uses: jlumbroso/free-disk-space@v2
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
+          docker-images: false
 
       - uses: actions/checkout@v4
 
@@ -70,8 +75,12 @@ jobs:
         run: |
           echo "Generating full workspace coverage report..."
           # Only run full workspace coverage on main branch
-          # This is slower but provides complete coverage metrics
-          timeout 3000s cargo llvm-cov --workspace --lcov --output-path lcov-full.info --jobs 4 || \
+          # Exclude heavy directories (benches/, examples/) to save disk space
+          timeout 3000s cargo llvm-cov --workspace \
+            --exclude benches \
+            --exclude examples \
+            --exclude test-utils \
+            --lcov --output-path lcov-full.info --jobs 4 || \
             echo "Full coverage timed out, using library-only report"
           # Use full report if available, otherwise keep library report
           if [ -f lcov-full.info ]; then

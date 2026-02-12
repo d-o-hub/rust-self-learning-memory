@@ -32,18 +32,35 @@ jobs:
       contents: read
     timeout-minutes: 60    # Extended timeout for comprehensive coverage
     steps:
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@v2
+      # IMPORTANT: Maximize build space MUST run before checkout
+      # This provides 7-8 GB guaranteed space gain via LVM consolidation
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
         with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
-          docker-images: false
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+
+      - name: Log disk usage before
+        run: |
+          echo "=== Disk Usage Before Build ==="
+          df -h /
+          echo ""
+          echo "=== Top 20 Directories by Size ==="
+          du -h -d1 / | sort -hr | head -n 20
 
       - uses: actions/checkout@v4
+
+      - name: Log disk usage after cleanup
+        if: always()
+        run: |
+          echo "=== Disk Usage After Cleanup ==="
+          df -h /
+          echo ""
+          echo "=== Top 20 Directories by Size ==="
+          du -h -d1 / | sort -hr | head -n 20
 
       - uses: dtolnay/rust-toolchain@stable
         with:

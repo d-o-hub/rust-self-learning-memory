@@ -5,7 +5,6 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use memory_storage_turso::prepared::PreparedStatementCache;
-use std::time::Duration;
 
 /// Benchmark basic cache operations
 fn bench_cache_basic_operations(c: &mut Criterion) {
@@ -215,7 +214,7 @@ fn bench_cache_cleanup(c: &mut Criterion) {
         let cache = PreparedStatementCache::new(100);
 
         // Populate multiple connections
-        for i in 0..10 {
+        for _i in 0..10 {
             let conn_id = cache.get_connection_id();
             for j in 0..10 {
                 let sql = format!("SELECT * FROM episodes WHERE id = {}", j);
@@ -238,6 +237,7 @@ fn bench_cache_concurrent(c: &mut Criterion) {
 
     group.throughput(Throughput::Elements(1000));
 
+    #[allow(clippy::excessive_nesting)]
     group.bench_function("concurrent_access", |b| {
         let cache = std::sync::Arc::new(PreparedStatementCache::new(100));
 

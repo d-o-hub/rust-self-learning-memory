@@ -181,7 +181,9 @@ mod tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
         let ids = vec![PatternId::new_v4(), PatternId::new_v4()];
         let result = storage.get_patterns_batch(&ids).await.unwrap();
-        assert_eq!(result.len(), 0);
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_none());
+        assert!(result[1].is_none());
     }
 
     #[tokio::test]

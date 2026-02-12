@@ -307,19 +307,26 @@ mod tests {
         let id1 = Uuid::new_v4();
         let id2 = Uuid::new_v4();
 
-        // Store only one episode
-        let episodes = vec![(
-            id1,
-            Episode::new(
-                "Test task".to_string(),
-                TaskContext::default(),
-                TaskType::CodeGeneration,
-            ),
-        )];
-        storage
-            .store_episodes_batch(episodes.into_iter().map(|(_, e)| e).collect())
-            .await
-            .unwrap();
+        // Store only one episode with specific ID
+        let episode = Episode {
+            episode_id: id1,
+            task_type: TaskType::CodeGeneration,
+            task_description: "Test task".to_string(),
+            context: TaskContext::default(),
+            start_time: chrono::Utc::now(),
+            end_time: None,
+            steps: Vec::new(),
+            outcome: None,
+            reward: None,
+            reflection: None,
+            patterns: Vec::new(),
+            heuristics: Vec::new(),
+            applied_patterns: Vec::new(),
+            salient_features: None,
+            metadata: std::collections::HashMap::new(),
+            tags: Vec::new(),
+        };
+        storage.store_episodes_batch(vec![episode]).await.unwrap();
 
         // Retrieve both - one should exist, one should be None
         let result = storage.get_episodes_batch(&[id1, id2]).await.unwrap();

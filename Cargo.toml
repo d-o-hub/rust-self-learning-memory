@@ -51,7 +51,7 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 tempfile = "3.24.0"
 
 # Benchmarking
-criterion = "0.5"
+criterion = "0.8"
 
 # WASM and JavaScript execution
 rquickjs = "0.11.0"

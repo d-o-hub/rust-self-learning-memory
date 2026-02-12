@@ -47,22 +47,26 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
 
 /// Helper to create a test config file
 fn create_test_config(temp_dir: &TempDir) -> Result<std::path::PathBuf> {
-    let config_path = temp_dir.path().join("config.yaml");
+    let config_path = temp_dir.path().join("config.toml");
     let db_dir = temp_dir.path().join("db");
     std::fs::create_dir_all(&db_dir)?;
 
     let config_content = format!(
-        r#"storage:
-  turso_path: {}
-  cache_path: {}
-  enable_compression: true
+        r#"[database]
+turso_url = "file:{0}/memory.db"
+redb_path = "{0}/cache.redb"
 
-cli:
-  default_output_format: json
-  verbose: false
+[storage]
+max_episodes_cache = 100
+cache_ttl_seconds = 3600
+pool_size = 5
+
+[cli]
+default_format = "json"
+progress_bars = false
+batch_size = 100
 "#,
-        db_dir.join("turso.redb").display(),
-        db_dir.join("cache.redb").display()
+        db_dir.display()
     );
 
     std::fs::write(&config_path, config_content)?;
@@ -112,16 +116,7 @@ async fn test_episode_full_lifecycle() {
     let (create_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "episode",
-            "create",
-            "--description",
-            "Test episode for lifecycle",
-            "--domain",
-            "cli-test",
-            "--type",
-            "code-generation",
-        ],
+        &["episode", "create", "--task", "Test episode for lifecycle"],
     )
     .expect("Failed to run create command");
 
@@ -899,12 +894,12 @@ async fn test_health_and_status() {
     assert!(success, "Health check should succeed");
     println!("  ✓ Health check passed");
 
-    // Storage status
-    let (_storage_result, success) = run_cli(&cli_path, &config_path, &["storage", "status"])
-        .expect("Failed to get storage status");
+    // Storage health
+    let (_storage_result, success) = run_cli(&cli_path, &config_path, &["storage", "health"])
+        .expect("Failed to get storage health");
 
-    assert!(success, "Storage status should succeed");
-    println!("  ✓ Storage status retrieved");
+    assert!(success, "Storage health should succeed");
+    println!("  ✓ Storage health retrieved");
 
     // Config validate
     let (_config_result, success) = run_cli(&cli_path, &config_path, &["config", "validate"])

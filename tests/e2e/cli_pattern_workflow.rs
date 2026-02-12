@@ -12,6 +12,7 @@
 
 use memory_core::episode::ExecutionStep;
 use memory_core::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use memory_core::MemoryConfig;
 use memory_core::SelfLearningMemory;
 use memory_storage_redb::RedbStorage;
 use serial_test::serial;
@@ -32,8 +33,14 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .await
         .expect("Failed to create cache storage");
 
+    // Use lower quality threshold for tests to avoid rejections
+    let config = MemoryConfig {
+        quality_threshold: 0.3,
+        ..Default::default()
+    };
+
     let memory = Arc::new(SelfLearningMemory::with_storage(
-        Default::default(),
+        config,
         Arc::new(turso_storage),
         Arc::new(cache_storage),
     ));

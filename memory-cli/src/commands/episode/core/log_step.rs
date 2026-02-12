@@ -3,8 +3,14 @@
 use crate::config::Config;
 #[cfg(feature = "turso")]
 use crate::errors::{helpers, EnhancedError};
+#[cfg(feature = "turso")]
+use crate::output::Output;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
+#[cfg(feature = "turso")]
+use memory_core::{ExecutionResult, ExecutionStep};
+#[cfg(feature = "turso")]
+use uuid::Uuid;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn log_step(

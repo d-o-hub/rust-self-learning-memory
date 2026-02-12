@@ -3,6 +3,8 @@
 use super::types::EpisodeSortOrder;
 use crate::config::Config;
 use crate::output::OutputFormat;
+#[cfg(feature = "turso")]
+use chrono::Utc;
 use memory_core::SelfLearningMemory;
 
 #[allow(clippy::too_many_arguments)]

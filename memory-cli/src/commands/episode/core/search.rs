@@ -3,6 +3,10 @@
 use super::types::SearchSortOrder;
 use crate::config::Config;
 use crate::output::OutputFormat;
+#[cfg(feature = "turso")]
+use memory_core::search::{SearchField, SearchMode};
+#[cfg(feature = "turso")]
+use memory_core::EpisodeFilter;
 use memory_core::{Episode, SelfLearningMemory, TaskOutcome};
 
 /// Calculate a success score for an episode (higher = more successful)

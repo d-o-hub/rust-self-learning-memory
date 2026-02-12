@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770607628012,
+  "lastUpdate": 1770916554454,
   "repoUrl": "https://github.com/d-o-hub/rust-self-learning-memory",
   "entries": {
     "Rust Benchmarks": [
@@ -11050,6 +11050,96 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/c7d5b9b111d3334e17b9dacfeefc80c7bf1d4ff6"
         },
         "date": 1770607627303,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "episode_lifecycle::basic_memory_operations",
+            "value": 100,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::hashmap_operations",
+            "value": 200,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "episode_lifecycle::string_processing",
+            "value": 50,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::simple_memory_operations",
+            "value": 150,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::string_operations",
+            "value": 75,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "storage_operations::vector_filtering",
+            "value": 120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::regex_matching",
+            "value": 300,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::data_processing",
+            "value": 180,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/100",
+            "value": 250,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/1000",
+            "value": 500,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "pattern_extraction::pattern_search_by_size/10000",
+            "value": 800,
+            "range": "± 40",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "242170972+d-o-hub@users.noreply.github.com",
+            "name": "d.o.",
+            "username": "d-o-hub"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0b0a62bea45f097dbb4c477b5f2465972a9e709a",
+          "message": "feat: Integrate PR #265 relationship tools and CLI commands onto PR #272 (#274)\n\n* fix(memory-mcp): resolve critical compilation and test issues\n\n**Critical Compilation Fixes:**\n- Fix incomplete comment block breaking match arm in handlers.rs\n- Remove broken batch module with non-existent jsonrpsee dependencies\n- Rename server module to server_impl to fix module shadowing\n\n**Test Suite Fixes:**\n- Rename 6 duplicate test functions across 4 files\n- Apply std::sync::Once pattern to environment variable setup\n\n**Security Hardening:**\n- Add JWT validation warnings for stdio-only mode\n- Enhance JavaScript escaping in sandbox (prevent injection)\n- Fix base64 URL-safe decoding for JWT tokens\n\n**Performance Optimizations:**\n- Change Vec to VecDeque for O(1) eviction in routing metrics\n- Minimize lock scope in batch execution\n\nFixes #compilation #security #performance #tests\n\n* style(mcp): fix comment alignment in sandbox.rs for rustfmt compliance\n\n* fix(memory): stabilize tests and restore relationship fallback\n\n* docs(agents): optimize AGENTS.md removing magic numbers and redundant content\n\n- Add dynamic stats generation via scripts/generate-codebase-stats.sh\n- Create performance-config.yaml for configurable targets\n- Remove duplicate quality standards (reference docs/QUALITY_GATES.md)\n- Eliminate hardcoded version/stats (read from Cargo.toml dynamically)\n- Reduce file size limit references from 4x to 2x\n- Replace magic numbers with external configuration references\n- Add <!-- INCLUDE:stats.md --> placeholder for automatic updates\n\n* fix(tests): resolve clippy warnings in test suites\n\n* fix(tests): resolve clippy warnings in cli pattern workflow\n\n* chore(docs): move stats.md into plans\n\n* chore(docs): add agents skills symlink\n\n* fix(tests): resolve 7 failing CI tests with relaxed thresholds and corrected assertions\n\n- test_correlation_calculation: handle both (x,y) and (y,x) variable ordering\n- test_concept_drift_handling: relax changepoint count threshold (30→80)\n- test_temporal_consistency: relax high-confidence threshold (10→30)\n- test_noise_point_handling: relax to require at least one noise point\n- benchmark_streaming_performance: lower CI throughput threshold (30→10)\n- benchmark_compatibility_assessment: raise CI timing threshold (300→1000ms)\n- test_get_topological_order_with_dependencies: fix assertion direction\n\nAmp-Thread-ID: https://ampcode.com/threads/T-019c47b4-dc6e-758e-9112-127971d1fa3f\nCo-authored-by: Amp <amp@ampcode.com>\n\n* fix(tests): address clippy warnings in cli workflows\n\n* fix(tests): stabilize mcp benchmarks and sandbox timeouts\n\n* fix(tests): use known tools in compatibility benchmark\n\n* fix(tests): use known tools in compatibility benchmark\n\n* fix(tests): silence unused cli workflow results\n\n* fix(patterns): resolve BOCPD test sensitivity and benchmark compatibility issues\n\n- Adjust BOCPD parameters for seasonal data test (hazard_rate: 0.5, threshold: 0.95, max_changepoints: 3)\n- Reduce BOCPD sensitivity for gradual drift test (hazard_rate: 0.01, threshold: 0.90, max_changepoints: 2)\n- Enhance benchmark compatibility assessment with tool registry verification\n- Add pre-allocation and warmup runs to eliminate cold start effects\n- Improve error reporting with specific failure diagnostics\n\nFixes test failures in:\n- test_temporal_consistency: seasonal data producing excessive changepoints\n- test_concept_drift_handling: gradual drift detection too sensitive\n- benchmark_compatibility_assessment: tool registry validation improved\n\n* fix(patterns): correct BOCPDConfig field names in test fixes\n\n- Replace max_run_length with max_run_length_hypotheses\n- Replace min_samples with buffer_size\n- Use correct expected_run_length field\n- Fix compilation errors in BOCPD tests\n\n* fix(tests): resolve clippy warnings in e2e tests\n\n- Replace vec! with array literal for static string data\n- Use unwrap_or_else instead of expect to satisfy clippy::expect_fun_call\n- Fix clippy::useless_vec warning in mcp_tag_chain.rs\n\n* fix(tests): lower quality threshold in e2e tests to prevent PREMem rejections\n\nSets quality_threshold to 0.3 in test setup to avoid PREMem rejecting\nsmall example episodes that lack reflections/patterns. This allows\ntests to complete successfully while still validating core functionality.\n\n* ci(codeql): remove custom config to fix Default Setup conflict\n\nGitHub's Default Setup for CodeQL conflicts with custom config-file.\nRemoving config-file reference allows workflow to use Default Setup.\nAlso updated to CodeQL v4 to resolve deprecation warning.\n\nFixes: CodeQL analysis upload failure (P0-3)\n\n* fix(tests): add type annotation for MemoryConfig in e2e tests\n\nFixes compilation error where Default::default() couldn't infer type.\nRequired explicit type annotation for cfg variable.\n\n* fix(memory-core): scope write lock to prevent deadlock in complete_episode\n\nThe episodes_fallback write lock was held while calling\nextract_patterns_sync, which tries to acquire a read lock on the same\nRwLock — causing a deadlock on CI (tests hung >60s then timed out).\n\nScoping the write lock with a block ensures it is dropped before\npattern extraction begins.\n\nAmp-Thread-ID: https://ampcode.com/threads/T-019c4e04-1e64-779f-b4d1-8e9bca739f4b\nCo-authored-by: Amp <amp@ampcode.com>\n\n* fix(memory-mcp): relax BOCPD CI threshold and fix sandbox escaping\n\nAmp-Thread-ID: https://ampcode.com/threads/T-019c4e04-1e64-779f-b4d1-8e9bca739f4b\nCo-authored-by: Amp <amp@ampcode.com>\n\n* Add conflict analysis and feature extraction reports for PR #265 and PR #272\n\n- Created `phase1_conflict_analysis.md` detailing direct file conflicts between PR #265 (MCP relationship tools + CLI) and PR #272 (Critical compilation fixes).\n- Documented structural changes, conflict mapping, and recommendations for resolution.\n- Added `phase1_feature_extraction.md` summarizing features introduced in PR #265, including MCP relationship tools and CLI commands.\n- Provided detailed descriptions of each tool, command, and their respective input/output types.\n\n* feat: Integrate PR #265 relationship tools and CLI commands onto PR #272\n\nIntegrates all MCP relationship tools and CLI enhancements from PR #265\non top of the critical compilation fixes from PR #272.\n\n## MCP Tools (8 total)\n- add_episode_relationship\n- remove_episode_relationship\n- get_episode_relationships\n- find_related_episodes\n- check_relationship_exists\n- get_dependency_graph\n- validate_no_cycles (enabled)\n- get_topological_order (enabled)\n\n## CLI Commands\n- relationship: add, remove, list, find, info, graph, validate\n- tag: add, remove, set, list, search, show, rename, stats\n\n## Integration Details\n- Relocated changes from server/ to server_impl/ (PR #272 rename)\n- Enabled 2 previously disabled MCP tools\n- Added 1,153 LOC of relationship CLI commands\n- Preserved all PR #272 compilation fixes\n\n## Verification\n- Build: ✅ All 8 crates compile\n- Clippy: ✅ Zero warnings\n- Tests: 717/718 passing (1 pre-existing embedding failure)\n- E2E: 6 pre-existing quality threshold issues\n\nResolves conflicts between PR #265 and PR #272 per phase1_conflict_analysis.md\n\n* fix(tests): lower quality threshold in E2E tests to prevent rejections\n\nSets quality_threshold to 0.3 in test setup to avoid PREMem rejecting\nsmall example episodes that lack reflections/patterns. This allows\n6 E2E tests in cli_pattern_workflow.rs to complete successfully.\n\n* fix(benches): resolve clippy warnings in prepared_cache_benchmark\n\n- Remove unused Duration import\n- Prefix unused variable with underscore (_i)\n- Add allow attribute for excessive_nesting in concurrent benchmark\n\n* fix(storage): use Option<PooledConnection> to avoid zero-initialize panic\n\nChanges ConnectionGuard to use Option<PooledConnection> instead of direct\nPooledConnection. This allows safe take() in Drop impl without using\nunsafe std::mem::zeroed() which caused panics with libsql::Connection.\n\n* fix(storage): remove zero-initialize test in connection_wrapper\n\nRemoves test_pooled_connection_creation which used unsafe std::mem::zeroed()\non libsql::Connection. This test cannot be safely run without a real database\nconnection. Marked as ignored with explanation.\n\n* fix(storage): resolve cache snapshot deserialization error\n\nFixes Option discriminant error in cache snapshot serialization caused\nby recent ConnectionGuard changes. Updates serialization to properly\nhandle Option<PooledConnection> in cache structures.\n\n* fix(clippy): resolve clippy warnings for CI\n\n- Fix excessive nesting in prepared_cache_benchmark.rs by extracting concurrent benchmark logic\n- Convert map_or(false, ...) to is_some_and(...) in episode list command\n\nFixes CI failures in PR #263\n\n* test(e2e): fix cli_workflows test config compatibility\n\nFix test configuration to match current CLI requirements:\n- Change config file extension from .yaml to .toml\n- Update config format from YAML to TOML\n- Add required fields: max_episodes_cache, cache_ttl_seconds, pool_size\n- Fix CLI args: change --description to --task, remove --domain/--type\n- Fix storage command: change status to health\n\nPartial fix for PR #274 CI failures\n\n* ci: remove custom CodeQL workflow to resolve conflict with default setup\n\n* test(embeddings): mark flaky test as ignored\n\n* test(e2e): fix CLI output parsing to handle log messages\n\n- Updated run_cli() function to filter out log lines (INFO, WARN, ERROR)\n- Finds first JSON line (starts with \"{\") instead of parsing entire stdout\n- Proper error handling with anyhow for missing JSON or parse failures\n- Added documentation comments explaining the filtering strategy\n\n* fix(cli): resolve pre-existing unused import warnings\n\nAdd #[cfg(feature = \"turso\")] attributes to conditionally compile\nimports only used when turso feature is enabled. Fixes clippy\nwarnings about unused imports in episode command modules.\n\n* fix(cli): update TursoStorage initialization for PR #274 integration\n\nUpdate pattern batch command to use new TursoStorage API with proper\nURL handling and mutable references. Fixes integration issues between\nPR #265 relationship tools and PR #272 base.\n\n* test(prepared): mark CI-timeout tests as ignored\n\nMark 3 integration tests with #[ignore] that timeout in CI:\n- test_connection_cleanup\n- test_cache_cleanup_idle_connections\n- test_cache_statement_removal\n\nThese tests create real libsql databases which hang in resource-\nconstrained CI environments. Exit code 142 indicates process was\nkilled after 60s timeout.\n\n* fix(storage): resolve CI timeout by fixing PreparedStatementCache deadlock\n\n**Problem:**\n- 3 tests in memory-storage-turso/src/prepared/tests.rs were timing out after 60s\n- Tests hung indefinitely with exit code 142 (SIGTERM)\n- Root cause: Critical deadlock in PreparedStatementCache\n\n**Deadlock Bug Fixed:**\nThree methods held write lock on cache while calling total_size(),\nwhich tried to acquire read lock on same RwLock:\n- clear_connection() - now calculates size before releasing write lock\n- remove() - now calculates size before releasing write lock\n- cleanup_idle_connections() - now calculates size before releasing write lock\n\n**Test Optimizations:**\n- Converted 12 tests from create_test_cache() to create_test_cache_only()\n  (eliminates real database creation overhead)\n- Only 2 tests still use real database (concurrent_access, actual_db_queries)\n- Added tokio::time::timeout protection to database tests\n- Removed all #[ignore] attributes from previously-hanging tests\n\n**Results:**\n- All 15 prepared::tests pass in 0.65s (was hanging indefinitely)\n- cargo clippy --all -- -D warnings: 0 warnings\n- cargo build --all: clean build\n- Test coverage maintained\n\nRefs: ADR-001 (Hybrid Storage Architecture), PR274 analysis\n\n* fix(tests): resolve 4 test assertion failures in PR #274\n\nFixed test expectation mismatches in memory-storage-turso:\n\n1. test_get_patterns_batch_nonexistent (pattern_tests.rs:184)\n   - Expected result.len() == 0, but implementation returns Vec<Option<Pattern>>\n     with same length as input (containing None values)\n   - Fixed: Updated assertions to expect result.len() == 2 with is_none() checks\n\n2. test_get_episodes_batch_with_missing (query_batch.rs:328)\n   - Episode::new() generates random UUID, but test tried to retrieve using id1\n   - Fixed: Construct Episode with explicit episode_id: id1 to match retrieval ID\n\n3. test_store_embeddings_batch & test_get_embeddings_batch (tests.rs)\n   - Batch storage prepared statement once outside loop, but libsql statements\n     cannot be reused for multiple executions without reset\n   - Fixed: Move statement preparation inside the loop for each iteration\n\nAll 206 tests in memory-storage-turso now pass.\nNo new clippy warnings introduced.\n\n* test(transport): mark flaky compression test as ignored\n\ntest_stream_roundtrip fails in CI - decompressed data doesn't match\noriginal. Likely environment-specific issue. Mark as ignored until\nfurther investigation.\n\n---------\n\nCo-authored-by: OpenCode Agent <opencode@agent.dev>\nCo-authored-by: Amp <amp@ampcode.com>",
+          "timestamp": "2026-02-12T16:46:50Z",
+          "tree_id": "af8215d0bf8f7512201fb528debd6936f13d8ab5",
+          "url": "https://github.com/d-o-hub/rust-self-learning-memory/commit/0b0a62bea45f097dbb4c477b5f2465972a9e709a"
+        },
+        "date": 1770916554047,
         "tool": "cargo",
         "benches": [
           {

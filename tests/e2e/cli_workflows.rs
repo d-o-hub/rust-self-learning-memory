@@ -74,6 +74,9 @@ batch_size = 100
 }
 
 /// Run a CLI command and return output
+///
+/// Filters out log messages before parsing JSON.
+/// This handles the case where CLI outputs logging (WARN, INFO) mixed with JSON response.
 fn run_cli(
     cli_path: &std::path::Path,
     config_path: &std::path::Path,
@@ -88,12 +91,19 @@ fn run_cli(
     let stdout = String::from_utf8_lossy(&output.stdout);
     let success = output.status.success();
 
-    // Try to parse as JSON, but don't fail if it's not valid JSON
+    // Filter out log messages and find the JSON response
     let json = if stdout.trim().is_empty() {
         serde_json::json!({})
     } else {
-        serde_json::from_str(&stdout)
-            .unwrap_or_else(|_| serde_json::json!({ "raw_output": stdout.to_string() }))
+        // Strategy: Find the first line that looks like JSON (starts with '{')
+        // This filters out log messages (INFO, WARN, ERROR) that appear before the JSON result
+        let json_line = stdout
+            .lines()
+            .find(|line| line.trim().starts_with('{'))
+            .ok_or_else(|| anyhow::anyhow!("No JSON found in output"))?;
+
+        serde_json::from_str(json_line)
+            .map_err(|e| anyhow::anyhow!("Failed to parse JSON: {} - line: {}", e, json_line))?
     };
 
     Ok((json, success))

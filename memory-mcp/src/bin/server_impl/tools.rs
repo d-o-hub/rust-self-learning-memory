@@ -60,9 +60,14 @@ pub async fn handle_query_memory(
         .and_then(|v| v.as_str())
         .unwrap_or("relevance")
         .to_string();
+    let fields = args.get("fields").and_then(|v| v.as_array()).map(|arr| {
+        arr.iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect()
+    });
 
     let result = server
-        .query_memory(query.clone(), domain, task_type, limit, sort, None)
+        .query_memory(query.clone(), domain, task_type, limit, sort, fields)
         .await;
 
     // Audit log the operation

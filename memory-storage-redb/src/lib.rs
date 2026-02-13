@@ -40,7 +40,6 @@ mod episodes;
 mod episodes_queries;
 mod episodes_summaries;
 mod heuristics;
-mod metrics;
 mod patterns;
 mod persistence;
 mod relationships;
@@ -50,7 +49,6 @@ mod tables;
 pub use cache::{
     AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics, CacheConfig, CacheMetrics, LRUCache,
 };
-pub use metrics::RedbMetrics;
 pub use persistence::{
     CachePersistence, CacheSnapshot, PersistedCacheEntry, PersistenceConfig, PersistenceManager,
     PersistenceMode, PersistenceStats, PersistenceStrategy,

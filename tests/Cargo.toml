@@ -6,11 +6,22 @@ license = "MIT"
 publish = false
 
 [dependencies]
-memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }
+# memory-core: Only enable embedding features for tests that specifically test embeddings
+# Most tests don't need ort/tokenizers - keep base features only
+memory-core = { path = "../memory-core" }
 memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
-memory-mcp = { path = "../memory-mcp" }
+# memory-mcp: Enable wasmtime-backend for MCP tests
+memory-mcp = { path = "../memory-mcp", features = ["wasmtime-backend"] }
 memory-cli = { path = "../memory-cli" }
+
+# Optional: Enable for embedding-specific tests only
+# memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }
+
+[dev-dependencies]
+# Embedding tests - only use when specifically testing embeddings
+# Uncomment only for tests that need ort/tokenizers:
+# memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }
 
 anyhow.workspace = true
 tokio.workspace = true

@@ -55,6 +55,11 @@ For comprehensive guides, see `agent_docs/`:
 - `service_architecture.md` - System design, components
 - `database_schema.md` - Data structures, relationships
 
+## Code Conventions
+- **Max 500 LOC per file** (source code)
+- Zero warnings policy (clippy)
+- Single responsibility per module
+
 ## Feature Flags
 - `openai`: OpenAI embeddings
 - `local-embeddings`: CPU embeddings (ort, tokenizers)

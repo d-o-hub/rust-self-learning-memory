@@ -97,12 +97,6 @@ rustc-version = "0.4"
  # Cargo limitations. Requires upstream updates in libsql and augurs crates.
  # See SECURITY.md for details on advisories and mitigation.
 
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-panic = "abort"
-
 # Coverage configuration for cargo-llvm-cov
 [workspace.metadata.coverage]
 exclude-from-coverage = ["tests", "benches"]

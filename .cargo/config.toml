@@ -2,14 +2,32 @@
 # Security hardening and custom aliases
 
 [build]
-# Enable overflow checks in release mode for security
-# This catches integer overflows that could lead to vulnerabilities
-jobs = 4
+# Use all available cores for parallel compilation
+jobs = -1
+
+[profile.dev]
+# Fast development builds - optimized for iteration speed
+opt-level = 0
+debug = true
+
+[profile.test]
+# Test profile - fast compilation for running tests
+opt-level = 0
 
 [profile.release]
-overflow-checks = true
-lto = true
+# Production release - maximum runtime performance
+opt-level = 3
+lto = "fat"
 codegen-units = 1
+panic = "abort"
+overflow-checks = true
+
+[profile.release-lto]
+# Development release - faster builds with acceptable performance
+# Use: cargo build --profile release-lto
+inherits = "release"
+lto = "thin"
+codegen-units = 4
 
 [target.x86_64-unknown-linux-gnu]
 # Security hardening flags
@@ -18,6 +36,11 @@ codegen-units = 1
 rustflags = [
     "-C", "link-arg=-Wl,-z,relro,-z,now",
 ]
+
+# Optional: Enable native CPU optimizations for even better performance
+# Uncomment for target-specific builds:
+# [profile.release]
+# rustflags = ["-C", "target-cpu=native"]
 
  [alias]
  # Custom cargo commands for development workflow

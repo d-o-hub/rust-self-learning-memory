@@ -64,3 +64,6 @@ de6ec38:memory-mcp/src/bin/server/embedding.rs:generic-api-key:26
 
 # CLI embedding command with placeholder
 286a499:memory-cli/src/commands/embedding.rs:generic-api-key:430
+
+# Documentation example showing bad practice (hardcoded secret in example)
+e734961e3945646d5f2805fdf44009f38af9a1bb:plans/skills-cli-invocation-best-practices.md:curl-auth-header:899

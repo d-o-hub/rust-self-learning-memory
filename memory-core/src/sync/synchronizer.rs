@@ -79,7 +79,7 @@ where
     ///
     /// Returns error if episode not found or storage operation fails
     pub async fn sync_episode_to_cache(&self, episode_id: Uuid) -> Result<()> {
-        let correlation_id = CorrelationId::new();
+        let correlation_id = Uuid::new_v4();
 
         info!(correlation_id = %correlation_id, "Syncing episode {} to cache", episode_id);
 
@@ -132,7 +132,7 @@ where
     ///
     /// Returns error if query fails, but continues syncing other episodes if individual stores fail
     pub async fn sync_all_recent_episodes(&self, since: DateTime<Utc>) -> Result<SyncStats> {
-        let correlation_id = CorrelationId::new();
+        let correlation_id = Uuid::new_v4();
 
         info!(correlation_id = %correlation_id, "Syncing all episodes since {}", since);
 
@@ -227,7 +227,7 @@ where
                 interval_timer.tick().await;
 
                 let since = Utc::now() - chrono::Duration::hours(1);
-                let correlation_id = CorrelationId::new();
+                let correlation_id = Uuid::new_v4();
 
                 match self.sync_all_recent_episodes(since).await {
                     Ok(stats) => {

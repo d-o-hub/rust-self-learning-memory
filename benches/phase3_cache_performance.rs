@@ -6,9 +6,9 @@
 //! - Batch operations
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use std::hint::black_box;
 use memory_core::{Episode, Pattern, PatternId, StorageBackend, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, TursoStorage};
+use std::hint::black_box;
 use std::time::Duration;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;

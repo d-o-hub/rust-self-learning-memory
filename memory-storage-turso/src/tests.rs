@@ -28,6 +28,10 @@ async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
             crate::PreparedCacheConfig::default(),
         )),
         config: TursoConfig::default(),
+        #[cfg(feature = "compression")]
+        compression_stats: Arc::new(std::sync::Mutex::new(
+            crate::CompressionStatistics::default(),
+        )),
     };
 
     storage.initialize_schema().await?;

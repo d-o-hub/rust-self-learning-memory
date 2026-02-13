@@ -17,13 +17,13 @@
 //! - Diversity score: Average across queries (target: ≥0.7)
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::hint::black_box;
 use memory_core::{
     memory::SelfLearningMemory,
     spatiotemporal::{DiversityMaximizer, ScoredEpisode},
     ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
 };
 use std::collections::HashSet;
+use std::hint::black_box;
 use std::time::{Duration, Instant};
 use tokio::runtime::Runtime;
 use uuid::Uuid;

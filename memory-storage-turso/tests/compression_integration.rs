@@ -67,7 +67,10 @@ ON embeddings(item_id, item_type)
 
     // Verify table exists
     let check_result = conn
-        .query("SELECT name FROM sqlite_master WHERE type='table' AND name='embeddings'", ())
+        .query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='embeddings'",
+            (),
+        )
         .await;
     match check_result {
         Ok(mut rows) => {
@@ -75,6 +78,10 @@ ON embeddings(item_id, item_type)
                 panic!("Table 'embeddings' was not created!");
             }
         }
+        Err(e) => {
+            panic!("Failed to verify table creation: {}", e);
+        }
+    }
 
     storage
 }

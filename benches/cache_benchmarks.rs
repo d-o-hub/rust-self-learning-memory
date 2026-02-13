@@ -6,9 +6,9 @@
 //! Run with: `cargo bench --bench cache_benchmarks`
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::hint::black_box;
 use memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
+use std::hint::black_box;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;
 use uuid::Uuid;

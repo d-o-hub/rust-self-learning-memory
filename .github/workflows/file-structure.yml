@@ -50,7 +50,7 @@ jobs:
             # Check if file is permanent doc
             is_permanent=false
             for perm in "${PERMANENT_DOCS[@]}"; do
-              if [[ "$(basename "$file")" == $perm ]]; then
+              if [[ "$(basename "$file")" == "$perm" ]]; then
                 is_permanent=true
                 break
               fi

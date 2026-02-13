@@ -8,7 +8,6 @@
 
 use anyhow::Result;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use std::hint::black_box;
 use memory_core::{
     embeddings::EmbeddingStorageBackend,
     types::{ComplexityLevel, TaskContext, TaskType},
@@ -17,6 +16,7 @@ use memory_core::{
 use memory_storage_turso::TursoStorage;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
+use std::hint::black_box;
 use std::sync::Arc;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;

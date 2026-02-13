@@ -1,6 +1,5 @@
 //! Storage synchronizer for coordinating Turso and redb
 
-use crate::tracing::CorrelationId;
 use crate::{Error, Result, MAX_QUERY_LIMIT};
 use chrono::{DateTime, Utc};
 use std::sync::Arc;

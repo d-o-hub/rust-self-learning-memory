@@ -3,7 +3,6 @@
 use crate::episode::{Episode, ExecutionStep};
 use crate::error::{Error, Result};
 use crate::security::audit::{episode_created, AuditContext};
-use crate::tracing::CorrelationId;
 use crate::types::{TaskContext, TaskType};
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};

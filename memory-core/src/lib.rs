@@ -280,9 +280,6 @@ pub use security::audit::{
     AuditOutput, AuditResult,
 };
 pub use storage::{apply_query_limit, StorageBackend, DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT};
-pub use tracing::{
-    add_correlation_id, init_tracing, init_tracing_json, init_tracing_pretty, CorrelationId,
-};
 pub use types::{
     ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
     Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,

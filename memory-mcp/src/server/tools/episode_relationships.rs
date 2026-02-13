@@ -42,19 +42,48 @@ impl MemoryMCPServer {
         let from_id = input.from_episode_id.clone();
         let to_id = input.to_episode_id.clone();
         let rel_type = input.relationship_type.clone();
+        let client_id = input
+            .created_by
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string());
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.add_relationship(input).await?;
+        let result = tools.add_relationship(input).await;
 
-        info!(
-            relationship_id = %result.relationship_id,
-            from_episode_id = %from_id,
-            to_episode_id = %to_id,
-            relationship_type = %rel_type,
-            "Created episode relationship via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(r) => {
+                audit_logger
+                    .log_add_relationship(
+                        &client_id,
+                        &from_id,
+                        &to_id,
+                        &rel_type,
+                        &r.relationship_id,
+                        true,
+                    )
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(
+                    relationship_id = %r.relationship_id,
+                    from_episode_id = %from_id,
+                    to_episode_id = %to_id,
+                    relationship_type = %rel_type,
+                    "Created episode relationship via MCP"
+                );
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_add_relationship(&client_id, &from_id, &to_id, &rel_type, "none", false)
+                    .await;
+
+                debug!("Failed to create episode relationship: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Remove a relationship by ID
@@ -69,16 +98,32 @@ impl MemoryMCPServer {
 
         let input: RemoveEpisodeRelationshipInput = serde_json::from_value(args)?;
         let relationship_id = input.relationship_id.clone();
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.remove_relationship(input).await?;
+        let result = tools.remove_relationship(input).await;
 
-        info!(
-            relationship_id = %relationship_id,
-            "Removed episode relationship via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(_) => {
+                audit_logger
+                    .log_remove_relationship(&client_id, &relationship_id, true)
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(relationship_id = %relationship_id, "Removed episode relationship via MCP");
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_remove_relationship(&client_id, &relationship_id, false)
+                    .await;
+
+                debug!("Failed to remove episode relationship: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Get relationships for an episode
@@ -96,18 +141,38 @@ impl MemoryMCPServer {
 
         let input: GetEpisodeRelationshipsInput = serde_json::from_value(args)?;
         let episode_id = input.episode_id.clone();
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.get_relationships(input).await?;
+        let result = tools.get_relationships(input).await;
 
-        info!(
-            episode_id = %episode_id,
-            outgoing_count = result.outgoing.len(),
-            incoming_count = result.incoming.len(),
-            "Retrieved episode relationships via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(r) => {
+                let total_count = r.outgoing.len() + r.incoming.len();
+                audit_logger
+                    .log_get_relationships(&client_id, &episode_id, total_count, true)
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(
+                    episode_id = %episode_id,
+                    outgoing_count = r.outgoing.len(),
+                    incoming_count = r.incoming.len(),
+                    "Retrieved episode relationships via MCP"
+                );
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_get_relationships(&client_id, &episode_id, 0, false)
+                    .await;
+
+                debug!("Failed to get episode relationships: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Find episodes related to a given episode
@@ -126,17 +191,32 @@ impl MemoryMCPServer {
 
         let input: FindRelatedEpisodesInput = serde_json::from_value(args)?;
         let episode_id = input.episode_id.clone();
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.find_related(input).await?;
+        let result = tools.find_related(input).await;
 
-        info!(
-            episode_id = %episode_id,
-            related_count = result.count,
-            "Found related episodes via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(r) => {
+                audit_logger
+                    .log_find_related(&client_id, &episode_id, r.count, true)
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(episode_id = %episode_id, related_count = r.count, "Found related episodes via MCP");
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_find_related(&client_id, &episode_id, 0, false)
+                    .await;
+
+                debug!("Failed to find related episodes: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Check if a specific relationship exists
@@ -156,19 +236,38 @@ impl MemoryMCPServer {
         let from_id = input.from_episode_id.clone();
         let to_id = input.to_episode_id.clone();
         let rel_type = input.relationship_type.clone();
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.check_exists(input).await?;
+        let result = tools.check_exists(input).await;
 
-        info!(
-            from_episode_id = %from_id,
-            to_episode_id = %to_id,
-            relationship_type = %rel_type,
-            exists = result.exists,
-            "Checked relationship existence via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(c) => {
+                audit_logger
+                    .log_check_relationship(&client_id, &from_id, &to_id, &rel_type, c.exists, true)
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(
+                    from_episode_id = %from_id,
+                    to_episode_id = %to_id,
+                    relationship_type = %rel_type,
+                    exists = c.exists,
+                    "Checked relationship existence via MCP"
+                );
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_check_relationship(&client_id, &from_id, &to_id, &rel_type, false, false)
+                    .await;
+
+                debug!("Failed to check relationship exists: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Get dependency graph for visualization
@@ -187,19 +286,38 @@ impl MemoryMCPServer {
         let input: DependencyGraphInput = serde_json::from_value(args)?;
         let episode_id = input.episode_id.clone();
         let format = input.format.clone().unwrap_or_else(|| "json".to_string());
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.get_dependency_graph(input).await?;
+        let result = tools.get_dependency_graph(input).await;
 
-        info!(
-            episode_id = %episode_id,
-            node_count = result.node_count,
-            edge_count = result.edge_count,
-            format = %format,
-            "Retrieved dependency graph via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(g) => {
+                audit_logger
+                    .log_dependency_graph(&client_id, &episode_id, g.node_count, g.edge_count, true)
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(
+                    episode_id = %episode_id,
+                    node_count = g.node_count,
+                    edge_count = g.edge_count,
+                    format = %format,
+                    "Retrieved dependency graph via MCP"
+                );
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_dependency_graph(&client_id, &episode_id, 0, 0, false)
+                    .await;
+
+                debug!("Failed to get dependency graph: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Validate that adding a relationship would not create a cycle
@@ -220,20 +338,46 @@ impl MemoryMCPServer {
         let from_id = input.from_episode_id.clone();
         let to_id = input.to_episode_id.clone();
         let rel_type = input.relationship_type.clone();
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.validate_no_cycles(input).await?;
+        let result = tools.validate_no_cycles(input).await;
 
-        info!(
-            from_episode_id = %from_id,
-            to_episode_id = %to_id,
-            relationship_type = %rel_type,
-            would_create_cycle = result.would_create_cycle,
-            is_valid = result.is_valid,
-            "Validated cycle absence via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(v) => {
+                audit_logger
+                    .log_validate_cycles(
+                        &client_id,
+                        &from_id,
+                        &to_id,
+                        &rel_type,
+                        v.would_create_cycle,
+                        true,
+                    )
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(
+                    from_episode_id = %from_id,
+                    to_episode_id = %to_id,
+                    relationship_type = %rel_type,
+                    would_create_cycle = v.would_create_cycle,
+                    is_valid = v.is_valid,
+                    "Validated cycle absence via MCP"
+                );
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_validate_cycles(&client_id, &from_id, &to_id, &rel_type, false, false)
+                    .await;
+
+                debug!("Failed to validate no cycles: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 
     /// Get topological ordering of episodes
@@ -249,18 +393,37 @@ impl MemoryMCPServer {
 
         let input: GetTopologicalOrderInput = serde_json::from_value(args)?;
         let episode_count = input.episode_ids.len();
+        let client_id = "mcp_client".to_string();
 
         let tools = EpisodeRelationshipTools::new(self.memory());
-        let result = tools.get_topological_order(input).await?;
+        let result = tools.get_topological_order(input).await;
 
-        info!(
-            input_count = episode_count,
-            output_count = result.count,
-            has_cycles = result.has_cycles,
-            "Computed topological order via MCP"
-        );
+        // Log the operation to audit trail
+        let audit_logger = self.audit_logger();
+        match &result {
+            Ok(o) => {
+                audit_logger
+                    .log_topological_order(&client_id, episode_count, o.count, o.has_cycles, true)
+                    .await;
 
-        Ok(serde_json::to_value(result)?)
+                info!(
+                    input_count = episode_count,
+                    output_count = o.count,
+                    has_cycles = o.has_cycles,
+                    "Computed topological order via MCP"
+                );
+            }
+            Err(ref e) => {
+                audit_logger
+                    .log_topological_order(&client_id, episode_count, 0, false, false)
+                    .await;
+
+                debug!("Failed to get topological order: {}", e);
+            }
+        }
+
+        let value = result?;
+        serde_json::to_value(value).map_err(anyhow::Error::from)
     }
 }
 

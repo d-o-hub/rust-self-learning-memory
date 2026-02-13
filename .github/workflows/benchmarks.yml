@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on PRs and never for Dependabot to avoid timeout issues
     if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
-    timeout-minutes: 75
+    timeout-minutes: 30
     steps:
       - name: Wait for Quick Check with timeout protection
         uses: lewagon/wait-on-check-action@v1.5.0
@@ -57,7 +57,7 @@ jobs:
     permissions:
       contents: write  # Required for auto-push of benchmark results
       actions: write   # Required for caching
-    timeout-minutes: 75
+    timeout-minutes: 30
     env:
       RUSTC_WRAPPER: sccache
       SCCACHE_CACHE_SIZE: 2G
@@ -343,7 +343,7 @@ jobs:
       contents: read
       pull-requests: write  # Required for commenting on PRs
       issues: write         # Required for actions/github-script@v8.0.0 PR comments
-    timeout-minutes: 75
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository

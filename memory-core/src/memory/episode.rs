@@ -66,12 +66,8 @@ impl SelfLearningMemory {
         context: TaskContext,
         task_type: TaskType,
     ) -> Uuid {
-        // Create correlation ID for this episode lifecycle
-        let correlation_id = CorrelationId::new();
-
-        // Record correlation ID in span
-        let span = tracing::Span::current();
-        span.record("correlation_id", correlation_id.0.to_string().as_str());
+        // Create correlation ID for this episode lifecycle using UUID
+        let _correlation_id = Uuid::new_v4();
 
         // Validate task description length
         // Note: Validation warnings are logged but don't prevent episode creation
@@ -89,7 +85,6 @@ impl SelfLearningMemory {
 
         info!(
             episode_id = %episode_id,
-            correlation_id = %correlation_id,
             task_description = %task_description,
             "Started new episode"
         );

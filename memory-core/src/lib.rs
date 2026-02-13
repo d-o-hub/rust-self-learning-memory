@@ -241,7 +241,6 @@ pub mod semantic;
 pub mod spatiotemporal;
 pub mod storage;
 pub mod sync;
-pub mod tracing;
 pub use sync::StorageSynchronizer;
 pub mod types;
 

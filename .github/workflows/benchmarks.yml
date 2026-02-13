@@ -13,9 +13,6 @@ name: Performance Benchmarks
     - cron: '0 0 * * 1'
   workflow_dispatch:  # Allow manual triggers
 
-# Workflow-level timeout as safety net (slightly higher than job timeout)
-timeout-minutes: 75
-
 # Cancel outdated benchmark runs - prevents concurrent runs conflicting
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}

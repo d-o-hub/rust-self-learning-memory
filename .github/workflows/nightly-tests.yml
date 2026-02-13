@@ -88,6 +88,28 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
+      - name: Maximize build space (Linux)
+        if: runner.os == 'Linux'
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 2048
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Free disk space (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          echo "=== Freeing Disk Space on macOS ==="
+          # Remove Xcode simulators to free space
+          sudo rm -rf ~/Library/Developer/CoreSimulator/Caches || true
+          sudo rm -rf ~/Library/Caches/Homebrew || true
+          # Clean up any old logs
+          sudo rm -rf /private/var/log/diagnosticPerusal || true
+          df -h
+
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
@@ -95,6 +117,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2.8.2
         with:
           key: ${{ matrix.os }}-slow-tests
+          save-if: false  # Don't save cache on slow tests to save space
+
+      - name: Check disk space before slow tests
+        run: |
+          df -h
+          AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//' || echo "10")
+          echo "Available space: ${AVAILABLE}G"
 
       - name: Run slow integration tests
         run: cargo test --all -- --ignored --test-threads=1

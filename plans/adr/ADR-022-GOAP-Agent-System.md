@@ -78,18 +78,18 @@
 
 **Integration Points**:
 - Works with `task-decomposition` skill for breaking down goals
-- Integrates with `episode-start`, `episode-log-steps`, `episode-complete` for learning
+- Integrates with `episode-start`, `episode-log-steps`, `episode-complete` for learning (documented capability, not yet demonstrated in GOAP executions)
 - Uses `context-retrieval` skill for past coordination patterns
 - Compatible with all existing Task Agents (feature-implementer, debugger, refactorer, etc.)
 
 **Files Affected**:
-- `.claude/skills/goap-agent/SKILL.md` (new, ~50 LOC)
-- `.claude/skills/goap-agent/methodology.md` (new, ~165 LOC)
-- `.claude/skills/goap-agent/agents.md` (new, ~95 LOC)
-- `.claude/skills/goap-agent/skills.md` (new, ~60 LOC)
-- `.claude/skills/goap-agent/execution-strategies.md` (new, ~250 LOC)
-- `.claude/skills/goap-agent/patterns.md` (new, ~100 LOC)
-- `.claude/skills/goap-agent/examples.md` (new, ~150 LOC)
+- `.agents/skills/goap-agent/SKILL.md` (new, ~50 LOC)
+- `.agents/skills/goap-agent/methodology.md` (new, ~165 LOC)
+- `.agents/skills/goap-agent/agents.md` (new, ~95 LOC)
+- `.agents/skills/goap-agent/skills.md` (new, ~60 LOC)
+- `.agents/skills/goap-agent/execution-strategies.md` (new, ~250 LOC)
+- `.agents/skills/goap-agent/patterns.md` (new, ~100 LOC)
+- `.agents/skills/goap-agent/examples.md` (new, ~150 LOC)
 
 **Success Metrics**:
 - Complex tasks (5+ steps) completed successfully

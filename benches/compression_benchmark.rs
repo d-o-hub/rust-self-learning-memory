@@ -5,7 +5,6 @@
 //! - With compression: ~40% reduction in size
 
 #![allow(unexpected_cfgs)]
-
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};

@@ -2,6 +2,18 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "zai-coding-plan/glm-4.7",
   "provider": {
+    "netmind": {
+      "npm": "@ai-sdk/anthropic",
+      "name": "NetMind",
+      "options": {
+        "baseURL": "https://api.netmind.ai/inference-api/anthropic"
+      },
+      "models": {
+        "minimax/minimax-m2.5": {
+          "name": "MiniMax M2.5"
+        }
+      }
+    },
     "perplexity": {
       "npm": "@ai-sdk/perplexity",
       "name": "Perplexity AI",

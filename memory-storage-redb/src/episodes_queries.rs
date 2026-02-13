@@ -1,7 +1,7 @@
 //! Episode query operations for redb cache
 
 use crate::{RedbStorage, EPISODES_TABLE};
-use memory_core::{Episode, Error, Result};
+use memory_core::{apply_query_limit, Episode, Error, Result};
 use redb::ReadableTable;
 use std::sync::Arc;
 use tracing::{debug, info};
@@ -15,11 +15,22 @@ impl RedbStorage {
     /// Note: This scans all episodes in the cache and filters by timestamp,
     /// which may be slow for large datasets. Consider using Turso for
     /// efficient timestamp-based queries.
+    ///
+    /// # Arguments
+    ///
+    /// * `since` - Timestamp to query from
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
     pub async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
-        debug!("Querying episodes since {} from cache", since);
+        // Apply limit with defaults and bounds
+        let effective_limit = apply_query_limit(limit);
+        debug!(
+            "Querying episodes since {} from cache (limit: {})",
+            since, effective_limit
+        );
         let db = Arc::clone(&self.db);
 
         tokio::task::spawn_blocking(move || {
@@ -37,6 +48,11 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to iterate episodes: {}", e)))?;
 
             for result in iter {
+                // Check if we've hit the limit
+                if episodes.len() >= effective_limit {
+                    break;
+                }
+
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
@@ -52,7 +68,15 @@ impl RedbStorage {
             // Sort by start_time descending (most recent first)
             episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
 
-            info!("Found {} episodes since {} in cache", episodes.len(), since);
+            // Apply limit after sorting (in case we collected more than limit during filtering)
+            episodes.truncate(effective_limit);
+
+            info!(
+                "Found {} episodes since {} in cache (limit: {})",
+                episodes.len(),
+                since,
+                effective_limit
+            );
             Ok(episodes)
         })
         .await
@@ -69,12 +93,23 @@ impl RedbStorage {
     ///
     /// * `key` - Metadata key to search for
     /// * `value` - Metadata value to match
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
     ///
     /// # Returns
     ///
     /// Vector of episodes matching the metadata criteria
-    pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
-        debug!("Querying episodes by metadata: {} = {}", key, value);
+    pub async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        // Apply limit with defaults and bounds
+        let effective_limit = apply_query_limit(limit);
+        debug!(
+            "Querying episodes by metadata: {} = {} (limit: {})",
+            key, value, effective_limit
+        );
         let db = Arc::clone(&self.db);
         let key_str = key.to_string();
         let value_str = value.to_string();
@@ -94,6 +129,11 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to iterate episodes: {}", e)))?;
 
             for result in iter {
+                // Check if we've hit the limit
+                if episodes.len() >= effective_limit {
+                    break;
+                }
+
                 let (_, bytes_guard) = result
                     .map_err(|e| Error::Storage(format!("Failed to read episode entry: {}", e)))?;
 
@@ -111,11 +151,15 @@ impl RedbStorage {
             // Sort by start_time descending (most recent first)
             episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
 
+            // Apply limit after sorting
+            episodes.truncate(effective_limit);
+
             info!(
-                "Found {} episodes with metadata {} = {} in cache",
+                "Found {} episodes with metadata {} = {} in cache (limit: {})",
                 episodes.len(),
                 key_str,
-                value_str
+                value_str,
+                effective_limit
             );
             Ok(episodes)
         })

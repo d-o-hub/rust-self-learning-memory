@@ -1,17 +1,18 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-02-02 (Phase 3 COMPLETE, MCP Research Complete)
-**Status**: Active Branch: `feat-phase3` (v0.1.14 Released)
-**Next Sprint**: MCP Token Optimization - v0.1.15 (Ready for Implementation)
+**Last Updated**: 2026-02-13 (GOAP Comprehensive Plan, CI Stabilization Priority)
+**Status**: Active Branch: `develop` (v0.1.14 in Cargo.toml, GitHub release pending)
+**Next Sprint**: Phase A - CI Stabilization (from GOAP Comprehensive Plan)
 
 ---
 
 ## Current Development Focus
 
-### Active Branch: feat-phase3
+### Active Branch: develop
 
-**Branch Status**: ✅ Stable - v0.1.14 Released (2026-02-02)
-**Latest Changes**: 2026-02-02
+**Branch Status**: ⚠️ CI failures present - stabilization required
+**Latest Changes**: 2026-02-13
+**Current Plan**: [GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md](../GOAP/GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md)
 
 **Recent Achievements**:
 - ✅ **MCP Token Optimization Research** (2026-02-02): 5-phase planning complete, 7 documents created, 57% token reduction strategy identified
@@ -73,6 +74,33 @@
   - `plans/IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md` - 5-phase execution plan for v0.1.10-v0.2.0
   - `plans/GOAP/GOAP_PLANS_ANALYSIS_EXECUTION_2025-12-29.md` - GOAP orchestration report
   - `plans/PLANS_FOLDER_STATUS_2025-12-29.md` - Plans folder organization
+
+---
+
+## Known Issues on Main Branch (2026-02-13)
+
+### CI Workflow Failures (4 failing)
+1. **Nightly Full Tests** - failing on main branch
+2. **Coverage** - failing on main branch
+3. **YAML Lint** - failing on main branch
+4. **Benchmarks** - failing on main branch
+
+### Open Issues (2)
+- **#276** - Open issue on GitHub
+- **#277** - Open issue on GitHub
+
+### Blocked Dependabot PRs (5)
+- **#267** through **#271** - 5 Dependabot PRs blocked by CI failures
+
+### Disabled Modules
+- **Batch module in MCP** - disabled/non-functional in current codebase
+
+### Release Status
+- **v0.1.14** - version set in Cargo.toml but **not released on GitHub** (no tag/release created)
+- **v0.1.15** - targeting MCP Token Optimization + Phase 2 completion (after v0.1.14 release and CI stabilization)
+
+### Immediate Priority: Phase A - CI Stabilization
+Per [GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md](../GOAP/GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md), the immediate priority is stabilizing CI before any feature work. See also [ADR-025](../ADR/ADR-025-goap-comprehensive-plan.md) for the architectural decision record.
 
 ---
 
@@ -431,12 +459,19 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 - [ ] Auto-tuning temporal granularity
 - **Target**: +10-20% retrieval speed improvement
 
-#### v0.1.15+: Advanced Features (ongoing)
+#### v0.1.14: Release Pending
+- [ ] Create GitHub release for v0.1.14 (version already in Cargo.toml)
+- [ ] Stabilize CI (Phase A of GOAP Comprehensive Plan)
+- [ ] Unblock Dependabot PRs (#267-#271)
+- **Target**: Clean CI, formal release, dependency updates merged
+
+#### v0.1.15: MCP Token Optimization + Phase 2 Completion
+- [ ] MCP Token Optimization (57% reduction, 8-12 hours P0)
 - [ ] Large-scale validation (10,000+ episodes)
 - [ ] Performance profiling and optimization
 - [ ] Custom embedding model support (ONNX, PyTorch)
 - [ ] Advanced pattern algorithms (DBSCAN, BOCPD)
-- **Target**: Production-scale validation, enhanced capabilities
+- **Target**: Production-scale validation, token efficiency, enhanced capabilities
 
 ---
 
@@ -458,34 +493,35 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ## Next Immediate Actions
 
-### This Week
+### This Week (2026-02-13)
 
-1. **Monitor v0.1.9 Production Deployment** (1-2 hours)
-   - Monitor circuit breaker performance
-   - Track embedding provider usage statistics
-   - Monitor doctest validation results
+1. **Phase A: CI Stabilization** (IMMEDIATE PRIORITY)
+   - Fix 4 failing CI workflows (Nightly Full Tests, Coverage, YAML Lint, Benchmarks)
+   - Re-enable or properly remove batch module in MCP
+   - Resolve open issues #276 and #277
+   - Unblock 5 Dependabot PRs (#267-#271)
 
 ### Next 2 Weeks
 
-2. **Configuration Polish Sprint** (Weeks 1-2: Foundation)
-   - Wizard UX refinement
-   - Enhanced documentation and examples
-   - Performance optimizations (config caching)
+2. **v0.1.14 GitHub Release**
+   - Create formal GitHub release/tag for v0.1.14
+   - Ensure all CI workflows pass on main
+   - Merge unblocked Dependabot PRs
 
 ### Next Month
 
-3. **Plan v0.1.11-v0.1.15+ Feature Releases**
-   - Configuration polish and wizard UX improvements (v0.1.11)
-   - Query caching implementation (v0.1.12)
-   - Full contrastive learning for embeddings (v0.1.13)
-   - Adaptive temporal clustering (v0.1.14)
-   - Advanced features and validation (v0.1.15+)
+3. **v0.1.15: MCP Token Optimization + Phase 2**
+   - Implement MCP Token Optimization (57% reduction)
+   - Complete Phase 2 items from GOAP Comprehensive Plan
+   - Continue feature releases per roadmap
 
 ---
 
 ## Cross-References
 
 ### Current Planning
+- **GOAP Comprehensive Plan**: See [GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md](../GOAP/GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md)
+- **ADR-025**: See [ADR-025-goap-comprehensive-plan.md](../ADR/ADR-025-goap-comprehensive-plan.md)
 - **Gap Analysis**: See [GAP_ANALYSIS_REPORT_2025-12-29.md](../GAP_ANALYSIS_REPORT_2025-12-29.md)
 - **Implementation Priority**: See [IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md](../IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md)
 - **Embeddings Roadmap**: See [EMBEDDINGS_COMPLETION_ROADMAP.md](../EMBEDDINGS_COMPLETION_ROADMAP.md)
@@ -505,10 +541,13 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ---
 
-*Last Updated: 2026-02-02 (PHASE 3 - COMPLETE, MCP Research Complete)*
-*Active Branch: feat-phase3*
-*Current Version: v0.1.14 Released*
-*Current Focus: v0.1.15 - MCP Token Optimization (Ready for Implementation)*
+*Last Updated: 2026-02-13 (GOAP Comprehensive Plan, CI Stabilization Priority)*
+*Active Branch: develop*
+*Current Version: v0.1.14 (Cargo.toml only, GitHub release pending)*
+*Current Focus: Phase A - CI Stabilization (GOAP Comprehensive Plan)*
+*GOAP Plan: GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md*
+*ADR: ADR-025-goap-comprehensive-plan.md*
+*Known CI Issues: 4 failing workflows, 2 open issues, 5 blocked Dependabot PRs*
 *Research Integration: ✅ COMPLETE (Phases 1-4)*
 *MCP Optimization Research: ✅ COMPLETE (5-phase planning, 7 documents, ~10,000 lines)*
 *Phase 1: ✅ COMPLETE (PREMem Quality Assessment)*
@@ -518,4 +557,4 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 *File Size Compliance: ✅ COMPLETE (all source files ≤500 LOC, 70 modules)*
 *Security: ✅ HARDENED (secrets removed, parameterized queries)*
 *Performance: ✅ OPTIMIZED (Arc-based retrieval, 12% clone reduction)*
-*Next Sprint: MCP Token Optimization - P0 phase (8-12 hours, 57% token reduction)*
+*Next Sprint: Phase A CI Stabilization → v0.1.14 release → v0.1.15 MCP Token Optimization*

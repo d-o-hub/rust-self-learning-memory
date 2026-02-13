@@ -20,10 +20,13 @@ pub async fn create_backup(
 ) -> anyhow::Result<()> {
     let start_time = std::time::Instant::now();
 
-    // Get all episodes
+    // Get all episodes - use max limit for backup
     let episodes = if let Some(turso) = memory.turso_storage() {
         turso
-            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .query_episodes_since(
+                chrono::Utc::now() - chrono::Duration::days(365),
+                Some(memory_core::MAX_QUERY_LIMIT),
+            )
             .await?
     } else {
         Vec::new()

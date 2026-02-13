@@ -12,6 +12,25 @@ use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;
 use uuid::Uuid;
 
+/// Default limit for query operations (when not specified)
+pub const DEFAULT_QUERY_LIMIT: usize = 100;
+
+/// Maximum limit for query operations (prevents OOM)
+pub const MAX_QUERY_LIMIT: usize = 1000;
+
+/// Apply limit with defaults and bounds checking.
+///
+/// - If `limit` is None, returns the default limit (100)
+/// - If `limit` is Some, clamps it to the maximum (1000)
+#[must_use]
+#[inline]
+pub fn apply_query_limit(limit: Option<usize>) -> usize {
+    match limit {
+        Some(l) => l.min(MAX_QUERY_LIMIT),
+        None => DEFAULT_QUERY_LIMIT,
+    }
+}
+
 /// Unified storage backend trait
 ///
 /// Provides a common interface for different storage implementations.
@@ -114,6 +133,7 @@ pub trait StorageBackend: Send + Sync {
     /// # Arguments
     ///
     /// * `since` - Timestamp to query from
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
     ///
     /// # Returns
     ///
@@ -125,6 +145,7 @@ pub trait StorageBackend: Send + Sync {
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<Episode>>;
 
     /// Query episodes by metadata key-value pair
@@ -135,6 +156,7 @@ pub trait StorageBackend: Send + Sync {
     ///
     /// * `key` - Metadata key to search for
     /// * `value` - Metadata value to match
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
     ///
     /// # Returns
     ///
@@ -143,7 +165,12 @@ pub trait StorageBackend: Send + Sync {
     /// # Errors
     ///
     /// Returns error if storage operation fails
-    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>>;
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>>;
 
     // ========== Embedding Storage Methods ==========
 

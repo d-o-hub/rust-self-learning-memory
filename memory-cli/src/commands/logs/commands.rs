@@ -15,14 +15,20 @@ pub async fn analyze_logs(
     since: String,
     _filter: Option<String>,
 ) -> anyhow::Result<()> {
-    // Get episodes within time range
+    // Get episodes within time range - use max limit for historical analysis
     let episodes = if let Some(turso) = memory.turso_storage() {
         turso
-            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .query_episodes_since(
+                chrono::Utc::now() - chrono::Duration::days(365),
+                Some(memory_core::MAX_QUERY_LIMIT),
+            )
             .await?
     } else if let Some(cache) = memory.cache_storage() {
         cache
-            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .query_episodes_since(
+                chrono::Utc::now() - chrono::Duration::days(365),
+                Some(memory_core::MAX_QUERY_LIMIT),
+            )
             .await?
     } else {
         // Return empty analysis when no storage is available
@@ -105,7 +111,10 @@ pub async fn export_logs(
 ) -> anyhow::Result<()> {
     let episodes = if let Some(turso) = memory.turso_storage() {
         turso
-            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .query_episodes_since(
+                chrono::Utc::now() - chrono::Duration::days(365),
+                Some(memory_core::MAX_QUERY_LIMIT),
+            )
             .await?
     } else {
         Vec::new()
@@ -167,7 +176,10 @@ pub async fn logs_stats(
 ) -> anyhow::Result<()> {
     let episodes = if let Some(turso) = memory.turso_storage() {
         turso
-            .query_episodes_since(chrono::Utc::now() - chrono::Duration::days(365))
+            .query_episodes_since(
+                chrono::Utc::now() - chrono::Duration::days(365),
+                Some(memory_core::MAX_QUERY_LIMIT),
+            )
             .await?
     } else {
         Vec::new()

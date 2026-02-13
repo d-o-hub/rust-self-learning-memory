@@ -3,6 +3,7 @@
 use crate::episode::{Episode, ExecutionStep};
 use crate::error::{Error, Result};
 use crate::security::audit::{episode_created, AuditContext};
+use crate::tracing::CorrelationId;
 use crate::types::{TaskContext, TaskType};
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
@@ -66,6 +67,13 @@ impl SelfLearningMemory {
         context: TaskContext,
         task_type: TaskType,
     ) -> Uuid {
+        // Create correlation ID for this episode lifecycle
+        let correlation_id = CorrelationId::new();
+
+        // Record correlation ID in span
+        let span = tracing::Span::current();
+        span.record("correlation_id", correlation_id.0.to_string().as_str());
+
         // Validate task description length
         // Note: Validation warnings are logged but don't prevent episode creation
         // to maintain backward compatibility with existing API
@@ -82,6 +90,7 @@ impl SelfLearningMemory {
 
         info!(
             episode_id = %episode_id,
+            correlation_id = %correlation_id,
             task_description = %task_description,
             "Started new episode"
         );

@@ -145,8 +145,11 @@ pub async fn sync_storage(
     );
     progress.set_message("Querying episodes from Turso...");
 
-    // Query recent episodes from Turso (source of truth)
-    let episodes = match turso.query_episodes_since(since).await {
+    // Query recent episodes from Turso (source of truth) - use max limit for sync
+    let episodes = match turso
+        .query_episodes_since(since, Some(memory_core::MAX_QUERY_LIMIT))
+        .await
+    {
         Ok(episodes) => episodes,
         Err(e) => {
             progress.finish_with_message("Failed to query episodes");

@@ -235,21 +235,28 @@ impl StorageBackend for ResilientStorage {
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
         let storage = Arc::clone(&self.storage);
 
         self.circuit_breaker
             .call(move || {
                 let storage = Arc::clone(&storage);
-                async move { storage.query_episodes_since(since).await }
+                async move { storage.query_episodes_since(since, limit).await }
             })
             .await
     }
 
-    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
         let storage = Arc::clone(&self.storage);
         let key_string = key.to_string();
         let value_string = value.to_string();
+        let limit_param = limit;
 
         self.circuit_breaker
             .call(move || {
@@ -258,7 +265,7 @@ impl StorageBackend for ResilientStorage {
                 let value_string = value_string;
                 async move {
                     storage
-                        .query_episodes_by_metadata(&key_string, &value_string)
+                        .query_episodes_by_metadata(&key_string, &value_string, limit_param)
                         .await
                 }
             })

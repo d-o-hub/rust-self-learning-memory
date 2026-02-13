@@ -3,6 +3,7 @@
 use crate::episode::Episode;
 use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
+use crate::MAX_QUERY_LIMIT;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 
@@ -144,9 +145,12 @@ impl SelfLearningMemory {
                 .single()
                 .unwrap_or_else(Utc::now);
 
-            // Prefer cache first
+            // Prefer cache first with higher limit for backfill
             if let Some(cache) = &self.cache_storage {
-                if let Ok(fetched) = cache.query_episodes_since(since).await {
+                if let Ok(fetched) = cache
+                    .query_episodes_since(since, Some(MAX_QUERY_LIMIT))
+                    .await
+                {
                     if !fetched.is_empty() {
                         let mut episodes = self.episodes_fallback.write().await;
                         for ep in fetched {
@@ -158,9 +162,12 @@ impl SelfLearningMemory {
                 }
             }
 
-            // Then durable storage
+            // Then durable storage with higher limit for backfill
             if let Some(turso) = &self.turso_storage {
-                if let Ok(fetched) = turso.query_episodes_since(since).await {
+                if let Ok(fetched) = turso
+                    .query_episodes_since(since, Some(MAX_QUERY_LIMIT))
+                    .await
+                {
                     if !fetched.is_empty() {
                         let mut episodes = self.episodes_fallback.write().await;
                         for ep in fetched {

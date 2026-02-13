@@ -199,10 +199,10 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
     }
 
     async fn load_agent_metrics(&self, agent_name: &str) -> Result<Option<AgentMetrics>> {
-        // Query episodes for agent metrics
+        // Query episodes for agent metrics - use default limit
         let episodes = self
             .storage
-            .query_episodes_by_metadata("monitoring_type", "agent_metrics")
+            .query_episodes_by_metadata("monitoring_type", "agent_metrics", None)
             .await?;
 
         for episode in episodes {
@@ -224,10 +224,14 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
         agent_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<ExecutionRecord>> {
-        // Query episodes for execution records
+        // Query episodes for execution records - use max limit for historical data
         let mut episodes = self
             .storage
-            .query_episodes_by_metadata("monitoring_type", "execution_record")
+            .query_episodes_by_metadata(
+                "monitoring_type",
+                "execution_record",
+                Some(crate::MAX_QUERY_LIMIT),
+            )
             .await?;
 
         // Filter by agent name if specified
@@ -316,10 +320,10 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
     }
 
     async fn load_task_metrics(&self, task_type: &str) -> Result<Option<TaskMetrics>> {
-        // Query episodes for task metrics
+        // Query episodes for task metrics - use default limit
         let episodes = self
             .storage
-            .query_episodes_by_metadata("monitoring_type", "task_metrics")
+            .query_episodes_by_metadata("monitoring_type", "task_metrics", None)
             .await?;
 
         for episode in episodes {

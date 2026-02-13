@@ -15,6 +15,9 @@ use std::sync::Arc;
 use tracing::{debug, info};
 use uuid::Uuid;
 
+/// Default limit for `get_all_episodes` (used for backfilling)
+const GET_ALL_EPISODES_LIMIT: Option<usize> = Some(1000);
+
 /// Get all episodes with proper lazy loading from storage backends.
 ///
 /// This method implements the lazy loading pattern: memory → redb → Turso.
@@ -22,6 +25,7 @@ use uuid::Uuid;
 /// (redb), and finally to durable storage (Turso) if needed.
 ///
 /// Used primarily for backfilling embeddings and comprehensive episode retrieval.
+/// Uses a higher limit (1000) since this is used for batch operations.
 pub async fn get_all_episodes(
     episodes_fallback: &tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>,
     cache_storage: Option<&Arc<dyn crate::StorageBackend>>,
@@ -38,12 +42,15 @@ pub async fn get_all_episodes(
 
     // 2) Try to fetch from cache storage (redb) if we might be missing episodes
     if let Some(cache) = cache_storage {
-        // Fetch all episodes from cache (since timestamp 0)
+        // Fetch episodes from cache with limit
         let since = Utc
             .timestamp_millis_opt(0)
             .single()
             .unwrap_or_else(Utc::now);
-        match cache.query_episodes_since(since).await {
+        match cache
+            .query_episodes_since(since, GET_ALL_EPISODES_LIMIT)
+            .await
+        {
             Ok(cache_episodes) => {
                 debug!(
                     cache_count = cache_episodes.len(),
@@ -68,7 +75,10 @@ pub async fn get_all_episodes(
             .timestamp_millis_opt(0)
             .single()
             .unwrap_or_else(Utc::now);
-        match turso.query_episodes_since(since).await {
+        match turso
+            .query_episodes_since(since, GET_ALL_EPISODES_LIMIT)
+            .await
+        {
             Ok(turso_episodes) => {
                 debug!(
                     turso_count = turso_episodes.len(),

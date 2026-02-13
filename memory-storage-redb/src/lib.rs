@@ -28,6 +28,7 @@ use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result
 use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition};
 use std::path::Path;
 use std::sync::Arc;
+use std::time::Duration;
 use tracing::info;
 use uuid::Uuid;
 
@@ -39,6 +40,7 @@ mod episodes;
 mod episodes_queries;
 mod episodes_summaries;
 mod heuristics;
+mod metrics;
 mod patterns;
 mod persistence;
 mod relationships;
@@ -48,6 +50,7 @@ mod tables;
 pub use cache::{
     AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics, CacheConfig, CacheMetrics, LRUCache,
 };
+pub use metrics::RedbMetrics;
 pub use persistence::{
     CachePersistence, CacheSnapshot, PersistedCacheEntry, PersistenceConfig, PersistenceManager,
     PersistenceMode, PersistenceStats, PersistenceStrategy,
@@ -90,6 +93,31 @@ pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition:
 pub(crate) const SUMMARIES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("summaries");
 pub(crate) const RELATIONSHIPS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("relationships");
+
+// ============================================================================
+// Timeout Helper Functions
+// ============================================================================
+
+/// Timeout duration for database operations (10 seconds)
+const DB_OPERATION_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Execute a spawn_blocking operation with timeout
+async fn with_db_timeout<T, F>(operation: F) -> crate::Result<T>
+where
+    F: FnOnce() -> crate::Result<T> + Send + 'static,
+    T: Send + 'static,
+{
+    // spawn_blocking returns Result<T, JoinError>
+    // timeout wraps that, so we get Result<Result<T, JoinError>, Elapsed>
+    match tokio::time::timeout(DB_OPERATION_TIMEOUT, tokio::task::spawn_blocking(operation)).await {
+        Ok(Ok(result)) => result, // Inner Ok is JoinError, outer Ok is timeout success
+        Ok(Err(join_err)) => Err(Error::Storage(format!("Task join error: {}", join_err))),
+        Err(_) => Err(Error::Storage(format!(
+            "Database operation timed out after {:?}",
+            DB_OPERATION_TIMEOUT
+        ))),
+    }
+}
 
 /// redb storage backend for fast caching
 pub struct RedbStorage {
@@ -144,14 +172,13 @@ impl RedbStorage {
     pub async fn new_with_cache_config(path: &Path, cache_config: CacheConfig) -> Result<Self> {
         info!("Opening redb database at {}", path.display());
 
-        // Use spawn_blocking for synchronous redb initialization
+        // Use spawn_blocking for synchronous redb initialization with timeout
         let path_buf = path.to_path_buf();
-        let db = tokio::task::spawn_blocking(move || {
+        let db = with_db_timeout(move || {
             Database::create(&path_buf)
                 .map_err(|e| Error::Storage(format!("Failed to create redb database: {}", e)))
         })
-        .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        .await?;
 
         let cache = LRUCache::new(cache_config);
         let storage = Self {
@@ -170,7 +197,7 @@ impl RedbStorage {
     async fn initialize_tables(&self) -> Result<()> {
         let db = Arc::clone(&self.db);
 
-        tokio::task::spawn_blocking(move || {
+        with_db_timeout(move || {
             let write_txn = db
                 .begin_write()
                 .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
@@ -206,8 +233,7 @@ impl RedbStorage {
 
             Ok::<(), Error>(())
         })
-        .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        .await?;
 
         info!("Initialized redb tables");
         Ok(())
@@ -217,7 +243,7 @@ impl RedbStorage {
     pub async fn get_statistics(&self) -> Result<StorageStatistics> {
         let db = Arc::clone(&self.db);
 
-        tokio::task::spawn_blocking(move || {
+        with_db_timeout(move || {
             let read_txn = db
                 .begin_read()
                 .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
@@ -254,19 +280,17 @@ impl RedbStorage {
             })
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
     }
 
     /// Health check - verify database accessibility
     pub async fn health_check(&self) -> Result<bool> {
         let db = Arc::clone(&self.db);
 
-        tokio::task::spawn_blocking(move || match db.begin_read() {
+        with_db_timeout(move || match db.begin_read() {
             Ok(_) => Ok(true),
             Err(_) => Ok(false),
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
     }
 
     /// Get cache metrics
@@ -310,7 +334,7 @@ impl RedbStorage {
 
         let db = Arc::clone(&self.db);
 
-        tokio::task::spawn_blocking(move || {
+        with_db_timeout(move || {
             let write_txn = db
                 .begin_write()
                 .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
@@ -442,8 +466,7 @@ impl RedbStorage {
 
             Ok::<(), Error>(())
         })
-        .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        .await?;
 
         info!("Successfully cleared all cached data");
         Ok(())
@@ -492,12 +515,18 @@ impl StorageBackend for RedbStorage {
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
-        self.query_episodes_since(since).await
+        self.query_episodes_since(since, limit).await
     }
 
-    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
-        self.query_episodes_by_metadata(key, value).await
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        self.query_episodes_by_metadata(key, value, limit).await
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {

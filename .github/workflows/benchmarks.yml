@@ -128,11 +128,11 @@ jobs:
         run: |
            echo "=== Starting Benchmark Suite ==="
            echo "Start time: $(date)"
-           
+
            # Track overall execution time
            START_TIME=$(date +%s)
            MAX_TOTAL_TIME=3300  # 55 minutes in seconds
-           
+
            # Run different benchmark categories with individual timeouts
            declare -A bench_configs=(
              ["episode_lifecycle"]="300"
@@ -143,7 +143,7 @@ jobs:
              ["scalability"]="600"
              ["multi_backend_comparison"]="600"
            )
-           
+
            SUCCESS_COUNT=0
            FAIL_COUNT=0
 
@@ -152,18 +152,18 @@ jobs:
              CURRENT_TIME=$(date +%s)
              ELAPSED=$((CURRENT_TIME - START_TIME))
              REMAINING=$((MAX_TOTAL_TIME - ELAPSED))
-             
+
              if [ "$REMAINING" -lt 60 ]; then
                echo "⚠️ Approaching overall timeout ($ELAPSED seconds elapsed). Skipping remaining benchmarks."
                break
              fi
-             
+
              timeout="${bench_configs[$bench_name]}"
              # Use the smaller of individual timeout or remaining time
              if [ "$timeout" -gt "$REMAINING" ]; then
                timeout="$REMAINING"
              fi
-             
+
              echo ""
              echo "▶️ Running $bench_name benchmark (timeout: ${timeout}s, elapsed: ${ELAPSED}s)..."
 
@@ -175,7 +175,7 @@ jobs:
                FAIL_COUNT=$((FAIL_COUNT + 1))
              fi
            done
-           
+
            END_TIME=$(date +%s)
            TOTAL_ELAPSED=$((END_TIME - START_TIME))
            echo ""
@@ -362,7 +362,7 @@ jobs:
             echo "Performance regression check skipped"
             exit 0
           fi
-          
+
           echo "✅ Benchmark results found"
           echo "Performance regression check completed"
           echo "See PERFORMANCE_BASELINES.md for baseline comparison"

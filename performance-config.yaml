@@ -27,7 +27,7 @@ file_limits:
 # Note: These are updated by scripts/generate-codebase-stats.sh
 codebase_stats:
   rust_files: 0  # Generated
-  total_lines: 0  # Generated  
+  total_lines: 0  # Generated
   test_files: 0  # Generated
   workspace_members: 0  # Generated
   version: "unknown"  # Generated from Cargo.toml

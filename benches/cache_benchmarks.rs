@@ -5,6 +5,8 @@
 //!
 //! Run with: `cargo bench --bench cache_benchmarks`
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, Criterion};
 use memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};

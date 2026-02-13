@@ -9,6 +9,8 @@
 //! Expected baseline: 134ms per operation
 //! Expected after Phase 1: ~20-40ms per operation (3-6x improvement)
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
 use memory_core::{Episode, Pattern, StorageBackend, TaskContext, TaskType};

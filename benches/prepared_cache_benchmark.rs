@@ -3,6 +3,8 @@
 //! These benchmarks measure the effectiveness of the prepared statement cache
 //! and the performance improvement from connection-aware caching.
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use memory_storage_turso::prepared::PreparedStatementCache;
 use std::hint::black_box;

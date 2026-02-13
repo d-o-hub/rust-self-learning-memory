@@ -3,6 +3,8 @@
 //! Tests concurrent read/write operations across multiple storage backends
 //! following patterns from rust-storage-bench and YCSB workloads.
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use futures::future::join_all;
 use memory_benches::benchmark_helpers::{

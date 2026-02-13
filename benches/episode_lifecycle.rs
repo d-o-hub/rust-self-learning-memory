@@ -8,6 +8,8 @@
 //! - Episode retrieval (retrieve_relevant_context)
 //! - Pattern extraction and scoring performance
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, Criterion};
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,

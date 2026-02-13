@@ -4,6 +4,8 @@
 //! - Baseline (no pool): ~45ms per connection
 //! - With keep-alive pool: ~5ms per connection
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use memory_storage_turso::{TursoConfig, TursoStorage};
 use tokio::runtime::Runtime;

@@ -64,8 +64,8 @@ libc = "0.2"
 
 [features]
 # WASM backends are now optional - users must explicitly choose one
-# Default is empty - build without WASM support for faster compilation
-default = []
+# Default includes wasmtime-backend as it's recommended for most use cases
+default = ["wasmtime-backend"]
 # WASMtime backend (recommended for most use cases)
 wasmtime-backend = ["dep:wasmtime", "dep:wasmtime-wasi"]
 # Deprecated: QuickJS WASM backend

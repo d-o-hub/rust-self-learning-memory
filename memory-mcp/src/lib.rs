@@ -103,6 +103,7 @@
 pub mod batch;
 pub mod cache;
 pub mod error;
+#[cfg(feature = "javy-backend")]
 pub mod javy_compiler;
 pub mod jsonrpc;
 pub mod mcp;
@@ -112,9 +113,11 @@ pub mod protocol;
 pub mod sandbox;
 pub mod server;
 pub mod types;
+#[cfg(feature = "wasmtime-backend")]
 pub mod unified_sandbox;
 #[cfg(feature = "wasm-rquickjs")]
 pub mod wasm_sandbox;
+#[cfg(feature = "wasmtime-backend")]
 pub mod wasmtime_sandbox;
 
 // Re-export commonly used types
@@ -138,7 +141,9 @@ pub use sandbox::{FileSystemRestrictions, IsolationConfig, NetworkRestrictions};
 // Re-export new WASM modules
 #[cfg(feature = "javy-backend")]
 pub use javy_compiler::{JavyCompiler, JavyConfig, JavyMetrics};
+#[cfg(feature = "wasmtime-backend")]
 pub use unified_sandbox::{BackendHealth, SandboxBackend, UnifiedMetrics, UnifiedSandbox};
 #[cfg(feature = "wasm-rquickjs")]
 pub use wasm_sandbox::{WasmConfig, WasmMetrics, WasmSandbox};
+#[cfg(feature = "wasmtime-backend")]
 pub use wasmtime_sandbox::{WasmtimeConfig, WasmtimeMetrics, WasmtimeSandbox};

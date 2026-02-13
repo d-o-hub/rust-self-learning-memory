@@ -1,5 +1,7 @@
 //! Benchmarks for storage operations
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,

@@ -11,6 +11,8 @@
 //! - Query latency
 //! - Diversity score
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use memory_core::{
     memory::SelfLearningMemory, ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext,

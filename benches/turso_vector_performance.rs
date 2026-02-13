@@ -6,6 +6,8 @@
 //! 3. Memory usage for embeddings
 //! 4. JSON query performance vs Rust deserialization
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use anyhow::Result;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use memory_core::{

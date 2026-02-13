@@ -14,6 +14,14 @@ use std::env;
 use std::process::Command;
 
 // ============================================================================
+// Feature Configuration
+// ============================================================================
+///
+/// Explicit feature configuration for clippy/llvm-cov to avoid --all-features
+/// which pulls in optional deps like libclang for wasm-rquickjs
+const CLIPPY_EXCLUDE: &[&str] = &["e2e-tests", "memory-benches"];
+
+// ============================================================================
 // Configuration & Thresholds
 // ============================================================================
 
@@ -140,14 +148,13 @@ fn quality_gate_test_coverage() {
 
     // Run coverage analysis
     println!("Running coverage analysis...");
-    let output = Command::new("cargo")
-        .args([
-            "llvm-cov",
-            "--all-features",
-            "--workspace",
-            "--summary-only",
-        ])
-        .output();
+    // Use workspace exclusion to avoid optional deps like libclang for wasm-rquickjs
+    let mut args = vec!["llvm-cov", "--workspace", "--summary-only"];
+    for pkg in CLIPPY_EXCLUDE {
+        args.push("--exclude");
+        args.push(pkg);
+    }
+    let output = Command::new("cargo").args(&args).output();
 
     let output = match output {
         Ok(out) => out,

@@ -4,8 +4,8 @@
 //! to ensure they meet performance requirements.
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::hint::black_box;
 use memory_cli::test_utils::*;
+use std::hint::black_box;
 use std::time::Duration;
 
 fn cli_startup_benchmark(c: &mut Criterion) {

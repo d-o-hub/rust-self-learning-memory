@@ -1,7 +1,6 @@
 //! Benchmarks for storage operations
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -10,6 +9,7 @@ use memory_benches::TokioExecutor;
 use memory_core::types::{TaskOutcome, TaskType};
 use memory_storage_redb::RedbStorage;
 use std::collections::HashMap;
+use std::hint::black_box;
 use uuid::Uuid;
 
 fn benchmark_hashmap_storage(c: &mut Criterion) {

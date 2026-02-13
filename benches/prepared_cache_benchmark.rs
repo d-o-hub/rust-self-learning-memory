@@ -4,8 +4,8 @@
 //! and the performance improvement from connection-aware caching.
 
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
-use std::hint::black_box;
 use memory_storage_turso::prepared::PreparedStatementCache;
+use std::hint::black_box;
 
 /// Benchmark basic cache operations
 fn bench_cache_basic_operations(c: &mut Criterion) {

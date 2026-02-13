@@ -13,9 +13,6 @@ name: Performance Benchmarks
     - cron: '0 0 * * 1'
   workflow_dispatch:  # Allow manual triggers
 
-# Workflow-level timeout as safety net (slightly higher than job timeout)
-timeout-minutes: 75
-
 # Cancel outdated benchmark runs - prevents concurrent runs conflicting
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
@@ -30,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on PRs and never for Dependabot to avoid timeout issues
     if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
-    timeout-minutes: 10
+    timeout-minutes: 75
     steps:
       - name: Wait for Quick Check with timeout protection
         uses: lewagon/wait-on-check-action@v1.5.0
@@ -40,7 +37,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           # Fail after 8 minutes to prevent indefinite hanging
-          allowed-failures: 
+          allowed-failures:
           running-workflows-timeout: 8
 
   benchmark:
@@ -60,7 +57,7 @@ jobs:
     permissions:
       contents: write  # Required for auto-push of benchmark results
       actions: write   # Required for caching
-    timeout-minutes: 60
+    timeout-minutes: 75
     env:
       RUSTC_WRAPPER: sccache
       SCCACHE_CACHE_SIZE: 2G
@@ -77,20 +74,18 @@ jobs:
         run: |
           echo "=== Disk Space Check ==="
           df -h
-          
           # Get available space in GB on root partition
           AVAILABLE_GB=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           MIN_REQUIRED_GB=10
-          
+
           echo "Available: ${AVAILABLE_GB}GB, Required: ${MIN_REQUIRED_GB}GB"
-          
           if [ "$AVAILABLE_GB" -lt "$MIN_REQUIRED_GB" ]; then
             echo "❌ ERROR: Insufficient disk space. Have ${AVAILABLE_GB}GB, need ${MIN_REQUIRED_GB}GB"
             exit 1
           fi
-          
+
           echo "✅ Sufficient disk space available"
-      
+
       - name: Free disk space (benchmark cleanup)
         if: runner.os == 'Linux'
         run: |
@@ -348,7 +343,7 @@ jobs:
       contents: read
       pull-requests: write  # Required for commenting on PRs
       issues: write         # Required for actions/github-script@v8.0.0 PR comments
-    timeout-minutes: 10
+    timeout-minutes: 75
 
     steps:
       - name: Checkout repository
@@ -377,42 +372,51 @@ jobs:
         uses: actions/github-script@v8.0.0
         with:
           script: |
-            const fs = require('fs');
+              const fs = require('fs');
 
-            // Check if file exists before trying to read it
-            if (!fs.existsSync('bench_results.txt')) {
-              console.log('bench_results.txt not found, posting minimal comment');
-              
+              // Check if file exists before trying to read it
+              if (!fs.existsSync('bench_results.txt')) {
+                console.log('bench_results.txt not found, posting minimal comment');
+
+                const errorMsg = `## Performance Benchmark Results\n\n` +
+                  `⚠️ **Benchmark artifacts not available**\n\n` +
+                  `The benchmark workflow completed but did not produce artifacts.\n` +
+                  `This may indicate:\n` +
+                  `- Benchmarks timed out or failed\n` +
+                  `- No benchmark results were generated\n` +
+                  `- Artifact upload failed\n\n` +
+                  `See workflow logs for details.`;
+
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: errorMsg
+                });
+                return;
+              }
+
+              const results = fs.readFileSync('bench_results.txt', 'utf8');
+
+              const body = `## Performance Benchmark Results
+
+              <details>
+              <summary>Click to expand benchmark results</summary>
+
+              \`\`\`
+              ${results}
+              \`\`\`
+
+              </details>
+
+              See [PERFORMANCE_BASELINES.md](\
+              https://github.com/${{ github.repository }}/blob/main/PERFORMANCE_BASELINES.md) \
+              for baseline comparison.
+              `;
+
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## Performance Benchmark Results\n\n⚠️ **Benchmark artifacts not available**\n\nThe benchmark workflow completed but did not produce artifacts. This may indicate:\n- Benchmarks timed out or failed\n- No benchmark results were generated\n- Artifact upload failed\n\nSee workflow logs for details.`
+                body: body
               });
-              return;
-            }
-
-            const results = fs.readFileSync('bench_results.txt', 'utf8');
-
-            const body = `## Performance Benchmark Results
-
-            <details>
-            <summary>Click to expand benchmark results</summary>
-
-            \`\`\`
-            ${results}
-            \`\`\`
-
-            </details>
-
-            See [PERFORMANCE_BASELINES.md](\
-            https://github.com/${{ github.repository }}/blob/main/PERFORMANCE_BASELINES.md) \
-            for baseline comparison.
-            `;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });

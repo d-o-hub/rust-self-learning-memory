@@ -357,6 +357,10 @@ mod tests {
                 crate::PreparedCacheConfig::default(),
             )),
             config: crate::TursoConfig::default(),
+            #[cfg(feature = "compression")]
+            compression_stats: Arc::new(std::sync::Mutex::new(
+                crate::CompressionStatistics::default(),
+            )),
         };
 
         storage

@@ -8,7 +8,6 @@
 //! Following patterns from rust-storage-bench for fair comparisons.
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
 };
@@ -19,6 +18,7 @@ use memory_core::{
 };
 use memory_storage_redb::RedbStorage;
 use memory_storage_turso::TursoStorage;
+use std::hint::black_box;
 
 use std::sync::Arc;
 use tempfile::TempDir;

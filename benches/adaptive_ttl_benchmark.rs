@@ -197,7 +197,8 @@ fn bench_static_vs_adaptive_baseline(c: &mut Criterion) {
                         enable_background_cleanup: false,
                         ..TTLConfig::default()
                     };
-                    let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                    let cache: AdaptiveTTLCache<u32, TestValue> =
+                        rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                     // Populate cache
                     rt().block_on(async {
@@ -247,7 +248,8 @@ fn bench_zipf_pattern(c: &mut Criterion) {
                             enable_background_cleanup: false,
                             ..TTLConfig::default()
                         };
-                        let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                        let cache: AdaptiveTTLCache<u32, TestValue> =
+                            rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                         rt().block_on(async {
                             for i in 0..cache_size {
@@ -290,7 +292,8 @@ fn bench_sequential_pattern(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -320,7 +323,8 @@ fn bench_sequential_pattern(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -361,7 +365,8 @@ fn bench_random_pattern(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -391,7 +396,8 @@ fn bench_random_pattern(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -432,7 +438,8 @@ fn bench_hot_cold_pattern(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -462,7 +469,8 @@ fn bench_hot_cold_pattern(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -506,7 +514,8 @@ fn bench_hit_rate_analysis(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -545,7 +554,8 @@ fn bench_hit_rate_analysis(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -584,7 +594,8 @@ fn bench_hit_rate_analysis(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -623,7 +634,8 @@ fn bench_hit_rate_analysis(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -673,7 +685,8 @@ fn bench_memory_overhead(c: &mut Criterion) {
                         enable_background_cleanup: false,
                         ..TTLConfig::default()
                     };
-                    let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                    let cache: AdaptiveTTLCache<u32, TestValue> =
+                        rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                     rt().block_on(async {
                         for i in 0..size {
@@ -704,7 +717,8 @@ fn bench_memory_overhead(c: &mut Criterion) {
                         enable_background_cleanup: false,
                         ..TTLConfig::default()
                     };
-                    let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                    let cache: AdaptiveTTLCache<u32, TestValue> =
+                        rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                     rt().block_on(async {
                         for i in 0..size {
@@ -749,7 +763,8 @@ fn bench_latency_percentiles(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -788,7 +803,8 @@ fn bench_latency_percentiles(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..cache_size {
@@ -842,7 +858,8 @@ fn bench_ttl_adaptation_rate(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     cache.insert(0, TestValue::small(0)).await;
@@ -877,7 +894,8 @@ fn bench_ttl_adaptation_rate(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 // Insert many keys, only access target once
                 rt().block_on(async {
@@ -1093,7 +1111,8 @@ fn bench_cleanup_performance(c: &mut Criterion) {
                     enable_background_cleanup: false,
                     ..TTLConfig::default()
                 };
-                let cache: AdaptiveTTLCache<u32, TestValue> = rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
+                let cache: AdaptiveTTLCache<u32, TestValue> =
+                    rt().block_on(async { AdaptiveTTLCache::new(config).unwrap() });
 
                 rt().block_on(async {
                     for i in 0..size {

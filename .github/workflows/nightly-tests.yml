@@ -38,11 +38,41 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Free disk space
+      # Tier 1: Maximize build space
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 2048
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
+      - name: Check disk space before build
         run: |
-          sudo rm -rf /opt/hostedtoolcache/* || true
-          sudo apt-get clean || true
           df -h
+          AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
+          echo "Available space: ${AVAILABLE}G"
+
+      - uses: actions/checkout@v4
+
+      # Tier 2: Aggressive cleanup after checkout
+      - name: Free disk space (aggressive)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /usr/local/lib/android
+          sudo rm -rf /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /opt/hostedtoolcache/PyPy
+          docker system prune -af --volumes || true
+          sudo apt-get clean
+          sudo apt-get autoclean
+          df -h
+
+      - name: Check disk space after cleanup
+        run: |
+          df -h
+          AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
+          echo "Available space: ${AVAILABLE}G"
 
       - uses: actions/checkout@v4
 
@@ -55,12 +85,24 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
+      - name: Check disk space before regular tests
+        run: |
+          df -h
+          AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
+          echo "Available space: ${AVAILABLE}G"
+
       - name: Run regular tests
         run: |
           mkdir -p target/nextest/nightly
           cargo nextest run --profile ci --lib --all --test-threads=4
           cargo nextest run --profile ci --tests --all --test-threads=4 \
             -E 'not binary(compliance)'
+
+      - name: Check disk space before slow tests
+        run: |
+          df -h
+          AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
+          echo "Available space: ${AVAILABLE}G"
 
       - name: Run slow integration tests (ignored tests)
         run: |

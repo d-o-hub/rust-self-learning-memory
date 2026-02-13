@@ -9,7 +9,6 @@
 //! - Pattern extraction and scoring performance
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     generate_large_episode_description, generate_many_execution_steps, setup_temp_memory,
@@ -21,6 +20,7 @@ use memory_core::{
     memory::SelfLearningMemory,
     types::{TaskContext, TaskOutcome, TaskType},
 };
+use std::hint::black_box;
 use uuid::Uuid;
 
 async fn log_steps(memory: &SelfLearningMemory, episode_id: Uuid, steps: Vec<ExecutionStep>) {

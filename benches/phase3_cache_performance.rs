@@ -5,6 +5,8 @@
 //! - PreparedStatementCache
 //! - Batch operations
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use memory_core::{Episode, Pattern, PatternId, StorageBackend, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, TursoStorage};

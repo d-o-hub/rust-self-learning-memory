@@ -9,6 +9,8 @@
 //! Run with: `cargo bench --bench soak_tests`
 //! For full 24-hour test: `cargo bench --bench soak_tests --features full-soak`
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, Criterion};
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,

@@ -15,6 +15,8 @@
 //!
 //! **Run with:** `cargo bench --bench adaptive_ttl_benchmark`
 
+#![allow(clippy::excessive_nesting)]
+#![allow(deprecated)]
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use memory_storage_turso::cache::{AdaptiveTTLCache, TTLConfig};
 use rand::prelude::*;

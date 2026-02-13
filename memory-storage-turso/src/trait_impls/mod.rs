@@ -51,16 +51,18 @@ impl StorageBackend for super::TursoStorage {
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<memory_core::Episode>> {
-        super::TursoStorage::query_episodes_since(self, since).await
+        super::TursoStorage::query_episodes_since(self, since, limit).await
     }
 
     async fn query_episodes_by_metadata(
         &self,
         key: &str,
         value: &str,
+        limit: Option<usize>,
     ) -> Result<Vec<memory_core::Episode>> {
-        super::TursoStorage::query_episodes_by_metadata(self, key, value).await
+        super::TursoStorage::query_episodes_by_metadata(self, key, value, limit).await
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {

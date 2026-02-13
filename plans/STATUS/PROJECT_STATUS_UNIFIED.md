@@ -1,16 +1,16 @@
 # Project Status - Memory System (Unified)
 
-**Last Updated:** 2026-02-02
+**Last Updated:** 2026-02-13
 **Version:** v0.1.14 (Phase 3 Complete - Episode Relationships & Storage Optimization)
-**Branch:** feat-episode-tagging
-**Status:** ✅ Production Ready - All quality gates passing
+**Branch:** main
+**Status:** ⚠️ CI has 4 failing workflows on main branch
 **Next Version:** v0.1.15 (TBD)
 
 ---
 
 ## 🎯 Executive Summary
 
-**✅ ALL QUALITY GATES PASSING** - System operational with 100% production readiness
+**⚠️ CI DEGRADED** - 4 workflows failing on main (Nightly Tests, Coverage, YAML Lint, Benchmarks). See [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) for remediation plan.
 
 The Self-Learning Memory System has successfully completed **ALL FOUR research integration phases** (PREMem, GENESIS, Spatiotemporal, Benchmarking) with exceptional results exceeding research targets by 4-2307x. **Phase 3 storage optimization** infrastructure integration is complete with relationship module, batch operations, caching, and prepared statements ready for production use. All major features are complete including vector search optimization (10-100x faster), configuration caching (200-500x speedup), multi-provider embeddings, circuit breaker with comprehensive runbook, security hardening with Wasmtime sandbox, semantic pattern search & recommendation engine, and episode relationship tracking.
 
@@ -353,6 +353,17 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 - **Current**: Reduced memory allocations and improved performance
 - **Impact**: 12% overall clone reduction, 63% in retrieval hot path
 
+### Active Issues (2026-02-13)
+
+> See [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md) for full remediation strategy.
+
+1. **CI Failures on main**: Nightly Full Tests, Coverage, YAML Lint, and Benchmarks workflows are failing
+2. **Issue #276**: Clippy warnings blocking Dependabot PRs from merging
+3. **Issue #277**: Criterion 0.5→0.8 migration needed (breaking API changes)
+4. **MCP batch module disabled**: TODOs reference non-existent `jsonrpsee`/`ServerState` types
+5. **v0.1.14 not released on GitHub**: Code is on main but no GitHub release exists (last release: v0.1.13)
+6. **Plans docs contain stale/conflicting information**: Multiple status docs with outdated claims
+
 ---
 
 ## 🎯 Next Steps & Roadmap
@@ -372,69 +383,21 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 12. **✅ Semantic Pattern Search**: Multi-signal ranking engine
 13. **✅ Pattern Recommendations**: Task-specific recommendations
 
-### Immediate (This Week)
-1. **📊 Production Monitoring**: Monitor pattern search performance and metrics
-2. **🔝 Documentation Updates**: Update all docs with semantic search features
+### Immediate: Project Health Remediation (ADR-025)
 
-### Current Development (v0.1.13 - Episode Tags & Labels)
+> Phased remediation plan per [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md).
 
-**Start Date**: 2026-01-27  
-**Target Completion**: 2026-02-17 (3 weeks)  
-**Status**: 🚀 In Progress - Phase 1 Starting
+- **Phase A — CI/CD Stabilization (P0)**: Fix 4 failing workflows, restore green CI on main
+- **Phase B — Dependency Updates (P1)**: Resolve Dependabot PRs (#267-271), fix clippy warnings (#276), migrate Criterion 0.5→0.8 (#277)
+- **Phase C — Code Quality (P1)**: Fix MCP batch module TODOs, reduce unwrap count, clean stale plan docs
+- **Phase D — Feature Completion & Release (P2)**: Publish v0.1.14 GitHub release, complete embeddings integration, v0.1.15 planning
 
-#### Feature Overview
-Comprehensive tagging system for episodes enabling:
-- Tag-based categorization (e.g., "bug-fix", "feature", "refactor")
-- Fast tag-based filtering and search
-- Tag statistics and analytics
-- Full integration across core, MCP, CLI, and storage backends
+Phases B and C can execute in parallel once Phase A is complete. Phase D is sequential after B and C.
 
-#### Implementation Phases
-- **Phase 1**: Core Data Model & Storage (12h) - 🔄 In Progress
-  - Episode struct updates with tags field
-  - Database schema (episode_tags, tag_metadata tables)
-  - Turso and redb storage backend implementation
-  - Integration tests
-- **Phase 2**: Core API Implementation (8h) - ⏳ Pending
-  - Tag management methods (add, remove, set, get)
-  - Tag-based query functions
-  - Episode filtering integration
-- **Phase 3**: MCP Server Integration (10h) - ⏳ Pending
-  - 6 MCP tools for tag operations
-  - Tool schemas and validation
-- **Phase 4**: CLI Integration (8h) - ⏳ Pending
-  - CLI commands: tag add/remove/set/list/search/show
-  - User-friendly output formatting
-- **Phase 5**: Documentation & Examples (4h) - ⏳ Pending
-  - Usage guide, examples, benchmarks
-
-#### Documentation
-- 📋 Feature Spec: `plans/EPISODE_TAGGING_FEATURE_SPEC.md`
-- 🗺️ Roadmap: `plans/EPISODE_TAGGING_IMPLEMENTATION_ROADMAP.md`
-
-#### Success Metrics
-- Performance: All operations <50ms (P95)
-- Coverage: >90% for new code
-- Quality: Zero clippy warnings, all files <500 LOC
-- Adoption: 50%+ episodes tagged within first month
-
----
-
-### Short-term (Next 2 Weeks)
-1. **🚀 Turso Database Optimization** (NEW 2026-01-21): Implement Phase 1 quick wins for 6-8x performance improvement
-   - Cache-first read strategy (85% fewer Turso queries)
-   - Request batching API (55% fewer round trips)
-   - Prepared statement caching (35% faster queries)
-   - Optimized metadata queries (70% faster)
-   - See: `archive/2026-01-21/TURSO_DATABASE_OPTIMIZATION_PLAN.md`
-2. **📋 Remaining File Splits**: Split 6 source files >500 LOC (15-20 hours, corrected from 30-40 hours)
-3. **🔧 Test Infrastructure**: Ensure all integration tests pass
-4. **📈 Performance Monitoring**: Validate pattern search performance at scale
-
-### Medium-term (v0.1.13-v0.1.15 - Q1 2026)
-1. **Enhanced Pattern Analytics (v0.1.13)**: Advanced pattern discovery and insights
-2. **Query Caching Enhancements (v0.1.14)**: Adaptive caching strategies
-3. **Advanced Features (v0.1.15)**: Large-scale validation, custom models, production optimization
+### Medium-term (v0.1.15 - Q1 2026)
+1. **MCP Token Optimization**: Lazy loading + field selection (≥50% token savings)
+2. **Adaptive TTL Phase 2.3**: Implementation and testing
+3. **Error Handling Improvement**: Reduce unwraps from 143 to ≤50
 
 ### Long-term (v1.0.0+ - 2026)
 1. **Distributed Memory**: Multi-instance synchronization
@@ -455,9 +418,9 @@ Comprehensive tagging system for episodes enabling:
 | **Test Coverage** | >90% | 92.5% | ✅ **EXCEEDS** |
 | **Architecture Quality** | 4/5 stars | 4.5/5 stars | ✅ **EXCEEDS** |
 | **Performance** | Meet targets | 10-100x better | ✅ **EXCEEDS** |
-| **File Size Compliance | <500 LOC | 7-8 modules compliant (corrected from 21) | ⚠️ PARTIAL | | ✅ **COMPLETE** |
-| **Rust Files | 564 files (corrected from 437) | | ✅ |
-| **Total LOC | - | ~81,000 (source only) | ✅ |
+| **File Size Compliance** | <500 LOC | All compliant | ✅ **COMPLETE** |
+| **Rust Files** | - | 791 files | ✅ |
+| **Total LOC** | - | ~198,000 | ✅ |
 
 ### Quality Indicators
 - ✅ **Navigation Efficiency**: Clear organization and documentation structure
@@ -498,16 +461,18 @@ Comprehensive tagging system for episodes enabling:
 - **[TASK_COMPLETION_STATUS.md](../TASK_COMPLETION_STATUS.md)** - Current task status
 
 ### Planning & Archive
+- **[ADR-025](../adr/ADR-025-Project-Health-Remediation.md)** - Project health remediation plan (Phase A→D)
+- **[GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md)** - v0.1.15 development plan
 - **[plans/archive/](./archive/)** - Historical planning documents organized by version
 - **[plans/README.md](./README.md)** - Plans folder navigation and organization
 
 ---
 
-**Status**: ✅ **SYSTEM OPERATIONAL AND PRODUCTION READY** (v0.1.14)
-**Confidence**: **VERY HIGH** - All critical systems validated and quality gates passing
-**Production Readiness**: **100%**
-**Last Review**: 2026-01-12 (semantic pattern search complete)
-**Next Review**: 2026-01-19 (weekly status updates)
+**Status**: ⚠️ **SYSTEM OPERATIONAL — CI REMEDIATION IN PROGRESS** (v0.1.14)
+**Confidence**: **MODERATE** - Build and tests pass locally; 4 CI workflows failing on main
+**Production Readiness**: **95%** - Pending CI stabilization (Phase A of ADR-025)
+**Last Review**: 2026-02-13 (ADR-025 accepted, GOAP remediation plan active)
+**Next Review**: After Phase A completion
 
 ---
 

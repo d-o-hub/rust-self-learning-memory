@@ -4,8 +4,15 @@
 
 use super::EpisodeQuery;
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Result};
+use memory_core::{apply_query_limit as core_apply_limit, Episode, Error, Result};
 use tracing::{debug, info};
+
+/// Apply query limit with defaults and bounds checking.
+/// Uses core module's function but provides local alias for convenience.
+#[inline]
+fn apply_query_limit(limit: Option<usize>) -> usize {
+    core_apply_limit(limit)
+}
 
 impl TursoStorage {
     /// Query episodes with filters
@@ -46,9 +53,9 @@ impl TursoStorage {
 
         sql.push_str(" ORDER BY start_time DESC");
 
-        if let Some(limit) = query.limit {
-            sql.push_str(&format!(" LIMIT {}", limit));
-        }
+        // Apply limit with defaults and bounds
+        let limit = apply_query_limit(query.limit);
+        sql.push_str(&format!(" LIMIT {}", limit));
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params_vec))
@@ -69,11 +76,22 @@ impl TursoStorage {
     }
 
     /// Query episodes modified since a given timestamp
+    ///
+    /// # Arguments
+    ///
+    /// * `since` - Timestamp to query from
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
     pub async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
-        debug!("Querying episodes since {}", since);
+        // Apply limit with defaults and bounds
+        let effective_limit = apply_query_limit(limit);
+        debug!(
+            "Querying episodes since {} (limit: {})",
+            since, effective_limit
+        );
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
@@ -84,6 +102,7 @@ impl TursoStorage {
             FROM episodes
             WHERE start_time >= ?
             ORDER BY start_time DESC
+            LIMIT ?
         "#;
 
         let since_timestamp = since.timestamp();
@@ -96,7 +115,7 @@ impl TursoStorage {
             .map_err(|e| Error::Storage(format!("Failed to prepare statement: {}", e)))?;
 
         let mut rows = stmt
-            .query(libsql::params![since_timestamp])
+            .query(libsql::params![since_timestamp, effective_limit as i64])
             .await
             .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
 
@@ -109,7 +128,12 @@ impl TursoStorage {
             episodes.push(Self::row_to_episode(&row)?);
         }
 
-        info!("Found {} episodes modified since {}", episodes.len(), since);
+        info!(
+            "Found {} episodes since {} (limit: {})",
+            episodes.len(),
+            since,
+            effective_limit
+        );
         Ok(episodes)
     }
 
@@ -117,8 +141,24 @@ impl TursoStorage {
     ///
     /// Uses json_extract for efficient querying of JSON metadata fields.
     /// Falls back to LIKE pattern matching if json_extract is not available.
-    pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
-        debug!("Querying episodes by metadata {} = {}", key, value);
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Metadata key to search for
+    /// * `value` - Metadata value to match
+    /// * `limit` - Maximum number of episodes to return (default: 100, max: 1000)
+    pub async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
+        // Apply limit with defaults and bounds
+        let effective_limit = apply_query_limit(limit);
+        debug!(
+            "Querying episodes by metadata {} = {} (limit: {})",
+            key, value, effective_limit
+        );
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Use json_extract for efficient JSON metadata querying
@@ -132,8 +172,9 @@ impl TursoStorage {
             FROM episodes
             WHERE json_extract(metadata, '$.{}') = '{}'
             ORDER BY start_time DESC
+            LIMIT {}
         "#,
-            key, value
+            key, value, effective_limit
         );
 
         let mut rows = conn
@@ -151,10 +192,11 @@ impl TursoStorage {
         }
 
         info!(
-            "Found {} episodes with metadata {} = {}",
+            "Found {} episodes with metadata {} = {} (limit: {})",
             episodes.len(),
             key,
-            value
+            value,
+            effective_limit
         );
         Ok(episodes)
     }
@@ -268,7 +310,7 @@ mod tests {
 
         // Query by metadata
         let result = storage
-            .query_episodes_by_metadata("tag", "important")
+            .query_episodes_by_metadata("tag", "important", None)
             .await
             .unwrap();
         assert_eq!(result.len(), 1);

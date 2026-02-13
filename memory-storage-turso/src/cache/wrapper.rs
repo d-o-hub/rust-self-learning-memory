@@ -348,20 +348,26 @@ impl StorageBackend for CachedTursoStorage {
     async fn query_episodes_since(
         &self,
         since: chrono::DateTime<chrono::Utc>,
+        limit: Option<usize>,
     ) -> Result<Vec<Episode>> {
         // Query caching not implemented for this method
         // Fall back to underlying storage
         self.storage
-            .query_episodes_since(since)
+            .query_episodes_since(since, limit)
             .await
             .map_err(|e| Error::Storage(format!("Query error: {}", e)))
     }
 
-    async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
+    async fn query_episodes_by_metadata(
+        &self,
+        key: &str,
+        value: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<Episode>> {
         // Query caching not implemented for this method
         // Fall back to underlying storage
         self.storage
-            .query_episodes_by_metadata(key, value)
+            .query_episodes_by_metadata(key, value, limit)
             .await
             .map_err(|e| Error::Storage(format!("Query error: {}", e)))
     }

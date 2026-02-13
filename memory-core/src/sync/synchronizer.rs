@@ -1,14 +1,26 @@
 //! Storage synchronizer for coordinating Turso and redb
 
-use crate::{Error, Result};
+use crate::tracing::CorrelationId;
+use crate::{Error, Result, MAX_QUERY_LIMIT};
 use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
+use tokio::time::timeout;
 use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use super::types::{SyncState, SyncStats};
+
+// ============================================================================
+// Timeout Constants
+// ============================================================================
+
+/// Timeout for sync episode operations (30 seconds)
+const SYNC_EPISODE_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// Timeout for sync all episodes operations (60 seconds)
+const SYNC_ALL_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Storage synchronizer for coordinating Turso and redb
 pub struct StorageSynchronizer<T, R> {
@@ -68,17 +80,40 @@ where
     ///
     /// Returns error if episode not found or storage operation fails
     pub async fn sync_episode_to_cache(&self, episode_id: Uuid) -> Result<()> {
-        info!("Syncing episode {} to cache", episode_id);
+        let correlation_id = CorrelationId::new();
 
-        // Fetch from Turso (source of truth)
-        let episode = self.turso.get_episode(episode_id).await?.ok_or_else(|| {
-            Error::Storage(format!("Episode {episode_id} not found in source storage"))
-        })?;
+        info!(correlation_id = %correlation_id, "Syncing episode {} to cache", episode_id);
 
-        // Store in redb cache
-        self.redb.store_episode(&episode).await?;
+        // Fetch from Turso (source of truth) with timeout
+        // timeout returns Result<Result<Option<Episode>, Error>, Elapsed>
+        let episode = match timeout(SYNC_EPISODE_TIMEOUT, self.turso.get_episode(episode_id)).await
+        {
+            Ok(Ok(Some(episode))) => episode,
+            Ok(Ok(None)) => {
+                return Err(Error::Storage(format!(
+                    "Episode {episode_id} not found in source storage"
+                )))
+            }
+            Ok(Err(e)) => return Err(Error::Storage(format!("Error fetching episode: {e}"))),
+            Err(_) => {
+                return Err(Error::Storage(format!(
+                    "Timeout fetching episode {episode_id} after {SYNC_EPISODE_TIMEOUT:?}"
+                )))
+            }
+        };
 
-        info!("Successfully synced episode {} to cache", episode_id);
+        // Store in redb cache with timeout
+        match timeout(SYNC_EPISODE_TIMEOUT, self.redb.store_episode(&episode)).await {
+            Ok(Ok(())) => {}
+            Ok(Err(e)) => return Err(Error::Storage(format!("Error storing episode: {e}"))),
+            Err(_) => {
+                return Err(Error::Storage(format!(
+                    "Timeout storing episode {episode_id} after {SYNC_EPISODE_TIMEOUT:?}"
+                )))
+            }
+        }
+
+        info!(correlation_id = %correlation_id, "Successfully synced episode {} to cache", episode_id);
         Ok(())
     }
 
@@ -98,22 +133,49 @@ where
     ///
     /// Returns error if query fails, but continues syncing other episodes if individual stores fail
     pub async fn sync_all_recent_episodes(&self, since: DateTime<Utc>) -> Result<SyncStats> {
-        info!("Syncing all episodes since {}", since);
+        let correlation_id = CorrelationId::new();
 
-        // Query source storage for recent episodes
-        let episodes = self.turso.query_episodes_since(since).await?;
+        info!(correlation_id = %correlation_id, "Syncing all episodes since {}", since);
+
+        // Query source storage for recent episodes with high limit for sync operations and with timeout
+        // timeout returns Result<Result<Vec<Episode>, Error>, Elapsed>
+        let episodes = match timeout(
+            SYNC_ALL_TIMEOUT,
+            self.turso
+                .query_episodes_since(since, Some(MAX_QUERY_LIMIT)),
+        )
+        .await
+        {
+            Ok(Ok(episodes)) => episodes,
+            Ok(Err(e)) => return Err(Error::Storage(format!("Error querying episodes: {e}"))),
+            Err(_) => {
+                return Err(Error::Storage(format!(
+                    "Timeout querying episodes after {SYNC_ALL_TIMEOUT:?}"
+                )))
+            }
+        };
+
         let total = episodes.len();
 
         let mut stats = SyncStats::default();
 
-        // Batch update cache
+        // Batch update cache with individual timeouts for each store operation
         for episode in episodes {
-            match self.redb.store_episode(&episode).await {
-                Ok(()) => {
+            let episode_id = episode.episode_id;
+            match timeout(SYNC_EPISODE_TIMEOUT, self.redb.store_episode(&episode)).await {
+                Ok(Ok(())) => {
                     stats.episodes_synced += 1;
                 }
-                Err(e) => {
-                    error!("Failed to sync episode {}: {}", episode.episode_id, e);
+                Ok(Err(e)) => {
+                    error!(correlation_id = %correlation_id, "Failed to sync episode {}: {}", episode_id, e);
+                    stats.errors += 1;
+                }
+                Err(_) => {
+                    error!(
+                        correlation_id = %correlation_id,
+                        "Timeout syncing episode {} after {:?}",
+                        episode_id, SYNC_EPISODE_TIMEOUT
+                    );
                     stats.errors += 1;
                 }
             }
@@ -124,6 +186,7 @@ where
             .await;
 
         info!(
+            correlation_id = %correlation_id,
             "Sync complete: {}/{} episodes synced, {} errors",
             stats.episodes_synced, total, stats.errors
         );
@@ -165,15 +228,18 @@ where
                 interval_timer.tick().await;
 
                 let since = Utc::now() - chrono::Duration::hours(1);
+                let correlation_id = CorrelationId::new();
+
                 match self.sync_all_recent_episodes(since).await {
                     Ok(stats) => {
                         debug!(
+                            correlation_id = %correlation_id,
                             "Periodic sync successful: {} episodes synced",
                             stats.episodes_synced
                         );
                     }
                     Err(e) => {
-                        error!("Periodic sync failed: {}", e);
+                        error!(correlation_id = %correlation_id, "Periodic sync failed: {}", e);
                     }
                 }
             }

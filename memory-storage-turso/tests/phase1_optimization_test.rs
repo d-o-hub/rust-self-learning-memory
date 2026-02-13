@@ -255,7 +255,7 @@ async fn test_metadata_query_optimization() {
     // Query by metadata (uses json_extract optimization)
     let start = Instant::now();
     let results = storage
-        .query_episodes_by_metadata("priority", "p1")
+        .query_episodes_by_metadata("priority", "p1", None)
         .await
         .expect("Failed to query by metadata");
     let query_duration = start.elapsed();
@@ -336,7 +336,7 @@ async fn test_end_to_end_optimization() {
     // Phase 4: Metadata queries
     let start = Instant::now();
     let results = cached_storage
-        .query_episodes_by_metadata("domain", "e2e_test")
+        .query_episodes_by_metadata("domain", "e2e_test", Some(1000))
         .await
         .expect("Failed to query");
     let query_duration = start.elapsed();

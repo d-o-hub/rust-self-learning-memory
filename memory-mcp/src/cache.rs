@@ -136,6 +136,10 @@ pub struct QueryCache {
     analyze_patterns_cache: RwLock<HashMap<AnalyzePatternsKey, CacheEntry<serde_json::Value>>>,
     /// Cache for execute_agent_code results
     execute_code_cache: RwLock<HashMap<ExecuteCodeKey, CacheEntry<super::ExecutionResult>>>,
+    /// Cache hit count
+    hits: RwLock<u64>,
+    /// Cache miss count
+    misses: RwLock<u64>,
 }
 
 impl Default for QueryCache {
@@ -157,6 +161,8 @@ impl QueryCache {
             query_memory_cache: RwLock::new(HashMap::new()),
             analyze_patterns_cache: RwLock::new(HashMap::new()),
             execute_code_cache: RwLock::new(HashMap::new()),
+            hits: RwLock::new(0),
+            misses: RwLock::new(0),
         }
     }
 
@@ -170,9 +176,11 @@ impl QueryCache {
         if let Some(entry) = cache.get(key) {
             if !entry.is_expired() {
                 // Clone from Arc (cheaper than deep clone for shared entries)
+                *self.hits.write() += 1;
                 return Some((**entry.data_arc()).clone());
             }
         }
+        *self.misses.write() += 1;
         None
     }
 
@@ -204,9 +212,11 @@ impl QueryCache {
         if let Some(entry) = cache.get(key) {
             if !entry.is_expired() {
                 // Clone from Arc (cheaper than deep clone for shared entries)
+                *self.hits.write() += 1;
                 return Some((**entry.data_arc()).clone());
             }
         }
+        *self.misses.write() += 1;
         None
     }
 
@@ -238,9 +248,11 @@ impl QueryCache {
         if let Some(entry) = cache.get(key) {
             if !entry.is_expired() {
                 // Clone from Arc (cheaper than deep clone for shared entries)
+                *self.hits.write() += 1;
                 return Some((**entry.data_arc()).clone());
             }
         }
+        *self.misses.write() += 1;
         None
     }
 
@@ -275,6 +287,15 @@ impl QueryCache {
         let analyze_patterns = self.analyze_patterns_cache.read();
         let execute_code = self.execute_code_cache.read();
 
+        let hits = *self.hits.read();
+        let misses = *self.misses.read();
+        let total = hits + misses;
+        let hit_rate = if total > 0 {
+            (hits as f64 / total as f64) * 100.0
+        } else {
+            0.0
+        };
+
         CacheStats {
             query_memory_entries: query_memory.len(),
             analyze_patterns_entries: analyze_patterns.len(),
@@ -283,6 +304,9 @@ impl QueryCache {
             max_entries: self.config.max_entries,
             enabled: self.config.enabled,
             ttl_seconds: self.config.ttl_seconds,
+            hits,
+            misses,
+            hit_rate,
         }
     }
 
@@ -332,6 +356,12 @@ pub struct CacheStats {
     pub max_entries: usize,
     pub enabled: bool,
     pub ttl_seconds: u64,
+    /// Total cache hits
+    pub hits: u64,
+    /// Total cache misses
+    pub misses: u64,
+    /// Cache hit rate (percentage)
+    pub hit_rate: f64,
 }
 
 #[cfg(test)]

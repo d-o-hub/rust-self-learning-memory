@@ -39,9 +39,10 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 futures = "0.3.31"
 
 # WASM JavaScript execution dependencies
+# These are optional and gated behind feature flags for faster builds
 rquickjs = { version = "0.11.0", features = ["parallel", "loader", "futures"], optional = true }  # DEPRECATED: gated behind feature `wasm-rquickjs`
-wasmtime = { workspace = true, features = ["async", "cranelift", "wat", "cache"] }
-wasmtime-wasi = { workspace = true }  # Align with wasmtime version
+wasmtime = { workspace = true, features = ["async", "cranelift", "wat", "cache"], optional = true }
+wasmtime-wasi = { workspace = true, optional = true }  # Align with wasmtime version
 
 # Javy JavaScript to WASM compilation dependencies (optional)
 javy = { version = "6.0.0", optional = true }
@@ -62,9 +63,14 @@ base64 = "0.22.1"
 libc = "0.2"
 
 [features]
-default = ["wasmtime-backend"]
-wasmtime-backend = []
+# WASM backends are now optional - users must explicitly choose one
+# Default is empty - build without WASM support for faster compilation
+default = []
+# WASMtime backend (recommended for most use cases)
+wasmtime-backend = ["dep:wasmtime", "dep:wasmtime-wasi"]
+# Deprecated: QuickJS WASM backend
 wasm-rquickjs = ["dep:rquickjs"]
+# Javy JavaScript backend (requires additional setup)
 javy-backend = ["dep:javy", "dep:javy-codegen"]
 
 [dev-dependencies]

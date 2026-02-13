@@ -7,6 +7,7 @@
 //! - Storage backend differences
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -105,7 +106,7 @@ fn benchmark_dataset_scalability(c: &mut Criterion) {
                         .await;
 
                     // Benchmark measures time per query at this dataset size
-                    criterion::black_box(results.len());
+                    black_box(results.len());
                 });
             },
         );
@@ -237,7 +238,7 @@ fn benchmark_query_complexity_scalability(c: &mut Criterion) {
                         )
                         .await;
 
-                    criterion::black_box(results.len());
+                    black_box(results.len());
                 });
             },
         );
@@ -316,7 +317,7 @@ fn benchmark_operation_batch_scalability(c: &mut Criterion) {
                     }
 
                     // Ensure all operations completed
-                    criterion::black_box(handles.len());
+                    black_box(handles.len());
                 });
             },
         );
@@ -387,7 +388,7 @@ fn benchmark_throughput_vs_latency(c: &mut Criterion) {
                         }
                     }
 
-                    criterion::black_box(operation_count);
+                    black_box(operation_count);
                 });
             },
         );

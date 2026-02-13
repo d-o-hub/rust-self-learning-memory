@@ -52,13 +52,15 @@ For specific tasks, refer to these focused documentation files:
 - `DEPLOYMENT.md` - Production deployment guide
 
 ## Development Workflow
-- Follow existing code patterns from examples in the codebase
+- Follow existing code patterns from examples in codebase
 - Use `cargo fmt` and `cargo clippy` for automatic formatting/linting
 - Write tests for new functionality (maintain >90% coverage)
 - Run quality gates before committing
 - Use postcard for serialization in storage layers
 - Use parameterized queries to prevent SQL injection
-- **Module patterns used**: async traits for storage operations, `thiserror` for domain errors, `anyhow::Result` for public APIs, builder pattern for complex types, newtype pattern for type safety, Arc/Mutex for shared state
+- **Skill + CLI pattern**: Use .agents/skills/ directory for on-demand loading of specialized knowledge
+- **Example**: build-compile agent uses code-quality skill via `.agents/skills/code-quality/`
+- **Skill + CLI pattern**: On-demand skill loading with bash CLI for high-frequency operations (see `build-compile` below)
 
 ## Feature Flags
 Enable optional features via Cargo:

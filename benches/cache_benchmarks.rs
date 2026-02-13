@@ -5,7 +5,8 @@
 //!
 //! Run with: `cargo bench --bench cache_benchmarks`
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 use memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
 use tempfile::TempDir;

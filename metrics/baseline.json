@@ -1,0 +1,12 @@
+{
+  "timestamp": "",
+  "agent_tokens": 0,
+  "agent_chars": 0,
+  "skill_tokens": 0,
+  "skill_chars": 0,
+  "total_tokens": 0,
+  "total_chars": 0,
+  "check_time": 0,
+  "dev_time": 0,
+  "target_size_mb": 0
+}

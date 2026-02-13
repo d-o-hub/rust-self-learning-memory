@@ -16,7 +16,8 @@
 //! - Query latency: Mean, p50, p95, p99 (target: ≤100ms)
 //! - Diversity score: Average across queries (target: ≥0.7)
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 use memory_core::{
     memory::SelfLearningMemory,
     spatiotemporal::{DiversityMaximizer, ScoredEpisode},

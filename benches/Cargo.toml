@@ -116,6 +116,11 @@ name = "prepared_cache_benchmark"
 path = "prepared_cache_benchmark.rs"
 harness = false
 
+[[bench]]
+name = "adaptive_ttl_benchmark"
+path = "adaptive_ttl_benchmark.rs"
+harness = false
+
 # NOTE: These benchmarks use APIs that don't exist in the current codebase.
 # They have been disabled to fix the build. Re-enable after implementing the required APIs.
 # [[bench]]

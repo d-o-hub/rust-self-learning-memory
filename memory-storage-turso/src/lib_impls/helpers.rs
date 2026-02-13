@@ -402,4 +402,34 @@ impl TursoStorage {
     pub fn clear_prepared_cache(&self, conn_id: ConnectionId) -> usize {
         self.prepared_cache.clear_connection(conn_id)
     }
+
+    /// Get compression statistics if compression feature is enabled
+    ///
+    /// Returns a snapshot of compression statistics including:
+    /// - Total original bytes
+    /// - Total compressed bytes
+    /// - Compression ratio
+    /// - Bandwidth savings percentage
+    /// - Compression/decompression time
+    ///
+    /// # Returns
+    ///
+    /// Compression statistics snapshot
+    #[cfg(feature = "compression")]
+    pub fn compression_statistics(&self) -> crate::CompressionStatistics {
+        self.compression_stats
+            .lock()
+            .map(|stats| stats.clone())
+            .unwrap_or_else(|_| crate::CompressionStatistics::new())
+    }
+
+    /// Reset compression statistics
+    ///
+    /// This is useful for testing or for tracking statistics over specific time windows.
+    #[cfg(feature = "compression")]
+    pub fn reset_compression_statistics(&self) {
+        if let Ok(mut stats) = self.compression_stats.lock() {
+            *stats = crate::CompressionStatistics::new();
+        }
+    }
 }

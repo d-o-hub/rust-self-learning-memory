@@ -3,7 +3,8 @@
 //! These benchmarks measure the performance of critical CLI paths
 //! to ensure they meet performance requirements.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 use memory_cli::test_utils::*;
 use std::time::Duration;
 

@@ -6,7 +6,8 @@
 
 #![allow(unexpected_cfgs)]
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use std::hint::black_box;
 use memory_core::{Episode, TaskContext, TaskType};
 use memory_storage_turso::{TursoConfig, TursoStorage};
 use tokio::runtime::Runtime;

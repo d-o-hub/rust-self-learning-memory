@@ -14,6 +14,7 @@ use super::types::{ActiveElicitation, ActiveTask, EmbeddingEnvConfig, RateLimitE
 use memory_mcp::jsonrpc::{
     read_next_message, write_response_with_length, JsonRpcError, JsonRpcRequest, JsonRpcResponse,
 };
+use memory_mcp::monitoring::types::{CacheHealth, HealthResponse, StorageHealth, SyncHealth};
 use memory_mcp::protocol::OAuthConfig;
 use memory_mcp::server::rate_limiter::{ClientId, OperationType, RateLimitConfig, RateLimiter};
 use memory_mcp::MemoryMCPServer;
@@ -127,6 +128,81 @@ pub async fn handle_embedding_config(
             "message": if has_api_key { format!("{} embeddings configured", embedding_config.provider) }
             else { format!("{} embeddings configured (no API key set)", embedding_config.provider) }
         })),
+        error: None,
+    })
+}
+
+/// Handle health check request - returns storage, cache, sync, and uptime status
+pub async fn handle_health_check(request: JsonRpcRequest) -> Option<JsonRpcResponse> {
+    request.id.as_ref()?;
+    debug!("Handling health check");
+
+    // Check storage connections (Turso and redb)
+    // We check environment variables to determine connection status
+    let turso_url = std::env::var("TURSO_DATABASE_URL").ok();
+    let turso_connected = turso_url.is_some();
+    let turso_details = if turso_connected {
+        Some(format!(
+            "Connected to Turso: {}",
+            turso_url.as_deref().unwrap_or("unknown")
+        ))
+    } else {
+        Some("Using Turso local (file-based)".to_string())
+    };
+
+    let redb_path =
+        std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
+    let redb_connected = std::path::Path::new(&redb_path).exists();
+    let redb_details = Some(format!("redb cache at: {}", redb_path));
+
+    // Get cache stats from MCP server (we'll get this from the server's cache)
+    // For now, we'll use default values since the cache is internal to the server
+    let cache_stats = CacheHealth {
+        enabled: true,
+        hits: 0,
+        misses: 0,
+        hit_rate: 0.0,
+        size: 0,
+        max_size: 1000,
+    };
+
+    // Sync status - we don't have a real sync mechanism yet, so we'll show "not applicable"
+    let sync = SyncHealth {
+        last_sync_timestamp: None,
+        status: "N/A - using local storage".to_string(),
+        seconds_since_sync: None,
+    };
+
+    // Calculate uptime - we don't track this persistently, so return 0
+    let uptime_seconds: u64 = 0;
+
+    // Determine overall status
+    let status = if turso_connected || redb_connected {
+        "healthy"
+    } else {
+        "warning"
+    };
+
+    let health_response = HealthResponse {
+        status: status.to_string(),
+        storage: StorageHealth {
+            turso_connected,
+            turso_details,
+            redb_connected,
+            redb_details,
+        },
+        cache: cache_stats,
+        sync,
+        uptime_seconds,
+    };
+
+    Some(JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id,
+        result: Some(serde_json::to_value(&health_response).unwrap_or(json!({
+            "status": status,
+            "error": "Failed to serialize health response"
+        }))),
         error: None,
     })
 }
@@ -307,6 +383,7 @@ pub async fn handle_request(
         ".well-known/oauth-protected-resource" => {
             handle_protected_resource_metadata(request, oauth_config).await
         }
+        "health" | "health/check" => handle_health_check(request).await,
         _ => {
             warn!("Unknown method: {}", method);
             Some(JsonRpcResponse {

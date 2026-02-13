@@ -31,6 +31,62 @@ impl Default for MonitoringConfig {
     }
 }
 
+/// Storage health information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageHealth {
+    /// Turso connection status
+    pub turso_connected: bool,
+    /// Turso connection details
+    pub turso_details: Option<String>,
+    /// redb cache status
+    pub redb_connected: bool,
+    /// redb cache details
+    pub redb_details: Option<String>,
+}
+
+/// Cache health information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CacheHealth {
+    /// Cache enabled status
+    pub enabled: bool,
+    /// Total cache hits
+    pub hits: u64,
+    /// Total cache misses
+    pub misses: u64,
+    /// Cache hit rate (percentage)
+    pub hit_rate: f64,
+    /// Current cache size
+    pub size: usize,
+    /// Max cache size
+    pub max_size: usize,
+}
+
+/// Sync health information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncHealth {
+    /// Last sync timestamp (Unix epoch)
+    pub last_sync_timestamp: Option<u64>,
+    /// Sync status message
+    pub status: String,
+    /// Time since last sync in seconds
+    pub seconds_since_sync: Option<u64>,
+}
+
+/// Health response for /health endpoint
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthResponse {
+    /// Overall status (healthy, warning, unhealthy)
+    pub status: String,
+    /// Storage health information
+    pub storage: StorageHealth,
+    /// Cache health information
+    pub cache: CacheHealth,
+    /// Sync health information
+    pub sync: SyncHealth,
+    /// Server uptime in seconds
+    pub uptime_seconds: u64,
+}
+
 /// Overall monitoring statistics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MonitoringStats {

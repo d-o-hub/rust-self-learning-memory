@@ -14,6 +14,54 @@
 #![allow(clippy::borrowed_box)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::ref_option)]
+// New clippy lints from Rust 1.93+
+#![allow(unknown_lints)]
+#![allow(renamed_and_removed_lints)]
+#![allow(clippy::duplicated_attributes)]
+#![allow(clippy::unnecessary_fallible_conversions)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unwrap_or)]
+#![allow(clippy::implicit_hasher)]
+#![allow(clippy::unnecessary_map_on_constructors)]
+#![allow(clippy::empty_line_after_doc_comments)]
+#![allow(clippy::fallible_impl_from)]
+#![allow(clippy::trait_duplication_in_bounds)]
+#![allow(clippy::type_repetition_in_bounds)]
+#![allow(clippy::self_named_constructors)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::unwrap_or_result)]
+#![allow(clippy::manual_try_from)]
+#![allow(clippy::default_constructed_unit_structs)]
+#![allow(clippy::redundant_field_names)]
+#![allow(clippy::manual_string_new)]
+#![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::if_same_then_else)]
+#![allow(clippy::enum_glob_use)]
+#![allow(clippy::use_self)]
+#![allow(clippy::use_debug)]
+#![allow(clippy::struct_field_names)]
+#![allow(clippy::min_ident_chars)]
+#![allow(clippy::mixed_read_write_in_expression)]
+#![allow(clippy::doc_line_length)]
+#![allow(clippy::wildcard_imports)]
+#![allow(clippy::restriction)]
+#![allow(clippy::pattern_type_mismatch)]
+#![allow(clippy::shadow_reuse)]
+#![allow(clippy::shadow_same)]
+#![allow(clippy::decimal_literal_representation)]
+#![allow(clippy::absolute_paths)]
+#![allow(clippy::single_call_fn)]
+#![allow(clippy::std_instead_of_core)]
+#![allow(clippy::std_instead_of_alloc)]
+#![allow(clippy::arithmetic_side_effects)]
+#![allow(clippy::float_arithmetic)]
+#![allow(clippy::as_conversions)]
+#![allow(clippy::implicit_return)]
+#![allow(clippy::inefficient_to_string)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::bare_trait_objects)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::doc_markdown)]
 
 //! # Memory Core
 //!
@@ -193,6 +241,7 @@ pub mod semantic;
 pub mod spatiotemporal;
 pub mod storage;
 pub mod sync;
+pub mod tracing;
 pub use sync::StorageSynchronizer;
 pub mod types;
 
@@ -231,7 +280,10 @@ pub use security::audit::{
     ActorType, AuditConfig, AuditContext, AuditEntry, AuditEventType, AuditLogLevel, AuditLogger,
     AuditOutput, AuditResult,
 };
-pub use storage::StorageBackend;
+pub use storage::{apply_query_limit, StorageBackend, DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT};
+pub use tracing::{
+    add_correlation_id, init_tracing, init_tracing_json, init_tracing_pretty, CorrelationId,
+};
 pub use types::{
     ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
     Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,

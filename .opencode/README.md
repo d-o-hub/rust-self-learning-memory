@@ -42,6 +42,12 @@ Reusable knowledge and procedures for development tasks:
 - `architecture-validation.md` - Dynamic architecture compliance validation
 - `feature-implement.md` - Systematic feature implementation process
 
+## Skill Source of Truth
+
+Skills are defined in `.agents/skills/` and shared across all CLI tools.
+Agent files in this directory reference those skills. See `.agents/skills/_consolidated/README.md`
+for the consolidation history.
+
 ## Usage
 
 These agents and skills are automatically available when using OpenCode in this project directory. Agents can be invoked directly by name, while skills provide supporting knowledge and procedures for various development workflows.

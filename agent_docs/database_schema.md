@@ -6,9 +6,9 @@ The system uses two primary storage mechanisms:
 1. **Turso (libSQL)**: Primary persistent storage (SQLite-based)
 2. **Redb**: High-performance cache layer with Postcard serialization
 
-## v0.1.7 Breaking Change: Postcard Serialization (current: v0.1.13)
+## v0.1.7 Breaking Change: Postcard Serialization
 
-**IMPORTANT**: Since v0.1.7, the cache layer uses **Postcard** for serialization instead of Bincode (current: v0.1.13):
+**IMPORTANT**: Since v0.1.7, the cache layer uses **Postcard** for serialization instead of Bincode:
 
 ```rust
 // ✅ Use Postcard (v0.1.7+)

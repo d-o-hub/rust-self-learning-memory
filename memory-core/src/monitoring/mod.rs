@@ -33,12 +33,10 @@
 //! ```
 
 mod core;
-pub mod metrics;
 pub mod storage;
 pub mod types;
 
 pub use core::{AgentMonitor, MonitoringSummary};
-pub use metrics::{MetricsHttpServer, MetricsRegistry};
 pub use storage::{MonitoringAnalytics, MonitoringStorage};
 pub use types::{AgentMetrics, ExecutionRecord, MonitoringConfig, TaskMetrics};
 

@@ -8,6 +8,7 @@
 //! Following patterns from rust-storage-bench for fair comparisons.
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
 };
@@ -201,7 +202,7 @@ fn benchmark_backend_read_performance(c: &mut Criterion) {
                             .await;
 
                         total_time += start.elapsed();
-                        criterion::black_box(results.len());
+                        black_box(results.len());
                     }
 
                     total_time
@@ -263,7 +264,7 @@ fn benchmark_backend_bulk_operations(c: &mut Criterion) {
                             episode_ids.push(episode_id);
                         }
 
-                        criterion::black_box(episode_ids.len());
+                        black_box(episode_ids.len());
                     });
                 },
             );

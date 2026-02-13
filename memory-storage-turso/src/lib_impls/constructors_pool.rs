@@ -152,6 +152,10 @@ impl TursoStorage {
                 PreparedCacheConfig::default(),
             )),
             config,
+            #[cfg(feature = "compression")]
+            compression_stats: Arc::new(std::sync::Mutex::new(
+                super::super::CompressionStatistics::new(),
+            )),
         })
     }
 
@@ -264,6 +268,10 @@ impl TursoStorage {
                 PreparedCacheConfig::default(),
             )),
             config,
+            #[cfg(feature = "compression")]
+            compression_stats: Arc::new(std::sync::Mutex::new(
+                super::super::CompressionStatistics::new(),
+            )),
         })
     }
 }

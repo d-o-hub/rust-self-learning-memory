@@ -4,7 +4,8 @@
 //! - Domain invalidation latency: <100µs for <1000 entries
 //! - Minimal put() overhead with domain tracking
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 use memory_core::episode::Episode;
 use memory_core::retrieval::{CacheKey, QueryCache};
 use memory_core::types::{TaskContext, TaskType};

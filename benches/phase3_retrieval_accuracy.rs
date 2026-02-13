@@ -11,7 +11,8 @@
 //! - Query latency
 //! - Diversity score
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 use memory_core::{
     memory::SelfLearningMemory, ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext,
     TaskOutcome, TaskType,

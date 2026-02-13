@@ -12,6 +12,9 @@ use super::super::{AdaptiveConnectionPool, PreparedStatementCache, TursoConfig};
 #[cfg(feature = "keepalive-pool")]
 use super::super::pool::KeepAlivePool;
 
+#[cfg(feature = "compression")]
+use super::super::CompressionStatistics;
+
 /// Turso storage backend for durable persistence
 pub struct TursoStorage {
     pub(crate) db: Arc<Database>,
@@ -22,4 +25,7 @@ pub struct TursoStorage {
     pub(crate) caching_pool: Option<Arc<CachingPool>>,
     pub(crate) prepared_cache: Arc<PreparedStatementCache>,
     pub(crate) config: TursoConfig,
+    /// Compression statistics tracking (when compression feature is enabled)
+    #[cfg(feature = "compression")]
+    pub(crate) compression_stats: Arc<std::sync::Mutex<CompressionStatistics>>,
 }

@@ -8,7 +8,8 @@
 //! - Episode retrieval (retrieve_relevant_context)
 //! - Pattern extraction and scoring performance
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     generate_large_episode_description, generate_many_execution_steps, setup_temp_memory,

@@ -3,7 +3,8 @@
 //! These benchmarks measure the effectiveness of the prepared statement cache
 //! and the performance improvement from connection-aware caching.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use std::hint::black_box;
 use memory_storage_turso::prepared::PreparedStatementCache;
 
 /// Benchmark basic cache operations

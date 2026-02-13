@@ -7,6 +7,8 @@
 //! - Round-trip compression/decompression works
 //! - Compression statistics are tracked
 
+#![allow(clippy::expect_used)]
+
 use memory_core::embeddings::EmbeddingStorageBackend;
 use memory_storage_turso::TursoStorage;
 use uuid::Uuid;

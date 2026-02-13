@@ -34,12 +34,14 @@ fn rt() -> &'static Runtime {
 
 /// Test value type (simulates cache payload)
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct TestValue {
     id: u32,
     data: Vec<u8>,
     timestamp: i64,
 }
 
+#[allow(dead_code)]
 impl TestValue {
     /// Create a test value with specified size
     fn new(id: u32, size: usize) -> Self {
@@ -205,7 +207,7 @@ fn bench_static_vs_adaptive_baseline(c: &mut Criterion) {
                     // Populate cache
                     rt().block_on(async {
                         for i in 0..size {
-                            cache.insert(i, TestValue::small(i as u32)).await;
+                            cache.insert(i as u32, TestValue::small(i as u32)).await;
                         }
                     });
 

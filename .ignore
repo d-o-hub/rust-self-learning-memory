@@ -1,4 +1,5 @@
 # Database and cache files created by examples/tests
+!.agents/
 !*.db
 !*.db-*
 !*.sqlite

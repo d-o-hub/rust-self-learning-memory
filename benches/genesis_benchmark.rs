@@ -8,7 +8,6 @@
 //! 5. Total overhead: ≤ 10ms average (combined PREMem + GENESIS)
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::hint::black_box;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
@@ -20,6 +19,7 @@ use memory_core::{
     types::{TaskOutcome, TaskType},
     Episode,
 };
+use std::hint::black_box;
 use std::time::Instant;
 
 /// Benchmark 1: Capacity Enforcement Overhead

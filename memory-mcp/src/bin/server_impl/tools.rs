@@ -16,6 +16,7 @@ use super::types::Content;
 use memory_mcp::mcp::tools::embeddings::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
 use memory_mcp::mcp::tools::pattern_search::{RecommendPatternsInput, SearchPatternsInput};
 use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
+use memory_mcp::server::rate_limiter::OperationType;
 use memory_mcp::ExecutionContext;
 use memory_mcp::MemoryMCPServer;
 use serde_json::{json, Value};
@@ -841,7 +842,34 @@ pub async fn handle_add_episode_relationship(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (WRITE operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Write);
+    if !rate_limit_result.allowed {
+        // Log rate limit violation
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "add_episode_relationship",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+
+        // Return rate limited error
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: AddEpisodeRelationshipInput = serde_json::from_value(args)?;
     let from_id = input.from_episode_id.clone();
     let to_id = input.to_episode_id.clone();
@@ -859,7 +887,7 @@ pub async fn handle_add_episode_relationship(
     server
         .audit_logger()
         .log_add_relationship(
-            &client_id,
+            &client_id_str,
             &from_id,
             &to_id,
             &rel_type,
@@ -883,7 +911,31 @@ pub async fn handle_remove_episode_relationship(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (WRITE operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Write);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "remove_episode_relationship",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: RemoveEpisodeRelationshipInput = serde_json::from_value(args)?;
     let relationship_id = input.relationship_id.clone();
 
@@ -894,7 +946,7 @@ pub async fn handle_remove_episode_relationship(
     let success = result.is_ok();
     server
         .audit_logger()
-        .log_remove_relationship(&client_id, &relationship_id, success)
+        .log_remove_relationship(&client_id_str, &relationship_id, success)
         .await;
 
     Ok(vec![Content::Text {
@@ -914,7 +966,31 @@ pub async fn handle_get_episode_relationships(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (READ operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "get_episode_relationships",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: GetEpisodeRelationshipsInput = serde_json::from_value(args)?;
     let episode_id = input.episode_id.clone();
 
@@ -926,7 +1002,7 @@ pub async fn handle_get_episode_relationships(
     let total_count = result.as_ref().map(|r| r.total_count).unwrap_or(0);
     server
         .audit_logger()
-        .log_get_relationships(&client_id, &episode_id, total_count, success)
+        .log_get_relationships(&client_id_str, &episode_id, total_count, success)
         .await;
 
     Ok(vec![Content::Text {
@@ -946,7 +1022,31 @@ pub async fn handle_find_related_episodes(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (READ operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "find_related_episodes",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: FindRelatedEpisodesInput = serde_json::from_value(args)?;
     let episode_id = input.episode_id.clone();
 
@@ -958,7 +1058,7 @@ pub async fn handle_find_related_episodes(
     let count = result.as_ref().map(|r| r.count).unwrap_or(0);
     server
         .audit_logger()
-        .log_find_related(&client_id, &episode_id, count, success)
+        .log_find_related(&client_id_str, &episode_id, count, success)
         .await;
 
     Ok(vec![Content::Text {
@@ -978,7 +1078,31 @@ pub async fn handle_check_relationship_exists(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (READ operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "check_relationship_exists",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: CheckRelationshipExistsInput = serde_json::from_value(args)?;
     let from_id = input.from_episode_id.clone();
     let to_id = input.to_episode_id.clone();
@@ -992,7 +1116,7 @@ pub async fn handle_check_relationship_exists(
     let exists = result.as_ref().map(|r| r.exists).unwrap_or(false);
     server
         .audit_logger()
-        .log_check_relationship(&client_id, &from_id, &to_id, &rel_type, exists, success)
+        .log_check_relationship(&client_id_str, &from_id, &to_id, &rel_type, exists, success)
         .await;
 
     Ok(vec![Content::Text {
@@ -1012,7 +1136,31 @@ pub async fn handle_get_dependency_graph(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (READ operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "get_dependency_graph",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: DependencyGraphInput = serde_json::from_value(args)?;
     let episode_id = input.episode_id.clone();
 
@@ -1025,7 +1173,7 @@ pub async fn handle_get_dependency_graph(
     let edge_count = result.as_ref().map(|r| r.edge_count).unwrap_or(0);
     server
         .audit_logger()
-        .log_dependency_graph(&client_id, &episode_id, node_count, edge_count, success)
+        .log_dependency_graph(&client_id_str, &episode_id, node_count, edge_count, success)
         .await;
 
     Ok(vec![Content::Text {
@@ -1045,7 +1193,31 @@ pub async fn handle_validate_no_cycles(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (READ operation - validates before potential write)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "validate_no_cycles",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: ValidateNoCyclesInput = serde_json::from_value(args)?;
     let from_id = input.from_episode_id.clone();
     let to_id = input.to_episode_id.clone();
@@ -1062,7 +1234,7 @@ pub async fn handle_validate_no_cycles(
     server
         .audit_logger()
         .log_validate_cycles(
-            &client_id,
+            &client_id_str,
             &from_id,
             &to_id,
             &rel_type,
@@ -1088,7 +1260,31 @@ pub async fn handle_get_topological_order(
     };
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
-    let client_id = get_client_id(&args);
+
+    // Check rate limit (READ operation)
+    let client_id = server.client_id_from_args(&args);
+    let rate_limit_result = server.check_rate_limit(&client_id, OperationType::Read);
+    if !rate_limit_result.allowed {
+        let client_id_str = get_client_id(&args);
+        server
+            .audit_logger()
+            .log_rate_limit_violation(
+                &client_id_str,
+                "get_topological_order",
+                rate_limit_result.limit,
+                rate_limit_result.remaining,
+            )
+            .await;
+        return Err(anyhow::anyhow!(
+            "Rate limit exceeded. Retry after {} seconds.",
+            rate_limit_result
+                .retry_after
+                .map(|d| d.as_secs())
+                .unwrap_or(60)
+        ));
+    }
+
+    let client_id_str = get_client_id(&args);
     let input: GetTopologicalOrderInput = serde_json::from_value(args)?;
     let episode_count = input.episode_ids.len();
 
@@ -1101,7 +1297,7 @@ pub async fn handle_get_topological_order(
     server
         .audit_logger()
         .log_topological_order(
-            &client_id,
+            &client_id_str,
             episode_count,
             output_count,
             has_cycles,

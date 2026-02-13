@@ -46,12 +46,14 @@ pub mod tools;
 use crate::cache::QueryCache;
 use crate::monitoring::{MonitoringConfig, MonitoringEndpoints, MonitoringSystem};
 use crate::server::audit::{AuditConfig, AuditLogger};
+use crate::server::rate_limiter::{ClientId, OperationType, RateLimiter};
 use crate::server::tools::registry::ToolRegistry;
 use crate::types::{ExecutionStats, SandboxConfig};
 use crate::unified_sandbox::UnifiedSandbox;
 use anyhow::Result;
 use memory_core::SelfLearningMemory;
 use parking_lot::RwLock;
+use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::info;
@@ -77,6 +79,8 @@ pub struct MemoryMCPServer {
     cache: Arc<QueryCache>,
     /// Audit logger for security events
     audit_logger: Arc<AuditLogger>,
+    /// Rate limiter for DoS protection
+    rate_limiter: RateLimiter,
 }
 
 impl MemoryMCPServer {
@@ -117,6 +121,7 @@ impl MemoryMCPServer {
             monitoring_endpoints,
             cache: Arc::new(QueryCache::new()),
             audit_logger,
+            rate_limiter: RateLimiter::from_env(),
         };
 
         info!(
@@ -129,6 +134,10 @@ impl MemoryMCPServer {
             server.monitoring.config().enabled
         );
         info!("Audit logging system initialized");
+        info!(
+            "Rate limiter initialized (enabled: {})",
+            server.rate_limiter.is_enabled()
+        );
 
         // Perform cache warming if enabled
         if cache_warming::is_cache_warming_enabled() {
@@ -174,5 +183,81 @@ impl MemoryMCPServer {
     /// Returns a clone of the `Arc<AuditLogger>`
     pub fn audit_logger(&self) -> Arc<AuditLogger> {
         Arc::clone(&self.audit_logger)
+    }
+
+    /// Get a reference to the rate limiter
+    ///
+    /// # Returns
+    ///
+    /// Returns a reference to the `RateLimiter`
+    pub fn rate_limiter(&self) -> &RateLimiter {
+        &self.rate_limiter
+    }
+
+    /// Extract client ID from tool arguments
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Tool arguments JSON value
+    ///
+    /// # Returns
+    ///
+    /// Returns a `ClientId` for rate limiting
+    pub fn client_id_from_args(&self, args: &Value) -> ClientId {
+        args.get("client_id")
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())
+            .map(ClientId::from_string)
+            .unwrap_or(ClientId::Unknown)
+    }
+
+    /// Check rate limit for a client
+    ///
+    /// # Arguments
+    ///
+    /// * `client_id` - Client identifier
+    /// * `operation` - Type of operation (read or write)
+    ///
+    /// # Returns
+    ///
+    /// Returns the rate limit check result
+    pub fn check_rate_limit(
+        &self,
+        client_id: &ClientId,
+        operation: OperationType,
+    ) -> crate::server::rate_limiter::RateLimitResult {
+        self.rate_limiter.check_rate_limit(client_id, operation)
+    }
+
+    /// Get rate limit headers for a response
+    ///
+    /// # Arguments
+    ///
+    /// * `result` - Rate limit check result
+    ///
+    /// # Returns
+    ///
+    /// Returns vector of rate limit header tuples
+    pub fn rate_limit_headers(
+        &self,
+        result: &crate::server::rate_limiter::RateLimitResult,
+    ) -> Vec<(String, String)> {
+        self.rate_limiter.get_headers(result)
+    }
+
+    /// Get rate limit headers for a rate-limited response
+    ///
+    /// # Arguments
+    ///
+    /// * `result` - Rate limit check result
+    ///
+    /// # Returns
+    ///
+    /// Returns vector of rate limit header tuples including Retry-After
+    pub fn rate_limited_headers(
+        &self,
+        result: &crate::server::rate_limiter::RateLimitResult,
+    ) -> Vec<(String, String)> {
+        self.rate_limiter.get_rate_limited_headers(result)
     }
 }

@@ -78,13 +78,6 @@ jobs:
           echo "Running memory-storage-redb library tests..."
           cargo test --package memory-storage-redb --lib -- --test-threads=4
           echo "Library tests completed successfully"
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: test-results
-          path: target/nextest/ci/junit.xml
-          retention-days: 7
 
   # MCP builds - simplified with timeout protection
   mcp-build:
@@ -161,6 +154,7 @@ jobs:
     name: Quality Gates
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write      # Required for Codecov OIDC authentication
     timeout-minutes: 45    # Increased from 30 to accommodate slow coverage
     needs: [essential, test, mcp-build, multi-platform]

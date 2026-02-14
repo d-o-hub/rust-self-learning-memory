@@ -40,7 +40,7 @@ jobs:
     steps:
       # Tier 1: Maximize build space
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: easimon/maximize-build-space@v10
         with:
           root-reserve-mb: 512
           swap-size-mb: 2048
@@ -73,8 +73,6 @@ jobs:
           df -h
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           echo "Available space: ${AVAILABLE}G"
-
-      - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -132,7 +130,7 @@ jobs:
     steps:
       - name: Maximize build space (Linux)
         if: runner.os == 'Linux'
-        uses: easimon/maximize-build-space@master
+        uses: easimon/maximize-build-space@v10
         with:
           root-reserve-mb: 512
           swap-size-mb: 2048

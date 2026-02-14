@@ -1,16 +1,16 @@
 # Project Status - Memory System (Unified)
 
-**Last Updated:** 2026-02-13
+**Last Updated:** 2026-02-14
 **Version:** v0.1.14 (Phase 3 Complete - Episode Relationships & Storage Optimization)
 **Branch:** main
-**Status:** ⚠️ CI has 4 failing workflows on main branch
+**Status:** ⚠️ Nightly Full Tests failing on main; all other CI workflows passing
 **Next Version:** v0.1.15 (TBD)
 
 ---
 
 ## 🎯 Executive Summary
 
-**⚠️ CI DEGRADED** - 4 workflows failing on main (Nightly Tests, Coverage, YAML Lint, Benchmarks). See [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) for remediation plan.
+**⚠️ NIGHTLY TESTS FAILING** - 1 workflow failing on main (Nightly Full Tests). CI, Coverage, File Structure Validation, Security, and YAML Lint all passing. Performance Benchmarks skipped. v0.1.14 GitHub release published 2026-02-14.
 
 The Self-Learning Memory System has successfully completed **ALL FOUR research integration phases** (PREMem, GENESIS, Spatiotemporal, Benchmarking) with exceptional results exceeding research targets by 4-2307x. **Phase 3 storage optimization** infrastructure integration is complete with relationship module, batch operations, caching, and prepared statements ready for production use. All major features are complete including vector search optimization (10-100x faster), configuration caching (200-500x speedup), multi-provider embeddings, circuit breaker with comprehensive runbook, security hardening with Wasmtime sandbox, semantic pattern search & recommendation engine, and episode relationship tracking.
 
@@ -26,8 +26,8 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 - **✅ Performance**: Arc-based episode retrieval reducing clone operations (2026-01-26)
 - **✅ Semantic Pattern Search**: Multi-signal ranking with 40/20/20/10/10% weights (Jan 2026)
 - **✅ Pattern Recommendations**: Task-specific pattern recommendation system (Jan 2026)
-- **✅ File Splitting**: All modules refactored for 500 LOC compliance (17 files split)
-- **✅ Codebase Scale**: ~140K LOC, 632 Rust files, 9 workspace members
+- **✅ File Splitting**: 17 modules refactored (29 files still >500 LOC in prod source, excl. tests)
+- **✅ Codebase Scale**: ~140K LOC, 601 Rust files, 9 workspace members
 - **✅ Phase 2 Turso Optimization**: 75% complete (3/4 items: pooling, adaptive sizing, compression)
 - **✅ Performance**: Exceeds all targets by 17-2307x
 - **✅ Vector Search**: Turso native DiskANN indexing (10-100x faster)
@@ -99,7 +99,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 | **Rust Source Files** | - | 632 | ✅ |
 | **Total LOC** | - | ~140,000 | ✅ |
 | **Lib Tests** | - | 811+ | ✅ |
-| **File Size Compliance** | <500 LOC/file | All compliant | ✅ **COMPLETE** |
+| **File Size Compliance** | <500 LOC/file | 29 files >500 LOC | ⚠️ **IN PROGRESS** |
 | **Phase 3 Infrastructure** | - | 100% complete | ✅ **COMPLETE** |
 
 ### Phase 3 Infrastructure Status
@@ -353,15 +353,15 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 - **Current**: Reduced memory allocations and improved performance
 - **Impact**: 12% overall clone reduction, 63% in retrieval hot path
 
-### Active Issues (2026-02-13)
+### Active Issues (2026-02-14)
 
 > See [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md) for full remediation strategy.
 
-1. **CI Failures on main**: Nightly Full Tests, Coverage, YAML Lint, and Benchmarks workflows are failing
-2. **Issue #276**: Clippy warnings blocking Dependabot PRs from merging
+1. **CI: Nightly Full Tests failing on main**: Only remaining CI failure (CI, Coverage, File Structure, Security, YAML Lint all ✅; Benchmarks ⏭️ skipped)
+2. **Issue #276**: Clippy warnings — may be closeable since `cargo clippy --all -- -D warnings` now passes clean
 3. **Issue #277**: Criterion 0.5→0.8 migration needed (breaking API changes)
 4. **MCP batch module disabled**: TODOs reference non-existent `jsonrpsee`/`ServerState` types
-5. **v0.1.14 not released on GitHub**: Code is on main but no GitHub release exists (last release: v0.1.13)
+5. **Code quality debt**: 561 unwrap() + 90 .expect() in prod code; 29 files >500 LOC; 63 #[ignore] tests; 168 #[allow(dead_code)]
 6. **Plans docs contain stale/conflicting information**: Multiple status docs with outdated claims
 
 ---
@@ -387,17 +387,17 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 
 > Phased remediation plan per [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md).
 
-- **Phase A — CI/CD Stabilization (P0)**: Fix 4 failing workflows, restore green CI on main
-- **Phase B — Dependency Updates (P1)**: Resolve Dependabot PRs (#267-271), fix clippy warnings (#276), migrate Criterion 0.5→0.8 (#277)
-- **Phase C — Code Quality (P1)**: Fix MCP batch module TODOs, reduce unwrap count, clean stale plan docs
-- **Phase D — Feature Completion & Release (P2)**: Publish v0.1.14 GitHub release, complete embeddings integration, v0.1.15 planning
+- **Phase A — CI/CD Stabilization (P0)**: ✅ MOSTLY COMPLETE — 5/6 workflows passing, only Nightly Full Tests still failing
+- **Phase B — Dependency Updates (P1)**: Resolve Dependabot PRs (#267-271), close #276 (clippy clean), migrate Criterion 0.5→0.8 (#277)
+- **Phase C — Code Quality (P1)**: Fix MCP batch module TODOs, reduce 561 unwraps in prod code, clean stale plan docs
+- **Phase D — Feature Completion & Release (P2)**: ✅ v0.1.14 GitHub release published (2026-02-14), complete embeddings integration, v0.1.15 planning
 
 Phases B and C can execute in parallel once Phase A is complete. Phase D is sequential after B and C.
 
 ### Medium-term (v0.1.15 - Q1 2026)
 1. **MCP Token Optimization**: Lazy loading + field selection (≥50% token savings)
 2. **Adaptive TTL Phase 2.3**: Implementation and testing
-3. **Error Handling Improvement**: Reduce unwraps from 143 to ≤50
+3. **Error Handling Improvement**: Reduce unwraps from 561 to ≤50 in prod code
 
 ### Long-term (v1.0.0+ - 2026)
 1. **Distributed Memory**: Multi-instance synchronization
@@ -418,9 +418,9 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 | **Test Coverage** | >90% | 92.5% | ✅ **EXCEEDS** |
 | **Architecture Quality** | 4/5 stars | 4.5/5 stars | ✅ **EXCEEDS** |
 | **Performance** | Meet targets | 10-100x better | ✅ **EXCEEDS** |
-| **File Size Compliance** | <500 LOC | All compliant | ✅ **COMPLETE** |
-| **Rust Files** | - | 791 files | ✅ |
-| **Total LOC** | - | ~198,000 | ✅ |
+| **File Size Compliance** | <500 LOC | 29 files >500 LOC | ⚠️ **IN PROGRESS** |
+| **Rust Files** | - | 601 files | ✅ |
+| **Total LOC** | - | ~140,000 | ✅ |
 
 ### Quality Indicators
 - ✅ **Navigation Efficiency**: Clear organization and documentation structure
@@ -468,11 +468,11 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 
 ---
 
-**Status**: ⚠️ **SYSTEM OPERATIONAL — CI REMEDIATION IN PROGRESS** (v0.1.14)
-**Confidence**: **MODERATE** - Build and tests pass locally; 4 CI workflows failing on main
-**Production Readiness**: **95%** - Pending CI stabilization (Phase A of ADR-025)
-**Last Review**: 2026-02-13 (ADR-025 accepted, GOAP remediation plan active)
-**Next Review**: After Phase A completion
+**Status**: ⚠️ **SYSTEM OPERATIONAL — NIGHTLY TESTS FAILING** (v0.1.14)
+**Confidence**: **HIGH** - Build, tests, clippy, and 5/6 CI workflows passing on main
+**Production Readiness**: **97%** - Only Nightly Full Tests still failing
+**Last Review**: 2026-02-14 (CI mostly stabilized, v0.1.14 released)
+**Next Review**: After Nightly Tests fix and Phase B/C completion
 
 ---
 

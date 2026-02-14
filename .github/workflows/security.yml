@@ -33,18 +33,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional: for premium features
 
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    if: github.event_name == 'pull_request'
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/dependency-review-action@v4.8.2
-        with:
-          fail-on-severity: moderate
+  # Dependency Review requires GitHub Advanced Security (not available on this repo)
+  # Commenting out to prevent workflow failures
+  # dependency-review:
+  #   name: Dependency Review
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #   if: github.event_name == 'pull_request'
+  #   timeout-minutes: 10
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: actions/dependency-review-action@v4.8.2
+  #       with:
+  #         fail-on-severity: moderate
 
   supply-chain-audit:
     name: Supply Chain Audit
@@ -79,7 +81,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run cargo-deny
         uses: EmbarkStudios/cargo-deny-action@v2

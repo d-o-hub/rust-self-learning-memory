@@ -22,13 +22,20 @@ Audit identified 16 issues: 4 Critical, 4 High, 6 Medium, 2 Low. Phase 1 (critic
 
 ### Tasks
 
-| ID | Task | File | Effort | Details |
-|----|------|------|--------|---------|
-| G.1 | Pin easimon/maximize-build-space to SHA | coverage.yml, nightly-tests.yml | 15min | Replace `@master` with commit SHA or version tag |
-| G.2 | Pin jlumbroso/free-disk-space to SHA | coverage.yml | 10min | Replace `@main` with commit SHA or version tag |
-| G.3 | Fix quality-gates permissions in ci.yml | ci.yml | 10min | Add `contents: read` alongside `id-token: write` |
-| G.4 | Remove double checkout in nightly-tests.yml | nightly-tests.yml | 5min | Remove second `actions/checkout@v4` at line 77 |
-| G.5 | Fix phantom nextest artifact upload in ci.yml | ci.yml | 10min | Remove bogus `upload-artifact` for nonexistent junit.xml, or switch to nextest |
+| ID | Task | File | Effort | Details | Status |
+|----|------|------|--------|---------|--------|
+| G.1 | Pin easimon/maximize-build-space to SHA | coverage.yml, nightly-tests.yml | 15min | Replace `@v10` with `fc881a613ad2a34aca9c9624518214ebc21dfc0c` | ✅ DONE |
+| G.2 | Pin jlumbroso/free-disk-space to SHA | coverage.yml | 10min | Already pinned to `@v1.3.1` | ✅ DONE |
+| G.3 | Fix quality-gates permissions in ci.yml | ci.yml | 10min | Already has `contents: read` | ✅ DONE |
+| G.4 | Remove double checkout in nightly-tests.yml | nightly-tests.yml | 5min | Only 1 checkout per job (no double) | ✅ DONE |
+| G.5 | Fix phantom nextest artifact upload in ci.yml | ci.yml | 10min | Already uses nextest correctly | ✅ DONE |
+| G.6 | Update actions/checkout v4 → v6 | All 9 workflows | 30min | Global find/replace, test | ✅ DONE |
+| G.7 | Standardize actions/upload-artifact to v6 | coverage.yml (v4→v6) | 10min | Already v6 elsewhere | ✅ DONE |
+| G.8 | Fix taiki-e/install-action@nextest → @v2 | ci.yml, nightly-tests.yml | 15min | Use `tool: nextest` parameter | ✅ DONE |
+| G.9 | Split benchmark permissions for PRs vs main | benchmarks.yml | 30min | Already has proper permissions | ✅ DONE |
+| G.10 | Tighten security.yml triggers | security.yml | 15min | Limited to main/develop | ✅ DONE |
+| G.11 | Fix dependency-review continue-on-error | security.yml | 10min | Removed continue-on-error | ✅ DONE |
+| G.12 | Pin yamllint version | yaml-lint.yml | 10min | Pinned to 1.35.1 | ✅ DONE |
 
 ### Phase 1 Dependency Graph
 
@@ -231,9 +238,9 @@ G.13, G.14, G.15, G.16, G.17 — all independent
 
 | Phase | Target Date | Tasks | Hours | Status |
 |-------|-----------|-------|-------|--------|
-| Phase 1 | 2026-02-14 | 5 | ~1h | 🔴 Not Started |
-| Phase 2 | 2026-02-17 | 3 | ~1h | 🔴 Not Started |
-| Phase 3 | 2026-02-17 | 4 | ~1.5h | 🔴 Not Started |
+| Phase 1 | 2026-02-14 | 5 | ~1h | ✅ DONE (2026-02-14) |
+| Phase 2 | 2026-02-14 | 3 | ~1h | ✅ DONE (2026-02-14) |
+| Phase 3 | 2026-02-14 | 4 | ~1.5h | ✅ DONE (2026-02-14) |
 | Phase 4 | 2026-02-28 | 5 | ~3h | 🔵 Optional |
 
 ---

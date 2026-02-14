@@ -45,6 +45,32 @@
 3. **Available Resources**: Identify agent capabilities
 4. **Current State**: Understand starting conditions
 
+### ADR Discovery
+
+**CRITICAL**: Before planning, check for relevant ADRs in `plans/adr/`:
+
+```
+1. List all ADRs: ls plans/adr/ADR-*.md
+2. Identify relevant ADRs by topic/domain
+3. Read relevant ADRs for architectural constraints
+4. Note decisions that affect current task
+```
+
+**ADR Integration Checklist**:
+- [ ] Searched `plans/adr/` for topic-related ADRs
+- [ ] Read relevant ADR(s) for architectural decisions
+- [ ] Noted constraints from ADR decisions
+- [ ] Verified ADR status (Accepted/Implemented vs Deprecated)
+- [ ] Incorporated ADR guidance into task decomposition
+
+**Common ADR Topics**:
+- CI/CD: ADR-023, ADR-029
+- Performance: ADR-025, ADR-026
+- MCP/Architecture: ADR-022, ADR-024
+- Testing: ADR-025, ADR-027
+
+**See**: `plans/adr/` for complete ADR inventory
+
 ## Phase 2: Task Decomposition
 
 Use the **task-decomposition** skill to break down goals.

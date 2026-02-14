@@ -11,6 +11,29 @@ Choose the appropriate execution strategy based on task characteristics:
 | **Swarm** | Many similar tasks | Distributed work, load balancing |
 | **Hybrid** | Mixed requirements | Combines strategies, most flexible |
 
+## ADR Compliance in All Strategies
+
+**CRITICAL**: Every execution strategy must respect ADR constraints:
+
+### Pre-Execution ADR Check
+```markdown
+Before choosing strategy:
+1. List ADRs: ls plans/adr/ADR-*.md
+2. Identify relevant: grep for topic/domain keywords
+3. Read constraints: Note architectural boundaries
+4. Validate strategy: Ensure chosen approach aligns with ADR
+```
+
+### ADR Validation During Execution
+- **Quality Gate 1**: Strategy aligns with ADR decisions?
+- **Quality Gate 2**: Implementation respects ADR constraints?
+- **Quality Gate 3**: No architectural drift from ADR?
+
+### ADR Documentation Post-Execution
+- Update relevant ADRs with implementation details
+- Reference ADRs in execution plans
+- Document any ADR amendments or new decisions
+
 ## Parallel Execution Strategy
 
 ### When to Use

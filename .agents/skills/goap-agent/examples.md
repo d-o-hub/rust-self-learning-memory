@@ -114,6 +114,62 @@ Quality Gate: All tests pass
 Quality Gate: Ready for merge
 ```
 
+## Example 5: ADR-Driven CI/CD Remediation
+
+```markdown
+Task: Fix CI/CD failures following ADR-023
+
+## Pre-Planning: ADR Discovery
+├─ Read: plans/adr/ADR-023-CI-CD-GitHub-Actions-Remediation.md
+├─ Key Decisions:
+│  - Upgrade free-disk-space to v2
+│  - Exclude heavy directories from coverage
+│  - Document Dependabot resolution strategy
+└─ Constraints:
+   - Must maintain zero clippy warnings
+   - All quality gates must pass
+
+## GOAP Execution Plan
+
+### Phase 1: Analysis
+- Check: Current CI status
+- Review: ADR-023 requirements
+- Identify: Specific failures to fix
+Quality Gate: Root causes identified
+
+### Phase 2: Create Execution Plan
+- Create: plans/GOAP_EXECUTION_PLAN_2026-02-14.md
+- Link: Reference ADR-023
+- Define: Tasks aligned with ADR decisions
+Quality Gate: Plan created and linked to ADR
+
+### Phase 3: Implementation (Sequential)
+- Task 1: Upgrade free-disk-space action
+  └─ Edit .github/workflows/coverage.yml
+- Task 2: Optimize coverage exclusions
+  └─ Add --exclude for benches, examples, test-utils
+- Task 3: Document Dependabot resolution
+  └─ Update plans/DEPENDABOT_TRIAGE_REPORT_*.md
+Quality Gate: All changes implemented
+
+### Phase 4: Validation
+- Run: cargo fmt --all -- --check
+- Run: cargo clippy --all -- -D warnings
+- Run: cargo test --all
+Quality Gate: Zero warnings, all tests pass
+
+### Phase 5: Update Documentation
+- Update: ADR-023 with implementation status
+- Update: Execution plan with completion
+- Create: Phase completion summary
+Quality Gate: Documentation current
+
+### Phase 6: Learning
+- Skill(command="episode-complete")
+- Score: High (followed ADR, all gates passed)
+- Pattern: ADR-driven sequential execution works for CI fixes
+```
+
 ## Success Metrics
 
 ### Planning Quality

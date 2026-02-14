@@ -83,13 +83,21 @@
 - Compatible with all existing Task Agents (feature-implementer, debugger, refactorer, etc.)
 
 **Files Affected**:
-- `.agents/skills/goap-agent/SKILL.md` (new, ~50 LOC)
-- `.agents/skills/goap-agent/methodology.md` (new, ~165 LOC)
+- `.agents/skills/goap-agent/SKILL.md` (new, ~75 LOC)
+- `.agents/skills/goap-agent/methodology.md` (new, ~190 LOC)
 - `.agents/skills/goap-agent/agents.md` (new, ~95 LOC)
-- `.agents/skills/goap-agent/skills.md` (new, ~60 LOC)
-- `.agents/skills/goap-agent/execution-strategies.md` (new, ~250 LOC)
-- `.agents/skills/goap-agent/patterns.md` (new, ~100 LOC)
-- `.agents/skills/goap-agent/examples.md` (new, ~150 LOC)
+- `.agents/skills/goap-agent/skills.md` (new, ~95 LOC)
+- `.agents/skills/goap-agent/execution-strategies.md` (new, ~270 LOC)
+- `.agents/skills/goap-agent/patterns.md` (new, ~215 LOC)
+- `.agents/skills/goap-agent/examples.md` (new, ~190 LOC)
+
+**Update History**:
+- 2026-02-14: Added ADR-driven planning and execution workflow to all skill files (+264 LOC total)
+  - SKILL.md: Added ADR Integration Workflow section
+  - methodology.md: Added ADR Discovery phase
+  - patterns.md: Added Pattern 4 (ADR-Driven Planning) and best practices
+  - execution-strategies.md: Added ADR Compliance section
+  - examples.md: Added Example 5 (ADR-Driven CI/CD Remediation)
 
 **Success Metrics**:
 - Complex tasks (5+ steps) completed successfully
@@ -97,7 +105,7 @@
 - Execution time reduced through parallel strategies
 - Patterns learned and reused from episodic memory
 
-**Next Steps**: None (feature complete)
+**Next Steps**: None (feature complete, ADR integration added 2026-02-14)
 
 ---
 

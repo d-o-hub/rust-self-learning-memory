@@ -39,6 +39,7 @@ See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents
 ## Core Process
 
 1. **ANALYZE** → Understand goals, constraints, resources
+   - **Check ADRs**: Read relevant ADRs from `plans/adr/` before planning
 2. **DECOMPOSE** → Break into atomic tasks with dependencies
 3. **STRATEGIZE** → Choose execution pattern
 4. **COORDINATE** → Assign to specialized agents
@@ -46,3 +47,28 @@ See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents
 6. **SYNTHESIZE** → Aggregate results and validate success
 
 See **[methodology.md](methodology.md)** for detailed phase-by-phase guidance and **[patterns.md](patterns.md)** for common execution patterns.
+
+## ADR Integration Workflow
+
+**MANDATORY**: Always check ADRs in `plans/adr/` before creating execution plans:
+
+### Step 1: ADR Discovery
+```bash
+# List all ADRs to identify relevant ones
+ls plans/adr/ADR-*.md
+```
+
+### Step 2: Read Relevant ADRs
+- Search for ADRs related to your task domain
+- Note architectural decisions and constraints
+- Check ADR status (Accepted/Implemented vs Deprecated)
+
+### Step 3: Incorporate into Planning
+- Use ADR constraints when decomposing tasks
+- Reference ADRs in execution plans
+- Ensure compliance with architectural decisions
+
+### Step 4: Update Progress in plans/
+- Create/update execution plan files in `plans/`
+- Document progress, blockers, and decisions
+- Link to relevant ADRs in plan files

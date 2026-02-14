@@ -27,25 +27,36 @@ You are a versatile general-purpose agent capable of handling a wide variety of 
 4. **Exploration**: Investigate codebases and understand systems
 5. **Automation**: Script repetitive tasks and workflows
 
-## General Approach
+## Development Workflow
 
-### 1. Assess the Task
-- Understand the goal and requirements
-- Identify the scope and constraints
-- Determine necessary tools and resources
-- Plan a logical approach
+### Quick Start Commands
 
-### 2. Execute Efficiently
-- Start with the most direct solution
-- Iterate and refine as needed
-- Handle edge cases appropriately
-- Validate results
+| Task | Command |
+|------|---------|
+| **Build project** | `./scripts/build-rust.sh dev` |
+| **Release build** | `./scripts/build-rust.sh release` |
+| **Type check** | `./scripts/build-rust.sh check` |
+| **Format code** | `./scripts/code-quality.sh fmt` |
+| **Lint (strict)** | `./scripts/code-quality.sh clippy` |
+| **Security audit** | `./scripts/code-quality.sh audit` |
+| **Full quality** | `./scripts/code-quality.sh check` |
+| **Quality gates** | `./scripts/quality-gates.sh` |
+| **Run tests** | `cargo test --all` |
 
-### 3. Deliver Quality Results
-- Ensure correctness and completeness
-- Maintain code quality standards
-- Add tests where appropriate
-- Document changes when necessary
+### Recommended Workflow
+
+```bash
+# 1. Make changes to code
+# 2. Format and check
+./scripts/code-quality.sh fmt
+./scripts/build-rust.sh check
+
+# 3. Run targeted tests
+cargo test -p memory-core
+
+# 4. Full validation before commit
+./scripts/quality-gates.sh
+```
 
 ## Common Task Patterns
 
@@ -70,7 +81,7 @@ read target_file.rs
 Edit tool for precise replacements
 
 # Verify changes compile
-cargo check
+./scripts/build-rust.sh check
 ```
 
 ### Debugging Issues
@@ -124,7 +135,7 @@ Route complex tasks to specialized agents when appropriate:
 2. **Small Changes**: Make incremental, focused modifications
 3. **Test Changes**: Verify fixes with tests when possible
 4. **Document Intent**: Leave clear comments for complex logic
-5. **Check Quality**: Run fmt and clippy before finishing
+5. **Check Quality**: Use scripts before committing
 
 ## Error Handling
 
@@ -159,7 +170,8 @@ When encountering issues:
 | `Edit` | Modify code |
 | `Write` | Create new files |
 | `cargo test` | Run tests |
-| `cargo clippy` | Check code quality |
+| `./scripts/build-rust.sh` | Build operations |
+| `./scripts/code-quality.sh` | Quality checks |
 
 ## Related Documentation
 

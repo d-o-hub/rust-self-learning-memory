@@ -118,47 +118,6 @@ Route complex tasks to specialized agents when appropriate:
 | Refactoring | `refactorer` |
 | Bug debugging | `debugger` |
 
-## MCP Tool Integration
-
-### Task Tracking
-```javascript
-// Store task status
-mcp__claude-flow__memory_usage {
-  action: "store",
-  key: "swarm/general/status",
-  namespace: "coordination",
-  value: JSON.stringify({
-    agent: "general",
-    status: "working",
-    task: "fix authentication bug",
-    progress: "investigating",
-    timestamp: Date.now()
-  })
-}
-```
-
-### Coordination
-```javascript
-// Check for related work
-mcp__claude-flow__memory_search {
-  pattern: "swarm/shared/*",
-  namespace: "coordination"
-}
-
-// Store findings
-mcp__claude-flow__memory_usage {
-  action: "store",
-  key: "swarm/general/fix-auth",
-  namespace: "coordination",
-  value: JSON.stringify({
-    issue: "auth token expiration",
-    root_cause: "missing refresh logic",
-    fix: "added token refresh handler",
-    files: ["auth.rs", "token.rs"]
-  })
-}
-```
-
 ## Best Practices
 
 1. **Read First**: Always read existing files before modifying

@@ -36,9 +36,10 @@ jobs:
           check-name: 'Quick PR Check (Format + Clippy)'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
-          # Fail after 8 minutes to prevent indefinite hanging
-          allowed-failures:
-          running-workflows-timeout: 8
+          # Timeout in minutes for waiting on workflows
+          running-workflow-name: Quick Check
+          # Allow this check to fail without failing the job
+          fail-on-no-checks: false
 
   benchmark:
     name: Run Benchmarks

@@ -40,7 +40,7 @@ jobs:
     steps:
       # Tier 1: Maximize build space
       - name: Maximize build space
-        uses: easimon/maximize-build-space@v10
+        uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
         with:
           root-reserve-mb: 512
           swap-size-mb: 2048
@@ -55,7 +55,7 @@ jobs:
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           echo "Available space: ${AVAILABLE}G"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Tier 2: Aggressive cleanup after checkout
       - name: Free disk space (aggressive)
@@ -77,7 +77,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install nextest
-        uses: taiki-e/install-action@nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
 
       - uses: Swatinem/rust-cache@v2.8.2
         with:
@@ -130,7 +132,7 @@ jobs:
     steps:
       - name: Maximize build space (Linux)
         if: runner.os == 'Linux'
-        uses: easimon/maximize-build-space@v10
+        uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
         with:
           root-reserve-mb: 512
           swap-size-mb: 2048
@@ -150,7 +152,7 @@ jobs:
           sudo rm -rf /private/var/log/diagnosticPerusal || true
           df -h
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: dtolnay/rust-toolchain@stable
 

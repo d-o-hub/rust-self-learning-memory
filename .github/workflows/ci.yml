@@ -31,7 +31,7 @@ jobs:
       matrix:
         job: [format, clippy, doctest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -64,10 +64,12 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/* || true
           sudo apt-get clean || true
           df -h
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - name: Install nextest
-        uses: taiki-e/install-action@nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
       - name: Run tests with timeout protection
         run: |
           # Run library tests for core packages (fast, isolated tests)
@@ -97,7 +99,7 @@ jobs:
           sudo rm -rf /opt/ghc/ 2>/dev/null || true
           docker system prune -af 2>/dev/null || true
           df -h
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2.8.2
         with:
@@ -124,7 +126,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         rust: [stable]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
@@ -159,7 +161,7 @@ jobs:
     timeout-minutes: 45    # Increased from 30 to accommodate slow coverage
     needs: [essential, test, mcp-build, multi-platform]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt, llvm-tools-preview

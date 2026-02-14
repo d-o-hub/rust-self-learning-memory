@@ -35,7 +35,7 @@ jobs:
       # IMPORTANT: Maximize build space MUST run before checkout
       # This provides 7-8 GB guaranteed space gain via LVM consolidation
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: easimon/maximize-build-space@v10
         with:
           root-reserve-mb: 512
           swap-size-mb: 2048
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Free disk space (aggressive)
-        uses: jlumbroso/free-disk-space@main
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
           # Remove large unused tools and packages
           android: true

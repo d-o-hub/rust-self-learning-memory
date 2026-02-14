@@ -1,0 +1,42 @@
+#!/bin/bash
+# CI Fix Command - Diagnose and fix CI failures
+# Usage: .claude/commands/ci-fix
+
+echo "=== CI Fix ==="
+
+# Step 1: Check CI status
+echo "[1/5] Get CI status..."
+FAILED_JOBS=$(gh run list --limit 5 --json status,conclusion,name 2>/dev/null | grep -c '"status":"COMPLETED"' || echo "0")
+echo "Recent runs: $FAILED_JOBS jobs checked"
+
+# Step 2: Get failed job details
+echo "[2/5] Check for failures..."
+RUN_ID=$(gh run list --limit 1 --json id 2>/dev/null | grep '"id"' | head -1 | grep -o '[0-9]*' || echo "")
+if [ -n "$RUN_ID" ]; then
+    echo "Latest run ID: $RUN_ID"
+fi
+
+# Step 3: Common fixes
+echo "[3/5] Apply common fixes..."
+
+# Fix: Format
+cargo fmt --all 2>/dev/null
+
+# Fix: Clippy
+cargo --fix --allow clippy --workspace-dirty 2>/dev/null || true
+
+# Fix: Optional deps (libclang, wasmtime pattern)
+cargo build --workspace --exclude memory-mcp 2>/dev/null || cargo build --workspace 2>/dev/null
+
+echo "[4/5] Verification..."
+if cargo test --workspace 2>/dev/null; then
+    echo "Tests: PASS"
+else
+    echo "Tests: Check failures above"
+fi
+
+echo "[5/5] Next steps..."
+echo "- Review changes: git diff"
+echo "- Commit: git add -A && git commit"
+echo "- Push: git push"
+echo "- Check CI: gh run list"

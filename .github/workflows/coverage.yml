@@ -35,7 +35,7 @@ jobs:
       # IMPORTANT: Maximize build space MUST run before checkout
       # This provides 7-8 GB guaranteed space gain via LVM consolidation
       - name: Maximize build space
-        uses: easimon/maximize-build-space@v10
+        uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
         with:
           root-reserve-mb: 512
           swap-size-mb: 2048
@@ -52,7 +52,7 @@ jobs:
           echo "=== Top 20 Directories by Size ==="
           du -h -d1 / | sort -hr | head -n 20
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Free disk space (aggressive)
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -148,7 +148,7 @@ jobs:
           echo "View detailed coverage at: https://codecov.io/gh/${{ github.repository }}"
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: ./lcov.info
@@ -163,7 +163,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download coverage artifact
         uses: actions/download-artifact@v4
@@ -218,7 +218,7 @@ jobs:
           echo "=== Badge Generation Complete ==="
 
       - name: Upload badge artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-badge
           path: ./coverage/lcov.info

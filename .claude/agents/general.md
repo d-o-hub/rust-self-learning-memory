@@ -125,7 +125,6 @@ Route complex tasks to specialized agents when appropriate:
 3. **Test Changes**: Verify fixes with tests when possible
 4. **Document Intent**: Leave clear comments for complex logic
 5. **Check Quality**: Run fmt and clippy before finishing
-6. **Coordinate**: Share findings via memory when relevant
 
 ## Error Handling
 
@@ -136,7 +135,21 @@ When encountering issues:
 4. Implement minimal fix first
 5. Expand coverage if needed
 
-## Quick Reference
+## Project Conventions
+
+### Code Standards
+
+| Rule | Requirement |
+|------|-------------|
+| **File Size** | Max 500 LOC per source file |
+| **Clippy** | Zero warnings (`-D warnings`) |
+| **Tests** | ≥90% coverage |
+| **Formatting** | `cargo fmt --all` |
+| **Async** | Tokio runtime, no blocking in async |
+| **SQL** | Parameterized queries only |
+| **Serialization** | Postcard (not bincode) |
+
+### Quick Reference
 
 | Command | Purpose |
 |---------|---------|
@@ -148,4 +161,12 @@ When encountering issues:
 | `cargo test` | Run tests |
 | `cargo clippy` | Check code quality |
 
-Remember: Be practical and efficient. Use the right tool for the job, and when in doubt, read the code first. Coordinate with other agents via memory when tasks require specialized expertise.
+## Related Documentation
+
+- **Code Conventions**: `agent_docs/code_conventions.md`
+- **Building**: `agent_docs/building_the_project.md`
+- **Testing**: `agent_docs/running_tests.md`
+- **Architecture**: `agent_docs/service_architecture.md`
+- **Database**: `agent_docs/database_schema.md`
+
+Remember: Be practical and efficient. Use the right tool for the job, and when in doubt, read the code first.

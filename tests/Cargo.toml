@@ -67,17 +67,7 @@ chrono.workspace = true
 # path = "soak/rate_limiter_test.rs"
 # harness = true
 
-# Stability framework test
-[[test]]
-name = "stability_framework"
-path = "stability/mod.rs"
-harness = true
-
-# 24-hour stability test
-[[test]]
-name = "stability_24h"
-path = "stability_24h.rs"
-harness = true
+# NOTE: stability_framework and stability_24h tests were deleted as they used APIs that don't exist.
 
 [[test]]
 name = "quality_gates"

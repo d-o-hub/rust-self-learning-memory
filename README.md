@@ -5,7 +5,7 @@
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Rust Version](https://img.shields.io/badge/Rust-1.75%2B-yellow)
-![Last Updated](https://img.shields.io/badge/last%20updated-January%202026-blue)
+![Last Updated](https://img.shields.io/badge/last%20updated-February%202026-blue)
 ![Coverage](https://img.shields.io/badge/coverage-92.5%25-brightgreen)
 ![Clippy](https://img.shields.io/badge/clippy-0%20warnings-success)
 ![Security Audit](https://img.shields.io/badge/security-audit%20passed-brightgreen)
@@ -25,7 +25,7 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
 
-**Current Status (v0.1.13):**
+**Current Status (v0.1.14):**
 - **Production-ready** episodic memory management system for AI agents
 - **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples, tests
 - **632 Rust source files** with ~140,000 lines of code
@@ -36,7 +36,9 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **Multi-provider semantic embeddings** with OpenAI, Mistral, and local backends
 - **Dual storage backends**: Turso for durability, redb for cache
 - **6-layer security sandbox** in Wasmtime for safe code execution
-- **Phase 2 Turso Optimization**: 75% complete (connection pooling, adaptive sizing, compression)
+- **Phase 2 Turso Optimization**: 100% complete (connection pooling, adaptive sizing, compression, adaptive TTL)
+- **CI Status**: ALL PASSING (Nightly Full Tests FIXED in #283)
+- **MCP Token Optimization**: 98% token reduction for tool discovery
 
 **Architecture:**
 - **memory-core**: Core memory operations, pattern extraction, and reward scoring

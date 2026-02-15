@@ -1,6 +1,12 @@
 # Plans Index
 
-**Last Updated**: 2026-02-13
+**Last Updated**: 2026-02-15 (CI ALL PASSING)
+
+## Current Status (2026-02-15)
+- **v0.1.14**: Released 2026-02-14
+- **CI**: ALL PASSING (Nightly Full Tests FIXED)
+- **GitHub Actions Phase 1-3**: COMPLETE
+- **Phase 2 Turso**: 100% complete
 
 ## Active Architecture Decision Records (ADR)
 

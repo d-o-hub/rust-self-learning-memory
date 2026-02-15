@@ -63,6 +63,7 @@ mod simple_config_tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_simple_config_basic() {
         clean_environment();
 
@@ -78,6 +79,7 @@ mod simple_config_tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_simple_config_ci_environment() {
         // Skip in CI due to test isolation issues with parallel execution
         if std::env::var("CI").is_ok() {
@@ -122,6 +124,7 @@ mod simple_config_tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_simple_config_with_cloud_platform() {
         // Test various cloud platform indicators
         let platforms = ["RENDER", "HEROKU", "FLY_IO", "RAILWAY", "VERCEL"];
@@ -143,6 +146,7 @@ mod simple_config_tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_simple_config_validation() {
         clean_environment();
 

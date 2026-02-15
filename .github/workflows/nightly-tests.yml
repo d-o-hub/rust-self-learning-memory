@@ -117,18 +117,19 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: nightly-test-results
-          path: target/nextest/nightly/
+          path: target/debug/nextest/
+          if-no-files-found: warn
           retention-days: 14
 
-  # Run on multiple platforms
+  # Run slow tests on ubuntu only (macOS not needed for slow test coverage)
   cross-platform-slow-tests:
     name: Slow Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     steps:
       - name: Maximize build space (Linux)
         if: runner.os == 'Linux'

@@ -1,8 +1,8 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-02-15 (CI FIXED - all tests passing, v0.1.14 released)
-**Status**: v0.1.14 released on GitHub (2026-02-14); ALL CI WORKFLOWS PASSING
-**Next Sprint**: v0.1.15 - MCP Token Optimization + Phase 2 Completion
+**Last Updated**: 2026-02-15 (v0.1.15 ready for release)
+**Status**: v0.1.15 ready - MCP Token Optimization + CI Modernization complete
+**Next Sprint**: v0.1.16 - Advanced Pattern Algorithms + Validation
 
 ---
 
@@ -113,7 +113,7 @@
 
 ### Release Status
 - **v0.1.14** - ✅ GitHub release published on 2026-02-14
-- **v0.1.15** - targeting MCP Token Optimization + Phase 2 completion
+- **v0.1.15** - ✅ Ready for release (MCP Token Optimization + CI Modernization)
 
 ### Code Quality Debt
 - 561 unwrap() + 90 .expect() in prod code
@@ -121,8 +121,8 @@
 - 63 #[ignore] tests
 - 168 #[allow(dead_code)]
 
-### Immediate Priority: Phase B/C - Dependency Updates & Code Quality
-Phase A (CI Stabilization) is mostly complete (5/6 workflows passing). Remaining: fix Nightly Full Tests. Per [GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md](../GOAP/GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md), Phases B and C can now proceed in parallel. See also [ADR-025](../ADR/ADR-025-goap-comprehensive-plan.md).
+### Immediate Priority: Release v0.1.15
+Phase A (CI Stabilization) is ✅ COMPLETE (all workflows passing). Release v0.1.15 with MCP Token Optimization + CI Modernization. Then proceed to Phase B/C (Dependency Updates & Code Quality) for v0.1.16.
 
 ---
 
@@ -487,13 +487,24 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 - [x] CI workflow optimization PR #282 merged
 - **Result**: v0.1.14 released, CI mostly green
 
-#### v0.1.15: MCP Token Optimization + Phase 2 Completion
-- [ ] MCP Token Optimization (57% reduction, 8-12 hours P0)
+#### v0.1.15: ✅ READY FOR RELEASE (2026-02-15)
+- [x] MCP Token Optimization - `list_tool_names()` for 98% token reduction in tool discovery
+- [x] GitHub Actions Modernization - All 9 workflows updated across 4 phases
+- [x] CI Fully Fixed - Nightly Full Tests fixed, all workflows passing
+- [x] Agent Consolidation - General agent refactored, claude-code-flow removed
+- **Result**: Token efficiency + CI stability achieved
+
+#### v0.1.16: Advanced Pattern Algorithms + Validation
+- [ ] Advanced pattern algorithms (DBSCAN, BOCPD) (~20-40 hrs, research-heavy)
 - [ ] Large-scale validation (10,000+ episodes)
 - [ ] Performance profiling and optimization
+- [ ] Phase B/C: Dependency updates & code quality
+- **Target**: Enhanced pattern detection, production-scale validation
+
+#### v0.1.17: Custom Embeddings + Code Quality
 - [ ] Custom embedding model support (ONNX, PyTorch)
-- [ ] Advanced pattern algorithms (DBSCAN, BOCPD)
-- **Target**: Production-scale validation, token efficiency, enhanced capabilities
+- [ ] Reduce unwrap() calls in production code
+- **Target**: Custom model support, improved code quality
 
 ---
 
@@ -515,32 +526,28 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ## Next Immediate Actions
 
-### This Week (2026-02-14)
+### This Week (2026-02-15)
 
-1. **Fix Nightly Full Tests** (remaining CI failure)
-   - Diagnose and fix the Nightly Full Tests workflow on main
-   - Close issue #276 (clippy now passes clean)
-   - Begin Criterion 0.5→0.8 migration (#277)
-
-2. **GitHub Actions Modernization** (CI remaining issues)
-   - Addresses Nightly failing + Benchmarks skipped workflows
-   - See [ADR-029](../adr/ADR-029-GitHub-Actions-Modernization.md) for architecture decision
-   - See [GOAP Plan](../GOAP_GITHUB_ACTIONS_2026-02-14.md) for execution plan
+1. **Release v0.1.15** ← CURRENT
+   - Bump version to 0.1.15
+   - Update CHANGELOG.md
+   - Create GitHub release
+   - Close issues #276 (clippy clean) and #277 (Criterion already at 0.8)
 
 ### Next 2 Weeks
 
 2. **Phase B/C: Dependency Updates & Code Quality** (parallel)
-   - Migrate Criterion 0.5→0.8 (#277)
    - Re-enable or properly remove batch module in MCP
    - Begin reducing 561 unwrap() calls in prod code
    - Clean stale plan docs
+   - Fix e2e CLI workflow tests (7 failing)
 
 ### Next Month
 
-3. **v0.1.15: MCP Token Optimization + Phase 2**
-   - Implement MCP Token Optimization (57% reduction)
-   - Complete Phase 2 items from GOAP Comprehensive Plan
-   - Continue feature releases per roadmap
+3. **v0.1.16: Advanced Pattern Algorithms + Validation**
+   - Advanced pattern algorithms (DBSCAN, BOCPD)
+   - Large-scale validation (10,000+ episodes)
+   - Performance profiling and optimization
 
 ---
 
@@ -569,20 +576,10 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ---
 
-*Last Updated: 2026-02-14 (CI mostly stabilized, v0.1.14 released)*
-*Active Branch: develop*
-*Current Version: v0.1.14 (GitHub release published 2026-02-14)*
-*Current Focus: Phase B/C - Dependency Updates & Code Quality*
-*GOAP Plan: GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md*
-*ADR: ADR-025-goap-comprehensive-plan.md*
-*Known CI Issues: 1 failing workflow (Nightly Full Tests), 2 open issues (#276 likely closeable, #277)*
-*Research Integration: ✅ COMPLETE (Phases 1-4)*
-*MCP Optimization Research: ✅ COMPLETE (5-phase planning, 7 documents, ~10,000 lines)*
-*Phase 1: ✅ COMPLETE (PREMem Quality Assessment)*
-*Phase 2: ✅ COMPLETE (GENESIS Capacity Management)*
-*Phase 3: ✅ COMPLETE (Spatiotemporal Retrieval, Episode Tagging, Relationships)*
-*Phase 4: ✅ COMPLETE (Benchmarking & Validation)*
-*File Size Compliance: ✅ COMPLETE (all source files ≤500 LOC, 70 modules)*
-*Security: ✅ HARDENED (secrets removed, parameterized queries)*
-*Performance: ✅ OPTIMIZED (Arc-based retrieval, 12% clone reduction)*
-*Next Sprint: Fix Nightly Tests → Phase B/C (Deps & Quality) → v0.1.15 MCP Token Optimization*
+*Last Updated: 2026-02-15*
+*Active Branch: main*
+*Current Version: v0.1.15 (ready for GitHub release)*
+*Current Focus: Release v0.1.15 → Phase B/C (Deps & Quality)*
+*CI Status: ✅ ALL PASSING (1,367 lib tests, 0 clippy warnings)*
+*v0.1.15 Deliverables: MCP Token Optimization (98% reduction) + CI Modernization (all 9 workflows)*
+*Next Sprint: v0.1.16 - Advanced Pattern Algorithms + Validation*

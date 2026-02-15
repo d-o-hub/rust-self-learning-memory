@@ -332,14 +332,18 @@ mod performance_benchmarks {
     fn benchmark_streaming_performance() {
         let is_ci = std::env::var("CI").is_ok();
         // Reduce window sizes and point count for CI to prevent timeouts
-        let window_sizes = if is_ci { vec![100, 500] } else { vec![100, 500, 1000, 2000] };
+        let window_sizes = if is_ci {
+            vec![100, 500]
+        } else {
+            vec![100, 500, 1000, 2000]
+        };
 
         for window_size in window_sizes {
             // Significantly reduce points for larger windows to prevent timeout
             let num_points = match window_size {
-                _ if is_ci && window_size >= 1000 => 500,  // Only 500 points for large windows in CI
-                _ if is_ci => 1000,                        // 1000 points for small windows in CI
-                _ => 10000,                                // Full load for local testing
+                _ if is_ci && window_size >= 1000 => 500, // Only 500 points for large windows in CI
+                _ if is_ci => 1000,                       // 1000 points for small windows in CI
+                _ => 10000,                               // Full load for local testing
             };
 
             let mut dbscan = AdaptiveDBSCAN::new(DBSCANConfig {

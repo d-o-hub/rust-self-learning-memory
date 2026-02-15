@@ -1,11 +1,11 @@
 # Plans Index
 
-**Last Updated**: 2026-02-15 (CI ALL PASSING, MCP Token Optimization DONE)
+**Last Updated**: 2026-02-15 (MERGED TO MAIN - #283)
 
 ## Current Status (2026-02-15)
 - **v0.1.14**: Released 2026-02-14
-- **CI**: ALL PASSING (Nightly Full Tests FIXED)
-- **GitHub Actions Phase 1-3**: COMPLETE
+- **CI**: ALL PASSING (Nightly Full Tests FIXED in #283)
+- **GitHub Actions Phase 1-4**: COMPLETE (merged #283)
 - **Phase 2 Turso**: 100% complete
 - **MCP Token Optimization**: DONE (98% token reduction for tool discovery)
 

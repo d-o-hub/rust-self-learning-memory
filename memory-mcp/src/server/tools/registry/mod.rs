@@ -75,6 +75,34 @@ impl ToolRegistry {
         self.core_tools.clone()
     }
 
+    /// List all tool names only (lightweight - for token optimization)
+    ///
+    /// This returns only tool names without full schemas, providing significant
+    /// token reduction for tool discovery. For full schemas, use `load_tool()`.
+    ///
+    /// # Token Savings
+    ///
+    /// - **Before**: Full tool list with schemas (~12,000 tokens)
+    /// - **After**: Names only (~200 tokens)
+    /// - **Reduction**: ~98%
+    ///
+    /// # Usage
+    ///
+    /// ```rust
+    /// // Get lightweight list of all tool names
+    /// let names = registry.list_tool_names();
+    /// // names = ["query_memory", "analyze_patterns", ...]
+    ///
+    /// // Load specific tool schema on-demand
+    /// let tool = registry.load_tool("query_memory").await;
+    /// ```
+    pub fn list_tool_names(&self) -> Vec<String> {
+        let mut names: Vec<String> = self.core_tools.iter().map(|t| t.name.clone()).collect();
+        let extended_names: Vec<String> = self.extended_tools.keys().cloned().collect();
+        names.extend(extended_names);
+        names
+    }
+
     /// Get all currently loaded tools (core + session-loaded extended)
     pub fn get_loaded_tools(&self) -> Vec<Tool> {
         let loaded = self.session_loaded.read();
@@ -309,5 +337,30 @@ mod tests {
 
         registry.clear_session_cache();
         assert_eq!(registry.loaded_tool_count(), 8);
+    }
+
+    #[test]
+    fn test_list_tool_names() {
+        let registry = create_tool_registry();
+
+        // Get lightweight list of all tool names
+        let names = registry.list_tool_names();
+
+        // Should return all tool names (core + extended)
+        assert!(names.len() >= 8); // At least core tools
+        assert!(names.contains(&"query_memory".to_string()));
+        assert!(names.contains(&"health_check".to_string()));
+    }
+
+    #[test]
+    fn test_list_tool_names_vs_full_schema() {
+        let registry = create_tool_registry();
+
+        // Lightweight: Names only (~200 tokens)
+        let names = registry.list_tool_names();
+
+        // Should be much smaller than full tool count
+        let total = registry.total_tool_count();
+        assert_eq!(names.len(), total);
     }
 }

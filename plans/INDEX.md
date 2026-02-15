@@ -1,12 +1,13 @@
 # Plans Index
 
-**Last Updated**: 2026-02-15 (CI ALL PASSING)
+**Last Updated**: 2026-02-15 (CI ALL PASSING, MCP Token Optimization DONE)
 
 ## Current Status (2026-02-15)
 - **v0.1.14**: Released 2026-02-14
 - **CI**: ALL PASSING (Nightly Full Tests FIXED)
 - **GitHub Actions Phase 1-3**: COMPLETE
 - **Phase 2 Turso**: 100% complete
+- **MCP Token Optimization**: DONE (98% token reduction for tool discovery)
 
 ## Active Architecture Decision Records (ADR)
 
@@ -65,9 +66,16 @@
 
 Historical documents are in `archive/` subdirectories.
 
+## GitHub Actions
+
+- `.github/workflows/` - CI/CD workflows
+- `.github/PULL_REQUEST_TEMPLATE.md` - PR template
+- `.github/ISSUE_TEMPLATE/` - Bug report and feature request templates
+
 ## Status Reports
 
 - `STATUS/IMPLEMENTATION_STATUS.md` - Current implementation status
+- `GOAP_GITHUB_ACTIONS_2026-02-14.md` - GitHub Actions modernization status
 
 ---
 

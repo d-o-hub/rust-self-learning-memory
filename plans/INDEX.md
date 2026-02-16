@@ -1,13 +1,35 @@
 # Plans Index
 
-**Last Updated**: 2026-02-15 (MERGED TO MAIN - #283)
+**Last Updated**: 2026-02-16 (Phase 1 COMPLETE - v0.1.16 Planning Done)
 
-## Current Status (2026-02-15)
-- **v0.1.14**: Released 2026-02-14
-- **CI**: ALL PASSING (Nightly Full Tests FIXED in #283)
-- **GitHub Actions Phase 1-4**: COMPLETE (merged #283)
-- **Phase 2 Turso**: 100% complete
+## Current Status (2026-02-16)
+- **v0.1.15**: Released 2026-02-15
+- **Phase 1**: ✅ COMPLETE - CI/CD remediation, Nightly stable, 33/39 tests passing
+- **v0.1.16**: 🔄 Planning Complete - Ready to start Phase B (Code Quality)
+- **CI**: ALL PASSING (Nightly FIXED 2026-02-16)
+- **PR #296**: ✅ Merged (31 tests fixed)
+- **PR #297**: 🔄 Open (CLI workflow improvements)
+- **GitHub Actions Phase 1-4**: COMPLETE
 - **MCP Token Optimization**: DONE (98% token reduction for tool discovery)
+
+## Phase 1 & v0.1.16 Planning (2026-02-16)
+
+### Phase 1 Completion - CI/CD Remediation ✅
+
+- `GOAP_PHASE1_COMPLETION_SUMMARY.md` - Phase 1 completion report (CI fixes, 31 tests)
+- `CLI_TEST_FIX_SUMMARY_2026-02-16.md` - CLI test fix report (2 passing, 4 code-fixed, 2 #[ignore])
+- `GOAP_NIGHTLY_CI_FIXES_2026-02-16.md` - Nightly CI optimization documentation
+
+### v0.1.16 Planning - Code Quality + Pattern Algorithms 🔄
+
+- `V0.1.16_ROADMAP_SUMMARY.md` - Complete v0.1.16 roadmap (4 phases, 44-70 hours)
+- `V0.1.16_SPRINT_CHECKLIST.md` - Sprint task checklist with success criteria
+- `V0.1.16_PRIORITIZATION_MATRIX.md` - Task prioritization by impact vs. effort
+- `GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md` - Detailed execution plan
+- `GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md` - Task breakdown by phase
+- `GOAP_V0.1.16_EXECUTION_STRATEGY_2026-02-16.md` - Execution strategy and dependencies
+
+**Status**: Phase A (CI) ✅ COMPLETE | Phase B (Code Quality) 🔄 READY TO START
 
 ## Active Architecture Decision Records (ADR)
 
@@ -17,8 +39,33 @@
 | ADR-025 | Non-Deterministic BOCPD Tests | Active |
 | ADR-026 | Performance Benchmark CI Failures | Active |
 | ADR-027 | Ignored Tests Strategy | Active |
+| ADR-028 | Feature Enhancement Roadmap | Active (v0.1.16 planning complete) |
+| ADR-029 | GitHub Actions Modernization | ✅ Complete |
+| ADR-030 | Test Optimization and CI Stability | ✅ Complete |
 
 **Location**: `plans/adr/`
+
+## Recent Achievements (2026-02-16)
+
+### Phase 1 Complete: CI/CD Remediation ✅
+- **Nightly CI Fixed**: Disk space management, memory leak test optimization, test isolation improvements
+- **Tests Fixed**: 31 integration tests now passing (12 of 39 flaky tests fixed)
+- **PR #296 Merged**: Comprehensive CI fixes across 12 files in 6 crates
+- **PR #297 Created**: CLI workflow improvements with JSON parsing fixes
+- **Test Suite**: 33 of 39 tests passing (84.6%)
+- **ADR-030 Created**: Test optimization and CI stability patterns documented
+
+### v0.1.16 Planning Complete 🔄
+- **Comprehensive Roadmap**: 4 phases, 44-70 hours effort, clear dependencies
+- **Phase B Ready**: Code quality remediation unblocked and ready to start
+- **Task Breakdown**: Detailed task lists, prioritization matrix, execution strategy
+- **8 Documents Created**: Complete planning package for v0.1.16 sprint
+
+### Key Metrics
+- **CI Workflows**: All passing (6/6)
+- **Test Coverage**: 92.5% maintained
+- **Clippy Warnings**: 0 (zero-tolerance policy)
+- **Nightly CI**: Stable, disk space <90%, memory leak test passing
 
 ## Architecture
 

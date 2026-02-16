@@ -453,24 +453,19 @@ Long-term (Q3-Q4 2026):
 
 ## Implementation Status
 
-⬚ **NOT STARTED**
+🔄 **PARTIALLY COMPLETE** (2 of 14 features shipped)
 
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | MCP Token Optimization | ⬚ Not Started | ADR-024 accepted; implementation pending |
-| 2 | Batch Module Rehabilitation | ⬚ Not Started | ADR-025 Phase C scope |
-| 3 | File Size Compliance | ⬚ Not Started | 29 files identified |
-| 4 | Error Handling Improvement | ⬚ Not Started | 651 unwrap/expect calls identified |
-| 5 | Ignored Test Rehabilitation | ⬚ Not Started | ADR-027 accepted; 63 tests to triage |
-| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Blocked by #3 |
-| 7 | Embeddings Integration | ⬚ Not Started | Blocked by #1 |
+| 1 | MCP Token Optimization | ✅ Complete | Shipped in v0.1.15 — `list_tool_names()` for 98% token reduction |
+| 2 | Batch Module Rehabilitation | ⬚ Not Started | ADR-025 Phase C scope; planned for v0.1.16 Phase C |
+| 3 | File Size Compliance | ✅ Complete | All source files ≤500 LOC (completed v0.1.14) |
+| 4 | Error Handling Improvement | ⬚ Not Started | 561 unwrap() + 90 .expect() in prod; planned for v0.1.16 Phase B |
+| 5 | Ignored Test Rehabilitation | ⬚ Not Started | ADR-027 accepted; 63 tests to triage; planned for v0.1.16 Phase B |
+| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Unblocked (dependency #3 complete) |
+| 7 | Embeddings Integration | ⬚ Not Started | Unblocked (dependency #1 complete); planned for v0.1.16 Phase C |
 | 8 | Transport Compression | ⬚ Not Started | Blocked by #2 |
-| 9 | Distributed Sync | ⬚ Not Started | Long-term |
-| 10 | Observability Stack | ⬚ Not Started | Long-term |
-| 11 | Multi-Tenancy & RBAC | ⬚ Not Started | Long-term |
-| 12 | Real-Time Pattern Learning | ⬚ Not Started | Long-term |
-| 13 | Custom Embedding Models | ⬚ Not Started | Long-term |
-| 14 | A/B Testing Framework | ⬚ Not Started | Long-term |
+| 9-14 | Long-term features | ⬚ Not Started | Long-term |
 
 ---
 

@@ -9,38 +9,83 @@ use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
 
 pub async fn view_episode(
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] episode_id: String,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
+    episode_id: String,
+    memory: &SelfLearningMemory,
+    _config: &Config,
+    format: OutputFormat,
 ) -> anyhow::Result<()> {
-    #[cfg(feature = "turso")]
     let episode_id_str = episode_id.clone();
-    #[allow(unused_imports)]
     use uuid::Uuid;
 
-    // Check if storage features are enabled
-    #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!(
-        "Turso storage feature not enabled. Use --features turso to enable."
-    ));
+    // Parse episode ID
+    let episode_uuid = Uuid::parse_str(&episode_id)
+        .map_err(|_| anyhow::anyhow!("Invalid episode ID format: {}", episode_id))?;
+
+    // Get the episode
+    let episode = memory
+        .get_episode(episode_uuid)
+        .await
+        .map_err(|e| anyhow::anyhow!("Episode not found {}: {}", episode_id_str, e))?;
+
+    let outcome = episode.outcome.as_ref().map(|outcome| {
+        serde_json::json!({
+            "type": match outcome {
+                memory_core::TaskOutcome::Success { .. } => "success",
+                memory_core::TaskOutcome::PartialSuccess { .. } => "partial_success",
+                memory_core::TaskOutcome::Failure { .. } => "failure",
+            },
+        })
+    });
+
+    let episode_detail = serde_json::json!({
+        "episode_id": episode.episode_id.to_string(),
+        "task_description": episode.task_description,
+        "task_type": format!("{:?}", episode.task_type),
+        "context": serde_json::to_value(&episode.context).unwrap_or_default(),
+        "status": if episode.is_complete() { "completed" } else { "in_progress" },
+        "created_at": episode.start_time.to_rfc3339(),
+        "completed_at": episode.end_time.map(|t| t.to_rfc3339()),
+        "duration_ms": episode.end_time.map(|end| (end - episode.start_time).num_milliseconds()),
+        "steps_count": episode.steps.len(),
+        "steps": episode.steps.iter().enumerate().map(|(i, step)| {
+            let (success, observation) = match &step.result {
+                Some(memory_core::ExecutionResult::Success { output }) => (true, Some(output.clone())),
+                Some(memory_core::ExecutionResult::Error { message }) => (false, Some(message.clone())),
+                Some(memory_core::ExecutionResult::Timeout) => (false, Some("Timeout".to_string())),
+                None => (false, None),
+            };
+            serde_json::json!({
+                "step": i + 1,
+                "tool": step.tool,
+                "action": step.action,
+                "success": success,
+                "latency_ms": step.latency_ms,
+                "tokens": step.tokens_used,
+                "observation": observation,
+            })
+        }).collect::<Vec<_>>(),
+        "outcome": outcome,
+        "reward": episode.reward.as_ref().map(|r| serde_json::json!({
+            "total": r.total,
+            "base": r.base,
+            "efficiency": r.efficiency,
+            "complexity_bonus": r.complexity_bonus,
+            "quality_multiplier": r.quality_multiplier,
+            "learning_bonus": r.learning_bonus,
+        })),
+        "reflection": episode.reflection.as_ref().map(|r| serde_json::json!({
+            "successes": r.successes,
+            "improvements": r.improvements,
+            "insights": r.insights,
+            "generated_at": r.generated_at,
+        })),
+        "patterns_count": episode.patterns.len(),
+        "heuristics_count": episode.heuristics.len(),
+    });
 
     #[cfg(feature = "turso")]
     {
-        // Parse episode ID
-        let episode_uuid = Uuid::parse_str(&episode_id).context_with_help(
-            &format!("Invalid episode ID format: {}", episode_id),
-            helpers::INVALID_INPUT_HELP,
-        )?;
-
-        // Use the pre-initialized memory system
-        // Get the episode
-        let episode = memory.get_episode(episode_uuid).await.context_with_help(
-            &format!("Episode not found: {}", episode_id_str),
-            helpers::EPISODE_NOT_FOUND_HELP,
-        )?;
-
-        // Create a detailed view
+        // Create a detailed view structure for nice output
         #[derive(Debug, serde::Serialize)]
         struct EpisodeDetail {
             episode_id: String,
@@ -116,84 +161,52 @@ pub async fn view_episode(
             }
         }
 
-        let outcome = match &episode.outcome {
-            Some(outcome) => Some(serde_json::json!({
-                "type": match outcome {
-                    memory_core::TaskOutcome::Success { .. } => "success",
-                    memory_core::TaskOutcome::PartialSuccess { .. } => "partial_success",
-                    memory_core::TaskOutcome::Failure { .. } => "failure",
-                },
-            })),
-            None => None,
-        };
+        let detail: EpisodeDetail = serde_json::from_value(episode_detail)?;
+        format.print_output(&detail)
+    }
 
-        let episode_detail = EpisodeDetail {
-            episode_id: episode.episode_id.to_string(),
-            task_description: episode.task_description.clone(),
-            task_type: format!("{:?}", episode.task_type),
-            context: serde_json::to_value(&episode.context).unwrap_or_default(),
-            status: if episode.is_complete() {
-                "completed".to_string()
-            } else {
-                "in_progress".to_string()
-            },
-            created_at: episode.start_time.to_rfc3339(),
-            completed_at: episode.end_time.map(|t| t.to_rfc3339()),
-            duration_ms: episode
-                .end_time
-                .map(|end| (end - episode.start_time).num_milliseconds()),
-            steps_count: episode.steps.len(),
-            steps: episode
-                .steps
-                .iter()
-                .enumerate()
-                .map(|(i, step)| {
-                    let (success, observation) = match &step.result {
-                        Some(memory_core::ExecutionResult::Success { output }) => {
-                            (true, Some(output.clone()))
-                        }
-                        Some(memory_core::ExecutionResult::Error { message }) => {
-                            (false, Some(message.clone()))
-                        }
-                        Some(memory_core::ExecutionResult::Timeout) => {
-                            (false, Some("Timeout".to_string()))
-                        }
-                        None => (false, None),
-                    };
-                    serde_json::json!({
-                        "step": i + 1,
-                        "tool": step.tool,
-                        "action": step.action,
-                        "success": success,
-                        "latency_ms": step.latency_ms,
-                        "tokens": step.tokens_used,
-                        "observation": observation,
-                    })
-                })
-                .collect(),
-            outcome,
-            reward: episode.reward.map(|r| {
-                serde_json::json!({
-                    "total": r.total,
-                    "base": r.base,
-                    "efficiency": r.efficiency,
-                    "complexity_bonus": r.complexity_bonus,
-                    "quality_multiplier": r.quality_multiplier,
-                    "learning_bonus": r.learning_bonus,
-                })
-            }),
-            reflection: episode.reflection.map(|r| {
-                serde_json::json!({
-                    "successes": r.successes,
-                    "improvements": r.improvements,
-                    "insights": r.insights,
-                    "generated_at": r.generated_at,
-                })
-            }),
-            patterns_count: episode.patterns.len(),
-            heuristics_count: episode.heuristics.len(),
-        };
+    #[cfg(not(feature = "turso"))]
+    {
+        match format {
+            OutputFormat::Json => {
+                println!("{}", serde_json::to_string_pretty(&episode_detail)?);
+            }
+            OutputFormat::Yaml => {
+                println!("{}", serde_yaml::to_string(&episode_detail)?);
+            }
+            OutputFormat::Human => {
+                println!("Episode Details");
+                println!("ID: {}", episode.episode_id);
+                println!("Task: {}", episode.task_description);
+                println!("Type: {:?}", episode.task_type);
+                println!(
+                    "Status: {}",
+                    if episode.is_complete() {
+                        "completed"
+                    } else {
+                        "in_progress"
+                    }
+                );
+                println!("Created: {}", episode.start_time.to_rfc3339());
+                if let Some(end) = episode.end_time {
+                    println!("Completed: {}", end.to_rfc3339());
+                }
+                if let Some(duration) = episode
+                    .end_time
+                    .map(|end| (end - episode.start_time).num_milliseconds())
+                {
+                    println!("Duration: {}ms", duration);
+                }
+                println!("Steps: {}", episode.steps.len());
+                if !episode.patterns.is_empty() {
+                    println!("Patterns: {}", episode.patterns.len());
+                }
+                if !episode.heuristics.is_empty() {
+                    println!("Heuristics: {}", episode.heuristics.len());
+                }
+            }
+        }
 
-        format.print_output(&episode_detail)
+        Ok(())
     }
 }

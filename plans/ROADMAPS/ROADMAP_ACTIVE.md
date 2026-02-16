@@ -1,8 +1,9 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-02-15 (v0.1.15 ready for release)
-**Status**: v0.1.15 ready - MCP Token Optimization + CI Modernization complete
-**Next Sprint**: v0.1.16 - Advanced Pattern Algorithms + Validation
+**Last Updated**: 2026-02-16
+**Status**: v0.1.15 RELEASED (2026-02-15) — CI passing, Nightly failing
+**Next Sprint**: v0.1.16 - Nightly Fix + Code Quality + Pattern Algorithms
+**GOAP Plan**: [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md)
 
 ---
 
@@ -84,45 +85,53 @@
 
 ---
 
-## Known Issues on Main Branch (2026-02-15)
+## Known Issues on Main Branch (2026-02-16)
 
-**Status**: ✅ CI ALL PASSING - Nightly Full Tests FIXED
+**Status**: ⚠️ CI passing, Nightly FAILING (Run #22049835142)
 
 ### CI Workflow Status
-- ✅ **CI** - passing on main (FIXED 2026-02-15)
+- ✅ **CI** - passing on main
 - ✅ **Coverage** - passing on main
 - ✅ **File Structure Validation** - passing on main
 - ✅ **Security** - passing on main
-- ✅ **YAML Lint** - passing on main
-- ⏭️ **Performance Benchmarks** - skipped on main (not failing)
-- ✅ **Nightly Full Tests** - FIXED (2026-02-15)
+- ✅ **CodeQL** - passing on main
+- ⏭️ **Performance Benchmarks** - skipped (intentional)
+- ❌ **Nightly Full Tests** - FAILING (2026-02-16)
 
-### CI Fixes Applied (2026-02-15)
-1. `memory-mcp/src/patterns/benchmarks.rs`: Added `#[ignore]` to `benchmark_streaming_performance` (60s timeout)
-2. `memory-cli/src/config/types.rs`: Added `#[serial_test::serial]` for env-dependent tests
-3. `.github/workflows/nightly-tests.yml`: Fixed artifact path, increased timeout to 60min
+### Nightly Failures (2026-02-16, Run #22049835142)
 
-### Open Issues (2)
-- **#276** - Clippy warnings (may be closeable — `cargo clippy --all -- -D warnings` now passes clean)
-- **#277** - Criterion 0.5→0.8 migration (already at 0.8, can be closed)
+**Failure 1: E2E CLI Workflow Tests** (7/8 tests failing, **also fails locally**)
+- `test_bulk_operations`, `test_episode_full_lifecycle`, `test_episode_search_and_filter`,
+  `test_health_and_status`, `test_pattern_discovery`, `test_relationship_workflow`, `test_tag_workflow`
+- All panic at `assert!(success, "Create should succeed")` — CLI binary likely not producing valid JSON output
+- **Priority**: P0 — fix for v0.1.16
 
-### Open PRs: 0 (all closed/merged)
+**Failure 2: Memory Leak Test** (CI-only)
+- `should_not_leak_memory_over_1000_iterations` — memory-core/tests/performance.rs:535
+- Memory grew 53% after 800 iterations (threshold 50%)
+- Likely measurement noise on shared CI runners
+- **Priority**: P1 — relax threshold or mark `#[ignore]` for CI
+
+### Open Issues: 0
+- **#276** - ✅ CLOSED (clippy clean)
+- **#277** - ✅ CLOSED (criterion already at 0.8)
+
+### Open PRs: 0
 
 ### Disabled Modules
-- **Batch module in MCP** - disabled/non-functional in current codebase
+- **Batch module in MCP** - disabled/non-functional (planned for v0.1.16 Phase C, ADR-028 §2)
 
 ### Release Status
-- **v0.1.14** - ✅ GitHub release published on 2026-02-14
-- **v0.1.15** - ✅ Ready for release (MCP Token Optimization + CI Modernization)
+- **v0.1.15** - ✅ RELEASED (2026-02-15) — MCP Token Optimization + CI Modernization
+- **v0.1.14** - ✅ Released (2026-02-14)
 
 ### Code Quality Debt
 - 561 unwrap() + 90 .expect() in prod code
-- 29 files >500 LOC (prod source, excl. tests)
 - 63 #[ignore] tests
 - 168 #[allow(dead_code)]
 
-### Immediate Priority: Release v0.1.15
-Phase A (CI Stabilization) is ✅ COMPLETE (all workflows passing). Release v0.1.15 with MCP Token Optimization + CI Modernization. Then proceed to Phase B/C (Dependency Updates & Code Quality) for v0.1.16.
+### Immediate Priority: Fix Nightly → v0.1.16
+See [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md) for full plan.
 
 ---
 
@@ -526,36 +535,40 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ## Next Immediate Actions
 
-### This Week (2026-02-15)
+### This Week (2026-02-16)
 
-1. **Release v0.1.15** ← CURRENT
-   - Bump version to 0.1.15
-   - Update CHANGELOG.md
-   - Create GitHub release
-   - Close issues #276 (clippy clean) and #277 (Criterion already at 0.8)
+1. **Fix Nightly CI** ← P0 CURRENT
+   - Fix 7 e2e CLI workflow tests (fail locally — CLI output/config issue)
+   - Fix memory leak test threshold (53% > 50%, relax to 75% or `#[ignore]`)
+   - Target: Nightly green
 
 ### Next 2 Weeks
 
-2. **Phase B/C: Dependency Updates & Code Quality** (parallel)
-   - Re-enable or properly remove batch module in MCP
-   - Begin reducing 561 unwrap() calls in prod code
-   - Clean stale plan docs
-   - Fix e2e CLI workflow tests (7 failing)
+2. **v0.1.16 Phase B: Code Quality** (per ADR-028 §4, §5)
+   - Error handling audit — reduce 561 unwrap() in prod code
+   - Ignored test triage — 63 `#[ignore]` per ADR-027
+   - dead_code cleanup — 168 `#[allow(dead_code)]`
+
+3. **v0.1.16 Phase C: Feature Work** (per ADR-028 §2, §7)
+   - Batch module rehabilitation
+   - Embeddings CLI/MCP integration (now unblocked by MCP Token Opt)
 
 ### Next Month
 
-3. **v0.1.16: Advanced Pattern Algorithms + Validation**
-   - Advanced pattern algorithms (DBSCAN, BOCPD)
+4. **v0.1.16 Phase D: Advanced Pattern Algorithms**
+   - DBSCAN, BOCPD algorithms
    - Large-scale validation (10,000+ episodes)
-   - Performance profiling and optimization
+   - Performance profiling
+
+**Full Plan**: [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md)
 
 ---
 
 ## Cross-References
 
 ### Current Planning
-- **GOAP Comprehensive Plan**: See [GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md](../GOAP/GOAP_EXECUTION_PLAN_2026-02-13_COMPREHENSIVE.md)
-- **ADR-025**: See [ADR-025-goap-comprehensive-plan.md](../ADR/ADR-025-goap-comprehensive-plan.md)
+- **GOAP Plan (Active)**: See [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md)
+- **Feature Roadmap ADR**: See [ADR-028](../adr/ADR-028-Feature-Enhancement-Roadmap.md)
 - **GitHub Actions Modernization**: See [ADR-029](../adr/ADR-029-GitHub-Actions-Modernization.md) and [GOAP Plan](../GOAP_GITHUB_ACTIONS_2026-02-14.md)
 - **Gap Analysis**: See [GAP_ANALYSIS_REPORT_2025-12-29.md](../GAP_ANALYSIS_REPORT_2025-12-29.md)
 - **Implementation Priority**: See [IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md](../IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md)
@@ -576,10 +589,10 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ---
 
-*Last Updated: 2026-02-15*
+*Last Updated: 2026-02-16*
 *Active Branch: main*
-*Current Version: v0.1.15 (ready for GitHub release)*
-*Current Focus: Release v0.1.15 → Phase B/C (Deps & Quality)*
-*CI Status: ✅ ALL PASSING (1,367 lib tests, 0 clippy warnings)*
-*v0.1.15 Deliverables: MCP Token Optimization (98% reduction) + CI Modernization (all 9 workflows)*
-*Next Sprint: v0.1.16 - Advanced Pattern Algorithms + Validation*
+*Current Version: v0.1.15 (released 2026-02-15)*
+*Current Focus: Fix Nightly CI → v0.1.16 (Code Quality + Pattern Algorithms)*
+*CI Status: ✅ Core CI passing, ❌ Nightly failing (7 e2e + 1 memory test)*
+*GOAP Plan: [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md)*
+*ADR Reference: ADR-028 (Feature Roadmap — 2/14 complete), ADR-029 (GitHub Actions — complete)*

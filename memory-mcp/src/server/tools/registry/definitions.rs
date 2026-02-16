@@ -24,7 +24,108 @@ pub fn create_default_registry() -> super::ToolRegistry {
         }
     }
 
+    // Add additional extended tools from tool_definitions.rs
+    // These include advanced pattern analysis, embeddings, and pattern search
+    let additional_tools = create_additional_extended_tools();
+    for tool in additional_tools {
+        // Skip if already in core tools
+        if !core_tools.iter().any(|t| t.name == tool.name) &&
+           // Skip if already in extended tools
+           !extended_tools.contains_key(&tool.name)
+        {
+            extended_tools.insert(tool.name.clone(), tool);
+        }
+    }
+
     super::ToolRegistry::new(core_tools, extended_tools)
+}
+
+/// Create additional extended tools from tool_definitions.rs
+/// These tools are loaded on-demand and not in the core set
+fn create_additional_extended_tools() -> Vec<Tool> {
+    vec![
+        // Advanced pattern analysis tool
+        crate::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisTool::tool_definition(
+        ),
+        // Quality metrics tool
+        crate::mcp::tools::quality_metrics::QualityMetricsTool::tool_definition(),
+        // Embedding configuration and query tools
+        crate::mcp::tools::embeddings::configure_embeddings_tool(),
+        crate::mcp::tools::embeddings::query_semantic_memory_tool(),
+        crate::mcp::tools::embeddings::test_embeddings_tool(),
+        // Pattern search tool
+        Tool::new(
+            "search_patterns".to_string(),
+            "Search for patterns semantically similar to a query using multi-signal ranking"
+                .to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Natural language query describing what pattern to search for"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "Domain to search in (e.g., 'web-api', 'cli', 'data-processing')"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional tags for filtering",
+                        "default": []
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of results (default: 5)",
+                        "default": 5
+                    },
+                    "min_relevance": {
+                        "type": "number",
+                        "description": "Minimum relevance score 0.0-1.0 (default: 0.3)",
+                        "default": 0.3
+                    },
+                    "filter_by_domain": {
+                        "type": "boolean",
+                        "description": "Whether to filter by domain (default: false)",
+                        "default": false
+                    }
+                },
+                "required": ["query", "domain"]
+            }),
+        ),
+        // Pattern recommendation tool
+        Tool::new(
+            "recommend_patterns".to_string(),
+            "Get pattern recommendations for a specific task with high-quality filtering"
+                .to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "task_description": {
+                        "type": "string",
+                        "description": "Description of the task you're working on"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "Domain of the task (e.g., 'web-api', 'cli')"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Optional context tags",
+                        "default": []
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of recommendations (default: 3)",
+                        "default": 3
+                    }
+                },
+                "required": ["task_description", "domain"]
+            }),
+        ),
+    ]
 }
 
 /// Create core tools that are always loaded

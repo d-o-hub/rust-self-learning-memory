@@ -86,7 +86,7 @@ pub async fn view_episode(
     #[cfg(feature = "turso")]
     {
         // Create a detailed view structure for nice output
-        #[derive(Debug, serde::Serialize)]
+        #[derive(Debug, serde::Serialize, serde::Deserialize)]
         struct EpisodeDetail {
             episode_id: String,
             task_description: String,

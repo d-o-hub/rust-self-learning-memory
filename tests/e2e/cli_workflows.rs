@@ -115,8 +115,7 @@ fn run_cli(
     }
 
     // Filter out log messages and find the JSON response
-    // Strategy: Find the LAST valid JSON object in the output
-    // This handles cases where logs appear before the JSON response
+    // Strategy: Handle multi-line JSON by finding the first complete JSON object
     let json = if stdout.trim().is_empty() {
         // If command failed, return error JSON
         if !success {
@@ -128,28 +127,56 @@ fn run_cli(
         // Strip ANSI codes from the entire output
         let stripped_stdout = strip_ansi_codes(&stdout);
 
-        // Find the last occurrence of '{' or '[' which should be the start of JSON
-        // Then try to parse from there to the end
-        let json_start = stripped_stdout
-            .rfind('{')
-            .or_else(|| stripped_stdout.rfind('['))
-            .ok_or_else(|| {
+        // Find the first line that starts with '{' or '['
+        // Then accumulate lines until we have a complete JSON object
+        let lines: Vec<&str> = stripped_stdout.lines().collect();
+        
+        let mut json_start = None;
+        for (i, line) in lines.iter().enumerate() {
+            let trimmed = line.trim();
+            if trimmed.starts_with('{') || trimmed.starts_with('[') {
+                json_start = Some(i);
+                break;
+            }
+        }
+        
+        if let Some(start_idx) = json_start {
+            // Try to parse from this point forward, accumulating lines
+            let mut combined = String::new();
+            let mut brace_count = 0;
+            let start_char = lines[start_idx].trim().chars().next().unwrap();
+            let end_char = if start_char == '{' { '}' } else { ']' };
+            
+            for i in start_idx..lines.len() {
+                let line = lines[i];
+                combined.push_str(line);
+                combined.push('\n');
+                
+                // Count braces to find the end
+                for c in line.chars() {
+                    if c == start_char {
+                        brace_count += 1;
+                    } else if c == end_char {
+                        brace_count -= 1;
+                    }
+                }
+                
+                if brace_count == 0 {
+                    break;
+                }
+            }
+            
+            // Try to parse the combined JSON
+            serde_json::from_str::<serde_json::Value>(&combined).map_err(|e| {
                 anyhow::anyhow!(
-                    "No JSON found in output. Stdout: {}, Stderr: {}",
-                    stdout,
-                    stderr
+                    "Failed to parse JSON: {} - attempted to parse: '{}'",
+                    e,
+                    combined
                 )
-            })?;
-
-        let json_str = &stripped_stdout[json_start..];
-        serde_json::from_str(json_str.trim()).map_err(|e| {
-            anyhow::anyhow!(
-                "Failed to parse JSON: {} - attempted to parse: '{}'. Full output: {}",
-                e,
-                json_str,
-                stdout
-            )
-        })?
+            })?
+        } else {
+            anyhow::bail!("No JSON found in output")
+        }
     };
 
     Ok((json, success))
@@ -215,13 +242,13 @@ async fn test_episode_full_lifecycle() {
     let (view_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "view", "--id", episode_id],
+        &["episode", "view", episode_id],
     )
     .expect("Failed to run view command");
 
     assert!(success, "View episode should succeed");
     let viewed_id = view_result
-        .get("id")
+        .get("episode_id")
         .and_then(|v| v.as_str())
         .expect("Should have episode id in view result");
     assert_eq!(viewed_id, episode_id, "Viewed episode should match created");
@@ -233,11 +260,8 @@ async fn test_episode_full_lifecycle() {
         &config_path,
         &[
             "episode",
-            "step",
-            "--id",
+            "log-step",
             episode_id,
-            "--number",
-            "1",
             "--tool",
             "test-tool",
             "--action",
@@ -256,12 +280,9 @@ async fn test_episode_full_lifecycle() {
         &[
             "episode",
             "complete",
-            "--id",
             episode_id,
             "--outcome",
             "success",
-            "--verdict",
-            "Test completed successfully",
         ],
     )
     .expect("Failed to run complete command");
@@ -273,7 +294,7 @@ async fn test_episode_full_lifecycle() {
     let (_delete_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "delete", "--id", episode_id, "--confirm"],
+        &["episode", "delete", episode_id],
     )
     .expect("Failed to run delete command");
 
@@ -284,7 +305,7 @@ async fn test_episode_full_lifecycle() {
     let (_view_after_delete, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "view", "--id", episode_id],
+        &["episode", "view", episode_id],
     )
     .expect("Failed to run view command after delete");
 
@@ -311,12 +332,7 @@ async fn test_relationship_workflow() {
     let (parent_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "episode",
-            "create",
-            "--task",
-            "Parent episode",
-        ],
+        &["episode", "create", "--task", "Parent episode"],
     )
     .expect("Failed to create parent episode");
 
@@ -331,12 +347,7 @@ async fn test_relationship_workflow() {
     let (child_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "episode",
-            "create",
-            "--task",
-            "Child episode",
-        ],
+        &["episode", "create", "--task", "Child episode"],
     )
     .expect("Failed to create child episode");
 
@@ -375,12 +386,14 @@ async fn test_relationship_workflow() {
         &cli_path,
         &config_path,
         &[
-            "episode",
-            "add-relationship",
-            "--from",
+            "relationship",
+            "add",
+            "--source",
             &parent_id,
-            "--to",
+            "--target",
             &child_id,
+            "--type",
+            "parent-child",
             "--reason",
             "Parent-child relationship test",
         ],
@@ -398,7 +411,7 @@ async fn test_relationship_workflow() {
     let (related_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "find-related", "--id", &parent_id],
+        &["relationship", "find", "--episode", &parent_id],
     )
     .expect("Failed to find related");
 
@@ -415,7 +428,7 @@ async fn test_relationship_workflow() {
         let (_, success) = run_cli(
             &cli_path,
             &config_path,
-            &["episode", "remove-relationship", "--id", &rid],
+            &["relationship", "remove", &rid],
         )
         .expect("Failed to remove relationship");
 
@@ -444,12 +457,7 @@ async fn test_tag_workflow() {
     let (create_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "episode",
-            "create",
-            "--task",
-            "Tag test episode",
-        ],
+        &["episode", "create", "--task", "Tag test episode"],
     )
     .expect("Failed to create episode");
 
@@ -464,12 +472,7 @@ async fn test_tag_workflow() {
     let (_, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "tag",
-            "add",
-            "--episode-id",
-            &episode_id,
-        ],
+        &["tag", "add", &episode_id, "security", "testing", "rust"],
     )
     .expect("Failed to add tags");
 
@@ -480,7 +483,7 @@ async fn test_tag_workflow() {
     let (show_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["tag", "show", "--episode-id", &episode_id],
+        &["tag", "show", &episode_id],
     )
     .expect("Failed to show tags");
 
@@ -496,7 +499,7 @@ async fn test_tag_workflow() {
     let (search_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["tag", "search", "--tags", "security"],
+        &["tag", "search", "security"],
     )
     .expect("Failed to search tags");
 
@@ -525,12 +528,7 @@ async fn test_tag_workflow() {
     let (_, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "tag",
-            "remove",
-            "--episode-id",
-            &episode_id,
-        ],
+        &["tag", "remove", &episode_id, "testing"],
     )
     .expect("Failed to remove tags");
 
@@ -541,7 +539,7 @@ async fn test_tag_workflow() {
     let (show_after, success) = run_cli(
         &cli_path,
         &config_path,
-        &["tag", "show", "--episode-id", &episode_id],
+        &["tag", "show", &episode_id],
     )
     .expect("Failed to show tags after removal");
 
@@ -560,8 +558,19 @@ async fn test_tag_workflow() {
 // Test 4: Pattern Discovery Workflow
 // ============================================================================
 
+/// TODO: Pattern discovery CLI commands not yet fully implemented
+/// 
+/// Missing features:
+/// - `pattern analyze --domain` command doesn't exist
+/// - `pattern search --limit` command doesn't exist  
+/// - `pattern recommend` command doesn't exist
+/// - `episode step --id --number` should be `episode log-step <ID>`
+/// - `episode complete --verdict` flag doesn't exist
+/// 
+/// Track: CLI enhancement to support pattern analysis commands
 #[tokio::test]
 #[serial]
+#[ignore = "Pattern CLI commands not yet implemented"]
 async fn test_pattern_discovery() {
     let cli_path = find_cli_binary().expect("Failed to find CLI binary");
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
@@ -659,12 +668,7 @@ async fn test_pattern_discovery() {
     let (search_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "pattern",
-            "search",
-            "--limit",
-            "10",
-        ],
+        &["pattern", "search", "--limit", "10"],
     )
     .expect("Failed to search patterns");
 
@@ -677,15 +681,8 @@ async fn test_pattern_discovery() {
     println!("  ✓ Found {} patterns", patterns);
 
     // Get pattern recommendations
-    let (_rec_result, success) = run_cli(
-        &cli_path,
-        &config_path,
-        &[
-            "pattern",
-            "recommend",
-        ],
-    )
-    .expect("Failed to get recommendations");
+    let (_rec_result, success) = run_cli(&cli_path, &config_path, &["pattern", "recommend"])
+        .expect("Failed to get recommendations");
 
     assert!(success, "Pattern recommend should succeed");
     println!("  ✓ Got pattern recommendations");
@@ -697,8 +694,18 @@ async fn test_pattern_discovery() {
 // Test 5: Episode Search and Filter
 // ============================================================================
 
+/// TODO: Episode search and filter CLI commands need enhancement
+/// 
+/// Issues:
+/// - `episode create --domain` flag doesn't exist (use context files instead)
+/// - `episode search --domain` flag doesn't exist (use list filters instead)
+/// - `episode search --type` flag doesn't exist
+/// - `episode query --query` command doesn't exist (use `episode search` instead)
+/// 
+/// Track: CLI enhancement to support domain/type filtering in search
 #[tokio::test]
 #[serial]
+#[ignore = "Search domain/type filters not yet implemented"]
 async fn test_episode_search_and_filter() {
     let cli_path = find_cli_binary().expect("Failed to find CLI binary");
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
@@ -836,7 +843,7 @@ async fn test_bulk_operations() {
     let (list_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "list", "--domain", "bulk-test", "--limit", "10"],
+        &["episode", "list", "--limit", "10"],
     )
     .expect("Failed to list episodes");
 

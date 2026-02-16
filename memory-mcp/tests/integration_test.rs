@@ -20,7 +20,7 @@ async fn test_server_full_lifecycle() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -58,7 +58,7 @@ async fn test_query_memory_integration() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -88,7 +88,7 @@ async fn test_analyze_patterns_integration() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -111,7 +111,7 @@ async fn test_tool_management() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -147,7 +147,7 @@ async fn test_concurrent_executions() {
             SandboxConfig::default(),
             Arc::new(SelfLearningMemory::with_config(MemoryConfig {
                 quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+                batch_config: None, // Disable batching for tests for test episodes
                 ..Default::default()
             })),
         )
@@ -183,7 +183,7 @@ async fn test_complex_code_execution() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -227,7 +227,7 @@ async fn test_error_handling_in_code() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -264,7 +264,7 @@ async fn test_async_code_execution() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -295,7 +295,7 @@ async fn test_progressive_tool_disclosure() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -422,7 +422,7 @@ async fn test_jsonrpc_response_format_execute_code() {
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )

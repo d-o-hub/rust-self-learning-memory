@@ -33,6 +33,12 @@ async fn create_test_server() -> MemoryMCPServer {
 #[tokio::test]
 async fn test_embedding_tools_registered() {
     let server = create_test_server().await;
+
+    // Load embedding extended tools (they're lazy-loaded)
+    let _ = server.get_tool("configure_embeddings").await;
+    let _ = server.get_tool("query_semantic_memory").await;
+    let _ = server.get_tool("test_embeddings").await;
+
     let tools = server.list_tools().await;
 
     // Verify embedding tools are registered

@@ -27,7 +27,7 @@ mod integration_tests {
         disable_wasm_for_tests();
         let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
             quality_threshold: 0.0,
-        batch_config: None, // Disable batching for tests for test episodes
+            batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         }));
         let sandbox_config = SandboxConfig::default();
@@ -43,30 +43,57 @@ mod integration_tests {
     async fn test_mcp_server_initialization() {
         let (_memory, mcp_server) = setup_test_environment().await;
 
-        // Test that server initializes with correct tools
-        // Note: WASM is disabled, so execute_agent_code is not available
-        // Available tools: query_memory, analyze_patterns, health_check, get_metrics,
-        // advanced_pattern_analysis, quality_metrics, configure_embeddings, query_semantic_memory,
-        // test_embeddings, search_patterns, recommend_patterns, bulk_episodes
-        let tools = mcp_server.list_tools().await;
-        assert_eq!(tools.len(), 12);
+        // Test core tools (loaded by default)
+        // Core tools: query_memory, health_check, get_metrics, analyze_patterns,
+        // create_episode, add_episode_step, complete_episode, get_episode
+        let core_tools = mcp_server.list_tools().await;
+        assert_eq!(core_tools.len(), 8);
 
-        let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
-        assert!(tool_names.contains(&"query_memory".to_string()));
-        assert!(tool_names.contains(&"analyze_patterns".to_string()));
-        assert!(tool_names.contains(&"health_check".to_string()));
-        assert!(tool_names.contains(&"get_metrics".to_string()));
-        assert!(tool_names.contains(&"advanced_pattern_analysis".to_string()));
-        assert!(tool_names.contains(&"quality_metrics".to_string()));
-        assert!(tool_names.contains(&"configure_embeddings".to_string()));
-        assert!(tool_names.contains(&"query_semantic_memory".to_string()));
-        assert!(tool_names.contains(&"test_embeddings".to_string()));
-        assert!(tool_names.contains(&"search_patterns".to_string()));
-        assert!(tool_names.contains(&"recommend_patterns".to_string()));
-        assert!(tool_names.contains(&"bulk_episodes".to_string()));
+        let core_tool_names: Vec<String> = core_tools.iter().map(|t| t.name.clone()).collect();
+        assert!(core_tool_names.contains(&"query_memory".to_string()));
+        assert!(core_tool_names.contains(&"analyze_patterns".to_string()));
+        assert!(core_tool_names.contains(&"health_check".to_string()));
+        assert!(core_tool_names.contains(&"get_metrics".to_string()));
 
         // execute_agent_code should NOT be available when WASM is disabled
-        assert!(!tool_names.contains(&"execute_agent_code".to_string()));
+        assert!(!core_tool_names.contains(&"execute_agent_code".to_string()));
+
+        // Load extended tools
+        let extended_tool_names = vec![
+            "advanced_pattern_analysis",
+            "quality_metrics",
+            "configure_embeddings",
+            "query_semantic_memory",
+            "test_embeddings",
+            "search_patterns",
+            "recommend_patterns",
+            "bulk_episodes",
+        ];
+
+        for tool_name in &extended_tool_names {
+            let tool = mcp_server.get_tool(tool_name).await;
+            assert!(
+                tool.is_some(),
+                "Extended tool '{}' should be available",
+                tool_name
+            );
+        }
+
+        // After loading extended tools, verify they're in the list
+        let all_tools = mcp_server.list_tools().await;
+        assert_eq!(all_tools.len(), 8 + extended_tool_names.len()); // 8 core + 8 extended
+
+        let all_tool_names: Vec<String> = all_tools.iter().map(|t| t.name.clone()).collect();
+
+        // Verify extended tools are now present
+        assert!(all_tool_names.contains(&"advanced_pattern_analysis".to_string()));
+        assert!(all_tool_names.contains(&"quality_metrics".to_string()));
+        assert!(all_tool_names.contains(&"configure_embeddings".to_string()));
+        assert!(all_tool_names.contains(&"query_semantic_memory".to_string()));
+        assert!(all_tool_names.contains(&"test_embeddings".to_string()));
+        assert!(all_tool_names.contains(&"search_patterns".to_string()));
+        assert!(all_tool_names.contains(&"recommend_patterns".to_string()));
+        assert!(all_tool_names.contains(&"bulk_episodes".to_string()));
     }
 
     #[tokio::test]

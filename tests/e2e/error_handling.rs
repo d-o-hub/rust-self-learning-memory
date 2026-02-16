@@ -21,6 +21,10 @@ use tempfile::tempdir;
 use uuid::Uuid;
 
 /// Test helper to create a memory instance with storage
+///
+/// IMPORTANT: Uses zero quality threshold to avoid rejecting test episodes
+/// that are intentionally simple or minimal (e.g., episodes with no steps
+/// to test edge cases). This ensures test isolation and predictable behavior.
 async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
     let dir = tempdir().unwrap();
     let turso_path = dir.path().join("test_turso.redb");
@@ -33,8 +37,12 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .await
         .expect("Failed to create cache storage");
 
+    // Use zero quality threshold for testing to avoid rejecting simple test episodes
+    let mut config: memory_core::MemoryConfig = Default::default();
+    config.quality_threshold = 0.0;
+
     let memory = Arc::new(SelfLearningMemory::with_storage(
-        Default::default(),
+        config,
         Arc::new(turso_storage),
         Arc::new(cache_storage),
     ));

@@ -29,6 +29,7 @@ tempfile.workspace = true
 serial_test = "3.0"
 uuid.workspace = true
 serde_json.workspace = true
+regex = "1.10"
 
 # CLI testing
 assert_cmd = "2.0"

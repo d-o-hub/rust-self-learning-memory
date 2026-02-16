@@ -53,7 +53,6 @@ fn create_test_config(temp_dir: &TempDir) -> Result<std::path::PathBuf> {
 
     let config_content = format!(
         r#"[database]
-turso_url = "file:{0}/memory.db"
 redb_path = "{0}/cache.redb"
 
 [storage]
@@ -65,6 +64,16 @@ pool_size = 5
 default_format = "json"
 progress_bars = false
 batch_size = 100
+
+[embeddings]
+enabled = false
+provider = "local"
+model = "sentence-transformers/all-MiniLM-L6-v2"
+dimension = 384
+similarity_threshold = 0.7
+batch_size = 32
+cache_embeddings = true
+timeout_seconds = 30
 "#,
         db_dir.display()
     );
@@ -77,6 +86,9 @@ batch_size = 100
 ///
 /// Filters out log messages before parsing JSON.
 /// This handles the case where CLI outputs logging (WARN, INFO) mixed with JSON response.
+///
+/// TEST ISOLATION: Each call creates a separate subprocess with its own config,
+/// ensuring no shared state between test runs.
 fn run_cli(
     cli_path: &std::path::Path,
     config_path: &std::path::Path,
@@ -86,27 +98,69 @@ fn run_cli(
         .arg(format!("--config={}", config_path.display()))
         .arg("--format=json")
         .args(args)
+        .env("RUST_LOG", "error") // Only show errors to reduce log noise
         .output()?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
     let success = output.status.success();
 
-    // Filter out log messages and find the JSON response
-    let json = if stdout.trim().is_empty() {
-        serde_json::json!({})
-    } else {
-        // Strategy: Find the first line that looks like JSON (starts with '{')
-        // This filters out log messages (INFO, WARN, ERROR) that appear before the JSON result
-        let json_line = stdout
-            .lines()
-            .find(|line| line.trim().starts_with('{'))
-            .ok_or_else(|| anyhow::anyhow!("No JSON found in output"))?;
+    // Debug output for test failures
+    if !success || !stdout.contains('{') {
+        eprintln!("CLI command failed:");
+        eprintln!("  Args: {:?}", args);
+        eprintln!("  Exit code: {:?}", output.status.code());
+        eprintln!("  Stdout: {}", stdout);
+        eprintln!("  Stderr: {}", stderr);
+    }
 
-        serde_json::from_str(json_line)
-            .map_err(|e| anyhow::anyhow!("Failed to parse JSON: {} - line: {}", e, json_line))?
+    // Filter out log messages and find the JSON response
+    // Strategy: Find the LAST valid JSON object in the output
+    // This handles cases where logs appear before the JSON response
+    let json = if stdout.trim().is_empty() {
+        // If command failed, return error JSON
+        if !success {
+            serde_json::json!({"error": "Command failed", "stderr": stderr})
+        } else {
+            serde_json::json!({})
+        }
+    } else {
+        // Strip ANSI codes from the entire output
+        let stripped_stdout = strip_ansi_codes(&stdout);
+
+        // Find the last occurrence of '{' or '[' which should be the start of JSON
+        // Then try to parse from there to the end
+        let json_start = stripped_stdout
+            .rfind('{')
+            .or_else(|| stripped_stdout.rfind('['))
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "No JSON found in output. Stdout: {}, Stderr: {}",
+                    stdout,
+                    stderr
+                )
+            })?;
+
+        let json_str = &stripped_stdout[json_start..];
+        serde_json::from_str(json_str.trim()).map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to parse JSON: {} - attempted to parse: '{}'. Full output: {}",
+                e,
+                json_str,
+                stdout
+            )
+        })?
     };
 
     Ok((json, success))
+}
+
+/// Simple ANSI escape code stripper
+/// Removes ANSI color codes and formatting from strings
+fn strip_ansi_codes(s: &str) -> String {
+    // This regex matches ANSI escape sequences like \x1b[...m
+    let re = regex::Regex::new(r"\x1b\[[0-9;]*[mGKH]").unwrap();
+    re.replace_all(s, "").to_string()
 }
 
 // ============================================================================

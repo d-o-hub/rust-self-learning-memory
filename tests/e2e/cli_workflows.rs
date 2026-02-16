@@ -314,12 +314,8 @@ async fn test_relationship_workflow() {
         &[
             "episode",
             "create",
-            "--description",
+            "--task",
             "Parent episode",
-            "--domain",
-            "rel-test",
-            "--type",
-            "analysis",
         ],
     )
     .expect("Failed to create parent episode");
@@ -338,12 +334,8 @@ async fn test_relationship_workflow() {
         &[
             "episode",
             "create",
-            "--description",
+            "--task",
             "Child episode",
-            "--domain",
-            "rel-test",
-            "--type",
-            "code-generation",
         ],
     )
     .expect("Failed to create child episode");
@@ -389,8 +381,6 @@ async fn test_relationship_workflow() {
             &parent_id,
             "--to",
             &child_id,
-            "--type",
-            "parent-child",
             "--reason",
             "Parent-child relationship test",
         ],
@@ -457,12 +447,8 @@ async fn test_tag_workflow() {
         &[
             "episode",
             "create",
-            "--description",
+            "--task",
             "Tag test episode",
-            "--domain",
-            "tag-test",
-            "--type",
-            "code-generation",
         ],
     )
     .expect("Failed to create episode");
@@ -483,8 +469,6 @@ async fn test_tag_workflow() {
             "add",
             "--episode-id",
             &episode_id,
-            "--tags",
-            "security,api,testing",
         ],
     )
     .expect("Failed to add tags");
@@ -546,8 +530,6 @@ async fn test_tag_workflow() {
             "remove",
             "--episode-id",
             &episode_id,
-            "--tags",
-            "testing",
         ],
     )
     .expect("Failed to remove tags");
@@ -597,12 +579,8 @@ async fn test_pattern_discovery() {
             &[
                 "episode",
                 "create",
-                "--description",
+                "--task",
                 &format!("Pattern test episode {}", i),
-                "--domain",
-                "pattern-test",
-                "--type",
-                "code-generation",
             ],
         )
         .expect("Failed to create episode");
@@ -684,8 +662,6 @@ async fn test_pattern_discovery() {
         &[
             "pattern",
             "search",
-            "--domain",
-            "pattern-test",
             "--limit",
             "10",
         ],
@@ -707,10 +683,6 @@ async fn test_pattern_discovery() {
         &[
             "pattern",
             "recommend",
-            "--domain",
-            "pattern-test",
-            "--type",
-            "code-generation",
         ],
     )
     .expect("Failed to get recommendations");
@@ -744,12 +716,10 @@ async fn test_episode_search_and_filter() {
             &[
                 "episode",
                 "create",
-                "--description",
+                "--task",
                 &format!("Search test episode {}", i),
                 "--domain",
                 domain,
-                "--type",
-                "code-generation",
             ],
         )
         .expect("Failed to create episode");
@@ -822,12 +792,8 @@ async fn test_bulk_operations() {
             &[
                 "episode",
                 "create",
-                "--description",
+                "--task",
                 &format!("Bulk test episode {}", i),
-                "--domain",
-                "bulk-test",
-                "--type",
-                "testing",
             ],
         )
         .expect("Failed to create episode");
@@ -912,7 +878,7 @@ async fn test_cli_error_handling() {
     // Test missing required argument
     let output = Command::new(&cli_path)
         .arg(format!("--config={}", config_path.display()))
-        .args(["episode", "create"]) // Missing required --description
+        .args(["episode", "create"]) // Missing required --task
         .output()
         .expect("Failed to run command");
 

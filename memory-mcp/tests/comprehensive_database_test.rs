@@ -17,7 +17,8 @@ async fn test_comprehensive_database_operations() {
 
     // Initialize memory system
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-        quality_threshold: 0.0, // Zero threshold for test episodes
+        quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
         ..Default::default()
     }));
     let sandbox_config = SandboxConfig::restrictive();

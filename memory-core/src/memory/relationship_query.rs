@@ -88,7 +88,10 @@ impl RelationshipGraph {
 
     /// Add a relationship edge to the graph.
     pub fn add_edge(&mut self, relationship: EpisodeRelationship) {
-        self.edges.push(relationship);
+        // Check if edge already exists (by relationship ID) to avoid duplicates
+        if !self.edges.iter().any(|e| e.id == relationship.id) {
+            self.edges.push(relationship);
+        }
     }
 
     /// Get the number of nodes in the graph.

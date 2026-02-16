@@ -26,7 +26,8 @@ mod integration_tests {
     async fn setup_test_environment() -> (Arc<SelfLearningMemory>, Arc<MemoryMCPServer>) {
         disable_wasm_for_tests();
         let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         }));
         let sandbox_config = SandboxConfig::default();

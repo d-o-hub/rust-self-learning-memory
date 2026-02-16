@@ -14,6 +14,7 @@ use std::sync::Arc;
 async fn create_test_server() -> MemoryMCPServer {
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
         quality_threshold: 0.0, // Zero threshold for test episodes
+        batch_config: None,
         ..Default::default()
     }));
 

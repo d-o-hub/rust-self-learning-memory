@@ -146,6 +146,7 @@ async fn test_query_embedding_consistency() {
 #[tokio::test]
 async fn test_semantic_hierarchical_retrieval() {
     let config = MemoryConfig {
+        quality_threshold: 0.0,
         enable_spatiotemporal_indexing: true,
         enable_embeddings: true,
         temporal_bias_weight: 0.3,
@@ -198,6 +199,7 @@ async fn test_semantic_hierarchical_retrieval() {
 #[tokio::test]
 async fn test_hybrid_retrieval() {
     let config = MemoryConfig {
+        quality_threshold: 0.0,
         enable_spatiotemporal_indexing: true,
         enable_embeddings: true,
         temporal_bias_weight: 0.4,
@@ -267,6 +269,7 @@ async fn test_hybrid_retrieval() {
 #[tokio::test]
 async fn test_episode_embedding_preloading() {
     let config = MemoryConfig {
+        quality_threshold: 0.0,
         enable_spatiotemporal_indexing: true,
         enable_embeddings: true,
         ..Default::default()
@@ -320,6 +323,7 @@ async fn test_episode_embedding_preloading() {
 async fn test_fallback_to_keyword_search() {
     // Disable embeddings to force keyword search fallback
     let config = MemoryConfig {
+        quality_threshold: 0.0,
         enable_spatiotemporal_indexing: true,
         enable_embeddings: false, // Disable embeddings
         semantic_search_mode: "keyword-only".to_string(),
@@ -381,6 +385,7 @@ async fn test_fallback_to_keyword_search() {
 #[tokio::test]
 async fn test_similarity_threshold_filtering() {
     let config = MemoryConfig {
+        quality_threshold: 0.0,
         enable_spatiotemporal_indexing: true,
         enable_embeddings: true,
         semantic_similarity_threshold: 0.7, // High threshold
@@ -443,6 +448,7 @@ async fn test_similarity_threshold_filtering() {
 #[tokio::test]
 async fn test_semantic_retrieval_performance() {
     let config = MemoryConfig {
+        quality_threshold: 0.0,
         enable_spatiotemporal_indexing: true,
         enable_embeddings: true,
         enable_query_embedding_cache: true,

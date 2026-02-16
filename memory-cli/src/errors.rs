@@ -6,7 +6,7 @@ use anyhow::Result;
 use colored::Colorize;
 
 /// Trait for adding helpful context and suggestions to errors
-#[allow(dead_code)]
+#[allow(dead_code)] // TODO: Integrate into CLI command error handling
 pub trait EnhancedError<T> {
     /// Add context with helpful suggestions
     fn context_with_help(self, msg: &str, help: &[&str]) -> Result<T>;
@@ -30,7 +30,7 @@ impl<T, E: std::error::Error + Send + Sync + 'static> EnhancedError<T> for Resul
 }
 
 /// Common error messages and help text
-#[allow(dead_code)]
+#[allow(dead_code)] // TODO: Integrate into CLI command error handling
 pub mod helpers {
     /// Episode not found error help
     #[allow(dead_code)]

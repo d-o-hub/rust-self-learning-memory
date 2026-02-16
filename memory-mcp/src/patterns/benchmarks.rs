@@ -325,10 +325,26 @@ mod performance_benchmarks {
     }
 
     /// Benchmark streaming performance
-    /// NOTE: This test is slow and may timeout in CI. Marked with #[ignore] by default.
-    /// Run with: cargo test --include-ignored benchmark_streaming_performance
+    ///
+    /// # Purpose
+    /// Validates streaming DBSCAN performance across different window sizes.
+    ///
+    /// # Ignore Reason
+    /// Performance varies significantly by environment. In CI mode, uses reduced
+    /// point counts (1K vs 10K) to prevent timeouts while still validating correctness.
+    ///
+    /// # ADR Reference
+    /// See ADR-027: Strategy for Ignored Tests - streaming-impl feature gate.
+    ///
+    /// # Running the Test
+    /// - CI mode (fast): `CI=true cargo test --package memory-mcp benchmark_streaming_performance -- --ignored`
+    /// - Full mode (slow): `cargo test --package memory-mcp --features streaming-impl benchmark_streaming_performance -- --ignored`
+    ///
+    /// # Performance Targets
+    /// - CI mode: 4-7 seconds with 1K-5K points
+    /// - Full mode: 60-90 seconds with 40K points
+    #[cfg_attr(not(feature = "streaming-impl"), ignore)]
     #[test]
-    #[ignore]
     fn benchmark_streaming_performance() {
         let is_ci = std::env::var("CI").is_ok();
         // Reduce window sizes and point count for CI to prevent timeouts

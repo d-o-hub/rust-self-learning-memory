@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 /// Input for Mistral embedding request (single text or batch)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-#[allow(dead_code)] // Used by MistralEmbeddingProvider
 pub enum MistralEmbeddingInput {
     /// Single text input
     Single(String),
@@ -39,7 +38,7 @@ impl From<Vec<&str>> for MistralEmbeddingInput {
 
 /// Mistral API request structure
 #[derive(Debug, Clone, Serialize)]
-#[allow(dead_code)] // Used by MistralEmbeddingProvider
+
 pub struct MistralEmbeddingRequest {
     /// Input text(s) to embed
     pub inputs: MistralEmbeddingInput,
@@ -55,7 +54,7 @@ pub struct MistralEmbeddingRequest {
 
 /// Individual embedding data from Mistral API response
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)] // Used by MistralEmbeddingProvider
+
 pub struct MistralEmbeddingData {
     /// The embedding vector (format depends on `output_dtype`)
     pub embedding: Vec<f32>,
@@ -67,7 +66,7 @@ pub struct MistralEmbeddingData {
 
 /// Token usage information
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)] // Used by MistralEmbeddingProvider
+
 pub struct MistralUsage {
     /// Tokens in the prompt
     pub prompt_tokens: usize,
@@ -77,7 +76,7 @@ pub struct MistralUsage {
 
 /// Mistral API response structure
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)] // Used by MistralEmbeddingProvider
+
 pub struct MistralEmbeddingResponse {
     /// List of embedding data
     pub data: Vec<MistralEmbeddingData>,

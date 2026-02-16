@@ -315,7 +315,12 @@ impl CompressedTransport {
 
             let elapsed = start.elapsed().as_micros() as u64;
 
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().map_err(|e| {
+                anyhow::anyhow!(TransportCompressionError::StreamFailed(format!(
+                    "Failed to acquire stats lock: {}",
+                    e
+                )))
+            })?;
             stats.base.record_decompression(elapsed);
             stats.record_decompression_time(elapsed);
 
@@ -368,7 +373,16 @@ impl CompressedTransport {
         {
             // LZ4 decompression is fast, but we still use spawn_blocking for consistency
             let data = data.to_vec();
-            let original_size = self.stats.lock().unwrap().base.total_original_bytes as usize;
+            // Lock guard is dropped before await (scope block)
+            let original_size = {
+                let stats = self.stats.lock().map_err(|e| {
+                    anyhow::anyhow!(TransportCompressionError::DecompressionFailed(format!(
+                        "Failed to acquire stats lock: {}",
+                        e
+                    )))
+                })?;
+                stats.base.total_original_bytes as usize
+            }; // Lock released here
 
             tokio::task::spawn_blocking(move || {
                 lz4_flex::decompress(&data, original_size).map_err(|e| {
@@ -421,23 +435,44 @@ impl CompressedTransport {
 
     /// Get current compression statistics
     pub fn stats(&self) -> TransportCompressionStats {
-        self.stats.lock().unwrap().clone()
+        self.stats
+            .lock()
+            .map(|guard| guard.clone())
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire stats lock for reading: {}", e);
+                TransportCompressionStats::new()
+            })
     }
 
     /// Reset compression statistics
     pub fn reset_stats(&self) {
-        let mut stats = self.stats.lock().unwrap();
-        *stats = TransportCompressionStats::new();
+        if let Ok(mut stats) = self.stats.lock() {
+            *stats = TransportCompressionStats::new();
+        } else {
+            tracing::error!("Failed to acquire stats lock for reset");
+        }
     }
 
     /// Get compression ratio for all operations
     pub fn overall_compression_ratio(&self) -> f64 {
-        self.stats.lock().unwrap().overall_ratio()
+        self.stats
+            .lock()
+            .map(|guard| guard.overall_ratio())
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire stats lock for ratio: {}", e);
+                0.0
+            })
     }
 
     /// Get bandwidth savings percentage
     pub fn bandwidth_savings_percent(&self) -> f64 {
-        self.stats.lock().unwrap().bandwidth_savings_percent()
+        self.stats
+            .lock()
+            .map(|guard| guard.bandwidth_savings_percent())
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire stats lock for bandwidth: {}", e);
+                0.0
+            })
     }
 }
 
@@ -464,7 +499,12 @@ impl Transport for CompressedTransport {
 
         // Update global stats
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().map_err(|e| {
+                anyhow::anyhow!(TransportCompressionError::StreamFailed(format!(
+                    "Failed to acquire stats lock: {}",
+                    e
+                )))
+            })?;
             stats.base.total_original_bytes += operation_stats.base.total_original_bytes;
             stats.base.total_compressed_bytes += operation_stats.base.total_compressed_bytes;
             stats.base.compression_count += operation_stats.base.compression_count;

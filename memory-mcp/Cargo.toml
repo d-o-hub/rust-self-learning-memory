@@ -72,6 +72,10 @@ wasmtime-backend = ["dep:wasmtime", "dep:wasmtime-wasi"]
 wasm-rquickjs = ["dep:rquickjs"]
 # Javy JavaScript backend (requires additional setup)
 javy-backend = ["dep:javy", "dep:javy-codegen"]
+# Enable streaming implementation tests (performance benchmarks)
+# See ADR-027: Strategy for Ignored Tests
+# Use: cargo test --features streaming-impl
+streaming-impl = []
 
 [dev-dependencies]
 tempfile = { workspace = true }

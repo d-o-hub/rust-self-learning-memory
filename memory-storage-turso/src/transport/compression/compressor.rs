@@ -43,7 +43,12 @@ impl AsyncCompressor {
 
         // Check threshold
         if data.len() < self.config.compression_threshold {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().map_err(|e| {
+                TransportCompressionError::StreamFailed(format!(
+                    "Failed to acquire stats lock: {}",
+                    e
+                ))
+            })?;
             stats.base.record_skipped();
             return Ok(CompressedPayload {
                 original_size: data.len(),
@@ -82,7 +87,9 @@ impl AsyncCompressor {
 
         // Update stats
         let elapsed = start.elapsed().as_micros() as u64;
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
 
         stats
             .base
@@ -121,7 +128,9 @@ impl AsyncCompressor {
         let result = payload.decompress();
         let elapsed = start.elapsed().as_micros() as u64;
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
         stats.base.record_decompression(elapsed);
         stats.record_decompression_time(elapsed);
 
@@ -175,7 +184,9 @@ impl AsyncCompressor {
         let elapsed = start.elapsed().as_micros() as u64;
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
         stats.record_streaming_compression(total_read, total_written);
 
         Ok(CompressionStreamResult {
@@ -243,7 +254,9 @@ impl AsyncCompressor {
         let elapsed = start.elapsed().as_micros() as u64;
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
         stats.record_streaming_decompression();
         stats.record_decompression_time(elapsed);
 
@@ -290,8 +303,17 @@ impl AsyncCompressor {
 
     /// Parse stream header
     fn parse_stream_header(header: &[u8; 16]) -> Result<(usize, usize, CompressionAlgorithm)> {
-        let original_size = u64::from_le_bytes(header[0..8].try_into().unwrap()) as usize;
-        let compressed_size = u64::from_le_bytes(header[8..16].try_into().unwrap()) as usize;
+        // SAFETY: header is guaranteed to be 16 bytes by the type signature
+        let original_size = u64::from_le_bytes(
+            header[0..8]
+                .try_into()
+                .expect("Header slice must be exactly 8 bytes"),
+        ) as usize;
+        let compressed_size = u64::from_le_bytes(
+            header[8..16]
+                .try_into()
+                .expect("Header slice must be exactly 8 bytes"),
+        ) as usize;
 
         // Detect algorithm from size relationship
         let algorithm = if original_size == compressed_size {
@@ -308,12 +330,21 @@ impl AsyncCompressor {
 
     /// Get current statistics
     pub fn stats(&self) -> TransportCompressionStats {
-        self.stats.lock().unwrap().clone()
+        self.stats
+            .lock()
+            .map(|guard| guard.clone())
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire stats lock for reading: {}", e);
+                TransportCompressionStats::new()
+            })
     }
 
     /// Reset statistics
     pub fn reset_stats(&self) {
-        let mut stats = self.stats.lock().unwrap();
-        *stats = TransportCompressionStats::new();
+        if let Ok(mut stats) = self.stats.lock() {
+            *stats = TransportCompressionStats::new();
+        } else {
+            tracing::error!("Failed to acquire stats lock for reset");
+        }
     }
 }

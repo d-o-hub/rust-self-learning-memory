@@ -11,9 +11,25 @@ pub(super) fn topological_sort_kahn(nodes: &[Uuid], edges: &[(Uuid, Uuid)]) -> V
         nodes.iter().map(|&id| (id, Vec::new())).collect();
 
     // Build adjacency list and calculate in-degrees
+    // Validate that all edge nodes exist in the nodes list
     for (from, to) in edges {
-        adj_list.get_mut(from).unwrap().push(*to);
-        *in_degree.get_mut(to).unwrap() += 1;
+        let Some(adj_entry) = adj_list.get_mut(from) else {
+            tracing::warn!(
+                "Edge references unknown node {} (not in node list), skipping",
+                from
+            );
+            continue;
+        };
+        adj_entry.push(*to);
+
+        let Some(deg_entry) = in_degree.get_mut(to) else {
+            tracing::warn!(
+                "Edge references unknown node {} (not in node list), skipping",
+                to
+            );
+            continue;
+        };
+        *deg_entry += 1;
     }
 
     // Find all nodes with in-degree 0
@@ -28,10 +44,18 @@ pub(super) fn topological_sort_kahn(nodes: &[Uuid], edges: &[(Uuid, Uuid)]) -> V
     while let Some(node) = queue.pop_front() {
         sorted.push(node);
 
-        for &neighbor in &adj_list[&node] {
-            let deg = in_degree.get_mut(&neighbor).unwrap();
-            *deg -= 1;
-            if *deg == 0 {
+        // Safe indexing: we know node exists in adj_list
+        let neighbors = match adj_list.get(&node) {
+            Some(n) => n,
+            None => continue,
+        };
+
+        for &neighbor in neighbors {
+            let Some(deg_entry) = in_degree.get_mut(&neighbor) else {
+                continue;
+            };
+            *deg_entry -= 1;
+            if *deg_entry == 0 {
                 queue.push_back(neighbor);
             }
         }

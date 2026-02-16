@@ -76,7 +76,7 @@ description: >-
 
   </example>
 mode: subagent
-model: nvidia/z-ai/glm4.7
+model: moonshotai/kimi-k2.5
 tools:
   webfetch: false
 ---

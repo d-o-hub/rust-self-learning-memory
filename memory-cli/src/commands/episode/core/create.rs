@@ -7,7 +7,6 @@ use crate::errors::{helpers, EnhancedError};
 use crate::output::Output;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
-#[cfg(feature = "turso")]
 use memory_core::{TaskContext, TaskType};
 use std::path::PathBuf;
 
@@ -28,46 +27,39 @@ pub async fn create_episode(
         return Ok(());
     }
 
-    // Check if storage features are enabled
-    #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!(
-        "Turso storage feature not enabled.\n\
-         \nTo enable Turso storage support:\n\
-         • Install with: cargo install --path memory-cli --features turso\n\
-         • Or build with: cargo build --features turso\n\
-         • For full features: cargo install --path memory-cli --features full\n\
-         \nAlternatively, configure a different storage backend in your config file."
-    ));
+    // Load context from file if provided
+    #[cfg(feature = "turso")]
+    let context_data = if let Some(context_path) = context {
+        let content = std::fs::read_to_string(&context_path).context_with_help(
+            &format!("Failed to read context file: {}", context_path.display()),
+            helpers::INVALID_INPUT_HELP,
+        )?;
 
+        // Try to parse as JSON first, then YAML
+        if let Ok(ctx) = serde_json::from_str::<TaskContext>(&content) {
+            ctx
+        } else {
+            serde_yaml::from_str(&content).context_with_help(
+                &format!("Failed to parse context file: {}", context_path.display()),
+                helpers::INVALID_INPUT_HELP,
+            )?
+        }
+    } else {
+        TaskContext::default()
+    };
+
+    #[cfg(not(feature = "turso"))]
+    let context_data = TaskContext::default();
+
+    // Use the pre-initialized memory system
+    // Start the episode
+    let episode_id = memory
+        .start_episode(task.clone(), context_data, TaskType::CodeGeneration)
+        .await;
+
+    // Output the result
     #[cfg(feature = "turso")]
     {
-        // Load context from file if provided
-        let context_data = if let Some(context_path) = context {
-            let content = std::fs::read_to_string(&context_path).context_with_help(
-                &format!("Failed to read context file: {}", context_path.display()),
-                helpers::INVALID_INPUT_HELP,
-            )?;
-
-            // Try to parse as JSON first, then YAML
-            if let Ok(ctx) = serde_json::from_str::<TaskContext>(&content) {
-                ctx
-            } else {
-                serde_yaml::from_str(&content).context_with_help(
-                    &format!("Failed to parse context file: {}", context_path.display()),
-                    helpers::INVALID_INPUT_HELP,
-                )?
-            }
-        } else {
-            TaskContext::default()
-        };
-
-        // Use the pre-initialized memory system
-        // Start the episode
-        let episode_id = memory
-            .start_episode(task.clone(), context_data, TaskType::CodeGeneration)
-            .await;
-
-        // Output the result
         #[derive(Debug, serde::Serialize)]
         struct CreateResult {
             episode_id: String,
@@ -93,5 +85,34 @@ pub async fn create_episode(
         };
 
         format.print_output(&result)
+    }
+
+    #[cfg(not(feature = "turso"))]
+    {
+        #[derive(Debug, serde::Serialize)]
+        struct CreateResult {
+            id: String,
+            task: String,
+        }
+
+        let result = CreateResult {
+            id: episode_id.to_string(),
+            task: task.clone(),
+        };
+
+        match format {
+            OutputFormat::Json => {
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+            OutputFormat::Yaml => {
+                println!("{}", serde_yaml::to_string(&result)?);
+            }
+            OutputFormat::Human => {
+                println!("Episode created: {}", episode_id);
+                println!("Task: {}", task);
+            }
+        }
+
+        Ok(())
     }
 }

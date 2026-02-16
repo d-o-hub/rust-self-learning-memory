@@ -19,7 +19,8 @@ async fn test_server_full_lifecycle() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -56,7 +57,8 @@ async fn test_query_memory_integration() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -85,7 +87,8 @@ async fn test_analyze_patterns_integration() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -107,7 +110,8 @@ async fn test_tool_management() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -142,7 +146,8 @@ async fn test_concurrent_executions() {
         MemoryMCPServer::new(
             SandboxConfig::default(),
             Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-                quality_threshold: 0.0, // Zero threshold for test episodes
+                quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
                 ..Default::default()
             })),
         )
@@ -177,7 +182,8 @@ async fn test_complex_code_execution() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -220,7 +226,8 @@ async fn test_error_handling_in_code() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -256,7 +263,8 @@ async fn test_async_code_execution() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -286,7 +294,8 @@ async fn test_progressive_tool_disclosure() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )
@@ -330,7 +339,8 @@ async fn test_memory_integration_with_data() {
 
     // Create a shared memory instance
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-        quality_threshold: 0.0, // Zero threshold for test episodes
+        quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
         ..Default::default()
     }));
 
@@ -411,7 +421,8 @@ async fn test_jsonrpc_response_format_execute_code() {
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-            quality_threshold: 0.0, // Zero threshold for test episodes
+            quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
             ..Default::default()
         })),
     )

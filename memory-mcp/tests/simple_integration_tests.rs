@@ -22,7 +22,8 @@ fn disable_wasm_for_tests() {
 async fn test_mcp_server_tools() {
     disable_wasm_for_tests();
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-        quality_threshold: 0.0, // Zero threshold for test episodes
+        quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
         ..Default::default()
     }));
     let sandbox_config = SandboxConfig::restrictive();
@@ -61,7 +62,8 @@ async fn test_mcp_server_tools() {
 #[tokio::test]
 async fn test_memory_query_with_episode() {
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-        quality_threshold: 0.0, // Zero threshold for test episodes
+        quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
         ..Default::default()
     }));
     let sandbox_config = SandboxConfig::restrictive();
@@ -122,7 +124,8 @@ async fn test_memory_query_with_episode() {
 #[tokio::test]
 async fn test_simple_tool_usage_tracking() {
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-        quality_threshold: 0.0, // Zero threshold for test episodes
+        quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
         ..Default::default()
     }));
     let sandbox_config = SandboxConfig::restrictive();
@@ -161,7 +164,8 @@ async fn test_simple_tool_usage_tracking() {
 #[tokio::test]
 async fn test_execution_attempt_tracking() {
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
-        quality_threshold: 0.0, // Zero threshold for test episodes
+        quality_threshold: 0.0,
+        batch_config: None, // Disable batching for tests for test episodes
         ..Default::default()
     }));
     let sandbox_config = SandboxConfig::restrictive();

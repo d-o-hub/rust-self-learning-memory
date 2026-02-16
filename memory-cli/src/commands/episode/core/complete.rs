@@ -12,14 +12,12 @@ use memory_core::SelfLearningMemory;
 pub async fn complete_episode(
     episode_id: String,
     outcome: TaskOutcome,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
+    memory: &SelfLearningMemory,
+    _config: &Config,
+    format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    #[allow(unused_imports)]
     use memory_core::TaskOutcome as CoreTaskOutcome;
-    #[allow(unused_imports)]
     use uuid::Uuid;
 
     if dry_run {
@@ -30,48 +28,38 @@ pub async fn complete_episode(
         return Ok(());
     }
 
-    // Check if storage features are enabled
-    #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!(
-        "Turso storage feature not enabled. Use --features turso to enable."
-    ));
+    // Parse episode ID
+    let episode_uuid = Uuid::parse_str(&episode_id)
+        .map_err(|_| anyhow::anyhow!("Invalid episode ID format: {}", episode_id))?;
+
+    // Use the pre-initialized memory system
+    // Map CLI outcome to core outcome
+    let core_outcome = match outcome {
+        TaskOutcome::Success => CoreTaskOutcome::Success {
+            verdict: "Task completed successfully via CLI".to_string(),
+            artifacts: vec![],
+        },
+        TaskOutcome::PartialSuccess => CoreTaskOutcome::PartialSuccess {
+            verdict: "Task completed with partial success via CLI".to_string(),
+            completed: vec!["Marked as partial success by user".to_string()],
+            failed: vec![],
+        },
+        TaskOutcome::Failure => CoreTaskOutcome::Failure {
+            reason: "Task failed via CLI".to_string(),
+            error_details: Some("Marked as failed by user".to_string()),
+        },
+    };
+
+    // Complete the episode
+    memory
+        .complete_episode(episode_uuid, core_outcome)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to complete episode {}: {}", episode_id, e))?;
+
+    let outcome_str = format!("{:?}", outcome);
 
     #[cfg(feature = "turso")]
     {
-        // Parse episode ID
-        let episode_uuid = Uuid::parse_str(&episode_id).context_with_help(
-            &format!("Invalid episode ID format: {}", episode_id),
-            helpers::INVALID_INPUT_HELP,
-        )?;
-
-        // Use the pre-initialized memory system
-        // Map CLI outcome to core outcome
-        let core_outcome = match outcome {
-            TaskOutcome::Success => CoreTaskOutcome::Success {
-                verdict: "Task completed successfully via CLI".to_string(),
-                artifacts: vec![],
-            },
-            TaskOutcome::PartialSuccess => CoreTaskOutcome::PartialSuccess {
-                verdict: "Task completed with partial success via CLI".to_string(),
-                completed: vec!["Marked as partial success by user".to_string()],
-                failed: vec![],
-            },
-            TaskOutcome::Failure => CoreTaskOutcome::Failure {
-                reason: "Task failed via CLI".to_string(),
-                error_details: Some("Marked as failed by user".to_string()),
-            },
-        };
-
-        // Complete the episode
-        memory
-            .complete_episode(episode_uuid, core_outcome)
-            .await
-            .context_with_help(
-                &format!("Failed to complete episode: {}", episode_id),
-                helpers::EPISODE_NOT_FOUND_HELP,
-            )?;
-
-        // Return success
         #[derive(Debug, serde::Serialize)]
         struct CompleteResult {
             episode_id: String,
@@ -93,9 +81,38 @@ pub async fn complete_episode(
         let result = CompleteResult {
             episode_id: episode_id.clone(),
             status: "completed".to_string(),
-            outcome: format!("{:?}", outcome),
+            outcome: outcome_str.clone(),
         };
 
         format.print_output(&result)
+    }
+
+    #[cfg(not(feature = "turso"))]
+    {
+        match format {
+            OutputFormat::Json => {
+                let result = serde_json::json!({
+                    "episode_id": episode_id,
+                    "status": "completed",
+                    "outcome": outcome_str,
+                });
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+            OutputFormat::Yaml => {
+                let result = serde_json::json!({
+                    "episode_id": episode_id,
+                    "status": "completed",
+                    "outcome": outcome_str,
+                });
+                println!("{}", serde_yaml::to_string(&result)?);
+            }
+            OutputFormat::Human => {
+                println!("Episode completed: {}", episode_id);
+                println!("Status: completed");
+                println!("Outcome: {}", outcome_str);
+            }
+        }
+
+        Ok(())
     }
 }

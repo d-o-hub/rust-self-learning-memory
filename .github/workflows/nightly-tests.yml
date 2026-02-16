@@ -42,8 +42,8 @@ jobs:
       - name: Maximize build space
         uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
         with:
-          root-reserve-mb: 512
-          swap-size-mb: 2048
+          root-reserve-mb: 1024
+          swap-size-mb: 4096
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
@@ -90,6 +90,12 @@ jobs:
           df -h
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           echo "Available space: ${AVAILABLE}G"
+          if [ "$AVAILABLE" -lt 5 ]; then
+            echo "❌ ERROR: Insufficient disk space (${AVAILABLE}G < 5G required)"
+            df -h
+            exit 1
+          fi
+          echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run regular tests
         run: |
@@ -98,11 +104,32 @@ jobs:
           cargo nextest run --profile ci --tests --all --test-threads=4 \
             -E 'not binary(compliance)'
 
+      - name: Cleanup after regular tests
+        run: |
+          echo "=== Cleaning up after regular tests ==="
+          df -h
+          sudo rm -rf target/debug/deps/*.o
+          sudo rm -rf target/debug/deps/*.a
+          sudo rm -rf target/debug/.fingerprint
+          sudo rm -rf target/release/deps/*.o 2>/dev/null || true
+          sudo rm -rf target/release/deps/*.a 2>/dev/null || true
+          sudo rm -rf ~/.cargo/registry/src/*/cargo-*
+          sudo apt-get clean || true
+          sudo apt-get autoclean || true
+          docker system prune -af --volumes || true
+          df -h
+
       - name: Check disk space before slow tests
         run: |
           df -h
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           echo "Available space: ${AVAILABLE}G"
+          if [ "$AVAILABLE" -lt 5 ]; then
+            echo "❌ ERROR: Insufficient disk space (${AVAILABLE}G < 5G required)"
+            df -h
+            exit 1
+          fi
+          echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run slow integration tests (ignored tests)
         run: |
@@ -111,6 +138,18 @@ jobs:
           cargo test --all -- --ignored --test-threads=2
         env:
           RUST_TEST_THREADS: 2
+
+      - name: Cleanup artifacts after slow tests
+        if: always()
+        run: |
+          echo "=== Final cleanup after slow tests ==="
+          df -h
+          cargo clean || true
+          sudo rm -rf target/debug
+          sudo rm -rf target/release
+          sudo apt-get clean || true
+          sudo apt-get autoclean || true
+          df -h
 
       - name: Upload test results
         if: always()
@@ -135,8 +174,8 @@ jobs:
         if: runner.os == 'Linux'
         uses: easimon/maximize-build-space@fc881a613ad2a34aca9c9624518214ebc21dfc0c
         with:
-          root-reserve-mb: 512
-          swap-size-mb: 2048
+          root-reserve-mb: 1024
+          swap-size-mb: 4096
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
@@ -167,6 +206,12 @@ jobs:
           df -h
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//' || echo "10")
           echo "Available space: ${AVAILABLE}G"
+          if [ "$AVAILABLE" -lt 5 ]; then
+            echo "❌ ERROR: Insufficient disk space (${AVAILABLE}G < 5G required)"
+            df -h
+            exit 1
+          fi
+          echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run slow integration tests
         run: cargo test --all -- --ignored --test-threads=1

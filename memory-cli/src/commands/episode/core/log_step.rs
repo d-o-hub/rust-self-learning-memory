@@ -7,9 +7,7 @@ use crate::errors::{helpers, EnhancedError};
 use crate::output::Output;
 use crate::output::OutputFormat;
 use memory_core::SelfLearningMemory;
-#[cfg(feature = "turso")]
 use memory_core::{ExecutionResult, ExecutionStep};
-#[cfg(feature = "turso")]
 use uuid::Uuid;
 
 #[allow(clippy::too_many_arguments)]
@@ -18,12 +16,12 @@ pub async fn log_step(
     tool: String,
     action: String,
     success: bool,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] latency_ms: Option<u64>,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] tokens: Option<u32>,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] observation: Option<String>,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
-    #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
+    latency_ms: Option<u64>,
+    tokens: Option<u32>,
+    observation: Option<String>,
+    memory: &SelfLearningMemory,
+    _config: &Config,
+    format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
     if dry_run {
@@ -34,57 +32,47 @@ pub async fn log_step(
         return Ok(());
     }
 
-    // Check if storage features are enabled
-    #[cfg(not(feature = "turso"))]
-    return Err(anyhow::anyhow!(
-        "Turso storage feature not enabled. Use --features turso to enable."
-    ));
+    // Parse episode ID
+    let episode_uuid = Uuid::parse_str(&episode_id)
+        .map_err(|_| anyhow::anyhow!("Invalid episode ID format: {}", episode_id))?;
+
+    // Get the current episode to determine step number
+    let episode = memory
+        .get_episode(episode_uuid)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to retrieve episode {}: {}", episode_id, e))?;
+
+    let step_number = episode.steps.len() + 1;
+
+    // Create execution step
+    let mut step = ExecutionStep::new(step_number, tool.clone(), action.clone());
+
+    // Set result based on success flag
+    step.result = Some(if success {
+        ExecutionResult::Success {
+            output: observation.unwrap_or_else(|| "Step completed successfully".to_string()),
+        }
+    } else {
+        ExecutionResult::Error {
+            message: observation.unwrap_or_else(|| "Step failed".to_string()),
+        }
+    });
+
+    // Set optional metadata
+    if let Some(latency) = latency_ms {
+        step.metadata
+            .insert("latency_ms".to_string(), latency.to_string());
+    }
+    if let Some(token_count) = tokens {
+        step.metadata
+            .insert("tokens".to_string(), token_count.to_string());
+    }
+
+    // Log the step
+    memory.log_step(episode_uuid, step).await;
 
     #[cfg(feature = "turso")]
     {
-        // Parse episode ID
-        let episode_uuid = Uuid::parse_str(&episode_id).context_with_help(
-            &format!("Invalid episode ID format: {}", episode_id),
-            helpers::INVALID_INPUT_HELP,
-        )?;
-
-        // Use the pre-initialized memory system
-        // Get the current episode to determine step number
-        let episode = memory.get_episode(episode_uuid).await.context_with_help(
-            &format!("Failed to retrieve episode: {}", episode_id),
-            helpers::EPISODE_NOT_FOUND_HELP,
-        )?;
-
-        let step_number = episode.steps.len() + 1;
-
-        // Create execution step
-        let mut step = ExecutionStep::new(step_number, tool.clone(), action.clone());
-
-        // Set result based on success flag
-        step.result = Some(if success {
-            ExecutionResult::Success {
-                output: observation.unwrap_or_else(|| "Step completed successfully".to_string()),
-            }
-        } else {
-            ExecutionResult::Error {
-                message: observation.unwrap_or_else(|| "Step failed".to_string()),
-            }
-        });
-
-        // Set optional metadata
-        if let Some(latency) = latency_ms {
-            step.metadata
-                .insert("latency_ms".to_string(), latency.to_string());
-        }
-        if let Some(token_count) = tokens {
-            step.metadata
-                .insert("tokens".to_string(), token_count.to_string());
-        }
-
-        // Log the step
-        memory.log_step(episode_uuid, step).await;
-
-        // Return success
         #[derive(Debug, serde::Serialize)]
         struct LogStepResult {
             episode_id: String,
@@ -126,5 +114,43 @@ pub async fn log_step(
         };
 
         format.print_output(&result)
+    }
+
+    #[cfg(not(feature = "turso"))]
+    {
+        match format {
+            OutputFormat::Json => {
+                let result = serde_json::json!({
+                    "episode_id": episode_id,
+                    "step_number": step_number,
+                    "tool": tool,
+                    "action": action,
+                    "success": success,
+                    "status": "logged",
+                });
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+            OutputFormat::Yaml => {
+                let result = serde_json::json!({
+                    "episode_id": episode_id,
+                    "step_number": step_number,
+                    "tool": tool,
+                    "action": action,
+                    "success": success,
+                    "status": "logged",
+                });
+                println!("{}", serde_yaml::to_string(&result)?);
+            }
+            OutputFormat::Human => {
+                println!("Step logged");
+                println!("Episode: {}", episode_id);
+                println!("Step: {}", step_number);
+                println!("Tool: {}", tool);
+                println!("Action: {}", action);
+                println!("Success: {}", if success { "Yes" } else { "No" });
+            }
+        }
+
+        Ok(())
     }
 }

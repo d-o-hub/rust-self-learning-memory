@@ -208,6 +208,10 @@ impl CommandOutput {
 }
 
 /// Helper to create a memory instance with storage for integration tests
+///
+/// IMPORTANT: Uses zero quality threshold to avoid rejecting test episodes
+/// that are intentionally simple or minimal. This ensures test isolation and
+/// predictable behavior across all integration tests.
 pub async fn setup_test_memory() -> Result<(Arc<SelfLearningMemory>, TempDir)> {
     let dir = TempDir::new()?;
     let turso_path = dir.path().join("test_turso.redb");
@@ -220,10 +224,10 @@ pub async fn setup_test_memory() -> Result<(Arc<SelfLearningMemory>, TempDir)> {
         .await
         .expect("Failed to create cache storage");
 
-    // Lower quality threshold in tests to avoid PREMem rejections for small
-    // example episodes that lack reflections/patterns.
-    let mut cfg = Default::default();
-    cfg.quality_threshold = 0.3;
+    // Use zero quality threshold for testing to avoid rejecting simple test episodes
+    // (episodes with no steps, minimal content, etc.) that are used to test edge cases
+    let mut cfg: memory_core::MemoryConfig = Default::default();
+    cfg.quality_threshold = 0.0;
 
     let memory = Arc::new(SelfLearningMemory::with_storage(
         cfg,

@@ -214,7 +214,7 @@ impl AsyncCompressor {
             .map_err(|_e| TransportCompressionError::InvalidHeader)?;
 
         // Parse header
-        let (original_size, compressed_size, _) = Self::parse_stream_header(&header_buf)?;
+        let (original_size, compressed_size, algorithm) = Self::parse_stream_header(&header_buf)?;
 
         // Read compressed data
         let mut compressed_data = Vec::with_capacity(compressed_size);
@@ -238,7 +238,7 @@ impl AsyncCompressor {
             compressed_size,
             compression_ratio: compressed_size as f64 / original_size as f64,
             data: compressed_data,
-            algorithm: CompressionAlgorithm::Zstd, // Detected from header
+            algorithm,
         };
 
         let decompressed = self.decompress(&payload).await?;

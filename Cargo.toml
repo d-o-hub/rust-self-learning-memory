@@ -64,7 +64,7 @@ url = "2.5.8"
 sha2 = "0.10"
 rand = "0.8"
 rand_chacha = "0.3"
-clap = { version = "4.5.56", features = ["derive"] }
+clap = { version = "4.5.59", features = ["derive"] }
 statrs = "0.16"
 futures = "0.3.31"
 sysinfo = "0.38"

@@ -530,7 +530,7 @@ fn analyze_results(state: &SoakTestState) -> anyhow::Result<()> {
 
 /// Main test entry point
 #[tokio::test]
-#[ignore]
+#[ignore = "Intentionally slow soak test; run manually with --ignored or nightly soak workflow"]
 // REASON: Long-running stability test (60s default, 24h with 'full-soak' feature)
 // Run manually: cargo test --test stability_test test_24_hour_stability -- --ignored
 // Category: Intentionally slow (soak test for production validation)

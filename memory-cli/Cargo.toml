@@ -32,7 +32,7 @@ uuid.workspace = true
 chrono.workspace = true
 
 # Configuration file support
-toml = "0.9"
+toml = "1.0"
 
 # Optional features for output formatting
 serde_yaml = "0.9"

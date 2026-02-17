@@ -8,16 +8,13 @@ use tracing::{debug, instrument};
 use super::extractors::{
     extract_context_pattern, extract_decision_points, extract_error_recovery, extract_tool_sequence,
 };
-use super::{MAX_SEQUENCE_LENGTH, MIN_PATTERN_SUCCESS_RATE, MIN_SEQUENCE_LENGTH};
+use super::{MAX_SEQUENCE_LENGTH, MIN_PATTERN_SUCCESS_RATE};
 
 /// Pattern extractor
 #[derive(Clone)]
 pub struct PatternExtractor {
     /// Minimum success rate threshold
     pub(crate) success_threshold: f32,
-    /// Minimum sequence length
-    #[allow(dead_code)]
-    pub(crate) min_sequence_len: usize,
     /// Maximum sequence length
     pub(crate) max_sequence_len: usize,
 }
@@ -34,21 +31,15 @@ impl PatternExtractor {
     pub fn new() -> Self {
         Self {
             success_threshold: MIN_PATTERN_SUCCESS_RATE,
-            min_sequence_len: MIN_SEQUENCE_LENGTH,
             max_sequence_len: MAX_SEQUENCE_LENGTH,
         }
     }
 
     /// Create an extractor with custom thresholds
     #[must_use]
-    pub fn with_thresholds(
-        success_threshold: f32,
-        min_sequence_len: usize,
-        max_sequence_len: usize,
-    ) -> Self {
+    pub fn with_thresholds(success_threshold: f32, max_sequence_len: usize) -> Self {
         Self {
             success_threshold,
-            min_sequence_len,
             max_sequence_len,
         }
     }

@@ -114,3 +114,14 @@ fn test_monitor_command() {
     harness.execute(["monitor", "status"]).assert().success();
     harness.execute(["monitor", "metrics"]).assert().success();
 }
+
+#[test]
+fn test_episode_log_step_alias_step_help() {
+    let harness = CliHarness::new();
+
+    harness
+        .execute(["episode", "step", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Log an execution step"));
+}

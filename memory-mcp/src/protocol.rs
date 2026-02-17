@@ -17,8 +17,10 @@ use tracing::{error, info};
 pub const SUPPORTED_VERSIONS: &[&str] = &["2025-11-25", "2024-11-05"];
 
 /// OAuth 2.1 Configuration
+///
+/// Reserved for future OAuth 2.1 authorization support.
+/// Currently not implemented but struct is defined for when needed.
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct OAuthConfig {
     /// Whether authorization is enabled
     pub enabled: bool,

@@ -93,15 +93,11 @@ impl SelfLearningMemory {
             self.flush_steps(episode_id).await?;
         }
 
-        // Get the episode Arc and clone it to work with Episode directly
-        let episode_arc = {
-            let episodes = self.episodes_fallback.read().await;
-            episodes
-                .get(&episode_id)
-                .cloned()
-                .ok_or(Error::NotFound(episode_id))?
-        };
-        let mut episode = (*episode_arc).clone();
+        // Load the episode (lazy-loads from storage if needed).
+        //
+        // This is critical for CLI / multi-process use where the in-memory fallback
+        // cache is empty in a fresh process.
+        let mut episode = self.get_episode(episode_id).await?;
 
         // Mark episode as complete
         episode.complete(outcome.clone());

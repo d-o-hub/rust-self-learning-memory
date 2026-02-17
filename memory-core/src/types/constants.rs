@@ -34,6 +34,8 @@ pub const MAX_EPISODE_SIZE: usize = 10_000_000;
 ///
 /// Limits the size of individual patterns during serialization to prevent
 /// memory exhaustion during bincode operations.
+///
+/// Reserved for future use in serialization validation.
 #[allow(dead_code)]
 pub const MAX_PATTERN_SIZE: usize = 1_000_000;
 
@@ -41,5 +43,7 @@ pub const MAX_PATTERN_SIZE: usize = 1_000_000;
 ///
 /// Limits the size of individual heuristics during serialization to prevent
 /// memory exhaustion during bincode operations.
+///
+/// Reserved for future use in serialization validation.
 #[allow(dead_code)]
 pub const MAX_HEURISTIC_SIZE: usize = 1_000_000;

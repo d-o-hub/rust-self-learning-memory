@@ -86,6 +86,7 @@ pub struct SelfLearningMemory {
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
+    /// Reserved for future concurrency control implementation
     #[allow(dead_code)]
     pub(super) cache_semaphore: Arc<Semaphore>,
 
@@ -105,16 +106,15 @@ pub struct SelfLearningMemory {
     pub(super) hierarchical_retriever: Option<crate::spatiotemporal::HierarchicalRetriever>,
     /// Diversity maximizer using MMR for result set optimization
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
-    /// Context-aware embeddings for task-specific similarity (future)
+    /// Context-aware embeddings for task-specific similarity (future - Phase 3)
+    #[cfg(feature = "spatiotemporal-full")]
     #[allow(dead_code)]
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
 
     // Semantic Search Integration
     /// Semantic service for embedding generation and search
-    #[allow(dead_code)]
     pub(super) semantic_service: Option<Arc<SemanticService>>,
     /// Configuration for semantic search
-    #[allow(dead_code)]
     pub(super) semantic_config: EmbeddingConfig,
 
     // v0.1.12: Query Caching
@@ -123,6 +123,7 @@ pub struct SelfLearningMemory {
 
     // Phase 3 (DBSCAN) - Anomaly Detection
     /// DBSCAN anomaly detector for identifying unusual episodes
+    /// Initialized but not yet used in production code path
     #[allow(dead_code)]
     pub(super) dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
 

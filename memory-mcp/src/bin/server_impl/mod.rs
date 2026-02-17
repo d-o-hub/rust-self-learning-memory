@@ -11,10 +11,12 @@
 //! - `embedding`: Embedding configuration and handlers
 
 mod core;
+#[cfg(feature = "embeddings")]
 mod embedding;
 mod handlers;
 mod jsonrpc;
 mod mcp;
+#[cfg(feature = "oauth")]
 mod oauth;
 mod storage;
 mod tools;
@@ -38,10 +40,12 @@ pub use types::{
 // Re-export all types and functions for convenient access (may be used by external consumers)
 #[allow(unused)]
 pub use core::*;
+#[cfg(feature = "embeddings")]
 #[allow(unused)]
 pub use embedding::*;
 #[allow(unused)]
 pub use jsonrpc::*;
+#[cfg(feature = "oauth")]
 #[allow(unused)]
 pub use oauth::*;
 #[allow(unused)]

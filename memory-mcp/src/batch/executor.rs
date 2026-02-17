@@ -9,7 +9,8 @@ use tokio::sync::RwLock;
 
 /// Batch executor for managing parallel execution
 pub struct BatchExecutor {
-    /// Completed operation results (reserved for future use)
+    /// Completed operation results cache
+    /// Reserved for future result aggregation and query capabilities
     #[allow(dead_code)]
     results: Arc<RwLock<HashMap<String, OperationResult>>>,
 }

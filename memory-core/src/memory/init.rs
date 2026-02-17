@@ -21,7 +21,7 @@ use tokio::sync::{RwLock, Semaphore};
 #[must_use]
 pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     let pattern_extractor =
-        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
+        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2);
 
     // Initialize quality assessor with configured threshold
     let quality_config = QualityConfig::new(config.quality_threshold);
@@ -115,6 +115,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         spatiotemporal_index,
         hierarchical_retriever,
         diversity_maximizer,
+        #[cfg(feature = "spatiotemporal-full")]
         context_aware_embeddings: None,
         semantic_service,
         semantic_config,
@@ -131,7 +132,7 @@ pub fn with_storage(
     cache: Arc<dyn crate::StorageBackend>,
 ) -> super::SelfLearningMemory {
     let pattern_extractor =
-        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
+        PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2);
 
     // Initialize quality assessor with configured threshold
     let quality_config = QualityConfig::new(config.quality_threshold);
@@ -239,6 +240,7 @@ pub fn with_storage(
         spatiotemporal_index,
         hierarchical_retriever,
         diversity_maximizer,
+        #[cfg(feature = "spatiotemporal-full")]
         context_aware_embeddings: None,
         semantic_service,
         semantic_config,

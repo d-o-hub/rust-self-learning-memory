@@ -19,6 +19,7 @@ impl Default for StorageConfig {
             max_episodes_cache: defaults::suggest_cache_size(),
             cache_ttl_seconds: defaults::suggest_cache_ttl(),
             pool_size: defaults::suggest_pool_size(),
+            quality_threshold: 0.7,
         }
     }
 }

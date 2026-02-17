@@ -218,7 +218,7 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         },
         enable_embeddings: config.embeddings.enabled, // Use config value
         pattern_extraction_threshold: 0.1,
-        quality_threshold: 0.7, // PREMem quality threshold
+        quality_threshold: config.storage.quality_threshold, // PREMem quality threshold
         batch_config: Some(memory_core::BatchConfig::default()),
         concurrency: memory_core::ConcurrencyConfig::default(),
         // Phase 2 (GENESIS) - Capacity management
@@ -291,11 +291,12 @@ async fn determine_storage_combination(
             }
             #[cfg(not(feature = "turso"))]
             {
-                (
-                    StorageType::Redb,
-                    StorageType::Memory,
-                    SelfLearningMemory::with_config(memory_config_clone),
-                )
+                // In `redb`-only builds, use redb as the durable backend as well.
+                // This preserves data across CLI invocations (separate processes) and keeps
+                // JSON output workflows stable for scripting/tests.
+                let memory =
+                    SelfLearningMemory::with_storage(memory_config_clone, redb.clone(), redb);
+                (StorageType::Redb, StorageType::Redb, memory)
             }
         }
         (None, None) => {

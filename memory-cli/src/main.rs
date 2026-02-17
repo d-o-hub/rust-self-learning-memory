@@ -11,6 +11,7 @@
 
 use clap::{CommandFactory, Parser, Subcommand};
 use std::path::PathBuf;
+use tracing_subscriber::EnvFilter;
 
 mod commands;
 mod config;
@@ -137,15 +138,14 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     // Initialize tracing
-    if cli.verbose {
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::DEBUG)
-            .init();
-    } else {
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::INFO)
-            .init();
-    }
+    let default_level = if cli.verbose { "debug" } else { "info" };
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default_level));
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        // Keep stdout clean for machine-readable output (`--format json|yaml`).
+        .with_writer(std::io::stderr)
+        .init();
 
     // Load configuration with validation
     let config = match &cli.config {

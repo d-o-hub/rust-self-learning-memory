@@ -5,9 +5,13 @@
 //! - Bearer token validation (simplified JWT parsing)
 //! - Scope checking
 //! - WWW-Authenticate header generation
+//!
+//! All functions in this module are gated behind the `oauth` feature flag
+//! and reserved for future OAuth 2.1 implementation.
+
+#![cfg(feature = "oauth")]
 
 use super::types::AuthorizationResult;
-use super::OAuthConfig;
 use tracing::debug;
 
 /// Load OAuth configuration from environment variables
@@ -18,7 +22,7 @@ use tracing::debug;
 /// - `MCP_OAUTH_ISSUER`: Expected issuer claim
 /// - `MCP_OAUTH_SCOPES`: Comma-separated list of supported scopes
 /// - `MCP_OAUTH_JWKS_URI`: JWKS URI for token validation
-pub fn load_oauth_config() -> OAuthConfig {
+pub fn load_oauth_config() -> crate::protocol::OAuthConfig {
     let enabled = std::env::var("MCP_OAUTH_ENABLED")
         .unwrap_or_else(|_| "false".to_string())
         .to_lowercase();

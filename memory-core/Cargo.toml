@@ -24,6 +24,8 @@ embeddings-full = ["openai", "mistral"]
 local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
 # Enable hybrid search with FTS5
 hybrid_search = []
+# Enable full spatiotemporal features (context-aware embeddings, advanced retrieval)
+spatiotemporal-full = []
 # Enable proptest Arbitrary implementations for property testing
 proptest-arbitrary = ["proptest"]
 

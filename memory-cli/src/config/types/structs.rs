@@ -36,6 +36,13 @@ pub struct StorageConfig {
     pub cache_ttl_seconds: u64,
     /// Database connection pool size
     pub pool_size: usize,
+    /// Minimum quality threshold for storing episodes (0.0 to 1.0)
+    #[serde(default = "default_quality_threshold")]
+    pub quality_threshold: f32,
+}
+
+fn default_quality_threshold() -> f32 {
+    0.7
 }
 
 /// CLI configuration for user interface preferences

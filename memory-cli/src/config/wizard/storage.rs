@@ -83,6 +83,7 @@ impl ConfigWizard {
             max_episodes_cache: max_episodes,
             cache_ttl_seconds: cache_ttl,
             pool_size,
+            quality_threshold: config.quality_threshold,
         })
     }
 

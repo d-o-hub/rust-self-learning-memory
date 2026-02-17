@@ -182,6 +182,7 @@ pub enum EpisodeCommands {
     },
 
     /// Log an execution step
+    #[command(alias = "step")]
     LogStep {
         /// Episode ID
         #[arg(value_name = "EPISODE_ID")]

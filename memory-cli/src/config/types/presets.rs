@@ -44,6 +44,7 @@ impl ConfigPreset {
                         },
                         cache_ttl_seconds: if info.is_development { 1800 } else { 3600 },
                         pool_size: 5, // Conservative for local development
+                        quality_threshold: 0.7,
                     },
                     cli: CliConfig {
                         default_format: if info.is_ci {
@@ -78,6 +79,7 @@ impl ConfigPreset {
                         max_episodes_cache: std::cmp::min(5000, defaults::suggest_cache_size()),
                         cache_ttl_seconds: defaults::suggest_cache_ttl(),
                         pool_size: defaults::suggest_pool_size(),
+                        quality_threshold: 0.7,
                     },
                     cli: CliConfig {
                         default_format: "json".to_string(), // Machine-readable for automation
@@ -97,6 +99,7 @@ impl ConfigPreset {
                     max_episodes_cache: 100, // Minimal for testing
                     cache_ttl_seconds: 300,  // 5 minutes
                     pool_size: 2,            // Minimal connections
+                    quality_threshold: 0.0,
                 },
                 cli: CliConfig {
                     default_format: "human".to_string(),

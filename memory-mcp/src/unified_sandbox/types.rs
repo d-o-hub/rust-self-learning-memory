@@ -59,6 +59,10 @@ pub enum BackendChoice {
 }
 
 /// Code heuristics for routing decisions
+///
+/// NOTE: Reserved for future intelligent routing implementation.
+/// This will analyze code characteristics to determine the optimal backend.
+/// Not currently used but kept for the planned hybrid routing enhancement.
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct CodeHeuristics {

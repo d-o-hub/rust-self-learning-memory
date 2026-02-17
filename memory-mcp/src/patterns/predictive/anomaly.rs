@@ -7,6 +7,7 @@ use super::dbscan::{AdaptiveDBSCAN, ClusterLabel, DBSCANConfig};
 use super::forecasting::types::PredictiveConfig;
 
 pub struct AnomalyDetector {
+    /// Configuration stored for potential future use (reconfiguration, serialization)
     #[allow(dead_code)]
     config: PredictiveConfig,
     dbscan: AdaptiveDBSCAN,

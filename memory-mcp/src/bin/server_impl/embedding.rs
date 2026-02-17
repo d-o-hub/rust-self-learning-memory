@@ -2,6 +2,11 @@
 //!
 //! This module provides embedding configuration support via environment variables
 //! and a JSON-RPC handler for the embedding/config tool.
+//!
+//! All functions in this module are gated behind the `embeddings` feature flag
+//! and reserved for future embedding configuration implementation.
+
+#![cfg(feature = "embeddings")]
 
 use super::types::EmbeddingEnvConfig;
 use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
@@ -17,7 +22,6 @@ use tracing::info;
 /// - `EMBEDDING_MODEL`: Override default model for the provider
 /// - `EMBEDDING_SIMILARITY_THRESHOLD`: Similarity threshold for matching (default: 0.7)
 /// - `EMBEDDING_BATCH_SIZE`: Batch size for embedding operations (default: 32)
-#[allow(dead_code)]
 pub fn load_embedding_config() -> EmbeddingEnvConfig {
     let provider = std::env::var("EMBEDDING_PROVIDER")
         .unwrap_or_else(|_| "local".to_string())
@@ -55,7 +59,6 @@ pub fn load_embedding_config() -> EmbeddingEnvConfig {
 ///
 /// This handler returns the current embedding configuration from environment variables.
 /// The configuration includes provider, model, dimensions, and other settings.
-#[allow(dead_code)]
 pub async fn handle_embedding_config(
     request: JsonRpcRequest,
     embedding_config: &EmbeddingEnvConfig,

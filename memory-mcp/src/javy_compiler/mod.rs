@@ -40,8 +40,6 @@ use cache::ModuleCache;
 #[derive(Debug)]
 pub struct JavyCompiler {
     config: JavyConfig,
-    #[allow(dead_code)]
-    wasmtime_config: WasmtimeConfig,
     wasmtime_sandbox: Arc<WasmtimeSandbox>,
     metrics: Arc<RwLock<JavyMetrics>>,
     module_cache: Arc<Mutex<ModuleCache>>,
@@ -75,7 +73,6 @@ impl JavyCompiler {
 
         Ok(Self {
             config,
-            wasmtime_config,
             wasmtime_sandbox,
             metrics: Arc::new(RwLock::new(JavyMetrics::default())),
             module_cache,

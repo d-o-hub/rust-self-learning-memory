@@ -1,6 +1,6 @@
 # ADR-031: Episode Step Logging CLI Alias
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-02-17
 **Deciders**: Project maintainers
 
@@ -54,10 +54,17 @@ This mismatch breaks CI and creates an unstable CLI contract for users and tests
 - Update `tests/e2e/cli_workflows.rs` to use `episode log-step`.
 - Add a unit parsing test ensuring `episode step` maps to the same command as `episode log-step`.
 
+## Implementation Status
+
+Implemented on 2026-02-17:
+
+- `memory-cli/src/commands/episode/core/types.rs` (`episode step` alias for `episode log-step`)
+- `memory-cli/tests/command_tests.rs` (help smoke test for alias)
+- `tests/e2e/cli_workflows.rs` (canonical `episode log-step` usage)
+
 ## References
 
 - `Nightly Full Tests` failure: https://github.com/d-o-hub/rust-self-learning-memory/actions/runs/22085572056
 - E2E CLI workflow tests: `tests/e2e/cli_workflows.rs`
 - Episode CLI commands: `memory-cli/src/commands/episode/core/types.rs`
 - Related stability guidance: `plans/adr/ADR-030-Test-Optimization-and-CI-Stability-Patterns.md`
-

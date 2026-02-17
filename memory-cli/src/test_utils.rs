@@ -53,6 +53,7 @@ redb_path = "{}"
 max_episodes_cache = 100
 cache_ttl_seconds = 3600
 pool_size = 5
+quality_threshold = 0.0
 
 [cli]
 default_format = "json"

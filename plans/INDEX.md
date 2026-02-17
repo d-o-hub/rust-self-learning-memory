@@ -44,7 +44,7 @@
 | ADR-028 | Feature Enhancement Roadmap | Active (v0.1.16 planning complete) |
 | ADR-029 | GitHub Actions Modernization | ✅ Complete |
 | ADR-030 | Test Optimization and CI Stability | ✅ Complete |
-| ADR-031 | CLI Step Logging Alias | Proposed |
+| ADR-031 | CLI Step Logging Alias | ✅ Complete |
 
 **Location**: `plans/adr/`
 

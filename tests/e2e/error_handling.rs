@@ -38,8 +38,10 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .expect("Failed to create cache storage");
 
     // Use zero quality threshold for testing to avoid rejecting simple test episodes
-    let mut config: memory_core::MemoryConfig = Default::default();
-    config.quality_threshold = 0.0;
+    let config: memory_core::MemoryConfig = memory_core::MemoryConfig {
+        quality_threshold: 0.0,
+        ..Default::default()
+    };
 
     let memory = Arc::new(SelfLearningMemory::with_storage(
         config,

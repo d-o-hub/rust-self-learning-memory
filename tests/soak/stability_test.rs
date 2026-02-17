@@ -530,7 +530,10 @@ fn analyze_results(state: &SoakTestState) -> anyhow::Result<()> {
 
 /// Main test entry point
 #[tokio::test]
-#[ignore] // Ignore by default as it's a long-running test
+#[ignore]
+// REASON: Long-running stability test (60s default, 24h with 'full-soak' feature)
+// Run manually: cargo test --test stability_test test_24_hour_stability -- --ignored
+// Category: Intentionally slow (soak test for production validation)
 async fn test_24_hour_stability() {
     println!("=== 24-Hour Stability Soak Test ===");
     println!("Test duration: {:?}", TEST_DURATION);

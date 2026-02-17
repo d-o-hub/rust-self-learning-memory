@@ -82,7 +82,7 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
 memory-storage-redb = { path = "../memory-storage-redb" }
-wat = "1.220"  # WAT parsing for tests
+wat = "1.245"  # WAT parsing for tests
 
 [[example]]
 name = "memory_mcp_integration"

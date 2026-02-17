@@ -348,3 +348,106 @@ impl AsyncCompressor {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    fn test_config_no_compression() -> TransportCompressionConfig {
+        TransportCompressionConfig {
+            compression_threshold: 1024,
+            auto_algorithm_selection: false,
+            preferred_algorithm: CompressionAlgorithm::None,
+            ..Default::default()
+        }
+    }
+
+    #[tokio::test]
+    async fn compress_decompress_roundtrip_without_compression() {
+        let compressor = AsyncCompressor::new(test_config_no_compression());
+        let data = b"hello-world";
+
+        let payload = compressor.compress(data).await.expect("compress succeeds");
+        assert_eq!(payload.algorithm, CompressionAlgorithm::None);
+
+        let decompressed = compressor
+            .decompress(&payload)
+            .await
+            .expect("decompress succeeds");
+
+        assert_eq!(decompressed, data);
+    }
+
+    #[test]
+    fn create_and_parse_stream_header() {
+        let payload = CompressedPayload {
+            original_size: 100,
+            compressed_size: 40,
+            compression_ratio: 0.4,
+            data: vec![0; 40],
+            algorithm: CompressionAlgorithm::Zstd,
+        };
+
+        let header = AsyncCompressor::create_stream_header(&payload);
+        let (original, compressed, algorithm) =
+            AsyncCompressor::parse_stream_header(&header).expect("header parses");
+
+        assert_eq!(original, payload.original_size);
+        assert_eq!(compressed, payload.compressed_size);
+        assert_eq!(algorithm, CompressionAlgorithm::Zstd);
+    }
+
+    #[tokio::test]
+    async fn stream_roundtrip_without_compression() {
+        let compressor = AsyncCompressor::new(test_config_no_compression());
+        let input = b"streamed-payload";
+
+        let (mut input_reader, mut input_writer) = tokio::io::duplex(2048);
+        input_writer.write_all(input).await.expect("write input");
+        input_writer.shutdown().await.expect("close input");
+
+        let (mut compressed_reader, mut compressed_writer) = tokio::io::duplex(4096);
+        let result = compressor
+            .compress_stream(&mut input_reader, &mut compressed_writer)
+            .await
+            .expect("compress stream");
+        compressed_writer
+            .shutdown()
+            .await
+            .expect("close compressed");
+
+        let mut compressed_bytes = Vec::new();
+        compressed_reader
+            .read_to_end(&mut compressed_bytes)
+            .await
+            .expect("read compressed");
+
+        let (mut compressed_reader, mut compressed_writer) = tokio::io::duplex(4096);
+        compressed_writer
+            .write_all(&compressed_bytes)
+            .await
+            .expect("write compressed");
+        compressed_writer
+            .shutdown()
+            .await
+            .expect("close compressed input");
+
+        let (mut output_reader, mut output_writer) = tokio::io::duplex(4096);
+        let decompressed_size = compressor
+            .decompress_stream(&mut compressed_reader, &mut output_writer)
+            .await
+            .expect("decompress stream");
+        output_writer.shutdown().await.expect("close output");
+
+        let mut output = Vec::new();
+        output_reader
+            .read_to_end(&mut output)
+            .await
+            .expect("read output");
+
+        assert_eq!(decompressed_size, input.len());
+        assert_eq!(output, input);
+        assert_eq!(result.original_size, input.len());
+    }
+}

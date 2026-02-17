@@ -147,19 +147,11 @@ fn run_cli(
             let start_char = lines[start_idx].trim().chars().next().unwrap();
             let end_char = if start_char == '{' { '}' } else { ']' };
 
-            for i in start_idx..lines.len() {
-                let line = lines[i];
+            for line in lines.iter().skip(start_idx) {
                 combined.push_str(line);
                 combined.push('\n');
 
-                // Count braces to find the end
-                for c in line.chars() {
-                    if c == start_char {
-                        brace_count += 1;
-                    } else if c == end_char {
-                        brace_count -= 1;
-                    }
-                }
+                update_brace_count(line, start_char, end_char, &mut brace_count);
 
                 if brace_count == 0 {
                     break;
@@ -188,6 +180,16 @@ fn strip_ansi_codes(s: &str) -> String {
     // This regex matches ANSI escape sequences like \x1b[...m
     let re = regex::Regex::new(r"\x1b\[[0-9;]*[mGKH]").unwrap();
     re.replace_all(s, "").to_string()
+}
+
+fn update_brace_count(line: &str, start_char: char, end_char: char, brace_count: &mut i32) {
+    for c in line.chars() {
+        if c == start_char {
+            *brace_count += 1;
+        } else if c == end_char {
+            *brace_count -= 1;
+        }
+    }
 }
 
 // ============================================================================

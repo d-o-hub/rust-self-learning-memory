@@ -18,12 +18,10 @@
 
 ### Phase 1 Completion - CI/CD Remediation ✅
 
+**Archived Documents** (see `archive/2026-02-completed/`):
 - `GOAP_PHASE1_COMPLETION_SUMMARY.md` - Phase 1 completion report (CI fixes, 31 tests)
 - `CLI_TEST_FIX_SUMMARY_2026-02-16.md` - CLI test fix report (2 passing, 4 code-fixed, 2 #[ignore])
 - `GOAP_NIGHTLY_CI_FIXES_2026-02-16.md` - Nightly CI optimization documentation
-
-### v0.1.16 Planning - Code Quality + Pattern Algorithms 🔄
-
 - `V0.1.16_ROADMAP_SUMMARY.md` - Complete v0.1.16 roadmap (4 phases, 44-70 hours)
 - `V0.1.16_SPRINT_CHECKLIST.md` - Sprint task checklist with success criteria
 - `V0.1.16_PRIORITIZATION_MATRIX.md` - Task prioritization by impact vs. effort
@@ -65,10 +63,10 @@
 - **8 Documents Created**: Complete planning package for v0.1.16 sprint
 
 ### Key Metrics
-- **CI Workflows**: Push passing; scheduled workflows failing (see `GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md`)
+- **CI Workflows**: Push passing; scheduled workflows failing (see `archive/2026-02-completed/GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md`)
 - **Test Coverage**: 92.5% maintained
 - **Clippy Warnings**: 0 (zero-tolerance policy)
-- **Nightly CI**: Failing due to CLI contract mismatch (see `GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md`)
+- **Nightly CI**: Failing due to CLI contract mismatch (see `archive/2026-02-completed/GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md`)
 
 ## Architecture
 
@@ -121,12 +119,12 @@ Historical documents are in `archive/` subdirectories.
 - `.github/workflows/` - CI/CD workflows
 - `.github/PULL_REQUEST_TEMPLATE.md` - PR template
 - `.github/ISSUE_TEMPLATE/` - Bug report and feature request templates
-- `GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md` - Scheduled workflow regressions and remediation plan
+- `archive/2026-02-completed/GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md` - Scheduled workflow regressions and remediation plan
 
 ## Status Reports
 
 - `STATUS/IMPLEMENTATION_STATUS.md` - Current implementation status
-- `GOAP_GITHUB_ACTIONS_2026-02-14.md` - GitHub Actions modernization status
+- `archive/2026-02-completed/GOAP_GITHUB_ACTIONS_2026-02-14.md` - GitHub Actions modernization status
 
 ---
 

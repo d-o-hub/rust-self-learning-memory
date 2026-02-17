@@ -54,7 +54,7 @@ chrono = { workspace = true }
 rand = { workspace = true }
 
 # Advanced pattern analysis dependencies
-deep_causality = "0.13.3"
+deep_causality = "0.13.4"
 streaming_algorithms = "0.3.3"
 rayon = "1.8"
 base64 = "0.22.1"

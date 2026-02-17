@@ -11,11 +11,12 @@
 //! - `embedding`: Embedding configuration and handlers
 
 mod core;
+#[cfg(feature = "embeddings")]
 mod embedding;
 mod handlers;
 mod jsonrpc;
 mod mcp;
-mod oauth;
+mod oauth; // Always available (load_oauth_config is unconditionally compiled)
 mod storage;
 mod tools;
 mod types;
@@ -38,12 +39,20 @@ pub use types::{
 // Re-export all types and functions for convenient access (may be used by external consumers)
 #[allow(unused)]
 pub use core::*;
+#[cfg(feature = "embeddings")]
 #[allow(unused)]
 pub use embedding::*;
 #[allow(unused)]
 pub use jsonrpc::*;
+// Always export load_oauth_config (it's available without the oauth feature)
 #[allow(unused)]
-pub use oauth::*;
+pub use oauth::load_oauth_config;
+// Other oauth functions are gated behind the feature
+#[cfg(feature = "oauth")]
+#[allow(unused)]
+pub use oauth::{
+    check_scopes, create_www_authenticate_header, extract_bearer_token, validate_bearer_token,
+};
 #[allow(unused)]
 pub use storage::*;
 #[allow(unused)]

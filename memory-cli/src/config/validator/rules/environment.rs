@@ -113,6 +113,7 @@ mod tests {
                 max_episodes_cache: 1000,
                 cache_ttl_seconds: 3600,
                 pool_size: 5,
+                quality_threshold: 0.7,
             },
             cli: crate::config::types::CliConfig {
                 default_format: "json".to_string(),
@@ -137,6 +138,7 @@ mod tests {
                 max_episodes_cache: 1000,
                 cache_ttl_seconds: 3600,
                 pool_size: 5,
+                quality_threshold: 0.7,
             },
             cli: crate::config::types::CliConfig {
                 default_format: "json".to_string(),

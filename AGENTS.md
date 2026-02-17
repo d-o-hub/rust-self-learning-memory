@@ -39,6 +39,7 @@ Memory management system with episodic memory, semantic embeddings, Turso/libSQL
 | CI Issues | `github-workflows` | `gh workflow list` | Low |
 | Tests | `test-runner` | `cargo test --all` | Medium |
 | Debug | `debug-troubleshoot` | `RUST_LOG=debug cargo test` | Medium |
+| Commit | `conventional-commits` | git commit | Low |
 
 **Before using task tool:**
 1. Is there a skill in `.agents/skills/`? → Use it
@@ -109,7 +110,8 @@ skill: build-rust, code-quality
 See `.env.example` for full list. Never commit secrets.
 
 ## Commit Format
-`[module] description` or `fix(module): description`
+
+Use `conventional-commits` skill for git commits.
 
 ## Performance Targets
 - Episode Creation: < 50ms

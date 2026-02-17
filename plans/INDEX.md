@@ -1,12 +1,14 @@
 # Plans Index
 
-**Last Updated**: 2026-02-16 (Phase 1 COMPLETE - v0.1.16 Planning Done)
+**Last Updated**: 2026-02-17 (GitHub Actions scheduled workflow regression triage)
 
-## Current Status (2026-02-16)
+## Current Status (2026-02-17)
 - **v0.1.15**: Released 2026-02-15
-- **Phase 1**: ✅ COMPLETE - CI/CD remediation, Nightly stable, 33/39 tests passing
+- **Phase 1**: ✅ COMPLETE - CI/CD remediation, 33/39 tests passing
 - **v0.1.16**: 🔄 Planning Complete - Ready to start Phase B (Code Quality)
-- **CI**: ALL PASSING (Nightly FIXED 2026-02-16)
+- **CI (push)**: Passing on `main` as of 2026-02-17
+- **Nightly (schedule)**: Failing (example run `22085572056`, 2026-02-17)
+- **Security (schedule)**: Failing due to gitleaks findings (example run `22027889183`, 2026-02-15)
 - **PR #296**: ✅ Merged (31 tests fixed)
 - **PR #297**: 🔄 Open (CLI workflow improvements)
 - **GitHub Actions Phase 1-4**: COMPLETE
@@ -42,6 +44,7 @@
 | ADR-028 | Feature Enhancement Roadmap | Active (v0.1.16 planning complete) |
 | ADR-029 | GitHub Actions Modernization | ✅ Complete |
 | ADR-030 | Test Optimization and CI Stability | ✅ Complete |
+| ADR-031 | CLI Step Logging Alias | Proposed |
 
 **Location**: `plans/adr/`
 
@@ -62,10 +65,10 @@
 - **8 Documents Created**: Complete planning package for v0.1.16 sprint
 
 ### Key Metrics
-- **CI Workflows**: All passing (6/6)
+- **CI Workflows**: Push passing; scheduled workflows failing (see `GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md`)
 - **Test Coverage**: 92.5% maintained
 - **Clippy Warnings**: 0 (zero-tolerance policy)
-- **Nightly CI**: Stable, disk space <90%, memory leak test passing
+- **Nightly CI**: Failing due to CLI contract mismatch (see `GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md`)
 
 ## Architecture
 
@@ -118,6 +121,7 @@ Historical documents are in `archive/` subdirectories.
 - `.github/workflows/` - CI/CD workflows
 - `.github/PULL_REQUEST_TEMPLATE.md` - PR template
 - `.github/ISSUE_TEMPLATE/` - Bug report and feature request templates
+- `GOAP_GITHUB_ACTIONS_MAIN_ISSUES_2026-02-17.md` - Scheduled workflow regressions and remediation plan
 
 ## Status Reports
 

@@ -340,7 +340,6 @@ pub enum FilterCommands {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct EpisodeSummary {
     pub episode_id: String,
     pub task_description: String,
@@ -351,14 +350,12 @@ pub struct EpisodeSummary {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct EpisodeList {
     pub episodes: Vec<EpisodeSummary>,
     pub total_count: usize,
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct EpisodeListFiltered {
     pub episodes: Vec<EpisodeSummary>,
     pub total_count: usize,
@@ -367,7 +364,6 @@ pub struct EpisodeListFiltered {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct AppliedFilters {
     pub task_type: Option<String>,
     pub status: Option<String>,
@@ -382,7 +378,6 @@ pub struct AppliedFilters {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct EpisodeDetail {
     pub episode_id: String,
     pub task_description: String,
@@ -395,7 +390,6 @@ pub struct EpisodeDetail {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct EpisodeStep {
     pub step_number: usize,
     pub tool: String,
@@ -408,7 +402,6 @@ pub struct EpisodeStep {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct EpisodeSearchResult {
     pub episode_id: String,
     pub task_description: String,
@@ -419,7 +412,6 @@ pub struct EpisodeSearchResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[allow(dead_code)]
 pub struct SavedFilter {
     pub name: String,
     pub task_type: Option<String>,
@@ -434,7 +426,6 @@ pub struct SavedFilter {
 }
 
 #[derive(Debug, Serialize)]
-#[allow(dead_code)]
 pub struct FilterList {
     pub filters: Vec<SavedFilter>,
     pub total_count: usize,

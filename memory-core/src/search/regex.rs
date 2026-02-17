@@ -107,7 +107,8 @@ pub fn validate_regex_pattern(pattern: &str) -> Result<(), String> {
 /// ```
 /// use memory_core::search::regex::regex_search;
 ///
-/// let matches = regex_search("error: database timeout", r"error.*timeout").unwrap();
+/// let matches = regex_search("error: database timeout", r"error.*timeout")
+///     .expect("Valid regex pattern should compile");
 /// assert_eq!(matches.len(), 1);
 /// assert_eq!(matches[0].1, "error: database timeout");
 /// ```
@@ -227,7 +228,8 @@ mod tests {
     #[test]
     fn test_regex_search() {
         let text = "error: database connection timeout";
-        let matches = regex_search(text, r"error.*timeout").unwrap();
+        let matches = regex_search(text, r"error.*timeout")
+            .expect("Valid regex pattern should compile and match");
 
         assert_eq!(matches.len(), 1);
         assert_eq!(matches[0].0, 0);
@@ -238,7 +240,8 @@ mod tests {
     #[test]
     fn test_regex_search_multiple_matches() {
         let text = "error1 and error2 and error3";
-        let matches = regex_search(text, r"error\d+").unwrap();
+        let matches =
+            regex_search(text, r"error\d+").expect("Valid regex pattern should compile and match");
 
         assert_eq!(matches.len(), 3);
         assert_eq!(matches[0].1, "error1");
@@ -249,7 +252,8 @@ mod tests {
     #[test]
     fn test_regex_search_no_matches() {
         let text = "success: everything works";
-        let matches = regex_search(text, r"error.*timeout").unwrap();
+        let matches = regex_search(text, r"error.*timeout")
+            .expect("Valid regex pattern should compile (even with no matches)");
 
         assert_eq!(matches.len(), 0);
     }
@@ -257,7 +261,8 @@ mod tests {
     #[test]
     fn test_regex_search_case_sensitive() {
         let text = "Error and error";
-        let matches = regex_search(text, "error").unwrap();
+        let matches =
+            regex_search(text, "error").expect("Valid regex pattern should compile and match");
 
         assert_eq!(matches.len(), 1); // Only lowercase "error"
         assert_eq!(matches[0].1, "error");
@@ -266,34 +271,41 @@ mod tests {
     #[test]
     fn test_regex_search_case_insensitive() {
         let text = "Error and error and ERROR";
-        let matches = regex_search_case_insensitive(text, "error").unwrap();
+        let matches = regex_search_case_insensitive(text, "error")
+            .expect("Valid regex pattern should compile and match");
 
         assert_eq!(matches.len(), 3); // All variations
     }
 
     #[test]
     fn test_regex_matches() {
-        assert!(regex_matches("test123", r"\w+\d+").unwrap());
-        assert!(!regex_matches("test", r"\d+").unwrap());
+        assert!(regex_matches("test123", r"\w+\d+")
+            .expect("Valid regex pattern should compile and match"));
+        assert!(!regex_matches("test", r"\d+")
+            .expect("Valid regex pattern should compile (even with no match)"));
     }
 
     #[test]
     fn test_regex_search_with_anchors() {
         let text = "start test end";
-        let matches = regex_search(text, "^start").unwrap();
+        let matches =
+            regex_search(text, "^start").expect("Valid regex pattern should compile and match");
         assert_eq!(matches.len(), 1);
 
-        let matches = regex_search(text, "end$").unwrap();
+        let matches =
+            regex_search(text, "end$").expect("Valid regex pattern should compile and match");
         assert_eq!(matches.len(), 1);
 
-        let matches = regex_search(text, "^test").unwrap();
+        let matches = regex_search(text, "^test")
+            .expect("Valid regex pattern should compile (even with no match)");
         assert_eq!(matches.len(), 0); // "test" is not at start
     }
 
     #[test]
     fn test_regex_search_with_groups() {
         let text = "email: test@example.com";
-        let matches = regex_search(text, r"\w+@\w+\.\w+").unwrap();
+        let matches = regex_search(text, r"\w+@\w+\.\w+")
+            .expect("Valid regex pattern should compile and match");
 
         assert_eq!(matches.len(), 1);
         assert_eq!(matches[0].1, "test@example.com");

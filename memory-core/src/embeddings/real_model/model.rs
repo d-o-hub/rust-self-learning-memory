@@ -22,9 +22,9 @@ use crate::embeddings::real_model::download::download_model;
 pub struct RealEmbeddingModel {
     name: String,
     dimension: usize,
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Used in async spawn_blocking, compiler doesn't see cross-async usage
     tokenizer: Option<Tokenizer>,
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Used in async spawn_blocking, compiler doesn't see cross-async usage
     session: std::sync::Arc<tokio::sync::Mutex<Session>>,
 }
 

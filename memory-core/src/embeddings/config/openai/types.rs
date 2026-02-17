@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 /// Input for embedding request (single text or batch)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-#[allow(dead_code)] // Used by OpenAIEmbeddingProvider
 pub enum OpenAIEmbeddingInput {
     /// Single text input
     Single(String),
@@ -39,7 +38,6 @@ impl From<Vec<&str>> for OpenAIEmbeddingInput {
 
 /// OpenAI API request structure
 #[derive(Debug, Clone, Serialize)]
-#[allow(dead_code)] // Used by OpenAIEmbeddingProvider
 pub struct OpenAIEmbeddingRequest {
     /// Input text(s) to embed
     pub input: OpenAIEmbeddingInput,
@@ -55,7 +53,6 @@ pub struct OpenAIEmbeddingRequest {
 
 /// Individual embedding data from API response
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)] // Used by OpenAIEmbeddingProvider
 pub struct OpenAIEmbeddingData {
     /// The embedding vector
     pub embedding: Vec<f32>,
@@ -67,7 +64,6 @@ pub struct OpenAIEmbeddingData {
 
 /// Token usage information
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)] // Used by OpenAIEmbeddingProvider
 pub struct OpenAIUsage {
     /// Tokens in the prompt
     pub prompt_tokens: usize,
@@ -77,7 +73,6 @@ pub struct OpenAIUsage {
 
 /// OpenAI API response structure
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)] // Used by OpenAIEmbeddingProvider
 pub struct OpenAIEmbeddingResponse {
     /// List of embedding data
     pub data: Vec<OpenAIEmbeddingData>,

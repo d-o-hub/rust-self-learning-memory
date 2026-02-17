@@ -14,31 +14,15 @@ use serde_json::Value;
 // OAuth 2.1 Types (deprecated - use library version)
 // ============================================================
 
-/// Bearer token claims (simplified JWT structure)
-#[derive(Debug)]
-#[allow(dead_code)]
-pub struct TokenClaims {
-    /// Subject (user/client ID)
-    pub sub: String,
-    /// Issuer
-    pub iss: Option<String>,
-    /// Audience
-    pub aud: Option<String>,
-    /// Expiration time
-    pub exp: Option<u64>,
-    /// Issued at
-    pub iat: Option<u64>,
-    /// Scopes
-    pub scope: Option<String>,
-}
-
 /// Authorization result
 #[derive(Debug)]
-#[allow(dead_code)]
 pub enum AuthorizationResult {
     Authorized,
+    #[allow(dead_code)] // TODO: Implement missing token handling
     MissingToken,
+    #[allow(dead_code)] // Error message available for logging/debugging
     InvalidToken(String),
+    #[allow(dead_code)] // Required scopes available for logging/debugging
     InsufficientScope(Vec<String>),
 }
 
@@ -71,7 +55,6 @@ impl CallToolResult {
     }
 
     /// Create an error result
-    #[allow(dead_code)]
     pub fn error(content: Vec<Content>) -> Self {
         Self {
             content,
@@ -93,6 +76,8 @@ pub enum Content {
 // ============================================================
 
 /// Completion reference types (MCP 2025-11-25)
+///
+/// TODO: Implement completion support in protocol handlers
 #[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub enum CompletionRef {
@@ -148,6 +133,8 @@ pub struct CompletionValues {
 // ============================================================
 
 /// Elicitation request type - what kind of input is requested
+///
+/// TODO: Implement elicitation support in protocol handlers
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -219,12 +206,13 @@ pub struct ElicitationCancelParams {
 }
 
 /// Active elicitation tracker
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ActiveElicitation {
     pub id: String,
+    #[allow(dead_code)] // Not currently used, available for future timeout handling
     pub prompt: ElicitationPrompt,
     pub trigger: String,
+    #[allow(dead_code)] // Not currently used, available for future timeout handling
     pub created_at: std::time::Instant,
 }
 
@@ -304,62 +292,18 @@ pub struct TaskCancelParams {
 }
 
 /// Active task tracker
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ActiveTask {
     pub id: String,
     pub name: String,
     pub status: TaskStatus,
+    #[allow(dead_code)] // Available for future task execution
     pub input: Option<Value>,
+    #[allow(dead_code)] // Available for future task metadata
     pub metadata: Option<std::collections::HashMap<String, Value>>,
     pub progress: u32,
     pub result: Option<TaskResult>,
     pub created_at: std::time::Instant,
-}
-
-/// Task creation response
-#[allow(dead_code)]
-#[derive(Debug, Serialize)]
-pub struct TaskCreateResult {
-    pub task_id: String,
-    pub status: String,
-}
-
-/// Task update response
-#[allow(dead_code)]
-#[derive(Debug, Serialize)]
-pub struct TaskUpdateResult {
-    pub task_id: String,
-    pub status: String,
-    pub progress: u32,
-}
-
-/// Task completion response
-#[allow(dead_code)]
-#[derive(Debug, Serialize)]
-pub struct TaskCompleteResult {
-    pub task_id: String,
-    pub status: String,
-    pub elapsed_ms: u64,
-}
-
-/// Task list response
-#[allow(dead_code)]
-#[derive(Debug, Serialize)]
-pub struct TaskListResult {
-    pub tasks: Vec<TaskListItem>,
-    pub total: usize,
-}
-
-/// Task list item
-#[allow(dead_code)]
-#[derive(Debug, Serialize)]
-pub struct TaskListItem {
-    pub task_id: String,
-    pub name: String,
-    pub status: String,
-    pub progress: u32,
-    pub created_at_secs_ago: u64,
 }
 
 // ============================================================
@@ -367,7 +311,7 @@ pub struct TaskListItem {
 // ============================================================
 
 /// Embedding configuration from environment
-#[allow(dead_code)]
+#[allow(dead_code)] // TODO: Implement embedding config in production
 #[derive(Debug, Clone)]
 pub struct EmbeddingEnvConfig {
     pub provider: String,
@@ -379,24 +323,12 @@ pub struct EmbeddingEnvConfig {
     pub batch_size: usize,
 }
 
-/// Embedding configuration output
-#[allow(dead_code)]
-#[derive(Debug, Serialize)]
-pub struct EmbeddingConfigResult {
-    pub success: bool,
-    pub provider: String,
-    pub model: String,
-    pub dimension: usize,
-    pub message: String,
-    pub env_config: bool,
-}
-
 // ============================================================
 // Rate Limiting Types
 // ============================================================
 
 /// Rate limit configuration from environment
-#[allow(dead_code)]
+#[allow(dead_code)] // TODO: Implement rate limiting in production
 #[derive(Debug, Clone)]
 pub struct RateLimitEnvConfig {
     pub enabled: bool,

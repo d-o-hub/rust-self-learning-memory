@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS heuristics (
 ///
 /// Uses Turso's F32_BLOB(384) for native vector storage with DiskANN indexing.
 /// The embedding_data column is kept for JSON serialization compatibility.
-#[allow(dead_code)]
+#[cfg(not(feature = "turso_multi_dimension"))]
 pub const CREATE_EMBEDDINGS_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings (
     embedding_id TEXT PRIMARY KEY NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS embeddings (
 )
 "#;
 /// SQL to create embeddings table for 384-dimension vectors
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_384_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings_384 (
     embedding_id TEXT PRIMARY KEY NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS embeddings_384 (
 "#;
 
 /// SQL to create embeddings table for 1024-dimension vectors
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_1024_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings_1024 (
     embedding_id TEXT PRIMARY KEY NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS embeddings_1024 (
 "#;
 
 /// SQL to create embeddings table for 1536-dimension vectors
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_1536_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings_1536 (
     embedding_id TEXT PRIMARY KEY NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS embeddings_1536 (
 "#;
 
 /// SQL to create embeddings table for 3072-dimension vectors
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_3072_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings_3072 (
     embedding_id TEXT PRIMARY KEY NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS embeddings_3072 (
 "#;
 
 /// SQL to create embeddings table for other dimension vectors (no native vector support)
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_OTHER_TABLE: &str = r#"
 CREATE TABLE IF NOT EXISTS embeddings_other (
     embedding_id TEXT PRIMARY KEY NOT NULL,
@@ -148,76 +148,76 @@ CREATE TABLE IF NOT EXISTS embeddings_other (
 ///
 /// This creates a specialized vector index that enables 10-100x faster
 /// similarity search compared to brute-force scanning.
-#[allow(dead_code)]
+#[cfg(not(feature = "turso_multi_dimension"))]
 pub const CREATE_EMBEDDINGS_VECTOR_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_vector
 ON embeddings(libsql_vector_idx(embedding_vector))
 "#;
 /// SQL to create DiskANN vector index for 384-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_384_VECTOR_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_384_vector
 ON embeddings_384(libsql_vector_idx(embedding_vector))
 "#;
 
 /// SQL to create DiskANN vector index for 1024-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_1024_VECTOR_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_1024_vector
 ON embeddings_1024(libsql_vector_idx(embedding_vector))
 "#;
 
 /// SQL to create DiskANN vector index for 1536-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_1536_VECTOR_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_1536_vector
 ON embeddings_1536(libsql_vector_idx(embedding_vector))
 "#;
 
 /// SQL to create DiskANN vector index for 3072-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_3072_VECTOR_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_3072_vector
 ON embeddings_3072(libsql_vector_idx(embedding_vector))
 "#;
 
 /// SQL to create item index for 384-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_384_ITEM_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_384_item
 ON embeddings_384(item_id, item_type)
 "#;
 
 /// SQL to create item index for 1024-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_1024_ITEM_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_1024_item
 ON embeddings_1024(item_id, item_type)
 "#;
 
 /// SQL to create item index for 1536-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_1536_ITEM_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_1536_item
 ON embeddings_1536(item_id, item_type)
 "#;
 
 /// SQL to create item index for 3072-dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_3072_ITEM_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_3072_item
 ON embeddings_3072(item_id, item_type)
 "#;
 
 /// SQL to create item index for other dimension embeddings
-#[allow(dead_code)]
+#[cfg(feature = "turso_multi_dimension")]
 pub const CREATE_EMBEDDINGS_OTHER_ITEM_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_other_item
 ON embeddings_other(item_id, item_type)
 "#;
 
 /// Index on embeddings for fast item lookups
-#[allow(dead_code)]
+#[cfg(not(feature = "turso_multi_dimension"))]
 pub const CREATE_EMBEDDINGS_ITEM_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_embeddings_item
 ON embeddings(item_id, item_type)

@@ -239,9 +239,16 @@ impl CachingPool {
         self.stats.lock().active_connections += 1;
         self.stats.lock().idle_connections = self.idle_connections.lock().len();
 
+        // SAFETY: pooled_conn is guaranteed to be Some at this point:
+        // - Either we got it from idle.pop() and it was Some
+        // - Or we created a new connection and stored it in pooled_conn
+        let connection = pooled_conn.ok_or_else(|| {
+            Error::Storage("Failed to get connection from pool: connection is None".to_string())
+        })?;
+
         Ok(ConnectionGuard {
             pool: self as *const Self as usize, // Store as pointer-sized integer
-            connection: Some(pooled_conn.unwrap()),
+            connection: Some(connection),
             _permit: Some(permit),
         })
     }
@@ -358,13 +365,27 @@ pub struct ConnectionGuard {
 
 impl ConnectionGuard {
     /// Get the stable connection ID
+    ///
+    /// # Panics
+    ///
+    /// Panics if the connection has been taken (should not happen in normal usage).
     pub fn id(&self) -> u64 {
-        self.connection.as_ref().unwrap().id()
+        self.connection
+            .as_ref()
+            .map(|c| c.id())
+            .expect("ConnectionGuard::id() called on guard without connection")
     }
 
     /// Get a reference to the underlying connection
+    ///
+    /// # Panics
+    ///
+    /// Panics if the connection has been taken (should not happen in normal usage).
     pub fn connection(&self) -> &libsql::Connection {
-        self.connection.as_ref().unwrap().connection()
+        self.connection
+            .as_ref()
+            .map(|c| c.connection())
+            .expect("ConnectionGuard::connection() called on guard without connection")
     }
 
     /// Get the pooled connection wrapper

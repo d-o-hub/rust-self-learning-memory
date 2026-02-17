@@ -43,7 +43,12 @@ impl AsyncCompressor {
 
         // Check threshold
         if data.len() < self.config.compression_threshold {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().map_err(|e| {
+                TransportCompressionError::StreamFailed(format!(
+                    "Failed to acquire stats lock: {}",
+                    e
+                ))
+            })?;
             stats.base.record_skipped();
             return Ok(CompressedPayload {
                 original_size: data.len(),
@@ -82,7 +87,9 @@ impl AsyncCompressor {
 
         // Update stats
         let elapsed = start.elapsed().as_micros() as u64;
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
 
         stats
             .base
@@ -121,7 +128,9 @@ impl AsyncCompressor {
         let result = payload.decompress();
         let elapsed = start.elapsed().as_micros() as u64;
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
         stats.base.record_decompression(elapsed);
         stats.record_decompression_time(elapsed);
 
@@ -175,7 +184,9 @@ impl AsyncCompressor {
         let elapsed = start.elapsed().as_micros() as u64;
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
         stats.record_streaming_compression(total_read, total_written);
 
         Ok(CompressionStreamResult {
@@ -203,7 +214,7 @@ impl AsyncCompressor {
             .map_err(|_e| TransportCompressionError::InvalidHeader)?;
 
         // Parse header
-        let (original_size, compressed_size, _) = Self::parse_stream_header(&header_buf)?;
+        let (original_size, compressed_size, algorithm) = Self::parse_stream_header(&header_buf)?;
 
         // Read compressed data
         let mut compressed_data = Vec::with_capacity(compressed_size);
@@ -227,7 +238,7 @@ impl AsyncCompressor {
             compressed_size,
             compression_ratio: compressed_size as f64 / original_size as f64,
             data: compressed_data,
-            algorithm: CompressionAlgorithm::Zstd, // Detected from header
+            algorithm,
         };
 
         let decompressed = self.decompress(&payload).await?;
@@ -243,7 +254,9 @@ impl AsyncCompressor {
         let elapsed = start.elapsed().as_micros() as u64;
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().map_err(|e| {
+            TransportCompressionError::StreamFailed(format!("Failed to acquire stats lock: {}", e))
+        })?;
         stats.record_streaming_decompression();
         stats.record_decompression_time(elapsed);
 
@@ -290,8 +303,17 @@ impl AsyncCompressor {
 
     /// Parse stream header
     fn parse_stream_header(header: &[u8; 16]) -> Result<(usize, usize, CompressionAlgorithm)> {
-        let original_size = u64::from_le_bytes(header[0..8].try_into().unwrap()) as usize;
-        let compressed_size = u64::from_le_bytes(header[8..16].try_into().unwrap()) as usize;
+        // SAFETY: header is guaranteed to be 16 bytes by the type signature
+        let original_size = u64::from_le_bytes(
+            header[0..8]
+                .try_into()
+                .expect("Header slice must be exactly 8 bytes"),
+        ) as usize;
+        let compressed_size = u64::from_le_bytes(
+            header[8..16]
+                .try_into()
+                .expect("Header slice must be exactly 8 bytes"),
+        ) as usize;
 
         // Detect algorithm from size relationship
         let algorithm = if original_size == compressed_size {
@@ -308,12 +330,124 @@ impl AsyncCompressor {
 
     /// Get current statistics
     pub fn stats(&self) -> TransportCompressionStats {
-        self.stats.lock().unwrap().clone()
+        self.stats
+            .lock()
+            .map(|guard| guard.clone())
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to acquire stats lock for reading: {}", e);
+                TransportCompressionStats::new()
+            })
     }
 
     /// Reset statistics
     pub fn reset_stats(&self) {
-        let mut stats = self.stats.lock().unwrap();
-        *stats = TransportCompressionStats::new();
+        if let Ok(mut stats) = self.stats.lock() {
+            *stats = TransportCompressionStats::new();
+        } else {
+            tracing::error!("Failed to acquire stats lock for reset");
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    fn test_config_no_compression() -> TransportCompressionConfig {
+        TransportCompressionConfig {
+            compression_threshold: 1024,
+            auto_algorithm_selection: false,
+            preferred_algorithm: CompressionAlgorithm::None,
+            ..Default::default()
+        }
+    }
+
+    #[tokio::test]
+    async fn compress_decompress_roundtrip_without_compression() {
+        let compressor = AsyncCompressor::new(test_config_no_compression());
+        let data = b"hello-world";
+
+        let payload = compressor.compress(data).await.expect("compress succeeds");
+        assert_eq!(payload.algorithm, CompressionAlgorithm::None);
+
+        let decompressed = compressor
+            .decompress(&payload)
+            .await
+            .expect("decompress succeeds");
+
+        assert_eq!(decompressed, data);
+    }
+
+    #[test]
+    fn create_and_parse_stream_header() {
+        let payload = CompressedPayload {
+            original_size: 100,
+            compressed_size: 40,
+            compression_ratio: 0.4,
+            data: vec![0; 40],
+            algorithm: CompressionAlgorithm::Zstd,
+        };
+
+        let header = AsyncCompressor::create_stream_header(&payload);
+        let (original, compressed, algorithm) =
+            AsyncCompressor::parse_stream_header(&header).expect("header parses");
+
+        assert_eq!(original, payload.original_size);
+        assert_eq!(compressed, payload.compressed_size);
+        assert_eq!(algorithm, CompressionAlgorithm::Zstd);
+    }
+
+    #[tokio::test]
+    async fn stream_roundtrip_without_compression() {
+        let compressor = AsyncCompressor::new(test_config_no_compression());
+        let input = b"streamed-payload";
+
+        let (mut input_reader, mut input_writer) = tokio::io::duplex(2048);
+        input_writer.write_all(input).await.expect("write input");
+        input_writer.shutdown().await.expect("close input");
+
+        let (mut compressed_reader, mut compressed_writer) = tokio::io::duplex(4096);
+        let result = compressor
+            .compress_stream(&mut input_reader, &mut compressed_writer)
+            .await
+            .expect("compress stream");
+        compressed_writer
+            .shutdown()
+            .await
+            .expect("close compressed");
+
+        let mut compressed_bytes = Vec::new();
+        compressed_reader
+            .read_to_end(&mut compressed_bytes)
+            .await
+            .expect("read compressed");
+
+        let (mut compressed_reader, mut compressed_writer) = tokio::io::duplex(4096);
+        compressed_writer
+            .write_all(&compressed_bytes)
+            .await
+            .expect("write compressed");
+        compressed_writer
+            .shutdown()
+            .await
+            .expect("close compressed input");
+
+        let (mut output_reader, mut output_writer) = tokio::io::duplex(4096);
+        let decompressed_size = compressor
+            .decompress_stream(&mut compressed_reader, &mut output_writer)
+            .await
+            .expect("decompress stream");
+        output_writer.shutdown().await.expect("close output");
+
+        let mut output = Vec::new();
+        output_reader
+            .read_to_end(&mut output)
+            .await
+            .expect("read output");
+
+        assert_eq!(decompressed_size, input.len());
+        assert_eq!(output, input);
+        assert_eq!(result.original_size, input.len());
     }
 }

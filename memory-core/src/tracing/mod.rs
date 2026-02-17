@@ -141,11 +141,9 @@ pub fn add_correlation_id(id: CorrelationId) -> impl Fn(&Span) + Clone + Send + 
 pub fn init_tracing(filter: Option<&str>) {
     INIT.call_once(|| {
         let filter = filter
-            .map(EnvFilter::try_from)
-            .unwrap_or_else(|| Ok(EnvFilter::try_from("info").unwrap()))
-            .unwrap_or_else(|e| {
-                eprintln!("Invalid filter, using default: {}", e);
-                EnvFilter::try_from("info").unwrap()
+            .and_then(|f| EnvFilter::try_from(f).ok())
+            .unwrap_or_else(|| {
+                EnvFilter::try_from("info").unwrap_or_else(|_| EnvFilter::new("info"))
             });
 
         tracing_subscriber::registry()
@@ -175,11 +173,9 @@ pub fn init_tracing(filter: Option<&str>) {
 pub fn init_tracing_json(filter: Option<&str>) {
     INIT.call_once(|| {
         let filter = filter
-            .map(EnvFilter::try_from)
-            .unwrap_or_else(|| Ok(EnvFilter::try_from("info").unwrap()))
-            .unwrap_or_else(|e| {
-                eprintln!("Invalid filter, using default: {}", e);
-                EnvFilter::try_from("info").unwrap()
+            .and_then(|f| EnvFilter::try_from(f).ok())
+            .unwrap_or_else(|| {
+                EnvFilter::try_from("info").unwrap_or_else(|_| EnvFilter::new("info"))
             });
 
         tracing_subscriber::registry()
@@ -201,7 +197,7 @@ pub fn init_tracing_json(filter: Option<&str>) {
 /// This sets up a tracing subscriber with colored, pretty-printed output.
 pub fn init_tracing_pretty() {
     INIT.call_once(|| {
-        let filter = EnvFilter::try_from("debug").unwrap();
+        let filter = EnvFilter::try_from("debug").unwrap_or_else(|_| EnvFilter::new("debug"));
 
         tracing_subscriber::registry()
             .with(filter)

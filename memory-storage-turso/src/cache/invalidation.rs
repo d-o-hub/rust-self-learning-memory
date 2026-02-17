@@ -112,7 +112,12 @@ impl InvalidationRule {
 
         // Check if pattern ends with %
         if !pattern.ends_with('%') && pos < text.len() {
-            return text.ends_with(parts.last().unwrap());
+            // SAFETY: If pattern doesn't end with %, there must be at least one part
+            // that comes after the last %, which is what we need to match against
+            return parts
+                .last()
+                .map(|last_part| text.ends_with(last_part))
+                .unwrap_or(false);
         }
 
         true

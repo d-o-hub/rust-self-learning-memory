@@ -67,7 +67,7 @@ while [[ $# -gt 0 ]]; do
       OP="${2:?fmt}"
       ;;
     --strict)
-      STRICT="--deny-warnings"
+      STRICT="-D warnings"
       ;;
     --fix)
       FIX="true"
@@ -122,14 +122,14 @@ case "$OP" in
     echo -e "${BLUE}🔍 Linting with Clippy...${NC}"
     if [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
       echo -e "${YELLOW}Linting entire workspace...${NC}"
-      cargo clippy --workspace -- ${STRICT:-D warnings}
+      cargo clippy --workspace -- ${STRICT:--D warnings}
     elif [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
       pkg="${PACKAGE_FLAG#--package}"
       echo -e "${YELLOW}Linting package: ${pkg#--package=}${NC}"
-      cargo clippy --package "${pkg#--package=}" -- ${STRICT:-D warnings}
+      cargo clippy --package "${pkg#--package=}" -- ${STRICT:--D warnings}
     else
       echo -e "${YELLOW}Linting current package only...${NC}"
-      cargo clippy -- ${STRICT:-D warnings}
+      cargo clippy -- ${STRICT:--D warnings}
     fi
     
     clippy_result=$?
@@ -163,7 +163,7 @@ case "$OP" in
     
     # Run clippy
     echo -e "${BLUE}  Clippy check (strict mode)...${NC}"
-    cargo clippy --all -D warnings
+    cargo clippy --all -- -D warnings
     clippy_result=$?
     
     # Run audit

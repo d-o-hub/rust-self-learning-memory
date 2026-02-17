@@ -218,6 +218,42 @@ Load skills via `skill` tool (NOT `task` tool):
 - [ ] Changes are staged correctly
 
 **Gate 5**: After Task 7 (PR)
+
+---
+
+## 2026-02-17 Main Branch Security Workflow Remediation (GOAP Addendum)
+
+### ANALYZE
+- **Trigger**: `Security` workflow failing on `main` for push `22105489991`.
+- **Observed Failure**: `cargo audit` panic:
+  - `invalid Cargo.lock dependency tree: Resolution("failed to find dependency: wasm-encoder 0.244.0")`
+- **Relevant ADRs**:
+  - `plans/adr/ADR-022-GOAP-Agent-System.md`
+  - `plans/adr/ADR-023-CI-CD-GitHub-Actions-Remediation.md`
+  - `plans/adr/ADR-029-GitHub-Actions-Modernization.md`
+
+### DECOMPOSE
+1. Verify failure logs from `main` security workflow.
+2. Diff local `Cargo.lock` vs `origin/main` and identify missing package nodes.
+3. Regenerate/normalize lockfile entries to restore dependency graph integrity.
+4. Validate locally (`fmt`, `build`, `test`, `cargo audit`).
+5. Commit atomically and open/refresh PR.
+6. Verify GitHub checks pass before merge recommendation.
+
+### STRATEGY
+- **Execution Pattern**: Parallel evidence gathering (logs + lockfile diff) followed by sequential remediation and validation.
+- **Handoff Coordination**:
+  - Handoff A: Investigation artifacts -> lockfile repair.
+  - Handoff B: Lockfile repair -> local quality gates.
+  - Handoff C: Validated branch -> PR checks verification.
+
+### EXECUTION STATUS
+- [x] Step 1: Security failure reproduced from GitHub logs.
+- [x] Step 2: Missing lockfile nodes identified (`wasm-encoder 0.244.0`, `wasmparser 0.244.0`).
+- [ ] Step 3: Lockfile integrity repair committed.
+- [ ] Step 4: Local validation complete (`fmt`, `build`, `test`, `cargo audit`).
+- [ ] Step 5: PR checks all green.
+- [ ] Step 6: Merge complete.
 - [ ] PR created successfully
 - [ ] PR description is comprehensive
 - [ ] All CI checks triggered

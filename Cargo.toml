@@ -40,7 +40,7 @@ libsql = "0.9.29"
 redb = "2.6"
 
 # UUID and time
-uuid = { version = "1.20", features = ["v4", "serde"] }
+uuid = { version = "1.21", features = ["v4", "serde"] }
 chrono = { version = "0.4.43", features = ["serde"] }
 
 # Logging and tracing

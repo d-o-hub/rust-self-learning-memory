@@ -50,7 +50,6 @@ mod tests {
             max_episodes_cache: 1000,
             cache_ttl_seconds: 3600,
             pool_size: 5,
-            quality_threshold: 0.7,
         };
         let errors = validate_storage_config_errors(&config);
         assert!(errors.is_empty());
@@ -62,7 +61,6 @@ mod tests {
             max_episodes_cache: 0,
             cache_ttl_seconds: 3600,
             pool_size: 5,
-            quality_threshold: 0.7,
         };
         let errors = validate_storage_config_errors(&config);
         assert!(!errors.is_empty());

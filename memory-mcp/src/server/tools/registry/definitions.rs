@@ -362,3 +362,33 @@ fn create_core_tools() -> Vec<Tool> {
         ),
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::create_default_registry;
+
+    #[test]
+    fn default_registry_has_expected_core_tools() {
+        let registry = create_default_registry();
+        let core_names: Vec<String> = registry
+            .get_core_tools()
+            .into_iter()
+            .map(|tool| tool.name)
+            .collect();
+
+        assert!(core_names.iter().any(|name| name == "query_memory"));
+        assert!(core_names.iter().any(|name| name == "health_check"));
+        assert!(core_names.iter().any(|name| name == "get_metrics"));
+        assert!(core_names.iter().any(|name| name == "analyze_patterns"));
+        assert!(core_names.iter().any(|name| name == "create_episode"));
+    }
+
+    #[test]
+    fn default_registry_includes_extended_tools() {
+        let registry = create_default_registry();
+
+        assert!(registry.tool_exists("search_patterns"));
+        assert!(registry.tool_exists("recommend_patterns"));
+        assert!(registry.total_tool_count() > registry.get_core_tools().len());
+    }
+}

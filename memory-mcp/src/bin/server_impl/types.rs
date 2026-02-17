@@ -16,6 +16,7 @@ use serde_json::Value;
 
 /// Authorization result
 #[derive(Debug)]
+#[allow(dead_code)] // Only used when oauth feature is enabled
 pub enum AuthorizationResult {
     Authorized,
     #[allow(dead_code)] // TODO: Implement missing token handling

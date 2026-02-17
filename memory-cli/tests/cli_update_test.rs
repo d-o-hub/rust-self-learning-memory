@@ -59,12 +59,12 @@ mod tests {
     #[test]
     fn test_update_command_with_dry_run() {
         let (success, stdout, _stderr) = run_command(&[
+            "--dry-run", // Global flag must come before subcommand
             "episode",
             "update",
             "00000000-0000-0000-0000-000000000000",
             "--description",
             "Test",
-            "--dry-run",
         ]);
 
         // Dry run should succeed even if episode doesn't exist

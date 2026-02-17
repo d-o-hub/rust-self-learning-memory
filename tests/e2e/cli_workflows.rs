@@ -151,7 +151,7 @@ fn run_cli(
                 combined.push_str(line);
                 combined.push('\n');
 
-                brace_count = update_brace_count(brace_count, line, start_char, end_char);
+                update_brace_count(line, start_char, end_char, &mut brace_count);
 
                 if brace_count == 0 {
                     break;
@@ -182,16 +182,14 @@ fn strip_ansi_codes(s: &str) -> String {
     re.replace_all(s, "").to_string()
 }
 
-fn update_brace_count(mut count: i32, line: &str, start_char: char, end_char: char) -> i32 {
+fn update_brace_count(line: &str, start_char: char, end_char: char, brace_count: &mut i32) {
     for c in line.chars() {
-        match c {
-            c if c == start_char => count += 1,
-            c if c == end_char => count -= 1,
-            _ => {}
+        if c == start_char {
+            *brace_count += 1;
+        } else if c == end_char {
+            *brace_count -= 1;
         }
     }
-
-    count
 }
 
 // ============================================================================

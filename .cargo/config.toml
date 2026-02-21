@@ -6,13 +6,24 @@
 jobs = -1
 
 [profile.dev]
-# Fast development builds - optimized for iteration speed
+# Fast development builds with smaller artifacts (ADR-032)
 opt-level = 0
-debug = true
+debug = "line-tables-only"
+split-debuginfo = "unpacked"
+
+[profile.dev.package."*"]
+# Keep dependency artifacts small in dev profile.
+debug = false
 
 [profile.test]
-# Test profile - fast compilation for running tests
+# Test profile with compact debug info (ADR-032)
 opt-level = 0
+debug = "line-tables-only"
+
+[profile.debugging]
+# Opt-in full debug symbols when deep debugging is required.
+inherits = "dev"
+debug = true
 
 [profile.release]
 # Production release - maximum runtime performance
@@ -34,6 +45,7 @@ codegen-units = 4
 # -Wl,-z,relro: Read-only relocations (RELRO)
 # -Wl,-z,now: Bind all symbols at load time (BIND_NOW)
 rustflags = [
+    "-C", "link-arg=-fuse-ld=mold",
     "-C", "link-arg=-Wl,-z,relro,-z,now",
 ]
 
@@ -55,4 +67,3 @@ rustflags = [
 [term]
 verbose = false
 color = "auto"
-

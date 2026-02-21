@@ -22,9 +22,12 @@ fn test_memory_config_default() {
 #[serial]
 fn test_memory_config_from_env_defaults() {
     // Clear any environment variables that might be set
-    std::env::remove_var("MEMORY_MAX_EPISODES");
-    std::env::remove_var("MEMORY_EVICTION_POLICY");
-    std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+        std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+    }
 
     let config = MemoryConfig::from_env();
 
@@ -41,9 +44,12 @@ fn test_memory_config_from_env_defaults() {
 #[serial]
 fn test_memory_config_from_env_with_values() {
     // Set environment variables
-    std::env::set_var("MEMORY_MAX_EPISODES", "10000");
-    std::env::set_var("MEMORY_EVICTION_POLICY", "LRU");
-    std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", "false");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::set_var("MEMORY_MAX_EPISODES", "10000");
+        std::env::set_var("MEMORY_EVICTION_POLICY", "LRU");
+        std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", "false");
+    }
 
     let config = MemoryConfig::from_env();
 
@@ -55,9 +61,12 @@ fn test_memory_config_from_env_with_values() {
     assert!(!config.enable_summarization);
 
     // Cleanup
-    std::env::remove_var("MEMORY_MAX_EPISODES");
-    std::env::remove_var("MEMORY_EVICTION_POLICY");
-    std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+        std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+    }
 }
 
 #[test]
@@ -186,21 +195,30 @@ fn test_memory_config_eviction_policy_variants() {
     ];
 
     for (input, expected) in test_cases {
-        std::env::set_var("MEMORY_EVICTION_POLICY", input);
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MEMORY_EVICTION_POLICY", input);
+        }
         let config = MemoryConfig::from_env();
         assert!(
             matches!(config.eviction_policy, Some(policy) if policy == expected),
             "Failed for input: {input}"
         );
-        std::env::remove_var("MEMORY_EVICTION_POLICY");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("MEMORY_EVICTION_POLICY");
+        }
     }
 }
 
 #[test]
 fn test_memory_config_invalid_eviction_policy() {
     // Clear any existing value first to avoid pollution from other tests
-    std::env::remove_var("MEMORY_EVICTION_POLICY");
-    std::env::set_var("MEMORY_EVICTION_POLICY", "invalid_policy");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+        std::env::set_var("MEMORY_EVICTION_POLICY", "invalid_policy");
+    }
     let config = MemoryConfig::from_env();
 
     // Should fall back to default (RelevanceWeighted)
@@ -213,7 +231,10 @@ fn test_memory_config_invalid_eviction_policy() {
         config.eviction_policy
     );
 
-    std::env::remove_var("MEMORY_EVICTION_POLICY");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::remove_var("MEMORY_EVICTION_POLICY");
+    }
 }
 
 #[test]
@@ -222,31 +243,55 @@ fn test_memory_config_summarization_boolean_variants() {
     let false_cases = vec!["false", "FALSE", "0", "no", "NO", "off", "OFF"];
 
     for input in true_cases {
-        std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
+        }
         let config = MemoryConfig::from_env();
         assert!(config.enable_summarization, "Failed for input: {input}");
-        std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+        }
     }
 
     for input in false_cases {
-        std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MEMORY_ENABLE_SUMMARIZATION", input);
+        }
         let config = MemoryConfig::from_env();
         assert!(!config.enable_summarization, "Failed for input: {input}");
-        std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("MEMORY_ENABLE_SUMMARIZATION");
+        }
     }
 }
 
 #[test]
 fn test_memory_config_max_episodes_parsing() {
     // Valid number
-    std::env::set_var("MEMORY_MAX_EPISODES", "5000");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::set_var("MEMORY_MAX_EPISODES", "5000");
+    }
     let config = MemoryConfig::from_env();
     assert_eq!(config.max_episodes, Some(5000));
-    std::env::remove_var("MEMORY_MAX_EPISODES");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+    }
 
     // Invalid number - should fall back to None
-    std::env::set_var("MEMORY_MAX_EPISODES", "not_a_number");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::set_var("MEMORY_MAX_EPISODES", "not_a_number");
+    }
     let config = MemoryConfig::from_env();
     assert_eq!(config.max_episodes, None);
-    std::env::remove_var("MEMORY_MAX_EPISODES");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::remove_var("MEMORY_MAX_EPISODES");
+    }
 }

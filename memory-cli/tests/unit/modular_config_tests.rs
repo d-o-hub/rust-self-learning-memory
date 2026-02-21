@@ -387,20 +387,27 @@ default_format = "json"
     }
 
     #[tokio::test]
+    #[allow(unsafe_code)]
     async fn test_auto_configure_integration() {
         // Set up environment for testing
-        std::env::set_var("LOCAL_DATABASE_URL", "file:test.db");
-        
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("LOCAL_DATABASE_URL", "file:test.db");
+        }
+
         let result = auto_configure().await;
         assert!(result.is_ok());
-        
+
         let (config, storage_result) = result.unwrap();
-        
+
         // Should successfully configure based on environment
         assert!(config.database.turso_url.is_some() || config.database.redb_path.is_some());
-        
+
         // Clean up
-        std::env::remove_var("LOCAL_DATABASE_URL");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("LOCAL_DATABASE_URL");
+        }
     }
 
     #[tokio::test]

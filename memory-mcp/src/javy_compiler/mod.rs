@@ -263,7 +263,11 @@ impl JavyCompiler {
         if env::var("JAVY_PLUGIN").is_err() {
             let default_path = format!("{}/javy-plugin.wasm", env!("CARGO_MANIFEST_DIR"));
             if std::fs::metadata(&default_path).is_ok() {
-                env::set_var("JAVY_PLUGIN", &default_path);
+                // SAFETY: Safe to set during initialization before any other threads access JAVY_PLUGIN
+                #[allow(unsafe_code)]
+                unsafe {
+                    env::set_var("JAVY_PLUGIN", &default_path);
+                }
                 debug!(
                     "JAVY_PLUGIN not set; using bundled plugin at {}",
                     default_path
@@ -274,7 +278,11 @@ impl JavyCompiler {
                 let tmp_path = std::env::temp_dir().join("memory_mcp_javy_plugin.wasm");
                 match std::fs::write(&tmp_path, PLUGIN_BYTES) {
                     Ok(_) => {
-                        env::set_var("JAVY_PLUGIN", &tmp_path);
+                        // SAFETY: Safe to set during initialization before any other threads access JAVY_PLUGIN
+                        #[allow(unsafe_code)]
+                        unsafe {
+                            env::set_var("JAVY_PLUGIN", &tmp_path);
+                        }
                         debug!(
                             "JAVY_PLUGIN not set; wrote embedded plugin to {}",
                             tmp_path.display()

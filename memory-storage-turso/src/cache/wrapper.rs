@@ -3,10 +3,10 @@
 use super::config::{CacheConfig, CacheStats};
 use crate::TursoStorage;
 use async_trait::async_trait;
-use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result, StorageBackend};
+use memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
 use memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use uuid::Uuid;
 
 /// Cached wrapper around TursoStorage

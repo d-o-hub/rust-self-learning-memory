@@ -21,10 +21,14 @@ use memory_mcp::types::SandboxConfig;
 use std::sync::Arc;
 
 /// Create a test MCP server
+#[allow(unsafe_code)]
 async fn create_test_server() -> MemoryMCPServer {
     // Disable WASM for tests
-    std::env::set_var("MCP_USE_WASM", "false");
-    std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
+    // SAFETY: test-only env var manipulation
+    unsafe {
+        std::env::set_var("MCP_USE_WASM", "false");
+        std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
+    }
 
     let memory = Arc::new(SelfLearningMemory::new());
     MemoryMCPServer::new(SandboxConfig::default(), memory)

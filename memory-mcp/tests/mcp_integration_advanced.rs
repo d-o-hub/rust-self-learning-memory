@@ -12,10 +12,14 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
+#[allow(unsafe_code)]
 fn disable_wasm_for_tests() {
     static ONCE: std::sync::Once = std::sync::Once::new();
     ONCE.call_once(|| {
-        std::env::set_var("MCP_USE_WASM", "false");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MCP_USE_WASM", "false");
+        }
     });
 }
 

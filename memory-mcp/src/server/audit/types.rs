@@ -178,11 +178,15 @@ mod tests {
     }
 
     #[test]
+    #[allow(unsafe_code)]
     fn test_audit_config_from_env() {
         // Set environment variables
-        std::env::set_var("AUDIT_LOG_ENABLED", "false");
-        std::env::set_var("AUDIT_LOG_DESTINATION", "file");
-        std::env::set_var("AUDIT_LOG_LEVEL", "debug");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("AUDIT_LOG_ENABLED", "false");
+            std::env::set_var("AUDIT_LOG_DESTINATION", "file");
+            std::env::set_var("AUDIT_LOG_LEVEL", "debug");
+        }
 
         let config = AuditConfig::from_env();
         assert!(!config.enabled);
@@ -190,9 +194,12 @@ mod tests {
         assert_eq!(config.log_level, AuditLogLevel::Debug);
 
         // Clean up
-        std::env::remove_var("AUDIT_LOG_ENABLED");
-        std::env::remove_var("AUDIT_LOG_DESTINATION");
-        std::env::remove_var("AUDIT_LOG_LEVEL");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("AUDIT_LOG_ENABLED");
+            std::env::remove_var("AUDIT_LOG_DESTINATION");
+            std::env::remove_var("AUDIT_LOG_LEVEL");
+        }
     }
 
     #[test]

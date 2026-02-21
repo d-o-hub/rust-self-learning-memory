@@ -83,7 +83,7 @@ mod dbscan_unit_tests {
         let noise_indices: Vec<usize> = labels
             .iter()
             .enumerate()
-            .filter(|(_, &l)| matches!(l, ClusterLabel::Noise))
+            .filter(|(_, l)| matches!(l, &ClusterLabel::Noise))
             .map(|(i, _)| i)
             .collect();
 
@@ -339,7 +339,7 @@ mod dbscan_integration_tests {
         let anomaly_indices: Vec<usize> = labels
             .iter()
             .enumerate()
-            .filter(|(_, &l)| matches!(l, ClusterLabel::Noise))
+            .filter(|(_, l)| matches!(l, &ClusterLabel::Noise))
             .map(|(i, _)| i)
             .collect();
 

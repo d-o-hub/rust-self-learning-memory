@@ -223,6 +223,34 @@ jobs:
         env:
           RUST_TEST_THREADS: 1
 
+  # Mutation testing - validates test suite effectiveness
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # Mutation testing is slow
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+
+      - name: Install cargo-mutants
+        run: cargo install --locked cargo-mutants
+
+      - name: Run mutation testing on memory-core
+        run: |
+          cargo mutants --package memory-core --timeout 300 --jobs 4 -- --lib
+        continue-on-error: true  # Informational - don't block on mutation results
+
+      - name: Upload mutation report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report
+          path: mutants.out/
+          retention-days: 7
+
   # Summary job
   nightly-summary:
     name: Nightly Summary

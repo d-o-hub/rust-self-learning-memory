@@ -1,0 +1,25 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: tool
+---
+{
+  "name": "query_memory",
+  "description": "Query episodic memory for relevant past experiences",
+  "input_schema": {
+    "properties": {
+      "domain": {
+        "description": "Task domain",
+        "type": "string"
+      },
+      "query": {
+        "description": "Search query describing the task",
+        "type": "string"
+      }
+    },
+    "required": [
+      "query",
+      "domain"
+    ],
+    "type": "object"
+  }
+}

@@ -44,8 +44,8 @@ codegen-units = 4
 # Security hardening flags
 # -Wl,-z,relro: Read-only relocations (RELRO)
 # -Wl,-z,now: Bind all symbols at load time (BIND_NOW)
+# Note: mold linker is 2-5x faster but requires installation (ADR-032 Phase 2)
 rustflags = [
-    "-C", "link-arg=-fuse-ld=mold",
     "-C", "link-arg=-Wl,-z,relro,-z,now",
 ]
 

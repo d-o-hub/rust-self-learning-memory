@@ -14,7 +14,7 @@ members = [
 
 [workspace.package]
 version = "0.1.15"
-edition = "2021"
+edition = "2024"
 authors = ["Self-Learning Memory Contributors"]
 license = "MIT"
 repository = "https://github.com/d-o-hub/rust-self-learning-memory"

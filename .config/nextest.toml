@@ -1,27 +1,20 @@
 [profile.default]
 retries = 0
-fail-fast = true
-slow-timeout = { period = "30s", terminate-after = 3 }
+slow-timeout = { period = "60s", terminate-after = 2 }
+fail-fast = false
 
 [profile.ci]
+retries = 2
+slow-timeout = { period = "30s", terminate-after = 3 }
+failure-output = "immediate-final"
+
+[profile.ci.junit]
+path = "target/nextest/ci/junit.xml"
+store-success-output = false
+store-failure-output = true
+
+[profile.nightly]
 retries = 1
-fail-fast = false
-# Aggressive timeout to prevent CI job timeouts
-# Tests taking >60s per period are terminated after 2 periods (120s max)
-slow-timeout = { period = "60s", terminate-after = 2 }
-test-threads = 4
-# JUnit output for test results
-junit = { path = "target/nextest/ci/junit.xml" }
-
-[profile.quick]
-# Fast feedback loop for development
-fail-fast = true
-slow-timeout = { period = "10s" }
-test-threads = 8
+slow-timeout = { period = "120s", terminate-after = 2 }
+failure-output = "final"
 status-level = "skip"
-
-[profile.coverage]
-retries = 0
-fail-fast = false
-test-threads = 1
-slow-timeout = { period = "120s", terminate-after = 1 }

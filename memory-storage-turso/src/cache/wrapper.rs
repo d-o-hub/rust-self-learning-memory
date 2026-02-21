@@ -3,10 +3,10 @@
 use super::config::{CacheConfig, CacheStats};
 use crate::TursoStorage;
 use async_trait::async_trait;
-use memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
+use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result, StorageBackend};
 use memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// Cached wrapper around TursoStorage
@@ -153,7 +153,7 @@ impl CachedTursoStorage {
         let episode = self.storage.get_episode(id).await?;
 
         // Store in cache if found
-        if let (Some(ref ep), Some(ref cache)) = (&episode, &self.episode_cache) {
+        if let (Some(ep), Some(cache)) = (&episode, &self.episode_cache) {
             cache.record_access(id, false, Some(ep.clone())).await;
         }
 
@@ -181,7 +181,7 @@ impl CachedTursoStorage {
         let pattern = self.storage.get_pattern(id).await?;
 
         // Store in cache if found
-        if let (Some(ref pat), Some(ref cache)) = (&pattern, &self.pattern_cache) {
+        if let (Some(pat), Some(cache)) = (&pattern, &self.pattern_cache) {
             cache
                 .record_access(cache_key, false, Some(pat.clone()))
                 .await;
@@ -205,7 +205,7 @@ impl CachedTursoStorage {
         let heuristic = self.storage.get_heuristic(id).await?;
 
         // Store in cache if found
-        if let (Some(ref h), Some(ref cache)) = (&heuristic, &self.heuristic_cache) {
+        if let (Some(h), Some(cache)) = (&heuristic, &self.heuristic_cache) {
             cache.record_access(id, false, Some(h.clone())).await;
         }
 

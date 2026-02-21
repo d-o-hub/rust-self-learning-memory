@@ -35,7 +35,7 @@ pub(super) fn topological_sort_kahn(nodes: &[Uuid], edges: &[(Uuid, Uuid)]) -> V
     // Find all nodes with in-degree 0
     let mut queue: std::collections::VecDeque<Uuid> = in_degree
         .iter()
-        .filter(|(_, &deg)| deg == 0)
+        .filter(|&(_, deg)| *deg == 0)
         .map(|(&id, _)| id)
         .collect();
 

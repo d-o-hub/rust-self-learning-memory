@@ -116,8 +116,8 @@ fn identify_problematic_tool(episode: &Episode) -> Option<String> {
 
     tool_failures
         .iter()
-        .max_by_key(|(_, &count)| count)
-        .filter(|(_, &count)| count >= 2)
+        .max_by_key(|&(_, count)| count)
+        .filter(|&(_, count)| *count >= 2)
         .map(|(tool, count)| format!("Tool '{tool}' failed {count} times - needs attention"))
 }
 
@@ -133,8 +133,8 @@ fn identify_repeated_errors(episode: &Episode) -> Option<String> {
 
     error_messages
         .iter()
-        .max_by_key(|(_, &count)| count)
-        .filter(|(_, &count)| count >= 2)
+        .max_by_key(|&(_, count)| count)
+        .filter(|&(_, count)| *count >= 2)
         .map(|(msg, count)| format!("Repeated error ({count} times): {msg}"))
 }
 

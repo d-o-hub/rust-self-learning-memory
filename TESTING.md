@@ -10,11 +10,29 @@ The testing infrastructure includes:
 - **Benchmarks**: Located in `benches/` directory
 - **Test utilities**: Shared helpers in `test-utils/` crate
 
+### Modern Testing Stack (2026)
+
+In addition to the standard test infrastructure, the project adopts:
+- **cargo-nextest**: Primary test runner (3x faster, per-test process isolation)
+- **cargo-mutants**: Mutation testing to verify test effectiveness (nightly CI)
+- **proptest**: Property-based testing for invariant verification
+- **insta**: Snapshot testing for output regression detection
+- **cargo-llvm-cov**: Code coverage with LCOV output
+
+See [ADR-033](plans/adr/ADR-033-Modern-Testing-Strategy.md) for the full strategy.
+
 ## Running Tests
 
 ### Run all tests
 ```bash
+# Preferred: cargo-nextest (faster, per-test isolation)
+cargo nextest run --all
+
+# Fallback: standard cargo test
 cargo test --all
+
+# Doctests (nextest doesn't support these yet)
+cargo test --doc --all
 ```
 
 ### Run unit tests only
@@ -291,5 +309,73 @@ Before merging:
 - [ ] Format strings use variable capture: `format!("{var}")`
 - [ ] Type conversions use `From` trait: `i64::from(value)`
 - [ ] Documentation uses backticks for code elements
+
+## Advanced Testing (2026)
+
+### Mutation Testing
+
+Mutation testing injects bugs into your code to verify tests catch them:
+
+```bash
+# Install cargo-mutants
+cargo install --locked cargo-mutants
+
+# Run on memory-core (recommended starting point)
+cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib
+
+# Acceptance criteria: <20% missed mutants in core business logic
+```
+
+### Property Testing
+
+Property testing generates random inputs to verify invariants:
+
+```rust
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn serialization_roundtrip(episode in any_episode_strategy()) {
+        let bytes = postcard::to_allocvec(&episode).unwrap();
+        let decoded: Episode = postcard::from_bytes(&bytes).unwrap();
+        assert_eq!(episode, decoded);
+    }
+}
+```
+
+### Snapshot Testing
+
+Snapshot testing captures output for regression detection:
+
+```rust
+#[test]
+fn test_mcp_tool_response() {
+    let response = build_tool_response("search_patterns", &params);
+    insta::assert_json_snapshot!(response);
+}
+```
+
+Run `cargo insta review` to accept/reject snapshot changes.
+
+### nextest Profiles
+
+Configure in `.config/nextest.toml`:
+
+```toml
+[profile.default]
+retries = 0
+slow-timeout = { period = "60s", terminate-after = 2 }
+
+[profile.ci]
+retries = 2
+slow-timeout = { period = "30s", terminate-after = 3 }
+failure-output = "immediate-final"
+
+[profile.nightly]
+retries = 3
+slow-timeout = { period = "120s", terminate-after = 2 }
+```
+
+See [ADR-033](plans/adr/ADR-033-Modern-Testing-Strategy.md) for complete details.
 
 See [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for complete quality gate definitions.

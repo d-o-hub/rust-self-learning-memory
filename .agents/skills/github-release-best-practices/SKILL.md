@@ -1,6 +1,6 @@
 ---
 name: github-release-best-practices
-description: Systematic approach to GitHub release preparation following 2025 best practices for Rust workspace projects
+description: Systematic approach to GitHub release preparation following 2025/2026 best practices for Rust workspace projects
 audience: maintainers
 workflow: github
 ---
@@ -390,13 +390,47 @@ jobs:
             --draft
 ```
 
-## Integration with Opencode Agents
+## Modern Release Tooling (2026 — ADR-034)
+
+### cargo-semver-checks (API Compatibility)
+```bash
+cargo install --locked cargo-semver-checks
+cargo semver-checks check-release --workspace
+```
+Catches accidental breaking changes before release.
+
+### cargo-release (Version Management)
+```bash
+cargo install --locked cargo-release
+# Handles version bump, commit, tag, push in one command
+cargo release patch  # or minor/major
+```
+
+Configure via `release.toml`:
+```toml
+[workspace]
+allow-branch = ["main"]
+pre-release-commit-message = "release: v{{version}}"
+tag-message = "v{{version}}"
+tag-prefix = "v"
+```
+
+### cargo-dist (Binary Distribution)
+```bash
+cargo install --locked cargo-dist
+cargo dist init
+```
+Generates: platform tarballs, checksums (SHA256), shell/PowerShell installers, release.yml workflow.
+
+## References
+
+- [ADR-034: Release Engineering Modernization](../../../plans/adr/ADR-034-Release-Engineering-Modernization.md)
+- [ADR-031: Cargo Lock Integrity](../../../plans/adr/ADR-031-Cargo-Lock-Integrity-for-Security-Audit.md)
+
+## Integration with Agents
 
 This skill provides foundational knowledge for:
-- **github-release-best-practices** agent: Orchestrates complete release workflows
+- **release-guard**: Gatekeeper for safe releases
 - **goap-agent**: Handles complex multi-phase release coordination
-- **testing-qa**: Validates release quality gates and compliance
-- **code-reviewer**: Assesses pre-release code quality and standards
-- **security**: Performs security audits and vulnerability assessments
-
-The skill complements agent capabilities by providing reusable procedures, templates, and best practices that agents can leverage and enhance based on specific project requirements.
+- **code-quality**: Pre-release quality validation
+- **github-workflows**: CI/CD pipeline management

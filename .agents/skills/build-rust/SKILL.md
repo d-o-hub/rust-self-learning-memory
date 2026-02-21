@@ -39,6 +39,34 @@ Efficiently build Rust workspaces with the build-rust CLI.
 | `check` | Fast type-check | `--workspace` |
 | `clean` | Clean artifacts | `--clean` |
 
+## Disk Space Optimization (ADR-032)
+
+The dev profile is optimized to reduce target/ size (~5.2 GB → ~2 GB):
+
+```toml
+# .cargo/config.toml
+[profile.dev]
+debug = "line-tables-only"    # ~60% smaller debug artifacts
+
+[profile.dev.package."*"]
+debug = false                 # No debug info for dependencies
+
+[profile.dev.build-override]
+opt-level = 3                 # Faster proc-macro execution
+
+[profile.debugging]
+inherits = "dev"
+debug = true                  # Full debug when needed: --profile debugging
+```
+
+**Linker**: Use `mold` on Linux for 2-5x faster link times:
+```toml
+[target.'cfg(target_os = "linux")']
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+```
+
+**Cleanup**: `cargo clean` or `./scripts/clean-artifacts.sh`
+
 ## Common Issues
 
 **Timeouts**
@@ -52,7 +80,13 @@ Efficiently build Rust workspaces with the build-rust CLI.
 **Dependency conflicts**
 - Update: `cargo update`
 - Check tree: `cargo tree -e features`
+- Check duplicates: `cargo tree -d | grep -cE "^[a-z]"`
 
 **Platform-specific**
 - Install targets: `rustup target add <triple>`
 - Conditional compilation: `#[cfg(target_os = "linux")]`
+
+## References
+
+- [ADR-032: Disk Space Optimization](../../../plans/adr/ADR-032-Disk-Space-Optimization.md)
+- [ADR-036: Dependency Deduplication](../../../plans/adr/ADR-036-Dependency-Deduplication.md)

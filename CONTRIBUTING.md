@@ -34,7 +34,8 @@
    ```bash
    cargo fmt --all -- --check
    cargo clippy --all -- -D warnings
-   cargo test --all
+   cargo nextest run --all  # preferred over cargo test
+   cargo test --doc --all   # doctests require cargo test
    ```
 
    **Note**: The pre-commit hook automatically runs these checks, but you can run them manually too.
@@ -50,7 +51,7 @@
    - Fill out PR template
    - Link related issues
 
-## Current Status (v0.1.13)
+## Current Status (v0.1.15)
 
 - **Test Pass Rate**: 99.5% (811+ tests passing)
 - **Test Coverage**: 92.5% across all modules
@@ -87,6 +88,8 @@ See [Testing Guide](TESTING.md) for comprehensive testing information:
 ```
 
 Types: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `ci`
+
+**Module scope** (recommended): `feat(core):`, `fix(storage):`, `perf(mcp):`, `ci(workflows):`
 
 Examples:
 ```
@@ -206,4 +209,6 @@ Breaking changes must:
 - [Code Conventions](agent_docs/code_conventions.md) - Rust idioms
 - [Testing Guide](TESTING.md) - Comprehensive testing guide
 - [Security](SECURITY.md) - Security policies and practices
+- [Release Engineering](plans/adr/ADR-034-Release-Engineering-Modernization.md) - Release workflow
+- [Release Automation](docs/RELEASE_AUTOMATION.md) - Automated release process
 

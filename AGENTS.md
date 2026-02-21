@@ -3,7 +3,7 @@
 ## Quick Reference
 - **Build**: `./scripts/build-rust.sh dev|release|check|clean`
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
-- **Tests**: `cargo test --all`
+- **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
 - **Quality Gates**: `./scripts/quality-gates.sh`
 
 ## Project Overview
@@ -37,8 +37,8 @@ Memory management system with episodic memory, semantic embeddings, Turso/libSQL
 | Format/Lint | `code-quality` | `./scripts/code-quality.sh` | Low |
 | Quality Gates | `code-quality` | `./scripts/quality-gates.sh` | Medium |
 | CI Issues | `github-workflows` | `gh workflow list` | Low |
-| Tests | `test-runner` | `cargo test --all` | Medium |
-| Debug | `debug-troubleshoot` | `RUST_LOG=debug cargo test` | Medium |
+| Tests | `test-runner` | `cargo nextest run --all` | Medium |
+| Debug | `debug-troubleshoot` | `RUST_LOG=debug cargo nextest run` | Medium |
 
 **Before using task tool:**
 1. Is there a skill in `.agents/skills/`? → Use it
@@ -60,15 +60,15 @@ skill: build-rust, code-quality
 3. Add/update tests (unit first, integration if cross-crate)
 4. `./scripts/code-quality.sh fmt` → fix formatting
 5. `cargo clippy --all -- -D warnings` → fix warnings
-6. `cargo test -p <crate>` → targeted tests
-7. `cargo test --all` → full suite
+6. `cargo nextest run -p <crate>` → targeted tests
+7. `cargo nextest run --all` → full suite (doctests: `cargo test --doc`)
 8. `./scripts/quality-gates.sh` → final validation
 
 ## Required Checks Before Commit
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --all -- -D warnings`
 - [ ] `cargo build --all`
-- [ ] `cargo test --all`
+- [ ] `cargo nextest run --all`
 - [ ] `./scripts/quality-gates.sh`
 
 ## Code Conventions
@@ -117,6 +117,26 @@ See `.env.example` for full list. Never commit secrets.
 - Episode Completion: < 500ms
 - Memory Retrieval: < 100ms
 
+## Disk Space Management
+- **Dev profile**: `debug = "line-tables-only"`, deps `debug = false` (ADR-032)
+- **Linker**: Use `mold` on Linux for faster links (ADR-032)
+- **Cleanup**: `cargo clean` or `scripts/clean-artifacts.sh` periodically
+- **Monitor**: `cargo tree -d | grep -cE "^[a-z]"` for duplicate dep count
+
+## Testing Best Practices (2026)
+- **Runner**: `cargo nextest run` everywhere (except doctests → `cargo test --doc`)
+- **Profiles**: `.config/nextest.toml` with `default`, `ci`, `nightly` profiles
+- **Mutation**: `cargo mutants` on memory-core (nightly CI)
+- **Property**: `proptest` for invariant testing (serialization, state machines)
+- **Snapshot**: `insta` for output regression (MCP responses, CLI output)
+- See ADR-033 for full strategy
+
+## Release Workflow
+- **Versioning**: `cargo release patch|minor|major` (ADR-034)
+- **Semver**: `cargo semver-checks check-release` in CI (ADR-034)
+- **Distribution**: cargo-dist for binaries + installers (ADR-034)
+- **Commits**: Conventional format (`feat(module):`, `fix(module):`)
+
 ## Cross-References
 | Topic | Document |
 |-------|----------|
@@ -128,3 +148,9 @@ See `.env.example` for full list. Never commit secrets.
 | Communication patterns | `agent_docs/service_communication_patterns.md` |
 | Active roadmap | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
 | Architecture decisions | `plans/adr/` |
+| Disk space optimization | `plans/adr/ADR-032-Disk-Space-Optimization.md` |
+| Modern testing strategy | `plans/adr/ADR-033-Modern-Testing-Strategy.md` |
+| Release engineering | `plans/adr/ADR-034-Release-Engineering-Modernization.md` |
+| Rust 2024 edition | `plans/adr/ADR-035-Rust-2024-Edition-Migration.md` |
+| Dependency optimization | `plans/adr/ADR-036-Dependency-Deduplication.md` |
+| Master execution plan | `plans/GOAP_DISK_TESTING_RELEASE_2026.md` |

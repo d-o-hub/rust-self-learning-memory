@@ -28,8 +28,10 @@ Re-run task.
 ```
 
 ## Pass: Safe Release
+- Semver check: `cargo semver-checks check-release --workspace` (ADR-034)
 - Tag: vMAJOR.MINOR.PATCH (semantic).
-- `gh release create v1.2.3 --generate-notes --target main`
+- Prefer: `cargo release patch|minor|major` (ADR-034)
+- Fallback: `gh release create v1.2.3 --generate-notes --target main`
 - Confirm before execute.
 
 ## Examples

@@ -4,7 +4,7 @@
 
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Rust Version](https://img.shields.io/badge/Rust-1.75%2B-yellow)
+![Rust Version](https://img.shields.io/badge/Rust-1.85%2B-yellow)
 ![Last Updated](https://img.shields.io/badge/last%20updated-February%202026-blue)
 ![Coverage](https://img.shields.io/badge/coverage-92.5%25-brightgreen)
 ![Clippy](https://img.shields.io/badge/clippy-0%20warnings-success)
@@ -25,7 +25,7 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
 
-**Current Status (v0.1.14):**
+**Current Status (v0.1.15):**
 - **Production-ready** episodic memory management system for AI agents
 - **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples, tests
 - **632 Rust source files** with ~140,000 lines of code
@@ -174,10 +174,9 @@ async fn main() -> anyhow::Result<()> {
 **Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
-- Rust (latest stable)
+- Rust 1.85+ (stable, 2024 edition)
 - SQLite (for local development)
 - Optional: Turso CLI (for cloud database)
-- Optional: Node.js (for JavaScript sandbox features)
 
 ### Installation
 
@@ -191,6 +190,8 @@ cargo build --release
 
 # Run tests
 cargo test --all
+# Or use nextest for faster tests
+cargo nextest run --all
 
 # Run quality gates
 ./scripts/quality-gates.sh
@@ -299,6 +300,7 @@ async fn main() -> anyhow::Result<()> {
 | [Contributing](CONTRIBUTING.md) | Development workflow |
 | [Security](SECURITY.md) | Security policies and practices |
 | [Deployment](DEPLOYMENT.md) | Deployment strategies |
+| [Release Engineering](plans/adr/ADR-034-Release-Engineering-Modernization.md) | Release workflow and automation |
 
 ### Agent Documentation
 

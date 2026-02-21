@@ -68,6 +68,7 @@ jobs:
     steps:
       - name: Set build directories
         shell: bash
+        # shellcheck disable=SC2086
         run: |
           echo "CARGO_TARGET_DIR=${{ runner.temp }}/cargo-target" >> $GITHUB_ENV
           echo "SCCACHE_DIR=${{ runner.temp }}/sccache" >> $GITHUB_ENV

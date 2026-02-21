@@ -44,6 +44,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(clippy::manual_async_fn)]
     fn test_configure_embeddings_signature_compile() {
         // This test ensures the method signature compiles correctly
         // The actual functionality is tested in the tool implementation tests

@@ -10,7 +10,7 @@ use memory_mcp::mcp::tools::advanced_pattern_analysis::{
 use memory_mcp::patterns::statistical;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::time::{timeout, Duration};
+use tokio::time::{Duration, timeout};
 
 /// Test comprehensive statistical analysis with various data patterns
 #[tokio::test]

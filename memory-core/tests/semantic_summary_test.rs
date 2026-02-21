@@ -107,9 +107,11 @@ fn test_extract_key_concepts() {
     assert!(concepts.iter().any(|c| c.contains("code_generation")));
 
     // Should be normalized (lowercase)
-    assert!(concepts
-        .iter()
-        .all(|c| c.chars().all(|ch| !ch.is_uppercase())));
+    assert!(
+        concepts
+            .iter()
+            .all(|c| c.chars().all(|ch| !ch.is_uppercase()))
+    );
 
     // Should be limited
     assert!(concepts.len() <= 20);
@@ -133,12 +135,16 @@ fn test_extract_key_concepts_with_salient_features() {
     let concepts = summarizer.extract_key_concepts(&episode);
 
     // Should extract from salient features
-    assert!(concepts
-        .iter()
-        .any(|c| c.contains("async") || c.contains("implementation")));
-    assert!(concepts
-        .iter()
-        .any(|c| c.contains("builder") || c.contains("pattern")));
+    assert!(
+        concepts
+            .iter()
+            .any(|c| c.contains("async") || c.contains("implementation"))
+    );
+    assert!(
+        concepts
+            .iter()
+            .any(|c| c.contains("builder") || c.contains("pattern"))
+    );
 }
 
 #[test]
@@ -200,9 +206,11 @@ fn test_extract_key_steps_with_errors() {
     let key_steps = summarizer.extract_key_steps(&episode);
 
     // Should prioritize error steps
-    assert!(key_steps
-        .iter()
-        .any(|s| s.contains("Step 4") && s.contains("[ERROR]")));
+    assert!(
+        key_steps
+            .iter()
+            .any(|s| s.contains("Step 4") && s.contains("[ERROR]"))
+    );
 }
 
 #[test]
@@ -473,9 +481,11 @@ fn test_concept_normalization() {
     let concepts = summarizer.extract_key_concepts(&episode);
 
     // All should be lowercase
-    assert!(concepts
-        .iter()
-        .all(|c| c.chars().all(|ch| !ch.is_uppercase())));
+    assert!(
+        concepts
+            .iter()
+            .all(|c| c.chars().all(|ch| !ch.is_uppercase()))
+    );
 
     // Should strip punctuation
     assert!(concepts.contains(&"authentication".to_string()));

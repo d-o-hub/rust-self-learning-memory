@@ -169,8 +169,8 @@ fn identify_redundancy(episode: &Episode) -> Option<String> {
     // Find tools used many times
     let redundant = tool_counts
         .iter()
-        .filter(|(_, &count)| count >= 5)
-        .max_by_key(|(_, &count)| count);
+        .filter(|&(_, &count)| count >= 5)
+        .max_by_key(|&(_, &count)| count);
 
     if let Some((tool, count)) = redundant {
         Some(format!(
@@ -192,7 +192,8 @@ fn analyze_error_root_causes(episode: &Episode) -> Option<String> {
         if unique_error_tools.len() == 1 {
             Some(format!(
                 "Systematic issue with '{}' - {} consecutive failures suggest incompatibility or misconfiguration",
-                error_tools[0], error_steps.len()
+                error_tools[0],
+                error_steps.len()
             ))
         } else {
             Some(format!(

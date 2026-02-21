@@ -1,8 +1,8 @@
 //! Core implementations for relationship commands
 
 use colored::Colorize;
-use memory_core::memory::relationship_query::RelationshipFilter;
 use memory_core::memory::SelfLearningMemory;
+use memory_core::memory::relationship_query::RelationshipFilter;
 use uuid::Uuid;
 
 use crate::config::Config;

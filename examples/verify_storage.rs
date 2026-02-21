@@ -5,10 +5,10 @@
 
 use anyhow::Result;
 use memory_core::{
+    MemoryConfig,
     episode::ExecutionStep,
     memory::SelfLearningMemory,
     types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType},
-    MemoryConfig,
 };
 use std::sync::Arc;
 use tempfile::tempdir;

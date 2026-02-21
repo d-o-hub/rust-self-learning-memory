@@ -1,9 +1,9 @@
 //! Context-based episode retrieval implementation
 
+use crate::MAX_QUERY_LIMIT;
 use crate::episode::Episode;
 use crate::spatiotemporal::RetrievalQuery;
 use crate::types::TaskContext;
-use crate::MAX_QUERY_LIMIT;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};
 

@@ -4,9 +4,9 @@
 //! progress within an episode.
 
 use crate::server::MemoryMCPServer;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use memory_core::ExecutionStep;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tracing::debug;
 use tracing::info;
 use uuid::Uuid;
@@ -91,7 +91,7 @@ impl MemoryMCPServer {
                     return Err(anyhow!(
                         "Invalid result type: {}. Must be one of: success, error, timeout",
                         result_type
-                    ))
+                    ));
                 }
             });
         }

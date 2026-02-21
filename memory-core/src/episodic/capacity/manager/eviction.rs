@@ -95,8 +95,8 @@ fn evict_relevance_weighted(episodes: &[Episode], count: usize) -> Vec<Uuid> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{ComplexityLevel, RewardScore, TaskContext, TaskType};
     use crate::Episode;
+    use crate::types::{ComplexityLevel, RewardScore, TaskContext, TaskType};
 
     fn create_test_episode(task_desc: &str) -> Episode {
         let context = TaskContext {

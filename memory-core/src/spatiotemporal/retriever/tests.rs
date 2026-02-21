@@ -112,9 +112,11 @@ fn test_task_type_filtering() {
 
     let filtered = retriever.filter_by_task_type(&candidates, &query);
     assert_eq!(filtered.len(), 2);
-    assert!(filtered
-        .iter()
-        .all(|ep| ep.task_type == TaskType::CodeGeneration));
+    assert!(
+        filtered
+            .iter()
+            .all(|ep| ep.task_type == TaskType::CodeGeneration)
+    );
 }
 
 #[test]

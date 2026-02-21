@@ -19,7 +19,7 @@ pub use defaults::*;
 pub use enums::{ConfigError, DatabaseType, PerformanceLevel};
 pub use presets::ConfigPreset;
 pub use structs::{CliConfig, Config, DatabaseConfig, EmbeddingsConfig, StorageConfig};
-pub use system_info::{smart_config, ConfigRecommendations, SystemInfo};
+pub use system_info::{ConfigRecommendations, SystemInfo, smart_config};
 
 // Re-export validation types from validator module for backward compatibility
 pub use crate::config::validator::{ValidationError, ValidationResult, ValidationWarning};

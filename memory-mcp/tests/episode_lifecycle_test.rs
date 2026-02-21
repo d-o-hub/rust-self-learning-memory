@@ -72,10 +72,12 @@ async fn test_create_episode_invalid_task_type() {
 
     let result = server.create_episode_tool(args).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Invalid task_type"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid task_type")
+    );
 }
 
 #[tokio::test]

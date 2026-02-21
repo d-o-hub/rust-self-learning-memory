@@ -43,8 +43,8 @@ async fn test_vector_search() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
     // Store some episodes with embeddings
-    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
     use memory_core::Episode;
+    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -107,8 +107,8 @@ async fn test_vector_search() {
 async fn test_vector_search_threshold() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
-    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
     use memory_core::Episode;
+    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
     let context = TaskContext {
         language: Some("rust".to_string()),

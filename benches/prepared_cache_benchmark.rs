@@ -5,7 +5,7 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
-use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use memory_storage_turso::prepared::PreparedStatementCache;
 use std::hint::black_box;
 

@@ -238,14 +238,18 @@ async fn test_search_episodes_by_tags_any() {
 
     assert!(output.success);
     assert_eq!(output.count, 2); // Episodes 1 and 2
-    assert!(output
-        .episodes
-        .iter()
-        .any(|e| e.episode_id == episode1.to_string()));
-    assert!(output
-        .episodes
-        .iter()
-        .any(|e| e.episode_id == episode2.to_string()));
+    assert!(
+        output
+            .episodes
+            .iter()
+            .any(|e| e.episode_id == episode1.to_string())
+    );
+    assert!(
+        output
+            .episodes
+            .iter()
+            .any(|e| e.episode_id == episode2.to_string())
+    );
 }
 
 #[tokio::test]

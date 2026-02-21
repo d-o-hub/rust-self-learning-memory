@@ -3,7 +3,7 @@
 //! CRUD operations for episodes.
 
 use crate::TursoStorage;
-use memory_core::{semantic::EpisodeSummary, Episode, Error, Result};
+use memory_core::{Episode, Error, Result, semantic::EpisodeSummary};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -56,7 +56,7 @@ pub fn decompress_json_field(data: &str) -> Result<Vec<u8>> {
                 return Err(Error::Storage(format!(
                     "Unknown compression algorithm: {}",
                     algorithm_str
-                )))
+                )));
             }
         };
 

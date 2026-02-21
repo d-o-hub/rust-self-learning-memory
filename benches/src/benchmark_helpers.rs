@@ -110,7 +110,10 @@ pub fn generate_execution_steps(count: usize) -> Vec<memory_core::episode::Execu
 
 /// Generate a large episode with many steps for memory pressure testing
 pub fn generate_large_episode_description(id: usize) -> String {
-    format!("Implement comprehensive feature {} with extensive async processing, error handling, logging, monitoring, testing, and documentation covering multiple modules and integration points", id)
+    format!(
+        "Implement comprehensive feature {} with extensive async processing, error handling, logging, monitoring, testing, and documentation covering multiple modules and integration points",
+        id
+    )
 }
 
 /// Generate many execution steps for memory pressure testing

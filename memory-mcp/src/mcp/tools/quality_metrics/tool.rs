@@ -3,9 +3,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
-use memory_core::pre_storage::{QualityAssessor, QualityConfig};
+use anyhow::{Result, anyhow};
 use memory_core::SelfLearningMemory;
+use memory_core::pre_storage::{QualityAssessor, QualityConfig};
 use serde_json::json;
 use tracing::{debug, info, instrument};
 

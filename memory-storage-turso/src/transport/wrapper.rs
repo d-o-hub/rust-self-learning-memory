@@ -166,8 +166,7 @@ impl CompressedTransport {
         if original_size < self.min_compress_size {
             trace!(
                 "Data size {} < threshold {}, skipping compression",
-                original_size,
-                self.min_compress_size
+                original_size, self.min_compress_size
             );
 
             let mut stats = TransportCompressionStats::new();

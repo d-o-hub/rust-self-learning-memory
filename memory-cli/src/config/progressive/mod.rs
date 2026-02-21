@@ -62,6 +62,6 @@ pub mod modes;
 pub mod quick_setup;
 pub mod simple_setup;
 
-pub use modes::{recommend_mode, ConfigurationMode, ModeRecommendation, UsagePattern};
+pub use modes::{ConfigurationMode, ModeRecommendation, UsagePattern, recommend_mode};
 pub use quick_setup::setup_quick_redb;
 pub use simple_setup::SimpleSetup;

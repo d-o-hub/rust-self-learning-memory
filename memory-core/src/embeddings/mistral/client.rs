@@ -274,8 +274,8 @@ impl EmbeddingProvider for MistralEmbeddingProvider {
 mod tests {
     use super::*;
     use crate::embeddings::config::{
-        mistral::{MistralModel, OutputDtype},
         OptimizationConfig,
+        mistral::{MistralModel, OutputDtype},
     };
     use crate::embeddings::provider::EmbeddingProvider;
 
@@ -340,9 +340,11 @@ mod tests {
         let test_data = vec![1.0, 2.0, 3.0];
         let result = provider.dequantize_binary_embeddings(test_data);
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("not yet implemented"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("not yet implemented")
+        );
     }
 }

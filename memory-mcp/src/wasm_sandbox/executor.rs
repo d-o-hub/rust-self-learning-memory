@@ -6,7 +6,7 @@
 use super::config::{PooledRuntime, WasmConfig};
 use super::types::WasmMetrics;
 use crate::types::{ExecutionContext, ExecutionResult};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 #[cfg(feature = "wasm-rquickjs")]
 use rquickjs::{Context, Ctx, Function, Object, Value};
 use std::sync::Arc;

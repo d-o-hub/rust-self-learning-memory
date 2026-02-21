@@ -5,13 +5,13 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use futures::future::join_all;
+use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
 };
-use memory_benches::TokioExecutor;
 use memory_core::types::{TaskOutcome, TaskType};
 use rand::prelude::*;
 use std::sync::Arc;
@@ -104,7 +104,7 @@ async fn run_concurrent_workload(
     let context = create_benchmark_context();
 
     for _ in 0..operations {
-        let choice: f64 = rng.gen();
+        let choice: f64 = rng.random();
 
         if choice < pattern.read_ratio() {
             // Read operation
@@ -125,7 +125,7 @@ async fn run_concurrent_workload(
                     format!(
                         "Concurrent write from thread {} op {}",
                         thread_id,
-                        rng.gen::<u32>()
+                        rng.random::<u32>()
                     ),
                     context.clone(),
                     TaskType::CodeGeneration,

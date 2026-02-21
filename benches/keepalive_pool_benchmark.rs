@@ -6,7 +6,7 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use memory_storage_turso::{TursoConfig, TursoStorage};
 use tokio::runtime::Runtime;
 

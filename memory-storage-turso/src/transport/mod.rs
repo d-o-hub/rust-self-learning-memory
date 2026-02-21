@@ -18,8 +18,8 @@ pub mod wrapper;
 
 #[cfg(feature = "compression")]
 pub use compression::{
-    compress_transport, decompress_transport, AsyncCompressor, CompressionStreamResult,
-    TransportCompressionConfig, TransportCompressionError, TransportCompressionStats,
+    AsyncCompressor, CompressionStreamResult, TransportCompressionConfig,
+    TransportCompressionError, TransportCompressionStats, compress_transport, decompress_transport,
 };
 
 #[cfg(feature = "compression")]

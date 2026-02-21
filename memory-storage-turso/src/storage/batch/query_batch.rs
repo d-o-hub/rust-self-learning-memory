@@ -5,7 +5,7 @@
 use super::super::episodes::row_to_episode;
 use super::super::patterns::row_to_pattern;
 use crate::TursoStorage;
-use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result};
+use memory_core::{Episode, Error, Heuristic, Pattern, Result, episode::PatternId};
 use tracing::{debug, info};
 use uuid::Uuid;
 

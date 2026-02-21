@@ -8,7 +8,7 @@ use anyhow::Result;
 use memory_core::{Episode, StorageBackend};
 use memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
-use test_utils::multi_dimension::{table_for_dimension, MultiDimensionTestHarness};
+use test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
 
 /// Helper to create test storage with initialized schema
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

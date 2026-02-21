@@ -92,11 +92,7 @@ pub fn calculate_relevance_score(mode: &SearchMode, similarity: f64) -> f64 {
     match mode {
         SearchMode::Exact => {
             // Exact matches get full score
-            if similarity >= 1.0 {
-                1.0
-            } else {
-                0.0
-            }
+            if similarity >= 1.0 { 1.0 } else { 0.0 }
         }
         SearchMode::Fuzzy { threshold } => {
             // Fuzzy matches: normalize above threshold

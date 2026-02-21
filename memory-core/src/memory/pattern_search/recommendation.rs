@@ -3,15 +3,15 @@
 //! Provides high-level functions for recommending patterns for tasks
 //! and discovering analogous patterns across domains.
 
+use crate::Result;
 use crate::embeddings::SemanticService;
 use crate::pattern::Pattern;
 use crate::types::TaskContext;
-use crate::Result;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::debug;
 
-use super::scoring::{calculate_pattern_score, SearchConfig};
+use super::scoring::{SearchConfig, calculate_pattern_score};
 
 /// Result from semantic pattern search with scoring details
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -8,10 +8,10 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::info;
 
+use super::super::ActiveTask;
 use super::super::types::{
     TaskCancelParams, TaskCompleteParams, TaskCreateParams, TaskStatus, TaskUpdateParams,
 };
-use super::super::ActiveTask;
 
 /// Handle task/create - create a new long-running task
 pub async fn handle_task_create(
@@ -34,7 +34,7 @@ pub async fn handle_task_create(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -47,7 +47,7 @@ pub async fn handle_task_create(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 
@@ -99,7 +99,7 @@ pub async fn handle_task_update(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -112,7 +112,7 @@ pub async fn handle_task_update(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 
@@ -179,7 +179,7 @@ pub async fn handle_task_complete(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -192,7 +192,7 @@ pub async fn handle_task_complete(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 
@@ -255,7 +255,7 @@ pub async fn handle_task_cancel(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -268,7 +268,7 @@ pub async fn handle_task_cancel(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 

@@ -3,9 +3,9 @@
 //! Tests hierarchical retrieval with query embeddings enabled/disabled,
 //! fallback behavior, and accuracy comparisons.
 
+use memory_core::Episode;
 use memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
 use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
-use memory_core::Episode;
 use std::sync::Arc;
 
 /// Create a test episode with specific characteristics

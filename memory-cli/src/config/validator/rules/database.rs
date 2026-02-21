@@ -1,7 +1,7 @@
 //! Database configuration validation rules.
 
-use crate::config::types::DatabaseConfig;
 use crate::config::ValidationError;
+use crate::config::types::DatabaseConfig;
 
 /// Validate database configuration.
 pub fn validate_database_config(config: &DatabaseConfig) -> Vec<ValidationError> {

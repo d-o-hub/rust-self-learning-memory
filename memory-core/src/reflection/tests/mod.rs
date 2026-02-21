@@ -11,9 +11,9 @@
 
 #![allow(dead_code)]
 
+use crate::ExecutionStep;
 use crate::episode::Episode;
 use crate::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::ExecutionStep;
 
 // ---------------------------------------------------------------------------
 // Test helper functions shared across test modules

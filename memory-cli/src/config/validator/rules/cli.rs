@@ -1,7 +1,7 @@
 //! CLI configuration validation rules.
 
-use crate::config::types::CliConfig;
 use crate::config::ValidationError;
+use crate::config::types::CliConfig;
 
 /// Validate CLI configuration (errors only).
 pub fn validate_cli_config_errors(config: &CliConfig) -> Vec<ValidationError> {

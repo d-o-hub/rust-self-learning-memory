@@ -13,10 +13,10 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use memory_core::{
-    memory::SelfLearningMemory, ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext,
-    TaskOutcome, TaskType,
+    ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
+    memory::SelfLearningMemory,
 };
 use std::hint::black_box;
 use std::time::Duration;

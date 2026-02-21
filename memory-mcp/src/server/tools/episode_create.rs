@@ -4,9 +4,9 @@
 //! task execution programmatically.
 
 use crate::server::MemoryMCPServer;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use memory_core::{TaskContext, TaskType};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tracing::debug;
 use tracing::info;
 

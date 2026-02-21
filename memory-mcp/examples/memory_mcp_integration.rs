@@ -22,7 +22,7 @@ use memory_core::{
 use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 #[allow(clippy::unwrap_used)]
@@ -294,8 +294,13 @@ async fn main() -> anyhow::Result<()> {
     println!("   5.4 Verifying execution statistics...");
     let stats = mcp_server.get_stats().await;
     // Note: Code execution may fail if Node.js is not available, so we just verify stats are tracked
-    println!("       ✅ Execution statistics verified ({} total executions, {} successful, {} failed, {} violations)",
-             stats.total_executions, stats.successful_executions, stats.failed_executions, stats.security_violations);
+    println!(
+        "       ✅ Execution statistics verified ({} total executions, {} successful, {} failed, {} violations)",
+        stats.total_executions,
+        stats.successful_executions,
+        stats.failed_executions,
+        stats.security_violations
+    );
 
     println!();
     println!("🎉 Memory MCP Integration Sample Completed Successfully!");

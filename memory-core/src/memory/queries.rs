@@ -6,9 +6,9 @@
 // Type alias for complex nested type to avoid parser issues with >>>>
 type EpisodeMap = tokio::sync::RwLock<HashMap<Uuid, Arc<Episode>>>;
 
+use crate::Result;
 use crate::episode::Episode;
 use crate::pattern::Pattern;
-use crate::Result;
 use chrono::{TimeZone, Utc};
 use std::collections::HashMap;
 use std::sync::Arc;

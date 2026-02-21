@@ -20,9 +20,9 @@
 )]
 
 use memory_core::embeddings::{
+    EmbeddingConfig, ProviderConfig,
     config::mistral::{MistralConfig, OutputDtype},
     config::openai::OpenAIConfig,
-    EmbeddingConfig, ProviderConfig,
 };
 
 fn main() {

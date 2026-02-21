@@ -134,7 +134,9 @@ fn quality_gate_test_coverage() {
         println!("Install with: cargo install cargo-llvm-cov");
 
         if !skip_optional_gates() {
-            panic!("cargo-llvm-cov required for coverage gate. Set QUALITY_GATE_SKIP_OPTIONAL=true to skip.");
+            panic!(
+                "cargo-llvm-cov required for coverage gate. Set QUALITY_GATE_SKIP_OPTIONAL=true to skip."
+            );
         }
         println!("Skipping coverage gate (QUALITY_GATE_SKIP_OPTIONAL=true)");
         return;

@@ -1,6 +1,6 @@
 //! Embedding storage backend helper implementation for redb cache
 
-use crate::{RedbStorage, EMBEDDINGS_TABLE};
+use crate::{EMBEDDINGS_TABLE, RedbStorage};
 use memory_core::{Error, Result};
 use redb::ReadableTable;
 use std::sync::Arc;

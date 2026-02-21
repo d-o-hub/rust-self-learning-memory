@@ -112,8 +112,12 @@ impl LocalEmbeddingProvider {
 
         #[cfg(not(feature = "local-embeddings"))]
         {
-            tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly");
-            tracing::warn!("To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available");
+            tracing::warn!(
+                "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly"
+            );
+            tracing::warn!(
+                "To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available"
+            );
 
             let mock_fallback = Box::new(super::mock_model::MockLocalModel::new(
                 self.config.model_name.clone(),
@@ -246,7 +250,7 @@ pub use crate::embeddings::mock_model::{MockLocalModel, RealEmbeddingModelWithFa
 /// Re-export utilities from the utils module
 #[allow(unused)]
 pub use crate::embeddings::utils::{
-    get_recommended_model, list_available_models, LocalModelUseCase,
+    LocalModelUseCase, get_recommended_model, list_available_models,
 };
 
 #[cfg(test)]

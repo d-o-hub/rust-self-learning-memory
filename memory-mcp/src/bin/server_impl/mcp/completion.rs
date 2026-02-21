@@ -28,7 +28,7 @@ pub async fn handle_completion_complete(request: JsonRpcRequest) -> Option<JsonR
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -41,7 +41,7 @@ pub async fn handle_completion_complete(request: JsonRpcRequest) -> Option<JsonR
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 

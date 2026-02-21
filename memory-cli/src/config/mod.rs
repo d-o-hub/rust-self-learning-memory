@@ -46,8 +46,8 @@ pub use types::{
 };
 
 pub use loader::{
-    cache_stats, clear_cache, detect_format, load_config, load_config_verbose,
-    load_config_with_format, CacheStats, ConfigFormat, ConfigWriter,
+    CacheStats, ConfigFormat, ConfigWriter, cache_stats, clear_cache, detect_format, load_config,
+    load_config_verbose, load_config_with_format,
 };
 
 pub use validator::{
@@ -56,19 +56,19 @@ pub use validator::{
     validate_storage_config,
 };
 
-pub use storage::{initialize_storage, StorageInfo, StorageInitResult, StorageType};
+pub use storage::{StorageInfo, StorageInitResult, StorageType, initialize_storage};
 
 pub use simple::{
-    generate_template, setup_auto, setup_cloud, setup_from_file, setup_local, setup_memory,
-    setup_with_overrides, EnvironmentCheck, ReadinessCheck, SimpleConfig,
+    EnvironmentCheck, ReadinessCheck, SimpleConfig, generate_template, setup_auto, setup_cloud,
+    setup_from_file, setup_local, setup_memory, setup_with_overrides,
 };
 
 pub use progressive::{
-    recommend_mode, setup_quick_redb, ConfigurationMode, ModeRecommendation, SimpleSetup,
-    UsagePattern,
+    ConfigurationMode, ModeRecommendation, SimpleSetup, UsagePattern, recommend_mode,
+    setup_quick_redb,
 };
 
-pub use wizard::{quick_setup, show_template, ConfigWizard};
+pub use wizard::{ConfigWizard, quick_setup, show_template};
 
 /// Load and validate configuration from file or use defaults
 ///

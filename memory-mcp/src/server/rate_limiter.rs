@@ -178,9 +178,7 @@ impl RateLimiter {
         if allowed {
             trace!(
                 "Rate limit check passed for client: {} (op: {:?}, remaining: {})",
-                client_id,
-                operation,
-                remaining
+                client_id, operation, remaining
             );
             RateLimitResult {
                 allowed: true,
@@ -367,15 +365,21 @@ mod tests {
         };
 
         let headers = limiter.get_headers(&result);
-        assert!(headers
-            .iter()
-            .any(|(k, v)| k == "X-RateLimit-Limit" && v == "100"));
-        assert!(headers
-            .iter()
-            .any(|(k, v)| k == "X-RateLimit-Remaining" && v == "50"));
-        assert!(headers
-            .iter()
-            .any(|(k, v)| k == "X-RateLimit-Reset" && v == "30"));
+        assert!(
+            headers
+                .iter()
+                .any(|(k, v)| k == "X-RateLimit-Limit" && v == "100")
+        );
+        assert!(
+            headers
+                .iter()
+                .any(|(k, v)| k == "X-RateLimit-Remaining" && v == "50")
+        );
+        assert!(
+            headers
+                .iter()
+                .any(|(k, v)| k == "X-RateLimit-Reset" && v == "30")
+        );
     }
 
     #[test]

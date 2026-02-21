@@ -4,9 +4,9 @@
 //! of all steps in an episode.
 
 use crate::server::MemoryMCPServer;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use memory_core::{ExecutionResult, TaskOutcome};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tracing::debug;
 use uuid::Uuid;
 

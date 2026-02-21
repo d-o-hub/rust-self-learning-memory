@@ -3,10 +3,10 @@
 //! Run with: cargo bench --package memory-core -- indexing
 
 use chrono::{DateTime, Duration, Utc};
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use memory_core::Episode;
 use memory_core::indexing::{HierarchicalIndex, HierarchicalQuery, SpatiotemporalIndex};
 use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
-use memory_core::Episode;
 use std::hint::black_box;
 use uuid::Uuid;
 

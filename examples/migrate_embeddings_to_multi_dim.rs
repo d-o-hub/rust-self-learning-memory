@@ -11,7 +11,7 @@
 //!   TURSO_AUTH_TOKEN - Auth token (default: empty)
 
 use anyhow::Result;
-use libsql::{params, Builder};
+use libsql::{Builder, params};
 
 #[tokio::main]
 async fn main() -> Result<()> {

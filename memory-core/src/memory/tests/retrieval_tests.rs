@@ -1,8 +1,8 @@
 //! Retrieval-related tests for `SelfLearningMemory`.
 
+use crate::SelfLearningMemory;
 use crate::episode::ExecutionStep;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use crate::SelfLearningMemory;
 use uuid::Uuid;
 
 /// Test retrieving relevant context.
@@ -108,9 +108,11 @@ pub async fn test_retrieve_relevant_context() {
 
     // Should retrieve the web-api episodes, not the data-science one
     assert!(relevant.len() >= 3);
-    assert!(relevant
-        .iter()
-        .all(|e| e.context.domain == "web-api" || e.task_description.contains("API")));
+    assert!(
+        relevant
+            .iter()
+            .all(|e| e.context.domain == "web-api" || e.task_description.contains("API"))
+    );
 }
 
 /// Test retrieving relevant patterns (heuristics).

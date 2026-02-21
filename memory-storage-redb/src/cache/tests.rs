@@ -1,7 +1,7 @@
 //! Tests for LRU cache implementation
 
 use super::{CacheConfig, LRUCache};
-use tokio::time::{sleep, Duration as TokioDuration};
+use tokio::time::{Duration as TokioDuration, sleep};
 use uuid::Uuid;
 
 fn create_test_cache(max_size: usize, ttl_secs: u64) -> LRUCache {

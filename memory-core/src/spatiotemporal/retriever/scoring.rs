@@ -3,7 +3,7 @@
 //! Implements the 4-level scoring strategy for episodic memory retrieval.
 
 use super::types::{
-    calculate_text_similarity, get_or_generate_episode_embedding, HierarchicalScore, RetrievalQuery,
+    HierarchicalScore, RetrievalQuery, calculate_text_similarity, get_or_generate_episode_embedding,
 };
 use crate::episode::Episode;
 use chrono::Utc;

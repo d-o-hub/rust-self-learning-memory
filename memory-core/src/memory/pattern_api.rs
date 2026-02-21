@@ -1,5 +1,5 @@
-use crate::types::TaskContext;
 use crate::Result;
+use crate::types::TaskContext;
 
 use super::pattern_search;
 

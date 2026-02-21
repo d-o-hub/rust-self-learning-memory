@@ -172,15 +172,19 @@ impl TursoStorage {
         let sql = match direction {
             Direction::Outgoing => format!(
                 "SELECT * FROM episode_relationships WHERE from_episode_id = '{}' AND relationship_type = '{}'",
-                episode_id, relationship_type.as_str()
+                episode_id,
+                relationship_type.as_str()
             ),
             Direction::Incoming => format!(
                 "SELECT * FROM episode_relationships WHERE to_episode_id = '{}' AND relationship_type = '{}'",
-                episode_id, relationship_type.as_str()
+                episode_id,
+                relationship_type.as_str()
             ),
             Direction::Both => format!(
                 "SELECT * FROM episode_relationships WHERE (from_episode_id = '{}' OR to_episode_id = '{}') AND relationship_type = '{}'",
-                episode_id, episode_id, relationship_type.as_str()
+                episode_id,
+                episode_id,
+                relationship_type.as_str()
             ),
         };
 
@@ -219,7 +223,9 @@ impl TursoStorage {
 
         let sql = format!(
             "SELECT COUNT(*) as count FROM episode_relationships WHERE from_episode_id = '{}' AND to_episode_id = '{}' AND relationship_type = '{}'",
-            from_episode_id, to_episode_id, relationship_type.as_str()
+            from_episode_id,
+            to_episode_id,
+            relationship_type.as_str()
         );
 
         let stmt = conn

@@ -45,7 +45,7 @@ pub async fn list_episodes(
                  • other - Other task types\n\
                  \nExample: memory-cli episode list --task-type debugging",
                     task_type_str
-                ))
+                ));
             }
         };
     }
@@ -257,7 +257,7 @@ pub async fn list_episodes_basic(
                  • other - Other task types\n\
                  \nExample: memory-cli episode list --task-type debugging",
                     task_type_str
-                ))
+                ));
             }
         };
     }

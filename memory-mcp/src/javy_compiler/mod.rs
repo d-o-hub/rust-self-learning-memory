@@ -22,13 +22,13 @@ mod cache;
 mod config;
 mod utils;
 
-pub use config::{calculate_ema, JavyConfig, JavyMetrics};
+pub use config::{JavyConfig, JavyMetrics, calculate_ema};
 pub use utils::{generate_cache_key, is_valid_wasm_file, validate_js_syntax};
 
 use crate::types::{ExecutionContext, ExecutionResult};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tokio::sync::{RwLock, Semaphore};
@@ -256,7 +256,7 @@ impl JavyCompiler {
     /// Perform the actual JavaScript to WASM compilation
     #[cfg(feature = "javy-backend")]
     async fn perform_compilation(&self, js_source: &str) -> Result<Vec<u8>> {
-        use javy_codegen::{Generator, LinkingKind, JS};
+        use javy_codegen::{Generator, JS, LinkingKind};
         use std::env;
         // Ensure Javy plugin path is available for codegen. If not provided by the environment,
         // default to the plugin bundled with this crate.
@@ -302,9 +302,9 @@ impl JavyCompiler {
                 let plugin = Path::new(&plugin_path);
                 if plugin.exists() && is_valid_wasm_file(plugin) {
                     let js = JS::from_string(js_clone);
-                    let mut gen = Generator::default();
-                    gen.linking(LinkingKind::Dynamic);
-                    let wasm = gen.generate(&js).context("Failed to generate WASM")?;
+                    let mut generator = Generator::default();
+                    generator.linking(LinkingKind::Dynamic);
+                    let wasm = generator.generate(&js).context("Failed to generate WASM")?;
                     debug!(
                         "Compiled JS ({} bytes) to WASM ({} bytes) via plugin {}",
                         source_len,
@@ -325,9 +325,9 @@ impl JavyCompiler {
             let default_plugin = Path::new(&default_path);
             if default_plugin.exists() && is_valid_wasm_file(default_plugin) {
                 let js = JS::from_string(js_clone);
-                let mut gen = Generator::default();
-                gen.linking(LinkingKind::Dynamic);
-                let wasm = gen.generate(&js).context("Failed to generate WASM")?;
+                let mut generator = Generator::default();
+                generator.linking(LinkingKind::Dynamic);
+                let wasm = generator.generate(&js).context("Failed to generate WASM")?;
                 debug!(
                     "Compiled JS ({} bytes) to WASM ({} bytes) via bundled plugin {}",
                     source_len,

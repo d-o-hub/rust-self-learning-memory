@@ -10,9 +10,8 @@ mod common;
 
 use chrono::Utc;
 use common::{
-    create_completed_episode_with_pattern, create_test_episode_with_domain,
-    setup_simple_test_memory, setup_test_memory, test_context, ContextBuilder, PatternType,
-    StepBuilder,
+    ContextBuilder, PatternType, StepBuilder, create_completed_episode_with_pattern,
+    create_test_episode_with_domain, setup_simple_test_memory, setup_test_memory, test_context,
 };
 use memory_core::{Pattern, TaskOutcome, TaskType};
 use serde_json::json;

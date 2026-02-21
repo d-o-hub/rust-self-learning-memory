@@ -3,8 +3,8 @@
 use crate::TursoStorage;
 use libsql::Row;
 use memory_core::{
-    monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
     Error, Result,
+    monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
 };
 use tracing::{debug, info};
 

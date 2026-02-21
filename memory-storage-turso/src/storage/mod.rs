@@ -12,7 +12,7 @@
 use crate::TursoStorage;
 use async_trait::async_trait;
 use memory_core::embeddings::{EmbeddingStorageBackend, SimilaritySearchResult};
-use memory_core::{episode::PatternId, Episode, Pattern, Result};
+use memory_core::{Episode, Pattern, Result, episode::PatternId};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -314,7 +314,7 @@ impl TursoStorage {
                             return Err(memory_core::Error::Storage(format!(
                                 "Unknown compression algorithm: {}",
                                 algorithm_str
-                            )))
+                            )));
                         }
                     };
 

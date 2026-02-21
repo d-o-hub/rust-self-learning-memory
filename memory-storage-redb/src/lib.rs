@@ -24,7 +24,7 @@
 //! ```
 
 use async_trait::async_trait;
-use memory_core::{episode::PatternId, Episode, Error, Heuristic, Pattern, Result, StorageBackend};
+use memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
 use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition};
 use std::path::Path;
 use std::sync::Arc;

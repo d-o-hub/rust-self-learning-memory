@@ -1,7 +1,7 @@
 //! Episode query operations for redb cache
 
-use crate::{RedbStorage, EPISODES_TABLE};
-use memory_core::{apply_query_limit, Episode, Error, Result};
+use crate::{EPISODES_TABLE, RedbStorage};
+use memory_core::{Episode, Error, Result, apply_query_limit};
 use redb::ReadableTable;
 use std::sync::Arc;
 use tracing::{debug, info};

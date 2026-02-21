@@ -101,11 +101,7 @@ impl OptimizedPatternValidator {
         }
         weight += 0.1;
 
-        if weight > 0.0 {
-            score / weight
-        } else {
-            0.0
-        }
+        if weight > 0.0 { score / weight } else { 0.0 }
     }
 
     /// Check if complexity levels are compatible

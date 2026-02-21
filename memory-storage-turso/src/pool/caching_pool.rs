@@ -523,7 +523,7 @@ mod tests {
     async fn test_cleanup_callback() {
         let (pool, _dir) = create_test_pool().await;
 
-        use std::sync::{atomic::AtomicU64, Arc};
+        use std::sync::{Arc, atomic::AtomicU64};
         let cleaned_up = Arc::new(AtomicU64::new(0));
 
         pool.set_cleanup_callback({

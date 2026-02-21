@@ -50,8 +50,8 @@ pub mod tests;
 
 pub use fs::{FileSystemRestrictions, SecurityError as FsSecurityError};
 pub use isolation::{
-    apply_isolation, current_gid, current_uid, is_running_as_root, recommend_safe_uid,
-    IsolationConfig,
+    IsolationConfig, apply_isolation, current_gid, current_uid, is_running_as_root,
+    recommend_safe_uid,
 };
 pub use network::{NetworkRestrictions, NetworkSecurityError};
 

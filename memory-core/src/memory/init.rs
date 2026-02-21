@@ -6,7 +6,7 @@
 use crate::embeddings::EmbeddingConfig;
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
-use crate::monitoring::{storage::SimpleMonitoringStorage, AgentMonitor, MonitoringConfig};
+use crate::monitoring::{AgentMonitor, MonitoringConfig, storage::SimpleMonitoringStorage};
 use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;

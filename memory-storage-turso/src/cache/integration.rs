@@ -3,6 +3,7 @@
 //! This module provides a bridge between the TursoStorage backend and the
 //! advanced query result caching system with smart invalidation.
 
+use crate::TursoStorage;
 use crate::cache::invalidation::{
     InvalidationConfig, InvalidationEvent, InvalidationManager, InvalidationRuleBuilder,
     InvalidationTarget,
@@ -10,7 +11,6 @@ use crate::cache::invalidation::{
 use crate::cache::query_cache::{
     AdvancedCacheStats, AdvancedQueryCache, AdvancedQueryCacheConfig, QueryKey, TableDependency,
 };
-use crate::TursoStorage;
 use anyhow::Result;
 use memory_core::{Episode, Pattern};
 use std::sync::Arc;

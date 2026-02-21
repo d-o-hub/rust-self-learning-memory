@@ -1,8 +1,8 @@
 //! Helper functions for common test operations
 
 use memory_core::{
-    memory::SelfLearningMemory, ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext,
-    TaskOutcome, TaskType,
+    ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
+    memory::SelfLearningMemory,
 };
 use uuid::Uuid;
 

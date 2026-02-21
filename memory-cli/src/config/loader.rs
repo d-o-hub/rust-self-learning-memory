@@ -14,12 +14,12 @@ mod cache;
 mod env;
 mod file;
 
-pub use cache::{cache_stats, clear_cache, CacheStats};
+pub use cache::{CacheStats, cache_stats, clear_cache};
 pub use env::{
-    get_env_config_info, load_config_from_defaults, load_config_from_env, EnvConfigInfo,
+    EnvConfigInfo, get_env_config_info, load_config_from_defaults, load_config_from_env,
 };
 pub use file::{
-    detect_format, load_config_from_file, load_config_verbose, ConfigFormat, ConfigWriter,
+    ConfigFormat, ConfigWriter, detect_format, load_config_from_file, load_config_verbose,
 };
 
 /// Load configuration from file or use defaults

@@ -3,8 +3,8 @@
 //! Provides the `update_episode` tool for modifying episodes through the MCP server.
 
 use crate::server::MemoryMCPServer;
-use anyhow::{anyhow, Result};
-use serde_json::{json, Value};
+use anyhow::{Result, anyhow};
+use serde_json::{Value, json};
 
 use tracing::debug;
 use tracing::info;
@@ -176,10 +176,12 @@ mod tests {
             .unwrap();
 
         assert!(result["success"].as_bool().unwrap());
-        assert!(result["message"]
-            .as_str()
-            .unwrap()
-            .contains("Successfully updated"));
+        assert!(
+            result["message"]
+                .as_str()
+                .unwrap()
+                .contains("Successfully updated")
+        );
 
         // Verify update
         let episode = server.memory().get_episode(episode_id).await.unwrap();
@@ -234,9 +236,11 @@ mod tests {
             .await;
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Invalid episode ID format"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Invalid episode ID format")
+        );
     }
 }

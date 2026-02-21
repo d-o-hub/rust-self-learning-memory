@@ -104,7 +104,7 @@ async fn run_concurrent_workload(
     let context = create_benchmark_context();
 
     for _ in 0..operations {
-        let choice: f64 = rng.random();
+        let choice: f64 = rng.r#gen::<f64>();
 
         if choice < pattern.read_ratio() {
             // Read operation
@@ -125,7 +125,7 @@ async fn run_concurrent_workload(
                     format!(
                         "Concurrent write from thread {} op {}",
                         thread_id,
-                        rng.random::<u32>()
+                        rng.r#gen::<u32>()
                     ),
                     context.clone(),
                     TaskType::CodeGeneration,

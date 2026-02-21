@@ -59,9 +59,9 @@
 │  3C. cargo-unused-features      │  ADR-036 Tier 2
 └─────────────────────────────────┘
 ┌─────────────────────────────────┐
-│  3D. mold linker setup          │  ADR-032 Phase 2
-│  - Install mold                 │
-│  - Configure .cargo/config.toml │
+│  3D. mold linker setup          │  ADR-032 Phase 2 ✅ DONE
+│  - ✅ Install mold              │     Installed and active
+│  - ✅ Configure .cargo/config.toml │  2-5x faster link times
 └─────────────────────────────────┘
 ```
 

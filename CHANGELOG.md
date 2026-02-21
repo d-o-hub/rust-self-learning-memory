@@ -1,5 +1,60 @@
 ## [Unreleased]
 
+### Added
+
+- **Disk Space Optimization** (ADR-032)
+  - Build profile optimization: `debug = "line-tables-only"` for dev, `debug = false` for deps
+  - Proc-macro build optimization: `opt-level = 3` for build-override
+  - `scripts/clean-artifacts.sh` for periodic local cleanup
+  - Dependency duplicate tracking in quality-gates.sh
+
+- **Modern Testing Strategy** (ADR-033)
+  - Standardized `cargo nextest run` across all CI workflows
+  - nextest profiles: `default`, `ci`, `nightly` in `.config/nextest.toml`
+  - JUnit XML output for CI test reporting
+  - Mutation testing with `cargo-mutants` (nightly CI job on memory-core)
+  - Property testing with `proptest` for serialization roundtrips and state machines
+  - Snapshot testing with `insta` for MCP responses and CLI output
+
+- **Release Engineering Modernization** (ADR-034)
+  - `cargo-semver-checks` in CI for API compatibility verification
+  - `cargo-release` workflow with `release.toml` configuration
+  - `cargo-dist` for binary distribution (tarballs, installers, checksums)
+  - Conventional commit enforcement for automated changelog generation
+
+- **Rust 2024 Edition Migration** (ADR-035)
+  - Workspace edition upgraded from 2021 to 2024
+  - Minimum Rust version: 1.85.0
+  - Improved diagnostics and lint coverage
+
+- **Dependency Deduplication** (ADR-036)
+  - Audit with `cargo-machete` and `cargo-shear` for unused dependencies
+  - Feature pruning with `cargo-unused-features`
+  - Upstream tracking for major duplicate groups (rand, hashbrown, getrandom)
+
+### Changed
+
+- **Build Configuration**: mold linker for Linux development (2-5x faster links)
+- **CI Workflows**: All `cargo test` replaced with `cargo nextest run` (except doctests)
+- **AGENTS.md**: Added Disk Space Management, Testing Best Practices 2026, Release Workflow sections
+- **Quality Gates**: Now tracks duplicate dependency count
+
+### Documentation
+
+- Added `plans/adr/ADR-032-Disk-Space-Optimization.md`
+- Added `plans/adr/ADR-033-Modern-Testing-Strategy.md`
+- Added `plans/adr/ADR-034-Release-Engineering-Modernization.md`
+- Added `plans/adr/ADR-035-Rust-2024-Edition-Migration.md`
+- Added `plans/adr/ADR-036-Dependency-Deduplication.md`
+- Added `plans/GOAP_DISK_TESTING_RELEASE_2026.md` - Master execution plan
+- Updated `AGENTS.md` with modern testing, release, and disk space guidance
+- Updated `README.md` with v0.1.15 status and nextest references
+- Updated `TESTING.md` with 2026 best practices (nextest, mutants, proptest, insta)
+- Updated `CONTRIBUTING.md` with conventional commit format and nextest
+- Updated `DEPLOYMENT.md` with cargo-dist and automated release references
+- Updated `SECURITY.md` with cargo-semver-checks and release signing
+- Added `docs/RELEASE_AUTOMATION.md` - Complete release workflow documentation
+
 ## [0.1.15] - 2026-02-15
 
 ### Summary

@@ -7,50 +7,73 @@ description: Advanced test optimization with cargo-nextest, property testing, an
 
 Advanced test optimization with cargo-nextest, property testing, and benchmarking.
 
-## cargo-nextest Integration
+## cargo-nextest (Primary Test Runner)
 
 ```bash
-# Install
-cargo install cargo-nextest --locked
-
-# Run all tests
-cargo nextest run
-
-# CI profile (with retries)
-cargo nextest run --profile ci
+cargo nextest run --all              # all tests
+cargo nextest run --profile ci       # CI with retries + JUnit XML
+cargo nextest run --profile nightly  # extended timeouts
+cargo nextest run -E 'package(memory-core)'  # filterset DSL
+cargo test --doc --all               # doctests (nextest limitation)
 ```
 
 ### Configuration (.config/nextest.toml)
 
 ```toml
 [profile.default]
-slow-timeout = { period = "30s", terminate-after = 3 }
+retries = 0
+slow-timeout = { period = "60s", terminate-after = 2 }
+fail-fast = false
 
 [profile.ci]
 retries = 2
-fail-fast = false
-test-threads = 4
+slow-timeout = { period = "30s", terminate-after = 3 }
+failure-output = "immediate-final"
+junit.path = "target/nextest/ci/junit.xml"
+
+[profile.nightly]
+retries = 3
+slow-timeout = { period = "120s", terminate-after = 2 }
 ```
+
+## Mutation Testing (cargo-mutants)
+
+Verifies tests actually catch bugs by injecting mutations:
+
+```bash
+cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib
+```
+
+- **Acceptance**: <20% missed mutants in core business logic
+- **Frequency**: Nightly CI or pre-release
+- **Scope**: Start with memory-core, expand incrementally
 
 ## Property-Based Testing (proptest)
 
 ```rust
 proptest! {
     #[test]
-    fn test_episode_id_uniqueness(
-        tasks in prop::collection::vec(any::<String>(), 1..100)
-    ) {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            let memory = setup_memory().await;
-            let mut ids = HashSet::new();
-            for desc in tasks {
-                let id = memory.start_episode(desc, ctx, type_).await;
-                prop_assert!(ids.insert(id));
-            }
-        });
+    fn serialization_roundtrip(episode in any_episode_strategy()) {
+        let bytes = postcard::to_allocvec(&episode).unwrap();
+        let decoded: Episode = postcard::from_bytes(&bytes).unwrap();
+        assert_eq!(episode, decoded);
     }
 }
+```
+
+## Snapshot Testing (insta)
+
+```rust
+#[test]
+fn test_mcp_response_format() {
+    let response = build_tool_response("search_patterns", &params);
+    insta::assert_json_snapshot!(response);
+}
+```
+
+```bash
+cargo insta test     # run snapshot tests
+cargo insta review   # accept/reject changes
 ```
 
 ## Performance Targets
@@ -64,7 +87,13 @@ proptest! {
 
 ## Best Practices
 
-- Use nextest profiles for dev/CI separation
-- Implement property tests for edge cases
-- Monitor test duration
-- Track coverage trends
+- Use nextest profiles for dev/CI/nightly separation
+- Implement property tests for serialization roundtrips and state machines
+- Use snapshot tests for MCP responses, CLI output
+- Run mutation testing before releases
+- Monitor test duration and coverage trends
+
+## References
+
+- [ADR-033: Modern Testing Strategy](../../../plans/adr/ADR-033-Modern-Testing-Strategy.md)
+- [TESTING.md](../../../TESTING.md)

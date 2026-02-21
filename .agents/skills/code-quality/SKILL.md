@@ -34,7 +34,7 @@ Use the code-quality scripts for all operations.
 | Lint | `cargo clippy --all -- -D warnings` |
 | Audit | `cargo audit` |
 | Full | `./scripts/quality-gates.sh` |
-| Coverage | `cargo tarpaulin --out Html` |
+| Coverage | `cargo llvm-cov --html --output-dir coverage` |
 | Docs | `cargo doc --no-deps` |
 
 ## Rust Quality Dimensions
@@ -44,7 +44,7 @@ Use the code-quality scripts for all operations.
 | Structure | Files <500 LOC, module hierarchy | `find . -name "*.rs" -exec wc -l {} +` |
 | Error Handling | Custom Error, Result<T>, no unwrap | `rg "unwrap()" --glob "*.rs" --glob "!*/tests/*"` |
 | Async Patterns | async fn, spawn_blocking, no blocking | `rg "async fn\|spawn_blocking" --glob "*.rs"` |
-| Testing | >90% coverage, integration tests | `cargo tarpaulin` |
+| Testing | >90% coverage, integration tests | `cargo llvm-cov` |
 | Documentation | Public APIs 100% documented | `cargo doc --no-deps` |
 
 ## Rust-Specific Anti-Patterns
@@ -68,7 +68,28 @@ Use the code-quality scripts for all operations.
 - [ ] SOLID principles applied
 - [ ] No code duplication (DRY)
 
-## See Also
+## Dependency Monitoring (ADR-036)
+
+Track duplicate dependency count as a quality metric:
+
+```bash
+# Count duplicate dependency roots (target: < 100)
+cargo tree -d | grep -cE "^[a-z]"
+
+# Find unused dependencies
+cargo install --locked cargo-machete cargo-shear
+cargo machete
+cargo shear
+
+# Find unused features
+cargo install --locked cargo-unused-features
+cargo unused-features analyze
+```
+
+## References
+
+- [ADR-036: Dependency Deduplication](../../../plans/adr/ADR-036-Dependency-Deduplication.md)
+- [ADR-032: Disk Space Optimization](../../../plans/adr/ADR-032-Disk-Space-Optimization.md)
 
 Consolidated from these former skills (preserved in `_consolidated/`):
 - `rust-code-quality` — Rust-specific quality dimensions, analysis commands, report format

@@ -9,34 +9,44 @@ Execute and manage Rust tests for the self-learning memory project.
 
 ## Test Categories
 
-| Category | Command | Scope |
-|----------|---------|-------|
-| Unit | `cargo test --lib` | Individual functions |
-| Integration | `cargo test --test '*'` | End-to-end workflows |
-| Doc | `cargo test --doc` | Documentation examples |
-| All | `cargo test --all` | Complete validation |
+| Category | Command (preferred) | Fallback | Scope |
+|----------|-------------------|----------|-------|
+| Unit | `cargo nextest run --lib` | `cargo test --lib` | Individual functions |
+| Integration | `cargo nextest run --test '*'` | `cargo test --test '*'` | End-to-end workflows |
+| Doc | `cargo test --doc` | (nextest unsupported) | Documentation examples |
+| All | `cargo nextest run --all` | `cargo test --all` | Complete validation |
+| Mutation | `cargo mutants -p memory-core` | — | Test effectiveness |
+| Snapshot | `cargo insta test` | — | Output regression |
 
 ## Execution Strategy
 
 ### Step 1: Quick Check (Unit Tests)
 ```bash
-cargo test --lib
+cargo nextest run --lib
 ```
-- Fast feedback (< 30s)
+- Fast feedback (< 30s), per-test process isolation
 - Catch basic logic errors
 
 ### Step 2: Integration Tests
 ```bash
-cargo test --test '*'
+cargo nextest run --test '*'
 ```
 - Tests database interactions
 - Requires Turso/redb setup
 
 ### Step 3: Full Suite
 ```bash
-cargo test --all
+cargo nextest run --all
+cargo test --doc  # doctests separately (nextest limitation)
 ```
 - Complete validation before commit
+
+### Step 4: Mutation Testing (Periodic)
+```bash
+cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib
+```
+- Verifies test suite catches real bugs
+- Run nightly or before releases (ADR-033)
 
 ## Troubleshooting
 
@@ -115,15 +125,47 @@ async fn test_concurrent_episodes() {
 | `memory.start_episode()` | `memory.start_episode().await` |
 | Single-threaded for concurrency | `multi_thread` runtime |
 
-## Advanced: cargo-nextest
+## nextest Profiles (.config/nextest.toml)
 
-```bash
-cargo install cargo-nextest --locked
-cargo nextest run
-cargo nextest run --profile ci  # with retries
+```toml
+[profile.default]
+retries = 0
+slow-timeout = { period = "60s", terminate-after = 2 }
+fail-fast = false
+
+[profile.ci]
+retries = 2
+slow-timeout = { period = "30s", terminate-after = 3 }
+failure-output = "immediate-final"
+junit.path = "target/nextest/ci/junit.xml"
+
+[profile.nightly]
+retries = 3
+slow-timeout = { period = "120s", terminate-after = 2 }
 ```
 
-## Advanced: Property-Based Testing
+```bash
+cargo nextest run                  # default profile
+cargo nextest run --profile ci     # CI with retries + JUnit
+cargo nextest run --profile nightly  # nightly with extended timeouts
+```
+
+## Snapshot Testing (insta)
+
+```rust
+#[test]
+fn test_mcp_tool_response() {
+    let response = build_tool_response("search_patterns", &params);
+    insta::assert_json_snapshot!(response);
+}
+```
+
+```bash
+cargo insta test     # run snapshot tests
+cargo insta review   # accept/reject changes
+```
+
+## Property-Based Testing
 
 ```rust
 proptest! {
@@ -167,7 +209,10 @@ async fn test_complete_episode_lifecycle() {
 | Pattern Extraction | < 1000ms | ~10.4 µs |
 | Memory Retrieval | < 100ms | ~721 µs |
 
-## See Also
+## References
+
+- [ADR-033: Modern Testing Strategy](../../../plans/adr/ADR-033-Modern-Testing-Strategy.md)
+- [TESTING.md](../../../TESTING.md) — Full testing guide
 
 Consolidated from these former skills (preserved in `_consolidated/`):
 - `test-optimization` — cargo-nextest, property testing, benchmarking

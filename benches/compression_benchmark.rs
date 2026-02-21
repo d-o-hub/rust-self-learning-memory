@@ -22,13 +22,11 @@ fn create_episode_with_size(size_kb: usize) -> Episode {
         ..Default::default()
     };
 
-    let episode = Episode::new(
+    Episode::new(
         format!("compression_benchmark_{}kb", size_kb),
         context,
         TaskType::CodeGeneration,
-    );
-
-    episode
+    )
 }
 
 /// Setup storage with compression enabled

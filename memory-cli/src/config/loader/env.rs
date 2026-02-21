@@ -158,9 +158,12 @@ mod env_tests {
         .collect();
 
         // Set our test values
-        std::env::set_var("MEMORY_CLI_CONFIG", "/path/to/config.toml");
-        std::env::set_var("TURSO_URL", "libsql://test.db");
-        std::env::set_var("CI", "true");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MEMORY_CLI_CONFIG", "/path/to/config.toml");
+            std::env::set_var("TURSO_URL", "libsql://test.db");
+            std::env::set_var("CI", "true");
+        }
 
         // Get info and verify struct fields directly (more reliable than summary)
         let info = get_env_config_info();
@@ -185,11 +188,14 @@ mod env_tests {
         assert!(summary.contains("CI=true"), "Summary: {}", summary);
 
         // Restore original environment
-        for (name, value) in original_values {
-            if let Some(v) = value {
-                std::env::set_var(name, v);
-            } else {
-                std::env::remove_var(name);
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            for (name, value) in original_values {
+                if let Some(v) = value {
+                    std::env::set_var(name, v);
+                } else {
+                    std::env::remove_var(name);
+                }
             }
         }
     }
@@ -214,9 +220,12 @@ mod env_tests {
         })
         .collect();
 
-        std::env::set_var("MEMORY_CLI_CONFIG", "/path/to/config.toml");
-        std::env::set_var("TURSO_URL", "libsql://test.db");
-        std::env::set_var("CI", "true");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MEMORY_CLI_CONFIG", "/path/to/config.toml");
+            std::env::set_var("TURSO_URL", "libsql://test.db");
+            std::env::set_var("CI", "true");
+        }
 
         let info = get_env_config_info();
         let summary = info.summary();
@@ -230,11 +239,14 @@ mod env_tests {
         assert!(summary.contains("CI=true"), "Summary: {}", summary);
 
         // Restore original environment
-        for (name, value) in original_values {
-            if let Some(v) = value {
-                std::env::set_var(name, v);
-            } else {
-                std::env::remove_var(name);
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            for (name, value) in original_values {
+                if let Some(v) = value {
+                    std::env::set_var(name, v);
+                } else {
+                    std::env::remove_var(name);
+                }
             }
         }
     }
@@ -242,7 +254,10 @@ mod env_tests {
     #[test]
     #[serial]
     fn test_load_config_from_env_not_set() {
-        std::env::remove_var("MEMORY_CLI_CONFIG");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("MEMORY_CLI_CONFIG");
+        }
         let result = load_config_from_env();
         assert!(result.is_none());
     }

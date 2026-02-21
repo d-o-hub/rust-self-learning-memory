@@ -184,7 +184,7 @@ pub async fn handle_call_tool(
     };
 
     // Process the tool result
-    let response = match result {
+    match result {
         Ok(content) => {
             let call_result = CallToolResult::success(content);
             match serde_json::to_value(call_result) {
@@ -241,9 +241,7 @@ pub async fn handle_call_tool(
                 }
             }
         }
-    };
-
-    response
+    }
 }
 
 /// Handle batch/execute request

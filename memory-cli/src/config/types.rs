@@ -31,35 +31,47 @@ mod simple_config_tests {
 
     /// Helper function to clean up all environment variables before each test
     fn clean_environment() {
-        env::remove_var("TURSO_URL");
-        env::remove_var("TURSO_TOKEN");
-        env::remove_var("TURSO_DATABASE_URL");
-        env::remove_var("RENDER");
-        env::remove_var("HEROKU");
-        env::remove_var("FLY_IO");
-        env::remove_var("RAILWAY");
-        env::remove_var("VERCEL");
-        env::remove_var("DEVELOPMENT");
-        env::remove_var("DEV");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            env::remove_var("TURSO_URL");
+            env::remove_var("TURSO_TOKEN");
+            env::remove_var("TURSO_DATABASE_URL");
+            env::remove_var("RENDER");
+            env::remove_var("HEROKU");
+            env::remove_var("FLY_IO");
+            env::remove_var("RAILWAY");
+            env::remove_var("VERCEL");
+            env::remove_var("DEVELOPMENT");
+            env::remove_var("DEV");
+        }
     }
 
     /// Helper function to setup environment for CI testing
     fn setup_ci_environment() {
         clean_environment();
-        env::set_var("CI", "true");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            env::set_var("CI", "true");
+        }
     }
 
     /// Helper function to setup environment for Turso testing
     fn setup_turso_environment() {
         clean_environment();
-        env::set_var("TURSO_URL", "libsql://test.example.com/db");
-        env::set_var("TURSO_TOKEN", "test-token");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            env::set_var("TURSO_URL", "libsql://test.example.com/db");
+            env::set_var("TURSO_TOKEN", "test-token");
+        }
     }
 
     /// Helper function to setup environment for cloud platform testing
     fn setup_cloud_platform_environment(platform: &str) {
         clean_environment();
-        env::set_var(platform, "true");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            env::set_var(platform, "true");
+        }
     }
 
     #[tokio::test]

@@ -362,7 +362,9 @@ pub async fn handle_request(
     }
 
     // Process the request
-    let response = match method.as_str() {
+    // Note: Rate limit headers would typically be added here for HTTP-based protocols
+    // For stdio-based JSON-RPC, we include rate limit info in the response data
+    match method.as_str() {
         "initialize" => handle_initialize(request, oauth_config).await,
         "tools/list" => handle_list_tools(request, mcp_server).await,
         "tools/describe" => handle_describe_tool(request, mcp_server).await,
@@ -397,9 +399,5 @@ pub async fn handle_request(
                 }),
             })
         }
-    };
-
-    // Note: Rate limit headers would typically be added here for HTTP-based protocols
-    // For stdio-based JSON-RPC, we include rate limit info in the response data
-    response
+    }
 }

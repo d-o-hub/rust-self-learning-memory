@@ -133,9 +133,16 @@ mod tests {
     // indirectly through the server creation tests in tests.rs.
 
     #[test]
+    #[allow(unsafe_code)]
     fn test_is_wasm_sandbox_available_explicit_false() {
-        std::env::set_var("MCP_USE_WASM", "false");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MCP_USE_WASM", "false");
+        }
         assert!(!is_wasm_sandbox_available());
-        std::env::remove_var("MCP_USE_WASM");
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("MCP_USE_WASM");
+        }
     }
 }

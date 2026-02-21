@@ -20,12 +20,16 @@ mod tests {
     }
 
     /// Setup audit environment variables with proper isolation
+    #[allow(unsafe_code)]
     fn setup_audit_test_env() {
         static ONCE: std::sync::Once = std::sync::Once::new();
         ONCE.call_once(|| {
-            std::env::set_var("AUDIT_LOG_ENABLED", "false");
-            std::env::set_var("AUDIT_LOG_DESTINATION", "file");
-            std::env::set_var("AUDIT_LOG_LEVEL", "debug");
+            // SAFETY: test-only env var manipulation
+            unsafe {
+                std::env::set_var("AUDIT_LOG_ENABLED", "false");
+                std::env::set_var("AUDIT_LOG_DESTINATION", "file");
+                std::env::set_var("AUDIT_LOG_LEVEL", "debug");
+            }
         });
     }
 

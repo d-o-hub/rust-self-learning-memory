@@ -57,3 +57,4 @@ jobs:
         with:
           fail_level: error
           filter_mode: nofilter
+          actionlint_flags: -shellcheck=

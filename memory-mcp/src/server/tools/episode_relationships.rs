@@ -73,7 +73,7 @@ impl MemoryMCPServer {
                     "Created episode relationship via MCP"
                 );
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_add_relationship(&client_id, &from_id, &to_id, &rel_type, "none", false)
                     .await;
@@ -113,7 +113,7 @@ impl MemoryMCPServer {
 
                 info!(relationship_id = %relationship_id, "Removed episode relationship via MCP");
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_remove_relationship(&client_id, &relationship_id, false)
                     .await;
@@ -162,7 +162,7 @@ impl MemoryMCPServer {
                     "Retrieved episode relationships via MCP"
                 );
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_get_relationships(&client_id, &episode_id, 0, false)
                     .await;
@@ -206,7 +206,7 @@ impl MemoryMCPServer {
 
                 info!(episode_id = %episode_id, related_count = r.count, "Found related episodes via MCP");
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_find_related(&client_id, &episode_id, 0, false)
                     .await;
@@ -257,7 +257,7 @@ impl MemoryMCPServer {
                     "Checked relationship existence via MCP"
                 );
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_check_relationship(&client_id, &from_id, &to_id, &rel_type, false, false)
                     .await;
@@ -307,7 +307,7 @@ impl MemoryMCPServer {
                     "Retrieved dependency graph via MCP"
                 );
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_dependency_graph(&client_id, &episode_id, 0, 0, false)
                     .await;
@@ -367,7 +367,7 @@ impl MemoryMCPServer {
                     "Validated cycle absence via MCP"
                 );
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_validate_cycles(&client_id, &from_id, &to_id, &rel_type, false, false)
                     .await;
@@ -413,7 +413,7 @@ impl MemoryMCPServer {
                     "Computed topological order via MCP"
                 );
             }
-            Err(ref e) => {
+            Err(e) => {
                 audit_logger
                     .log_topological_order(&client_id, episode_count, 0, false, false)
                     .await;

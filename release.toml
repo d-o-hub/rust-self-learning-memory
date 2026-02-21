@@ -1,0 +1,49 @@
+# release.toml - cargo-release configuration for rust-self-learning-memory
+# See ADR-034: Release Engineering Modernization
+# Usage: cargo release patch|minor|major
+
+[workspace]
+# Only allow releases from main branch
+allow-branch = ["main"]
+
+# Don't sign commits/tags (enable when ready)
+sign-commit = false
+sign-tag = false
+
+# Push changes after release
+push = true
+
+# Don't publish to crates.io yet (enable post-1.0)
+publish = false
+
+# Pre-release commit message template
+pre-release-commit-message = "release: v{{version}}"
+
+# Tag message template  
+tag-message = "v{{version}}"
+
+# Tag prefix
+tag-prefix = "v"
+tag-name = "v{{version}}"
+
+# Don't create GitHub release (cargo-dist handles this)
+pre-release-hook = []
+
+[[package.pre-release-replacements]]
+file = "CHANGELOG.md"
+search = "## \\[Unreleased\\]"
+replace = "## [Unreleased]\\n\\n## [{{version}}] - {{date}}"
+
+[[package.pre-release-replacements]]
+file = "Cargo.toml"
+search = 'version = "{{prev_version}}"'
+replace = 'version = "{{version}}"'
+exact = true
+
+# Verify changelog was updated
+[[package.pre-release-replacements]]
+file = "CHANGELOG.md"
+search = "\\[{{version}}\\]:"
+replace = "[{{version}}]:"
+exact = false
+min = 1

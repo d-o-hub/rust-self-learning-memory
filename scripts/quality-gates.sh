@@ -153,6 +153,22 @@ run_goap_checks() {
   echo "  - advanced_pattern_analysis/analyze_patterns: run when data is available"
 
   echo -e "${GREEN}GOAP checks complete (non-blocking).${NC}"
+
+  # Dependency metrics tracking (ADR-036 Tier 5)
+  echo ""
+  echo -e "${BLUE}Dependency metrics:${NC}"
+  if command -v cargo &> /dev/null; then
+    local dupes
+    dupes=$(cargo tree -d 2>/dev/null | grep -cE "^[a-z]" || echo "0")
+    echo "  Duplicate dependency roots: $dupes"
+    if [ "$dupes" -gt 130 ]; then
+      echo -e "  ${YELLOW}⚠${NC} WARNING: Duplicate dependencies increasing (target: <100, alert: >130)"
+    elif [ "$dupes" -gt 100 ]; then
+      echo -e "  ${YELLOW}⚠${NC} Duplicate dependencies above target (target: <100)"
+    else
+      echo -e "  ${GREEN}✓${NC} Duplicate dependencies within target (<100)"
+    fi
+  fi
 }
 
 export QUALITY_GATE_COVERAGE_THRESHOLD=$COVERAGE_THRESHOLD

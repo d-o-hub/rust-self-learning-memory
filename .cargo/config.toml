@@ -15,6 +15,10 @@ split-debuginfo = "unpacked"
 # Keep dependency artifacts small in dev profile.
 debug = false
 
+[profile.dev.build-override]
+# Proc-macros run at build time; optimizing them speeds builds (ADR-032 Phase 4)
+opt-level = 3
+
 [profile.test]
 # Test profile with compact debug info (ADR-032)
 opt-level = 0
@@ -44,8 +48,9 @@ codegen-units = 4
 # Security hardening flags
 # -Wl,-z,relro: Read-only relocations (RELRO)
 # -Wl,-z,now: Bind all symbols at load time (BIND_NOW)
-# Note: mold linker is 2-5x faster but requires installation (ADR-032 Phase 2)
+# mold linker is 2-5x faster (ADR-032 Phase 2 - COMPLETE)
 rustflags = [
+    "-C", "link-arg=-fuse-ld=mold",
     "-C", "link-arg=-Wl,-z,relro,-z,now",
 ]
 

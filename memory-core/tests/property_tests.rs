@@ -26,11 +26,11 @@ proptest! {
         tags in proptest::collection::vec("[a-z]{2,15}", 0..10)
     ) {
         let context = TaskContext {
-            language: language.map(|s| s.to_string()),
-            framework: framework.map(|s| s.to_string()),
+            language,
+            framework,
             complexity: ComplexityLevel::Moderate,
-            domain: domain.to_string(),
-            tags: tags.into_iter().map(|s| s.to_string()).collect(),
+            domain,
+            tags,
         };
 
         // JSON roundtrip
@@ -88,10 +88,11 @@ proptest! {
 
         // Invariant: success rate should equal success_count / total_count
         if stats.total_count > 0 {
+            #[allow(clippy::cast_precision_loss)]
             let expected_rate = success_count as f32 / stats.total_count as f32;
             prop_assert!((success_rate - expected_rate).abs() < 0.0001);
         } else {
-            prop_assert_eq!(success_rate, 0.0);
+            prop_assert!((success_rate - 0.0_f32).abs() < f32::EPSILON);
         }
     }
 
@@ -151,12 +152,12 @@ proptest! {
         has_outcome in proptest::bool::ANY
     ) {
         let mut episode = Episode::new(
-            task_description.to_string(),
+            task_description.clone(),
             TaskContext {
                 language: Some("rust".to_string()),
                 framework: None,
                 complexity: ComplexityLevel::Moderate,
-                domain: domain.to_string(),
+                domain: domain.clone(),
                 tags: vec!["test".to_string()],
             },
             TaskType::CodeGeneration,
@@ -229,8 +230,8 @@ proptest! {
         for i in 0..num_steps {
             let step = ExecutionStep::new(
                 i + 1,
-                format!("tool_{}", i),
-                format!("Action {}", i)
+                format!("tool_{i}"),
+                format!("Action {i}")
             );
             episode.add_step(step);
         }
@@ -353,7 +354,8 @@ proptest! {
         let expected_usage_rate = if retrieved == 0 {
             0.0
         } else {
-            (successes + failures) as f32 / retrieved as f32
+            #[allow(clippy::cast_precision_loss)]
+            { (successes + failures) as f32 / retrieved as f32 }
         };
         prop_assert!(
             (effectiveness.usage_rate() - expected_usage_rate).abs() < 0.0001
@@ -361,12 +363,13 @@ proptest! {
 
         // Invariant: application success rate should be successes / applied (or 0.5 if none)
         if effectiveness.times_applied > 0 {
+            #[allow(clippy::cast_precision_loss)]
             let expected_success_rate = successes as f32 / effectiveness.times_applied as f32;
             prop_assert!(
                 (effectiveness.application_success_rate() - expected_success_rate).abs() < 0.0001
             );
         } else {
-            prop_assert_eq!(effectiveness.application_success_rate(), 0.5);
+            prop_assert!((effectiveness.application_success_rate() - 0.5_f32).abs() < f32::EPSILON);
         }
     }
 }
@@ -456,15 +459,22 @@ proptest! {
     ) {
         // Empty description should still work
         let episode1 = Episode::new(
-            empty_desc.to_string(),
+            empty_desc.clone(),
             TaskContext::default(),
             TaskType::Other,
+        );
+
+        // Long description should work
+        let _episode2 = Episode::new(
+            long_desc.clone(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
         );
         prop_assert!(!episode1.is_complete());
 
         // Long description should work
         let episode2 = Episode::new(
-            long_desc.to_string(),
+            long_desc.clone(),
             TaskContext::default(),
             TaskType::CodeGeneration,
         );
@@ -479,9 +489,9 @@ proptest! {
         insights in proptest::collection::vec("[a-zA-Z0-9 ]{1,50}", 0..20)
     ) {
         let reflection = Reflection {
-            successes: successes.into_iter().map(|s| s.to_string()).collect(),
-            improvements: improvements.into_iter().map(|s| s.to_string()).collect(),
-            insights: insights.into_iter().map(|s| s.to_string()).collect(),
+            successes,
+            improvements,
+            insights,
             generated_at: Utc::now(),
         };
 
@@ -527,12 +537,12 @@ proptest! {
         domain in "[a-z]{3,15}"
     ) {
         let episode = Episode::new(
-            task_description.to_string(),
+            task_description.clone(),
             TaskContext {
                 language: Some("rust".to_string()),
                 framework: None,
                 complexity: ComplexityLevel::Moderate,
-                domain: domain.to_string(),
+                domain: domain.clone(),
                 tags: vec!["test".to_string()],
             },
             TaskType::CodeGeneration,
@@ -606,11 +616,11 @@ mod postcard_tests {
             tags in proptest::collection::vec("[a-z]{2,15}", 0..10)
         ) {
             let context = TaskContext {
-                language: language.map(|s| s.to_string()),
-                framework: framework.map(|s| s.to_string()),
+                language,
+                framework,
                 complexity: ComplexityLevel::Moderate,
-                domain: domain.to_string(),
-                tags: tags.into_iter().map(|s| s.to_string()).collect(),
+                domain,
+                tags,
             };
 
             // Postcard roundtrip
@@ -649,7 +659,7 @@ mod postcard_tests {
             num_steps in 0usize..20usize
         ) {
             let mut episode = Episode::new(
-                task_description.to_string(),
+                task_description.clone(),
                 TaskContext::default(),
                 TaskType::CodeGeneration,
             );
@@ -659,7 +669,7 @@ mod postcard_tests {
                 let step = ExecutionStep::new(
                     i + 1,
                     format!("tool_{}", i % 10),
-                    format!("Action {}", i)
+                    format!("Action {i}")
                 );
                 episode.add_step(step);
             }
@@ -739,7 +749,7 @@ proptest! {
 
             let mut step = ExecutionStep::new(
                 i + 1,
-                format!("step_{}", i),
+                format!("step_{i}"),
                 "Action".to_string()
             );
             step.result = Some(result);

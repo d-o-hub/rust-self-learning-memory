@@ -13,7 +13,6 @@ memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
 # memory-mcp: Enable wasmtime-backend for MCP tests
 memory-mcp = { path = "../memory-mcp", features = ["wasmtime-backend"] }
-memory-cli = { path = "../memory-cli" }
 
 # Optional: Enable for embedding-specific tests only
 # memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }
@@ -31,7 +30,7 @@ uuid.workspace = true
 serde_json.workspace = true
 regex = "1.10"
 
-# CLI testing
+# CLI testing (needed for e2e tests)
 assert_cmd = "2.0"
 predicates = "3.1"
 

@@ -22,7 +22,6 @@ async-trait = { workspace = true }
 
 # Error handling
 anyhow = { workspace = true }
-thiserror = { workspace = true }
 
 # Serialization
 serde = { workspace = true, features = ["derive"] }
@@ -49,7 +48,6 @@ parking_lot = "0.12.5"
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 serde_json = { workspace = true }
-bincode = { version = "1", default-features = false }
 
 [lints.rust]
 # In-process memory operations - focus on unsafe code and memory safety

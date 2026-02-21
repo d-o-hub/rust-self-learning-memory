@@ -32,11 +32,9 @@ memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
 
 # MCP-specific dependencies
-async-trait = "0.1.89"
 parking_lot = "0.12.5"
 url = "2.5.8"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
-futures = "0.3.31"
 
 # WASM JavaScript execution dependencies
 # These are optional and gated behind feature flags for faster builds
@@ -53,10 +51,6 @@ javy-codegen = { version = "3.0.0", optional = true }
 chrono = { workspace = true }
 rand = { workspace = true }
 
-# Advanced pattern analysis dependencies
-deep_causality = "0.13.4"
-streaming_algorithms = "0.3.3"
-rayon = "1.8"
 base64 = "0.22.1"
 
 [target.'cfg(unix)'.dependencies]
@@ -87,6 +81,7 @@ tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
 memory-storage-redb = { path = "../memory-storage-redb" }
 wat = "1.245"  # WAT parsing for tests
+insta = { version = "1.42", features = ["json", "yaml"] }
 
 [[example]]
 name = "memory_mcp_integration"

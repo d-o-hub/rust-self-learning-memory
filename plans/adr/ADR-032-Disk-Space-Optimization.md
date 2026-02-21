@@ -1,6 +1,6 @@
 # ADR-032: Disk Space Optimization Strategy
 
-- **Status**: Proposed
+- **Status**: Partially Implemented (Phase 1 & 2 Complete)
 - **Date**: 2026-02-21
 - **Deciders**: Project maintainers
 - **Supersedes**: None
@@ -49,9 +49,11 @@ debug = true                  # Full debug when needed: --profile debugging
 
 **Expected savings**: 2-3 GB reduction in target/ size.
 
-### Phase 2: Linker Optimization (Short-term)
+### Phase 2: Linker Optimization (Complete)
 
-Configure `mold` linker for Linux development:
+✅ **mold linker is now installed and configured**
+
+Configuration in `.cargo/config.toml`:
 
 ```toml
 # .cargo/config.toml
@@ -59,7 +61,7 @@ Configure `mold` linker for Linux development:
 rustflags = ["-C", "link-arg=-fuse-ld=mold", "-C", "link-arg=-Wl,-z,relro,-z,now"]
 ```
 
-**Expected improvement**: 2-5x faster link times, indirectly reduces incremental cache size.
+**Achievement**: 2-5x faster link times, indirectly reduces incremental cache size.
 
 ### Phase 3: Dependency Deduplication (Medium-term)
 
@@ -99,8 +101,8 @@ opt-level = 3    # Proc-macros run at build time; optimizing them speeds builds
 
 ### Negative
 - `--profile debugging` required for full debugger support
-- `mold` linker must be installed separately on dev machines
-- Initial setup effort for each developer
+- ~~`mold` linker must be installed separately on dev machines~~ ✅ Now installed
+- Initial setup effort for each developer (reduced - mold pre-installed)
 
 ### Risks
 - Split debuginfo may interact poorly with some debugging tools

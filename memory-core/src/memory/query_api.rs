@@ -1,12 +1,12 @@
+use crate::Result;
 use crate::episode::Episode;
 use crate::pattern::Pattern;
 use crate::storage::StorageBackend;
-use crate::Result;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use super::queries;
 use super::SelfLearningMemory;
+use super::queries;
 
 impl SelfLearningMemory {
     /// Check if Turso storage is configured

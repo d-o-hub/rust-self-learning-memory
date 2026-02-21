@@ -3,7 +3,7 @@
 //! Core statistical analysis engine for time-series data including correlation analysis,
 //! changepoint detection, and trend analysis.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 use tracing::{debug, info, instrument, warn};
 

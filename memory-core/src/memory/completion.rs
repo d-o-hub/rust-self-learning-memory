@@ -1,7 +1,7 @@
 //! Episode completion and storage
 
 use crate::error::{Error, Result};
-use crate::security::audit::{episode_completed, AuditContext};
+use crate::security::audit::{AuditContext, episode_completed};
 use crate::types::TaskOutcome;
 use std::sync::Arc;
 use tracing::{debug, info, instrument, warn};

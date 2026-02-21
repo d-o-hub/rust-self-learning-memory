@@ -5,7 +5,7 @@ use memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
 use memory_storage_redb::{CacheConfig, RedbStorage};
 use std::collections::HashMap;
 use tempfile::tempdir;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 use uuid::Uuid;
 
 /// Helper function to create a test episode

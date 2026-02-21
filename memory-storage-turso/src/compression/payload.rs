@@ -142,7 +142,7 @@ impl CompressedPayload {
     pub fn compress_gzip(data: &[u8]) -> Result<Self> {
         #[cfg(feature = "compression-gzip")]
         {
-            use flate2::{bufread::GzEncoder, Compression};
+            use flate2::{Compression, bufread::GzEncoder};
             use std::io::Read;
 
             let compression = Compression::default();

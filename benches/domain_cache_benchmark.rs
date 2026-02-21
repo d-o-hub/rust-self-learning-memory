@@ -6,7 +6,7 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use memory_core::episode::Episode;
 use memory_core::retrieval::{CacheKey, QueryCache};
 use memory_core::types::{TaskContext, TaskType};

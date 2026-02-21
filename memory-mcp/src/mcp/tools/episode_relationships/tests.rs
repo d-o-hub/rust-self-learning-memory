@@ -68,10 +68,12 @@ async fn test_add_relationship_invalid_uuid() {
 
     let result = tools.add_relationship(input).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Invalid from_episode_id"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid from_episode_id")
+    );
 }
 
 #[tokio::test]
@@ -90,10 +92,12 @@ async fn test_add_relationship_invalid_type() {
 
     let result = tools.add_relationship(input).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Invalid relationship_type"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid relationship_type")
+    );
 }
 
 #[tokio::test]
@@ -141,10 +145,12 @@ async fn test_remove_relationship_invalid_uuid() {
 
     let result = tools.remove_relationship(input).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Invalid relationship_id"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid relationship_id")
+    );
 }
 
 #[tokio::test]
@@ -515,10 +521,12 @@ async fn test_get_topological_order_invalid_uuid() {
 
     let result = tools.get_topological_order(input).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Invalid episode_id 'invalid-uuid'"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid episode_id 'invalid-uuid'")
+    );
 }
 
 #[tokio::test]

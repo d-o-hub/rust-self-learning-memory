@@ -2,7 +2,7 @@
 //!
 //! Input validation and data preparation for advanced pattern analysis.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 
 use super::types::{AdvancedPatternAnalysisInput, AnalysisConfig};

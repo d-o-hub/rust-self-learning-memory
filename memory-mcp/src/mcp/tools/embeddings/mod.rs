@@ -5,7 +5,7 @@ mod tool;
 mod types;
 
 pub use tool::{
-    configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool, EmbeddingTools,
+    EmbeddingTools, configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool,
 };
 pub use types::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, QuerySemanticMemoryInput,

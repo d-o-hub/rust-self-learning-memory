@@ -3,11 +3,11 @@
 //! Tests quality assessment and salient feature extraction integration
 //! into the `SelfLearningMemory` workflow.
 
+use memory_core::ExecutionStep;
 use memory_core::memory::SelfLearningMemory;
 use memory_core::types::{
     ComplexityLevel, ExecutionResult, MemoryConfig, TaskContext, TaskOutcome, TaskType,
 };
-use memory_core::ExecutionStep;
 
 /// Helper to create a high-quality episode (complex, diverse, reflective)
 fn create_high_quality_episode_data() -> (String, TaskContext, TaskType, Vec<ExecutionStep>) {

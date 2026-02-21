@@ -15,15 +15,15 @@
     clippy::doc_markdown
 )]
 
+use memory_core::StorageBackend;
 use memory_core::embeddings::{
-    cosine_similarity, EmbeddingConfig, EmbeddingProvider, EmbeddingStorageBackend,
-    InMemoryEmbeddingStorage, LocalConfig, LocalEmbeddingProvider, SemanticService,
+    EmbeddingConfig, EmbeddingProvider, EmbeddingStorageBackend, InMemoryEmbeddingStorage,
+    LocalConfig, LocalEmbeddingProvider, SemanticService, cosine_similarity,
 };
 use memory_core::episode::{ExecutionStep, PatternId};
 use memory_core::memory::SelfLearningMemory;
 use memory_core::pattern::Pattern;
 use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
-use memory_core::StorageBackend;
 use memory_storage_redb::RedbStorage;
 use std::sync::Arc;
 use tempfile::TempDir;

@@ -69,7 +69,7 @@ pub use self::types::{
 // ============================================================================
 
 mod types {
-    use super::{fmt, DateTime, Deserialize, HashMap, Serialize, Utc, Uuid};
+    use super::{DateTime, Deserialize, HashMap, Serialize, Utc, Uuid, fmt};
 
     /// Severity level for audit log entries.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

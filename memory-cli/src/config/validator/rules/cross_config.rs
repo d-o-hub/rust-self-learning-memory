@@ -1,7 +1,7 @@
 //! Cross-configuration validation rules.
 
-use crate::config::types::Config;
 use crate::config::ValidationWarning;
+use crate::config::types::Config;
 
 /// Cross-configuration validation.
 pub fn validate_cross_config(config: &Config) -> Vec<ValidationWarning> {

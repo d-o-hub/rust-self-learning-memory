@@ -1,7 +1,7 @@
 //! Storage configuration validation rules.
 
-use crate::config::types::StorageConfig;
 use crate::config::ValidationError;
+use crate::config::types::StorageConfig;
 
 /// Validate storage configuration (errors only).
 pub fn validate_storage_config_errors(config: &StorageConfig) -> Vec<ValidationError> {

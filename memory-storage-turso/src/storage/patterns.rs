@@ -3,7 +3,7 @@
 use crate::TursoStorage;
 use libsql::Row;
 use memory_core::{
-    episode::PatternId, Error, Heuristic, Pattern as CorePattern, Result, TaskContext,
+    Error, Heuristic, Pattern as CorePattern, Result, TaskContext, episode::PatternId,
 };
 use tracing::{debug, info};
 use uuid::Uuid;

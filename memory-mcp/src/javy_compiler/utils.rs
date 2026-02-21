@@ -1,6 +1,6 @@
 //! Utility functions for JavaScript validation and caching
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::path::Path;
 
 /// Validate JavaScript syntax (basic validation)

@@ -32,12 +32,12 @@
 use super::ttl_config::{TTLConfig, TTLConfigError};
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
-use tokio::time::{interval, Duration as TokioDuration};
+use tokio::time::{Duration as TokioDuration, interval};
 use tracing::{debug, info, trace};
 
 /// A cache entry with metadata for adaptive TTL management

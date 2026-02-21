@@ -6,7 +6,7 @@ pub mod crud;
 pub mod query;
 pub mod row;
 
-use memory_core::{semantic::EpisodeSummary, Episode, Error, Result, TaskType};
+use memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
 use uuid::Uuid;
 
 /// Query builder for episodes
@@ -64,7 +64,7 @@ pub fn decompress_json_field(data: &str) -> Result<Vec<u8>> {
                 return Err(Error::Storage(format!(
                     "Unknown compression algorithm: {}",
                     algorithm_str
-                )))
+                )));
             }
         };
 

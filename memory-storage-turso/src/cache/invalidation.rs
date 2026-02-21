@@ -599,8 +599,7 @@ impl InvalidationManager {
         if metrics.total_invalidations > 0 {
             trace!(
                 "Invalidation metrics: {} total, {} entries invalidated",
-                metrics.total_invalidations,
-                metrics.entries_invalidated
+                metrics.total_invalidations, metrics.entries_invalidated
             );
         }
     }

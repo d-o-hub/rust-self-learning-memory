@@ -6,8 +6,8 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use uuid::Uuid;
 
-use super::relationship_errors::GraphError;
 use super::EpisodeRelationship;
+use super::relationship_errors::GraphError;
 
 /// Check if a path exists from start to end using DFS.
 ///
@@ -782,10 +782,12 @@ mod tests {
 
         let result = topological_sort(&graph);
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Cannot perform topological sort on cyclic graph"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Cannot perform topological sort on cyclic graph")
+        );
     }
 
     #[test]

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use memory_core::SelfLearningMemory;
 
 use crate::mcp::tools::embeddings::tool::{
-    configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool, EmbeddingTools,
+    EmbeddingTools, configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool,
 };
 use crate::mcp::tools::embeddings::types::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
 
@@ -130,10 +130,12 @@ async fn test_configure_embeddings_invalid_provider() {
 
     let result = tools.execute_configure_embeddings(input).await;
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Unsupported provider"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Unsupported provider")
+    );
 }
 
 #[tokio::test]
@@ -167,7 +169,7 @@ async fn test_test_embeddings() {
 
     let output = result.unwrap();
     assert!(!output.available); // Not configured by default
-                                // When no semantic service is configured, sample_embedding is empty
+    // When no semantic service is configured, sample_embedding is empty
     assert_eq!(output.sample_embedding.len(), 0);
     assert!(!output.message.is_empty());
     assert!(output.message.contains("not yet configured"));

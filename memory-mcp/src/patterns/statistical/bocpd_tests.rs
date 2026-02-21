@@ -3,7 +3,7 @@
 //! Unit and integration tests for Bayesian Online Changepoint Detection
 
 use crate::patterns::statistical::analysis::{
-    bocpd::{log_sum_exp, SimpleBOCPD},
+    bocpd::{SimpleBOCPD, log_sum_exp},
     types::BOCPDConfig,
 };
 use anyhow::Result;
@@ -161,7 +161,7 @@ mod bocpd_unit_tests {
         let mut data = Vec::new();
         for i in 0..100 {
             let value = 10.0 + (i as f64 / 100.0) * 10.0; // Gradual increase from 10 to 20
-            data.push(value + (rng.gen::<f64>() - 0.5) * 0.5);
+            data.push(value + (rng.random::<f64>() - 0.5) * 0.5);
         }
 
         let results = bocpd.detect_changepoints(&data)?;
@@ -562,9 +562,9 @@ mod bocpd_integration_tests {
         let series: Vec<f64> = (0..100)
             .map(|i| {
                 if i < 50 {
-                    10.0 + (rng.gen::<f64>() - 0.5) * 1.0
+                    10.0 + (rng.random::<f64>() - 0.5) * 1.0
                 } else {
-                    20.0 + (rng.gen::<f64>() - 0.5) * 1.0
+                    20.0 + (rng.random::<f64>() - 0.5) * 1.0
                 }
             })
             .collect();
@@ -624,7 +624,8 @@ mod bocpd_integration_tests {
             high_confidence <= max_high_confidence,
             "Seasonal data produced excessive high-confidence changepoints: got {}, max allowed {}. \
              BOCPD on seasonal patterns produces false positives - see ADR-025",
-            high_confidence, max_high_confidence
+            high_confidence,
+            max_high_confidence
         );
 
         Ok(())

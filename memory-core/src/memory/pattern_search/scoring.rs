@@ -3,10 +3,10 @@
 //! Provides functions for calculating relevance scores, context matches,
 //! and combining multiple signals into unified pattern scores.
 
+use crate::Result;
 use crate::embeddings::SemanticService;
 use crate::pattern::{Pattern, PatternEffectiveness};
 use crate::types::TaskContext;
-use crate::Result;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

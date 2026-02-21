@@ -9,7 +9,7 @@ use libsql::Builder;
 use memory_core::{Episode, TaskContext, TaskType};
 use memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
-use tokio::time::{timeout, Duration};
+use tokio::time::{Duration, timeout};
 
 #[tokio::test]
 async fn test_prepared_statement_cache_integration() {

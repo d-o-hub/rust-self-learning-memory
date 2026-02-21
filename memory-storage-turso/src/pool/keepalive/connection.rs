@@ -5,8 +5,8 @@ use parking_lot::RwLock;
 use std::sync::Arc;
 use std::time::Instant;
 
-use super::config::KeepAliveStatistics;
 use super::PooledConnection;
+use super::config::KeepAliveStatistics;
 
 /// A connection wrapper that tracks last used time
 #[derive(Debug)]

@@ -13,13 +13,13 @@
 //! - Rate limit violations
 
 use super::types::Content;
+use memory_mcp::ExecutionContext;
+use memory_mcp::MemoryMCPServer;
 use memory_mcp::mcp::tools::embeddings::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
 use memory_mcp::mcp::tools::pattern_search::{RecommendPatternsInput, SearchPatternsInput};
 use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
 use memory_mcp::server::rate_limiter::OperationType;
-use memory_mcp::ExecutionContext;
-use memory_mcp::MemoryMCPServer;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Extract client ID from arguments or use default
 fn get_client_id(args: &Value) -> String {
@@ -222,7 +222,7 @@ pub async fn handle_advanced_pattern_analysis(
             return Err(anyhow::anyhow!(
                 "Invalid analysis_type: {}",
                 analysis_type_str
-            ))
+            ));
         }
     };
 
@@ -467,7 +467,7 @@ pub async fn handle_bulk_episodes(
         _ => {
             return Err(anyhow::anyhow!(
                 "episode_ids must be a string (comma-separated) or array of UUIDs"
-            ))
+            ));
         }
     };
 

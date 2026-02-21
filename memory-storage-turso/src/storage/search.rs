@@ -9,8 +9,8 @@ use super::patterns::row_to_pattern;
 use crate::TursoStorage;
 use libsql::Connection;
 use memory_core::{
-    embeddings::{cosine_similarity, SimilarityMetadata, SimilaritySearchResult},
     Episode, Error, Pattern, Result,
+    embeddings::{SimilarityMetadata, SimilaritySearchResult, cosine_similarity},
 };
 use tracing::{debug, info};
 

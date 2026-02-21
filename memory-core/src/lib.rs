@@ -253,14 +253,14 @@ pub use episodic::{CapacityManager, EvictionPolicy};
 pub use error::{CacheError, Error, RelationshipError, Result};
 pub use extraction::PatternExtractor;
 pub use indexing::{
+    BenchmarkResult, IndexMetrics, IndexableMemory, QueryPerformance,
     hierarchical::{HierarchicalIndex, HierarchicalIndexStats, HierarchicalQuery},
     spatiotemporal::{IndexStats, QueryOptions, SpatiotemporalIndex, TimeBucket},
-    BenchmarkResult, IndexMetrics, IndexableMemory, QueryPerformance,
 };
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
+pub use memory::SelfLearningMemory;
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
-pub use memory::SelfLearningMemory;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
 pub use pattern::{Heuristic, Pattern, PatternEffectiveness};
 pub use patterns::{
@@ -279,7 +279,7 @@ pub use security::audit::{
     ActorType, AuditConfig, AuditContext, AuditEntry, AuditEventType, AuditLogLevel, AuditLogger,
     AuditOutput, AuditResult,
 };
-pub use storage::{apply_query_limit, StorageBackend, DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT};
+pub use storage::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, apply_query_limit};
 pub use types::{
     ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
     Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,

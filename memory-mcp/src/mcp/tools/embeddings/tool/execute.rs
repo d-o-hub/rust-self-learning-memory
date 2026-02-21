@@ -1,11 +1,11 @@
 //! Embedding tools - Execute implementations.
 
+use crate::mcp::tools::embeddings::EmbeddingTools;
 use crate::mcp::tools::embeddings::types::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, QuerySemanticMemoryInput,
     QuerySemanticMemoryOutput, SemanticResult, TestEmbeddingsOutput,
 };
-use crate::mcp::tools::embeddings::EmbeddingTools;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use memory_core::embeddings::config::{
     AzureOpenAIConfig, CustomConfig, EmbeddingConfig, EmbeddingProvider, LocalConfig,
     ProviderConfig,

@@ -1,7 +1,7 @@
 //! Tests for the MemoryMCPServer
 
-use crate::server::sandbox;
 use crate::server::MemoryMCPServer;
+use crate::server::sandbox;
 use crate::types::{ExecutionContext, SandboxConfig};
 use memory_core::SelfLearningMemory;
 use serde_json::json;
@@ -90,7 +90,9 @@ async fn test_tool_usage_tracking() {
 #[tokio::test]
 async fn test_progressive_tool_disclosure() {
     if std::env::var("RUN_WASM_TESTS").is_err() || !sandbox::is_wasm_sandbox_available() {
-        tracing::info!("Skipping progressive tool disclosure test (set RUN_WASM_TESTS=1 and ensure WASM is available)");
+        tracing::info!(
+            "Skipping progressive tool disclosure test (set RUN_WASM_TESTS=1 and ensure WASM is available)"
+        );
         return;
     }
 

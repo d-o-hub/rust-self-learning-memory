@@ -2,7 +2,7 @@
 //!
 //! This module provides schema initialization methods to keep lib.rs under 500 LOC.
 
-use crate::{schema, Result, TursoStorage};
+use crate::{Result, TursoStorage, schema};
 use tracing::info;
 
 impl TursoStorage {

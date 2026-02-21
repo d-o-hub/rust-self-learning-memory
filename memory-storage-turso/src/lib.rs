@@ -111,8 +111,8 @@ pub use trait_impls::StorageStatistics;
 // Compression exports (when compression feature is enabled)
 #[cfg(feature = "compression")]
 pub use compression::{
-    compress, compress_embedding, compress_json, decompress, decompress_embedding,
-    CompressedPayload, CompressionAlgorithm, CompressionStatistics,
+    CompressedPayload, CompressionAlgorithm, CompressionStatistics, compress, compress_embedding,
+    compress_json, decompress, decompress_embedding,
 };
 
 // Transport exports (when compression feature is enabled)

@@ -1,10 +1,10 @@
 //! Storage backend for embeddings
 
 use super::similarity::SimilaritySearchResult;
+use crate::Result;
 use crate::episode::Episode;
 use crate::episode::PatternId;
 use crate::pattern::Pattern;
-use crate::Result;
 use async_trait::async_trait;
 use uuid::Uuid;
 

@@ -3,7 +3,7 @@
 //! Database row to Episode conversion operations.
 
 use crate::TursoStorage;
-use memory_core::{semantic::EpisodeSummary, Episode, Error, Result, TaskType};
+use memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
 use uuid::Uuid;
 
 /// Convert a database row to an Episode

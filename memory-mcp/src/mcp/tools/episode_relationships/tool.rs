@@ -9,12 +9,12 @@ use crate::mcp::tools::episode_relationships::types::{
     RemoveEpisodeRelationshipOutput, TopologicalEpisode, ValidateNoCyclesInput,
     ValidateNoCyclesOutput,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
+use memory_core::SelfLearningMemory;
 use memory_core::episode::{
     Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType,
 };
 use memory_core::memory::relationship_query::RelationshipFilter;
-use memory_core::SelfLearningMemory;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, info, instrument};

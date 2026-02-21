@@ -1,6 +1,6 @@
 //! Heuristic storage operations for redb cache
 
-use crate::{Error, RedbStorage, HEURISTICS_TABLE};
+use crate::{Error, HEURISTICS_TABLE, RedbStorage};
 use memory_core::{Heuristic, Result};
 use redb::ReadableTable;
 use std::sync::Arc;

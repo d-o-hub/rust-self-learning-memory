@@ -279,10 +279,14 @@ mod tests {
 
     #[test]
     fn test_regex_matches() {
-        assert!(regex_matches("test123", r"\w+\d+")
-            .expect("Valid regex pattern should compile and match"));
-        assert!(!regex_matches("test", r"\d+")
-            .expect("Valid regex pattern should compile (even with no match)"));
+        assert!(
+            regex_matches("test123", r"\w+\d+")
+                .expect("Valid regex pattern should compile and match")
+        );
+        assert!(
+            !regex_matches("test", r"\d+")
+                .expect("Valid regex pattern should compile (even with no match)")
+        );
     }
 
     #[test]

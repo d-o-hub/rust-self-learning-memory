@@ -127,8 +127,8 @@ pub use batch::{
 pub use cache::{CacheConfig, CacheStats, QueryCache};
 pub use error::{Error, Result};
 pub use sandbox::CodeSandbox;
-pub use server::audit::{AuditConfig, AuditDestination, AuditLogEntry, AuditLogLevel, AuditLogger};
 pub use server::MemoryMCPServer;
+pub use server::audit::{AuditConfig, AuditDestination, AuditLogEntry, AuditLogLevel, AuditLogger};
 pub use types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, ResourceLimits, SandboxConfig,
     SecurityViolationType, Tool,

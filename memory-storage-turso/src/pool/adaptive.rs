@@ -3,8 +3,8 @@
 use libsql::Database;
 use memory_core::{Error, Result};
 use parking_lot::RwLock;
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use tracing::{debug, info};
@@ -696,8 +696,8 @@ mod tests {
     async fn test_cleanup_callback_on_connection_drop() {
         let (pool, _dir) = create_test_pool().await;
 
-        use std::sync::atomic::{AtomicU64, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU64, Ordering};
 
         let cleanup_count = Arc::new(AtomicU64::new(0));
         let cleanup_count_clone = Arc::clone(&cleanup_count);
@@ -777,8 +777,8 @@ mod tests {
     async fn test_cleanup_callback_removal() {
         let (pool, _dir) = create_test_pool().await;
 
-        use std::sync::atomic::{AtomicU64, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU64, Ordering};
 
         let cleanup_count = Arc::new(AtomicU64::new(0));
         let cleanup_count_clone = Arc::clone(&cleanup_count);

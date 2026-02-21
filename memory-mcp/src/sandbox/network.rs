@@ -6,7 +6,7 @@
 //! - Request rate limiting
 //! - IP address validation
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use tracing::{debug, warn};
 

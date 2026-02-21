@@ -3,8 +3,8 @@
 
 use memory_core::SelfLearningMemory;
 use memory_mcp::mcp::tools::embeddings::{
-    configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool,
-    ConfigureEmbeddingsInput, EmbeddingTools, QuerySemanticMemoryInput,
+    ConfigureEmbeddingsInput, EmbeddingTools, QuerySemanticMemoryInput, configure_embeddings_tool,
+    query_semantic_memory_tool, test_embeddings_tool,
 };
 use memory_mcp::server::MemoryMCPServer;
 use memory_mcp::types::SandboxConfig;
@@ -223,10 +223,12 @@ async fn test_configure_embeddings_invalid_provider() {
 
     let result = tools.execute_configure_embeddings(input).await;
     assert!(result.is_err(), "Invalid provider should fail");
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Unsupported provider"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Unsupported provider")
+    );
 }
 
 #[tokio::test]

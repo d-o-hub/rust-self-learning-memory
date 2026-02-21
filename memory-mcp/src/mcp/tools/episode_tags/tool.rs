@@ -6,7 +6,7 @@ use crate::mcp::tools::episode_tags::types::{
     SearchEpisodesByTagsInput, SearchEpisodesByTagsOutput, SetEpisodeTagsInput,
     SetEpisodeTagsOutput,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use memory_core::SelfLearningMemory;
 use std::sync::Arc;
 use tracing::{debug, info, instrument};

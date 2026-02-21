@@ -11,7 +11,7 @@ use memory_core::{
     ComplexityLevel, Episode, Evidence, ExecutionResult, ExecutionStep, Heuristic, Pattern,
     TaskContext, TaskType,
 };
-use memory_storage_redb::{RedbStorage, MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE};
+use memory_storage_redb::{MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE, RedbStorage};
 use serde_json::json;
 use tempfile::TempDir;
 

@@ -1,10 +1,10 @@
 //! Tests for the filters module
 
 use super::*;
+use crate::Episode;
 use crate::types::TaskOutcome;
 use crate::types::TaskType;
 use crate::types::{ComplexityLevel, RewardScore, TaskContext};
-use crate::Episode;
 
 fn create_test_episode(
     task_type: TaskType,

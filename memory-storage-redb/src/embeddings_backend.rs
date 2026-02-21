@@ -1,9 +1,9 @@
 //! EmbeddingStorageBackend trait implementation for redb cache
 
-use crate::{RedbStorage, EMBEDDINGS_TABLE, EPISODES_TABLE, PATTERNS_TABLE};
+use crate::{EMBEDDINGS_TABLE, EPISODES_TABLE, PATTERNS_TABLE, RedbStorage};
 use async_trait::async_trait;
 use memory_core::embeddings::{
-    cosine_similarity, EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult,
+    EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult, cosine_similarity,
 };
 use memory_core::episode::PatternId;
 use memory_core::{Episode, Error, Pattern, Result};

@@ -2,9 +2,9 @@
 //! Tests for the reflection helper functions
 //!
 
+use crate::ExecutionStep;
 use crate::reflection::helpers;
 use crate::types::{ExecutionResult, TaskType};
-use crate::ExecutionStep;
 
 use super::create_test_episode;
 use super::successful_step;

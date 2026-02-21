@@ -1,10 +1,10 @@
 //! Tests for pattern effectiveness tracking
 
 use chrono::Duration;
+use memory_core::TaskType;
 use memory_core::episode::{ApplicationOutcome, Episode, PatternId};
 use memory_core::pattern::{Pattern, PatternEffectiveness};
 use memory_core::types::{ComplexityLevel, TaskContext};
-use memory_core::TaskType;
 
 #[test]
 #[allow(clippy::float_cmp)]

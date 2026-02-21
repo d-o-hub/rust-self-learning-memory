@@ -12,8 +12,8 @@ mod common;
 
 use common::{create_test_step, setup_test_memory, test_context};
 use memory_core::{
-    memory::SelfLearningMemory, ComplexityLevel, ExecutionResult, ExecutionStep, Pattern,
-    TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, ExecutionResult, ExecutionStep, Pattern, TaskContext, TaskOutcome, TaskType,
+    memory::SelfLearningMemory,
 };
 use std::time::{Duration, Instant};
 use uuid::Uuid;

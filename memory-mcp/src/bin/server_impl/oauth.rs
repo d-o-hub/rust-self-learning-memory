@@ -80,7 +80,7 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     let payload = match base64url_decode(parts[1]) {
         Ok(p) => p,
         Err(e) => {
-            return AuthorizationResult::InvalidToken(format!("Invalid token payload: {}", e))
+            return AuthorizationResult::InvalidToken(format!("Invalid token payload: {}", e));
         }
     };
 
@@ -88,7 +88,7 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     let payload_str = match String::from_utf8(payload) {
         Ok(s) => s,
         Err(e) => {
-            return AuthorizationResult::InvalidToken(format!("Invalid token encoding: {}", e))
+            return AuthorizationResult::InvalidToken(format!("Invalid token encoding: {}", e));
         }
     };
 

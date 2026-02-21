@@ -9,11 +9,11 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use anyhow::Result;
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use memory_core::{
+    Episode,
     embeddings::EmbeddingStorageBackend,
     types::{ComplexityLevel, TaskContext, TaskType},
-    Episode,
 };
 use memory_storage_turso::TursoStorage;
 use rand::{Rng, SeedableRng};

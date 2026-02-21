@@ -3,7 +3,7 @@
 //! Core batch operations for patterns using transactions.
 
 use crate::TursoStorage;
-use memory_core::{episode::PatternId, Error, Heuristic, Pattern, Result, TaskContext};
+use memory_core::{Error, Heuristic, Pattern, Result, TaskContext, episode::PatternId};
 use tracing::{debug, error, info, warn};
 
 use super::pattern_types::{BatchProgress, BatchResult};

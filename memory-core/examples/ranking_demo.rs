@@ -13,7 +13,7 @@
 //! ```
 
 use chrono::{Duration, Utc};
-use memory_core::search::{calculate_ranking_score, RankingWeights, SearchField, SearchMode};
+use memory_core::search::{RankingWeights, SearchField, SearchMode, calculate_ranking_score};
 use memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 
 fn create_episode(

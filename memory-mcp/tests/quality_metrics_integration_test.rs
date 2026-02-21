@@ -2,9 +2,9 @@
 
 use memory_core::types::{ComplexityLevel, ExecutionResult, Reflection};
 use memory_core::{Episode, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+use memory_mcp::SandboxConfig;
 use memory_mcp::mcp::tools::quality_metrics::{QualityMetricsInput, QualityMetricsTool};
 use memory_mcp::server::MemoryMCPServer;
-use memory_mcp::SandboxConfig;
 use std::sync::Arc;
 
 /// Create test episodes with varying quality levels
@@ -224,9 +224,11 @@ async fn test_quality_metrics_tool_definition() {
 
     assert_eq!(tool_def.name, "quality_metrics");
     assert!(!tool_def.description.is_empty());
-    assert!(tool_def
-        .description
-        .contains("quality metrics and noise reduction"));
+    assert!(
+        tool_def
+            .description
+            .contains("quality metrics and noise reduction")
+    );
     assert!(tool_def.input_schema.is_object());
 
     // Verify schema properties
@@ -249,10 +251,12 @@ async fn test_quality_metrics_invalid_time_range() {
 
     let result = tool.execute(input).await;
     assert!(result.is_err(), "Invalid time range should return error");
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("Invalid time range"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid time range")
+    );
 }
 
 #[tokio::test]

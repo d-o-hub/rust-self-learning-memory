@@ -7,8 +7,8 @@ mod messages;
 mod rules;
 
 pub use messages::{
-    format_validation_result, validate_config, validate_config_path, ValidationError,
-    ValidationResult, ValidationWarning,
+    ValidationError, ValidationResult, ValidationWarning, format_validation_result,
+    validate_config, validate_config_path,
 };
 pub use rules::{
     quick_validation_check, validate_cli_config, validate_cross_config, validate_database_config,

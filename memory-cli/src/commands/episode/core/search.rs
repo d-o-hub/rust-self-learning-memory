@@ -3,8 +3,8 @@
 use super::types::{EpisodeList, SearchSortOrder};
 use crate::config::Config;
 use crate::output::OutputFormat;
-use memory_core::search::{SearchField, SearchMode};
 use memory_core::EpisodeFilter;
+use memory_core::search::{SearchField, SearchMode};
 use memory_core::{Episode, SelfLearningMemory, TaskOutcome};
 
 /// Calculate a success score for an episode (higher = more successful)

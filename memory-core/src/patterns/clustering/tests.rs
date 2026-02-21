@@ -5,12 +5,12 @@
 #[cfg(test)]
 #[allow(clippy::module_inception)]
 mod tests {
+    use crate::Episode;
+    use crate::ExecutionStep;
     use crate::pattern::Pattern;
     use crate::pattern::PatternEffectiveness;
     use crate::patterns::{ClusterCentroid, ClusteringConfig, EpisodeCluster, PatternClusterer};
     use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome};
-    use crate::Episode;
-    use crate::ExecutionStep;
     use chrono::Utc;
     use uuid::Uuid;
 

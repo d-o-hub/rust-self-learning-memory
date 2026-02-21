@@ -23,7 +23,7 @@ pub use turso_utils::*;
 #[cfg(feature = "turso")]
 mod turso_utils {
     use super::*;
-    use memory_core::{embeddings::EmbeddingStorageBackend, Episode};
+    use memory_core::{Episode, embeddings::EmbeddingStorageBackend};
     use memory_storage_turso::TursoStorage;
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha8Rng;
@@ -245,8 +245,8 @@ mod tests {
     fn test_embedding_generator() {
         use super::turso_utils::EmbeddingGenerator;
 
-        let mut gen = EmbeddingGenerator::new(384);
-        let embeddings = gen.generate(5);
+        let mut generator = EmbeddingGenerator::new(384);
+        let embeddings = generator.generate(5);
 
         assert_eq!(embeddings.len(), 5);
         assert_eq!(embeddings[0].len(), 384);

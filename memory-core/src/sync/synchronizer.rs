@@ -1,6 +1,6 @@
 //! Storage synchronizer for coordinating Turso and redb
 
-use crate::{Error, Result, MAX_QUERY_LIMIT};
+use crate::{Error, MAX_QUERY_LIMIT, Result};
 use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::time::Duration;
@@ -91,13 +91,13 @@ where
             Ok(Ok(None)) => {
                 return Err(Error::Storage(format!(
                     "Episode {episode_id} not found in source storage"
-                )))
+                )));
             }
             Ok(Err(e)) => return Err(Error::Storage(format!("Error fetching episode: {e}"))),
             Err(_) => {
                 return Err(Error::Storage(format!(
                     "Timeout fetching episode {episode_id} after {SYNC_EPISODE_TIMEOUT:?}"
-                )))
+                )));
             }
         };
 
@@ -108,7 +108,7 @@ where
             Err(_) => {
                 return Err(Error::Storage(format!(
                     "Timeout storing episode {episode_id} after {SYNC_EPISODE_TIMEOUT:?}"
-                )))
+                )));
             }
         }
 
@@ -150,7 +150,7 @@ where
             Err(_) => {
                 return Err(Error::Storage(format!(
                     "Timeout querying episodes after {SYNC_ALL_TIMEOUT:?}"
-                )))
+                )));
             }
         };
 

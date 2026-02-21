@@ -6,7 +6,7 @@
 //! - Path traversal attack prevention
 //! - Symlink resolution and validation
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::path::{Path, PathBuf};
 use tracing::{debug, warn};
 

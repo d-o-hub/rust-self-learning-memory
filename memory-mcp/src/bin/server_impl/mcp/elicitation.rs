@@ -8,10 +8,10 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 
+use super::super::ActiveElicitation;
 use super::super::types::{
     ElicitationCancelParams, ElicitationDataParams, ElicitationParams, ElicitationResult,
 };
-use super::super::ActiveElicitation;
 
 /// Handle elicitation/request - server asks client for user input
 pub async fn handle_elicitation_request(
@@ -34,7 +34,7 @@ pub async fn handle_elicitation_request(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -47,7 +47,7 @@ pub async fn handle_elicitation_request(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 
@@ -99,7 +99,7 @@ pub async fn handle_elicitation_data(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -112,7 +112,7 @@ pub async fn handle_elicitation_data(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 
@@ -196,7 +196,7 @@ pub async fn handle_elicitation_cancel(
                         message: "Invalid params".to_string(),
                         data: Some(json!({"details": e.to_string()})),
                     }),
-                })
+                });
             }
         },
         None => {
@@ -209,7 +209,7 @@ pub async fn handle_elicitation_cancel(
                     message: "Missing params".to_string(),
                     data: None,
                 }),
-            })
+            });
         }
     };
 

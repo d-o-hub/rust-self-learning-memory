@@ -9,8 +9,8 @@
 
 use crate::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use serde::Serialize;
-use serde_json::json;
 use serde_json::Value;
+use serde_json::json;
 use tracing::{error, info};
 
 /// Supported MCP protocol versions (in order of preference, latest first)

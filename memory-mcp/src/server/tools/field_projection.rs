@@ -272,10 +272,12 @@ mod tests {
 
         assert_eq!(filtered["episode"]["id"], "123");
         assert_eq!(filtered["episode"]["task_description"], "test task");
-        assert!(!filtered["episode"]
-            .as_object()
-            .unwrap()
-            .contains_key("steps"));
+        assert!(
+            !filtered["episode"]
+                .as_object()
+                .unwrap()
+                .contains_key("steps")
+        );
     }
 
     #[test]
@@ -294,10 +296,12 @@ mod tests {
         assert_eq!(filtered["episodes"].as_array().unwrap().len(), 2);
         assert_eq!(filtered["episodes"][0]["id"], "1");
         assert_eq!(filtered["episodes"][0]["task_description"], "task1");
-        assert!(!filtered["episodes"][0]
-            .as_object()
-            .unwrap()
-            .contains_key("extra"));
+        assert!(
+            !filtered["episodes"][0]
+                .as_object()
+                .unwrap()
+                .contains_key("extra")
+        );
     }
 
     #[test]
@@ -354,21 +358,27 @@ mod tests {
         assert_eq!(filtered["episodes"][0]["id"], "1");
         assert_eq!(filtered["episodes"][0]["task_description"], "task1");
         assert_eq!(filtered["episodes"][0]["outcome"]["type"], "success");
-        assert!(!filtered["episodes"][0]
-            .as_object()
-            .unwrap()
-            .contains_key("steps"));
-        assert!(!filtered["episodes"][0]["outcome"]
-            .as_object()
-            .unwrap()
-            .contains_key("verdict"));
+        assert!(
+            !filtered["episodes"][0]
+                .as_object()
+                .unwrap()
+                .contains_key("steps")
+        );
+        assert!(
+            !filtered["episodes"][0]["outcome"]
+                .as_object()
+                .unwrap()
+                .contains_key("verdict")
+        );
 
         // Verify patterns filtered correctly
         assert_eq!(filtered["patterns"][0]["success_rate"], 0.9);
-        assert!(!filtered["patterns"][0]
-            .as_object()
-            .unwrap()
-            .contains_key("description"));
+        assert!(
+            !filtered["patterns"][0]
+                .as_object()
+                .unwrap()
+                .contains_key("description")
+        );
 
         // Verify insights not included
         assert!(!filtered.as_object().unwrap().contains_key("insights"));

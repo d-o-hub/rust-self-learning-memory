@@ -9,7 +9,7 @@
 
 mod common;
 
-use common::{setup_test_memory, ContextBuilder, StepBuilder};
+use common::{ContextBuilder, StepBuilder, setup_test_memory};
 use memory_core::{ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 use uuid::Uuid;
 

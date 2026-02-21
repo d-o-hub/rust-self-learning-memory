@@ -3,7 +3,7 @@
 //! Core statistical engine providing Bayesian changepoint detection,
 //! correlation analysis with significance testing, and time-series trend detection.
 
-pub use bocpd::{log_sum_exp, SimpleBOCPD};
+pub use bocpd::{SimpleBOCPD, log_sum_exp};
 pub use engine::{ChangepointDetector, CorrelationAnalyzer, StatisticalEngine};
 pub use types::{
     AnalysisMetadata, BOCPDConfig, BOCPDResult, BOCPDState, ChangeType, ChangepointConfig,

@@ -1,6 +1,6 @@
 //! Embedding storage operations for redb cache
 
-use crate::{RedbStorage, EMBEDDINGS_TABLE};
+use crate::{EMBEDDINGS_TABLE, RedbStorage};
 use memory_core::{Error, Result};
 use std::sync::Arc;
 use tracing::debug;

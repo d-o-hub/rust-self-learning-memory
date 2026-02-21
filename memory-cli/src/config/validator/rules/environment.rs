@@ -1,7 +1,7 @@
 //! Environment-based validation rules.
 
-use crate::config::types::Config;
 use crate::config::ValidationWarning;
+use crate::config::types::Config;
 
 /// Quick validation check for common issues.
 pub fn quick_validation_check(config: &Config) -> Vec<String> {

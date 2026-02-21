@@ -2,9 +2,9 @@
 //!
 //! This module provides ultra-simple configuration setup (30-second setup).
 
+use crate::config::EnvironmentCheck;
 use crate::config::types::{Config, ConfigPreset};
 use crate::config::validate_config;
-use crate::config::EnvironmentCheck;
 use anyhow::{Context, Result};
 use tracing::{info, warn};
 

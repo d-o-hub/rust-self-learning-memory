@@ -5,7 +5,7 @@
 
 mod common;
 
-use common::{setup_test_memory, ContextBuilder};
+use common::{ContextBuilder, setup_test_memory};
 use memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,

@@ -443,16 +443,20 @@ async fn test_summary_cascade_deletion_with_episode() {
         .unwrap();
 
     // Verify both summaries exist
-    assert!(storage
-        .get_episode_summary(episode1.episode_id)
-        .await
-        .unwrap()
-        .is_some());
-    assert!(storage
-        .get_episode_summary(episode2.episode_id)
-        .await
-        .unwrap()
-        .is_some());
+    assert!(
+        storage
+            .get_episode_summary(episode1.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        storage
+            .get_episode_summary(episode2.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
 
     // Insert a 3rd episode - should evict episode1
     let episode3 = create_episode_with_quality("Task 3", 0.8);
@@ -474,14 +478,18 @@ async fn test_summary_cascade_deletion_with_episode() {
     );
 
     // Verify other summaries still exist
-    assert!(storage
-        .get_episode_summary(episode2.episode_id)
-        .await
-        .unwrap()
-        .is_some());
-    assert!(storage
-        .get_episode_summary(episode3.episode_id)
-        .await
-        .unwrap()
-        .is_some());
+    assert!(
+        storage
+            .get_episode_summary(episode2.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        storage
+            .get_episode_summary(episode3.episode_id)
+            .await
+            .unwrap()
+            .is_some()
+    );
 }

@@ -4,7 +4,7 @@
 
 use anyhow::Result;
 use memory_core::embeddings::EmbeddingStorageBackend as _;
-use test_utils::multi_dimension::{table_for_dimension, MultiDimensionTestHarness};
+use test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
 use tracing::info;
 
 // ============================================================================

@@ -160,12 +160,16 @@ impl RealEmbeddingModelWithFallback {
                 }
                 Err(e) => {
                     tracing::warn!("Real embedding failed, falling back to mock: {}", e);
-                    tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
+                    tracing::warn!(
+                        "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!"
+                    );
                     Ok(self.mock_model.generate_mock_embedding(text))
                 }
             }
         } else {
-            tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
+            tracing::warn!(
+                "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!"
+            );
             tracing::warn!(
                 "To enable real embeddings, add local-embeddings feature and download ONNX models"
             );
@@ -195,9 +199,13 @@ impl RealEmbeddingModelWithFallback {
             }
 
             tracing::warn!("Real embedding batch failed, falling back to mock for all texts");
-            tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
+            tracing::warn!(
+                "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!"
+            );
         } else {
-            tracing::warn!("PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!");
+            tracing::warn!(
+                "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly!"
+            );
             tracing::warn!(
                 "To enable real embeddings, add local-embeddings feature and download ONNX models"
             );

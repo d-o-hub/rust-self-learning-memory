@@ -10,7 +10,7 @@ mod performance_benchmarks {
         kdtree::{KDTree, Point},
     };
     use crate::patterns::statistical::{
-        analysis::types::BOCPDConfig, bocpd_tests::create_changepoint_data, SimpleBOCPD,
+        SimpleBOCPD, analysis::types::BOCPDConfig, bocpd_tests::create_changepoint_data,
     };
     use std::time::Instant;
 

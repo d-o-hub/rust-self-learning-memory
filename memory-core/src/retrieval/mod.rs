@@ -4,4 +4,4 @@
 
 pub mod cache;
 
-pub use cache::{CacheKey, CacheMetrics, QueryCache, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES};
+pub use cache::{CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache};

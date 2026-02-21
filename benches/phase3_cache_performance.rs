@@ -7,7 +7,7 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use memory_core::{Episode, Pattern, PatternId, StorageBackend, TaskContext, TaskType};
 use memory_storage_turso::{CacheConfig, TursoStorage};
 use std::hint::black_box;

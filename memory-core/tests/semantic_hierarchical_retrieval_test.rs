@@ -4,10 +4,10 @@
 use std::time::Instant;
 
 use memory_core::{
-    embeddings::{InMemoryEmbeddingStorage, SemanticService},
-    memory::SelfLearningMemory,
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome,
     TaskType,
+    embeddings::{InMemoryEmbeddingStorage, SemanticService},
+    memory::SelfLearningMemory,
 };
 
 // ============================================================================

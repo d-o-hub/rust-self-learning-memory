@@ -2,7 +2,7 @@
 
 use super::types::{PatternAnalysisData, PatternAnalysisResult};
 use crate::config::Config;
-use crate::errors::{helpers, EnhancedError};
+use crate::errors::{EnhancedError, helpers};
 use crate::output::{Output, OutputFormat};
 use uuid::Uuid;
 

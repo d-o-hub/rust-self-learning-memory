@@ -1,7 +1,7 @@
 //! Pattern storage operations for redb cache
 
-use crate::{Error, RedbStorage, PATTERNS_TABLE};
-use memory_core::{episode::PatternId, Pattern, Result};
+use crate::{Error, PATTERNS_TABLE, RedbStorage};
+use memory_core::{Pattern, Result, episode::PatternId};
 use redb::ReadableTable;
 use std::sync::Arc;
 use tracing::debug;

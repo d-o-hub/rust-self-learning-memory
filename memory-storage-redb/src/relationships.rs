@@ -1,9 +1,9 @@
 //! Redb cache layer for episode relationships.
 
-use crate::{RedbStorage, Result, RELATIONSHIPS_TABLE};
-use memory_core::episode::{Direction, EpisodeRelationship, RelationshipType};
+use crate::{RELATIONSHIPS_TABLE, RedbStorage, Result};
 #[allow(unused_imports)] // False positive - import is used in error mapping
 use memory_core::Error;
+use memory_core::episode::{Direction, EpisodeRelationship, RelationshipType};
 use redb::{ReadableTable, ReadableTableMetadata};
 use tracing::debug;
 use uuid::Uuid;

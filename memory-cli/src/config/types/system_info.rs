@@ -2,8 +2,8 @@
 
 use std::path::PathBuf;
 
-use super::defaults;
 use super::Config;
+use super::defaults;
 
 /// System information for smart defaults
 #[derive(Debug, Clone)]

@@ -156,18 +156,38 @@ run_goap_checks() {
 
   # Dependency metrics tracking (ADR-036 Tier 5)
   echo ""
-  echo -e "${BLUE}Dependency metrics:${NC}"
+  echo -e "${BLUE}📊 Dependency metrics (ADR-036 Tier 5):${NC}"
   if command -v cargo &> /dev/null; then
+    # Count duplicate dependency roots
     local dupes
     dupes=$(cargo tree -d 2>/dev/null | grep -cE "^[a-z]" || echo "0")
     echo "  Duplicate dependency roots: $dupes"
-    if [ "$dupes" -gt 130 ]; then
-      echo -e "  ${YELLOW}⚠${NC} WARNING: Duplicate dependencies increasing (target: <100, alert: >130)"
-    elif [ "$dupes" -gt 100 ]; then
-      echo -e "  ${YELLOW}⚠${NC} Duplicate dependencies above target (target: <100)"
+
+    # Count total packages (workspace members + all dependencies)
+    local total
+    if command -v jq &> /dev/null; then
+      total=$(cargo metadata --format-version=1 2>/dev/null | jq '.packages | length' 2>/dev/null || echo "0")
     else
-      echo -e "  ${GREEN}✓${NC} Duplicate dependencies within target (<100)"
+      # Fallback: count unique package names in tree output
+      total=$(cargo tree --workspace 2>/dev/null | wc -l)
     fi
+    echo "  Total dependency packages: $total"
+
+    # Warning if duplicates increasing
+    if [ "$dupes" -gt 130 ]; then
+      echo -e "  ${YELLOW}⚠${NC}  WARNING: Duplicate dependencies increasing (target: <100, current: $dupes, alert: >130)"
+      echo "      Run 'cargo tree -d' to see duplicates"
+      # Non-blocking - just warn
+    fi
+
+    # Success criteria check
+    if [ "$dupes" -lt 100 ]; then
+      echo -e "  ${GREEN}✓${NC} Dependency deduplication target met (<100 duplicates)"
+    else
+      echo -e "  ${YELLOW}📝${NC} Dependency deduplication in progress (current: $dupes, target: <100)"
+    fi
+  else
+    echo "  cargo not available - skipping dependency metrics"
   fi
 }
 

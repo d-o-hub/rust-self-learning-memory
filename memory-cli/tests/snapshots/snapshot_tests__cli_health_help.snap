@@ -1,0 +1,16 @@
+---
+source: memory-cli/tests/snapshot_tests.rs
+expression: stdout
+---
+Health monitoring and diagnostics
+
+Usage: memory-cli health <COMMAND>
+
+Commands:
+  check    Perform comprehensive health check
+  status   Show current health status
+  monitor  Monitor health continuously
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

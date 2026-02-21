@@ -1,0 +1,15 @@
+---
+source: memory-cli/tests/snapshot_tests.rs
+assertion_line: 123
+expression: stdout
+---
+[2m2026-02-21T19:38:51.972249Z[0m [32m INFO[0m [2mmemory_cli::config::storage[0m[2m:[0m Initializing storage backends based on configuration
+[2m2026-02-21T19:38:51.972299Z[0m [32m INFO[0m [2mmemory_storage_redb[0m[2m:[0m Opening redb database at /tmp/.tmpu7qdOS/test-178380-1771702731967969049.redb
+[2m2026-02-21T19:38:52.036091Z[0m [32m INFO[0m [2mmemory_storage_redb::cache::lru[0m[2m:[0m Initialized LRU cache: max_size=1000, ttl=3600s, cleanup=300s
+[2m2026-02-21T19:38:52.036482Z[0m [32m INFO[0m [2mmemory_storage_redb[0m[2m:[0m Initialized redb tables
+[2m2026-02-21T19:38:52.036506Z[0m [32m INFO[0m [2mmemory_storage_redb[0m[2m:[0m Successfully opened redb database with LRU cache
+✅ Configuration is valid
+
+Connectivity Status:
+  ❌ Turso: Not connected
+  ❌ redb: Not accessible

@@ -1,0 +1,23 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 115
+expression: ctx
+---
+{
+  "task": "Calculate sum of array",
+  "input": {
+    "numbers": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "operation": "sum"
+  },
+  "env": {
+    "DEBUG": "true",
+    "NODE_ENV": "test"
+  },
+  "metadata": {}
+}

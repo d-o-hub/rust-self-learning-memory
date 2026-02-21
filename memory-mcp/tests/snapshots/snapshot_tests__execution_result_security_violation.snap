@@ -1,0 +1,10 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: result
+---
+{
+  "SecurityViolation": {
+    "reason": "Attempted filesystem access to /etc/passwd",
+    "violation_type": "FileSystemAccess"
+  }
+}

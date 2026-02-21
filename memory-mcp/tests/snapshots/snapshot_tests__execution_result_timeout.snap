@@ -1,0 +1,10 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: result
+---
+{
+  "Timeout": {
+    "elapsed_ms": 5000,
+    "partial_output": "Processing step 1..."
+  }
+}

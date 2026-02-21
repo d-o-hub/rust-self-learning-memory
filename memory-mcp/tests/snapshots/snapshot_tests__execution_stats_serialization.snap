@@ -1,0 +1,12 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: stats
+---
+{
+  "total_executions": 150,
+  "successful_executions": 142,
+  "failed_executions": 8,
+  "timeout_count": 3,
+  "security_violations": 1,
+  "avg_execution_time_ms": 245.5
+}

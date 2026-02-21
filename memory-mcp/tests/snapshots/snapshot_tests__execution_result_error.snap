@@ -1,0 +1,12 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: result
+---
+{
+  "Error": {
+    "message": "ReferenceError: undefined_variable is not defined",
+    "error_type": "Runtime",
+    "stdout": "",
+    "stderr": "Error at line 5: undefined_variable"
+  }
+}

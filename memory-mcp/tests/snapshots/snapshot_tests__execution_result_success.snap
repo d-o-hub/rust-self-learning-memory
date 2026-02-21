@@ -1,0 +1,12 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: result
+---
+{
+  "Success": {
+    "output": "{\"sum\": 42, \"message\": \"Hello from sandbox\"}",
+    "stdout": "Processing...\nDone!",
+    "stderr": "",
+    "execution_time_ms": 150
+  }
+}

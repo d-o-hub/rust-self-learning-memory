@@ -1,0 +1,18 @@
+---
+source: memory-cli/tests/snapshot_tests.rs
+expression: stdout
+---
+Storage operations commands
+
+Usage: memory-cli storage <COMMAND>
+
+Commands:
+  stats        Show storage statistics
+  sync         Synchronize storage backends
+  vacuum       Vacuum and optimize storage
+  health       Check storage health
+  connections  Show connection status
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

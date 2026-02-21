@@ -1,0 +1,52 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: tools
+---
+[
+  {
+    "name": "query_memory",
+    "description": "Query episodic memory",
+    "input_schema": {
+      "properties": {
+        "limit": {
+          "default": 10,
+          "type": "integer"
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "analyze_patterns",
+    "description": "Analyze patterns from episodes",
+    "input_schema": {
+      "properties": {
+        "min_success_rate": {
+          "default": 0.7,
+          "type": "number"
+        },
+        "task_type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_type"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "health_check",
+    "description": "Check server health",
+    "input_schema": {
+      "properties": {},
+      "type": "object"
+    }
+  }
+]

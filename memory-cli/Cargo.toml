@@ -41,7 +41,6 @@ indicatif = "0.18"
 dialoguer = "0.12"
 
 # Additional CLI dependencies for operational features
-regex = "1.12"
 
 # Platform and system utilities for smart defaults
 dirs = "6.0"
@@ -49,7 +48,6 @@ sysinfo = "0.38"
 
 # Test utilities dependencies
 assert_cmd = "2.1"
-predicates = "3.1"
 tempfile = { workspace = true }
 test-utils = { path = "../test-utils" }
 
@@ -66,11 +64,9 @@ full = ["turso", "redb", "embeddings-full"]
 
 [dev-dependencies]
 # Testing framework
-tokio-test = "0.4"
 tempfile = { workspace = true }
 assert_cmd = "2.1"
 predicates = "3.1"
-rstest = "0.26"
 serial_test = "3.0"
 
 # Benchmarking
@@ -80,9 +76,8 @@ criterion = { version = "0.8", features = ["html_reports"] }
 test-utils = { path = "../test-utils" }
 
 # Additional test dependencies
-serde_test = "1.0"
 proptest = "1.4"
-regex = "1.12"
+insta = { version = "1.42", features = ["json"] }
 
 [[bench]]
 name = "cli_benchmarks"

@@ -61,9 +61,6 @@ tracing = { workspace = true }
 # Synchronization
 parking_lot = "0.12.5"
 
-# Cryptography for deterministic ID generation
-sha2 = { workspace = true }
-
 # Compression libraries (optional, enabled by compression feature)
 # Using lz4_flex for safe LZ4 implementation (no unsafe code)
 lz4_flex = { version = "0.12", optional = true, default-features = false }

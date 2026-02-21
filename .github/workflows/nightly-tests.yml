@@ -135,7 +135,7 @@ jobs:
         run: |
           # Run tests marked with #[ignore]
           # These are slow integration tests that timeout in regular CI
-          cargo test --all -- --ignored --test-threads=2
+          cargo nextest run --all --run-ignored all
         env:
           RUST_TEST_THREADS: 2
 
@@ -201,6 +201,11 @@ jobs:
           key: ${{ matrix.os }}-slow-tests
           save-if: false  # Don't save cache on slow tests to save space
 
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+
       - name: Check disk space before slow tests
         run: |
           df -h
@@ -214,7 +219,7 @@ jobs:
           echo "✅ Sufficient disk space available: ${AVAILABLE}G"
 
       - name: Run slow integration tests
-        run: cargo test --all -- --ignored --test-threads=1
+        run: cargo nextest run --all --run-ignored all
         env:
           RUST_TEST_THREADS: 1
 

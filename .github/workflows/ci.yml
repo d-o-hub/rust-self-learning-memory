@@ -74,11 +74,11 @@ jobs:
         run: |
           # Run library tests for core packages (fast, isolated tests)
           echo "Running memory-core library tests..."
-          cargo test --package memory-core --lib -- --test-threads=4
+          cargo nextest run --package memory-core --lib
           echo "Running memory-storage-turso library tests..."
-          cargo test --package memory-storage-turso --lib -- --test-threads=4
+          cargo nextest run --package memory-storage-turso --lib
           echo "Running memory-storage-redb library tests..."
-          cargo test --package memory-storage-redb --lib -- --test-threads=4
+          cargo nextest run --package memory-storage-redb --lib
           echo "Library tests completed successfully"
 
   # MCP builds - simplified with timeout protection
@@ -104,16 +104,20 @@ jobs:
       - uses: Swatinem/rust-cache@v2.8.2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
       - name: Build and test (default)
         if: matrix.feature == 'default'
         run: |
           timeout 300s cargo build -p memory-mcp || exit 1
-          timeout 300s cargo test -p memory-mcp --lib || exit 1
+          timeout 300s cargo nextest run -p memory-mcp --lib || exit 1
       - name: Build and test (wasm-rquickjs)
         if: matrix.feature == 'wasm-rquickjs'
         run: |
           timeout 300s cargo build -p memory-mcp --features wasm-rquickjs || exit 1
-          timeout 300s cargo test -p memory-mcp --features wasm-rquickjs --lib || exit 1
+          timeout 300s cargo nextest run -p memory-mcp --features wasm-rquickjs --lib || exit 1
 
   # Multi-platform testing - simplified matrix
   multi-platform:
@@ -133,20 +137,24 @@ jobs:
       - uses: Swatinem/rust-cache@v2.8.2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
       - name: Run tests on ${{ matrix.os }}
         run: |
           # Cross-platform timeout wrapper with extended time (900s = 15min)
           # macOS has `gtimeout` from coreutils, or use perl as fallback
           if command -v timeout >/dev/null 2>&1; then
             # Linux with GNU timeout
-            timeout 900s cargo test --lib --all -- --test-threads=4
+            timeout 900s cargo nextest run --lib --all
           elif command -v gtimeout >/dev/null 2>&1; then
             # macOS with GNU timeout (coreutils)
-            gtimeout 900s cargo test --lib --all -- --test-threads=4
+            gtimeout 900s cargo nextest run --lib --all
           else
             # macOS fallback: use perl for portable timeout
             # Use -- to separate perl args from command args
-            perl -e 'alarm 900; exec @ARGV' -- cargo test --lib --all -- --test-threads=4
+            perl -e 'alarm 900; exec @ARGV' -- cargo nextest run --lib --all
           fi
 
   # Quality gates - final validation
@@ -191,3 +199,22 @@ jobs:
         with:
           files: ./lcov.info
           fail_ci_if_error: false
+
+  # Semver compatibility check - prevents accidental breaking changes
+  semver-check:
+    name: Semver Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Install cargo-semver-checks
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-semver-checks
+      - name: Check semver compatibility
+        run: cargo semver-checks check-release --workspace
+        continue-on-error: true  # Informational only, not blocking

@@ -34,9 +34,9 @@ jobs:
       - name: Run all tests including slow integration tests
         run: |
           # Run regular tests
-          cargo nextest run --profile ci --all --test-threads=4
+          cargo nextest run --profile ci --all
           # Run slow tests (marked with #[ignore])
-          cargo test --all -- --ignored --test-threads=2
+          cargo nextest run --all --run-ignored all
 
   build-release:
     needs: pre-release-tests

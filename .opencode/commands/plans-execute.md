@@ -1,6 +1,5 @@
 ---
 description: Execute plans/ folder with swarm of specialist agents, handoff coordination, atomic commits, CI loop until green
-agent: general
 subtask: true
 ---
 

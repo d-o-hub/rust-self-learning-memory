@@ -63,6 +63,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(clippy::manual_async_fn)]
     fn test_query_semantic_memory_signature_compile() {
         // This test ensures the method signature compiles correctly
         use crate::mcp::tools::embeddings::QuerySemanticMemoryInput;

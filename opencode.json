@@ -55,7 +55,7 @@
     "memory-mcp": {
       "type": "local",
       "command": [
-        "/home/do/rust-self-learning-memory/target/release/memory-mcp-server"
+        "/home/do/rust-self-learning-memory/scripts/preflight-memory-mcp.sh"
       ],
       "enabled": true,
       "environment": {

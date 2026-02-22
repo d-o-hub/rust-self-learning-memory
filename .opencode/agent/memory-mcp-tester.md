@@ -69,8 +69,9 @@ Your primary focus is on testing and validating that applications correctly use 
 ### Phase 2: MCP Protocol Validation
 1. **Server Startup**: Verify MCP server starts correctly with storage
 2. **Tool Discovery**: Test that MCP server exposes correct tools
-3. **Protocol Compliance**: Validate JSON-RPC message format and handling
-4. **Storage Integration**: Ensure database files are created and accessible
+3. **Token Optimization**: Test lazy vs full schema modes for token usage
+4. **Protocol Compliance**: Validate JSON-RPC message format and handling
+5. **Storage Integration**: Ensure database files are created and accessible
 
 ### Phase 3: Tool Functionality Testing
 1. **Execute Agent Code**: Test code execution in secure sandbox
@@ -231,8 +232,14 @@ All tests must meet these criteria:
 # Test MCP server startup with storage
 cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
 
-# Test MCP tools via JSON-RPC
+# Test MCP tools via JSON-RPC (full schema - default)
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
+
+# Test MCP tools via JSON-RPC (lazy mode - 82% token reduction)
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"lazy":true}}' | cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
+
+# Run token benchmark
+./scripts/benchmark-mcp-tokens.sh
 
 # Test code execution
 echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"execute_agent_code","arguments":{"code":"console.log(\"test\");","context":{"task":"test","input":{}}}}}' | cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml

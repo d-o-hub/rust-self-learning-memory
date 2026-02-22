@@ -605,12 +605,14 @@ Based on research documents:
 
 ### Performance Targets (Post-Optimization)
 
-| Metric | Current | Target (P0) | Target (P0-P2) |
-|--------|---------|------------|---------------|
-| Tool Discovery | 12,000 tokens | <500 tokens | <200 tokens |
-| Query Response | 3,000 tokens | 1,200-2,400 | 600-1,200 |
-| Bulk Operations | 50,000 tokens | 20,000-40,000 | 10,000-20,000 |
-| Annual Usage | 780M tokens | 332M tokens | 220M tokens |
+| Metric | Current | Target (P0) | Target (P0-P2) | Measured (lazy) |
+|--------|---------|------------|---------------|------------------|
+| Tool Discovery | 12,000 tokens | <500 tokens | <200 tokens | 227 tokens (8 tools) |
+| Query Response | 3,000 tokens | 1,200-2,400 | 600-1,200 | — |
+| Bulk Operations | 50,000 tokens | 20,000-40,000 | 10,000-20,000 | — |
+| Annual Usage | 780M tokens | 332M tokens | 220M tokens | ~50M tokens (lazy) |
+
+*Last Updated: 2026-02-22*
 
 ---
 
@@ -618,14 +620,9 @@ Based on research documents:
 
 - **Architecture Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
-- **Configuration**: See [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG_IMPLEMENTATION_ROADMAP.md)
+- **Configuration**: See [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG/IMPLEMENTATION_ROADMAP.md)
 - **Current Status**: See [ROADMAP_V017_CURRENT.md](ROADMAP_V017_CURRENT.md)
 - **MCP Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
-- **Implementation Roadmap**: See [MCP_OPTIMIZATION_IMPLEMENTATION_ROADMAP.md](../MCP_OPTIMIZATION_IMPLEMENTATION_ROADMAP.md)
-- **Phase 1 Plan**: See [MCP_TOKEN_REDUCTION_PHASE1_PLAN.md](../MCP_TOKEN_REDUCTION_PHASE1_PLAN.md)
-- **Status Tracking**: See [MCP_OPTIMIZATION_STATUS.md](../MCP_OPTIMIZATION_STATUS.md)
-- **Categorization Analysis**: See [CATEGORIZATION_ALTERNATIVES_RESEARCH.md](../research/CATEGORIZATION_ALTERNATIVES_RESEARCH.md)
-
----
-
-*Last Updated: 2026-01-31*
+- **ADR-024**: [MCP Lazy Tool Loading](../adr/ADR-024-MCP-Lazy-Tool-Loading.md)
+- **Token Optimization**: [.agents/skills/memory-mcp/token-optimization.md](../../.agents/skills/memory-mcp/token-optimization.md)
+- **Opencode Agent**: [.opencode/agent/memory-agent.md](../../.opencode/agent/memory-agent.md)

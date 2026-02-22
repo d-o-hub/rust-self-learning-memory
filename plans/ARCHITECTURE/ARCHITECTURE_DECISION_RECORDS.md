@@ -749,16 +749,24 @@ let output = if let Some(fields) = input.include_fields {
 | Tool listing (30 tools) | ~8,000 tokens | ~400 tokens | **95.0%** |
 | Single tool describe | N/A | ~200 tokens | New endpoint |
 
+**Measured (8 tools, 2026-02-22)**:
+| Mode | Response | Tokens | Reduction |
+|------|----------|--------|-----------|
+| Full schemas | 4,949 chars | ~1,237 | — |
+| Lazy mode | 910 chars | ~227 | **82%** |
+
 **Files Affected**:
 - `memory-mcp/src/bin/server_impl/core.rs` (~30 LOC modified)
 - `memory-mcp/src/server/tools/core.rs` (~40 LOC added)
 - `memory-mcp/src/server/tools/registry/mod.rs` (~50 LOC added)
+- `scripts/benchmark-mcp-tokens.sh` (new benchmark script)
 
 **Next Steps**:
 - [ ] Add `tools/describe` endpoint for single-tool schema requests
 - [ ] Add `tools/describe_batch` endpoint for multi-tool schema requests
-- [ ] Performance benchmarks comparing lazy vs full listing
+- [x] Performance benchmarks comparing lazy vs full listing
 - [ ] Integration tests for lazy parameter handling
+- [ ] Default to lazy=true for opencode integration
 
 **Related ADRs**:
 - **ADR-020**: Dynamic Tool Loading for MCP Server (broader tool loading strategy)

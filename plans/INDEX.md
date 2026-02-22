@@ -1,16 +1,23 @@
 # Plans Index
 
-**Last Updated**: 2026-02-16 (Phase 1 COMPLETE - v0.1.16 Planning Done)
+**Last Updated**: 2026-02-22 (Token Optimization Complete)
 
-## Current Status (2026-02-16)
-- **v0.1.15**: Released 2026-02-15
-- **Phase 1**: ✅ COMPLETE - CI/CD remediation, Nightly stable, 33/39 tests passing
-- **v0.1.16**: 🔄 Planning Complete - Ready to start Phase B (Code Quality)
-- **CI**: ALL PASSING (Nightly FIXED 2026-02-16)
-- **PR #296**: ✅ Merged (31 tests fixed)
-- **PR #297**: 🔄 Open (CLI workflow improvements)
-- **GitHub Actions Phase 1-4**: COMPLETE
-- **MCP Token Optimization**: DONE (98% token reduction for tool discovery)
+## Current Status (2026-02-22)
+- **v0.1.16**: Token optimization complete
+- **MCP Token Optimization**: ✅ COMPLETE - 82% reduction measured (1,237 → 227 tokens)
+- **Opencode Integration**: ✅ memory-agent created with token optimization
+- **Benchmark Script**: `./scripts/benchmark-mcp-tokens.sh`
+
+## New Resources (2026-02-22)
+
+### Token Optimization
+- `.agents/skills/memory-mcp/token-optimization.md` - Token optimization guide
+- `.opencode/agent/memory-agent.md` - Memory agent with token optimization
+- `scripts/benchmark-mcp-tokens.sh` - Benchmark script
+- `plans/adr/ADR-024-MCP-Lazy-Tool-Loading.md` - Updated with measured results
+
+### Opencode Configuration
+- `opencode.json` - Updated with default_agent and memory-mcp per-agent config
 
 ## Phase 1 & v0.1.16 Planning (2026-02-16)
 

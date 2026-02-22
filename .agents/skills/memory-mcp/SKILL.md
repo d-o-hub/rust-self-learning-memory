@@ -5,7 +5,7 @@ description: Use and troubleshoot the Memory MCP server for episodic memory retr
 
 # Memory MCP Server
 
-Interact with and troubleshoot the Memory Model Context Protocol (MCP) server for the self-learning memory system.
+Interacts with and troubleshoot the Memory Model Context Protocol (MCP) server for the self-learning memory system.
 
 ## Quick Reference
 
@@ -14,6 +14,7 @@ Interact with and troubleshoot the Memory Model Context Protocol (MCP) server fo
 - **[Validation](validation.md)** - MCP Inspector validation workflow
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 - **[Best Practices](best-practices.md)** - Tool usage, configuration, and testing guidelines
+- **[Token Optimization](token-optimization.md)** - Reduce token usage by 80-85%
 
 ## When to Use
 

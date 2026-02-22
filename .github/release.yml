@@ -1,0 +1,47 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - dependencies
+      - skip-changelog
+    authors:
+      - dependabot
+      - renovate-bot
+  categories:
+    - title: "🚀 New Features"
+      labels:
+        - feature
+        - enhancement
+        - feat
+    - title: "🐛 Bug Fixes"
+      labels:
+        - bug
+        - fix
+        - bugfix
+    - title: "📚 Documentation"
+      labels:
+        - documentation
+        - docs
+    - title: "🔧 Maintenance"
+      labels:
+        - chore
+        - maintenance
+        - ci
+    - title: "⚡ Performance"
+      labels:
+        - performance
+        - perf
+    - title: "🔒 Security"
+      labels:
+        - security
+    - title: "♻️ Refactoring"
+      labels:
+        - refactor
+        - refactoring
+    - title: "🧪 Testing"
+      labels:
+        - test
+        - testing
+    - title: "📦 Dependencies"
+      labels:
+        - dependencies

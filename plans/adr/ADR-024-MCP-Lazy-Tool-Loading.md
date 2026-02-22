@@ -127,6 +127,17 @@ Client Request: tools/list
 | Tool listing (30 tools) | ~8,000 tokens | ~400 tokens | **95.0%** |
 | Single tool describe | N/A | ~200 tokens | New endpoint |
 
+### Measured Results (2026-02-22)
+
+Benchmark with 8 tools (current core tools):
+
+| Mode | Response Size | Est. Tokens | Reduction |
+|------|--------------|-------------|-----------|
+| Full schemas (lazy=false) | 4,949 chars | ~1,237 | — |
+| Lazy mode (lazy=true) | 910 chars | ~227 | **82%** |
+
+See: `scripts/benchmark-mcp-tokens.sh`
+
 ---
 
 ## Files Affected
@@ -148,9 +159,27 @@ Client Request: tools/list
 
 - [ ] Add `tools/describe` endpoint for single-tool schema requests
 - [ ] Add `tools/describe_batch` endpoint for multi-tool schema requests
-- [ ] Performance benchmarks comparing lazy vs full listing
+- [x] Performance benchmarks comparing lazy vs full listing
 - [ ] Client SDK updates to leverage lazy loading
 - [ ] Integration tests for lazy parameter handling
+- [ ] Consider defaulting to `lazy=true` for automatic token savings in opencode
+
+---
+
+## Opencode Integration (2026-02-22)
+
+### Current Usage
+- Opencode uses memory-mcp with default `lazy=false` (full schemas)
+- Token cost: ~1,237 tokens per `tools/list` call (8 tools)
+
+### Recommendation
+- Modify MCP server to default to `lazy=true` for 82% token reduction
+- Client can still request full schemas via `lazy=false` when needed
+
+### Files Created
+- `.opencode/agent/memory-agent.md` - Agent with token optimization guidelines
+- `.agents/skills/memory-mcp/token-optimization.md` - Token optimization guide
+- `scripts/benchmark-mcp-tokens.sh` - Benchmark script
 
 ---
 

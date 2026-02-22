@@ -1,5 +1,28 @@
 # Best Practices
 
+## Token Optimization
+
+### Understanding Token Usage
+
+| Operation | Tokens | Notes |
+|-----------|--------|-------|
+| `tools/list` (full schemas) | ~1,200-1,500 | Default mode |
+| `tools/list?lazy=true` | ~200-400 | 80-85% reduction |
+| Tool call (query_memory) | ~200-1,500 | Per operation |
+| Query response | ~1,200-2,400 | With field projection |
+
+### DO:
+- Use `lazy=true` in `tools/list` requests to reduce tool discovery tokens by 80-85%
+- Use field selection (`fields` parameter) to reduce response tokens by 20-60%
+- Batch related operations to minimize round-trips
+- Cache tool schemas client-side to avoid repeated full schema transfers
+
+### DON'T:
+- Use full schema mode (`lazy=false`) unless you need inputSchema
+- Request unnecessary fields in responses
+- Run `tools/list` multiple times - cache the result
+- Enable verbose logging in production (increases response size)
+
 ## Tool Usage
 
 ### DO:

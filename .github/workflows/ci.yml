@@ -71,9 +71,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mold
       - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
+        run: cargo install --locked cargo-nextest
         shell: bash
       - name: Run tests with timeout protection
         run: |
@@ -114,9 +112,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
+        run: cargo install --locked cargo-nextest
         shell: bash
       - name: Build and test (default)
         run: |
@@ -191,9 +187,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install required tools
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov,cargo-audit
+        run: cargo install --locked cargo-llvm-cov cargo-audit
         shell: bash
       - name: Security Audit
         run: |
@@ -227,9 +221,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install cargo-semver-checks
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-semver-checks
+        run: cargo install --locked cargo-semver-checks
         shell: bash
       - name: Check semver compatibility
         run: cargo semver-checks check-release --workspace

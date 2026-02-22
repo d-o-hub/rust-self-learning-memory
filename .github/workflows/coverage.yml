@@ -90,9 +90,7 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov
+        run: cargo install --locked cargo-llvm-cov
         shell: bash
 
       - name: Check disk space before coverage

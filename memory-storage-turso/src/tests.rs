@@ -411,6 +411,7 @@ mod compression_tests {
     }
 
     /// Test compression statistics
+    #[cfg(feature = "compression")]
     #[tokio::test]
     async fn test_compression_statistics() {
         use crate::CompressionStatistics;

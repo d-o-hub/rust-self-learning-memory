@@ -74,8 +74,8 @@ pub async fn handle_protected_resource_metadata(
 /// Handle tools/list request
 ///
 /// Supports lazy loading via the `lazy` parameter:
-/// - `lazy=true` or `lazy` not specified: Returns lightweight tool stubs (90-96% token reduction)
-/// - `lazy=false`: Returns full tool schemas (backward compatible)
+/// - `lazy=true`: Returns lightweight tool stubs (90-96% token reduction)
+/// - `lazy=false` or `lazy` not specified: Returns full tool schemas (backward compatible)
 pub async fn handle_list_tools(
     request: JsonRpcRequest,
     mcp_server: &Arc<Mutex<MemoryMCPServer>>,
@@ -84,13 +84,13 @@ pub async fn handle_list_tools(
     request.id.as_ref()?;
     info!("Handling tools/list request");
 
-    // Check if lazy loading is enabled (default: true for token optimization)
+    // Check if lazy loading is enabled (default: false for compatibility)
     let lazy = request
         .params
         .as_ref()
         .and_then(|p| p.get("lazy"))
         .and_then(|v| v.as_bool())
-        .unwrap_or(true);
+        .unwrap_or(false);
 
     let server = mcp_server.lock().await;
     let tools = server.list_tools().await;

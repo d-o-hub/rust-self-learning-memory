@@ -132,10 +132,13 @@ See `.env.example` for full list. Never commit secrets.
 - See ADR-033 for full strategy
 
 ## Release Workflow
+- **Command**: `/release [patch|minor|major]` - Comprehensive release with gates
 - **Versioning**: `cargo release patch|minor|major` (ADR-034)
 - **Semver**: `cargo semver-checks check-release` in CI (ADR-034)
 - **Distribution**: cargo-dist for binaries + installers (ADR-034)
 - **Commits**: Conventional format (`feat(module):`, `fix(module):`)
+- **Quality Gates**: Run `./scripts/quality-gates.sh` before release
+- **See**: `.opencode/command/release.md` for full workflow
 
 ## Cross-References
 | Topic | Document |

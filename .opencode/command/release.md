@@ -1,160 +1,308 @@
 ---
-description: create a GitHub release
+description: Create a GitHub release with atomic commit, quality gates, and semver safety. Use: /release [patch|minor|major]
 subtask: true
 ---
 
-create a GitHub release
+# GitHub Release Command (2026 Best Practices)
 
-## Release Process
+Create a professional GitHub release following 2026 best practices for Rust workspaces.
 
-Use this workflow for creating releases:
+## Usage
 
-## Pre-Release Checklist
+```
+/release [patch|minor|major]
+```
 
-**1. Version Bump**
-- Update version in `Cargo.toml` following SemVer (MAJOR.MINOR.PATCH)
-- MAJOR: Breaking changes
-- MINOR: New features, backward compatible
-- PATCH: Bug fixes, backward compatible
+**Examples:**
+- `/release patch` - Bug fixes, backward compatible (default)
+- `/release minor` - New features, backward compatible
+- `/release major` - Breaking API changes
 
-**2. Update Changelog**
-- Add release notes to `CHANGELOG.md`
-- Include section for "Added", "Changed", "Fixed", "Removed"
-- Link to relevant issues/PRs
+---
 
-**3. Quality Gates**
-- Run `cargo test --all` (must pass all tests)
-- Run `cargo clippy --all -- -D warnings` (zero warnings)
-- Run `cargo fmt --all -- --check` (formatted code)
-- Verify test coverage >90%
+## Pre-Release Safety Gates (BLOCKING)
 
-**4. Documentation**
-- Update README with new features/API changes
-- Update relevant documentation files
-- Ensure examples work with new version
-
-**5. Create Git Tag**
+### 1. Branch Verification (REQUIRED)
 ```bash
-git tag -a v0.2.0 -m "Release v0.2.0"
-git push origin v0.2.0
+# Must be on main branch
+git branch --show-current
+# Expected: main
+
+# Working directory must be clean
+git status --porcelain
+# Expected: empty output
 ```
 
-## Creating the Release
+**FAIL Response:**
+```
+🚫 BLOCKED: Not on main or working directory not clean
+Fix: git checkout main && git pull && [commit/stash changes]
+Re-run: /release [patch|minor|major]
+```
 
-**Using GitHub CLI:**
+### 2. CI Status Check (REQUIRED)
 ```bash
-gh release create v0.2.0 \
-  --title "v0.2.0" \
-  --notes "See CHANGELOG.md for details"
+# Verify all CI workflows passed
+gh run list --branch main --limit 5 --json status,conclusion,name
+# Expected: ALL status=completed, conclusion=success
 ```
 
-**Manual on GitHub:**
-1. Go to repository → Releases
-2. Click "Draft a new release"
-3. Choose/enter tag
-4. Enter title (same as version)
-5. Add release notes
-6. Click "Publish release"
-
-## Release Notes Structure
-
+**FAIL Response:**
 ```
-## [0.2.0] - 2025-01-05
+🚫 BLOCKED: CI not green
+Fix: Wait for CI to complete or fix failures
+Check: gh run list --branch main
+Re-run: /release [patch|minor|major]
+```
+
+### 3. Quality Gates (REQUIRED)
+```bash
+# Run full quality gate suite
+./scripts/quality-gates.sh
+# Expected: All gates PASSED
+```
+
+**Quality Gate Requirements:**
+- [ ] `cargo fmt --all -- --check` passes
+- [ ] `cargo clippy --all -- -D warnings` passes (zero warnings)
+- [ ] `cargo build --all` succeeds
+- [ ] `cargo nextest run --all` passes
+- [ ] Test coverage ≥90%
+- [ ] Security audit clean
+
+**FAIL Response:**
+```
+🚫 BLOCKED: Quality gates failed
+Fix: Run ./scripts/quality-gates.sh and resolve issues
+Re-run: /release [patch|minor|major]
+```
+
+### 4. Semver Compatibility Check (REQUIRED for minor/major)
+```bash
+# Check for accidental breaking changes
+cargo semver-checks check-release --workspace
+# Expected: No semver violations
+```
+
+**FAIL Response:**
+```
+🚫 BLOCKED: Semver violations detected
+Review: cargo semver-checks check-release --workspace
+Options:
+  1. Fix breaking changes (recommended)
+  2. Use /release major if breaking change is intentional
+Re-run: /release [patch|minor|major]
+```
+
+---
+
+## Release Workflow
+
+### Step 1: Atomic Commit (if changes pending)
+
+If there are uncommitted changes in CHANGELOG.md or version-related files:
+
+```bash
+# Stage release preparation changes
+git add CHANGELOG.md Cargo.toml Cargo.lock
+
+# Atomic commit with conventional format
+git commit -m "release: prepare v{VERSION}"
+```
+
+### Step 2: Version Bump & Tag (via cargo-release)
+
+Use `cargo-release` for automated version management:
+
+```bash
+# Patch release (default)
+cargo release patch --no-publish --execute
+
+# Minor release
+cargo release minor --no-publish --execute
+
+# Major release
+cargo release major --no-publish --execute
+```
+
+**What cargo-release does automatically:**
+- Bumps version in workspace `Cargo.toml`
+- Updates `Cargo.lock`
+- Updates CHANGELOG.md `[Unreleased]` section
+- Creates git commit: `release: v{VERSION}`
+- Creates annotated git tag: `v{VERSION}`
+- Pushes commit and tag to origin
+
+### Step 3: Verify Tag & Push
+
+```bash
+# Confirm tag was created
+git tag -l "v*"
+
+# Verify tag pushed to remote
+git ls-remote --tags origin | grep "v{VERSION}"
+```
+
+### Step 4: CI-Driven Release (cargo-dist)
+
+The `.github/workflows/release.yml` (cargo-dist) automatically:
+- Builds binaries for all platforms (Linux, macOS, Windows)
+- Creates tarballs with SHA256 checksums
+- Generates shell/PowerShell installers
+- Creates GitHub Release with release notes
+- Uploads all artifacts
+
+**Monitor the release:**
+```bash
+# Watch the release workflow
+gh run watch
+
+# Or check specific workflow
+gh run list --workflow=release.yml --limit 3
+```
+
+### Step 5: Verify GitHub Release
+
+```bash
+# Check release was created
+gh release view v{VERSION} --json tagName,name,url,createdAt
+
+# Verify assets uploaded
+gh release view v{VERSION} --json assets --jq '.assets[].name'
+```
+
+---
+
+## Changelog Management
+
+### Update CHANGELOG.md Before Release
+
+Ensure `[Unreleased]` section contains all changes:
+
+```markdown
+## [Unreleased]
 
 ### Added
 - New feature description (closes #123)
-- Another new feature
 
 ### Changed
-- Breaking change description
-- API modification details
+- Changed behavior description
 
 ### Fixed
 - Bug fix description (fixes #456)
-- Performance issue resolved
-
-### Removed
-- Deprecated feature removed (see migration guide)
-```
-
-## After Release
-
-**1. Publish to crates.io** (if applicable)
-```bash
-cargo publish
-```
-
-**2. Verify Release**
-- Check release page renders correctly
-- Verify assets are downloadable
-- Test install from release
-
-**3. Notify Users**
-- Announce on project communication channels
-- Update version badge in README
-- Post release announcement
-
-## Key Principles
-
-**1. Semantic Versioning**
-- Never release breaking changes without MAJOR bump
-- Document breaking changes prominently
-- Maintain backward compatibility when possible
-
-**2. Clear Release Notes**
-- Group changes by type (Added, Changed, Fixed)
-- Reference related issues/PRs
-- Highlight breaking changes
-- Include migration guide if needed
-
-**3. Quality Assurance**
-- All tests must pass before release
-- No clippy warnings allowed
-- Code must be properly formatted
-- Documentation must be up to date
-
-**4. Git Tags**
-- Use annotated tags: `git tag -a`
-- Tag name matches version: `v0.2.0`
-- Push tags to remote
-- Never retag a released version
-
-## Release Assets
-
-- Attach precompiled binaries if applicable
-- Include checksums for binaries
-- Provide installation instructions
-- Link to documentation
-
-## Rollback Plan
-
-If critical issue is discovered:
-1. Yank crates.io version: `cargo yank --version 0.2.0`
-2. Add warning to GitHub release
-3. Issue security advisory if vulnerability
-4. Prepare patch release: `0.2.1`
-5. Document the issue and fix
-
-## Examples
-
-Good release notes:
-```
-## [0.2.0] - 2025-01-05
-
-### Added
-- New MCP server tools for memory queries (closes #42)
-- Support for local embeddings via Ollama (closes #38)
-- Performance benchmark suite
-
-### Changed
-- Improved cache sync performance by 40%
-- Refactored storage layer for better modularity
-
-### Fixed
-- Resolved redb cache corruption on concurrent writes (fixes #56)
-- Fixed memory leak in pattern extraction (fixes #61)
 
 ### Breaking
-- Renamed `MemoryManager::new()` to `MemoryManager::with_config()`
-  See MIGRATION.md for upgrade guide
+- Breaking change with migration guide
 ```
+
+### Version Categories (Keep a Changelog)
+
+| Category | Description |
+|----------|-------------|
+| **Added** | New features |
+| **Changed** | Changes to existing functionality |
+| **Deprecated** | Features planned for removal |
+| **Removed** | Removed features |
+| **Fixed** | Bug fixes |
+| **Security** | Security vulnerability patches |
+
+---
+
+## Version Bump Decision Matrix
+
+| Change Type | Bump | Example |
+|-------------|------|---------|
+| Bug fix, backward compatible | `patch` | 0.1.15 → 0.1.16 |
+| New feature, backward compatible | `minor` | 0.1.15 → 0.2.0 |
+| Breaking API change | `major` | 0.1.15 → 1.0.0 |
+| CI/quality improvements | `patch` | 0.1.15 → 0.1.16 |
+| Documentation only | `patch` | 0.1.15 → 0.1.16 |
+
+### Special: 0.x Versions
+
+During initial development (0.x):
+- "Anything MAY change at any time" (SemVer spec)
+- Most changes warrant `minor` bump
+- Reserve `patch` for critical bug fixes only
+
+---
+
+## Rollback Procedure
+
+If critical issue discovered post-release:
+
+```bash
+# 1. Yank from crates.io (if published)
+cargo yank --version {VERSION}
+
+# 2. Add warning to GitHub release
+gh release edit v{VERSION} --notes-file - <<EOF
+⚠️ **DEPRECATED** - Critical issue discovered
+
+Issue: [description]
+Fixed in: v{NEXT_VERSION}
+EOF
+
+# 3. Prepare and release fix
+/release patch
+```
+
+---
+
+## Integration with Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `release-guard` | Strict gatekeeping (PR merged, CI green, main branch) |
+| `github-release-best-practices` | 2026 best practices, templates, automation |
+| `code-quality` | Pre-release formatting, linting |
+| `github-workflows` | CI/CD pipeline validation |
+
+**Load before release:**
+```
+skill: release-guard, github-release-best-practices
+```
+
+---
+
+## Quick Reference Commands
+
+```bash
+# Full pre-release check
+./scripts/quality-gates.sh
+
+# Semver validation
+cargo semver-checks check-release --workspace
+
+# Release (automated)
+cargo release patch --no-publish --execute
+
+# Monitor release workflow
+gh run watch
+
+# Verify release
+gh release view v{VERSION}
+```
+
+---
+
+## Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `release.toml` | cargo-release configuration |
+| `Cargo.toml` | Workspace version (single source of truth) |
+| `CHANGELOG.md` | Release notes history |
+| `.github/workflows/release.yml` | cargo-dist automated release |
+
+---
+
+## References
+
+- [ADR-034: Release Engineering Modernization](plans/adr/ADR-034-Release-Engineering-Modernization.md)
+- [Skill: release-guard](.agents/skills/release-guard/SKILL.md)
+- [Skill: github-release-best-practices](.agents/skills/github-release-best-practices/SKILL.md)
+- [cargo-release](https://github.com/crate-ci/cargo-release)
+- [cargo-dist](https://axodotdev.github.io/cargo-dist/)
+- [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)
+- [Keep a Changelog](https://keepachangelog.com/)

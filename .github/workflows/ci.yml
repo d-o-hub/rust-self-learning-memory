@@ -143,10 +143,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
-        shell: bash
+        run: cargo install --locked cargo-nextest
       - name: Run tests on ${{ matrix.os }}
         run: |
           # Cross-platform timeout wrapper with extended time (900s = 15min)

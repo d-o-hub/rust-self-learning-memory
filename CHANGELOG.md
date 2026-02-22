@@ -2,6 +2,24 @@
 
 ### Added
 
+- Nothing yet
+
+## [0.1.16] - 2026-02-22
+
+### Summary
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **Testing Framework** | cargo test | cargo nextest | ✅ 2-3x faster test execution |
+| **Rust Edition** | 2021 | 2024 | ✅ Modern language features |
+| **CI Reliability** | Multiple failures | All green | ✅ Stable pipelines |
+| **Code Quality** | Critical unwraps | Safe expect() | ✅ Improved error handling |
+| **Test Types** | Unit only | Unit + Property + Snapshot + Mutation | ✅ Comprehensive coverage |
+
+---
+
+### Added
+
 - **Disk Space Optimization** (ADR-032)
   - Build profile optimization: `debug = "line-tables-only"` for dev, `debug = false` for deps
   - Proc-macro build optimization: `opt-level = 3` for build-override
@@ -32,12 +50,53 @@
   - Feature pruning with `cargo-unused-features`
   - Upstream tracking for major duplicate groups (rand, hashbrown, getrandom)
 
+- **Commit Skill** with enforced quality gates for safe commits
+
 ### Changed
 
 - **Build Configuration**: mold linker for Linux development (2-5x faster links)
 - **CI Workflows**: All `cargo test` replaced with `cargo nextest run` (except doctests)
 - **AGENTS.md**: Added Disk Space Management, Testing Best Practices 2026, Release Workflow sections
 - **Quality Gates**: Now tracks duplicate dependency count
+- **MCP Build Timeout**: Extended from 300s to 600s for reliability
+
+### Fixed
+
+- **CI/CD Stability**:
+  - Resolved MCP build failures with extended timeout and install fixes
+  - Replaced deprecated `install-action` with direct `cargo install`
+  - Disabled problematic shellcheck and yamllint rules in actionlint
+  - Fixed mold linker CI compatibility issues
+
+- **Rust 2024 Compatibility**:
+  - Fixed pattern matching errors for 2024 edition
+  - Escaped reserved `gen` keyword in benchmarks
+  - Added clippy allow for `manual_async_fn` in tests
+
+- **Code Quality**:
+  - Fixed critical `.unwrap()` calls in tracing module with proper `.expect()` messages
+  - Resolved clippy errors in property_tests.rs
+  - Fixed config defaults in error handling
+  - Simplified MemoryConfig initialization
+
+- **Testing**:
+  - Fixed 19+ flaky integration tests
+  - Normalized ignored test reasons
+  - Fixed CLI flag order issues
+  - Restored regex dependency for pattern_extraction benchmark
+  - Fixed compression stream tests and registry coverage
+
+- **Dependencies**:
+  - Bumped clap from 4.5.57 to 4.5.58
+  - Bumped clap_complete from 4.5.65 to 4.5.66
+  - Bumped wat from 1.244.0 to 1.245.1
+  - Bumped libc from 0.2.180 to 0.2.182
+  - Bumped uuid from 1.20.0 to 1.21.0
+  - Bumped deep_causality from 0.13.3 to 0.13.4
+  - Bumped predicates from 3.1.3 to 3.1.4
+  - Bumped indicatif from 0.18.3 to 0.18.4
+  - Bumped toml from 0.9.11+spec-1.1.0 to 1.0.1+spec-1.1.0
+  - Bumped tempfile from 3.24.0 to 3.25.0
 
 ### Documentation
 
@@ -47,6 +106,8 @@
 - Added `plans/adr/ADR-035-Rust-2024-Edition-Migration.md`
 - Added `plans/adr/ADR-036-Dependency-Deduplication.md`
 - Added `plans/GOAP_DISK_TESTING_RELEASE_2026.md` - Master execution plan
+- Added token optimization docs and memory-agent config for MCP
+- Added multiple GOAP execution summaries and completion reports
 - Updated `AGENTS.md` with modern testing, release, and disk space guidance
 - Updated `README.md` with v0.1.15 status and nextest references
 - Updated `TESTING.md` with 2026 best practices (nextest, mutants, proptest, insta)

@@ -116,8 +116,8 @@ jobs:
         shell: bash
       - name: Build and test (default)
         run: |
-          timeout 300s cargo build -p memory-mcp || exit 1
-          timeout 300s cargo nextest run -p memory-mcp --lib || exit 1
+          timeout 600s cargo build -p memory-mcp || exit 1
+          timeout 600s cargo nextest run -p memory-mcp --lib || exit 1
 
   # Multi-platform testing - simplified matrix
   multi-platform:

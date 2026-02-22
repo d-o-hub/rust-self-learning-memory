@@ -1,9 +1,9 @@
 # ADR-024: MCP Lazy Tool Loading
 
-**Status**: Implemented
+**Status**: Implemented (amended 2026-02-22)
 **Date**: 2026-02-12
 **Context**: MCP tool listing sends full JSON schemas for all registered tools, consuming 90-96% unnecessary tokens during tool discovery
-**Decision**: Default to lazy=true in tools/list, return lightweight ToolStub (name + description only), with on-demand schema loading via tools/describe
+**Decision**: Support lazy tool listing with on-demand schema loading, defaulting to full schemas for compatibility
 
 ---
 
@@ -29,19 +29,24 @@
 
 ## Decision
 
-**Implement lazy tool loading as default behavior for MCP tools/list**
+**Implement lazy tool loading with a compatibility-first default**
 
-- `tools/list` defaults to `lazy=true`, returning `ToolStub` objects (name + description only)
-- `tools/list` with `lazy=false` returns full schemas via `list_all_tools()`
+- `tools/list` defaults to `lazy=false`, returning full schemas via `list_all_tools()`
+- `tools/list` with `lazy=true` returns `ToolStub` objects (name + description only)
 - `tools/describe` returns full schema for a single tool (on-demand)
 - `tools/describe_batch` returns full schemas for multiple tools (batch on-demand)
+
+### Amendment (2026-02-22)
+- Default switched to `lazy=false` to maintain compatibility with MCP clients that
+  require `inputSchema` in `tools/list` responses
+- Lazy listing remains available via `lazy=true`
 
 ---
 
 ## Rationale
 
 - **Token Efficiency**: AI agents typically scan tool names/descriptions first, then request schemas only for tools they intend to use (1-3 of 20+ tools)
-- **Backward Compatible**: `lazy=false` parameter restores original full-schema behavior
+- **Backward Compatible**: default returns full schemas; `lazy=true` is opt-in
 - **Progressive Disclosure**: Clients get lightweight overview first, drill down as needed
 - **Protocol Alignment**: Follows MCP design principle of minimal required data
 - **Measured Impact**: 90-96% reduction in tool listing token cost (from ~4,000-8,000 to ~200-400 tokens)
@@ -53,7 +58,7 @@
 ### Positive
 - 90-96% token reduction for tool discovery (most common operation)
 - Faster tool listing responses (less data to serialize/transmit)
-- Backward compatible via `lazy=false` parameter
+- Backward compatible with full schemas by default
 - Better fit for AI agent interaction patterns (scan → select → describe)
 
 ### Negative
@@ -71,7 +76,7 @@
 
 - **Positive**: 90-96% token reduction for tool discovery
 - **Positive**: Improved AI agent efficiency (less context window consumed by tool metadata)
-- **Positive**: Backward compatible (existing clients can pass `lazy=false`)
+- **Positive**: Backward compatible (full schemas by default)
 - **Positive**: Foundation for future tool categorization and filtered listing
 - **Negative**: Additional protocol surface area (2 new methods)
 - **Negative**: Clients must be updated to use describe for full schemas
@@ -86,12 +91,12 @@
 
 **`memory-mcp/src/bin/server_impl/core.rs`**: `handle_list_tools`
 - Added `lazy` parameter parsing from request params
-- Default: `lazy=true` → returns ToolStub list (name + description)
-- `lazy=false` → calls `list_all_tools()` for full schemas
+- Default: `lazy=false` → returns full schemas via `list_all_tools()`
+- `lazy=true` → returns ToolStub list (name + description)
 
 **`memory-mcp/src/server/tools/core.rs`**: `list_all_tools()`
 - New method returning all tools with complete JSON schemas
-- Used when `lazy=false` is explicitly requested
+- Used by default, or when `lazy=false` is explicitly requested
 - Aggregates tools from all registries
 
 **`memory-mcp/src/server/tools/registry/mod.rs`**: `get_all_extended_tools()`
@@ -104,14 +109,14 @@
 ```
 Client Request: tools/list
     │
-    ├── lazy=true (default)
-    │   └── Return ToolStub[] (name + description only)
-    │       Token cost: ~200-400
+    ├── lazy=false (default)
+    │   └── list_all_tools() → get_all_extended_tools()
+    │       └── Return Tool[] (full schemas)
+    │           Token cost: ~4,000-8,000
     │
-    └── lazy=false
-        └── list_all_tools() → get_all_extended_tools()
-            └── Return Tool[] (full schemas)
-                Token cost: ~4,000-8,000
+    └── lazy=true
+        └── Return ToolStub[] (name + description only)
+            Token cost: ~200-400
 ```
 
 ### Token Impact

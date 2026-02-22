@@ -552,6 +552,7 @@ The Memory-MCP server provides **~20 tools** for episodic memory operations acro
 - Full tool definitions included in `tools/list` response
 - Tool discovery cost: ~12,000 tokens per session
 - All schemas transmitted even if client only uses 2-3 tools
+- Lazy listing is available via `lazy=true` for clients that support ToolStub responses
 
 **Architecture**:
 ```rust

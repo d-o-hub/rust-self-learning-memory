@@ -687,7 +687,7 @@ let output = if let Some(fields) = input.include_fields {
 **Date**: 2026-02-12
 **Context**: MCP tool listing sends full JSON schemas for all registered tools, consuming 90-96% unnecessary tokens during tool discovery
 
-**Decision**: Default to lazy=true in tools/list, return lightweight ToolStub (name + description only), with on-demand schema loading
+**Decision**: Support lazy tool listing with on-demand schema loading, defaulting to full schemas for compatibility
 
 ### Alternatives Considered
 1. **Return Full Schemas Always (Previous)**
@@ -707,16 +707,16 @@ let output = if let Some(fields) = input.include_fields {
    - Token cost: ~200-400 tokens per tools/list call (lazy mode)
 
 ### Decision
-**Implement lazy tool loading as default behavior for MCP tools/list**
+**Implement lazy tool loading with a compatibility-first default**
 
-- `tools/list` defaults to `lazy=true`, returning `ToolStub` objects (name + description only)
-- `tools/list` with `lazy=false` returns full schemas via `list_all_tools()`
+- `tools/list` defaults to `lazy=false`, returning full schemas via `list_all_tools()`
+- `tools/list` with `lazy=true` returns `ToolStub` objects (name + description only)
 - `tools/describe` returns full schema for a single tool (on-demand)
 - `tools/describe_batch` returns full schemas for multiple tools (batch on-demand)
 
 ### Rationale
 - **Token Efficiency**: AI agents typically scan tool names/descriptions first, then request schemas only for tools they intend to use
-- **Backward Compatible**: `lazy=false` parameter restores original full-schema behavior
+- **Backward Compatible**: default returns full schemas; `lazy=true` is opt-in
 - **Progressive Disclosure**: Clients get lightweight overview first, drill down as needed
 - **Measured Impact**: 90-96% reduction in tool listing token cost (from ~4,000-8,000 to ~200-400 tokens)
 
@@ -724,12 +724,12 @@ let output = if let Some(fields) = input.include_fields {
 - **Token Reduction**: 90-96% for tool discovery (most common operation)
 - **Additional Requests**: Clients needing full schemas require 2 requests instead of 1
 - **Protocol Surface**: 2 additional methods to maintain (`tools/describe`, `tools/describe_batch`)
-- **Backward Compatible**: Existing clients can pass `lazy=false`
+- **Backward Compatible**: Full schemas by default
 
 ### Consequences
 - **Positive**: 90-96% token reduction for tool discovery
 - **Positive**: Improved AI agent efficiency (less context window consumed by tool metadata)
-- **Positive**: Backward compatible (existing clients can pass `lazy=false`)
+- **Positive**: Backward compatible (full schemas by default)
 - **Positive**: Foundation for future tool categorization and filtered listing
 - **Negative**: Additional protocol surface area (2 new methods)
 - **Negative**: Clients must be updated to use describe for full schemas

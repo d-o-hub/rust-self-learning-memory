@@ -74,6 +74,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: nextest
+        shell: bash
       - name: Run tests with timeout protection
         run: |
           # Run library tests for core packages (fast, isolated tests)
@@ -93,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        feature: [default, wasm-rquickjs]
+        feature: [default]  # wasm-rquickjs removed - deprecated feature
     steps:
       - name: Free disk space for WASM builds
         run: |
@@ -116,16 +117,11 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: nextest
+        shell: bash
       - name: Build and test (default)
-        if: matrix.feature == 'default'
         run: |
           timeout 300s cargo build -p memory-mcp || exit 1
           timeout 300s cargo nextest run -p memory-mcp --lib || exit 1
-      - name: Build and test (wasm-rquickjs)
-        if: matrix.feature == 'wasm-rquickjs'
-        run: |
-          timeout 300s cargo build -p memory-mcp --features wasm-rquickjs || exit 1
-          timeout 300s cargo nextest run -p memory-mcp --features wasm-rquickjs --lib || exit 1
 
   # Multi-platform testing - simplified matrix
   multi-platform:
@@ -154,6 +150,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: nextest
+        shell: bash
       - name: Run tests on ${{ matrix.os }}
         run: |
           # Cross-platform timeout wrapper with extended time (900s = 15min)
@@ -197,6 +194,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov,cargo-audit
+        shell: bash
       - name: Security Audit
         run: |
           # Security audit with 20 minute timeout
@@ -232,6 +230,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-semver-checks
+        shell: bash
       - name: Check semver compatibility
         run: cargo semver-checks check-release --workspace
         continue-on-error: true  # Informational only, not blocking

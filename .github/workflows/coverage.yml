@@ -93,6 +93,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
+        shell: bash
 
       - name: Check disk space before coverage
         run: |

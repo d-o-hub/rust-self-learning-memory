@@ -191,6 +191,52 @@ run_goap_checks() {
   fi
 }
 
+# Blocking: enforce source file size limit (AGENTS.md invariant)
+run_source_file_size_gate() {
+  echo -e "${BLUE}Running source file size gate (<=500 LOC)...${NC}"
+
+  local limit=500
+  local oversized=()
+  local file
+  local lines
+
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+
+    case "$file" in
+      benches/*|target/*|.git/*)
+        continue
+        ;;
+    esac
+
+    [ -f "$file" ] || continue
+
+    lines=$(wc -l < "$file" | tr -d ' ')
+    if [ "$lines" -gt "$limit" ]; then
+      oversized+=("$file:$lines")
+    fi
+  done < <(
+    {
+      git ls-files '*.rs'
+      git ls-files --others --exclude-standard '*.rs'
+    } | awk '!seen[$0]++'
+  )
+
+  if [ ${#oversized[@]} -gt 0 ]; then
+    echo -e "  ${RED}✗${NC} Source file size gate failed: ${#oversized[@]} file(s) exceed ${limit} LOC"
+    for entry in "${oversized[@]}"; do
+      echo "    - $entry"
+    done
+    echo ""
+    echo "  Split oversized files to restore <=${limit} LOC compliance."
+    return 1
+  fi
+
+  echo -e "  ${GREEN}✓${NC} Source file size gate passed (all Rust source files <=${limit} LOC)"
+  echo ""
+  return 0
+}
+
 export QUALITY_GATE_COVERAGE_THRESHOLD=$COVERAGE_THRESHOLD
 export QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD=$PATTERN_THRESHOLD
 export QUALITY_GATE_COMPLEXITY_THRESHOLD=$COMPLEXITY_THRESHOLD
@@ -202,6 +248,18 @@ if [ "${QUALITY_GATE_SKIP_GOAP:-false}" != "true" ]; then
   run_goap_checks || true
 else
   echo -e "${YELLOW}Skipping GOAP checks (${NC}QUALITY_GATE_SKIP_GOAP=true${YELLOW}).${NC}"
+fi
+
+# Blocking source file-size compliance gate
+if ! run_source_file_size_gate; then
+    echo ""
+    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+    echo -e "${RED}│          ✗ Quality Gates FAILED                               │${NC}"
+    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+    echo ""
+    echo "Review the output above to identify which gates failed."
+    echo "See docs/QUALITY_GATES.md for troubleshooting guidance."
+    exit 1
 fi
 
 echo ""

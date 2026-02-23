@@ -67,7 +67,7 @@ full = ["turso", "redb", "embeddings-full"]
 tempfile = { workspace = true }
 assert_cmd = "2.1"
 predicates = "3.1"
-serial_test = "3.0"
+serial_test = "3.4"
 
 # Benchmarking
 criterion = { version = "0.8", features = ["html_reports"] }

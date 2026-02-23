@@ -95,7 +95,7 @@ tempfile = { workspace = true }
 memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool"] }
 memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
-serial_test = "3.2"
+serial_test = "3.4"
 criterion = "0.8"
 proptest = "1.6"
 postcard = { workspace = true }

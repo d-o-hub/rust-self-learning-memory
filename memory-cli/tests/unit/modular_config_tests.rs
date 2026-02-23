@@ -383,7 +383,7 @@ default_format = "json"
         assert_eq!(config.cli.default_format, "json");
         
         // Storage should be initialized
-        assert!(matches!(storage_result.storage_info.cache_storage, StorageType::Memory));
+        assert!(matches!(storage_result.storage_info.cache_storage, StorageType::Redb));
     }
 
     #[tokio::test]

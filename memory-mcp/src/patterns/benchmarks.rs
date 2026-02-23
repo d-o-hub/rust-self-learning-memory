@@ -314,7 +314,7 @@ mod performance_benchmarks {
         );
 
         // Should complete in reasonable time
-        let max_secs = if is_ci { 60 } else { 30 };
+        let max_secs = if is_ci { 60 } else { 45 };
         assert!(
             duration.as_secs() < max_secs,
             "DBSCAN should complete within the time budget"

@@ -3,7 +3,7 @@
 **Status**: 🔄 Week 1 In Progress
 **Branch**: `goap-codebase-analysis-week1`
 **Methodology**: GOAP (Analyze → Decompose → Strategize → Execute)
-**Last Updated**: 2026-02-23 (Week 1 Day 1 - GOAP orchestration updated)
+**Last Updated**: 2026-02-23 (Week 1 Day 1 - GOAP orchestration + CLI warm-start remediation)
 
 ---
 
@@ -463,3 +463,12 @@ If any command fails, stop, fix the failure, and restart the sequence from `./sc
 - ✅ `W1-G2-B-01` + `W1-G3-B-01` completed as a documentation-only, non-destructive Week 1 iteration
 - ✅ INFRA + E3 planning updates are now synchronized with ADR-036 traceability
 - 🔄 Remaining execution scope is unchanged: B1-B4 completion and nextest blocker remediation/restart
+
+### Progress Update (W1-G3-C-02 - CLI blocker remediation)
+
+- ✅ Implemented redb-only persistence wiring in `memory-cli/src/config/storage.rs` (no in-memory fallback for redb-only mode)
+- ✅ Added CLI warm-start hydration on initialization (`get_all_episodes()` preload)
+- ✅ Updated `episode complete` handling to preload episode before completion to support subprocess workflows
+- ✅ Reconciled `tests/e2e/cli_workflows.rs` command syntax with current CLI contract
+- ✅ Validated targeted blocker suite: `cargo test -p e2e-tests --test cli_workflows -- --nocapture` => 6 passed, 0 failed, 2 ignored
+- 🔄 Full validation gate chain remains required after this remediation batch

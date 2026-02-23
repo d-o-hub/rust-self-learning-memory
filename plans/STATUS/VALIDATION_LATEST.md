@@ -52,6 +52,31 @@ Top failure buckets from this run (16 failed total):
 - MCP execution/sandbox/tool-list/token-threshold regressions (7)
 - Turso compression integration DB-open failures (4)
 
+## Evidence Block - 2026-02-23 (W1-G3-C-02 targeted remediation)
+
+- `scope`: CLI warm-start + CLI contract drift remediation for subprocess workflows
+- `commands`:
+  - `cargo build --bin memory-cli`
+  - `cargo test -p e2e-tests --test cli_workflows -- --nocapture`
+- `result`: ✅ pass for targeted workflow test binary
+- `key_metrics`:
+  - `cli_workflows`: 6 passed, 0 failed, 2 ignored
+  - Previously failing active tests now passing: `test_episode_full_lifecycle`, `test_relationship_workflow`, `test_bulk_operations`, `test_cli_error_handling`
+- `note`: Full canonical gate sequence still required for branch-wide validation and release readiness
+
+## Evidence Block - 2026-02-23 (W1-G3-C-03 full validation rerun)
+
+- `sequence`: full canonical validation sequence rerun after remediation
+- `results`:
+  - ✅ `./scripts/code-quality.sh fmt`
+  - ✅ `./scripts/code-quality.sh clippy`
+  - ✅ `./scripts/build-rust.sh check`
+  - ✅ `cargo nextest run --all` (`2295 passed`, `73 skipped`)
+  - ✅ `cargo test --doc`
+  - ❌ `./scripts/quality-gates.sh` (source file size gate: 64 files >500 LOC)
+- `blocker_classification`: pre-existing ADR-028 file-size compliance debt (cross-crate, not introduced by this iteration)
+- `next_action`: continue B1/B2/B3/B4 file-splitting stream, then rerun full gate chain
+
 ## Validation Command Sequence (Canonical)
 
 ```bash

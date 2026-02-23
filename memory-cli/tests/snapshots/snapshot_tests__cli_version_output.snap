@@ -2,4 +2,4 @@
 source: memory-cli/tests/snapshot_tests.rs
 expression: stdout
 ---
-memory-cli 0.1.15
+memory-cli 0.1.16

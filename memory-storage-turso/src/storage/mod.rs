@@ -188,12 +188,32 @@ impl TursoStorage {
             let bytes: Vec<u8> = embedding.iter().flat_map(|&f| f.to_le_bytes()).collect();
 
             use crate::compression::CompressedPayload;
-            let compressed = CompressedPayload::compress(&bytes, compression_threshold)?;
+            let compression_start = std::time::Instant::now();
+            let compressed = match CompressedPayload::compress(&bytes, compression_threshold) {
+                Ok(payload) => payload,
+                Err(e) => {
+                    if let Ok(mut stats) = self.compression_stats.lock() {
+                        stats.record_failed();
+                    }
+                    return Err(e);
+                }
+            };
+            let compression_time_us = compression_start.elapsed().as_micros() as u64;
 
             if compressed.algorithm == crate::CompressionAlgorithm::None {
+                if let Ok(mut stats) = self.compression_stats.lock() {
+                    stats.record_skipped();
+                }
                 // No compression, store as JSON
                 serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?
             } else {
+                if let Ok(mut stats) = self.compression_stats.lock() {
+                    stats.record_compression(
+                        bytes.len(),
+                        compressed.data.len(),
+                        compression_time_us,
+                    );
+                }
                 // Store compressed data with header
                 use base64::Engine;
                 format!(

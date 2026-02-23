@@ -930,9 +930,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.59"
+version = "4.5.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5caf74d17c3aec5495110c34cc3f78644bfa89af6c8993ed4de2790e49b6499"
+checksum = "2797f34da339ce31042b27d23607e051786132987f595b02ba4f6a6dffb7030a"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -940,9 +940,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.59"
+version = "4.5.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "370daa45065b80218950227371916a1633217ae42b2715b2287b606dcd618e24"
+checksum = "24a241312cea5059b13574bb9b3861cabf758b879c15190b37b6d6fd63ab6876"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1843,7 +1843,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "e2e-tests"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3542,7 +3542,7 @@ dependencies = [
 
 [[package]]
 name = "memory-benches"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3563,7 +3563,7 @@ dependencies = [
 
 [[package]]
 name = "memory-cli"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3598,7 +3598,7 @@ dependencies = [
 
 [[package]]
 name = "memory-core"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3635,7 +3635,7 @@ dependencies = [
 
 [[package]]
 name = "memory-examples"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "libsql",
@@ -3650,7 +3650,7 @@ dependencies = [
 
 [[package]]
 name = "memory-mcp"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3681,7 +3681,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-redb"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3701,7 +3701,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-turso"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6288,7 +6288,7 @@ checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 
 [[package]]
 name = "test-utils"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "chrono",

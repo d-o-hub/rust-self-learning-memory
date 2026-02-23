@@ -1843,7 +1843,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "e2e-tests"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3542,7 +3542,7 @@ dependencies = [
 
 [[package]]
 name = "memory-benches"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3563,7 +3563,7 @@ dependencies = [
 
 [[package]]
 name = "memory-cli"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3598,7 +3598,7 @@ dependencies = [
 
 [[package]]
 name = "memory-core"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3635,7 +3635,7 @@ dependencies = [
 
 [[package]]
 name = "memory-examples"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "libsql",
@@ -3650,7 +3650,7 @@ dependencies = [
 
 [[package]]
 name = "memory-mcp"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3681,7 +3681,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-redb"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3701,7 +3701,7 @@ dependencies = [
 
 [[package]]
 name = "memory-storage-turso"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5595,9 +5595,9 @@ dependencies = [
 
 [[package]]
 name = "serial_test"
-version = "3.3.1"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d0b343e184fc3b7bb44dff0705fffcf4b3756ba6aff420dddd8b24ca145e555"
+checksum = "911bd979bf1070a3f3aa7b691a3b3e9968f339ceeec89e08c280a8a22207a32f"
 dependencies = [
  "futures-executor",
  "futures-util",
@@ -5610,9 +5610,9 @@ dependencies = [
 
 [[package]]
 name = "serial_test_derive"
-version = "3.3.1"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f50427f258fb77356e4cd4aa0e87e2bd2c66dbcee41dc405282cae2bfc26c83"
+checksum = "0a7d91949b85b0d2fb687445e448b40d322b6b3e4af6b44a29b21d9a5f33e6d9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6288,7 +6288,7 @@ checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 
 [[package]]
 name = "test-utils"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "anyhow",
  "chrono",

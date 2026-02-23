@@ -31,11 +31,11 @@ async fn test_mcp_server_advanced_pattern_analysis() {
     let sandbox_config = SandboxConfig::default();
     let server = MemoryMCPServer::new(sandbox_config, memory).await.unwrap();
 
-    // Check that the tool is registered
+    // With lazy loading enabled, only core tools are listed initially
     let tools = server.list_tools().await;
-    assert!(tools.iter().any(|t| t.name == "advanced_pattern_analysis"));
+    assert!(!tools.iter().any(|t| t.name == "advanced_pattern_analysis"));
 
-    // Get the tool definition
+    // Extended tools should still be available via on-demand loading
     let tool = server.get_tool("advanced_pattern_analysis").await;
     assert!(tool.is_some());
     let tool = tool.unwrap();

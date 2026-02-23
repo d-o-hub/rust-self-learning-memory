@@ -25,7 +25,7 @@ tokio = { version = "1.49", features = ["full"] }
 async-trait = "0.1.89"
 
 # Error handling
-anyhow = "1.0.100"
+anyhow = "1.0.102"
 thiserror = "2.0.18"
 
 # Serialization

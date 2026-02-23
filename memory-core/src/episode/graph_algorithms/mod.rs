@@ -3,6 +3,7 @@
 //! This module provides graph traversal and analysis algorithms for detecting
 //! cycles, finding paths, and computing transitive closures in episode relationship graphs.
 
+#[cfg(test)]
 mod tests;
 mod traversal;
 

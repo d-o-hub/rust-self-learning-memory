@@ -1,5 +1,6 @@
 //! Hierarchical index structure for spatiotemporal episode organization.
 
+#[cfg(test)]
 mod tests;
 mod types;
 

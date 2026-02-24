@@ -6,18 +6,20 @@
 
 ## Current State Analysis
 
-| Metric | Current (2026-02-24 Rebaseline) | Target | Status | Verification |
-|--------|----------------------------------|--------|--------|--------------|
+| Metric | Current (2026-02-24 Swarm Rebaseline) | Target | Status | Verification |
+|--------|----------------------------------------|--------|--------|--------------|
 | target/ size | 75G (`du -sh target`) | < 2 GB | 🔴 Pending | `du -sh target` |
-| Duplicate deps | 121 roots | < 80 | 🟡 Monitoring only | `cargo tree -d | rg -c "^[a-z]"` |
-| Rust edition | 2024 (workspace) | 2024 | ✅ Done | `rg 'edition\s*=\s*"2024"' Cargo.toml` |
-| Test runner | nextest in CI/nightly; doctests via `cargo test --doc` | nextest everywhere (except doctests) | ✅ Done | `.github/workflows/*.yml` |
+| Duplicate deps | 121 roots | < 80 | 🟡 Monitoring only | `cargo tree -d \| rg -c "^[a-z]"` |
+| Rust edition | 2024 (all 9 crates) | 2024 | ✅ Done | `rg 'edition' */Cargo.toml` |
+| Codebase size | **818 files, ~205K LOC** | — | 📊 Rebaselined | `find + wc -l` |
+| Test runner | nextest + profiles (default/ci/nightly) | nextest everywhere (except doctests) | ✅ Done | `.config/nextest.toml` |
 | Mutation testing | Nightly `cargo mutants` for `memory-core` | cargo-mutants on core | ✅ Done | `.github/workflows/nightly-tests.yml` |
-| Property testing | Partial (`proptest` exists, not expanded across all crates) | proptest on invariants across crates | 🟡 Partial | `rg 'proptest' **/*.rs` |
-| Snapshot testing | 13 snapshot files (`memory-cli`, `memory-mcp`) | >=3 core snapshot suites | ✅ Baseline met | `glob '**/snapshots/*.snap'` |
-| Release automation | `release.toml` present; cargo-release flow documented | cargo-release + cargo-dist | 🟡 Partial | `ls release.toml` + workflow checks |
-| Semver checking | Enabled in CI (`cargo semver-checks check-release`) | cargo-semver-checks in CI | ✅ Done | `.github/workflows/ci.yml` |
-| CI target isolation | `CARGO_TARGET_DIR` isolated per job in CI + nightly | tmp target isolation in core workflows | ✅ Done (2026-02-24) | `.github/workflows/ci.yml`, `.github/workflows/nightly-tests.yml` |
+| Property testing | 2 files in `memory-core` only | proptest on invariants across crates | 🟡 Partial — no expansion | `rg -l 'proptest!'` |
+| Snapshot testing | 13 snapshot files (6 CLI, 7 MCP) | ≥25 snapshots | 🟡 No growth | `find -path '*/snapshots/*.snap'` |
+| Release automation | `release.toml` + `dist-workspace.toml` present | cargo-release + cargo-dist | 🟡 Partial | cargo-dist 0.30.4 configured |
+| Semver checking | Enabled in CI | cargo-semver-checks in CI | ✅ Done | `.github/workflows/ci.yml` |
+| Changelog automation | None (git-cliff not installed) | git-cliff + conventional commits | 🔴 Not started | ADR-034 Phase 4 |
+| CI target isolation | Isolated per job in CI + nightly + quick-check + coverage + security | tmp target isolation in core workflows | ✅ Done (2026-02-24) | `scripts/setup-target-dir.sh` |
 | node_modules/ | Absent | 0 MB | ✅ Done | `test -d node_modules` |
 
 ### Phase Status Rebaseline (ADR-Linked)
@@ -26,6 +28,7 @@
 - **ADR-032 Phase 5 update (2026-02-24)**: Implemented per-job `CARGO_TARGET_DIR` isolation in CI and nightly workflows via `scripts/setup-target-dir.sh`.
 - **ADR-032 Phase 5 extension (2026-02-24)**: Extended isolated target-dir setup to `quick-check`, `coverage`, and `security` workflows for broader CI disk consistency.
 - **ADR-033**: Partial/strong baseline. nextest and mutants are active; property-test expansion remains open.
+- **ADR-028/ADR-033 Week 1 update (2026-02-24)**: `scripts/quality-gates.sh` file-size gate now blocks on source files only and reports oversized test files as non-blocking telemetry.
 - **ADR-034**: Partial. semver checks + release config are present; release evidence loop remains process-dependent.
 - **ADR-035**: Complete. Workspace edition is `2024`.
 - **ADR-036**: Monitoring phase only. Baseline duplicate count tracked; cleanup deferred until current blockers close.

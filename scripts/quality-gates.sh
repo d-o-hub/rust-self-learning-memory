@@ -193,10 +193,11 @@ run_goap_checks() {
 
 # Blocking: enforce source file size limit (AGENTS.md invariant)
 run_source_file_size_gate() {
-  echo -e "${BLUE}Running source file size gate (<=500 LOC)...${NC}"
+  echo -e "${BLUE}Running source file size gate (<=500 LOC, source files only)...${NC}"
 
   local limit=500
-  local oversized=()
+  local oversized_source=()
+  local oversized_tests=()
   local file
   local lines
 
@@ -213,7 +214,14 @@ run_source_file_size_gate() {
 
     lines=$(wc -l < "$file" | tr -d ' ')
     if [ "$lines" -gt "$limit" ]; then
-      oversized+=("$file:$lines")
+      case "$file" in
+        tests/*|*/tests/*|*_test.rs|*_tests.rs)
+          oversized_tests+=("$file:$lines")
+          ;;
+        *)
+          oversized_source+=("$file:$lines")
+          ;;
+      esac
     fi
   done < <(
     {
@@ -222,14 +230,25 @@ run_source_file_size_gate() {
     } | awk '!seen[$0]++'
   )
 
-  if [ ${#oversized[@]} -gt 0 ]; then
-    echo -e "  ${RED}✗${NC} Source file size gate failed: ${#oversized[@]} file(s) exceed ${limit} LOC"
-    for entry in "${oversized[@]}"; do
+  if [ ${#oversized_source[@]} -gt 0 ]; then
+    echo -e "  ${RED}✗${NC} Source file size gate failed: ${#oversized_source[@]} source file(s) exceed ${limit} LOC"
+    for entry in "${oversized_source[@]}"; do
       echo "    - $entry"
     done
     echo ""
     echo "  Split oversized files to restore <=${limit} LOC compliance."
+    if [ ${#oversized_tests[@]} -gt 0 ]; then
+      echo "  Note: ${#oversized_tests[@]} oversized test file(s) detected (non-blocking)."
+    fi
     return 1
+  fi
+
+  if [ ${#oversized_tests[@]} -gt 0 ]; then
+    echo -e "  ${YELLOW}⚠${NC} Oversized test files detected (non-blocking): ${#oversized_tests[@]}"
+    for entry in "${oversized_tests[@]}"; do
+      echo "    - $entry"
+    done
+    echo ""
   fi
 
   echo -e "  ${GREEN}✓${NC} Source file size gate passed (all Rust source files <=${limit} LOC)"

@@ -166,6 +166,8 @@ fn run_cli(
                     combined
                 )
             })?
+        } else if !success {
+            serde_json::json!({"error": "Command failed", "stderr": stderr, "stdout": stripped_stdout})
         } else {
             anyhow::bail!("No JSON found in output")
         }
@@ -275,7 +277,7 @@ async fn test_episode_full_lifecycle() {
     let (_complete_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "complete", episode_id, "--outcome", "success"],
+        &["episode", "complete", episode_id, "success"],
     )
     .expect("Failed to run complete command");
 
@@ -351,16 +353,7 @@ async fn test_relationship_workflow() {
         let (_, success) = run_cli(
             &cli_path,
             &config_path,
-            &[
-                "episode",
-                "complete",
-                "--id",
-                id,
-                "--outcome",
-                "success",
-                "--verdict",
-                "Done",
-            ],
+            &["episode", "complete", id, "success"],
         )
         .expect("Failed to complete episode");
         assert!(success, "Complete should succeed");
@@ -791,16 +784,7 @@ async fn test_bulk_operations() {
         let (_, success) = run_cli(
             &cli_path,
             &config_path,
-            &[
-                "episode",
-                "complete",
-                "--id",
-                id,
-                "--outcome",
-                "success",
-                "--verdict",
-                "Bulk completed",
-            ],
+            &["episode", "complete", id, "success"],
         )
         .expect("Failed to complete episode");
 
@@ -845,7 +829,7 @@ async fn test_cli_error_handling() {
     let (_, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "view", "--id", "invalid-uuid"],
+        &["episode", "view", "invalid-uuid"],
     )
     .expect("Failed to run command");
 
@@ -866,12 +850,7 @@ async fn test_cli_error_handling() {
     let (_, success) = run_cli(
         &cli_path,
         &config_path,
-        &[
-            "episode",
-            "view",
-            "--id",
-            "00000000-0000-0000-0000-000000000000",
-        ],
+        &["episode", "view", "00000000-0000-0000-0000-000000000000"],
     )
     .expect("Failed to run command");
 

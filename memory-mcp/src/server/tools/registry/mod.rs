@@ -88,13 +88,21 @@ impl ToolRegistry {
     ///
     /// # Usage
     ///
-    /// ```rust
+    /// ```rust,no_run
+    /// use memory_mcp::server::tools::registry::create_default_registry;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let registry = create_default_registry();
+    ///
     /// // Get lightweight list of all tool names
     /// let names = registry.list_tool_names();
     /// // names = ["query_memory", "analyze_patterns", ...]
     ///
     /// // Load specific tool schema on-demand
     /// let tool = registry.load_tool("query_memory").await;
+    /// # let _ = (names, tool);
+    /// # }
     /// ```
     pub fn list_tool_names(&self) -> Vec<String> {
         let mut names: Vec<String> = self.core_tools.iter().map(|t| t.name.clone()).collect();

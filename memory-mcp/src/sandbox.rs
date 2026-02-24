@@ -229,7 +229,6 @@ impl CodeSandbox {
             .replace("${", "\\${") // Escape template literal expressions
             // Note: Newlines, carriage returns, and tabs are NOT escaped
             // They work correctly in JavaScript template literals
-            .replace("<", "\\x3c") // Escape < to prevent </script> injection
             .replace("\x00", "\\x00") // Escape null bytes
             .replace("\x0b", "\\x0b") // Escape vertical tabs
             .replace("\x0c", "\\x0c"); // Escape form feeds

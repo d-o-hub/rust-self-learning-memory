@@ -52,6 +52,11 @@ pub async fn complete_episode(
 
     // Complete the episode
     memory
+        .get_episode(episode_uuid)
+        .await
+        .map_err(|e| anyhow::anyhow!("Episode not found {}: {}", episode_id, e))?;
+
+    memory
         .complete_episode(episode_uuid, core_outcome)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to complete episode {}: {}", episode_id, e))?;

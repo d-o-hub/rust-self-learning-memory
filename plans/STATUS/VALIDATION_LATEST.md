@@ -1,13 +1,110 @@
 # Validation Status Report - Latest
 
-**Last Updated**: February 02, 2026
-**Version**: v0.1.14
-**Branch**: feat-phase3
-**Overall Status**: ✅ **PRODUCTION READY** (All quality gates passing)
+**Last Updated**: 2026-02-23
+**Version**: Week 1 GOAP execution snapshot
+**Branch**: goap-codebase-analysis-week1
+**Overall Status**: 🔄 **IN PROGRESS** (validation blocked at `cargo nextest run --all`)
 
 ---
 
-## Executive Summary
+## Week 1 Execution Snapshot
+
+- Plan reference: `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md`
+- Validation sequence status:
+  - ✅ `git status --short --branch`
+  - ✅ `./scripts/code-quality.sh fmt`
+  - ✅ `./scripts/code-quality.sh clippy`
+  - ✅ `./scripts/build-rust.sh check`
+  - ❌ `cargo nextest run --all` (16 failed, 6 slow)
+  - ⏸️ `cargo test --doc` (pending after nextest remediation)
+  - ⏸️ `./scripts/quality-gates.sh` (pending after nextest remediation)
+- Restart policy: if any command fails, restart from `./scripts/code-quality.sh fmt` after fixes.
+
+## Evidence Block - 2026-02-23 (W1-G2-B-01 + W1-G3-B-01)
+
+- `iteration_id`: `W1-G2-B-01/W1-G3-B-01`
+- `scope`: documentation-only sync for GOAP + roadmap + validation evidence
+- `nextest_blocker`: active (`cargo nextest run --all` failed with 16 failed, 6 slow)
+- `restart_policy`: unchanged; after any failure, remediate then rerun from `./scripts/code-quality.sh fmt`
+
+| Step | Exact Command | Status (Known/Placeholder) | Notes |
+|------|---------------|----------------------------|-------|
+| 1 | `git status --short --branch` | ✅ Known pass | Sequence start recorded |
+| 2 | `./scripts/code-quality.sh fmt` | ✅ Known pass | Completed before blocker |
+| 3 | `./scripts/code-quality.sh clippy` | ✅ Known pass | Completed before blocker |
+| 4 | `./scripts/build-rust.sh check` | ✅ Known pass | Completed before blocker |
+| 5 | `cargo nextest run --all` | ❌ Known fail | Blocker: 16 failed, 6 slow (run id `ba58b7b9-fd98-45a7-a849-e52558340e50`) |
+| 6 | `cargo test --doc` | ⏸️ Placeholder pending | Run only after nextest remediation + restart |
+| 7 | `./scripts/quality-gates.sh` | ⏸️ Placeholder pending | Run only after steps 1-6 pass |
+
+## Evidence Block - 2026-02-23 (W1-G3-A-02 validation execution)
+
+- `run_id`: `ba58b7b9-fd98-45a7-a849-e52558340e50`
+- `timestamp_utc`: 2026-02-23
+- `branch`: `goap-codebase-analysis-week1`
+- `sequence_executed`: steps 1-5 completed; blocked at nextest
+- `result`: failed at step 5; restart required from fmt after remediation
+- `artifacts`: `/home/do/.local/share/opencode/tool-output/tool_c8a8f72b0001oa4hKKZq5C46Nt`
+
+Top failure buckets from this run (16 failed total):
+- CLI contract drift in e2e workflow tests (4)
+- CLI snapshot version drift (`0.1.15` -> `0.1.16`) (1)
+- MCP execution/sandbox/tool-list/token-threshold regressions (7)
+- Turso compression integration DB-open failures (4)
+
+## Evidence Block - 2026-02-23 (W1-G3-C-02 targeted remediation)
+
+- `scope`: CLI warm-start + CLI contract drift remediation for subprocess workflows
+- `commands`:
+  - `cargo build --bin memory-cli`
+  - `cargo test -p e2e-tests --test cli_workflows -- --nocapture`
+- `result`: ✅ pass for targeted workflow test binary
+- `key_metrics`:
+  - `cli_workflows`: 6 passed, 0 failed, 2 ignored
+  - Previously failing active tests now passing: `test_episode_full_lifecycle`, `test_relationship_workflow`, `test_bulk_operations`, `test_cli_error_handling`
+- `note`: Full canonical gate sequence still required for branch-wide validation and release readiness
+
+## Evidence Block - 2026-02-23 (W1-G3-C-03 full validation rerun)
+
+- `sequence`: full canonical validation sequence rerun after remediation
+- `results`:
+  - ✅ `./scripts/code-quality.sh fmt`
+  - ✅ `./scripts/code-quality.sh clippy`
+  - ✅ `./scripts/build-rust.sh check`
+  - ✅ `cargo nextest run --all` (`2295 passed`, `73 skipped`)
+  - ✅ `cargo test --doc`
+  - ❌ `./scripts/quality-gates.sh` (source file size gate: 64 files >500 LOC)
+- `blocker_classification`: pre-existing ADR-028 file-size compliance debt (cross-crate, not introduced by this iteration)
+- `next_action`: continue B1/B2/B3/B4 file-splitting stream, then rerun full gate chain
+
+## Validation Command Sequence (Canonical)
+
+```bash
+git status --short --branch
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy
+./scripts/build-rust.sh check
+cargo nextest run --all
+cargo test --doc
+./scripts/quality-gates.sh
+```
+
+## Required Evidence Fields (Per Validation Attempt)
+
+- `run_id`
+- `timestamp_utc`
+- `branch`
+- `commit_sha`
+- `working_tree_state`
+- `command`
+- `exit_code`
+- `duration_sec`
+- `result`
+- `key_metrics`
+- `failure_summary`
+- `artifacts`
+
+## Executive Summary (Historical Baseline)
 
 Comprehensive validation of the Self-Learning Memory System across three key areas confirms production readiness with 100% confidence. All validation categories show passing results with advanced features fully operational.
 

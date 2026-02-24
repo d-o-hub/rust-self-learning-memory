@@ -257,6 +257,12 @@ async fn test_prepared_statement_cache_integration() {
 - [x] Test timeout guards for prepared cache integration
 - [x] CLI test JSON parsing improvements (ANSI code stripping)
 
+### Incremental Update (2026-02-23)
+- [x] CLI redb-only subprocess persistence remediation in `memory-cli/src/config/storage.rs`
+- [x] CLI warm-start hydration on startup (`get_all_episodes()` preload)
+- [x] CLI workflow contract alignment in `tests/e2e/cli_workflows.rs` (complete/view argument forms)
+- [x] Targeted validation: `cargo test -p e2e-tests --test cli_workflows -- --nocapture` passed (6/6 active tests)
+
 ### Metrics
 - **Before**: Nightly CI failing consistently (Run #22049835142)
 - **After**: Nightly CI passing (all test stages completing)

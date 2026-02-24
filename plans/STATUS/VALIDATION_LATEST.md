@@ -1,9 +1,9 @@
 # Validation Status Report - Latest
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-24 (W1-M4 gate-scope alignment rerun)
 **Version**: Week 1 GOAP execution snapshot
-**Branch**: goap-missing-tasks-2026-02-24 (documentation sync branch)
-**Overall Status**: 🔄 **IN PROGRESS** (latest full sequence blocked only at `./scripts/quality-gates.sh` file-size gate)
+**Branch**: goap-week1-w1m4-ci-loop-2026-02-24
+**Overall Status**: 🔄 **IN PROGRESS** (latest full sequence blocked only at `./scripts/quality-gates.sh` source file-size gate)
 
 ---
 
@@ -17,16 +17,16 @@
   - ✅ `./scripts/build-rust.sh check`
   - ✅ `cargo nextest run --all` (`2295 passed`, `73 skipped`)
   - ✅ `cargo test --doc`
-  - ❌ `./scripts/quality-gates.sh` (source file-size gate)
+  - ❌ `./scripts/quality-gates.sh` (source file-size gate: 29 source files >500 LOC)
 - Restart policy: if any command fails, restart from `./scripts/code-quality.sh fmt` after fixes.
 
 ## Status Sync Contract (Canonical Fields)
 
 These values must be identical in this file, `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md`, and `plans/ROADMAPS/ROADMAP_ACTIVE.md`:
 
-- `last_validated_run_id`: `ba58b7b9-fd98-45a7-a849-e52558340e50`
-- `last_validated_commit`: `unknown (legacy evidence; must be recorded on next run)`
-- `gate_result`: `blocked at ./scripts/quality-gates.sh (file-size gate)`
+- `last_validated_run_id`: `33e3c3f6-c890-409c-9c7d-5ad696202c36`
+- `last_validated_commit`: `e8545e1`
+- `gate_result`: `blocked at ./scripts/quality-gates.sh (source file-size gate — 29 source files >500 LOC)`
 - `active_blocker_count`: `1`
 
 ## Evidence Block - 2026-02-23 (W1-G2-B-01 + W1-G3-B-01)
@@ -85,6 +85,23 @@ Top failure buckets from this run (16 failed total):
   - ❌ `./scripts/quality-gates.sh` (source file size gate: 64 files >500 LOC)
 - `blocker_classification`: pre-existing ADR-028 file-size compliance debt (cross-crate, not introduced by this iteration)
 - `next_action`: continue B1/B2/B3/B4 file-splitting stream, then rerun full gate chain
+
+## Evidence Block - 2026-02-24 (W1-M4 gate-scope alignment rerun)
+
+- `run_id`: `33e3c3f6-c890-409c-9c7d-5ad696202c36`
+- `timestamp_utc`: 2026-02-24
+- `branch`: `goap-week1-w1m4-ci-loop-2026-02-24`
+- `commit_sha`: `e8545e1`
+- `sequence`: full canonical validation sequence rerun after `scripts/quality-gates.sh` scope alignment
+- `results`:
+  - ✅ `./scripts/code-quality.sh fmt`
+  - ✅ `./scripts/code-quality.sh clippy`
+  - ✅ `./scripts/build-rust.sh check`
+  - ✅ `cargo nextest run --all` (`2295 passed`, `73 skipped`)
+  - ✅ `cargo test --doc`
+  - ❌ `./scripts/quality-gates.sh` (source file-size gate: 29 source files >500 LOC)
+- `scope_change`: gate now blocks on source files only; oversized test files are reported as non-blocking telemetry
+- `next_action`: continue B1/B2/B3/B4 source-file split stream, then rerun full gate chain
 
 ## Validation Command Sequence (Canonical)
 
@@ -448,3 +465,49 @@ Historical baseline below (2026-02-02). Keep as reference only; current Week 1 b
 ---
 
 *This report consolidates validation status across MCP server, semantic pattern search, build/quality gates, and plans folder into a comprehensive validation status report.*
+
+---
+
+## Evidence Block — 2026-02-24 (Analysis-Swarm Rebaseline)
+
+- `scope`: Full codebase metrics rebaseline using analysis-swarm (RYAN/FLASH/SOCRATES)
+- `branch`: main (v0.1.16)
+- `methodology`: Live codebase measurement via ripgrep, find, wc -l, cargo tree
+
+### Measured Metrics
+
+| Metric | Value | Tool |
+|--------|-------|------|
+| Rust files | 818 | `find -name '*.rs' \| wc -l` |
+| Total LOC | ~205,000 | `find -name '*.rs' \| xargs wc -l` |
+| Source files >500 LOC | 28 | `find` + `wc -l` (excl tests/benches) |
+| All files >500 LOC | 64 | `find` + `wc -l` (incl tests) |
+| unwrap() total | 2,534 | `rg -c 'unwrap()'` |
+| unwrap() prod only | 553 | `rg` excl test/bench files |
+| expect() total | 822 | `rg -c '.expect('` |
+| expect() prod only | 128 | `rg` excl test/bench files |
+| #[ignore] tests | 62 | `rg -c '#[ignore'` |
+| dead_code inline | 137 | `rg -c '#[allow(dead_code)]'` |
+| dead_code crate-level | 6 | `rg -c '#![allow(dead_code)]'` |
+| Dup dep roots | 121 | `cargo tree -d` |
+| #[test] functions | 1,560 | `rg -c '#[test]'` |
+| #[tokio::test] functions | 1,178 | `rg -c '#[tokio::test]'` |
+| Snapshot files | 13 | `find -path '*/snapshots/*.snap'` |
+| Proptest files | 2 | `rg -l 'proptest!'` |
+| cargo check --all | ✅ pass | 13.17s |
+| cargo clippy --all -D warnings | ✅ pass | 12.89s |
+
+### Gate Status (Current)
+
+- ✅ `cargo check --all` — pass
+- ✅ `cargo clippy --all -- -D warnings` — pass
+- ✅ `cargo fmt --all -- --check` — pass (inferred from recent CI)
+- ❌ `./scripts/quality-gates.sh` — blocked: 64 files >500 LOC (includes test files)
+
+### Key Findings
+
+1. Previous metrics in plan docs were stale — corrected in this rebaseline
+2. quality-gates.sh file-size check includes test files (36 of 64 oversized are tests)
+3. Production-only unwrap+expect count is **681** (not 1,311 as previously claimed)
+4. No progress on ignored test triage (still 62)
+5. No expansion of proptest or insta snapshot coverage

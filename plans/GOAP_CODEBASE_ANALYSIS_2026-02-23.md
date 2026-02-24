@@ -1,9 +1,9 @@
 # GOAP Codebase Analysis & Execution Plan — 2026-02-23
 
-**Status**: 🔄 Week 1 In Progress (nextest/doctests green in latest run; blocked at file-size quality gate)
-**Branch**: `goap-missing-tasks-2026-02-24` (docs/progress sync), validation evidence source: `goap-codebase-analysis-week1`
-**Methodology**: GOAP (Analyze → Decompose → Strategize → Execute)
-**Last Updated**: 2026-02-24 (Week 1 status sync + blocker normalization)
+**Status**: 🔄 Week 1 In Progress — Analysis-Swarm rebaseline 2026-02-24 (file-size gate + error handling debt remain primary blockers)
+**Branch**: `develop` (main: v0.1.16)
+**Methodology**: GOAP (Analyze → Decompose → Strategize → Execute) + Analysis-Swarm (RYAN/FLASH/SOCRATES)
+**Last Updated**: 2026-02-24 (W1-M4 gate-scope alignment + validation rerun evidence)
 
 ---
 
@@ -450,9 +450,9 @@ If any command fails, stop, fix the failure, and restart the sequence from `./sc
 
 These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE.md`, and `plans/STATUS/VALIDATION_LATEST.md`:
 
-- `last_validated_run_id`: `ba58b7b9-fd98-45a7-a849-e52558340e50`
-- `last_validated_commit`: `unknown (legacy evidence; must be recorded on next run)`
-- `gate_result`: `blocked at ./scripts/quality-gates.sh (file-size gate)`
+- `last_validated_run_id`: `33e3c3f6-c890-409c-9c7d-5ad696202c36`
+- `last_validated_commit`: `e8545e1`
+- `gate_result`: `blocked at ./scripts/quality-gates.sh (source file-size gate — 29 source files >500 LOC)`
 - `active_blocker_count`: `1`
 
 ### Progress Update (This Change)
@@ -462,7 +462,8 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 - ✅ Added explicit handoff contract template fields
 - ✅ Added exact validation command sequence and restart policy
 - ✅ GOAP orchestrator execution completed for Week 1 task coordination
-- ⚠️ Full validation rerun progressed through fmt/clippy/build/nextest/doctests and is now blocked at `./scripts/quality-gates.sh` due to file-size compliance debt; remediation remains in B1-B4
+- ✅ Updated `scripts/quality-gates.sh` to enforce source-only file-size blocking and report oversized test files as non-blocking telemetry (ADR-028/ADR-033 alignment)
+- ⚠️ Full validation rerun progressed through fmt/clippy/build/nextest/doctests and remains blocked at `./scripts/quality-gates.sh` due to 29 oversized source files; remediation remains in B1-B4
 
 ### W1-M Completion Snapshot
 
@@ -471,7 +472,7 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 | W1-M1 | ✅ Complete | Grouped G1/G2/G3 execution model and dependencies are explicit |
 | W1-M2 | ✅ Complete | ADR-024/028/030/033/036 are all mapped in Week 1 matrix |
 | W1-M3 | ✅ Complete | Specialist handoff contract template is stable and reusable |
-| W1-M4 | 🔄 In Progress | Command order locked; latest blocker is quality-gates file-size check after nextest/doctests pass |
+| W1-M4 | ✅ Complete | Command order locked and executed end-to-end; gate scope now source-only, with blocker narrowed to 29 oversized source files |
 
 ### Specialist Handoff Runs (This Iteration)
 
@@ -496,3 +497,97 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 - ✅ Reconciled `tests/e2e/cli_workflows.rs` command syntax with current CLI contract
 - ✅ Validated targeted blocker suite: `cargo test -p e2e-tests --test cli_workflows -- --nocapture` => 6 passed, 0 failed, 2 ignored
 - 🔄 Full validation gate chain remains required after this remediation batch
+
+---
+
+## Analysis-Swarm Rebaseline — 2026-02-24
+
+### Methodology
+Three-persona analysis (RYAN/FLASH/SOCRATES) compared all plan metrics against live codebase measurements.
+
+### Corrected Metrics (Previous → Actual)
+
+| Metric | Previous Claim | Actual (2026-02-24) | Notes |
+|--------|---------------|---------------------|-------|
+| Rust files | 621 | **818** | Significant growth from test/example files |
+| Total LOC | ~141K | **~205K** | +64K LOC since last baseline |
+| Files >500 LOC (source) | 31 | **28** | 4 memory-core modules removed; some turso splits landed |
+| Files >500 LOC (all incl. tests) | 64 (quality-gates) | **64** | Quality-gates.sh counts test files too |
+| unwrap() total | 1,162 | **2,534** | Previous count severely underestimated |
+| unwrap() prod only | — | **553** | New metric: excludes test/bench files |
+| expect() total | 149 | **822** | Previous count severely underestimated |
+| expect() prod only | — | **128** | New metric: excludes test/bench files |
+| unwrap()+expect() prod | 1,311 (claimed) | **681** | Previous plan incorrectly summed; actual prod-only is lower |
+| Ignored tests | 62 | **62** | Unchanged — no triage started |
+| dead_code inline | 124 | **137** | Increased by 13 — new code added annotations |
+| dead_code crate-level | 6 | **6** | Unchanged |
+| Dup dep roots | 121 | **121** | Unchanged |
+| Test functions (#[test]) | 1,560 (sync) | **1,560** | Match |
+| Async tests (#[tokio::test]) | 1,178 | **1,178** | Match |
+| Snapshot files | 13 | **13** | No growth since baseline |
+| Proptest files | 2 | **2** (memory-core only) | No expansion to storage crates |
+| Batch module | Disabled | **Still disabled** | `// pub mod batch;` in tools/mod.rs |
+| git-cliff | None | **None** | ADR-034 Phase 4 not started |
+| Edition | 2024 | **2024** (all crates) | ✅ Confirmed |
+| cargo-semver-checks | ✅ in CI | **✅ in CI** | Confirmed in ci.yml |
+| cargo-mutants | ✅ nightly | **✅ nightly** | Confirmed in nightly-tests.yml |
+| nextest profiles | ✅ | **✅** | default/ci/nightly in .config/nextest.toml |
+| release.toml | ✅ | **✅** | Configured, publish=false |
+| dist-workspace.toml | ✅ | **✅** | cargo-dist 0.30.4, 5 targets |
+
+### Key Findings (Swarm Synthesis)
+
+1. **STALE METRICS ACROSS ALL PLAN DOCS**: Previous unwrap/expect counts were measured differently (possibly grepping with different exclusions). The authoritative prod-only count is **681** (553 unwrap + 128 expect). Total including tests is **3,356**. Plans must distinguish prod vs total going forward.
+
+2. **FILE SIZE GATE SCOPE ALIGNMENT APPLIED**: `quality-gates.sh` now blocks on source files only (ADR-028 scope) and reports oversized test files as non-blocking telemetry. Active blocker remains oversized source files.
+
+3. **CODEBASE GROWTH**: 818 files / 205K LOC is significantly larger than documented 621 / 141K. Plans referencing these numbers are misleading.
+
+4. **ADR IMPLEMENTATION PROGRESS (Updated)**:
+   - ADR-032 (Disk Space): ✅ CI isolation done, profiles done, mold done — `target/` cleanup is remaining item
+   - ADR-033 (Testing): ✅ nextest+profiles+mutants done — proptest/insta expansion still pending
+   - ADR-034 (Release): ✅ semver-checks+release.toml+dist done — git-cliff not started (Phase 4)
+   - ADR-035 (Edition 2024): ✅ Complete
+   - ADR-036 (Deps): 🟡 Monitoring only (121 roots, threshold 130)
+   - ADR-028 (Features): 🔴 2/14 complete (#1 MCP Token Opt, #3 File Size partial)
+
+5. **REMOVED FILES STILL IN PLAN**: 4 memory-core files listed in B1 task group no longer exist:
+   - `memory-core/src/security/audit.rs` — removed
+   - `memory-core/src/indexing/spatiotemporal.rs` — removed
+   - `memory-core/src/indexing/hierarchical.rs` — removed
+   - `memory-core/src/episode/graph_algorithms.rs` — removed
+   These should be struck from the B1 task list.
+
+### Updated Success Criteria
+
+| Metric | Current | Target | ADR | Revised? |
+|--------|---------|--------|-----|----------|
+| unwrap()+expect() in **prod** | 681 | ≤20 | ADR-028 #4 | ✅ Corrected metric |
+| Files >500 LOC (source only) | 28 | 0 | ADR-028 #3 | ✅ Clarified scope |
+| Files >500 LOC (all incl. tests) | 64 | Informational/non-blocking | ADR-028 #3 | ✅ Scope clarified |
+| Ignored tests | 62 | ≤10 | ADR-028 #5 | — |
+| Batch module | Disabled | Functional | ADR-028 #2 | — |
+| dead_code annotations | 143 (137+6) | ≤10 | — | ✅ Updated count |
+| Property test crates | 1 | 4 | ADR-033 | — |
+| Snapshot tests | 13 | 25+ | ADR-033 | — |
+| Changelog automation | None | git-cliff | ADR-034 | — |
+
+### Revised B1 Task (memory-core splits)
+
+After removing 4 deleted files, remaining memory-core files >500 LOC:
+
+| File | Current LOC | Target Split |
+|------|-------------|--------------|
+| `episode/structs.rs` | 798 | structs.rs + episode_data.rs + step_data.rs |
+| `monitoring/metrics.rs` | 708 | metrics.rs + metrics_export.rs + metrics_types.rs |
+| `memory/queries.rs` | 553 | queries.rs + query_builder.rs |
+| `memory/relationships.rs` | 551 | relationships.rs + relationship_types.rs |
+| `episode/relationship_manager_tests.rs` | 860 | Test file — pending scope decision |
+
+### Recommendations
+
+1. **Immediately**: Update ADR-028 Implementation Status (#3 File Size) from "✅ Complete" to "🔄 Partial — 28 source files remain >500 LOC"
+2. **Decision**: Exclude test files from quality-gates.sh file-size check (add `tests/` to exclusion list alongside `benches/` and `target/`)
+3. **Correct all plan docs**: Use prod-only unwrap/expect count (681) as the canonical metric
+4. **Strike removed files**: Update B1 task list to reflect only existing files
+5. **Week 2 priority**: Start C1 (test triage) in parallel with remaining B-splits — the 62 ignored tests have not moved

@@ -1,6 +1,6 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-24 (W1-M4 gate-scope alignment)
 **Status**: Week 1 GOAP execution is active; validation advanced through nextest/doctests and is currently blocked only at `./scripts/quality-gates.sh` (file-size gate).
 **Next Sprint**: v0.1.16 Week 1 - Code Quality Remediation (B1-B4, E3, INFRA)
 **GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md) | **Prior CI Phase**: [GOAP_PHASE1_COMPLETION_SUMMARY.md](../GOAP_PHASE1_COMPLETION_SUMMARY.md) ✅
@@ -15,23 +15,25 @@
 **Latest Changes**: 2026-02-23
 **Current Plan**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md)
 
-### Week 1 GOAP Snapshot (2026-02-23)
+### Week 1 GOAP Snapshot (2026-02-24 — Analysis-Swarm Rebaseline)
 
-- ✅ Atomic docs checkpoint complete: Week 1 non-destructive `INFRA + E3` planning updates synced (`W1-G2-B-01`, `W1-G3-B-01`)
+- ✅ Analysis-swarm rebaseline completed — corrected stale metrics across all plan docs
+- ✅ Atomic docs checkpoint complete: Week 1 non-destructive `INFRA + E3` planning updates synced
 - ✅ W1-M1/W1-M2/W1-M3 plan tasks are complete in the GOAP plan
-- 🔄 W1-M4 remains in progress pending file-size compliance remediation after validation restart
-- 🔄 B2/B3/B4 split work is active with partial completion
-- ⏸️ B1-B4 source split remediation remains open; E3 is baseline/proposal-only for this iteration
-- 🎯 Validation command order is locked and restart policy is explicit in the GOAP plan
-- ✅ Latest known full sequence status: `cargo nextest run --all` passed (`2295 passed`, `73 skipped`), `cargo test --doc` passed, `./scripts/quality-gates.sh` failed on source file-size debt
+- ✅ W1-M4 completed: validation command order is locked/executed and gate scope aligned to source-only blocking
+- 🔄 B2/B3/B4 split work is active with partial completion (28 source files remain >500 LOC)
+- ⏸️ B1 task list revised: 4 memory-core files no longer exist (removed in prior refactors)
+- 🎯 Corrected metrics: **681 unwrap/expect prod-only** (was 1,311), **818 files / 205K LOC** (was 621 / 141K)
+- ✅ Build/clippy: passing. Quality-gates: blocked on source file-size gate (29 source files >500 LOC)
+- ✅ Gate scope decision implemented: oversized test files are now non-blocking telemetry in `scripts/quality-gates.sh`
 
 ### Status Sync Contract (Week 1)
 
 The following fields are canonical and must stay synchronized with `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md` and `plans/STATUS/VALIDATION_LATEST.md` after each validation attempt:
 
-- `last_validated_run_id`: `ba58b7b9-fd98-45a7-a849-e52558340e50`
-- `last_validated_commit`: `unknown (legacy evidence; must be recorded on next run)`
-- `gate_result`: `blocked at ./scripts/quality-gates.sh (file-size gate)`
+- `last_validated_run_id`: `33e3c3f6-c890-409c-9c7d-5ad696202c36`
+- `last_validated_commit`: `e8545e1`
+- `gate_result`: `blocked at ./scripts/quality-gates.sh (source file-size gate — 29 source files >500 LOC)`
 - `active_blocker_count`: `1` (file-size compliance stream B1-B4)
 
 **CI Fixes Applied** (2026-02-15 → 2026-02-16, historical baseline):
@@ -805,7 +807,7 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 *Last Updated: 2026-02-24*
 *Active Branch: main*
-*Current Version: v0.1.15 (released 2026-02-15)*
+*Current Version: v0.1.16 (released 2026-02-21)*
 *Current Focus: v0.1.16 (Code Quality + Pattern Algorithms)*
 *CI Status: See GitHub Actions for current state*
 *Phase 1 Status: ✅ COMPLETE (historical); Week 1 GOAP execution now active*

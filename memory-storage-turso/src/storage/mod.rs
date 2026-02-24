@@ -19,6 +19,7 @@ use uuid::Uuid;
 // Re-export submodules
 pub mod batch;
 pub mod capacity;
+mod embedding_tables;
 pub mod episodes;
 pub mod heuristics;
 pub mod monitoring;
@@ -127,30 +128,6 @@ impl EmbeddingStorageBackend for TursoStorage {
 }
 
 impl TursoStorage {
-    /// Get the appropriate embeddings table name for a given dimension
-    #[allow(dead_code)]
-    pub fn get_embedding_table_for_dimension(&self, dimension: usize) -> &'static str {
-        match dimension {
-            384 => "embeddings_384",
-            1024 => "embeddings_1024",
-            1536 => "embeddings_1536",
-            3072 => "embeddings_3072",
-            _ => "embeddings_other",
-        }
-    }
-
-    /// Get the appropriate vector index name for a given dimension
-    #[allow(dead_code)]
-    pub fn get_vector_index_for_dimension(&self, dimension: usize) -> Option<&'static str> {
-        match dimension {
-            384 => Some("idx_embeddings_384_vector"),
-            1024 => Some("idx_embeddings_1024_vector"),
-            1536 => Some("idx_embeddings_1536_vector"),
-            3072 => Some("idx_embeddings_3072_vector"),
-            _ => None,
-        }
-    }
-
     // ========== Internal Embedding Methods ==========
 
     /// Store an embedding (internal implementation)

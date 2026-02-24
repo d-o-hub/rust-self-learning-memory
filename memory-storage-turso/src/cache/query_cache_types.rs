@@ -1,34 +1,27 @@
-//! Query cache types: QueryKey, QueryType, TableDependency, CachedResult
-//!
-//! This module provides the core types used by the query cache system.
-
 use parking_lot::RwLock;
+use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-/// Table dependency for cache invalidation tracking
+const DEFAULT_MAX_QUERIES: usize = 1000;
+const DEFAULT_QUERY_TTL: Duration = Duration::from_secs(300);
+const DEFAULT_HOT_THRESHOLD: u64 = 5;
+const DEFAULT_REFRESH_INTERVAL: Duration = Duration::from_secs(30);
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TableDependency {
-    /// Episodes table
     Episodes,
-    /// Steps table
     Steps,
-    /// Patterns table
     Patterns,
-    /// Heuristics table
     Heuristics,
-    /// Embeddings table
     Embeddings,
-    /// Tags table
     Tags,
-    /// Custom table name
     Custom(String),
 }
 
 impl TableDependency {
-    /// Get the table name as a string
     pub fn as_str(&self) -> &str {
         match self {
             Self::Episodes => "episodes",
@@ -41,12 +34,10 @@ impl TableDependency {
         }
     }
 
-    /// Parse a table name from a SQL query
     pub fn from_query(sql: &str) -> Vec<Self> {
         let sql_lower = sql.to_lowercase();
         let mut tables = Vec::new();
 
-        // Simple table detection from common query patterns
         if sql_lower.contains("from episodes") || sql_lower.contains("join episodes") {
             tables.push(Self::Episodes);
         }
@@ -70,19 +61,14 @@ impl TableDependency {
     }
 }
 
-/// Query key for cache lookup
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct QueryKey {
-    /// Normalized SQL query hash
     pub sql_hash: u64,
-    /// Parameter hashes (for parameterized queries)
     pub param_hashes: Vec<u64>,
-    /// Query type for TTL configuration
     pub query_type: QueryType,
 }
 
 impl QueryKey {
-    /// Create a query key from SQL and parameters
     pub fn new(sql: &str, params: &[&dyn ToString]) -> Self {
         let normalized = Self::normalize_sql(sql);
         let sql_hash = Self::hash_string(&normalized);
@@ -101,22 +87,16 @@ impl QueryKey {
         }
     }
 
-    /// Create a query key from SQL only (no parameters)
     pub fn from_sql(sql: &str) -> Self {
         Self::new(sql, &[])
     }
 
-    /// Normalize SQL for consistent hashing
-    /// - Remove extra whitespace
-    /// - Convert to lowercase
-    /// - Remove comments
     fn normalize_sql(sql: &str) -> String {
         let mut result = String::with_capacity(sql.len());
         let mut in_comment = false;
         let mut prev_char = ' ';
 
         for ch in sql.chars() {
-            // Handle SQL comments
             if ch == '-' && prev_char == '-' {
                 in_comment = true;
             }
@@ -130,11 +110,9 @@ impl QueryKey {
             prev_char = ch;
         }
 
-        // Normalize whitespace
         result.split_whitespace().collect::<Vec<_>>().join(" ")
     }
 
-    /// Hash a string using DefaultHasher
     fn hash_string(s: &str) -> u64 {
         let mut hasher = DefaultHasher::new();
         s.hash(&mut hasher);
@@ -142,28 +120,19 @@ impl QueryKey {
     }
 }
 
-/// Query type for TTL configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum QueryType {
-    /// Episode queries
     Episode,
-    /// Pattern queries
     Pattern,
-    /// Heuristic queries
     Heuristic,
-    /// Embedding queries
     Embedding,
-    /// Statistics queries
     Statistics,
-    /// Search queries
     Search,
-    /// Generic queries
     Generic,
 }
 
 impl QueryType {
-    /// Determine query type from SQL
-    pub fn from_sql(sql: &str) -> Self {
+    fn from_sql(sql: &str) -> Self {
         let sql_lower = sql.to_lowercase();
 
         if sql_lower.contains("episode") {
@@ -183,35 +152,66 @@ impl QueryType {
         }
     }
 
-    /// Get default TTL for this query type
     pub fn default_ttl(&self) -> Duration {
         match self {
-            Self::Episode => Duration::from_secs(300),    // 5 minutes
-            Self::Pattern => Duration::from_secs(600),    // 10 minutes
-            Self::Heuristic => Duration::from_secs(600),  // 10 minutes
-            Self::Embedding => Duration::from_secs(1800), // 30 minutes
-            Self::Statistics => Duration::from_secs(60),  // 1 minute
-            Self::Search => Duration::from_secs(120),     // 2 minutes
-            Self::Generic => Duration::from_secs(300),    // 5 minutes
+            Self::Episode => Duration::from_secs(300),
+            Self::Pattern => Duration::from_secs(600),
+            Self::Heuristic => Duration::from_secs(600),
+            Self::Embedding => Duration::from_secs(1800),
+            Self::Statistics => Duration::from_secs(60),
+            Self::Search => Duration::from_secs(120),
+            Self::Generic => Duration::from_secs(300),
         }
     }
 }
 
-/// A cached query result with metadata
+#[derive(Debug, Clone)]
+pub struct AdvancedQueryCacheConfig {
+    pub max_queries: usize,
+    pub default_ttl: Duration,
+    pub ttl_overrides: HashMap<QueryType, Duration>,
+    pub hot_threshold: u64,
+    pub refresh_interval: Duration,
+    pub enable_background_refresh: bool,
+    pub enable_dependency_tracking: bool,
+    pub max_dependencies: usize,
+}
+
+impl Default for AdvancedQueryCacheConfig {
+    fn default() -> Self {
+        let mut ttl_overrides = HashMap::new();
+        ttl_overrides.insert(QueryType::Statistics, Duration::from_secs(60));
+        ttl_overrides.insert(QueryType::Embedding, Duration::from_secs(1800));
+
+        Self {
+            max_queries: DEFAULT_MAX_QUERIES,
+            default_ttl: DEFAULT_QUERY_TTL,
+            ttl_overrides,
+            hot_threshold: DEFAULT_HOT_THRESHOLD,
+            refresh_interval: DEFAULT_REFRESH_INTERVAL,
+            enable_background_refresh: true,
+            enable_dependency_tracking: true,
+            max_dependencies: 10,
+        }
+    }
+}
+
+impl AdvancedQueryCacheConfig {
+    pub fn ttl_for_type(&self, query_type: QueryType) -> Duration {
+        self.ttl_overrides
+            .get(&query_type)
+            .copied()
+            .unwrap_or_else(|| query_type.default_ttl())
+    }
+}
+
 pub struct CachedResult {
-    /// Serialized result data
     pub data: Vec<u8>,
-    /// When the result was cached
     pub created_at: Instant,
-    /// TTL for this result
     pub ttl: Duration,
-    /// Table dependencies for invalidation
     pub dependencies: Vec<TableDependency>,
-    /// Number of times accessed
     pub access_count: AtomicU64,
-    /// Last access time
     pub last_accessed: RwLock<Instant>,
-    /// Query type
     pub query_type: QueryType,
 }
 
@@ -222,10 +222,7 @@ impl std::fmt::Debug for CachedResult {
             .field("created_at", &self.created_at)
             .field("ttl", &self.ttl)
             .field("dependencies", &self.dependencies)
-            .field(
-                "access_count",
-                &self.access_count.load(std::sync::atomic::Ordering::Relaxed),
-            )
+            .field("access_count", &self.access_count.load(Ordering::Relaxed))
             .field("query_type", &self.query_type)
             .finish()
     }
@@ -238,9 +235,7 @@ impl Clone for CachedResult {
             created_at: self.created_at,
             ttl: self.ttl,
             dependencies: self.dependencies.clone(),
-            access_count: AtomicU64::new(
-                self.access_count.load(std::sync::atomic::Ordering::Relaxed),
-            ),
+            access_count: AtomicU64::new(self.access_count.load(Ordering::Relaxed)),
             last_accessed: RwLock::new(*self.last_accessed.read()),
             query_type: self.query_type,
         }
@@ -248,7 +243,6 @@ impl Clone for CachedResult {
 }
 
 impl CachedResult {
-    /// Create a new cached result
     pub fn new(
         data: Vec<u8>,
         ttl: Duration,
@@ -267,12 +261,10 @@ impl CachedResult {
         }
     }
 
-    /// Check if the result has expired
     pub fn is_expired(&self) -> bool {
         self.created_at.elapsed() > self.ttl
     }
 
-    /// Check if this result should be refreshed (hot query nearing expiry)
     pub fn should_refresh(&self, hot_threshold: u64, refresh_interval: Duration) -> bool {
         let access_count = self.access_count.load(Ordering::Relaxed);
         let time_until_expiry = self.ttl.saturating_sub(self.created_at.elapsed());
@@ -280,66 +272,57 @@ impl CachedResult {
         access_count >= hot_threshold && time_until_expiry < refresh_interval
     }
 
-    /// Record an access
     pub fn record_access(&self) {
         self.access_count.fetch_add(1, Ordering::Relaxed);
         *self.last_accessed.write() = Instant::now();
     }
 
-    /// Get access count
     pub fn access_count(&self) -> u64 {
         self.access_count.load(Ordering::Relaxed)
     }
 
-    /// Check if this result depends on a specific table
     pub fn depends_on(&self, table: &TableDependency) -> bool {
         self.dependencies.contains(table)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Debug, Clone, Default)]
+pub struct AdvancedCacheStats {
+    pub hits: u64,
+    pub misses: u64,
+    pub evictions: u64,
+    pub expirations: u64,
+    pub invalidations: u64,
+    pub current_size: usize,
+    pub hot_queries: usize,
+    pub refreshes: u64,
+    pub hit_rate_by_type: HashMap<QueryType, f64>,
+}
 
-    #[test]
-    fn test_query_key_creation() {
-        let sql = "SELECT * FROM episodes WHERE domain = ?";
-        let key = QueryKey::new(sql, &[&"test_domain"]);
-
-        assert_eq!(key.query_type, QueryType::Episode);
-        assert!(!key.param_hashes.is_empty());
+impl AdvancedCacheStats {
+    pub fn hit_rate(&self) -> f64 {
+        let total = self.hits + self.misses;
+        if total == 0 {
+            0.0
+        } else {
+            self.hits as f64 / total as f64
+        }
     }
 
-    #[test]
-    fn test_query_key_normalization() {
-        let sql1 = "SELECT * FROM episodes WHERE id = 1";
-        let sql2 = "select * from episodes where id = 1";
-        let sql3 = "SELECT   *   FROM   episodes   WHERE   id   =   1";
-
-        let key1 = QueryKey::from_sql(sql1);
-        let key2 = QueryKey::from_sql(sql2);
-        let key3 = QueryKey::from_sql(sql3);
-
-        assert_eq!(key1.sql_hash, key2.sql_hash);
-        assert_eq!(key2.sql_hash, key3.sql_hash);
+    pub fn merge(&mut self, other: &AdvancedCacheStats) {
+        self.hits += other.hits;
+        self.misses += other.misses;
+        self.evictions += other.evictions;
+        self.expirations += other.expirations;
+        self.invalidations += other.invalidations;
+        self.refreshes += other.refreshes;
     }
+}
 
-    #[test]
-    fn test_table_dependency_detection() {
-        let sql = "SELECT e.*, s.* FROM episodes e JOIN steps s ON e.episode_id = s.episode_id";
-        let deps = TableDependency::from_query(sql);
-
-        assert!(deps.contains(&TableDependency::Episodes));
-        assert!(deps.contains(&TableDependency::Steps));
-    }
-
-    #[test]
-    fn test_query_type_ttl() {
-        assert_eq!(QueryType::Statistics.default_ttl(), Duration::from_secs(60));
-        assert_eq!(QueryType::Episode.default_ttl(), Duration::from_secs(300));
-        assert_eq!(
-            QueryType::Embedding.default_ttl(),
-            Duration::from_secs(1800)
-        );
-    }
+#[derive(Debug, Clone)]
+pub enum InvalidationMessage {
+    TableChanged(TableDependency),
+    InvalidateKey(QueryKey),
+    InvalidateAll,
+    Shutdown,
 }

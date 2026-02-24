@@ -1,8 +1,8 @@
 # Implementation Plan - Status Overview
 
-**Document Version**: v0.1.14 (Phase 3 COMPLETE, CI FIXED)
+**Document Version**: v0.1.16 (metrics refreshed 2026-02-24)
 **Created**: 2025-12-19
-**Updated**: 2026-02-15 (CI ALL PASSING)
+**Updated**: 2026-02-24
 
 ---
 
@@ -17,8 +17,8 @@
 | GitHub Actions artifact path | ✅ Fixed |
 
 ### Test Results
-- ~1365 tests passing across all crates
-- 21 tests ignored (intentional)
+- ~2,738 test functions across all crates (1,560 `#[test]` + 1,178 `#[tokio::test]`)
+- 62 tests ignored (`#[ignore]`) as of 2026-02-24
 
 ---
 
@@ -51,7 +51,7 @@
 
 **Priority**: P1 - Codebase Standards Compliance
 **Date**: 2026-01-22
-**Status**: ✅ COMPLETE (469 source files, all ≤500 LOC)
+**Status**: ⚠️ REGRESSION — 31 source files exceed 500 LOC as of 2026-02-24 (was 100% compliant on 2026-01-22; new code added since then)
 
 ### 🎉 Completion Summary (2026-01-22)
 
@@ -73,7 +73,7 @@
 | `benches/genesis_benchmark.rs` | 571 | ✅ Exempt |
 | `benches/episode_lifecycle.rs` | 554 | ✅ Exempt |
 
-**All source files now comply with the 500 LOC limit.**
+**⚠️ Compliance has regressed**: 31 source files now exceed 500 LOC. Largest: `memory-mcp/src/bin/server_impl/tools.rs` (1,311 LOC).
 
 ### Files Analyzed for Splitting (Updated 2026-01-22)
 

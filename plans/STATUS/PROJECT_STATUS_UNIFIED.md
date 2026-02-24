@@ -1,18 +1,22 @@
 # Project Status - Memory System (Unified)
 
-**Last Updated:** 2026-02-14
-**Version:** v0.1.14 (Phase 3 Complete - Episode Relationships & Storage Optimization)
+**Last Updated:** 2026-02-24
+**Version:** v0.1.16
 **Branch:** main
-**Status:** ⚠️ Nightly Full Tests failing on main; all other CI workflows passing
-**Next Version:** v0.1.15 (TBD)
+**Status:** Active development — see ROADMAP_ACTIVE.md for current sprint
+**Next Version:** v0.1.17
 
 ---
 
 ## 🎯 Executive Summary
 
-**⚠️ NIGHTLY TESTS FAILING** - 1 workflow failing on main (Nightly Full Tests). CI, Coverage, File Structure Validation, Security, and YAML Lint all passing. Performance Benchmarks skipped. v0.1.14 GitHub release published 2026-02-14.
-
-The Self-Learning Memory System has successfully completed **ALL FOUR research integration phases** (PREMem, GENESIS, Spatiotemporal, Benchmarking) with exceptional results exceeding research targets by 4-2307x. **Phase 3 storage optimization** infrastructure integration is complete with relationship module, batch operations, caching, and prepared statements ready for production use. All major features are complete including vector search optimization (10-100x faster), configuration caching (200-500x speedup), multi-provider embeddings, circuit breaker with comprehensive runbook, security hardening with Wasmtime sandbox, semantic pattern search & recommendation engine, and episode relationship tracking.
+The Self-Learning Memory System is at **v0.1.16** on the `main` branch (edition 2024). Key metrics as of 2026-02-24:
+- **621 source files**, ~141K LOC across 9 workspace members
+- **31 files exceed 500 LOC** (compliance regression from prior 100% claim)
+- **1,162 `unwrap()` + 149 `.expect()`** calls in production code (target: ≤20)
+- **62 `#[ignore]` tests** (target: ≤10)
+- **121 duplicate dependency roots** (threshold: 130)
+- **124 `#[allow(dead_code)]`** inline annotations + 6 crate-level
 
 ### Key Achievements (v0.1.14 - 2026-02-02)
 - **✅ Quality Gates**: ALL PASSING (cargo check, clippy, tests verified 2026-01-31)
@@ -27,7 +31,7 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 - **✅ Semantic Pattern Search**: Multi-signal ranking with 40/20/20/10/10% weights (Jan 2026)
 - **✅ Pattern Recommendations**: Task-specific pattern recommendation system (Jan 2026)
 - **✅ File Splitting**: 17 modules refactored (29 files still >500 LOC in prod source, excl. tests)
-- **✅ Codebase Scale**: ~140K LOC, 601 Rust files, 9 workspace members
+- **✅ Codebase Scale**: ~141K LOC, 621 Rust files, 9 workspace members
 - **✅ Phase 2 Turso Optimization**: 75% complete (3/4 items: pooling, adaptive sizing, compression)
 - **✅ Performance**: Exceeds all targets by 17-2307x
 - **✅ Vector Search**: Turso native DiskANN indexing (10-100x faster)
@@ -53,7 +57,7 @@ The Self-Learning Memory System has successfully completed **ALL FOUR research i
 - **Batch Operations**: 4-6x throughput improvement for bulk inserts/updates (1,569 LOC across 5 files)
 - **Prepared Statement Cache**: SQL parsing optimization with 80% overhead reduction (482 LOC)
 - **Query Cache Integration**: Adaptive caching with configurable TTL (403 LOC cache wrapper)
-- **File Compliance**: All modules ≤500 LOC (17 files refactored from oversized modules)
+- **File Compliance**: 17 modules refactored; ⚠️ 31 files >500 LOC as of 2026-02-24 (regression)
 
 **Episode Tagging System** (from v0.1.13)
 - Episode tags for categorization and organization
@@ -84,7 +88,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 - `memory-storage-turso/src/cache/adaptive_ttl.rs` (916 LOC → 4 files, max 396 LOC)
 - `memory-storage-turso/src/transport/compression.rs` (606 LOC → 3 files, max 475 LOC)
 - Plus 8 additional module splits in memory-storage-turso
-- **Status**: ✅ 100% COMPLIANT - All modules ≤500 LOC
+- **Status**: ⚠️ REGRESSED — 31 files >500 LOC as of 2026-02-24
 
 ### Release Metrics
 | Metric | Target | Actual | Status |
@@ -96,10 +100,12 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 | **Security** | 0 critical vulns | 0 vulnerabilities | ✅ **PERFECT** |
 | **Clippy Warnings** | 0 | 0 | ✅ **PERFECT** |
 | **Workspace Members** | 9 | 9 | ✅ |
-| **Rust Source Files** | - | 632 | ✅ |
-| **Total LOC** | - | ~140,000 | ✅ |
-| **Lib Tests** | - | 811+ | ✅ |
-| **File Size Compliance** | <500 LOC/file | 29 files >500 LOC | ⚠️ **IN PROGRESS** |
+| **Rust Source Files** | - | 621 | ✅ |
+| **Total LOC** | - | ~141,500 | ✅ |
+| **Test Functions** | - | 2,738 (1,560 sync + 1,178 async) | ✅ |
+| **Ignored Tests** | ≤10 | 62 | ⚠️ **DEBT** |
+| **unwrap()+expect()** | ≤20 | 1,311 | ⚠️ **DEBT** |
+| **File Size Compliance** | <500 LOC/file | 31 files >500 LOC | ⚠️ **REGRESSION** |
 | **Phase 3 Infrastructure** | - | 100% complete | ✅ **COMPLETE** |
 
 ### Phase 3 Infrastructure Status
@@ -110,9 +116,9 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 | Prepared Statement Cache | ✅ Complete | <1ms overhead |
 | Query Cache | ✅ Complete | Adaptive TTL |
 | Episode Tagging | ✅ Complete | <10ms operations |
-| **Total LOC** | - | ~140,000 | ✅ |
-| **Lib Tests** | - | 811+ | ✅ |
-| **File Size Compliance** | <500 LOC/file | All compliant | ✅ **COMPLETE** |
+| **Total LOC** | - | ~141,500 | ✅ |
+| **Test Functions** | - | 2,738 | ✅ |
+| **File Size Compliance** | <500 LOC/file | 31 files >500 LOC | ⚠️ |
 
 ### Quality Gates Status (Verified 2026-01-24)
 | Gate | Status | Details | Last Verified |
@@ -120,7 +126,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 | **Code Formatting** | ✅ PASS | All code formatted with rustfmt | 2026-01-24 |
 | **Linting** | ✅ PASS | cargo clippy --workspace -- -D warnings (0 warnings) | 2026-01-24 |
 | **Build** | ✅ PASS | All packages compile successfully | 2026-01-24 |
-| **Tests** | ✅ PASS | 811+ lib tests passing | 2026-01-24 |
+| **Tests** | ✅ PASS | 2,738 test functions (62 ignored) | 2026-02-24 |
 
 ### Production Components Status
 | Component | Status | Performance | Notes |
@@ -218,7 +224,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 5. ✅ **File Compliance**
    - All modules refactored to ≤500 LOC
    - 17 files split from oversized modules
-   - 632 total Rust files, ~140K LOC
+   - 621 total Rust files, ~141K LOC
 
 #### Test Results:
 - ✅ All 61 unit tests passing in memory-storage-turso
@@ -361,7 +367,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 2. **Issue #276**: Clippy warnings — may be closeable since `cargo clippy --all -- -D warnings` now passes clean
 3. **Issue #277**: Criterion 0.5→0.8 migration needed (breaking API changes)
 4. **MCP batch module disabled**: TODOs reference non-existent `jsonrpsee`/`ServerState` types
-5. **Code quality debt**: 561 unwrap() + 90 .expect() in prod code; 29 files >500 LOC; 63 #[ignore] tests; 168 #[allow(dead_code)]
+5. **Code quality debt**: 1,162 unwrap() + 149 .expect() in prod code; 31 files >500 LOC; 62 #[ignore] tests; 124 #[allow(dead_code)]
 6. **Plans docs contain stale/conflicting information**: Multiple status docs with outdated claims
 
 ---
@@ -418,9 +424,12 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 | **Test Coverage** | >90% | 92.5% | ✅ **EXCEEDS** |
 | **Architecture Quality** | 4/5 stars | 4.5/5 stars | ✅ **EXCEEDS** |
 | **Performance** | Meet targets | 10-100x better | ✅ **EXCEEDS** |
-| **File Size Compliance** | <500 LOC | 29 files >500 LOC | ⚠️ **IN PROGRESS** |
-| **Rust Files** | - | 601 files | ✅ |
-| **Total LOC** | - | ~140,000 | ✅ |
+| **File Size Compliance** | <500 LOC | 31 files >500 LOC | ⚠️ **REGRESSION** |
+| **unwrap()+expect()** | ≤20 | 1,311 | ⚠️ **DEBT** |
+| **Ignored Tests** | ≤10 | 62 | ⚠️ **DEBT** |
+| **Rust Files** | - | 621 files | ✅ |
+| **Total LOC** | - | ~141,500 | ✅ |
+| **Test Functions** | - | 2,738 | ✅ |
 
 ### Quality Indicators
 - ✅ **Navigation Efficiency**: Clear organization and documentation structure
@@ -468,11 +477,11 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 
 ---
 
-**Status**: ⚠️ **SYSTEM OPERATIONAL — NIGHTLY TESTS FAILING** (v0.1.14)
-**Confidence**: **HIGH** - Build, tests, clippy, and 5/6 CI workflows passing on main
-**Production Readiness**: **97%** - Only Nightly Full Tests still failing
-**Last Review**: 2026-02-14 (CI mostly stabilized, v0.1.14 released)
-**Next Review**: After Nightly Tests fix and Phase B/C completion
+**Status**: 🔄 **ACTIVE DEVELOPMENT** (v0.1.16)
+**Confidence**: **MEDIUM** — metrics verified 2026-02-24, significant code quality debt remains
+**Production Readiness**: **90%** — functional but unwrap/expect debt is high
+**Last Review**: 2026-02-24 (swarm-verified metrics refresh)
+**Next Review**: After v0.1.16 Phase B completion
 
 ---
 

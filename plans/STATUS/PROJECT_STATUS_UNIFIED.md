@@ -10,13 +10,15 @@
 
 ## 🎯 Executive Summary
 
-The Self-Learning Memory System is at **v0.1.16** on the `main` branch (edition 2024). Key metrics as of 2026-02-24:
-- **621 source files**, ~141K LOC across 9 workspace members
-- **31 files exceed 500 LOC** (compliance regression from prior 100% claim)
-- **1,162 `unwrap()` + 149 `.expect()`** calls in production code (target: ≤20)
+The Self-Learning Memory System is at **v0.1.16** on the `main` branch (edition 2024). Key metrics as of 2026-02-24 (analysis-swarm rebaseline):
+- **818 Rust files**, ~205K LOC across 9 workspace members
+- **28 source files exceed 500 LOC** (64 total including test files)
+- **553 `unwrap()` + 128 `.expect()`** = **681** in production code (target: ≤20)
 - **62 `#[ignore]` tests** (target: ≤10)
 - **121 duplicate dependency roots** (threshold: 130)
-- **124 `#[allow(dead_code)]`** inline annotations + 6 crate-level
+- **137 `#[allow(dead_code)]`** inline annotations + 6 crate-level
+- **2,738 test functions** (1,560 sync + 1,178 async)
+- **13 snapshot files** (6 CLI, 7 MCP) — no growth since baseline
 
 ### Key Achievements (v0.1.14 - 2026-02-02)
 - **✅ Quality Gates**: ALL PASSING (cargo check, clippy, tests verified 2026-01-31)
@@ -100,12 +102,12 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 | **Security** | 0 critical vulns | 0 vulnerabilities | ✅ **PERFECT** |
 | **Clippy Warnings** | 0 | 0 | ✅ **PERFECT** |
 | **Workspace Members** | 9 | 9 | ✅ |
-| **Rust Source Files** | - | 621 | ✅ |
-| **Total LOC** | - | ~141,500 | ✅ |
+| **Rust Source Files** | - | 818 | ✅ |
+| **Total LOC** | - | ~205,000 | ✅ |
 | **Test Functions** | - | 2,738 (1,560 sync + 1,178 async) | ✅ |
 | **Ignored Tests** | ≤10 | 62 | ⚠️ **DEBT** |
-| **unwrap()+expect()** | ≤20 | 1,311 | ⚠️ **DEBT** |
-| **File Size Compliance** | <500 LOC/file | 31 files >500 LOC | ⚠️ **REGRESSION** |
+| **unwrap()+expect()** | ≤20 | 681 (prod only) | ⚠️ **DEBT** |
+| **File Size Compliance** | <500 LOC/file | 28 source + 36 test files >500 LOC | ⚠️ **REGRESSION** |
 | **Phase 3 Infrastructure** | - | 100% complete | ✅ **COMPLETE** |
 
 ### Phase 3 Infrastructure Status
@@ -424,11 +426,11 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 | **Test Coverage** | >90% | 92.5% | ✅ **EXCEEDS** |
 | **Architecture Quality** | 4/5 stars | 4.5/5 stars | ✅ **EXCEEDS** |
 | **Performance** | Meet targets | 10-100x better | ✅ **EXCEEDS** |
-| **File Size Compliance** | <500 LOC | 31 files >500 LOC | ⚠️ **REGRESSION** |
-| **unwrap()+expect()** | ≤20 | 1,311 | ⚠️ **DEBT** |
+| **File Size Compliance** | <500 LOC | 28 source files >500 LOC | ⚠️ **REGRESSION** |
+| **unwrap()+expect()** | ≤20 | 681 (prod only) | ⚠️ **DEBT** |
 | **Ignored Tests** | ≤10 | 62 | ⚠️ **DEBT** |
-| **Rust Files** | - | 621 files | ✅ |
-| **Total LOC** | - | ~141,500 | ✅ |
+| **Rust Files** | - | 818 files | ✅ |
+| **Total LOC** | - | ~205,000 | ✅ |
 | **Test Functions** | - | 2,738 | ✅ |
 
 ### Quality Indicators
@@ -478,9 +480,9 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 ---
 
 **Status**: 🔄 **ACTIVE DEVELOPMENT** (v0.1.16)
-**Confidence**: **MEDIUM** — metrics verified 2026-02-24, significant code quality debt remains
-**Production Readiness**: **90%** — functional but unwrap/expect debt is high
-**Last Review**: 2026-02-24 (swarm-verified metrics refresh)
+**Confidence**: **MEDIUM** — metrics rebaselined by analysis-swarm 2026-02-24, significant code quality debt remains
+**Production Readiness**: **90%** — functional but 681 unwrap/expect calls in prod code
+**Last Review**: 2026-02-24 (analysis-swarm rebaseline with corrected metrics)
 **Next Review**: After v0.1.16 Phase B completion
 
 ---

@@ -733,6 +733,8 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 1. **✅ Phase 1: CI/CD Remediation COMPLETE** ← P0 DONE
    - ✅ Fixed disk space management (2x reserve/swap, cleanup, checkpoints)
+   - ✅ Added isolated `CARGO_TARGET_DIR` setup to CI + nightly workflows (ADR-032 Phase 5, 2026-02-24)
+   - ✅ Extended isolated `CARGO_TARGET_DIR` setup to quick-check, coverage, and security workflows (ADR-032 Phase 5 extension, 2026-02-24)
    - ✅ Fixed memory leak test (1000→100 iterations, Arc cleanup)
    - ✅ Fixed test isolation (quality_threshold=0.0 for test helpers)
    - ✅ Fixed 12 of 39 flaky integration tests

@@ -32,6 +32,10 @@ jobs:
         job: [format, clippy, doctest]
     steps:
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh ci-essential
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -65,6 +69,10 @@ jobs:
           sudo apt-get clean || true
           df -h
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh ci-test
       - uses: dtolnay/rust-toolchain@stable
       - name: Install mold linker
         run: |
@@ -103,6 +111,10 @@ jobs:
           docker system prune -af 2>/dev/null || true
           df -h
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh ci-mcp-build
       - uses: dtolnay/rust-toolchain@stable
       - name: Install mold linker
         run: |
@@ -131,6 +143,10 @@ jobs:
         rust: [stable]
     steps:
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh ci-multi-platform-${{ matrix.os }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
@@ -173,6 +189,10 @@ jobs:
     needs: [essential, test, mcp-build, multi-platform]
     steps:
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh ci-quality-gates
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt, llvm-tools-preview
@@ -213,6 +233,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh ci-semver-check
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2.8.2
         with:

@@ -56,6 +56,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh security-supply-chain-audit
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2.8.2
       - name: Install cargo-audit

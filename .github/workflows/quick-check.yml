@@ -25,6 +25,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Setup isolated target dir
+        run: |
+          chmod +x scripts/setup-target-dir.sh
+          ./scripts/setup-target-dir.sh quick-check
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy

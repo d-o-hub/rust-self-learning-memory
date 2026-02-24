@@ -17,11 +17,14 @@
 | Snapshot testing | 13 snapshot files (`memory-cli`, `memory-mcp`) | >=3 core snapshot suites | ✅ Baseline met | `glob '**/snapshots/*.snap'` |
 | Release automation | `release.toml` present; cargo-release flow documented | cargo-release + cargo-dist | 🟡 Partial | `ls release.toml` + workflow checks |
 | Semver checking | Enabled in CI (`cargo semver-checks check-release`) | cargo-semver-checks in CI | ✅ Done | `.github/workflows/ci.yml` |
+| CI target isolation | `CARGO_TARGET_DIR` isolated per job in CI + nightly | tmp target isolation in core workflows | ✅ Done (2026-02-24) | `.github/workflows/ci.yml`, `.github/workflows/nightly-tests.yml` |
 | node_modules/ | Absent | 0 MB | ✅ Done | `test -d node_modules` |
 
 ### Phase Status Rebaseline (ADR-Linked)
 
 - **ADR-032**: Partial. Mold + profile optimization landed; `target/` footprint remains major open item.
+- **ADR-032 Phase 5 update (2026-02-24)**: Implemented per-job `CARGO_TARGET_DIR` isolation in CI and nightly workflows via `scripts/setup-target-dir.sh`.
+- **ADR-032 Phase 5 extension (2026-02-24)**: Extended isolated target-dir setup to `quick-check`, `coverage`, and `security` workflows for broader CI disk consistency.
 - **ADR-033**: Partial/strong baseline. nextest and mutants are active; property-test expansion remains open.
 - **ADR-034**: Partial. semver checks + release config are present; release evidence loop remains process-dependent.
 - **ADR-035**: Complete. Workspace edition is `2024`.

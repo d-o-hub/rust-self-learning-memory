@@ -6,19 +6,26 @@
 
 ## Current State Analysis
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| target/ size | 5.2 GB | < 2 GB |
-| Duplicate deps | 120 roots | < 80 |
-| Total packages | 863 | < 750 |
-| Rust edition | 2021 | 2024 |
-| Test runner | Mixed (cargo test/nextest) | nextest everywhere |
-| Mutation testing | None | cargo-mutants on core |
-| Property testing | None | proptest on invariants |
-| Snapshot testing | None | insta on outputs |
-| Release automation | Manual tag + custom CI | cargo-release + cargo-dist |
-| Semver checking | None | cargo-semver-checks in CI |
-| node_modules/ | 89 MB (orphaned) | 0 MB |
+| Metric | Current (2026-02-24 Rebaseline) | Target | Status | Verification |
+|--------|----------------------------------|--------|--------|--------------|
+| target/ size | 75G (`du -sh target`) | < 2 GB | 🔴 Pending | `du -sh target` |
+| Duplicate deps | 121 roots | < 80 | 🟡 Monitoring only | `cargo tree -d | rg -c "^[a-z]"` |
+| Rust edition | 2024 (workspace) | 2024 | ✅ Done | `rg 'edition\s*=\s*"2024"' Cargo.toml` |
+| Test runner | nextest in CI/nightly; doctests via `cargo test --doc` | nextest everywhere (except doctests) | ✅ Done | `.github/workflows/*.yml` |
+| Mutation testing | Nightly `cargo mutants` for `memory-core` | cargo-mutants on core | ✅ Done | `.github/workflows/nightly-tests.yml` |
+| Property testing | Partial (`proptest` exists, not expanded across all crates) | proptest on invariants across crates | 🟡 Partial | `rg 'proptest' **/*.rs` |
+| Snapshot testing | 13 snapshot files (`memory-cli`, `memory-mcp`) | >=3 core snapshot suites | ✅ Baseline met | `glob '**/snapshots/*.snap'` |
+| Release automation | `release.toml` present; cargo-release flow documented | cargo-release + cargo-dist | 🟡 Partial | `ls release.toml` + workflow checks |
+| Semver checking | Enabled in CI (`cargo semver-checks check-release`) | cargo-semver-checks in CI | ✅ Done | `.github/workflows/ci.yml` |
+| node_modules/ | Absent | 0 MB | ✅ Done | `test -d node_modules` |
+
+### Phase Status Rebaseline (ADR-Linked)
+
+- **ADR-032**: Partial. Mold + profile optimization landed; `target/` footprint remains major open item.
+- **ADR-033**: Partial/strong baseline. nextest and mutants are active; property-test expansion remains open.
+- **ADR-034**: Partial. semver checks + release config are present; release evidence loop remains process-dependent.
+- **ADR-035**: Complete. Workspace edition is `2024`.
+- **ADR-036**: Monitoring phase only. Baseline duplicate count tracked; cleanup deferred until current blockers close.
 
 ## GOAP Task Decomposition
 
@@ -136,6 +143,6 @@ Phase 3 (Deps/Linker) ────┤
 - [ ] ≥ 5 proptest property tests in memory-core
 - [ ] ≥ 3 insta snapshot tests in memory-mcp or memory-cli
 - [ ] Edition 2024 across all workspace crates
-- [ ] Duplicate dep roots < 100
+- [ ] Duplicate dep roots < 80
 - [ ] node_modules/ removed
 - [ ] Quality gates script tracks dep count

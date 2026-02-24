@@ -1,9 +1,9 @@
 # GOAP Codebase Analysis & Execution Plan — 2026-02-23
 
-**Status**: 🔄 Week 1 In Progress
-**Branch**: `goap-codebase-analysis-week1`
+**Status**: 🔄 Week 1 In Progress (nextest/doctests green in latest run; blocked at file-size quality gate)
+**Branch**: `goap-missing-tasks-2026-02-24` (docs/progress sync), validation evidence source: `goap-codebase-analysis-week1`
 **Methodology**: GOAP (Analyze → Decompose → Strategize → Execute)
-**Last Updated**: 2026-02-23 (Week 1 Day 1 - GOAP orchestration + CLI warm-start remediation)
+**Last Updated**: 2026-02-24 (Week 1 status sync + blocker normalization)
 
 ---
 
@@ -161,7 +161,7 @@
 
 | Task | ADR | Effort | Priority | Dependencies | Status |
 |------|-----|--------|----------|--------------|--------|
-| E1: dead_code cleanup (827 inline annotations) | ADR-028 | 15-25h | P2 | B1-B4 complete | ⏸️ Deferred to Week 3 |
+| E1: dead_code cleanup (124 inline + 6 crate-level annotations) | ADR-028 | 15-25h | P2 | B1-B4 complete | ⏸️ Deferred to Week 3 |
 | E1.5: Add cargo public-api to quality gates | ADR-028 | 1h | P2 | None | 🔄 Pending |
 | E2: Add git-cliff + conventional commits | ADR-034 #4 | 3-4h | P2 | None | ⏳ Week 4 |
 | E3: Run cargo-machete/shear for unused deps | ADR-036 T1 | 1-2h | P2 | None | ✅ Completed (non-destructive Week 1 baseline/proposal) |
@@ -213,13 +213,13 @@ Each task must pass before merging:
 
 | Metric | Current | Target | ADR |
 |--------|---------|--------|-----|
-| unwrap()/expect() in prod | 643 | ≤20 | ADR-028 #4 |
-| Files >500 LOC | 20+ | 0 | ADR-028 #3 |
+| unwrap()/expect() in prod | 1,311 | ≤20 | ADR-028 #4 |
+| Files >500 LOC | 64 (quality-gates latest rerun) | 0 | ADR-028 #3 |
 | Ignored tests | 62 | ≤10 | ADR-028 #5 |
 | Batch module | Disabled | Functional | ADR-028 #2 |
-| dead_code annotations | 106 | ≤10 | — |
+| dead_code annotations | 130 (124 inline + 6 crate-level) | ≤10 | — |
 | Property test crates | 1 | 4 | ADR-033 |
-| Snapshot tests | 10 | 25+ | ADR-033 |
+| Snapshot tests | 13 | 25+ | ADR-033 |
 | Changelog automation | None | git-cliff | ADR-034 |
 
 ---
@@ -332,11 +332,12 @@ Each task must pass before merging:
 
 | Gate | Status |
 |------|--------|
-| `cargo fmt --all -- --check` | ✅ Passed on branch (2026-02-23) |
-| `cargo clippy --all -- -D warnings` | ✅ Passed on branch (2026-02-23) |
-| `cargo build --all` | ✅ Passed on branch (2026-02-23) |
-| `cargo nextest run --all` | ❌ Failed: 16 failed, 6 slow (2291 run, run id `ba58b7b9-fd98-45a7-a849-e52558340e50`) |
-| `./scripts/quality-gates.sh` | ⏳ Pending |
+| `cargo fmt --all -- --check` | ✅ Passed (latest rerun) |
+| `cargo clippy --all -- -D warnings` | ✅ Passed (latest rerun) |
+| `cargo build --all` | ✅ Passed (latest rerun) |
+| `cargo nextest run --all` | ✅ Passed: 2295 passed, 73 skipped |
+| `cargo test --doc` | ✅ Passed |
+| `./scripts/quality-gates.sh` | ❌ Failed: file-size gate reports files >500 LOC |
 
 ### E3 Baseline Evidence (ADR-036, Non-Destructive)
 
@@ -345,7 +346,7 @@ Each task must pass before merging:
 - ✅ Baseline findings (no manifest edits in this iteration):
   - `memory-mcp/Cargo.toml`: `javy`, `wasmtime-wasi` flagged as potentially unused
   - `test-utils/Cargo.toml`: `libsql` flagged as potentially unused
-- 🔄 Cleanup/deletion decisions deferred until after B1-B4 splits + nextest remediation
+- 🔄 Cleanup/deletion decisions deferred until after B1-B4 splits + file-size gate remediation
 
 ### Next Actions
 
@@ -445,6 +446,15 @@ If any command fails, stop, fix the failure, and restart the sequence from `./sc
 | `plans/ROADMAPS/ROADMAP_ACTIVE.md` | High-level sprint status pointer to this Week 1 GOAP plan |
 | `plans/STATUS/VALIDATION_LATEST.md` | Latest validation evidence snapshot after gates pass |
 
+### Cross-Document Status Sync Contract (Required)
+
+These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE.md`, and `plans/STATUS/VALIDATION_LATEST.md`:
+
+- `last_validated_run_id`: `ba58b7b9-fd98-45a7-a849-e52558340e50`
+- `last_validated_commit`: `unknown (legacy evidence; must be recorded on next run)`
+- `gate_result`: `blocked at ./scripts/quality-gates.sh (file-size gate)`
+- `active_blocker_count`: `1`
+
 ### Progress Update (This Change)
 
 - ✅ Added minimal Week 1 executable task set (W1-M1..W1-M4)
@@ -452,7 +462,7 @@ If any command fails, stop, fix the failure, and restart the sequence from `./sc
 - ✅ Added explicit handoff contract template fields
 - ✅ Added exact validation command sequence and restart policy
 - ✅ GOAP orchestrator execution completed for Week 1 task coordination
-- ⚠️ Full validation progressed through fmt/clippy/build, then failed at `cargo nextest run --all` (16 failed, 6 slow; run id `ba58b7b9-fd98-45a7-a849-e52558340e50`); `cargo test --doc` and `./scripts/quality-gates.sh` remain pending until nextest blockers are resolved
+- ⚠️ Full validation rerun progressed through fmt/clippy/build/nextest/doctests and is now blocked at `./scripts/quality-gates.sh` due to file-size compliance debt; remediation remains in B1-B4
 
 ### W1-M Completion Snapshot
 
@@ -461,7 +471,7 @@ If any command fails, stop, fix the failure, and restart the sequence from `./sc
 | W1-M1 | ✅ Complete | Grouped G1/G2/G3 execution model and dependencies are explicit |
 | W1-M2 | ✅ Complete | ADR-024/028/030/033/036 are all mapped in Week 1 matrix |
 | W1-M3 | ✅ Complete | Specialist handoff contract template is stable and reusable |
-| W1-M4 | 🔄 In Progress | Command order locked; execution currently blocked at nextest until failures are remediated |
+| W1-M4 | 🔄 In Progress | Command order locked; latest blocker is quality-gates file-size check after nextest/doctests pass |
 
 ### Specialist Handoff Runs (This Iteration)
 

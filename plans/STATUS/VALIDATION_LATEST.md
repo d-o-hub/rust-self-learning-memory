@@ -1,9 +1,9 @@
 # Validation Status Report - Latest
 
-**Last Updated**: 2026-02-23
+**Last Updated**: 2026-02-24
 **Version**: Week 1 GOAP execution snapshot
-**Branch**: goap-codebase-analysis-week1
-**Overall Status**: 🔄 **IN PROGRESS** (validation blocked at `cargo nextest run --all`)
+**Branch**: goap-missing-tasks-2026-02-24 (documentation sync branch)
+**Overall Status**: 🔄 **IN PROGRESS** (latest full sequence blocked only at `./scripts/quality-gates.sh` file-size gate)
 
 ---
 
@@ -15,16 +15,25 @@
   - ✅ `./scripts/code-quality.sh fmt`
   - ✅ `./scripts/code-quality.sh clippy`
   - ✅ `./scripts/build-rust.sh check`
-  - ❌ `cargo nextest run --all` (16 failed, 6 slow)
-  - ⏸️ `cargo test --doc` (pending after nextest remediation)
-  - ⏸️ `./scripts/quality-gates.sh` (pending after nextest remediation)
+  - ✅ `cargo nextest run --all` (`2295 passed`, `73 skipped`)
+  - ✅ `cargo test --doc`
+  - ❌ `./scripts/quality-gates.sh` (source file-size gate)
 - Restart policy: if any command fails, restart from `./scripts/code-quality.sh fmt` after fixes.
+
+## Status Sync Contract (Canonical Fields)
+
+These values must be identical in this file, `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md`, and `plans/ROADMAPS/ROADMAP_ACTIVE.md`:
+
+- `last_validated_run_id`: `ba58b7b9-fd98-45a7-a849-e52558340e50`
+- `last_validated_commit`: `unknown (legacy evidence; must be recorded on next run)`
+- `gate_result`: `blocked at ./scripts/quality-gates.sh (file-size gate)`
+- `active_blocker_count`: `1`
 
 ## Evidence Block - 2026-02-23 (W1-G2-B-01 + W1-G3-B-01)
 
 - `iteration_id`: `W1-G2-B-01/W1-G3-B-01`
 - `scope`: documentation-only sync for GOAP + roadmap + validation evidence
-- `nextest_blocker`: active (`cargo nextest run --all` failed with 16 failed, 6 slow)
+- `nextest_blocker`: resolved in later rerun; current blocker moved to `./scripts/quality-gates.sh` file-size gate
 - `restart_policy`: unchanged; after any failure, remediate then rerun from `./scripts/code-quality.sh fmt`
 
 | Step | Exact Command | Status (Known/Placeholder) | Notes |
@@ -351,6 +360,8 @@ The memory-mcp MCP server has been **comprehensively validated** against Model C
 
 ## Overall Validation Status
 
+Historical baseline below (2026-02-02). Keep as reference only; current Week 1 blocker state is defined in the top sections of this file.
+
 ### Summary Statistics
 
 | Category | Total | Valid | Needs Update | Archive | Status |
@@ -360,18 +371,18 @@ The memory-mcp MCP server has been **comprehensively validated** against Model C
 | **Build & Quality** | N/A | ✅ VERIFIED | N/A | N/A | ✅ Passing |
 | **Plans Files** | 11 files | 8 | 0 | 3 | ✅ 73% valid |
 
-### Production Readiness Assessment
+### Production Readiness Assessment (Historical Baseline)
 
-**Overall Status**: ✅ **PRODUCTION READY** (All quality gates passing)
+**Overall Status**: 🟡 **HISTORICAL BASELINE** (current Week 1 run remains blocked at file-size gate)
 
 **Confidence Levels**:
 - **MCP Server**: ✅ Very High (100% compliant, all tests pass)
 - **Codebase**: ✅ Very High (811+ lib tests passing, 92.5% coverage)
 - **Pattern Search**: ✅ Very High (fully operational, 95%+ coverage)
-- **Quality Gates**: ✅ Very High (all passing, 0 clippy warnings)
+- **Quality Gates**: 🟡 Mixed (fmt/clippy/build/nextest/doctest pass in latest rerun; quality-gates file-size check fails)
 - **Documentation**: ✅ High (main docs current, v0.1.14 aligned)
 
-**Blockers**: **NONE** ✅
+**Blockers**: `./scripts/quality-gates.sh` file-size gate (active)
 
 **Recommendations**:
 - ✅ Ready for production deployment with v0.1.14

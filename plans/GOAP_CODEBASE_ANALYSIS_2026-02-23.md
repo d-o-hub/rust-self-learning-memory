@@ -24,20 +24,20 @@
 ### Detailed Gap Analysis
 
 #### 🔴 CRITICAL: Error Handling (ADR-028 #4)
-- **Current**: 524 `unwrap()` + 119 `.expect()` = **643 total** in production code
+- **Current**: 1,162 `unwrap()` + 149 `.expect()` = **1,311 total** in production code
 - **Target**: ≤20 unwrap/expect in production code
-- **Gap**: 623 calls need conversion to proper `Result<T, Error>` propagation
+- **Gap**: 1,291 calls need conversion to proper `Result<T, Error>` propagation
 - **Impact**: Any unwrap can panic and crash the process in production
 
 #### 🔴 CRITICAL: File Size Compliance Regression (ADR-028 #3)
 - **Claimed**: 100% compliant (all files ≤500 LOC)
-- **Actual**: **20+ files exceed 500 LOC**:
-  - `memory-core/src/security/audit.rs` — 1,057 LOC
-  - `memory-core/src/indexing/spatiotemporal.rs` — 985 LOC
-  - `memory-core/src/episode/graph_algorithms.rs` — 974 LOC
+- **Actual**: **31 files exceed 500 LOC**:
+  - ~~`memory-core/src/security/audit.rs` — 1,057 LOC~~ *(file no longer exists on main)*
+  - ~~`memory-core/src/indexing/spatiotemporal.rs` — 985 LOC~~ *(file no longer exists on main)*
+  - ~~`memory-core/src/episode/graph_algorithms.rs` — 974 LOC~~ *(file no longer exists on main)*
   - `memory-storage-turso/src/cache/query_cache.rs` — 920 LOC
   - `memory-storage-turso/src/prepared/cache.rs` — 883 LOC
-  - `memory-core/src/indexing/hierarchical.rs` — 862 LOC
+  - ~~`memory-core/src/indexing/hierarchical.rs` — 862 LOC~~ *(file no longer exists on main)*
   - `memory-core/src/episode/relationship_manager_tests.rs` — 860 LOC
   - `memory-storage-turso/src/cache/invalidation.rs` — 859 LOC
   - `memory-storage-turso/src/pool/adaptive.rs` — 851 LOC
@@ -53,6 +53,20 @@
   - `memory-storage-turso/src/pool/caching_pool.rs` — 543 LOC
   - `memory-mcp/src/patterns/benchmarks.rs` — 526 LOC
   - `memory-storage-turso/src/storage/tag_operations.rs` — 517 LOC
+  - `memory-mcp/src/bin/server_impl/tools.rs` — 1,311 LOC *(worst offender, missing from original analysis)*
+  - `memory-cli/src/commands/tag/core.rs` — 695 LOC
+  - `memory-mcp/src/mcp/tools/episode_relationships/tests.rs` — 680 LOC
+  - `memory-mcp/src/mcp/tools/episode_relationships/tool.rs` — 678 LOC
+  - `memory-mcp/src/patterns/predictive/extraction.rs` — 673 LOC
+  - `memory-mcp/src/patterns/statistical/bocpd_tests.rs` — 660 LOC
+  - `memory-mcp/src/server/tools/episode_relationships.rs` — 607 LOC
+  - `memory-cli/src/commands/relationships/core.rs` — 601 LOC
+  - `memory-cli/src/config/storage.rs` — 556 LOC
+  - `memory-storage-turso/src/storage/batch/pattern_core.rs` — 555 LOC
+  - `memory-storage-turso/src/storage/mod.rs` — 517 LOC
+  - `memory-cli/src/commands/mod.rs` — 517 LOC
+  - `memory-storage-turso/src/relationships.rs` — 511 LOC
+  - `memory-mcp/src/cache.rs` — 504 LOC
 - **Impact**: Violates project convention, reduces maintainability
 
 #### 🟠 HIGH: Ignored Tests (ADR-028 #5, ADR-027)
@@ -73,14 +87,14 @@
 
 #### 🟡 MEDIUM: dead_code Annotations (⚠️ REVISED)
 - **Previous Estimate**: 106 annotations (STALE DATA)
-- **Actual**: **827 inline `#[allow(dead_code)]`** + 6 crate-level `#![allow(dead_code)]`
+- **Actual**: **124 inline `#[allow(dead_code)]`** + 6 crate-level `#![allow(dead_code)]`
 - **Breakdown**:
-  - Error variant annotations: ~40 (likely permanent)
-  - Feature-gated code: ~30 (needed when feature disabled)
-  - Test helpers: ~50 (may be used in future tests)
-  - Genuine unused: ~700 (needs triage)
+  - Error variant annotations: ~20 (likely permanent)
+  - Feature-gated code: ~20 (needed when feature disabled)
+  - Test helpers: ~30 (may be used in future tests)
+  - Genuine unused: ~54 (needs triage)
 - **Target**: Triage each annotation: remove, expose, or document rationale
-- **Impact**: Effort underestimated by 8x — E1 deferred to Week 3
+- **Impact**: Smaller than originally estimated — feasible in 1-2 sessions
 
 #### 🟡 MEDIUM: Changelog Automation (ADR-034 Phase 4)
 - **Current**: No git-cliff, no conventional commit enforcement

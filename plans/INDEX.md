@@ -1,12 +1,13 @@
 # Plans Index
 
-**Last Updated**: 2026-02-22 (Token Optimization Complete)
+**Last Updated**: 2026-02-24 (Swarm-verified metrics refresh)
 
-## Current Status (2026-02-22)
-- **v0.1.16**: Token optimization complete
-- **MCP Token Optimization**: ✅ COMPLETE - 82% reduction measured (1,237 → 227 tokens)
-- **Opencode Integration**: ✅ memory-agent created with token optimization
-- **Benchmark Script**: `./scripts/benchmark-mcp-tokens.sh`
+## Current Status (2026-02-24)
+- **v0.1.16** on `main` branch (edition 2024)
+- **Codebase**: 621 source files, ~141K LOC, 9 workspace members
+- **Code Quality Debt**: 1,162 unwrap() + 149 expect(); 31 files >500 LOC; 62 ignored tests
+- **Duplicate Deps**: 121 roots (threshold: 130)
+- **Plans Hygiene**: 8 stale GOAP plans archived on 2026-02-24
 
 ## New Resources (2026-02-22)
 

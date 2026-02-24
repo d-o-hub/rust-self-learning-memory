@@ -453,17 +453,17 @@ Long-term (Q3-Q4 2026):
 
 ## Implementation Status
 
-🔄 **PARTIALLY COMPLETE** (2 of 14 features shipped)
+🔄 **PARTIALLY COMPLETE** (2 of 14 features shipped — analysis-swarm rebaseline 2026-02-24)
 
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
 | 1 | MCP Token Optimization | ✅ Complete | Shipped in v0.1.15 — `list_tool_names()` for 98% token reduction |
-| 2 | Batch Module Rehabilitation | ⬚ Not Started | ADR-025 Phase C scope; planned for v0.1.16 Phase C |
-| 3 | File Size Compliance | ✅ Complete | All source files ≤500 LOC (completed v0.1.14) |
-| 4 | Error Handling Improvement | ⬚ Not Started | 561 unwrap() + 90 .expect() in prod; planned for v0.1.16 Phase B |
-| 5 | Ignored Test Rehabilitation | ⬚ Not Started | ADR-027 accepted; 63 tests to triage; planned for v0.1.16 Phase B |
-| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Unblocked (dependency #3 complete) |
-| 7 | Embeddings Integration | ⬚ Not Started | Unblocked (dependency #1 complete); planned for v0.1.16 Phase C |
+| 2 | Batch Module Rehabilitation | ⬚ Not Started | `// pub mod batch;` still commented out in tools/mod.rs |
+| 3 | File Size Compliance | 🔄 Partial | 28 source files >500 LOC remain (was claimed ✅ Complete — incorrect) |
+| 4 | Error Handling Improvement | ⬚ Not Started | **681** unwrap/expect in prod (553 unwrap + 128 expect) — corrected from stale 561+90 |
+| 5 | Ignored Test Rehabilitation | ⬚ Not Started | 62 ignored tests — no triage started |
+| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Blocked — #3 not yet complete |
+| 7 | Embeddings Integration | ⬚ Not Started | Unblocked (dependency #1 complete) |
 | 8 | Transport Compression | ⬚ Not Started | Blocked by #2 |
 | 9-14 | Long-term features | ⬚ Not Started | Long-term |
 

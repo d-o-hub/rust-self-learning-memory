@@ -3,7 +3,7 @@
 **Status**: 🔄 Week 1 In Progress — Analysis-Swarm rebaseline 2026-02-24 (file-size gate + error handling debt remain primary blockers)
 **Branch**: `develop` (main: v0.1.16)
 **Methodology**: GOAP (Analyze → Decompose → Strategize → Execute) + Analysis-Swarm (RYAN/FLASH/SOCRATES)
-**Last Updated**: 2026-02-24 (W1-M4 gate-scope alignment + validation rerun evidence)
+**Last Updated**: 2026-02-24 (B1-B4 completed + full validation green)
 
 ---
 
@@ -134,10 +134,10 @@
 | Task | ADR | Effort | Priority | Dependencies | Status |
 |------|-----|--------|----------|--------------|--------|
 | B0: Validate metrics per crate | ADR-028 | 0.5h | P0 | None | ✅ memory-storage-turso done |
-| B1: Split memory-core >500 LOC files (9 files) | ADR-028 #3 | 8-10h | P0 | B0-core | 🔄 Pending |
-| B2: Split memory-storage-turso >500 LOC files (8 files) | ADR-028 #3 | 6-8h | P0 | B0-turso | 🔄 In Progress (2/8 done) |
-| B3: Split memory-mcp >500 LOC files (3 files) | ADR-028 #3 | 2-3h | P0 | None | 🔄 Pending |
-| B4: Split memory-storage-redb >500 LOC files (1 file) | ADR-028 #3 | 1-2h | P0 | None | 🔄 In Progress |
+| B1: Split memory-core >500 LOC files (9 files) | ADR-028 #3 | 8-10h | P0 | B0-core | ✅ Complete |
+| B2: Split memory-storage-turso >500 LOC files (8 files) | ADR-028 #3 | 6-8h | P0 | B0-turso | ✅ Complete |
+| B3: Split memory-mcp >500 LOC files (3 files) | ADR-028 #3 | 2-3h | P0 | None | ✅ Complete |
+| B4: Split memory-storage-redb >500 LOC files (1 file) | ADR-028 #3 | 1-2h | P0 | None | ✅ Complete |
 
 ### Task Group C: Test Rehabilitation (P1) — ~12-18 hours
 
@@ -450,10 +450,10 @@ If any command fails, stop, fix the failure, and restart the sequence from `./sc
 
 These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE.md`, and `plans/STATUS/VALIDATION_LATEST.md`:
 
-- `last_validated_run_id`: `33e3c3f6-c890-409c-9c7d-5ad696202c36`
-- `last_validated_commit`: `e8545e1`
-- `gate_result`: `blocked at ./scripts/quality-gates.sh (source file-size gate — 29 source files >500 LOC)`
-- `active_blocker_count`: `1`
+- `last_validated_run_id`: `b3bdef2b-50d1-4eb4-9e5b-fda7a5cebb4b`
+- `last_validated_commit`: `working-tree (pending atomic commit)`
+- `gate_result`: `all validation commands passed, including ./scripts/quality-gates.sh`
+- `active_blocker_count`: `0`
 
 ### Progress Update (This Change)
 
@@ -472,7 +472,7 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 | W1-M1 | ✅ Complete | Grouped G1/G2/G3 execution model and dependencies are explicit |
 | W1-M2 | ✅ Complete | ADR-024/028/030/033/036 are all mapped in Week 1 matrix |
 | W1-M3 | ✅ Complete | Specialist handoff contract template is stable and reusable |
-| W1-M4 | ✅ Complete | Command order locked and executed end-to-end; gate scope now source-only, with blocker narrowed to 29 oversized source files |
+| W1-M4 | ✅ Complete | Command order locked and executed end-to-end; full validation chain now green |
 
 ### Specialist Handoff Runs (This Iteration)
 
@@ -487,7 +487,7 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 
 - ✅ `W1-G2-B-01` + `W1-G3-B-01` completed as a documentation-only, non-destructive Week 1 iteration
 - ✅ INFRA + E3 planning updates are now synchronized with ADR-036 traceability
-- 🔄 Remaining execution scope is unchanged: B1-B4 completion and nextest blocker remediation/restart
+- ✅ Remaining Week 1 execution scope closed: B1-B4 file splitting completed and validation chain passes end-to-end
 
 ### Progress Update (W1-G3-C-02 - CLI blocker remediation)
 

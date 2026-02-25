@@ -139,7 +139,6 @@ fn test_cache_entry_access_frequency() {
 }
 
 #[test]
-#[ignore = "Timing-dependent test - stats snapshot timing issues in CI"]
 fn test_cache_stats_snapshot() {
     let stats = CacheStats::new();
     stats.record_hit();
@@ -150,5 +149,6 @@ fn test_cache_stats_snapshot() {
     assert_eq!(snapshot.hits, 2);
     assert_eq!(snapshot.misses, 1);
     assert!((snapshot.hit_rate - 0.666).abs() < 0.01);
-    assert!(snapshot.is_effective());
+    // 2/3 = 0.666 hit rate, which is below 0.8 threshold for is_effective
+    assert!(!snapshot.is_effective());
 }

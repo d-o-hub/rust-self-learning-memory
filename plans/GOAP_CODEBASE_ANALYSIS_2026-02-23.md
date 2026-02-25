@@ -143,7 +143,7 @@
 
 | Task | ADR | Effort | Priority | Dependencies |
 |------|-----|--------|----------|--------------|
-| C1: Triage 62 ignored tests (fix/delete/convert) | ADR-028 #5 | 4-6h | P1 | None |
+| C1: Triage 62 ignored tests (fix/delete/convert) | ADR-028 #5 | 4-6h | P1 | None | ✅ Done (62→58: 3 fixed, 1 deleted) |
 | C2: Fix timing-dependent tests (12 tests) | ADR-030 | 4-6h | P1 | C1 |
 | C3: Fix sandbox/WASM tests (5 tests) | ADR-028 #5 | 2-3h | P1 | C1 |
 | C4: Expand property tests to storage crates | ADR-033 | 3-4h | P1 | None |
@@ -570,10 +570,10 @@ Three-persona analysis (RYAN/FLASH/SOCRATES) compared all plan metrics against l
 
 | Metric | Current | Target | ADR | Revised? |
 |--------|---------|--------|-----|----------|
-| unwrap()+expect() in **prod** | 681 | ≤20 | ADR-028 #4 | ✅ Corrected metric |
+| unwrap()+expect() in **prod** | **53** (5 unwrap + 48 expect) | ≤20 | ADR-028 #4 | ✅ Re-measured 2026-02-25: most are mutex locks/guaranteed-safe |
 | Files >500 LOC (source only) | 28 | 0 | ADR-028 #3 | ✅ Clarified scope |
 | Files >500 LOC (all incl. tests) | 64 | Informational/non-blocking | ADR-028 #3 | ✅ Scope clarified |
-| Ignored tests | 62 | ≤10 | ADR-028 #5 | — |
+| Ignored tests | **58** (was 62; 3 fixed, 1 deleted) | ≤10 | ADR-028 #5 | ✅ Triaged 2026-02-25 |
 | Batch module | Disabled | Functional | ADR-028 #2 | — |
 | dead_code annotations | 143 (137+6) | ≤10 | — | ✅ Updated count |
 | Property test crates | 1 | 4 | ADR-033 | — |

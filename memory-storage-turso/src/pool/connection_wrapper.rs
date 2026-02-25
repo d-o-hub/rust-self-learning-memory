@@ -143,11 +143,4 @@ mod tests {
             "Connection IDs should be monotonically increasing"
         );
     }
-
-    #[test]
-    #[ignore = "Requires async context with real database connection"]
-    fn test_pooled_connection_creation() {
-        // This test is ignored because it requires an async context with a real
-        // database connection. Use integration tests for actual connection testing.
-    }
 }

@@ -58,7 +58,6 @@ fn test_cache_eviction() {
 }
 
 #[test]
-#[ignore = "Timing-dependent test - clear connection has async timing issues in CI"]
 fn test_clear_connection() {
     let cache = PreparedStatementCache::new(10);
     let conn_id = cache.get_connection_id();
@@ -130,7 +129,6 @@ fn test_connection_eviction() {
 }
 
 #[test]
-#[ignore = "Timing-dependent test - idle connection cleanup timing issues in CI"]
 fn test_cleanup_idle_connections() {
     let cache = PreparedStatementCache::new(10);
     let conn_id = cache.get_connection_id();

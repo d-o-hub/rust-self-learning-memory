@@ -4,8 +4,7 @@
 //! organized into focused submodules for maintainability.
 
 pub mod advanced;
-// TODO: Fix batch module - uses non-existent jsonrpsee and ServerState
-// pub mod batch;
+pub mod batch;
 pub mod code;
 pub mod core;
 pub mod embeddings;

@@ -1,6 +1,6 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-02-24 (B1-B4 completion + validation green)
+**Last Updated**: 2026-02-25 (CI fixes: RUSTSEC-2026-0021 + nightly disk space)
 **Status**: Week 1 GOAP execution is active; validation advanced through nextest/doctests and is currently blocked only at `./scripts/quality-gates.sh` (file-size gate).
 **Next Sprint**: v0.1.16 Week 1 - Code Quality Remediation (B1-B4, E3, INFRA)
 **GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md) | **Prior CI Phase**: [GOAP_PHASE1_COMPLETION_SUMMARY.md](../GOAP_PHASE1_COMPLETION_SUMMARY.md) ✅
@@ -211,18 +211,18 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 
 ## Known Issues on Main Branch (2026-02-16)
 
-**Status**: ✅ CI ALL PASSING (Nightly FIXED 2026-02-16) — Phase 1 COMPLETE
-**Test Suite**: 33 of 39 tests passing (84.6%)
+**Status**: 🔧 CI FIXES APPLIED (2026-02-25) — Security + Nightly remediated
+**Test Suite**: 2289 tests passing (73 skipped)
 **Open PRs**: PR #297 (CLI workflow fixes, ready for review)
 
-### CI Workflow Status
+### CI Workflow Status (2026-02-25)
 - ✅ **CI** - passing on main
 - ✅ **Coverage** - passing on main
 - ✅ **File Structure Validation** - passing on main
-- ✅ **Security** - passing on main
+- 🔧 **Security** - FIXED: bumped wasmtime 36.0.5→36.0.6 + 41.0.3→41.0.4 (RUSTSEC-2026-0021)
 - ✅ **CodeQL** - passing on main
 - ⏭️ **Performance Benchmarks** - skipped (intentional)
-- ✅ **Nightly Full Tests** - PASSING (2026-02-16) 🎉
+- 🔧 **Nightly Full Tests** - FIXED: added aggressive disk cleanup to Slow Tests job (disk exhaustion)
 
 ### Nightly CI Fixes Completed (2026-02-16)
 
@@ -805,7 +805,7 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 
 ---
 
-*Last Updated: 2026-02-24*
+*Last Updated: 2026-02-25*
 *Active Branch: main*
 *Current Version: v0.1.16 (released 2026-02-21)*
 *Current Focus: v0.1.16 (Code Quality + Pattern Algorithms)*

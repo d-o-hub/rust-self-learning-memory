@@ -9,14 +9,7 @@
 version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
-ignore = [
-    # Bincode is dev-dependency only (used for security test comparisons)
-    # Production code uses postcard for serialization
-    "RUSTSEC-2025-0141",
-    # redb 2.6.3 is used which fixes the IterMut Stacked Borrows issue
-    # Advisory database may not be updated for all fixed versions
-    "RUSTSEC-2026-0002",
-]
+ignore = []
 
 [licenses]
 # The licenses section is for detecting incompatible licenses

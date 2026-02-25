@@ -1,9 +1,9 @@
 # GOAP Codebase Analysis & Execution Plan — 2026-02-23
 
-**Status**: 🔄 Week 1 In Progress — Analysis-Swarm rebaseline 2026-02-24 (file-size gate + error handling debt remain primary blockers)
+**Status**: 🔄 Week 2 Starting — CI blockers fixed (Security + Nightly), error handling debt remains primary blocker
 **Branch**: `develop` (main: v0.1.16)
 **Methodology**: GOAP (Analyze → Decompose → Strategize → Execute) + Analysis-Swarm (RYAN/FLASH/SOCRATES)
-**Last Updated**: 2026-02-24 (B1-B4 completed + full validation green)
+**Last Updated**: 2026-02-25 (CI fixes: wasmtime RUSTSEC-2026-0021 + nightly disk space)
 
 ---
 
@@ -497,6 +497,14 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 - ✅ Reconciled `tests/e2e/cli_workflows.rs` command syntax with current CLI contract
 - ✅ Validated targeted blocker suite: `cargo test -p e2e-tests --test cli_workflows -- --nocapture` => 6 passed, 0 failed, 2 ignored
 - 🔄 Full validation gate chain remains required after this remediation batch
+
+### Progress Update (2026-02-25 - CI Blocker Remediation)
+
+- ✅ **RUSTSEC-2026-0021 (wasmtime vulnerability)**: Bumped wasmtime 36.0.5→36.0.6 and 41.0.3→41.0.4 via `cargo update`
+- ✅ **Nightly disk exhaustion**: Added aggressive disk cleanup step to `cross-platform-slow-tests` job in nightly-tests.yml (matching `full-test-suite` pattern)
+- ✅ **deny.toml cleanup**: Removed stale RUSTSEC-2025-0141 and RUSTSEC-2026-0002 ignores (no longer needed)
+- ✅ **Validation**: `cargo check --all` ✅, `cargo clippy --all -- -D warnings` ✅, `cargo nextest run --all` ✅ (2289 passed, 73 skipped)
+- 🎯 **Analysis-Swarm verdict**: Both fixes are highest-impact/lowest-effort (FLASH), address security posture (RYAN), and unblock CI for all downstream work (SOCRATES)
 
 ---
 

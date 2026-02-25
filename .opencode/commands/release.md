@@ -175,7 +175,27 @@ gh release view v{VERSION} --json assets --jq '.assets[].name'
 
 ## Changelog Management
 
-### Update CHANGELOG.md Before Release
+### Using git-cliff (Recommended)
+
+Generate changelog from conventional commits using git-cliff:
+
+```bash
+# Install git-cliff (if not already installed)
+cargo install git-cliff
+
+# Generate changelog for current release
+git-cliff --config cliff.toml --latest
+
+# Generate changelog for specific version tag
+git-cliff --config cliff.toml v0.1.15..v0.1.16
+
+# Preview changelog without file output
+git-cliff --config cliff.toml --preview
+```
+
+### Manual CHANGELOG.md Update
+
+If you prefer manual updates or need custom formatting:
 
 Ensure `[Unreleased]` section contains all changes:
 

@@ -1,0 +1,84 @@
+# git-cliff configuration
+# Generates changelog from conventional commits
+# See: https://git-cliff.org/docs/configuration
+
+[changelog]
+# Changelog header
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+"""
+
+# Changelog body template
+body = """
+{% if version %}
+## [{{ version | trim_start_matches(pat = "v") }}] - {{ timestamp | date(format = "%Y-%m-%d") }}
+{% else %}
+## [Unreleased]
+{% endif %}
+
+{% for group, commits in commits | group_by(attribute = "group") %}
+### {{ group }}
+{% for commit in commits %}
+- {{ commit.message | split(pat = "\n") | first | trim }} ([{{ commit.id | truncate(length = 7, end = "") }}](https://github.com/d-o-hub/rust-self-learning-memory/commit/{{ commit.id }}))
+{% endfor %}
+{% endfor %}
+"""
+
+# Footer template
+footer = """
+---
+"""
+
+# Skip commits matching these patterns
+ignore_commits = "Merge (branch|pull request)"
+
+[git]
+# Conventional commits pattern
+conventional_commits = true
+
+# Commit parsing configuration
+commit_parsers = [
+    # Features
+    { message = "^feat", group = "Added" },
+    
+    # Bug fixes
+    { message = "^fix", group = "Fixed" },
+    
+    # Documentation
+    { message = "^docs", group = "Documentation" },
+    
+    # Code style/formatting
+    { message = "^style", group = "Changed" },
+    
+    # Refactoring
+    { message = "^refactor", group = "Changed" },
+    
+    # Performance
+    { message = "^perf", group = "Performance" },
+    
+    # Testing
+    { message = "^test", group = "Testing" },
+    
+    # Maintenance/chores
+    { message = "^chore", group = "Maintenance" },
+    
+    # Build/CI
+    { message = "^build", group = "Build" },
+    { message = "^ci", group = "CI/CD" },
+]
+
+# Tag prefixes (version will be trimmed from tags)
+tag_prefix = "v"
+
+# Regex to match git tags
+tags = "v[0-9]*\\.[0-9]*\\.[0-9]*"
+
+# Include revert commits
+include_reverts = true

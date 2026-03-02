@@ -163,7 +163,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nightly-test-results
           path: ${{ env.CARGO_TARGET_DIR }}/debug/nextest/
@@ -287,7 +287,7 @@ jobs:
         continue-on-error: true  # Informational - don't block on mutation results
 
       - name: Upload mutation report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: mutation-report

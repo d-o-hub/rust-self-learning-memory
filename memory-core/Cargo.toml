@@ -78,7 +78,7 @@ ndarray = { version = "0.17", optional = true }
   changepoint = "0.15.0"
 
 # Random number generation for tests
-rand = "0.8"
+rand = "0.10"
 
 # Fuzzy string matching for search
 strsim = "0.11.1"

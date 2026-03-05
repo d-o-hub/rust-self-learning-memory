@@ -104,13 +104,16 @@ jobs:
           AVAILABLE=$(df -BG / | awk 'NR==2 {print $4}' | sed 's/G//')
           echo "Available space: ${AVAILABLE}G"
 
-      - name: Generate Coverage Report (Library Only - Fast)
+      - name: Generate Coverage Report (Workspace - PR aligned)
         run: |
-          echo "Generating coverage report for library code..."
-          # Use --lib for faster coverage of library code only
-          # Use --jobs to parallelize
-          # Use shell timeout to prevent hanging tests
-          timeout 2400s cargo llvm-cov --lib --lcov --output-path lcov.info --jobs 4
+          echo "Generating coverage report for workspace code..."
+          # Use --workspace so Codecov patch status can map PR diff lines correctly.
+          # Exclude heavy non-gating crates to keep runtime reasonable.
+          timeout 2400s cargo llvm-cov --workspace \
+            --exclude benches \
+            --exclude examples \
+            --exclude test-utils \
+            --lcov --output-path lcov.info --jobs 4
           echo "Coverage report generated successfully"
         env:
           RUST_LOG: info

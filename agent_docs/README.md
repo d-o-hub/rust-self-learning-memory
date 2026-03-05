@@ -19,7 +19,8 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 - **Architecture decisions**: `../plans/adr/`
 - **Active roadmap**: `../plans/ROADMAPS/ROADMAP_ACTIVE.md`
 - **Skills reference**: `../.agents/skills/`
-- **Scripts**: `../scripts/` (build-rust.sh, code-quality.sh, quality-gates.sh)
+- **Scripts**: `../scripts/` (build-rust.sh, code-quality.sh, quality-gates.sh, check-docs-integrity.sh, release-manager.sh)
+- **Machine-readable context**: `../docs/architecture/context.yaml`
 
 ## Version Policy
 

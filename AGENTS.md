@@ -5,6 +5,8 @@
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
 - **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
 - **Quality Gates**: `./scripts/quality-gates.sh`
+- **Docs Integrity**: `./scripts/check-docs-integrity.sh`
+- **Release Ops**: `./scripts/release-manager.sh validate|prepare|publish|rollback|full`
 
 ## Project Overview
 Memory management system with episodic memory, semantic embeddings, Turso/libSQL + redb cache, MCP server.
@@ -133,6 +135,7 @@ See `.env.example` for full list. Never commit secrets.
 
 ## Release Workflow
 - **Command**: `/release [patch|minor|major]` - Comprehensive release with gates
+- **Ops Wrapper**: `./scripts/release-manager.sh` (dry-run by default; pass `--execute` to run)
 - **Versioning**: `cargo release patch|minor|major` (ADR-034)
 - **Semver**: `cargo semver-checks check-release` in CI (ADR-034)
 - **Distribution**: cargo-dist for binaries + installers (ADR-034)

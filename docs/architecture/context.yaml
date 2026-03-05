@@ -1,0 +1,46 @@
+version: 1
+generated_at: "2026-03-05"
+source_of_truth:
+  agents: "AGENTS.md"
+  active_roadmap: "plans/ROADMAPS/ROADMAP_ACTIVE.md"
+  adr_index: "plans/INDEX.md"
+  goap_state: "plans/GOAP_STATE.md"
+
+project:
+  name: "rust-self-learning-memory"
+  language: "Rust"
+  runtime: "Tokio"
+  summary: "Episodic memory system with MCP server and dual storage backends"
+
+crates:
+  - name: "memory-core"
+    role: "Domain types, episodes, embeddings, patterns"
+  - name: "memory-storage-turso"
+    role: "Persistent storage backend (libSQL/Turso)"
+  - name: "memory-storage-redb"
+    role: "Local cache backend (redb + postcard)"
+  - name: "memory-mcp"
+    role: "MCP server, tool registry, sandbox"
+  - name: "memory-cli"
+    role: "CLI interface and config management"
+
+workflow:
+  quality_commands:
+    - "./scripts/code-quality.sh fmt"
+    - "./scripts/code-quality.sh clippy"
+    - "./scripts/build-rust.sh check"
+    - "cargo nextest run --all"
+    - "cargo test --doc"
+    - "./scripts/quality-gates.sh"
+  docs_integrity:
+    command: "./scripts/check-docs-integrity.sh"
+    integration: "scripts/quality-gates.sh (non-blocking)"
+  release:
+    command: "./scripts/release-manager.sh"
+    default_mode: "dry-run"
+
+goap:
+  goals_file: "plans/GOALS.md"
+  actions_file: "plans/ACTIONS.md"
+  state_file: "plans/GOAP_STATE.md"
+  active_plan: "plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md"

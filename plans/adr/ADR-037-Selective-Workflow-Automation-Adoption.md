@@ -104,7 +104,13 @@ Adopt a **selective import policy**:
 1. `scripts/check-docs-integrity.sh` created
 2. `scripts/release-manager.sh` created
 3. GOAP index files created: `plans/GOALS.md`, `plans/ACTIONS.md`, `plans/GOAP_STATE.md`
-4. Pending: `docs/architecture/context.yaml` and quality-gate integration
+4. `docs/architecture/context.yaml` created
+5. Docs integrity checks integrated into `scripts/quality-gates.sh` as non-blocking
+6. References added to `AGENTS.md` and `agent_docs/README.md`
+
+## Current State
+
+ADR-037 implementation scope is complete for the initial rollout. The docs integrity gate remains non-blocking by design during stabilization.
 
 ## References
 

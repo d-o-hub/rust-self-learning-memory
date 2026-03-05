@@ -191,6 +191,23 @@ run_goap_checks() {
   fi
 }
 
+# Non-blocking docs integrity gate (ADR-037 Phase C)
+run_docs_integrity_check() {
+  echo -e "${BLUE}Running docs integrity checks (non-blocking)...${NC}"
+
+  if [ ! -x "./scripts/check-docs-integrity.sh" ]; then
+    echo -e "  ${YELLOW}⚠${NC} ./scripts/check-docs-integrity.sh not found or not executable"
+    return 0
+  fi
+
+  if ./scripts/check-docs-integrity.sh; then
+    echo -e "  ${GREEN}✓${NC} Docs integrity checks passed"
+  else
+    echo -e "  ${YELLOW}⚠${NC} Docs integrity check reported issues (non-blocking for now)"
+    echo "      Set QUALITY_GATE_SKIP_DOCS=true to skip this check"
+  fi
+}
+
 # Blocking: enforce source file size limit (AGENTS.md invariant)
 run_source_file_size_gate() {
   echo -e "${BLUE}Running source file size gate (<=500 LOC, source files only)...${NC}"
@@ -267,6 +284,13 @@ if [ "${QUALITY_GATE_SKIP_GOAP:-false}" != "true" ]; then
   run_goap_checks || true
 else
   echo -e "${YELLOW}Skipping GOAP checks (${NC}QUALITY_GATE_SKIP_GOAP=true${YELLOW}).${NC}"
+fi
+
+# Execute docs integrity check unless disabled (non-blocking)
+if [ "${QUALITY_GATE_SKIP_DOCS:-false}" != "true" ]; then
+  run_docs_integrity_check || true
+else
+  echo -e "${YELLOW}Skipping docs integrity checks (${NC}QUALITY_GATE_SKIP_DOCS=true${YELLOW}).${NC}"
 fi
 
 # Blocking source file-size compliance gate

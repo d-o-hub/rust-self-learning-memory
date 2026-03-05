@@ -8,7 +8,7 @@
 **Workflow Automation Track (Proposed)**:
 - [GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md](../GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md)
 - [ADR-037-Selective-Workflow-Automation-Adoption.md](../adr/ADR-037-Selective-Workflow-Automation-Adoption.md)
-- Progress: Phase B started (`check-docs-integrity.sh`, `release-manager.sh`, and GOAP state index files added)
+- Progress: Phases A/B/C complete (`check-docs-integrity.sh`, `release-manager.sh`, GOAP state index files, `docs/architecture/context.yaml`, and quality-gates integration)
 
 ---
 

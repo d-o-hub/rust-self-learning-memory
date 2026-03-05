@@ -98,6 +98,7 @@ libsql = { workspace = true }
 serial_test = "3.4"
 criterion = "0.8"
 proptest = "1.6"
+insta = "1.42"
 postcard = { workspace = true }
 # Enable proptest-arbitrary feature for tests
 memory-core = { path = ".", features = ["proptest-arbitrary"] }

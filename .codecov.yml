@@ -15,6 +15,7 @@ coverage:
       default:
         target: 80
         threshold: 1
+        if_not_found: success
 
 comment:
   layout: "reach,diff,flags,tree"
@@ -27,3 +28,6 @@ ignore:
   - "tests"
   - "examples"
   - "benches"
+  - ".github/**"
+  - "plans/**"
+  - "docs/**"

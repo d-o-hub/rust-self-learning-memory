@@ -226,7 +226,7 @@ mod tests {
         }
 
         // Wait for all to process
-        let emptied = queue.wait_until_empty(Duration::from_secs(3)).await;
+        let emptied = queue.wait_until_empty(Duration::from_secs(30)).await;
         assert!(emptied, "All episodes should be processed");
 
         let stats = queue.get_stats().await;

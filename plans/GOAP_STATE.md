@@ -54,3 +54,9 @@
   - Added trailing newline in `.github/workflows/changelog.yml`.
 - Local `cargo fmt --all -- --check` passes after remediation.
 - Pending: fresh PR CI run to confirm green checks and re-evaluate `codecov/patch`.
+
+## Post-Push Observation (2026-03-05)
+
+- Remediation commit pushed: `a2ca380ed64f7d7db51fd205250e22fdaaf9347c`.
+- PR check rollup currently shows only `.github/dependabot.yml` success.
+- CI/YAML/Quick Check workflows have not yet attached new runs to this head SHA; continue monitoring via GH CLI.

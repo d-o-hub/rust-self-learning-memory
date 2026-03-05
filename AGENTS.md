@@ -72,12 +72,67 @@ skill: build-rust, code-quality
 - Avoid plans-only follow-up commits before remediation CI checks are attached
 - If rollup remains empty, investigate workflow trigger/path conditions and use GH CLI monitoring evidence in `plans/STATUS/VALIDATION_LATEST.md`
 
+## Token Efficiency (2026-03)
+
+**Tool Selection Priority (lowest token cost first):**
+1. **Glob** - File discovery (cheapest, structured output)
+2. **Grep** - Code search (cheap, file-by-file breakdown)
+3. **Read** - File inspection (medium)
+4. **Bash** - Shell commands (expensive - prefer scripts)
+
+**Verified Patterns (tested):**
+- Grep tool: 1 call → structured file-by-file breakdown
+- Glob tool: 1 call → all matching files with paths
+- Scripts: 1 call → multiple operations combined
+
+**Before Each Bash Command:**
+- Can Grep do this? → Use Grep tool
+- Can Glob do this? → Use Glob tool
+- Is there a script? → Use `./scripts/*.sh`
+- Is there a skill? → Load skill first
+
+**Target Ratios:**
+- Read:Edit = 2:1 (understand before modifying)
+- Grep:Bash = 1:2 (search before shell)
+- Script:Raw = 3:1 (prefer scripts over raw commands)
+
+**Anti-Patterns (waste tokens):**
+- `grep -r pattern` in Bash → Use Grep tool
+- `find . -name` in Bash → Use Glob tool
+- `cat file` in Bash → Use Read tool
+- Multiple cargo commands → Use `./scripts/quality-gates.sh`
+
 ## Required Checks Before Commit
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --all -- -D warnings`
 - [ ] `cargo build --all`
 - [ ] `cargo nextest run --all`
 - [ ] `./scripts/quality-gates.sh`
+
+## Pre-Flight Validation (2026-03)
+
+**Before Modifying GitHub Actions:**
+1. Check action versions: `gh api repos/<owner>/<action>/releases/latest --jq .tag_name`
+2. Validate workflow syntax: `actionlint .github/workflows/*.yml` (if installed)
+3. Use `yaml-validator` skill for structured validation
+
+**Before Adding Dependencies:**
+1. Check existing: `cargo tree -d | grep -i <module>`
+2. Verify feature flags: `cargo build --all-features`
+3. Run `./scripts/code-quality.sh check`
+
+**Before Debugging Failures:**
+1. Use `debug-troubleshoot` skill first
+2. Check `agent_docs/code_conventions.md` for patterns
+3. Run targeted tests: `cargo nextest run -p <crate>`
+
+**Skill Loading for Common Tasks:**
+| Task | Skills to Load |
+|------|----------------|
+| CI fixes | `ci-fix`, `github-workflows`, `yaml-validator` |
+| Debugging | `debug-troubleshoot`, `test-fix` |
+| Code search | `codebase-locator`, `codebase-analyzer` |
+| Testing | `test-runner`, `rust-async-testing` |
 
 ## Code Conventions
 - **Max 500 LOC per file** (source code)

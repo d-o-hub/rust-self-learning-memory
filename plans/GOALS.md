@@ -10,13 +10,13 @@
    - Priority: P1
    - Owner: code-quality + documentation
    - Target: add `scripts/check-docs-integrity.sh` and wire into quality gates
-   - Status: In Progress
+   - Status: Complete
 
 2. **WG-002**: Add release operations wrapper
    - Priority: P1
    - Owner: github-release-best-practices + release-guard
    - Target: add `scripts/release-manager.sh`
-   - Status: In Progress
+   - Status: Complete
 
 3. **WG-003**: Introduce lightweight GOAP state index
    - Priority: P2
@@ -28,4 +28,4 @@
    - Priority: P2
    - Owner: codebase-analyzer + yaml-validator
    - Target: add `docs/architecture/context.yaml` and validation hook
-   - Status: Planned
+   - Status: Complete

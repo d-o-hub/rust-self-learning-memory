@@ -20,6 +20,18 @@
   - ✅ `./scripts/quality-gates.sh`
 - Restart policy: if any command fails, restart from `./scripts/code-quality.sh fmt` after fixes.
 
+## ADR-037 Workflow Automation Snapshot (2026-03-05)
+
+- Scope: complete Phase A/B/C rollout from `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
+- Commands executed:
+  - `./scripts/release-manager.sh validate` (dry-run path) ✅
+  - `./scripts/check-docs-integrity.sh` ⚠️ baseline drift detected (non-blocking integration active)
+  - `bash -n scripts/check-docs-integrity.sh scripts/release-manager.sh` ✅
+- Integration state:
+  - `scripts/quality-gates.sh` now runs docs integrity checks in non-blocking mode
+  - `docs/architecture/context.yaml` added as machine-readable context contract
+  - `AGENTS.md` and `agent_docs/README.md` updated with workflow references
+
 ## Status Sync Contract (Canonical Fields)
 
 These values must be identical in this file, `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md`, and `plans/ROADMAPS/ROADMAP_ACTIVE.md`:

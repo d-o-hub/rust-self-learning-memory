@@ -61,6 +61,8 @@ broken = []
 
 for rel_path in files:
     abs_path = os.path.join(repo, rel_path)
+    if not os.path.exists(abs_path):
+        continue
     base_dir = os.path.dirname(abs_path)
     try:
         with open(abs_path, "r", encoding="utf-8") as f:
@@ -103,6 +105,8 @@ link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 files = subprocess.check_output(["git", "ls-files", "*.md"], text=True).splitlines()
 for rel_path in files:
     abs_path = os.path.join(repo, rel_path)
+    if not os.path.exists(abs_path):
+        continue
     base_dir = os.path.dirname(abs_path)
     try:
         with open(abs_path, "r", encoding="utf-8") as f:
@@ -174,6 +178,8 @@ seen = set()
 failed = []
 for rel_path in files:
     abs_path = os.path.join(repo, rel_path)
+    if not os.path.exists(abs_path):
+        continue
     try:
         with open(abs_path, "r", encoding="utf-8") as f:
             for line in f:

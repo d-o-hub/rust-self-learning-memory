@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-03-05 (GH monitoring snapshot)
+- **Last Updated**: 2026-03-05 (CI hardening + monitoring loop)
 - **Related Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 
 ## Active Actions
@@ -33,17 +33,22 @@
 6. **ACT-009**
    - Goal: WG-005
    - Action: Re-run/monitor Quick Check and dependent Performance Benchmarks gate
-   - Status: In Progress (blocked: no new check runs attached to latest head)
+   - Status: In Progress (checks now attaching; waiting full green on latest head)
 
 7. **ACT-010**
    - Goal: WG-005
    - Action: Track `codecov/patch` failure and determine threshold vs upload issue
-   - Status: Planned
+   - Status: In Progress (workspace coverage alignment shipped; validating in CI)
 
 8. **ACT-011**
    - Goal: WG-005
    - Action: Diagnose workflow trigger/path conditions causing empty required-check rollup on plans-only head commits
-   - Status: In Progress
+   - Status: In Progress (anchor workflow added; validating behavior on follow-up heads)
+
+10. **ACT-013**
+   - Goal: WG-005
+   - Action: Add `PR Check Anchor` workflow and align coverage jobs to workspace for PR diff mapping
+   - Status: Complete
 
 9. **ACT-012**
    - Goal: WG-005

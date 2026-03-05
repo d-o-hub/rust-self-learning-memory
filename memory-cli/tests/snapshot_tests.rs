@@ -130,3 +130,99 @@ fn test_cli_config_validate_output() {
         "Should show connectivity status"
     );
 }
+
+/// Test backup subcommand help snapshot
+#[test]
+fn test_cli_backup_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["backup", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test monitor subcommand help snapshot
+#[test]
+fn test_cli_monitor_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["monitor", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test logs subcommand help snapshot
+#[test]
+fn test_cli_logs_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["logs", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test eval subcommand help snapshot
+#[test]
+fn test_cli_eval_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["eval", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test embedding subcommand help snapshot
+#[test]
+fn test_cli_embedding_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["embedding", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test tag subcommand help snapshot
+#[test]
+fn test_cli_tag_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["tag", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test relationship subcommand help snapshot
+#[test]
+fn test_cli_relationship_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["relationship", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test config subcommand help snapshot
+#[test]
+fn test_cli_config_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["config", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}

@@ -3617,6 +3617,7 @@ dependencies = [
  "chrono",
  "criterion",
  "futures",
+ "insta",
  "libsql",
  "lru 0.16.3",
  "memory-core",

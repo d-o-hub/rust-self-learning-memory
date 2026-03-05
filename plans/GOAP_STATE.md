@@ -60,3 +60,9 @@
 - Remediation commit pushed: `a2ca380ed64f7d7db51fd205250e22fdaaf9347c`.
 - PR check rollup currently shows only `.github/dependabot.yml` success.
 - CI/YAML/Quick Check workflows have not yet attached new runs to this head SHA; continue monitoring via GH CLI.
+
+## Learning Delta (GOAP)
+
+- Empty required-check rollup is now tracked as a first-class blocker condition for PR readiness.
+- Remediation sequence rule added: do not append plans-only commits until required CI checks are attached to the remediation head.
+- Escalation path if rollup remains empty: run targeted workflow dispatch where available and/or push a minimal trigger commit that touches CI-scoped paths.

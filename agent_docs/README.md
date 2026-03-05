@@ -25,3 +25,8 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 ## Version Policy
 
 Do not hardcode version numbers in documentation. Reference `Cargo.toml` workspace version instead.
+
+## CI/PR Operational Note
+
+- After PR remediation pushes, always verify required checks are attached to the latest head SHA via GH CLI.
+- If `statusCheckRollup` is empty on a required-check PR, treat it as a blocking condition and record evidence in `../plans/STATUS/VALIDATION_LATEST.md`.

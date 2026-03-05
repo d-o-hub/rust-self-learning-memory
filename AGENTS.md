@@ -65,6 +65,12 @@ skill: build-rust, code-quality
 6. `cargo nextest run -p <crate>` → targeted tests
 7. `cargo nextest run --all` → full suite (doctests: `cargo test --doc`)
 8. `./scripts/quality-gates.sh` → final validation
+9. After pushing PR fixes, verify checks attach on head SHA (`gh pr view --json statusCheckRollup,mergeStateStatus`)
+
+## CI Monitoring Learnings (2026-03)
+- Treat empty required-check rollup as a blocker, not as implicit success
+- Avoid plans-only follow-up commits before remediation CI checks are attached
+- If rollup remains empty, investigate workflow trigger/path conditions and use GH CLI monitoring evidence in `plans/STATUS/VALIDATION_LATEST.md`
 
 ## Required Checks Before Commit
 - [ ] `cargo fmt --all -- --check`

@@ -33,12 +33,22 @@
 6. **ACT-009**
    - Goal: WG-005
    - Action: Re-run/monitor Quick Check and dependent Performance Benchmarks gate
-   - Status: In Progress
+   - Status: In Progress (blocked: no new check runs attached to latest head)
 
 7. **ACT-010**
    - Goal: WG-005
    - Action: Track `codecov/patch` failure and determine threshold vs upload issue
    - Status: Planned
+
+8. **ACT-011**
+   - Goal: WG-005
+   - Action: Diagnose workflow trigger/path conditions causing empty required-check rollup on plans-only head commits
+   - Status: In Progress
+
+9. **ACT-012**
+   - Goal: WG-005
+   - Action: Add PR remediation sequencing rule in GOAP docs (avoid trailing plans-only commit before CI attaches)
+   - Status: Complete
 
 ## Completed Actions
 

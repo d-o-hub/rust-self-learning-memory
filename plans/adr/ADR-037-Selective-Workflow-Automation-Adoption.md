@@ -116,6 +116,10 @@ ADR-037 implementation scope is complete for the initial rollout. The docs integ
 
 Post-rollout PR monitoring (`#334`) identified unrelated CI hygiene failures (format/yaml/codecov) that affect merge stability but do not invalidate ADR-037 decisions. These are tracked in GOAP action backlog under WG-005.
 
+## Operational Learning (2026-03-05)
+
+Automation adoption alone is insufficient for merge readiness if required CI checks do not attach to the active PR head. We now treat empty required-check rollup as a release/merge blocker and track CI trigger topology as a neighboring concern under ADR-029/ADR-034 governance.
+
 ## References
 
 - `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`

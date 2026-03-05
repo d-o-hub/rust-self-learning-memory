@@ -32,6 +32,29 @@
   - `docs/architecture/context.yaml` added as machine-readable context contract
   - `AGENTS.md` and `agent_docs/README.md` updated with workflow references
 
+## GH CLI Monitoring Snapshot - PR #334 (2026-03-05)
+
+- PR URL: `https://github.com/d-o-hub/rust-self-learning-memory/pull/334`
+- Merge state: `UNSTABLE`
+- Failed checks observed:
+  - `Essential Checks (format)` -> `cargo fmt --check` diff in `tests/e2e/cli_workflows.rs`
+  - `Quick PR Check (Format + Clippy)` -> failed on formatting stage
+  - `YAML Syntax Validation` -> `.github/workflows/changelog.yml` (`truthy`, missing newline at EOF)
+  - `Check Quick Check Status` -> downstream failure due to quick-check failure
+  - `codecov/patch` -> failing (needs threshold/upload diagnosis)
+- GH run IDs inspected:
+  - CI: `22722628915`
+  - YAML Lint: `22722628921`
+  - Quick Check: `22722628894`
+  - Performance Benchmarks: `22722628905`
+
+### Remediation Applied (2026-03-05)
+
+- ✅ Formatting drift fixed in `tests/e2e/cli_workflows.rs`.
+- ✅ YAML lint issues addressed in `.github/workflows/changelog.yml` and related `.github/*.yml` files (`document-start`, `truthy`, newline-at-EOF).
+- ✅ Local format gate recheck: `cargo fmt --all -- --check`.
+- ⏳ Awaiting new PR workflow run for final check-state verification.
+
 ## Status Sync Contract (Canonical Fields)
 
 These values must be identical in this file, `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md`, and `plans/ROADMAPS/ROADMAP_ACTIVE.md`:

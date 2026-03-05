@@ -108,6 +108,16 @@ Use a **hybrid strategy**:
 3. Dry-run release validation path confirmed via `./scripts/release-manager.sh validate`
 4. Initial verification signals recorded in `plans/STATUS/VALIDATION_LATEST.md`
 
+### Phase D monitoring update (2026-03-05, PR #334)
+
+1. PR merge state currently `UNSTABLE` due to CI check failures.
+2. Root causes identified via GH CLI:
+   - Formatting drift (`tests/e2e/cli_workflows.rs`) in `Essential Checks (format)` and `Quick PR Check`.
+   - YAML lint failures in `.github/workflows/changelog.yml` (`truthy` + missing newline at EOF).
+   - `Check Quick Check Status` failing as expected downstream dependency.
+3. Additional issue tracked: `codecov/patch` failing.
+4. Follow-up actions captured in `plans/ACTIONS.md` under WG-005.
+
 ### Phase C (Validation and rollout)
 
 1. Wire docs integrity script into `scripts/quality-gates.sh` as non-destructive check first, then blocking after stabilization.

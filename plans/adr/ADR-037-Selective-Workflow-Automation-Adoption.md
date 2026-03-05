@@ -112,6 +112,10 @@ Adopt a **selective import policy**:
 
 ADR-037 implementation scope is complete for the initial rollout. The docs integrity gate remains non-blocking by design during stabilization.
 
+## Monitoring Note (2026-03-05)
+
+Post-rollout PR monitoring (`#334`) identified unrelated CI hygiene failures (format/yaml/codecov) that affect merge stability but do not invalidate ADR-037 decisions. These are tracked in GOAP action backlog under WG-005.
+
 ## References
 
 - `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`

@@ -42,7 +42,14 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
 
     // Build it - specify package to avoid workspace ambiguity
     let output = Command::new("cargo")
-        .args(["build", "-p", "memory-cli", "--bin", "memory-cli", "--message-format=short"])
+        .args([
+            "build",
+            "-p",
+            "memory-cli",
+            "--bin",
+            "memory-cli",
+            "--message-format=short",
+        ])
         .output()?;
 
     if !output.status.success() {

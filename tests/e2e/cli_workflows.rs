@@ -16,8 +16,18 @@ use std::process::Command;
 use tempfile::TempDir;
 
 /// Helper to find the CLI binary
+///
+/// Respects CARGO_TARGET_DIR environment variable for CI compatibility.
+/// See ADR-032 for CI disk space optimization and isolated target directories.
 fn find_cli_binary() -> Result<std::path::PathBuf> {
+    // Get the target directory, respecting CARGO_TARGET_DIR for CI compatibility
+    let target_dir = std::env::var("CARGO_TARGET_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|_| std::path::PathBuf::from("target"));
+
     let candidates = [
+        target_dir.join("debug/memory-cli"),
+        target_dir.join("release/memory-cli"),
         std::path::PathBuf::from("target/debug/memory-cli"),
         std::path::PathBuf::from("target/release/memory-cli"),
         std::path::PathBuf::from("../target/debug/memory-cli"),
@@ -30,9 +40,9 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
         }
     }
 
-    // Build it
+    // Build it - specify package to avoid workspace ambiguity
     let output = Command::new("cargo")
-        .args(["build", "--bin", "memory-cli", "--message-format=short"])
+        .args(["build", "-p", "memory-cli", "--bin", "memory-cli", "--message-format=short"])
         .output()?;
 
     if !output.status.success() {
@@ -42,7 +52,8 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
         );
     }
 
-    Ok(std::path::PathBuf::from("target/debug/memory-cli"))
+    // Return the path respecting CARGO_TARGET_DIR
+    Ok(target_dir.join("debug/memory-cli"))
 }
 
 /// Helper to create a test config file

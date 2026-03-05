@@ -227,6 +227,15 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 - ⏭️ **Performance Benchmarks** - skipped (intentional)
 - ❌ **Nightly Full Tests** - FAILING (last 2 runs failed, needs investigation)
 
+### PR Monitoring Status (2026-03-05)
+
+- PR #334 currently `UNSTABLE` (targeted CI hygiene failures):
+  - format drift in `tests/e2e/cli_workflows.rs`
+  - yamllint issues in `.github/workflows/changelog.yml`
+  - downstream quick-check status failure
+  - `codecov/patch` failure under investigation
+- Remediation applied locally for format + YAML issues; awaiting new CI run.
+
 ### Nightly CI Fixes Completed (2026-02-16)
 
 **Fix 1: Disk Space Management** ✅

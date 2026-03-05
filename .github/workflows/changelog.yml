@@ -1,3 +1,4 @@
+---
 # Changelog Generation Workflow
 # Automatically generates and updates CHANGELOG.md using git-cliff
 # Triggered on GitHub release events and version tags
@@ -9,7 +10,7 @@
 
 name: Changelog
 
-on:
+'on':
   # Trigger on release publication (after release.yml completes)
   release:
     types: [published]

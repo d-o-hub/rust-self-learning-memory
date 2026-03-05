@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-05
+- **Last Updated**: 2026-03-05 (GH monitoring snapshot)
 - **Source ADR**: ADR-037
 - **Status**: Active
 
@@ -29,3 +29,9 @@
    - Owner: codebase-analyzer + yaml-validator
    - Target: add `docs/architecture/context.yaml` and validation hook
    - Status: Complete
+
+5. **WG-005**: Stabilize PR #334 checks after ADR-037 rollout
+   - Priority: P1
+   - Owner: github-workflows + code-quality
+   - Target: clear format/yaml/quick-check chain failures on PR validation
+   - Status: In Progress

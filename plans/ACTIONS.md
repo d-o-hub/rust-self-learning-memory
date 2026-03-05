@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-03-05
+- **Last Updated**: 2026-03-05 (GH monitoring snapshot)
 - **Related Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 
 ## Active Actions
@@ -20,19 +20,39 @@
    - Action: Create canonical GOAP index files under `plans/`
    - Status: Complete
 
+4. **ACT-007**
+   - Goal: WG-005
+   - Action: Resolve `cargo fmt --check` drift in `tests/e2e/cli_workflows.rs`
+   - Status: Complete
+
+5. **ACT-008**
+   - Goal: WG-005
+   - Action: Fix `.github/workflows/changelog.yml` yamllint failures (truthy + newline)
+   - Status: Complete
+
+6. **ACT-009**
+   - Goal: WG-005
+   - Action: Re-run/monitor Quick Check and dependent Performance Benchmarks gate
+   - Status: In Progress
+
+7. **ACT-010**
+   - Goal: WG-005
+   - Action: Track `codecov/patch` failure and determine threshold vs upload issue
+   - Status: Planned
+
 ## Completed Actions
 
-4. **ACT-004**
+8. **ACT-004**
    - Goal: WG-001
    - Action: Integrate docs integrity check into `scripts/quality-gates.sh`
    - Status: Complete
 
-5. **ACT-005**
+9. **ACT-005**
    - Goal: WG-004
    - Action: Create `docs/architecture/context.yaml` and validation command
    - Status: Complete
 
-6. **ACT-006**
+10. **ACT-006**
    - Goal: WG-002
    - Action: Link release wrapper to ADR-034 release flow docs
    - Status: Complete

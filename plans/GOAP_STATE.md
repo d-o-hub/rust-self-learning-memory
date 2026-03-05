@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-05 (PR #334 monitoring)
+- **Last Updated**: 2026-03-05 (PR #334 CI hardening loop)
 - **Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
 
@@ -29,11 +29,8 @@
 ## Blockers
 
 - PR #334 check failures (current merge state: `UNSTABLE`):
-  - `Essential Checks (format)` failed: `cargo fmt --check` diff in `tests/e2e/cli_workflows.rs`.
-  - `Quick PR Check (Format + Clippy)` failed: same formatting failure chain.
-  - `YAML Syntax Validation` failed on `.github/workflows/changelog.yml` (truthy + newline-at-EOF).
-  - `Check Quick Check Status` failed as downstream gate due to quick-check failure.
-- `codecov/patch` currently failing and needs separate diagnosis.
+  - In-flight revalidation on latest head after CI hardening commits.
+  - `codecov/patch` remains under observation pending new coverage run results.
 
 ## Monitoring Snapshot (via GH CLI)
 
@@ -66,3 +63,15 @@
 - Empty required-check rollup is now tracked as a first-class blocker condition for PR readiness.
 - Remediation sequence rule added: do not append plans-only commits until required CI checks are attached to the remediation head.
 - Escalation path if rollup remains empty: run targeted workflow dispatch where available and/or push a minimal trigger commit that touches CI-scoped paths.
+
+## CI Hardening Update (2026-03-05)
+
+- Commits pushed on PR branch:
+  - `199f8b3`: align CI/Coverage `cargo llvm-cov` to workspace scope and add `PR Check Anchor` workflow.
+  - `a8ecf49`: switch `PR Check Anchor` trigger to `pull_request` for PR-head visibility.
+  - `14b1494`: fix YAML lint trailing blank line in `.github/workflows/changelog.yml`.
+- Expected effect:
+  - Faster guaranteed status context on PR updates (`Required Check Anchor`).
+  - Improved `codecov/patch` relevance for non-lib diffs via workspace coverage.
+- Current action:
+  - Continue monitoring PR #334 checks until full green and then close WG-005 action items.

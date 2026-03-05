@@ -64,3 +64,10 @@ See linked files for caching strategies, troubleshooting, and release management
 - **Matrix builds**: Multiple Rust versions, targets
 - **Conditional jobs**: Skip on docs-only changes
 - **Quality gates**: Block merge on failures
+
+## PR Check Attachment Guardrail
+
+- After pushing fixes, validate checks are attached to the PR head SHA:
+  - `gh pr view --json statusCheckRollup,mergeStateStatus`
+  - `gh run list --commit <head_sha>`
+- If rollup is empty for required checks, treat as blocked and investigate trigger/path conditions.

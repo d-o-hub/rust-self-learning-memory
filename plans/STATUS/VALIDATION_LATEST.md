@@ -62,6 +62,11 @@
 - No GH Actions runs currently listed for the new commit SHA (`gh run list --commit <sha>` returned empty).
 - Action: keep monitoring until CI/YAML/Quick Check runs are scheduled, then reassess blockers.
 
+### Learning Captured
+
+- A plans-only follow-up commit can produce an empty required-check rollup on PR head depending on workflow trigger/path rules.
+- Operational rule adopted: hold documentation-only follow-up commits until remediation CI checks are attached and visible on PR rollup.
+
 ## Status Sync Contract (Canonical Fields)
 
 These values must be identical in this file, `plans/GOAP_CODEBASE_ANALYSIS_2026-02-23.md`, and `plans/ROADMAPS/ROADMAP_ACTIVE.md`:

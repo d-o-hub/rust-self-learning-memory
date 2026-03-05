@@ -235,6 +235,7 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
   - downstream quick-check status failure
   - `codecov/patch` failure under investigation
 - Remediation applied locally for format + YAML issues; awaiting new CI run.
+- Learning: plans-only follow-up commits can leave required-check rollup empty; sequencing adjusted in GOAP tracking.
 
 ### Nightly CI Fixes Completed (2026-02-16)
 

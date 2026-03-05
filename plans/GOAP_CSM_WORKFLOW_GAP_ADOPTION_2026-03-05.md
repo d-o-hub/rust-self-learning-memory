@@ -147,6 +147,13 @@ Adopt now (planning accepted):
 2. Integration is intentionally low-risk: docs checks are non-blocking during stabilization.
 3. Next hardening step: graduate docs integrity to blocking mode once baseline drift is cleared.
 
+### GOAP learnings (2026-03-05)
+
+1. **Check-trigger coupling matters**: after remediation, a plans-only follow-up commit can leave PR check rollup empty for required checks depending on workflow trigger/path configuration.
+2. **Operational sequencing improvement**: avoid adding plans-only trailing commits before required CI workflows attach/publish statuses for remediation commits.
+3. **Monitoring requirement**: include explicit GH CLI checkpoint after push (`gh pr view --json statusCheckRollup,mergeStateStatus`) and treat empty rollup on required checks as a blocker signal.
+4. **ADR alignment insight**: ADR-037 automation rollout is valid, but merge stability also depends on CI trigger topology (ADR-029/ADR-034 adjacent concern).
+
 Reject for now:
 
 1. NPM publish workflow import

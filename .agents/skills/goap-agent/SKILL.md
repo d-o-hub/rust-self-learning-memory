@@ -46,6 +46,12 @@ See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents
 5. **EXECUTE** → Run with monitoring and quality gates
 6. **SYNTHESIZE** → Aggregate results and validate success
 
+## PR Monitoring Guardrail
+
+- During EXECUTE/SYNTHESIZE for PR work, always verify `statusCheckRollup` on the latest head SHA.
+- Treat an empty required-check rollup as a blocker and document it in `plans/STATUS/VALIDATION_LATEST.md`.
+- Avoid adding plans-only follow-up commits until remediation checks are attached.
+
 See **[methodology.md](methodology.md)** for detailed phase-by-phase guidance and **[patterns.md](patterns.md)** for common execution patterns.
 
 ## ADR Integration Workflow

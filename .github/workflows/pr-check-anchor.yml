@@ -1,0 +1,23 @@
+---
+name: PR Check Anchor
+
+"on":
+  pull_request_target:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-anchor-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  anchor:
+    name: Required Check Anchor
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Publish stable PR status context
+        run: echo "PR check anchor attached for commit ${{ github.event.pull_request.head.sha }}"

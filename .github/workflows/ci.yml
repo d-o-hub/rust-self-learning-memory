@@ -212,12 +212,16 @@ jobs:
           timeout 1200s cargo audit || echo "Security audit completed with warnings"
         env:
           RUST_LOG: info
-      - name: Coverage Check (Library Only)
+      - name: Coverage Check (Workspace, PR-aligned)
         run: |
           # Coverage check with 40 minute timeout
-          # Use --lib to only test library code (faster than --workspace)
-          # Use --jobs to parallelize compilation
-          timeout 2400s cargo llvm-cov --lib --lcov --output-path lcov.info --jobs 4
+          # Use --workspace so Codecov patch status can map PR diff lines correctly.
+          # Exclude heavy non-gating crates to keep runtime reasonable.
+          timeout 2400s cargo llvm-cov --workspace \
+            --exclude benches \
+            --exclude examples \
+            --exclude test-utils \
+            --lcov --output-path lcov.info --jobs 4
         env:
           RUST_LOG: info
       - name: Upload coverage

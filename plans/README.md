@@ -12,6 +12,15 @@
 - **[ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md)** - Active development roadmap (v0.1.x series)
 - **[ROADMAP_V010_ARCHIVED.md](ROADMAPS/ROADMAP_V010_ARCHIVED.md)** - v0.1.7-v0.1.13 history
 - **[ROADMAP_V030_VISION.md](ROADMAPS/ROADMAP_V030_VISION.md)** - v1.0+ enterprise vision
+- **[GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md](GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md)** - GOAP plan for selective workflow automation adoption
+
+### Latest ADR Updates
+- **[ADR-037-Selective-Workflow-Automation-Adoption.md](adr/ADR-037-Selective-Workflow-Automation-Adoption.md)** - Proposed selective import policy for external workflow patterns
+
+### GOAP Workflow State
+- **[GOALS.md](GOALS.md)** - Canonical goal index for active GOAP workflow automation track
+- **[ACTIONS.md](ACTIONS.md)** - Action backlog and execution status
+- **[GOAP_STATE.md](GOAP_STATE.md)** - Current GOAP phase snapshot
 
 ### Architecture
 - **[ARCHITECTURE/ARCHITECTURE_CORE.md](ARCHITECTURE/ARCHITECTURE_CORE.md)** - Core architecture documentation
@@ -119,5 +128,5 @@ Documents are organized by:
 
 ---
 
-**Last Updated**: 2026-02-02
-**Status**: ✅ ALL P0 TASKS COMPLETE - MCP/CLI relationship & tag features fully implemented!
+**Last Updated**: 2026-03-05
+**Status**: Active GOAP planning with selective workflow automation track (ADR-037 proposed)

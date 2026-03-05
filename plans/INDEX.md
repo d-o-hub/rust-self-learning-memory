@@ -1,6 +1,6 @@
 # Plans Index
 
-**Last Updated**: 2026-02-24 (Swarm-verified metrics refresh)
+**Last Updated**: 2026-03-05 (Workflow automation adoption planning added)
 
 ## Current Status (2026-02-24)
 - **v0.1.16** on `main` branch (edition 2024)
@@ -19,6 +19,14 @@
 
 ### Opencode Configuration
 - `opencode.json` - Updated with default_agent and memory-mcp per-agent config
+
+## Workflow Automation Adoption (2026-03-05)
+
+- `GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md` - GOAP analysis and phased adoption plan from external workflow patterns
+- `adr/ADR-037-Selective-Workflow-Automation-Adoption.md` - Selective import policy and acceptance criteria
+- `GOALS.md` - Goal index for workflow automation track
+- `ACTIONS.md` - Action backlog for workflow automation execution
+- `GOAP_STATE.md` - GOAP phase snapshot and progress
 
 ## Phase 1 & v0.1.16 Planning (2026-02-16)
 
@@ -50,6 +58,10 @@
 | ADR-028 | Feature Enhancement Roadmap | Active (v0.1.16 planning complete) |
 | ADR-029 | GitHub Actions Modernization | ✅ Complete |
 | ADR-030 | Test Optimization and CI Stability | ✅ Complete |
+| ADR-034 | Release Engineering Modernization | Active |
+| ADR-035 | Rust 2024 Edition Migration | ✅ Complete |
+| ADR-036 | Dependency Deduplication | Active |
+| ADR-037 | Selective Workflow Automation Adoption | Proposed |
 
 **Location**: `plans/adr/`
 

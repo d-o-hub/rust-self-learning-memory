@@ -1,9 +1,14 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-02-25 (CI fixes: RUSTSEC-2026-0021 + nightly disk space)
-**Status**: Week 1 GOAP execution is active; validation advanced through nextest/doctests and is currently blocked only at `./scripts/quality-gates.sh` (file-size gate).
-**Next Sprint**: v0.1.16 Week 1 - Code Quality Remediation (B1-B4, E3, INFRA)
+**Last Updated**: 2026-03-05 (Analysis-Swarm Rebaseline: corrected metrics, validated ADR compliance)
+**Status**: Week 1 GOAP execution complete; all source files comply with ≤500 LOC gate. Nightly CI failing - needs investigation.
+**Next Sprint**: v0.1.17 - Error Handling Remediation (470 unwrap/expect in prod) + git-cliff CI automation
 **GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md) | **Prior CI Phase**: [GOAP_PHASE1_COMPLETION_SUMMARY.md](../GOAP_PHASE1_COMPLETION_SUMMARY.md) ✅
+
+**Workflow Automation Track (Proposed)**:
+- [GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md](../GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md)
+- [ADR-037-Selective-Workflow-Automation-Adoption.md](../adr/ADR-037-Selective-Workflow-Automation-Adoption.md)
+- Progress: Phase B started (`check-docs-integrity.sh`, `release-manager.sh`, and GOAP state index files added)
 
 ---
 
@@ -15,17 +20,15 @@
 **Latest Changes**: 2026-02-23
 **Current Plan**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md)
 
-### Week 1 GOAP Snapshot (2026-02-24 — Analysis-Swarm Rebaseline)
+### Week 1 GOAP Snapshot (2026-03-05 — Analysis-Swarm Rebaseline)
 
 - ✅ Analysis-swarm rebaseline completed — corrected stale metrics across all plan docs
-- ✅ Atomic docs checkpoint complete: Week 1 non-destructive `INFRA + E3` planning updates synced
-- ✅ W1-M1/W1-M2/W1-M3 plan tasks are complete in the GOAP plan
-- ✅ W1-M4 completed: validation command order is locked/executed
-- ✅ B1/B2/B3/B4 completed: source files now comply with <=500 LOC gate
-- ✅ Week 1 blocker cleared: `./scripts/quality-gates.sh` now passes after source splits
-- 🎯 Corrected metrics: **681 unwrap/expect prod-only** (was 1,311), **818 files / 205K LOC** (was 621 / 141K)
-- ✅ Build/clippy/check/nextest/doctests/quality-gates: all passing in latest run
-- ✅ Gate scope decision implemented and validated in passing run
+- ✅ B1/B2/B3/B4 completed: **0 source files exceed 500 LOC** (3 test files exempt)
+- ✅ Week 1 blocker cleared: `./scripts/quality-gates.sh` passes file-size gate
+- 🎯 Corrected metrics: **470 unwrap/expect prod-only** (was incorrectly documented as 681)
+- ✅ git-cliff configured (cliff.toml) - needs CI workflow automation
+- ✅ Build/clippy/check/nextest/doctests: all passing
+- ❌ Nightly Full Tests: Failing - needs investigation
 
 ### Status Sync Contract (Week 1)
 
@@ -215,14 +218,14 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 **Test Suite**: 2289 tests passing (73 skipped)
 **Open PRs**: PR #297 (CLI workflow fixes, ready for review)
 
-### CI Workflow Status (2026-02-25)
+### CI Workflow Status (2026-03-05)
 - ✅ **CI** - passing on main
 - ✅ **Coverage** - passing on main
 - ✅ **File Structure Validation** - passing on main
-- 🔧 **Security** - FIXED: bumped wasmtime 36.0.5→36.0.6 + 41.0.3→41.0.4 (RUSTSEC-2026-0021)
+- ✅ **Security** - passing on main (wasmtime updated for RUSTSEC-2026-0021)
 - ✅ **CodeQL** - passing on main
 - ⏭️ **Performance Benchmarks** - skipped (intentional)
-- 🔧 **Nightly Full Tests** - FIXED: added aggressive disk cleanup to Slow Tests job (disk exhaustion)
+- ❌ **Nightly Full Tests** - FAILING (last 2 runs failed, needs investigation)
 
 ### Nightly CI Fixes Completed (2026-02-16)
 
@@ -263,8 +266,8 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 
 ### Open PRs: 0
 
-### Disabled Modules
-- **Batch module in MCP** - disabled/non-functional (planned for v0.1.16 Phase C, ADR-028 §2)
+### Enabled Modules
+- **Batch module in MCP** - ✅ RE-ENABLED (commit 87aa8a1, 2026-02-25)
 
 ### CLI Architecture Issue (Identified 2026-02-16)
 
@@ -294,9 +297,9 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 - **v0.1.14** - ✅ Released (2026-02-14)
 
 ### Code Quality Debt
-- 561 unwrap() + 90 .expect() in prod code
-- 63 #[ignore] tests
-- 168 #[allow(dead_code)]
+- 470 unwrap()/.expect() in prod code (1,289 total including tests)
+- 134 #[allow(dead_code)] annotations
+- ~62 #[ignore] tests
 
 ### Immediate Priority: v0.1.16 Code Quality + Pattern Algorithms
 
@@ -307,16 +310,13 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 **Sprint Checklist**: [V0.1.16_SPRINT_CHECKLIST.md](../V0.1.16_SPRINT_CHECKLIST.md)
 
 **v0.1.16 Phases**:
-- ✅ **Phase A**: CI Stabilization (COMPLETE - 2.5-5h)
-- 🔄 **Phase B**: Code Quality Remediation (READY - 15-23h)
-  - B1: Error handling audit (reduce 561 unwrap() calls)
-  - B2: Ignored test triage (reduce to ≤10 tests)
-  - B3: dead_code cleanup (reduce 951 annotations to ≤40)
-- ⏸️ **Phase C**: Feature Completion (BLOCKED BY B1 - 14-22h)
-  - C1: Batch module rehabilitation
-  - C2: Embeddings CLI/MCP integration
-- ⏸️ **Phase D**: Advanced Pattern Algorithms (BLOCKED BY C1 - 12-20h)
-  - D1: DBSCAN + BOCPD validation and deployment
+- ✅ **Phase A**: CI Stabilization (COMPLETE)
+- ✅ **Phase B (File Splits)**: COMPLETE - All source files ≤500 LOC
+- 🔄 **Phase B (Error Handling)**: READY - 470 unwrap/expect in prod
+- 📋 **Phase B (Test Triage)**: Categorized - ~62 ignored tests
+- ⏸️ **Phase B (dead_code)**: PENDING - 134 annotations
+- ✅ **Phase C1**: Batch Module Rehabilitation - COMPLETE
+- ✅ **Phase C2**: Embeddings CLI - Already implemented
 
 **Total Effort**: 44-70 hours over 4-5 weeks
 
@@ -815,4 +815,4 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 *PR #297: 🔄 Ready for review (CLI workflow improvements)*
 *GOAP Plan: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md)*
 *v0.1.16 Planning: [V0.1.16_ROADMAP_SUMMARY.md](../V0.1.16_ROADMAP_SUMMARY.md)*
-*ADR Reference: ADR-022, ADR-024, ADR-027, ADR-028, ADR-030, ADR-033, ADR-034, ADR-036*
+*ADR Reference: ADR-022, ADR-024, ADR-027, ADR-028, ADR-030, ADR-033, ADR-034, ADR-036, ADR-037*

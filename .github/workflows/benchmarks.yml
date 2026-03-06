@@ -46,9 +46,11 @@ jobs:
     runs-on: ubuntu-latest
     # Only depend on check-quick-check for PRs, skip dependency for other triggers
     needs: [check-quick-check]
-    # Simplified conditional: run if not Dependabot, and either not a PR or quick-check passed
+    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    # Use always() to evaluate condition even when dependency was skipped (push events)
     if: >-
-      ${{
+      ${{ 
+        always() &&
         github.actor != 'dependabot[bot]' &&
         (
           github.event_name != 'pull_request' ||

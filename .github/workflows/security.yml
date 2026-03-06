@@ -16,12 +16,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Wait for quick-check to pass before running security scans
+  # This implements the "fast checks first" pattern for 2026 best practices
+  check-quick-check:
+    name: Check Quick Check Status
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    # Only run on PRs and never for Dependabot to avoid timeout issues
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    timeout-minutes: 15
+    steps:
+      - name: Wait for Quick Check with timeout protection
+        uses: lewagon/wait-on-check-action@v1.5.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'Quick PR Check (Format + Clippy)'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          running-workflow-name: Quick Check
+          fail-on-no-checks: false
+
   secret-scan:
     name: Secret Scanning
     permissions:
       contents: read
       security-events: write  # Required for gitleaks-action SARIF uploads
     runs-on: ubuntu-latest
+    needs: [check-quick-check]
+    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
@@ -53,6 +85,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs: [check-quick-check]
+    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
@@ -82,6 +125,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    needs: [check-quick-check]
+    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     timeout-minutes: 10
     steps:
       - name: Checkout code

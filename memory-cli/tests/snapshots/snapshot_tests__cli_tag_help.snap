@@ -1,0 +1,21 @@
+---
+source: memory-cli/tests/snapshot_tests.rs
+expression: stdout
+---
+Tag management commands for episodes
+
+Usage: memory-cli tag <COMMAND>
+
+Commands:
+  add     Add tags to an episode
+  remove  Remove tags from an episode
+  set     Set/replace all tags on an episode
+  list    List tags - optionally for a specific episode or all tags system-wide
+  search  Search episodes by tags
+  show    Show episode details with its tags
+  rename  Rename a tag across all episodes
+  stats   Show detailed tag usage statistics
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

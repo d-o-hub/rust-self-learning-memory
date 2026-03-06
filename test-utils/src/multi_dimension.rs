@@ -23,23 +23,13 @@ pub use turso_utils::*;
 #[cfg(feature = "turso")]
 mod turso_utils {
     use super::*;
-    use memory_core::{Episode, embeddings::EmbeddingStorageBackend};
+    use memory_core::{embeddings::EmbeddingStorageBackend, Episode};
     use memory_storage_turso::TursoStorage;
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha8Rng;
     use std::sync::Arc;
     use tempfile::TempDir;
     use tracing;
-
-    /// Generate a random embedding of specified dimension
-    pub fn generate_embedding(dimension: usize, seed: u64) -> Vec<f32> {
-        let mut rng = ChaCha8Rng::from_seed(crate::seed_from_u64_32(seed));
-        (0..dimension).map(|_| rng.gen_range(-1.0..1.0)).collect()
-    }
-
-    fn seed_from_u64_64(seed: u64) -> [u8; 8] {
-        seed.to_le_bytes()
-    }
 
     fn seed_from_u64_32(seed: u64) -> [u8; 32] {
         let bytes = seed.to_le_bytes();
@@ -49,6 +39,12 @@ mod turso_utils {
             bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
             bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
         ]
+    }
+
+    /// Generate a random embedding of specified dimension
+    pub fn generate_embedding(dimension: usize, seed: u64) -> Vec<f32> {
+        let mut rng = ChaCha8Rng::from_seed(seed_from_u64_32(seed));
+        (0..dimension).map(|_| rng.gen_range(-1.0..1.0)).collect()
     }
 
     /// Test harness for multi-dimension embedding tests

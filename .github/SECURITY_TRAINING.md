@@ -673,7 +673,7 @@ fn example() {
 - [SECURITY.md](../SECURITY.md) - Comprehensive security policy
 - [AGENTS.md](../AGENTS.md) - Project guidelines
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution workflow
-- [.claude/CLAUDE.md](../.claude/CLAUDE.md) - Claude Code workflow
+- [.claude/CLAUDE.md](../CLAUDE.md) - Claude Code workflow
 - [deny.toml](../deny.toml) - cargo-deny configuration
 
 ---

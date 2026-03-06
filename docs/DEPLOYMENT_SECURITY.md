@@ -944,7 +944,7 @@ fi
 - [API Reference](./API_REFERENCE.md)
 - [Security Operations Guide](./SECURITY_OPERATIONS.md)
 - [Security Features Guide](./SECURITY_FEATURES_GUIDE.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING.md)
+<!-- NOTE: TROUBLESHOOTING.md is planned documentation -->
 
 ---
 

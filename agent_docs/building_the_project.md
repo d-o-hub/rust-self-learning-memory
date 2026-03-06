@@ -180,7 +180,7 @@ cd benches && cargo bench -- --output-format html
    - Run `cargo clippy --all -- -D warnings` to see warnings
    - Apply fixes: `cargo clippy --fix --allow-dirty`
    - For intentional violations, add `#[allow(...)]` with justification
-   - See [CLAUDE.md](../../.claude/CLAUDE.md) for recent changes and best practices
+   - See [CLAUDE.md](../../CLAUDE.md) for recent changes and best practices
 4. **Test failures**: Check [TESTING.md](../TESTING.md) for debugging
 5. **Build errors**: Ensure Rust toolchain is up to date: `rustup update`
 

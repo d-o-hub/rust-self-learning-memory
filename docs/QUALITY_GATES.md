@@ -186,7 +186,6 @@ Running cargo clippy...
 - Review clippy warnings in output
 - Fix issues: `cargo clippy --fix --allow-dirty`
 - For intentional violations, use `#[allow(clippy::...)]` with justification
-- See [CLIPPY_FIX_PLAN.md](../plans/CLIPPY_FIX_PLAN.md) for examples of recent fixes
 
 **Recent Updates (2025-12-26):**
 All clippy warnings have been resolved using 2025 best practices:

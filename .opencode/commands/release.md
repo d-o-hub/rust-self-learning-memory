@@ -319,9 +319,9 @@ gh release view v{VERSION}
 
 ## References
 
-- [ADR-034: Release Engineering Modernization](plans/adr/ADR-034-Release-Engineering-Modernization.md)
-- [Skill: release-guard](.agents/skills/release-guard/SKILL.md)
-- [Skill: github-release-best-practices](.agents/skills/github-release-best-practices/SKILL.md)
+- [ADR-034: Release Engineering Modernization](../plans/adr/ADR-034-Release-Engineering-Modernization.md)
+- [Skill: release-guard](../.agents/skills/release-guard/SKILL.md)
+- [Skill: github-release-best-practices](../.agents/skills/github-release-best-practices/SKILL.md)
 - [cargo-release](https://github.com/crate-ci/cargo-release)
 - [cargo-dist](https://axodotdev.github.io/cargo-dist/)
 - [cargo-semver-checks](https://github.com/obi1kenobi/cargo-semver-checks)

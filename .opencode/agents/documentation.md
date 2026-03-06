@@ -114,8 +114,9 @@ cargo build --release
 2. Another item
 
 #### Links and References
-[Link text](path/to/file.md)
-[External link](https://example.com)
+<!-- NOTE: The following are example link formats, not actual links -->
+`[Link text](path/to/file.md)` - Internal link format
+`[External link](https://example.com)` - External link format
 
 ### Content Guidelines
 
@@ -238,8 +239,8 @@ grep -r "pub " src/ | grep -E "(fn|struct|enum|trait)"
 **Solution**: How to fix it
 
 ## See Also
-- [Related documentation](link)
-- [Source code](link)
+- `[Related documentation](link)` - Replace with actual link
+- `[Source code](link)` - Replace with actual link
 ```
 
 #### 3. Integrate Examples

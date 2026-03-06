@@ -281,10 +281,10 @@ No migration needed. Simply upgrade to v0.1.13+ and start using the new APIs.
 
 ## Related Documentation
 
-- [Pattern Effectiveness Tracking](memory-core/src/patterns/effectiveness.rs)
-- [Semantic Embeddings](memory-core/EMBEDDING_PROVIDERS.md)
-- [MCP Protocol](memory-mcp/README.md)
-- [CLI User Guide](memory-cli/CLI_USER_GUIDE.md)
+- [Pattern Effectiveness Tracking](src/patterns/effectiveness.rs)
+- [Semantic Embeddings](EMBEDDING_PROVIDERS.md)
+- [MCP Protocol](../memory-mcp/README.md)
+- [CLI User Guide](../memory-cli/CLI_USER_GUIDE.md)
 
 ---
 

@@ -239,10 +239,10 @@ let archived = memory.list_archived_episodes().await?;
 
 ## Related Documentation
 
-- [Episode Creation](memory-core/src/memory/episode.rs)
-- [Pattern Extraction](memory-core/src/extraction/)
-- [Storage Backends](memory-storage-redb/README.md)
-- [CLI User Guide](memory-cli/CLI_USER_GUIDE.md)
+- [Episode Creation](src/memory/episode.rs)
+- [Pattern Extraction](src/extraction/)
+- [Storage Backends](../memory-storage-redb/README.md)
+- [CLI User Guide](../memory-cli/CLI_USER_GUIDE.md)
 
 ## Examples
 

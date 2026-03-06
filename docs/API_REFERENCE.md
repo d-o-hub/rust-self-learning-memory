@@ -1432,8 +1432,7 @@ async fn main() -> anyhow::Result<()> {
 
 - [Security Operations Guide](./SECURITY_OPERATIONS.md)
 - [Deployment Security Guide](./DEPLOYMENT_SECURITY.md)
-- [Performance Tuning Guide](./PERFORMANCE_TUNING.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING.md)
+<!-- NOTE: PERFORMANCE_TUNING.md and TROUBLESHOOTING.md are planned documentation -->
 - [MCP Protocol Specification](https://modelcontextprotocol.io)
 
 ---

@@ -1,34 +1,32 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-03-05 (Analysis-Swarm Rebaseline: corrected metrics, validated ADR compliance)
-**Status**: Week 1 GOAP execution complete; all source files comply with ≤500 LOC gate. Nightly CI failing - needs investigation.
-**Next Sprint**: v0.1.17 - Error Handling Remediation (470 unwrap/expect in prod) + git-cliff CI automation
-**GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md) | **Prior CI Phase**: [GOAP_PHASE1_COMPLETION_SUMMARY.md](../GOAP_PHASE1_COMPLETION_SUMMARY.md) ✅
-
-**Workflow Automation Track (Proposed)**:
-- [GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md](../GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md)
-- [ADR-037-Selective-Workflow-Automation-Adoption.md](../adr/ADR-037-Selective-Workflow-Automation-Adoption.md)
-- Progress: Phases A/B/C complete (`check-docs-integrity.sh`, `release-manager.sh`, GOAP state index files, `docs/architecture/context.yaml`, and quality-gates integration)
+**Last Updated**: 2026-03-06 (quick wins: ADR-029 Phase 3/4, git-cliff verified, ADR-028 rebaselined)
+**Status**: v0.1.16 stable on main. Quick wins shipped. Error handling + test triage are next priorities.
+**Next Sprint**: v0.1.17 — Error Handling (G1), Test Triage (G2), Proptest Expansion (G7)
+**GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-03-06.md](../GOAP_CODEBASE_ANALYSIS_2026-03-06.md) | **Prior**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md) ✅
 
 ---
 
 ## Current Development Focus
 
-### Active Branch: goap-missing-tasks-2026-02-24
+### Active Branch: main (v0.1.16)
 
-**Branch Status**: Documentation and planning sync branch. Latest full validation evidence comes from `goap-codebase-analysis-week1`.
-**Latest Changes**: 2026-02-23
-**Current Plan**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md)
+**Branch Status**: Stable. All CI green. Quick wins shipped 2026-03-06.
+**Latest Changes**: 2026-03-06
+**Current Plan**: [GOAP_CODEBASE_ANALYSIS_2026-03-06.md](../GOAP_CODEBASE_ANALYSIS_2026-03-06.md)
 
-### Week 1 GOAP Snapshot (2026-03-05 — Analysis-Swarm Rebaseline)
+### Latest Snapshot (2026-03-06)
 
-- ✅ Analysis-swarm rebaseline completed — corrected stale metrics across all plan docs
-- ✅ B1/B2/B3/B4 completed: **0 source files exceed 500 LOC** (3 test files exempt)
-- ✅ Week 1 blocker cleared: `./scripts/quality-gates.sh` passes file-size gate
-- 🎯 Corrected metrics: **470 unwrap/expect prod-only** (was incorrectly documented as 681)
-- ✅ git-cliff configured (cliff.toml) - needs CI workflow automation
-- ✅ Build/clippy/check/nextest/doctests: all passing
-- ❌ Nightly Full Tests: Failing - needs investigation
+- ✅ **856 Rust files, ~204K LOC** on main branch (v0.1.16)
+- ✅ **All source files ≤500 LOC** (24 test files >500 LOC, non-blocking)
+- ✅ **ADR-029 Phase 3-4 shipped**: benchmark permissions split, Dependabot grouping, CI concurrency fix, single-value matrix removed
+- ✅ **ADR-034 Phase 4**: git-cliff configured and verified producing changelogs
+- ✅ **ADR-028 rebaselined**: 4/14 features complete (#1 MCP Token, #2 Batch, #3 File Size, #7 Embeddings CLI partial)
+- ✅ **Batch module re-enabled** (2026-02-25)
+- ✅ **58 ignored tests categorized** — 6 timing-dependent (fixable), ~30 slow (by design)
+- 🔴 **921 unwrap/expect total** — primary remaining debt
+- 🟡 **140 dead_code annotations** — 64 genuinely unused, rest feature-gated/test helpers
+- 🟡 **129 duplicate dependency roots** (target: <80)
 
 ### Status Sync Contract (Week 1)
 
@@ -218,24 +216,14 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 **Test Suite**: 2289 tests passing (73 skipped)
 **Open PRs**: PR #297 (CLI workflow fixes, ready for review)
 
-### CI Workflow Status (2026-03-05)
+### CI Workflow Status (2026-02-25)
 - ✅ **CI** - passing on main
 - ✅ **Coverage** - passing on main
 - ✅ **File Structure Validation** - passing on main
-- ✅ **Security** - passing on main (wasmtime updated for RUSTSEC-2026-0021)
+- 🔧 **Security** - FIXED: bumped wasmtime 36.0.5→36.0.6 + 41.0.3→41.0.4 (RUSTSEC-2026-0021)
 - ✅ **CodeQL** - passing on main
 - ⏭️ **Performance Benchmarks** - skipped (intentional)
-- ❌ **Nightly Full Tests** - FAILING (last 2 runs failed, needs investigation)
-
-### PR Monitoring Status (2026-03-05)
-
-- PR #334 currently `UNSTABLE` (targeted CI hygiene failures):
-  - format drift in `tests/e2e/cli_workflows.rs`
-  - yamllint issues in `.github/workflows/changelog.yml`
-  - downstream quick-check status failure
-  - `codecov/patch` failure under investigation
-- Remediation applied locally for format + YAML issues; awaiting new CI run.
-- Learning: plans-only follow-up commits can leave required-check rollup empty; sequencing adjusted in GOAP tracking.
+- 🔧 **Nightly Full Tests** - FIXED: added aggressive disk cleanup to Slow Tests job (disk exhaustion)
 
 ### Nightly CI Fixes Completed (2026-02-16)
 
@@ -276,8 +264,8 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 
 ### Open PRs: 0
 
-### Enabled Modules
-- **Batch module in MCP** - ✅ RE-ENABLED (commit 87aa8a1, 2026-02-25)
+### Disabled Modules
+- **Batch module in MCP** - disabled/non-functional (planned for v0.1.16 Phase C, ADR-028 §2)
 
 ### CLI Architecture Issue (Identified 2026-02-16)
 
@@ -307,9 +295,9 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 - **v0.1.14** - ✅ Released (2026-02-14)
 
 ### Code Quality Debt
-- 470 unwrap()/.expect() in prod code (1,289 total including tests)
-- 134 #[allow(dead_code)] annotations
-- ~62 #[ignore] tests
+- 561 unwrap() + 90 .expect() in prod code
+- 63 #[ignore] tests
+- 168 #[allow(dead_code)]
 
 ### Immediate Priority: v0.1.16 Code Quality + Pattern Algorithms
 
@@ -320,13 +308,16 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 **Sprint Checklist**: [V0.1.16_SPRINT_CHECKLIST.md](../V0.1.16_SPRINT_CHECKLIST.md)
 
 **v0.1.16 Phases**:
-- ✅ **Phase A**: CI Stabilization (COMPLETE)
-- ✅ **Phase B (File Splits)**: COMPLETE - All source files ≤500 LOC
-- 🔄 **Phase B (Error Handling)**: READY - 470 unwrap/expect in prod
-- 📋 **Phase B (Test Triage)**: Categorized - ~62 ignored tests
-- ⏸️ **Phase B (dead_code)**: PENDING - 134 annotations
-- ✅ **Phase C1**: Batch Module Rehabilitation - COMPLETE
-- ✅ **Phase C2**: Embeddings CLI - Already implemented
+- ✅ **Phase A**: CI Stabilization (COMPLETE - 2.5-5h)
+- 🔄 **Phase B**: Code Quality Remediation (READY - 15-23h)
+  - B1: Error handling audit (reduce 561 unwrap() calls)
+  - B2: Ignored test triage (reduce to ≤10 tests)
+  - B3: dead_code cleanup (reduce 951 annotations to ≤40)
+- ⏸️ **Phase C**: Feature Completion (BLOCKED BY B1 - 14-22h)
+  - C1: Batch module rehabilitation
+  - C2: Embeddings CLI/MCP integration
+- ⏸️ **Phase D**: Advanced Pattern Algorithms (BLOCKED BY C1 - 12-20h)
+  - D1: DBSCAN + BOCPD validation and deployment
 
 **Total Effort**: 44-70 hours over 4-5 weeks
 
@@ -825,4 +816,4 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 *PR #297: 🔄 Ready for review (CLI workflow improvements)*
 *GOAP Plan: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md)*
 *v0.1.16 Planning: [V0.1.16_ROADMAP_SUMMARY.md](../V0.1.16_ROADMAP_SUMMARY.md)*
-*ADR Reference: ADR-022, ADR-024, ADR-027, ADR-028, ADR-030, ADR-033, ADR-034, ADR-036, ADR-037*
+*ADR Reference: ADR-022, ADR-024, ADR-027, ADR-028, ADR-030, ADR-033, ADR-034, ADR-036*

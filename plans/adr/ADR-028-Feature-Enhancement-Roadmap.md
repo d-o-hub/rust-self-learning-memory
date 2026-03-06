@@ -453,18 +453,18 @@ Long-term (Q3-Q4 2026):
 
 ## Implementation Status
 
-🔄 **PARTIALLY COMPLETE** (2 of 14 features shipped — analysis-swarm rebaseline 2026-02-24)
+🔄 **PARTIALLY COMPLETE** (4 of 14 features shipped — rebaselined 2026-03-06)
 
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
 | 1 | MCP Token Optimization | ✅ Complete | Shipped in v0.1.15 — `list_tool_names()` for 98% token reduction |
-| 2 | Batch Module Rehabilitation | ⬚ Not Started | `// pub mod batch;` still commented out in tools/mod.rs |
-| 3 | File Size Compliance | 🔄 Partial | 28 source files >500 LOC remain (was claimed ✅ Complete — incorrect) |
-| 4 | Error Handling Improvement | ⬚ Not Started | **681** unwrap/expect in prod (553 unwrap + 128 expect) — corrected from stale 561+90 |
-| 5 | Ignored Test Rehabilitation | ⬚ Not Started | 62 ignored tests — no triage started |
-| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Blocked — #3 not yet complete |
-| 7 | Embeddings Integration | ⬚ Not Started | Unblocked (dependency #1 complete) |
-| 8 | Transport Compression | ⬚ Not Started | Blocked by #2 |
+| 2 | Batch Module Rehabilitation | ✅ Complete | Re-enabled in tools/mod.rs (2026-02-25) |
+| 3 | File Size Compliance | ✅ Complete | All source files ≤500 LOC (24 test files >500 LOC, non-blocking) |
+| 4 | Error Handling Improvement | ⬚ Not Started | **921** unwrap/expect total (816 unwrap + 105 expect, incl. test-adjacent) |
+| 5 | Ignored Test Rehabilitation | 📋 Categorized | 58 ignored tests — triaged into fix/keep/convert categories |
+| 6 | Adaptive TTL Phase 2 | ⬚ Not Started | Unblocked (#3 complete) |
+| 7 | Embeddings Integration | 🟡 Partial | CLI commands ✅ exist; MCP tools still pending |
+| 8 | Transport Compression | ⬚ Not Started | Unblocked (#2 complete) |
 | 9-14 | Long-term features | ⬚ Not Started | Long-term |
 
 ---

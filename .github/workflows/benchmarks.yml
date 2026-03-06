@@ -56,7 +56,7 @@ jobs:
         )
       }}
     permissions:
-      contents: write  # Required for auto-push of benchmark results
+      contents: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
       actions: write   # Required for caching
     timeout-minutes: 30
     env:
@@ -286,7 +286,7 @@ jobs:
           key: benchmark-results-${{ github.ref }}
 
       - name: Stash uncommitted changes before benchmark storage
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           # Stash any uncommitted changes (like Cargo.lock updates)
           # to allow clean branch switching for benchmark storage
@@ -297,7 +297,7 @@ jobs:
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1.20.7
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           name: Rust Benchmarks
           tool: 'cargo'

@@ -17,7 +17,7 @@ env:
   RUSTFLAGS: "-D warnings"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -154,7 +154,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        rust: [stable]
     steps:
       - uses: actions/checkout@v6
       - name: Setup isolated target dir
@@ -162,8 +161,6 @@ jobs:
           chmod +x scripts/setup-target-dir.sh
           ./scripts/setup-target-dir.sh ci-multi-platform-${{ matrix.os }}
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ matrix.rust }}
       - name: Install mold linker (Linux only)
         if: runner.os == 'Linux'
         run: |

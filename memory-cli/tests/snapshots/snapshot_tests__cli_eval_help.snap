@@ -1,0 +1,16 @@
+---
+source: memory-cli/tests/snapshot_tests.rs
+expression: stdout
+---
+Evaluation and calibration commands
+
+Usage: memory-cli eval <COMMAND>
+
+Commands:
+  calibration    View domain calibration statistics
+  stats          View detailed domain statistics
+  set-threshold  Set custom threshold for a domain (manual override)
+  help           Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help

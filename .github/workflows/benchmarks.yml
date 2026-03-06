@@ -49,7 +49,7 @@ jobs:
     # Run if not Dependabot, and either not a PR or quick-check passed/skipped
     # Use always() to evaluate condition even when dependency was skipped (push events)
     if: >-
-      ${{ 
+      ${{
         always() &&
         github.actor != 'dependabot[bot]' &&
         (

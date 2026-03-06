@@ -33,8 +33,22 @@ mod turso_utils {
 
     /// Generate a random embedding of specified dimension
     pub fn generate_embedding(dimension: usize, seed: u64) -> Vec<f32> {
-        let mut rng = ChaCha8Rng::seed_from_u64(seed);
+        let mut rng = ChaCha8Rng::from_seed(crate::seed_from_u64_32(seed));
         (0..dimension).map(|_| rng.gen_range(-1.0..1.0)).collect()
+    }
+
+    fn seed_from_u64_64(seed: u64) -> [u8; 8] {
+        seed.to_le_bytes()
+    }
+
+    fn seed_from_u64_32(seed: u64) -> [u8; 32] {
+        let bytes = seed.to_le_bytes();
+        [
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        ]
     }
 
     /// Test harness for multi-dimension embedding tests
@@ -195,7 +209,7 @@ mod turso_utils {
         pub fn generate(&mut self, count: usize) -> Vec<Vec<f32>> {
             (0..count)
                 .map(|i| {
-                    let mut rng = ChaCha8Rng::seed_from_u64(self.seed + i as u64);
+                    let mut rng = ChaCha8Rng::from_seed(seed_from_u64_32(self.seed + i as u64));
                     (0..self.dimension)
                         .map(|_| rng.gen_range(-1.0..1.0))
                         .collect()
@@ -214,7 +228,7 @@ mod turso_utils {
 
             (0..count)
                 .map(|i| {
-                    let mut rng = ChaCha8Rng::seed_from_u64(self.seed + i as u64);
+                    let mut rng = ChaCha8Rng::from_seed(seed_from_u64_32(self.seed + i as u64));
                     base_embedding
                         .iter()
                         .map(|&base| {

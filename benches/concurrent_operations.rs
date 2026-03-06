@@ -100,7 +100,7 @@ async fn run_concurrent_workload(
     operations: usize,
     thread_id: usize,
 ) {
-    let mut rng = rand::rngs::StdRng::seed_from_u64(thread_id as u64);
+    let mut rng = rand::rngs::StdRng::from_seed((thread_id as u64).to_le_bytes());
     let context = create_benchmark_context();
 
     for _ in 0..operations {

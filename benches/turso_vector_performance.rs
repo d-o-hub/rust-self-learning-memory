@@ -24,9 +24,19 @@ use tempfile::TempDir;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
 
+fn seed_from_u64_32(seed: u64) -> [u8; 32] {
+    let bytes = seed.to_le_bytes();
+    [
+        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[0],
+        bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[0], bytes[1],
+        bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[0], bytes[1], bytes[2],
+        bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+    ]
+}
+
 /// Generate random embedding of specified dimension
 fn generate_random_embedding(dimension: usize, seed: u64) -> Vec<f32> {
-    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    let mut rng = ChaCha8Rng::from_seed(seed_from_u64_32(seed));
     (0..dimension).map(|_| rng.gen_range(-1.0..1.0)).collect()
 }
 

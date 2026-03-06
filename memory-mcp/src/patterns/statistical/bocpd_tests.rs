@@ -155,7 +155,7 @@ mod bocpd_unit_tests {
         };
 
         let mut bocpd = SimpleBOCPD::new(config);
-        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
+        let mut rng = rand::rngs::StdRng::from_seed(42u64.to_le_bytes());
 
         // Create data with gradual drift (not abrupt change)
         let mut data = Vec::new();
@@ -556,7 +556,7 @@ mod bocpd_integration_tests {
 
         let mut engine = crate::patterns::statistical::StatisticalEngine::new()?;
         let mut data = HashMap::new();
-        let mut rng = rand::rngs::StdRng::seed_from_u64(1337);
+        let mut rng = rand::rngs::StdRng::from_seed(1337u64.to_le_bytes());
 
         // Create series with clear changepoint
         let series: Vec<f64> = (0..100)

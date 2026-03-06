@@ -638,7 +638,7 @@ echo "Compliance evidence: $OUTPUT_DIR.tar.gz"
 - [API Reference](./API_REFERENCE.md)
 - [Deployment Security Guide](./DEPLOYMENT_SECURITY.md)
 - [Security Features Guide](./SECURITY_FEATURES_GUIDE.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING.md)
+<!-- NOTE: TROUBLESHOOTING.md is planned documentation -->
 
 ---
 

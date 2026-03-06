@@ -285,7 +285,6 @@ criterion_main!(benches);
 - Run `cargo clippy --all-targets --all-features`
 - Apply fixes with `cargo clippy --fix --allow-dirty`
 - For intentional violations, use `#[allow(clippy::...)]` with justification
-- See [plans/CLIPPY_FIX_PLAN.md](plans/CLIPPY_FIX_PLAN.md) for recent fixes
 
 ## Best Practices
 

@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-05 (GH monitoring snapshot)
+- **Last Updated**: 2026-03-06 (Dependabot PRs merged, PR #347 created)
 - **Source ADR**: ADR-037
 - **Status**: Active
 
@@ -34,4 +34,16 @@
    - Priority: P1
    - Owner: github-workflows + code-quality
    - Target: clear format/yaml/quick-check chain failures on PR validation
-   - Status: In Progress
+   - Status: Complete (PR #334 merged 2026-03-06)
+
+6. **WG-006**: Merge Dependabot dependency updates
+   - Priority: P1
+   - Owner: cicd-engineer
+   - Target: merge PRs #344, #345, #346 once CI passes
+   - Status: Partial (PR #344, #346 merged; #345 blocked by breaking changes)
+
+7. **WG-007**: Fix rust-major breaking changes (PR #345)
+   - Priority: P2
+   - Owner: rust-expert
+   - Target: resolve test/clippy failures from dependency update
+   - Status: Pending

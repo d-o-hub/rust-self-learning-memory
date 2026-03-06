@@ -114,4 +114,4 @@ For larger changes:
 ## References
 
 - [AGENTS.md - Required Checks Before Commit](../../../AGENTS.md)
-- [commit command](../../../.opencode/command/commit.md)
+- [commit command](../../../.opencode/commands/commit.md)

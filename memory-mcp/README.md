@@ -28,7 +28,7 @@ MCP (Model Context Protocol) server integration for the self-learning memory sys
 
 **Key Achievement**: Zero GC crashes under high concurrency (100 parallel executions)
 
-See [Phase 2A Documentation](../plans/phase2a-wasmtime-poc-complete.md) for complete details.
+<!-- NOTE: Phase 2A documentation has been archived. See plans/archive/ for historical documents. -->
 
 ### Phase 2B: JavaScript Support via Javy (Next)
 

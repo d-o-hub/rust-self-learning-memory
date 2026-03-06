@@ -378,6 +378,6 @@ For complete API documentation, see the inline documentation in:
 ## Support
 
 For issues or questions:
-- Check the [main README](../README_SEMANTIC_EMBEDDINGS.md)
+- Check the [main README](README_SEMANTIC_EMBEDDINGS.md)
 - Open an issue on GitHub
 - Review the example code

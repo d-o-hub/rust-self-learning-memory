@@ -9,10 +9,10 @@ Coordinate multiple specialized Skills and Task Agents through strategic executi
 
 ## Quick Reference
 
-- **[Strategies](strategies.md)** - Parallel, sequential, swarm, hybrid, iterative
-- **[Skills vs Agents](skills-agents.md)** - When to use each
-- **[Quality Gates](quality-gates.md)** - Validation checkpoints
-- **[Examples](examples.md)** - Coordination examples
+- **[Strategies](./strategies.md)** - Parallel, sequential, swarm, hybrid, iterative
+- **[Skills vs Agents](./skills-agents.md)** - When to use each
+- **[Quality Gates](./quality-gates.md)** - Validation checkpoints
+- **[Examples](./examples.md)** - Coordination examples
 
 ## When to Use
 
@@ -29,4 +29,4 @@ Coordinate multiple specialized Skills and Task Agents through strategic executi
 **Agents** (via `Task` tool): Autonomous sub-processes that execute
 - Examples: code-reviewer, test-runner, debugger, loop-agent
 
-See **[strategies.md](strategies.md)** for coordination patterns and **[skills-agents.md](skills-agents.md)** for when to use each.
+See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agents.md)** for when to use each.

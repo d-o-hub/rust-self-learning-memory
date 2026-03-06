@@ -67,7 +67,7 @@
 12. **ACT-015**
    - Goal: WG-005
    - Action: Monitor PR #334 checks until full green
-   - Status: In Progress
+   - Status: Complete (2026-03-06 11:05 UTC - MERGED)
 
 ## Completed Actions
 
@@ -77,5 +77,8 @@
 
 ## Pending Actions
 
-- **ACT-016**: Merge PR #330 (rand 0.10.0) once checks pass
-- **ACT-017**: Monitor Nightly Full Tests after exclusion fix
+- **ACT-016**: Merge Dependabot PRs - Complete (PR #344, #346 merged; #345 blocked by test failures)
+- **ACT-017**: Monitor Nightly Full Tests after exclusion fix - Pending (next scheduled run)
+- **ACT-018**: Fix broken documentation links - In Progress (ongoing, reduced from 212 to 201)
+- **ACT-019**: Create missing GOAP files - Complete
+- **ACT-020**: Fix PR #345 rust-major breaking changes - Pending (needs investigation)

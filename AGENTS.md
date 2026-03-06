@@ -194,6 +194,35 @@ See `.env.example` for full list. Never commit secrets.
 - **Snapshot**: `insta` for output regression (MCP responses, CLI output)
 - See ADR-033 for full strategy
 
+## Dependency Major Version Upgrades (2026-03)
+
+**CRITICAL**: Always check docs.rs for breaking changes before upgrading major versions.
+
+### redb 3.x Breaking Changes
+- `begin_read()` moved to `ReadableDatabase` trait - must import it:
+  ```rust
+  use redb::ReadableDatabase;  // Required for begin_read()
+  ```
+- `begin_write()` remains on `Database` struct (no trait needed)
+
+### rand 0.10 Breaking Changes
+- `rand::thread_rng()` → `rand::rng()` (new function name)
+- `Rng::gen()` → `RngExt::random()` (renamed method)
+- `Rng::gen_range()` → `RngExt::random_range()` (renamed method)
+- Import `RngExt` trait for user-level RNG methods:
+  ```rust
+  use rand::RngExt;  // Required for random(), random_range()
+  ```
+- `SeedableRng` remains in `rand` (re-exported from `rand_core`)
+- Keep `rand` and `rand_chacha` versions aligned (both 0.10)
+
+### General Upgrade Process
+1. Check docs.rs for the crate's changelog/breaking changes
+2. Run `cargo build` to identify compilation errors
+3. Fix imports and API changes
+4. Run `cargo clippy --all -- -D warnings`
+5. Run `cargo nextest run --all`
+
 ## Release Workflow
 - **Command**: `/release [patch|minor|major]` - Comprehensive release with gates
 - **Ops Wrapper**: `./scripts/release-manager.sh` (dry-run by default; pass `--execute` to run)

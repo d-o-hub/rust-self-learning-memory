@@ -4,7 +4,7 @@ use crate::{EPISODES_TABLE, METADATA_TABLE, RedbStorage, SUMMARIES_TABLE};
 use memory_core::episodic::CapacityManager;
 use memory_core::semantic::EpisodeSummary;
 use memory_core::{Episode, Error, Result};
-use redb::{ReadableTable, ReadableTableMetadata};
+use redb::{ReadableDatabase, ReadableTable, ReadableTableMetadata};
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 use uuid::Uuid;

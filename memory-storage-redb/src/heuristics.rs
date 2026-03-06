@@ -2,7 +2,7 @@
 
 use crate::{Error, HEURISTICS_TABLE, RedbStorage};
 use memory_core::{Heuristic, Result};
-use redb::ReadableTable;
+use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
 use tracing::debug;
 use tracing::info;

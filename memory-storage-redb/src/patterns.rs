@@ -2,7 +2,7 @@
 
 use crate::{Error, PATTERNS_TABLE, RedbStorage};
 use memory_core::{Pattern, Result, episode::PatternId};
-use redb::ReadableTable;
+use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
 use tracing::debug;
 use tracing::info;

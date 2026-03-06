@@ -3,9 +3,9 @@
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
 use anyhow::{Result, anyhow};
-use rand::Rng;
 use std::sync::Arc;
 use tracing::{debug, info};
+use wasmtime_wasi::{RngCore, thread_rng};
 
 #[cfg(feature = "javy-backend")]
 use crate::javy_compiler::{JavyCompiler, JavyConfig};
@@ -290,9 +290,11 @@ impl UnifiedSandbox {
 
     /// Random routing based on configured ratio
     async fn random_routing(&self, wasm_ratio: f64) -> BackendChoice {
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
 
-        if rng.r#gen::<f64>() < wasm_ratio {
+        // Generate a random f64 in [0, 1) using next_u64
+        let random_value = (rng.next_u64() as f64) / (u64::MAX as f64);
+        if random_value < wasm_ratio {
             BackendChoice::Wasm
         } else {
             BackendChoice::NodeJs

@@ -21,7 +21,7 @@ repository = "https://github.com/d-o-hub/rust-self-learning-memory"
 
 [workspace.dependencies]
 # Async runtime
-tokio = { version = "1.49", features = ["full"] }
+tokio = { version = "1.50", features = ["full"] }
 async-trait = "0.1.89"
 
 # Error handling
@@ -40,7 +40,7 @@ libsql = "0.9.29"
 redb = "2.6"
 
 # UUID and time
-uuid = { version = "1.21", features = ["v4", "serde"] }
+uuid = { version = "1.22", features = ["v4", "serde"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 
 # Logging and tracing

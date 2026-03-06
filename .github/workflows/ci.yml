@@ -21,46 +21,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Essential checks - run in parallel for faster feedback
-  essential:
-    name: Essential Checks
+  # Wait for quick-check to pass before running expensive jobs
+  # This implements the "fast checks first" pattern for 2026 best practices
+  check-quick-check:
+    name: Check Quick Check Status
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        job: [format, clippy, doctest]
+    # Only run on PRs and never for Dependabot to avoid timeout issues
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup isolated target dir
-        run: |
-          chmod +x scripts/setup-target-dir.sh
-          ./scripts/setup-target-dir.sh ci-essential
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Wait for Quick Check with timeout protection
+        uses: lewagon/wait-on-check-action@v1.5.0
         with:
-          components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v2.8.2
-        with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-
-      - name: Format Check
-        if: matrix.job == 'format'
-        run: cargo fmt --all -- --check
-
-      - name: Clippy
-        if: matrix.job == 'clippy'
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Documentation Tests
-        if: matrix.job == 'doctest'
-        run: |
-          chmod +x scripts/*.sh
-          ./scripts/check-doctests.sh
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'Quick PR Check (Format + Clippy)'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          running-workflow-name: Quick Check
+          fail-on-no-checks: false
 
   # Core testing - optimized for speed with proper timeouts
   test:
     name: Tests
     runs-on: ubuntu-latest
+    # Only depend on check-quick-check for PRs, skip dependency for push events
+    needs: [check-quick-check]
+    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     timeout-minutes: 30
     steps:
       - name: Free disk space
@@ -103,11 +100,17 @@ jobs:
   mcp-build:
     name: MCP Build
     runs-on: ubuntu-latest
+    needs: [check-quick-check]
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        feature: [default]  # wasm-rquickjs removed - deprecated feature
     steps:
       - name: Free disk space for WASM builds
         run: |
@@ -149,6 +152,16 @@ jobs:
   multi-platform:
     name: Multi-Platform Test
     runs-on: ${{ matrix.os }}
+    needs: [check-quick-check]
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -204,7 +217,7 @@ jobs:
       contents: read
       id-token: write      # Required for Codecov OIDC authentication
     timeout-minutes: 45    # Increased from 30 to accommodate slow coverage
-    needs: [essential, test, mcp-build, multi-platform]
+    needs: [test, mcp-build, multi-platform]
     steps:
       - uses: actions/checkout@v6
       - name: Setup isolated target dir

@@ -22,11 +22,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Wait for quick-check to pass before running expensive coverage analysis
+  # This implements the "fast checks first" pattern for 2026 best practices
+  check-quick-check:
+    name: Check Quick Check Status
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    # Only run on PRs and never for Dependabot to avoid timeout issues
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    timeout-minutes: 15
+    steps:
+      - name: Wait for Quick Check with timeout protection
+        uses: lewagon/wait-on-check-action@v1.5.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'Quick PR Check (Format + Clippy)'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          running-workflow-name: Quick Check
+          fail-on-no-checks: false
+
   # Comprehensive coverage analysis - runs independently
   # This job does NOT block the main CI workflow
   coverage:
     name: Code Coverage Analysis
     runs-on: ubuntu-latest
+    needs: [check-quick-check]
+    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    if: >-
+      ${{
+        always() &&
+        github.actor != 'dependabot[bot]' &&
+        (
+          github.event_name != 'pull_request' ||
+          needs.check-quick-check.result == 'success'
+        )
+      }}
     permissions:
       id-token: write      # Required for Codecov OIDC authentication
       contents: read
@@ -170,7 +202,7 @@ jobs:
   coverage-badge:
     name: Generate Coverage Badge
     runs-on: ubuntu-latest
-    needs: coverage
+    needs: [check-quick-check, coverage]
     if: github.ref == 'refs/heads/main'
     permissions:
       contents: write

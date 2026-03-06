@@ -1,6 +1,6 @@
 # ADR-034: Release Engineering Modernization
 
-- **Status**: Proposed
+- **Status**: Partially Implemented
 - **Date**: 2026-02-21
 - **Deciders**: Project maintainers
 - **Supersedes**: None (extends current release.yml)

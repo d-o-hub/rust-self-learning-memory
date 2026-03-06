@@ -141,14 +141,14 @@ Phase 3 (Deps/Linker) ────┤
 ## Success Criteria
 
 - [ ] `target/` < 2 GB after clean dev build
-- [ ] All CI uses `cargo nextest run` (except doctests)
-- [ ] nextest profiles configured for default/ci/nightly
-- [ ] cargo-semver-checks in CI pipeline
-- [ ] cargo-release workflow documented and tested
-- [ ] Mutation testing running on memory-core (nightly)
-- [ ] ≥ 5 proptest property tests in memory-core
-- [ ] ≥ 3 insta snapshot tests in memory-mcp or memory-cli
-- [ ] Edition 2024 across all workspace crates
+- [x] All CI uses `cargo nextest run` (except doctests)
+- [x] nextest profiles configured for default/ci/nightly
+- [x] cargo-semver-checks in CI pipeline
+- [x] cargo-release workflow documented and tested
+- [x] Mutation testing running on memory-core (nightly)
+- [x] ≥ 5 proptest property tests in memory-core
+- [x] ≥ 3 insta snapshot tests in memory-mcp or memory-cli
+- [x] Edition 2024 across all workspace crates
 - [ ] Duplicate dep roots < 80
-- [ ] node_modules/ removed
-- [ ] Quality gates script tracks dep count
+- [x] node_modules/ removed
+- [x] Quality gates script tracks dep count

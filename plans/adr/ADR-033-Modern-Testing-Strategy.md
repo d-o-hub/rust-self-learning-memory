@@ -1,6 +1,6 @@
 # ADR-033: Modern Testing Strategy (2026)
 
-- **Status**: Proposed
+- **Status**: Partially Implemented
 - **Date**: 2026-02-21
 - **Deciders**: Project maintainers
 - **Supersedes**: ADR-030 (Test Optimization - extends, not replaces)
@@ -23,10 +23,10 @@ Current testing approach has several gaps when measured against 2025/2026 Rust b
 |--------|--------|
 | Unit tests | ✅ Present, good coverage |
 | Integration tests | ✅ Present in `tests/` crate |
-| cargo-nextest | ⚠️ Partial (release.yml only) |
-| Mutation testing | ❌ Missing |
-| Property testing | ❌ Missing |
-| Snapshot testing | ❌ Missing |
+| cargo-nextest | ✅ Implemented (`ci.yml`, `nightly-tests.yml`, local scripts) |
+| Mutation testing | ✅ Implemented (nightly `cargo mutants` on `memory-core`) |
+| Property testing | ✅ Implemented (`proptest` suites in core/cli/storage-redb) |
+| Snapshot testing | ✅ Implemented (`insta` tests in `memory-core`, `memory-cli`, `memory-mcp`) |
 | Test timing | ⚠️ Basic timeouts only |
 
 ## Decision

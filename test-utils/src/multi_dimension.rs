@@ -23,7 +23,7 @@ pub use turso_utils::*;
 #[cfg(feature = "turso")]
 mod turso_utils {
     use super::*;
-    use memory_core::{embeddings::EmbeddingStorageBackend, Episode};
+    use memory_core::{Episode, embeddings::EmbeddingStorageBackend};
     use memory_storage_turso::TursoStorage;
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha8Rng;

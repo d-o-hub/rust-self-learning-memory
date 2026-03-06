@@ -27,7 +27,9 @@ use uuid::Uuid;
 /// Generate random embedding of specified dimension
 fn generate_random_embedding(dimension: usize, seed: u64) -> Vec<f32> {
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
-    (0..dimension).map(|_| rng.random_range(-1.0..1.0)).collect()
+    (0..dimension)
+        .map(|_| rng.random_range(-1.0..1.0))
+        .collect()
 }
 
 /// Create a test episode

@@ -1,0 +1,5 @@
+---
+source: memory-core/tests/snapshot_tests.rs
+expression: err.to_string()
+---
+Quota exceeded: max 1000 episodes per namespace

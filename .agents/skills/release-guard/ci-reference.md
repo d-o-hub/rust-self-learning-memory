@@ -54,6 +54,7 @@ gh run list --workflow <ID> --limit 1
 | Queued Forever | status=queued >10min | Check runner capacity, concurrency limits. Cancel stale: `gh run cancel <ID>`[web:97][web:109] |
 | Partial Jobs | Some skipped/neutral | Require in branch protection. Skipped=success but review.[web:100] |
 | No Runs | Empty list | Recent merge? Wait 1min post-merge trigger. |
+| Jobs Skip Unexpectedly | All downstream jobs skipped when upstream is skipped | Use `always()` in conditional + explicit result checks. See AGENTS.md "Job Dependency Patterns". |
 
 ## Verification Checklist
 - [ ] Latest main run: completed + success?

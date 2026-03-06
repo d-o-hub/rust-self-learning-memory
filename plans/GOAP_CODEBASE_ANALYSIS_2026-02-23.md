@@ -1,9 +1,9 @@
 # GOAP Codebase Analysis & Execution Plan — 2026-02-23
 
-**Status**: 🔄 Week 2 Starting — CI blockers fixed (Security + Nightly), error handling debt remains primary blocker
+**Status**: 📦 Superseded by [GOAP_CODEBASE_ANALYSIS_2026-03-06.md](GOAP_CODEBASE_ANALYSIS_2026-03-06.md) — see latest plan for current state
 **Branch**: `develop` (main: v0.1.16)
 **Methodology**: GOAP (Analyze → Decompose → Strategize → Execute) + Analysis-Swarm (RYAN/FLASH/SOCRATES)
-**Last Updated**: 2026-02-25 (CI fixes: wasmtime RUSTSEC-2026-0021 + nightly disk space)
+**Last Updated**: 2026-03-06 (superseded — ADR-029 Phase 3/4 quick wins shipped)
 
 ---
 

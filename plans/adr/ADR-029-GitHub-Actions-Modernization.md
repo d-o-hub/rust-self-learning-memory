@@ -82,6 +82,30 @@ See: `plans/GOAP_GITHUB_ACTIONS_2026-02-14.md` for task decomposition and execut
 - **ADR-023**: CI/CD GitHub Actions Remediation (predecessor)
 - **ADR-025**: Project Health Remediation
 
+## Implementation Status
+
+🟡 **MOSTLY COMPLETE** (2026-03-06)
+
+| Phase | Item | Status | Notes |
+|-------|------|--------|-------|
+| 1 | Pin supply-chain risky actions | ✅ Done | SHA-pinned in nightly-tests.yml |
+| 1 | Fix quality-gates permissions | ✅ Done | `contents: read` added |
+| 1 | Remove double checkout | ✅ Done | Removed in nightly-tests.yml |
+| 1 | Fix phantom artifact upload | ✅ Done | Switched to nextest |
+| 2 | actions/checkout v6 | ✅ Done | All workflows on v6 |
+| 2 | actions/upload-artifact v6+ | ✅ Done | Standardized to v7 |
+| 2 | taiki-e/install-action@v2 | ✅ Done | With tool parameter |
+| 3 | Split benchmark permissions | ✅ Done (2026-03-06) | PR=read, main=write via expression |
+| 3 | Tighten security.yml triggers | ✅ Already scoped | main/develop + PRs + schedule |
+| 3 | Fix dependency-review | ✅ Done | Commented out (requires GH Advanced Security) |
+| 3 | Pin yamllint version | ✅ Done | Pinned to 1.35.1 |
+| 4 | Improve concurrency groups | ✅ Done (2026-03-06) | `github.ref` instead of `run_id` |
+| 4 | Add Dependabot grouping | ✅ Done (2026-03-06) | cargo patch/minor + GH Actions groups |
+| 4 | Remove single-value matrix | ✅ Done (2026-03-06) | Removed `rust: [stable]` in multi-platform |
+| 4 | Consider setup-rust-toolchain | ⏸️ Deferred | Not justified as standalone migration |
+| 4 | Add PR/Issue templates | ✅ Already exist | bug_report.md, feature_request.md, PULL_REQUEST_TEMPLATE.md |
+
 ## Related
 - **ADR-023**: CI/CD GitHub Actions Remediation (predecessor, now complete)
 - **Plans**: `plans/GOAP_GITHUB_ACTIONS_2026-02-14.md` (execution plan)
+- **Plans**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-06.md` (latest execution log)

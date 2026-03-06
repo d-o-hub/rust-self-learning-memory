@@ -104,3 +104,4 @@ mcp-config-*.json
 # Claude local configuration files only
 .claude/**/*.local.*
 .claude/**/.local/
+.blackboxcli/settings.json

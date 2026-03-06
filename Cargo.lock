@@ -34,7 +34,7 @@ checksum = "b169f7a6d4742236a0a00c541b845991d0ac43e546831af1249753ab4c3aa3a0"
 dependencies = [
  "cfg-if",
  "cipher",
- "cpufeatures",
+ "cpufeatures 0.2.17",
 ]
 
 [[package]]
@@ -842,6 +842,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
+name = "chacha20"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f8d983286843e49675a4b7a2d174efe136dc93a18d69130dd18198a6c167601"
+dependencies = [
+ "cfg-if",
+ "cpufeatures 0.3.0",
+ "rand_core 0.10.0",
+]
+
+[[package]]
 name = "changepoint"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1153,6 +1164,15 @@ name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "cpufeatures"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
 dependencies = [
  "libc",
 ]
@@ -3586,8 +3606,8 @@ dependencies = [
  "memory-storage-redb",
  "memory-storage-turso",
  "once_cell",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
+ "rand 0.10.0",
+ "rand_chacha 0.9.0",
  "regex",
  "serde_json",
  "tempfile",
@@ -3652,7 +3672,7 @@ dependencies = [
  "parking_lot",
  "postcard",
  "proptest",
- "rand 0.8.5",
+ "rand 0.10.0",
  "regex",
  "reqwest",
  "serde",
@@ -3698,7 +3718,7 @@ dependencies = [
  "memory-storage-redb",
  "memory-storage-turso",
  "parking_lot",
- "rand 0.8.5",
+ "rand 0.10.0",
  "rquickjs 0.11.0",
  "serde",
  "serde_json",
@@ -4818,6 +4838,7 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc266eb313df6c5c09c1c7b1fbe2510961e5bcd3add930c1e31f7ed9da0feff8"
 dependencies = [
+ "chacha20",
  "getrandom 0.4.1",
  "rand_core 0.10.0",
 ]
@@ -4963,9 +4984,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "2.6.3"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8eca1e9d98d5a7e9002d0013e18d5a9b000aee942eb134883a82f06ebffb6c01"
+checksum = "ae323eb086579a3769daa2c753bb96deb95993c534711e0dbe881b5192906a06"
 dependencies = [
  "libc",
 ]
@@ -5678,7 +5699,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283"
 dependencies = [
  "cfg-if",
- "cpufeatures",
+ "cpufeatures 0.2.17",
  "digest",
 ]
 
@@ -6347,8 +6368,8 @@ dependencies = [
  "libsql",
  "memory-core",
  "memory-storage-turso",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
+ "rand 0.10.0",
+ "rand_chacha 0.9.0",
  "serde_json",
  "tempfile",
  "tracing",

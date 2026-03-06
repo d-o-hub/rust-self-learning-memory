@@ -233,9 +233,10 @@ See `.env.example` for full list. Never commit secrets.
 - `rand::thread_rng()` → `rand::rng()` (new function name)
 - `Rng::gen()` → `RngExt::random()` (renamed method)
 - `Rng::gen_range()` → `RngExt::random_range()` (renamed method)
+- `Rng::gen_bool()` → `RngExt::random_bool()` (renamed method)
 - Import `RngExt` trait for user-level RNG methods:
   ```rust
-  use rand::RngExt;  // Required for random(), random_range()
+  use rand::RngExt;  // Required for random(), random_range(), random_bool()
   ```
 - `SeedableRng` remains in `rand` (re-exported from `rand_core`)
 - Keep `rand` and `rand_chacha` versions aligned (both 0.10)
@@ -243,9 +244,14 @@ See `.env.example` for full list. Never commit secrets.
 ### General Upgrade Process
 1. Check docs.rs for the crate's changelog/breaking changes
 2. Run `cargo build` to identify compilation errors
-3. Fix imports and API changes
-4. Run `cargo clippy --all -- -D warnings`
-5. Run `cargo nextest run --all`
+3. **Search entire codebase** for old API usage:
+   ```bash
+   # Example: Find all old rand API usage
+   grep -r "\.gen_range\|\.r#gen\|thread_rng\|gen_bool" --include="*.rs"
+   ```
+4. Fix imports and API changes in ALL files (including benches, tests, examples)
+5. Run `cargo clippy --all -- -D warnings`
+6. Run `cargo nextest run --all`
 
 ## Release Workflow
 - **Command**: `/release [patch|minor|major]` - Comprehensive release with gates

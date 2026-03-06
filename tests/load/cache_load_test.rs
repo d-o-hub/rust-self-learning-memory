@@ -259,19 +259,19 @@ async fn run_cache_load_test(
     );
 
     // Query episodes repeatedly to test cache behavior
-    let rng = &mut rand::thread_rng();
+    let rng = &mut rand::rng();
 
     for i in 0..CACHE_QUERY_ITERATIONS {
         stats.total_operations += 1;
 
         // Use weighted random to prefer recently accessed episodes (simulates real-world access patterns)
-        let idx = if rng.gen_bool(0.7) {
+        let idx = if rng.random_bool(0.7) {
             // 70% chance: access recent episode (last 10%)
             let recent_start = episode_ids.len().saturating_sub(episode_ids.len() / 10);
-            rng.gen_range(recent_start..episode_ids.len())
+            rng.random_range(recent_start..episode_ids.len())
         } else {
             // 30% chance: access random episode
-            rng.gen_range(0..episode_ids.len())
+            rng.random_range(0..episode_ids.len())
         };
 
         let episode_id = episode_ids[idx];

@@ -1,11 +1,39 @@
 # Validation Status Report - Latest
 
-**Last Updated**: 2026-02-24 (B1-B4 completion rerun)
-**Version**: Week 1 GOAP execution snapshot
-**Branch**: goap-week1-w1m4-ci-loop-2026-02-24
-**Overall Status**: ✅ **PASSING** (latest full sequence completed successfully)
+**Last Updated**: 2026-03-06 (PR #334 merged, Dependabot PRs in progress)
+**Version**: ADR-037 Phase C complete
+**Branch**: feature/goap-property-tests-2026-03-06
+**Overall Status**: ✅ **PASSING** (PR #334 merged, CI green on main)
 
 ---
+
+## PR #334 Merge Confirmation (2026-03-06)
+
+- **PR URL**: `https://github.com/d-o-hub/rust-self-learning-memory/pull/334`
+- **Title**: `fix(ci): nightly stability and workflow automation rollout`
+- **Status**: **MERGED** (2026-03-06 11:05 UTC)
+- **Key fixes applied**:
+  - Added missing snapshot baselines for memory-core tests
+  - Excluded 8 known timing-dependent tests from nightly workflow
+  - Resolved YAML lint issues
+  - Fixed formatting drift
+
+## ADR-037 Workflow Automation Complete (2026-03-06)
+
+- **Status**: Implementation complete
+- **Deliverables**:
+  - `scripts/check-docs-integrity.sh` - non-blocking integration
+  - `scripts/release-manager.sh` - dry-run by default
+  - `plans/GOALS.md`, `plans/ACTIONS.md`, `plans/GOAP_STATE.md` - GOAP index
+  - `docs/architecture/context.yaml` - machine-readable context
+
+## Dependabot PRs Status (2026-03-06)
+
+| PR | Package Group | Status |
+|---|---------------|--------|
+| #344 | rust-patch-minor (5 updates) | Checks running |
+| #345 | rust-major (3 updates) | Checks running |
+| #346 | actions-all (2 updates) | Checks running |
 
 ## Week 1 Execution Snapshot
 

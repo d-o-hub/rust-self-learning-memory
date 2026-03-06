@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-06 (PR #334 CI fixes + Dependabot PRs merged)
+- **Last Updated**: 2026-03-06 (PR #334 MERGED + Dependabot PRs in progress)
 - **Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
 
@@ -28,20 +28,24 @@
 
 ## Blockers
 
-- ~~PR #334 check failures~~: **RESOLVED** (2026-03-06)
+- ~~PR #334 check failures~~: **RESOLVED & MERGED** (2026-03-06 11:05 UTC)
   - Fixed missing snapshot baselines for memory-core tests
   - Fixed nightly tests by excluding known timing-dependent tests
-  - PR #334 checks now running (awaiting results)
+  - PR successfully merged after all checks passed
 
 ## Dependabot PRs Status (2026-03-06)
 
 | PR | Package | Status | Action |
 |---|---------|--------|--------|
-| #328 | chrono 0.4.44 | MERGEABLE | Checks queued |
+| #328 | chrono 0.4.44 | **MERGED** | Completed |
 | #329 | augurs-changepoint 0.10.2 | **MERGED** | Completed |
-| #330 | rand 0.10.0 | MERGEABLE | Checks in progress |
+| #330 | rand 0.10.0 | **MERGED** | Completed |
 | #332 | tempfile 3.26.0 | **MERGED** | Completed |
 | #333 | wasmtime-wasi 42.0.1 | **MERGED** | Conflict resolved, merged |
+| #334 | CI fixes | **MERGED** | Nightly stability + workflow automation |
+| #344 | rust-patch-minor | IN PROGRESS | Checks running |
+| #345 | rust-major | IN PROGRESS | Checks running |
+| #346 | actions-all | IN PROGRESS | Checks running |
 
 ## Monitoring Snapshot (via GH CLI)
 

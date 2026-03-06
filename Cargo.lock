@@ -340,9 +340,9 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "augurs-changepoint"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "710c909e86ed1f4842fff67609030b6f78c6297c573e7f17a1c74f97b2ef9431"
+checksum = "7471e5e48a5feb1887271686e3ecd4d0aa893c69c77efd575968207d7312705c"
 dependencies = [
  "augurs-core",
  "changepoint 0.14.2",
@@ -354,9 +354,9 @@ dependencies = [
 
 [[package]]
 name = "augurs-core"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f8b8156abf8771ab2ffb6ecbac9ecab3cee86f422f14f88a30ee4c04e069f3d"
+checksum = "304774394b274d23e2440648709efd47ccffa94e03ccc26fa4501cf69f52300c"
 dependencies = [
  "num-traits",
 ]

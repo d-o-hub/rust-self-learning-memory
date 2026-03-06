@@ -8,7 +8,7 @@ use super::{
 };
 use crate::{RedbStorage, StorageStatistics};
 use memory_core::{Error, Result};
-use redb::{ReadableTable, ReadableTableMetadata};
+use redb::{ReadableDatabase, ReadableTable, ReadableTableMetadata};
 use std::sync::Arc;
 use tracing::info;
 

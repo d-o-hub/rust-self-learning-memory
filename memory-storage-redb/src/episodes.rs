@@ -2,7 +2,7 @@
 
 use crate::{EPISODES_TABLE, RedbStorage};
 use memory_core::{Episode, Error, Result};
-use redb::ReadableTable;
+use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
 use tracing::{debug, info};
 use uuid::Uuid;

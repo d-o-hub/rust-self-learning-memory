@@ -86,7 +86,7 @@ fn benchmark_kdtree_performance() {
             .collect();
 
         use rand::seq::SliceRandom;
-        points.shuffle(&mut rand::thread_rng());
+        points.shuffle(&mut rand::rng());
 
         let start = Instant::now();
         let kd_tree = KDTree::build(&points);
@@ -254,7 +254,7 @@ fn benchmark_memory_usage() {
 
     use rand::seq::SliceRandom;
     let mut indexed_values: Vec<(f64, f64)> = values.into_iter().zip(timestamps).collect();
-    indexed_values.shuffle(&mut rand::thread_rng());
+    indexed_values.shuffle(&mut rand::rng());
 
     let values: Vec<f64> = indexed_values.iter().map(|(v, _)| *v).collect();
     let timestamps: Vec<f64> = indexed_values.iter().map(|(_, t)| *t).collect();

@@ -7,7 +7,7 @@ use memory_core::embeddings::{
 };
 use memory_core::episode::PatternId;
 use memory_core::{Episode, Error, Pattern, Result};
-use redb::ReadableTable;
+use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
 use tracing::debug;
 use uuid::Uuid;

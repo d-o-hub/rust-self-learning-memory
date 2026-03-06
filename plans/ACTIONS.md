@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-03-06 (PR #334 CI fixes + Dependabot PRs merged)
+- **Last Updated**: 2026-03-06 (PR #345 rust-major fixes completed)
 - **Related Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 
 ## Active Actions
@@ -54,31 +54,49 @@
    - Status: Complete
 
 10. **ACT-013**
-   - Goal: WG-005
-   - Action: Add `PR Check Anchor` workflow and align coverage jobs
-   - Status: Complete
+    - Goal: WG-005
+    - Action: Add `PR Check Anchor` workflow and align coverage jobs
+    - Status: Complete
 
 11. **ACT-014**
-   - Goal: WG-005
-   - Action: Merge passing Dependabot PRs
-   - Status: Complete (2026-03-06)
-   - Notes: Merged #328 (chrono), #329 (augurs), #332 (tempfile), #333 (wasmtime-wasi)
+    - Goal: WG-005
+    - Action: Merge passing Dependabot PRs
+    - Status: Complete (2026-03-06)
+    - Notes: Merged #328 (chrono), #329 (augurs), #332 (tempfile), #333 (wasmtime-wasi)
 
 12. **ACT-015**
-   - Goal: WG-005
-   - Action: Monitor PR #334 checks until full green
-   - Status: Complete (2026-03-06 11:05 UTC - MERGED)
+    - Goal: WG-005
+    - Action: Monitor PR #334 checks until full green
+    - Status: Complete (2026-03-06 11:05 UTC - MERGED)
+
+13. **ACT-018**
+    - Goal: WG-005
+    - Action: Fix PR #345 (rust-major) breaking changes
+    - Status: Complete (2026-03-06)
+    - Notes: Fixed redb 3.x and rand 0.10 API changes
 
 ## Completed Actions
 
 - **ACT-004**: Integrate docs integrity check into `scripts/quality-gates.sh` - Complete
 - **ACT-005**: Create `docs/architecture/context.yaml` and validation command - Complete
 - **ACT-006**: Link release wrapper to ADR-034 release flow docs - Complete
+- **ACT-016**: Merge Dependabot PRs - Complete (PR #344, #346 merged; #345 in progress)
+- **ACT-019**: Create missing GOAP files - Complete
 
 ## Pending Actions
 
-- **ACT-016**: Merge Dependabot PRs - Complete (PR #344, #346 merged; #345 blocked by test failures)
 - **ACT-017**: Monitor Nightly Full Tests after exclusion fix - Pending (next scheduled run)
 - **ACT-018**: Fix broken documentation links - In Progress (ongoing, reduced from 212 to 201)
-- **ACT-019**: Create missing GOAP files - Complete
-- **ACT-020**: Fix PR #345 rust-major breaking changes - Pending (needs investigation)
+
+## Learning Delta (2026-03)
+
+### redb 3.x Breaking Changes
+- `begin_read()` moved to `ReadableDatabase` trait (must import it)
+- `begin_write()` remains on `Database` struct (no change)
+
+### rand 0.10 Breaking Changes
+- `thread_rng()` → `rand::rng()` (function rename)
+- `Rng::gen()` → `RngExt::random()` (method rename)
+- `Rng::gen_range()` → `RngExt::random_range()` (method rename)
+- Import `RngExt` for user-level RNG methods
+- Keep `rand` and `rand_chacha` versions aligned

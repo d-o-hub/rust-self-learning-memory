@@ -25,7 +25,7 @@ mod runner_benchmarks {
 
         use rand::seq::SliceRandom;
         let mut indexed_values: Vec<(f64, f64)> = values.into_iter().zip(timestamps).collect();
-        indexed_values.shuffle(&mut rand::thread_rng());
+        indexed_values.shuffle(&mut rand::rng());
 
         let values: Vec<f64> = indexed_values.iter().map(|(v, _)| *v).collect();
         let timestamps: Vec<f64> = indexed_values.iter().map(|(_, t)| *t).collect();

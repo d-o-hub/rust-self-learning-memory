@@ -61,8 +61,8 @@ wasmtime-wasi = "42.0.1"
 # Additional utilities
 parking_lot = "0.12.5"
 url = "2.5.8"
-rand = "0.10"
-rand_chacha = "0.9"
+rand = { version = "0.10", features = ["thread_rng"] }
+rand_chacha = "0.10"
 clap = { version = "4.5.60", features = ["derive"] }
 
 # Async utilities

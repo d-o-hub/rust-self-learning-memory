@@ -2,7 +2,7 @@
 
 use crate::{EMBEDDINGS_TABLE, RedbStorage};
 use memory_core::{Error, Result};
-use redb::ReadableTable;
+use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
 use tracing::{debug, info};
 

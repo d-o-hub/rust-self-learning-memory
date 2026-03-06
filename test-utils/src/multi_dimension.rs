@@ -25,7 +25,7 @@ mod turso_utils {
     use super::*;
     use memory_core::{Episode, embeddings::EmbeddingStorageBackend};
     use memory_storage_turso::TursoStorage;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
     use rand_chacha::ChaCha8Rng;
     use std::sync::Arc;
     use tempfile::TempDir;
@@ -34,7 +34,9 @@ mod turso_utils {
     /// Generate a random embedding of specified dimension
     pub fn generate_embedding(dimension: usize, seed: u64) -> Vec<f32> {
         let mut rng = ChaCha8Rng::seed_from_u64(seed);
-        (0..dimension).map(|_| rng.gen_range(-1.0..1.0)).collect()
+        (0..dimension)
+            .map(|_| rng.random_range(-1.0..1.0))
+            .collect()
     }
 
     /// Test harness for multi-dimension embedding tests
@@ -197,7 +199,7 @@ mod turso_utils {
                 .map(|i| {
                     let mut rng = ChaCha8Rng::seed_from_u64(self.seed + i as u64);
                     (0..self.dimension)
-                        .map(|_| rng.gen_range(-1.0..1.0))
+                        .map(|_| rng.random_range(-1.0..1.0))
                         .collect()
                 })
                 .collect()
@@ -218,7 +220,7 @@ mod turso_utils {
                     base_embedding
                         .iter()
                         .map(|&base| {
-                            let noise = rng.gen_range(-0.5..0.5) * (1.0 - similarity);
+                            let noise = rng.random_range(-0.5..0.5) * (1.0 - similarity);
                             (base + noise).clamp(-1.0, 1.0)
                         })
                         .collect()

@@ -13,7 +13,6 @@ use memory_benches::benchmark_helpers::{
     setup_temp_memory,
 };
 use memory_core::types::{TaskOutcome, TaskType};
-use rand::rngs::StdRng;
 use rand::{RngExt, SeedableRng};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
@@ -126,7 +125,7 @@ async fn run_concurrent_workload(
                     format!(
                         "Concurrent write from thread {} op {}",
                         thread_id,
-                        rng.r#gen::<u32>()
+                        rng.random::<u32>()
                     ),
                     context.clone(),
                     TaskType::CodeGeneration,

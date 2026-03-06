@@ -2,7 +2,7 @@
 //!
 //! These tests use proptest to verify state machine invariants for the
 //! episode lifecycle (creation → steps → completion) and capacity management
-//! (can_store, eviction, relevance scoring).
+//! (`can_store`, eviction, relevance scoring).
 
 use memory_core::episodic::{CapacityManager, EvictionPolicy};
 use memory_core::*;
@@ -98,11 +98,12 @@ proptest! {
             },
             1 => TaskOutcome::PartialSuccess {
                 verdict: "Partial".to_string(),
-                artifacts: vec![],
+                completed: vec![],
+                failed: vec![],
             },
             _ => TaskOutcome::Failure {
-                verdict: "Failed".to_string(),
-                error: Some("error".to_string()),
+                reason: "Failed".to_string(),
+                error_details: Some("error".to_string()),
             },
         };
 

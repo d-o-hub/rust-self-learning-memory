@@ -4,7 +4,6 @@
 //! Part of ADR-033 Phase 6.
 
 use insta::assert_snapshot;
-use memory_core::episode::RelationshipType;
 use memory_core::error::{CacheError, Error, RelationshipError};
 use uuid::Uuid;
 

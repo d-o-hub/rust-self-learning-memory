@@ -4,9 +4,7 @@
 //! and serde_json survive roundtrip serialization without data loss.
 
 use memory_core::*;
-use memory_storage_redb::persistence::types::{
-    CacheSnapshot, IncrementalUpdate, PersistedCacheEntry,
-};
+use memory_storage_redb::{CacheSnapshot, IncrementalUpdate, PersistedCacheEntry};
 use proptest::prelude::*;
 
 // ============================================================================

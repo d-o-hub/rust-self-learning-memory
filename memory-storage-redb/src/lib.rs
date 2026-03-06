@@ -49,8 +49,8 @@ pub use cache::{
     AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics, CacheConfig, CacheMetrics, LRUCache,
 };
 pub use persistence::{
-    CachePersistence, CacheSnapshot, PersistedCacheEntry, PersistenceConfig, PersistenceManager,
-    PersistenceMode, PersistenceStats, PersistenceStrategy,
+    CachePersistence, CacheSnapshot, IncrementalUpdate, PersistedCacheEntry, PersistenceConfig,
+    PersistenceManager, PersistenceMode, PersistenceStats, PersistenceStrategy,
 };
 pub use storage::RedbQuery;
 

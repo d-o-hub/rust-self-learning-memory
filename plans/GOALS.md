@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-06 (PR #334 merged, Dependabot PRs in progress)
+- **Last Updated**: 2026-03-06 (Dependabot PRs merged, PR #347 created)
 - **Source ADR**: ADR-037
 - **Status**: Active
 
@@ -40,4 +40,10 @@
    - Priority: P1
    - Owner: cicd-engineer
    - Target: merge PRs #344, #345, #346 once CI passes
-   - Status: In Progress
+   - Status: Partial (PR #344, #346 merged; #345 blocked by breaking changes)
+
+7. **WG-007**: Fix rust-major breaking changes (PR #345)
+   - Priority: P2
+   - Owner: rust-expert
+   - Target: resolve test/clippy failures from dependency update
+   - Status: Pending

@@ -43,9 +43,9 @@
 | #332 | tempfile 3.26.0 | **MERGED** | Completed |
 | #333 | wasmtime-wasi 42.0.1 | **MERGED** | Conflict resolved, merged |
 | #334 | CI fixes | **MERGED** | Nightly stability + workflow automation |
-| #344 | rust-patch-minor | IN PROGRESS | Checks running |
-| #345 | rust-major | IN PROGRESS | Checks running |
-| #346 | actions-all | IN PROGRESS | Checks running |
+| #344 | rust-patch-minor (5 updates) | **MERGED** | Completed |
+| #345 | rust-major (3 updates) | BLOCKED | Failing tests, needs fixes |
+| #346 | actions-all (2 updates) | **MERGED** | Completed |
 
 ## Monitoring Snapshot (via GH CLI)
 

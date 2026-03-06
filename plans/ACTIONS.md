@@ -77,7 +77,8 @@
 
 ## Pending Actions
 
-- **ACT-016**: Merge Dependabot PRs (#344, #345, #346) once checks pass - In Progress
+- **ACT-016**: Merge Dependabot PRs - Complete (PR #344, #346 merged; #345 blocked by test failures)
 - **ACT-017**: Monitor Nightly Full Tests after exclusion fix - Pending (next scheduled run)
-- **ACT-018**: Fix broken documentation links identified by docs integrity check - In Progress
-- **ACT-019**: Create missing GOAP files (GOAP_AGENT_*.md) - In Progress
+- **ACT-018**: Fix broken documentation links - In Progress (ongoing, reduced from 212 to 201)
+- **ACT-019**: Create missing GOAP files - Complete
+- **ACT-020**: Fix PR #345 rust-major breaking changes - Pending (needs investigation)

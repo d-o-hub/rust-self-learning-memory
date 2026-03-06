@@ -38,7 +38,7 @@ mod types;
 
 pub use config::{PersistenceConfig, PersistenceMode, PersistenceStrategy};
 pub use manager::PersistenceManager;
-pub use types::{CacheSnapshot, PersistedCacheEntry, PersistenceStats};
+pub use types::{CacheSnapshot, IncrementalUpdate, PersistedCacheEntry, PersistenceStats};
 
 /// Cache persistence handler
 ///

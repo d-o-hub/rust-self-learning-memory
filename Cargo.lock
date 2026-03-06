@@ -3725,6 +3725,7 @@ dependencies = [
  "memory-core",
  "parking_lot",
  "postcard",
+ "proptest",
  "redb",
  "serde",
  "serde_json",

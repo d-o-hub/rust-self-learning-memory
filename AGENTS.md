@@ -116,6 +116,30 @@ skill: build-rust, code-quality
 2. Validate workflow syntax: `actionlint .github/workflows/*.yml` (if installed)
 3. Use `yaml-validator` skill for structured validation
 
+**GitHub Actions Job Dependency Patterns (CRITICAL):**
+When a job has `needs: [upstream-job]` and the upstream job is conditionally skipped:
+- **Problem**: Downstream jobs skip by default when dependency is skipped
+- **Solution**: Use `always()` in the conditional to evaluate even when dependency was skipped
+
+```yaml
+# WRONG: Job skips when check-quick-check is skipped (push events)
+needs: [check-quick-check]
+if: ${{ github.event_name != 'pull_request' || needs.check-quick-check.result == 'success' }}
+
+# CORRECT: Job runs on push events even when dependency is skipped
+needs: [check-quick-check]
+if: ${{ 
+  always() &&
+  github.event_name != 'pull_request' ||
+  needs.check-quick-check.result == 'success'
+}}
+```
+
+**Pattern Recognition:**
+- If job A only runs on `pull_request` events → it's skipped on `push`
+- If job B `needs: [A]` → B skips when A is skipped (default behavior)
+- Use `always()` + explicit result checks to allow B to run when A is skipped
+
 **Before Adding Dependencies:**
 1. Check existing: `cargo tree -d | grep -i <module>`
 2. Verify feature flags: `cargo build --all-features`

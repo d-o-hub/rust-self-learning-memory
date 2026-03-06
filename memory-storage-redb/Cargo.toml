@@ -13,47 +13,29 @@ categories = ["database", "caching"]
 documentation = "https://docs.rs/memory-storage-redb"
 
 [dependencies]
-# Core dependencies
 memory-core = { path = "../memory-core" }
-
-# Async runtime
 tokio = { workspace = true }
 async-trait = { workspace = true }
-
-# Error handling
 anyhow = { workspace = true }
-
-# Serialization
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 postcard = { workspace = true }
-
-# Database
 redb = { workspace = true }
-
-# UUID and time
 uuid = { workspace = true }
 chrono = { workspace = true }
-
-# Logging
 tracing = { workspace = true }
-
-# Compression for cache persistence
 lz4_flex = { version = "0.12", default-features = false }
-
-# Synchronization
 parking_lot = "0.12.5"
 
 [dev-dependencies]
+proptest = "1.5"
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 serde_json = { workspace = true }
 
 [lints.rust]
-# In-process memory operations - focus on unsafe code and memory safety
 unsafe_code = "deny"
 
 [lints.clippy]
 correctness = { level = "deny" }
-# Serialize safety
-unwrap_used = { level = "warn" }  # May need for internal redb operations
+unwrap_used = { level = "warn" }

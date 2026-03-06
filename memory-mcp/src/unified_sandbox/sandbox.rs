@@ -2,8 +2,8 @@
 
 use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::wasmtime_sandbox::{WasmtimeConfig, WasmtimeSandbox};
-use anyhow::{Result, anyhow};
-use rand::Rng;
+use anyhow::{anyhow, Result};
+use rand::RngExt;
 use std::sync::Arc;
 use tracing::{debug, info};
 
@@ -134,8 +134,8 @@ impl UnifiedSandbox {
                 #[cfg(not(feature = "javy-backend"))]
                 {
                     // Without Javy feature, require pre-compiled WASM
-                    use base64::Engine;
                     use base64::prelude::BASE64_STANDARD;
+                    use base64::Engine;
 
                     if let Some(sandbox) = &self.wasmtime_sandbox {
                         debug!("Executing pre-compiled WASM bytecode (Javy not enabled)");
@@ -290,9 +290,9 @@ impl UnifiedSandbox {
 
     /// Random routing based on configured ratio
     async fn random_routing(&self, wasm_ratio: f64) -> BackendChoice {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
-        if rng.r#gen::<f64>() < wasm_ratio {
+        if rng.random::<f64>() < wasm_ratio {
             BackendChoice::Wasm
         } else {
             BackendChoice::NodeJs

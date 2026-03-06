@@ -20,6 +20,14 @@ updates:
       - "d-o-hub"
     assignees:
       - "d-o-hub"
+    groups:
+      rust-patch-minor:
+        update-types:
+          - "minor"
+          - "patch"
+      rust-major:
+        update-types:
+          - "major"
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -35,3 +43,7 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    groups:
+      actions-all:
+        patterns:
+          - "*"

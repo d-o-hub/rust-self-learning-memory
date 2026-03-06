@@ -72,7 +72,7 @@ ndarray = { version = "0.17", optional = true }
 
 # Changepoint detection using PELT algorithm
   # augurs-changepoint wraps changepoint crate for time series analysis
-  augurs-changepoint = "0.10.1"
+  augurs-changepoint = "0.10.2"
   # Direct dependency to force changepoint 0.15.0 which uses fixed rv
   # This fixes RUSTSEC-2026-0002 (rv unsound IterMut implementation)
   changepoint = "0.15.0"

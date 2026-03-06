@@ -13,7 +13,8 @@ use memory_benches::benchmark_helpers::{
     setup_temp_memory,
 };
 use memory_core::types::{TaskOutcome, TaskType};
-use rand::prelude::*;
+use rand::rngs::StdRng;
+use rand::{RngExt, SeedableRng};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 
@@ -104,11 +105,11 @@ async fn run_concurrent_workload(
     let context = create_benchmark_context();
 
     for _ in 0..operations {
-        let choice: f64 = rng.r#gen::<f64>();
+        let choice: f64 = rng.random();
 
         if choice < pattern.read_ratio() {
             // Read operation
-            let random_idx = rng.gen_range(0..episode_ids.len());
+            let random_idx = rng.random_range(0..episode_ids.len());
             let _episode_id = episode_ids[random_idx];
 
             let _result = memory

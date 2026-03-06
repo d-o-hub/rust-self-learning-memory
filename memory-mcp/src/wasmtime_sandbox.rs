@@ -117,7 +117,8 @@ impl WasmtimeSandbox {
     }
 
     fn execute_sync(engine: &Engine, wasm_bytecode: &[u8]) -> Result<ExecutionResult> {
-        let module = Module::from_binary(engine, wasm_bytecode).context("Failed to load module")?;
+        let module = Module::from_binary(engine, wasm_bytecode)
+            .map_err(|e| anyhow::anyhow!("Failed to load module: {}", e))?;
 
         let mut store = Store::new(engine, ());
         store.set_fuel(5_000_000)?; // 5 seconds worth of fuel
@@ -125,14 +126,14 @@ impl WasmtimeSandbox {
         let linker = Linker::new(engine);
         let instance = linker
             .instantiate(&mut store, &module)
-            .context("Failed to instantiate")?;
+            .map_err(|e| anyhow::anyhow!("Failed to instantiate: {}", e))?;
 
         let main_func = instance.get_typed_func::<(), i32>(&mut store, "main").ok();
         let execution_time_ms = Instant::now().elapsed().as_millis() as u64;
 
         match main_func {
             Some(func) => {
-                let call_result = func.call(&mut store, ());
+                let call_result: Result<i32, wasmtime::Error> = func.call(&mut store, ());
                 match call_result {
                     Ok(_) => Ok(ExecutionResult::Success {
                         output: "WASM execution completed".to_string(),
@@ -141,7 +142,7 @@ impl WasmtimeSandbox {
                         execution_time_ms,
                     }),
                     Err(e) => {
-                        if let Some(trap) = e.downcast_ref::<Trap>() {
+                        if let Some(trap) = e.root_cause().downcast_ref::<wasmtime::Trap>() {
                             if matches!(trap, Trap::OutOfFuel) {
                                 return Ok(ExecutionResult::Timeout {
                                     elapsed_ms: execution_time_ms,

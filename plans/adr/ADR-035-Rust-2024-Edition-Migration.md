@@ -1,6 +1,6 @@
 # ADR-035: Rust 2024 Edition Migration
 
-- **Status**: Proposed
+- **Status**: Implemented
 - **Date**: 2026-02-21
 - **Deciders**: Project maintainers
 - **Supersedes**: None

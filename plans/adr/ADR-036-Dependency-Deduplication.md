@@ -1,6 +1,6 @@
 # ADR-036: Dependency Deduplication and Optimization
 
-- **Status**: Proposed
+- **Status**: Partially Implemented
 - **Date**: 2026-02-21
 - **Deciders**: Project maintainers
 - **Supersedes**: None

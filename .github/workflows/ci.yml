@@ -85,12 +85,19 @@ jobs:
         run: |
           # Run library tests for core packages (fast, isolated tests)
           echo "Running memory-core library tests..."
-          cargo nextest run --package memory-core --lib
+          cargo nextest run --profile ci --package memory-core --lib
           echo "Running memory-storage-turso library tests..."
-          cargo nextest run --package memory-storage-turso --lib
+          cargo nextest run --profile ci --package memory-storage-turso --lib
           echo "Running memory-storage-redb library tests..."
-          cargo nextest run --package memory-storage-redb --lib
+          cargo nextest run --profile ci --package memory-storage-redb --lib
           echo "Library tests completed successfully"
+      - name: Upload nextest JUnit (test)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nextest-junit-test
+          path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
+          if-no-files-found: warn
 
   # MCP builds - simplified with timeout protection
   mcp-build:
@@ -129,7 +136,14 @@ jobs:
       - name: Build and test (default)
         run: |
           timeout 600s cargo build -p memory-mcp || exit 1
-          timeout 600s cargo nextest run -p memory-mcp --lib || exit 1
+          timeout 600s cargo nextest run --profile ci -p memory-mcp --lib || exit 1
+      - name: Upload nextest JUnit (mcp-build)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nextest-junit-mcp-build
+          path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
+          if-no-files-found: warn
 
   # Multi-platform testing - simplified matrix
   multi-platform:
@@ -166,15 +180,22 @@ jobs:
           # macOS has `gtimeout` from coreutils, or use perl as fallback
           if command -v timeout >/dev/null 2>&1; then
             # Linux with GNU timeout
-            timeout 900s cargo nextest run --lib --all
+            timeout 900s cargo nextest run --profile ci --lib --all
           elif command -v gtimeout >/dev/null 2>&1; then
             # macOS with GNU timeout (coreutils)
-            gtimeout 900s cargo nextest run --lib --all
+            gtimeout 900s cargo nextest run --profile ci --lib --all
           else
             # macOS fallback: use perl for portable timeout
             # Use -- to separate perl args from command args
-            perl -e 'alarm 900; exec @ARGV' -- cargo nextest run --lib --all
+            perl -e 'alarm 900; exec @ARGV' -- cargo nextest run --profile ci --lib --all
           fi
+      - name: Upload nextest JUnit (multi-platform)
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nextest-junit-multi-platform-${{ matrix.os }}
+          path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
+          if-no-files-found: warn
 
   # Quality gates - final validation
   # NOTE: This job is NOT in the needs: list of other jobs to prevent blocking

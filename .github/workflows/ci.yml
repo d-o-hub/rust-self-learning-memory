@@ -93,7 +93,7 @@ jobs:
           echo "Library tests completed successfully"
       - name: Upload nextest JUnit (test)
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nextest-junit-test
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -139,7 +139,7 @@ jobs:
           timeout 600s cargo nextest run --profile ci -p memory-mcp --lib || exit 1
       - name: Upload nextest JUnit (mcp-build)
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nextest-junit-mcp-build
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml
@@ -188,7 +188,7 @@ jobs:
           fi
       - name: Upload nextest JUnit (multi-platform)
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nextest-junit-multi-platform-${{ matrix.os }}
           path: ${{ env.CARGO_TARGET_DIR }}/nextest/ci/junit.xml

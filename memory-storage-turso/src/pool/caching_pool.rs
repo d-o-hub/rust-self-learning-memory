@@ -366,26 +366,31 @@ pub struct ConnectionGuard {
 impl ConnectionGuard {
     /// Get the stable connection ID
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the connection has been taken (should not happen in normal usage).
-    pub fn id(&self) -> u64 {
-        self.connection
-            .as_ref()
-            .map(|c| c.id())
-            .expect("ConnectionGuard::id() called on guard without connection")
+    /// Returns an error if the connection has been taken (should not happen in normal usage).
+    pub fn id(&self) -> memory_core::Result<u64> {
+        self.connection.as_ref().map(|c| c.id()).ok_or_else(|| {
+            memory_core::Error::Storage(
+                "ConnectionGuard::id() called on guard without connection".to_string(),
+            )
+        })
     }
 
     /// Get a reference to the underlying connection
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the connection has been taken (should not happen in normal usage).
-    pub fn connection(&self) -> &libsql::Connection {
+    /// Returns an error if the connection has been taken (should not happen in normal usage).
+    pub fn connection(&self) -> memory_core::Result<&libsql::Connection> {
         self.connection
             .as_ref()
             .map(|c| c.connection())
-            .expect("ConnectionGuard::connection() called on guard without connection")
+            .ok_or_else(|| {
+                memory_core::Error::Storage(
+                    "ConnectionGuard::connection() called on guard without connection".to_string(),
+                )
+            })
     }
 
     /// Get the pooled connection wrapper

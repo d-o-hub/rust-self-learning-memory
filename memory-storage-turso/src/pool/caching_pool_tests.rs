@@ -33,7 +33,14 @@ async fn test_connection_checkout() {
     let (pool, _dir) = create_test_pool().await;
 
     let guard = pool.get().await.unwrap();
-    assert!(guard.connection().query("SELECT 1", ()).await.is_ok());
+    assert!(
+        guard
+            .connection()
+            .expect("connection")
+            .query("SELECT 1", ())
+            .await
+            .is_ok()
+    );
 
     let stats = pool.stats();
     assert_eq!(stats.active_connections, 1);
@@ -90,7 +97,7 @@ async fn test_stable_connection_id() {
 
     let conn_id1 = {
         let guard = pool.get().await.unwrap();
-        guard.id()
+        guard.id().expect("connection id")
     };
 
     // Give time for return
@@ -98,7 +105,7 @@ async fn test_stable_connection_id() {
 
     let conn_id2 = {
         let guard = pool.get().await.unwrap();
-        guard.id()
+        guard.id().expect("connection id")
     };
 
     // Should get the same connection back (same ID)

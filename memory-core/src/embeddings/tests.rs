@@ -2,6 +2,7 @@
 
 use super::*;
 use crate::embeddings::storage::MockEmbeddingStorage;
+use crate::{Episode, Pattern, TaskContext};
 
 fn create_test_episode() -> Episode {
     let context = TaskContext {
@@ -173,11 +174,11 @@ async fn test_config_preservation() {
     );
 
     assert_eq!(
-        service.config.similarity_threshold,
+        service.config().similarity_threshold,
         config.similarity_threshold
     );
-    assert_eq!(service.config.batch_size, config.batch_size);
-    assert_eq!(service.config.cache_embeddings, config.cache_embeddings);
+    assert_eq!(service.config().batch_size, config.batch_size);
+    assert_eq!(service.config().cache_embeddings, config.cache_embeddings);
 }
 
 // NOTE: This test has been removed as it tests for the old fallback behavior
@@ -245,7 +246,7 @@ async fn test_default_creates_valid_service() {
 
     let result = SemanticService::default(storage).await;
     if let Ok(service) = result {
-        match &service.config.provider {
+        match &service.config().provider {
             ProviderConfig::Local(config) => {
                 assert_eq!(config.model_name, "sentence-transformers/all-MiniLM-L6-v2");
             }

@@ -57,6 +57,36 @@ impl AuditLogger {
         .await;
     }
 
+    /// Log embedding generation event
+    pub async fn log_embedding_generation(&self, client_id: &str, success: bool) {
+        let metadata = json!({});
+
+        self.log_event(
+            AuditLogLevel::Info,
+            client_id,
+            "embedding_generation",
+            if success { "success" } else { "failure" },
+            metadata,
+        )
+        .await;
+    }
+
+    /// Log embedding search event
+    pub async fn log_embedding_search(&self, client_id: &str, result_count: usize, success: bool) {
+        let metadata = json!({
+            "result_count": result_count
+        });
+
+        self.log_event(
+            AuditLogLevel::Info,
+            client_id,
+            "embedding_search",
+            if success { "success" } else { "failure" },
+            metadata,
+        )
+        .await;
+    }
+
     // === Authentication & Security ===
 
     /// Log authentication event

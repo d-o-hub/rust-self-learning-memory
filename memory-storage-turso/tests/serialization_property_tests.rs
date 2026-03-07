@@ -88,10 +88,12 @@ proptest! {
         times_applied in 0usize..100usize,
         avg_reward_delta in -1.0f32..1.0f32,
     ) {
-        let mut effectiveness = PatternEffectiveness::default();
-        effectiveness.times_retrieved = times_retrieved;
-        effectiveness.times_applied = times_applied;
-        effectiveness.avg_reward_delta = avg_reward_delta;
+        let effectiveness = PatternEffectiveness {
+            times_retrieved,
+            times_applied,
+            avg_reward_delta,
+            ..Default::default()
+        };
 
         let bytes = postcard::to_allocvec(&effectiveness).expect("postcard serialize");
         let deserialized: PatternEffectiveness =
@@ -294,9 +296,11 @@ proptest! {
         times_retrieved in 0usize..100usize,
         times_applied in 0usize..100usize,
     ) {
-        let mut effectiveness = PatternEffectiveness::default();
-        effectiveness.times_retrieved = times_retrieved;
-        effectiveness.times_applied = times_applied;
+        let effectiveness = PatternEffectiveness {
+            times_retrieved,
+            times_applied,
+            ..Default::default()
+        };
 
         // Usage rate invariant
         let usage_rate = effectiveness.usage_rate();

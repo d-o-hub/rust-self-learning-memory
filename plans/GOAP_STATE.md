@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-06 (PR #334 MERGED + Dependabot PRs in progress)
+- **Last Updated**: 2026-03-07 (PR #349 CI fixes in progress)
 - **Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
 
@@ -106,3 +106,25 @@
 - Current action:
   - Monitor PR #334 checks until full green
   - Merge PR #330 (rand) once checks pass
+
+## PR #349 CI Fix (2026-03-07)
+
+### Issue Analysis
+
+- **PR**: `fix/nightly-ci-exclusions` branch
+- **Root Cause**: Clippy errors in `memory-storage-redb/tests/serialization_property_tests.rs`
+  1. Line 407: Unused variable `entry` in `cache_entry_ttl_invariant` test
+  2. Line 478: Tautological boolean expression (always true)
+
+### Fix Applied
+
+- **File**: `memory-storage-redb/tests/serialization_property_tests.rs`
+- **Fix 1**: Changed `let entry = ...` to `let _entry = ...` (underscore prefix for unused)
+- **Fix 2**: Replaced tautology with meaningful assertion `prop_assert!(update2.sequence > update1.sequence)`
+- **Verification**: `cargo clippy --tests` passes, `cargo test --package memory-storage-redb` passes
+
+### Learning Delta (GOAP)
+
+- Clippy `overly_complex_bool_expr` lint catches tautological conditions that are always true
+- Property-based test assertions should verify meaningful invariants, not tautologies
+- Unused variables in tests should be prefixed with `_` to indicate intentional non-use

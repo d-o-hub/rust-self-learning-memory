@@ -1,9 +1,9 @@
 # Validation Status Report - Latest
 
-**Last Updated**: 2026-03-07 (PR #350 created, implementing missing tasks from plans/)
+**Last Updated**: 2026-03-07 (Dead code and ignored tests analysis committed)
 **Version**: v0.1.17 Sprint 2 Implementation
 **Branch**: goap/v0.1.17-sprint2-implementation
-**Overall Status**: 🔄 **CI RUNNING** (PR #350 created)
+**Overall Status**: 🔄 **IN PROGRESS** (Analysis committed, CI checks running)
 
 ---
 
@@ -49,6 +49,46 @@
 |-----|--------|-------|
 | ADR-024 | ✅ Complete | `tools/describe` + `tools/describe_batch` endpoints implemented |
 | ADR-033 | 🟡 Partial | nextest ✅, mutants ✅, proptest ✅ expanded, insta ✅ expanded to 65+ snapshots |
+
+---
+
+## Task Analysis (2026-03-07)
+
+### G9: Dead Code Analysis
+
+- **Status**: 📋 Analysis Complete
+- **Total**: 134 dead_code annotations in source files (excluding target/)
+- **Categories**:
+  - Test helpers (~25): Acceptable
+  - Error variants (~15): May be used in pattern matching
+  - Feature-gated code (~30): Should have proper cfg attributes
+  - Genuinely unused (~20): Should be removed
+  - API types (~44): May be used by consumers
+- **Report**: `plans/STATUS/DEAD_CODE_ANALYSIS.md`
+
+### G2: Ignored Tests Analysis
+
+- **Status**: 📋 Analysis Complete
+- **Total**: 51 ignored tests
+- **Categories**:
+  - Timing-dependent (8): FIXABLE with better async handling
+  - WASM/WASI (6): Needs implementation
+  - Slow tests (~30): Acceptable by design
+  - Infrastructure tests (6): Blocked
+  - Flaky tests (3): Needs investigation
+- **Report**: `plans/STATUS/IGNORED_TESTS_ANALYSIS.md`
+
+### Commit: docs: add dead_code and ignored tests analysis
+
+- **SHA**: `5130342`
+- **Changes**: 6 files changed, 155 insertions(+), 19 deletions(-)
+- **Files**:
+  - `plans/STATUS/DEAD_CODE_ANALYSIS.md` (new)
+  - `plans/STATUS/IGNORED_TESTS_ANALYSIS.md` (new)
+  - `memory-storage-turso/src/cache/adaptive_ttl_tests.rs` (improved comments)
+  - `memory-storage-turso/src/cache/query_cache_tests.rs` (improved comments)
+  - `memory-storage-turso/src/pool/adaptive_tests.rs` (improved comments)
+  - `memory-storage-turso/src/pool/caching_pool_tests.rs` (added Duration import)
 
 ---
 

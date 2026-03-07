@@ -35,23 +35,36 @@ impl ConfigCache {
     }
 
     /// Get configuration from cache if valid
+    ///
+    /// Returns `None` if:
+    /// - The path is not in the cache
+    /// - The file has been modified since caching
+    /// - The cache lock is poisoned (another thread panicked while holding the lock)
     #[allow(clippy::excessive_nesting)]
     pub fn get(&self, path: &Path) -> Option<Config> {
-        let entries = self
-            .entries
-            .lock()
-            .expect("ConfigCache: entries lock poisoned - this indicates a panic in cache code");
+        // If the lock is poisoned, another thread panicked while holding it.
+        // Return None to allow the caller to fall back to loading from file.
+        let entries = match self.entries.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                tracing::warn!(
+                    "ConfigCache: entries lock poisoned, recovering anyway: {}",
+                    poisoned
+                );
+                // Still try to recover the data from the poisoned lock
+                poisoned.into_inner()
+            }
+        };
 
         if let Some(entry) = entries.get(path) {
             // Check if file has been modified
             if let Ok(metadata) = std::fs::metadata(path) {
                 if let Ok(current_mtime) = metadata.modified() {
                     if current_mtime == entry.mtime {
-                        // Cache hit
-                        *self
-                            .hits
-                            .lock()
-                            .expect("ConfigCache: hits lock poisoned - this indicates a panic in metrics tracking") += 1;
+                        // Cache hit - increment hit counter
+                        if let Ok(mut hits) = self.hits.lock() {
+                            *hits += 1;
+                        }
                         tracing::debug!("Config cache hit for: {}", path.display());
                         return Some(entry.config.clone());
                     }
@@ -59,55 +72,97 @@ impl ConfigCache {
             }
         }
 
-        // Cache miss
-        *self.misses.lock().expect(
-            "ConfigCache: misses lock poisoned - this indicates a panic in metrics tracking",
-        ) += 1;
+        // Cache miss - increment miss counter
+        if let Ok(mut misses) = self.misses.lock() {
+            *misses += 1;
+        }
         tracing::debug!("Config cache miss for: {}", path.display());
         None
     }
 
     /// Insert configuration into cache
+    ///
+    /// If the cache lock is poisoned, this method logs a warning and attempts
+    /// to recover by using the poisoned lock's data.
     pub fn insert(&self, path: PathBuf, config: Config) {
         if let Ok(metadata) = std::fs::metadata(&path) {
             if let Ok(mtime) = metadata.modified() {
                 let entry = CacheEntry { config, mtime };
-                let mut entries = self.entries.lock().expect(
-                    "ConfigCache: entries lock poisoned - this indicates a panic in cache code",
-                );
+                let mut entries = match self.entries.lock() {
+                    Ok(guard) => guard,
+                    Err(poisoned) => {
+                        tracing::warn!(
+                            "ConfigCache: entries lock poisoned during insert, recovering: {}",
+                            poisoned
+                        );
+                        poisoned.into_inner()
+                    }
+                };
                 entries.insert(path, entry);
             }
         }
     }
 
     /// Clear all cached entries
+    ///
+    /// If the cache lock is poisoned, this method logs a warning and attempts
+    /// to recover by using the poisoned lock's data.
     pub fn clear(&self) {
-        let mut entries = self
-            .entries
-            .lock()
-            .expect("ConfigCache: entries lock poisoned - this indicates a panic in cache code");
+        let mut entries = match self.entries.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+                tracing::warn!(
+                    "ConfigCache: entries lock poisoned during clear, recovering: {}",
+                    poisoned
+                );
+                poisoned.into_inner()
+            }
+        };
+        let cleared_count = entries.len();
         entries.clear();
-        tracing::debug!("Config cache cleared");
+        tracing::debug!("Config cache cleared ({} entries)", cleared_count);
     }
 
-    /// Get cache statistics
+    /// Get cache statistics for monitoring and debugging
+    ///
+    /// Returns default statistics (zeros) if the cache locks are poisoned.
     pub fn stats(&self) -> CacheStats {
-        let hits = *self
+        let hits = self
             .hits
             .lock()
-            .expect("ConfigCache: hits lock poisoned - this indicates a panic in metrics tracking");
-        let misses = *self.misses.lock().expect(
-            "ConfigCache: misses lock poisoned - this indicates a panic in metrics tracking",
-        );
+            .map(|guard| *guard)
+            .unwrap_or_else(|poisoned| {
+                tracing::warn!("ConfigCache: hits lock poisoned, returning 0: {}", poisoned);
+                0
+            });
+        let misses = self
+            .misses
+            .lock()
+            .map(|guard| *guard)
+            .unwrap_or_else(|poisoned| {
+                tracing::warn!(
+                    "ConfigCache: misses lock poisoned, returning 0: {}",
+                    poisoned
+                );
+                0
+            });
+
+        let entries_count =
+            self.entries
+                .lock()
+                .map(|guard| guard.len())
+                .unwrap_or_else(|poisoned| {
+                    tracing::warn!(
+                        "ConfigCache: entries lock poisoned during stats, returning 0: {}",
+                        poisoned
+                    );
+                    0
+                });
 
         CacheStats {
             hits,
             misses,
-            entries: self
-                .entries
-                .lock()
-                .expect("ConfigCache: entries lock poisoned - this indicates a panic in cache code")
-                .len(),
+            entries: entries_count,
             hit_rate: if hits + misses > 0 {
                 hits as f64 / (hits + misses) as f64
             } else {

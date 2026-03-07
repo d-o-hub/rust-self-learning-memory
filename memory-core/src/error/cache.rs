@@ -43,6 +43,11 @@ pub enum CacheError {
         /// The invalid value.
         value: String,
     },
+    /// Lock poisoned - indicates a panic occurred while holding the lock.
+    LockPoisoned {
+        /// The lock name or context where the poisoning occurred.
+        context: String,
+    },
 }
 
 impl fmt::Display for CacheError {
@@ -71,6 +76,12 @@ impl fmt::Display for CacheError {
                 write!(
                     f,
                     "Invalid cache configuration: field='{field}', value='{value}'"
+                )
+            }
+            Self::LockPoisoned { context } => {
+                write!(
+                    f,
+                    "Cache lock poisoned: {context} - this indicates a panic in concurrent code"
                 )
             }
         }

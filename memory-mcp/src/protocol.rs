@@ -374,7 +374,7 @@ pub fn handle_list_tools_with_lazy(
 /// # Arguments
 ///
 /// * `request` - The JSON-RPC request with `name` parameter
-/// * `get_tool` - Function to get a tool by name (returns Option<Tool>)
+/// * `get_tool` - Function to get a tool by name (returns `Option<Tool>`)
 ///
 /// # Returns
 ///
@@ -469,7 +469,7 @@ where
 /// # Arguments
 ///
 /// * `request` - The JSON-RPC request with `names` array parameter
-/// * `get_tool` - Function to get a tool by name (returns Option<Tool>)
+/// * `get_tool` - Function to get a tool by name (returns `Option<Tool>`)
 ///
 /// # Returns
 ///

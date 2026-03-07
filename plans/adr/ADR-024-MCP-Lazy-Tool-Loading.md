@@ -157,11 +157,11 @@ See: `scripts/benchmark-mcp-tokens.sh`
 
 ## Next Steps
 
-- [ ] Add `tools/describe` endpoint for single-tool schema requests
-- [ ] Add `tools/describe_batch` endpoint for multi-tool schema requests
+- [x] Add `tools/describe` endpoint for single-tool schema requests
+- [x] Add `tools/describe_batch` endpoint for multi-tool schema requests
 - [x] Performance benchmarks comparing lazy vs full listing
 - [ ] Client SDK updates to leverage lazy loading
-- [ ] Integration tests for lazy parameter handling
+- [x] Integration tests for lazy parameter handling
 - [ ] Consider defaulting to `lazy=true` for automatic token savings in opencode
 
 ---

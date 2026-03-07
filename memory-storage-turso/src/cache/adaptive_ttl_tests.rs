@@ -77,7 +77,7 @@ async fn test_cache_eviction() {
 }
 
 #[tokio::test]
-#[ignore = "Timing-dependent test - TTL adaptation requires precise timing that fails in CI"]
+#[ignore = "TTL adaptation logic doesn't extend TTL on access as test expects - needs implementation fix"]
 async fn test_ttl_adaptation() {
     let config = TTLConfig::default()
         .with_hot_threshold(3)
@@ -98,16 +98,20 @@ async fn test_ttl_adaptation() {
 }
 
 #[tokio::test]
-#[ignore = "Timing-dependent test - cache expiration requires precise sleep timing that fails in CI"]
+#[ignore = "Cache expiration test - needs config fix to set min_ttl below base_ttl for short TTL testing"]
 async fn test_cache_entry_expiration() {
-    let config = TTLConfig::default().with_base_ttl(Duration::from_millis(50));
+    // Use a config where min_ttl < base_ttl for short TTL testing
+    let config = TTLConfig::new()
+        .with_base_ttl(Duration::from_millis(100))
+        .with_min_ttl(Duration::from_millis(50));
     let cache = AdaptiveTTLCache::new(config).unwrap();
 
     cache.insert("key1", "value1".to_string()).await;
     assert!(cache.contains(&"key1").await);
 
-    // Wait for expiration
-    tokio::time::sleep(Duration::from_millis(100)).await;
+    // Wait for expiration with generous timing for CI
+    tokio::time::sleep(Duration::from_millis(250)).await;
+    tokio::task::yield_now().await;
 
     // Entry should be expired
     assert!(!cache.contains(&"key1").await);

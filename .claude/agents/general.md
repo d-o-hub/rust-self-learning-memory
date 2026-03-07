@@ -27,6 +27,11 @@ You are a versatile general-purpose agent capable of handling a wide variety of 
 4. **Exploration**: Investigate codebases and understand systems
 5. **Automation**: Script repetitive tasks and workflows
 
+## Skills
+
+You have access to the following skills:
+- **general**: Comprehensive search strategies, multi-step task execution, and code analysis patterns for complex research tasks
+
 ## Development Workflow
 
 ### Quick Start Commands

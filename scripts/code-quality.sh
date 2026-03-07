@@ -120,16 +120,19 @@ case "$OP" in
 
   clippy)
     echo -e "${BLUE}🔍 Linting with Clippy...${NC}"
-    if [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      echo -e "${YELLOW}Linting entire workspace...${NC}"
-      cargo clippy --workspace -- ${STRICT:--D warnings}
-    elif [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package}"
-      echo -e "${YELLOW}Linting package: ${pkg#--package=}${NC}"
-      cargo clippy --package "${pkg#--package=}" -- ${STRICT:--D warnings}
+    # CI parity: Run clippy on both lib and tests with same flags as .github/workflows/quick-check.yml
+    CLIPPY_FLAGS="-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
+    
+    if [[ -n "$WORKSPACE_FLAG" ]]; then
+      echo -e "${YELLOW}Linting entire workspace (lib + tests)...${NC}"
+      cargo clippy --workspace --tests -- $CLIPPY_FLAGS
+    elif [[ -n "$PACKAGE_FLAG" ]]; then
+      pkg="${PACKAGE_FLAG#--package=}"
+      echo -e "${YELLOW}Linting package: $pkg (lib + tests)...${NC}"
+      cargo clippy --package "$pkg" --tests -- $CLIPPY_FLAGS
     else
-      echo -e "${YELLOW}Linting current package only...${NC}"
-      cargo clippy -- ${STRICT:--D warnings}
+      echo -e "${YELLOW}Linting current package (lib + tests)...${NC}"
+      cargo clippy --tests -- $CLIPPY_FLAGS
     fi
     
     clippy_result=$?
@@ -156,14 +159,17 @@ case "$OP" in
   check)
     echo -e "${BLUE}🔎 Running quality gates...${NC}"
     
+    # CI parity: Clippy flags matching .github/workflows/quick-check.yml
+    CLIPPY_FLAGS="-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
+    
     # Run formatting check
     echo -e "${BLUE}  Formatting check...${NC}"
     cargo fmt --all -- --check
     fmt_result=$?
     
-    # Run clippy
-    echo -e "${BLUE}  Clippy check (strict mode)...${NC}"
-    cargo clippy --all -- -D warnings
+    # Run clippy on lib + tests (CI parity)
+    echo -e "${BLUE}  Clippy check (lib + tests, strict mode)...${NC}"
+    cargo clippy --workspace --tests -- $CLIPPY_FLAGS
     clippy_result=$?
     
     # Run audit
@@ -186,7 +192,7 @@ case "$OP" in
     if [[ $clippy_result -eq 0 ]]; then
       echo -e "  Clippy: ${GREEN}✅ PASS${NC}"
     else
-      echo -e "  Clippy: ${YELLOW}⚠️  WARNINGS: ${clippy_result}${NC}"
+      echo -e "  Clippy: ${RED}FAIL (exit code: ${clippy_result})${NC}"
     fi
     
     if [[ $audit_result -eq 0 ]]; then
@@ -198,7 +204,7 @@ case "$OP" in
     echo ""
     echo "Next steps:"
     echo "  • Run 'cargo fmt' to fix formatting"
-    echo "  • Run 'cargo clippy --fix' to auto-fix warnings"
+    echo "  • Run 'cargo clippy --tests --fix' to auto-fix warnings"
     echo "  • Update dependencies with 'cargo update'"
     echo ""
     echo "============================================"

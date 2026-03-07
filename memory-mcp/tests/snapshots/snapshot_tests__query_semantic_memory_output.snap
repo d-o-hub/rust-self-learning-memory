@@ -1,0 +1,21 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "results_found": 1,
+  "results": [
+    {
+      "episode_id": "550e8400-e29b-41d4-a716-446655440003",
+      "similarity_score": 0.88,
+      "task_description": "Implement rate limiting middleware",
+      "domain": "web-api",
+      "task_type": "implementation",
+      "outcome": "Added token bucket rate limiter with 100 req/min limit",
+      "timestamp": 1709654400
+    }
+  ],
+  "embedding_dimension": 1536,
+  "query_time_ms": 28.7,
+  "provider": "openai"
+}

@@ -1,0 +1,16 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "available": false,
+  "provider": "openai",
+  "model": "text-embedding-3-small",
+  "dimension": 0,
+  "test_time_ms": 5000,
+  "sample_embedding": [],
+  "message": "Embedding provider test failed",
+  "errors": [
+    "Connection timeout after 5000ms"
+  ]
+}

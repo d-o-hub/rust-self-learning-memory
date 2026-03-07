@@ -1,0 +1,7 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: input
+---
+{
+  "test_connectivity": true
+}

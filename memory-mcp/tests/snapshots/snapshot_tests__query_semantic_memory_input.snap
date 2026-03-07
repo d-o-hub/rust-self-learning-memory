@@ -1,0 +1,11 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: input
+---
+{
+  "query": "How do I implement rate limiting?",
+  "limit": 5,
+  "similarity_threshold": 0.6,
+  "domain": "web-api",
+  "task_type": null
+}

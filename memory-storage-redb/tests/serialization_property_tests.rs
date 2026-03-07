@@ -404,7 +404,7 @@ proptest! {
         ttl_secs in 60u64..86400u64,
         current_time in 1000u64..20000u64,
     ) {
-        let entry = PersistedCacheEntry {
+        let _entry = PersistedCacheEntry {
             key: "test_key".to_string(),
             value: vec![1, 2, 3],
             created_at,
@@ -475,7 +475,8 @@ proptest! {
 
         // Higher sequence should have higher or equal timestamp (in valid usage)
         if sequence2 > sequence1 {
-            prop_assert!(update2.timestamp >= update1.timestamp || update2.timestamp < update1.timestamp);
+            // Verify sequence ordering is reflected in the update objects
+            prop_assert!(update2.sequence > update1.sequence);
         }
     }
 

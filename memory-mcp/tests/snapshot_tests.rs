@@ -4,7 +4,16 @@
 //! remain consistent across changes. Part of ADR-033 Phase 6.
 
 use insta::assert_json_snapshot;
-use memory_mcp::types::{ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, Tool};
+use memory_mcp::mcp::tools::embeddings::{
+    ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
+    EmbeddingProviderStatusOutput, EmbeddingSearchResult, GenerateEmbeddingInput,
+    GenerateEmbeddingOutput, ProviderTestResult, QuerySemanticMemoryInput,
+    QuerySemanticMemoryOutput, SearchByEmbeddingInput, SearchByEmbeddingOutput, SemanticResult,
+    TestEmbeddingsOutput,
+};
+use memory_mcp::types::{
+    ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,
+};
 use serde_json::json;
 
 /// Test that Tool struct serialization produces consistent output
@@ -157,4 +166,278 @@ fn test_tool_definitions_collection() {
     ];
 
     assert_json_snapshot!(tools);
+}
+
+// =============================================================================
+// Embedding Tool Type Snapshots
+// =============================================================================
+
+/// Test GenerateEmbeddingInput serialization
+#[test]
+fn test_generate_embedding_input() {
+    let input = GenerateEmbeddingInput {
+        text: "This is a sample text for embedding generation.".to_string(),
+        normalize: true,
+    };
+
+    assert_json_snapshot!(input);
+}
+
+/// Test GenerateEmbeddingOutput serialization
+#[test]
+fn test_generate_embedding_output() {
+    let output = GenerateEmbeddingOutput {
+        embedding: vec![0.1, 0.2, 0.3, 0.4, 0.5],
+        dimension: 5,
+        model: "text-embedding-3-small".to_string(),
+        provider: "openai".to_string(),
+        generation_time_ms: 42.5,
+        normalized: true,
+        token_count: Some(8),
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test SearchByEmbeddingInput serialization
+#[test]
+fn test_search_by_embedding_input() {
+    let input = SearchByEmbeddingInput {
+        embedding: vec![0.1, 0.2, 0.3],
+        limit: 10,
+        similarity_threshold: 0.7,
+        domain: Some("web-api".to_string()),
+        task_type: Some("code-generation".to_string()),
+    };
+
+    assert_json_snapshot!(input);
+}
+
+/// Test SearchByEmbeddingOutput serialization
+#[test]
+fn test_search_by_embedding_output() {
+    let output = SearchByEmbeddingOutput {
+        results_found: 2,
+        results: vec![
+            EmbeddingSearchResult {
+                episode_id: "550e8400-e29b-41d4-a716-446655440001".to_string(),
+                similarity_score: 0.95,
+                task_description: "Implement REST API endpoint".to_string(),
+                domain: "web-api".to_string(),
+                task_type: "code-generation".to_string(),
+                outcome: Some("Successfully implemented GET /users endpoint".to_string()),
+                timestamp: 1709827200,
+            },
+            EmbeddingSearchResult {
+                episode_id: "550e8400-e29b-41d4-a716-446655440002".to_string(),
+                similarity_score: 0.82,
+                task_description: "Create authentication middleware".to_string(),
+                domain: "web-api".to_string(),
+                task_type: "code-generation".to_string(),
+                outcome: None,
+                timestamp: 1709740800,
+            },
+        ],
+        embedding_dimension: 1536,
+        search_time_ms: 15.3,
+        provider: "openai".to_string(),
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test EmbeddingProviderStatusInput serialization
+#[test]
+fn test_embedding_provider_status_input() {
+    let input = EmbeddingProviderStatusInput {
+        test_connectivity: true,
+    };
+
+    assert_json_snapshot!(input);
+}
+
+/// Test EmbeddingProviderStatusOutput serialization
+#[test]
+fn test_embedding_provider_status_output() {
+    let output = EmbeddingProviderStatusOutput {
+        configured: true,
+        available: true,
+        provider: "openai".to_string(),
+        model: "text-embedding-3-small".to_string(),
+        dimension: 1536,
+        similarity_threshold: 0.7,
+        batch_size: 100,
+        cache_enabled: true,
+        metadata: json!({
+            "api_version": "v1",
+            "rate_limit": "3000 per minute"
+        }),
+        test_result: Some(ProviderTestResult {
+            success: true,
+            duration_ms: 125,
+            sample_embedding: vec![0.0123, -0.0456, 0.0789],
+            error: None,
+        }),
+        warnings: vec![],
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test ProviderTestResult serialization (success case)
+#[test]
+fn test_provider_test_result_success() {
+    let result = ProviderTestResult {
+        success: true,
+        duration_ms: 125,
+        sample_embedding: vec![0.0123, -0.0456, 0.0789],
+        error: None,
+    };
+
+    assert_json_snapshot!(result);
+}
+
+/// Test ProviderTestResult serialization (failure case)
+#[test]
+fn test_provider_test_result_failure() {
+    let result = ProviderTestResult {
+        success: false,
+        duration_ms: 5000,
+        sample_embedding: vec![],
+        error: Some("Connection timeout after 5000ms".to_string()),
+    };
+
+    assert_json_snapshot!(result);
+}
+
+/// Test ConfigureEmbeddingsInput serialization
+#[test]
+fn test_configure_embeddings_input() {
+    let input = ConfigureEmbeddingsInput {
+        provider: "openai".to_string(),
+        model: Some("text-embedding-3-small".to_string()),
+        api_key_env: Some("OPENAI_API_KEY".to_string()),
+        similarity_threshold: Some(0.75),
+        batch_size: Some(50),
+        base_url: None,
+        api_version: None,
+        resource_name: None,
+        deployment_name: None,
+    };
+
+    assert_json_snapshot!(input);
+}
+
+/// Test ConfigureEmbeddingsOutput serialization
+#[test]
+fn test_configure_embeddings_output() {
+    let output = ConfigureEmbeddingsOutput {
+        success: true,
+        provider: "openai".to_string(),
+        model: "text-embedding-3-small".to_string(),
+        dimension: 1536,
+        message: "Successfully configured OpenAI embedding provider".to_string(),
+        warnings: vec![],
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test QuerySemanticMemoryInput serialization
+#[test]
+fn test_query_semantic_memory_input() {
+    let input = QuerySemanticMemoryInput {
+        query: "How do I implement rate limiting?".to_string(),
+        limit: Some(5),
+        similarity_threshold: Some(0.6),
+        domain: Some("web-api".to_string()),
+        task_type: None,
+    };
+
+    assert_json_snapshot!(input);
+}
+
+/// Test QuerySemanticMemoryOutput serialization
+#[test]
+fn test_query_semantic_memory_output() {
+    let output = QuerySemanticMemoryOutput {
+        results_found: 1,
+        results: vec![SemanticResult {
+            episode_id: "550e8400-e29b-41d4-a716-446655440003".to_string(),
+            similarity_score: 0.88,
+            task_description: "Implement rate limiting middleware".to_string(),
+            domain: "web-api".to_string(),
+            task_type: "implementation".to_string(),
+            outcome: Some("Added token bucket rate limiter with 100 req/min limit".to_string()),
+            timestamp: 1709654400,
+        }],
+        embedding_dimension: 1536,
+        query_time_ms: 28.7,
+        provider: "openai".to_string(),
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test TestEmbeddingsOutput serialization (available)
+#[test]
+fn test_embeddings_output_available() {
+    let output = TestEmbeddingsOutput {
+        available: true,
+        provider: "openai".to_string(),
+        model: "text-embedding-3-small".to_string(),
+        dimension: 1536,
+        test_time_ms: 125,
+        sample_embedding: vec![0.0123, -0.0456, 0.0789, 0.0234, -0.0567],
+        message: "Embedding provider is available and working correctly".to_string(),
+        errors: vec![],
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test TestEmbeddingsOutput serialization (unavailable)
+#[test]
+fn test_embeddings_output_unavailable() {
+    let output = TestEmbeddingsOutput {
+        available: false,
+        provider: "openai".to_string(),
+        model: "text-embedding-3-small".to_string(),
+        dimension: 0,
+        test_time_ms: 5000,
+        sample_embedding: vec![],
+        message: "Embedding provider test failed".to_string(),
+        errors: vec!["Connection timeout after 5000ms".to_string()],
+    };
+
+    assert_json_snapshot!(output);
+}
+
+/// Test all SecurityViolationType variants
+#[test]
+fn test_security_violation_types() {
+    let violations = vec![
+        SecurityViolationType::FileSystemAccess,
+        SecurityViolationType::NetworkAccess,
+        SecurityViolationType::ProcessExecution,
+        SecurityViolationType::MemoryLimit,
+        SecurityViolationType::InfiniteLoop,
+        SecurityViolationType::MaliciousCode,
+    ];
+
+    assert_json_snapshot!(violations);
+}
+
+/// Test all ErrorType variants
+#[test]
+fn test_error_types() {
+    let errors = vec![
+        ErrorType::Syntax,
+        ErrorType::Runtime,
+        ErrorType::Permission,
+        ErrorType::Resource,
+        ErrorType::Unknown,
+    ];
+
+    assert_json_snapshot!(errors);
 }

@@ -18,8 +18,10 @@ use super::tools::{
     handle_configure_embeddings,
     handle_create_episode,
     handle_delete_episode,
+    handle_embedding_provider_status,
     handle_execute_code,
     handle_find_related_episodes,
+    handle_generate_embedding,
     handle_get_dependency_graph,
     handle_get_episode,
     handle_get_episode_relationships,
@@ -34,6 +36,7 @@ use super::tools::{
     handle_recommend_patterns,
     handle_remove_episode_relationship,
     handle_remove_episode_tags,
+    handle_search_by_embedding,
     handle_search_episodes_by_tags,
     handle_search_patterns,
     handle_set_episode_tags,
@@ -124,6 +127,11 @@ pub async fn handle_call_tool(
             handle_query_semantic_memory(&mut server, params.arguments).await
         }
         "test_embeddings" => handle_test_embeddings(&mut server, params.arguments).await,
+        "generate_embedding" => handle_generate_embedding(&mut server, params.arguments).await,
+        "search_by_embedding" => handle_search_by_embedding(&mut server, params.arguments).await,
+        "embedding_provider_status" => {
+            handle_embedding_provider_status(&mut server, params.arguments).await
+        }
         "search_patterns" => handle_search_patterns(&mut server, params.arguments).await,
         "recommend_patterns" => handle_recommend_patterns(&mut server, params.arguments).await,
         "bulk_episodes" => handle_bulk_episodes(&mut server, params.arguments).await,
@@ -331,6 +339,15 @@ pub async fn handle_batch_execute(
                     handle_query_semantic_memory(&mut server, Some(arguments)).await
                 }
                 "test_embeddings" => handle_test_embeddings(&mut server, Some(arguments)).await,
+                "generate_embedding" => {
+                    handle_generate_embedding(&mut server, Some(arguments)).await
+                }
+                "search_by_embedding" => {
+                    handle_search_by_embedding(&mut server, Some(arguments)).await
+                }
+                "embedding_provider_status" => {
+                    handle_embedding_provider_status(&mut server, Some(arguments)).await
+                }
                 "search_patterns" => handle_search_patterns(&mut server, Some(arguments)).await,
                 "recommend_patterns" => {
                     handle_recommend_patterns(&mut server, Some(arguments)).await

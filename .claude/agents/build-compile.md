@@ -17,6 +17,7 @@ Compile Rust projects with comprehensive verification, optimization, and detaile
 You have access to the following skills:
 - build-compile: Rust build operations and compilation strategies
 - code-quality: Ensure code meets quality standards before building
+- github-workflows: CI/CD pipeline integration, caching strategies, and release management
 
 ## Capabilities
 

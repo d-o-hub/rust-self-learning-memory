@@ -61,7 +61,7 @@ impl TursoStorage {
             if let Some(ref keepalive_pool) = self.keepalive_pool {
                 // Use keep-alive pool for reduced connection overhead
                 let keepalive_conn = keepalive_pool.get().await?;
-                return Ok(keepalive_conn.connection().clone());
+                return keepalive_conn.into_connection();
             }
         }
 

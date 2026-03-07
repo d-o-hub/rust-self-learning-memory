@@ -8,6 +8,11 @@ tools: Read, Bash, Grep, Glob, Edit
 
 Parallel multi-agent CI diagnosis and repair coordinator.
 
+## Skills
+
+You have access to the following skill:
+- **ci-fix**: Systematic CI failure diagnosis and repair patterns for GitHub Actions workflows
+
 ## When to Use
 
 - Multiple CI jobs failing (lint + test + coverage)

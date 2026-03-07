@@ -1,0 +1,19 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "embedding": [
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5
+  ],
+  "dimension": 5,
+  "model": "text-embedding-3-small",
+  "provider": "openai",
+  "generation_time_ms": 42.5,
+  "normalized": true,
+  "token_count": 8
+}

@@ -1,0 +1,8 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: input
+---
+{
+  "text": "This is a sample text for embedding generation.",
+  "normalize": true
+}

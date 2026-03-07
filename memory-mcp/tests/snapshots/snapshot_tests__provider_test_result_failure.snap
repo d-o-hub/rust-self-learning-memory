@@ -1,0 +1,10 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: result
+---
+{
+  "success": false,
+  "duration_ms": 5000,
+  "sample_embedding": [],
+  "error": "Connection timeout after 5000ms"
+}

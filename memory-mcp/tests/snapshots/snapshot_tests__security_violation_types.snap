@@ -1,0 +1,12 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: violations
+---
+[
+  "FileSystemAccess",
+  "NetworkAccess",
+  "ProcessExecution",
+  "MemoryLimit",
+  "InfiniteLoop",
+  "MaliciousCode"
+]

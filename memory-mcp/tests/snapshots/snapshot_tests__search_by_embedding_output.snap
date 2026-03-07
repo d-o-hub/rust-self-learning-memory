@@ -1,0 +1,30 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "results_found": 2,
+  "results": [
+    {
+      "episode_id": "550e8400-e29b-41d4-a716-446655440001",
+      "similarity_score": 0.95,
+      "task_description": "Implement REST API endpoint",
+      "domain": "web-api",
+      "task_type": "code-generation",
+      "outcome": "Successfully implemented GET /users endpoint",
+      "timestamp": 1709827200
+    },
+    {
+      "episode_id": "550e8400-e29b-41d4-a716-446655440002",
+      "similarity_score": 0.82,
+      "task_description": "Create authentication middleware",
+      "domain": "web-api",
+      "task_type": "code-generation",
+      "outcome": null,
+      "timestamp": 1709740800
+    }
+  ],
+  "embedding_dimension": 1536,
+  "search_time_ms": 15.3,
+  "provider": "openai"
+}

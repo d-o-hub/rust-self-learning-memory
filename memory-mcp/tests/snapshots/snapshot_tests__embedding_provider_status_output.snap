@@ -1,0 +1,29 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "configured": true,
+  "available": true,
+  "provider": "openai",
+  "model": "text-embedding-3-small",
+  "dimension": 1536,
+  "similarity_threshold": 0.7,
+  "batch_size": 100,
+  "cache_enabled": true,
+  "metadata": {
+    "api_version": "v1",
+    "rate_limit": "3000 per minute"
+  },
+  "test_result": {
+    "success": true,
+    "duration_ms": 125,
+    "sample_embedding": [
+      0.0123,
+      -0.0456,
+      0.0789
+    ],
+    "error": null
+  },
+  "warnings": []
+}

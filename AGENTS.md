@@ -104,10 +104,32 @@ skill: build-rust, code-quality
 
 ## Required Checks Before Commit
 - [ ] `cargo fmt --all -- --check`
-- [ ] `cargo clippy --all -- -D warnings`
+- [ ] `cargo clippy --workspace --tests -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used` (CI parity)
 - [ ] `cargo build --all`
 - [ ] `cargo nextest run --all`
 - [ ] `./scripts/quality-gates.sh`
+
+## CI Parity (2026-03)
+
+**CRITICAL**: Local checks must match CI exactly to prevent "works locally, fails in CI".
+
+| Check | Local Command | CI Workflow |
+|-------|---------------|-------------|
+| Format | `cargo fmt --all -- --check` | `quick-check.yml` |
+| Clippy (lib) | `cargo clippy --lib -- -D warnings ...` | `quick-check.yml` |
+| Clippy (tests) | `cargo clippy --tests -- -D warnings ...` | `quick-check.yml` |
+
+**Use the script for CI parity:**
+```bash
+./scripts/code-quality.sh clippy   # Runs --tests with CI flags
+./scripts/code-quality.sh check     # Full CI parity check
+```
+
+**Pre-commit hook (optional):**
+```bash
+pip install pre-commit
+pre-commit install  # Uses .pre-commit-config.yaml
+```
 
 ## Pre-Flight Validation (2026-03)
 

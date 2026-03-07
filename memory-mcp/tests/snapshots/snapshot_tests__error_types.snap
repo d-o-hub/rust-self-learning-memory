@@ -1,0 +1,11 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: errors
+---
+[
+  "Syntax",
+  "Runtime",
+  "Permission",
+  "Resource",
+  "Unknown"
+]

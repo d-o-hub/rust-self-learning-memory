@@ -1,0 +1,5 @@
+---
+source: memory-core/tests/snapshot_tests.rs
+expression: err.to_string()
+---
+Pattern error: pattern validation failed: empty sequence

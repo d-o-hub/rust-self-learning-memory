@@ -11,6 +11,13 @@ capabilities:
 
 I specialize in designing test strategies for the episodic memory system.
 
+## Skills
+
+You have access to the following skills:
+- test-optimization: Advanced test optimization with cargo-nextest, property testing, and benchmarking
+- quality-unit-testing: AAA pattern, naming conventions, test builders, and test quality checklists
+- rust-async-testing: Tokio patterns, concurrent operations, mock storage patterns, and async testing best practices
+
 ## My Approach
 
 1. **Analyze Codebase**

@@ -15,7 +15,10 @@
 use super::types::Content;
 use memory_mcp::ExecutionContext;
 use memory_mcp::MemoryMCPServer;
-use memory_mcp::mcp::tools::embeddings::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
+use memory_mcp::mcp::tools::embeddings::{
+    ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, GenerateEmbeddingInput,
+    QuerySemanticMemoryInput, SearchByEmbeddingInput,
+};
 use memory_mcp::mcp::tools::pattern_search::{RecommendPatternsInput, SearchPatternsInput};
 use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
 use memory_mcp::server::rate_limiter::OperationType;
@@ -378,6 +381,75 @@ pub async fn handle_test_embeddings(
     _arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let result = server.execute_test_embeddings().await?;
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle generate_embedding tool
+pub async fn handle_generate_embedding(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
+    let input: GenerateEmbeddingInput = serde_json::from_value(args)?;
+
+    let result = server.execute_generate_embedding(input).await;
+
+    // Audit log the operation
+    let success = result.is_ok();
+    server
+        .audit_logger()
+        .log_embedding_generation(&client_id, success)
+        .await;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }];
+    Ok(content)
+}
+
+/// Handle search_by_embedding tool
+pub async fn handle_search_by_embedding(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let client_id = get_client_id(&args);
+    let input: SearchByEmbeddingInput = serde_json::from_value(args)?;
+
+    let result = server.execute_search_by_embedding(input).await;
+
+    // Audit log the operation
+    let result_count = result
+        .as_ref()
+        .ok()
+        .and_then(|v| v.as_object())
+        .map(|o| o.len())
+        .unwrap_or(0);
+    server
+        .audit_logger()
+        .log_embedding_search(&client_id, result_count, result.is_ok())
+        .await;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result?)?,
+    }];
+    Ok(content)
+}
+
+/// Handle embedding_provider_status tool
+pub async fn handle_embedding_provider_status(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.unwrap_or(json!({}));
+    let input: EmbeddingProviderStatusInput = serde_json::from_value(args)?;
+
+    let result = server.execute_embedding_provider_status_tool(input).await?;
+
     let content = vec![Content::Text {
         text: serde_json::to_string_pretty(&result)?,
     }];

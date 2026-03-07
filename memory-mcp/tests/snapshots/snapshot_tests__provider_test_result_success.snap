@@ -1,0 +1,14 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: result
+---
+{
+  "success": true,
+  "duration_ms": 125,
+  "sample_embedding": [
+    0.0123,
+    -0.0456,
+    0.0789
+  ],
+  "error": null
+}

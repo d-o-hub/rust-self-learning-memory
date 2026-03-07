@@ -1,0 +1,12 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "success": true,
+  "provider": "openai",
+  "model": "text-embedding-3-small",
+  "dimension": 1536,
+  "message": "Successfully configured OpenAI embedding provider",
+  "warnings": []
+}

@@ -176,7 +176,7 @@ async fn test_connection_query_after_into_inner() {
 }
 
 #[tokio::test]
-#[ignore = "Timing-dependent test - connection ID uniqueness test has async timing issues in CI"]
+#[ignore = "Pool connection acquisition times out in CI - needs connection pool warmup or timeout adjustment"]
 async fn test_connection_id_uniqueness() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -200,7 +200,7 @@ async fn test_connection_id_uniqueness() {
 }
 
 #[tokio::test]
-#[ignore = "Timing-dependent test - cleanup callback timing issues with async drop in CI"]
+#[ignore = "Pool connection acquisition times out in CI - needs connection pool warmup or timeout adjustment"]
 async fn test_cleanup_callback_on_connection_drop() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -222,7 +222,9 @@ async fn test_cleanup_callback_on_connection_drop() {
     };
     // Connection is dropped here
 
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    // Give more time for async cleanup in CI environments
+    tokio::time::sleep(Duration::from_millis(200)).await;
+    tokio::task::yield_now().await;
 
     // Verify callback was called
     assert_eq!(cleanup_count.load(Ordering::Relaxed), 1);
@@ -234,7 +236,8 @@ async fn test_cleanup_callback_on_connection_drop() {
         let _conn3 = pool.get().await.unwrap();
     }
 
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    tokio::time::sleep(Duration::from_millis(200)).await;
+    tokio::task::yield_now().await;
 
     // Should have 4 total cleanups (1 from before + 3 new)
     assert_eq!(cleanup_count.load(Ordering::Relaxed), 4);
@@ -319,7 +322,7 @@ async fn test_cleanup_callback_removal() {
 }
 
 #[tokio::test]
-#[ignore = "Timing-dependent test - connection cache integration times out due to async cleanup timing in CI"]
+#[ignore = "Pool connection acquisition times out in CI - needs connection pool warmup or timeout adjustment"]
 async fn test_connection_cache_integration() {
     let (pool, _dir) = create_test_pool().await;
 
@@ -350,7 +353,9 @@ async fn test_connection_cache_integration() {
     };
 
     // Connection is dropped here, which should trigger cleanup
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    // Give more time for async cleanup in CI environments
+    tokio::time::sleep(Duration::from_millis(200)).await;
+    tokio::task::yield_now().await;
 
     // Verify cache was cleared for this connection
     assert_eq!(cache.connection_size(conn_id), 0);

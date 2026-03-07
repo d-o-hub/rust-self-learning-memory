@@ -1,13 +1,96 @@
 # Validation Status Report - Latest
 
-**Last Updated**: 2026-03-06 (PR #334 merged, Dependabot PRs in progress)
-**Version**: ADR-037 Phase C complete
-**Branch**: feature/goap-property-tests-2026-03-06
-**Overall Status**: ✅ **PASSING** (PR #334 merged, CI green on main)
+**Last Updated**: 2026-03-07 (CI running with test fixes)
+**Version**: v0.1.17 Sprint 2 Implementation
+**Branch**: goap/v0.1.17-sprint2-implementation
+**Overall Status**: 🔄 **CI RUNNING** (Waiting for all checks to pass)
 
 ---
 
-## PR #334 Merge Confirmation (2026-03-06)
+## PR #350: v0.1.17 Sprint 2 Implementation (2026-03-07)
+
+- **PR URL**: `https://github.com/d-o-hub/rust-self-learning-memory/pull/350`
+- **Title**: `feat: Implement missing tasks from plans/ - v0.1.17 Sprint 2`
+- **Status**: 🔄 CI checks running
+
+### Completed Tasks
+
+| Task | Status | Details |
+|------|--------|---------|
+| **G3: MCP Embedding Tools** | ✅ Complete | Implemented `generate_embedding`, `search_by_embedding`, `embedding_provider_status` |
+| **G4: ADR-024 Integration Tests** | ✅ Complete | 18 tests for lazy loading functionality |
+| **G7: Property Testing Expansion** | ✅ Complete | All 121 property tests passing |
+| **G8: Snapshot Testing Expansion** | ✅ Complete | Expanded from 13 to 65+ snapshots (target: ≥25) |
+
+### Test Results (Local)
+
+- **MCP Snapshot Tests**: 24/24 passed
+- **Core Snapshot Tests**: 26/26 passed
+- **ADR-024 Tests**: 18/18 passed
+- **Property Tests**: 121/121 passed
+- **Note**: Pre-existing Turso integration tests have SIGABRT issues (database connection)
+
+### Key Commits
+
+1. `feat(mcp): implement embedding tools for MCP server`
+2. `feat(mcp): add ADR-024 integration tests for lazy tool loading`
+3. `feat(core): add error message snapshot tests`
+4. `feat(mcp): add embedding tool snapshot tests`
+5. `feat(tests): expand snapshot test coverage`
+6. `fix(storage): improve keepalive connection handling`
+7. `fix(storage): fix caching pool test compilation`
+8. `refactor(mcp): split embedding tools into separate modules`
+9. `feat(cli): enhance cache configuration loader`
+10. `feat(core): add semantic embedding service`
+
+### ADR Implementation Status (Updated)
+
+| ADR | Status | Notes |
+|-----|--------|-------|
+| ADR-024 | ✅ Complete | `tools/describe` + `tools/describe_batch` endpoints implemented |
+| ADR-033 | 🟡 Partial | nextest ✅, mutants ✅, proptest ✅ expanded, insta ✅ expanded to 65+ snapshots |
+
+---
+
+## Task Analysis (2026-03-07)
+
+### G9: Dead Code Analysis
+
+- **Status**: 📋 Analysis Complete
+- **Total**: 134 dead_code annotations in source files (excluding target/)
+- **Categories**:
+  - Test helpers (~25): Acceptable
+  - Error variants (~15): May be used in pattern matching
+  - Feature-gated code (~30): Should have proper cfg attributes
+  - Genuinely unused (~20): Should be removed
+  - API types (~44): May be used by consumers
+- **Report**: `plans/STATUS/DEAD_CODE_ANALYSIS.md`
+
+### G2: Ignored Tests Analysis
+
+- **Status**: 📋 Analysis Complete
+- **Total**: 51 ignored tests
+- **Categories**:
+  - Timing-dependent (8): FIXABLE with better async handling
+  - WASM/WASI (6): Needs implementation
+  - Slow tests (~30): Acceptable by design
+  - Infrastructure tests (6): Blocked
+  - Flaky tests (3): Needs investigation
+- **Report**: `plans/STATUS/IGNORED_TESTS_ANALYSIS.md`
+
+### Commit: docs: add dead_code and ignored tests analysis
+
+- **SHA**: `5130342`
+- **Changes**: 6 files changed, 155 insertions(+), 19 deletions(-)
+- **Files**:
+  - `plans/STATUS/DEAD_CODE_ANALYSIS.md` (new)
+  - `plans/STATUS/IGNORED_TESTS_ANALYSIS.md` (new)
+  - `memory-storage-turso/src/cache/adaptive_ttl_tests.rs` (improved comments)
+  - `memory-storage-turso/src/cache/query_cache_tests.rs` (improved comments)
+  - `memory-storage-turso/src/pool/adaptive_tests.rs` (improved comments)
+  - `memory-storage-turso/src/pool/caching_pool_tests.rs` (added Duration import)
+
+---
 
 - **PR URL**: `https://github.com/d-o-hub/rust-self-learning-memory/pull/334`
 - **Title**: `fix(ci): nightly stability and workflow automation rollout`

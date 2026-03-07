@@ -1,0 +1,15 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: input
+---
+{
+  "provider": "openai",
+  "model": "text-embedding-3-small",
+  "api_key_env": "OPENAI_API_KEY",
+  "similarity_threshold": 0.75,
+  "batch_size": 50,
+  "base_url": null,
+  "api_version": null,
+  "resource_name": null,
+  "deployment_name": null
+}

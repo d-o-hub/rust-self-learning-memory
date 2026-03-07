@@ -1,0 +1,20 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: output
+---
+{
+  "available": true,
+  "provider": "openai",
+  "model": "text-embedding-3-small",
+  "dimension": 1536,
+  "test_time_ms": 125,
+  "sample_embedding": [
+    0.0123,
+    -0.0456,
+    0.0789,
+    0.0234,
+    -0.0567
+  ],
+  "message": "Embedding provider is available and working correctly",
+  "errors": []
+}

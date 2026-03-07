@@ -11,6 +11,11 @@ capabilities:
 
 I focus on writing and debugging async tests with Tokio.
 
+## Skills
+
+You have access to the following skill:
+- **rust-async-testing**: Tokio patterns, concurrent operations, mock storage patterns, and async testing best practices for Rust
+
 ## Expertise
 
 - **Tokio Runtime Management**

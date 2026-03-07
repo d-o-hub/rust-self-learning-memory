@@ -53,6 +53,10 @@ fn create_additional_extended_tools() -> Vec<Tool> {
         crate::mcp::tools::embeddings::configure_embeddings_tool(),
         crate::mcp::tools::embeddings::query_semantic_memory_tool(),
         crate::mcp::tools::embeddings::test_embeddings_tool(),
+        // New embedding tools
+        crate::mcp::tools::embeddings::generate_embedding_tool(),
+        crate::mcp::tools::embeddings::search_by_embedding_tool(),
+        crate::mcp::tools::embeddings::embedding_provider_status_tool(),
         // Pattern search tool
         Tool::new(
             "search_patterns".to_string(),

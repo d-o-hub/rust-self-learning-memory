@@ -16,6 +16,85 @@ impl EmbeddingTools {
     }
 }
 
+/// Get the tool definition for generate_embedding
+pub fn generate_embedding_tool() -> Tool {
+    Tool::new(
+        "generate_embedding".to_string(),
+        "Generate an embedding vector for text using the configured embedding provider."
+            .to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "description": "Text to generate embedding for"
+                },
+                "normalize": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to normalize the embedding vector to unit length"
+                }
+            },
+            "required": ["text"]
+        }),
+    )
+}
+
+/// Get the tool definition for search_by_embedding
+pub fn search_by_embedding_tool() -> Tool {
+    Tool::new(
+        "search_by_embedding".to_string(),
+        "Search episodes by embedding similarity using a pre-computed embedding vector."
+            .to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "description": "Embedding vector to search with"
+                },
+                "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 10,
+                    "description": "Maximum number of results"
+                },
+                "similarity_threshold": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "default": 0.7,
+                    "description": "Minimum similarity score"
+                },
+                "domain": {"type": "string", "description": "Filter by domain"},
+                "task_type": {"type": "string", "description": "Filter by task type"}
+            },
+            "required": ["embedding"]
+        }),
+    )
+}
+
+/// Get the tool definition for embedding_provider_status
+pub fn embedding_provider_status_tool() -> Tool {
+    Tool::new(
+        "embedding_provider_status".to_string(),
+        "Get detailed status information about the configured embedding provider.".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "test_connectivity": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to perform a test embedding to verify connectivity"
+                }
+            },
+            "additionalProperties": false
+        }),
+    )
+}
+
 /// Get the tool definition for configure_embeddings
 pub fn configure_embeddings_tool() -> Tool {
     Tool::new(

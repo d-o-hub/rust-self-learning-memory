@@ -7,9 +7,14 @@ use std::sync::Arc;
 use memory_core::SelfLearningMemory;
 
 use crate::mcp::tools::embeddings::tool::{
-    EmbeddingTools, configure_embeddings_tool, query_semantic_memory_tool, test_embeddings_tool,
+    EmbeddingTools, configure_embeddings_tool, embedding_provider_status_tool,
+    generate_embedding_tool, query_semantic_memory_tool, search_by_embedding_tool,
+    test_embeddings_tool,
 };
-use crate::mcp::tools::embeddings::types::{ConfigureEmbeddingsInput, QuerySemanticMemoryInput};
+use crate::mcp::tools::embeddings::types::{
+    ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, GenerateEmbeddingInput,
+    QuerySemanticMemoryInput, SearchByEmbeddingInput,
+};
 
 #[test]
 fn test_configure_embeddings_tool_definition() {
@@ -200,4 +205,159 @@ async fn test_configure_embeddings_azure_missing_fields() {
         "Expected error about missing deployment_name or resource_name, got: {}",
         error_msg
     );
+}
+
+#[test]
+fn test_generate_embedding_tool_definition() {
+    let tool = generate_embedding_tool();
+    assert_eq!(tool.name, "generate_embedding");
+    assert!(!tool.description.is_empty());
+    assert!(tool.input_schema.is_object());
+
+    // Verify required fields
+    let schema = tool.input_schema.as_object().unwrap();
+    let required = schema.get("required").unwrap().as_array().unwrap();
+    assert_eq!(required.len(), 1);
+    assert!(required.contains(&serde_json::json!("text")));
+
+    // Verify properties
+    let properties = schema.get("properties").unwrap().as_object().unwrap();
+    assert!(properties.contains_key("text"));
+    assert!(properties.contains_key("normalize"));
+}
+
+#[test]
+fn test_search_by_embedding_tool_definition() {
+    let tool = search_by_embedding_tool();
+    assert_eq!(tool.name, "search_by_embedding");
+    assert!(!tool.description.is_empty());
+    assert!(tool.input_schema.is_object());
+
+    // Verify required fields
+    let schema = tool.input_schema.as_object().unwrap();
+    let required = schema.get("required").unwrap().as_array().unwrap();
+    assert_eq!(required.len(), 1);
+    assert!(required.contains(&serde_json::json!("embedding")));
+
+    // Verify properties
+    let properties = schema.get("properties").unwrap().as_object().unwrap();
+    assert!(properties.contains_key("embedding"));
+    assert!(properties.contains_key("limit"));
+    assert!(properties.contains_key("similarity_threshold"));
+}
+
+#[test]
+fn test_embedding_provider_status_tool_definition() {
+    let tool = embedding_provider_status_tool();
+    assert_eq!(tool.name, "embedding_provider_status");
+    assert!(!tool.description.is_empty());
+    assert!(tool.input_schema.is_object());
+
+    // Should have no required properties
+    let schema = tool.input_schema.as_object().unwrap();
+    let required = schema.get("required");
+    assert!(required.is_none() || required.unwrap().as_array().unwrap().is_empty());
+
+    // Verify properties
+    let properties = schema.get("properties").unwrap().as_object().unwrap();
+    assert!(properties.contains_key("test_connectivity"));
+}
+
+#[tokio::test]
+async fn test_generate_embedding_not_configured() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = GenerateEmbeddingInput {
+        text: "test text".to_string(),
+        normalize: true,
+    };
+
+    let result = tools.execute_generate_embedding(input).await;
+    assert!(result.is_err());
+    let error_msg = result.unwrap_err().to_string();
+    assert!(
+        error_msg.contains("not configured"),
+        "Expected error about not configured, got: {}",
+        error_msg
+    );
+}
+
+#[tokio::test]
+async fn test_search_by_embedding_not_configured() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = SearchByEmbeddingInput {
+        embedding: vec![0.1; 384], // Default dimension
+        limit: 10,
+        similarity_threshold: 0.7,
+        domain: None,
+        task_type: None,
+    };
+
+    let result = tools.execute_search_by_embedding(input).await;
+    assert!(result.is_err());
+    let error_msg = result.unwrap_err().to_string();
+    assert!(
+        error_msg.contains("not configured"),
+        "Expected error about not configured, got: {}",
+        error_msg
+    );
+}
+
+#[tokio::test]
+async fn test_embedding_provider_status_not_configured() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = EmbeddingProviderStatusInput {
+        test_connectivity: false,
+    };
+
+    let result = tools.execute_embedding_provider_status(input).await;
+    assert!(result.is_ok());
+
+    let output = result.unwrap();
+    assert!(!output.configured);
+    assert!(!output.available);
+    assert_eq!(output.provider, "not-configured");
+    assert!(!output.warnings.is_empty());
+}
+
+#[tokio::test]
+async fn test_embedding_provider_status_with_test() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = EmbeddingProviderStatusInput {
+        test_connectivity: true,
+    };
+
+    let result = tools.execute_embedding_provider_status(input).await;
+    assert!(result.is_ok());
+
+    let output = result.unwrap();
+    assert!(!output.configured);
+    assert!(!output.available);
+    // test_result should be None since not configured
+    assert!(output.test_result.is_none());
+}
+
+#[tokio::test]
+async fn test_search_by_embedding_wrong_dimension() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let tools = EmbeddingTools::new(memory);
+
+    let input = SearchByEmbeddingInput {
+        embedding: vec![0.1; 128], // Wrong dimension
+        limit: 10,
+        similarity_threshold: 0.7,
+        domain: None,
+        task_type: None,
+    };
+
+    let result = tools.execute_search_by_embedding(input).await;
+    // Since not configured, will error about not configured first
+    assert!(result.is_err());
 }

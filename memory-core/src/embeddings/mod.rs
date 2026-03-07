@@ -66,6 +66,7 @@ pub use mistral::MistralEmbeddingProvider;
 pub use mock_model::MockLocalModel;
 #[cfg(feature = "openai")]
 pub use openai::OpenAIEmbeddingProvider;
+pub use provider::utils::normalize_vector;
 pub use provider::{EmbeddingProvider, EmbeddingResult};
 pub use similarity::{
     EmbeddingWithMetadata, SimilarityMetadata, SimilaritySearchResult, cosine_similarity,
@@ -312,6 +313,54 @@ impl SemanticService {
     /// Calculate similarity between two texts
     pub async fn text_similarity(&self, text1: &str, text2: &str) -> Result<f32> {
         self.provider.similarity(text1, text2).await
+    }
+
+    /// Find episodes similar to a pre-computed embedding vector
+    ///
+    /// This method allows searching with a pre-computed embedding, useful when
+    /// the embedding has been generated externally or cached.
+    ///
+    /// # Arguments
+    /// * `embedding` - Pre-computed embedding vector to search with
+    /// * `limit` - Maximum number of results to return
+    /// * `threshold` - Minimum similarity score (0.0-1.0)
+    ///
+    /// # Returns
+    /// Vector of similar episodes with their similarity scores
+    pub async fn find_episodes_by_embedding(
+        &self,
+        embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<SimilaritySearchResult<Episode>>> {
+        self.storage
+            .find_similar_episodes(embedding, limit, threshold)
+            .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
+    }
+
+    /// Find patterns similar to a pre-computed embedding vector
+    ///
+    /// This method allows searching with a pre-computed embedding, useful when
+    /// the embedding has been generated externally or cached.
+    ///
+    /// # Arguments
+    /// * `embedding` - Pre-computed embedding vector to search with
+    /// * `limit` - Maximum number of results to return
+    /// * `threshold` - Minimum similarity score (0.0-1.0)
+    ///
+    /// # Returns
+    /// Vector of similar patterns with their similarity scores
+    pub async fn find_patterns_by_embedding(
+        &self,
+        embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<SimilaritySearchResult<Pattern>>> {
+        self.storage
+            .find_similar_patterns(embedding, limit, threshold)
+            .await
+            .map_err(|e| anyhow::Error::msg(e.to_string()))
     }
 
     /// Get embeddings for multiple episodes in batch

@@ -2,8 +2,11 @@
 
 use crate::mcp::tools::embeddings::EmbeddingTools;
 use crate::mcp::tools::embeddings::types::{
-    ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, QuerySemanticMemoryInput,
-    QuerySemanticMemoryOutput, SemanticResult, TestEmbeddingsOutput,
+    ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
+    EmbeddingProviderStatusOutput, EmbeddingSearchResult, GenerateEmbeddingInput,
+    GenerateEmbeddingOutput, ProviderTestResult, QuerySemanticMemoryInput,
+    QuerySemanticMemoryOutput, SearchByEmbeddingInput, SearchByEmbeddingOutput, SemanticResult,
+    TestEmbeddingsOutput,
 };
 use anyhow::{Result, anyhow};
 use memory_core::embeddings::config::{
@@ -418,6 +421,272 @@ impl EmbeddingTools {
             message: "Semantic service not yet configured. Use configure_embeddings first."
                 .to_string(),
             errors: vec!["Semantic embeddings feature requires configuration".to_string()],
+        })
+    }
+
+    /// Execute the generate_embedding tool
+    #[instrument(skip(self, input), fields(text_len = input.text.len()))]
+    pub async fn execute_generate_embedding(
+        &self,
+        input: GenerateEmbeddingInput,
+    ) -> Result<GenerateEmbeddingOutput> {
+        let start_time = std::time::Instant::now();
+
+        info!("Generating embedding for text ({} chars)", input.text.len());
+
+        // Check if semantic_service is available
+        if let Some(semantic_service) = self.memory.semantic_service() {
+            // Generate the embedding
+            let mut embedding = semantic_service
+                .provider
+                .embed_text(&input.text)
+                .await
+                .map_err(|e| anyhow!("Failed to generate embedding: {}", e))?;
+
+            let config = semantic_service.config();
+            let model_name = config.provider.model_name();
+            let dimension = config.provider.effective_dimension();
+            let provider = format!("{:?}", config.provider);
+
+            // Normalize if requested
+            let normalized = input.normalize;
+            if normalized {
+                embedding = memory_core::embeddings::normalize_vector(embedding);
+            }
+
+            let generation_time_ms = start_time.elapsed().as_micros() as f64 / 1000.0;
+
+            debug!(
+                "Generated {}-dimensional embedding in {}ms",
+                dimension, generation_time_ms
+            );
+
+            return Ok(GenerateEmbeddingOutput {
+                embedding,
+                dimension,
+                model: model_name,
+                provider,
+                generation_time_ms,
+                normalized,
+                token_count: None, // Would need tokenizer integration
+            });
+        }
+
+        // No semantic service configured
+        warn!("Semantic service not available, cannot generate embedding");
+        Err(anyhow!(
+            "Semantic embeddings not configured. Use configure_embeddings first."
+        ))
+    }
+
+    /// Execute the search_by_embedding tool
+    #[instrument(skip(self, input), fields(embedding_dim = input.embedding.len()))]
+    pub async fn execute_search_by_embedding(
+        &self,
+        input: SearchByEmbeddingInput,
+    ) -> Result<SearchByEmbeddingOutput> {
+        let start_time = std::time::Instant::now();
+
+        info!(
+            "Searching by embedding (dimension: {}, limit: {}, threshold: {})",
+            input.embedding.len(),
+            input.limit,
+            input.similarity_threshold
+        );
+
+        // Validate embedding dimension
+        let expected_dimension = if let Some(semantic_service) = self.memory.semantic_service() {
+            semantic_service.config().provider.effective_dimension()
+        } else {
+            384 // Default dimension
+        };
+
+        if input.embedding.len() != expected_dimension {
+            return Err(anyhow!(
+                "Embedding dimension mismatch: got {}, expected {}. Use the same model that generated your embeddings.",
+                input.embedding.len(),
+                expected_dimension
+            ));
+        }
+
+        // Check if semantic_service is available
+        if let Some(semantic_service) = self.memory.semantic_service() {
+            let config = semantic_service.config();
+            let provider = format!("{:?}", config.provider);
+
+            // Search for similar episodes using the embedding directly
+            let similar_episodes = semantic_service
+                .find_episodes_by_embedding(
+                    input.embedding.clone(),
+                    input.limit,
+                    input.similarity_threshold,
+                )
+                .await
+                .map_err(|e| anyhow!("Failed to search by embedding: {}", e))?;
+
+            // Convert to search results
+            let results: Vec<EmbeddingSearchResult> = similar_episodes
+                .into_iter()
+                .map(|result| {
+                    let episode = result.item;
+                    let outcome = episode.outcome.as_ref().map(|o| match o {
+                        TaskOutcome::Success { verdict, .. } => {
+                            format!("Success: {}", verdict)
+                        }
+                        TaskOutcome::PartialSuccess { verdict, .. } => {
+                            format!("Partial: {}", verdict)
+                        }
+                        TaskOutcome::Failure { reason, .. } => {
+                            format!("Failure: {}", reason)
+                        }
+                    });
+
+                    EmbeddingSearchResult {
+                        episode_id: episode.episode_id.to_string(),
+                        similarity_score: result.similarity,
+                        task_description: episode.task_description.clone(),
+                        domain: episode.context.domain.clone(),
+                        task_type: format!("{:?}", episode.task_type),
+                        outcome,
+                        timestamp: episode.start_time.timestamp(),
+                    }
+                })
+                .collect();
+
+            let search_time_ms = start_time.elapsed().as_micros() as f64 / 1000.0;
+
+            debug!(
+                "Embedding search completed in {}ms, found {} results",
+                search_time_ms,
+                results.len()
+            );
+
+            return Ok(SearchByEmbeddingOutput {
+                results_found: results.len(),
+                results,
+                embedding_dimension: expected_dimension,
+                search_time_ms,
+                provider,
+            });
+        }
+
+        // No semantic service configured - fallback to standard retrieval with warning
+        warn!("Semantic service not available, cannot search by embedding");
+        Err(anyhow!(
+            "Semantic embeddings not configured. Use configure_embeddings first to enable embedding-based search."
+        ))
+    }
+
+    /// Execute the embedding_provider_status tool
+    #[instrument(skip(self))]
+    pub async fn execute_embedding_provider_status(
+        &self,
+        input: EmbeddingProviderStatusInput,
+    ) -> Result<EmbeddingProviderStatusOutput> {
+        info!("Getting embedding provider status");
+
+        let mut warnings = Vec::new();
+
+        // Check if semantic_service is configured
+        if let Some(semantic_service) = self.memory.semantic_service() {
+            let config = semantic_service.config();
+            let model_name = config.provider.model_name();
+            let dimension = config.provider.effective_dimension();
+            let provider = format!("{:?}", config.provider);
+            let similarity_threshold = config.similarity_threshold;
+            let batch_size = config.batch_size;
+            let cache_enabled = config.cache_embeddings;
+
+            // Get provider metadata
+            let metadata = semantic_service.provider.metadata();
+
+            // Perform connectivity test if requested
+            let test_result = if input.test_connectivity {
+                let start_time = std::time::Instant::now();
+                match semantic_service.provider.embed_text("test").await {
+                    Ok(embedding) => {
+                        let duration_ms = start_time.elapsed().as_millis() as u64;
+                        // Get first 5 values as sample
+                        let sample_embedding: Vec<f32> = embedding.into_iter().take(5).collect();
+
+                        Some(ProviderTestResult {
+                            success: true,
+                            duration_ms,
+                            sample_embedding,
+                            error: None,
+                        })
+                    }
+                    Err(e) => {
+                        let duration_ms = start_time.elapsed().as_millis() as u64;
+                        warnings.push(format!("Connectivity test failed: {}", e));
+                        Some(ProviderTestResult {
+                            success: false,
+                            duration_ms,
+                            sample_embedding: vec![],
+                            error: Some(e.to_string()),
+                        })
+                    }
+                }
+            } else {
+                None
+            };
+
+            // Check for potential configuration issues
+            if similarity_threshold < 0.5 {
+                warnings.push(format!(
+                    "Low similarity threshold ({}) may return many irrelevant results",
+                    similarity_threshold
+                ));
+            }
+            if similarity_threshold > 0.95 {
+                warnings.push(format!(
+                    "High similarity threshold ({}) may return very few results",
+                    similarity_threshold
+                ));
+            }
+            if batch_size > 100 {
+                warnings.push(format!(
+                    "Large batch size ({}) may cause timeout issues",
+                    batch_size
+                ));
+            }
+
+            // Determine availability based on test result or previous success
+            let available = test_result.as_ref().map(|t| t.success).unwrap_or_else(|| {
+                // If no test was requested, assume available since it was configured
+                true
+            });
+
+            return Ok(EmbeddingProviderStatusOutput {
+                configured: true,
+                available,
+                provider,
+                model: model_name,
+                dimension,
+                similarity_threshold,
+                batch_size,
+                cache_enabled,
+                metadata,
+                test_result,
+                warnings,
+            });
+        }
+
+        // No semantic service configured
+        Ok(EmbeddingProviderStatusOutput {
+            configured: false,
+            available: false,
+            provider: "not-configured".to_string(),
+            model: "none".to_string(),
+            dimension: 384,
+            similarity_threshold: 0.7,
+            batch_size: 32,
+            cache_enabled: false,
+            metadata: serde_json::json!({"status": "not_configured"}),
+            test_result: None,
+            warnings: vec![
+                "Semantic embeddings not configured. Use configure_embeddings to enable embedding features.".to_string()
+            ],
         })
     }
 }

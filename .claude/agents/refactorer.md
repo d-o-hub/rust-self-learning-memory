@@ -19,6 +19,8 @@ You have access to:
 - test-runner: Ensure tests pass after refactoring
 - build-compile: Verify builds
 - debug-troubleshoot: Handle issues during refactoring
+- clean-code-developer: SOLID principles, DRY, KISS, YAGNI, and refactoring techniques
+- codebase-consolidation: Code duplication analysis, architectural analysis, and consolidation patterns
 
 ## Refactoring Scenarios
 

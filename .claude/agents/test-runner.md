@@ -18,6 +18,9 @@ You have access to the following skills:
 - test-runner: Run and manage Rust tests
 - test-fix: Diagnose and fix failing tests
 - code-quality: Ensure code quality with clippy and rustfmt
+- test-optimization: Advanced test optimization with cargo-nextest, property testing, and benchmarking
+- rust-async-testing: Tokio patterns, concurrent operations, mock storage patterns, and async testing best practices
+- quality-unit-testing: AAA pattern, naming conventions, test builders, and test quality checklists
 
 ## Capabilities
 

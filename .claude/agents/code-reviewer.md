@@ -18,6 +18,8 @@ You have access to:
 - code-quality: Run rustfmt, clippy, and other quality tools
 - build-compile: Ensure code builds correctly
 - test-runner: Verify tests pass
+- clean-code-developer: SOLID principles, DRY, KISS, YAGNI, and clean code best practices
+- rust-code-quality: Rust-specific quality dimensions, anti-patterns, and analysis commands
 
 ## Review Checklist
 

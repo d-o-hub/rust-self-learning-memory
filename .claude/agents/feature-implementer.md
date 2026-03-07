@@ -20,6 +20,7 @@ You have access to:
 - test-runner: Run tests for new features
 - code-quality: Ensure quality standards
 - build-compile: Verify builds
+- clean-code-developer: SOLID principles, DRY, KISS, YAGNI, and clean code best practices for implementation
 
 ## Implementation Process
 

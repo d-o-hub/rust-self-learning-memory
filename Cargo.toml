@@ -49,6 +49,11 @@ tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 
 # Testing
 tempfile = "3.26.0"
+proptest = "1.6"
+insta = { version = "1.46", features = ["json"] }
+serial_test = "3.4"
+assert_cmd = "2.1"
+predicates = "3.1"
 
 # Benchmarking
 criterion = "0.8"
@@ -67,23 +72,29 @@ clap = { version = "4.5.60", features = ["derive"] }
 
 # Async utilities
 futures = "0.3.32"
+
 # Consolidated duplicate dependencies
 base64 = "0.22.1"
 lru = "0.16.3"
 regex = "1.12"
 
-    # Note: Some duplicates are from transitive dependencies we cannot easily control:
-    # - argmin 0.8.1 and argmin-math 0.3.0 come from augurs-changepoint -> changepoint -> rv
-    # - hashbrown versions come from wasmtime, libsql, and other external dependencies
-    # - itertools versions come from criterion, prost, rv, and augurs
+# Configuration
+toml = "1.0"
 
- # Security patches are now inline in workspace dependencies
- # - hyper-rustls 0.27.7 fixes RUSTSEC-2025-0134 (rustls-pemfile)
- # - changepoint 0.15.0 in memory-core fixes RUSTSEC-2026-0002 (lru)
- #
- # NOTE: These are documented but not forcing transitive dependencies yet due to
- # Cargo limitations. Requires upstream updates in libsql and augurs crates.
- # See SECURITY.md for details on advisories and mitigation.
+# Note: Some duplicates are from transitive dependencies we cannot easily control:
+# - argmin 0.8.1 and argmin-math 0.3.0 come from augurs-changepoint -> changepoint -> rv
+# - hashbrown versions come from wasmtime, libsql, and other external dependencies
+# - itertools versions come from criterion, prost, rv, and augurs
+# - getrandom versions come from rand 0.8/0.9/0.10 ecosystem split
+# - nalgebra/ndarray versions come from changepoint/argmin-math ecosystem
+
+# Security patches are now inline in workspace dependencies
+# - hyper-rustls 0.27.7 fixes RUSTSEC-2025-0134 (rustls-pemfile)
+# - changepoint 0.15.0 in memory-core fixes RUSTSEC-2026-0002 (lru)
+#
+# NOTE: These are documented but not forcing transitive dependencies yet due to
+# Cargo limitations. Requires upstream updates in libsql and augurs crates.
+# See SECURITY.md for details on advisories and mitigation.
 
 # Coverage configuration for cargo-llvm-cov
 [workspace.metadata.coverage]

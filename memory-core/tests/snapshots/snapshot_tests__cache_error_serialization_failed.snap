@@ -1,0 +1,5 @@
+---
+source: memory-core/tests/snapshot_tests.rs
+expression: err.to_string()
+---
+Failed to serialize cache entry 'episode_xyz': invalid UTF-8 sequence

@@ -618,8 +618,8 @@ full = ["turso", "redb"]
 
 - **Core Components**: See [ARCHITECTURE_CORE.md](ARCHITECTURE_CORE.md)
 - **Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
-- **Configuration**: See [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG_IMPLEMENTATION_ROADMAP.md)
-- **Current Status**: See [ROADMAP_V017_CURRENT.md](ROADMAP_V017_CURRENT.md)
+- **Configuration**: See [../CONFIGURATION/](../CONFIGURATION/) for configuration documentation
+- **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 
 ---
 

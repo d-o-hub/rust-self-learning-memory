@@ -188,7 +188,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 | Final report | ✅ Complete | FINAL_RESEARCH_INTEGRATION_REPORT.md |
 | Research claims | ✅ **ALL VALIDATED** | Exceeded targets by 4-2307x |
 
-**See**: [FINAL_RESEARCH_INTEGRATION_REPORT.md](../research/FINAL_RESEARCH_INTEGRATION_REPORT.md) for complete details.
+**See**: Research integration complete - results documented in benchmark files
 
 ---
 
@@ -365,7 +365,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 
 ### Active Issues (2026-02-14)
 
-> See [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md) for full remediation strategy.
+> See [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md) for full remediation strategy.
 
 1. **CI: Nightly Full Tests failing on main**: Only remaining CI failure (CI, Coverage, File Structure, Security, YAML Lint all ✅; Benchmarks ⏭️ skipped)
 2. **Issue #276**: Clippy warnings — may be closeable since `cargo clippy --all -- -D warnings` now passes clean
@@ -395,7 +395,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 
 ### Immediate: Project Health Remediation (ADR-025)
 
-> Phased remediation plan per [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md).
+> Phased remediation plan per [ADR-025](../adr/ADR-025-Project-Health-Remediation.md) and [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md).
 
 - **Phase A — CI/CD Stabilization (P0)**: ✅ MOSTLY COMPLETE — 5/6 workflows passing, only Nightly Full Tests still failing
 - **Phase B — Dependency Updates (P1)**: Resolve Dependabot PRs (#267-271), close #276 (clippy clean), migrate Criterion 0.5→0.8 (#277)
@@ -450,7 +450,7 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 - **Architecture**: Review [ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)
 - **Roadmap**: Check [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md) for current plans
 - **Implementation**: See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for technical details
-- **Configuration**: Reference [memory-cli/CONFIGURATION.md](../memory-cli/CONFIGURATION.md)
+- **Configuration**: Reference [memory-cli/CONFIGURATION.md](../../memory-cli/CONFIGURATION.md)
 
 ### Maintenance Responsibility
 - **Primary**: Project maintainers and core team
@@ -468,16 +468,16 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 - **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** - Implementation status and technical details
 
 ### Quality & Status
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and changes
-- **[TESTING.md](../TESTING.md)** - Testing strategies and quality assurance
-- **[AGENTS.md](../AGENTS.md)** - Agent responsibilities and workflows
-- **[TASK_COMPLETION_STATUS.md](../TASK_COMPLETION_STATUS.md)** - Current task status
+- **[CHANGELOG.md](../../CHANGELOG.md)** - Version history and changes
+- **[TESTING.md](../../TESTING.md)** - Testing strategies and quality assurance
+- **[AGENTS.md](../../AGENTS.md)** - Agent responsibilities and workflows
+- TASK_COMPLETION_STATUS.md - Archived (see GOAP_CODEBASE_ANALYSIS_2026-03-09.md for current status)
 
 ### Planning & Archive
 - **[ADR-025](../adr/ADR-025-Project-Health-Remediation.md)** - Project health remediation plan (Phase A→D)
-- **[GOAP Execution Plan](../GOAP_EXECUTION_PLAN_2026-02-12.md)** - v0.1.15 development plan
+- **[GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md)** - Current development plan
 - **[plans/archive/](./archive/)** - Historical planning documents organized by version
-- **[plans/README.md](./README.md)** - Plans folder navigation and organization
+- **[plans/README.md](../README.md)** - Plans folder navigation and organization
 
 ---
 

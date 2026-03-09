@@ -6,7 +6,7 @@ pub mod crud;
 pub mod query;
 pub mod row;
 
-use memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
+use memory_core::{Episode, Error, Result, TaskType};
 use uuid::Uuid;
 
 /// Query builder for episodes
@@ -179,36 +179,5 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0).unwrap_or_default(),
         end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         metadata,
-    })
-}
-
-/// Convert a database row to an EpisodeSummary (pub(crate) for internal use)
-#[allow(dead_code)]
-pub(crate) fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
-    let episode_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-    let summary_text: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
-    let key_concepts_json: String = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
-    let key_steps_json: String = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
-    let embedding_json: Option<String> = row.get(4).ok();
-    let created_at_timestamp: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
-
-    let key_concepts: Vec<String> = serde_json::from_str(&key_concepts_json)
-        .map_err(|e| Error::Storage(format!("Failed to parse key concepts: {}", e)))?;
-    let key_steps: Vec<String> = serde_json::from_str(&key_steps_json)
-        .map_err(|e| Error::Storage(format!("Failed to parse key steps: {}", e)))?;
-    let summary_embedding = embedding_json
-        .as_ref()
-        .map(|s| serde_json::from_str::<Vec<f32>>(s))
-        .transpose()
-        .map_err(|e| Error::Storage(format!("Failed to parse embedding: {}", e)))?;
-
-    Ok(EpisodeSummary {
-        episode_id: uuid::Uuid::parse_str(&episode_id)
-            .map_err(|e| Error::Storage(format!("Invalid episode ID: {}", e)))?,
-        summary_text,
-        key_concepts,
-        key_steps,
-        summary_embedding,
-        created_at: chrono::DateTime::from_timestamp(created_at_timestamp, 0).unwrap_or_default(),
     })
 }

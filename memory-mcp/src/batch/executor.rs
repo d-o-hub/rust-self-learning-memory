@@ -3,23 +3,15 @@
 use super::dependency_graph::DependencyGraph;
 use super::types::{BatchMode, BatchOperation, BatchRequest, BatchResponse, OperationResult};
 use serde_json::Value;
-use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::collections::HashSet;
 
 /// Batch executor for managing parallel execution
-pub struct BatchExecutor {
-    /// Completed operation results (reserved for future use)
-    #[allow(dead_code)]
-    results: Arc<RwLock<HashMap<String, OperationResult>>>,
-}
+pub struct BatchExecutor;
 
 impl BatchExecutor {
     /// Create a new batch executor
     pub fn new() -> Self {
-        Self {
-            results: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self
     }
 
     /// Execute a batch of operations with dependency management
@@ -193,7 +185,7 @@ impl BatchExecutor {
 
 impl Default for BatchExecutor {
     fn default() -> Self {
-        Self::new()
+        Self
     }
 }
 
@@ -201,6 +193,7 @@ impl Default for BatchExecutor {
 mod tests {
     use super::*;
     use serde_json::Value;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_execute_empty_batch() {

@@ -48,10 +48,16 @@ fn test_cache_put_and_get() {
 }
 
 #[test]
-#[ignore = "Cache uses lazy expiration - entries expire on access, not via background cleanup"]
 fn test_cache_expiration() {
+    use std::collections::HashMap;
+
+    // Override TTL for Episode type so put() uses our short TTL
+    let mut ttl_overrides = HashMap::new();
+    ttl_overrides.insert(QueryType::Episode, Duration::from_millis(100));
+
     let config = AdvancedQueryCacheConfig {
         default_ttl: Duration::from_millis(100),
+        ttl_overrides,
         ..Default::default()
     };
 
@@ -66,10 +72,10 @@ fn test_cache_expiration() {
     // Should be cached initially
     assert!(cache.get(&key).is_some());
 
-    // Wait for expiration with generous timing for CI
-    std::thread::sleep(Duration::from_millis(200));
+    // Wait for expiration with generous margin (3x TTL) for CI
+    std::thread::sleep(Duration::from_millis(350));
 
-    // Should be expired
+    // Should be expired (lazy expiration on next get())
     assert!(cache.get(&key).is_none());
 
     let stats = cache.stats();

@@ -206,8 +206,8 @@ impl AsyncCompressor {
     {
         let start = std::time::Instant::now();
 
-        // Read header
-        let mut header_buf = [0u8; 16];
+        // Read header (17 bytes: 8 original + 8 compressed + 1 algorithm)
+        let mut header_buf = [0u8; 17];
         reader
             .read_exact(&mut header_buf)
             .await
@@ -293,17 +293,26 @@ impl AsyncCompressor {
     }
 
     /// Create stream header
-    pub fn create_stream_header(payload: &CompressedPayload) -> [u8; 16] {
-        let mut header = [0u8; 16];
+    ///
+    /// Header layout (17 bytes):
+    /// - bytes 0..8: original size (u64 LE)
+    /// - bytes 8..16: compressed size (u64 LE)
+    /// - byte 16: algorithm ID (0=None, 1=Lz4, 2=Zstd, 3=Gzip)
+    pub fn create_stream_header(payload: &CompressedPayload) -> [u8; 17] {
+        let mut header = [0u8; 17];
         header[0..8].copy_from_slice(&(payload.original_size as u64).to_le_bytes());
         header[8..16].copy_from_slice(&(payload.compressed_size as u64).to_le_bytes());
-        // Algorithm is implicit in the compression format
+        header[16] = match payload.algorithm {
+            CompressionAlgorithm::None => 0,
+            CompressionAlgorithm::Lz4 => 1,
+            CompressionAlgorithm::Zstd => 2,
+            CompressionAlgorithm::Gzip => 3,
+        };
         header
     }
 
     /// Parse stream header
-    fn parse_stream_header(header: &[u8; 16]) -> Result<(usize, usize, CompressionAlgorithm)> {
-        // SAFETY: header is guaranteed to be 16 bytes by the type signature
+    fn parse_stream_header(header: &[u8; 17]) -> Result<(usize, usize, CompressionAlgorithm)> {
         let original_size = u64::from_le_bytes(
             header[0..8]
                 .try_into()
@@ -315,14 +324,14 @@ impl AsyncCompressor {
                 .expect("Header slice must be exactly 8 bytes"),
         ) as usize;
 
-        // Detect algorithm from size relationship
-        let algorithm = if original_size == compressed_size {
-            CompressionAlgorithm::None
-        } else if compressed_size < original_size / 2 {
-            // Likely Zstd or LZ4
-            CompressionAlgorithm::Zstd
-        } else {
-            CompressionAlgorithm::Gzip
+        let algorithm = match header[16] {
+            0 => CompressionAlgorithm::None,
+            1 => CompressionAlgorithm::Lz4,
+            2 => CompressionAlgorithm::Zstd,
+            3 => CompressionAlgorithm::Gzip,
+            _ => {
+                return Err(TransportCompressionError::InvalidHeader.into());
+            }
         };
 
         Ok((original_size, compressed_size, algorithm))

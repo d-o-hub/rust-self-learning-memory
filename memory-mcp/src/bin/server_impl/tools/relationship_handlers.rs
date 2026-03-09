@@ -1,4 +1,5 @@
-use super::{Content, MemoryMCPServer, OperationType, Value, get_client_id};
+use super::{Content, MemoryMCPServer, Value, get_client_id};
+use memory_mcp::server::rate_limiter::OperationType;
 
 pub async fn handle_add_episode_relationship(
     server: &mut MemoryMCPServer,

@@ -52,7 +52,6 @@ mod episode;
 pub mod filters;
 mod init;
 mod learning;
-mod learning_ops;
 mod management;
 mod monitoring;
 mod pattern_api;

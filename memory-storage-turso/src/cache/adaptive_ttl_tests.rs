@@ -77,11 +77,14 @@ async fn test_cache_eviction() {
 }
 
 #[tokio::test]
-#[ignore = "TTL adaptation logic doesn't extend TTL on access as test expects - needs implementation fix"]
 async fn test_ttl_adaptation() {
-    let config = TTLConfig::default()
-        .with_hot_threshold(3)
-        .with_adaptation_rate(0.5);
+    // Set hot_threshold=3 and cold_threshold=0 so early accesses don't reduce TTL
+    let config = TTLConfig {
+        hot_threshold: 3,
+        cold_threshold: 0,
+        adaptation_rate: 0.5,
+        ..TTLConfig::default()
+    };
 
     let cache = AdaptiveTTLCache::new(config).unwrap();
 
@@ -89,6 +92,7 @@ async fn test_ttl_adaptation() {
     let initial_ttl = cache.ttl(&"key1").await.unwrap();
 
     // Access multiple times to trigger TTL extension
+    // hot_threshold=3, so after 3+ accesses within the window, TTL should extend
     for _ in 0..5 {
         let _ = cache.get(&"key1").await;
     }
@@ -98,22 +102,25 @@ async fn test_ttl_adaptation() {
 }
 
 #[tokio::test]
-#[ignore = "Cache expiration test - needs config fix to set min_ttl below base_ttl for short TTL testing"]
 async fn test_cache_entry_expiration() {
-    // Use a config where min_ttl < base_ttl for short TTL testing
-    let config = TTLConfig::new()
-        .with_base_ttl(Duration::from_millis(100))
-        .with_min_ttl(Duration::from_millis(50));
+    // Use a config where min_ttl < base_ttl < max_ttl for short TTL testing
+    // Disable background cleanup to avoid interference with timing
+    let config = TTLConfig {
+        base_ttl: Duration::from_millis(100),
+        min_ttl: Duration::from_millis(50),
+        max_ttl: Duration::from_secs(10),
+        enable_background_cleanup: false,
+        ..TTLConfig::default()
+    };
     let cache = AdaptiveTTLCache::new(config).unwrap();
 
     cache.insert("key1", "value1".to_string()).await;
     assert!(cache.contains(&"key1").await);
 
-    // Wait for expiration with generous timing for CI
-    tokio::time::sleep(Duration::from_millis(250)).await;
-    tokio::task::yield_now().await;
+    // Wait for expiration with generous margin (2.5x TTL) for CI
+    tokio::time::sleep(Duration::from_millis(300)).await;
 
-    // Entry should be expired
+    // Entry should be expired (is_expired checks created_at elapsed > current_ttl)
     assert!(!cache.contains(&"key1").await);
     let result = cache.get(&"key1").await;
     assert_eq!(result, None);

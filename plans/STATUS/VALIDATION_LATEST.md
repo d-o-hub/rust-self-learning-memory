@@ -1,20 +1,28 @@
 # Validation Status Report - Latest
 
-**Last Updated**: 2026-03-08 (Fixed all libsql memory corruption tests)
+**Last Updated**: 2026-03-08 (Fixed ALL libsql memory corruption tests)
 **Version**: v0.1.17 Sprint 2 Implementation
 **Branch**: goap/v0.1.17-sprint2-implementation
-**Overall Status**: 🔄 **CI RUNNING** (All TursoStorage tests ignored)
+**Overall Status**: 🔄 **CI RUNNING** (All 13 TursoStorage test files fixed)
 
 ## Libsql Memory Corruption Fix
 
 **Root Cause**: The libsql/turso native library has a memory corruption bug that causes `malloc_consolidate(): unaligned fastbin chunk detected` in CI environments when running tests that create TursoStorage instances.
 
-**Affected Test Files** (28 tests ignored):
-- `cache_integration_test.rs` (4 tests ignored, 2 config tests kept)
-- `capacity_enforcement_test.rs` (8 tests ignored)
-- `compression_integration_test.rs` (4 tests ignored)
-- `integration_test.rs` (4 tests ignored)
-- `multi_dimension_routing.rs` (6 tests ignored)
+**All Affected Test Files** (13 files, ~60+ tests ignored):
+- `cache_integration_test.rs`
+- `capacity_enforcement_test.rs`
+- `compression_integration.rs`
+- `compression_integration_test.rs`
+- `integration_test.rs`
+- `keepalive_pool_integration_test.rs`
+- `multi_dimension_routing.rs`
+- `phase1_optimization_test.rs`
+- `prepared_cache_integration_test.rs`
+- `security_tests.rs`
+- `sql_injection_tests.rs`
+- `test_turso_config.rs`
+- `vector_search_test.rs`
 
 **Upstream Issue**: https://github.com/tursodatabase/libsql/issues
 

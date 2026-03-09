@@ -38,6 +38,25 @@
 
 ---
 
+## PR #353: Documentation Updates (2026-03-09 - MERGED)
+
+- **PR URL**: `https://github.com/d-o-hub/rust-self-learning-memory/pull/353`
+- **Title**: `docs: update plans with G2/G9 implementation progress`
+- **Status**: ✅ **MERGED** (2026-03-09 19:03 UTC)
+- **Merge Method**: Rebase (auto-merge)
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md` | Added detailed task breakdown |
+| `plans/STATUS/VALIDATION_LATEST.md` | Updated with commit e6a55b9 CI results |
+| `plans/ROADMAPS/ROADMAP_ACTIVE.md` | Updated progress |
+| `plans/STATUS/IMPLEMENTATION_STATUS.md` | Updated status |
+| `plans/STATUS/PROJECT_STATUS_UNIFIED.md` | Updated status |
+
+---
+
 ## Libsql Memory Corruption Fix
 
 **Root Cause**: The libsql/turso native library has a memory corruption bug that causes `malloc_consolidate(): unaligned fastbin chunk detected` in CI environments when running tests that create TursoStorage instances.

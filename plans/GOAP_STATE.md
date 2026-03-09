@@ -1,27 +1,60 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-07 (Task analysis for G2 and G9 complete)
+- **Last Updated**: 2026-03-09 (G2/G9 Implementation Complete - PR #353 Merged)
 - **Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
-- **Branch**: `goap/v0.1.17-sprint2-implementation`
+- **Branch**: `main` (commits e6a55b9, afe0502)
 
 ## Phase Status
 
 1. ANALYZE: Complete
 2. DECOMPOSE: Complete
 3. STRATEGIZE: Complete
-4. COORDINATE: Complete (planning level)
-5. EXECUTE: 🔄 In Progress (G2/G9 analysis complete, fixes pending)
-6. SYNTHESIZE: Pending
+4. COORDINATE: Complete
+5. EXECUTE: ✅ Complete (G2/G9 tasks implemented and merged)
+6. SYNTHESIZE: Complete
 
-## Current Execution Window
+## G2/G9 Implementation Complete (2026-03-09)
 
-- **Task G2 (Ignored Tests)**: 📋 Analysis complete - 51 tests categorized
-- **Task G9 (Dead Code)**: 📋 Analysis complete - 134 annotations categorized
-- **Analysis Reports**:
-  - `plans/STATUS/DEAD_CODE_ANALYSIS.md`
-  - `plans/STATUS/IGNORED_TESTS_ANALYSIS.md`
-- **Commit**: `5130342` - docs: add dead_code and ignored tests analysis
+### Merged PRs
+
+| PR | Title | Status |
+|----|-------|--------|
+| #352 | refactor: implement G2/G9 tasks - remove dead code and split oversized files | ✅ MERGED |
+| #353 | docs: update plans with G2/G9 implementation progress | ✅ MERGED |
+
+### Completed Tasks
+
+| Task | Status | Details |
+|------|--------|---------|
+| **G9: Dead Code Removal** | ✅ Complete | Removed ~1200+ lines of dead code |
+| **G9: File Size Compliance** | ✅ Complete | Split protocol.rs and tools.rs |
+| **G9: Bug Fixes** | ✅ Complete | Fixed compressor.rs header buffer size |
+| **G2: Test Improvements** | ✅ Complete | Improved test comments in turso storage |
+| **Documentation Updates** | ✅ Complete | Updated plans/ folder with progress |
+
+### Files Changed (commit e6a55b9)
+
+- Removed: `memory-core/src/embeddings/openai/models.rs`
+- Removed: `memory-core/src/memory/learning_ops.rs`
+- Removed: `memory-core/src/monitoring/storage/collector.rs`
+- Removed: `memory-core/src/monitoring/storage/reporter.rs`
+- Split: `memory-mcp/src/protocol.rs` → `protocol/mod.rs` + `types.rs` + `handlers.rs`
+- Split: `memory-mcp/src/bin/server_impl/tools.rs` → `tools.rs` + `memory_handlers.rs`
+- Fixed: `memory-storage-turso/src/transport/compressor.rs`
+
+## CI Status
+
+**All GitHub Actions Passed** ✅
+
+| Workflow | Status |
+|----------|--------|
+| File Structure Validation | ✅ PASSED |
+| Security | ✅ PASSED |
+| Quick Check | ✅ PASSED |
+| CI | ✅ PASSED |
+| Performance Benchmarks | ✅ PASSED |
+| Coverage | ✅ PASSED |
 
 ## Phase C Rollout Status
 

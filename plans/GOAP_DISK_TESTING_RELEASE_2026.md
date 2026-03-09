@@ -6,12 +6,15 @@
 
 ## Current State Analysis
 
-| Metric | Current (2026-02-24 Swarm Rebaseline) | Target | Status | Verification |
-|--------|----------------------------------------|--------|--------|--------------|
-| target/ size | 75G (`du -sh target`) | < 2 GB | 🔴 Pending | `du -sh target` |
-| Duplicate deps | 121 roots | < 80 | 🟡 Monitoring only | `cargo tree -d \| rg -c "^[a-z]"` |
+| Metric | Current (2026-03-09) | Target | Status | Verification |
+|--------|----------------------|--------|--------|--------------|
+| target/ size | **74 GB** 🔴 | < 2 GB | 🔴 Critical | `du -sh target` |
+| target/debug/incremental/ | **38 GB** | < 500 MB | 🔴 Critical | `du -sh target/debug/incremental/` |
+| target/debug/deps/ | **27 GB** (384K files) | < 5 GB | 🔴 Critical | `du -sh target/debug/deps/` |
+| target/llvm-cov-target/ | **7.8 GB** | 0 | 🔴 Pending cleanup | `du -sh target/llvm-cov-target/` |
+| Duplicate deps | 134 roots | < 80 | 🟡 Monitoring only | `cargo tree -d \| rg -c "^[a-z]"` |
 | Rust edition | 2024 (all 9 crates) | 2024 | ✅ Done | `rg 'edition' */Cargo.toml` |
-| Codebase size | **818 files, ~205K LOC** | — | 📊 Rebaselined | `find + wc -l` |
+| Codebase size | **867 files, ~208K LOC** | — | 📊 Rebaselined | `find + wc -l` |
 | Test runner | nextest + profiles (default/ci/nightly) | nextest everywhere (except doctests) | ✅ Done | `.config/nextest.toml` |
 | Mutation testing | Nightly `cargo mutants` for `memory-core` | cargo-mutants on core | ✅ Done | `.github/workflows/nightly-tests.yml` |
 | Property testing | 2 files in `memory-core` only | proptest on invariants across crates | 🟡 Partial — no expansion | `rg -l 'proptest!'` |

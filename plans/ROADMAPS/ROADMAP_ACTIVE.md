@@ -21,6 +21,7 @@
 - ✅ **Production source files are ≤500 LOC**; remaining >500 LOC files are tests, benches, e2e suites, or internal test modules
 - ✅ **ADR-024 verified complete**: lazy `tools/list`, `tools/describe`, and `tools/describe_batch` are implemented and tested
 - ✅ **Embedding MCP tools are implemented**: configure, test, generate, search, and provider-status handlers exist
+- 🔴 **target/ directory is 74 GB** (38GB incremental, 27GB deps, 7.8GB coverage) — see ADR-032 Phase 7
 - 🟡 **Batch infrastructure is only partially rehabilitated**: generic `batch/execute` exists, but named batch handlers remain disabled in runtime dispatch
 - 🔴 **121 ignored tests remain**; **70** are in `memory-storage-turso/tests` and are tied to libsql-native instability skips
 - 🔴 **472 pragmatic non-test-named `unwrap`/`expect` calls remain** in `src` files (402 `unwrap`, 70 `expect`)

@@ -37,22 +37,6 @@ pub(crate) struct PatternDataJson {
     pub(crate) heuristic: Heuristic,
 }
 
-/// Storage-specific Pattern struct for database operations
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
-pub struct StoragePattern {
-    pub pattern_id: PatternId,
-    pub pattern_type: String,
-    pub description: String,
-    pub context: TaskContext,
-    pub heuristic: Heuristic,
-    pub success_rate: f32,
-    pub occurrence_count: usize,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub updated_at: chrono::DateTime<chrono::Utc>,
-    pub metadata: std::collections::HashMap<String, String>,
-}
-
 impl TursoStorage {
     /// Store a pattern
     pub async fn store_pattern(&self, pattern: &CorePattern) -> Result<()> {

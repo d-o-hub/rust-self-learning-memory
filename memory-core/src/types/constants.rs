@@ -29,17 +29,3 @@ pub const MAX_OBSERVATION_LEN: usize = 10_000;
 /// Prevents `DoS` attacks via unbounded episode serialization that could
 /// exhaust memory during bincode encoding/decoding operations.
 pub const MAX_EPISODE_SIZE: usize = 10_000_000;
-
-/// Maximum size for serialized pattern data (1MB).
-///
-/// Limits the size of individual patterns during serialization to prevent
-/// memory exhaustion during bincode operations.
-#[allow(dead_code)]
-pub const MAX_PATTERN_SIZE: usize = 1_000_000;
-
-/// Maximum size for serialized heuristic data (1MB).
-///
-/// Limits the size of individual heuristics during serialization to prevent
-/// memory exhaustion during bincode operations.
-#[allow(dead_code)]
-pub const MAX_HEURISTIC_SIZE: usize = 1_000_000;

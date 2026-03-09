@@ -26,6 +26,31 @@ async fn create_test_pool() -> (AdaptiveConnectionPool, TempDir) {
     (pool, dir)
 }
 
+/// Pool with more permits for tests that need 3+ concurrent connections
+async fn create_large_test_pool() -> (AdaptiveConnectionPool, TempDir) {
+    let dir = TempDir::new().unwrap();
+    let db_path = dir.path().join("test.db");
+
+    let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+
+    let config = AdaptivePoolConfig {
+        min_connections: 5,
+        max_connections: 10,
+        scale_up_threshold: 0.8,
+        scale_down_threshold: 0.3,
+        scale_up_cooldown: Duration::from_secs(1),
+        scale_down_cooldown: Duration::from_secs(1),
+        scale_up_increment: 2,
+        scale_down_decrement: 2,
+        check_interval: Duration::from_secs(5),
+    };
+
+    let pool = AdaptiveConnectionPool::new_sync(Arc::new(db), config)
+        .await
+        .unwrap();
+    (pool, dir)
+}
+
 #[tokio::test]
 async fn test_adaptive_pool_creation() {
     let (pool, _dir) = create_test_pool().await;
@@ -176,9 +201,8 @@ async fn test_connection_query_after_into_inner() {
 }
 
 #[tokio::test]
-#[ignore = "Pool connection acquisition times out in CI - needs connection pool warmup or timeout adjustment"]
 async fn test_connection_id_uniqueness() {
-    let (pool, _dir) = create_test_pool().await;
+    let (pool, _dir) = create_large_test_pool().await;
 
     // Get multiple connections and verify they have unique IDs
     let conn1 = pool.get().await.unwrap();
@@ -200,9 +224,8 @@ async fn test_connection_id_uniqueness() {
 }
 
 #[tokio::test]
-#[ignore = "Pool connection acquisition times out in CI - needs connection pool warmup or timeout adjustment"]
 async fn test_cleanup_callback_on_connection_drop() {
-    let (pool, _dir) = create_test_pool().await;
+    let (pool, _dir) = create_large_test_pool().await;
 
     use std::sync::Arc;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -322,9 +345,8 @@ async fn test_cleanup_callback_removal() {
 }
 
 #[tokio::test]
-#[ignore = "Pool connection acquisition times out in CI - needs connection pool warmup or timeout adjustment"]
 async fn test_connection_cache_integration() {
-    let (pool, _dir) = create_test_pool().await;
+    let (pool, _dir) = create_large_test_pool().await;
 
     use crate::prepared::PreparedStatementCache;
     use std::sync::Arc;

@@ -88,31 +88,3 @@ CREATE TRIGGER IF NOT EXISTS patterns_ad AFTER DELETE ON patterns BEGIN
     DELETE FROM patterns_fts WHERE pattern_id = old.pattern_id;
 END;
 "#;
-
-/// SQL to create index on FTS5 tables for better search performance
-///
-/// Creates auxiliary indexes for the FTS5 tables to improve search speed
-/// and reduce storage overhead.
-#[allow(dead_code)]
-pub const CREATE_EPISODES_FTS_INDEX: &str = r#"
-INSERT INTO episodes_fts(episodes_fts) VALUES('optimize')
-"#;
-
-/// SQL to create index on patterns FTS5 tables
-#[allow(dead_code)]
-pub const CREATE_PATTERNS_FTS_INDEX: &str = r#"
-INSERT INTO patterns_fts(patterns_fts) VALUES('optimize')
-"#;
-
-/// SQL to drop all FTS5 tables and triggers (for migration/cleanup)
-#[allow(dead_code)]
-pub const DROP_FTS5_SCHEMA: &str = r#"
-DROP TRIGGER IF EXISTS episodes_ai;
-DROP TRIGGER IF EXISTS episodes_au;
-DROP TRIGGER IF EXISTS episodes_ad;
-DROP TRIGGER IF EXISTS patterns_ai;
-DROP TRIGGER IF EXISTS patterns_au;
-DROP TRIGGER IF EXISTS patterns_ad;
-DROP TABLE IF EXISTS episodes_fts;
-DROP TABLE IF EXISTS patterns_fts;
-"#;

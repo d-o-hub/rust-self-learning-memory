@@ -4,6 +4,8 @@
 **Created**: 2025-12-19
 **Updated**: 2026-02-24
 
+> Validation note (2026-03-09): this document is now historical. For the current codebase-verified status and ADR gap analysis, see [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md) and [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md).
+
 ---
 
 ## Current Status: CI ALL PASSING ✅ (2026-02-15)

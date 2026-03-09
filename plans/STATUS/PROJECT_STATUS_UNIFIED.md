@@ -6,6 +6,8 @@
 **Status:** Active development — see ROADMAP_ACTIVE.md for current sprint
 **Next Version:** v0.1.17
 
+> Validation note (2026-03-09): this document contains historical rollout context. Live metrics and current gap status are tracked in [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md) and [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md).
+
 ---
 
 ## 🎯 Executive Summary

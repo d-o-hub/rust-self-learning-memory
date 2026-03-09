@@ -1,9 +1,9 @@
 # Self-Learning Memory - Active Development
 
-**Last Updated**: 2026-03-06 (quick wins: ADR-029 Phase 3/4, git-cliff verified, ADR-028 rebaselined)
-**Status**: v0.1.16 stable on main. Quick wins shipped. Error handling + test triage are next priorities.
-**Next Sprint**: v0.1.17 — Error Handling (G1), Test Triage (G2), Proptest Expansion (G7)
-**GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-03-06.md](../GOAP_CODEBASE_ANALYSIS_2026-03-06.md) | **Prior**: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md) ✅
+**Last Updated**: 2026-03-09 (GOAP revalidation against current codebase)
+**Status**: v0.1.16 stable on main. ADR-024 is verified complete; highest current debt is ignored tests, disabled batch handlers, and remaining error-handling work.
+**Next Sprint**: v0.1.17 — Batch Rehabilitation, Ignored Test Triage, Error Handling, Adaptive Cache/Compression Wiring
+**GOAP Plan (Active)**: [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md) | **Prior**: [GOAP_CODEBASE_ANALYSIS_2026-03-06.md](../GOAP_CODEBASE_ANALYSIS_2026-03-06.md)
 
 ---
 
@@ -12,21 +12,22 @@
 ### Active Branch: main (v0.1.16)
 
 **Branch Status**: Stable. All CI green. Quick wins shipped 2026-03-06.
-**Latest Changes**: 2026-03-06
-**Current Plan**: [GOAP_CODEBASE_ANALYSIS_2026-03-06.md](../GOAP_CODEBASE_ANALYSIS_2026-03-06.md)
+**Latest Changes**: 2026-03-09
+**Current Plan**: [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md)
 
-### Latest Snapshot (2026-03-06)
+### Latest Snapshot (2026-03-09)
 
-- ✅ **856 Rust files, ~204K LOC** on main branch (v0.1.16)
-- ✅ **All source files ≤500 LOC** (24 test files >500 LOC, non-blocking)
-- ✅ **ADR-029 Phase 3-4 shipped**: benchmark permissions split, Dependabot grouping, CI concurrency fix, single-value matrix removed
-- ✅ **ADR-034 Phase 4**: git-cliff configured and verified producing changelogs
-- ✅ **ADR-028 rebaselined**: 4/14 features complete (#1 MCP Token, #2 Batch, #3 File Size, #7 Embeddings CLI partial)
-- ✅ **Batch module re-enabled** (2026-02-25)
-- ✅ **58 ignored tests categorized** — 6 timing-dependent (fixable), ~30 slow (by design)
-- 🔴 **921 unwrap/expect total** — primary remaining debt
-- 🟡 **140 dead_code annotations** — 64 genuinely unused, rest feature-gated/test helpers
-- 🟡 **129 duplicate dependency roots** (target: <80)
+- ✅ **867 Rust files, 207,679 LOC** on main branch (`v0.1.16`)
+- ✅ **Production source files are ≤500 LOC**; remaining >500 LOC files are tests, benches, e2e suites, or internal test modules
+- ✅ **ADR-024 verified complete**: lazy `tools/list`, `tools/describe`, and `tools/describe_batch` are implemented and tested
+- ✅ **Embedding MCP tools are implemented**: configure, test, generate, search, and provider-status handlers exist
+- 🟡 **Batch infrastructure is only partially rehabilitated**: generic `batch/execute` exists, but named batch handlers remain disabled in runtime dispatch
+- 🔴 **121 ignored tests remain**; **70** are in `memory-storage-turso/tests` and are tied to libsql-native instability skips
+- 🔴 **472 pragmatic non-test-named `unwrap`/`expect` calls remain** in `src` files (402 `unwrap`, 70 `expect`)
+- 🟡 **Adaptive cache exists but is not the default redb runtime path**
+- 🟡 **Transport compression exists as a subsystem but is not wired into the concrete Turso runtime path**
+- 🟡 **134 duplicate dependency roots** (target remains <80)
+- 🔴 **204 pre-existing broken markdown links** currently fail `./scripts/check-docs-integrity.sh` (including 37 in this roadmap file)
 
 ### Status Sync Contract (Week 1)
 

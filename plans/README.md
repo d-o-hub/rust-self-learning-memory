@@ -5,8 +5,7 @@
 ### Current Status
 - **[PROJECT_STATUS_UNIFIED.md](STATUS/PROJECT_STATUS_UNIFIED.md)** - Single source of truth for project status
 - **[IMPLEMENTATION_STATUS.md](STATUS/IMPLEMENTATION_STATUS.md)** - Current implementation status (Phase 3 complete)
-- **[QUICK_SUMMARY.md](QUICK_SUMMARY.md)** - Quick overview of recent changes
-- **[IMPLEMENTATION_PLANS_INDEX_2026-02-02.md](IMPLEMENTATION_PLANS_INDEX_2026-02-02.md)** - ⭐ **NEW** Ready-to-implement plans (Feb 2)
+- **[GOAP_CODEBASE_ANALYSIS_2026-03-09.md](GOAP_CODEBASE_ANALYSIS_2026-03-09.md)** - Current GOAP analysis and plan
 
 ### Roadmaps
 - **[ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md)** - Active development roadmap (v0.1.x series)
@@ -29,18 +28,18 @@
 - **[ARCHITECTURE/ARCHITECTURE_DECISION_RECORDS.md](ARCHITECTURE/ARCHITECTURE_DECISION_RECORDS.md)** - Architectural decision records
 
 ### Recent Features & Plans (February 2026)
-- **[MCP_RELATIONSHIP_TOOLS_IMPLEMENTATION_PLAN.md](MCP_RELATIONSHIP_TOOLS_IMPLEMENTATION_PLAN.md)** - ⭐ 8 MCP tools (41-56h)
-- **[CLI_RELATIONSHIP_COMMANDS_IMPLEMENTATION_PLAN.md](CLI_RELATIONSHIP_COMMANDS_IMPLEMENTATION_PLAN.md)** - ⭐ 7 CLI commands (20-30h)
-- **[CLI_TAG_COMMANDS_IMPLEMENTATION_PLAN.md](CLI_TAG_COMMANDS_IMPLEMENTATION_PLAN.md)** - ⭐ 6 CLI commands (15-20h)
-- **[MISSING_TASKS_SUMMARY_2026-02-02.md](MISSING_TASKS_SUMMARY_2026-02-02.md)** - Complete task analysis (47 items)
-- **[IGNORED_TESTS_ANALYSIS_2026-02-02.md](IGNORED_TESTS_ANALYSIS_2026-02-02.md)** - Test status (79→1, resolved)
-- **[COMPLETION_SUMMARY_2026-02-02.md](COMPLETION_SUMMARY_2026-02-02.md)** - Feb 2 completion report
+- **[MCP_RELATIONSHIP_TOOLS_IMPLEMENTATION_PLAN.md](MCP_RELATIONSHIP_TOOLS_IMPLEMENTATION_PLAN.md)** - 8 MCP tools (41-56h)
+- CLI Relationship Commands - See archive/2026-02-completed/ for completed work
+- CLI Tag Commands - See archive/2026-02-completed/ for completed work
+- Task analysis - See GOAP_CODEBASE_ANALYSIS_2026-03-09.md for current status
+- **[IGNORED_TESTS_ANALYSIS.md](STATUS/IGNORED_TESTS_ANALYSIS.md)** - Test status
+- Completion summaries archived in 2026-02-completed/
 
 ### Previous Features
 - **[EPISODE_RELATIONSHIPS_ROADMAP.md](EPISODE_RELATIONSHIPS_ROADMAP.md)** - Episode relationships implementation
 - **[EPISODE_TAGGING_FEATURE_SPEC.md](EPISODE_TAGGING_FEATURE_SPEC.md)** - Episode tagging system
-- **[SECURITY_IMPROVEMENTS_2026-01-31.md](SECURITY_IMPROVEMENTS_2026-01-31.md)** - Security hardening
-- **[PERFORMANCE_OPTIMIZATION_2026-01-26.md](PERFORMANCE_OPTIMIZATION_2026-01-26.md)** - Performance optimizations
+- Security improvements - See archive/2026-02-completed/ for completed work
+- Performance optimizations - See archive/2026-02-completed/ for completed work
 
 ---
 

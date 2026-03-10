@@ -407,4 +407,4 @@ cargo llvm-cov --html --output-dir coverage
 9. **Postcard Serialization**: Use Postcard, not bincode (v0.1.7 breaking change)
 10. **Safe Database Access**: Always use parameterized queries
 
-The best way to learn conventions is to examine the codebase structure and follow the patterns you see in similar files. For recent changes, see [CLAUDE.md](../../CLAUDE.md).
+The best way to learn conventions is to examine the codebase structure and follow the patterns you see in similar files. For recent changes, see [CLAUDE.md](../CLAUDE.md).

@@ -64,7 +64,7 @@ This document tracks the version history and major milestones of Self-Learning M
 - Clippy Warnings: 0
 - Production Readiness: 100%
 
-**See**: [STATUS/V019_STATUS_REPORT.md](STATUS/V019_STATUS_REPORT.md) for complete details
+**See**: [PROJECT_STATUS_UNIFIED.md](../STATUS/PROJECT_STATUS_UNIFIED.md) for complete details
 
 ---
 
@@ -98,7 +98,7 @@ This document tracks the version history and major milestones of Self-Learning M
 - GENESIS: Capacity-constrained encoding (3.2x compression, 65% faster access)
 - Spatiotemporal: Enhanced RAG retrieval (+34% accuracy, 43% faster)
 
-**See**: [ROADMAP_V018_PLANNING.md](ROADMAP_V018_PLANNING.md) for detailed Q1 2026 research integration plans
+**See**: [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md) for detailed future planning
 
 ---
 
@@ -137,7 +137,7 @@ This document tracks the version history and major milestones of Self-Learning M
 - Rich Validation: Contextual error messages with suggestions
 - Zero Breaking Changes: Backward compatible API
 
-**See**: [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG_IMPLEMENTATION_ROADMAP.md) for detailed configuration plans
+**See**: [CONFIGURATION/](../CONFIGURATION/) for detailed configuration documentation
 
 ---
 
@@ -186,7 +186,7 @@ This document tracks the version history and major milestones of Self-Learning M
 **Timeline**: 6 weeks
 **Effort Estimate**: 40-50 hours
 
-**See**: [plans/19-v0.1.4-quality-polish.md](plans/19-v0.1.4-quality-polish.md) for detailed implementation plan
+**See**: Archive for historical implementation plans
 
 ---
 
@@ -381,12 +381,12 @@ This document tracks the version history and major milestones of Self-Learning M
 
 ## Cross-References
 
-- **Current Version Status**: See [ROADMAP_V017_CURRENT.md](ROADMAP_V017_CURRENT.md)
-- **Future Planning**: See [ROADMAP_V018_PLANNING.md](ROADMAP_V018_PLANNING.md)
+- **Current Version Status**: See [ROADMAP_ACTIVE.md](ROADMAP_ACTIVE.md)
+- **Future Planning**: See [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md)
 - **Active Development**: See [ROADMAP_ACTIVE.md](ROADMAP_ACTIVE.md)
-- **Implementation Plans**: See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
-- **Configuration**: See [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG_IMPLEMENTATION_ROADMAP.md)
-- **Research Integration**: See [plans/research/EPISODIC_MEMORY_RESEARCH_2025.md](plans/research/EPISODIC_MEMORY_RESEARCH_2025.md)
+- **Implementation Plans**: See [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md)
+- **Configuration**: See [CONFIGURATION/](../CONFIGURATION/) for configuration documentation
+- **Research Integration**: See [research/EPISODIC_MEMORY_RESEARCH_2025.md](../research/EPISODIC_MEMORY_RESEARCH_2025.md)
 
 ---
 

@@ -620,9 +620,8 @@ Based on research documents:
 
 - **Architecture Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
-- **Configuration**: See [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG/IMPLEMENTATION_ROADMAP.md)
-- **Current Status**: See [ROADMAP_V017_CURRENT.md](ROADMAP_V017_CURRENT.md)
+- **Configuration**: See [../CONFIGURATION/](../CONFIGURATION/) for configuration documentation
+- **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 - **MCP Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
 - **ADR-024**: [MCP Lazy Tool Loading](../adr/ADR-024-MCP-Lazy-Tool-Loading.md)
-- **Token Optimization**: [.agents/skills/memory-mcp/token-optimization.md](../../.agents/skills/memory-mcp/token-optimization.md)
-- **Opencode Agent**: [.opencode/agent/memory-agent.md](../../.opencode/agent/memory-agent.md)
+- **Token Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)

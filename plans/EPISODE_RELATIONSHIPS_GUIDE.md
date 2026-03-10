@@ -11,11 +11,8 @@
 | What You Need | Document |
 |--------------|----------|
 | **Current Status** | [Implementation Status](EPISODE_RELATIONSHIPS_IMPLEMENTATION_STATUS.md) |
-| **Phase 4-5 Implementation** | [Phase 4-5 Plan](EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md) |
 | **Testing Strategy** | [Testing Strategy](EPISODE_RELATIONSHIPS_TESTING_STRATEGY.md) |
-| **Phase 3 Complete Report** | [Phase 3 Complete](EPISODE_RELATIONSHIPS_PHASE3_COMPLETE.md) |
-| **Phase 3 Summary** | [Phase 3 Summary](EPISODE_RELATIONSHIPS_PHASE3_SUMMARY.md) |
-| **Archive (Phase 2)** | `archive/2026-02-completed/EPISODE_RELATIONSHIPS_PHASE2_PLAN.md` |
+| **Archive (Phase 2)** | [Phase 2 Plan](archive/2026-02-completed/EPISODE_RELATIONSHIPS_PHASE2_PLAN.md) |
 
 ---
 
@@ -114,7 +111,7 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 
 **Implementation Location**: `memory-mcp/src/bin/server/handlers.rs`
 
-**Reference**: [Phase 4-5 Plan](EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md) for detailed schemas and examples
+**Reference**: See archive/2026-02-completed/ for historical implementation plans
 
 ### ⏳ Phase 5: CLI Commands (7 Commands to Implement)
 

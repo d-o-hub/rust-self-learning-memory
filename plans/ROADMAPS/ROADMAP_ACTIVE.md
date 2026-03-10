@@ -190,14 +190,14 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 
 ### Documentation Created
 
-- ✅ [CLI_TEST_FIX_SUMMARY_2026-02-16.md](../CLI_TEST_FIX_SUMMARY_2026-02-16.md) - Complete test fix report
-- ✅ [GOAP_PHASE1_COMPLETION_SUMMARY.md](../GOAP_PHASE1_COMPLETION_SUMMARY.md) - Phase 1 completion report
-- ✅ [V0.1.16_ROADMAP_SUMMARY.md](../V0.1.16_ROADMAP_SUMMARY.md) - Complete v0.1.16 roadmap
-- ✅ [V0.1.16_SPRINT_CHECKLIST.md](../V0.1.16_SPRINT_CHECKLIST.md) - Sprint task checklist
-- ✅ [V0.1.16_PRIORITIZATION_MATRIX.md](../V0.1.16_PRIORITIZATION_MATRIX.md) - Task prioritization
-- ✅ [GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md](../GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md) - Execution plan
-- ✅ [GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md](../GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md) - Task breakdown
-- ✅ [GOAP_V0.1.16_EXECUTION_STRATEGY_2026-02-16.md](../GOAP_V0.1.16_EXECUTION_STRATEGY_2026-02-16.md) - Execution strategy
+- ✅ [CLI_TEST_FIX_SUMMARY_2026-02-16.md](../archive/2026-02-completed/CLI_TEST_FIX_SUMMARY_2026-02-16.md) - Complete test fix report
+- ✅ [GOAP_PHASE1_COMPLETION_SUMMARY.md](../archive/2026-02-completed/GOAP_PHASE1_COMPLETION_SUMMARY.md) - Phase 1 completion report
+- ✅ [V0.1.16_ROADMAP_SUMMARY.md](../archive/2026-02-completed/V0.1.16_ROADMAP_SUMMARY.md) - Complete v0.1.16 roadmap
+- ✅ [V0.1.16_SPRINT_CHECKLIST.md](../archive/2026-02-completed/V0.1.16_SPRINT_CHECKLIST.md) - Sprint task checklist
+- ✅ [V0.1.16_PRIORITIZATION_MATRIX.md](../archive/2026-02-completed/V0.1.16_PRIORITIZATION_MATRIX.md) - Task prioritization
+- ✅ [GOAP_EXECUTION_PLAN_2026-02-16.md](../archive/2026-02-completed/GOAP_EXECUTION_PLAN_2026-02-16.md) - Execution plan
+- ✅ GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md - Task breakdown (archived)
+- ✅ GOAP_V0.1.16_EXECUTION_STRATEGY_2026-02-16.md - Execution strategy (archived)
 
 ### Transition to v0.1.16
 
@@ -282,7 +282,7 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 
 **Resolution**:
 - Created GitHub issue for v0.1.17
-- Documented in [CLI_TEST_FIX_SUMMARY_2026-02-16.md](../CLI_TEST_FIX_SUMMARY_2026-02-16.md)
+- Documented in [CLI_TEST_FIX_SUMMARY_2026-02-16.md](../archive/2026-02-completed/CLI_TEST_FIX_SUMMARY_2026-02-16.md)
 - Tests marked with #[ignore] and clear documentation
 - Options: Fix CLI initialization (2-4h) or modify tests (1-2h)
 
@@ -304,10 +304,10 @@ The following fields are canonical and must stay synchronized with `plans/GOAP_C
 ### Immediate Priority: v0.1.16 Code Quality + Pattern Algorithms
 
 **Status**: 🔄 READY TO START (Phase B unblocked)
-**Planning**: Complete, see [V0.1.16_ROADMAP_SUMMARY.md](../V0.1.16_ROADMAP_SUMMARY.md)
-**Execution Plan**: [GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md](../GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md)
-**Task Breakdown**: [GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md](../GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md)
-**Sprint Checklist**: [V0.1.16_SPRINT_CHECKLIST.md](../V0.1.16_SPRINT_CHECKLIST.md)
+**Planning**: Complete, see [V0.1.16_ROADMAP_SUMMARY.md](../archive/2026-02-completed/V0.1.16_ROADMAP_SUMMARY.md)
+**Execution Plan**: See [GOAP_EXECUTION_PLAN_2026-02-16.md](../archive/2026-02-completed/GOAP_EXECUTION_PLAN_2026-02-16.md)
+**Task Breakdown**: Archived in 2026-02-completed
+**Sprint Checklist**: See [V0.1.16_SPRINT_CHECKLIST.md](../archive/2026-02-completed/V0.1.16_SPRINT_CHECKLIST.md)
 
 **v0.1.16 Phases**:
 - ✅ **Phase A**: CI Stabilization (COMPLETE - 2.5-5h)
@@ -494,7 +494,7 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 - ✅ Phase 4 (Benchmarking): ALL research claims validated
 - ✅ CLI Verification: Save/load operations confirmed working (redb + Turso)
 
-**See**: [FINAL_RESEARCH_INTEGRATION_REPORT.md](FINAL_RESEARCH_INTEGRATION_REPORT.md)
+**See**: Research integration complete - see [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md) for current research
 
 ### Current Sprint: MCP Token Optimization (2026-02-02)
 
@@ -509,16 +509,16 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 **Documentation**:
 - [MCP Token Optimization Research](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md) ✅
 - [Categorization Alternatives Research](../research/CATEGORIZATION_ALTERNATIVES_RESEARCH.md) ✅
-- [Implementation Roadmap](../MCP_OPTIMIZATION_IMPLEMENTATION_ROADMAP.md) ✅
-- [Phase 1 Plan](../MCP_TOKEN_REDUCTION_PHASE1_PLAN.md) ✅
-- [Status Tracking](../MCP_OPTIMIZATION_STATUS.md) ✅
+- Implementation Roadmap - archived
+- [Phase 1 Plan](../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md) (archived)
+- Status Tracking - archived
 
 **Expected Impact**:
 - Token reduction: 90-96% input + 20-60% output
 - Annual savings: 448M tokens (57% reduction)
 - Implementation effort: 8-12 hours (P0)
 
-**See**: [MCP Optimization Status](../MCP_OPTIMIZATION_STATUS.md) for detailed progress tracking
+**See**: [MCP Token Optimization Research](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md) for detailed optimization strategies.
 
 ---
 
@@ -582,7 +582,7 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 - ✅ CLI semantic search functional
 - ✅ MCP embedding tools operational
 
-**See**: [IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md](../IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md) for details
+**See**: [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md) for details
 
 ### Sprint 3: File Size Compliance (Weeks 4-6) - v0.1.11
 
@@ -769,38 +769,38 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
    - Large-scale validation (10,000+ episodes)
    - Performance profiling
 
-**Full Plan**: [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md)
+**Full Plan**: [GOAP_EXECUTION_PLAN_2026-02-16.md](../archive/2026-02-completed/GOAP_EXECUTION_PLAN_2026-02-16.md) (archived)
 
 ---
 
 ## Cross-References
 
 ### Phase 1 & v0.1.16 Planning (2026-02-16)
-- **Phase 1 Completion**: See [GOAP_PHASE1_COMPLETION_SUMMARY.md](../GOAP_PHASE1_COMPLETION_SUMMARY.md) ✅
-- **CLI Test Fixes**: See [CLI_TEST_FIX_SUMMARY_2026-02-16.md](../CLI_TEST_FIX_SUMMARY_2026-02-16.md) ✅
-- **v0.1.16 Roadmap**: See [V0.1.16_ROADMAP_SUMMARY.md](../V0.1.16_ROADMAP_SUMMARY.md) 🔄
-- **v0.1.16 Sprint Checklist**: See [V0.1.16_SPRINT_CHECKLIST.md](../V0.1.16_SPRINT_CHECKLIST.md) 🔄
-- **v0.1.16 Prioritization**: See [V0.1.16_PRIORITIZATION_MATRIX.md](../V0.1.16_PRIORITIZATION_MATRIX.md) 🔄
-- **v0.1.16 Execution Plan**: See [GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md](../GOAP_V0.1.16_EXECUTION_PLAN_2026-02-16.md) 🔄
-- **v0.1.16 Task Breakdown**: See [GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md](../GOAP_V0.1.16_TASK_BREAKDOWN_2026-02-16.md) 🔄
-- **v0.1.16 Execution Strategy**: See [GOAP_V0.1.16_EXECUTION_STRATEGY_2026-02-16.md](../GOAP_V0.1.16_EXECUTION_STRATEGY_2026-02-16.md) 🔄
+- **Phase 1 Completion**: See [GOAP_PHASE1_COMPLETION_SUMMARY.md](../archive/2026-02-completed/GOAP_PHASE1_COMPLETION_SUMMARY.md) ✅
+- **CLI Test Fixes**: See [CLI_TEST_FIX_SUMMARY_2026-02-16.md](../archive/2026-02-completed/CLI_TEST_FIX_SUMMARY_2026-02-16.md) ✅
+- **v0.1.16 Roadmap**: See [V0.1.16_ROADMAP_SUMMARY.md](../archive/2026-02-completed/V0.1.16_ROADMAP_SUMMARY.md) 🔄
+- **v0.1.16 Sprint Checklist**: See [V0.1.16_SPRINT_CHECKLIST.md](../archive/2026-02-completed/V0.1.16_SPRINT_CHECKLIST.md) 🔄
+- **v0.1.16 Prioritization**: See [V0.1.16_PRIORITIZATION_MATRIX.md](../archive/2026-02-completed/V0.1.16_PRIORITIZATION_MATRIX.md) 🔄
+- **v0.1.16 Execution Plan**: See [GOAP_EXECUTION_PLAN_2026-02-16.md](../archive/2026-02-completed/GOAP_EXECUTION_PLAN_2026-02-16.md) 🔄
+- **v0.1.16 Task Breakdown**: Archived in 2026-02-completed
+- **v0.1.16 Execution Strategy**: Archived in 2026-02-completed
 
 ### Current Planning
-- **GOAP Plan (Active)**: See [GOAP_EXECUTION_PLAN_2026-02-16.md](../GOAP_EXECUTION_PLAN_2026-02-16.md)
+- **GOAP Plan (Active)**: See [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md)
 - **Feature Roadmap ADR**: See [ADR-028](../adr/ADR-028-Feature-Enhancement-Roadmap.md)
-- **GitHub Actions Modernization**: See [ADR-029](../adr/ADR-029-GitHub-Actions-Modernization.md) and [GOAP Plan](../GOAP_GITHUB_ACTIONS_2026-02-14.md)
-- **Gap Analysis**: See [GAP_ANALYSIS_REPORT_2025-12-29.md](../GAP_ANALYSIS_REPORT_2025-12-29.md)
-- **Implementation Priority**: See [IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md](../IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md)
-- **Embeddings Roadmap**: See [EMBEDDINGS_COMPLETION_ROADMAP.md](../EMBEDDINGS_COMPLETION_ROADMAP.md)
-- **Optimization Roadmap**: See [OPTIMIZATION_ROADMAP_V020.md](../OPTIMIZATION_ROADMAP_V020.md)
-- **MCP Token Optimization**: See [MCP_OPTIMIZATION_STATUS.md](../MCP_OPTIMIZATION_STATUS.md)
+- **GitHub Actions Modernization**: See [ADR-029](../adr/ADR-029-GitHub-Actions-Modernization.md) (archived plans in 2026-02-completed)
+- **Gap Analysis**: See [GAP_ANALYSIS_REPORT_2025-12-29.md](../archive/2025-deprecated/GAP_ANALYSIS_REPORT_2025-12-29.md) (archived)
+- **Implementation Priority**: See [IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md](../archive/2025-deprecated/IMPLEMENTATION_PRIORITY_PLAN_2025-12-29.md) (archived)
+- **Embeddings Roadmap**: Archived (completed)
+- **Optimization Roadmap**: Archived (completed)
+- **MCP Token Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
 - **MCP Research**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
 
 ### Status & History
 - **Project Status**: See [PROJECT_STATUS_UNIFIED.md](../STATUS/PROJECT_STATUS_UNIFIED.md)
 - **Implementation Status**: See [IMPLEMENTATION_STATUS.md](../STATUS/IMPLEMENTATION_STATUS.md)
 - **Version History**: See [ROADMAP_VERSION_HISTORY.md](ROADMAP_VERSION_HISTORY.md)
-- **Research Integration**: See [FINAL_RESEARCH_INTEGRATION_REPORT.md](../research/FINAL_RESEARCH_INTEGRATION_REPORT.md)
+- **Research Integration**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
 
 ### Architecture
 - **Architecture Core**: See [ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)
@@ -816,6 +816,6 @@ Analysis on 2026-01-22 found 3,225 total calls including test files.
 *Phase 1 Status: ✅ COMPLETE (historical); Week 1 GOAP execution now active*
 *PR #296: ✅ Merged (31 tests fixed)*
 *PR #297: 🔄 Ready for review (CLI workflow improvements)*
-*GOAP Plan: [GOAP_CODEBASE_ANALYSIS_2026-02-23.md](../GOAP_CODEBASE_ANALYSIS_2026-02-23.md)*
-*v0.1.16 Planning: [V0.1.16_ROADMAP_SUMMARY.md](../V0.1.16_ROADMAP_SUMMARY.md)*
+*GOAP Plan: [GOAP_CODEBASE_ANALYSIS_2026-03-09.md](../GOAP_CODEBASE_ANALYSIS_2026-03-09.md)*
+*v0.1.16 Planning: [V0.1.16_ROADMAP_SUMMARY.md](../archive/2026-02-completed/V0.1.16_ROADMAP_SUMMARY.md) (archived)*
 *ADR Reference: ADR-022, ADR-024, ADR-027, ADR-028, ADR-030, ADR-033, ADR-034, ADR-036*

@@ -4,6 +4,62 @@
 
 - Nothing yet
 
+## [0.1.17] - 2026-03-10
+
+### Added
+
+- Implement O1/O3/O5 opportunities - tool parity, docs fixes, runtime wiring tests
+- Implement embedding tools for MCP server with snapshot tests
+- Add semantic embedding service to memory-core
+- Enhance cache configuration loader in CLI
+- Add ADR-024 integration tests for lazy tool loading
+- Add MCP embedding tools and property tests
+- Re-enable batch module in MCP tools
+- Add git-cliff configuration and documentation
+- Expand snapshot test coverage across crates
+- Add token-efficient agents for development workflow
+- Integrate existing skills into agents for enhanced capabilities
+
+### Changed
+
+- Implement G2/G9 tasks - remove dead code and split oversized files
+- Split large modules into modular structure (memory-core)
+- Flatten test modules for indexing and graph algorithms
+- Split embedding tools into separate modules (MCP)
+- Remove legacy claude command artifacts
+
+### Fixed
+
+- Resolve RUSTSEC-2026-0021 wasmtime vulnerability
+- Resolve rust-major breaking changes for redb 3.x and rand 0.10
+- Complete rand 0.10 API migration in all crates
+- Improve keepalive connection handling in storage
+- Fix caching pool test compilation
+- Restore CLI persistence and stabilize multi-crate test gates
+- Ignore TursoStorage integration tests due to libsql memory corruption
+- Make codecov patch robust for docs-only diffs
+- Implement fast-checks-first pattern for all CI workflows
+- Fix broken markdown links across codebase
+- Escape `Option<Tool>` in documentation comments
+- Multiple CI stability fixes (benchmarks, nightly, actionlint)
+
+### Maintenance
+
+- Bump wasmtime from 41.0.4 to 42.0.1
+- Bump redb to 3.x, rand to 0.10 (major upgrades)
+- Bump clap, chrono, anyhow, futures, sysinfo, serial_test, tempfile, toml, augurs-changepoint
+- CI: bump actions/upload-artifact to v7, actions/download-artifact to v8
+- ADR-029 Phase 3/4 quick wins
+
+### Testing
+
+- Add property-based and snapshot tests across crates
+- Add snapshot tests for backup, monitor, logs, eval CLI commands
+- Add error message snapshot tests for memory-core
+- Update snapshot baselines for help output
+- Add insta for snapshot testing
+- Increase wait timeout for slow CI environments
+
 ## [0.1.16] - 2026-02-22
 
 ### Summary
@@ -506,10 +562,7 @@ This release was prepared with the following specialized agents:
   - All split files now comply with <500 LOC guideline
   - Improved maintainability through better separation of concerns
 
-
-## [Unreleased]
-
-## [0.1.12] - 2026-01-05
+## [0.1.12-tasks] - 2026-01-05
 
 ### Added
 - **Tasks Utility (MCP 2025-11-25)**: Long-running task support for async operations
@@ -626,7 +679,7 @@ This release was prepared with the following specialized agents:
 - **Base64 Import**: Conditional import for WASM
   - Fixed unused import errors when certain features are disabled
 
-## [0.1.12] - 2025-12-30
+## [0.1.12-cache] - 2025-12-30
 
 ### Added
 - **Query Caching**: LRU cache with TTL for episodic memory retrieval

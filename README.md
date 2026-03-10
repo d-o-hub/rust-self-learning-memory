@@ -25,7 +25,7 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
 
-**Current Status (v0.1.15):**
+**Current Status (v0.1.17):**
 - **Production-ready** episodic memory management system for AI agents
 - **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples, tests
 - **632 Rust source files** with ~140,000 lines of code

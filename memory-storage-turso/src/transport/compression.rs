@@ -87,12 +87,16 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "Flaky test - decompressed data doesn't match original in CI environment"]
     async fn test_stream_roundtrip() {
         let config = TransportCompressionConfig::default();
         let compressor = AsyncCompressor::new(config);
 
-        let original_data = b"roundtrip test data".repeat(50);
+        // Use data above compression threshold (1024 bytes) to test actual compression
+        let original_data = b"roundtrip test data for compression verification. ".repeat(50);
+        assert!(
+            original_data.len() > 1024,
+            "Test data must be above compression threshold"
+        );
 
         // Compress to bytes
         let compressed = compressor.compress(&original_data).await.unwrap();

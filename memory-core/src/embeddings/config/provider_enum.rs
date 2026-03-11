@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 /// Supported embedding providers
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[allow(dead_code)]
 pub enum EmbeddingProvider {
     /// Local embedding using sentence transformers
     Local,

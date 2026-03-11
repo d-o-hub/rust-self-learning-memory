@@ -36,7 +36,6 @@ pub struct ConfigIssue {
 pub enum IssueLevel {
     Error,
     Warning,
-    #[allow(dead_code)]
     Info,
 }
 

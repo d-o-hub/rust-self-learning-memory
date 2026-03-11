@@ -1,7 +1,6 @@
 use crate::TursoStorage;
 
 impl TursoStorage {
-    #[allow(dead_code)]
     pub fn get_embedding_table_for_dimension(&self, dimension: usize) -> &'static str {
         match dimension {
             384 => "embeddings_384",
@@ -12,7 +11,6 @@ impl TursoStorage {
         }
     }
 
-    #[allow(dead_code)]
     pub fn get_vector_index_for_dimension(&self, dimension: usize) -> Option<&'static str> {
         match dimension {
             384 => Some("idx_embeddings_384_vector"),

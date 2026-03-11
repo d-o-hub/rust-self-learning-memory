@@ -125,10 +125,11 @@ impl CachedStatementMetadata {
     }
 }
 
-#[allow(dead_code)]
 pub(super) struct ConnectionCache {
     pub(super) statements: HashMap<String, CachedStatementMetadata>,
+    #[allow(dead_code)] // Used internally for LRU tracking
     access_order: Vec<String>,
+    #[allow(dead_code)] // Available for future cache age tracking
     created_at: Instant,
     pub(super) last_accessed: Instant,
 }

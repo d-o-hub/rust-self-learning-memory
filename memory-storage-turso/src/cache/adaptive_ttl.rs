@@ -288,6 +288,16 @@ where
         entries.get(key).map(|e| e.remaining_ttl())
     }
 
+    #[cfg(test)]
+    pub async fn force_set_entry_created_at(&self, key: &K, created_at: Instant) {
+        let mut entries = self.entries.write().await;
+        if let Some(entry) = entries.get_mut(key) {
+            entry.created_at = created_at;
+            entry.last_accessed = created_at;
+            entry.access_history.clear();
+        }
+    }
+
     /// Get the access count for an entry
     pub async fn access_count(&self, key: &K) -> Option<u64> {
         let entries = self.entries.read().await;

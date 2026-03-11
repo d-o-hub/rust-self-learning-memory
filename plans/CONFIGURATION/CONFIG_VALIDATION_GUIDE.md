@@ -951,9 +951,9 @@ fn test_error_message_helpfulness() {
 - **Status**: See [CONFIGURATION_OPTIMIZATION_STATUS.md](CONFIGURATION_OPTIMIZATION_STATUS.md)
 
 ### Related Project Documents
-- **Project Status**: See [PROJECT_STATUS_UNIFIED.md](PROJECT_STATUS_UNIFIED.md)
-- **Testing Guide**: See [../TESTING.md](../TESTING.md)
-- **Quality Gates**: See [../docs/QUALITY_GATES.md](../docs/QUALITY_GATES.md)
+- **Project Status**: See [PROJECT_STATUS_UNIFIED.md](../STATUS/PROJECT_STATUS_UNIFIED.md)
+- **Testing Guide**: See [../../TESTING.md](../../TESTING.md)
+- **Quality Gates**: See [../../docs/QUALITY_GATES.md](../../docs/QUALITY_GATES.md)
 
 ---
 

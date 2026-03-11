@@ -432,8 +432,6 @@ let batch_config = BatchConfig {
 
 ### Performance Targets
 
-From [PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md):
-
 | Operation | P95 Target | Actual Performance | Status |
 |-----------|-----------|-------------------|--------|
 | Episode Creation | < 50ms | 2.56 µs | 19,531x faster ✓ |
@@ -1028,7 +1026,6 @@ turso db shell prod-memory-db --execute "SELECT version FROM schema_version;"
 - [README.md](README.md) - Project overview and quick start
 - [SECURITY.md](SECURITY.md) - Security guidelines and threat model
 - [AGENTS.md](AGENTS.md) - Agent responsibilities and operational guidance
-- [PERFORMANCE_BASELINES.md](PERFORMANCE_BASELINES.md) - Performance targets and benchmarks
 - [TESTING.md](TESTING.md) - Testing infrastructure and best practices
 
 ## Support

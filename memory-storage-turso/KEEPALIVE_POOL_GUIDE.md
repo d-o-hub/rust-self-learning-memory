@@ -323,4 +323,3 @@ The keep-alive pool consists of three main components:
 
 - [Connection Pool Documentation](./README.md#connection-pooling)
 - [Turso Configuration Guide](./README.md#configuration)
-- [Performance Best Practices](../../docs/PERFORMANCE.md)

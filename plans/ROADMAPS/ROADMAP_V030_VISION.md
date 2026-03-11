@@ -474,11 +474,8 @@ pub async fn fine_tune_model(
 ## Cross-References
 
 - **Version History**: See [ROADMAP_VERSION_HISTORY.md](ROADMAP_VERSION_HISTORY.md)
-- **Current Status**: See [ROADMAP_V017_CURRENT.md](ROADMAP_V017_CURRENT.md)
-- **Q1 2026 Planning**: See [ROADMAP_V018_PLANNING.md](ROADMAP_V018_PLANNING.md)
-- **Active Work**: See [ROADMAP_ACTIVE.md](ROADMAP_ACTIVE.md)
-- **Architecture**: See [ARCHITECTURE_CORE.md](ARCHITECTURE_CORE.md)
-- **Implementation**: See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
+- **Current Status**: See [ROADMAP_ACTIVE.md](ROADMAP_ACTIVE.md)
+- **Architecture**: See [../ARCHITECTURE/ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)
 
 ---
 

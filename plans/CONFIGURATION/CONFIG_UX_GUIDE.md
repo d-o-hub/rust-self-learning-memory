@@ -664,7 +664,7 @@ impl ConfigMigrationAssistant {
 ### Related Planning Documents
 - **Status**: See [CONFIGURATION_OPTIMIZATION_STATUS.md](CONFIGURATION_OPTIMIZATION_STATUS.md)
 - **Phase Plans**: See CONFIG_PHASE*.md files (historical phases 1-6)
-- **Project Status**: See [PROJECT_STATUS_UNIFIED.md](PROJECT_STATUS_UNIFIED.md)
+- **Project Status**: See [PROJECT_STATUS_UNIFIED.md](../STATUS/PROJECT_STATUS_UNIFIED.md)
 
 ---
 

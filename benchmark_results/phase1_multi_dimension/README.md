@@ -8,7 +8,7 @@
 
 ## 📋 START HERE: Complete Summary
 
-**For the complete analysis and next steps, read:** [FINAL_SUMMARY_REPORT.md](./FINAL_SUMMARY_REPORT.md)
+**For the complete analysis and next steps, read:** [CRITICAL_BENCHMARK_ENVIRONMENT_ISSUE.md](./CRITICAL_BENCHMARK_ENVIRONMENT_ISSUE.md)
 
 ---
 
@@ -126,9 +126,7 @@ See [HOW_TO_RUN_TURSO_LOCALLY.md](./HOW_TO_RUN_TURSO_LOCALLY.md) for complete gu
 
 ## Files
 
-- **[FINAL_SUMMARY_REPORT.md](./FINAL_SUMMARY_REPORT.md)** ← START HERE for complete analysis
-- [CRITICAL_BENCHMARK_ENVIRONMENT_ISSUE.md](./CRITICAL_BENCHMARK_ENVIRONMENT_ISSUE.md) - Root cause documentation
-- [PERFORMANCE_ANALYSIS_REPORT.md](./PERFORMANCE_ANALYSIS_REPORT.md) - Original (invalid) analysis
+- **[CRITICAL_BENCHMARK_ENVIRONMENT_ISSUE.md](./CRITICAL_BENCHMARK_ENVIRONMENT_ISSUE.md)** - Root cause documentation
 - [SUMMARY.md](./SUMMARY.md) - Quick reference tables
 - [HOW_TO_RUN_TURSO_LOCALLY.md](./HOW_TO_RUN_TURSO_LOCALLY.md) - Setup guide
 - benchmark_raw_output.txt - Full execution log

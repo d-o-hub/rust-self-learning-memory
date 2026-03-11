@@ -209,6 +209,5 @@ Breaking changes must:
 - [Code Conventions](agent_docs/code_conventions.md) - Rust idioms
 - [Testing Guide](TESTING.md) - Comprehensive testing guide
 - [Security](SECURITY.md) - Security policies and practices
-- [Release Engineering](plans/adr/ADR-034-Release-Engineering-Modernization.md) - Release workflow
-- [Release Automation](docs/RELEASE_AUTOMATION.md) - Automated release process
+- [Release Engineering](plans/adr/ADR-034-Release-Engineering-Modernization.md) - Release workflow and automation
 

@@ -508,4 +508,4 @@ match memory.add_episode_relationship(...).await {
 - [Memory Layer](../memory-core/src/memory/relationships.rs)
 - [Integration Tests](../memory-core/tests/relationship_integration.rs)
 - [MCP Tools](../memory-mcp/src/server/tools/episode_relationships.rs)
-- [CLI Commands](../memory-cli/src/commands/episode/relationships.rs)
+- [CLI Commands](../memory-core/src/episode/relationships.rs)

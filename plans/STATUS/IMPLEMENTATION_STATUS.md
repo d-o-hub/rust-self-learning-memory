@@ -564,7 +564,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 - [ ] Backward compatibility maintained
 - [ ] First-time user experience dramatically improved
 
-**See**: [CONFIG_IMPLEMENTATION_ROADMAP.md](CONFIG_IMPLEMENTATION_ROADMAP.md) for detailed configuration implementation plan
+**See**: [CONFIGURATION_OPTIMIZATION_STATUS.md](../CONFIGURATION/CONFIGURATION_OPTIMIZATION_STATUS.md) for detailed configuration implementation plan
 
 ---
 
@@ -630,8 +630,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 ## Cross-References
 
 - **Phase 2 Turso Optimization**: 75% complete (3/4 items: pooling, adaptive sizing, compression)
-- **Development Priorities**: See [NEXT_DEVELOPMENT_PRIORITIES.md](../NEXT_DEVELOPMENT_PRIORITIES.md)
-- **Gap Analysis**: See [COMPREHENSIVE_GAP_ANALYSIS_2026-01-11.md](../COMPREHENSIVE_GAP_ANALYSIS_2026-01-11.md)
+- **Project Status**: See [PROJECT_STATUS_UNIFIED.md](PROJECT_STATUS_UNIFIED.md)
 
 ---
 

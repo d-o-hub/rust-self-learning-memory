@@ -322,18 +322,16 @@ let json = graph.to_json();
 ## Getting Started
 
 ### To Implement Phase 4 (MCP Tools):
-1. Read [Phase 4-5 Plan](EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md) for tool schemas
-2. Review existing MCP tools in `memory-mcp/src/bin/server/handlers.rs`
-3. Implement 8 new tool handlers following existing patterns
-4. Add JSON-RPC schemas for each tool
-5. Write 16 tests (2 per tool)
+1. Review existing MCP tools in `memory-mcp/src/bin/server/handlers.rs`
+2. Implement 8 new tool handlers following existing patterns
+3. Add JSON-RPC schemas for each tool
+4. Write 16 tests (2 per tool)
 
 ### To Implement Phase 5 (CLI Commands):
-1. Read [Phase 4-5 Plan](EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md) for command signatures
-2. Review existing CLI commands in `memory-cli/src/commands/episode_v2/`
-3. Create `relationships.rs` with 7 command structs
-4. Implement table, JSON, DOT, and ASCII output formatters
-5. Write 14 tests (2 per command)
+1. Review existing CLI commands in `memory-cli/src/commands/episode_v2/`
+2. Create `relationships.rs` with 7 command structs
+3. Implement table, JSON, DOT, and ASCII output formatters
+4. Write 14 tests (2 per command)
 
 ---
 
@@ -359,11 +357,11 @@ let json = graph.to_json();
 
 ### Common Questions
 
-**Q: Where do I start implementing MCP tools?**  
-A: See [Phase 4-5 Plan](EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md) section "Phase 4: MCP Server Tools" for complete JSON-RPC schemas and implementation examples.
+**Q: Where do I start implementing MCP tools?**
+A: Review existing MCP tools in `memory-mcp/src/bin/server/handlers.rs` for JSON-RPC schema patterns and implementation examples.
 
-**Q: Where do I start implementing CLI commands?**  
-A: See [Phase 4-5 Plan](EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md) section "Phase 5: CLI Commands" for command signatures and output format examples.
+**Q: Where do I start implementing CLI commands?**
+A: Review existing CLI commands in `memory-cli/src/commands/episode_v2/` for command signatures and output format examples.
 
 **Q: How do I test the relationship functionality?**  
 A: Run `cargo test -p memory-core relationship_integration` to execute the 13 integration tests.

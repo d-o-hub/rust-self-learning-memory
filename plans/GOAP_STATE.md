@@ -1,10 +1,10 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-11 (post-v0.1.17 revalidation)
+- **Last Updated**: 2026-03-11 (WG-009 completed)
 - **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
-- **Branch**: `main` (commit `c049ed3`)
+- **Branch**: `main` (commit `d693924`)
 - **Version**: `0.1.17`
 
 ## Phase Status
@@ -67,11 +67,30 @@
 
 | Gap | Severity | Status |
 |-----|----------|--------|
-| ~~Batch-specific MCP tools disabled at runtime~~ | P0 | ✅ Fixed by O1 |
-| 121 ignored tests (70 in Turso) | P1 | Tracked |
+| ~~Batch-specific MCP tools disabled at runtime~~ | P0 | ✅ Fixed by O1 and WG-009 |
+| 121 ignored tests (70 in Turso) | P1 | 🔄 In Progress (WG-008) |
 | ~~Adaptive cache not default runtime path~~ | P1 | ✅ Documented by O5 |
 | ~~Transport compression not wired to Turso~~ | P1 | ✅ Documented by O5 |
 | ~~204 pre-existing broken markdown links~~ | P1 | ✅ Reduced to 118 by O3 |
+
+## v0.1.18 Sprint Status (2026-03-11)
+
+### Goals Implementation
+
+| ID | Goal | Priority | Status | Details |
+|----|------|----------|--------|---------|
+| WG-008 | Triage 121 ignored tests | P0 | 🔄 In Progress | 70 Turso tests blocked by libsql bug |
+| WG-009 | Resolve batch MCP tool state | P0 | ✅ Complete | PR #357 merged |
+| WG-010 | Error handling reduction | P1 | 🔄 In Progress | Target: unwrap ≤50, expect ≤20 |
+| WG-011 | Dependency deduplication | P1 | 🔄 In Progress | Target: <100 duplicate roots |
+
+### WG-009 Implementation Details
+
+- Removed dead batch tool parameter schemas from `tool_params.rs` (137 lines)
+- Cleaned up commented batch handlers from `handlers.rs`
+- Updated NOTE comment in `tool_definitions_extended.rs`
+- All memory-mcp tests pass (555 tests)
+- PR #357 merged 2026-03-11
 
 ## G2/G9 Implementation Complete (2026-03-09)
 

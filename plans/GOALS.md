@@ -60,7 +60,7 @@
    - Priority: P0
    - Owner: memory-mcp
    - Target: remove unreachable batch schemas or re-enable handlers
-   - Status: Pending
+   - Status: ✅ Complete (PR #357 merged 2026-03-11)
 
 10. **WG-010**: Error handling reduction (memory-core)
     - Priority: P1

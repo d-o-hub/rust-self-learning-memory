@@ -26,6 +26,15 @@
         "files": ["benches/**/*.rs", ".config/nextest.toml"]
       },
       "priority": "medium"
+    },
+    {
+      "skill": "web-doc-resolver",
+      "triggers": {
+        "keywords": ["fetch", "documentation", "web", "search", "url", "markdown"],
+        "patterns": ["docs\\..*", "readme", "tutorial", "guide"],
+        "files": []
+      },
+      "priority": "medium"
     }
   ]
 }

@@ -267,10 +267,8 @@ pub fn create_extended_tools() -> Vec<Tool> {
     ));
 
     // NOTE: batch_query_episodes, batch_pattern_analysis, and batch_compare_episodes
-    // have been removed from the tool definitions because their handlers are not
-    // implemented. See handlers.rs lines 146-152 where they are commented out with:
-    // "TODO: Re-enable when batch module is fixed"
-    // These tools should only be added back when handlers are implemented.
+    // are intentionally not included because their handlers are not implemented.
+    // These tools should only be added when handlers are implemented.
 
     // Episode tagging tools - add tags
     tools.push(Tool::new(

@@ -11,10 +11,6 @@
 ![Security Audit](https://img.shields.io/badge/security-audit%20passed-brightgreen)
 ![Open Issues](https://img.shields.io/github/issues/d-o-hub/rust-self-learning-memory)
 
-**Production Ready** • 99.3% Test Pass Rate • 92.5% Coverage • Zero Clippy Warnings
-
-**NEW:** Semantic Pattern Search & Recommendations 🔍
-
 A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and secure code execution sandbox.
 
 [Overview](#overview) • [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Quality Gates](#quality-gates) • [License](#license)
@@ -24,21 +20,6 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 ## Overview
 
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
-
-**Current Status (v0.1.17):**
-- **Production-ready** episodic memory management system for AI agents
-- **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, examples, tests
-- **632 Rust source files** with ~140,000 lines of code
-- **811+ lib tests** with 99.5% pass rate
-- **92.5% test coverage** across all modules
-- **10-100x performance improvements** over baseline measurements
-- **Zero clippy warnings** with strict linting rules
-- **Multi-provider semantic embeddings** with OpenAI, Mistral, and local backends
-- **Dual storage backends**: Turso for durability, redb for cache
-- **6-layer security sandbox** in Wasmtime for safe code execution
-- **Phase 2 Turso Optimization**: 100% complete (connection pooling, adaptive sizing, compression, adaptive TTL)
-- **CI Status**: ALL PASSING (Nightly Full Tests FIXED in #283)
-- **MCP Token Optimization**: 98% token reduction for tool discovery
 
 **Architecture:**
 - **memory-core**: Core memory operations, pattern extraction, and reward scoring
@@ -90,16 +71,16 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🔍 MCP Server
 - Standard MCP protocol implementation (v2024-11)
-- **8 MCP tools** for memory operations, pattern search, and code execution
-- **NEW: `search_patterns`** - Semantic pattern search with configurable ranking
-- **NEW: `recommend_patterns`** - Task-specific pattern recommendations
+- **MCP tools** for memory operations, pattern search, and code execution
+- **`search_patterns`** - Semantic pattern search with configurable ranking
+- **`recommend_patterns`** - Task-specific pattern recommendations
 - Progressive tool disclosure based on usage
 - Execution monitoring and metrics tracking
 - Wasmtime-based WASM sandbox for secure code execution
 
 ### 🛠️ Full-Featured CLI
-- 9 main commands for episode, pattern, and storage management
-- 9 command aliases for rapid development workflow
+- main commands for episode, pattern, and storage management
+- command aliases for rapid development workflow
 - Episode management (create, list, search, complete)
 - Pattern analysis and effectiveness tracking
 - Storage operations (sync, vacuum, health checks)
@@ -422,27 +403,27 @@ batch_size = 100
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Memory CLI                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   Episode   │  │  Pattern    │  │   Storage   │         │
-│  │ Management  │  │  Analysis   │  │ Operations  │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│                      Memory CLI                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
+│  │   Episode   │  │  Pattern    │  │   Storage   │          │
+│  │ Management  │  │  Analysis   │  │ Operations  │          │
+│  └─────────────┘  └─────────────┘  └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     Memory MCP Server                        │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  MCP Tools  │  │  WASM       │  │  Advanced   │         │
-│  │  Interface  │  │  Sandbox    │  │  Analysis   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│                     Memory MCP Server                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
+│  │  MCP Tools  │  │  WASM       │  │  Advanced   │          │
+│  │  Interface  │  │  Sandbox    │  │  Analysis   │          │
+│  └─────────────┘  └─────────────┘  └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     Memory Core                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   Episode   │  │   Pattern   │  │   Reward    │         │
-│  │ Management  │  │ Extraction  │  │   Scoring   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│                     Memory Core                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
+│  │   Episode   │  │   Pattern   │  │   Reward    │          │
+│  │ Management  │  │ Extraction  │  │   Scoring   │          │
+│  └─────────────┘  └─────────────┘  └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
                                │
          ┌─────────────────────┼─────────────────────┐

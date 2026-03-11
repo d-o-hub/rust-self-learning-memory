@@ -675,24 +675,15 @@ async fn test_pattern_discovery() {
 // Test 5: Episode Search and Filter
 // ============================================================================
 
-/// TODO: Episode search and filter CLI commands need enhancement
-///
-/// Issues:
-/// - `episode create --domain` flag doesn't exist (use context files instead)
-/// - `episode search --domain` flag doesn't exist (use list filters instead)
-/// - `episode search --type` flag doesn't exist
-/// - `episode query --query` command doesn't exist (use `episode search` instead)
-///
-/// Track: CLI enhancement to support domain/type filtering in search
+/// Test episode search and filter with domain/type flags
 #[tokio::test]
 #[serial]
-#[ignore = "Search domain/type filters not yet implemented"]
 async fn test_episode_search_and_filter() {
     let cli_path = find_cli_binary().expect("Failed to find CLI binary");
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let config_path = create_test_config(&temp_dir).expect("Failed to create config");
 
-    println!("🧪 Testing episode search and filter...");
+    println!("Testing episode search and filter...");
 
     // Create episodes in different domains
     let domains = ["web-api", "database", "cli"];
@@ -715,13 +706,13 @@ async fn test_episode_search_and_filter() {
         assert!(success, "Create should succeed");
     }
 
-    println!("  ✓ Created episodes in different domains");
+    println!("  Created episodes in different domains");
 
-    // Search by domain
+    // Search by domain (requires query argument)
     let (search_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "search", "--domain", "web-api"],
+        &["episode", "search", "test", "--domain", "web-api"],
     )
     .expect("Failed to search episodes");
 
@@ -730,31 +721,31 @@ async fn test_episode_search_and_filter() {
         .get("episodes")
         .and_then(|v| v.as_array())
         .expect("Should have episodes");
-    println!("  ✓ Found {} episodes in 'web-api' domain", episodes.len());
+    println!("  Found {} episodes in 'web-api' domain", episodes.len());
 
     // Search by type
     let (_type_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "search", "--type", "code-generation"],
+        &["episode", "search", "test", "--type", "code-generation"],
     )
     .expect("Failed to search by type");
 
     assert!(success, "Search by type should succeed");
-    println!("  ✓ Searched by task type");
+    println!("  Searched by task type");
 
-    // Query by text
+    // Search by text (using search command with query)
     let (_query_result, success) = run_cli(
         &cli_path,
         &config_path,
-        &["episode", "query", "--query", "search test"],
+        &["episode", "search", "search test"],
     )
-    .expect("Failed to query episodes");
+    .expect("Failed to search episodes");
 
-    assert!(success, "Query should succeed");
-    println!("  ✓ Queried episodes by text");
+    assert!(success, "Search should succeed");
+    println!("  Searched episodes by text");
 
-    println!("✅ Episode search and filter test passed!");
+    println!("Episode search and filter test passed!");
 }
 
 // ============================================================================

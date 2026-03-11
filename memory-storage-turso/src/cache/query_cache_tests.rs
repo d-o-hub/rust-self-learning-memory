@@ -1,5 +1,5 @@
 use super::*;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 #[test]
 fn test_query_key_creation() {
@@ -72,8 +72,8 @@ fn test_cache_expiration() {
     // Should be cached initially
     assert!(cache.get(&key).is_some());
 
-    // Wait for expiration with generous margin (3x TTL) for CI
-    std::thread::sleep(Duration::from_millis(350));
+    // Force expiration without wall-clock sleeps
+    cache.force_set_created_at(&key, Instant::now() - Duration::from_millis(200));
 
     // Should be expired (lazy expiration on next get())
     assert!(cache.get(&key).is_none());

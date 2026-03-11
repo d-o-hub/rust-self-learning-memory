@@ -1,5 +1,4 @@
 use super::*;
-use std::time::Duration;
 use tempfile::TempDir;
 
 async fn create_test_pool() -> (CachingPool, TempDir) {
@@ -20,9 +19,6 @@ async fn create_test_pool() -> (CachingPool, TempDir) {
 #[tokio::test]
 async fn test_pool_creation() {
     let (pool, _dir) = create_test_pool().await;
-
-    // Give time for pre-created connections to be ready in CI environments
-    tokio::time::sleep(Duration::from_millis(200)).await;
 
     // Just verify pool was created successfully; idle count may vary due to async timing
     let _stats = pool.stats();
@@ -56,9 +52,6 @@ async fn test_connection_return() {
         assert_eq!(stats.active_connections, 1);
         assert_eq!(stats.idle_connections, 1); // One of the 2 pre-created
     }
-
-    // Give time for drop
-    tokio::time::sleep(Duration::from_millis(10)).await;
 
     let stats = pool.stats();
     assert_eq!(stats.active_connections, 0, "Connection should be returned");
@@ -99,9 +92,6 @@ async fn test_stable_connection_id() {
         let guard = pool.get().await.unwrap();
         guard.id().expect("connection id")
     };
-
-    // Give time for return
-    tokio::time::sleep(Duration::from_millis(10)).await;
 
     let conn_id2 = {
         let guard = pool.get().await.unwrap();

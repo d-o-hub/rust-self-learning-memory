@@ -4,11 +4,11 @@
 
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Rust Version](https://img.shields.io/badge/Rust-1.85%2B-yellow)
-![Last Updated](https://img.shields.io/badge/last%20updated-February%202026-blue)
-![Coverage](https://img.shields.io/badge/coverage-92.5%25-brightgreen)
-![Clippy](https://img.shields.io/badge/clippy-0%20warnings-success)
-![Security Audit](https://img.shields.io/badge/security-audit%20passed-brightgreen)
+![Rust Version](https://img.shields.io/badge/Rust-stable%20(2024%20edition)-yellow)
+![Last Updated](https://img.shields.io/badge/last%20updated-March%202026-blue)
+![Version](https://img.shields.io/badge/version-0.1.17-blue)
+![Quick Check](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/quick-check.yml/badge.svg)
+![Security](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/security.yml/badge.svg)
 ![Open Issues](https://img.shields.io/github/issues/d-o-hub/rust-self-learning-memory)
 
 A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and secure code execution sandbox.
@@ -26,12 +26,12 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **memory-storage-turso**: Primary database storage (libSQL)
 - **memory-storage-redb**: Fast embedded cache layer
 - **memory-mcp**: MCP server with secure WASM sandbox
-- **memory-cli**: Full-featured command-line interface (9 commands, 9 aliases)
+- **memory-cli**: Full-featured command-line interface (13 command groups)
 - **test-utils**: Shared testing utilities
 - **benches**: Comprehensive benchmark suite
 - **examples**: Usage examples and demonstrations
 
-**Tech Stack:** Rust/Tokio + Turso/libSQL + redb cache + Wasmtime WASM + optional embeddings (OpenAI, Mistral, local)
+**Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + Wasmtime WASM + optional embeddings (OpenAI, Mistral, local)
 
 ## Features
 
@@ -49,9 +49,9 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
-- **NEW: Semantic pattern search** with natural language queries
-- **NEW: Intelligent pattern recommendations** for tasks using multi-signal ranking
-- **NEW: Cross-domain pattern discovery** to find analogous patterns
+- Semantic pattern search with natural language queries
+- Intelligent pattern recommendations for tasks using multi-signal ranking
+- Cross-domain pattern discovery to find analogous patterns
 - Async pattern extraction with queue-based workers
 - Pattern effectiveness tracking with decay over time
 - Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
@@ -70,22 +70,22 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Causal inference for pattern relationships
 
 ### 🔍 MCP Server
-- Standard MCP protocol implementation (v2024-11)
+- MCP protocol implementation (v2025-11-25) with lazy tool loading
 - **MCP tools** for memory operations, pattern search, and code execution
 - **`search_patterns`** - Semantic pattern search with configurable ranking
 - **`recommend_patterns`** - Task-specific pattern recommendations
+- Embedding tools: configure, test, generate, search, provider-status
 - Progressive tool disclosure based on usage
 - Execution monitoring and metrics tracking
-- Wasmtime-based WASM sandbox for secure code execution
 
 ### 🛠️ Full-Featured CLI
-- main commands for episode, pattern, and storage management
-- command aliases for rapid development workflow
-- Episode management (create, list, search, complete)
-- Pattern analysis and effectiveness tracking
-- Storage operations (sync, vacuum, health checks)
+- 13 command groups: episode, pattern, storage, config, health, backup, monitor, logs, eval, embedding, tag, relationship, completion
+- Episode management (create, list, view, search, complete, delete, update, bulk, filter)
+- Pattern analysis and effectiveness tracking (list, view, analyze, decay, batch)
+- Tag management (add, remove, search, rename, stats)
+- Relationship management (add, remove, list, graph, validate)
+- Storage operations (stats, sync, vacuum, health, connections)
 - Backup and restore capabilities
-- Monitoring and metrics export
 - Multiple output formats (human, JSON, YAML)
 
 ### 🌐 Multi-Provider Embeddings
@@ -96,16 +96,17 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Automatic embedding caching and batch processing
 
 ### 🛡️ Quality Assurance
-- Automated quality gates (>90% coverage)
-- Comprehensive test suite across all crates (811+ lib tests)
-- Security auditing for sandbox operations
-- Performance benchmarks with regression detection
+- Automated quality gates (`./scripts/quality-gates.sh`)
+- ~2,900 test functions across all crates (cargo-nextest)
+- Property-based testing (proptest) and snapshot testing (insta)
+- Mutation testing (cargo-mutants) in nightly CI
+- Security auditing and semver checking in CI
 - Zero clippy warnings policy
-- Pre-commit and post-commit hooks for code quality
+- Pre-commit hooks for code quality
 
 ## Quick Start
 
-### 🔍 Pattern Search Example (NEW in v0.1.13)
+### 🔍 Pattern Search Example
 
 ```rust
 use memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
@@ -150,12 +151,10 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-**Try it yourself:** `cargo run --example pattern_search_demo`
-
 **Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
-- Rust 1.85+ (stable, 2024 edition)
+- Rust stable (2024 edition)
 - SQLite (for local development)
 - Optional: Turso CLI (for cloud database)
 
@@ -169,10 +168,10 @@ cd rust-self-learning-memory
 # Build the project
 cargo build --release
 
-# Run tests
-cargo test --all
-# Or use nextest for faster tests
+# Run tests (nextest recommended)
 cargo nextest run --all
+# Doctests separately
+cargo test --doc
 
 # Run quality gates
 ./scripts/quality-gates.sh
@@ -185,7 +184,7 @@ cargo nextest run --all
 ./scripts/setup-local-db.sh
 
 # Or manual setup
-cp .env.example .env
+cp memory-cli/.env.example .env
 mkdir -p ./data ./backups
 ```
 
@@ -195,7 +194,7 @@ mkdir -p ./data ./backups
 
 ```bash
 # Run interactive configuration wizard
-memory config wizard
+memory-cli config wizard
 
 # Follow the prompts to configure:
 # - Database (local SQLite or remote Turso)
@@ -203,34 +202,38 @@ memory config wizard
 # - CLI (output format, progress bars, batch size)
 
 # Validate configuration
-memory config validate
+memory-cli config validate
 
 # Check configuration status
-memory config check
+memory-cli config check
 ```
 
-**NEW:** Configuration Wizard - Interactive step-by-step setup with sensible defaults and validation.
+Configuration Wizard provides interactive step-by-step setup with sensible defaults and validation.
 
 #### CLI Interaction
 
 ```bash
 # Create an episode
-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
+memory-cli ep create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
 
 # List episodes
-memory-cli episode list --limit 10
+memory-cli ep list --limit 10
 
-# Retrieve relevant context
-memory-cli episode search "authentication" --limit 5
+# Search episodes
+memory-cli ep search "authentication" --limit 5
 
-# NEW: Search patterns semantically
-memory-cli pattern search --query "How to build REST API" --domain web-api --limit 5
-
-# NEW: Get pattern recommendations
-memory-cli pattern recommend --task "Build async HTTP client" --domain web-api --limit 3
+# Search patterns semantically
+memory-cli pat search --query "How to build REST API" --limit 5
 
 # Analyze patterns
-memory-cli pattern list --min-confidence 0.8
+memory-cli pat list --min-confidence 0.8
+
+# Tag management
+memory-cli tg add <episode-id> "important"
+memory-cli tg search "important"
+
+# Health check
+memory-cli hp check
 ```
 
 #### MCP Server
@@ -310,13 +313,13 @@ The project maintains high quality standards through automated quality gates:
 
 | Gate | Threshold | Description |
 |------|-----------|-------------|
-| **Test Coverage** | > 90% | Line coverage across all crates |
-| **Pattern Accuracy** | > 70% | Pattern recognition accuracy |
-| **Code Complexity** | Avg < 10 | Average cyclomatic complexity |
-| **Security** | 0 vulns | Zero critical/high/medium vulnerabilities |
-| **Linting** | 0 warnings | Zero clippy warnings |
-| **Formatting** | 100% | All code rustfmt compliant |
-| **Performance** | < 10% regression | No performance degradation |
+| **Build** | 0 errors | `cargo build --all` |
+| **Linting** | 0 warnings | `cargo clippy --workspace --tests -- -D warnings` |
+| **Formatting** | 100% | `cargo fmt --all -- --check` |
+| **Tests** | All pass | `cargo nextest run --all` |
+| **File Size** | ≤500 LOC | Production source files only |
+| **Security** | 0 vulns | `cargo audit` in CI |
+| **Semver** | No breaks | `cargo semver-checks` in CI |
 
 Run quality gates locally:
 ```bash
@@ -344,12 +347,16 @@ cargo build --features embeddings-full
 ```
 
 **Available Features:**
-- `openai`: OpenAI API embeddings support
-- `mistral`: Mistral AI embeddings support
-- `local-embeddings`: CPU-based local embeddings
-- `embeddings-full`: All embedding providers (openai + mistral)
-- `mcp`: MCP server tools and protocol support
-- `sandbox`: Wasmtime sandbox for code execution
+- `openai`: OpenAI API embeddings support (memory-core)
+- `mistral`: Mistral AI embeddings support (memory-core)
+- `local-embeddings`: CPU-based local embeddings (memory-core)
+- `embeddings-full`: All embedding providers (memory-core)
+- `turso`: Turso cloud storage with keepalive pool (memory-cli)
+- `redb`: redb local cache layer (memory-cli, default)
+- `full`: All features combined (memory-cli)
+- `wasmtime-backend`: Wasmtime WASM sandbox (memory-mcp, default)
+- `compression`: Network compression — lz4, zstd, gzip (memory-storage-turso)
+- `hybrid_search`: FTS5 hybrid search (memory-storage-turso)
 
 ## Configuration
 
@@ -367,6 +374,19 @@ MEMORY_REDB_PATH=./data/memory.redb
 # Cache settings
 MEMORY_MAX_EPISODES_CACHE=1000
 MEMORY_CACHE_TTL_SECONDS=3600
+
+# CLI config
+MEMORY_CLI_CONFIG=./memory-cli.toml
+
+# Embeddings (CLI/MCP)
+EMBEDDING_PROVIDER=openai|mistral|azure|local
+OPENAI_API_KEY=sk-your-key
+MISTRAL_API_KEY=your-mistral-key
+AZURE_OPENAI_API_KEY=your-azure-key
+OPENAI_API_KEY_ENV=OPENAI_API_KEY
+EMBEDDING_MODEL=text-embedding-3-small
+EMBEDDING_SIMILARITY_THRESHOLD=0.7
+EMBEDDING_BATCH_SIZE=32
 
 # Sandbox settings
 MCP_USE_WASM=true
@@ -437,19 +457,16 @@ batch_size = 100
 
 ## MCP Server Tools
 
-The MCP server exposes the following tools:
+The MCP server exposes tools via lazy loading (ADR-024):
 
-### query_memory
-Query episodic memory for relevant past experiences based on task type, domain, and query text.
-
-### analyze_patterns
-Analyze patterns from past episodes to identify successful strategies and recommendations.
-
-### execute_agent_code
-Execute TypeScript/JavaScript code in a secure WASM sandbox with resource limits.
-
-### Advanced Pattern Analysis
-Statistical analysis, forecasting, anomaly detection, and causal inference on time series data from memory episodes.
+- **query_memory** — Query episodic memory for relevant past experiences
+- **analyze_patterns** — Identify successful strategies and recommendations
+- **search_patterns** — Semantic pattern search with multi-signal ranking
+- **recommend_patterns** — Task-specific pattern recommendations
+- **configure_embeddings** / **test_embeddings** / **generate_embedding** — Embedding management
+- **search_by_embedding** / **embedding_provider_status** — Semantic search and provider monitoring
+- **Episode lifecycle tools** — create, complete, log steps, get, timeline
+- **Advanced analysis** — Statistical analysis, forecasting, anomaly detection, causal inference
 
 ## Performance
 
@@ -463,6 +480,12 @@ All operations meet or exceed performance targets:
 | Pattern Extraction | < 1000ms | ~10.4 µs (95,880x faster) |
 | Memory Retrieval | < 100ms | ~721 µs (138x faster) |
 | WASM Execution | < 200ms | ~50-200ms (typical) |
+
+Typical performance numbers are from internal benchmarks on a warm cache; results vary by hardware and configuration. Run `cargo bench` for local measurements and see `docs/QUALITY_GATES.md` for the performance regression gate.
+
+## Benchmarks
+
+Run `cargo bench` for workspace benchmarks. CLI benchmarks live in `memory-cli/benches/cli_benchmarks.rs`; quality gate expectations and regression checks are documented in `docs/QUALITY_GATES.md`.
 
 ## Contributing
 

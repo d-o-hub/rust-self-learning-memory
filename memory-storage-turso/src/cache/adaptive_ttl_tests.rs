@@ -117,8 +117,10 @@ async fn test_cache_entry_expiration() {
     cache.insert("key1", "value1".to_string()).await;
     assert!(cache.contains(&"key1").await);
 
-    // Wait for expiration with generous margin (2.5x TTL) for CI
-    tokio::time::sleep(Duration::from_millis(300)).await;
+    // Force expiration without wall-clock sleeps
+    cache
+        .force_set_entry_created_at(&"key1", Instant::now() - Duration::from_millis(200))
+        .await;
 
     // Entry should be expired (is_expired checks created_at elapsed > current_ttl)
     assert!(!cache.contains(&"key1").await);

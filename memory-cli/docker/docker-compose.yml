@@ -20,7 +20,7 @@ services:
       - .env
     environment:
       - RUST_LOG=info
-      - MEMORY_CONFIG=/app/config/memory-cli.toml
+      - MEMORY_CLI_CONFIG=/app/config/memory-cli.toml
 
     # Health check
     healthcheck:

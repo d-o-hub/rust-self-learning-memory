@@ -15,7 +15,7 @@ The configuration wizard simplifies the setup process by:
 ### Running the Wizard
 
 ```bash
-memory config wizard
+memory-cli config wizard
 ```
 
 This launches an interactive wizard that will:
@@ -28,10 +28,10 @@ This launches an interactive wizard that will:
 
 ```bash
 # With specific config file
-memory --config my-config.toml config wizard
+memory-cli --config my-config.toml config wizard
 
 # Show template without interaction
-memory config show-template  # (if implemented)
+memory-cli config show-template  # (if implemented)
 ```
 
 ## Configuration Presets
@@ -330,9 +330,9 @@ After saving:
 ✅ Configuration successfully saved to: memory-cli.toml
 
 💡 Next steps:
-   • Test your configuration: memory --config memory-cli.toml
+   • Test your configuration: memory-cli --config memory-cli.toml
    • Edit manually if needed: memory-cli.toml
-   • Run the wizard again to update: memory config wizard
+   • Run the wizard again to update: memory-cli config wizard
 ```
 
 ## Using Generated Configuration
@@ -343,21 +343,21 @@ Place `memory-cli.toml` (or `.memory-cli.toml`) in your project directory.
 The CLI will automatically load it:
 
 ```bash
-memory episode list
-memory pattern analyze --pattern-id <uuid>
+memory-cli episode list
+memory-cli pattern analyze --pattern-id <uuid>
 ```
 
 ### Specify Configuration File Explicitly
 
 ```bash
-memory --config /path/to/my-config.toml episode list
+memory-cli --config /path/to/my-config.toml episode list
 ```
 
 ### Use Environment Variable
 
 ```bash
-export MEMORY_CONFIG=/path/to/my-config.toml
-memory episode list
+export MEMORY_CLI_CONFIG=/path/to/my-config.toml
+memory-cli episode list
 ```
 
 ## Validating Configuration
@@ -365,7 +365,7 @@ memory episode list
 After running the wizard, validate your configuration:
 
 ```bash
-memory config validate
+memory-cli config validate
 ```
 
 This checks:
@@ -377,7 +377,7 @@ This checks:
 Check configuration status:
 
 ```bash
-memory config check
+memory-cli config check
 ```
 
 Shows:
@@ -388,7 +388,7 @@ Shows:
 Display current config:
 
 ```bash
-memory config show
+memory-cli config show
 ```
 
 Shows:
@@ -403,7 +403,7 @@ Shows:
 
 ```bash
 # Run wizard
-memory config wizard
+memory-cli config wizard
 
 # Follow prompts:
 # 1. Select "Local Development" preset
@@ -413,17 +413,17 @@ memory config wizard
 # 5. Save to memory-cli.toml
 
 # Validate
-memory config validate
+memory-cli config validate
 
 # Test
-memory episode list
+memory-cli episode list
 ```
 
 ### Scenario 2: Production Setup
 
 ```bash
 # Run wizard
-memory config wizard
+memory-cli config wizard
 
 # Follow prompts:
 # 1. Select "Cloud Setup" preset
@@ -434,17 +434,17 @@ memory config wizard
 # 6. Save to .memory-cli.toml (hidden file)
 
 # Validate
-memory config validate
+memory-cli config validate
 
 # Check connectivity
-memory config check
+memory-cli config check
 ```
 
 ### Scenario 3: CI/CD Pipeline
 
 ```bash
 # Run wizard
-memory config wizard
+memory-cli config wizard
 
 # Follow prompts:
 # 1. Select "Memory Only" preset
@@ -455,14 +455,14 @@ memory config wizard
 # 6. Save to ci-config.toml
 
 # Test in CI
-memory --config ci-config.toml episode list --format json
+memory-cli --config ci-config.toml episode list --format json
 ```
 
 ### Scenario 4: Updating Configuration
 
 ```bash
 # Run wizard again
-memory config wizard
+memory-cli config wizard
 
 # Choose "Custom Configuration" preset
 # The wizard will use current config as defaults:
@@ -475,16 +475,16 @@ memory config wizard
 
 ```bash
 # Create dev config
-memory config wizard
+memory-cli config wizard
 # Save as dev.toml
 
 # Create production config
-memory --config prod.toml config wizard
+memory-cli --config prod.toml config wizard
 # Save as prod.toml
 
 # Switch between environments
-memory --config dev.toml episode list
-memory --config prod.toml episode list
+memory-cli --config dev.toml episode list
+memory-cli --config prod.toml episode list
 ```
 
 ## Configuration File Reference
@@ -544,8 +544,8 @@ Error: Configuration file not found
 ```
 
 **Solutions:**
-1. Create config with wizard: `memory config wizard`
-2. Specify config file explicitly: `memory --config path/to/config.toml <command>`
+1. Create config with wizard: `memory-cli config wizard`
+2. Specify config file explicitly: `memory-cli --config path/to/config.toml <command>`
 3. Create default config file: `memory-cli.toml` in current directory
 
 ### Validation Errors
@@ -557,7 +557,7 @@ The following errors must be fixed:
 ```
 
 **Solutions:**
-1. Run wizard again: `memory config wizard`
+1. Run wizard again: `memory-cli config wizard`
 2. Edit config file manually and fix the error
 3. Check for typos or invalid values
 
@@ -570,7 +570,7 @@ Error: Turso connection failed
 **Solutions:**
 1. Verify Turso URL format (must start with `libsql://`)
 2. Check Turso token is correct
-3. Test connectivity: `memory config check`
+3. Test connectivity: `memory-cli config check`
 4. Verify network access to Turso
 
 ### Permission Denied
@@ -594,7 +594,7 @@ Error: Failed to write configuration to 'memory-cli.toml'
 
 4. **Document Changes**: Add comments to config files explaining non-standard choices.
 
-5. **Validate Regularly**: Run `memory config validate` after any changes.
+5. **Validate Regularly**: Run `memory-cli config validate` after any changes.
 
 6. **Use Presets When Possible**: Presets are optimized and tested. Use them as starting points.
 
@@ -620,7 +620,7 @@ builder.write_to_file(std::path::Path::new("custom-config.toml"))?;
 ```bash
 # Start with a preset, then override specific values
 # Using environment variables or multiple config files
-memory --config base.toml --config overrides.toml <command>
+memory-cli --config base.toml --config overrides.toml <command>
 ```
 
 ### Dynamic Configuration
@@ -640,42 +640,42 @@ default_format = "json"
 progress_bars = false
 EOF
 
-memory --config ci-config.toml episode list
+memory-cli --config ci-config.toml episode list
 ```
 
 ## Related Commands
 
-- `memory config validate` - Validate current configuration
-- `memory config check` - Check configuration for issues
-- `memory config show` - Display current configuration
-- `memory episode list` - Test configuration with episode listing
-- `memory config wizard` - Run configuration wizard (this command)
+- `memory-cli config validate` - Validate current configuration
+- `memory-cli config check` - Check configuration for issues
+- `memory-cli config show` - Display current configuration
+- `memory-cli episode list` - Test configuration with episode listing
+- `memory-cli config wizard` - Run configuration wizard (this command)
 
 ## Examples
 
 ### Example 1: Minimal Configuration
 
 ```bash
-$ memory config wizard
+$ memory-cli config wizard
 # Select: Memory Only preset
 # Keep all defaults
 # Save to .memory-cli.toml
 
-$ memory --config .memory-cli.toml episode list
+$ memory-cli --config .memory-cli.toml episode list
 # Works with in-memory storage
 ```
 
 ### Example 2: Custom Storage Path
 
 ```bash
-$ memory config wizard
+$ memory-cli config wizard
 # Select: Local Development preset
 # Database: file:/var/lib/memory/memory.db
 # Cache: /var/lib/memory/cache.redb
 # Rest defaults
 # Save to /etc/memory-cli/config.toml
 
-$ memory --config /etc/memory-cli/config.toml episode list
+$ memory-cli --config /etc/memory-cli/config.toml episode list
 # Uses custom storage paths
 ```
 
@@ -702,7 +702,7 @@ batch_size = 200
 CONFIG
 
 echo "Configuration saved to memory-cli.toml"
-memory config validate
+memory-cli config validate
 SCRIPT
 
 chmod +x setup-config.sh

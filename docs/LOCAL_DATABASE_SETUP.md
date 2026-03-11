@@ -38,7 +38,7 @@ Create a `.env` file in the project root:
 
 ```bash
 # Copy the template
-cp .env.example .env
+cp memory-cli/.env.example .env
 ```
 
 Edit `.env` with your local database preferences:

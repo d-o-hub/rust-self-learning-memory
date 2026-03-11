@@ -82,8 +82,6 @@ async fn test_connection_auto_return() {
         assert_eq!(metrics.active_connections, 1);
     }
 
-    tokio::time::sleep(Duration::from_millis(50)).await;
-
     let metrics = pool.metrics();
     assert_eq!(metrics.active_connections, 0);
 }
@@ -153,8 +151,6 @@ async fn test_shutdown() {
 
     let _conn = pool.get().await.unwrap();
     drop(_conn);
-
-    tokio::time::sleep(Duration::from_millis(50)).await;
 
     pool.shutdown().await;
 }
@@ -245,8 +241,6 @@ async fn test_cleanup_callback_on_connection_drop() {
     };
     // Connection is dropped here
 
-    // Give more time for async cleanup in CI environments
-    tokio::time::sleep(Duration::from_millis(200)).await;
     tokio::task::yield_now().await;
 
     // Verify callback was called
@@ -259,7 +253,6 @@ async fn test_cleanup_callback_on_connection_drop() {
         let _conn3 = pool.get().await.unwrap();
     }
 
-    tokio::time::sleep(Duration::from_millis(200)).await;
     tokio::task::yield_now().await;
 
     // Should have 4 total cleanups (1 from before + 3 new)
@@ -297,8 +290,6 @@ async fn test_cleanup_callback_tracks_correct_connection_id() {
         conn.connection_id()
     };
 
-    tokio::time::sleep(Duration::from_millis(50)).await;
-
     // Verify all connection IDs were tracked
     let ids = cleaned_ids.lock().unwrap();
     assert_eq!(ids.len(), 3);
@@ -327,7 +318,6 @@ async fn test_cleanup_callback_removal() {
         let _conn = pool.get().await.unwrap();
     }
 
-    tokio::time::sleep(Duration::from_millis(50)).await;
     assert_eq!(cleanup_count.load(Ordering::Relaxed), 1);
 
     // Remove the callback
@@ -337,8 +327,6 @@ async fn test_cleanup_callback_removal() {
     {
         let _conn = pool.get().await.unwrap();
     }
-
-    tokio::time::sleep(Duration::from_millis(50)).await;
 
     // Count should still be 1 (callback was removed)
     assert_eq!(cleanup_count.load(Ordering::Relaxed), 1);
@@ -375,8 +363,6 @@ async fn test_connection_cache_integration() {
     };
 
     // Connection is dropped here, which should trigger cleanup
-    // Give more time for async cleanup in CI environments
-    tokio::time::sleep(Duration::from_millis(200)).await;
     tokio::task::yield_now().await;
 
     // Verify cache was cleared for this connection

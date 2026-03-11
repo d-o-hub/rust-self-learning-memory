@@ -6,7 +6,6 @@ use anyhow::Result;
 use colored::Colorize;
 
 /// Trait for adding helpful context and suggestions to errors
-#[allow(dead_code)] // TODO: Integrate into CLI command error handling
 pub trait EnhancedError<T> {
     /// Add context with helpful suggestions
     fn context_with_help(self, msg: &str, help: &[&str]) -> Result<T>;
@@ -30,10 +29,8 @@ impl<T, E: std::error::Error + Send + Sync + 'static> EnhancedError<T> for Resul
 }
 
 /// Common error messages and help text
-#[allow(dead_code)] // TODO: Integrate into CLI command error handling
 pub mod helpers {
     /// Episode not found error help
-    #[allow(dead_code)]
     pub const EPISODE_NOT_FOUND_HELP: &[&str] = &[
         "Check that the episode ID is correct (use 'memory-cli episode list' or 'memory-cli ep list')",
         "Verify the episode hasn't been deleted",
@@ -41,7 +38,6 @@ pub mod helpers {
     ];
 
     /// Pattern not found error help
-    #[allow(dead_code)]
     pub const PATTERN_NOT_FOUND_HELP: &[&str] = &[
         "Check that the pattern ID is correct (use 'memory-cli pattern list' or 'memory-cli pat list')",
         "Patterns may have decayed due to low confidence",
@@ -49,7 +45,6 @@ pub mod helpers {
     ];
 
     /// Storage connection error help
-    #[allow(dead_code)]
     pub const STORAGE_CONNECTION_HELP: &[&str] = &[
         "Verify Turso database URL is correct in configuration",
         "Check network connectivity if using cloud database",
@@ -58,7 +53,6 @@ pub mod helpers {
     ];
 
     /// Configuration error help
-    #[allow(dead_code)]
     pub const CONFIG_ERROR_HELP: &[&str] = &[
         "Check configuration file at ~/.config/memory-cli/config.toml",
         "Verify all required fields are present",
@@ -67,7 +61,6 @@ pub mod helpers {
     ];
 
     /// Invalid input error help
-    #[allow(dead_code)]
     pub const INVALID_INPUT_HELP: &[&str] = &[
         "Check input format and data types",
         "Verify JSON syntax if providing context",
@@ -75,7 +68,6 @@ pub mod helpers {
     ];
 
     /// Database operation error help
-    #[allow(dead_code)]
     pub const DATABASE_OPERATION_HELP: &[&str] = &[
         "Check storage health: 'memory-cli storage health' or 'memory-cli st health'",
         "Try synchronizing storage: 'memory-cli storage sync' or 'memory-cli st sync'",
@@ -84,7 +76,6 @@ pub mod helpers {
     ];
 
     /// Storage operation error help
-    #[allow(dead_code)]
     pub const STORAGE_ERROR_HELP: &[&str] = &[
         "Verify database connection is healthy: 'memory-cli storage health'",
         "Check database file exists and has correct permissions",
@@ -93,7 +84,6 @@ pub mod helpers {
     ];
 
     /// Format enhanced error message
-    #[allow(dead_code)]
     pub fn format_error_message(error: &str, context: &str, help: &[&str]) -> String {
         use colored::Colorize;
 

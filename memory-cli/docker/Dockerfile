@@ -54,7 +54,7 @@ USER memory
 
 # Set environment variables
 ENV RUST_LOG=info
-ENV MEMORY_CONFIG=/app/config/memory-cli.toml
+ENV MEMORY_CLI_CONFIG=/app/config/memory-cli.toml
 
 # Expose metrics port (if we add HTTP server later)
 # EXPOSE 9090

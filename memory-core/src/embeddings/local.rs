@@ -41,7 +41,6 @@ pub struct LocalEmbeddingProvider {
     /// Model configuration
     config: LocalConfig,
     /// Embedding model (placeholder for actual model implementation)
-    #[allow(dead_code)]
     model: Arc<RwLock<Option<Box<dyn LocalEmbeddingModel>>>>,
     /// Model cache directory
     cache_dir: std::path::PathBuf,
@@ -162,7 +161,6 @@ impl LocalEmbeddingProvider {
     }
 
     /// Get model information
-    #[allow(dead_code)]
     #[must_use]
     pub fn model_info(&self) -> serde_json::Value {
         serde_json::json!({
@@ -327,7 +325,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "Flaky test with random mock embeddings - needs deterministic mock data"]
+    #[ignore = "Requires local-embeddings feature with ONNX models - blocked by ort crate Send trait issue"]
     #[cfg(feature = "local-embeddings")]
     async fn test_real_embedding_generation() {
         // This test only runs when local-embeddings feature is enabled

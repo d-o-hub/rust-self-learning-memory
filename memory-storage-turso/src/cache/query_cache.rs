@@ -205,6 +205,14 @@ impl AdvancedQueryCache {
         }
     }
 
+    #[cfg(test)]
+    pub(crate) fn force_set_created_at(&self, key: &QueryKey, created_at: Instant) {
+        if let Some(result) = self.results.write().get_mut(key) {
+            result.created_at = created_at;
+            *result.last_accessed.write() = created_at;
+        }
+    }
+
     /// Get the invalidation sender
     pub fn invalidation_sender(&self) -> mpsc::UnboundedSender<InvalidationMessage> {
         self.invalidation_tx.clone()

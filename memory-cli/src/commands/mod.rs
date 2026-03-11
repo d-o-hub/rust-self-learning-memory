@@ -40,8 +40,8 @@ pub async fn handle_episode_command(
     dry_run: bool,
 ) -> anyhow::Result<()> {
     match command {
-        EpisodeCommands::Create { task, context } => {
-            create_episode(task, context, memory, config, format, dry_run).await
+        EpisodeCommands::Create { task, context, domain } => {
+            create_episode(task, context, domain, memory, config, format, dry_run).await
         }
         EpisodeCommands::List {
             task_type,
@@ -127,6 +127,8 @@ pub async fn handle_episode_command(
             regex,
             search_fields,
             sort,
+            domain,
+            r#type,
         } => {
             search_episodes(
                 query,
@@ -140,6 +142,8 @@ pub async fn handle_episode_command(
                 regex,
                 search_fields,
                 sort,
+                domain,
+                r#type,
                 memory,
                 config,
                 format,

@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::output::OutputFormat;
 use memory_core::EpisodeFilter;
 use memory_core::search::{SearchField, SearchMode};
-use memory_core::{Episode, SelfLearningMemory, TaskOutcome};
+use memory_core::{Episode, SelfLearningMemory, TaskOutcome, TaskType};
 
 /// Calculate a success score for an episode (higher = more successful)
 fn outcome_score(episode: &Episode) -> u8 {
@@ -30,12 +30,40 @@ pub async fn search_episodes(
     regex: bool,
     search_fields: Option<Vec<String>>,
     sort: SearchSortOrder,
+    domain: Option<String>,
+    task_type: Option<String>,
     memory: &SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     // Build filter with search mode
     let mut filter_builder = EpisodeFilter::builder().search_text(query.clone());
+
+    // Add domain filter if provided
+    if let Some(d) = domain {
+        filter_builder = filter_builder.domains(vec![d]);
+    }
+
+    // Add task type filter if provided
+    if let Some(tt) = task_type {
+        // Parse the task type string to TaskType enum
+        let parsed_type = match tt.to_lowercase().as_str() {
+            "code-generation" | "code_generation" => TaskType::CodeGeneration,
+            "debugging" => TaskType::Debugging,
+            "refactoring" => TaskType::Refactoring,
+            "testing" => TaskType::Testing,
+            "analysis" => TaskType::Analysis,
+            "documentation" => TaskType::Documentation,
+            "other" => TaskType::Other,
+            _ => {
+                return Err(anyhow::anyhow!(
+                    "Unknown task type '{}'. Valid types: code-generation, debugging, refactoring, testing, analysis, documentation, other",
+                    tt
+                ));
+            }
+        };
+        filter_builder = filter_builder.task_types(vec![parsed_type]);
+    }
 
     // Configure search mode (priority: regex > fuzzy > exact)
     if regex {

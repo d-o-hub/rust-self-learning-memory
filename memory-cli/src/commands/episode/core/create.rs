@@ -14,6 +14,7 @@ use std::path::PathBuf;
 pub async fn create_episode(
     task: String,
     context: Option<PathBuf>,
+    domain: Option<String>,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] memory: &SelfLearningMemory,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] _config: &Config,
     #[cfg_attr(not(feature = "turso"), allow(unused_variables))] format: OutputFormat,
@@ -23,6 +24,9 @@ pub async fn create_episode(
         println!("Would create episode with task: {}", task);
         if let Some(context_path) = context {
             println!("Would load context from: {}", context_path.display());
+        }
+        if let Some(d) = &domain {
+            println!("Would set domain to: {}", d);
         }
         return Ok(());
     }
@@ -36,20 +40,39 @@ pub async fn create_episode(
         )?;
 
         // Try to parse as JSON first, then YAML
-        if let Ok(ctx) = serde_json::from_str::<TaskContext>(&content) {
+        let mut ctx: TaskContext = if let Ok(ctx) = serde_json::from_str::<TaskContext>(&content) {
             ctx
         } else {
             serde_yaml::from_str(&content).context_with_help(
                 &format!("Failed to parse context file: {}", context_path.display()),
                 helpers::INVALID_INPUT_HELP,
             )?
+        };
+
+        // Override domain from CLI flag if provided
+        if let Some(d) = &domain {
+            ctx.domain = d.clone();
         }
+
+        ctx
     } else {
-        TaskContext::default()
+        let mut ctx = TaskContext::default();
+        // Set domain from CLI flag if provided
+        if let Some(d) = &domain {
+            ctx.domain = d.clone();
+        }
+        ctx
     };
 
     #[cfg(not(feature = "turso"))]
-    let context_data = TaskContext::default();
+    let context_data = {
+        let mut ctx = TaskContext::default();
+        // Set domain from CLI flag if provided
+        if let Some(d) = &domain {
+            ctx.domain = d.clone();
+        }
+        ctx
+    };
 
     // Use the pre-initialized memory system
     // Start the episode

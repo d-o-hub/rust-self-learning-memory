@@ -15,6 +15,10 @@ pub enum EpisodeCommands {
         /// Context file (JSON)
         #[arg(short, long, value_name = "FILE")]
         context: Option<std::path::PathBuf>,
+
+        /// Domain for the episode (e.g., 'web-api', 'data-processing')
+        #[arg(long)]
+        domain: Option<String>,
     },
 
     /// List episodes
@@ -179,6 +183,14 @@ pub enum EpisodeCommands {
         /// Sort order for results (relevance, newest, oldest, duration, success)
         #[arg(long, default_value = "relevance")]
         sort: SearchSortOrder,
+
+        /// Filter by domain (e.g., 'web-api', 'data-processing')
+        #[arg(long)]
+        domain: Option<String>,
+
+        /// Filter by task type (code-generation, debugging, refactoring, testing, analysis, documentation, other)
+        #[arg(long)]
+        r#type: Option<String>,
     },
 
     /// Log an execution step

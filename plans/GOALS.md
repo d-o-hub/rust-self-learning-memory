@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-06 (Dependabot PRs merged, PR #347 created)
+- **Last Updated**: 2026-03-11 (post-v0.1.17 revalidation)
 - **Source ADR**: ADR-037
 - **Status**: Active
 
@@ -46,4 +46,30 @@
    - Priority: P2
    - Owner: rust-expert
    - Target: resolve test/clippy failures from dependency update
+   - Status: Complete (PR #345 merged with redb 3.x + rand 0.10 fixes)
+
+## Next Goals (v0.1.18 Sprint)
+
+8. **WG-008**: Triage 121 ignored tests
+   - Priority: P0
+   - Owner: test-runner + debug-troubleshoot
+   - Target: reduce ignored tests to ≤30 (remove, fix, or document with tracking)
    - Status: Pending
+
+9. **WG-009**: Resolve batch MCP tool state
+   - Priority: P0
+   - Owner: memory-mcp
+   - Target: remove unreachable batch schemas or re-enable handlers
+   - Status: Pending
+
+10. **WG-010**: Error handling reduction (memory-core)
+    - Priority: P1
+    - Owner: code-quality
+    - Target: reduce unwrap/expect in memory-core from 165 to ≤50
+    - Status: Pending
+
+11. **WG-011**: Dependency deduplication
+    - Priority: P1
+    - Owner: code-quality
+    - Target: reduce duplicate dep roots from 134 to <100
+    - Status: Pending

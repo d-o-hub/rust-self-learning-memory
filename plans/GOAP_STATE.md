@@ -1,9 +1,11 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-09 (O1/O3/O5 Implementation Complete)
+- **Last Updated**: 2026-03-11 (post-v0.1.17 revalidation)
 - **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
+- **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
-- **Branch**: `main` (commit `4cdfb34`)
+- **Branch**: `main` (commit `c049ed3`)
+- **Version**: `0.1.17`
 
 ## Phase Status
 
@@ -97,19 +99,9 @@
 - References added in `AGENTS.md` and `agent_docs/README.md`.
 - Release wrapper linked to workflow guidance in `AGENTS.md`.
 
-## Dependabot PRs Status (2026-03-09)
+## Dependabot PRs Status (2026-03-11)
 
-| PR | Package | Status | Action |
-|---|---------|--------|--------|
-| #328 | chrono 0.4.44 | **MERGED** | Completed |
-| #329 | augurs-changepoint 0.10.2 | **MERGED** | Completed |
-| #330 | rand 0.10.0 | **MERGED** | Completed |
-| #332 | tempfile 3.26.0 | **MERGED** | Completed |
-| #333 | wasmtime-wasi 42.0.1 | **MERGED** | Conflict resolved, merged |
-| #334 | CI fixes | **MERGED** | Nightly stability + workflow automation |
-| #344 | rust-patch-minor (5 updates) | **MERGED** | Completed |
-| #345 | rust-major (3 updates) | **MERGED** | Completed (redb 3.x + rand 0.10 fixes) |
-| #346 | actions-all (2 updates) | **MERGED** | Completed |
+All Dependabot PRs resolved. No pending dependency update PRs.
 
 ## Learning Delta (GOAP)
 

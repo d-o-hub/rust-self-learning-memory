@@ -22,9 +22,8 @@ anyhow = { workspace = true }
 rand = { workspace = true, optional = true }
 rand_chacha = { workspace = true, optional = true }
 tracing = { workspace = true }
-libsql = { workspace = true, optional = true }
 
 [features]
 default = []
-turso = ["dep:memory-storage-turso", "dep:rand", "dep:rand_chacha", "dep:libsql"]
+turso = ["dep:memory-storage-turso", "dep:rand", "dep:rand_chacha"]
 full = ["turso"]

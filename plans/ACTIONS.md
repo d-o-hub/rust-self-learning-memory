@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-03-06 (PR #345 rust-major fixes completed)
+- **Last Updated**: 2026-03-11 (ACT-018 docs links completed)
 - **Related Plan**: `plans/GOAP_CSM_WORKFLOW_GAP_ADOPTION_2026-03-05.md`
 
 ## Active Actions
@@ -81,12 +81,16 @@
 - **ACT-005**: Create `docs/architecture/context.yaml` and validation command - Complete
 - **ACT-006**: Link release wrapper to ADR-034 release flow docs - Complete
 - **ACT-016**: Merge Dependabot PRs - Complete (PR #344, #346 merged; #345 in progress)
+- **ACT-018**: Fix broken documentation links - Complete (2026-03-11)
+  - Fixed 29 broken markdown links (118 → 89 remaining)
+  - Focused on active documentation files
+  - Commit: `13ca540`
+  - Note: This was a continuation of O3 work from v0.1.17 sprint
 - **ACT-019**: Create missing GOAP files - Complete
 
 ## Pending Actions
 
 - **ACT-017**: Monitor Nightly Full Tests after exclusion fix - Pending (next scheduled run)
-- **ACT-018**: Fix broken documentation links - In Progress (ongoing, reduced from 212 to 201)
 
 ## Learning Delta (2026-03)
 

@@ -1,11 +1,11 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-11 (v0.1.18 Sprint Complete)
+- **Last Updated**: 2026-03-11 (v0.1.18 Sprint Complete, Docs Links Fixed)
 - **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
-- **Branch**: `main` (commit `d693924`)
-- **Version**: `0.1.17`
+- **Branch**: `docs/goap-state-update` (commits `70661e7`, `13ca540`)
+- **Version**: `0.1.18`
 
 ## Phase Status
 
@@ -33,7 +33,9 @@
 - Added `memory-mcp/tests/tool_contract_parity.rs` test file to verify all listed tools have dispatchable handlers
 
 **O3 - Documentation Integrity:**
-- Fixed 86 broken markdown links (204 → 118 remaining)
+- Fixed 86 broken markdown links (204 → 118 remaining) in initial pass
+- Fixed 29 additional broken links via ACT-018 (118 → 89 remaining)
+- Total fixed: 115 broken links
 - Updated ROADMAP_ACTIVE.md, PROJECT_STATUS_UNIFIED.md, README.md
 - Fixed cross-references in ARCHITECTURE/ files
 - Remaining broken links are in archived files (acceptable)
@@ -71,7 +73,7 @@
 | ~~121 ignored tests (70 in Turso)~~ | P1 | ✅ Documented via ADR-027 amendment |
 | ~~Adaptive cache not default runtime path~~ | P1 | ✅ Documented by O5 |
 | ~~Transport compression not wired to Turso~~ | P1 | ✅ Documented by O5 |
-| ~~204 pre-existing broken markdown links~~ | P1 | ✅ Reduced to 118 by O3 |
+| ~~204 pre-existing broken markdown links~~ | P1 | ✅ Reduced to 89 by O3 and ACT-018 |
 
 ## v0.1.18 Sprint Status (2026-03-11)
 
@@ -114,6 +116,19 @@
 - Target (<100) not achievable without removing features
 - Architectural decision: accept current duplicate count as inherent to feature set
 - PR #359 merged 2026-03-11
+
+### Post-Sprint Commits (2026-03-11)
+
+| Commit | Description |
+|--------|-------------|
+| `70661e7` | chore(deps): remove unused libsql dependency from test-utils |
+| `13ca540` | docs: fix 29 broken markdown links in active documentation |
+
+### ACT-018 Completion Details
+
+- Fixed 29 additional broken markdown links (118 → 89)
+- Focused on active documentation files (not archived)
+- Commit `13ca540` merged 2026-03-11
 
 ## G2/G9 Implementation Complete (2026-03-09)
 

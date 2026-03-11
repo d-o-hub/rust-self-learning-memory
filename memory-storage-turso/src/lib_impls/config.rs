@@ -40,7 +40,17 @@ pub struct TursoConfig {
     /// Only used when compression feature is enabled
     pub compression_level: i32,
     /// Enable transport compression for network operations (default: true)
-    /// Only used when compression feature is enabled
+    ///
+    /// **Architectural Note**: This flag is reserved for future custom transport implementations.
+    /// It is NOT currently wired into TursoStorage because libsql handles its own transport layer
+    /// internally. Compression IS applied at the data layer (embedding storage) via the
+    /// `compress()`/`decompress()` functions.
+    ///
+    /// For details, see `tests/runtime_wiring_transport_compression.rs` which documents:
+    /// - CompressedTransport is a standalone utility for custom Transport implementations
+    /// - TursoStorage uses libsql::Database directly, not the Transport trait
+    /// - Data-layer compression (at embedding level) is the correct architectural approach
+    #[cfg(feature = "compression")]
     pub enable_transport_compression: bool,
     /// Cache configuration for performance optimization
     /// When None, caching is disabled (default: Some(CacheConfig::default()))
@@ -66,6 +76,7 @@ impl Default for TursoConfig {
             compress_patterns: true,
             compress_embeddings: true,
             compression_level: 3, // Default zstd level (good balance of speed/ratio)
+            #[cfg(feature = "compression")]
             enable_transport_compression: true,
             // Cache configuration (enabled by default)
             cache_config: Some(crate::cache::CacheConfig::default()),

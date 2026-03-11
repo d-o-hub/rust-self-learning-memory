@@ -1,7 +1,7 @@
 ---
 name: web-doc-resolver
-description: Resolve queries or URLs into compact, LLM-ready markdown using a low-cost cascade. Prioritizes llms.txt for structured docs, uses websearch/webfetch tools for extraction. Use when you need to fetch documentation, resolve web URLs to markdown, search for technical content, or build context from web sources.
-allowed-tools: Bash, webfetch, websearch
+description: Resolve queries or URLs into compact, LLM-ready markdown using a low-cost cascade. Prioritizes llms.txt for structured docs, uses web fetch/search tools for extraction. Use when you need to fetch documentation, resolve web URLs to markdown, search for technical content, or build context from web sources.
+allowed-tools: Bash, webfetch, websearch, WebFetch, WebSearch, web_fetch, web_search
 ---
 
 # Web Documentation Resolver
@@ -17,6 +17,17 @@ Activate this skill when you need to:
 - Extract markdown from websites
 - Query for technical documentation, APIs, or code examples
 
+## Platform Tool Mapping
+
+This skill works across multiple platforms. Use the appropriate tools for your platform:
+
+| Platform | Fetch Tool | Search Tool |
+|----------|------------|-------------|
+| **opencode** | `webfetch` | `websearch` |
+| **claude code** | `WebFetch` (MCP) | `WebSearch` (MCP) |
+| **blackbox** | `web_fetch` | `web_search` |
+| **Python script** | Auto-detects available tools | Auto-detects available tools |
+
 ## Cascade Resolution Strategy
 
 ### For URL inputs
@@ -24,21 +35,21 @@ Activate this skill when you need to:
 Use this cascade (in order):
 
 1. **Check llms.txt first**: Probe `https://origin/llms.txt` for site-provided structured documentation (free, always check first)
-2. **webfetch fallback**: Use webfetch tool with markdown format
-3. **websearch fallback**: Use websearch to find cached/mirrored versions if direct fetch fails
+2. **Fetch URL**: Use platform's fetch tool to get markdown content
+3. **Search fallback**: Use platform's search tool to find cached/mirrored versions if direct fetch fails
 
 ### For query inputs
 
 Use this cascade (in order):
 
-1. **websearch first**: Use websearch with relevant query (fast, free)
-2. **Fetch top results**: Use webfetch to get markdown from top search results if needed
+1. **Search first**: Use platform's search tool with relevant query (fast, free)
+2. **Fetch top results**: Use fetch tool to get markdown from top search results if needed
 
 ## Implementation
 
 ### Python Script (scripts/resolve.py)
 
-The skill includes a Python script that wraps the web tools:
+The skill includes a Python script that auto-detects available tools:
 
 ```bash
 # Resolve a URL
@@ -52,21 +63,47 @@ python scripts/resolve.py "query" --json
 
 # Custom max chars
 python scripts/resolve.py "query" --max-chars 4000
+
+# Force specific backend
+python scripts/resolve.py "query" --backend httpx
 ```
 
-### Direct Tool Usage
+### Direct Tool Usage by Platform
 
-You can also use the tools directly following the cascade:
-
-```python
-# Step 1: Check for llms.txt
+#### opencode
+```bash
+# Check for llms.txt
 webfetch https://example.com/llms.txt
 
-# Step 2: Fetch the URL directly
+# Fetch URL
 webfetch --format markdown https://docs.rust-lang.org/book/
 
-# Step 3: Search if fetch fails
+# Search
 websearch "Rust book documentation"
+```
+
+#### claude code (MCP)
+```python
+# Check for llms.txt
+WebFetch(url="https://example.com/llms.txt")
+
+# Fetch URL
+WebFetch(url="https://docs.rust-lang.org/book/")
+
+# Search
+WebSearch(query="Rust book documentation")
+```
+
+#### blackbox
+```python
+# Check for llms.txt
+web_fetch(url="https://example.com/llms.txt", prompt="Extract all content")
+
+# Fetch URL
+web_fetch(url="https://docs.rust-lang.org/book/", prompt="Extract main content")
+
+# Search
+web_search(query="Rust book documentation")
 ```
 
 ## Usage Examples
@@ -74,28 +111,28 @@ websearch "Rust book documentation"
 ### Basic URL Resolution
 
 ```bash
-# Fetch documentation URL (uses cascade: llms.txt → webfetch → websearch)
+# Using Python script (auto-detects backend)
 python scripts/resolve.py "https://docs.rust-lang.org/book/"
 
-# Or use webfetch directly
-webfetch https://docs.rust-lang.org/book/
+# Or use platform tool directly
+webfetch https://docs.rust-lang.org/book/  # opencode
 ```
 
 ### Query Resolution
 
 ```bash
-# Search for technical information
+# Using Python script
 python scripts/resolve.py "Rust async programming best practices 2026"
 
-# Or use websearch directly
-websearch "Tokio runtime configuration options"
+# Or use platform tool directly
+websearch "Tokio runtime configuration options"  # opencode
 ```
 
 ### Workflow for Building Context
 
 1. **Check for llms.txt first**: Probe `https://origin/llms.txt`
-2. **Fetch content**: Use webfetch to get markdown from the URL
-3. **Search if needed**: Use websearch for additional context or when fetch fails
+2. **Fetch content**: Use fetch tool to get markdown from the URL
+3. **Search if needed**: Use search tool for additional context or when fetch fails
 
 ## Best Practices
 
@@ -125,7 +162,7 @@ Poor content has:
 - Provider failures should trigger cascade fallback
 - Use alternative sources when primary sources fail
 - Log errors for debugging
-- Fall back to websearch when direct fetch fails
+- Fall back to search when direct fetch fails
 
 ## Testing
 
@@ -143,7 +180,7 @@ python samples/sample_json.py
 
 ## Files
 
-- `scripts/resolve.py` - Main implementation
+- `scripts/resolve.py` - Main implementation (multi-backend)
 - `tests/test_resolve.py` - Unit tests
 - `samples/sample_basic.py` - Basic usage examples
 - `samples/sample_json.py` - JSON output examples

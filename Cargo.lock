@@ -6377,7 +6377,6 @@ version = "0.1.17"
 dependencies = [
  "anyhow",
  "chrono",
- "libsql",
  "memory-core",
  "memory-storage-turso",
  "rand 0.10.0",

@@ -218,13 +218,35 @@ impl TursoStorage {
         // Clear the prepared statement cache for this connection when done
         self.clear_prepared_cache(conn_id);
 
+        // Invalidate cache entry for this episode (when feature is enabled)
+        #[cfg(feature = "adaptive-ttl")]
+        if let Some(ref cache) = self.episode_cache {
+            cache.remove(&episode.episode_id.to_string()).await;
+        }
+
         info!("Successfully stored episode: {}", episode.episode_id);
         Ok(())
     }
 
     /// Retrieve an episode by ID
+    ///
+    /// When adaptive-ttl feature is enabled and caching is configured,
+    /// this method will first check the cache before querying the database.
+    /// Cache hits record access for TTL adaptation.
     pub async fn get_episode(&self, episode_id: Uuid) -> Result<Option<Episode>> {
         debug!("Retrieving episode: {}", episode_id);
+
+        // Check adaptive TTL cache first (when feature is enabled)
+        #[cfg(feature = "adaptive-ttl")]
+        if let Some(ref cache) = self.episode_cache {
+            let cache_key = episode_id.to_string();
+            if let Some(cached_episode) = cache.get(&cache_key).await {
+                debug!("Episode cache hit for: {}", episode_id);
+                return Ok(Some(cached_episode));
+            }
+            debug!("Episode cache miss for: {}", episode_id);
+        }
+
         let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
@@ -248,6 +270,14 @@ impl TursoStorage {
             .map_err(|e| Error::Storage(format!("Failed to fetch episode row: {}", e)))?
         {
             let episode = Self::row_to_episode(&row)?;
+
+            // Cache the episode for future lookups (when feature is enabled)
+            #[cfg(feature = "adaptive-ttl")]
+            if let Some(ref cache) = self.episode_cache {
+                cache.insert(episode_id.to_string(), episode.clone()).await;
+                debug!("Cached episode: {}", episode_id);
+            }
+
             Ok(Some(episode))
         } else {
             Ok(None)
@@ -275,6 +305,12 @@ impl TursoStorage {
 
         // Clear the prepared statement cache for this connection when done
         self.clear_prepared_cache(conn_id);
+
+        // Invalidate cache entry for this episode (when feature is enabled)
+        #[cfg(feature = "adaptive-ttl")]
+        if let Some(ref cache) = self.episode_cache {
+            cache.remove(&episode_id.to_string()).await;
+        }
 
         info!("Successfully deleted episode: {}", episode_id);
         Ok(())

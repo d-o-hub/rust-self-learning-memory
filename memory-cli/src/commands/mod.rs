@@ -304,8 +304,45 @@ pub async fn handle_pattern_command(
         }
         PatternCommands::Analyze {
             pattern_id,
+            domain,
             episodes,
-        } => pattern::analyze_pattern(pattern_id, episodes, memory, config, format).await,
+        } => pattern::analyze_pattern(pattern_id, domain, episodes, memory, config, format).await,
+        PatternCommands::Search {
+            query,
+            domain,
+            limit,
+            tags,
+            min_relevance,
+            filter_by_domain,
+        } => {
+            pattern::search_patterns(
+                memory,
+                query.as_deref().unwrap_or(""),
+                &domain,
+                tags,
+                limit,
+                min_relevance,
+                filter_by_domain,
+                format,
+            )
+            .await
+        }
+        PatternCommands::Recommend {
+            task,
+            domain,
+            limit,
+            tags,
+        } => {
+            pattern::recommend_patterns(
+                memory,
+                task.as_deref().unwrap_or(""),
+                &domain,
+                tags,
+                limit,
+                format,
+            )
+            .await
+        }
         PatternCommands::Effectiveness { top, min_uses } => {
             pattern::pattern_effectiveness(top, min_uses, memory, config, format).await
         }

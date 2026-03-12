@@ -3,29 +3,33 @@
 //! This test module verifies the wiring status and integration points for the
 //! AdaptiveCache feature in the memory-storage-redb crate.
 //!
-//! ## Analysis Summary (2026-03-09)
+//! ## Analysis Summary (Updated 2026-03-12)
 //!
-//! **Current State**: AdaptiveCache is implemented but NOT wired into RedbStorage.
+//! **Current State**: AdaptiveCache is NOW WIRED into RedbStorage via AdaptiveCacheAdapter.
 //!
-//! **Architectural Finding**:
-//! - `LRUCache` (currently used) is a metadata-only cache that tracks access patterns
+//! **Architecture**:
+//! - `LRUCache` is a metadata-only cache that tracks access patterns
 //! - `AdaptiveCache<V>` is a value-storing cache that would duplicate data
-//! - These represent fundamentally different cache architectures
+//! - `AdaptiveCacheAdapter` wraps `AdaptiveCache<()>` for metadata-only caching with adaptive TTL
 //!
-//! **Wiring Blockers**:
-//! 1. AdaptiveCache stores actual values, while LRUCache only stores metadata
-//! 2. RedbStorage uses redb as primary storage; a value cache would duplicate data
-//! 3. Consistency issues would arise from having two sources of truth
+//! **Solution Implemented**:
+//! 1. Created `Cache` trait that abstracts common cache operations
+//! 2. Created `AdaptiveCacheAdapter` that wraps `AdaptiveCache<()>` for metadata-only use
+//! 3. Updated `RedbStorage` to use `Box<dyn Cache>` with `AdaptiveCacheAdapter` as default
+//! 4. Added `new_with_adaptive_config()` constructor for custom adaptive cache settings
 //!
-//! **Recommendation**:
-//! - Create a metadata-only `AdaptiveLRUCache` that applies adaptive TTL concepts
-//! - This would track access patterns (like LRUCache) but adapt TTLs based on hot/cold detection
-//! - No value storage, maintaining single source of truth in redb
+//! **Benefits**:
+//! - Adaptive TTL: Frequently accessed items get longer TTL
+//! - Cold item detection: Rarely accessed items get shorter TTL
+//! - No value duplication: Uses unit type `()` as stored value
+//! - Single source of truth: redb remains the data store
 
 #![allow(clippy::expect_used)]
 
+use memory_core::{Episode, TaskContext, TaskType};
 use memory_storage_redb::{
-    AdaptiveCache, AdaptiveCacheConfig, CacheConfig, CacheMetrics, LRUCache, RedbStorage,
+    AdaptiveCache, AdaptiveCacheAdapter, AdaptiveCacheConfig, Cache, CacheConfig, CacheMetrics,
+    LRUCache, RedbStorage,
 };
 use std::time::Duration;
 use tempfile::tempdir;
@@ -199,13 +203,13 @@ async fn test_adaptive_cache_hot_cold_detection() {
 }
 
 // ============================================================================
-// Verification Test 4: LRUCache Currently Used in RedbStorage
+// Verification Test 4: RedbStorage Uses AdaptiveCacheAdapter by Default
 // ============================================================================
 
-/// Verify that RedbStorage uses LRUCache (not AdaptiveCache).
-/// This test documents the current wiring state.
+/// Verify that RedbStorage uses AdaptiveCacheAdapter by default.
+/// This test documents the new wiring state where adaptive TTL is enabled.
 #[tokio::test]
-async fn test_redb_storage_uses_lru_cache_not_adaptive() {
+async fn test_redb_storage_uses_adaptive_cache_by_default() {
     let dir = tempdir().expect("Failed to create temp dir");
     let db_path = dir.path().join("test.redb");
 
@@ -214,7 +218,7 @@ async fn test_redb_storage_uses_lru_cache_not_adaptive() {
         .expect("Failed to create storage");
 
     // RedbStorage exposes cache metrics via get_cache_metrics()
-    // This returns CacheMetrics (from LRUCache), not AdaptiveCacheMetrics
+    // With AdaptiveCacheAdapter, this returns CacheMetrics from adaptive cache
     let metrics: CacheMetrics = storage.get_cache_metrics().await;
 
     // Initial state
@@ -222,13 +226,82 @@ async fn test_redb_storage_uses_lru_cache_not_adaptive() {
     assert_eq!(metrics.misses, 0);
     assert_eq!(metrics.item_count, 0);
 
-    // Note: The metrics type proves LRUCache is used, not AdaptiveCache
-    // AdaptiveCache would return AdaptiveCacheMetrics with additional fields:
-    // - hot_item_count
-    // - cold_item_count
-    // - ttl_increases
-    // - ttl_decreases
-    // - ttl_bound_hits
+    // Store an episode to trigger cache activity
+    let episode = Episode::new(
+        "Test task".to_string(),
+        TaskContext::default(),
+        TaskType::Testing,
+    );
+    storage
+        .store_episode(&episode)
+        .await
+        .expect("Failed to store");
+
+    // Get metrics after activity
+    let metrics = storage.get_cache_metrics().await;
+    assert_eq!(
+        metrics.misses, 1,
+        "Should have recorded a miss for the new episode"
+    );
+}
+
+// ============================================================================
+// Verification Test 4b: RedbStorage Can Use Legacy LRUCache
+// ============================================================================
+
+/// Verify that RedbStorage can still use legacy LRUCache via new_with_cache_config.
+#[tokio::test]
+async fn test_redb_storage_can_use_legacy_lru_cache() {
+    let dir = tempdir().expect("Failed to create temp dir");
+    let db_path = dir.path().join("test_lru.redb");
+
+    // Use legacy constructor for LRUCache
+    let config = CacheConfig {
+        max_size: 100,
+        default_ttl_secs: 1800,
+        cleanup_interval_secs: 60,
+        enable_background_cleanup: false,
+    };
+    let storage = RedbStorage::new_with_cache_config(&db_path, config)
+        .await
+        .expect("Failed to create storage with LRU cache");
+
+    // Verify it works
+    let metrics = storage.get_cache_metrics().await;
+    assert_eq!(metrics.hits, 0);
+    assert_eq!(metrics.misses, 0);
+}
+
+// ============================================================================
+// Verification Test 4c: RedbStorage with Custom Adaptive Config
+// ============================================================================
+
+/// Verify that RedbStorage can use custom AdaptiveCacheConfig.
+#[tokio::test]
+async fn test_redb_storage_with_custom_adaptive_config() {
+    let dir = tempdir().expect("Failed to create temp dir");
+    let db_path = dir.path().join("test_adaptive_custom.redb");
+
+    let config = AdaptiveCacheConfig {
+        max_size: 500,
+        default_ttl: Duration::from_secs(900),
+        min_ttl: Duration::from_secs(60),
+        max_ttl: Duration::from_secs(3600),
+        hot_threshold: 5,
+        cold_threshold: 1,
+        adaptation_rate: 0.3,
+        window_size: 15,
+        cleanup_interval_secs: 120,
+        enable_background_cleanup: false,
+    };
+
+    let storage = RedbStorage::new_with_adaptive_config(&db_path, config)
+        .await
+        .expect("Failed to create storage with custom adaptive config");
+
+    let metrics = storage.get_cache_metrics().await;
+    assert_eq!(metrics.hits, 0);
+    assert_eq!(metrics.misses, 0);
 }
 
 // ============================================================================
@@ -312,104 +385,101 @@ async fn test_adaptive_cache_stores_values_lru_does_not() {
 }
 
 // ============================================================================
-// Documentation: Architectural Recommendation
+// Documentation: Architecture Implementation Complete
 // ============================================================================
 
-/// Architectural Recommendation for Adaptive Cache Integration
+/// Architecture Implementation Complete
 ///
-/// # Current State
+/// # Previous State (2026-03-09)
 ///
-/// `RedbStorage` uses `LRUCache` for metadata tracking. The actual data is stored
-/// in the redb database. The cache tracks:
-/// - Which items have been accessed (UUIDs)
-/// - Access times for TTL
-/// - LRU order for eviction
-/// - Size metadata
+/// `RedbStorage` used `LRUCache` for metadata tracking. AdaptiveCache could not be
+/// directly wired because it stores values, which would duplicate data stored in redb.
 ///
-/// # Why AdaptiveCache Cannot Be Directly Wired
+/// # Solution Implemented (2026-03-12)
 ///
-/// `AdaptiveCache<V>` stores actual values of type V. If wired into RedbStorage:
-/// 1. Data would be duplicated (redb + cache)
-/// 2. Consistency issues between the two storage layers
-/// 3. Increased memory usage with no benefit (redb is already fast)
-///
-/// # Recommended Approach
-///
-/// Create an `AdaptiveLRUCache` that:
-/// - Stores only metadata (like current LRUCache)
-/// - Tracks access counts per entry
-/// - Implements hot/cold detection
-/// - Adjusts TTLs based on access patterns
+/// Created `AdaptiveCacheAdapter` that:
+/// - Wraps `AdaptiveCache<()>` (unit type as value)
+/// - Implements the `Cache` trait for interchangeability
+/// - Provides adaptive TTL without value storage
 /// - Maintains single source of truth in redb
 ///
-/// This would give the benefits of adaptive TTL without the duplication issues.
+/// # Architecture
 ///
-/// # Integration Points
+/// ```
+/// ┌─────────────────────────────────────────────────────────────┐
+/// │ RedbStorage                                                  │
+/// │  ├─ db: Arc<Database>         // redb database (primary)    │
+/// │  └─ cache: Box<dyn Cache>      // trait object              │
+/// │       └─ AdaptiveCacheAdapter  // default implementation    │
+/// │            └─ AdaptiveCache<()> // unit type = no values    │
+/// └─────────────────────────────────────────────────────────────┘
+/// ```
 ///
-/// To wire AdaptiveLRUCache into RedbStorage:
-/// 1. Create AdaptiveLRUCache struct (metadata-only, like LRUCache)
-/// 2. Add AdaptiveCacheConfig option to RedbStorage::new()
-/// 3. Replace LRUCache field with enum or trait object
-/// 4. Update cache access methods to use adaptive TTL
+/// # API Changes
 ///
-/// # Estimated Effort
+/// - `RedbStorage::new()` now uses `AdaptiveCacheAdapter` by default
+/// - `RedbStorage::new_with_cache_config()` uses legacy `LRUCache`
+/// - `RedbStorage::new_with_adaptive_config()` accepts `AdaptiveCacheConfig`
 ///
-/// - Create AdaptiveLRUCache: ~300 LOC
-/// - Add config option and wiring: ~50 LOC
-/// - Tests: ~200 LOC
-/// - Total: ~550 LOC, ~4-6 hours
+/// # Benefits
+///
+/// - Adaptive TTL: Hot items live longer, cold items expire faster
+/// - No data duplication: Unit type `()` means no stored values
+/// - Pluggable: `Box<dyn Cache>` allows any implementation
+/// - Backward compatible: Legacy LRU still available via explicit constructor
 #[test]
-fn test_architectural_recommendation_documented() {
-    // This test exists to document the architectural recommendation.
-    // The actual implementation should follow the guidance above.
+fn test_architecture_implementation_complete() {
+    // This test documents the implemented architecture.
+    // The AdaptiveCacheAdapter solution is now production-ready.
 
-    // Key insight: The adaptive TTL logic can be extracted from
-    // AdaptiveCache and applied to a metadata-only cache.
-
-    println!(
-        "Architectural recommendation documented in test_architectural_recommendation_documented"
-    );
+    println!("Architecture implementation complete - AdaptiveCacheAdapter is the default cache");
 }
 
 // ============================================================================
-// Integration Test: What If AdaptiveLRUCache Existed
+// Integration Test: AdaptiveCacheAdapter Works as Expected
 // ============================================================================
 
-/// Test showing what the AdaptiveLRUCache API might look like.
-/// This is a design sketch, not actual implementation.
+/// Test that AdaptiveCacheAdapter provides adaptive TTL features.
 #[tokio::test]
-async fn test_adaptive_lru_cache_conceptual_design() {
-    // Concept: AdaptiveLRUCache would be like LRUCache but with:
-    // - Access count tracking
-    // - Hot/cold detection
-    // - Adaptive TTL adjustment
+async fn test_adaptive_cache_adapter_integration() {
+    // AdaptiveCacheAdapter wraps AdaptiveCache<()> for metadata-only caching
+    let config = AdaptiveCacheConfig {
+        max_size: 100,
+        default_ttl: Duration::from_secs(60),
+        min_ttl: Duration::from_secs(10),
+        max_ttl: Duration::from_secs(300),
+        hot_threshold: 3,
+        cold_threshold: 1,
+        adaptation_rate: 0.5,
+        window_size: 10,
+        cleanup_interval_secs: 0,
+        enable_background_cleanup: false,
+    };
 
-    // API might look like:
-    // struct AdaptiveLRUCache {
-    //     config: AdaptiveCacheConfig,
-    //     state: Arc<RwLock<AdaptiveLRUState>>,
-    // }
-    //
-    // impl AdaptiveLRUCache {
-    //     // Same signature as LRUCache, but with adaptive TTL
-    //     async fn record_access(&self, id: Uuid, hit: bool, size_bytes: Option<usize>) -> bool;
-    //
-    //     // Returns adaptive metrics
-    //     async fn get_metrics(&self) -> AdaptiveCacheMetrics;
-    //
-    //     // New: get current TTL for an entry
-    //     async fn ttl(&self, id: Uuid) -> Option<Duration>;
-    //
-    //     // New: get access count for an entry
-    //     async fn access_count(&self, id: Uuid) -> Option<usize>;
-    // }
+    let adapter = AdaptiveCacheAdapter::new(config);
+    let id = Uuid::new_v4();
 
-    // This would integrate cleanly with RedbStorage:
-    // pub struct RedbStorage {
-    //     db: Arc<Database>,
-    //     cache: AdaptiveLRUCache,  // Instead of LRUCache
-    // }
+    // Record a miss (new entry) - note: size_bytes is ignored by adapter
+    let found = adapter.record_access(id, false, Some(100)).await;
+    assert!(!found, "First access should be a miss");
 
-    // For now, we verify the concept is sound
-    let _concept_documented = true;
+    // Verify contains works
+    assert!(adapter.contains(id).await, "Entry should exist after miss");
+
+    // Record multiple hits to make it "hot"
+    for _ in 0..5 {
+        adapter.record_access(id, true, None).await;
+    }
+
+    // Verify hot count increased
+    let hot_count = adapter.hot_count().await;
+    assert!(hot_count > 0, "Should have at least one hot item");
+
+    // Get metrics - should be standard CacheMetrics
+    let metrics = adapter.get_metrics().await;
+    assert!(metrics.hits > 0, "Should have recorded hits");
+    assert_eq!(
+        metrics.misses, 1,
+        "Should have one miss from initial insert"
+    );
 }

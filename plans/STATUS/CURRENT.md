@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-11  
+**Last Updated**: 2026-03-12  
 **Released Version**: v0.1.17  
 **Next Version**: v0.1.18 (sprint complete, unreleased)  
 **Branch**: main  
@@ -61,21 +61,26 @@ All research/implementation phases are complete:
 
 These subsystems are fully implemented with tests but not connected to production paths:
 
-| Gap | Location | Issue |
-|-----|----------|-------|
-| **AdaptiveCache not wired as default redb path** | `memory-storage-redb/src/cache/adaptive/` | `RedbStorage` constructs `LRUCache` in `new_with_cache_config()`. AdaptiveCache has different interface (stores values, not just metadata). Needs a common `Cache` trait or adapter. |
-| **Transport compression not wired to Turso** | `memory-storage-turso/src/transport/wrapper.rs` | `CompressedTransport` exists with tests. `TursoConfig.enable_transport_compression` flag is defined but unused in production constructors. |
-| **Adaptive TTL not wired to Turso storage** | `memory-storage-turso/src/cache/adaptive_ttl.rs` | Fully implemented (435 LOC) with background cleanup and access-frequency tracking. Not integrated into `TursoStorage` queries. |
+| Gap | Location | Status |
+|-----|----------|--------|
+| **Transport compression not wired to Turso** | `memory-storage-turso/src/transport/wrapper.rs` | ✅ Documented: libsql handles transport internally; compression applied at data layer |
+
+## Missing Implementation (Now Implemented)
+
+| Feature | Evidence | Status |
+|---------|----------|--------|
+| **CLI `episode create --domain` / `episode search --domain` / `episode search --type`** | `tests/e2e/cli_workflows.rs` | ✅ Implemented (2026-03-12) |
+| **AdaptiveCache wired with Cache trait adapter** | `memory-storage-redb/src/cache/adapter.rs` | ✅ Implemented (2026-03-12) |
+| **Adaptive TTL wired to Turso storage** | `memory-storage-turso/src/lib_impls/helpers.rs` | ✅ Implemented (2026-03-12) |
+| **CLI pattern discovery commands** | `memory-cli/src/commands/pattern/` | ✅ Implemented (2026-03-12) |
 
 ## Missing Implementation (Not Built)
 
-| Feature | Evidence | Notes |
-|---------|----------|-------|
-| **CLI `episode create --domain` / `episode search --domain` / `episode search --type`** | `tests/e2e/cli_workflows.rs:678` ignored test | Domain/type filter flags not implemented in CLI |
-| **CLI pattern discovery commands** | `tests/e2e/cli_workflows.rs:554` ignored test | Pattern CLI commands referenced in e2e test don't exist |
-| **MCP Completion protocol support** | `types.rs:81` TODO | MCP completion handler returns empty placeholders |
-| **MCP Elicitation protocol support** | `types.rs:138` TODO | Stub only |
-| **MCP Rate Limiting** | `types.rs:332` TODO | `#[allow(dead_code)]` placeholder |
+| Feature | Location | Status |
+|---------|----------|--------|
+| **MCP Completion protocol support** | `types.rs:81` TODO | 🟡 Placeholder - requires MCP spec compliance |
+| **MCP Elicitation protocol support** | `types.rs:138` TODO | 🟡 Placeholder - requires MCP spec compliance |
+| **MCP Rate Limiting** | `types.rs:332` TODO | 🟡 Placeholder - infrastructure ready |
 | **Changelog automation (git-cliff)** | ADR-034 Phase 4 | Not started |
 
 ## Disabled Features

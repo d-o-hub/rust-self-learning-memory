@@ -1,5 +1,6 @@
 ---
 source: memory-cli/tests/snapshot_tests.rs
+assertion_line: 62
 expression: stdout
 ---
 Pattern analysis commands

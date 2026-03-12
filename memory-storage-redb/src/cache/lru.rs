@@ -7,7 +7,9 @@
 //! - Background cleanup task
 
 use super::state::CacheState;
+use super::traits::Cache;
 use super::types::{CacheConfig, CacheEntry, CacheMetrics};
+use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
@@ -211,5 +213,32 @@ impl LRUCache {
 impl Drop for LRUCache {
     fn drop(&mut self) {
         self.stop_cleanup();
+    }
+}
+
+#[async_trait]
+impl Cache for LRUCache {
+    async fn record_access(&self, id: Uuid, hit: bool, size_bytes: Option<usize>) -> bool {
+        self.record_access(id, hit, size_bytes).await
+    }
+
+    async fn remove(&self, id: Uuid) {
+        self.remove(id).await
+    }
+
+    async fn contains(&self, id: Uuid) -> bool {
+        self.contains(id).await
+    }
+
+    async fn get_metrics(&self) -> CacheMetrics {
+        self.get_metrics().await
+    }
+
+    async fn clear(&self) {
+        self.clear().await
+    }
+
+    async fn cleanup_expired(&self) -> usize {
+        self.cleanup_expired().await
     }
 }

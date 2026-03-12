@@ -28,6 +28,8 @@ async fn create_test_storage() -> (TursoStorage, TempDir) {
         compression_stats: Arc::new(std::sync::Mutex::new(
             crate::CompressionStatistics::default(),
         )),
+        #[cfg(feature = "adaptive-ttl")]
+        episode_cache: None,
     };
 
     storage

@@ -19,6 +19,8 @@ turso_multi_dimension = []
 hybrid_search = []
 # Enable keep-alive connection pool (reduces connection overhead from 45ms to ~5ms)
 keepalive-pool = []
+# Enable adaptive TTL cache for query result caching
+adaptive-ttl = []
 
 # Compression features for network bandwidth reduction (40% reduction target)
 # Enable all compression algorithms (recommended for production)

@@ -31,13 +31,63 @@ pub enum PatternCommands {
 
     /// Analyze pattern effectiveness
     Analyze {
-        /// Pattern ID
+        /// Pattern ID (optional if --domain is provided)
         #[arg(value_name = "PATTERN_ID")]
-        pattern_id: String,
+        pattern_id: Option<String>,
+
+        /// Domain to analyze patterns for
+        #[arg(long)]
+        domain: Option<String>,
 
         /// Number of episodes to analyze
         #[arg(short, long, default_value = "100")]
         episodes: usize,
+    },
+
+    /// Search for patterns semantically similar to a query
+    Search {
+        /// Search query
+        #[arg(value_name = "QUERY")]
+        query: Option<String>,
+
+        /// Domain to search within
+        #[arg(short = 'D', long, default_value = "default")]
+        domain: String,
+
+        /// Maximum number of patterns to return
+        #[arg(short, long, default_value = "10")]
+        limit: usize,
+
+        /// Filter tags (comma-separated)
+        #[arg(short, long, value_delimiter = ',')]
+        tags: Vec<String>,
+
+        /// Minimum relevance score (0.0 to 1.0)
+        #[arg(long, default_value = "0.0")]
+        min_relevance: f32,
+
+        /// Filter results by domain match
+        #[arg(long)]
+        filter_by_domain: bool,
+    },
+
+    /// Recommend patterns for a specific task
+    Recommend {
+        /// Task description for recommendations
+        #[arg(value_name = "TASK")]
+        task: Option<String>,
+
+        /// Domain context for recommendations
+        #[arg(short = 'D', long, default_value = "default")]
+        domain: String,
+
+        /// Maximum number of recommendations
+        #[arg(short, long, default_value = "5")]
+        limit: usize,
+
+        /// Context tags (comma-separated)
+        #[arg(short, long, value_delimiter = ',')]
+        tags: Vec<String>,
     },
 
     /// Show pattern effectiveness rankings

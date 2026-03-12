@@ -4,6 +4,35 @@
 
 - Nothing yet
 
+## [0.1.18] - 2026-03-12
+
+### Added
+
+- **AdaptiveCache with Cache trait adapter** - Enables intelligent TTL adjustment for cached entries
+  - New `Cache` trait interface for cache abstraction (`memory-storage-redb/src/cache/traits.rs`)
+  - `AdaptiveCacheAdapter` wrapping `AdaptiveCache<()>` for metadata-only caching
+  - `LRUCache` now implements `Cache` trait for unified interface
+- **CLI pattern discovery commands** - Full pattern analysis and search functionality
+  - Pattern analysis with domain and episode context
+  - Pattern search with query filtering
+- **Adaptive TTL wired to Turso storage** - Helper functions for TTL management
+
+### Changed
+
+- Updated `plans/STATUS/CURRENT.md` with implementation status
+- Updated `plans/GOAP_STATE.md` with v0.1.19 sprint planning
+
+### Fixed
+
+- E2E CLI workflow tests for episode search/filter functionality
+- Runtime wiring tests for adaptive cache
+
+### Testing
+
+- Added 3 new unit tests for AdaptiveCacheAdapter
+- Updated snapshot tests for CLI pattern commands
+- All 1393 tests passing
+
 ## [0.1.17] - 2026-03-10
 
 ### Added

@@ -45,8 +45,10 @@ mod relationships;
 mod storage;
 mod tables;
 
-pub use cache::{
-    AdaptiveCache, AdaptiveCacheConfig, AdaptiveCacheMetrics, CacheConfig, CacheMetrics, LRUCache,
+// Re-export cache types for external use
+pub use crate::cache::{
+    AdaptiveCache, AdaptiveCacheAdapter, AdaptiveCacheConfig, AdaptiveCacheMetrics, Cache,
+    CacheConfig, CacheMetrics, LRUCache,
 };
 pub use persistence::{
     CachePersistence, CacheSnapshot, IncrementalUpdate, PersistedCacheEntry, PersistenceConfig,
@@ -119,11 +121,13 @@ where
 /// redb storage backend for fast caching
 pub struct RedbStorage {
     pub(crate) db: Arc<Database>,
-    pub(crate) cache: LRUCache,
+    pub(crate) cache: Box<dyn Cache>,
 }
 
 impl RedbStorage {
-    /// Create a new redb storage instance with default cache configuration
+    /// Create a new redb storage instance with default adaptive cache
+    ///
+    /// Uses `AdaptiveCacheAdapter` by default for intelligent TTL adjustment.
     ///
     /// # Arguments
     ///
@@ -140,10 +144,13 @@ impl RedbStorage {
     /// # }
     /// ```
     pub async fn new(path: &Path) -> Result<Self> {
-        Self::new_with_cache_config(path, CacheConfig::default()).await
+        Self::new_with_adaptive_config(path, AdaptiveCacheConfig::default()).await
     }
 
     /// Create a new redb storage instance with custom cache configuration
+    ///
+    /// Uses the legacy `LRUCache` implementation. For adaptive TTL features,
+    /// use `new_with_adaptive_config` instead.
     ///
     /// # Arguments
     ///
@@ -177,7 +184,7 @@ impl RedbStorage {
         })
         .await?;
 
-        let cache = LRUCache::new(cache_config);
+        let cache: Box<dyn Cache> = Box::new(LRUCache::new(cache_config));
         let storage = Self {
             db: Arc::new(db),
             cache,
@@ -187,6 +194,62 @@ impl RedbStorage {
         storage.initialize_tables().await?;
 
         info!("Successfully opened redb database with LRU cache");
+        Ok(storage)
+    }
+
+    /// Create a new redb storage instance with adaptive cache configuration
+    ///
+    /// Uses `AdaptiveCacheAdapter` for intelligent TTL adjustment based on
+    /// access patterns. Frequently accessed items get longer TTL, rarely
+    /// accessed items get shorter TTL.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Path to the redb database file
+    /// * `config` - Adaptive cache configuration settings
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use memory_storage_redb::{RedbStorage, AdaptiveCacheConfig};
+    /// # use std::path::Path;
+    /// # use std::time::Duration;
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let config = AdaptiveCacheConfig {
+    ///     max_size: 1000,
+    ///     default_ttl: Duration::from_secs(1800),
+    ///     min_ttl: Duration::from_secs(300),
+    ///     max_ttl: Duration::from_secs(7200),
+    ///     ..Default::default()
+    /// };
+    /// let storage = RedbStorage::new_with_adaptive_config(Path::new("./memory.redb"), config).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn new_with_adaptive_config(
+        path: &Path,
+        config: AdaptiveCacheConfig,
+    ) -> Result<Self> {
+        info!("Opening redb database at {}", path.display());
+
+        // Use spawn_blocking for synchronous redb initialization with timeout
+        let path_buf = path.to_path_buf();
+        let db = with_db_timeout(move || {
+            Database::create(&path_buf)
+                .map_err(|e| Error::Storage(format!("Failed to create redb database: {}", e)))
+        })
+        .await?;
+
+        let cache: Box<dyn Cache> = Box::new(AdaptiveCacheAdapter::new(config));
+        let storage = Self {
+            db: Arc::new(db),
+            cache,
+        };
+
+        // Initialize tables
+        storage.initialize_tables().await?;
+
+        info!("Successfully opened redb database with adaptive cache");
         Ok(storage)
     }
 

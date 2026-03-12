@@ -15,6 +15,12 @@ use super::super::pool::KeepAlivePool;
 #[cfg(feature = "compression")]
 use super::super::CompressionStatistics;
 
+#[cfg(feature = "adaptive-ttl")]
+use super::super::cache::AdaptiveTTLCache;
+
+#[cfg(feature = "adaptive-ttl")]
+use memory_core::Episode;
+
 /// Turso storage backend for durable persistence
 pub struct TursoStorage {
     pub(crate) db: Arc<Database>,
@@ -28,4 +34,7 @@ pub struct TursoStorage {
     /// Compression statistics tracking (when compression feature is enabled)
     #[cfg(feature = "compression")]
     pub(crate) compression_stats: Arc<std::sync::Mutex<CompressionStatistics>>,
+    /// Adaptive TTL cache for episode query results (when adaptive-ttl feature is enabled)
+    #[cfg(feature = "adaptive-ttl")]
+    pub(crate) episode_cache: Option<AdaptiveTTLCache<String, Episode>>,
 }

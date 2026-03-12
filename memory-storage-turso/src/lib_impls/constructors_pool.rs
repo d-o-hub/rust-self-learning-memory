@@ -156,6 +156,8 @@ impl TursoStorage {
             compression_stats: Arc::new(std::sync::Mutex::new(
                 super::super::CompressionStatistics::new(),
             )),
+            #[cfg(feature = "adaptive-ttl")]
+            episode_cache: None,
         })
     }
 
@@ -272,6 +274,8 @@ impl TursoStorage {
             compression_stats: Arc::new(std::sync::Mutex::new(
                 super::super::CompressionStatistics::new(),
             )),
+            #[cfg(feature = "adaptive-ttl")]
+            episode_cache: None,
         })
     }
 }

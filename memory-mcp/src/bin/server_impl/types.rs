@@ -312,11 +312,11 @@ pub struct ActiveTask {
 // ============================================================
 
 /// Embedding configuration from environment
-#[allow(dead_code)] // TODO: Implement embedding config in production
 #[derive(Debug, Clone)]
 pub struct EmbeddingEnvConfig {
     pub provider: String,
     pub api_key: Option<String>,
+    /// Environment variable name for API key (for documentation/debugging)
     #[allow(dead_code)]
     pub api_key_env: String,
     pub model: Option<String>,
@@ -329,7 +329,6 @@ pub struct EmbeddingEnvConfig {
 // ============================================================
 
 /// Rate limit configuration from environment
-#[allow(dead_code)] // TODO: Implement rate limiting in production
 #[derive(Debug, Clone)]
 pub struct RateLimitEnvConfig {
     pub enabled: bool,

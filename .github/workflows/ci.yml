@@ -130,7 +130,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mold
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install nextest
@@ -179,7 +179,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mold
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install nextest
@@ -231,7 +231,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mold
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install required tools
@@ -273,7 +273,7 @@ jobs:
           chmod +x scripts/setup-target-dir.sh
           ./scripts/setup-target-dir.sh ci-semver-check
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Install cargo-semver-checks

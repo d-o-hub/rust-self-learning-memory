@@ -4,15 +4,12 @@
 //! - `types`: All type definitions (OAuth, MCP protocol, tasks, elicitation, etc.)
 //! - `storage`: Storage backend initialization functions
 //! - `oauth`: OAuth 2.1 security and authentication functions
-//! - `jsonrpc`: JSON-RPC server loop and request routing
+//! - `jsonrpc`: JSON-RPC server loop and request routing (includes embedding config handlers)
 //! - `core`: Core MCP protocol handlers (initialize, list_tools, call_tool, shutdown)
 //! - `tools`: Memory tool handlers (query_memory, analyze_patterns, etc.)
 //! - `mcp`: MCP 2025-11-25 protocol handlers (completion, elicitation, tasks)
-//! - `embedding`: Embedding configuration and handlers
 
 mod core;
-#[cfg(feature = "embeddings")]
-mod embedding;
 mod handlers;
 mod jsonrpc;
 mod mcp;
@@ -39,9 +36,6 @@ pub use types::{
 // Re-export all types and functions for convenient access (may be used by external consumers)
 #[allow(unused)]
 pub use core::*;
-#[cfg(feature = "embeddings")]
-#[allow(unused)]
-pub use embedding::*;
 #[allow(unused)]
 pub use jsonrpc::*;
 // Always export load_oauth_config (it's available without the oauth feature)

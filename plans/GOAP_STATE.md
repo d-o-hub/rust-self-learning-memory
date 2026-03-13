@@ -292,8 +292,8 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | Phase | Tasks | Priority | Status |
 |-------|-------|----------|--------|
 | Phase 1: CI Stabilization | G1.1, G1.2, G1.3, G1.4, G2.1 | P0-P1 | ✅ Complete |
-| Phase 2: Dead Code Cleanup | G3.8-G3.11, G5.3 | P1 | Pending |
-| Phase 3: Integration & Docs | G4.2, G6.3, G3.6 docs | P2 | Pending |
+| Phase 2: Dead Code Cleanup | G3.8-G3.11, G5.3 | P1 | ✅ Complete |
+| Phase 3: Integration & Docs | G4.2, G6.3, G3.6 docs, G4.1 docs | P2 | ✅ Complete |
 
 ### Phase 1 Completion Details (2026-03-13)
 
@@ -323,6 +323,49 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 - Embedding config: Already wired via load_embedding_config() and handle_embedding_config()
 - Removed dead_code attributes from EmbeddingEnvConfig and RateLimitEnvConfig
 - Kept #[allow(dead_code)] for intentionally unused api_key_env field
+
+### Phase 2 Completion Details (2026-03-13)
+
+**G3.8 - Remove Stale TODO Comments:**
+- Removed misleading TODOs from types.rs (lines 22, 81, 138)
+- Updated comments to correctly state features ARE implemented
+- Features confirmed: OAuth (oauth.rs), Completion (mcp/completion.rs), Elicitation (mcp/elicitation.rs)
+
+**G3.9 - Remove Duplicate embedding.rs:**
+- Deleted `memory-mcp/src/bin/server_impl/embedding.rs` (124 lines of dead code)
+- Live implementation is in jsonrpc.rs:28-128
+- Updated mod.rs to remove module declaration and re-exports
+
+**G3.10 - Document MonitoringStorage:**
+- Added documentation explaining the wrapper's purpose
+- Retained for future dual-backend caching support
+- Currently SimpleMonitoringStorage is used directly
+
+**G5.3 - Fix Stale #[ignore] Reason:**
+- Updated test comment in tests/e2e/cli_workflows.rs:554
+- Pattern commands ARE implemented (analyze, search, recommend, list, view, effectiveness, decay)
+- Updated ignore reason to reflect actual status
+
+### Phase 3 Completion Details (2026-03-13)
+
+**G4.2 - Document Batch CLI Architecture:**
+- Replaced TODO with architecture note in commands/mod.rs:356
+- Documented why batch operations need direct storage access
+- Noted future refactoring option (BatchOperations trait)
+
+**G6.3 - Update ADR-039:**
+- Corrected "Not Built" table with implementation status
+- 5 features marked as IMPLEMENTED (Pattern CLI, Completion, Elicitation, Rate Limiting, Tasks)
+- Added evidence links to implementation files
+
+**G3.6 - WASM Sandbox Documentation:**
+- Already documented in ADR-040 (root cause analysis + fix options)
+- Recommendation: Option A (fix probe for WASM-only mode)
+
+**G4.1 - Transport Compression Documentation:**
+- Added integration plan to ADR-040
+- Documented implementation path and dependencies
+- Deferred to future sprint (low priority)
 
 ### Deferred Items
 

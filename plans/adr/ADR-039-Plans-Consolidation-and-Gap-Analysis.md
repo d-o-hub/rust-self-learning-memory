@@ -53,16 +53,18 @@ Verified all roadmap claims against actual code to categorize gaps accurately:
 | Transport Compression | `memory-storage-turso/src/transport/wrapper.rs` | `CompressedTransport` only used in tests; `TursoConfig.enable_transport_compression` flag unused in constructors |
 | Adaptive Cache | `memory-storage-redb/src/cache/adaptive/` (327 LOC) | `RedbStorage` creates `LRUCache`; AdaptiveCache has different interface (stores values vs metadata) |
 
-#### Not Built
+#### Not Built (Updated 2026-03-13)
 
-| Feature | Evidence |
-|---------|----------|
-| CLI `--domain`/`--type` episode filters | Ignored e2e test at `cli_workflows.rs:678` |
-| CLI pattern discovery commands | Ignored e2e test at `cli_workflows.rs:554` |
-| MCP Completion protocol | TODO at `types.rs:81`, returns empty placeholders |
-| MCP Elicitation protocol | TODO at `types.rs:138`, stub only |
-| MCP Rate Limiting | TODO at `types.rs:332`, `#[allow(dead_code)]` |
-| Changelog automation (git-cliff) | ADR-034 Phase 4, not started |
+| Feature | Evidence | Status |
+|---------|----------|--------|
+| CLI `--domain`/`--type` episode filters | Ignored e2e test at `cli_workflows.rs:678` | Not built |
+| ~~CLI pattern discovery commands~~ | ~~Ignored e2e test at `cli_workflows.rs:554`~~ | ✅ **IMPLEMENTED** - See `commands/pattern/` |
+| ~~MCP Completion protocol~~ | ~~TODO at `types.rs:81`, returns empty placeholders~~ | ✅ **IMPLEMENTED** - See `mcp/completion.rs` (203 LOC) |
+| ~~MCP Elicitation protocol~~ | ~~TODO at `types.rs:138`, stub only~~ | ✅ **IMPLEMENTED** - See `mcp/elicitation.rs` (250 LOC) |
+| ~~MCP Rate Limiting~~ | ~~TODO at `types.rs:332~, `#[allow(dead_code)]` | ✅ **IMPLEMENTED** - See `server/mod.rs:83` with RateLimiter |
+| ~~MCP Embedding Config~~ | Was not tracked | ✅ **IMPLEMENTED** - See `jsonrpc.rs:28-128` |
+| ~~MCP Tasks protocol~~ | Was not tracked | ✅ **IMPLEMENTED** - See `mcp/tasks.rs` (350 LOC) |
+| Changelog automation (git-cliff) | ADR-034 Phase 4, not started | Not built |
 
 #### Disabled
 

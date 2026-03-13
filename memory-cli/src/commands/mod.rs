@@ -352,8 +352,9 @@ pub async fn handle_pattern_command(
         } => pattern::decay_patterns(memory, config, format, decay_dry_run || dry_run, force).await,
         #[cfg(feature = "turso")]
         PatternCommands::Batch { command } => {
-            // Get storage backend for batch operations
-            // TODO: This is a workaround - batch commands should not need direct storage access
+            // Architecture Note: Batch pattern operations require direct TursoStorage access
+            // for bulk queries. This differs from other commands that use the Memory trait.
+            // Future refactoring could introduce a BatchOperations trait to abstract this.
             use memory_storage_turso::TursoStorage;
             let turso_url = config
                 .database

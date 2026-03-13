@@ -141,13 +141,45 @@ All 10 workflow references to `Swatinem/rust-cache@v2.8.2` use Node.js 20, which
 | G3.6 Document WASM sandbox status and remediation path | P2 | docs | Phase 2 |
 | G4.1 Document transport compression integration plan | P2 | docs | Phase 2 |
 
+### G3.6 WASM Sandbox Root Cause Analysis (2026-03-13)
+
+The `execute_agent_code` tool has been disabled since ~v0.1.14. Root cause is a 3-layer failure cascade:
+
+1. **Wasmtime backend works** — `WasmtimeSandbox` correctly executes pre-compiled WASM bytecode (default feature `wasmtime-backend` enabled)
+2. **Javy JS→WASM compiler not active** — `javy-backend` feature is not in `default`, and `javy-plugin.wasm` is a 9-byte placeholder (`"Not Found"`) instead of a real ~5MB WASM plugin
+3. **Handler probes with JavaScript** — `memory_handlers.rs:96` tests sandbox by running `console.log('test')` (JavaScript). Without Javy, raw JS bytes are passed to `Module::from_binary()` which fails because JS text ≠ valid WASM bytecode
+
+**Fix options:**
+
+| Option | Effort | Impact |
+|--------|--------|--------|
+| A. Fix probe + WASM-only mode | S | Immediate — remove JS probe, accept only pre-compiled WASM via `wasm_base64:` prefix |
+| B. Enable Javy backend | L | Full JS support — download real javy-plugin.wasm, add `javy-backend` to defaults |
+| C. Remove execute_agent_code entirely | M | Simplification — tool has been dead since v0.1.14, no users |
+
+**Recommendation**: Option A (fix probe) for near-term, evaluate Javy or removal in future sprint.
+
 ### Deferred (Not This Sprint)
 
 | Gap | Reason |
 |-----|--------|
-| G3.6 WASM sandbox fix | Javy/Wasmtime compilation issue; low user impact |
+| G3.6 Full Javy JS support | Requires downloading ~5MB plugin + javy-backend feature enable |
 | G4.1 Transport compression wiring | Config flag exists but low priority vs other work |
 | G5.1 Reduce ignored tests to ≤30 | Blocked by upstream libsql bug (ADR-027) |
+
+### G4.1 Transport Compression Integration Plan (Documented 2026-03-13)
+
+The `CompressedTransport` wrapper exists at `memory-storage-turso/src/transport/wrapper.rs` but is not wired into `TursoStorage`. The integration path:
+
+1. **Current State**: `TursoConfig.enable_transport_compression` flag exists in config but is unused in constructors
+2. **Implementation Path**:
+   - Wrap the HTTP client in `TursoStorage` with `CompressedTransport` when flag is enabled
+   - Add compression headers to outgoing requests
+   - Decompress incoming responses automatically
+3. **Dependencies**: Requires `flate2` or similar compression library (already in Cargo.toml)
+4. **Risk**: Low - compression is transparent to the application layer
+
+**Recommendation**: Defer to future sprint; config flag is documented, implementation is straightforward.
 
 ## Consequences
 

@@ -259,25 +259,41 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | Changelog | ❌ FAILURE | `git-cliff` install via `taiki-e/install-action@v2` fails; notify-failure missing checkout |
 | ci-old.yml | ⚠️ GHOST | Deleted file still tracked by GitHub API |
 
-### Missing Implementation Inventory
+### Missing Implementation Inventory (Corrected 2026-03-13)
+
+**Major Correction**: Deep code analysis revealed 6 of 7 features previously listed as "unimplemented" are **fully implemented** with stale TODO comments in `types.rs`:
+
+| Feature | Actual Status | Evidence |
+|---------|---------------|----------|
+| MCP OAuth | ✅ Implemented | `oauth.rs` — full JWT validation behind `#[cfg(feature = "oauth")]` |
+| MCP Completion | ✅ Implemented | `mcp/completion.rs` — 203 LOC with domain completions |
+| MCP Elicitation | ✅ Implemented | `mcp/elicitation.rs` — 250 LOC, request/data/cancel cycle |
+| MCP Rate Limiting | ✅ Implemented | `server/mod.rs:83` — `RateLimiter` wired into handlers |
+| MCP Embedding Config | ✅ Implemented | `jsonrpc.rs:28-128` — loaded from env, JSON-RPC handler |
+| MCP Tasks | ✅ Implemented | `mcp/tasks.rs` — 350 LOC, 5 handlers (undocumented) |
+| Pattern CLI | ✅ Implemented | `commands/pattern/` — 7 subcommands wired |
+| WASM sandbox | ❌ Disabled | Javy/Wasmtime compilation issues |
+
+**Remaining gaps:**
 
 | Category | Count | Details |
 |----------|-------|---------|
-| CI fixes (P0) | 4 | G1.1-G1.4: nightly filter, changelog install, notify checkout, ghost workflow |
-| CI maintenance (P1) | 2 | G2.1-G2.2: rust-cache Node.js 20 deprecation, mutation timeout |
-| Unimplemented features (P1-P2) | 6 | G3.1-G3.6: OAuth, Completion, Elicitation, Rate Limiting, Embedding Config, WASM |
+| CI fixes (P0) | 4 | G1.1-G1.4: ✅ All complete |
+| CI maintenance (P1) | 2 | G2.1-G2.2: ✅ rust-cache upgraded; mutation timeout informational |
+| Genuine missing features | 1 | G3.6: WASM sandbox disabled |
+| Stale TODO/dead_code cleanup (P1) | 4 | G3.8-G3.11: misleading TODOs, duplicate modules, 79 dead_code attrs |
 | Integration gaps (P2) | 2 | G4.1-G4.2: Transport compression, batch CLI workaround |
-| Test health (P1) | 2 | G5.1-G5.2: 119 ignored tests, 79 dead_code attrs |
+| Test health (P1) | 3 | G5.1-G5.3: 119 ignored tests, dead_code attrs, stale ignore reasons |
 
 ### GOAP Execution Plan
 
-**Strategy**: 3-phase hybrid (Parallel CI fixes → Sequential feature work → Documentation)
+**Strategy**: 3-phase hybrid (CI fixes → Dead code cleanup → Documentation)
 
 | Phase | Tasks | Priority | Status |
 |-------|-------|----------|--------|
 | Phase 1: CI Stabilization | G1.1, G1.2, G1.3, G1.4, G2.1 | P0-P1 | ✅ Complete |
-| Phase 2: Feature Resolution | G3.4, G3.5, G5.2, G4.2 | P1-P2 | Pending |
-| Phase 3: Protocol Docs | G3.1-G3.3, G3.6, G4.1 | P2 | Pending |
+| Phase 2: Dead Code Cleanup | G3.8-G3.11, G5.3 | P1 | Pending |
+| Phase 3: Integration & Docs | G4.2, G6.3, G3.6 docs | P2 | Pending |
 
 ### Phase 1 Completion Details (2026-03-13)
 
@@ -297,12 +313,22 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 - Already disabled_manually via GitHub API
 
 **G2.1 - rust-cache Upgrade:**
-- Already at v2.9.1 across all 10 workflow references
+- Upgraded from v2.8.2 to v2.9.1 across all 10 workflow references
+- Files: benchmarks.yml, ci.yml, coverage.yml, nightly-tests.yml, quick-check.yml, security.yml
+
+**G3.4/G3.5 - Feature Wiring Verification:**
+- Rate limiter: Already fully wired in jsonrpc.rs handle_request()
+  - Uses RateLimiter.check_rate_limit() for every request
+  - Returns 429 error when rate limited
+- Embedding config: Already wired via load_embedding_config() and handle_embedding_config()
+- Removed dead_code attributes from EmbeddingEnvConfig and RateLimitEnvConfig
+- Kept #[allow(dead_code)] for intentionally unused api_key_env field
 
 ### Deferred Items
 
 | Gap | Reason |
 |-----|--------|
-| OAuth/Completion/Elicitation implementation | MCP spec not finalized |
-| WASM sandbox fix | Javy/Wasmtime compilation issue |
-| Reduce ignored tests ≤30 | Upstream libsql bug (ADR-027) |
+| ~~OAuth/Completion/Elicitation implementation~~ | ✅ Already implemented (stale TODOs corrected) |
+| WASM sandbox fix (G3.6) | Javy/Wasmtime compilation issue; low user impact |
+| Transport compression wiring (G4.1) | Config flag exists, low priority |
+| Reduce ignored tests ≤30 (G5.1) | Upstream libsql bug (ADR-027) |

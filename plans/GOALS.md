@@ -100,26 +100,34 @@
     - Target: Update all 10 workflow references before Node.js 20 deprecation (June 2026)
     - Status: ✅ Complete - Already at v2.9.1 across all workflows
 
-16. **WG-016**: Wire rate limiter to production MCP server
+16. **WG-016**: ~~Wire rate limiter to production MCP server~~
     - Priority: P1
-    - Owner: mcp-developer
-    - Target: Remove `#[allow(dead_code)]` from rate limiting types; wire into request handler
-    - Status: ✅ Complete - Already wired in jsonrpc.rs handle_request()
+    - Status: ✅ N/A — Deep analysis confirmed already implemented (`server/mod.rs:83`, `RateLimiter::from_env()`)
 
-17. **WG-017**: Wire embedding config to production
+17. **WG-017**: ~~Wire embedding config to production~~
     - Priority: P1
-    - Owner: mcp-developer
-    - Target: Remove `#[allow(dead_code)]` from embedding config types; wire into server init
-    - Status: ✅ Complete - Already wired via load_embedding_config() and handle_embedding_config()
+    - Status: ✅ N/A — Deep analysis confirmed already implemented (`jsonrpc.rs:28-128`)
 
 18. **WG-018**: Audit and reduce dead_code attributes
     - Priority: P1
     - Owner: code-quality
     - Target: Reduce from 79 to ≤20 `#[allow(dead_code)]` in production source
-    - Status: In Progress - Removed from wired types; remaining are intentionally unused or deferred
+    - Status: Pending — many attrs are on stale duplicate types in `types.rs`
 
-19. **WG-019**: Document deferred MCP protocol stubs
+19. **WG-019**: Remove stale TODO comments and duplicate modules
+    - Priority: P1
+    - Owner: code-quality
+    - Target: Remove misleading TODOs on implemented features; remove duplicate `embedding.rs`
+    - Status: Pending — `types.rs:22,81,138,315,332` have TODOs for features in `mcp/` submodule
+
+20. **WG-020**: Fix stale #[ignore] reason on pattern CLI e2e test
+    - Priority: P1
+    - Owner: test-runner
+    - Target: Update `cli_workflows.rs:554` — pattern CLI is fully implemented
+    - Status: Pending
+
+21. **WG-021**: Update ADR-039 "Not Built" table with corrections
     - Priority: P2
     - Owner: docs
-    - Target: Add implementation notes for OAuth, Completion, Elicitation, WASM sandbox status
+    - Target: Correct ADR-039 — 5 of 6 "Not Built" items are actually implemented
     - Status: Pending

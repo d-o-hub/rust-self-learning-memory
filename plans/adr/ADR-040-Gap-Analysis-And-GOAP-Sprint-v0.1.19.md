@@ -63,28 +63,44 @@ All 10 workflow references to `Swatinem/rust-cache@v2.8.2` use Node.js 20, which
 
 #### G3: Unimplemented Production Features (P1 — From ADR-028/ADR-039)
 
-| ID | Feature | Evidence | Status |
-|----|---------|----------|--------|
-| G3.1 | MCP OAuth token handling | `types.rs:22` — `TODO: Implement missing token handling` | Stub only |
-| G3.2 | MCP Completion protocol | `types.rs:81` — `TODO: Implement completion support` | Types defined, no handler |
-| G3.3 | MCP Elicitation protocol | `types.rs:138` — `TODO: Implement elicitation support` | Types defined, no handler |
-| G3.4 | MCP Rate Limiting production wiring | `types.rs:332` — `TODO: Implement rate limiting in production` | Module exists but `#[allow(dead_code)]` |
-| G3.5 | MCP Embedding config production wiring | `types.rs:315` — `TODO: Implement embedding config in production` | Types exist, not wired |
-| G3.6 | WASM sandbox `execute_agent_code` | `handlers.rs:86` — always returns error | Registered but disabled |
+| ID | Feature | Evidence | Actual Status |
+|----|---------|----------|---------------|
+| ~~G3.1~~ | ~~MCP OAuth token handling~~ | `oauth.rs` — full `validate_bearer_token` impl | ✅ **IMPLEMENTED** (behind `#[cfg(feature = "oauth")]`) |
+| ~~G3.2~~ | ~~MCP Completion protocol~~ | `mcp/completion.rs` — 203 LOC handler | ✅ **IMPLEMENTED** — full `completion/complete` with domain completions |
+| ~~G3.3~~ | ~~MCP Elicitation protocol~~ | `mcp/elicitation.rs` — 250 LOC, 3 handlers | ✅ **IMPLEMENTED** — request/data/cancel cycle with tracker |
+| ~~G3.4~~ | ~~MCP Rate Limiting~~ | `server/mod.rs:83` — `RateLimiter` field on `MemoryMcpServer` | ✅ **IMPLEMENTED** — `RateLimiter::from_env()` in constructor, `check_rate_limit` called from relationship handlers |
+| ~~G3.5~~ | ~~MCP Embedding config~~ | `jsonrpc.rs:28-128` — `load_embedding_config` + `handle_embedding_config` | ✅ **IMPLEMENTED** — loaded from env, wired into JSON-RPC router |
+| G3.6 | WASM sandbox `execute_agent_code` | `handlers.rs:86` — always returns error | ❌ Disabled — Javy/Wasmtime compilation issues |
+| G3.7 | MCP Tasks protocol | `mcp/tasks.rs` — 350 LOC, 5 handlers | ✅ **IMPLEMENTED** — create/update/complete/cancel/list (previously undocumented) |
+
+**Correction**: Deep analysis revealed G3.1-G3.5 + G3.7 are **fully implemented** but have stale TODO comments in `types.rs`. The `#[allow(dead_code)]` on types.rs is because those type definitions are the *old duplicate* versions (the live implementations are in `mcp/` submodule and `jsonrpc.rs`). Only G3.6 (WASM sandbox) remains a genuine gap.
+
+#### G3-NEW: Stale TODO/dead_code Cleanup (P1)
+
+| ID | Issue | Location | Action |
+|----|-------|----------|--------|
+| G3.8 | Stale TODO comments on implemented features | `types.rs:22,81,138,315,332` | Remove misleading TODOs |
+| G3.9 | Duplicate `embedding.rs` module (dead code) | `bin/server_impl/embedding.rs` — entire module `#[allow(dead_code)]` | Remove (live version in `jsonrpc.rs:28-128`) |
+| G3.10 | `MonitoringStorage` unused wrapper | `monitoring/storage/mod.rs` — entire struct `#[allow(dead_code)]` | Evaluate: wired via `init.rs:151` using `SimpleMonitoringStorage`, but `MonitoringStorage` wrapper unused |
+| G3.11 | 79 `#[allow(dead_code)]` attrs in production | Scattered across all crates | Triage: remove dead code or remove suppression attrs |
 
 #### G4: Integration Gaps (P2 — Built But Not Wired)
 
 | ID | Subsystem | Location | Gap |
 |----|-----------|----------|-----|
-| G4.1 | Transport Compression → TursoStorage | `transport/wrapper.rs` | `CompressedTransport` test-only; config flag unused |
+| G4.1 | Transport Compression → TursoStorage | `transport/wrapper.rs` | `CompressedTransport` test-only; `enable_transport_compression` config flag unused in constructors |
 | G4.2 | Batch CLI workaround | `commands/mod.rs:356` | `TODO: batch commands should not need direct storage access` |
+| ~~G4.3~~ | ~~Pattern CLI commands~~ | `commands/pattern/` — 7 subcommands | ✅ **IMPLEMENTED** — list/view/analyze/search/recommend/effectiveness/decay all wired |
+
+**Correction**: Pattern CLI was marked as "not yet implemented" in e2e test `cli_workflows.rs:554`, but the test's `#[ignore]` reason is stale — the commands are fully implemented in `commands/pattern/`.
 
 #### G5: Test Health (P1 — Ongoing)
 
 | ID | Metric | Current | Target |
 |----|--------|---------|--------|
-| G5.1 | Ignored tests | 119 | ≤30 (non-Turso) |
-| G5.2 | `#[allow(dead_code)]` in production src | 79 instances | ≤20 |
+| G5.1 | Ignored tests | 119 | ≤30 (non-Turso); blocked by upstream libsql bug |
+| G5.2 | `#[allow(dead_code)]` in production src | 79 instances | ≤20 (after G3.8-G3.11 cleanup) |
+| G5.3 | Stale `#[ignore]` reasons | `cli_workflows.rs:554` — "Pattern CLI not implemented" | Fix ignore reason (commands exist) or remove ignore |
 
 #### G6: Documentation & Hygiene (P2)
 
@@ -92,6 +108,7 @@ All 10 workflow references to `Swatinem/rust-cache@v2.8.2` use Node.js 20, which
 |----|-----|--------|
 | G6.1 | 89 broken markdown links (archived) | Accept as-is per ADR-039 |
 | G6.2 | GOAP_STATE.md needs v0.1.19 gap analysis update | This ADR |
+| G6.3 | Stale ADR-039 gap table claims features unbuilt | Update ADR-039 §"Not Built" with corrections |
 
 ### GOAP Execution Plan (v0.1.19 Sprint)
 
@@ -105,31 +122,31 @@ All 10 workflow references to `Swatinem/rust-cache@v2.8.2` use Node.js 20, which
 | G1.4 Disable ci-old ghost workflow | P0 | ci-engineer | None |
 | G2.1 Upgrade rust-cache to v2.9+ | P1 | ci-engineer | None |
 
-#### Phase 2: Feature Resolution (Sequential, ~4h)
+#### Phase 2: Dead Code & Stale TODO Cleanup (Parallel, ~2h)
 
 | Task | Priority | Agent | Dependencies |
 |------|----------|-------|--------------|
-| G3.4 Wire rate limiter to production | P1 | mcp-developer | Phase 1 |
-| G3.5 Wire embedding config to production | P1 | mcp-developer | Phase 1 |
-| G5.2 Audit and remove dead_code attrs | P1 | code-quality | Phase 1 |
-| G4.2 Fix batch CLI direct storage access | P2 | cli-developer | Phase 1 |
+| G3.8 Remove stale TODO comments from types.rs | P1 | code-quality | Phase 1 |
+| G3.9 Remove duplicate embedding.rs module | P1 | code-quality | Phase 1 |
+| G3.10 Evaluate MonitoringStorage wrapper usage | P1 | code-quality | Phase 1 |
+| G3.11 Triage 79 dead_code attrs (target ≤20) | P1 | code-quality | Phase 1 |
+| G5.3 Fix stale #[ignore] reason on pattern CLI test | P1 | test-runner | Phase 1 |
 
-#### Phase 3: Protocol Stubs Documentation (P2, ~1h)
+#### Phase 3: Integration & Documentation (P2, ~1h)
 
 | Task | Priority | Agent | Dependencies |
 |------|----------|-------|--------------|
-| G3.1-G3.3 Document OAuth/Completion/Elicitation as future work | P2 | docs | Phase 2 |
-| G3.6 Document WASM sandbox status | P2 | docs | Phase 2 |
+| G4.2 Fix batch CLI direct storage access | P2 | cli-developer | Phase 2 |
+| G6.3 Update ADR-039 "Not Built" table with corrections | P2 | docs | Phase 2 |
+| G3.6 Document WASM sandbox status and remediation path | P2 | docs | Phase 2 |
 | G4.1 Document transport compression integration plan | P2 | docs | Phase 2 |
 
 ### Deferred (Not This Sprint)
 
 | Gap | Reason |
 |-----|--------|
-| G3.1 OAuth implementation | Requires MCP spec finalization |
-| G3.2 Completion protocol | MCP spec still evolving |
-| G3.3 Elicitation protocol | MCP spec still evolving |
 | G3.6 WASM sandbox fix | Javy/Wasmtime compilation issue; low user impact |
+| G4.1 Transport compression wiring | Config flag exists but low priority vs other work |
 | G5.1 Reduce ignored tests to ≤30 | Blocked by upstream libsql bug (ADR-027) |
 
 ## Consequences
@@ -139,13 +156,14 @@ All 10 workflow references to `Swatinem/rust-cache@v2.8.2` use Node.js 20, which
 - Nightly CI will be green after Phase 1
 - Changelog automation restored
 - Node.js 20 deprecation addressed 3 months before deadline
-- Rate limiter and embedding config move from dead code to production
-- Clear deferral documentation for protocol stubs
+- **Major finding**: 6 of 7 "missing" MCP features (OAuth, Completion, Elicitation, Rate Limiting, Embedding Config, Tasks) are actually fully implemented — prior gap analysis was misleading
+- Stale TODO cleanup prevents future false gap reports
+- Dead code triage reduces maintenance burden (79 → ≤20 attrs)
 
 ### Negative
 
-- OAuth, Completion, Elicitation remain stubs (accepted: specs not finalized)
 - 119 ignored tests remain (accepted: upstream libsql blocker)
+- WASM sandbox remains disabled (accepted: Javy compilation issue)
 
 ### Neutral
 

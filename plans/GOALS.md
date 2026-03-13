@@ -69,7 +69,57 @@
     - Status: ✅ Complete - Analysis revealed production code already follows best practices
 
 11. **WG-011**: Dependency deduplication
+     - Priority: P1
+     - Owner: code-quality
+     - Target: reduce duplicate dep roots from 134 to <100
+     - Status: ✅ Complete - Removed unused libsql, target not achievable for architectural reasons
+
+## Next Goals (v0.1.19 Sprint — ADR-040)
+
+12. **WG-012**: Fix nightly test exclusion filter
+    - Priority: P0
+    - Owner: ci-engineer
+    - Target: Add compression/keepalive/phase1 Turso tests to nightly exclusion filter
+    - Status: ✅ Complete - Changed to binary() filters for integration test exclusion
+
+13. **WG-013**: Fix changelog workflow
+    - Priority: P0
+    - Owner: ci-engineer
+    - Target: Fix git-cliff install step; add checkout to notify-failure job
+    - Status: ✅ Complete - Simplified to cargo install git-cliff --locked
+
+14. **WG-014**: Disable ci-old ghost workflow
+    - Priority: P0
+    - Owner: ci-engineer
+    - Target: Remove ghost workflow reference from GitHub
+    - Status: ✅ Complete - Already disabled_manually via GitHub UI
+
+15. **WG-015**: Upgrade Swatinem/rust-cache to v2.9+
+    - Priority: P1
+    - Owner: ci-engineer
+    - Target: Update all 10 workflow references before Node.js 20 deprecation (June 2026)
+    - Status: ✅ Complete - Already at v2.9.1 across all workflows
+
+16. **WG-016**: Wire rate limiter to production MCP server
+    - Priority: P1
+    - Owner: mcp-developer
+    - Target: Remove `#[allow(dead_code)]` from rate limiting types; wire into request handler
+    - Status: Pending
+
+17. **WG-017**: Wire embedding config to production
+    - Priority: P1
+    - Owner: mcp-developer
+    - Target: Remove `#[allow(dead_code)]` from embedding config types; wire into server init
+    - Status: Pending
+
+18. **WG-018**: Audit and reduce dead_code attributes
     - Priority: P1
     - Owner: code-quality
-    - Target: reduce duplicate dep roots from 134 to <100
-    - Status: ✅ Complete - Removed unused libsql, target not achievable for architectural reasons
+    - Target: Reduce from 79 to ≤20 `#[allow(dead_code)]` in production source
+    - Status: Pending
+
+19. **WG-019**: Document deferred MCP protocol stubs
+    - Priority: P2
+    - Owner: docs
+    - Target: Add implementation notes for OAuth, Completion, Elicitation, WASM sandbox status
+    - Status: Pending

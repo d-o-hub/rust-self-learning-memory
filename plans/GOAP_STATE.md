@@ -243,3 +243,66 @@ All Dependabot PRs resolved. No pending dependency update PRs.
 ### CI Status
 
 All CI checks passing except codecov/patch (expected to resolve after commit).
+
+## v0.1.19 Gap Analysis (2026-03-13)
+
+### ADR-040 Comprehensive Audit
+
+**Source**: Full GH Actions audit + codebase scan on 2026-03-13.
+**ADR**: `plans/adr/ADR-040-Gap-Analysis-And-GOAP-Sprint-v0.1.19.md`
+
+### CI Failures Identified
+
+| Workflow | Status | Root Cause |
+|----------|--------|------------|
+| Nightly Full Tests | ❌ FAILURE | Turso integration tests panic — missing env vars, exclusion filter incomplete |
+| Changelog | ❌ FAILURE | `git-cliff` install via `taiki-e/install-action@v2` fails; notify-failure missing checkout |
+| ci-old.yml | ⚠️ GHOST | Deleted file still tracked by GitHub API |
+
+### Missing Implementation Inventory
+
+| Category | Count | Details |
+|----------|-------|---------|
+| CI fixes (P0) | 4 | G1.1-G1.4: nightly filter, changelog install, notify checkout, ghost workflow |
+| CI maintenance (P1) | 2 | G2.1-G2.2: rust-cache Node.js 20 deprecation, mutation timeout |
+| Unimplemented features (P1-P2) | 6 | G3.1-G3.6: OAuth, Completion, Elicitation, Rate Limiting, Embedding Config, WASM |
+| Integration gaps (P2) | 2 | G4.1-G4.2: Transport compression, batch CLI workaround |
+| Test health (P1) | 2 | G5.1-G5.2: 119 ignored tests, 79 dead_code attrs |
+
+### GOAP Execution Plan
+
+**Strategy**: 3-phase hybrid (Parallel CI fixes → Sequential feature work → Documentation)
+
+| Phase | Tasks | Priority | Status |
+|-------|-------|----------|--------|
+| Phase 1: CI Stabilization | G1.1, G1.2, G1.3, G1.4, G2.1 | P0-P1 | ✅ Complete |
+| Phase 2: Feature Resolution | G3.4, G3.5, G5.2, G4.2 | P1-P2 | Pending |
+| Phase 3: Protocol Docs | G3.1-G3.3, G3.6, G4.1 | P2 | Pending |
+
+### Phase 1 Completion Details (2026-03-13)
+
+**G1.1 - Nightly Test Exclusion Filter:**
+- Changed from `test(test_name)` to `binary(binary_name)` filters for integration tests
+- Excluded: `compression_integration_test`, `keepalive_pool_integration_test`, `phase1_optimization_test`
+- These tests require TURSO_DATABASE_URL not available in CI
+
+**G1.2 - Changelog git-cliff Install:**
+- Simplified to `cargo install git-cliff --locked`
+- Removed taiki-e/install-action which had version matching issues
+
+**G1.3 - Changelog notify-failure:**
+- Already had checkout step in current workflow
+
+**G1.4 - ci-old.yml Ghost Workflow:**
+- Already disabled_manually via GitHub API
+
+**G2.1 - rust-cache Upgrade:**
+- Already at v2.9.1 across all 10 workflow references
+
+### Deferred Items
+
+| Gap | Reason |
+|-----|--------|
+| OAuth/Completion/Elicitation implementation | MCP spec not finalized |
+| WASM sandbox fix | Javy/Wasmtime compilation issue |
+| Reduce ignored tests ≤30 | Upstream libsql bug (ADR-027) |

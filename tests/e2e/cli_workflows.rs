@@ -539,19 +539,24 @@ async fn test_tag_workflow() {
 // Test 4: Pattern Discovery Workflow
 // ============================================================================
 
-/// TODO: Pattern discovery CLI commands not yet fully implemented
+/// Pattern discovery CLI test
 ///
-/// Missing features:
-/// - `pattern analyze --domain` command doesn't exist
-/// - `pattern search --limit` command doesn't exist  
-/// - `pattern recommend` command doesn't exist
-/// - `episode step --id --number` should be `episode log-step <ID>`
-/// - `episode complete --verdict` flag doesn't exist
+/// Note: Pattern CLI commands ARE implemented (list, view, analyze, search, recommend, effectiveness, decay).
+/// This test is ignored pending validation of specific CLI argument formats and e2e test environment setup.
 ///
-/// Track: CLI enhancement to support pattern analysis commands
+/// Implemented commands (see memory-cli/src/commands/pattern/):
+/// - `pattern analyze` - Analyze patterns from episodes
+/// - `pattern search` - Search patterns by criteria
+/// - `pattern recommend` - Get pattern recommendations
+/// - `pattern list` - List all patterns
+/// - `pattern view` - View pattern details
+/// - `pattern effectiveness` - Get pattern effectiveness rankings
+/// - `pattern decay` - Run pattern decay analysis
+///
+/// Track: E2E test environment validation for pattern commands
 #[tokio::test]
 #[serial]
-#[ignore = "Pattern CLI commands not yet implemented"]
+#[ignore = "E2E test needs validation - pattern commands are implemented"]
 async fn test_pattern_discovery() {
     let cli_path = find_cli_binary().expect("Failed to find CLI binary");
     let temp_dir = TempDir::new().expect("Failed to create temp dir");

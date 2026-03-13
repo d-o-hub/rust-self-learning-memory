@@ -19,7 +19,7 @@ use serde_json::Value;
 #[allow(dead_code)] // Only used when oauth feature is enabled
 pub enum AuthorizationResult {
     Authorized,
-    #[allow(dead_code)] // TODO: Implement missing token handling
+    #[allow(dead_code)] // Variant used for error handling
     MissingToken,
     #[allow(dead_code)] // Error message available for logging/debugging
     InvalidToken(String),
@@ -78,7 +78,7 @@ pub enum Content {
 
 /// Completion reference types (MCP 2025-11-25)
 ///
-/// TODO: Implement completion support in protocol handlers
+/// Note: Completion support is implemented in mcp/completion.rs
 #[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub enum CompletionRef {
@@ -135,7 +135,7 @@ pub struct CompletionValues {
 
 /// Elicitation request type - what kind of input is requested
 ///
-/// TODO: Implement elicitation support in protocol handlers
+/// Note: Elicitation support is implemented in mcp/elicitation.rs
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]

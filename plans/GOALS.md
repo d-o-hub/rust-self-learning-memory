@@ -104,19 +104,19 @@
     - Priority: P1
     - Owner: mcp-developer
     - Target: Remove `#[allow(dead_code)]` from rate limiting types; wire into request handler
-    - Status: Pending
+    - Status: ✅ Complete - Already wired in jsonrpc.rs handle_request()
 
 17. **WG-017**: Wire embedding config to production
     - Priority: P1
     - Owner: mcp-developer
     - Target: Remove `#[allow(dead_code)]` from embedding config types; wire into server init
-    - Status: Pending
+    - Status: ✅ Complete - Already wired via load_embedding_config() and handle_embedding_config()
 
 18. **WG-018**: Audit and reduce dead_code attributes
     - Priority: P1
     - Owner: code-quality
     - Target: Reduce from 79 to ≤20 `#[allow(dead_code)]` in production source
-    - Status: Pending
+    - Status: In Progress - Removed from wired types; remaining are intentionally unused or deferred
 
 19. **WG-019**: Document deferred MCP protocol stubs
     - Priority: P2

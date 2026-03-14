@@ -1,5 +1,6 @@
 ---
 source: memory-cli/tests/snapshot_tests.rs
+assertion_line: 123
 expression: stdout
 ---
 [2m2026-02-21T19:38:51.972249Z[0m [32m INFO[0m [2mmemory_cli::config::storage[0m[2m:[0m Initializing storage backends based on configuration

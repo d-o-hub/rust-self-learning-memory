@@ -105,3 +105,4 @@ mcp-config-*.json
 .claude/**/*.local.*
 .claude/**/.local/
 .blackboxcli/settings.json
+*.proptest-regressions

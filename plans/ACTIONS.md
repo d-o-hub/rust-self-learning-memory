@@ -92,6 +92,38 @@
 
 - **ACT-017**: Monitor Nightly Full Tests after exclusion fix - Pending (next scheduled run)
 
+## v0.1.20 Sprint Actions (ADR-041)
+
+- **ACT-020**: Fix memory-storage-redb compilation errors
+  - Goal: WG-022
+  - Action: Add `use crate::cache::{CacheConfig, CacheMetrics, LRUCache}` to `lib.rs`; fix `super::super::CacheConfig` in `adaptive/mod.rs:336` to use `crate::cache::CacheConfig`; remove unused `ReadableTable` import
+  - Status: Pending
+
+- **ACT-021**: Fix stale `#[ignore]` reasons
+  - Goal: WG-023
+  - Action: Update `cli_workflows.rs:559` ignore reason (pattern CLI is implemented); replace `issues/XXX` in 5 Turso test file headers with ADR-027 reference
+  - Status: Pending
+
+- **ACT-022**: Refactor nightly exclusion filter
+  - Goal: WG-024
+  - Action: Replace 18 per-test-name exclusions in `nightly-tests.yml` with `package(memory-storage-turso)` and crate-level binary filters
+  - Status: Pending
+
+- **ACT-023**: Un-ignore pattern CLI e2e test
+  - Goal: WG-025
+  - Action: Remove `#[ignore]` from `cli_workflows.rs:559` or validate and update the test
+  - Status: Pending
+
+- **ACT-024**: Fix sandbox timing tests
+  - Goal: WG-025
+  - Action: Add `tokio::time::timeout` wrappers to 4 flaky sandbox tests in `memory-mcp/src/sandbox/tests.rs`
+  - Status: Pending
+
+- **ACT-025**: Add ignored-test ceiling check
+  - Goal: WG-026
+  - Action: Add script to `scripts/` that counts `#[ignore]` and fails if > 125
+  - Status: Pending
+
 ## Learning Delta (2026-03)
 
 ### redb 3.x Breaking Changes

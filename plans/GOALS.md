@@ -131,3 +131,36 @@
     - Owner: docs
     - Target: Correct ADR-039 — 5 of 6 "Not Built" items are actually implemented
     - Status: Pending
+
+## Next Goals (v0.1.20 Sprint — ADR-041)
+
+22. **WG-022**: Fix memory-storage-redb compilation errors
+    - Priority: P0
+    - Owner: code-quality
+    - Target: `cargo build --all` compiles cleanly (4 errors + 3 warnings)
+    - Root Cause: Missing `use crate::cache::{CacheConfig, CacheMetrics, LRUCache}` in lib.rs; broken `super::super::CacheConfig` path in adaptive/mod.rs
+    - Status: Pending
+
+23. **WG-023**: Fix stale `#[ignore]` reasons and placeholder issue URLs
+    - Priority: P1
+    - Owner: test-runner
+    - Target: All 119 `#[ignore]` annotations have accurate reasons; 0 placeholder `issues/XXX` URLs remain
+    - Status: Pending
+
+24. **WG-024**: Refactor nightly workflow exclusion filter
+    - Priority: P1
+    - Owner: ci-engineer
+    - Target: Replace 18 per-test-name exclusions with category-based (crate/binary) filters
+    - Status: Pending
+
+25. **WG-025**: Un-ignore fixable tests
+    - Priority: P2
+    - Owner: test-runner
+    - Target: Reduce ignored tests from 119 to ≤112 (un-ignore pattern CLI e2e, fix sandbox timing, fix WASM binary data)
+    - Status: Pending
+
+26. **WG-026**: Add ignored-test ceiling CI guard
+    - Priority: P2
+    - Owner: ci-engineer
+    - Target: CI script that fails if `#[ignore]` count exceeds 125 (prevents silent growth)
+    - Status: Pending

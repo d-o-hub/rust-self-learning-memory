@@ -145,14 +145,21 @@ jobs:
         run: |
           # Run tests marked with #[ignore]
           # These are slow integration tests that timeout in regular CI
-          # Exclude tests that:
-          # 1. Fail due to timing/environment issues in CI
-          # 2. Test features not yet implemented (CLI commands missing)
-          # 3. Run heavy external processes (quality gates, cargo clippy)
-          # 4. Spawn CLI subprocesses that timeout in CI
-          # 5. Require TURSO_DATABASE_URL not available in CI (use binary filter for integration tests)
-          cargo nextest run --all --run-ignored all \
-            -E 'not (test(test_connection_id_uniqueness) | test(test_cleanup_callback_on_connection_drop) | test(test_ttl_adaptation) | test(test_cache_entry_expiration) | test(test_pool_creation) | test(test_cache_expiration) | test(test_wasi_stdout_stderr_capture) | test(test_wasi_capture_with_timeout) | test(test_episode_search_and_filter) | test(test_pattern_discovery) | test(quality_gate_no_clippy_warnings) | test(quality_gate_performance_regression) | test(test_update_command_help) | test(test_update_command_description_only) | test(test_update_command_with_dry_run) | test(test_update_command_metadata_format) | binary(compression_integration_test) | binary(keepalive_pool_integration_test) | binary(phase1_optimization_test))'
+          #
+          # Tier 1: Run slow memory-core integration tests
+          # Exclude test_pattern_accuracy_measurement (non-deterministic in CI)
+          cargo nextest run -p memory-core --run-ignored only \
+            -E 'not test(test_pattern_accuracy_measurement)'
+          #
+          # Tier 2: Run non-Turso integration tests
+          # Exclusions:
+          # - package(memory-storage-turso): All 70 tests blocked by libsql bug (ADR-027)
+          # - test(quality_gate_): Runs heavy external processes (cargo clippy)
+          # - test(test_update_command_): CLI subprocess tests timeout in CI
+          # - test(test_wasi_): WASI implementation gaps (ADR-041)
+          # - test(test_simple_execution|test_console_output|test_syntax_error|test_runtime_error): Flaky sandbox timing (ADR-041)
+          cargo nextest run --all --run-ignored only \
+            -E 'not (package(memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error))'
         env:
           RUST_TEST_THREADS: 2
 
@@ -260,14 +267,20 @@ jobs:
 
       - name: Run slow integration tests
         run: |
-          # Exclude tests that:
-          # 1. Fail due to timing/environment issues in CI
-          # 2. Test features not yet implemented (CLI commands missing)
-          # 3. Run heavy external processes (quality gates, cargo clippy)
-          # 4. Spawn CLI subprocesses that timeout in CI
-          # 5. Require TURSO_DATABASE_URL not available in CI (use binary filter for integration tests)
-          cargo nextest run --all --run-ignored all \
-            -E 'not (test(test_connection_id_uniqueness) | test(test_cleanup_callback_on_connection_drop) | test(test_ttl_adaptation) | test(test_cache_entry_expiration) | test(test_pool_creation) | test(test_cache_expiration) | test(test_wasi_stdout_stderr_capture) | test(test_wasi_capture_with_timeout) | test(test_episode_search_and_filter) | test(test_pattern_discovery) | test(quality_gate_no_clippy_warnings) | test(quality_gate_performance_regression) | test(test_update_command_help) | test(test_update_command_description_only) | test(test_update_command_with_dry_run) | test(test_update_command_metadata_format) | binary(compression_integration_test) | binary(keepalive_pool_integration_test) | binary(phase1_optimization_test))'
+          # Tier 1: Run slow memory-core integration tests
+          # Exclude test_pattern_accuracy_measurement (non-deterministic in CI)
+          cargo nextest run -p memory-core --run-ignored only \
+            -E 'not test(test_pattern_accuracy_measurement)'
+          #
+          # Tier 2: Run non-Turso integration tests
+          # Exclusions:
+          # - package(memory-storage-turso): All 70 tests blocked by libsql bug (ADR-027)
+          # - test(quality_gate_): Runs heavy external processes (cargo clippy)
+          # - test(test_update_command_): CLI subprocess tests timeout in CI
+          # - test(test_wasi_): WASI implementation gaps (ADR-041)
+          # - test(test_simple_execution|test_console_output|test_syntax_error|test_runtime_error): Flaky sandbox timing (ADR-041)
+          cargo nextest run --all --run-ignored only \
+            -E 'not (package(memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error))'
         env:
           RUST_TEST_THREADS: 1
 

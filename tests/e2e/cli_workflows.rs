@@ -556,7 +556,6 @@ async fn test_tag_workflow() {
 /// Track: E2E test environment validation for pattern commands
 #[tokio::test]
 #[serial]
-#[ignore = "E2E test needs validation - pattern commands are implemented"]
 async fn test_pattern_discovery() {
     let cli_path = find_cli_binary().expect("Failed to find CLI binary");
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
@@ -594,15 +593,13 @@ async fn test_pattern_discovery() {
                 &config_path,
                 &[
                     "episode",
-                    "step",
-                    "--id",
+                    "log-step",
                     &episode_id,
-                    "--number",
-                    &step_num.to_string(),
                     "--tool",
                     &format!("tool-{}", step_num),
                     "--action",
                     &format!("Action {}", step_num),
+                    "--success",
                 ],
             )
             .expect("Failed to add step");
@@ -614,16 +611,7 @@ async fn test_pattern_discovery() {
         let (_, success) = run_cli(
             &cli_path,
             &config_path,
-            &[
-                "episode",
-                "complete",
-                "--id",
-                &episode_id,
-                "--outcome",
-                "success",
-                "--verdict",
-                "Pattern episode completed",
-            ],
+            &["episode", "complete", &episode_id, "success"],
         )
         .expect("Failed to complete episode");
 

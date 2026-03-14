@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-12  
-**Released Version**: v0.1.17  
-**Next Version**: v0.1.18 (sprint complete, unreleased)  
+**Last Updated**: 2026-03-14  
+**Released Version**: v0.1.18  
+**Next Version**: v0.1.20 (test health remediation — ADR-041)  
 **Branch**: main  
 **Edition**: Rust 2024
 
@@ -16,7 +16,7 @@
 | Rust files | 870 | — | — |
 | Rust LOC | ~208K | — | — |
 | Total test functions | 2,898 | — | — |
-| Ignored tests | 121 | ≤10 | 🔴 71 blocked by upstream libsql bug (ADR-027) |
+| Ignored tests | 118 | ≤10 | 🔴 70 blocked by upstream libsql bug (ADR-027) |
 | Production src files >500 LOC | 0 | 0 | ✅ |
 | Duplicate dependency roots | 134 | <80 | 🟡 Architectural limit reached |
 | Broken markdown links | 89 | 0 | 🟡 Mostly in archived files |
@@ -78,10 +78,9 @@ These subsystems are fully implemented with tests but not connected to productio
 
 | Feature | Location | Status |
 |---------|----------|--------|
-| **MCP Completion protocol support** | `types.rs:81` TODO | 🟡 Placeholder - requires MCP spec compliance |
-| **MCP Elicitation protocol support** | `types.rs:138` TODO | 🟡 Placeholder - requires MCP spec compliance |
-| **MCP Rate Limiting** | `types.rs:332` TODO | 🟡 Placeholder - infrastructure ready |
 | **Changelog automation (git-cliff)** | ADR-034 Phase 4 | Not started |
+
+> **Note**: MCP Completion, Elicitation, and Rate Limiting were previously listed here but are **fully implemented** (confirmed in ADR-040, 2026-03-13). Stale TODOs in `types.rs` were removed.
 
 ## Disabled Features
 
@@ -93,8 +92,9 @@ These subsystems are fully implemented with tests but not connected to productio
 
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
-| Ignored tests | 121 | — | 71 Turso (upstream libsql bug), 6 slow integration, 4 e2e (missing features) |
-| `#[allow(dead_code)]` | 99 | ≤50 | — |
+| Ignored tests | 118 | — | 70 Turso (upstream libsql bug), 29 slow integration, 9 WASM/sandbox, 10 other |
+| `#[allow(dead_code)]` | 37 files | ≤20 files | — |
+| Ignored-test ceiling | 125 | — | ✅ Enforced by `scripts/check-ignored-tests.sh` (ADR-041) |
 | Broken markdown links | 89 | 0 | Mostly archived files |
 | Duplicate dep roots | 134 | <80 | Architectural limit (wasmtime/libsql transitive deps) |
 

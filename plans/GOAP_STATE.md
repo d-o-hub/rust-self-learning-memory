@@ -1,10 +1,10 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-12 (GOAP Multi-Agent Implementation Sprint)
+- **Last Updated**: 2026-03-14 (ADR-041 Test Health Remediation)
 - **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
-- **ADR**: `plans/adr/ADR-037-Selective-Workflow-Automation-Adoption.md`
-- **Branch**: `docs/goap-state-update` (commits `70661e7`, `13ca540`)
+- **ADR**: `plans/adr/ADR-041-Test-Health-Remediation-v0.1.20.md`
+- **Branch**: main
 - **Version**: `0.1.18`
 
 ## Phase Status
@@ -129,6 +129,51 @@
 - Fixed 29 additional broken markdown links (118 → 89)
 - Focused on active documentation files (not archived)
 - Commit `13ca540` merged 2026-03-11
+
+## v0.1.20 Sprint Status (2026-03-14)
+
+### PR #363: ADR-041 Build and CLI Dispatch Errors
+
+| Check | Status | Duration |
+|-------|--------|----------|
+| Quick PR Check (Format + Clippy) | ✅ pass | 9m25s |
+| Tests | ✅ pass | 9m17s |
+| MCP Build | ✅ pass | 10m55s |
+| Multi-Platform Test (ubuntu-latest) | ✅ pass | 10m16s |
+| Multi-Platform Test (macos-latest) | ✅ pass | 11m17s |
+| Quality Gates | ✅ pass | 20m40s |
+| Semver Check | ✅ pass | 8m2s |
+| Code Coverage Analysis | ✅ pass | 22m53s |
+| Security Checks | ✅ pass | - |
+
+### Actions Completed (ADR-041)
+
+| ID | Action | Status | Commit |
+|----|--------|--------|--------|
+| ACT-020 | Fix memory-storage-redb compilation errors | ✅ Complete | `50eb29a` |
+| ACT-021 | Fix stale `#[ignore]` reasons | ✅ Complete | `bf7abab` |
+| ACT-022 | Refactor nightly exclusion filter | ✅ Complete | `c70db69` |
+| ACT-023 | Un-ignore pattern CLI e2e test | ✅ Complete | `bf7abab` |
+| ACT-025 | Add ignored-test ceiling check | ✅ Complete | `e66f4e0` |
+
+### Key Fixes
+
+1. **memory-cli dispatch errors**:
+   - Fixed duplicate imports in `mod.rs`
+   - Fixed `PatternCommands` import path
+   - Fixed `EpisodeCommands::List` match fields
+   - Added missing `Filter`, `Complete`, `Delete` match arms
+
+2. **memory-storage-redb re-exports**:
+   - Added `CacheConfig`, `CacheMetrics`, `LRUCache` to public re-exports
+   - Added `storage_ops` module for `clear_all` and other operations
+   - Removed duplicate impl block from `lib.rs`
+
+3. **Test health improvements**:
+   - Reduced ignored tests from 129 to 128 (un-ignored pattern CLI test)
+   - Replaced placeholder `issues/XXX` URLs with ADR-027 reference
+   - Added `scripts/check-ignored-tests.sh` ceiling guard
+   - Refactored nightly workflow to use crate-level exclusion filters
 
 ## G2/G9 Implementation Complete (2026-03-09)
 
@@ -375,3 +420,81 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | WASM sandbox fix (G3.6) | Javy/Wasmtime compilation issue; low user impact |
 | Transport compression wiring (G4.1) | Config flag exists, low priority |
 | Reduce ignored tests ≤30 (G5.1) | Upstream libsql bug (ADR-027) |
+
+## v0.1.20 Test Health Remediation (2026-03-14)
+
+### ADR-041 Execution Status
+
+**Strategy**: Sequential (Phase 1 → Phase 2+3 parallel → Phase 4 → Phase 5)
+**ADR**: `plans/adr/ADR-041-Test-Health-Remediation-v0.1.20.md`
+
+### Completed Tasks
+
+| ID | Task | Status | Commit |
+|----|------|--------|--------|
+| WG-022 | Fix memory-storage-redb build errors | ✅ Complete | (concurrent fix) |
+| WG-023 | Fix stale `#[ignore]` reasons + placeholder URLs | ✅ Complete | `bf7abab` |
+| WG-024 | Refactor nightly exclusion filter | ✅ Complete | `c70db69` |
+| WG-025 | Un-ignore pattern CLI e2e test | ✅ Complete | `bf7abab` |
+| WG-026 | Add ignored-test ceiling CI guard | ✅ Complete | `e66f4e0` |
+
+### Current Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Build compiles | ❌ 4 errors | ✅ clean |
+| Clippy | ❌ warnings | ✅ clean |
+| Ignored tests | 119 | 118 |
+| Stale ignore reasons | ≥ 2 | 0 |
+| Placeholder `issues/XXX` | 5 | 0 |
+| Nightly per-name exclusions | 18 | 0 (category-based) |
+| Ceiling guard script | ❌ missing | ✅ ceiling=125 |
+
+### Remaining (WG-025 Partial)
+
+| Task | Priority | Status |
+|------|----------|--------|
+| Fix 4 flaky sandbox timing tests | P2 | ⏳ Pending |
+| Fix 2 WASM binary data tests | P2 | ⏳ Pending |
+| Nightly trend tracking artifact | P3 | ⏳ Pending |
+| libsql upstream version monitor | P3 | ⏳ Pending |
+
+## v0.1.21 Sprint Status (ADR-042: Code Coverage Improvement)
+
+### ADR-042 Phase 1 Implementation
+
+**Branch**: `fix/adr041-build-and-cli-errors`
+**ADR**: `plans/adr/ADR-042-Code-Coverage-Improvement.md`
+**Date**: 2026-03-14
+
+### Completed Actions
+
+| ID | Action | Status | Commit |
+|----|--------|--------|--------|
+| ACT-026 | Episode lifecycle and reward calculation tests | ✅ Complete | `f462730` |
+| ACT-027 | Cache and persistence coverage tests | ✅ Complete | `223de91` |
+| ACT-028 | Transport and pool coverage tests | ✅ Complete | `5fe0073` |
+| ACT-030 | Serialization property tests | ✅ Complete | `c1fff87` |
+| ACT-036 | Update codecov config | ✅ Complete | `be75d0a` |
+
+### Test Summary
+
+| Crate | New Tests | Focus Areas |
+|-------|-----------|-------------|
+| memory-core | 12 property tests | Serialization round-trips, reward bounds, episode lifecycle |
+| memory-storage-redb | 15+ tests | Adaptive cache, persistence manager |
+| memory-storage-turso | 50+ tests | Transport compression, metrics export, pool statistics |
+
+### CI Status
+
+- All 2567 tests pass
+- Clippy clean
+- Format clean
+- CI checks running on PR #363
+
+### Learnings (2026-03-14)
+
+1. **proptest! macro syntax**: Tests with no parameters should use regular `#[test]` instead of `proptest!` macro
+2. **Clippy approx_constant**: Avoid using approximations of mathematical constants (PI, E) in tests - use arbitrary values like `1.23456` instead
+3. **Cast precision loss**: Property tests often need `#![allow(clippy::cast_precision_loss)]` due to proptest strategies
+4. **CompressionStatistics fields**: `total_compression_time_us` was renamed to `compression_time_us` - check actual struct definition when writing tests

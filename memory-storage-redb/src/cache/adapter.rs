@@ -27,7 +27,7 @@ use uuid::Uuid;
 /// # Example
 ///
 /// ```no_run
-/// use memory_storage_redb::cache::{AdaptiveCacheAdapter, AdaptiveCacheConfig};
+/// use memory_storage_redb::{AdaptiveCacheAdapter, AdaptiveCacheConfig};
 /// use std::time::Duration;
 ///
 /// let config = AdaptiveCacheConfig {

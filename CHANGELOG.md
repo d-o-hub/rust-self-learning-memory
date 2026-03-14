@@ -4,6 +4,27 @@
 
 - Nothing yet
 
+## [0.1.19] - 2026-03-14
+
+### Fixed
+
+- **ADR-041 build and CLI dispatch errors** - Complete test health remediation
+  - Fix compilation errors in memory-storage-redb (cache imports, trait implementations)
+  - Fix CLI command dispatch for episode and pattern subcommands
+  - Update proptest! macro syntax for tests without parameters
+  - Fix clippy approx_constant warnings in coverage tests
+  - Correct CompressionStatistics field names in Turso tests
+
+### Changed
+
+- Stabilize GitHub Actions workflows with corrected gap analysis
+- Add `.proptest-regressions` to .gitignore for generated test artifacts
+
+### Testing
+
+- All 2567 tests passing
+- Property-based tests for serialization and calculator bounds (ADR-042 Phase 2)
+
 ## [0.1.18] - 2026-03-12
 
 ### Added

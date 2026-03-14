@@ -31,50 +31,7 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 6. `cargo nextest run -p <crate>`
 7. `cargo nextest run --all`
 8. `./scripts/quality-gates.sh`
-
-## Required Checks Before Commit
-- [ ] `cargo fmt --all -- --check`
-- [ ] `cargo clippy --workspace --tests -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used`
-- [ ] `cargo build --all`
-- [ ] `cargo nextest run --all`
-- [ ] `./scripts/quality-gates.sh`
-- [ ] `git status` - verify all changes are staged
-
-## Git Workflow (CRITICAL)
-
-**Branch Protection**: Direct pushes to `main` are BLOCKED. Always work on a branch.
-
-### Release Workflow
-```bash
-# 1. Create release branch from main
-git checkout main && git pull origin main
-git checkout -b release/v0.1.X
-
-# 2. Make changes (version bump, changelog, fixes)
-# 3. Verify and commit ALL changes
-git status && git diff --stat  # Verify
-git add . && git commit -m "chore: release v0.1.X"
-
-# 4. Create tag
-git tag -a v0.1.X -m "Release v0.1.X"
-
-# 5. Push branch AND tag
-git push origin release/v0.1.X --tags
-
-# 6. Create PR (tag triggers release workflow)
-gh pr create --title "chore: release v0.1.X" --body "..."
-```
-
-### Post-Change Verification
-After making changes, ALWAYS run:
-```bash
-git status      # Check for unstaged changes
-git diff --stat # Review what changed
-```
-
-### Common Fixes
-- **Local main ahead of origin**: `git reset --hard origin/main` after creating branch
-- **Uncommitted changes**: Check `git status` before switching branches
+9. `git status` - verify all changes staged
 
 ## Core Invariants (Never Break)
 - **Async**: Tokio everywhere. No blocking (use `spawn_blocking`)
@@ -84,8 +41,20 @@ git diff --stat # Review what changed
 - **Files**: ≤500 LOC per source file
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
 
+## Required Checks Before Commit
+- [ ] `cargo fmt --all -- --check`
+- [ ] `cargo clippy --workspace --tests -- -D warnings`
+- [ ] `cargo build --all`
+- [ ] `cargo nextest run --all`
+- [ ] `git status` - verify all changes staged
+
+## Git Workflow
+- **Branch Protection**: Direct pushes to `main` BLOCKED. Always work on a branch.
+- **Post-Change**: ALWAYS run `git status` and `git diff --stat`
+- See `agent_docs/git_workflow.md` for release workflow and common fixes
+
 ## Feature Flags
-- `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`
+`openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`
 
 ## Security
 - Use env vars (never hardcode)
@@ -94,7 +63,6 @@ git diff --stat # Review what changed
 
 ## Environment Variables
 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`
-See `.env.example`. Never commit secrets.
 
 ## Performance Targets
 - Episode Creation: < 50ms | Step Logging: < 20ms
@@ -106,12 +74,10 @@ See `.env.example`. Never commit secrets.
 | Build | `agent_docs/building_the_project.md` |
 | Tests | `agent_docs/running_tests.md` |
 | Code style | `agent_docs/code_conventions.md` |
-| Token efficiency | `agent_docs/token_efficiency.md` |
+| Git workflow | `agent_docs/git_workflow.md` |
 | CI guidance | `agent_docs/ci_guidance.md` |
 | Dependency upgrades | `agent_docs/dependency_upgrades.md` |
 | GH Actions patterns | `agent_docs/github_actions_patterns.md` |
-| Session state | `agent_docs/session_state_preservation.md` |
-| Context compaction | Use `context-compaction` skill |
 | Architecture | `plans/adr/` |
 | Active roadmap | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
 
@@ -119,4 +85,3 @@ See `.env.example`. Never commit secrets.
 - Dev profile: `debug = "line-tables-only"`, deps `debug = false`
 - Linker: Use `mold` on Linux
 - Cleanup: `cargo clean` periodically
-- Monitor: `cargo tree -d | grep -cE "^[a-z]"` for duplicate deps

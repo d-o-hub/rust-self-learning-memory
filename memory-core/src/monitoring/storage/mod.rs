@@ -45,6 +45,11 @@ impl Default for MonitoringAnalytics {
 ///
 /// Handles persistence of monitoring metrics to durable storage (Turso)
 /// and fast cache (redb) for analysis and retrieval.
+///
+/// Note: This is a higher-level wrapper that combines durable and cache backends.
+/// Currently, `SimpleMonitoringStorage` is used directly in production code (init.rs).
+/// This wrapper is retained for future use when dual-backend caching is needed.
+/// See ADR-040 for the gap analysis that identified this as potential dead code.
 #[allow(dead_code)]
 pub struct MonitoringStorage {
     /// Durable storage backend with monitoring capabilities

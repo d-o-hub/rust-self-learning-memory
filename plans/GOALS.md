@@ -69,7 +69,65 @@
     - Status: ✅ Complete - Analysis revealed production code already follows best practices
 
 11. **WG-011**: Dependency deduplication
+     - Priority: P1
+     - Owner: code-quality
+     - Target: reduce duplicate dep roots from 134 to <100
+     - Status: ✅ Complete - Removed unused libsql, target not achievable for architectural reasons
+
+## Next Goals (v0.1.19 Sprint — ADR-040)
+
+12. **WG-012**: Fix nightly test exclusion filter
+    - Priority: P0
+    - Owner: ci-engineer
+    - Target: Add compression/keepalive/phase1 Turso tests to nightly exclusion filter
+    - Status: ✅ Complete - Changed to binary() filters for integration test exclusion
+
+13. **WG-013**: Fix changelog workflow
+    - Priority: P0
+    - Owner: ci-engineer
+    - Target: Fix git-cliff install step; add checkout to notify-failure job
+    - Status: ✅ Complete - Simplified to cargo install git-cliff --locked
+
+14. **WG-014**: Disable ci-old ghost workflow
+    - Priority: P0
+    - Owner: ci-engineer
+    - Target: Remove ghost workflow reference from GitHub
+    - Status: ✅ Complete - Already disabled_manually via GitHub UI
+
+15. **WG-015**: Upgrade Swatinem/rust-cache to v2.9+
+    - Priority: P1
+    - Owner: ci-engineer
+    - Target: Update all 10 workflow references before Node.js 20 deprecation (June 2026)
+    - Status: ✅ Complete - Already at v2.9.1 across all workflows
+
+16. **WG-016**: ~~Wire rate limiter to production MCP server~~
+    - Priority: P1
+    - Status: ✅ N/A — Deep analysis confirmed already implemented (`server/mod.rs:83`, `RateLimiter::from_env()`)
+
+17. **WG-017**: ~~Wire embedding config to production~~
+    - Priority: P1
+    - Status: ✅ N/A — Deep analysis confirmed already implemented (`jsonrpc.rs:28-128`)
+
+18. **WG-018**: Audit and reduce dead_code attributes
     - Priority: P1
     - Owner: code-quality
-    - Target: reduce duplicate dep roots from 134 to <100
-    - Status: ✅ Complete - Removed unused libsql, target not achievable for architectural reasons
+    - Target: Reduce from 79 to ≤20 `#[allow(dead_code)]` in production source
+    - Status: Pending — many attrs are on stale duplicate types in `types.rs`
+
+19. **WG-019**: Remove stale TODO comments and duplicate modules
+    - Priority: P1
+    - Owner: code-quality
+    - Target: Remove misleading TODOs on implemented features; remove duplicate `embedding.rs`
+    - Status: Pending — `types.rs:22,81,138,315,332` have TODOs for features in `mcp/` submodule
+
+20. **WG-020**: Fix stale #[ignore] reason on pattern CLI e2e test
+    - Priority: P1
+    - Owner: test-runner
+    - Target: Update `cli_workflows.rs:554` — pattern CLI is fully implemented
+    - Status: Pending
+
+21. **WG-021**: Update ADR-039 "Not Built" table with corrections
+    - Priority: P2
+    - Owner: docs
+    - Target: Correct ADR-039 — 5 of 6 "Not Built" items are actually implemented
+    - Status: Pending

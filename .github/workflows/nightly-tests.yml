@@ -91,7 +91,7 @@ jobs:
         with:
           tool: nextest
 
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
@@ -150,8 +150,9 @@ jobs:
           # 2. Test features not yet implemented (CLI commands missing)
           # 3. Run heavy external processes (quality gates, cargo clippy)
           # 4. Spawn CLI subprocesses that timeout in CI
+          # 5. Require TURSO_DATABASE_URL not available in CI (use binary filter for integration tests)
           cargo nextest run --all --run-ignored all \
-            -E 'not (test(test_connection_id_uniqueness) | test(test_cleanup_callback_on_connection_drop) | test(test_ttl_adaptation) | test(test_cache_entry_expiration) | test(test_pool_creation) | test(test_cache_expiration) | test(test_wasi_stdout_stderr_capture) | test(test_wasi_capture_with_timeout) | test(test_episode_search_and_filter) | test(test_pattern_discovery) | test(quality_gate_no_clippy_warnings) | test(quality_gate_performance_regression) | test(test_update_command_help) | test(test_update_command_description_only) | test(test_update_command_with_dry_run) | test(test_update_command_metadata_format))'
+            -E 'not (test(test_connection_id_uniqueness) | test(test_cleanup_callback_on_connection_drop) | test(test_ttl_adaptation) | test(test_cache_entry_expiration) | test(test_pool_creation) | test(test_cache_expiration) | test(test_wasi_stdout_stderr_capture) | test(test_wasi_capture_with_timeout) | test(test_episode_search_and_filter) | test(test_pattern_discovery) | test(quality_gate_no_clippy_warnings) | test(quality_gate_performance_regression) | test(test_update_command_help) | test(test_update_command_description_only) | test(test_update_command_with_dry_run) | test(test_update_command_metadata_format) | binary(compression_integration_test) | binary(keepalive_pool_integration_test) | binary(phase1_optimization_test))'
         env:
           RUST_TEST_THREADS: 2
 
@@ -235,7 +236,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mold
 
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           key: ${{ matrix.os }}-slow-tests
           save-if: false  # Don't save cache on slow tests to save space
@@ -264,8 +265,9 @@ jobs:
           # 2. Test features not yet implemented (CLI commands missing)
           # 3. Run heavy external processes (quality gates, cargo clippy)
           # 4. Spawn CLI subprocesses that timeout in CI
+          # 5. Require TURSO_DATABASE_URL not available in CI (use binary filter for integration tests)
           cargo nextest run --all --run-ignored all \
-            -E 'not (test(test_connection_id_uniqueness) | test(test_cleanup_callback_on_connection_drop) | test(test_ttl_adaptation) | test(test_cache_entry_expiration) | test(test_pool_creation) | test(test_cache_expiration) | test(test_wasi_stdout_stderr_capture) | test(test_wasi_capture_with_timeout) | test(test_episode_search_and_filter) | test(test_pattern_discovery) | test(quality_gate_no_clippy_warnings) | test(quality_gate_performance_regression) | test(test_update_command_help) | test(test_update_command_description_only) | test(test_update_command_with_dry_run) | test(test_update_command_metadata_format))'
+            -E 'not (test(test_connection_id_uniqueness) | test(test_cleanup_callback_on_connection_drop) | test(test_ttl_adaptation) | test(test_cache_entry_expiration) | test(test_pool_creation) | test(test_cache_expiration) | test(test_wasi_stdout_stderr_capture) | test(test_wasi_capture_with_timeout) | test(test_episode_search_and_filter) | test(test_pattern_discovery) | test(quality_gate_no_clippy_warnings) | test(quality_gate_performance_regression) | test(test_update_command_help) | test(test_update_command_description_only) | test(test_update_command_with_dry_run) | test(test_update_command_metadata_format) | binary(compression_integration_test) | binary(keepalive_pool_integration_test) | binary(phase1_optimization_test))'
         env:
           RUST_TEST_THREADS: 1
 
@@ -287,7 +289,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mold
 
-      - uses: Swatinem/rust-cache@v2.8.2
+      - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
 

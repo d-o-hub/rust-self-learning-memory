@@ -243,3 +243,135 @@ All Dependabot PRs resolved. No pending dependency update PRs.
 ### CI Status
 
 All CI checks passing except codecov/patch (expected to resolve after commit).
+
+## v0.1.19 Gap Analysis (2026-03-13)
+
+### ADR-040 Comprehensive Audit
+
+**Source**: Full GH Actions audit + codebase scan on 2026-03-13.
+**ADR**: `plans/adr/ADR-040-Gap-Analysis-And-GOAP-Sprint-v0.1.19.md`
+
+### CI Failures Identified
+
+| Workflow | Status | Root Cause |
+|----------|--------|------------|
+| Nightly Full Tests | ❌ FAILURE | Turso integration tests panic — missing env vars, exclusion filter incomplete |
+| Changelog | ❌ FAILURE | `git-cliff` install via `taiki-e/install-action@v2` fails; notify-failure missing checkout |
+| ci-old.yml | ⚠️ GHOST | Deleted file still tracked by GitHub API |
+
+### Missing Implementation Inventory (Corrected 2026-03-13)
+
+**Major Correction**: Deep code analysis revealed 6 of 7 features previously listed as "unimplemented" are **fully implemented** with stale TODO comments in `types.rs`:
+
+| Feature | Actual Status | Evidence |
+|---------|---------------|----------|
+| MCP OAuth | ✅ Implemented | `oauth.rs` — full JWT validation behind `#[cfg(feature = "oauth")]` |
+| MCP Completion | ✅ Implemented | `mcp/completion.rs` — 203 LOC with domain completions |
+| MCP Elicitation | ✅ Implemented | `mcp/elicitation.rs` — 250 LOC, request/data/cancel cycle |
+| MCP Rate Limiting | ✅ Implemented | `server/mod.rs:83` — `RateLimiter` wired into handlers |
+| MCP Embedding Config | ✅ Implemented | `jsonrpc.rs:28-128` — loaded from env, JSON-RPC handler |
+| MCP Tasks | ✅ Implemented | `mcp/tasks.rs` — 350 LOC, 5 handlers (undocumented) |
+| Pattern CLI | ✅ Implemented | `commands/pattern/` — 7 subcommands wired |
+| WASM sandbox | ❌ Disabled | Javy/Wasmtime compilation issues |
+
+**Remaining gaps:**
+
+| Category | Count | Details |
+|----------|-------|---------|
+| CI fixes (P0) | 4 | G1.1-G1.4: ✅ All complete |
+| CI maintenance (P1) | 2 | G2.1-G2.2: ✅ rust-cache upgraded; mutation timeout informational |
+| Genuine missing features | 1 | G3.6: WASM sandbox disabled |
+| Stale TODO/dead_code cleanup (P1) | 4 | G3.8-G3.11: misleading TODOs, duplicate modules, 79 dead_code attrs |
+| Integration gaps (P2) | 2 | G4.1-G4.2: Transport compression, batch CLI workaround |
+| Test health (P1) | 3 | G5.1-G5.3: 119 ignored tests, dead_code attrs, stale ignore reasons |
+
+### GOAP Execution Plan
+
+**Strategy**: 3-phase hybrid (CI fixes → Dead code cleanup → Documentation)
+
+| Phase | Tasks | Priority | Status |
+|-------|-------|----------|--------|
+| Phase 1: CI Stabilization | G1.1, G1.2, G1.3, G1.4, G2.1 | P0-P1 | ✅ Complete |
+| Phase 2: Dead Code Cleanup | G3.8-G3.11, G5.3 | P1 | ✅ Complete |
+| Phase 3: Integration & Docs | G4.2, G6.3, G3.6 docs, G4.1 docs | P2 | ✅ Complete |
+
+### Phase 1 Completion Details (2026-03-13)
+
+**G1.1 - Nightly Test Exclusion Filter:**
+- Changed from `test(test_name)` to `binary(binary_name)` filters for integration tests
+- Excluded: `compression_integration_test`, `keepalive_pool_integration_test`, `phase1_optimization_test`
+- These tests require TURSO_DATABASE_URL not available in CI
+
+**G1.2 - Changelog git-cliff Install:**
+- Simplified to `cargo install git-cliff --locked`
+- Removed taiki-e/install-action which had version matching issues
+
+**G1.3 - Changelog notify-failure:**
+- Already had checkout step in current workflow
+
+**G1.4 - ci-old.yml Ghost Workflow:**
+- Already disabled_manually via GitHub API
+
+**G2.1 - rust-cache Upgrade:**
+- Upgraded from v2.8.2 to v2.9.1 across all 10 workflow references
+- Files: benchmarks.yml, ci.yml, coverage.yml, nightly-tests.yml, quick-check.yml, security.yml
+
+**G3.4/G3.5 - Feature Wiring Verification:**
+- Rate limiter: Already fully wired in jsonrpc.rs handle_request()
+  - Uses RateLimiter.check_rate_limit() for every request
+  - Returns 429 error when rate limited
+- Embedding config: Already wired via load_embedding_config() and handle_embedding_config()
+- Removed dead_code attributes from EmbeddingEnvConfig and RateLimitEnvConfig
+- Kept #[allow(dead_code)] for intentionally unused api_key_env field
+
+### Phase 2 Completion Details (2026-03-13)
+
+**G3.8 - Remove Stale TODO Comments:**
+- Removed misleading TODOs from types.rs (lines 22, 81, 138)
+- Updated comments to correctly state features ARE implemented
+- Features confirmed: OAuth (oauth.rs), Completion (mcp/completion.rs), Elicitation (mcp/elicitation.rs)
+
+**G3.9 - Remove Duplicate embedding.rs:**
+- Deleted `memory-mcp/src/bin/server_impl/embedding.rs` (124 lines of dead code)
+- Live implementation is in jsonrpc.rs:28-128
+- Updated mod.rs to remove module declaration and re-exports
+
+**G3.10 - Document MonitoringStorage:**
+- Added documentation explaining the wrapper's purpose
+- Retained for future dual-backend caching support
+- Currently SimpleMonitoringStorage is used directly
+
+**G5.3 - Fix Stale #[ignore] Reason:**
+- Updated test comment in tests/e2e/cli_workflows.rs:554
+- Pattern commands ARE implemented (analyze, search, recommend, list, view, effectiveness, decay)
+- Updated ignore reason to reflect actual status
+
+### Phase 3 Completion Details (2026-03-13)
+
+**G4.2 - Document Batch CLI Architecture:**
+- Replaced TODO with architecture note in commands/mod.rs:356
+- Documented why batch operations need direct storage access
+- Noted future refactoring option (BatchOperations trait)
+
+**G6.3 - Update ADR-039:**
+- Corrected "Not Built" table with implementation status
+- 5 features marked as IMPLEMENTED (Pattern CLI, Completion, Elicitation, Rate Limiting, Tasks)
+- Added evidence links to implementation files
+
+**G3.6 - WASM Sandbox Documentation:**
+- Already documented in ADR-040 (root cause analysis + fix options)
+- Recommendation: Option A (fix probe for WASM-only mode)
+
+**G4.1 - Transport Compression Documentation:**
+- Added integration plan to ADR-040
+- Documented implementation path and dependencies
+- Deferred to future sprint (low priority)
+
+### Deferred Items
+
+| Gap | Reason |
+|-----|--------|
+| ~~OAuth/Completion/Elicitation implementation~~ | ✅ Already implemented (stale TODOs corrected) |
+| WASM sandbox fix (G3.6) | Javy/Wasmtime compilation issue; low user impact |
+| Transport compression wiring (G4.1) | Config flag exists, low priority |
+| Reduce ignored tests ≤30 (G5.1) | Upstream libsql bug (ADR-027) |

@@ -312,11 +312,12 @@ async fn test_cm_hit_rate_calculation() {
 /// Test cache metrics effectiveness check
 #[test]
 fn test_cm_is_effective() {
-    let mut metrics = CacheMetrics::default();
-
     // 0% hit rate - not effective
-    metrics.hits = 0;
-    metrics.misses = 10;
+    let mut metrics = CacheMetrics {
+        hits: 0,
+        misses: 10,
+        ..CacheMetrics::default()
+    };
     metrics.calculate_hit_rate();
     assert!(!metrics.is_effective());
 

@@ -431,7 +431,7 @@ pub async fn test_episode_diverse_tool_usage() {
         .await;
 
     // Use many different tools (5+)
-    let tools = vec![
+    let tools = [
         "file_reader",
         "parser",
         "analyzer",

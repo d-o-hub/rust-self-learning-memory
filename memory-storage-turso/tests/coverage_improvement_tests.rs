@@ -411,9 +411,9 @@ mod metrics_export_tests {
     fn test_metric_value_display() {
         assert_eq!(MetricValue::Integer(42).to_string(), "42");
 
-        let float_val = MetricValue::Float(3.14159265359);
+        let float_val = MetricValue::Float(1.23456);
         let display = float_val.to_string();
-        assert!(display.starts_with("3.14159"));
+        assert!(display.starts_with("1.234"));
 
         assert_eq!(MetricValue::DurationMicros(1500).to_string(), "1500");
     }
@@ -709,9 +709,9 @@ mod metrics_collector_tests {
         assert!(p95 <= p99);
 
         // Rough bounds check (percentiles should be in range 1-100)
-        assert!(p50 >= 1 && p50 <= 100);
-        assert!(p95 >= 80 && p95 <= 100);
-        assert!(p99 >= 90 && p99 <= 100);
+        assert!((1..=100).contains(&p50));
+        assert!((80..=100).contains(&p95));
+        assert!((90..=100).contains(&p99));
     }
 
     #[test]

@@ -44,7 +44,6 @@ async fn test_unified_sandbox_nodejs_backend() -> Result<(), anyhow::Error> {
 }
 
 #[tokio::test]
-#[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
 async fn test_unified_sandbox_wasm_backend() -> Result<(), anyhow::Error> {
     let sandbox = UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::Wasm).await?;
 
@@ -195,7 +194,6 @@ async fn test_backend_health() -> Result<(), anyhow::Error> {
 }
 
 #[tokio::test]
-#[ignore = "WASM backend test needs proper binary data handling - String::from_utf8 fails on binary WASM"]
 async fn test_backend_update() -> Result<(), anyhow::Error> {
     let mut sandbox =
         UnifiedSandbox::new(SandboxConfig::restrictive(), SandboxBackend::NodeJs).await?;

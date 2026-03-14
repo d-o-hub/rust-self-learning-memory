@@ -96,33 +96,33 @@
 
 - **ACT-020**: Fix memory-storage-redb compilation errors
   - Goal: WG-022
-  - Action: Add `use crate::cache::{CacheConfig, CacheMetrics, LRUCache}` to `lib.rs`; fix `super::super::CacheConfig` in `adaptive/mod.rs:336` to use `crate::cache::CacheConfig`; remove unused `ReadableTable` import
-  - Status: Pending
+  - Action: Add `use crate::cache::{CacheConfig, CacheMetrics, LRUCache}` to `lib.rs`; fix `super::super::CacheConfig` in `adaptive/mod.rs:336`; remove unused `ReadableTable` import
+  - Status: ✅ Complete — build and clippy pass (concurrent fix)
 
 - **ACT-021**: Fix stale `#[ignore]` reasons
   - Goal: WG-023
-  - Action: Update `cli_workflows.rs:559` ignore reason (pattern CLI is implemented); replace `issues/XXX` in 5 Turso test file headers with ADR-027 reference
-  - Status: Pending
+  - Action: Update `cli_workflows.rs` ignore reason; replace `issues/XXX` in Turso test headers
+  - Status: ✅ Complete — commit `bf7abab`
 
 - **ACT-022**: Refactor nightly exclusion filter
   - Goal: WG-024
-  - Action: Replace 18 per-test-name exclusions in `nightly-tests.yml` with `package(memory-storage-turso)` and crate-level binary filters
-  - Status: Pending
+  - Action: Replace per-test-name exclusions with `package(memory-storage-turso)` filter
+  - Status: ✅ Complete — commit `c70db69`
 
 - **ACT-023**: Un-ignore pattern CLI e2e test
   - Goal: WG-025
-  - Action: Remove `#[ignore]` from `cli_workflows.rs:559` or validate and update the test
-  - Status: Pending
+  - Action: Remove `#[ignore]` from pattern CLI e2e test
+  - Status: ✅ Complete — `#[ignore]` removed from `cli_workflows.rs` (commit `bf7abab`)
 
 - **ACT-024**: Fix sandbox timing tests
   - Goal: WG-025
   - Action: Add `tokio::time::timeout` wrappers to 4 flaky sandbox tests in `memory-mcp/src/sandbox/tests.rs`
-  - Status: Pending
+  - Status: ⏳ Pending
 
 - **ACT-025**: Add ignored-test ceiling check
   - Goal: WG-026
   - Action: Add script to `scripts/` that counts `#[ignore]` and fails if > 125
-  - Status: Pending
+  - Status: ✅ Complete — `scripts/check-ignored-tests.sh` (commit `e66f4e0`)
 
 ## Learning Delta (2026-03)
 

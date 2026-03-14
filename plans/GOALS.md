@@ -139,28 +139,28 @@
     - Owner: code-quality
     - Target: `cargo build --all` compiles cleanly (4 errors + 3 warnings)
     - Root Cause: Missing `use crate::cache::{CacheConfig, CacheMetrics, LRUCache}` in lib.rs; broken `super::super::CacheConfig` path in adaptive/mod.rs
-    - Status: Pending
+    - Status: ✅ Complete — build and clippy both pass
 
 23. **WG-023**: Fix stale `#[ignore]` reasons and placeholder issue URLs
     - Priority: P1
     - Owner: test-runner
-    - Target: All 119 `#[ignore]` annotations have accurate reasons; 0 placeholder `issues/XXX` URLs remain
-    - Status: Pending
+    - Target: All `#[ignore]` annotations have accurate reasons; 0 placeholder `issues/XXX` URLs remain
+    - Status: ✅ Complete — commit `bf7abab` (ACT-021)
 
 24. **WG-024**: Refactor nightly workflow exclusion filter
     - Priority: P1
     - Owner: ci-engineer
     - Target: Replace 18 per-test-name exclusions with category-based (crate/binary) filters
-    - Status: Pending
+    - Status: ✅ Complete — nightly uses `package(memory-storage-turso)` filter (commit `c70db69`)
 
 25. **WG-025**: Un-ignore fixable tests
     - Priority: P2
     - Owner: test-runner
     - Target: Reduce ignored tests from 119 to ≤112 (un-ignore pattern CLI e2e, fix sandbox timing, fix WASM binary data)
-    - Status: Pending
+    - Status: 🟡 Partial — 119→118 (pattern CLI e2e un-ignored); 6 sandbox/WASM tests still pending
 
 26. **WG-026**: Add ignored-test ceiling CI guard
     - Priority: P2
     - Owner: ci-engineer
     - Target: CI script that fails if `#[ignore]` count exceeds 125 (prevents silent growth)
-    - Status: Pending
+    - Status: ✅ Complete — `scripts/check-ignored-tests.sh` (commit `e66f4e0`)

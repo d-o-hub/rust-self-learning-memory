@@ -1,6 +1,6 @@
 # ADR-041: Test Health Remediation Plan (v0.1.20)
 
-- **Status**: Proposed
+- **Status**: Accepted (Partially Implemented 2026-03-14)
 - **Date**: 2026-03-14
 - **Deciders**: Project maintainers
 - **Related**: ADR-027 (Ignored Tests Strategy), ADR-033 (Modern Testing Strategy), ADR-040 (Gap Analysis v0.1.19)
@@ -309,6 +309,48 @@ Phase 1 (P0, 30min) ──► Phase 2 (P1, 1h) ──► Phase 3 (P1, 2h)
 
 ---
 
+## Implementation Status (Updated 2026-03-14)
+
+Concurrent implementation by other agents completed most tasks before this ADR was formally accepted.
+
+### Verified Completion State
+
+| Phase | Task | Status | Evidence |
+|-------|------|--------|----------|
+| **1: Fix Build** | T1.1-T1.5 | ✅ Complete | `cargo build --all` succeeds; `cargo clippy --workspace --tests` clean |
+| **2: Fix Stale Ignores** | T2.1 cli_workflows stale ignore | ✅ Complete | `#[ignore]` removed from `cli_workflows.rs` (commit `bf7abab`) |
+| **2: Fix Stale Ignores** | T2.2 placeholder issue URLs | ✅ Complete | 0 `issues/XXX` references remain in Turso tests (commit `bf7abab`) |
+| **3: Nightly Refactor** | T3.1-T3.4 | ✅ Complete | Nightly uses `package(memory-storage-turso)` filter (commit `c70db69`) |
+| **4: Un-ignore Fixable** | T4.1 pattern CLI e2e | ✅ Complete | `#[ignore]` removed from `cli_workflows.rs` |
+| **4: Un-ignore Fixable** | T4.2 sandbox timing | ⏳ Pending | 4 flaky sandbox tests in `sandbox/tests.rs` still ignored |
+| **4: Un-ignore Fixable** | T4.3 WASM binary data | ⏳ Pending | 2 tests in `unified_sandbox/tests.rs` still ignored |
+| **5: CI Guards** | T5.1 ceiling script | ✅ Complete | `scripts/check-ignored-tests.sh` exists (ceiling=125, commit `e66f4e0`) |
+| **5: CI Guards** | T5.2 nightly tracking | ⏳ Pending | No artifact-based trend tracking yet |
+| **5: CI Guards** | T5.3 libsql monitor | ⏳ Pending | No automated upstream version check |
+
+### Updated Metrics
+
+| Metric | ADR-041 Baseline | Current (2026-03-14) | Target |
+|--------|------------------|----------------------|--------|
+| Build compiles | ❌ (4 errors) | ✅ clean | ✅ |
+| Clippy | ❌ (warnings) | ✅ clean | ✅ |
+| Ignored tests | 119 | 118 | ≤ 112 |
+| Stale ignore reasons | ≥ 2 | 0 | 0 |
+| Placeholder `issues/XXX` | 5 | 0 | 0 |
+| Nightly per-name exclusions | 18 | 0 (category-based) | 0 |
+| Ceiling guard script | ❌ missing | ✅ 125 ceiling | ✅ |
+
+### Remaining Work
+
+| Task | Priority | Effort | Notes |
+|------|----------|--------|-------|
+| T4.2 Fix sandbox timing tests | P2 | 2h | Add `tokio::time::timeout` to 4 tests |
+| T4.3 Fix WASM binary data tests | P2 | 2h | Use `from_utf8_lossy` or base64 |
+| T5.2 Nightly trend tracking | P3 | 1h | Persist pass-rate artifact |
+| T5.3 libsql version monitor | P3 | 1h | Check for upstream fix |
+
+---
+
 ## Cross-References
 
 - **Build fix**: `memory-storage-redb/src/lib.rs`, `memory-storage-redb/src/cache/adaptive/mod.rs`
@@ -316,5 +358,6 @@ Phase 1 (P0, 30min) ──► Phase 2 (P1, 1h) ──► Phase 3 (P1, 2h)
 - **Testing strategy**: [ADR-033](ADR-033-Modern-Testing-Strategy.md)
 - **Previous gap analysis**: [ADR-040](ADR-040-Gap-Analysis-And-GOAP-Sprint-v0.1.19.md)
 - **Nightly workflow**: `.github/workflows/nightly-tests.yml`
+- **Ceiling guard**: `scripts/check-ignored-tests.sh`
 - **GOAP state**: `plans/GOAP_STATE.md`
 - **Goals index**: `plans/GOALS.md`

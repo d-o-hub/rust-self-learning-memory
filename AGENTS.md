@@ -38,6 +38,43 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - [ ] `cargo build --all`
 - [ ] `cargo nextest run --all`
 - [ ] `./scripts/quality-gates.sh`
+- [ ] `git status` - verify all changes are staged
+
+## Git Workflow (CRITICAL)
+
+**Branch Protection**: Direct pushes to `main` are BLOCKED. Always work on a branch.
+
+### Release Workflow
+```bash
+# 1. Create release branch from main
+git checkout main && git pull origin main
+git checkout -b release/v0.1.X
+
+# 2. Make changes (version bump, changelog, fixes)
+# 3. Verify and commit ALL changes
+git status && git diff --stat  # Verify
+git add . && git commit -m "chore: release v0.1.X"
+
+# 4. Create tag
+git tag -a v0.1.X -m "Release v0.1.X"
+
+# 5. Push branch AND tag
+git push origin release/v0.1.X --tags
+
+# 6. Create PR (tag triggers release workflow)
+gh pr create --title "chore: release v0.1.X" --body "..."
+```
+
+### Post-Change Verification
+After making changes, ALWAYS run:
+```bash
+git status      # Check for unstaged changes
+git diff --stat # Review what changed
+```
+
+### Common Fixes
+- **Local main ahead of origin**: `git reset --hard origin/main` after creating branch
+- **Uncommitted changes**: Check `git status` before switching branches
 
 ## Core Invariants (Never Break)
 - **Async**: Tokio everywhere. No blocking (use `spawn_blocking`)

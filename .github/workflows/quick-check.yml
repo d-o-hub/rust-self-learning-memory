@@ -66,3 +66,8 @@ jobs:
         run: |
           chmod +x scripts/*.sh
           ./scripts/check-doctests.sh
+
+      - name: Check ignored-test ceiling
+        run: |
+          chmod +x scripts/check-ignored-tests.sh
+          ./scripts/check-ignored-tests.sh

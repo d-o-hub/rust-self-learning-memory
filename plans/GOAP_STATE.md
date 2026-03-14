@@ -458,3 +458,43 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | Fix 2 WASM binary data tests | P2 | ⏳ Pending |
 | Nightly trend tracking artifact | P3 | ⏳ Pending |
 | libsql upstream version monitor | P3 | ⏳ Pending |
+
+## v0.1.21 Sprint Status (ADR-042: Code Coverage Improvement)
+
+### ADR-042 Phase 1 Implementation
+
+**Branch**: `fix/adr041-build-and-cli-errors`
+**ADR**: `plans/adr/ADR-042-Code-Coverage-Improvement.md`
+**Date**: 2026-03-14
+
+### Completed Actions
+
+| ID | Action | Status | Commit |
+|----|--------|--------|--------|
+| ACT-026 | Episode lifecycle and reward calculation tests | ✅ Complete | `f462730` |
+| ACT-027 | Cache and persistence coverage tests | ✅ Complete | `223de91` |
+| ACT-028 | Transport and pool coverage tests | ✅ Complete | `5fe0073` |
+| ACT-030 | Serialization property tests | ✅ Complete | `c1fff87` |
+| ACT-036 | Update codecov config | ✅ Complete | `be75d0a` |
+
+### Test Summary
+
+| Crate | New Tests | Focus Areas |
+|-------|-----------|-------------|
+| memory-core | 12 property tests | Serialization round-trips, reward bounds, episode lifecycle |
+| memory-storage-redb | 15+ tests | Adaptive cache, persistence manager |
+| memory-storage-turso | 50+ tests | Transport compression, metrics export, pool statistics |
+
+### CI Status
+
+- All 2567 tests pass
+- Clippy clean
+- Format clean
+- CI checks running on PR #363
+
+### Learnings (2026-03-14)
+
+1. **proptest! macro syntax**: Tests with no parameters should use regular `#[test]` instead of `proptest!` macro
+2. **Clippy approx_constant**: Avoid using approximations of mathematical constants (PI, E) in tests - use arbitrary values like `1.23456` instead
+3. **Cast precision loss**: Property tests often need `#![allow(clippy::cast_precision_loss)]` due to proptest strategies
+4. **CompressionStatistics fields**: `total_compression_time_us` was renamed to `compression_time_us` - check actual struct definition when writing tests

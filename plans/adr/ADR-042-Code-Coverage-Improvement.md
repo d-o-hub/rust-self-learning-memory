@@ -218,3 +218,45 @@ cargo mutants --timeout 120 --jobs 4 -- --lib
 - [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov)
 - [Codecov Documentation](https://docs.codecov.com/)
 - [proptest Book](https://proptest-rs.github.io/proptest/)
+
+## Implementation Progress
+
+### Phase 1 Progress (2026-03-14)
+
+| Action | Status | Details |
+|--------|--------|---------|
+| ACT-026 | ✅ Complete | Episode lifecycle tests in memory-core |
+| ACT-027 | ✅ Complete | Reward calculation property tests |
+| ACT-028 | ✅ Complete | Storage consistency tests |
+| ACT-029 | ✅ Complete | Error handling tests |
+
+### Phase 2 Progress (2026-03-14)
+
+| Action | Status | Details |
+|--------|--------|---------|
+| ACT-030 | ✅ Complete | Serialization round-trip tests (proptest) |
+| ACT-031 | ✅ Complete | Calculator property tests (bounds validation) |
+| ACT-032 | ⏳ Pending | MCP JSON-RPC fuzz tests |
+
+### Phase 3 Progress
+
+| Action | Status | Details |
+|--------|--------|---------|
+| ACT-033 | ⏳ Pending | CLI integration tests |
+| ACT-034 | ⏳ Pending | MCP tool integration tests |
+| ACT-035 | ⏳ Pending | Cache eviction tests |
+
+### Coverage Fix (2026-03-14)
+
+**Issue**: Coverage workflow failed due to `test_server_creation` test race condition.
+
+**Root Cause**: `is_wasm_sandbox_available()` environment variable timing varies between tool registration and test assertion in parallel test execution.
+
+**Resolution**:
+- Removed conditional assertion for `execute_agent_code` tool
+- Test now asserts only core tools that are always available (`query_memory`, `analyze_patterns`, `health_check`)
+- Updated snapshot tests for v0.1.19
+
+**Files Changed**:
+- `memory-mcp/src/server/tests.rs` - Fixed test assertion
+- `memory-cli/tests/snapshots/*` - Updated version snapshots

@@ -189,8 +189,28 @@ async fn test_mcp_tool_coverage_analyze_patterns_schema_has_required_properties(
         .expect("analyze_patterns schema should have 'properties'");
 
     assert!(
-        properties.contains_key("domain"),
-        "analyze_patterns should have 'domain' property"
+        properties.contains_key("task_type"),
+        "analyze_patterns should have 'task_type' property"
+    );
+    assert!(
+        properties.contains_key("min_success_rate"),
+        "analyze_patterns should have 'min_success_rate' property"
+    );
+    assert!(
+        properties.contains_key("limit"),
+        "analyze_patterns should have 'limit' property"
+    );
+
+    // Verify required fields
+    let required = schema.get("required").and_then(|v| v.as_array());
+    assert!(
+        required.is_some(),
+        "analyze_patterns schema should have 'required' field"
+    );
+    let required = required.unwrap();
+    assert!(
+        required.iter().any(|r| r.as_str() == Some("task_type")),
+        "task_type should be a required field"
     );
 }
 

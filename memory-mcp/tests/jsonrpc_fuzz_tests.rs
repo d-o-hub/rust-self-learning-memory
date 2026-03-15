@@ -229,6 +229,9 @@ proptest! {
         let id_value = match id_type {
             0 => json!(num_id),
             1 => json!(str_id),
+            // Note: json!(null) in Option<Value> serializes to null,
+            // but deserializes back to None (not Some(Null)) due to serde's
+            // handling of Option<Value>. This is expected behavior.
             _ => json!(null),
         };
 
@@ -242,7 +245,12 @@ proptest! {
         let json_str = serde_json::to_string(&response).unwrap();
         let deserialized: JsonRpcResponse = serde_json::from_str(&json_str).unwrap();
 
-        prop_assert_eq!(deserialized.id, Some(id_value));
+        // For null values, serde deserializes Option<Value> null to None
+        if id_type >= 2 {
+            prop_assert!(deserialized.id.is_none() || deserialized.id == Some(json!(null)));
+        } else {
+            prop_assert_eq!(deserialized.id, Some(id_value));
+        }
     }
 
     #[test]

@@ -9,6 +9,10 @@
 //!
 //! See: plans/adr/ADR-024-MCP-Lazy-Tool-Loading.md
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+
 use memory_core::{MemoryConfig, SelfLearningMemory};
 use memory_mcp::{
     MemoryMCPServer, SandboxConfig, Tool,

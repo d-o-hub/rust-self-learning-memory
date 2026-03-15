@@ -287,6 +287,7 @@ async fn should_recover_from_worker_errors_and_continue_processing() {
 }
 
 #[tokio::test]
+#[ignore = "slow integration test - runs for >60s, run explicitly with --ignored"]
 async fn should_scale_processing_with_different_worker_counts() {
     // Given/When/Then: Testing worker pool with different worker counts
     for worker_count in [1, 2, 4, 8] {

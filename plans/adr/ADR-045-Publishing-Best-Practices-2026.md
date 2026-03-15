@@ -561,7 +561,7 @@ pub struct EmbeddingConfig {
 
 ```json
 {
-  "name": "@d-o/memory-core",
+  "name": "@d-o-hub/memory-core",
   "version": "0.2.0",
   "description": "Episodic learning system for AI agents - WASM bindings",
   "license": "MIT",
@@ -724,10 +724,10 @@ npm provenance links published packages to their source code and build process:
 
 ```bash
 # View provenance for a published package
-npm view @d-o/memory-core provenance
+npm view @d-o-hub/memory-core provenance
 
 # Verify provenance during install
-npm install @d-o/memory-core --verify-provenance
+npm install @d-o-hub/memory-core --verify-provenance
 ```
 
 **SBOM Generation**:
@@ -753,7 +753,7 @@ npm install @d-o/memory-core --verify-provenance
 ```json
 // Scoped package (recommended)
 {
-  "name": "@d-o/memory-core"
+  "name": "@d-o-hub/memory-core"
 }
 
 // Unscoped package (not recommended for orgs)
@@ -767,7 +767,7 @@ npm install @d-o/memory-core --verify-provenance
 | Benefit | Description |
 |---------|-------------|
 | Namespace collision | Avoids conflicts with similarly-named packages |
-| Organization | Groups all packages under `@d-o/` |
+| Organization | Groups all packages under `@d-o-hub/` |
 | Permissions | Easier to manage team publish access |
 | Branding | Clear ownership and source |
 
@@ -1013,7 +1013,7 @@ wasm-pack build \
     --release \
     --target web \
     --out-dir npm/dist \
-    --scope d-o \
+    --scope d-o-hub \
     memory-core-wasm
 
 # Optimize WASM binary
@@ -1560,7 +1560,7 @@ jobs:
 
       - name: Verify npm package
         run: |
-          npm install @d-o/memory-core@${{ github.event.release.tag_name }}
+          npm install @d-o-hub/memory-core@${{ github.event.release.tag_name }}
           npm test
 
   notify:
@@ -1592,10 +1592,10 @@ cargo yank --vers 0.2.0 --undo memory-core
 
 ```bash
 # Deprecate a version (users see warning)
-npm deprecate @d-o/memory-core@0.2.0 "Critical bug, please upgrade"
+npm deprecate @d-o-hub/memory-core@0.2.0 "Critical bug, please upgrade"
 
 # Deprecate all versions below a threshold
-npm deprecate @d-o/memory-core@"<0.2.1" "Security vulnerability, upgrade required"
+npm deprecate @d-o-hub/memory-core@"<0.2.1" "Security vulnerability, upgrade required"
 ```
 
 **Emergency Release Process**:

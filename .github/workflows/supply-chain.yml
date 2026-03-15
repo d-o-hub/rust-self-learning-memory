@@ -25,7 +25,7 @@ jobs:
         run: cargo install --locked cargo-deny
 
       - name: Run cargo-deny
-        run: cargo deny check --all-features
+        run: cargo deny check
 
   sbom:
     name: Generate SBOM
@@ -40,7 +40,7 @@ jobs:
         run: cargo install --locked cargo-cyclonedx
 
       - name: Generate SBOM
-        run: cargo cyclonedx --all --format json --output-pattern crate
+        run: cargo cyclonedx --all --format json
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4

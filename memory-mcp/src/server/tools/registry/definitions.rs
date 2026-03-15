@@ -129,6 +129,70 @@ fn create_additional_extended_tools() -> Vec<Tool> {
                 "required": ["task_description", "domain"]
             }),
         ),
+        // ADR-044 Feature 1: Playbook recommendation tool
+        Tool::new(
+            "recommend_playbook".to_string(),
+            "Get an actionable playbook with step-by-step guidance for a task (ADR-044 Feature 1)"
+                .to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "task_description": {
+                        "type": "string",
+                        "description": "Description of the task to perform"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "Domain of the task (e.g., 'web-api', 'testing', 'data-processing')"
+                    },
+                    "task_type": {
+                        "type": "string",
+                        "enum": ["code_generation", "debugging", "refactoring", "testing", "analysis", "documentation"],
+                        "description": "Type of task being performed",
+                        "default": "code_generation"
+                    },
+                    "max_steps": {
+                        "type": "integer",
+                        "description": "Maximum number of steps to include (default: 5)",
+                        "default": 5
+                    },
+                    "language": {
+                        "type": "string",
+                        "description": "Programming language (optional)",
+                        "default": null
+                    },
+                    "framework": {
+                        "type": "string",
+                        "description": "Framework being used (optional)",
+                        "default": null
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Additional context tags",
+                        "default": []
+                    }
+                },
+                "required": ["task_description", "domain"]
+            }),
+        ),
+        // ADR-044 Feature 1: Pattern explanation tool
+        Tool::new(
+            "explain_pattern".to_string(),
+            "Get a human-readable explanation of a pattern including when to use it and expected outcomes"
+                .to_string(),
+            json!({
+                "type": "object",
+                "properties": {
+                    "pattern_id": {
+                        "type": "string",
+                        "description": "UUID of the pattern to explain",
+                        "format": "uuid"
+                    }
+                },
+                "required": ["pattern_id"]
+            }),
+        ),
     ]
 }
 

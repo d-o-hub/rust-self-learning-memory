@@ -121,6 +121,8 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         query_cache,
         dbscan_detector,
         audit_logger: AuditLogger::new(config.audit_config.clone()),
+        playbook_generator: super::playbook::PlaybookGenerator::new(),
+        summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
     }
 }
@@ -246,6 +248,8 @@ pub fn with_storage(
         query_cache,
         dbscan_detector,
         audit_logger,
+        playbook_generator: super::playbook::PlaybookGenerator::new(),
+        summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
     }
 }

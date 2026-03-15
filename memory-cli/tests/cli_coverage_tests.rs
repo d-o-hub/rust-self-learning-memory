@@ -3,7 +3,6 @@
 //! Covers command parsing, help output, and output format validation
 //! without requiring real storage backends (ACT-033, v0.1.21 sprint).
 
-use assert_cmd::Command;
 use predicates::prelude::*;
 
 mod common;

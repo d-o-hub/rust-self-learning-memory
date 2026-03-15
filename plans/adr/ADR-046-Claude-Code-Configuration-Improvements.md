@@ -1,7 +1,8 @@
 # ADR-046: Claude Code Configuration Improvements
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-03-15
+- **Implementation Date**: 2026-03-15
 - **Deciders**: Project maintainers
 - **Related**: ADR-022 (GOAP Agent System), ADR-038 (Local CI Parity)
 

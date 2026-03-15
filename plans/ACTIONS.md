@@ -117,7 +117,7 @@
 - **ACT-024**: Fix sandbox timing tests
   - Goal: WG-025
   - Action: Add `tokio::time::timeout` wrappers to 4 flaky sandbox tests in `memory-mcp/src/sandbox/tests.rs`
-  - Status: ⏳ Pending
+  - Status: ✅ Complete — `8df031b`
 
 - **ACT-025**: Add ignored-test ceiling check
   - Goal: WG-026
@@ -161,7 +161,7 @@
 - **ACT-029**: Add error handling tests
    - Goal: WG-027
    - Action: Add tests for all `Error` variants and `Result<T>` conversion paths
-   - Status: Pending
+   - Status: ✅ Complete — `033c6b4`, `b9c4f3f`
    - Estimated LOC: ~100
 
 - **ACT-030**: Add serialization round-trip tests
@@ -173,31 +173,31 @@
 - **ACT-031**: Add calculator property tests
    - Goal: WG-028
    - Action: Add property tests verifying bounds for RewardCalculator outputs
-   - Status: Pending
+   - Status: ✅ Complete — `6de3685`
    - Estimated LOC: ~100
 
 - **ACT-032**: Add MCP JSON-RPC fuzz tests
    - Goal: WG-028
    - Action: Add fuzz testing for JSON-RPC message parsing in `memory-mcp`
-   - Status: Pending
+   - Status: ✅ Complete — `83cecf9`
    - Estimated LOC: ~150
 
 - **ACT-033**: Add CLI integration tests
    - Goal: WG-029 (Integration Coverage)
    - Action: Add end-to-end tests for episode, pattern, tag commands in `memory-cli/tests/`
-   - Status: Pending
+   - Status: ✅ Complete — CLI coverage tests verified
    - Estimated LOC: ~300
 
 - **ACT-034**: Add MCP tool integration tests
    - Goal: WG-029
    - Action: Add tests covering all MCP tools with various inputs
-   - Status: Pending
+   - Status: ✅ Complete — `83cecf9`
    - Estimated LOC: ~250
 
 - **ACT-035**: Add cache eviction tests
    - Goal: WG-029
    - Action: Add tests for cache pressure scenarios in `memory-storage-redb/src/cache/`
-   - Status: Pending
+   - Status: ✅ Complete — Cache eviction tests verified
    - Estimated LOC: ~150
 
 - **ACT-036**: Update codecov.yml targets

@@ -1,6 +1,7 @@
 //! Tests for the sandbox module.
 
 use serde_json::json;
+use tokio::time::{Duration, timeout};
 
 use super::*;
 use crate::types::{ExecutionContext, ExecutionResult, SecurityViolationType};
@@ -75,14 +76,15 @@ async fn test_console_output() {
 
 #[tokio::test]
 async fn test_timeout_enforcement() {
-    set_once();
-    let config = SandboxConfig {
-        max_execution_time_ms: 500, // 500ms timeout
-        ..Default::default()
-    };
+    timeout(Duration::from_secs(10), async {
+        set_once();
+        let config = SandboxConfig {
+            max_execution_time_ms: 500, // 500ms timeout
+            ..Default::default()
+        };
 
-    let sandbox = CodeSandbox::new(config).unwrap();
-    let code = r#"
+        let sandbox = CodeSandbox::new(config).unwrap();
+        let code = r#"
         let sum = 0;
         for (let i = 0; i !== 10000000000; i++) {
             sum += i;
@@ -92,62 +94,73 @@ async fn test_timeout_enforcement() {
         }
         return sum;
     "#;
-    let context = create_test_context();
+        let context = create_test_context();
 
-    let result = sandbox.execute(code, context).await.unwrap();
+        let result = sandbox.execute(code, context).await.unwrap();
 
-    match result {
-        ExecutionResult::Timeout { .. } => {
-            // Timeout expected
+        match result {
+            ExecutionResult::Timeout { .. } => {
+                // Timeout expected
+            }
+            other => panic!("Expected timeout, got: {:?}", other),
         }
-        other => panic!("Expected timeout, got: {:?}", other),
-    }
+    })
+    .await
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]
 async fn test_filesystem_blocking() {
-    set_once();
-    let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
-    let code = r#"
+    timeout(Duration::from_secs(10), async {
+        set_once();
+        let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+        let code = r#"
         const fs = require('fs');
         fs.readFileSync('/etc/passwd');
     "#;
-    let context = create_test_context();
+        let context = create_test_context();
 
-    let result = sandbox.execute(code, context).await.unwrap();
+        let result = sandbox.execute(code, context).await.unwrap();
 
-    match result {
-        ExecutionResult::SecurityViolation {
-            violation_type: SecurityViolationType::FileSystemAccess,
-            ..
-        } => {
-            // Security violation expected
+        match result {
+            ExecutionResult::SecurityViolation {
+                violation_type: SecurityViolationType::FileSystemAccess,
+                ..
+            } => {
+                // Security violation expected
+            }
+            other => panic!("Expected security violation, got: {:?}", other),
         }
-        other => panic!("Expected security violation, got: {:?}", other),
-    }
+    })
+    .await
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]
 async fn test_network_blocking() {
-    set_once();
-    let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
-    let code = r#"
+    timeout(Duration::from_secs(10), async {
+        set_once();
+        let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+        let code = r#"
         const https = require('https');
         https.get('https://example.com');
     "#;
-    let context = create_test_context();
+        let context = create_test_context();
 
-    let result = sandbox.execute(code, context).await.unwrap();
+        let result = sandbox.execute(code, context).await.unwrap();
 
-    match result {
-        ExecutionResult::SecurityViolation {
-            violation_type: SecurityViolationType::NetworkAccess,
-            ..
-        } => {
-            // Security violation expected
+        match result {
+            ExecutionResult::SecurityViolation {
+                violation_type: SecurityViolationType::NetworkAccess,
+                ..
+            } => {
+                // Security violation expected
+            }
+            other => panic!("Expected security violation, got: {:?}", other),
         }
-        other => panic!("Expected security violation, got: {:?}", other),
-    }
+    })
+    .await
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]
@@ -175,22 +188,26 @@ async fn test_process_execution_blocking() {
 
 #[tokio::test]
 async fn test_infinite_loop_detection() {
-    set_once();
-    let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
-    let code = "while(true) {}";
-    let context = create_test_context();
+    timeout(Duration::from_secs(10), async {
+        set_once();
+        let sandbox = CodeSandbox::new(SandboxConfig::default()).unwrap();
+        let code = "while(true) {}";
+        let context = create_test_context();
 
-    let result = sandbox.execute(code, context).await.unwrap();
+        let result = sandbox.execute(code, context).await.unwrap();
 
-    match result {
-        ExecutionResult::SecurityViolation {
-            violation_type: SecurityViolationType::InfiniteLoop,
-            ..
-        } => {
-            // Security violation expected
+        match result {
+            ExecutionResult::SecurityViolation {
+                violation_type: SecurityViolationType::InfiniteLoop,
+                ..
+            } => {
+                // Security violation expected
+            }
+            other => panic!("Expected security violation, got: {:?}", other),
         }
-        other => panic!("Expected security violation, got: {:?}", other),
-    }
+    })
+    .await
+    .expect("Test timed out after 10 seconds");
 }
 
 #[tokio::test]

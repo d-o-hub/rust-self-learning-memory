@@ -609,3 +609,59 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 - `.github/workflows/publish-crates.yml` - Publishing automation workflow
 - `scripts/verify-crate-metadata.sh` - Metadata verification script
 - `release.toml` - Updated with crate-specific publish settings
+
+## v0.1.21 Configuration Improvements (2026-03-15)
+
+### Claude Code Configuration Improvements (ADR-046)
+
+**Branch**: docs/v0.1.21-release-updates
+**ADR**: `plans/adr/ADR-046-Claude-Code-Configuration-Improvements.md`
+
+### Session Analysis Summary
+
+**Source**: 34 Claude Code sessions (234 messages, 97 commits)
+
+| Metric | Value | Target |
+|--------|-------|--------|
+| wrong_approach instances | 8 | <2 |
+| buggy_code instances | 6 | 0 |
+| excessive_changes instances | 5 | 0 |
+| Bash:Grep tool ratio | 17:1 | 2:1 |
+| Tool errors | 67 | <15 |
+
+### Goals
+
+| ID | Goal | Priority | Status |
+|----|------|----------|--------|
+| WG-036 | Add AGENTS.md friction sections | P0 | ✅ Complete |
+| WG-037 | Create common_friction_points.md | P1 | ✅ Complete |
+| WG-038 | Consolidate hooks configuration | P2 | ⏳ Pending |
+| WG-039 | Update GOAP_STATE.md | P1 | ✅ Complete |
+
+### Actions Completed
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-046 | Add Common Pitfalls section to AGENTS.md | ✅ Complete |
+| ACT-047 | Add Tool Selection Enforcement section | ✅ Complete |
+| ACT-048 | Add Atomic Change Rules section | ✅ Complete |
+| ACT-049 | Create agent_docs/common_friction_points.md | ✅ Complete |
+| ACT-050 | Create ADR-046 | ✅ Complete |
+| ACT-051 | Merge hooks.json into settings.json | ⏳ Pending |
+| ACT-052 | Add quick compile check hook | ⏳ Pending |
+
+### Verified Patterns (for memory-cli)
+
+| Pattern ID | Category | Description |
+|------------|----------|-------------|
+| GH-001 | GitHub Actions | wait-on-check-action requires v2.0.0+ |
+| BUILD-001 | Build | --all-features triggers libclang via wasmtime |
+| TEST-001 | Testing | Network-dependent tests need #[serial] |
+| CLIPPY-001 | Linting | Integration tests need crate-level allows |
+
+### Key Learnings
+
+1. **Tool Selection**: Bash:Grep ratio of 17:1 indicates over-reliance on shell commands
+2. **Wrong Approach Pattern**: 8 instances - agents proceed without reading existing patterns
+3. **Atomic Commits**: 5 excessive_changes instances - need scope enforcement
+4. **Hook Consolidation**: Two hook config files create maintenance burden

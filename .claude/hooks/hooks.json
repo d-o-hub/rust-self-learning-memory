@@ -1,62 +1,6 @@
 {
-  "PreToolUse": [
-    {
-      "matcher": "Write|Edit",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "cargo fmt --check \"$CLAUDE_FILE_PATHS\" 2>&1 | head -20",
-          "timeout": 10
-        }
-      ]
-    }
-  ],
-  "PostToolUse": [
-    {
-      "matcher": "Write|Edit",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/post-tool-test.sh",
-          "timeout": 60
-        }
-      ]
-    }
-  ],
-  "UserPromptSubmit": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/skill-activation.sh",
-          "timeout": 5
-        }
-      ]
-    }
-  ],
-  "SessionStart": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "echo 'Episodic Memory Development Session Started' && cargo --version && rustc --version",
-          "timeout": 5
-        }
-      ]
-    }
-  ],
-  "PreCommit": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/ci-warn.sh",
-          "timeout": 30
-        }
-      ]
-    }
-  ]
+  "_comment": "DEPRECATED: All hooks migrated to settings.json on 2026-03-15. See ADR-046.",
+  "_migration_date": "2026-03-15",
+  "_adr_reference": "plans/adr/ADR-046-Claude-Code-Configuration-Improvements.md",
+  "_note": "This file is kept for reference. All hook configuration is now in .claude/settings.json"
 }

@@ -12,6 +12,7 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 | 4 | `service_architecture.md` | System design, crate responsibilities, module breakdown |
 | 5 | `database_schema.md` | Turso + redb schemas, tables, indexes, relationships |
 | 6 | `service_communication_patterns.md` | Inter-service communication, MCP protocol, async patterns |
+| 7 | `common_friction_points.md` | Friction patterns from session analysis, prevention strategies |
 
 ## Quick Links
 

@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-15  
-**Released Version**: v0.1.19  
-**Next Version**: v0.1.20 (code coverage improvement — ADR-042)  
+**Last Updated**: 2026-03-15
+**Released Version**: v0.1.21
+**Next Version**: v0.1.22 (ADR-044 High-Impact Features)  
 **Branch**: main  
 **Edition**: Rust 2024
 

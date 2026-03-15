@@ -1,44 +1,51 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-03-15
-**Released Version**: v0.1.20
-**Current Sprint**: v0.1.21 (publishing infrastructure)
+**Released Version**: v0.1.21
+**Current Sprint**: v0.1.22 (ADR-044 High-Impact Features)
 **Branch**: main
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.20 shipped with test coverage improvements and sprint fixes.
+All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.21 shipped with publishing infrastructure (ADR-045).
 
-v0.1.21 sprint focuses on publishing infrastructure (ADR-045):
-- crates.io publishing pipeline (P0)
-- Supply chain security (P0)
-- Cargo.toml metadata completion (P1)
-- First dry-run publish (P1)
+v0.1.22 sprint focuses on high-impact features (ADR-044):
+- Actionable Playbooks (P0)
+- Recommendation Attribution (P0)
+- Episode Checkpoints/Handoff (P1)
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Next Sprint: v0.1.21
+## Next Sprint: v0.1.22
 
-### Publishing Infrastructure (ADR-045)
+### High-Impact Features (ADR-044)
 
-#### P0: crates.io Publishing Pipeline
-- **Problem**: Project not published to crates.io — users can't use as dependency
-- **Impact**: Enables ecosystem consumption, version management
+#### P0: Actionable Playbooks
+- **Problem**: Users don't know what actions to take based on memory data
+- **Impact**: Closes usability gap, enables proactive recommendations
+- **Effort**: 3-5 days
+
+#### P0: Recommendation Attribution
+- **Problem**: No visibility into why recommendations are made
+- **Impact**: Builds trust, enables feedback loop for learning
 - **Effort**: 3-4 days
 
-#### P0: Supply Chain Security
-- **Problem**: No provenance, SBOMs, or OIDC for publishing
-- **Impact**: Supply chain attack prevention, trust establishment
-- **Effort**: 2-3 days
+#### P1: Episode Checkpoints/Handoff
+- **Problem**: No way to transfer context between sessions/agents
+- **Impact**: Enables multi-agent workflows, session continuity
+- **Effort**: 4-6 days
 
-#### P1: Cargo.toml Metadata Completion
-- **Problem**: Incomplete metadata prevents discoverability
-- **Impact**: Better crate visibility, docs.rs integration
-- **Effort**: 1 day
+### Completed in v0.1.21
+
+- ✅ ADR-045: Publishing Best Practices (100% complete)
+- ✅ Crates.io publishing pipeline with OIDC trusted publishing
+- ✅ Supply chain security workflow (cargo-deny, SBOM generation)
+- ✅ Crate metadata verification script
+- ✅ Gap analysis documentation
 
 ### Completed in v0.1.20
 
@@ -84,6 +91,7 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.21 | 2026-03 | Publishing infrastructure (ADR-045), supply chain security |
 | v0.1.20 | 2026-03 | Test coverage improvements, sprint fixes, coverage script |
 | v0.1.19 | 2026-03 | MCP enhancements, gitleaks fixes |
 | v0.1.18 | 2026-03 | AdaptiveCache, CLI filters, transport compression docs |

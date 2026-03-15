@@ -287,11 +287,18 @@ impl SelfLearningMemory {
         }
 
         // Store episode summary if generated
-        // Note: In Phase 2.4, storage backends will have store_episode_summary()
-        if let Some(_summary) = summary {
-            debug!(
+        // ADR-044 Feature 1: Persist semantic summary for playbook generation
+        if let Some(ref summary) = summary {
+            // Store in summaries cache for retrieval during playbook generation
+            {
+                let mut summaries = self.summaries_fallback.write().await;
+                summaries.insert(episode_id, summary.clone());
+            }
+            info!(
                 episode_id = %episode_id,
-                "Summary generated (storage to be implemented in Phase 2.4)"
+                summary_words = summary.summary_text.split_whitespace().count(),
+                key_concepts = summary.key_concepts.len(),
+                "Stored semantic summary"
             );
         }
 

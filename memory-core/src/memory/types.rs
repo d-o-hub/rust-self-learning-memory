@@ -3,6 +3,7 @@ use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::PatternExtractionQueue;
 use crate::memory::attribution::RecommendationTracker;
+use crate::memory::playbook::PlaybookGenerator;
 use crate::monitoring::AgentMonitor;
 use crate::pattern::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
@@ -10,6 +11,7 @@ use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
+use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
 use crate::types::MemoryConfig;
 use std::collections::HashMap;
@@ -130,6 +132,13 @@ pub struct SelfLearningMemory {
     // Security - Audit logging
     /// Audit logger for security compliance and incident investigation
     pub(super) audit_logger: AuditLogger,
+
+    // ADR-044 Feature 1 - Playbook Generation
+    /// Playbook generator for synthesizing actionable playbooks
+    #[allow(dead_code)]
+    pub(super) playbook_generator: PlaybookGenerator,
+    /// Cache for episode summaries (ADR-044: persist semantic summary)
+    pub(super) summaries_fallback: Arc<RwLock<HashMap<Uuid, EpisodeSummary>>>,
 
     // ADR-044 Feature 2 - Recommendation Attribution
     /// Tracker for recommendation sessions and feedback

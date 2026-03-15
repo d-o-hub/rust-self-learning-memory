@@ -9,13 +9,14 @@ use super::tools::{
     handle_advanced_pattern_analysis, handle_analyze_patterns, handle_bulk_episodes,
     handle_check_relationship_exists, handle_complete_episode, handle_configure_embeddings,
     handle_create_episode, handle_delete_episode, handle_embedding_provider_status,
-    handle_execute_code, handle_find_related_episodes, handle_generate_embedding,
-    handle_get_dependency_graph, handle_get_episode, handle_get_episode_relationships,
-    handle_get_episode_tags, handle_get_episode_timeline, handle_get_metrics,
-    handle_get_topological_order, handle_health_check, handle_quality_metrics, handle_query_memory,
-    handle_query_semantic_memory, handle_recommend_patterns, handle_remove_episode_relationship,
-    handle_remove_episode_tags, handle_search_by_embedding, handle_search_episodes_by_tags,
-    handle_search_patterns, handle_set_episode_tags, handle_test_embeddings, handle_update_episode,
+    handle_execute_code, handle_explain_pattern, handle_find_related_episodes,
+    handle_generate_embedding, handle_get_dependency_graph, handle_get_episode,
+    handle_get_episode_relationships, handle_get_episode_tags, handle_get_episode_timeline,
+    handle_get_metrics, handle_get_topological_order, handle_health_check, handle_quality_metrics,
+    handle_query_memory, handle_query_semantic_memory, handle_recommend_patterns,
+    handle_recommend_playbook, handle_remove_episode_relationship, handle_remove_episode_tags,
+    handle_search_by_embedding, handle_search_episodes_by_tags, handle_search_patterns,
+    handle_set_episode_tags, handle_test_embeddings, handle_update_episode,
     handle_validate_no_cycles,
 };
 use super::types::{CallToolParams, CallToolResult, Content};
@@ -143,6 +144,9 @@ pub async fn handle_call_tool(
         "get_topological_order" => {
             handle_get_topological_order(&mut server, params.arguments).await
         }
+        // ADR-044 Feature 1: Playbook tools
+        "recommend_playbook" => handle_recommend_playbook(&mut server, params.arguments).await,
+        "explain_pattern" => handle_explain_pattern(&mut server, params.arguments).await,
         _ => {
             return Some(JsonRpcResponse {
                 jsonrpc: "2.0".to_string(),

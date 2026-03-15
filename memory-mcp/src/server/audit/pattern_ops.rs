@@ -96,4 +96,43 @@ impl AuditLogger {
         )
         .await;
     }
+
+    /// Log playbook recommendation request (ADR-044 Feature 1)
+    pub async fn log_playbook_recommendation(
+        &self,
+        client_id: &str,
+        task_description: &str,
+        playbook_count: usize,
+        success: bool,
+    ) {
+        let metadata = json!({
+            "task_description": task_description,
+            "playbook_count": playbook_count
+        });
+
+        self.log_event(
+            AuditLogLevel::Info,
+            client_id,
+            "recommend_playbook",
+            if success { "success" } else { "failure" },
+            metadata,
+        )
+        .await;
+    }
+
+    /// Log pattern explanation request (ADR-44 Feature 1)
+    pub async fn log_pattern_explanation(&self, client_id: &str, pattern_id: &str, success: bool) {
+        let metadata = json!({
+            "pattern_id": pattern_id
+        });
+
+        self.log_event(
+            AuditLogLevel::Debug,
+            client_id,
+            "explain_pattern",
+            if success { "success" } else { "failure" },
+            metadata,
+        )
+        .await;
+    }
 }

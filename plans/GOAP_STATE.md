@@ -533,3 +533,41 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 **Branch**: release/v0.1.19
 **Status**: Pending review (branch protection requires approval)
 **Release**: Already published via tag trigger
+
+## v0.1.20 Sprint Status (2026-03-15)
+
+### GOAP Multi-Agent Execution
+
+**Strategy**: Hybrid (Parallel + Sequential)
+**Agents**: 4 specialized teammates (clippy-fixer, docs-updater, test-fixer, dead-code-cleaner)
+
+### Completed Tasks
+
+| ID | Task | Agent | Status | Commit |
+|----|------|-------|--------|--------|
+| #1 | Fix clippy regression | team-lead | ✅ Complete | `7184785` |
+| Security | Fix gitleaks findings | team-lead | ✅ Complete | `5e20557` |
+
+### PR #365
+
+**Branch**: release/v0.1.20
+**PR URL**: https://github.com/d-o-hub/rust-self-learning-memory/pull/365
+**Status**: CI running
+
+### Fixes Applied
+
+1. **Clippy Fix**:
+   - Added `#![allow(clippy::unwrap_used)]` to `memory-storage-redb/tests/persistence_coverage_tests.rs`
+   - Added `#![allow(clippy::expect_used)]` to `memory-mcp/tests/adr024_lazy_loading_tests.rs`
+   - Root cause: Integration tests are separate crate roots and don't inherit `.clippy.toml` settings
+
+2. **Security Fix**:
+   - Added fingerprints to `.gitleaksignore` for documentation example files
+   - Files: `plans/skills-cli-invocation-best-practices.md`, `agentic-payments.md`
+
+### Remaining CI Issues on main
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| Nightly Full Tests | ❌ Failure | Disk space issue (96% used) - infrastructure, not code |
+| Security/Gitleaks | ✅ Fixed | Fingerprints added |

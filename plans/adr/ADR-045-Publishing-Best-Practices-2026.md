@@ -1,6 +1,6 @@
 # ADR-045: Publishing Best Practices for crates.io and npm (2026)
 
-- **Status**: Proposed
+- **Status**: Implemented
 - **Date**: 2026-03-15
 - **Deciders**: Project maintainers
 - **Supersedes**: Extends ADR-034 (Release Engineering Modernization)

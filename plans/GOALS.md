@@ -164,3 +164,29 @@
     - Owner: ci-engineer
     - Target: CI script that fails if `#[ignore]` count exceeds 125 (prevents silent growth)
     - Status: ✅ Complete — `scripts/check-ignored-tests.sh` (commit `e66f4e0`)
+
+    ## Next Goals (v0.1.20 Sprint — ADR-042: Code Coverage Improvement)
+
+    27. **WG-027**: Critical path coverage
+    - Priority: P0
+    - Owner: test-runner + quality-unit-testing
+    - Target: All critical business logic modules have basic tests; no module below 50% coverage
+    - Status: ✅ Complete — ACT-026, ACT-027, ACT-028, ACT-029
+
+    28. **WG-028**: Property test expansion
+    - Priority: P1
+    - Owner: test-runner + quality-unit-testing
+    - Target: Property tests for all serializable types; calculator properties validated; fuzz tests pass
+    - Status: 🟡 Partial — ACT-030 (serialization) and ACT-031 (calculator) complete; ACT-032 (fuzz) pending
+
+    29. **WG-029**: Integration coverage
+    - Priority: P1
+    - Owner: test-runner + quality-unit-testing
+    - Target: CLI integration tests cover all commands; MCP tool tests cover all tools; storage tests cover error paths
+    - Status: Pending — ACT-033, ACT-034, ACT-035
+
+    30. **WG-030**: Coverage configuration and monitoring
+    - Priority: P2
+    - Owner: ci-engineer
+    - Target: Realistic codecov targets; coverage monitoring script reporting coverage by crate
+    - Status: ✅ Complete — ACT-036 (codecov config `be75d0a`), ACT-037 (`scripts/check-coverage.sh` `34d81f4`)

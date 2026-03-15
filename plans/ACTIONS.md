@@ -136,7 +136,7 @@
 - `Rng::gen_range()` → `RngExt::random_range()` (method rename)
 - Import `RngExt` for user-level RNG methods
 - Keep `rand` and `rand_chacha` versions aligned
-## v0.1.21 Sprint Actions (ADR-042: Code Coverage Improvement)
+## v0.1.20 Sprint Actions (ADR-042: Code Coverage Improvement)
 
 ### Phase 1: Critical Path Coverage
 

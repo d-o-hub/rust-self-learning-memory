@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-03-15  
 **Released Version**: v0.1.19  
-**Next Version**: v0.1.21 (code coverage improvement — ADR-042)  
+**Next Version**: v0.1.20 (code coverage improvement — ADR-042)  
 **Branch**: main  
 **Edition**: Rust 2024
 

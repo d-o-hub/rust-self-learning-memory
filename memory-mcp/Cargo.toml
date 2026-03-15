@@ -116,6 +116,14 @@ path = "tests/performance_tests.rs"
 name = "security_tests"
 path = "tests/security_tests.rs"
 
+[[test]]
+name = "jsonrpc_fuzz_tests"
+path = "tests/jsonrpc_fuzz_tests.rs"
+
+[[test]]
+name = "mcp_tool_coverage_tests"
+path = "tests/mcp_tool_coverage_tests.rs"
+
 [lints.rust]
 # Security-critical for sandbox operations
 unsafe_code = "deny"

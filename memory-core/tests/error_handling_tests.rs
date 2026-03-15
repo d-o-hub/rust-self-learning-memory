@@ -3,14 +3,16 @@
 //! Tests cover:
 //! - All Error variant construction
 //! - Display/Debug formatting for each variant
-//! - is_recoverable() classification for ALL variants
-//! - From conversions (serde_json::Error → Error, io::Error → Error, etc.)
-//! - Result<T> type alias
-//! - is_relationship_error() / is_cache_error() checks
-//! - as_relationship_error() / as_cache_error() accessors
+//! - `is_recoverable()` classification for ALL variants
+//! - From conversions (`serde_json::Error` -> Error, `io::Error` -> Error, etc.)
+//! - `Result<T>` type alias
+//! - `is_relationship_error()` / `is_cache_error()` checks
+//! - `as_relationship_error()` / `as_cache_error()` accessors
 
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
+#![allow(clippy::unnecessary_literal_unwrap)]
+#![allow(clippy::unnecessary_wraps)]
 
 use memory_core::episode::RelationshipType;
 use memory_core::error::{CacheError, Error, RelationshipError, Result};
@@ -603,4 +605,312 @@ fn error_handling_error_is_send() {
 fn error_handling_error_is_sync() {
     fn assert_sync<T: Sync>() {}
     assert_sync::<Error>();
+}
+
+// ============================================================================
+// std::error::Error Trait Implementation
+// ============================================================================
+
+#[test]
+fn error_handling_error_impls_std_error() {
+    fn assert_error<E: std::error::Error>() {}
+    assert_error::<Error>();
+}
+
+#[test]
+fn error_handling_relationship_error_impls_std_error() {
+    fn assert_error<E: std::error::Error>() {}
+    assert_error::<RelationshipError>();
+}
+
+#[test]
+fn error_handling_cache_error_impls_std_error() {
+    fn assert_error<E: std::error::Error>() {}
+    assert_error::<CacheError>();
+}
+
+// ============================================================================
+// Error Chain Propagation
+// ============================================================================
+
+#[test]
+fn error_handling_propagation_with_question_operator() {
+    fn inner_function() -> Result<String> {
+        let json_result: std::result::Result<serde_json::Value, _> =
+            serde_json::from_str("invalid");
+        let _parsed = json_result?;
+        Ok("unreachable".to_string())
+    }
+
+    fn middle_function() -> Result<String> {
+        let result = inner_function()?;
+        Ok(result)
+    }
+
+    fn outer_function() -> Result<String> {
+        let result = middle_function()?;
+        Ok(format!("processed: {result}"))
+    }
+
+    let result = outer_function();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(matches!(err, Error::Serialization(_)));
+}
+
+#[test]
+fn error_handling_propagation_from_io_error() {
+    fn inner_function() -> Result<String> {
+        let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file missing");
+        Err(io_err)?
+    }
+
+    fn outer_function() -> Result<String> {
+        inner_function()
+    }
+
+    let result = outer_function();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(matches!(err, Error::Io(_)));
+}
+
+#[test]
+fn error_handling_propagation_from_relationship_error() {
+    fn create_relationship() -> Result<()> {
+        Err(RelationshipError::SelfReference {
+            episode_id: Uuid::new_v4(),
+        })?
+    }
+
+    fn save_episode() -> Result<()> {
+        create_relationship()?;
+        Ok(())
+    }
+
+    let result = save_episode();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(err.is_relationship_error());
+}
+
+#[test]
+fn error_handling_propagation_from_cache_error() {
+    fn cache_operation() -> Result<()> {
+        Err(CacheError::EvictionFailed {
+            reason: "memory pressure".to_string(),
+        })?
+    }
+
+    fn process_with_cache() -> Result<()> {
+        cache_operation()?;
+        Ok(())
+    }
+
+    let result = process_with_cache();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(err.is_cache_error());
+}
+
+#[test]
+fn error_handling_propagation_from_anyhow() {
+    fn embedding_call() -> Result<()> {
+        Err(anyhow::anyhow!("embedding service unavailable"))?
+    }
+
+    fn process_embeddings() -> Result<()> {
+        embedding_call()?;
+        Ok(())
+    }
+
+    let result = process_embeddings();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(matches!(err, Error::Embedding(_)));
+    assert!(err.is_recoverable());
+}
+
+// ============================================================================
+// Multi-Layer Error Propagation
+// ============================================================================
+
+#[test]
+fn error_handling_multi_layer_propagation() {
+    fn layer_three() -> Result<i32> {
+        Err(Error::Storage("database connection failed".to_string()))
+    }
+
+    fn layer_two() -> Result<i32> {
+        let value = layer_three()?;
+        Ok(value * 2)
+    }
+
+    fn layer_one() -> Result<String> {
+        let value = layer_two()?;
+        Ok(format!("Result: {value}"))
+    }
+
+    let result = layer_one();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(matches!(err, Error::Storage(_)));
+    assert!(err.to_string().contains("database connection failed"));
+}
+
+#[test]
+fn error_handling_propagation_preserves_error_type() {
+    fn create_error() -> Result<()> {
+        Err(Error::InvalidInput("negative value".to_string()))
+    }
+
+    fn propagate_once() -> Result<()> {
+        create_error()?;
+        Ok(())
+    }
+
+    fn propagate_twice() -> Result<()> {
+        propagate_once()?;
+        Ok(())
+    }
+
+    let result = propagate_twice();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+
+    // Verify the error type is preserved through propagation
+    assert!(matches!(err, Error::InvalidInput(_)));
+    assert!(!err.is_recoverable());
+}
+
+// ============================================================================
+// Error Display Through Propagation
+// ============================================================================
+
+#[test]
+fn error_handling_display_preserved_through_propagation() {
+    fn failing_function() -> Result<String> {
+        Err(Error::NotFound(Uuid::nil()))?
+    }
+
+    let result: Result<String> = failing_function();
+    let err = result.unwrap_err();
+
+    // Display should still work correctly after propagation
+    let display = err.to_string();
+    assert!(display.contains("not found"));
+    assert!(display.contains("00000000-0000-0000-0000-000000000000"));
+}
+
+// ============================================================================
+// Result<T> With Different Types
+// ============================================================================
+
+#[test]
+fn error_handling_result_with_unit_type() {
+    fn returns_result_unit() -> Result<()> {
+        Err(Error::Configuration("missing env var".to_string()))
+    }
+
+    let result = returns_result_unit();
+    assert!(result.is_err());
+}
+
+#[test]
+fn error_handling_result_with_option() {
+    fn returns_result_option() -> Result<Option<String>> {
+        Ok(Some("value".to_string()))
+    }
+
+    let result = returns_result_option();
+    assert!(result.is_ok());
+    assert!(result.unwrap().is_some());
+}
+
+#[test]
+fn error_handling_result_with_vec() {
+    fn returns_result_vec() -> Result<Vec<i32>> {
+        Err(Error::QuotaExceeded("max 100 items".to_string()))
+    }
+
+    let result = returns_result_vec();
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(matches!(err, Error::QuotaExceeded(_)));
+}
+
+// ============================================================================
+// Error Cloning (for types that support it)
+// ============================================================================
+
+#[test]
+fn error_handling_relationship_error_can_be_cloned() {
+    let original = RelationshipError::SelfReference {
+        episode_id: Uuid::new_v4(),
+    };
+    let cloned = original.clone();
+    assert_eq!(original, cloned);
+}
+
+#[test]
+fn error_handling_cache_error_can_be_cloned() {
+    let original = CacheError::EvictionFailed {
+        reason: "test".to_string(),
+    };
+    let cloned = original.clone();
+    assert_eq!(original, cloned);
+}
+
+// ============================================================================
+// Error Matching And Extraction
+// ============================================================================
+
+#[test]
+fn error_handling_match_all_variants() {
+    let errors: Vec<Error> = vec![
+        Error::Storage("test".to_string()),
+        Error::Learning("test".to_string()),
+        Error::MCP("test".to_string()),
+        Error::NotFound(Uuid::nil()),
+        Error::Pattern("test".to_string()),
+        Error::ExecutionTimeout,
+        Error::CircuitBreakerOpen,
+        Error::InvalidInput("test".to_string()),
+        Error::InvalidState("test".to_string()),
+        Error::Security("test".to_string()),
+        Error::ValidationFailed("test".to_string()),
+        Error::QuotaExceeded("test".to_string()),
+        Error::RateLimitExceeded("test".to_string()),
+        Error::Configuration("test".to_string()),
+    ];
+
+    for err in errors {
+        // Ensure each variant can be matched and displayed
+        let _display = err.to_string();
+        let _debug = format!("{err:?}");
+    }
+}
+
+#[test]
+fn error_handling_extract_embedded_data() {
+    // Test extracting UUID from NotFound
+    let id = Uuid::new_v4();
+    let err = Error::NotFound(id);
+    if let Error::NotFound(extracted_id) = err {
+        assert_eq!(id, extracted_id);
+    } else {
+        panic!("Expected NotFound variant");
+    }
+}
+
+#[test]
+fn error_handling_extract_embedded_string() {
+    // Test extracting string from InvalidInput
+    let msg = "negative value not allowed".to_string();
+    let err = Error::InvalidInput(msg.clone());
+    if let Error::InvalidInput(extracted) = err {
+        assert_eq!(msg, extracted);
+    } else {
+        panic!("Expected InvalidInput variant");
+    }
 }

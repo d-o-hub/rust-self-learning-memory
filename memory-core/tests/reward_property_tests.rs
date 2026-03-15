@@ -5,7 +5,11 @@
 //!
 //! Covers ACT-031 from ADR-042 (Code Coverage Improvement)
 
-#![allow(clippy::cast_precision_loss, clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
 
 use chrono::{Duration, Utc};
 use memory_core::{
@@ -40,9 +44,13 @@ fn create_episode_with_params(
         let mut step = ExecutionStep::new(i + 1, format!("tool_{i}"), format!("Action {i}"));
         let is_success = (i as f32 / num_steps.max(1) as f32) < success_rate;
         step.result = if is_success {
-            Some(ExecutionResult::Success { output: "OK".to_string() })
+            Some(ExecutionResult::Success {
+                output: "OK".to_string(),
+            })
         } else {
-            Some(ExecutionResult::Error { message: "Failed".to_string() })
+            Some(ExecutionResult::Error {
+                message: "Failed".to_string(),
+            })
         };
         episode.add_step(step);
     }

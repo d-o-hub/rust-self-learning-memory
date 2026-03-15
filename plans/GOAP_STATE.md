@@ -572,3 +572,40 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 |-------|--------|-------|
 | Nightly Full Tests | ❌ Failure | Disk space issue (96% used) - infrastructure, not code |
 | Security/Gitleaks | ✅ Fixed | Fingerprints added |
+
+## v0.1.21 Sprint Status (2026-03-15)
+
+### Publishing Infrastructure (ADR-045)
+
+**Branch**: release/v0.1.21
+**ADR**: `plans/adr/ADR-045-Publishing-Best-Practices-2026.md`
+
+### Goals
+
+| ID | Goal | Priority | Status |
+|----|------|----------|--------|
+| WG-031 | Cargo.toml metadata completion | P1 | ✅ Already complete |
+| WG-032 | Supply chain security setup | P0 | ✅ Complete |
+| WG-033 | Publishing automation | P0 | ✅ Complete |
+| WG-034 | Documentation updates | P1 | ✅ Complete |
+| WG-035 | Pre-existing issue fixes | P2 | ⏳ Pending |
+
+### Actions Completed
+
+| ID | Action | Status |
+|----|--------|--------|
+| ACT-038 | Add Cargo.toml metadata to memory-core | ✅ Already complete |
+| ACT-039 | Add Cargo.toml metadata to storage crates | ✅ Already complete |
+| ACT-040 | Add Cargo.toml metadata to memory-mcp | ✅ Already complete |
+| ACT-041 | Create verify-crate-metadata.sh | ✅ Complete |
+| ACT-042 | Configure cargo-deny | ✅ Already exists |
+| ACT-043 | Add supply-chain.yml workflow | ✅ Complete |
+| ACT-044 | Create release.toml | ✅ Updated |
+| ACT-045 | Add publish-crates.yml workflow | ✅ Complete |
+
+### Files Created/Updated
+
+- `.github/workflows/supply-chain.yml` - Supply chain security workflow
+- `.github/workflows/publish-crates.yml` - Publishing automation workflow
+- `scripts/verify-crate-metadata.sh` - Metadata verification script
+- `release.toml` - Updated with crate-specific publish settings

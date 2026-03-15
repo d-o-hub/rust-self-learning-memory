@@ -67,3 +67,7 @@ de6ec38:memory-mcp/src/bin/server/embedding.rs:generic-api-key:26
 
 # Documentation example showing bad practice (hardcoded secret in example)
 e734961e3945646d5f2805fdf44009f38af9a1bb:plans/skills-cli-invocation-best-practices.md:curl-auth-header:899
+# Same file, different rule detection
+3e8fe9b39ba6120ea35278e54c059e03d8b3e0d9:plans/skills-cli-invocation-best-practices.md:generic-api-key:899
+# Agentic payments example with private_key_hex (historical file)
+3e8fe9b39ba6120ea35278e54c059e03d8b3e0d9:.claude/agents/payments/agentic-payments.md:generic-api-key:35

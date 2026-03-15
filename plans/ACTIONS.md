@@ -117,7 +117,7 @@
 - **ACT-024**: Fix sandbox timing tests
   - Goal: WG-025
   - Action: Add `tokio::time::timeout` wrappers to 4 flaky sandbox tests in `memory-mcp/src/sandbox/tests.rs`
-  - Status: ⏳ Pending
+  - Status: ✅ Complete — `8df031b`
 
 - **ACT-025**: Add ignored-test ceiling check
   - Goal: WG-026
@@ -136,82 +136,78 @@
 - `Rng::gen_range()` → `RngExt::random_range()` (method rename)
 - Import `RngExt` for user-level RNG methods
 - Keep `rand` and `rand_chacha` versions aligned
-## v0.1.21 Sprint Actions (ADR-042: Code Coverage Improvement)
+## v0.1.20 Sprint Actions (ADR-042: Code Coverage Improvement)
 
 ### Phase 1: Critical Path Coverage
 
 - **ACT-026**: Add episode lifecycle tests
-  - Goal: WG-027 (Critical Path Coverage)
-  - Action: Add tests for episode create, log step, complete flow in `memory-core/src/episode/`
-  - Status: Pending
-  - Estimated LOC: ~150
+   - Goal: WG-027 (Critical Path Coverage)
+   - Action: Add tests for episode create, log step, complete flow in `memory-core/src/episode/`
+   - Status: ✅ Complete — `f462730`
+   - Estimated LOC: ~150
 
 - **ACT-027**: Add reward calculation boundary tests
-  - Goal: WG-027
-  - Action: Add property tests for `RewardCalculator` efficiency multipliers, quality bonuses, learning bonuses
-  - Status: Pending
-  - Estimated LOC: ~200
+   - Goal: WG-027
+   - Action: Add property tests for `RewardCalculator` efficiency multipliers, quality bonuses, learning bonuses
+   - Status: ✅ Complete — `223de91`
+   - Estimated LOC: ~200
 
 - **ACT-028**: Add storage consistency tests
-  - Goal: WG-027
-  - Action: Add write/read round-trip tests in `memory-storage-redb` and `memory-storage-turso`
-  - Status: Pending
-  - Estimated LOC: ~150
+   - Goal: WG-027
+   - Action: Add write/read round-trip tests in `memory-storage-redb` and `memory-storage-turso`
+   - Status: ✅ Complete — `5fe0073`
+   - Estimated LOC: ~150
 
 - **ACT-029**: Add error handling tests
-  - Goal: WG-027
-  - Action: Add tests for all `Error` variants and `Result<T>` conversion paths
-  - Status: Pending
-  - Estimated LOC: ~100
-
-### Phase 2: Property Test Expansion
+   - Goal: WG-027
+   - Action: Add tests for all `Error` variants and `Result<T>` conversion paths
+   - Status: ✅ Complete — `033c6b4`, `b9c4f3f`
+   - Estimated LOC: ~100
 
 - **ACT-030**: Add serialization round-trip tests
-  - Goal: WG-028 (Property Test Expansion)
-  - Action: Add `proptest` tests for all serializable types (Episode, Pattern, Heuristic)
-  - Status: Pending
-  - Estimated LOC: ~250
+   - Goal: WG-028 (Property Test Expansion)
+   - Action: Add `proptest` tests for all serializable types (Episode, Pattern, Heuristic)
+   - Status: ✅ Complete — `c1fff87`
+   - Estimated LOC: ~250
 
 - **ACT-031**: Add calculator property tests
-  - Goal: WG-028
-  - Action: Add property tests verifying bounds for RewardCalculator outputs
-  - Status: Pending
-  - Estimated LOC: ~100
+   - Goal: WG-028
+   - Action: Add property tests verifying bounds for RewardCalculator outputs
+   - Status: ✅ Complete — `6de3685`
+   - Estimated LOC: ~100
 
 - **ACT-032**: Add MCP JSON-RPC fuzz tests
-  - Goal: WG-028
-  - Action: Add fuzz testing for JSON-RPC message parsing in `memory-mcp`
-  - Status: Pending
-  - Estimated LOC: ~150
-
-### Phase 3: Integration Coverage
+   - Goal: WG-028
+   - Action: Add fuzz testing for JSON-RPC message parsing in `memory-mcp`
+   - Status: ✅ Complete — `83cecf9`
+   - Estimated LOC: ~150
 
 - **ACT-033**: Add CLI integration tests
-  - Goal: WG-029 (Integration Coverage)
-  - Action: Add end-to-end tests for episode, pattern, tag commands in `memory-cli/tests/`
-  - Status: Pending
-  - Estimated LOC: ~300
+   - Goal: WG-029 (Integration Coverage)
+   - Action: Add end-to-end tests for episode, pattern, tag commands in `memory-cli/tests/`
+   - Status: ✅ Complete — CLI coverage tests verified
+   - Estimated LOC: ~300
 
 - **ACT-034**: Add MCP tool integration tests
-  - Goal: WG-029
-  - Action: Add tests covering all MCP tools with various inputs
-  - Status: Pending
-  - Estimated LOC: ~250
+   - Goal: WG-029
+   - Action: Add tests covering all MCP tools with various inputs
+   - Status: ✅ Complete — `83cecf9`
+   - Estimated LOC: ~250
 
 - **ACT-035**: Add cache eviction tests
-  - Goal: WG-029
-  - Action: Add tests for cache pressure scenarios in `memory-storage-redb/src/cache/`
-  - Status: Pending
-  - Estimated LOC: ~150
+   - Goal: WG-029
+   - Action: Add tests for cache pressure scenarios in `memory-storage-redb/src/cache/`
+   - Status: ✅ Complete — Cache eviction tests verified
+   - Estimated LOC: ~150
 
 - **ACT-036**: Update codecov.yml targets
-  - Goal: WG-030 (Coverage Configuration)
-  - Action: Update `.codecov.yml` to set realistic phase-based targets (70% -> 75% -> 80%)
-  - Status: Pending
-  - Estimated LOC: ~10
+   - Goal: WG-030 (Coverage Configuration)
+   - Action: Update `.codecov.yml` to set realistic phase-based targets (70% -> 75% -> 80%)
+   - Status: ✅ Complete — `be75d0a`
+   - Estimated LOC: ~10
 
 - **ACT-037**: Add coverage monitoring script
-  - Goal: WG-030
-  - Action: Create `scripts/check-coverage.sh` to report coverage by crate
-  - Status: Pending
-  - Estimated LOC: ~50
+   - Goal: WG-030
+   - Action: Create `scripts/check-coverage.sh` to report coverage by crate
+   - Status: Pending
+   - Estimated LOC: ~50

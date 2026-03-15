@@ -1,8 +1,8 @@
 //! Vector similarity calculations and search utilities
+//!
+//! Note: Several functions are kept for future use despite not being called yet.
 
 #![allow(dead_code)]
-
-// Remove unused imports for now
 use serde::{Deserialize, Serialize};
 
 /// Result from similarity search containing the item and similarity score

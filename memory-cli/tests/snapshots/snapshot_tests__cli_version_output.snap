@@ -3,4 +3,4 @@ source: memory-cli/tests/snapshot_tests.rs
 assertion_line: 34
 expression: stdout
 ---
-memory-cli 0.1.19
+memory-cli 0.1.20

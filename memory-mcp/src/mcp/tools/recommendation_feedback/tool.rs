@@ -5,7 +5,7 @@
 use super::types::{
     RecommendationStatsOutput, RecordRecommendationFeedbackInput,
     RecordRecommendationFeedbackOutput, RecordRecommendationSessionInput,
-    RecordRecommendationSessionOutput, TaskOutcomeJson,
+    RecordRecommendationSessionOutput,
 };
 use anyhow::{Result, anyhow};
 use memory_core::SelfLearningMemory;

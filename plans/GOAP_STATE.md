@@ -635,7 +635,7 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 |----|------|----------|--------|
 | WG-036 | Add AGENTS.md friction sections | P0 | ✅ Complete |
 | WG-037 | Create common_friction_points.md | P1 | ✅ Complete |
-| WG-038 | Consolidate hooks configuration | P2 | ⏳ Pending |
+| WG-038 | Consolidate hooks configuration | P2 | ✅ Complete |
 | WG-039 | Update GOAP_STATE.md | P1 | ✅ Complete |
 
 ### Actions Completed
@@ -647,8 +647,8 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | ACT-048 | Add Atomic Change Rules section | ✅ Complete |
 | ACT-049 | Create agent_docs/common_friction_points.md | ✅ Complete |
 | ACT-050 | Create ADR-046 | ✅ Complete |
-| ACT-051 | Merge hooks.json into settings.json | ⏳ Pending |
-| ACT-052 | Add quick compile check hook | ⏳ Pending |
+| ACT-051 | Merge hooks.json into settings.json | ✅ Complete |
+| ACT-052 | Add quick compile check hook | ✅ Complete |
 
 ### Verified Patterns (for memory-cli)
 
@@ -665,3 +665,4 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 2. **Wrong Approach Pattern**: 8 instances - agents proceed without reading existing patterns
 3. **Atomic Commits**: 5 excessive_changes instances - need scope enforcement
 4. **Hook Consolidation**: Two hook config files create maintenance burden
+5. **Memory-CLI Cache Directory**: `~/.local/share/memory-cli/cache/` must exist before episode operations. Episode create/log-step/complete all work correctly after ensuring directory exists. Pattern extraction works after episode completion.

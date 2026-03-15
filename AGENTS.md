@@ -41,6 +41,66 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Files**: ≤500 LOC per source file
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
 
+## Common Pitfalls (from Session Analysis)
+
+Based on analysis of 34 Claude Code sessions (234 messages, 97 commits):
+
+| Pitfall | Count | Prevention |
+|---------|-------|------------|
+| wrong_approach | 8 | Read existing patterns before implementing |
+| buggy_code | 6 | Run tests after every change |
+| excessive_changes | 5 | Use atomic commits |
+| tool_errors | 67 | Use correct tool for task |
+
+**Before implementing**:
+1. Read at least 3 related source files
+2. Identify existing patterns to follow
+3. Check ADRs for relevant decisions
+4. Consider clarification if uncertain
+
+## Tool Selection Enforcement
+
+Target Bash:Grep ratio of 2:1 (current: 17:1)
+
+**Use Grep for**:
+- Finding files: `Grep pattern="*.rs"`
+- Searching content: `Grep pattern="fn name"`
+- Finding definitions: `Grep pattern="struct Name"`
+- Checking usage: `Grep pattern="use crate"`
+
+**Use Bash for**:
+- File operations: `cp`, `mv`, `rm`
+- Git commands: `git status`, `git diff`
+- Running scripts: `./scripts/build-rust.sh`
+- Build/test: `cargo build`, `cargo test`
+
+**Before Bash**: Consider if Grep would be more efficient.
+
+## Atomic Change Rules
+
+1. **One logical change per commit**
+   - Commit message describes exactly what changed
+   - `git diff --stat` shows focused changes
+   - No unrelated modifications
+
+2. **Commit workflow**:
+   ```
+   1. Make focused change
+   2. Run tests: cargo nextest run --all
+   3. Run quality: ./scripts/code-quality.sh check
+   4. Verify: git status && git diff --stat
+   5. Commit: git commit -m "scope: description"
+   ```
+
+3. **Commit message format**:
+   - `feat(module): add feature`
+   - `fix(module): fix bug`
+   - `docs: update documentation`
+   - `refactor(module): improve code`
+   - `test(module): add tests`
+
+4. **Never batch incomplete work** - each commit should be a complete, working change
+
 ## Required Checks Before Commit
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --workspace --tests -- -D warnings`

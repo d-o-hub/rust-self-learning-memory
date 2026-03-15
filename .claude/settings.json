@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-   "permissions": {
+  "permissions": {
     "deny": [
       "Write(**/*summary.md)",
       "Write(**/*analysis.md)",
@@ -31,6 +31,17 @@
             "timeout": 60
           }
         ]
+      },
+      {
+        "name": "Quick Compile Check",
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file_path=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // empty' 2>/dev/null); if [ -n \"$file_path\" ] && echo \"$file_path\" | grep -q '\\.rs$'; then timeout 30 cargo check --quiet 2>&1 || echo 'Compile check: non-blocking timeout/error'; fi; exit 0",
+            "timeout": 35
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -41,6 +52,67 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/post-edit.sh || true",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "name": "Post-tool Test",
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/post-tool-test.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "name": "Skill Activation",
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/skill-activation.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "name": "Tool Selection Reminder",
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 Remember: Glob → Grep → Read → Bash (use scripts for complex operations)'",
+            "timeout": 1
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "name": "Version Display",
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Episodic Memory Development Session Started' && cargo --version && rustc --version",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCommit": [
+      {
+        "name": "CI Warning",
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/ci-warn.sh",
             "timeout": 30
           }
         ]

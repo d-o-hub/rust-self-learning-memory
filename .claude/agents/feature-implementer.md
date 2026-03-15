@@ -20,6 +20,9 @@ You have access to:
 - test-runner: Run tests for new features
 - code-quality: Ensure quality standards
 - build-compile: Verify builds
+- code-locator: Find relevant files for implementation
+- codebase-analyzer: Understand existing code for integration
+- file-search: Find files by keyword or pattern
 - clean-code-developer: SOLID principles, DRY, KISS, YAGNI, and clean code best practices for implementation
 
 ## Implementation Process

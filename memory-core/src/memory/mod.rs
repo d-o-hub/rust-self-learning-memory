@@ -46,7 +46,9 @@
 //! }
 //! ```
 
-mod api;
+pub mod api;
+pub mod attribution;
+pub mod checkpoint;
 mod completion;
 mod episode;
 pub mod filters;

@@ -2,6 +2,7 @@ use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship, PatternId};
 use crate::extraction::PatternExtractor;
 use crate::learning::queue::PatternExtractionQueue;
+use crate::memory::attribution::RecommendationTracker;
 use crate::monitoring::AgentMonitor;
 use crate::pattern::{Heuristic, Pattern};
 use crate::patterns::extractors::HeuristicExtractor;
@@ -129,4 +130,8 @@ pub struct SelfLearningMemory {
     // Security - Audit logging
     /// Audit logger for security compliance and incident investigation
     pub(super) audit_logger: AuditLogger,
+
+    // ADR-044 Feature 2 - Recommendation Attribution
+    /// Tracker for recommendation sessions and feedback
+    pub(super) recommendation_tracker: RecommendationTracker,
 }

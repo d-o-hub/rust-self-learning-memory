@@ -438,4 +438,67 @@ impl SelfLearningMemory {
 
         Ok(())
     }
+
+    /// Update an episode directly with the episode struct.
+    ///
+    /// This is used internally for operations like adding checkpoints.
+    /// Updates all storage backends.
+    ///
+    /// # Arguments
+    ///
+    /// * `episode` - The episode to update (will be stored with its episode_id)
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if update succeeds
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::Storage` if update fails
+    pub async fn update_episode_full(&self, episode: &crate::Episode) -> Result<()> {
+        self.update_episode_in_storage(episode).await
+    }
+
+    /// Get all heuristics from memory.
+    ///
+    /// Returns all stored heuristics for use in handoff packs and recommendations.
+    ///
+    /// # Returns
+    ///
+    /// Vector of all heuristics
+    pub async fn get_all_heuristics(&self) -> Result<Vec<crate::pattern::Heuristic>> {
+        let heuristics = self.heuristics_fallback.read().await;
+        Ok(heuristics.values().cloned().collect())
+    }
+
+    /// Search for patterns using multi-signal ranking.
+    ///
+    /// This is a simplified pattern search interface for checkpoint operations.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Natural language query
+    /// * `context` - Task context for filtering
+    /// * `config` - Search configuration
+    ///
+    /// # Returns
+    ///
+    /// Vector of pattern search results ranked by relevance
+    pub async fn search_patterns(
+        &self,
+        query: &str,
+        context: &crate::types::TaskContext,
+        config: super::pattern_search::SearchConfig,
+    ) -> Result<Vec<super::pattern_search::PatternSearchResult>> {
+        let patterns = self.get_all_patterns().await?;
+        super::pattern_search::search_patterns_semantic(
+            query,
+            patterns,
+            context,
+            self.semantic_service.as_ref(),
+            config,
+            10, // default limit
+        )
+        .await
+    }
 }

@@ -176,6 +176,7 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         applied_patterns: Vec::new(),
         salient_features: None,
         tags: vec![],
+        checkpoints: vec![],
         start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0).unwrap_or_default(),
         end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         metadata,

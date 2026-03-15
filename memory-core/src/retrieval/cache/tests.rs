@@ -31,6 +31,7 @@ mod cache_tests {
             applied_patterns: vec![],
             salient_features: None,
             tags: vec![],
+            checkpoints: vec![],
             metadata: HashMap::new(),
         })
     }

@@ -38,6 +38,7 @@ fn create_episode(id: &str, domain: &str) -> Arc<Episode> {
         applied_patterns: vec![],
         salient_features: None,
         tags: vec![],
+        checkpoints: vec![],
         metadata: HashMap::new(),
     })
 }

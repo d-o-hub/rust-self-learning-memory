@@ -1,52 +1,55 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-03-15
-**Released Version**: v0.1.19
-**Current Sprint**: v0.1.20 (high-impact features)
+**Released Version**: v0.1.20
+**Current Sprint**: v0.1.21 (publishing infrastructure)
 **Branch**: main
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.19 shipped with MCP enhancements and gitleaks fixes.
+All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.20 shipped with test coverage improvements and sprint fixes.
 
-v0.1.20 sprint focuses on high-impact features (ADR-044):
-- Actionable Recommendation Playbooks (P0)
-- Recommendation Attribution & Online Effectiveness (P0)
-- Episode Checkpoints & Handoff Packs (P1)
+v0.1.21 sprint focuses on publishing infrastructure (ADR-045):
+- crates.io publishing pipeline (P0)
+- Supply chain security (P0)
+- Cargo.toml metadata completion (P1)
+- First dry-run publish (P1)
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Next Sprint: v0.1.20
+## Next Sprint: v0.1.21
 
-### High-Impact Features (ADR-044)
+### Publishing Infrastructure (ADR-045)
 
-#### P0: Actionable Recommendation Playbooks
-- **Problem**: Memory returns raw episodes/patterns — agents must infer what to do
-- **Impact**: Closes biggest product gap for agent adoption
-- **Effort**: 3-5 days
-
-#### P0: Recommendation Attribution & Online Effectiveness
-- **Problem**: Recommendations not tracked — can't learn which helped
-- **Impact**: Closes feedback loop from recommendation → usage → outcome
+#### P0: crates.io Publishing Pipeline
+- **Problem**: Project not published to crates.io — users can't use as dependency
+- **Impact**: Enables ecosystem consumption, version management
 - **Effort**: 3-4 days
 
-#### P1: Episode Checkpoints & Handoff Packs
-- **Problem**: Learning only at episode completion — multi-agent workflows blocked
-- **Impact**: Unlocks multi-agent adoption
-- **Effort**: 4-6 days
+#### P0: Supply Chain Security
+- **Problem**: No provenance, SBOMs, or OIDC for publishing
+- **Impact**: Supply chain attack prevention, trust establishment
+- **Effort**: 2-3 days
 
-### Completed in v0.1.19
+#### P1: Cargo.toml Metadata Completion
+- **Problem**: Incomplete metadata prevents discoverability
+- **Impact**: Better crate visibility, docs.rs integration
+- **Effort**: 1 day
 
-- ✅ Adaptive TTL → Turso Storage wired (feature-gated)
-- ✅ Transport Compression wired (feature-gated)
-- ✅ Adaptive Cache → redb Storage via Cache trait adapter
-- ✅ CLI Domain/Type Filters implemented
-- ✅ CLI Pattern Discovery Commands implemented
-- ✅ MCP Completion/Elicitation/Rate Limiting implemented
+### Completed in v0.1.20
+
+- ✅ ACT-024: Sandbox timing tests with timeout wrappers
+- ✅ ACT-029: Error handling tests (98 tests)
+- ✅ ACT-031: Calculator property tests (27 tests)
+- ✅ ACT-032: MCP JSON-RPC fuzz tests
+- ✅ ACT-033: CLI integration tests
+- ✅ ACT-034: MCP tool coverage tests
+- ✅ ACT-035: Cache eviction tests
+- ✅ ACT-037: Coverage monitoring script
 
 ---
 
@@ -81,6 +84,7 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.20 | 2026-03 | Test coverage improvements, sprint fixes, coverage script |
 | v0.1.19 | 2026-03 | MCP enhancements, gitleaks fixes |
 | v0.1.18 | 2026-03 | AdaptiveCache, CLI filters, transport compression docs |
 | v0.1.17 | 2026-03 | MCP contract parity, dead code removal, doc fixes, G2/G9 |

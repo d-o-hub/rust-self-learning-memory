@@ -1,0 +1,66 @@
+name: Publish to crates.io
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run (no actual publish)'
+        required: false
+        default: 'true'
+        type: boolean
+      crate:
+        description: 'Specific crate to publish (empty = all)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC trusted publishing
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.crate }}
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' || inputs.dry-run == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - memory-core
+          - memory-storage-turso
+          - memory-storage-redb
+          - memory-mcp
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-semver-checks
+        run: cargo install --locked cargo-semver-checks
+
+      - name: Semver Check
+        run: cargo semver-checks --package ${{ matrix.crate }}
+        continue-on-error: true  # Pre-1.0 may have breaking changes
+
+      - name: Verify metadata
+        run: |
+          cargo metadata --format-version 1 --no-deps | \
+          jq -e ".packages[] | select(.name == \"${{ matrix.crate }}\") | .description" > /dev/null
+
+      - name: Dry Run Publish
+        if: ${{ inputs.dry-run == 'true' }}
+        run: cargo publish --package ${{ matrix.crate }} --dry-run
+
+      - name: Publish to crates.io
+        if: ${{ github.event_name == 'release' && inputs.dry-run != 'true' }}
+        uses: rust-lang/crates-io-auth-action@v1
+        with:
+          crate: ${{ matrix.crate }}

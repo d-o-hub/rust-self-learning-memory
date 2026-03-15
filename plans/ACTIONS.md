@@ -209,5 +209,69 @@
 - **ACT-037**: Add coverage monitoring script
    - Goal: WG-030
    - Action: Create `scripts/check-coverage.sh` to report coverage by crate
-   - Status: Pending
+   - Status: ✅ Complete — script created in v0.1.20
    - Estimated LOC: ~50
+
+## v0.1.21 Sprint Actions (ADR-045: Publishing Infrastructure)
+
+### Phase 1: Cargo.toml Metadata
+
+- **ACT-038**: Add Cargo.toml metadata to memory-core
+   - Goal: WG-031 (Publishing Readiness)
+   - Action: Add description, documentation, readme, keywords, categories, include/exclude
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-039**: Add Cargo.toml metadata to storage crates
+   - Goal: WG-031
+   - Action: Add metadata to memory-storage-turso, memory-storage-redb
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-040**: Add Cargo.toml metadata to memory-mcp
+   - Goal: WG-031
+   - Action: Add metadata to memory-mcp crate
+   - Status: Pending
+   - Priority: P1
+
+### Phase 2: Verification Scripts
+
+- **ACT-041**: Create verify-crate-metadata.sh
+   - Goal: WG-031
+   - Action: Create script to verify all required metadata before publishing
+   - Status: Pending
+   - Priority: P1
+
+### Phase 3: Supply Chain Security
+
+- **ACT-042**: Configure cargo-deny with deny.toml
+   - Goal: WG-032 (Supply Chain Security)
+   - Action: Create deny.toml with license, advisory, ban checks
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-043**: Add supply-chain.yml workflow
+   - Goal: WG-032
+   - Action: Create workflow for dependency auditing and SBOM generation
+   - Status: Pending
+   - Priority: P0
+
+### Phase 4: Publishing Workflow
+
+- **ACT-044**: Create release.toml for cargo-release
+   - Goal: WG-033 (Publishing Automation)
+   - Action: Configure cargo-release for workspace version management
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-045**: Add publish-crates.yml workflow
+   - Goal: WG-033
+   - Action: Create CI workflow for automated crates.io publishing with OIDC
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-046**: First dry-run publish to crates.io
+   - Goal: WG-033
+   - Action: Execute dry-run publish for all crates, verify metadata
+   - Status: Pending
+   - Priority: P1

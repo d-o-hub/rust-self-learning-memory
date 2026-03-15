@@ -1,15 +1,53 @@
+# release.toml - Cargo release configuration
+# See: https://github.com/crate-ci/cargo-release
+
 [workspace]
-allow-branch = ["main"]
+# Version management
+allow-branch = ["main", "release/*"]
+consolidate-commits = true
+consolidate-pushes = true
+
+# Git settings
 sign-commit = false
 sign-tag = false
 push = true
-publish = false           # Not publishing to crates.io yet
+
+# Publishing
+publish = false  # Enable after first manual publish
+registry = "crates-io"
+
+# Release commit message
 pre-release-commit-message = "release: v{{version}}"
-tag-message = "v{{version}}"
-tag-prefix = "v"
+tag-message = "Release v{{version}}"
 tag-name = "v{{version}}"
 
-[[package.pre-release-replacements]]
-file = "CHANGELOG.md"
-search = "## \\[Unreleased\\]"
-replace = "## [Unreleased]\\n\\n## [{{version}}] - {{date}}"
+# Changelog integration
+pre-release-hook = ["./scripts/update-changelog.sh"]
+
+# Individual crate settings
+[package.memory-core]
+publish = true
+
+[package.memory-storage-turso]
+publish = true
+
+[package.memory-storage-redb]
+publish = true
+
+[package.memory-mcp]
+publish = true
+
+[package.memory-cli]
+publish = false  # Distributed as binary
+
+[package.test-utils]
+publish = false  # Internal use only
+
+[package.benches]
+publish = false
+
+[package.tests]
+publish = false
+
+[package.examples]
+publish = false

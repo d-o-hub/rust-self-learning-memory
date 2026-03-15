@@ -259,6 +259,7 @@ pub use indexing::{
 };
 pub use learning::queue::{PatternExtractionQueue, QueueConfig, QueueStats};
 pub use memory::SelfLearningMemory;
+pub use memory::checkpoint::{CheckpointMeta, HandoffPack};
 pub use memory::filters::{EpisodeFilter, EpisodeFilterBuilder, OutcomeType};
 pub use memory::step_buffer::BatchConfig;
 pub use monitoring::{AgentMetrics, AgentMonitor, AgentType, MonitoringConfig, TaskMetrics};
@@ -283,4 +284,9 @@ pub use storage::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, apply_qu
 pub use types::{
     ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
     Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
+};
+
+// Re-export attribution types (ADR-044 Feature 2)
+pub use memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats, RecommendationTracker,
 };

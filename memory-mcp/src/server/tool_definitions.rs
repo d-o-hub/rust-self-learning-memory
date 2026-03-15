@@ -221,5 +221,94 @@ pub fn create_default_tools() -> Vec<Tool> {
         }),
     ));
 
+    // Recommendation feedback tools (ADR-044 Feature 2)
+    tools.push(Tool::new(
+        "record_recommendation_session".to_string(),
+        "Record a recommendation session when patterns/playbooks are suggested to an agent"
+            .to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "episode_id": {
+                    "type": "string",
+                    "description": "Episode ID for which recommendations are made"
+                },
+                "recommended_pattern_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Pattern IDs that were recommended",
+                    "default": []
+                },
+                "recommended_playbook_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Playbook IDs that were recommended",
+                    "default": []
+                }
+            },
+            "required": ["episode_id"]
+        }),
+    ));
+
+    tools.push(Tool::new(
+        "record_recommendation_feedback".to_string(),
+        "Record feedback about which recommendations were used and the outcome".to_string(),
+        json!({
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID from the recommendation session"
+                },
+                "applied_pattern_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Pattern IDs that were actually applied",
+                    "default": []
+                },
+                "consulted_episode_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Episode IDs that were consulted",
+                    "default": []
+                },
+                "outcome": {
+                    "type": "object",
+                    "description": "Final outcome of the task",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": ["success", "partial_success", "failure"]
+                        },
+                        "verdict": {"type": "string"},
+                        "reason": {"type": "string"},
+                        "artifacts": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "default": []
+                        }
+                    },
+                    "required": ["type"]
+                },
+                "agent_rating": {
+                    "type": "number",
+                    "description": "Optional rating of recommendation quality (0.0-1.0)",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                }
+            },
+            "required": ["session_id", "outcome"]
+        }),
+    ));
+
+    tools.push(Tool::new(
+        "get_recommendation_stats".to_string(),
+        "Get statistics about recommendation effectiveness and adoption rates".to_string(),
+        json!({
+            "type": "object",
+            "properties": {}
+        }),
+    ));
+
     tools
 }

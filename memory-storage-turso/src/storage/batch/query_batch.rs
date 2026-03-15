@@ -325,6 +325,7 @@ mod tests {
             salient_features: None,
             metadata: std::collections::HashMap::new(),
             tags: Vec::new(),
+            checkpoints: Vec::new(),
         };
         storage.store_episodes_batch(vec![episode]).await.unwrap();
 

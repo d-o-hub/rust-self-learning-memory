@@ -340,4 +340,91 @@ impl RewardCalculator {
         }
         false
     }
+
+    /// Calculate adoption bonus for patterns that were recommended AND applied AND succeeded.
+    ///
+    /// This bonus rewards episodes where the agent successfully applied recommended patterns.
+    /// The bonus is proportional to the number of successfully adopted patterns.
+    ///
+    /// # Arguments
+    ///
+    /// * `applied_pattern_ids` - Pattern IDs that were actually applied
+    /// * `outcome_success` - Whether the episode outcome was successful
+    ///
+    /// # Returns
+    ///
+    /// Bonus value between 0.0 and 0.3 (max 30% bonus for 3+ successful adoptions)
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use memory_core::reward::RewardCalculator;
+    ///
+    /// let calculator = RewardCalculator::new();
+    ///
+    /// // 2 patterns applied successfully
+    /// let bonus = calculator.calculate_adoption_bonus(
+    ///     &["p1".to_string(), "p2".to_string()],
+    ///     true
+    /// );
+    /// assert!(bonus > 0.0);
+    ///
+    /// // No bonus for failed outcome
+    /// let no_bonus = calculator.calculate_adoption_bonus(
+    ///     &["p1".to_string()],
+    ///     false
+    /// );
+    /// assert_eq!(no_bonus, 0.0);
+    /// ```
+    #[must_use]
+    pub fn calculate_adoption_bonus(
+        &self,
+        applied_pattern_ids: &[String],
+        outcome_success: bool,
+    ) -> f32 {
+        if !outcome_success || applied_pattern_ids.is_empty() {
+            return 0.0;
+        }
+
+        // Bonus scales with number of successfully adopted patterns
+        // 1 pattern = 0.1, 2 patterns = 0.2, 3+ patterns = 0.3 (capped)
+        let pattern_count = applied_pattern_ids.len();
+        (pattern_count as f32 * 0.1).min(0.3)
+    }
+}
+
+#[cfg(test)]
+mod adoption_bonus_tests {
+    use super::*;
+
+    #[test]
+    fn test_adoption_bonus_no_patterns() {
+        let calc = RewardCalculator::new();
+        let bonus = calc.calculate_adoption_bonus(&[], true);
+        assert_eq!(bonus, 0.0);
+    }
+
+    #[test]
+    fn test_adoption_bonus_failed_outcome() {
+        let calc = RewardCalculator::new();
+        let bonus = calc.calculate_adoption_bonus(&["p1".to_string()], false);
+        assert_eq!(bonus, 0.0);
+    }
+
+    #[test]
+    fn test_adoption_bonus_single_pattern() {
+        let calc = RewardCalculator::new();
+        let bonus = calc.calculate_adoption_bonus(&["p1".to_string()], true);
+        assert!((bonus - 0.1).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_adoption_bonus_multiple_patterns() {
+        let calc = RewardCalculator::new();
+        let bonus = calc.calculate_adoption_bonus(
+            &["p1".to_string(), "p2".to_string(), "p3".to_string()],
+            true,
+        );
+        assert!((bonus - 0.3).abs() < 0.01); // Capped at 0.3
+    }
 }

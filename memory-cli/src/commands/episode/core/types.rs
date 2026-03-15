@@ -231,6 +231,35 @@ pub enum EpisodeCommands {
         episode_ids: String,
     },
 
+    /// Create a checkpoint for an in-progress episode (ADR-044 Feature 3)
+    Checkpoint {
+        /// Episode ID to checkpoint
+        #[arg(value_name = "EPISODE_ID")]
+        episode_id: String,
+
+        /// Reason for creating the checkpoint (e.g., 'Agent switch', 'Long-running task pause')
+        #[arg(short, long)]
+        reason: String,
+
+        /// Optional note about the checkpoint
+        #[arg(short, long)]
+        note: Option<String>,
+    },
+
+    /// Get a handoff pack from a checkpoint (ADR-044 Feature 3)
+    Handoff {
+        /// Checkpoint ID to generate handoff pack from
+        #[arg(value_name = "CHECKPOINT_ID")]
+        checkpoint_id: String,
+    },
+
+    /// Resume work from a checkpoint in a new episode (ADR-044 Feature 3)
+    Resume {
+        /// Checkpoint ID to resume from
+        #[arg(value_name = "CHECKPOINT_ID")]
+        checkpoint_id: String,
+    },
+
     /// Manage episode relationships
     #[command(subcommand)]
     Relationships(RelationshipCommands),

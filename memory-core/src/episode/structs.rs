@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+use crate::memory::checkpoint::CheckpointMeta;
 use crate::pre_storage::SalientFeatures;
 use crate::types::{ExecutionResult, Reflection, RewardScore, TaskContext, TaskOutcome, TaskType};
 
@@ -132,6 +133,9 @@ pub struct Episode {
     /// Tags for episode categorization (e.g., "bug-fix", "feature", "refactor")
     #[serde(default)]
     pub tags: Vec<String>,
+    /// Checkpoints created during episode execution (ADR-044 Feature 3)
+    #[serde(default)]
+    pub checkpoints: Vec<CheckpointMeta>,
 }
 
 impl Episode {
@@ -155,6 +159,7 @@ impl Episode {
             salient_features: None,
             metadata: HashMap::new(),
             tags: Vec::new(),
+            checkpoints: Vec::new(),
         }
     }
 

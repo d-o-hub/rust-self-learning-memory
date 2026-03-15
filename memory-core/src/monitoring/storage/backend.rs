@@ -100,6 +100,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             applied_patterns: vec![],
             salient_features: None,
             tags: vec![],
+            checkpoints: vec![],
             metadata,
         };
 
@@ -146,6 +147,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             applied_patterns: vec![],
             salient_features: None,
             tags: vec![],
+            checkpoints: vec![],
             metadata,
         };
 
@@ -191,6 +193,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
             applied_patterns: vec![],
             salient_features: None,
             tags: vec![],
+            checkpoints: vec![],
             metadata,
         };
 

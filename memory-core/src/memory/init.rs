@@ -121,6 +121,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         query_cache,
         dbscan_detector,
         audit_logger: AuditLogger::new(config.audit_config.clone()),
+        recommendation_tracker: super::attribution::RecommendationTracker::new(),
     }
 }
 
@@ -245,6 +246,7 @@ pub fn with_storage(
         query_cache,
         dbscan_detector,
         audit_logger,
+        recommendation_tracker: super::attribution::RecommendationTracker::new(),
     }
 }
 

@@ -23,14 +23,17 @@ pub use core::SavedFilter;
 pub use core::TaskOutcome;
 
 pub use core::bulk_get_episodes;
+pub use core::checkpoint;
 pub use core::complete_episode;
 pub use core::create_episode;
 pub use core::delete;
 pub use core::delete_episode;
 pub use core::filter;
 pub use core::handle_filter_command;
+pub use core::handoff;
 pub use core::list_episodes;
 pub use core::log_step;
+pub use core::resume;
 pub use core::search_episodes;
 pub use core::update_episode;
 pub use core::view_episode;

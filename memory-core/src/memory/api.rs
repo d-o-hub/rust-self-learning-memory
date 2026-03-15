@@ -4,6 +4,9 @@
 //! organized by functionality area.
 
 use crate::error::Result;
+use crate::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
 use crate::monitoring::AgentMetrics;
 use std::time::Duration;
 
@@ -84,5 +87,122 @@ impl SelfLearningMemory {
     /// Clear all cached query results (v0.1.12)
     pub fn clear_cache(&self) {
         super::monitoring::clear_cache(&self.query_cache);
+    }
+}
+
+// ============================================================================
+// Recommendation Attribution (ADR-044 Feature 2)
+// ============================================================================
+
+impl SelfLearningMemory {
+    /// Record a recommendation session when patterns/playbooks are suggested.
+    ///
+    /// Call this when the system recommends patterns or playbooks to an agent.
+    /// This creates a record that can later be correlated with feedback.
+    ///
+    /// # Arguments
+    ///
+    /// * `session` - The recommendation session to record
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use memory_core::SelfLearningMemory;
+    /// use memory_core::memory::attribution::RecommendationSession;
+    /// use uuid::Uuid;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let session = RecommendationSession {
+    ///     session_id: Uuid::new_v4(),
+    ///     episode_id: Uuid::new_v4(),
+    ///     timestamp: chrono::Utc::now(),
+    ///     recommended_pattern_ids: vec!["pattern-123".to_string()],
+    ///     recommended_playbook_ids: vec![],
+    /// };
+    ///
+    /// memory.record_recommendation_session(session).await;
+    /// # }
+    /// ```
+    pub async fn record_recommendation_session(&self, session: RecommendationSession) {
+        self.recommendation_tracker.record_session(session).await;
+    }
+
+    /// Record feedback about a recommendation session.
+    ///
+    /// Call this after an agent completes or abandons a task to indicate
+    /// which recommendations were used and the outcome.
+    ///
+    /// # Arguments
+    ///
+    /// * `feedback` - The feedback to record
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(())` on success, or an error if the session doesn't exist.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use memory_core::SelfLearningMemory;
+    /// use memory_core::memory::attribution::RecommendationFeedback;
+    /// use memory_core::TaskOutcome;
+    /// use uuid::Uuid;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> anyhow::Result<()> {
+    /// let memory = SelfLearningMemory::new();
+    ///
+    /// let feedback = RecommendationFeedback {
+    ///     session_id: Uuid::new_v4(),
+    ///     applied_pattern_ids: vec!["pattern-123".to_string()],
+    ///     consulted_episode_ids: vec![],
+    ///     outcome: TaskOutcome::Success {
+    ///         verdict: "Done".to_string(),
+    ///         artifacts: vec![],
+    ///     },
+    ///     agent_rating: Some(0.9),
+    /// };
+    ///
+    /// memory.record_recommendation_feedback(feedback).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn record_recommendation_feedback(
+        &self,
+        feedback: RecommendationFeedback,
+    ) -> Result<()> {
+        self.recommendation_tracker.record_feedback(feedback).await
+    }
+
+    /// Get the recommendation session for an episode.
+    ///
+    /// Returns the session that was recorded when recommendations were made
+    /// for the specified episode.
+    pub async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: uuid::Uuid,
+    ) -> Option<RecommendationSession> {
+        self.recommendation_tracker
+            .get_session_for_episode(episode_id)
+            .await
+    }
+
+    /// Get feedback for a recommendation session.
+    pub async fn get_recommendation_feedback(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Option<RecommendationFeedback> {
+        self.recommendation_tracker.get_feedback(session_id).await
+    }
+
+    /// Get overall recommendation effectiveness statistics.
+    ///
+    /// Returns aggregate metrics about recommendation adoption rates,
+    /// success rates, and agent ratings.
+    pub async fn get_recommendation_stats(&self) -> RecommendationStats {
+        self.recommendation_tracker.get_stats().await
     }
 }

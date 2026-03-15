@@ -1,21 +1,20 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-03-15
-**Released Version**: v0.1.19
-**Current Sprint**: v0.1.20 (code quality & coverage)
+**Released Version**: v0.1.20
+**Current Sprint**: v0.1.21 (high-impact features)
 **Branch**: main
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.19 shipped with AdaptiveCache wiring, CLI domain/type filters, pattern discovery commands, and MCP protocol enhancements.
+All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.20 shipped with coverage monitoring script, documentation improvements, and dead code analysis.
 
-v0.1.20 sprint focuses on code quality improvements:
-- Dead code reduction (69 → ≤20 `#[allow(dead_code)]` attrs)
-- Test health fixes (sandbox timing tests)
-- Code coverage expansion (ADR-042)
-- Coverage monitoring script
+v0.1.21 sprint focuses on high-impact features (ADR-044):
+- Actionable Recommendation Playbooks (P0)
+- Recommendation Attribution & Online Effectiveness (P0)
+- Episode Checkpoints & Handoff Packs (P1)
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
@@ -39,6 +38,13 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 - **Problem**: Learning only at episode completion — multi-agent workflows blocked
 - **Impact**: Unlocks multi-agent adoption
 - **Effort**: 4-6 days
+
+### Completed in v0.1.20
+
+- ✅ Coverage monitoring script (scripts/check-coverage.sh)
+- ✅ Dead code analysis and documentation
+- ✅ Documentation improvements (similarity.rs)
+- ✅ Version bumped to 0.1.20
 
 ### Completed in v0.1.19
 
@@ -82,6 +88,8 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.20 | 2026-03-15 | Coverage monitoring, dead code analysis, doc improvements |
+| v0.1.19 | 2026-03 | AdaptiveCache wiring, CLI filters, pattern discovery, MCP enhancements |
 | v0.1.17 | 2026-03 | MCP contract parity, dead code removal, doc fixes, G2/G9 |
 | v0.1.16 | 2026-02-21 | Edition 2024, CI stabilization, quick wins |
 | v0.1.15 | 2026-02-15 | MCP token optimization, GitHub Actions modernization |

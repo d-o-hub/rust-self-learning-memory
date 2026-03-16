@@ -65,7 +65,7 @@ parking_lot = "0.12.5"
 
 # Compression libraries (optional, enabled by compression feature)
 # Using lz4_flex for safe LZ4 implementation (no unsafe code)
-lz4_flex = { version = "0.12", optional = true, default-features = false }
+lz4_flex = { version = "0.13", optional = true, default-features = false }
 # Zstd for best compression ratio
 zstd = { version = "0.13", optional = true }
 # Flate2 for Gzip (uses miniz_oxide by default, no C dependency)

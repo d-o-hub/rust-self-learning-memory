@@ -31,6 +31,9 @@ The memory management system provides persistent memory across agent interaction
   - `retrieval/` - Context retrieval and search
   - `completion.rs` - Episode completion logic
   - `learning_ops.rs` - Learning operations
+  - `playbook/` - Playbook generation and recommendation (ADR-044)
+  - `attribution/` - Recommendation tracking and feedback (ADR-044)
+  - `checkpoint/` - Episode checkpoints and handoff (ADR-044)
 - `patterns/` - Pattern extraction and validation (~4,230 LOC)
   - `validation/` - Split validation module (mod.rs + metrics.rs)
   - `optimized_validator/` - Risk and compatibility (mod.rs, context.rs, applicator.rs)
@@ -126,6 +129,10 @@ The memory management system provides persistent memory across agent interaction
 4. `complete_episode` - Complete and score episodes
 5. `execute_code` - Execute code in WASM sandbox
 6. `health_check` - System health status
+7. `recommend_playbook` - Get actionable playbooks for tasks (ADR-044)
+8. `record_recommendation_feedback` - Track recommendation outcomes (ADR-044)
+9. `checkpoint_episode` - Create mid-task checkpoints (ADR-044)
+10. `get_handoff_pack` - Generate handoff for multi-agent workflows (ADR-044)
 
 **Features**:
 - Tool usage tracking
@@ -137,8 +144,10 @@ The memory management system provides persistent memory across agent interaction
 **Purpose**: Command-line interface for memory operations (~13,690 LOC)
 
 **Commands** (9 main commands + 9 aliases):
-- `episode` - Episode management (create, list, search, complete)
+- `episode` - Episode management (create, list, search, complete, checkpoint)
 - `pattern` - Pattern analysis and tracking
+- `playbook` - Playbook recommendation (ADR-044)
+- `feedback` - Record recommendation feedback (ADR-044)
 - `storage` - Storage operations (sync, vacuum, health)
 - `eval` - Code evaluation in sandbox
 - `health` - System health checks

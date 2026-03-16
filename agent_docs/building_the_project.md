@@ -90,6 +90,24 @@ git config core.hooksPath .githooks
 chmod +x .githooks/*
 ```
 
+### Turso Local Development
+
+For local development without cloud Turso:
+
+```bash
+# Install Turso CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+
+# Start local Turso server
+turso dev --db-file ./data/memory.db --port 8080
+
+# Set environment variables
+export TURSO_DATABASE_URL="http://127.0.0.1:8080"
+export TURSO_AUTH_TOKEN=""  # No auth required for local
+```
+
+No cloud account or auth token required for local development. See [LOCAL_DATABASE_SETUP.md](../docs/LOCAL_DATABASE_SETUP.md) for more details.
+
 ### Quality Gates
 ```bash
 # Run full quality check (coverage >90%)

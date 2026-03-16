@@ -231,4 +231,39 @@ cargo test --all
 
 # Documentation check
 cargo doc --no-deps
+
+## Disk Space Optimization
+
+### Dev Profile Settings
+```toml
+# .cargo/config.toml
+[profile.dev]
+debug = "line-tables-only"  # Faster builds, smaller binaries
+
+[profile.dev.package."*"]
+debug = false  # Don't debug info for dependencies
+```
+
+### Linker Optimization (Linux)
+Use `mold` linker for faster builds:
+```bash
+# Install mold
+cargo install mold
+
+# Add to .cargo/config.toml
+[build]
+rustflags = ["-C", "linker=mold"]
+```
+
+### Cleanup Commands
+```bash
+# Clean build artifacts
+cargo clean
+
+# Remove target directory completely
+rm -rf target/
+
+# Clean specific crate
+cargo clean -p memory-core
+```
 ```

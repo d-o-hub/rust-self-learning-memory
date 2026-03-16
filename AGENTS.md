@@ -53,6 +53,13 @@ Based on 34 sessions (234 msgs, 97 commits):
 
 Before implementing: Read 3+ source files, check ADRs
 
+## Planning & Decisions
+- **Use `goap-agent` skill** for complex tasks - decomposes into atomic goals
+- **Check `plans/adr/`** for Architecture Decision Records before changes
+- **Update `plans/ROADMAPS/ROADMAP_ACTIVE.md`** with progress
+
+See `plans/` folder for ADRs and roadmap.
+
 ## Tool Selection Enforcement
 
 Target Bash:Grep ratio of 2:1 (current: 17:1)
@@ -119,6 +126,8 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 | Patterns | `agent_docs/service_communication_patterns.md` |
 | Friction points | `agent_docs/common_friction_points.md` |
 | Token efficiency | `agent_docs/token_efficiency.md` |
+| Planning | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
+| ADRs | `plans/adr/` |
 
 ## Disk Space
 - Dev profile: `debug = "line-tables-only"`, deps `debug = false`

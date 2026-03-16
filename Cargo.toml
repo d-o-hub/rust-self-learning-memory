@@ -45,14 +45,14 @@ chrono = { version = "0.4.44", features = ["serde"] }
 
 # Logging and tracing
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # Testing
-tempfile = "3.26.0"
+tempfile = "3.27.0"
 proptest = "1.6"
 insta = { version = "1.46", features = ["json"] }
 serial_test = "3.4"
-assert_cmd = "2.1"
+assert_cmd = "2.2"
 predicates = "3.1"
 
 # Benchmarking
@@ -68,7 +68,7 @@ parking_lot = "0.12.5"
 url = "2.5.8"
 rand = { version = "0.10", features = ["thread_rng"] }
 rand_chacha = "0.10"
-clap = { version = "4.5.60", features = ["derive"] }
+clap = { version = "4.6.0", features = ["derive"] }
 
 # Async utilities
 futures = "0.3.32"

@@ -672,7 +672,10 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 
 ### ADR-044: High-Impact Features (Code Complete — Needs Polish)
 
-**Branch**: docs/v0.1.22-release-updates
+**Branch**: `docs/v0.1.22-release-updates`
+**PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
+**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
+**ADR**: [ADR-047](adr/ADR-047-v0.1.22-Quality-Feature-Polish.md)
 **Execution Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
 **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 

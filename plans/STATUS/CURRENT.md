@@ -3,7 +3,9 @@
 **Last Updated**: 2026-03-16
 **Released Version**: v0.1.21
 **Next Version**: v0.1.22 (Quality & Feature Polish)
-**Branch**: main
+**Branch**: `docs/v0.1.22-release-updates`
+**PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
+**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
 **Edition**: Rust 2024
 
 ---

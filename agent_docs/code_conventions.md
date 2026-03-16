@@ -2,6 +2,44 @@
 
 **Note**: The codebase follows Rust idioms automatically. Focus on learning from examples rather than memorizing rules.
 
+## Core Invariants (Never Break)
+
+These rules are strictly enforced:
+
+1. **Async**: Tokio everywhere. No blocking (use `spawn_blocking`)
+2. **Storage**: Parameterized SQL only. Short transactions. No locks across `.await`
+3. **Serialization**: Postcard required (not bincode)
+4. **Clippy**: Zero warnings (`-D warnings`). Fix, don't suppress
+5. **Files**: ≤500 LOC per source file
+6. **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
+
+## Change Workflow
+
+Follow this sequence for every change:
+
+1. Identify owner crate + module
+2. Read existing patterns (3+ source files)
+3. Add/update tests
+4. `./scripts/code-quality.sh fmt`
+5. `cargo clippy --all -- -D warnings`
+6. `cargo nextest run -p <crate>`
+7. `cargo nextest run --all`
+8. `./scripts/quality-gates.sh`
+9. `git status` - verify all changes staged
+
+## Common Pitfalls
+
+Based on 34 sessions (234 msgs, 97 commits):
+
+| Pitfall | Prevention |
+|---------|------------|
+| wrong_approach | Read patterns first |
+| buggy_code | Run tests after change |
+| excessive_changes | Atomic commits |
+| tool_errors | Use correct tool |
+
+**Before implementing**: Read 3+ source files, check ADRs.
+
 ## Learning from Code
 
 Instead of memorizing conventions, examine existing code:
@@ -407,4 +445,64 @@ cargo llvm-cov --html --output-dir coverage
 9. **Postcard Serialization**: Use Postcard, not bincode (v0.1.7 breaking change)
 10. **Safe Database Access**: Always use parameterized queries
 
-The best way to learn conventions is to examine the codebase structure and follow the patterns you see in similar files. For recent changes, see [CLAUDE.md](../CLAUDE.md).
+## Tool Selection
+
+Target Bash:Grep ratio of 2:1 (current: 17:1).
+
+### Use Grep for:
+- Finding files: `Grep pattern="*.rs"`
+- Searching content: `Grep pattern="fn name"`
+- Finding definitions: `Grep pattern="struct Name"`
+- Checking usage: `Grep pattern="use crate"`
+
+### Use Bash for:
+- File operations: `cp`, `mv`, `rm`
+- Git commands: `git status`, `git diff`
+- Running scripts: `./scripts/build-rust.sh`
+- Build/test: `cargo build`, `cargo test`
+
+**Before Bash**: Consider if Grep would be more efficient.
+
+## Security Best Practices
+
+### Environment Variables
+- Use env vars (never hardcode secrets)
+- Never commit `.env` files
+- Validate env vars at startup
+
+### Database Access
+- Always use parameterized SQL (prevents SQL injection)
+- Short transactions only
+- No locks across `.await` points
+
+### Code Security
+- Validate inputs at API boundaries
+- Use safe serialization (Postcard, not bincode)
+- Avoid `unsafe` blocks unless necessary
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `TURSO_DATABASE_URL` | Turso database connection URL |
+| `TURSO_AUTH_TOKEN` | Turso auth token |
+| `OPENAI_API_KEY` | OpenAI API key for embeddings |
+| `RUST_LOG` | Log level (debug, info, warn, error) |
+
+### Local Development
+```bash
+# Turso local development
+export TURSO_DATABASE_URL="http://127.0.0.1:8080"
+export TURSO_AUTH_TOKEN=""  # No auth for local
+```
+
+## Performance Targets
+
+| Operation | Target |
+|-----------|--------|
+| Episode Creation | < 50ms |
+| Step Logging | < 20ms |
+| Episode Completion | < 500ms |
+| Memory Retrieval | < 100ms |
+
+For recent changes, see [CLAUDE.md](../CLAUDE.md).

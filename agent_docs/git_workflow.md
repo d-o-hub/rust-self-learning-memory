@@ -1,5 +1,22 @@
 # Git Workflow
 
+## Atomic Change Rules
+
+1. **One change per commit** - message describes exactly what changed
+2. **Workflow**: make change → test → quality check → verify → commit
+3. **Format**: `feat(module): description`, `fix(module): description`
+4. Never batch incomplete work
+
+### Commit Message Format
+
+```
+feat(module): add feature
+fix(module): fix bug
+docs: update documentation
+refactor(module): improve code
+test(module): add tests
+```
+
 ## Branch Protection
 
 Direct pushes to `main` are BLOCKED. Always work on a branch.

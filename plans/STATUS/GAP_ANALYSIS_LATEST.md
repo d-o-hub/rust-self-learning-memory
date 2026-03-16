@@ -1,8 +1,8 @@
-# Gap Analysis — v0.1.21 Sprint
+# Gap Analysis — v0.1.22 Sprint
 
-**Generated**: 2026-03-15
-**Method**: Analysis Swarm (RYAN + FLASH + SOCRATES)
-**Scope**: ADR-044, ADR-041, ADR-045
+**Generated**: 2026-03-16
+**Method**: Comprehensive codebase analysis (build, test, clippy, doctest, LOC, dead_code, links)
+**Scope**: ADR-044 features shipped, quality polish, infrastructure backlog
 
 ---
 
@@ -10,240 +10,182 @@
 
 | Area | Status | Gap Count | Priority |
 |------|--------|-----------|----------|
-| **ADR-045 Publishing** | ✅ Implemented | 0 | Complete |
-| **ADR-044 Features** | ⏳ Proposed | 3 features | P0-P1 |
-| **ADR-041 Test Health** | ⏳ 85% Complete | 4 tasks | P2-P3 |
-| **Documentation Sync** | ⚠️ Stale | 2 files | P1 |
+| **ADR-044 Features** | ✅ Shipped | 2 doctest bugs | P0 |
+| **File Size Compliance** | 🔴 3 violations | 3 files >500 LOC | P0 |
+| **Test Health** | 🟡 1 timeout | 1 test + 2 doctests | P0 |
+| **Dead Code** | 🟡 70 annotations | Target ≤40 | P1 |
+| **Docs Integrity** | 🟡 149 broken links | Target ≤80 | P1 |
+| **Snapshot Tests** | 🟡 65 snapshots | Target ≥80 | P1 |
+| **Property Tests** | 🟡 10 files | Target ≥15 | P1 |
+| **ADR-041 Remaining** | ⏳ 2 tasks | T5.2, T5.3 | P3 |
 
 ---
 
-## Multi-Perspective Analysis
+## Critical Gaps (P0)
 
-### RYAN's View (Methodical Analyst)
+### Gap 1: Failing Doctests (2 failures)
 
-**Security & Scalability Concerns**:
-1. ADR-044 Feature 2 (Attribution) requires new storage schema — migration risk
-2. Playbook quality depends on existing pattern/summary quality — need validation tests
-3. Attribution requires explicit agent feedback — potential UX friction
+| File | Error | Fix |
+|------|-------|-----|
+| `memory-core/src/memory/attribution/mod.rs:21` | `use of moved value: session` — session moved into `record_session()` then accessed | Clone session before passing |
+| `memory-core/src/memory/playbook/mod.rs:24` | `generate()` is sync but doctest `.await`s it; missing `context` field | Remove `.await`, add `context` field |
 
-**Evidence-Based Findings**:
-- ADR-041 Phase 1-3: ✅ Verified complete (build passes, clippy clean)
-- ADR-041 Phase 4-5: 4 tasks remain (T4.2, T4.3, T5.2, T5.3)
-- ADR-044: 0% implemented (status: Proposed)
-- ADR-045: 100% implemented (verified infrastructure exists)
+**Impact**: `cargo test --doc --all` fails → blocks release.
 
-**Recommendation**: Complete ADR-041 P2 tasks before starting ADR-044 to ensure stable test infrastructure.
+### Gap 2: Production Files >500 LOC (3 violations)
 
-### FLASH's View (Rapid Innovator)
+| File | Lines | Violation |
+|------|-------|-----------|
+| `memory-core/src/memory/playbook/generator.rs` | 631 | +131 over limit |
+| `memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` | 608 | +108 over limit |
+| `memory-core/src/memory/management.rs` | 504 | +4 over limit |
 
-**Quick Wins Available**:
-1. Fix sandbox timing tests (T4.2) — simple timeout wrappers
-2. Fix WASM binary data tests (T4.3) — use `from_utf8_lossy`
-3. Add nightly trend tracking (T5.2) — artifact upload
+**Impact**: Breaks project invariant "0 production source files >500 LOC".
 
-**Impact Analysis**:
-- ADR-044 Feature 1 (Playbooks): **Highest impact** — closes usability gap
-- ADR-044 Feature 2 (Attribution): **High impact** — closes feedback gap
-- ADR-044 Feature 3 (Handoff): **Medium impact** — niche use case
+### Gap 3: Test Timeout
 
-**Recommendation**: Ship ADR-044 Features 1+2 first (P0), defer Feature 3 to v0.1.22.
+| Test | Duration | Issue |
+|------|----------|-------|
+| `quality_gate_no_clippy_warnings` | >120s timeout | Runs full `cargo clippy` inside test; redundant with CI |
 
-### SOCRATES' View (Questioning Facilitator)
-
-**Critical Questions**:
-
-1. **Sprint Scope Drift**: ROADMAP_ACTIVE.md says v0.1.21 is "publishing infrastructure" but we're discussing ADR-044 features. Which is it?
-   - *Answer*: ADR-045 publishing is complete. ADR-044 features are proposed for the sprint.
-
-2. **Documentation Consistency**: STATUS/CURRENT.md says "Released Version: v0.1.19" but ROADMAP_ACTIVE.md says "Released Version: v0.1.20". Which is correct?
-   - *Answer*: v0.1.20 is released. STATUS/CURRENT.md is stale.
-
-3. **ADR Status Mismatch**: ADR-044 and ADR-041 show "Proposed" and "Partially Implemented" but some tasks are complete. Should status be updated?
-   - *Answer*: Yes, update ADR status fields to reflect actual state.
-
-**Recommendation**: Sync documentation before committing to new feature work.
+**Impact**: `cargo nextest run --all` reports 1 timeout → blocks release.
 
 ---
 
-## Detailed Gap Inventory
+## Quality Gaps (P1)
 
-### ADR-044: High-Impact Features (Proposed)
+### Gap 4: `#[allow(dead_code)]` Annotations
 
-| Feature | Priority | Status | Effort | Dependencies |
-|---------|----------|--------|--------|--------------|
-| 1. Actionable Playbooks | P0 | ❌ Not Started | 3-5 days | Feature 2 (attribution) |
-| 2. Recommendation Attribution | P0 | ❌ Not Started | 3-4 days | None |
-| 3. Episode Checkpoints/Handoff | P1 | ❌ Not Started | 4-6 days | None |
+**Current**: 70 in production code (non-test)
+**Target**: ≤40
 
-**Implementation Files Required**:
-```
-memory-core/src/memory/playbook/mod.rs       (NEW)
-memory-core/src/memory/playbook/generator.rs (NEW)
-memory-core/src/memory/attribution/mod.rs    (NEW)
-memory-core/src/memory/attribution/tracker.rs (NEW)
-memory-core/src/memory/checkpoint/mod.rs     (NEW)
-```
+| Hotspot | Count | Notes |
+|---------|-------|-------|
+| `embeddings/real_model/model.rs` | 8 | Model infrastructure for ONNX/candle; may need `#[cfg]` |
+| `memory/types.rs` | 6 | Duplicate/stale types |
+| `embeddings/openai/utils.rs` | 5 | Utility functions not called |
+| `memory/core/struct_priv.rs` | 5 | Private fields on core struct |
+| `embeddings/provider.rs` | 3 | Provider infrastructure |
+| `monitoring/storage/mod.rs` | 3 | Monitoring structs not wired |
+| Other files | 40 | Scattered |
 
-**MCP Tools to Add**:
-- `recommend_playbook`
-- `explain_pattern`
-- `record_recommendation_feedback`
-- `checkpoint_episode`
-- `get_handoff_pack`
-- `resume_from_handoff`
+### Gap 5: Broken Markdown Links
 
-**CLI Commands to Add**:
-- `playbook recommend`
-- `playbook explain`
-- `feedback record`
-- `episode checkpoint`
-- `episode handoff`
+**Current**: 149 (up from 89 at v0.1.20)
+**Increase cause**: New features added documentation with links to files that don't exist or have wrong paths.
+**Target**: ≤80
 
-### ADR-041: Test Health Remediation (85% Complete)
+| Category | Count |
+|----------|-------|
+| Archived files | ~90 (acceptable) |
+| Active documentation | ~30 (fix) |
+| New feature docs | ~29 (fix) |
 
-| Phase | Task | Status | Effort | Blocker |
-|-------|------|--------|--------|---------|
-| 1 | Fix Build | ✅ Complete | - | - |
-| 2 | Fix Stale Ignores | ✅ Complete | - | - |
-| 3 | Nightly Refactor | ✅ Complete | - | - |
-| 4 | T4.1 Pattern CLI e2e | ✅ Complete | - | - |
-| 4 | T4.2 Sandbox timing tests | ⏳ Pending | 2h | None |
-| 4 | T4.3 WASM binary data tests | ⏳ Pending | 2h | None |
-| 5 | T5.1 Ceiling script | ✅ Complete | - | - |
-| 5 | T5.2 Nightly trend tracking | ⏳ Pending | 1h | None |
-| 5 | T5.3 libsql version monitor | ⏳ Pending | 1h | None |
+### Gap 6: Missing Snapshot Tests for New Features
 
-**Ignored Test Breakdown**:
-| Category | Count | Fixability |
-|----------|-------|------------|
-| Turso libsql bug (upstream) | 70 | ❌ Blocked |
-| Slow integration tests | 29 | ⚠️ By design |
-| WASM/sandbox | 9 | 🟡 Partial |
-| Flaky CI | 5 | 🟡 Fixable |
-| E2E/process | 3 | 🟢 Fixable |
-| Requires backends | 2 | ⚠️ By design |
-| Local embeddings | 1 | ❌ Blocked |
-| **Total** | **118** | - |
+**Current**: 65 snapshots, **Target**: ≥80
 
-### ADR-045: Publishing Best Practices (Implemented)
+New features added in v0.1.22 (playbook, attribution, checkpoint, feedback) have **0 snapshot tests** for:
+- MCP tool responses (checkpoint_episode, get_handoff_pack, resume_from_handoff)
+- MCP tool responses (record_recommendation_session, record_recommendation_feedback)
+- MCP tool responses (recommend_playbook)
+- CLI output (playbook recommend, episode checkpoint)
 
-| Phase | Task | Status |
-|-------|------|--------|
-| 1 | Cargo.toml metadata | ✅ Complete |
-| 2 | verify-crate-metadata.sh | ✅ Complete |
-| 3 | supply-chain.yml workflow | ✅ Complete |
-| 4 | deny.toml configuration | ✅ Complete |
-| 5 | publish-crates.yml workflow | ✅ Complete |
-| 6 | OIDC trusted publishing | ✅ Configured |
+### Gap 7: Property Test Coverage
 
-**Verification Commands**:
-```bash
-./scripts/verify-crate-metadata.sh  # Passes
-cargo deny check                     # Passes
-cargo cyclonedx --all               # Generates SBOM
-```
+**Current**: 10 property test files, **Target**: ≥15
+
+Missing property tests for:
+- `PlaybookGenerator` — various input combinations
+- `RecommendationTracker` — feedback scoring invariants
+- `CheckpointManager` — checkpoint/handoff serialization
+- `RecommendationSession/Feedback` types — serialization round-trips
+- `HandoffPack` — serialization invariants
 
 ---
 
-## Prioritized Action Items
+## Feature Completeness Assessment
 
-### P0: Documentation Sync (Immediate)
+### ADR-044 Features (v0.1.22)
 
-1. Update `plans/STATUS/CURRENT.md`:
-   - Change "Released Version: v0.1.19" → "Released Version: v0.1.20"
-   - Change "Next Version: v0.1.20" → "Next Version: v0.1.21"
+| Feature | Core | MCP | CLI | Unit Tests | Integration Tests | Doctests | Snapshots |
+|---------|------|-----|-----|------------|-------------------|---------|-----------|
+| Playbooks | ✅ | ✅ | ✅ | 26 tests | ❌ Missing | 🔴 Broken | ❌ None |
+| Attribution | ✅ | ✅ | ✅ | 8 tests | ❌ Missing | 🔴 Broken | ❌ None |
+| Checkpoints | ✅ | ✅ | ✅ | 6 tests | ❌ Missing | ✅ OK | ❌ None |
+| Feedback | ✅ | ✅ | ✅ | 3 tests | ❌ Missing | ✅ OK | ❌ None |
 
-2. Update `plans/adr/ADR-041-Test-Health-Remediation-v0.1.20.md`:
-   - Change status to "Accepted (Mostly Implemented)"
+**Total**: 43 unit tests for new features. Missing integration tests and snapshots.
 
-3. Update `plans/adr/ADR-044-High-Impact-Features-v0.1.20.md`:
-   - Keep status as "Proposed" (features not implemented)
+### MCP Tool Registry
 
-### P1: Complete ADR-041 Remaining Tasks (4-6 hours)
+All new tools are registered and dispatchable:
+- ✅ `recommend_playbook`
+- ✅ `record_recommendation_session`
+- ✅ `record_recommendation_feedback`
+- ✅ `checkpoint_episode`
+- ✅ `get_handoff_pack`
+- ✅ `resume_from_handoff`
 
-| Task | File | Action |
-|------|------|--------|
-| T4.2 | `memory-mcp/src/sandbox/tests.rs` | Add `tokio::time::timeout` wrappers |
-| T4.3 | `memory-mcp/src/unified_sandbox/tests.rs` | Use `from_utf8_lossy` or base64 |
-| T5.2 | `.github/workflows/nightly-tests.yml` | Add artifact upload for test results |
-| T5.3 | `scripts/check-libsql-version.sh` | Create version monitor script |
+### CLI Commands
 
-### P2: ADR-044 Feature Implementation (1-2 weeks)
-
-**Week 1: Attribution + Playbooks**
-```
-Day 1-2: Feature 2 (Attribution)
-  - Create memory-core/src/memory/attribution/mod.rs
-  - Create RecommendationTracker struct
-  - Add record_recommendation_feedback MCP tool
-
-Day 3-5: Feature 1 (Playbooks)
-  - Create memory-core/src/memory/playbook/mod.rs
-  - Create PlaybookGenerator
-  - Add recommend_playbook MCP tool
-```
-
-**Week 2: Handoff (Optional)**
-```
-Day 1-3: Feature 3 (Handoff)
-  - Create memory-core/src/memory/checkpoint/mod.rs
-  - Add checkpoint_episode, get_handoff_pack MCP tools
-```
+All new commands are wired and dispatch correctly:
+- ✅ `playbook recommend`
+- ✅ `playbook explain`
+- ✅ `feedback record`
+- ✅ `feedback stats`
+- ✅ `episode checkpoint`
+- ✅ `episode handoff`
 
 ---
 
-## Pre-Existing Issues
+## Infrastructure Backlog (Carried Forward)
 
-### Issue 1: Dependabot Vulnerabilities
-
-**Status**: 5 vulnerabilities reported (3 high, 2 low)
-**Location**: https://github.com/d-o-hub/rust-self-learning-memory/security/dependabot
-
-**Recommended Action**: Review and address high-priority vulnerabilities before release.
-
-### Issue 2: `execute_agent_code` MCP Tool Disabled
-
-**Location**: `memory-mcp/src/handlers.rs:72-91`
-**Reason**: "WASM sandbox compilation issues"
-**Status**: Registered conditionally but returns error
-
-**Recommended Action**: Either fix the WASM sandbox issues or remove the tool registration entirely.
-
-### Issue 3: Broken Markdown Links (89 count)
-
-**Status**: Mostly in archived files
-**Target**: 0
-
-**Recommended Action**: Run `./scripts/check-docs-integrity.sh` and fix critical links.
-
-### Issue 4: `#[allow(dead_code)]` Annotations (110 count)
-
-**Status**: 37 files have annotations
-**Target**: ≤50
-
-**Recommended Action**: Systematic dead code removal or add proper `#[cfg]` conditions.
+| Item | Since | Priority | Status |
+|------|-------|----------|--------|
+| Changelog automation (git-cliff) | v0.1.17 | P2 | Not started |
+| Nightly trend tracking (T5.2) | v0.1.20 | P3 | Not started |
+| libsql version monitor (T5.3) | v0.1.20 | P3 | Not started |
+| Structured tech-debt registry | v0.1.17 | P3 | Not started |
+| CLI workflow parity generator | v0.1.17 | P3 | Not started |
 
 ---
 
-## Quality Gates for v0.1.21 Release
+## Pre-Existing Issues (Unchanged)
 
-- [ ] `cargo fmt --all -- --check` passes
-- [ ] `cargo clippy --workspace --tests -- -D warnings` passes
-- [ ] `cargo build --all` succeeds
-- [ ] `cargo nextest run --all` passes (excluding ignored)
-- [ ] `cargo test --doc --all` passes
-- [ ] `./scripts/quality-gates.sh` passes
-- [ ] `./scripts/verify-crate-metadata.sh` passes
-- [ ] `cargo deny check` passes
-- [ ] Documentation updated (CURRENT.md, ROADMAP_ACTIVE.md)
-- [ ] ADR status fields updated
+| Issue | Status | Notes |
+|-------|--------|-------|
+| 113 ignored tests | 🟡 | 70 Turso upstream bug, rest by design/slow |
+| `execute_agent_code` MCP tool disabled | 🟡 | WASM sandbox issues |
+| 134 duplicate dep roots | 🟡 | Architectural limit (wasmtime/libsql) |
+
+---
+
+## Recommended Sprint Priorities
+
+### Must-Fix for v0.1.22 Tag
+
+1. **Fix 2 failing doctests** (ACT-053, ACT-054) — 30min
+2. **Fix test timeout** (ACT-055) — 15min
+3. **Split 3 >500 LOC files** (ACT-056, ACT-057, ACT-058) — 2-3h
+
+### Should-Fix for v0.1.22
+
+4. **Add snapshot tests for new features** (ACT-064, ACT-065) — 2h
+5. **Fix active broken markdown links** (ACT-062, ACT-063) — 2h
+6. **Add property tests** (ACT-066, ACT-067, ACT-068) — 2h
+
+### Nice-to-Have
+
+7. **Reduce dead_code annotations** (ACT-059–ACT-061) — 3h
+8. **MCP tool contract parity for new tools** (ACT-069, ACT-070) — 1h
+9. **Integration tests for new features** (ACT-071, ACT-072) — 3h
 
 ---
 
 ## Cross-References
 
-- **ADR-041**: [Test Health Remediation](../adr/ADR-041-Test-Health-Remediation-v0.1.20.md)
-- **ADR-044**: [High-Impact Features](../adr/ADR-044-High-Impact-Features-v0.1.20.md)
-- **ADR-045**: [Publishing Best Practices](../adr/ADR-045-Publishing-Best-Practices-2026.md)
-- **Current Status**: [CURRENT.md](CURRENT.md)
-- **Active Roadmap**: [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
+- **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
+- **Current status**: [CURRENT.md](CURRENT.md)
+- **Active roadmap**: [ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
+- **ADR-044**: [adr/ADR-044-High-Impact-Features-v0.1.20.md](../adr/ADR-044-High-Impact-Features-v0.1.20.md)

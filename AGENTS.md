@@ -41,22 +41,17 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Files**: ≤500 LOC per source file
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
 
-## Common Pitfalls (from Session Analysis)
+## Common Pitfalls
+Based on 34 sessions (234 msgs, 97 commits):
 
-Based on analysis of 34 Claude Code sessions (234 messages, 97 commits):
+| Pitfall | Prevention |
+|---------|------------|
+| wrong_approach | Read patterns first |
+| buggy_code | Run tests after change |
+| excessive_changes | Atomic commits |
+| tool_errors | Use correct tool |
 
-| Pitfall | Count | Prevention |
-|---------|-------|------------|
-| wrong_approach | 8 | Read existing patterns before implementing |
-| buggy_code | 6 | Run tests after every change |
-| excessive_changes | 5 | Use atomic commits |
-| tool_errors | 67 | Use correct tool for task |
-
-**Before implementing**:
-1. Read at least 3 related source files
-2. Identify existing patterns to follow
-3. Check ADRs for relevant decisions
-4. Consider clarification if uncertain
+Before implementing: Read 3+ source files, check ADRs
 
 ## Tool Selection Enforcement
 
@@ -77,29 +72,10 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 **Before Bash**: Consider if Grep would be more efficient.
 
 ## Atomic Change Rules
-
-1. **One logical change per commit**
-   - Commit message describes exactly what changed
-   - `git diff --stat` shows focused changes
-   - No unrelated modifications
-
-2. **Commit workflow**:
-   ```
-   1. Make focused change
-   2. Run tests: cargo nextest run --all
-   3. Run quality: ./scripts/code-quality.sh check
-   4. Verify: git status && git diff --stat
-   5. Commit: git commit -m "scope: description"
-   ```
-
-3. **Commit message format**:
-   - `feat(module): add feature`
-   - `fix(module): fix bug`
-   - `docs: update documentation`
-   - `refactor(module): improve code`
-   - `test(module): add tests`
-
-4. **Never batch incomplete work** - each commit should be a complete, working change
+1. **One change per commit** - message describes exactly what changed
+2. **Workflow**: make change → test → quality check → verify → commit
+3. **Format**: `feat(module): description`, `fix(module): description`
+4. Never batch incomplete work
 
 ## Required Checks Before Commit
 - [ ] `cargo fmt --all -- --check`
@@ -110,8 +86,7 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 
 ## Git Workflow
 - **Branch Protection**: Direct pushes to `main` BLOCKED. Always work on a branch.
-- **Post-Change**: ALWAYS run `git status` and `git diff --stat`
-- See `agent_docs/git_workflow.md` for release workflow and common fixes
+- See `agent_docs/git_workflow.md` for details.
 
 ## Feature Flags
 `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`
@@ -119,7 +94,6 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 ## Security
 - Use env vars (never hardcode)
 - Parameterized SQL
-- Validate inputs at API boundaries
 
 ## Environment Variables
 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`
@@ -138,12 +112,14 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 | Code style | `agent_docs/code_conventions.md` |
 | Git workflow | `agent_docs/git_workflow.md` |
 | CI guidance | `agent_docs/ci_guidance.md` |
-| Dependency upgrades | `agent_docs/dependency_upgrades.md` |
-| GH Actions patterns | `agent_docs/github_actions_patterns.md` |
-| Architecture | `plans/adr/` |
-| Active roadmap | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
+| Dependencies | `agent_docs/dependency_upgrades.md` |
+| GH Actions | `agent_docs/github_actions_patterns.md` |
+| Architecture | `agent_docs/service_architecture.md` |
+| Database | `agent_docs/database_schema.md` |
+| Patterns | `agent_docs/service_communication_patterns.md` |
+| Friction points | `agent_docs/common_friction_points.md` |
+| Token efficiency | `agent_docs/token_efficiency.md` |
 
 ## Disk Space
 - Dev profile: `debug = "line-tables-only"`, deps `debug = false`
 - Linker: Use `mold` on Linux
-- Cleanup: `cargo clean` periodically

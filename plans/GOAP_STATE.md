@@ -1,11 +1,11 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-15 (v0.1.20 Sprint Progress)
+- **Last Updated**: 2026-03-16 (v0.1.22 Release Complete)
 - **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
-- **ADR**: `plans/adr/ADR-042-Code-Coverage-Improvement.md`
+- **ADR**: `plans/adr/ADR-044-High-Impact-Features-v0.1.20.md`
 - **Branch**: main
-- **Version**: `0.1.20` (with v0.1.20 features in progress)
+- **Version**: `0.1.22` (v0.1.23 sprint in progress)
 
 ## Phase Status
 
@@ -13,9 +13,9 @@
 2. DECOMPOSE: Complete (ADR-028 item-by-item revalidation)
 3. STRATEGIZE: Complete (O1/O3/O5 opportunities prioritized)
 4. COORDINATE: Complete (Sprint 3 execution planning)
-5. EXECUTE: ✅ Complete (O1/O3/O5 implemented)
+5. EXECUTE: ✅ Complete (O1/O3/O5 implemented, ADR-044 shipped)
 6. SYNTHESIZE: Complete
-7. FEEDBACK: In Progress (v0.1.20 Code Coverage Improvement)
+7. FEEDBACK: ✅ Complete (v0.1.22 released)
 
 ## v0.1.17 Sprint 3 Status (2026-03-09)
 
@@ -666,3 +666,49 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 3. **Atomic Commits**: 5 excessive_changes instances - need scope enforcement
 4. **Hook Consolidation**: Two hook config files create maintenance burden
 5. **Memory-CLI Cache Directory**: `~/.local/share/memory-cli/cache/` must exist before episode operations. Episode create/log-step/complete all work correctly after ensuring directory exists. Pattern extraction works after episode completion.
+
+## v0.1.22 Sprint Status (2026-03-16)
+
+### ADR-044: High-Impact Features (Implemented)
+
+**Branch**: docs/v0.1.22-release-updates
+**PR**: #369
+**Status**: ✅ All features implemented
+
+### Features Implemented
+
+| ID | Feature | Status | Details |
+|----|---------|--------|---------|
+| F1 | Actionable Playbooks | ✅ Complete | 26 tests |
+| F2 | Recommendation Attribution | ✅ Complete | 8 tests |
+| F3 | Episode Checkpoints/Handoff | ✅ Complete | 3 tests |
+
+### Files Created/Updated
+
+- `memory-core/src/memory/playbook/mod.rs` - PlaybookGenerator
+- `memory-core/src/memory/attribution/mod.rs` - RecommendationTracker
+- `memory-core/src/memory/checkpoint/mod.rs` - Checkpoint/Handoff support
+- MCP tools: `recommend_playbook`, `record_recommendation_feedback`, `checkpoint_episode`
+- CLI commands: `playbook recommend`, `feedback record`, `episode checkpoint`
+
+### Pre-existing Issues Verified
+
+| Issue | Count | Status |
+|-------|-------|--------|
+| Ignored tests | 118 | Within ceiling (125) |
+| Unmaintained deps | 4 | Transitive, not actionable |
+| Broken markdown links | 89 | Mostly archived |
+| `#[allow(dead_code)]` | 110 | Documented in ROADMAP |
+
+### Turso Local Development Verified
+
+**Setup**: `turso dev --db-file ./data/memory.db --port 8080`
+**Connection**: `TURSO_DATABASE_URL=http://127.0.0.1:8080`
+**Memory-CLI**: Working with local Turso (episode list, create operations verified)
+
+### Key Learnings (v0.1.22)
+
+1. **Turso Local Dev**: Use `turso dev` for local development - no auth token required
+2. **Hooks Consolidation**: Removed redundant hook names in settings.json
+3. **ADR Status Tracking**: ADR-044 properly marked as "Implemented" with date
+4. **Documentation Sync**: ROADMAP_ACTIVE.md and CURRENT.md must stay in sync with release versions

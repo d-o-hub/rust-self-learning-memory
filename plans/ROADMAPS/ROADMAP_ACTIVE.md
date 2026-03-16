@@ -1,51 +1,41 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-15
-**Released Version**: v0.1.21
-**Current Sprint**: v0.1.22 (ADR-044 High-Impact Features)
+**Last Updated**: 2026-03-16
+**Released Version**: v0.1.22
+**Current Sprint**: v0.1.23 (ADR-041 Test Health completion)
 **Branch**: main
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.21 shipped with publishing infrastructure (ADR-045).
+All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.22 shipped with ADR-044 High-Impact Features.
 
-v0.1.22 sprint focuses on high-impact features (ADR-044):
-- Actionable Playbooks (P0)
-- Recommendation Attribution (P0)
-- Episode Checkpoints/Handoff (P1)
+v0.1.23 sprint focuses on completing test health remediation (ADR-041):
+- Remaining test fixes (T4.2, T4.3, T5.2, T5.3)
+- Documentation updates
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Next Sprint: v0.1.22
+## Next Sprint: v0.1.23
 
-### High-Impact Features (ADR-044)
+### Test Health Remediation (ADR-041)
 
-#### P0: Actionable Playbooks
-- **Problem**: Users don't know what actions to take based on memory data
-- **Impact**: Closes usability gap, enables proactive recommendations
-- **Effort**: 3-5 days
+#### P2: Remaining Test Fixes
+- T4.2: Sandbox timing tests
+- T4.3: WASM binary data tests
+- T5.2: Nightly trend tracking
+- T5.3: libsql version monitor
 
-#### P0: Recommendation Attribution
-- **Problem**: No visibility into why recommendations are made
-- **Impact**: Builds trust, enables feedback loop for learning
-- **Effort**: 3-4 days
+### Completed in v0.1.22
 
-#### P1: Episode Checkpoints/Handoff
-- **Problem**: No way to transfer context between sessions/agents
-- **Impact**: Enables multi-agent workflows, session continuity
-- **Effort**: 4-6 days
-
-### Completed in v0.1.21
-
-- ✅ ADR-045: Publishing Best Practices (100% complete)
-- ✅ Crates.io publishing pipeline with OIDC trusted publishing
-- ✅ Supply chain security workflow (cargo-deny, SBOM generation)
-- ✅ Crate metadata verification script
-- ✅ Gap analysis documentation
+- ✅ ADR-044: High-Impact Features (100% complete)
+- ✅ Feature 1: Actionable Playbooks (P0)
+- ✅ Feature 2: Recommendation Attribution (P0)
+- ✅ Feature 3: Episode Checkpoints/Handoff (P1)
+- ✅ 26 playbook tests, 8 attribution tests, 3 checkpoint tests
 
 ### Completed in v0.1.20
 
@@ -91,6 +81,7 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.22 | 2026-03 | ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints) |
 | v0.1.21 | 2026-03 | Publishing infrastructure (ADR-045), supply chain security |
 | v0.1.20 | 2026-03 | Test coverage improvements, sprint fixes, coverage script |
 | v0.1.19 | 2026-03 | MCP enhancements, gitleaks fixes |

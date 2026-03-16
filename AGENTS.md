@@ -124,6 +124,8 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 ## Environment Variables
 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`
 
+**Local Development**: Set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUTH_TOKEN` empty when using `turso dev`.
+
 ## Performance Targets
 - Episode Creation: < 50ms | Step Logging: < 20ms
 - Episode Completion: < 500ms | Memory Retrieval: < 100ms

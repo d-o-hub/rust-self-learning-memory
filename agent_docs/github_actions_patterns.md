@@ -17,6 +17,24 @@ if: ${{ always() && (github.event_name != 'pull_request' || needs.check-quick-ch
 
 **Pattern**: If job A only runs on PR → it's skipped on push → job B needing A skips → use `always()`
 
+## Benchmark/Cargo.toml Sync
+
+**Rule**: `benchmarks.yml` `bench_configs` must mirror `benches/Cargo.toml` `[[bench]]` entries.
+
+Deleting a benchmark from `Cargo.toml` without updating the workflow causes silent failures (stderr is suppressed with `2>/dev/null`), producing no criterion output and triggering the "artifacts not available" fallback comment on PRs.
+
+## Bash Subshell Pitfall in Workflows
+
+Avoid `find ... | while read` in workflow scripts — the pipe creates a subshell. Use process substitution instead:
+
+```bash
+# WRONG: while loop runs in subshell, variable changes lost
+find dir -name "*.json" | while read -r f; do ... done
+
+# CORRECT: process substitution keeps same shell
+while IFS= read -r f; do ... done < <(find dir -name "*.json")
+```
+
 ## Pre-Flight Validation
 1. Check action versions: `gh api repos/<owner>/<action>/releases/latest --jq .tag_name`
 2. Validate syntax: `actionlint .github/workflows/*.yml`

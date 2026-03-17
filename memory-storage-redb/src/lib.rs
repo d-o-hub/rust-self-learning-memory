@@ -32,6 +32,7 @@ use tracing::info;
 
 use crate::cache::Cache as CacheTrait;
 
+mod attribution;
 mod backend_impl;
 mod cache;
 mod embeddings;

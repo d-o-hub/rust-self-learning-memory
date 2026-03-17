@@ -219,3 +219,18 @@ mod tests {
         assert_eq!(output.patterns_applied, 1);
     }
 }
+
+#[cfg(test)]
+mod extra_mcp_feedback_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_stats_empty() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = RecommendationFeedbackTools::new(memory);
+
+        let output = tools.get_stats().await.unwrap();
+        assert!(output.success);
+        assert_eq!(output.total_sessions, 0);
+    }
+}

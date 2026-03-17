@@ -319,4 +319,42 @@ pub trait StorageBackend: Send + Sync {
         let _ = (from_episode_id, to_episode_id, relationship_type);
         Ok(false)
     }
+
+    // ========== Recommendation Attribution Methods (ADR-044) ==========
+
+    /// Store a recommendation session
+    async fn store_recommendation_session(
+        &self,
+        session: &crate::memory::attribution::RecommendationSession,
+    ) -> Result<()> {
+        let _ = session;
+        Ok(())
+    }
+
+    /// Store recommendation feedback
+    async fn store_recommendation_feedback(
+        &self,
+        feedback: &crate::memory::attribution::RecommendationFeedback,
+    ) -> Result<()> {
+        let _ = feedback;
+        Ok(())
+    }
+
+    /// Retrieve a recommendation session
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<crate::memory::attribution::RecommendationSession>> {
+        let _ = session_id;
+        Ok(None)
+    }
+
+    /// Retrieve recommendation feedback
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<crate::memory::attribution::RecommendationFeedback>> {
+        let _ = session_id;
+        Ok(None)
+    }
 }

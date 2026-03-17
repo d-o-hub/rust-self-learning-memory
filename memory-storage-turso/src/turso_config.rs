@@ -90,6 +90,10 @@ impl TursoStorage {
         // Create Episode Relationships table and indexes
         self.execute_with_retry(&conn, schema::CREATE_EPISODE_RELATIONSHIPS_TABLE)
             .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE)
+            .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_FROM_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_RELATIONSHIPS_TO_INDEX)

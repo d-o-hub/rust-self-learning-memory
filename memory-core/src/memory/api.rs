@@ -127,7 +127,24 @@ impl SelfLearningMemory {
     /// # }
     /// ```
     pub async fn record_recommendation_session(&self, session: RecommendationSession) {
-        self.recommendation_tracker.record_session(session).await;
+        // Persist to in-memory tracker
+        self.recommendation_tracker
+            .record_session(session.clone())
+            .await;
+
+        // Persist to durable storage if available
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_recommendation_session(&session).await {
+                tracing::warn!("Failed to store recommendation session in Turso: {}", e);
+            }
+        }
+
+        // Persist to cache storage if available
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_recommendation_session(&session).await {
+                tracing::warn!("Failed to store recommendation session in cache: {}", e);
+            }
+        }
     }
 
     /// Record feedback about a recommendation session.
@@ -174,7 +191,26 @@ impl SelfLearningMemory {
         &self,
         feedback: RecommendationFeedback,
     ) -> Result<()> {
-        self.recommendation_tracker.record_feedback(feedback).await
+        // Record in memory
+        self.recommendation_tracker
+            .record_feedback(feedback.clone())
+            .await?;
+
+        // Persist to durable storage if available
+        if let Some(turso) = &self.turso_storage {
+            if let Err(e) = turso.store_recommendation_feedback(&feedback).await {
+                tracing::warn!("Failed to store recommendation feedback in Turso: {}", e);
+            }
+        }
+
+        // Persist to cache storage if available
+        if let Some(cache) = &self.cache_storage {
+            if let Err(e) = cache.store_recommendation_feedback(&feedback).await {
+                tracing::warn!("Failed to store recommendation feedback in cache: {}", e);
+            }
+        }
+
+        Ok(())
     }
 
     /// Get the recommendation session for an episode.

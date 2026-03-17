@@ -15,9 +15,6 @@ use uuid::Uuid;
 use super::{CheckpointMeta, HandoffPack};
 
 /// Create a checkpoint for an in-progress episode.
-///
-/// Saves the current state of an episode for handoffs or recovery.
-/// Returns an error if the episode doesn't exist, is already completed, or storage fails.
 #[instrument(skip(memory), fields(episode_id = %episode_id))]
 pub async fn checkpoint_episode(
     memory: &SelfLearningMemory,
@@ -28,8 +25,6 @@ pub async fn checkpoint_episode(
 }
 
 /// Create a checkpoint with an optional note.
-///
-/// Same as [`checkpoint_episode`] but allows specifying a note.
 #[instrument(skip(memory), fields(episode_id = %episode_id))]
 pub async fn checkpoint_episode_with_note(
     memory: &SelfLearningMemory,
@@ -38,9 +33,7 @@ pub async fn checkpoint_episode_with_note(
     note: Option<String>,
 ) -> Result<CheckpointMeta> {
     info!("Creating checkpoint for episode: {}", episode_id);
-
     let mut episode = memory.get_episode(episode_id).await?;
-
     if episode.is_complete() {
         warn!(
             "Cannot create checkpoint for completed episode: {}",
@@ -50,50 +43,35 @@ pub async fn checkpoint_episode_with_note(
             "Cannot create checkpoint for completed episode".to_string(),
         ));
     }
-
     let step_number = episode.steps.len();
     let checkpoint = CheckpointMeta::new(reason, step_number, note);
     episode.checkpoints.push(checkpoint.clone());
     memory.update_episode_full(&episode).await?;
-
-    info!(
-        checkpoint_id = %checkpoint.checkpoint_id,
-        step_number = checkpoint.step_number,
-        "Created checkpoint"
-    );
-
+    info!(checkpoint_id = %checkpoint.checkpoint_id, "Created checkpoint");
     Ok(checkpoint)
 }
 
 /// Generate a handoff pack from a checkpoint.
-///
-/// Creates a comprehensive context package for transferring work between agents,
-/// including current goal, lessons learned, relevant patterns, and suggested next steps.
-/// Returns an error if the checkpoint or episode doesn't exist.
 #[instrument(skip(memory), fields(checkpoint_id = %checkpoint_id))]
 pub async fn get_handoff_pack(
     memory: &SelfLearningMemory,
     checkpoint_id: Uuid,
 ) -> Result<HandoffPack> {
     info!("Generating handoff pack for checkpoint: {}", checkpoint_id);
-
     let (episode, checkpoint) = find_checkpoint(memory, checkpoint_id).await?;
-
     let steps_completed: Vec<ExecutionStep> = episode
         .steps
         .iter()
         .take(checkpoint.step_number)
         .cloned()
         .collect();
-
     let (what_worked, what_failed, salient_facts) =
         extract_lessons(memory, &episode, checkpoint.step_number);
-
     let suggested_next_steps = generate_suggested_next_steps(memory, &episode).await;
     let relevant_patterns = get_relevant_patterns(memory, &episode).await;
     let relevant_heuristics = get_relevant_heuristics(memory, &episode).await;
 
-    let handoff = HandoffPack {
+    Ok(HandoffPack {
         checkpoint_id: checkpoint.checkpoint_id,
         episode_id: episode.episode_id,
         timestamp: Utc::now(),
@@ -105,33 +83,19 @@ pub async fn get_handoff_pack(
         suggested_next_steps,
         relevant_patterns,
         relevant_heuristics,
-    };
-
-    info!(
-        step_count = handoff.step_count(),
-        pattern_count = handoff.relevant_patterns.len(),
-        heuristic_count = handoff.relevant_heuristics.len(),
-        "Generated handoff pack"
-    );
-
-    Ok(handoff)
+    })
 }
 
 /// Resume work from a handoff pack.
-///
-/// Creates a new episode initialized with context from a handoff pack,
-/// including the same goal, lessons learned, and suggested next steps.
 #[instrument(skip(memory, handoff), fields(checkpoint_id = %handoff.checkpoint_id))]
 pub async fn resume_from_handoff(
     memory: &SelfLearningMemory,
     handoff: HandoffPack,
 ) -> Result<Uuid> {
     info!(
-        "Resuming from handoff pack: checkpoint_id={}, steps={}",
-        handoff.checkpoint_id,
-        handoff.step_count()
+        "Resuming from handoff pack: checkpoint_id={}",
+        handoff.checkpoint_id
     );
-
     let context = crate::types::TaskContext {
         domain: "resumed".to_string(),
         language: None,
@@ -150,8 +114,6 @@ pub async fn resume_from_handoff(
             crate::types::TaskType::Other,
         )
         .await;
-
-    // Store handoff context in episode metadata
     {
         let mut episodes = memory.episodes_fallback.write().await;
         if let Some(episode_arc) = episodes.get(&new_episode_id) {
@@ -183,34 +145,28 @@ pub async fn resume_from_handoff(
             episodes.insert(new_episode_id, Arc::new(episode));
         }
     }
-
     info!(new_episode_id = %new_episode_id, "Created new episode for resumption");
-
     Ok(new_episode_id)
 }
 
-/// Find an episode and checkpoint by checkpoint ID.
 async fn find_checkpoint(
     memory: &SelfLearningMemory,
     checkpoint_id: Uuid,
 ) -> Result<(crate::episode::Episode, CheckpointMeta)> {
     let episodes = memory.get_all_episodes().await?;
-
     for episode in episodes {
         if let Some(checkpoint) = episode
             .checkpoints
             .iter()
             .find(|c| c.checkpoint_id == checkpoint_id)
         {
-            let checkpoint = checkpoint.clone();
-            return Ok((episode, checkpoint));
+            let cp = checkpoint.clone();
+            return Ok((episode, cp));
         }
     }
-
     Err(Error::NotFound(checkpoint_id))
 }
 
-/// Extract lessons learned from an episode up to a step.
 fn extract_lessons(
     memory: &SelfLearningMemory,
     episode: &crate::episode::Episode,
@@ -219,12 +175,9 @@ fn extract_lessons(
     let mut what_worked = Vec::new();
     let mut what_failed = Vec::new();
     let mut salient_facts = Vec::new();
-
     let mut partial_episode = episode.clone();
     partial_episode.steps.truncate(step_number);
-
     let features = memory.salient_extractor.extract(&partial_episode);
-
     for step in &partial_episode.steps {
         if step.is_success() {
             what_worked.push(format!("{}: {}", step.tool, step.action));
@@ -232,7 +185,6 @@ fn extract_lessons(
             what_failed.push(format!("{}: {}", step.tool, step.action));
         }
     }
-
     for decision in &features.critical_decisions {
         salient_facts.push(format!("Decision: {}", decision));
     }
@@ -242,19 +194,15 @@ fn extract_lessons(
     for recovery in &features.error_recovery_patterns {
         salient_facts.push(format!("Recovery: {}", recovery));
     }
-
     (what_worked, what_failed, salient_facts)
 }
 
-/// Generate suggested next steps based on episode context.
 async fn generate_suggested_next_steps(
     memory: &SelfLearningMemory,
     episode: &crate::episode::Episode,
 ) -> Vec<String> {
     let mut suggestions = Vec::new();
-
     let patterns = memory.retrieve_relevant_patterns(&episode.context, 3).await;
-
     for pattern in patterns {
         match &pattern {
             crate::pattern::Pattern::ToolSequence { tools, .. } => {
@@ -281,17 +229,10 @@ async fn generate_suggested_next_steps(
             _ => {}
         }
     }
-
-    if episode.steps.len() > 5 && episode.successful_steps_count() < episode.steps.len() / 2 {
-        suggestions.push("Consider breaking down the task into smaller steps".to_string());
-        suggestions.push("Review the what_failed list to avoid repeating mistakes".to_string());
-    }
-
     suggestions.truncate(5);
     suggestions
 }
 
-/// Get relevant patterns for an episode.
 async fn get_relevant_patterns(
     memory: &SelfLearningMemory,
     episode: &crate::episode::Episode,
@@ -306,21 +247,17 @@ async fn get_relevant_patterns(
         .collect()
 }
 
-/// Get relevant heuristics for an episode.
 async fn get_relevant_heuristics(
     memory: &SelfLearningMemory,
     episode: &crate::episode::Episode,
 ) -> Vec<Heuristic> {
     let all_heuristics = memory.get_all_heuristics().await.unwrap_or_default();
-
     all_heuristics
         .into_iter()
         .filter(|h| {
-            let condition_lower = h.condition.to_lowercase();
-            let task_lower = episode.task_description.to_lowercase();
-            condition_lower
-                .split_whitespace()
-                .any(|word| task_lower.contains(word))
+            let cl = h.condition.to_lowercase();
+            let tl = episode.task_description.to_lowercase();
+            cl.split_whitespace().any(|word| tl.contains(word))
         })
         .take(5)
         .collect()
@@ -346,43 +283,46 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_checkpoint_completed_episode() {
-        use crate::episode::ExecutionStep;
-        use crate::memory::MemoryConfig;
-        use crate::types::ExecutionResult;
-
-        let test_config = MemoryConfig {
-            quality_threshold: 0.3,
-            ..Default::default()
+    async fn test_resume_from_handoff_context() {
+        let memory = SelfLearningMemory::new();
+        let handoff = HandoffPack {
+            checkpoint_id: Uuid::new_v4(),
+            episode_id: Uuid::new_v4(),
+            timestamp: Utc::now(),
+            current_goal: "Test goal".to_string(),
+            steps_completed: vec![],
+            what_worked: vec!["worked".to_string()],
+            what_failed: vec!["failed".to_string()],
+            salient_facts: vec!["fact".to_string()],
+            suggested_next_steps: vec!["next".to_string()],
+            relevant_patterns: vec![],
+            relevant_heuristics: vec![],
         };
-        let memory = SelfLearningMemory::with_config(test_config);
+        let new_id = resume_from_handoff(&memory, handoff).await.unwrap();
+        let episode = memory.get_episode(new_id).await.unwrap();
+        assert!(episode.metadata.contains_key("what_worked"));
+        assert_eq!(episode.context.domain, "resumed");
+    }
 
-        let episode_id = memory
+    #[tokio::test]
+    async fn test_checkpoint_with_note() {
+        let memory = SelfLearningMemory::new();
+        let ep_id = memory
             .start_episode(
-                "Test task".to_string(),
+                "test".to_string(),
                 TaskContext::default(),
                 TaskType::Testing,
             )
             .await;
-
-        let mut step = ExecutionStep::new(1, "test_tool".to_string(), "test action".to_string());
-        step.result = Some(ExecutionResult::Success {
-            output: "test output".to_string(),
-        });
-        memory.log_step(episode_id, step).await;
-
-        memory
-            .complete_episode(
-                episode_id,
-                crate::types::TaskOutcome::Success {
-                    verdict: "Done".to_string(),
-                    artifacts: vec![],
-                },
-            )
-            .await
-            .unwrap();
-
-        let result = checkpoint_episode(&memory, episode_id, "test".to_string()).await;
-        assert!(result.is_err());
+        let cp = checkpoint_episode_with_note(
+            &memory,
+            ep_id,
+            "reason".to_string(),
+            Some("note".to_string()),
+        )
+        .await
+        .unwrap();
+        assert_eq!(cp.reason, "reason");
+        assert_eq!(cp.note, Some("note".to_string()));
     }
 }

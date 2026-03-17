@@ -303,3 +303,25 @@ mod tests {
         assert!(result.is_err());
     }
 }
+
+#[cfg(test)]
+mod extra_mcp_checkpoint_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_checkpoint_episode_invalid_input() {
+        let memory = Arc::new(SelfLearningMemory::new());
+        let tools = CheckpointTools::new(memory);
+
+        let input = CheckpointEpisodeInput {
+            episode_id: Uuid::new_v4().to_string(),
+            reason: "test".to_string(),
+            note: None,
+        };
+
+        // Should return success: false because episode doesn't exist
+        let output = tools.checkpoint_episode(input).await.unwrap();
+        assert!(!output.success);
+        assert!(output.message.contains("not found"));
+    }
+}

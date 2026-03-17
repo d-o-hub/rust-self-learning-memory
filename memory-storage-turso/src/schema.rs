@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS episodes (
     metadata TEXT NOT NULL,
     domain TEXT NOT NULL,
     language TEXT,
+    checkpoints TEXT NOT NULL DEFAULT '[]',
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     archived_at INTEGER
 )
@@ -442,4 +443,29 @@ CREATE INDEX IF NOT EXISTS idx_relationships_type
 pub const CREATE_RELATIONSHIPS_BIDIRECTIONAL_INDEX: &str = r#"
 CREATE INDEX IF NOT EXISTS idx_relationships_bidirectional 
     ON episode_relationships(from_episode_id, to_episode_id)
+"#;
+
+/// SQL to create the recommendation_sessions table
+pub const CREATE_RECOMMENDATION_SESSIONS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS recommendation_sessions (
+    session_id TEXT PRIMARY KEY NOT NULL,
+    episode_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    recommended_pattern_ids TEXT NOT NULL,
+    recommended_playbook_ids TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// SQL to create the recommendation_feedback table
+pub const CREATE_RECOMMENDATION_FEEDBACK_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS recommendation_feedback (
+    session_id TEXT PRIMARY KEY NOT NULL,
+    applied_pattern_ids TEXT NOT NULL,
+    consulted_episode_ids TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    agent_rating REAL,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES recommendation_sessions(session_id) ON DELETE CASCADE
+)
 "#;

@@ -6,22 +6,12 @@ license = "MIT"
 publish = false
 
 [dependencies]
-# memory-core: Only enable embedding features for tests that specifically test embeddings
-# Most tests don't need ort/tokenizers - keep base features only
 memory-core = { path = "../memory-core" }
 memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
-# memory-mcp: Enable wasmtime-backend for MCP tests
 memory-mcp = { path = "../memory-mcp", features = ["wasmtime-backend"] }
 
-# Optional: Enable for embedding-specific tests only
-# memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }
-
 [dev-dependencies]
-# Embedding tests - only use when specifically testing embeddings
-# Uncomment only for tests that need ort/tokenizers:
-# memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }
-
 anyhow.workspace = true
 tokio.workspace = true
 tempfile.workspace = true
@@ -29,62 +19,18 @@ serial_test = "3.4"
 uuid.workspace = true
 serde_json.workspace = true
 regex = "1.10"
-
-# CLI testing (needed for e2e tests)
 assert_cmd = "2.2"
 predicates = "3.1"
-
 futures = "0.3"
 governor = "0.10"
 sysinfo = "0.38"
 chrono.workspace = true
-
-
-# Soak tests - long-running stability and load tests
-# These are intentionally disabled by default to avoid CI timeout.
-# Enable with: Uncomment the test blocks below and run with cargo test
-#
-# Priority: P4 (nice-to-have, not blocking)
-# ADR Reference: ADR-027: Strategy for Ignored Tests
 
 [[test]]
 name = "quality_gates"
 path = "quality_gates.rs"
 harness = true
 
-# NOTE: These embedding tests use APIs that don't exist or have changed.
-# They have been disabled to fix the build. Re-enable after fixing the API usage.
-# [[test]]
-# name = "embeddings_openai"
-# path = "e2e/embeddings_openai_test.rs"
-# harness = true
-
-# [[test]]
-# name = "embeddings_local"
-# path = "e2e/embeddings_local_test.rs"
-# harness = true
-
-# [[test]]
-# name = "embeddings_cli"
-# path = "e2e/embeddings_cli_test.rs"
-# harness = true
-
-# [[test]]
-# name = "embeddings_mcp"
-# path = "e2e/embeddings_mcp_test.rs"
-# harness = true
-
-# [[test]]
-# name = "embeddings_quality"
-# path = "e2e/embeddings_quality_test.rs"
-# harness = true
-
-# [[test]]
-# name = "embeddings_performance"
-# path = "e2e/embeddings_performance_test.rs"
-# harness = true
-
-# CLI and MCP E2E tests (30+ scenarios for >95% coverage)
 [[test]]
 name = "cli_episode_workflow"
 path = "e2e/cli_episode_workflow.rs"
@@ -114,7 +60,6 @@ name = "error_handling"
 path = "e2e/error_handling.rs"
 harness = true
 
-# New comprehensive E2E tests
 [[test]]
 name = "cli_workflows"
 path = "e2e/cli_workflows.rs"
@@ -125,9 +70,7 @@ name = "mcp_adr044_tests"
 path = "e2e/mcp_adr044_tests.rs"
 harness = true
 
-# NOTE: This test uses APIs that don't exist (execute_tool).
-# Disabled to fix the build. Re-enable after implementing the required API.
-# [[test]]
-# name = "mcp_integration"
-# path = "e2e/mcp_integration.rs"
-# harness = true
+[[test]]
+name = "restart_persistence_test"
+path = "e2e/restart_persistence_test.rs"
+harness = true

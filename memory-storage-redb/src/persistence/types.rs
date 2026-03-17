@@ -235,3 +235,31 @@ mod tests {
         assert_eq!(update.deletions.len(), 1);
     }
 }
+
+#[cfg(test)]
+mod extra_redb_tests {
+    use super::*;
+
+    #[test]
+    fn test_snapshot_size_calculation() {
+        let mut snapshot = CacheSnapshot::new();
+        snapshot.entries.push(PersistedCacheEntry {
+            key: "k1".to_string(),
+            value: vec![1, 2, 3],
+            created_at: 0,
+            access_count: 0,
+            last_accessed: 0,
+            ttl_secs: None,
+        });
+
+        let size = snapshot.size_bytes();
+        assert!(size > 5); // key + value + overhead
+    }
+
+    #[test]
+    fn test_stats_success_rates_empty() {
+        let stats = PersistenceStats::default();
+        assert_eq!(stats.save_success_rate(), 1.0);
+        assert_eq!(stats.load_success_rate(), 1.0);
+    }
+}

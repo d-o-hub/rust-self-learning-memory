@@ -120,6 +120,34 @@ impl StorageBackend for super::TursoStorage {
         )
         .await
     }
+
+    async fn store_recommendation_session(
+        &self,
+        session: &memory_core::memory::attribution::RecommendationSession,
+    ) -> Result<()> {
+        super::TursoStorage::store_recommendation_session(self, session).await
+    }
+
+    async fn store_recommendation_feedback(
+        &self,
+        feedback: &memory_core::memory::attribution::RecommendationFeedback,
+    ) -> Result<()> {
+        super::TursoStorage::store_recommendation_feedback(self, feedback).await
+    }
+
+    async fn get_recommendation_session(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Result<Option<memory_core::memory::attribution::RecommendationSession>> {
+        super::TursoStorage::get_recommendation_session(self, session_id).await
+    }
+
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Result<Option<memory_core::memory::attribution::RecommendationFeedback>> {
+        super::TursoStorage::get_recommendation_feedback(self, session_id).await
+    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage

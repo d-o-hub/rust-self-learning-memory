@@ -381,3 +381,91 @@ mod tests {
         assert_eq!(stats.total_sessions, 0);
     }
 }
+
+#[cfg(test)]
+mod extra_attribution_tests {
+    use super::*;
+    use crate::types::TaskOutcome;
+
+    #[tokio::test]
+    async fn test_get_session_with_feedback_not_found() {
+        let tracker = RecommendationTracker::new();
+        let result = tracker.get_session_with_feedback(Uuid::new_v4()).await;
+        assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_get_feedback_for_episode_not_found() {
+        let tracker = RecommendationTracker::new();
+        let result = tracker.get_feedback_for_episode(Uuid::new_v4()).await;
+        assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_stats_with_partial_success() {
+        let tracker = RecommendationTracker::new();
+        let session_id = Uuid::new_v4();
+        let ep_id = Uuid::new_v4();
+
+        tracker
+            .record_session(RecommendationSession {
+                session_id,
+                episode_id: ep_id,
+                timestamp: chrono::Utc::now(),
+                recommended_pattern_ids: vec!["p1".to_string()],
+                recommended_playbook_ids: vec![],
+            })
+            .await;
+
+        tracker
+            .record_feedback(RecommendationFeedback {
+                session_id,
+                applied_pattern_ids: vec!["p1".to_string()],
+                consulted_episode_ids: vec![],
+                outcome: TaskOutcome::PartialSuccess {
+                    verdict: "Partially done".to_string(),
+                    completed: vec![],
+                    failed: vec![],
+                },
+                agent_rating: None,
+            })
+            .await
+            .unwrap();
+
+        let stats = tracker.get_stats().await;
+        assert_eq!(stats.successful_applications, 1);
+    }
+}
+
+#[cfg(test)]
+mod deeper_attribution_tests {
+    use super::*;
+    use crate::types::TaskOutcome;
+
+    #[tokio::test]
+    async fn test_tracker_empty_stats() {
+        let tracker = RecommendationTracker::new();
+        let stats = tracker.get_stats().await;
+        assert_eq!(stats.total_sessions, 0);
+        assert_eq!(stats.adoption_rate, 0.0);
+    }
+
+    #[tokio::test]
+    async fn test_tracker_record_feedback_without_session() {
+        let tracker = RecommendationTracker::new();
+        let session_id = Uuid::new_v4();
+        let feedback = RecommendationFeedback {
+            session_id,
+            applied_pattern_ids: vec!["p1".to_string()],
+            consulted_episode_ids: vec![],
+            outcome: TaskOutcome::Success {
+                verdict: "ok".to_string(),
+                artifacts: vec![],
+            },
+            agent_rating: None,
+        };
+        // Should succeed even if session not found
+        tracker.record_feedback(feedback).await.unwrap();
+        assert!(tracker.get_feedback(session_id).await.is_some());
+    }
+}

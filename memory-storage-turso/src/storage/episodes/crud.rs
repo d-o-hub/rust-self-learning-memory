@@ -95,8 +95,8 @@ impl TursoStorage {
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
                 reflection, patterns, heuristics, metadata, domain, language,
-                archived_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                checkpoints, archived_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         // Get compression threshold from config
@@ -177,6 +177,9 @@ impl TursoStorage {
             .map_err(Error::Serialization)?
             .into_bytes();
 
+        let checkpoints_json =
+            serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+
         // Get archived_at from metadata if present
         let archived_at = episode
             .metadata
@@ -210,6 +213,7 @@ impl TursoStorage {
             metadata_str,
             episode.context.domain.clone(),
             episode.context.language.clone(),
+            checkpoints_json,
             archived_at,
         ])
         .await
@@ -253,7 +257,7 @@ impl TursoStorage {
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
-                   archived_at
+                   checkpoints, archived_at
             FROM episodes WHERE episode_id = ?
         "#;
 
@@ -408,7 +412,7 @@ impl TursoStorage {
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
-                   archived_at
+                   checkpoints, archived_at
             FROM episodes WHERE task_description = ?
         "#;
 

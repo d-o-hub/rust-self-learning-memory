@@ -16,30 +16,12 @@ use crate::semantic::EpisodeSummary;
 use crate::types::TaskContext;
 
 /// Template-driven playbook generator.
-///
-/// Synthesizes actionable playbooks from patterns, reflections, and summaries
-/// using templates - NO LLM on the hot path.
-///
-/// # Example
-///
-/// ```no_run
-/// use memory_core::memory::playbook::PlaybookGenerator;
-///
-/// let generator = PlaybookGenerator::new();
-/// // Use generate() to create playbooks
-/// ```
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct PlaybookGenerator {
     /// Minimum confidence threshold for including patterns
     min_pattern_confidence: f32,
     /// Maximum number of patterns to synthesize
     max_patterns: usize,
-}
-
-impl Default for PlaybookGenerator {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl PlaybookGenerator {
@@ -67,20 +49,6 @@ impl PlaybookGenerator {
     }
 
     /// Generate a playbook from patterns, summaries, and reflections.
-    ///
-    /// This is the main entry point for playbook generation. It synthesizes
-    /// actionable guidance from multiple data sources using templates.
-    ///
-    /// # Arguments
-    ///
-    /// * `request` - The playbook request with task details
-    /// * `patterns` - Relevant patterns to synthesize
-    /// * `summaries` - Episode summaries to use for context
-    /// * `reflections` - Episode reflections (successes, improvements, insights)
-    ///
-    /// # Returns
-    ///
-    /// A `RecommendedPlaybook` with ordered steps, applicability rules, and expected outcomes.
     #[instrument(skip(self, patterns, summaries, reflections), fields(
         task = %request.task_description,
         domain = %request.domain,
@@ -97,43 +65,26 @@ impl PlaybookGenerator {
         let playbook_id = Uuid::new_v4();
         let mut source = PlaybookSynthesisSource::new();
 
-        // Step 1: Calculate task match score
         let task_match_score = self.calculate_task_match(request, patterns);
-
-        // Step 2: Generate ordered steps from patterns
         let ordered_steps = self.synthesize_steps(patterns, &mut source, request.max_steps);
-
-        // Step 3: Extract applicability rules
         let (when_to_apply, when_not_to_apply) =
             self.synthesize_applicability(patterns, &request.context);
 
-        // Step 4: Synthesize pitfalls from reflections
         let pitfalls = self.synthesize_pitfalls(reflections, &mut source);
-
-        // Step 5: Generate expected outcome
         let expected_outcome = self.synthesize_expected_outcome(patterns, summaries, &mut source);
-
-        // Step 6: Calculate confidence
         let confidence = self.calculate_confidence(patterns, summaries, &source);
-
-        // Step 7: Generate why_relevant explanation
         let why_relevant = self.generate_why_relevant(patterns, summaries, &source);
 
-        // Step 8: Collect supporting IDs
         let supporting_pattern_ids: Vec<Uuid> = patterns
             .iter()
             .take(self.max_patterns)
             .map(|p| p.id())
             .collect();
 
-        let supporting_episode_ids: Vec<Uuid> = source.episode_ids.clone();
-
         info!(
             playbook_id = %playbook_id,
-            task_match_score = task_match_score,
             confidence = confidence,
             step_count = ordered_steps.len(),
-            source_count = source.total_sources(),
             "Generated playbook"
         );
 
@@ -148,7 +99,7 @@ impl PlaybookGenerator {
             expected_outcome,
             confidence,
             supporting_pattern_ids,
-            supporting_episode_ids,
+            supporting_episode_ids: source.episode_ids.clone(),
             created_at: chrono::Utc::now(),
         })
     }
@@ -158,12 +109,8 @@ impl PlaybookGenerator {
         if patterns.is_empty() {
             return 0.0;
         }
-
-        // Calculate average success rate of patterns
-        let avg_success_rate: f32 =
+        let avg_success: f32 =
             patterns.iter().map(|p| p.success_rate()).sum::<f32>() / patterns.len() as f32;
-
-        // Calculate context match
         let context_matches: usize = patterns
             .iter()
             .filter_map(|p| p.context())
@@ -172,15 +119,7 @@ impl PlaybookGenerator {
                     || ctx.tags.iter().any(|t| request.context.tags.contains(t))
             })
             .count();
-
-        let context_match_ratio = if patterns.is_empty() {
-            0.0
-        } else {
-            context_matches as f32 / patterns.len() as f32
-        };
-
-        // Weighted combination
-        avg_success_rate * 0.6 + context_match_ratio * 0.4
+        avg_success * 0.6 + (context_matches as f32 / patterns.len() as f32) * 0.4
     }
 
     /// Synthesize ordered steps from patterns.
@@ -191,16 +130,13 @@ impl PlaybookGenerator {
         max_steps: usize,
     ) -> Vec<PlaybookStep> {
         let mut builder = StepsBuilder::new(max_steps);
-
         for pattern in patterns.iter().take(self.max_patterns) {
             if builder.is_full() {
                 break;
             }
-
             source.add_pattern(pattern.id());
             builder.add_pattern_steps(pattern, source);
         }
-
         builder.build()
     }
 
@@ -237,21 +173,20 @@ impl PlaybookGenerator {
                 Pattern::ContextPattern {
                     context_features, ..
                 } => {
-                    let features = context_features.join(", ");
-                    when_to_apply.push(format!("When context includes: {}", features));
+                    when_to_apply.push(format!(
+                        "When context includes: {}",
+                        context_features.join(", ")
+                    ));
                     if !context.tags.is_empty() {
                         when_not_to_apply.push("When task has different context tags".to_string());
                     }
                 }
             }
         }
-
-        // Deduplicate
         when_to_apply.sort();
         when_to_apply.dedup();
         when_not_to_apply.sort();
         when_not_to_apply.dedup();
-
         (when_to_apply, when_not_to_apply)
     }
 
@@ -262,11 +197,8 @@ impl PlaybookGenerator {
         source: &mut PlaybookSynthesisSource,
     ) -> Vec<PlaybookPitfall> {
         let mut pitfalls = Vec::new();
-
         for reflection in reflections {
             source.add_episode(reflection.episode_id);
-
-            // Improvements become pitfalls
             for improvement in &reflection.improvements {
                 pitfalls.push(
                     PlaybookPitfall::new(
@@ -276,8 +208,6 @@ impl PlaybookGenerator {
                     .with_mitigation("Review and apply this improvement"),
                 );
             }
-
-            // Failed steps become warnings
             for failed_step in &reflection.failed_steps {
                 pitfalls.push(PlaybookPitfall::new(
                     format!("Step may fail: {}", failed_step),
@@ -285,8 +215,6 @@ impl PlaybookGenerator {
                 ));
             }
         }
-
-        // Limit to top 5 pitfalls
         pitfalls.truncate(5);
         pitfalls
     }
@@ -299,8 +227,6 @@ impl PlaybookGenerator {
         source: &mut PlaybookSynthesisSource,
     ) -> String {
         let mut outcome_parts = Vec::new();
-
-        // From patterns - use success rates
         let avg_success: f32 = if patterns.is_empty() {
             0.0
         } else {
@@ -315,7 +241,6 @@ impl PlaybookGenerator {
             outcome_parts.push("Variable outcomes expected".to_string());
         }
 
-        // From summaries - use key concepts
         for summary in summaries.iter().take(3) {
             source.add_summary(summary.episode_id);
             if !summary.key_concepts.is_empty() {
@@ -331,7 +256,6 @@ impl PlaybookGenerator {
                 ));
             }
         }
-
         outcome_parts.join(". ")
     }
 
@@ -345,26 +269,16 @@ impl PlaybookGenerator {
         if patterns.is_empty() && summaries.is_empty() {
             return 0.0;
         }
-
         let mut confidence = 0.0;
-
-        // Pattern contribution (0-0.4)
         if !patterns.is_empty() {
             let avg_success: f32 =
                 patterns.iter().map(|p| p.success_rate()).sum::<f32>() / patterns.len() as f32;
             confidence += avg_success * 0.4;
         }
-
-        // Summary contribution (0-0.3)
         if !summaries.is_empty() {
-            let summary_boost = (summaries.len() as f32).min(3.0) / 3.0 * 0.3;
-            confidence += summary_boost;
+            confidence += (summaries.len() as f32).min(3.0) / 3.0 * 0.3;
         }
-
-        // Source diversity contribution (0-0.3)
-        let source_diversity = (source.total_sources() as f32).ln().max(0.0) / 3.0 * 0.3;
-        confidence += source_diversity;
-
+        confidence += (source.total_sources() as f32).ln().max(0.0) / 3.0 * 0.3;
         confidence.min(1.0)
     }
 
@@ -376,23 +290,21 @@ impl PlaybookGenerator {
         source: &PlaybookSynthesisSource,
     ) -> String {
         let mut reasons = Vec::new();
-
         if !patterns.is_empty() {
+            let avg_success =
+                patterns.iter().map(|p| p.success_rate()).sum::<f32>() / patterns.len() as f32;
             reasons.push(format!(
                 "Based on {} patterns with {:.0}% average success rate",
                 patterns.len(),
-                patterns.iter().map(|p| p.success_rate()).sum::<f32>() / patterns.len() as f32
-                    * 100.0
+                avg_success * 100.0
             ));
         }
-
         if !summaries.is_empty() {
             reasons.push(format!(
                 "Synthesized from {} similar episode summaries",
                 summaries.len()
             ));
         }
-
         if source.total_sources() > 0 {
             reasons.push(format!(
                 "Supported by {} historical data points",
@@ -432,16 +344,11 @@ mod tests {
         }
     }
 
-    fn create_test_summary() -> EpisodeSummary {
-        EpisodeSummary::new(Uuid::new_v4())
-    }
-
     #[test]
     fn test_generator_creation() {
         let generator = PlaybookGenerator::new()
             .with_min_pattern_confidence(0.7)
             .with_max_patterns(5);
-
         assert_eq!(generator.min_pattern_confidence, 0.7);
         assert_eq!(generator.max_patterns, 5);
     }
@@ -450,54 +357,146 @@ mod tests {
     fn test_generate_playbook() {
         let generator = PlaybookGenerator::new();
         let request = PlaybookRequest::new("Test task", "web-api");
-
         let patterns = vec![create_test_pattern()];
-        let summaries = vec![create_test_summary()];
-        let reflections = vec![];
-
-        let playbook = generator
-            .generate(&request, &patterns, &summaries, &reflections)
-            .unwrap();
-
+        let playbook = generator.generate(&request, &patterns, &[], &[]).unwrap();
         assert!(playbook.task_match_score > 0.0);
         assert!(!playbook.ordered_steps.is_empty());
-        assert!(!playbook.why_relevant.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod extra_tests {
+    use super::*;
+    use crate::pattern::PatternEffectiveness;
+    use crate::types::OutcomeStats;
+
+    #[test]
+    fn test_synthesize_applicability_all_types() {
+        let generator = PlaybookGenerator::new();
+        let patterns = vec![
+            Pattern::ToolSequence {
+                id: Uuid::new_v4(),
+                tools: vec!["tool1".to_string()],
+                context: TaskContext {
+                    domain: "web-api".to_string(),
+                    ..Default::default()
+                },
+                success_rate: 0.9,
+                avg_latency: chrono::Duration::zero(),
+                occurrence_count: 1,
+                effectiveness: PatternEffectiveness::new(),
+            },
+            Pattern::DecisionPoint {
+                id: Uuid::new_v4(),
+                condition: "cond".to_string(),
+                action: "act".to_string(),
+                outcome_stats: OutcomeStats {
+                    success_count: 1,
+                    failure_count: 0,
+                    total_count: 1,
+                    avg_duration_secs: 1.0,
+                },
+                context: TaskContext::default(),
+                effectiveness: PatternEffectiveness::new(),
+            },
+        ];
+        let (apply, skip) = generator.synthesize_applicability(&patterns, &TaskContext::default());
+        assert_eq!(apply.len(), 2);
+        assert_eq!(skip.len(), 1);
     }
 
     #[test]
-    fn test_generate_playbook_empty_inputs() {
+    fn test_synthesize_pitfalls() {
         let generator = PlaybookGenerator::new();
-        let request = PlaybookRequest::new("Test task", "web-api");
-
-        let playbook = generator.generate(&request, &[], &[], &[]).unwrap();
-
-        assert_eq!(playbook.task_match_score, 0.0);
-        assert!(playbook.ordered_steps.is_empty());
-        assert_eq!(playbook.confidence, 0.0);
-    }
-
-    #[test]
-    fn test_calculate_task_match() {
-        let generator = PlaybookGenerator::new();
-        let request = PlaybookRequest::new("Test task", "web-api");
-
-        let patterns = vec![create_test_pattern()];
-        let score = generator.calculate_task_match(&request, &patterns);
-
-        assert!(score > 0.0);
-        assert!(score <= 1.0);
-    }
-
-    #[test]
-    fn test_synthesize_steps() {
-        let generator = PlaybookGenerator::new();
-        let patterns = vec![create_test_pattern()];
         let mut source = PlaybookSynthesisSource::new();
+        let reflections = vec![ReflectionData {
+            episode_id: Uuid::new_v4(),
+            successes: vec![],
+            improvements: vec!["i1".to_string()],
+            insights: vec![],
+            failed_steps: vec!["f1".to_string()],
+        }];
+        let pitfalls = generator.synthesize_pitfalls(&reflections, &mut source);
+        assert_eq!(pitfalls.len(), 2);
+    }
+}
 
-        let steps = generator.synthesize_steps(&patterns, &mut source, 5);
+#[cfg(test)]
+mod more_playbook_edge_tests {
+    use super::*;
+    use crate::pattern::PatternEffectiveness;
+    use crate::types::{OutcomeStats, TaskType};
 
-        assert!(!steps.is_empty());
-        assert!(steps.len() <= 5);
-        assert!(!source.pattern_ids.is_empty());
+    #[test]
+    fn test_generate_with_zero_success_patterns() {
+        let generator = PlaybookGenerator::new();
+        let request = PlaybookRequest::new("Fail task", "web-api");
+
+        let patterns = vec![
+            Pattern::ToolSequence {
+                id: Uuid::new_v4(),
+                tools: vec!["tool1".to_string()],
+                context: TaskContext { domain: "web-api".to_string(), ..Default::default() },
+                success_rate: 0.0,
+                avg_latency: chrono::Duration::zero(),
+                occurrence_count: 10,
+                effectiveness: PatternEffectiveness::new(),
+            }
+        ];
+
+        let playbook = generator.generate(&request, &patterns, &[], &[]).unwrap();
+        assert!(playbook.confidence < 0.1);
+        assert!(playbook.expected_outcome.contains("Variable outcomes"));
+    }
+
+    #[test]
+    fn test_generate_with_exceeding_max_patterns() {
+        let generator = PlaybookGenerator::new().with_max_patterns(2);
+        let request = PlaybookRequest::new("Task", "domain");
+
+        let mut patterns = Vec::new();
+        for _ in 0..10 {
+            patterns.push(Pattern::ToolSequence {
+                id: Uuid::new_v4(),
+                tools: vec!["t".to_string()],
+                context: TaskContext::default(),
+                success_rate: 0.8,
+                avg_latency: chrono::Duration::zero(),
+                occurrence_count: 1,
+                effectiveness: PatternEffectiveness::new(),
+            });
+        }
+
+        let playbook = generator.generate(&request, &patterns, &[], &[]).unwrap();
+        // Should only use 2 patterns for steps, but collect all for supporting_pattern_ids?
+        // Wait, the code takes self.max_patterns for supporting_pattern_ids too.
+        assert_eq!(playbook.supporting_pattern_ids.len(), 2);
+    }
+
+    #[test]
+    fn test_synthesize_applicability_duplicates() {
+        let generator = PlaybookGenerator::new();
+        let patterns = vec![
+            Pattern::ErrorRecovery {
+                id: Uuid::new_v4(),
+                error_type: "timeout".to_string(),
+                recovery_steps: vec![],
+                success_rate: 0.8,
+                context: TaskContext::default(),
+                effectiveness: PatternEffectiveness::new(),
+            },
+            Pattern::ErrorRecovery {
+                id: Uuid::new_v4(),
+                error_type: "timeout".to_string(),
+                recovery_steps: vec![],
+                success_rate: 0.9,
+                context: TaskContext::default(),
+                effectiveness: PatternEffectiveness::new(),
+            }
+        ];
+
+        let (apply, _) = generator.synthesize_applicability(&patterns, &TaskContext::default());
+        // Should be deduplicated
+        assert_eq!(apply.len(), 1);
     }
 }

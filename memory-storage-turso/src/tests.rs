@@ -3,6 +3,7 @@
 //! Integration tests for Turso storage backend.
 
 use super::*;
+use uuid::Uuid;
 use memory_core::StorageBackend;
 use std::sync::Arc;
 use tempfile::TempDir;
@@ -275,6 +276,7 @@ async fn test_empty_embeddings_batch() {
 #[cfg(feature = "compression")]
 mod compression_tests {
     use super::*;
+use uuid::Uuid;
     use memory_core::StorageBackend;
 
     /// Test that large episodes are compressed and retrieved correctly
@@ -444,4 +446,71 @@ mod compression_tests {
         let savings = stats.bandwidth_savings_percent();
         assert!(savings > 55.0 && savings < 65.0);
     }
+}
+
+#[tokio::test]
+async fn test_attribution_persistence() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    let session = memory_core::memory::attribution::RecommendationSession {
+        session_id: Uuid::new_v4(),
+        episode_id: Uuid::new_v4(),
+        timestamp: chrono::Utc::now(),
+        recommended_pattern_ids: vec!["p1".to_string(), "p2".to_string()],
+        recommended_playbook_ids: vec![Uuid::new_v4()],
+    };
+
+    // Store session
+    storage.store_recommendation_session(&session).await.unwrap();
+
+    let feedback = memory_core::memory::attribution::RecommendationFeedback {
+        session_id: session.session_id,
+        applied_pattern_ids: vec!["p1".to_string()],
+        consulted_episode_ids: vec![Uuid::new_v4()],
+        outcome: memory_core::TaskOutcome::Success {
+            verdict: "test".to_string(),
+            artifacts: vec![],
+        },
+        agent_rating: Some(0.95),
+    };
+
+    // Store feedback
+    storage.store_recommendation_feedback(&feedback).await.unwrap();
+
+    // Verify we can't store feedback for nonexistent session if foreign key enabled
+    // But currently our test setup might not enforce it strictly depending on libsql version
+}
+
+#[tokio::test]
+async fn test_attribution_persistence_full() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    let session = memory_core::memory::attribution::RecommendationSession {
+        session_id: Uuid::new_v4(),
+        episode_id: Uuid::new_v4(),
+        timestamp: chrono::Utc::now(),
+        recommended_pattern_ids: vec!["p1".to_string()],
+        recommended_playbook_ids: vec![],
+    };
+
+    storage.store_recommendation_session(&session).await.unwrap();
+
+    let feedback = memory_core::memory::attribution::RecommendationFeedback {
+        session_id: session.session_id,
+        applied_pattern_ids: vec!["p1".to_string()],
+        consulted_episode_ids: vec![],
+        outcome: memory_core::TaskOutcome::Success {
+            verdict: "ok".to_string(),
+            artifacts: vec![],
+        },
+        agent_rating: Some(0.9),
+    };
+
+    storage.store_recommendation_feedback(&feedback).await.unwrap();
+
+    let retrieved_session = storage.get_recommendation_session(session.session_id).await.unwrap().unwrap();
+    assert_eq!(retrieved_session.session_id, session.session_id);
+
+    let retrieved_feedback = storage.get_recommendation_feedback(session.session_id).await.unwrap().unwrap();
+    assert_eq!(retrieved_feedback.session_id, session.session_id);
 }

@@ -99,4 +99,32 @@ impl StorageBackend for RedbStorage {
         self.relationship_exists(from_episode_id, to_episode_id, relationship_type)
             .await
     }
+
+    async fn store_recommendation_session(
+        &self,
+        session: &memory_core::memory::attribution::RecommendationSession,
+    ) -> Result<()> {
+        self.store_recommendation_session(session).await
+    }
+
+    async fn store_recommendation_feedback(
+        &self,
+        feedback: &memory_core::memory::attribution::RecommendationFeedback,
+    ) -> Result<()> {
+        self.store_recommendation_feedback(feedback).await
+    }
+
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<memory_core::memory::attribution::RecommendationSession>> {
+        self.get_recommendation_session(session_id).await
+    }
+
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<memory_core::memory::attribution::RecommendationFeedback>> {
+        self.get_recommendation_feedback(session_id).await
+    }
 }

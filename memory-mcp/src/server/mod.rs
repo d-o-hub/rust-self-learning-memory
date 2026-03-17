@@ -75,7 +75,7 @@ pub struct MemoryMCPServer {
     /// Monitoring endpoints
     monitoring_endpoints: Arc<MonitoringEndpoints>,
     /// Query result cache
-#[allow(dead_code)]
+    #[allow(dead_code)]
     cache: Arc<QueryCache>,
     /// Audit logger for security events
     audit_logger: Arc<AuditLogger>,

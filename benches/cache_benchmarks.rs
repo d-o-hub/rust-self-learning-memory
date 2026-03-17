@@ -68,6 +68,7 @@ fn create_test_episode(id: Uuid) -> Episode {
         end_time: None,
         metadata: std::collections::HashMap::new(),
         tags: Vec::new(),
+        checkpoints: vec![],
     }
 }
 

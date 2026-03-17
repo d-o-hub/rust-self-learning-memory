@@ -1,5 +1,6 @@
 ---
 source: memory-cli/tests/snapshot_tests.rs
+assertion_line: 76
 expression: stdout
 ---
 Storage operations commands

@@ -6,7 +6,6 @@ use crate::types::{ExecutionContext, ExecutionResult, SandboxConfig};
 use crate::unified_sandbox::{BackendChoice, SandboxBackend, UnifiedSandbox};
 use base64::Engine;
 
-
 #[allow(dead_code)]
 fn should_skip_sandbox_tests() -> bool {
     std::env::var("CI").is_ok() || std::env::var("GITHUB_ACTIONS").is_ok()

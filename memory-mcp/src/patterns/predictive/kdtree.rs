@@ -233,7 +233,7 @@ impl KDNode {
 pub struct KDTree {
     root: Option<Box<KDNode>>,
 
-#[allow(dead_code)]
+    #[allow(dead_code)]
     max_depth: usize,
 }
 

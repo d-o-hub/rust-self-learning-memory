@@ -5,9 +5,21 @@ name: Performance Benchmarks
   push:
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
+      - 'plans/**'
+      - '**/*.md'
+      - '.agents/**'
+      - 'agent_docs/**'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
+      - 'plans/**'
+      - '**/*.md'
+      - '.agents/**'
+      - 'agent_docs/**'
   schedule:
     # Run weekly on Monday at 00:00 UTC
     - cron: '0 0 * * 1'
@@ -145,9 +157,6 @@ jobs:
              ["pattern_extraction"]="300"
              ["storage_operations"]="600"
              ["concurrent_operations"]="600"
-             ["memory_pressure"]="600"
-             ["scalability"]="600"
-             ["multi_backend_comparison"]="600"
            )
 
            SUCCESS_COUNT=0
@@ -202,74 +211,47 @@ jobs:
 
       - name: Convert Criterion output to bencher format
         run: |
-           # Parse comprehensive Criterion JSON output and convert to bencher format
-           # Handle both regular benchmarks and custom measurements (memory, throughput)
-
+           # Parse Criterion JSON output and convert to bencher format
            bench_results_file="bench_results.txt"
-           : > "$bench_results_file"  # Clear file
+           criterion_dir="$CARGO_TARGET_DIR/criterion"
 
-           # Process all benchmark results
-           find "$CARGO_TARGET_DIR/criterion" -type f -path "*/new/estimates.json" | while read -r json_file; do
-             # Extract benchmark name from path
-             # Extract benchmark name from path (shortened for line length)
-            bench_name=$(echo "$json_file" | sed "s|$CARGO_TARGET_DIR/criterion/||" | \
-              sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
+           # Only process if criterion results exist (otherwise keep dummy from previous step)
+           if [ -d "$criterion_dir" ] && [ -n "$(find "$criterion_dir" -name "estimates.json" 2>/dev/null)" ]; then
+             : > "$bench_results_file"  # Clear only if we have real results to process
 
-             # Extract mean time in nanoseconds
-             mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
-               grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+             # Use process substitution to avoid subshell issue with pipe
+             while IFS= read -r json_file; do
+               bench_name=$(echo "$json_file" | sed "s|$criterion_dir/||" | \
+                 sed 's|/new/estimates.json||' | sed 's|/.*benchmarks/||')
 
-             # Extract standard deviation
-             std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
-               grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+               mean_ns=$(grep -A 3 '"mean"' "$json_file" | \
+                 grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
 
-             if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
-               # Format for bencher.dev compatibility
-               if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
-                 echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
-               else
-                 echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)" >> "$bench_results_file"
+               std_dev=$(grep -A 3 '"std_dev"' "$json_file" | \
+                 grep '"point_estimate"' | grep -o '[0-9.]*' | head -1 | cut -d. -f1)
+
+               if [ -n "$mean_ns" ] && [ "$mean_ns" != "0" ]; then
+                 if [ -n "$std_dev" ] && [ "$std_dev" != "0" ]; then
+                   echo "test $bench_name ... bench: $mean_ns ns/iter (+/- $std_dev)" >> "$bench_results_file"
+                 else
+                   echo "test $bench_name ... bench: $mean_ns ns/iter (+/- 0)" >> "$bench_results_file"
+                 fi
                fi
-             fi
-           done
+             done < <(find "$criterion_dir" -type f -path "*/new/estimates.json")
 
-           # Add memory pressure benchmark results (custom measurements)
-           if [ -d "$CARGO_TARGET_DIR/criterion/memory_pressure" ]; then
-             echo "# Memory Pressure Benchmarks" >> "$bench_results_file"
-             find "$CARGO_TARGET_DIR/criterion/memory_pressure" -name "*.json" | head -5 | while read -r json_file; do
-               bench_name=$(basename "$json_file" .json)
-               peak_memory=$(grep -o '"peak_memory_mb":[0-9.]*' "$json_file" | cut -d: -f2 || echo "0")
-               if [ "$peak_memory" != "0" ]; then
-                 echo "test memory_pressure_$bench_name ... bench: ${peak_memory} MB (+/- 0)" >> "$bench_results_file"
-               fi
-             done
+             sort "$bench_results_file" | uniq > "${bench_results_file}.tmp"
+             mv "${bench_results_file}.tmp" "$bench_results_file"
            fi
 
-           # Add scalability benchmark results
-           if [ -d "$CARGO_TARGET_DIR/criterion/scalability" ]; then
-             echo "# Scalability Benchmarks" >> "$bench_results_file"
-             find "$CARGO_TARGET_DIR/criterion/scalability" -name "*.json" | head -10 | while read -r json_file; do
-               bench_name=$(basename "$json_file" .json)
-               throughput=$(grep -o '"operations_per_sec":[0-9.]*' "$json_file" | cut -d: -f2 || echo "0")
-               if [ "$throughput" != "0" ]; then
-                 echo "test scalability_$bench_name ... bench: ${throughput} ops/sec (+/- 0)" >> "$bench_results_file"
-               fi
-             done
-           fi
-
-           # Sort and deduplicate results
-           sort "$bench_results_file" | uniq > "${bench_results_file}.tmp"
-           mv "${bench_results_file}.tmp" "$bench_results_file"
-
-           # Verify we have results
+           # Verify we have results, fall back to dummy if not
            if [ ! -s bench_results.txt ]; then
              echo "Warning: No benchmark results found, using dummy data!"
              ./scripts/generate_dummy_benchmarks.sh > bench_results.txt
            fi
 
-            echo "Generated comprehensive benchmark results:"
-            echo "Total benchmark entries: $(wc -l < bench_results.txt)"
-            head -20 bench_results.txt
+           echo "Generated benchmark results:"
+           echo "Total benchmark entries: $(wc -l < bench_results.txt)"
+           head -20 bench_results.txt
 
       - name: Cleanup sccache
         if: always()

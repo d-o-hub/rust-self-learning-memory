@@ -22,9 +22,9 @@ use crate::embeddings::real_model::download::download_model;
 pub struct RealEmbeddingModel {
     name: String,
     dimension: usize,
-    #[allow(dead_code)] // Used in async spawn_blocking, compiler doesn't see cross-async usage
+    // Used in async spawn_blocking, compiler doesn't see cross-async usage
     tokenizer: Option<Tokenizer>,
-    #[allow(dead_code)] // Used in async spawn_blocking, compiler doesn't see cross-async usage
+    // Used in async spawn_blocking, compiler doesn't see cross-async usage
     session: std::sync::Arc<tokio::sync::Mutex<Session>>,
 }
 
@@ -198,13 +198,13 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
-    #[allow(dead_code)]
+
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
-    #[allow(dead_code)]
+
     pub fn dimension(&self) -> usize {
         self.dimension
     }
@@ -212,7 +212,7 @@ impl RealEmbeddingModel {
 
 /// Stubs for when local-embeddings feature is not enabled
 #[cfg(not(feature = "local-embeddings"))]
-#[allow(dead_code)]
+
 pub struct RealEmbeddingModel {
     name: String,
     dimension: usize,
@@ -221,13 +221,13 @@ pub struct RealEmbeddingModel {
 #[cfg(not(feature = "local-embeddings"))]
 impl RealEmbeddingModel {
     /// Create a stub real embedding model
-    #[allow(dead_code)]
+
     pub fn new(name: String, dimension: usize, _tokenizer: (), _session: ()) -> Self {
         Self { name, dimension }
     }
 
     /// Try to load real model (always fails without feature)
-    #[allow(dead_code)]
+
     #[allow(clippy::unused_async)]
     pub async fn try_load_from_cache(
         _config: &LocalConfig,
@@ -239,7 +239,7 @@ impl RealEmbeddingModel {
     }
 
     /// Generate real embedding (always fails without feature)
-    #[allow(dead_code)]
+
     #[allow(clippy::unused_async)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
@@ -248,13 +248,13 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
-    #[allow(dead_code)]
+
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
-    #[allow(dead_code)]
+
     pub fn dimension(&self) -> usize {
         self.dimension
     }

@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-15
-**Released Version**: v0.1.21
-**Next Version**: v0.1.22 (ADR-044 High-Impact Features)  
+**Last Updated**: 2026-03-16
+**Released Version**: v0.1.22
+**Next Version**: v0.1.23 (Next Generation Learning)
 **Branch**: main  
 **Edition**: Rust 2024
 
@@ -19,7 +19,7 @@
 | Ignored tests | 118 | ≤10 | 🔴 70 blocked by upstream libsql bug (ADR-027) |
 | Production src files >500 LOC | 0 | 0 | ✅ |
 | Duplicate dependency roots | 134 | <80 | 🟡 Architectural limit reached |
-| Broken markdown links | 89 | 0 | 🟡 Mostly in archived files |
+| Broken markdown links | 0 | 0 | ✅ Primary docs fixed |
 | `target/` directory | 19 GB | <2 GB | 🟡 Reduced from 74 GB |
 
 ## Completed Phases
@@ -78,7 +78,7 @@ These subsystems are fully implemented with tests but not connected to productio
 
 | Feature | Location | Status |
 |---------|----------|--------|
-| **Changelog automation (git-cliff)** | ADR-034 Phase 4 | Not started |
+| **Changelog automation (git-cliff)** | ADR-034 Phase 4 | ✅ Implemented |
 
 > **Note**: MCP Completion, Elicitation, and Rate Limiting were previously listed here but are **fully implemented** (confirmed in ADR-040, 2026-03-13). Stale TODOs in `types.rs` were removed.
 
@@ -93,7 +93,7 @@ These subsystems are fully implemented with tests but not connected to productio
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 118 | — | 70 Turso (upstream libsql bug), 29 slow integration, 9 WASM/sandbox, 10 other |
-| `#[allow(dead_code)]` | 37 files | ≤20 files | — |
+| `#[allow(dead_code)]` | 0 | ≤20 files | ✅ Reduced to 0 |
 | Ignored-test ceiling | 125 | — | ✅ Enforced by `scripts/check-ignored-tests.sh` (ADR-041) |
 | Broken markdown links | 89 | 0 | Mostly archived files |
 | Duplicate dep roots | 134 | <80 | Architectural limit (wasmtime/libsql transitive deps) |

@@ -11,6 +11,8 @@
 
 use chrono::{Duration, Utc};
 use memory_core::episode::{Episode, ExecutionStep};
+use memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
+use memory_core::memory::playbook::{PlaybookPitfall, PlaybookStep, RecommendedPlaybook};
 use memory_core::pattern::PatternEffectiveness;
 use memory_core::reward::RewardCalculator;
 use memory_core::types::{
@@ -250,5 +252,82 @@ proptest! {
         }
 
         prop_assert_eq!(episode.is_complete(), should_complete);
+    }
+}
+
+// ============================================================================
+// ADR-044 Playbook & Attribution Property Tests
+// ============================================================================
+
+proptest! {
+    #[test]
+    fn recommended_playbook_postcard_roundtrip(
+        task_match_score in 0.0f32..1.0f32,
+        confidence in 0.0f32..1.0f32,
+    ) {
+        let playbook_id = uuid::Uuid::new_v4();
+        let playbook = RecommendedPlaybook {
+            playbook_id,
+            task_match_score,
+            why_relevant: "PropTest".to_string(),
+            when_to_apply: vec!["Always".to_string()],
+            when_not_to_apply: vec!["Never".to_string()],
+            ordered_steps: vec![PlaybookStep::new(1, "Step 1".to_string())],
+            pitfalls: vec![PlaybookPitfall::new("P", "R")],
+            expected_outcome: "Success".to_string(),
+            confidence,
+            supporting_pattern_ids: vec![uuid::Uuid::new_v4()],
+            supporting_episode_ids: vec![uuid::Uuid::new_v4()],
+            created_at: Utc::now(),
+        };
+
+        let encoded = postcard::to_allocvec(&playbook).expect("serialize");
+        let decoded: RecommendedPlaybook = postcard::from_bytes(&encoded).expect("deserialize");
+        prop_assert_eq!(playbook.playbook_id, decoded.playbook_id);
+        prop_assert!((playbook.task_match_score - decoded.task_match_score).abs() < 0.0001);
+        prop_assert_eq!(playbook.why_relevant, decoded.why_relevant);
+    }
+}
+
+proptest! {
+    #[test]
+    fn recommendation_session_postcard_roundtrip(
+        num_patterns in 0usize..10usize,
+        num_playbooks in 0usize..10usize,
+    ) {
+        let session = RecommendationSession {
+            session_id: uuid::Uuid::new_v4(),
+            episode_id: uuid::Uuid::new_v4(),
+            timestamp: Utc::now(),
+            recommended_pattern_ids: (0..num_patterns).map(|i| format!("p-{i}")).collect(),
+            recommended_playbook_ids: (0..num_playbooks).map(|_| uuid::Uuid::new_v4()).collect(),
+        };
+
+        let encoded = postcard::to_allocvec(&session).expect("serialize");
+        let decoded: RecommendationSession = postcard::from_bytes(&encoded).expect("deserialize");
+        prop_assert_eq!(session.session_id, decoded.session_id);
+        prop_assert_eq!(session.episode_id, decoded.episode_id);
+        prop_assert_eq!(session.recommended_pattern_ids, decoded.recommended_pattern_ids);
+        prop_assert_eq!(session.recommended_playbook_ids, decoded.recommended_playbook_ids);
+    }
+}
+
+proptest! {
+    #[test]
+    fn recommendation_feedback_postcard_roundtrip(
+        agent_rating in proptest::option::of(0.0f32..1.0f32),
+    ) {
+        let feedback = RecommendationFeedback {
+            session_id: uuid::Uuid::new_v4(),
+            applied_pattern_ids: vec!["p-1".to_string()],
+            consulted_episode_ids: vec![uuid::Uuid::new_v4()],
+            outcome: TaskOutcome::Success { verdict: "ok".to_string(), artifacts: vec![] },
+            agent_rating,
+        };
+
+        let encoded = postcard::to_allocvec(&feedback).expect("serialize");
+        let decoded: RecommendationFeedback = postcard::from_bytes(&encoded).expect("deserialize");
+        prop_assert_eq!(feedback.session_id, decoded.session_id);
+        prop_assert_eq!(feedback.agent_rating, decoded.agent_rating);
     }
 }

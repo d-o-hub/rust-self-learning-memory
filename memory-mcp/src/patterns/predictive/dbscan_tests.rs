@@ -16,8 +16,7 @@ fn create_test_points(values: &[f64]) -> Vec<Point> {
         .collect()
 }
 
-/// Helper function to calculate distance
-#[allow(dead_code)]
+
 fn _calculate_distance(a: &[f64], b: &[f64]) -> f64 {
     let len = a.len().min(b.len());
     if len == 0 {

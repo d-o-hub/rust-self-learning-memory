@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-15
-**Released Version**: v0.1.21
-**Current Sprint**: v0.1.22 (ADR-044 High-Impact Features)
+**Last Updated**: 2026-03-16
+**Released Version**: v0.1.22
+**Current Sprint**: v0.1.23 (Next Generation Learning)
 **Branch**: main
 
 ---
@@ -20,24 +20,24 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Next Sprint: v0.1.22
+## Current Sprint: v0.1.23
 
-### High-Impact Features (ADR-044)
+### Next Generation Learning
 
-#### P0: Actionable Playbooks
-- **Problem**: Users don't know what actions to take based on memory data
-- **Impact**: Closes usability gap, enables proactive recommendations
-- **Effort**: 3-5 days
+- Integration with more external LLM providers
+- Enhanced spatiotemporal indexing for faster large-scale retrieval
+- Dynamic reward shaping based on feedback sessions
 
-#### P0: Recommendation Attribution
-- **Problem**: No visibility into why recommendations are made
-- **Impact**: Builds trust, enables feedback loop for learning
-- **Effort**: 3-4 days
+---
 
-#### P1: Episode Checkpoints/Handoff
-- **Problem**: No way to transfer context between sessions/agents
-- **Impact**: Enables multi-agent workflows, session continuity
-- **Effort**: 4-6 days
+## Completed in v0.1.22 (ADR-044 High-Impact Features)
+
+- ✅ Actionable Playbooks (synthesizes patterns and reflections)
+- ✅ Recommendation Attribution (tracks feedback and adoption)
+- ✅ Episode Checkpoints & Handoff Packs (multi-agent progress sharing)
+- ✅ Storage Consistency Check (CLI tool for DB/cache sync)
+- ✅ Test Health Improvements (doctest fixes, timeout optimizations)
+- ✅ File Size Compliance (refactored generator and management)
 
 ### Completed in v0.1.21
 

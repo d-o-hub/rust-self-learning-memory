@@ -29,6 +29,12 @@ pub enum StorageCommands {
     Health,
     /// Show connection status
     Connections,
+    /// Check consistency between database and cache
+    Check {
+        /// Optional episode ID to check
+        #[arg(value_name = "EPISODE_ID")]
+        episode_id: Option<String>,
+    },
 }
 
 #[derive(Debug, Serialize)]
@@ -233,6 +239,90 @@ impl Output for SyncResult {
 
         if self.duration_ms > 0 {
             writeln!(writer, "Duration: {}ms", self.duration_ms)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct StorageCheckResult {
+    pub total_episodes: usize,
+    pub consistent_count: usize,
+    pub inconsistent_count: usize,
+    pub missing_in_cache: usize,
+    pub missing_in_db: usize,
+    pub check_details: Vec<CheckDetail>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CheckDetail {
+    pub episode_id: String,
+    pub status: CheckStatus,
+    pub message: String,
+}
+
+#[derive(Debug, Serialize, PartialEq)]
+pub enum CheckStatus {
+    Consistent,
+    Inconsistent,
+    MissingInCache,
+    MissingInDb,
+}
+
+impl Output for StorageCheckResult {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(writer, "{}", "Storage Consistency Check".bold())?;
+        writeln!(writer, "{}", "─".repeat(40))?;
+
+        writeln!(writer, "Summary:")?;
+        writeln!(writer, "  Total Checked: {}", self.total_episodes)?;
+        writeln!(
+            writer,
+            "  Consistent:    {}",
+            self.consistent_count.to_string().green()
+        )?;
+        if self.inconsistent_count > 0 {
+            writeln!(
+                writer,
+                "  Inconsistent:  {}",
+                self.inconsistent_count.to_string().red()
+            )?;
+        }
+        if self.missing_in_cache > 0 {
+            writeln!(
+                writer,
+                "  Missing Cache: {}",
+                self.missing_in_cache.to_string().yellow()
+            )?;
+        }
+        if self.missing_in_db > 0 {
+            writeln!(
+                writer,
+                "  Missing DB:    {}",
+                self.missing_in_db.to_string().red()
+            )?;
+        }
+
+        if !self.check_details.is_empty() {
+            writeln!(writer, "\nDetails:")?;
+            for detail in &self.check_details {
+                let status_color = match detail.status {
+                    CheckStatus::Consistent => Color::Green,
+                    CheckStatus::Inconsistent => Color::Red,
+                    CheckStatus::MissingInCache => Color::Yellow,
+                    CheckStatus::MissingInDb => Color::Red,
+                };
+                writeln!(
+                    writer,
+                    "  {} - {}: {}",
+                    detail.episode_id,
+                    format!("{:?}", detail.status).color(status_color),
+                    detail.message
+                )?;
+            }
         }
 
         Ok(())

@@ -1,3 +1,28 @@
+## [0.1.22] - 2026-03-16
+
+### Added
+
+- **Recommendation Feedback & Checkpoints (ADR-044)**
+  - Full implementation of recommendation feedback loop to track pattern effectiveness.
+  - Episode checkpointing and handoff pack generation for agent switching and task resumption.
+  - MCP tool parity for all new ADR-044 features.
+- **Storage Consistency Check**
+  - New `memory-cli storage check` command to verify consistency between primary DB and cache.
+
+### Fixed
+
+- **Doctest Failures**
+  - Fixed move errors and signature mismatches in `memory-core` documentation examples.
+- **Test Performance**
+  - Increased allowed time budget for DBSCAN benchmarks in CI to prevent false-positive timeouts.
+- **Oversized Files**
+  - Refactored `generator.rs` and `management.rs` into smaller modules to comply with the 500 LOC guideline.
+
+### Maintenance
+
+- Reduced `dead_code` annotations across the workspace to reach target levels.
+- Fixed broken markdown links in active documentation.
+- Created structured tech-debt registry and libsql version monitor.
 ## [Unreleased]
 
 ### Added

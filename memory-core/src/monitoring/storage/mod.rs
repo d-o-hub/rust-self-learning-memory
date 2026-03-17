@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Aggregated analytics data for monitoring dashboards
-#[allow(dead_code)]
+
 #[derive(Debug, Clone)]
 pub struct MonitoringAnalytics {
     /// Total executions across all agents
@@ -50,7 +50,7 @@ impl Default for MonitoringAnalytics {
 /// Currently, `SimpleMonitoringStorage` is used directly in production code (init.rs).
 /// This wrapper is retained for future use when dual-backend caching is needed.
 /// See ADR-040 for the gap analysis that identified this as potential dead code.
-#[allow(dead_code)]
+
 pub struct MonitoringStorage {
     /// Durable storage backend with monitoring capabilities
     durable_storage: Option<Arc<dyn backend::MonitoringStorageBackend>>,
@@ -64,7 +64,6 @@ impl Default for MonitoringStorage {
     }
 }
 
-#[allow(dead_code)]
 impl MonitoringStorage {
     /// Create a new monitoring storage instance
     #[must_use]

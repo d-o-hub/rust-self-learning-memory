@@ -622,6 +622,6 @@ Based on research documents:
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
 - **Configuration**: See [../CONFIGURATION/](../CONFIGURATION/) for configuration documentation
 - **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
-- **MCP Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
+- **MCP Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](#)
 - **ADR-024**: [MCP Lazy Tool Loading](../adr/ADR-024-MCP-Lazy-Tool-Loading.md)
-- **Token Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
+- **Token Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](#)

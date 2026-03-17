@@ -126,6 +126,9 @@ The memory management system provides persistent memory across agent interaction
 4. `complete_episode` - Complete and score episodes
 5. `execute_code` - Execute code in WASM sandbox
 6. `health_check` - System health status
+7. `checkpoint_episode` - Create mid-task snapshots (v0.1.22)
+8. `recommend_playbook` - Get step-by-step guidance (v0.1.22)
+9. `record_recommendation_feedback` - Track effectiveness (v0.1.22)
 
 **Features**:
 - Tool usage tracking

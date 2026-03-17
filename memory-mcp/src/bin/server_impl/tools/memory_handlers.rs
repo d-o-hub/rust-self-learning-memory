@@ -286,6 +286,116 @@ pub async fn handle_quality_metrics(
     Ok(content)
 }
 
+/// Handle checkpoint_episode tool (ADR-044 Feature 3)
+pub async fn handle_checkpoint_episode(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: memory_mcp::mcp::tools::checkpoint::CheckpointEpisodeInput =
+        serde_json::from_value(args)?;
+
+    let tools = memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory().clone());
+    let result = tools.checkpoint_episode(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle get_handoff_pack tool (ADR-044 Feature 3)
+pub async fn handle_get_handoff_pack(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: memory_mcp::mcp::tools::checkpoint::GetHandoffPackInput =
+        serde_json::from_value(args)?;
+
+    let tools = memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory().clone());
+    let result = tools.get_handoff_pack(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle resume_from_handoff tool (ADR-044 Feature 3)
+pub async fn handle_resume_from_handoff(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: memory_mcp::mcp::tools::checkpoint::ResumeFromHandoffInput =
+        serde_json::from_value(args)?;
+
+    let tools = memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory().clone());
+    let result = tools.resume_from_handoff(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle record_recommendation_feedback tool (ADR-044 Feature 4)
+pub async fn handle_record_recommendation_feedback(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: memory_mcp::mcp::tools::recommendation_feedback::RecordRecommendationFeedbackInput =
+        serde_json::from_value(args)?;
+
+    let tools = memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
+        server.memory().clone(),
+    );
+    let result = tools.record_feedback(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle record_recommendation_session tool (ADR-044 Feature 4)
+pub async fn handle_record_recommendation_session(
+    server: &mut MemoryMCPServer,
+    arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
+    let input: memory_mcp::mcp::tools::recommendation_feedback::RecordRecommendationSessionInput =
+        serde_json::from_value(args)?;
+
+    let tools = memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
+        server.memory().clone(),
+    );
+    let result = tools.record_session(input).await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
+/// Handle get_recommendation_stats tool (ADR-044 Feature 4)
+pub async fn handle_get_recommendation_stats(
+    server: &mut MemoryMCPServer,
+    _arguments: Option<Value>,
+) -> anyhow::Result<Vec<Content>> {
+    let tools = memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
+        server.memory().clone(),
+    );
+    let result = tools.get_stats().await?;
+
+    let content = vec![Content::Text {
+        text: serde_json::to_string_pretty(&result)?,
+    }];
+    Ok(content)
+}
+
 /// Handle configure_embeddings tool
 pub async fn handle_configure_embeddings(
     server: &mut MemoryMCPServer,

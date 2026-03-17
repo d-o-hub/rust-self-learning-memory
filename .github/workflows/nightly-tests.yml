@@ -175,6 +175,13 @@ jobs:
           sudo apt-get autoclean || true
           df -h
 
+      - name: Generate Test Trend Summary
+        if: always()
+        run: |
+          echo "### Nightly Test Trend Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Date: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- Regular Tests: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

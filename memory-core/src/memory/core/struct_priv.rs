@@ -27,7 +27,7 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub struct SelfLearningMemory {
     /// Configuration
-    #[allow(dead_code)]
+
     config: MemoryConfig,
     /// Quality assessor for pre-storage reasoning
     pub(super) quality_assessor: QualityAssessor,
@@ -60,7 +60,7 @@ pub struct SelfLearningMemory {
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
     /// Semaphore to limit concurrent cache operations
-    #[allow(dead_code)]
+
     pub(super) cache_semaphore: Arc<Semaphore>,
     /// Capacity manager for episodic storage (GENESIS)
     pub(super) capacity_manager: Option<crate::episodic::CapacityManager>,
@@ -74,13 +74,13 @@ pub struct SelfLearningMemory {
     /// Diversity maximizer using MMR for result set optimization
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
     /// Context-aware embeddings for task-specific similarity
-    #[allow(dead_code)]
+
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
     /// Semantic service for embedding generation and search
-    #[allow(dead_code)]
+
     semantic_service: Option<Arc<SemanticService>>,
     /// Configuration for semantic search
-    #[allow(dead_code)]
+
     semantic_config: EmbeddingConfig,
     /// Query cache for retrieval performance (v0.1.12)
     query_cache: Arc<crate::retrieval::QueryCache>,

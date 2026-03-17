@@ -47,6 +47,7 @@ pub struct RoutingDecision {
     pub backend: String,
     pub reason: String,
     pub code_length: usize,
+#[allow(dead_code)]
     pub has_async: bool,
     pub timestamp: chrono::DateTime<chrono::Utc>,
 }
@@ -60,13 +61,15 @@ pub enum BackendChoice {
 
 /// Code heuristics for routing decisions
 #[derive(Debug)]
-#[allow(dead_code)]
+
 pub struct CodeHeuristics {
     pub is_simple: bool,
     pub is_short: bool,
     pub is_complex: bool,
     pub has_external_deps: bool,
+#[allow(dead_code)]
     pub has_async: bool,
+#[allow(dead_code)]
     pub has_loops: bool,
 }
 

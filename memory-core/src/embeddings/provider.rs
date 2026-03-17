@@ -137,6 +137,7 @@ pub mod utils {
     }
 
     /// Validate embedding dimension matches expected
+
     #[allow(dead_code)]
     pub fn validate_dimension(embedding: &[f32], expected: usize) -> Result<()> {
         if embedding.len() != expected {
@@ -151,6 +152,7 @@ pub mod utils {
 
     /// Chunk text into smaller pieces for embedding
     /// Useful for long texts that exceed model token limits
+
     #[allow(dead_code)]
     pub fn chunk_text(text: &str, max_chars: usize) -> Vec<String> {
         if text.len() <= max_chars {
@@ -182,6 +184,7 @@ pub mod utils {
 
     /// Average multiple embeddings into a single embedding
     /// Useful for combining embeddings from chunked text
+
     #[allow(dead_code)]
     pub fn average_embeddings(embeddings: &[Vec<f32>]) -> Result<Vec<f32>> {
         if embeddings.is_empty() {

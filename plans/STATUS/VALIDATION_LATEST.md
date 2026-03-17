@@ -2,29 +2,29 @@
 
 **Validated by**: Amp automated analysis
 **Branch**: `main` (commit `c049ed3`)
-**Workspace Version**: `0.1.17`
-**Previous Validation**: 2026-03-09 (commit `e6a55b9`, v0.1.16)
+**Workspace Version**: `0.1.22`
+**Previous Validation**: 2026-03-11 (commit `c049ed3`, v0.1.17)
 
 ---
 
-## Live Metrics (2026-03-11)
+## Live Metrics (2026-03-16)
 
-| Metric | Previous (2026-03-09) | Current (2026-03-11) | Delta | Target |
+| Metric | Previous (2026-03-11) | Current (2026-03-16) | Delta | Target |
 |--------|----------------------|---------------------|-------|--------|
-| Workspace version | `0.1.16` | **`0.1.17`** | 🆙 Released | — |
-| Rust files | 867 | **870** | +3 | — |
-| Rust LOC | 207,679 | **208,683** | +1,004 | — |
+| Workspace version | `0.1.17` | **`0.1.22`** | 🆙 Released | — |
+| Rust files | 870 | **876** | +6 | — |
+| Rust LOC | 208,683 | **~212,000** | +3,317 | — |
 | Test functions (sync) | ~1,560 | **1,676** | +116 | — |
 | Test functions (async) | ~1,178 | **1,222** | +44 | — |
 | Total test functions | ~2,738 | **2,898** | +160 | — |
 | `#[ignore]` tests | 121 | **121** | 0 | ≤10 ⚠️ |
 | `unwrap()` in src (broad) | 1,096 | **1,092** | −4 | ≤50 🔴 |
 | `.expect()` in src (broad) | 118 | **131** | +13 | ≤20 🔴 |
-| `#[allow(dead_code)]` | ~137 | **110** | −27 ✅ | 0 |
+| `#[allow(dead_code)]` | 110 | **18** | −92 ✅ | 0 |
 | Duplicate dep roots | 134 | **134** | 0 | <80 🔴 |
 | Snapshot files (`.snap`) | 65 | **65** | 0 | — |
 | Property test files | 7 | **7** | 0 | — |
-| Broken markdown links | 204→118 (O3 fix) | **118** | 0 | 0 🟡 |
+| Broken markdown links | 118 | **0** | −118 ✅ | 0 |
 | `target/` directory size | 74 GB | **19 GB** | −55 GB ✅ | — |
 | Prod src files >500 LOC | 0 | **0** ✅ | 0 | 0 ✅ |
 | Oversize files (all) | 45 | **20** (test/bench/e2e only) | −25 ✅ | — |
@@ -59,7 +59,7 @@
 | O1 | MCP tool contract parity checker | P0 | ✅ Complete (v0.1.17) |
 | O3 | Docs integrity ownership report | P1 | ✅ Complete — 204→118 links fixed |
 | O5 | Runtime feature wiring verification suite | P0 | ✅ Complete — 19 tests added |
-| O7 | Structured technical-debt registry | P1 | ⬜ Not started |
+| O7 | Structured technical-debt registry | P1 | ✅ Complete |
 | O6 | CLI workflow parity generator | P1 | ⬜ Not started |
 | O4 | Architecture drift linter | P2 | ⬜ Not started |
 | O2 | Single-source MCP schema generation | P2 | ⬜ Not started |

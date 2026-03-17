@@ -129,7 +129,6 @@ impl TursoStorage {
     }
 
     #[cfg(not(feature = "hybrid_search"))]
-    #[allow(dead_code)]
     async fn initialize_fts5_schema(&self, _conn: &libsql::Connection) -> Result<()> {
         Ok(())
     }
@@ -178,7 +177,6 @@ impl TursoStorage {
     }
 
     #[cfg(not(feature = "turso_multi_dimension"))]
-    #[allow(dead_code)]
     async fn initialize_vector_tables(&self, _conn: &libsql::Connection) -> Result<()> {
         Ok(())
     }

@@ -120,6 +120,11 @@ name = "cli_workflows"
 path = "e2e/cli_workflows.rs"
 harness = true
 
+[[test]]
+name = "mcp_adr044_tests"
+path = "e2e/mcp_adr044_tests.rs"
+harness = true
+
 # NOTE: This test uses APIs that don't exist (execute_tool).
 # Disabled to fix the build. Re-enable after implementing the required API.
 # [[test]]

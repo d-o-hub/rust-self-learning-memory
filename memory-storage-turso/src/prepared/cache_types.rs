@@ -127,9 +127,9 @@ impl CachedStatementMetadata {
 
 pub(super) struct ConnectionCache {
     pub(super) statements: HashMap<String, CachedStatementMetadata>,
-    #[allow(dead_code)] // Used internally for LRU tracking
+    // Used internally for LRU tracking
     access_order: Vec<String>,
-    #[allow(dead_code)] // Available for future cache age tracking
+    // Available for future cache age tracking
     created_at: Instant,
     pub(super) last_accessed: Instant,
 }
@@ -189,12 +189,10 @@ impl ConnectionCache {
         self.statements.len()
     }
 
-    #[allow(dead_code)]
     pub(super) fn is_empty(&self) -> bool {
         self.statements.is_empty()
     }
 
-    #[allow(dead_code)]
     pub(super) fn clear(&mut self) {
         self.statements.clear();
         self.access_order.clear();

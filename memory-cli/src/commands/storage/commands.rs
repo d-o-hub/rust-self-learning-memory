@@ -59,6 +59,96 @@ pub async fn storage_stats(
     Ok(())
 }
 
+pub async fn storage_check(
+    memory: &memory_core::SelfLearningMemory,
+    _config: &Config,
+    format: OutputFormat,
+    episode_id_str: Option<String>,
+) -> anyhow::Result<()> {
+    let (turso, redb) = match (memory.turso_storage(), memory.cache_storage()) {
+        (Some(t), Some(r)) => (Arc::clone(&t), Arc::clone(&r)),
+        _ => {
+            return Err(anyhow::anyhow!(helpers::format_error_message(
+                "Storage check requires both Turso and redb storage backends",
+                "Both storage backends must be configured for consistency checking",
+                helpers::STORAGE_CONNECTION_HELP
+            )));
+        }
+    };
+
+    let mut check_details = Vec::new();
+    let mut consistent_count = 0;
+    let mut inconsistent_count = 0;
+    let mut missing_in_cache = 0;
+    let mut missing_in_db = 0;
+
+    let episode_ids = if let Some(id_str) = episode_id_str {
+        vec![uuid::Uuid::parse_str(&id_str)?]
+    } else {
+        // Sample recent episodes if no ID provided
+        let since = chrono::Utc::now() - chrono::Duration::hours(24);
+        let episodes = turso.query_episodes_since(since, Some(10)).await?;
+        episodes.into_iter().map(|e| e.episode_id).collect()
+    };
+
+    for id in &episode_ids {
+        let db_episode = turso.get_episode(*id).await.ok().flatten();
+        let cache_episode = redb.get_episode(*id).await.ok().flatten();
+
+        let (status, message) = match (db_episode, cache_episode) {
+            (Some(db), Some(cache)) => {
+                if db.task_description == cache.task_description
+                    && db.task_type == cache.task_type
+                    && db.is_complete() == cache.is_complete()
+                {
+                    consistent_count += 1;
+                    (CheckStatus::Consistent, "Episode consistent".to_string())
+                } else {
+                    inconsistent_count += 1;
+                    (
+                        CheckStatus::Inconsistent,
+                        "Fields mismatch between DB and cache".to_string(),
+                    )
+                }
+            }
+            (Some(_), None) => {
+                missing_in_cache += 1;
+                (
+                    CheckStatus::MissingInCache,
+                    "Exists in DB but not in cache".to_string(),
+                )
+            }
+            (None, Some(_)) => {
+                missing_in_db += 1;
+                (
+                    CheckStatus::MissingInDb,
+                    "Exists in cache but not in DB".to_string(),
+                )
+            }
+            (None, None) => (CheckStatus::Inconsistent, "Not found in either".to_string()),
+        };
+
+        check_details.push(CheckDetail {
+            episode_id: id.to_string(),
+            status,
+            message,
+        });
+    }
+
+    let result = StorageCheckResult {
+        total_episodes: episode_ids.len(),
+        consistent_count,
+        inconsistent_count,
+        missing_in_cache,
+        missing_in_db,
+        check_details,
+    };
+
+    format.print_output(&result)?;
+
+    Ok(())
+}
+
 #[allow(clippy::excessive_nesting)]
 pub async fn sync_storage(
     memory: &memory_core::SelfLearningMemory,

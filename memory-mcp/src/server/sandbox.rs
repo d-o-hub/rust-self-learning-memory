@@ -80,7 +80,6 @@ pub fn is_javy_plugin_valid() -> bool {
 }
 
 #[cfg(not(feature = "javy-backend"))]
-#[allow(dead_code)]
 pub fn is_javy_plugin_valid() -> bool {
     false
 }

@@ -4,6 +4,7 @@ use crate::embeddings::config::OpenAIConfig;
 use anyhow::Result;
 
 /// Validate OpenAI API key format
+
 #[allow(dead_code)]
 pub fn validate_api_key(api_key: &str) -> Result<()> {
     if api_key.is_empty() {
@@ -22,6 +23,7 @@ pub fn validate_api_key(api_key: &str) -> Result<()> {
 }
 
 /// Get the appropriate model configuration for different use cases
+
 #[allow(dead_code)]
 pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> OpenAIConfig {
     match use_case {
@@ -34,6 +36,7 @@ pub fn get_recommended_model(use_case: OpenAIModelUseCase) -> OpenAIConfig {
 /// Calculate approximate cost for embedding generation
 ///
 /// Based on OpenAI's pricing as of 2024. Prices may change.
+
 #[allow(dead_code)]
 pub fn estimate_cost(num_tokens: usize, model: &str) -> f64 {
     let cost_per_million_tokens = match model {
@@ -49,6 +52,7 @@ pub fn estimate_cost(num_tokens: usize, model: &str) -> f64 {
 /// Estimate token count for text (approximate)
 ///
 /// This is a rough estimate. Actual token count may differ.
+
 #[allow(dead_code)]
 pub fn estimate_tokens(text: &str) -> usize {
     // Rough estimate: ~1 token per 4 characters for English text
@@ -56,6 +60,7 @@ pub fn estimate_tokens(text: &str) -> usize {
 }
 
 /// Use cases for OpenAI model selection
+
 #[allow(dead_code)]
 pub enum OpenAIModelUseCase {
     /// Balanced performance and cost (text-embedding-3-small)

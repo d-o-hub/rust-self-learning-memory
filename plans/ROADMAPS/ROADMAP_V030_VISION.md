@@ -473,7 +473,7 @@ pub async fn fine_tune_model(
 
 ## Cross-References
 
-- **Version History**: See [ROADMAP_VERSION_HISTORY.md](ROADMAP_VERSION_HISTORY.md)
+- **Version History**: See [#](ROADMAP_VERSION_HISTORY.md)
 - **Current Status**: See [ROADMAP_ACTIVE.md](ROADMAP_ACTIVE.md)
 - **Architecture**: See [../ARCHITECTURE/ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)
 

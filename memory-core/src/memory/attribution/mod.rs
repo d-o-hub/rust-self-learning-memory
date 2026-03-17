@@ -38,7 +38,7 @@
 //!     recommended_pattern_ids: vec!["pattern-123".to_string()],
 //!     recommended_playbook_ids: vec![],
 //! };
-//! tracker.record_session(session).await;
+//! tracker.record_session(session.clone()).await;
 //!
 //! // 2. Later, record feedback when the agent completes the task
 //! let feedback = RecommendationFeedback {

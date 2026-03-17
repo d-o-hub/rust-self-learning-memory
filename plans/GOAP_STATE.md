@@ -1,11 +1,11 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-15 (v0.1.20 Sprint Progress)
+- **Last Updated**: 2026-03-16 (v0.1.22 Sprint Completion)
 - **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
-- **ADR**: `plans/adr/ADR-042-Code-Coverage-Improvement.md`
+- **ADR**: `plans/adr/ADR-044-High-Impact-Features-v0.1.20.md`
 - **Branch**: main
-- **Version**: `0.1.20` (with v0.1.20 features in progress)
+- **Version**: `0.1.22` (v0.1.22 Features Implemented)
 
 ## Phase Status
 
@@ -610,11 +610,45 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 - `scripts/verify-crate-metadata.sh` - Metadata verification script
 - `release.toml` - Updated with crate-specific publish settings
 
+## v0.1.22 High-Impact Features (2026-03-16)
+
+### High-Impact Features Sprint (ADR-044)
+
+**Branch**: main
+**ADR**: `plans/adr/ADR-044-High-Impact-Features-v0.1.20.md`
+
+### Completed Tasks
+
+| ID | Task | Status | Details |
+|----|------|--------|---------|
+| #1 | Actionable Playbooks | ✅ Complete | Synthesizes patterns into step-by-step guidance |
+| #2 | Recommendation Attribution | ✅ Complete | Tracks feedback loop and adoption rate |
+| #3 | Checkpoints & Handoff | ✅ Complete | Enables mid-task context sharing |
+| #4 | Storage Consistency Check | ✅ Complete | New CLI command for DB/cache sync |
+| #5 | Test Health Polish | ✅ Complete | Fixed doctests and optimized timeouts |
+| #6 | File Size Compliance | ✅ Complete | Split generator.rs and management.rs |
+
+### Implementation Details
+
+**Playbooks & Attribution:**
+- Implemented `PlaybookGenerator` with template-driven synthesis.
+- Implemented `RecommendationTracker` for feedback loop closure.
+- Added 6 new MCP tool handlers for parity.
+
+**Checkpoints:**
+- Added `checkpoint_episode`, `get_handoff_pack`, and `resume_from_handoff`.
+- Integrated with MCP and validated via E2E tests.
+
+**Infrastructure:**
+- Reduced `dead_code` to 0.
+- Fixed primary broken markdown links.
+- Created tech-debt registry and version monitor.
+
 ## v0.1.21 Configuration Improvements (2026-03-15)
 
 ### Claude Code Configuration Improvements (ADR-046)
 
-**Branch**: docs/v0.1.21-release-updates
+**Branch**: release/v0.1.21
 **ADR**: `plans/adr/ADR-046-Claude-Code-Configuration-Improvements.md`
 
 ### Session Analysis Summary

@@ -1,0 +1,16 @@
+---
+source: memory-core/tests/adr044_snapshot_tests.rs
+assertion_line: 52
+expression: session
+---
+RecommendationSession {
+    session_id: 00000000-0000-0000-0000-000000000064,
+    episode_id: 00000000-0000-0000-0000-0000000000c8,
+    timestamp: 2026-03-16T12:00:00Z,
+    recommended_pattern_ids: [
+        "p-1",
+    ],
+    recommended_playbook_ids: [
+        00000000-0000-0000-0000-00000000012c,
+    ],
+}

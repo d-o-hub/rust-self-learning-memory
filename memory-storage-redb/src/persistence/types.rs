@@ -157,7 +157,7 @@ impl PersistenceStats {
 
 /// Incremental update record
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(dead_code)] // Used in tests and future incremental persistence
+// Used in tests and future incremental persistence
 pub struct IncrementalUpdate {
     /// Update sequence number
     pub sequence: u64,

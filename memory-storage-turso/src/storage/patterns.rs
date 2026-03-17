@@ -19,7 +19,7 @@ pub struct PatternQuery {
 
 /// Pattern metadata including timestamps
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
+
 pub struct PatternMetadata {
     pub pattern_id: PatternId,
     pub pattern_type: String,

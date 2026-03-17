@@ -59,6 +59,9 @@ pub async fn handle_storage_command(
         } => storage::vacuum_storage(memory, config, format, vacuum_dry_run || dry_run).await,
         StorageCommands::Health => storage::storage_health(memory, config, format).await,
         StorageCommands::Connections => storage::connection_status(memory, config, format).await,
+        StorageCommands::Check { episode_id } => {
+            storage::storage_check(memory, config, format, episode_id).await
+        }
     }
 }
 

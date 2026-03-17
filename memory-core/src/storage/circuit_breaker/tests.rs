@@ -9,6 +9,7 @@ use crate::Error;
 use crate::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
 
 /// Helper function to create a test circuit breaker with custom config
+
 #[allow(dead_code)]
 fn create_test_circuit_breaker(failure_threshold: u32, timeout_secs: u64) -> CircuitBreaker {
     let config = CircuitBreakerConfig {

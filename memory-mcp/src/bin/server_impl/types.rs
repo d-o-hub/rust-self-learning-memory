@@ -16,14 +16,15 @@ use serde_json::Value;
 
 /// Authorization result
 #[derive(Debug)]
-#[allow(dead_code)] // Only used when oauth feature is enabled
+// Only used when oauth feature is enabled
+#[allow(dead_code)]
 pub enum AuthorizationResult {
     Authorized,
-    #[allow(dead_code)] // Variant used for error handling
+    // Variant used for error handling
     MissingToken,
-    #[allow(dead_code)] // Error message available for logging/debugging
+    // Error message available for logging/debugging
     InvalidToken(String),
-    #[allow(dead_code)] // Required scopes available for logging/debugging
+    // Required scopes available for logging/debugging
     InsufficientScope(Vec<String>),
 }
 
@@ -79,8 +80,9 @@ pub enum Content {
 /// Completion reference types (MCP 2025-11-25)
 ///
 /// Note: Completion support is implemented in mcp/completion.rs
-#[allow(dead_code)]
+
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub enum CompletionRef {
     #[serde(rename = "ref/prompt")]
     Prompt { name: String },
@@ -136,9 +138,10 @@ pub struct CompletionValues {
 /// Elicitation request type - what kind of input is requested
 ///
 /// Note: Elicitation support is implemented in mcp/elicitation.rs
-#[allow(dead_code)]
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub enum ElicitationType {
     Text,
     Select,
@@ -174,6 +177,7 @@ pub struct ElicitationParams {
     /// Unique identifier for this elicitation
     pub elicitation_id: String,
     /// The prompt to send to the user
+#[allow(dead_code)]
     pub prompt: ElicitationPrompt,
     /// Name of the tool that triggered this elicitation
     pub trigger: String,
@@ -210,10 +214,12 @@ pub struct ElicitationCancelParams {
 #[derive(Debug, Clone)]
 pub struct ActiveElicitation {
     pub id: String,
-    #[allow(dead_code)] // Not currently used, available for future timeout handling
+    // Not currently used, available for future timeout handling
+#[allow(dead_code)]
     pub prompt: ElicitationPrompt,
     pub trigger: String,
-    #[allow(dead_code)] // Not currently used, available for future timeout handling
+    // Not currently used, available for future timeout handling
+#[allow(dead_code)]
     pub created_at: std::time::Instant,
 }
 
@@ -254,7 +260,9 @@ pub struct TaskResult {
 #[serde(rename_all = "camelCase")]
 pub struct TaskInput {
     pub name: String,
+#[allow(dead_code)]
     pub input: Option<Value>,
+#[allow(dead_code)]
     pub metadata: Option<std::collections::HashMap<String, Value>>,
 }
 
@@ -298,12 +306,15 @@ pub struct ActiveTask {
     pub id: String,
     pub name: String,
     pub status: TaskStatus,
-    #[allow(dead_code)] // Available for future task execution
+    // Available for future task execution
+#[allow(dead_code)]
     pub input: Option<Value>,
-    #[allow(dead_code)] // Available for future task metadata
+    // Available for future task metadata
+#[allow(dead_code)]
     pub metadata: Option<std::collections::HashMap<String, Value>>,
     pub progress: u32,
     pub result: Option<TaskResult>,
+#[allow(dead_code)]
     pub created_at: std::time::Instant,
 }
 
@@ -317,7 +328,7 @@ pub struct EmbeddingEnvConfig {
     pub provider: String,
     pub api_key: Option<String>,
     /// Environment variable name for API key (for documentation/debugging)
-    #[allow(dead_code)]
+#[allow(dead_code)]
     pub api_key_env: String,
     pub model: Option<String>,
     pub similarity_threshold: f32,

@@ -1,0 +1,46 @@
+---
+source: memory-core/tests/adr044_snapshot_tests.rs
+assertion_line: 39
+expression: playbook
+---
+RecommendedPlaybook {
+    playbook_id: 00000000-0000-0000-0000-000000003039,
+    task_match_score: 0.85,
+    why_relevant: "Based on 3 successful patterns",
+    when_to_apply: [
+        "When using Axum",
+    ],
+    when_not_to_apply: [
+        "When using Actix",
+    ],
+    ordered_steps: [
+        PlaybookStep {
+            order: 1,
+            action: "Install dependencies",
+            tool_hint: Some(
+                "cargo",
+            ),
+            expected_result: Some(
+                "Dependencies installed",
+            ),
+        },
+    ],
+    pitfalls: [
+        PlaybookPitfall {
+            warning: "Version mismatch",
+            reason: "Incompatible with old Rust",
+            mitigation: Some(
+                "Upgrade to Rust 1.80+",
+            ),
+        },
+    ],
+    expected_outcome: "A working API endpoint",
+    confidence: 0.9,
+    supporting_pattern_ids: [
+        00000000-0000-0000-0000-000000000001,
+    ],
+    supporting_episode_ids: [
+        00000000-0000-0000-0000-000000000002,
+    ],
+    created_at: 2026-03-16T12:00:00Z,
+}

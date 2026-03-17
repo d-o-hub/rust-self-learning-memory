@@ -7,44 +7,6 @@
 //! 2. **Log Steps** - Record execution steps
 //! 3. **Complete Episode** - Analyze, score, reflect, and extract patterns
 //! 4. **Retrieve Context** - Query relevant episodes and patterns
-//!
-//! ## Example
-//!
-//! ```no_run
-//! use memory_core::memory::SelfLearningMemory;
-//! use memory_core::{TaskContext, TaskType, TaskOutcome, ExecutionStep};
-//!
-//! #[tokio::main]
-//! async fn main() {
-//!     let memory = SelfLearningMemory::new();
-//!
-//!     // Start an episode
-//!     let context = TaskContext::default();
-//!     let episode_id = memory.start_episode(
-//!         "Implement user authentication".to_string(),
-//!         context,
-//!         TaskType::CodeGeneration,
-//!     ).await;
-//!
-//!     // Log execution steps
-//!     let step = ExecutionStep::new(1, "read_file".to_string(), "Read config".to_string());
-//!     memory.log_step(episode_id, step).await;
-//!
-//!     // Complete the episode
-//!     let outcome = TaskOutcome::Success {
-//!         verdict: "Authentication implemented successfully".to_string(),
-//!         artifacts: vec!["auth.rs".to_string()],
-//!     };
-//!     memory.complete_episode(episode_id, outcome).await.unwrap();
-//!
-//!     // Retrieve relevant context for future tasks
-//!     let relevant = memory.retrieve_relevant_context(
-//!         "Add authorization logic".to_string(),
-//!         TaskContext::default(),
-//!         5,
-//!     ).await;
-//! }
-//! ```
 
 pub mod api;
 pub mod attribution;
@@ -65,6 +27,7 @@ pub mod relationship_query;
 mod relationships;
 mod retrieval;
 pub mod step_buffer;
+mod tags;
 #[cfg(test)]
 mod tests;
 pub mod types;

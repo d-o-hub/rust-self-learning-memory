@@ -620,8 +620,8 @@ Based on research documents:
 
 - **Architecture Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
-- **Configuration**: See [../CONFIGURATION/](../CONFIGURATION/) for configuration documentation
+- **Configuration**: See [../../memory-cli/CONFIGURATION_GUIDE.md](../../memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
 - **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
-- **MCP Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
+- **MCP Optimization**: See [../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md](../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md)
 - **ADR-024**: [MCP Lazy Tool Loading](../adr/ADR-024-MCP-Lazy-Tool-Loading.md)
-- **Token Optimization**: See [MCP_TOKEN_OPTIMIZATION_RESEARCH.md](../research/MCP_TOKEN_OPTIMIZATION_RESEARCH.md)
+- **Token Optimization**: See [../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md](../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md)

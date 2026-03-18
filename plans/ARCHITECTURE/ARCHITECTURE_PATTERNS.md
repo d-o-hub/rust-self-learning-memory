@@ -628,7 +628,7 @@ pub struct SelfLearningMemory {
 
 - **Core Components**: See [ARCHITECTURE_CORE.md](ARCHITECTURE_CORE.md)
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
-- **Configuration**: See [../CONFIGURATION/](../CONFIGURATION/) for configuration documentation
+- **Configuration**: See [../../memory-cli/CONFIGURATION_GUIDE.md](../../memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
 - **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 
 ---

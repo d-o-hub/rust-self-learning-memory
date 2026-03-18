@@ -52,6 +52,21 @@ name = "quality_gates"
 path = "quality_gates.rs"
 harness = true
 
+[[test]]
+name = "attribution_integration"
+path = "attribution_integration_test.rs"
+harness = true
+
+[[test]]
+name = "checkpoint_integration"
+path = "checkpoint_integration_test.rs"
+harness = true
+
+[[test]]
+name = "playbook_integration"
+path = "playbook_integration_test.rs"
+harness = true
+
 # NOTE: These embedding tests use APIs that don't exist or have changed.
 # They have been disabled to fix the build. Re-enable after fixing the API usage.
 # [[test]]

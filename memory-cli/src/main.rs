@@ -130,6 +130,18 @@ enum Commands {
         #[command(subcommand)]
         command: crate::commands::relationships::StandaloneRelationshipCommands,
     },
+    /// Playbook recommendation and management
+    #[command(alias = "pb")]
+    Playbook {
+        #[command(subcommand)]
+        command: PlaybookCommands,
+    },
+    /// Recommendation feedback tracking
+    #[command(alias = "fb")]
+    Feedback {
+        #[command(subcommand)]
+        command: FeedbackCommands,
+    },
 }
 
 #[tokio::main]
@@ -279,6 +291,26 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Relationship { command } => {
             handle_relationship_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::Playbook { command } => {
+            handle_playbook_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::Feedback { command } => {
+            handle_feedback_command(
                 command,
                 &storage_result.memory,
                 &config,

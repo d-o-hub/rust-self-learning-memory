@@ -1,0 +1,15 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 560
+expression: input
+---
+{
+  "query": "rust authentication",
+  "domain": "web",
+  "tags": [
+    "security"
+  ],
+  "limit": 5,
+  "min_relevance": 0.5,
+  "filter_by_domain": true
+}

@@ -1397,7 +1397,7 @@ Current version: **0.1.7**
 - [memory-storage-turso Documentation](../../memory-storage-turso/README.md)
 - [memory-storage-redb Documentation](../../memory-storage-redb/README.md)
 - [memory-mcp Documentation](../../memory-mcp/README.md)
-- [Architecture Decision Records](./ARCHITECTURE_DECISION_RECORDS.md)
+- [Architecture Decision Records](../adr/)
 - Current Architecture - See ROADMAP_ACTIVE.md for current state
 
 ---

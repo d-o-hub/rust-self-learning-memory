@@ -110,7 +110,8 @@ jobs:
       - name: Run regular tests
         run: |
           mkdir -p "$CARGO_TARGET_DIR/nextest/nightly"
-          cargo nextest run --profile ci --lib --all --test-threads=4
+          cargo nextest run --profile ci --lib --all --test-threads=4 \
+            --message-format json > "$CARGO_TARGET_DIR/nextest/nightly/report.json"
           cargo nextest run --profile ci --tests --all --test-threads=4 \
             -E 'not binary(compliance)'
 
@@ -180,9 +181,37 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: nightly-test-results
-          path: ${{ env.CARGO_TARGET_DIR }}/debug/nextest/
+          path: |
+            ${{ env.CARGO_TARGET_DIR }}/debug/nextest/
+            ${{ env.CARGO_TARGET_DIR }}/nextest/nightly/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Extract trend metrics
+        if: always()
+        run: |
+          mkdir -p metrics/trends
+          DATE=$(date +%Y-%m-%d)
+          echo "date,total,passed,failed,ignored" > metrics/trends/test-stats-${DATE}.csv
+          # Parse nextest-json to extract metrics
+          if [ -f "$CARGO_TARGET_DIR/nextest/nightly/report.json" ]; then
+            TOTAL=$(jq '.summary.total' "$CARGO_TARGET_DIR/nextest/nightly/report.json")
+            PASSED=$(jq '.summary.passed' "$CARGO_TARGET_DIR/nextest/nightly/report.json")
+            FAILED=$(jq '.summary.failed' "$CARGO_TARGET_DIR/nextest/nightly/report.json")
+            IGNORED=$(jq '.summary.ignored' "$CARGO_TARGET_DIR/nextest/nightly/report.json")
+            echo "${DATE},${TOTAL},${PASSED},${FAILED},${IGNORED}" >> metrics/trends/test-stats-${DATE}.csv
+          else
+             # Fallback if report not found
+             echo "${DATE},0,0,0,0" >> metrics/trends/test-stats-${DATE}.csv
+          fi
+
+      - name: Upload trend metrics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nightly-test-trends
+          path: metrics/trends/
+          retention-days: 90
 
   # Run slow tests on ubuntu only (macOS not needed for slow test coverage)
   cross-platform-slow-tests:

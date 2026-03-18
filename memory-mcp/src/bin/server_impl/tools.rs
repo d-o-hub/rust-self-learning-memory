@@ -17,11 +17,13 @@ use memory_mcp::MemoryMCPServer;
 use serde_json::Value;
 
 mod episode_handlers;
+mod feature_handlers;
 mod memory_handlers;
 mod relationship_handlers;
 mod tag_handlers;
 
 pub use episode_handlers::*;
+pub use feature_handlers::*;
 pub use memory_handlers::*;
 pub use relationship_handlers::*;
 pub use tag_handlers::*;

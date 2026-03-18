@@ -711,9 +711,9 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 
 | ID | Goal | Priority | Status |
 |----|------|----------|--------|
-| WG-040 | Fix failing doctests | P0 | ⏳ Pending |
-| WG-041 | Fix test timeout | P0 | ⏳ Pending |
-| WG-042 | Split >500 LOC files | P0 | ⏳ Pending |
+| WG-040 | Fix failing doctests | P0 | ✅ Complete — #374 closed |
+| WG-041 | Fix test timeout | P0 | ✅ Complete — #375 closed |
+| WG-042 | Split >500 LOC files | P0 | ✅ Complete — #376 closed |
 | WG-043 | Reduce dead_code annotations | P1 | ⏳ Pending |
 | WG-044 | Fix broken markdown links | P1 | ⏳ Pending |
 | WG-045 | Add snapshot tests for new features | P1 | ⏳ Pending |
@@ -722,6 +722,11 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | WG-048 | Integration tests for new features | P2 | ⏳ Pending |
 | WG-049 | Changelog automation (git-cliff) | P2 | ⏳ Pending |
 | WG-050 | New feature documentation | P2 | ⏳ Pending |
+
+### PR #388 (Jules) — Closed
+
+- Closed as superseded: formatting issues caused CI failures
+- P0 work items addressed directly on `fix/v0.1.22-quality-polish` branch
 
 ### Key Learnings (v0.1.22)
 

@@ -498,6 +498,7 @@ fn parse_audit_vulnerabilities(json_output: &str) -> (usize, usize, usize) {
 // ============================================================================
 
 #[test]
+#[ignore = "runs full cargo clippy internally; covered by CI quick-check workflow"]
 fn quality_gate_no_clippy_warnings() {
     println!("\n=== Quality Gate: Clippy Linting ===");
     println!("Threshold: 0 warnings");

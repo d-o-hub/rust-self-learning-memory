@@ -1,0 +1,12 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 480
+expression: output
+---
+{
+  "success": true,
+  "checkpoint_id": "770e8400-e29b-41d4-a716-446655440000",
+  "episode_id": "550e8400-e29b-41d4-a716-446655440000",
+  "step_number": 12,
+  "message": "Checkpoint created successfully"
+}

@@ -20,6 +20,30 @@ fn test_cli_help_output() {
     assert_snapshot!(stdout);
 }
 
+/// Test playbook subcommand help snapshot
+#[test]
+fn test_cli_playbook_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["playbook", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
+/// Test feedback subcommand help snapshot
+#[test]
+fn test_cli_feedback_help() {
+    let harness = CliHarness::new();
+    let output = harness
+        .execute(["feedback", "--help"])
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_snapshot!(stdout);
+}
+
 /// Test CLI version output snapshot
 #[test]
 fn test_cli_version_output() {

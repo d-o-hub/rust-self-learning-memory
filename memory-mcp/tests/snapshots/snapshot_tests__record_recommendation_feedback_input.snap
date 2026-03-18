@@ -1,0 +1,22 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 527
+expression: input
+---
+{
+  "session_id": "990e8400-e29b-41d4-a716-446655440000",
+  "applied_pattern_ids": [
+    "p1"
+  ],
+  "consulted_episode_ids": [
+    "ep-past"
+  ],
+  "outcome": {
+    "type": "success",
+    "verdict": "Worked great",
+    "artifacts": [
+      "auth.rs"
+    ]
+  },
+  "agent_rating": 0.9
+}

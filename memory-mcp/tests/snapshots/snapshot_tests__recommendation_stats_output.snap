@@ -1,0 +1,16 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 543
+expression: output
+---
+{
+  "success": true,
+  "total_sessions": 10,
+  "total_feedback": 8,
+  "patterns_applied": 5,
+  "patterns_ignored": 3,
+  "adoption_rate": 0.625,
+  "success_after_adoption_rate": 0.8,
+  "avg_agent_rating": 0.85,
+  "message": "Stats retrieved"
+}

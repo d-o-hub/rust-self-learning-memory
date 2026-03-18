@@ -1,0 +1,15 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 512
+expression: input
+---
+{
+  "episode_id": "550e8400-e29b-41d4-a716-446655440000",
+  "recommended_pattern_ids": [
+    "p1",
+    "p2"
+  ],
+  "recommended_playbook_ids": [
+    "play1"
+  ]
+}

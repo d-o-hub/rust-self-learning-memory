@@ -144,3 +144,11 @@ pub struct SelfLearningMemory {
     /// Tracker for recommendation sessions and feedback
     pub(super) recommendation_tracker: RecommendationTracker,
 }
+
+impl SelfLearningMemory {
+    /// Get a reference to the in-memory patterns fallback storage.
+    #[must_use]
+    pub fn patterns_fallback(&self) -> &Arc<RwLock<HashMap<PatternId, Pattern>>> {
+        &self.patterns_fallback
+    }
+}

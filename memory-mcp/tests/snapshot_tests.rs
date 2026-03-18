@@ -4,12 +4,24 @@
 //! remain consistent across changes. Part of ADR-033 Phase 6.
 
 use insta::assert_json_snapshot;
+use memory_mcp::mcp::tools::checkpoint::{
+    CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
+    ResumeFromHandoffInput, ResumeFromHandoffOutput,
+};
 use memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
     EmbeddingProviderStatusOutput, EmbeddingSearchResult, GenerateEmbeddingInput,
     GenerateEmbeddingOutput, ProviderTestResult, QuerySemanticMemoryInput,
     QuerySemanticMemoryOutput, SearchByEmbeddingInput, SearchByEmbeddingOutput, SemanticResult,
     TestEmbeddingsOutput,
+};
+use memory_mcp::mcp::tools::pattern_search::{
+    PatternResult, ScoreBreakdownResult, SearchPatternsInput, SearchPatternsOutput,
+};
+use memory_mcp::mcp::tools::recommendation_feedback::{
+    RecommendationStatsOutput, RecordRecommendationFeedbackInput,
+    RecordRecommendationFeedbackOutput, RecordRecommendationSessionInput,
+    RecordRecommendationSessionOutput, TaskOutcomeJson,
 };
 use memory_mcp::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,
@@ -440,4 +452,135 @@ fn test_error_types() {
     ];
 
     assert_json_snapshot!(errors);
+}
+
+// =============================================================================
+// Checkpoint Tool Type Snapshots
+// =============================================================================
+
+#[test]
+fn test_checkpoint_episode_input() {
+    let input = CheckpointEpisodeInput {
+        episode_id: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+        reason: "Agent switch".to_string(),
+        note: Some("Testing checkpoint snapshots".to_string()),
+    };
+    assert_json_snapshot!(input);
+}
+
+#[test]
+fn test_checkpoint_episode_output() {
+    let output = CheckpointEpisodeOutput {
+        success: true,
+        checkpoint_id: "770e8400-e29b-41d4-a716-446655440000".to_string(),
+        episode_id: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+        step_number: 12,
+        message: "Checkpoint created successfully".to_string(),
+    };
+    assert_json_snapshot!(output);
+}
+
+#[test]
+fn test_get_handoff_pack_input() {
+    let input = GetHandoffPackInput {
+        checkpoint_id: "770e8400-e29b-41d4-a716-446655440000".to_string(),
+    };
+    assert_json_snapshot!(input);
+}
+
+#[test]
+fn test_get_handoff_pack_output() {
+    let output = GetHandoffPackOutput {
+        success: true,
+        handoff_pack: None,
+        message: "Handoff pack retrieved".to_string(),
+    };
+    assert_json_snapshot!(output);
+}
+
+// =============================================================================
+// Recommendation Feedback Tool Type Snapshots
+// =============================================================================
+
+#[test]
+fn test_record_recommendation_session_input() {
+    let input = RecordRecommendationSessionInput {
+        episode_id: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+        recommended_pattern_ids: vec!["p1".to_string(), "p2".to_string()],
+        recommended_playbook_ids: vec!["play1".to_string()],
+    };
+    assert_json_snapshot!(input);
+}
+
+#[test]
+fn test_record_recommendation_feedback_input() {
+    let input = RecordRecommendationFeedbackInput {
+        session_id: "990e8400-e29b-41d4-a716-446655440000".to_string(),
+        applied_pattern_ids: vec!["p1".to_string()],
+        consulted_episode_ids: vec!["ep-past".to_string()],
+        outcome: TaskOutcomeJson::Success {
+            verdict: "Worked great".to_string(),
+            artifacts: vec!["auth.rs".to_string()],
+        },
+        agent_rating: Some(0.9),
+    };
+    assert_json_snapshot!(input);
+}
+
+#[test]
+fn test_recommendation_stats_output() {
+    let output = RecommendationStatsOutput {
+        success: true,
+        total_sessions: 10,
+        total_feedback: 8,
+        patterns_applied: 5,
+        patterns_ignored: 3,
+        adoption_rate: 0.625,
+        success_after_adoption_rate: 0.8,
+        avg_agent_rating: Some(0.85),
+        message: "Stats retrieved".to_string(),
+    };
+    assert_json_snapshot!(output);
+}
+
+// =============================================================================
+// Pattern Search Tool Type Snapshots
+// =============================================================================
+
+#[test]
+fn test_search_patterns_input() {
+    let input = SearchPatternsInput {
+        query: "rust authentication".to_string(),
+        domain: "web".to_string(),
+        tags: vec!["security".to_string()],
+        limit: 5,
+        min_relevance: 0.5,
+        filter_by_domain: true,
+    };
+    assert_json_snapshot!(input);
+}
+
+#[test]
+fn test_search_patterns_output() {
+    let output = SearchPatternsOutput {
+        results: vec![PatternResult {
+            id: "p1".to_string(),
+            pattern_type: "tool_sequence".to_string(),
+            description: "Common auth sequence".to_string(),
+            relevance_score: 0.9,
+            score_breakdown: ScoreBreakdownResult {
+                semantic_similarity: 0.95,
+                context_match: 0.8,
+                effectiveness: 0.9,
+                recency: 1.0,
+                success_rate: 0.85,
+            },
+            success_rate: 0.85,
+            domain: Some("web".to_string()),
+            times_applied: 15,
+        }],
+        total_searched: 1,
+        query: "rust authentication".to_string(),
+    };
+    assert_json_snapshot!(output);
 }

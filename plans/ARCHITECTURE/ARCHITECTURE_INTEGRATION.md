@@ -618,7 +618,7 @@ full = ["turso", "redb"]
 
 - **Core Components**: See [ARCHITECTURE_CORE.md](ARCHITECTURE_CORE.md)
 - **Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
-- **Configuration**: See [../CONFIGURATION/](../CONFIGURATION/) for configuration documentation
+- **Configuration**: See [../../memory-cli/CONFIGURATION_GUIDE.md](../../memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
 - **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 
 ---

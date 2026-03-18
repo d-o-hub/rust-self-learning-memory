@@ -74,6 +74,8 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **MCP tools** for memory operations, pattern search, and code execution
 - **`search_patterns`** - Semantic pattern search with configurable ranking
 - **`recommend_patterns`** - Task-specific pattern recommendations
+- **`recommend_playbook`** - Actionable step-by-step guidance (ADR-044)
+- **`checkpoint_episode`** - Mid-task progress snapshots (ADR-044)
 - Embedding tools: configure, test, generate, search, provider-status
 - Progressive tool disclosure based on usage
 - Execution monitoring and metrics tracking
@@ -145,6 +147,23 @@ async fn main() -> anyhow::Result<()> {
     
     for rec in recommendations {
         println!("Recommended: {:?}", rec.pattern);
+    }
+
+    // NEW (ADR-044): Generate an actionable playbook
+    let playbooks = memory.retrieve_playbooks(
+        "Implement user authentication",
+        "security",
+        TaskType::CodeGeneration,
+        context,
+        1, // max playbooks
+        5  // max steps
+    ).await;
+
+    if let Some(playbook) = playbooks.first() {
+        println!("Playbook ID: {}", playbook.playbook_id);
+        for step in &playbook.ordered_steps {
+            println!("{}. {}", step.order, step.action);
+        }
     }
     
     Ok(())

@@ -1,0 +1,27 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+assertion_line: 585
+expression: output
+---
+{
+  "results": [
+    {
+      "id": "p1",
+      "pattern_type": "tool_sequence",
+      "description": "Common auth sequence",
+      "relevance_score": 0.9,
+      "score_breakdown": {
+        "semantic_similarity": 0.95,
+        "context_match": 0.8,
+        "effectiveness": 0.9,
+        "recency": 1.0,
+        "success_rate": 0.85
+      },
+      "success_rate": 0.85,
+      "domain": "web",
+      "times_applied": 15
+    }
+  ],
+  "total_searched": 1,
+  "query": "rust authentication"
+}

@@ -90,6 +90,24 @@ git config core.hooksPath .githooks
 chmod +x .githooks/*
 ```
 
+### Turso Local Development
+
+For local development without cloud Turso:
+
+```bash
+# Install Turso CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+
+# Start local Turso server
+turso dev --db-file ./data/memory.db --port 8080
+
+# Set environment variables
+export TURSO_DATABASE_URL="http://127.0.0.1:8080"
+export TURSO_AUTH_TOKEN=""  # No auth required for local
+```
+
+No cloud account or auth token required for local development. See [LOCAL_DATABASE_SETUP.md](../docs/LOCAL_DATABASE_SETUP.md) for more details.
+
 ### Quality Gates
 ```bash
 # Run full quality check (coverage >90%)
@@ -213,4 +231,39 @@ cargo test --all
 
 # Documentation check
 cargo doc --no-deps
+
+## Disk Space Optimization
+
+### Dev Profile Settings
+```toml
+# .cargo/config.toml
+[profile.dev]
+debug = "line-tables-only"  # Faster builds, smaller binaries
+
+[profile.dev.package."*"]
+debug = false  # Don't debug info for dependencies
+```
+
+### Linker Optimization (Linux)
+Use `mold` linker for faster builds:
+```bash
+# Install mold
+cargo install mold
+
+# Add to .cargo/config.toml
+[build]
+rustflags = ["-C", "linker=mold"]
+```
+
+### Cleanup Commands
+```bash
+# Clean build artifacts
+cargo clean
+
+# Remove target directory completely
+rm -rf target/
+
+# Clean specific crate
+cargo clean -p memory-core
+```
 ```

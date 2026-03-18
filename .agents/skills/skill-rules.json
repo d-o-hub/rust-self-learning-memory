@@ -1,6 +1,15 @@
 {
   "rules": [
     {
+      "skill": "agents-update",
+      "triggers": {
+        "keywords": ["AGENTS.md", "agent_docs", "guidelines", "update"],
+        "patterns": [".*AGENTS.*", "agent_docs/.*"],
+        "files": ["AGENTS.md", "agent_docs/**/*.md"]
+      },
+      "priority": "high"
+    },
+    {
       "skill": "rust-async-testing",
       "triggers": {
         "keywords": ["async", "tokio", "test", "await", "#[tokio::test]"],

@@ -1,11 +1,12 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-16 (v0.1.22 Sprint Completion)
-- **Plan**: `plans/GOAP_CODEBASE_ANALYSIS_2026-03-09.md`
+- **Last Updated**: 2026-03-16 (v0.1.22 Sprint Analysis)
+- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
+- **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **ADR**: `plans/adr/ADR-044-High-Impact-Features-v0.1.20.md`
 - **Branch**: main
-- **Version**: `0.1.22` (v0.1.22 Features Implemented)
+- **Version**: `0.1.21` (v0.1.22 sprint in progress)
 
 ## Phase Status
 
@@ -13,9 +14,9 @@
 2. DECOMPOSE: Complete (ADR-028 item-by-item revalidation)
 3. STRATEGIZE: Complete (O1/O3/O5 opportunities prioritized)
 4. COORDINATE: Complete (Sprint 3 execution planning)
-5. EXECUTE: ✅ Complete (O1/O3/O5 implemented)
+5. EXECUTE: ✅ Complete (O1/O3/O5 implemented, ADR-044 shipped)
 6. SYNTHESIZE: Complete
-7. FEEDBACK: In Progress (v0.1.20 Code Coverage Improvement)
+7. FEEDBACK: ✅ Complete (v0.1.22 released)
 
 ## v0.1.17 Sprint 3 Status (2026-03-09)
 
@@ -700,3 +701,66 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 3. **Atomic Commits**: 5 excessive_changes instances - need scope enforcement
 4. **Hook Consolidation**: Two hook config files create maintenance burden
 5. **Memory-CLI Cache Directory**: `~/.local/share/memory-cli/cache/` must exist before episode operations. Episode create/log-step/complete all work correctly after ensuring directory exists. Pattern extraction works after episode completion.
+
+## v0.1.22 Sprint Status (2026-03-16)
+
+### ADR-044: High-Impact Features (Code Complete — Needs Polish)
+
+**Branch**: `docs/v0.1.22-release-updates`
+**PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
+**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
+**ADR**: [ADR-047](adr/ADR-047-v0.1.22-Quality-Feature-Polish.md)
+**Execution Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
+**Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
+
+### Features Implemented
+
+| ID | Feature | Core | MCP | CLI | Tests | Doctests | Snapshots |
+|----|---------|------|-----|-----|-------|---------|-----------|
+| F1 | Actionable Playbooks | ✅ | ✅ | ✅ | 26 | 🔴 Broken | ❌ |
+| F2 | Recommendation Attribution | ✅ | ✅ | ✅ | 8 | 🔴 Broken | ❌ |
+| F3 | Episode Checkpoints/Handoff | ✅ | ✅ | ✅ | 6 | ✅ | ❌ |
+| F4 | Recommendation Feedback | ✅ | ✅ | ✅ | 3 | ✅ | ❌ |
+
+### Critical Issues Found (P0)
+
+| Issue | Root Cause | Fix |
+|-------|-----------|-----|
+| 2 failing doctests | Attribution: moved value; Playbook: sync fn `.await`ed | ACT-053, ACT-054 |
+| 1 test timeout | `quality_gate_no_clippy_warnings` runs full clippy (>120s) | ACT-055 |
+| 3 files >500 LOC | `generator.rs` (631), `memory_handlers.rs` (608), `management.rs` (504) | ACT-056–058 |
+
+### Quality Metrics
+
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Tests passing | 2,795/2,898 | — | ✅ |
+| Ignored tests | 113 | ≤125 ceiling | ✅ |
+| `#[allow(dead_code)]` (prod) | 70 | ≤40 | 🟡 |
+| Broken markdown links | 149 | ≤80 | 🟡 |
+| Snapshot tests | 65 | ≥80 | 🟡 |
+| Property test files | 10 | ≥15 | 🟡 |
+
+### Sprint Goals (v0.1.22)
+
+| ID | Goal | Priority | Status |
+|----|------|----------|--------|
+| WG-040 | Fix failing doctests | P0 | ⏳ Pending |
+| WG-041 | Fix test timeout | P0 | ⏳ Pending |
+| WG-042 | Split >500 LOC files | P0 | ⏳ Pending |
+| WG-043 | Reduce dead_code annotations | P1 | ⏳ Pending |
+| WG-044 | Fix broken markdown links | P1 | ⏳ Pending |
+| WG-045 | Add snapshot tests for new features | P1 | ⏳ Pending |
+| WG-046 | Add property tests for new features | P1 | ⏳ Pending |
+| WG-047 | MCP tool contract parity | P2 | ⏳ Pending |
+| WG-048 | Integration tests for new features | P2 | ⏳ Pending |
+| WG-049 | Changelog automation (git-cliff) | P2 | ⏳ Pending |
+| WG-050 | New feature documentation | P2 | ⏳ Pending |
+
+### Key Learnings (v0.1.22)
+
+1. **Turso Local Dev**: Use `turso dev` for local development - no auth token required
+2. **Doctest Quality**: New features must have tested doctests before merge
+3. **File Size Invariant**: generator.rs grew to 631 LOC — template extraction needed
+4. **Integration Tests**: Feature implementation without integration tests leaves gaps
+5. **Documentation Sync**: ROADMAP_ACTIVE.md and CURRENT.md must stay in sync with release versions

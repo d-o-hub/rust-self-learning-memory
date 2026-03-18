@@ -1,62 +1,70 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-03-16
-**Released Version**: v0.1.22
-**Current Sprint**: v0.1.23 (Next Generation Learning)
-**Branch**: main
+**Released Version**: v0.1.21
+**Current Sprint**: v0.1.22 (Quality & Feature Polish)
+**Branch**: `docs/v0.1.22-release-updates`
+**PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
+**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. v0.1.21 shipped with publishing infrastructure (ADR-045).
-
-v0.1.22 sprint focuses on high-impact features (ADR-044):
-- Actionable Playbooks (P0)
-- Recommendation Attribution (P0)
-- Episode Checkpoints/Handoff (P1)
+All research phases (1–4) and infrastructure work complete. CI/CD stable. ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are implemented in code but need quality polish before v0.1.22 tag.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Current Sprint: v0.1.23
+## Current Sprint: v0.1.22
 
-### Next Generation Learning
+### P0: Critical Fixes (Must-Fix Before Tag)
 
-- Integration with more external LLM providers
-- Enhanced spatiotemporal indexing for faster large-scale retrieval
-- Dynamic reward shaping based on feedback sessions
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-040 | Fix 2 failing doctests (attribution, playbook) | ⏳ Pending |
+| WG-041 | Fix test timeout (quality_gate_no_clippy_warnings) | ⏳ Pending |
+| WG-042 | Split 3 production files >500 LOC | ⏳ Pending |
 
----
+### P1: Quality Polish
 
-## Completed in v0.1.22 (ADR-044 High-Impact Features)
+| Task | Description | Target | Status |
+|------|-------------|--------|--------|
+| WG-043 | Reduce `#[allow(dead_code)]` | 70 → ≤40 | ⏳ |
+| WG-044 | Fix broken markdown links | 149 → ≤80 | ⏳ |
+| WG-045 | Add snapshot tests for new features | 65 → ≥80 | ⏳ |
+| WG-046 | Add property tests for new features | 10 → ≥13 | ⏳ |
 
-- ✅ Actionable Playbooks (synthesizes patterns and reflections)
-- ✅ Recommendation Attribution (tracks feedback and adoption)
-- ✅ Episode Checkpoints & Handoff Packs (multi-agent progress sharing)
-- ✅ Storage Consistency Check (CLI tool for DB/cache sync)
-- ✅ Test Health Improvements (doctest fixes, timeout optimizations)
-- ✅ File Size Compliance (refactored generator and management)
+### P2: Feature Enhancements
 
-### Completed in v0.1.21
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-047 | MCP tool contract parity for new tools | ⏳ |
+| WG-048 | Integration tests for attribution + checkpoint flows | ⏳ |
+| WG-049 | Changelog automation (git-cliff) | ⏳ |
+| WG-050 | Documentation for new features | ⏳ |
 
-- ✅ ADR-045: Publishing Best Practices (100% complete)
-- ✅ Crates.io publishing pipeline with OIDC trusted publishing
-- ✅ Supply chain security workflow (cargo-deny, SBOM generation)
-- ✅ Crate metadata verification script
-- ✅ Gap analysis documentation
+### P3: Infrastructure (Carried Forward)
 
-### Completed in v0.1.20
+| Task | Description | Since | Status |
+|------|-------------|-------|--------|
+| WG-051 | Nightly trend tracking artifact | v0.1.20 | ⏳ |
+| WG-052 | libsql upstream version monitor | v0.1.20 | ⏳ |
+| WG-053 | Structured tech-debt registry | v0.1.17 | ⏳ |
 
-- ✅ ACT-024: Sandbox timing tests with timeout wrappers
-- ✅ ACT-029: Error handling tests (98 tests)
-- ✅ ACT-031: Calculator property tests (27 tests)
-- ✅ ACT-032: MCP JSON-RPC fuzz tests
-- ✅ ACT-033: CLI integration tests
-- ✅ ACT-034: MCP tool coverage tests
-- ✅ ACT-035: Cache eviction tests
-- ✅ ACT-037: Coverage monitoring script
+### Shipped in v0.1.21
+
+- ✅ ADR-045: Publishing infrastructure (supply chain, OIDC, metadata)
+- ✅ ADR-046: Claude Code configuration improvements (session analysis, tool enforcement)
+
+### Shipped in v0.1.22 (Features — Pre-Tag)
+
+- ✅ ADR-044: High-Impact Features (100% code complete)
+  - ✅ Feature 1: Actionable Playbooks (26 tests)
+  - ✅ Feature 2: Recommendation Attribution (8 tests)
+  - ✅ Feature 3: Episode Checkpoints/Handoff (6 tests)
+  - ✅ Feature 4: Recommendation Feedback (3 tests)
 
 ---
 
@@ -66,24 +74,24 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Item | Current | Target | Effort |
 |------|---------|--------|--------|
-| `#[allow(dead_code)]` annotations | 110 | ≤50 | 6–8h |
-| Broken markdown links | 89 | 0 | 4–6h |
+| `#[allow(dead_code)]` annotations | 70 | ≤40 | 4–6h |
+| Broken markdown links | 149 | ≤80 | 4–6h |
 
 ### Testing
 
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
-| Ignored tests | 121 | — | 71 upstream libsql bug, 6 slow integration, 4 missing features |
-| Property test expansion | 7 files | ≥15 | ADR-033; cover serialization invariants across crates |
-| Snapshot test growth | 65 snaps | ≥80 | ADR-033; MCP responses and CLI output |
+| Ignored tests | 113 | — | 70 upstream libsql bug, rest by design |
+| Property test expansion | 10 files | ≥15 | ADR-033; new features need property tests |
+| Snapshot test growth | 65 snaps | ≥80 | New MCP tools + CLI commands need snapshots |
 
 ### Infrastructure
 
 | Item | Status | Notes |
 |------|--------|-------|
 | Changelog automation (git-cliff) | Not started | ADR-034 Phase 4 |
-| Structured tech-debt registry | Not started | Opportunity O7 from GOAP analysis |
-| CLI workflow parity generator | Not started | Opportunity O6 from GOAP analysis |
+| Structured tech-debt registry | Not started | Opportunity O7 |
+| CLI workflow parity generator | Not started | Opportunity O6 |
 
 ---
 
@@ -91,23 +99,24 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.22 | 2026-03 | ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) |
 | v0.1.21 | 2026-03 | Publishing infrastructure (ADR-045), supply chain security |
 | v0.1.20 | 2026-03 | Test coverage improvements, sprint fixes, coverage script |
 | v0.1.19 | 2026-03 | MCP enhancements, gitleaks fixes |
 | v0.1.18 | 2026-03 | AdaptiveCache, CLI filters, transport compression docs |
 | v0.1.17 | 2026-03 | MCP contract parity, dead code removal, doc fixes, G2/G9 |
-| v0.1.16 | 2026-02-21 | Edition 2024, CI stabilization, quick wins |
-| v0.1.15 | 2026-02-15 | MCP token optimization, GitHub Actions modernization |
-| v0.1.14 | 2026-02-14 | Episode tagging, relationships, file compliance |
-| v0.1.13 | 2026-01-12 | Semantic pattern search, recommendation engine |
-| v0.1.12 | 2026-01-05 | Tasks utility, embedding config, contrastive learning |
+| v0.1.16 | 2026-02 | Edition 2024, CI stabilization, quick wins |
+| v0.1.15 | 2026-02 | MCP token optimization, GitHub Actions modernization |
+| v0.1.14 | 2026-02 | Episode tagging, relationships, file compliance |
+| v0.1.13 | 2026-01 | Semantic pattern search, recommendation engine |
+| v0.1.12 | 2026-01 | Tasks utility, embedding config, contrastive learning |
 
 ---
 
 ## Cross-References
 
 - **Current status**: [STATUS/CURRENT.md](../STATUS/CURRENT.md)
-- **Latest validation**: [STATUS/VALIDATION_LATEST.md](../STATUS/VALIDATION_LATEST.md)
-- **Latest analysis**: [STATUS/CODEBASE_ANALYSIS_LATEST.md](../STATUS/CODEBASE_ANALYSIS_LATEST.md)
+- **Gap analysis**: [STATUS/GAP_ANALYSIS_LATEST.md](../STATUS/GAP_ANALYSIS_LATEST.md)
+- **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
 - **Long-term vision**: [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md)
 - **ADRs**: [adr/](../adr/)

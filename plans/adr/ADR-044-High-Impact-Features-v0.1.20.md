@@ -1,8 +1,8 @@
-# ADR-044: High-Impact Features for v0.1.20 Sprint
+# ADR-044: High-Impact Features for v0.1.22 Sprint
 
 - **Status**: Implemented
 - **Date**: 2026-03-15
-- **Implementation Date**: 2026-03-16
+- **Implemented**: 2026-03-16
 - **Deciders**: Project maintainers
 - **Related**: ADR-028 (Feature Roadmap), ADR-043 (Codebase Analysis)
 

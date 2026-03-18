@@ -190,3 +190,74 @@
     - Owner: ci-engineer
     - Target: Realistic codecov targets; coverage monitoring script reporting coverage by crate
     - Status: ✅ Complete — ACT-036 (codecov config `be75d0a`), ACT-037 (`scripts/check-coverage.sh` `34d81f4`)
+
+## Next Goals (v0.1.22 Sprint — Quality & Feature Polish)
+
+31. **WG-040**: Fix failing doctests
+    - Priority: P0
+    - Owner: code-quality
+    - Target: `cargo test --doc --all` passes (0 failures)
+    - Root Cause: attribution doctest moves session value; playbook doctest `.await`s sync fn
+    - Status: ⏳ Pending — ACT-053, ACT-054
+
+32. **WG-041**: Fix test timeout
+    - Priority: P0
+    - Owner: test-runner
+    - Target: `cargo nextest run --all` passes with 0 timeouts
+    - Root Cause: `quality_gate_no_clippy_warnings` runs full clippy internally (>120s)
+    - Status: ⏳ Pending — ACT-055
+
+33. **WG-042**: Split production files >500 LOC
+    - Priority: P0
+    - Owner: code-quality
+    - Target: 0 production source files >500 LOC
+    - Files: `generator.rs` (631), `memory_handlers.rs` (608), `management.rs` (504)
+    - Status: ⏳ Pending — ACT-056, ACT-057, ACT-058
+
+34. **WG-043**: Reduce dead_code annotations
+    - Priority: P1
+    - Owner: code-quality
+    - Target: ≤40 `#[allow(dead_code)]` in production code (from 70)
+    - Status: ⏳ Pending — ACT-059, ACT-060, ACT-061
+
+35. **WG-044**: Fix broken markdown links
+    - Priority: P1
+    - Owner: docs
+    - Target: ≤80 broken links (from 149)
+    - Status: ⏳ Pending — ACT-062, ACT-063
+
+36. **WG-045**: Add snapshot tests for new features
+    - Priority: P1
+    - Owner: test-runner
+    - Target: ≥80 snapshots (from 65); cover new MCP tools + CLI commands
+    - Status: ⏳ Pending — ACT-064, ACT-065
+
+37. **WG-046**: Add property tests for new features
+    - Priority: P1
+    - Owner: test-runner
+    - Target: ≥13 property test files (from 10)
+    - Status: ⏳ Pending — ACT-066, ACT-067, ACT-068
+
+38. **WG-047**: MCP tool contract parity for new tools
+    - Priority: P2
+    - Owner: memory-mcp
+    - Target: All new tools verified in tool_contract_parity.rs
+    - Status: ⏳ Pending — ACT-069, ACT-070
+
+39. **WG-048**: Integration tests for new features
+    - Priority: P2
+    - Owner: test-runner
+    - Target: End-to-end tests for attribution + checkpoint flows
+    - Status: ⏳ Pending — ACT-071, ACT-072
+
+40. **WG-049**: Changelog automation (git-cliff)
+    - Priority: P2
+    - Owner: ci-engineer
+    - Target: Auto-generate changelog entries on release
+    - Status: ⏳ Pending — ACT-073
+
+41. **WG-050**: Documentation for new features
+    - Priority: P2
+    - Owner: docs
+    - Target: Usage examples for playbook, checkpoint, attribution in docs/
+    - Status: ⏳ Pending — ACT-074, ACT-075

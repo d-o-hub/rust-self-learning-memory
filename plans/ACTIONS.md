@@ -275,3 +275,149 @@
    - Action: Execute dry-run publish for all crates, verify metadata
    - Status: Pending
    - Priority: P1
+
+## v0.1.22 Sprint Actions (Quality & Feature Polish)
+
+### Phase 1: Critical Fixes (P0)
+
+- **ACT-053**: Fix attribution doctest
+   - Goal: WG-040
+   - Action: Clone `session` before passing to `record_session()` in `memory-core/src/memory/attribution/mod.rs` doctest
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-054**: Fix playbook doctest
+   - Goal: WG-040
+   - Action: Remove `.await` from `generator.generate()` (sync fn); add missing `context` field to `PlaybookRequest` in `memory-core/src/memory/playbook/mod.rs` doctest
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-055**: Fix test timeout
+   - Goal: WG-041
+   - Action: Add `#[ignore = "runs full cargo clippy internally; covered by CI"]` to `quality_gate_no_clippy_warnings` in `tests/e2e/quality_gates.rs`
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-056**: Split generator.rs
+   - Goal: WG-042
+   - Action: Extract template functions from `memory-core/src/memory/playbook/generator.rs` (631 LOC) into `templates.rs`
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-057**: Split memory_handlers.rs
+   - Goal: WG-042
+   - Action: Extract playbook/checkpoint/feedback handlers from `memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` (608 LOC) into `feature_handlers.rs`
+   - Status: Pending
+   - Priority: P0
+
+- **ACT-058**: Split management.rs
+   - Goal: WG-042
+   - Action: Extract helper methods from `memory-core/src/memory/management.rs` (504 LOC) into `management_helpers.rs`
+   - Status: Pending
+   - Priority: P0
+
+### Phase 2: Quality Polish (P1)
+
+- **ACT-059**: Audit dead_code in types.rs
+   - Goal: WG-043
+   - Action: Remove or use suppressed fields in `memory-core/src/memory/types.rs` (6 annotations)
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-060**: Audit dead_code in embeddings/
+   - Goal: WG-043
+   - Action: Remove unused model infrastructure or add `#[cfg]` guards in `embeddings/real_model/`, `embeddings/openai/`, `embeddings/provider.rs`
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-061**: Audit dead_code in monitoring/
+   - Goal: WG-043
+   - Action: Wire or remove unused monitoring structs in `memory-core/src/monitoring/storage/mod.rs`
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-062**: Fix broken links in active docs
+   - Goal: WG-044
+   - Action: Run `./scripts/check-docs-integrity.sh` and fix links in non-archived files
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-063**: Fix broken links in new feature docs
+   - Goal: WG-044
+   - Action: Validate and fix links in playbook/attribution/checkpoint documentation
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-064**: Add MCP snapshot tests for new tools
+   - Goal: WG-045
+   - Action: Add snapshot tests for `checkpoint_episode`, `get_handoff_pack`, `resume_from_handoff`, `record_recommendation_session`, `record_recommendation_feedback`, `recommend_playbook`
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-065**: Add CLI snapshot tests for new commands
+   - Goal: WG-045
+   - Action: Add snapshot tests for `playbook recommend`, `episode checkpoint`, `feedback record`
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-066**: Add property tests for PlaybookGenerator
+   - Goal: WG-046
+   - Action: Add proptest for various input combinations producing valid playbooks
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-067**: Add property tests for RecommendationTracker
+   - Goal: WG-046
+   - Action: Add proptest for feedback scoring invariants
+   - Status: Pending
+   - Priority: P1
+
+- **ACT-068**: Add property tests for CheckpointManager
+   - Goal: WG-046
+   - Action: Add proptest for checkpoint/handoff serialization round-trips
+   - Status: Pending
+   - Priority: P1
+
+### Phase 3: Feature Enhancements (P2)
+
+- **ACT-069**: Verify new tools in tool_contract_parity.rs
+   - Goal: WG-047
+   - Action: Add new checkpoint/feedback/playbook tools to `memory-mcp/tests/tool_contract_parity.rs`
+   - Status: Pending
+   - Priority: P2
+
+- **ACT-070**: Add handler dispatch tests for new tools
+   - Goal: WG-047
+   - Action: Add tests verifying handler dispatch for all new tool names
+   - Status: Pending
+   - Priority: P2
+
+- **ACT-071**: Add attribution integration test
+   - Goal: WG-048
+   - Action: Add test: create episode → recommend → record session → record feedback → verify stats
+   - Status: Pending
+   - Priority: P2
+
+- **ACT-072**: Add checkpoint integration test
+   - Goal: WG-048
+   - Action: Add test: create episode → checkpoint → handoff pack → resume
+   - Status: Pending
+   - Priority: P2
+
+- **ACT-073**: Wire git-cliff into release workflow
+   - Goal: WG-049
+   - Action: Add git-cliff step to release workflow for auto-changelog
+   - Status: Pending
+   - Priority: P2
+
+- **ACT-074**: Add playbook usage examples
+   - Goal: WG-050
+   - Action: Add playbook usage guide to `docs/` or `README.md`
+   - Status: Pending
+   - Priority: P2
+
+- **ACT-075**: Add checkpoint/handoff usage guide
+   - Goal: WG-050
+   - Action: Add checkpoint/handoff usage guide to `docs/`
+   - Status: Pending
+   - Priority: P2

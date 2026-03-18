@@ -25,7 +25,7 @@
 //! use memory_core::memory::playbook::{PlaybookGenerator, PlaybookRequest};
 //! use memory_core::{TaskContext, TaskType};
 //!
-//! # async fn example() -> anyhow::Result<()> {
+//! # fn example() -> anyhow::Result<()> {
 //! let generator = PlaybookGenerator::new();
 //!
 //! let request = PlaybookRequest {
@@ -36,7 +36,7 @@
 //!     max_steps: 5,
 //! };
 //!
-//! let playbook = generator.generate(&request).await?;
+//! let playbook = generator.generate(&request, &[], &[], &[])?;
 //!
 //! println!("Playbook: {}", playbook.playbook_id);
 //! println!("Confidence: {:.1}%", playbook.confidence * 100.0);
@@ -44,11 +44,12 @@
 //! # }
 //! ```
 
+mod builder;
 mod generator;
 mod types;
 
+pub use builder::ReflectionData;
 pub use generator::PlaybookGenerator;
-pub use generator::ReflectionData;
 pub use types::{
     PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookSynthesisSource, RecommendedPlaybook,
 };

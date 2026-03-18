@@ -65,6 +65,7 @@ pub mod relationship_query;
 mod relationships;
 mod retrieval;
 pub mod step_buffer;
+mod tags;
 #[cfg(test)]
 mod tests;
 pub mod types;

@@ -198,21 +198,21 @@
     - Owner: code-quality
     - Target: `cargo test --doc --all` passes (0 failures)
     - Root Cause: attribution doctest moves session value; playbook doctest `.await`s sync fn
-    - Status: ⏳ Pending — ACT-053, ACT-054
+    - Status: ✅ Complete — ACT-053, ACT-054 — Issue #374 closed
 
 32. **WG-041**: Fix test timeout
     - Priority: P0
     - Owner: test-runner
     - Target: `cargo nextest run --all` passes with 0 timeouts
     - Root Cause: `quality_gate_no_clippy_warnings` runs full clippy internally (>120s)
-    - Status: ⏳ Pending — ACT-055
+    - Status: ✅ Complete — ACT-055 — Issue #375 closed
 
 33. **WG-042**: Split production files >500 LOC
     - Priority: P0
     - Owner: code-quality
     - Target: 0 production source files >500 LOC
-    - Files: `generator.rs` (631), `memory_handlers.rs` (608), `management.rs` (504)
-    - Status: ⏳ Pending — ACT-056, ACT-057, ACT-058
+    - Files: `generator.rs` (631→500), `memory_handlers.rs` (608→426), `management.rs` (504→370)
+    - Status: ✅ Complete — ACT-056, ACT-057, ACT-058 — Issue #376 closed
 
 34. **WG-043**: Reduce dead_code annotations
     - Priority: P1

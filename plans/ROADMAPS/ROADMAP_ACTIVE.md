@@ -1,49 +1,47 @@
 # Active Development Roadmap
 
 **Last Updated**: 2026-03-16
-**Released Version**: v0.1.21
-**Current Sprint**: v0.1.22 (Quality & Feature Polish)
-**Branch**: `docs/v0.1.22-release-updates`
-**PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
-**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
+**Released Version**: v0.1.22
+**Current Sprint**: v0.1.23 (Next Generation Learning)
+**Branch**: main
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are implemented in code but need quality polish before v0.1.22 tag.
+All research phases (1–4) and infrastructure work complete. CI/CD stable. ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are implemented and released in v0.1.22.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Current Sprint: v0.1.22
+## Current Sprint: v0.1.23
 
-### P0: Critical Fixes (Must-Fix Before Tag)
+### Next Generation Learning
 
-| Task | Description | Status |
-|------|-------------|--------|
-| WG-040 | Fix 2 failing doctests (attribution, playbook) | ⏳ Pending |
-| WG-041 | Fix test timeout (quality_gate_no_clippy_warnings) | ⏳ Pending |
-| WG-042 | Split 3 production files >500 LOC | ⏳ Pending |
+- Integration with more external LLM providers
+- Enhanced spatiotemporal indexing for faster large-scale retrieval
+- Dynamic reward shaping based on feedback sessions
 
-### P1: Quality Polish
+---
 
-| Task | Description | Target | Status |
-|------|-------------|--------|--------|
-| WG-043 | Reduce `#[allow(dead_code)]` | 70 → ≤40 | ⏳ |
-| WG-044 | Fix broken markdown links | 149 → ≤80 | ⏳ |
-| WG-045 | Add snapshot tests for new features | 65 → ≥80 | ⏳ |
-| WG-046 | Add property tests for new features | 10 → ≥13 | ⏳ |
+## Completed in v0.1.22 (ADR-044 High-Impact Features)
+
+- ✅ Actionable Playbooks (synthesizes patterns and reflections)
+- ✅ Recommendation Attribution (tracks feedback and adoption)
+- ✅ Episode Checkpoints & Handoff Packs (multi-agent progress sharing)
+- ✅ Storage Consistency Check (CLI tool for DB/cache sync)
+- ✅ Test Health Improvements (doctest fixes, timeout optimizations)
+- ✅ File Size Compliance (refactored generator and management)
 
 ### P2: Feature Enhancements
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-047 | MCP tool contract parity for new tools | ⏳ |
-| WG-048 | Integration tests for attribution + checkpoint flows | ⏳ |
+| WG-047 | MCP tool contract parity for new tools | ✅ |
+| WG-048 | Integration tests for attribution + checkpoint flows | ✅ |
 | WG-049 | Changelog automation (git-cliff) | ⏳ |
-| WG-050 | Documentation for new features | ⏳ |
+| WG-050 | Documentation for new features | ✅ |
 
 ### P3: Infrastructure (Carried Forward)
 
@@ -58,9 +56,9 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 - ✅ ADR-045: Publishing infrastructure (supply chain, OIDC, metadata)
 - ✅ ADR-046: Claude Code configuration improvements (session analysis, tool enforcement)
 
-### Shipped in v0.1.22 (Features — Pre-Tag)
+### Shipped in v0.1.22 (Features)
 
-- ✅ ADR-044: High-Impact Features (100% code complete)
+- ✅ ADR-044: High-Impact Features (100% complete)
   - ✅ Feature 1: Actionable Playbooks (26 tests)
   - ✅ Feature 2: Recommendation Attribution (8 tests)
   - ✅ Feature 3: Episode Checkpoints/Handoff (6 tests)

@@ -57,7 +57,7 @@ impl TursoStorage {
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
-                   archived_at
+                   checkpoints, archived_at
             FROM episodes WHERE episode_id IN ({})
         "#,
             placeholders.join(", ")

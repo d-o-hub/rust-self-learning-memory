@@ -3,10 +3,10 @@
 //! Integration tests for Turso storage backend.
 
 use super::*;
-use uuid::Uuid;
 use memory_core::StorageBackend;
 use std::sync::Arc;
 use tempfile::TempDir;
+use uuid::Uuid;
 
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
     let dir = TempDir::new().unwrap();
@@ -276,7 +276,6 @@ async fn test_empty_embeddings_batch() {
 #[cfg(feature = "compression")]
 mod compression_tests {
     use super::*;
-use uuid::Uuid;
     use memory_core::StorageBackend;
 
     /// Test that large episodes are compressed and retrieved correctly
@@ -461,7 +460,10 @@ async fn test_attribution_persistence() {
     };
 
     // Store session
-    storage.store_recommendation_session(&session).await.unwrap();
+    storage
+        .store_recommendation_session(&session)
+        .await
+        .unwrap();
 
     let feedback = memory_core::memory::attribution::RecommendationFeedback {
         session_id: session.session_id,
@@ -475,7 +477,10 @@ async fn test_attribution_persistence() {
     };
 
     // Store feedback
-    storage.store_recommendation_feedback(&feedback).await.unwrap();
+    storage
+        .store_recommendation_feedback(&feedback)
+        .await
+        .unwrap();
 
     // Verify we can't store feedback for nonexistent session if foreign key enabled
     // But currently our test setup might not enforce it strictly depending on libsql version
@@ -493,7 +498,10 @@ async fn test_attribution_persistence_full() {
         recommended_playbook_ids: vec![],
     };
 
-    storage.store_recommendation_session(&session).await.unwrap();
+    storage
+        .store_recommendation_session(&session)
+        .await
+        .unwrap();
 
     let feedback = memory_core::memory::attribution::RecommendationFeedback {
         session_id: session.session_id,
@@ -506,11 +514,22 @@ async fn test_attribution_persistence_full() {
         agent_rating: Some(0.9),
     };
 
-    storage.store_recommendation_feedback(&feedback).await.unwrap();
+    storage
+        .store_recommendation_feedback(&feedback)
+        .await
+        .unwrap();
 
-    let retrieved_session = storage.get_recommendation_session(session.session_id).await.unwrap().unwrap();
+    let retrieved_session = storage
+        .get_recommendation_session(session.session_id)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(retrieved_session.session_id, session.session_id);
 
-    let retrieved_feedback = storage.get_recommendation_feedback(session.session_id).await.unwrap().unwrap();
+    let retrieved_feedback = storage
+        .get_recommendation_feedback(session.session_id)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(retrieved_feedback.session_id, session.session_id);
 }

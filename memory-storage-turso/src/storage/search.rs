@@ -68,7 +68,8 @@ impl TursoStorage {
                 r#"
                 SELECT e.episode_id, e.task_type, e.task_description, e.context,
                        e.start_time, e.end_time, e.steps, e.outcome, e.reward,
-                       e.reflection, e.patterns, e.heuristics, e.metadata, e.domain, e.language
+                       e.reflection, e.patterns, e.heuristics, e.metadata, e.domain, e.language,
+                       e.checkpoints, e.archived_at
                 FROM episodes e
                 INNER JOIN {} et ON e.episode_id = et.item_id
                 WHERE et.item_type = 'episode'
@@ -255,7 +256,8 @@ impl TursoStorage {
             let episodes_sql = r#"
                 SELECT e.episode_id, e.task_type, e.task_description, e.context,
                        e.start_time, e.end_time, e.steps, e.outcome, e.reward,
-                       e.reflection, e.patterns, e.heuristics, e.metadata, e.domain, e.language
+                       e.reflection, e.patterns, e.heuristics, e.metadata, e.domain, e.language,
+                       e.checkpoints, e.archived_at
                 FROM episodes e
                 INNER JOIN embeddings et ON e.episode_id = et.item_id
                 WHERE et.item_type = 'episode'

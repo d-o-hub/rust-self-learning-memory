@@ -425,24 +425,24 @@ mod extra_tests {
 mod more_playbook_edge_tests {
     use super::*;
     use crate::pattern::PatternEffectiveness;
-    use crate::types::{OutcomeStats, TaskType};
 
     #[test]
     fn test_generate_with_zero_success_patterns() {
         let generator = PlaybookGenerator::new();
         let request = PlaybookRequest::new("Fail task", "web-api");
 
-        let patterns = vec![
-            Pattern::ToolSequence {
-                id: Uuid::new_v4(),
-                tools: vec!["tool1".to_string()],
-                context: TaskContext { domain: "web-api".to_string(), ..Default::default() },
-                success_rate: 0.0,
-                avg_latency: chrono::Duration::zero(),
-                occurrence_count: 10,
-                effectiveness: PatternEffectiveness::new(),
-            }
-        ];
+        let patterns = vec![Pattern::ToolSequence {
+            id: Uuid::new_v4(),
+            tools: vec!["tool1".to_string()],
+            context: TaskContext {
+                domain: "web-api".to_string(),
+                ..Default::default()
+            },
+            success_rate: 0.0,
+            avg_latency: chrono::Duration::zero(),
+            occurrence_count: 10,
+            effectiveness: PatternEffectiveness::new(),
+        }];
 
         let playbook = generator.generate(&request, &patterns, &[], &[]).unwrap();
         assert!(playbook.confidence < 0.1);
@@ -492,7 +492,7 @@ mod more_playbook_edge_tests {
                 success_rate: 0.9,
                 context: TaskContext::default(),
                 effectiveness: PatternEffectiveness::new(),
-            }
+            },
         ];
 
         let (apply, _) = generator.synthesize_applicability(&patterns, &TaskContext::default());

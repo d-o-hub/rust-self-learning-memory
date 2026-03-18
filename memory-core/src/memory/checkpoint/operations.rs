@@ -142,7 +142,12 @@ pub async fn resume_from_handoff(
                 "suggested_next_steps".to_string(),
                 serde_json::to_string(&handoff.suggested_next_steps).unwrap_or_default(),
             );
-            episodes.insert(new_episode_id, Arc::new(episode));
+            let episode = Arc::new(episode);
+            episodes.insert(new_episode_id, Arc::clone(&episode));
+            // Persist the updated episode with handoff metadata to backends
+            if let Err(e) = memory.update_episode_full(&episode).await {
+                warn!(new_episode_id = %new_episode_id, "Failed to persist handoff metadata: {}", e);
+            }
         }
     }
     info!(new_episode_id = %new_episode_id, "Created new episode for resumption");

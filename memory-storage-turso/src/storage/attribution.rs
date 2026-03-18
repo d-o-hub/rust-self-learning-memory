@@ -82,7 +82,10 @@ impl TursoStorage {
     }
 
     /// Retrieve a recommendation session
-    pub async fn get_recommendation_session(&self, session_id: Uuid) -> Result<Option<RecommendationSession>> {
+    pub async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
         debug!("Retrieving recommendation session: {}", session_id);
         let (conn, conn_id) = self.get_connection_with_id().await?;
 
@@ -92,21 +95,42 @@ impl TursoStorage {
         "#;
 
         let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-        let mut rows = stmt.query(libsql::params![session_id.to_string()]).await.map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+        let mut rows = stmt
+            .query(libsql::params![session_id.to_string()])
+            .await
+            .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
 
-        if let Some(row) = rows.next().await.map_err(|e: libsql::Error| Error::Storage(e.to_string()))? {
-            let session_id_str: String = row.get(0).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let episode_id_str: String = row.get(1).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let timestamp: i64 = row.get(2).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let patterns_json: String = row.get(3).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let playbooks_json: String = row.get(4).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?
+        {
+            let session_id_str: String = row
+                .get(0)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let episode_id_str: String = row
+                .get(1)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let timestamp: i64 = row
+                .get(2)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let patterns_json: String = row
+                .get(3)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let playbooks_json: String = row
+                .get(4)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
 
             let session = RecommendationSession {
-                session_id: Uuid::parse_str(&session_id_str).map_err(|e| Error::Storage(e.to_string()))?,
-                episode_id: Uuid::parse_str(&episode_id_str).map_err(|e| Error::Storage(e.to_string()))?,
+                session_id: Uuid::parse_str(&session_id_str)
+                    .map_err(|e| Error::Storage(e.to_string()))?,
+                episode_id: Uuid::parse_str(&episode_id_str)
+                    .map_err(|e| Error::Storage(e.to_string()))?,
                 timestamp: chrono::DateTime::from_timestamp(timestamp, 0).unwrap_or_default(),
-                recommended_pattern_ids: serde_json::from_str(&patterns_json).map_err(Error::Serialization)?,
-                recommended_playbook_ids: serde_json::from_str(&playbooks_json).map_err(Error::Serialization)?,
+                recommended_pattern_ids: serde_json::from_str(&patterns_json)
+                    .map_err(Error::Serialization)?,
+                recommended_playbook_ids: serde_json::from_str(&playbooks_json)
+                    .map_err(Error::Serialization)?,
             };
             self.clear_prepared_cache(conn_id);
             Ok(Some(session))
@@ -117,8 +141,14 @@ impl TursoStorage {
     }
 
     /// Retrieve recommendation feedback
-    pub async fn get_recommendation_feedback(&self, session_id: Uuid) -> Result<Option<RecommendationFeedback>> {
-        debug!("Retrieving recommendation feedback for session: {}", session_id);
+    pub async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        debug!(
+            "Retrieving recommendation feedback for session: {}",
+            session_id
+        );
         let (conn, conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
@@ -127,19 +157,37 @@ impl TursoStorage {
         "#;
 
         let stmt = self.prepare_cached(conn_id, &conn, SQL).await?;
-        let mut rows = stmt.query(libsql::params![session_id.to_string()]).await.map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+        let mut rows = stmt
+            .query(libsql::params![session_id.to_string()])
+            .await
+            .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
 
-        if let Some(row) = rows.next().await.map_err(|e: libsql::Error| Error::Storage(e.to_string()))? {
-            let session_id_str: String = row.get(0).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let applied_json: String = row.get(1).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let consulted_json: String = row.get(2).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
-            let outcome_json: String = row.get(3).map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?
+        {
+            let session_id_str: String = row
+                .get(0)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let applied_json: String = row
+                .get(1)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let consulted_json: String = row
+                .get(2)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
+            let outcome_json: String = row
+                .get(3)
+                .map_err(|e: libsql::Error| Error::Storage(e.to_string()))?;
             let agent_rating: Option<f64> = row.get(4).ok();
 
             let feedback = RecommendationFeedback {
-                session_id: Uuid::parse_str(&session_id_str).map_err(|e| Error::Storage(e.to_string()))?,
-                applied_pattern_ids: serde_json::from_str(&applied_json).map_err(Error::Serialization)?,
-                consulted_episode_ids: serde_json::from_str(&consulted_json).map_err(Error::Serialization)?,
+                session_id: Uuid::parse_str(&session_id_str)
+                    .map_err(|e| Error::Storage(e.to_string()))?,
+                applied_pattern_ids: serde_json::from_str(&applied_json)
+                    .map_err(Error::Serialization)?,
+                consulted_episode_ids: serde_json::from_str(&consulted_json)
+                    .map_err(Error::Serialization)?,
                 outcome: serde_json::from_str(&outcome_json).map_err(Error::Serialization)?,
                 agent_rating: agent_rating.map(|r| r as f32),
             };

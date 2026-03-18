@@ -25,7 +25,7 @@ impl TursoStorage {
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
-                   archived_at
+                   checkpoints, archived_at
             FROM episodes WHERE 1=1
         "#,
         );
@@ -98,7 +98,7 @@ impl TursoStorage {
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
-                   archived_at
+                   checkpoints, archived_at
             FROM episodes
             WHERE start_time >= ?
             ORDER BY start_time DESC
@@ -168,7 +168,7 @@ impl TursoStorage {
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics, metadata, domain, language,
-                   archived_at
+                   checkpoints, archived_at
             FROM episodes
             WHERE json_extract(metadata, '$.{}') = '{}'
             ORDER BY start_time DESC

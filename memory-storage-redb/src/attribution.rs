@@ -71,39 +71,61 @@ impl RedbStorage {
     }
 
     /// Retrieve a recommendation session
-    pub async fn get_recommendation_session(&self, session_id: Uuid) -> Result<Option<RecommendationSession>> {
+    pub async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
         let db = self.db.clone();
         let key = session_id.to_string();
 
         with_db_timeout(move || {
             let read_txn = db.begin_read().map_err(|e| Error::Storage(e.to_string()))?;
-            let table = read_txn.open_table(SESSIONS_TABLE).map_err(|e| Error::Storage(e.to_string()))?;
-            match table.get(key.as_str()).map_err(|e| Error::Storage(e.to_string()))? {
+            let table = read_txn
+                .open_table(SESSIONS_TABLE)
+                .map_err(|e| Error::Storage(e.to_string()))?;
+            match table
+                .get(key.as_str())
+                .map_err(|e| Error::Storage(e.to_string()))?
+            {
                 Some(bytes_guard) => {
-                    let session: RecommendationSession = serde_json::from_slice(bytes_guard.value()).map_err(Error::Serialization)?;
+                    let session: RecommendationSession =
+                        serde_json::from_slice(bytes_guard.value())
+                            .map_err(Error::Serialization)?;
                     Ok(Some(session))
                 }
                 None => Ok(None),
             }
-        }).await
+        })
+        .await
     }
 
     /// Retrieve recommendation feedback
-    pub async fn get_recommendation_feedback(&self, session_id: Uuid) -> Result<Option<RecommendationFeedback>> {
+    pub async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
         let db = self.db.clone();
         let key = session_id.to_string();
 
         with_db_timeout(move || {
             let read_txn = db.begin_read().map_err(|e| Error::Storage(e.to_string()))?;
-            let table = read_txn.open_table(FEEDBACK_TABLE).map_err(|e| Error::Storage(e.to_string()))?;
-            match table.get(key.as_str()).map_err(|e| Error::Storage(e.to_string()))? {
+            let table = read_txn
+                .open_table(FEEDBACK_TABLE)
+                .map_err(|e| Error::Storage(e.to_string()))?;
+            match table
+                .get(key.as_str())
+                .map_err(|e| Error::Storage(e.to_string()))?
+            {
                 Some(bytes_guard) => {
-                    let feedback: RecommendationFeedback = serde_json::from_slice(bytes_guard.value()).map_err(Error::Serialization)?;
+                    let feedback: RecommendationFeedback =
+                        serde_json::from_slice(bytes_guard.value())
+                            .map_err(Error::Serialization)?;
                     Ok(Some(feedback))
                 }
                 None => Ok(None),
             }
-        }).await
+        })
+        .await
     }
 }
 
@@ -126,7 +148,10 @@ mod redb_attribution_tests {
             recommended_playbook_ids: vec![],
         };
 
-        storage.store_recommendation_session(&session).await.unwrap();
+        storage
+            .store_recommendation_session(&session)
+            .await
+            .unwrap();
 
         let feedback = RecommendationFeedback {
             session_id: session.session_id,
@@ -139,12 +164,23 @@ mod redb_attribution_tests {
             agent_rating: None,
         };
 
-        storage.store_recommendation_feedback(&feedback).await.unwrap();
+        storage
+            .store_recommendation_feedback(&feedback)
+            .await
+            .unwrap();
 
-        let retrieved_session = storage.get_recommendation_session(session.session_id).await.unwrap().unwrap();
+        let retrieved_session = storage
+            .get_recommendation_session(session.session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(retrieved_session.session_id, session.session_id);
 
-        let retrieved_feedback = storage.get_recommendation_feedback(session.session_id).await.unwrap().unwrap();
+        let retrieved_feedback = storage
+            .get_recommendation_feedback(session.session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(retrieved_feedback.session_id, session.session_id);
     }
 }

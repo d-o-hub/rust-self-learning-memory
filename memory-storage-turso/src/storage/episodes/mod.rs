@@ -105,7 +105,8 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let metadata_json: String = row.get(12).map_err(|e| Error::Storage(e.to_string()))?;
     let _domain: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
     let _language: Option<String> = row.get(14).ok();
-    let archived_at: Option<i64> = row.get(15).ok();
+    let checkpoints_json: String = row.get(15).map_err(|e| Error::Storage(e.to_string()))?;
+    let archived_at: Option<i64> = row.get(16).ok();
 
     let context: memory_core::TaskContext = serde_json::from_str(&context_json)
         .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
@@ -124,6 +125,7 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         .transpose()
         .map_err(|e| Error::Storage(format!("Failed to parse reflection: {}", e)))?;
 
+    // Parse patterns (with decompression if compression is enabled)
     #[cfg(feature = "compression")]
     let patterns_bytes = decompress_json_field(&patterns_json)?;
     #[cfg(not(feature = "compression"))]
@@ -134,6 +136,7 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let patterns: Vec<memory_core::episode::PatternId> = serde_json::from_str(&patterns_str)
         .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
 
+    // Parse heuristics (with decompression if compression is enabled)
     #[cfg(feature = "compression")]
     let heuristics_bytes = decompress_json_field(&heuristics_json)?;
     #[cfg(not(feature = "compression"))]
@@ -144,6 +147,11 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
         .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
 
+    let checkpoints: Vec<memory_core::memory::checkpoint::CheckpointMeta> =
+        serde_json::from_str(&checkpoints_json)
+            .map_err(|e| Error::Storage(format!("Failed to parse checkpoints: {}", e)))?;
+
+    // Parse metadata (with decompression if compression is enabled)
     #[cfg(feature = "compression")]
     let metadata_bytes = decompress_json_field(&metadata_json)?;
     #[cfg(not(feature = "compression"))]
@@ -176,7 +184,7 @@ pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         applied_patterns: Vec::new(),
         salient_features: None,
         tags: vec![],
-        checkpoints: vec![],
+        checkpoints,
         start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0).unwrap_or_default(),
         end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         metadata,

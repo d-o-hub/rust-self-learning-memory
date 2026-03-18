@@ -1,7 +1,7 @@
 //! E2E test verifying data persistence across system restarts
 
+use memory_core::SelfLearningMemory;
 use memory_core::types::{MemoryConfig, TaskContext, TaskType};
-use memory_core::{SelfLearningMemory};
 use memory_storage_redb::RedbStorage;
 use std::sync::Arc;
 use tempfile::tempdir;
@@ -20,20 +20,24 @@ async fn test_persistence_across_restart() {
     {
         let turso = Arc::new(RedbStorage::new(&db_path).await.unwrap());
         let cache = Arc::new(RedbStorage::new(&cache_path).await.unwrap());
-        let memory = SelfLearningMemory::with_storage(
-            MemoryConfig::default(),
-            turso,
-            cache
-        );
+        let memory = SelfLearningMemory::with_storage(MemoryConfig::default(), turso, cache);
 
-        episode_id = memory.start_episode(
-            "Persistent task".to_string(),
-            TaskContext::default(),
-            TaskType::Testing
-        ).await;
+        episode_id = memory
+            .start_episode(
+                "Persistent task".to_string(),
+                TaskContext::default(),
+                TaskType::Testing,
+            )
+            .await;
 
         // Add a checkpoint
-        memory_core::memory::checkpoint::checkpoint_episode(&memory, episode_id, "Save point".to_string()).await.unwrap();
+        memory_core::memory::checkpoint::checkpoint_episode(
+            &memory,
+            episode_id,
+            "Save point".to_string(),
+        )
+        .await
+        .unwrap();
 
         // Record a recommendation session
         let session = memory_core::memory::attribution::RecommendationSession {
@@ -50,11 +54,7 @@ async fn test_persistence_across_restart() {
     {
         let turso = Arc::new(RedbStorage::new(&db_path).await.unwrap());
         let cache = Arc::new(RedbStorage::new(&cache_path).await.unwrap());
-        let memory = SelfLearningMemory::with_storage(
-            MemoryConfig::default(),
-            turso,
-            cache
-        );
+        let memory = SelfLearningMemory::with_storage(MemoryConfig::default(), turso, cache);
 
         // Verify episode exists and has checkpoint
         let episode = memory.get_episode(episode_id).await.unwrap();
@@ -68,7 +68,11 @@ async fn test_persistence_across_restart() {
         // Wait, memory.turso_storage() returns &Arc<dyn StorageBackend>.
 
         let storage = memory.turso_storage().unwrap();
-        let retrieved_session = storage.get_recommendation_session(session_id).await.unwrap().unwrap();
+        let retrieved_session = storage
+            .get_recommendation_session(session_id)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(retrieved_session.session_id, session_id);
     }
 }

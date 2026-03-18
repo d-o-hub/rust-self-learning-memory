@@ -97,7 +97,9 @@ pub async fn storage_check(
 
         let (status, message) = match (db_episode, cache_episode) {
             (Some(db), Some(cache)) => {
-                if db.task_description == cache.task_description && db.tags == cache.tags && db.checkpoints == cache.checkpoints
+                if db.task_description == cache.task_description
+                    && db.tags == cache.tags
+                    && db.checkpoints == cache.checkpoints
                     && db.task_type == cache.task_type
                     && db.is_complete() == cache.is_complete()
                 {

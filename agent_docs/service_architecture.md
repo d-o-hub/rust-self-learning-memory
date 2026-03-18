@@ -129,10 +129,10 @@ The memory management system provides persistent memory across agent interaction
 4. `complete_episode` - Complete and score episodes
 5. `execute_code` - Execute code in WASM sandbox
 6. `health_check` - System health status
-7. `recommend_playbook` - Get actionable playbooks for tasks (ADR-044)
-8. `record_recommendation_feedback` - Track recommendation outcomes (ADR-044)
-9. `checkpoint_episode` - Create mid-task checkpoints (ADR-044)
-10. `get_handoff_pack` - Generate handoff for multi-agent workflows (ADR-044)
+7. `recommend_playbook` - Get actionable playbooks for tasks (v0.1.22)
+8. `record_recommendation_feedback` - Track recommendation outcomes (v0.1.22)
+9. `checkpoint_episode` - Create mid-task checkpoints (v0.1.22)
+10. `get_handoff_pack` - Generate handoff for multi-agent workflows (v0.1.22)
 
 **Features**:
 - Tool usage tracking

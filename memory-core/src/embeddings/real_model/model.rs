@@ -66,16 +66,18 @@ impl RealEmbeddingModel {
             let attention_mask_array = ndarray::Array1::from_vec(attention_mask).into_dyn();
 
             // Convert to ORT tensor references
-            let input_ids_tensor = ort::value::TensorRef::from_array_view(input_ids_array.view())?;
+            let input_ids_tensor = ort::value::TensorRef::from_array_view(input_ids_array.view())
+                .map_err(|e| anyhow::anyhow!("Failed to create input_ids tensor: {e}"))?;
             let attention_mask_tensor =
-                ort::value::TensorRef::from_array_view(attention_mask_array.view())?;
+                ort::value::TensorRef::from_array_view(attention_mask_array.view())
+                    .map_err(|e| anyhow::anyhow!("Failed to create attention_mask tensor: {e}"))?;
 
             // Lock the session for exclusive access
             let mut session_guard = session.blocking_lock();
             let mut outputs = session_guard.run(ort::inputs! {
                 "input_ids" => input_ids_tensor,
                 "attention_mask" => attention_mask_tensor
-            })?;
+            }).map_err(|e| anyhow::anyhow!("ONNX session run failed: {e}"))?;
 
             // Extract embeddings from output (typically last hidden state pooled)
             let output = outputs.remove("last_hidden_state").ok_or_else(|| {
@@ -179,8 +181,10 @@ impl RealEmbeddingModel {
             .map_err(|e| anyhow::anyhow!("Failed to load tokenizer: {e}"))?;
 
         // Load ONNX session
-        let session = Session::builder()?
-            .with_execution_providers([CPUExecutionProvider::default().build()])?
+        let session = Session::builder()
+            .map_err(|e| anyhow::anyhow!("Failed to create session builder: {e}"))?
+            .with_execution_providers([CPUExecutionProvider::default().build()])
+            .map_err(|e| anyhow::anyhow!("Failed to configure execution providers: {e}"))?
             .commit_from_file(&model_path)
             .map_err(|e| anyhow::anyhow!("Failed to load ONNX model: {e}"))?;
 
@@ -198,13 +202,11 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
-    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
-    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }
@@ -212,7 +214,6 @@ impl RealEmbeddingModel {
 
 /// Stubs for when local-embeddings feature is not enabled
 #[cfg(not(feature = "local-embeddings"))]
-#[allow(dead_code)]
 pub struct RealEmbeddingModel {
     name: String,
     dimension: usize,
@@ -221,13 +222,11 @@ pub struct RealEmbeddingModel {
 #[cfg(not(feature = "local-embeddings"))]
 impl RealEmbeddingModel {
     /// Create a stub real embedding model
-    #[allow(dead_code)]
     pub fn new(name: String, dimension: usize, _tokenizer: (), _session: ()) -> Self {
         Self { name, dimension }
     }
 
     /// Try to load real model (always fails without feature)
-    #[allow(dead_code)]
     #[allow(clippy::unused_async)]
     pub async fn try_load_from_cache(
         _config: &LocalConfig,
@@ -239,7 +238,6 @@ impl RealEmbeddingModel {
     }
 
     /// Generate real embedding (always fails without feature)
-    #[allow(dead_code)]
     #[allow(clippy::unused_async)]
     pub async fn generate_real_embedding(&self, _text: &str) -> Result<Vec<f32>> {
         Err(anyhow::anyhow!(
@@ -248,13 +246,11 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
-    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
-    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }

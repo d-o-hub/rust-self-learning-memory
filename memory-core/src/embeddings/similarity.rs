@@ -2,7 +2,6 @@
 //!
 //! Note: Several functions are kept for future use despite not being called yet.
 
-#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 
 /// Result from similarity search containing the item and similarity score

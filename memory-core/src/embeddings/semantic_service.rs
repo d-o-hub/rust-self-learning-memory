@@ -5,8 +5,6 @@ use crate::pattern::Pattern;
 use crate::types::TaskContext;
 use anyhow::Result;
 
-#[cfg(feature = "openai")]
-use super::config::OpenAIConfig;
 use super::config::{EmbeddingConfig, ProviderConfig};
 use super::local::LocalEmbeddingProvider;
 #[cfg(feature = "openai")]

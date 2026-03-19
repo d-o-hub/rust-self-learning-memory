@@ -122,7 +122,6 @@ pub fn assert_reward_is_failure(reward: &RewardScore) {
 /// let reward = episode.reward.unwrap();
 /// assert_reward_is_partial(&reward);
 /// ```
-#[allow(dead_code)]
 pub fn assert_reward_is_partial(reward: &RewardScore) {
     assert!(
         reward.base > 0.0 && reward.base < 1.0,
@@ -143,7 +142,6 @@ pub fn assert_reward_is_partial(reward: &RewardScore) {
 /// let episode = memory.get_episode(episode_id).await.unwrap();
 /// assert_has_patterns(&episode);
 /// ```
-#[allow(dead_code)]
 pub fn assert_has_patterns(episode: &Episode) {
     assert!(
         !episode.patterns.is_empty(),
@@ -164,7 +162,6 @@ pub fn assert_has_patterns(episode: &Episode) {
 /// let episode = memory.get_episode(episode_id).await.unwrap();
 /// assert_min_patterns(&episode, 2);
 /// ```
-#[allow(dead_code)]
 pub fn assert_min_patterns(episode: &Episode, min_count: usize) {
     assert!(
         episode.patterns.len() >= min_count,

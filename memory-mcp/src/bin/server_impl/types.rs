@@ -16,14 +16,10 @@ use serde_json::Value;
 
 /// Authorization result
 #[derive(Debug)]
-#[allow(dead_code)] // Only used when oauth feature is enabled
 pub enum AuthorizationResult {
     Authorized,
-    #[allow(dead_code)] // Variant used for error handling
     MissingToken,
-    #[allow(dead_code)] // Error message available for logging/debugging
     InvalidToken(String),
-    #[allow(dead_code)] // Required scopes available for logging/debugging
     InsufficientScope(Vec<String>),
 }
 
@@ -79,7 +75,6 @@ pub enum Content {
 /// Completion reference types (MCP 2025-11-25)
 ///
 /// Note: Completion support is implemented in mcp/completion.rs
-#[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub enum CompletionRef {
     #[serde(rename = "ref/prompt")]
@@ -136,7 +131,6 @@ pub struct CompletionValues {
 /// Elicitation request type - what kind of input is requested
 ///
 /// Note: Elicitation support is implemented in mcp/elicitation.rs
-#[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum ElicitationType {
@@ -210,10 +204,8 @@ pub struct ElicitationCancelParams {
 #[derive(Debug, Clone)]
 pub struct ActiveElicitation {
     pub id: String,
-    #[allow(dead_code)] // Not currently used, available for future timeout handling
     pub prompt: ElicitationPrompt,
     pub trigger: String,
-    #[allow(dead_code)] // Not currently used, available for future timeout handling
     pub created_at: std::time::Instant,
 }
 
@@ -298,9 +290,7 @@ pub struct ActiveTask {
     pub id: String,
     pub name: String,
     pub status: TaskStatus,
-    #[allow(dead_code)] // Available for future task execution
     pub input: Option<Value>,
-    #[allow(dead_code)] // Available for future task metadata
     pub metadata: Option<std::collections::HashMap<String, Value>>,
     pub progress: u32,
     pub result: Option<TaskResult>,
@@ -317,7 +307,6 @@ pub struct EmbeddingEnvConfig {
     pub provider: String,
     pub api_key: Option<String>,
     /// Environment variable name for API key (for documentation/debugging)
-    #[allow(dead_code)]
     pub api_key_env: String,
     pub model: Option<String>,
     pub similarity_threshold: f32,

@@ -66,18 +66,21 @@ impl RealEmbeddingModel {
             let attention_mask_array = ndarray::Array1::from_vec(attention_mask).into_dyn();
 
             // Convert to ORT tensor references
-            let input_ids_tensor = ort::value::TensorRef::from_array_view(input_ids_array.view())
-                .map_err(|e| anyhow::anyhow!("Failed to create input_ids tensor: {e}"))?;
+            let input_ids_tensor =
+                ort::value::TensorRef::from_array_view(input_ids_array.view())
+                    .map_err(|e| anyhow::anyhow!("Failed to create input_ids tensor: {e}"))?;
             let attention_mask_tensor =
                 ort::value::TensorRef::from_array_view(attention_mask_array.view())
                     .map_err(|e| anyhow::anyhow!("Failed to create attention_mask tensor: {e}"))?;
 
             // Lock the session for exclusive access
             let mut session_guard = session.blocking_lock();
-            let mut outputs = session_guard.run(ort::inputs! {
-                "input_ids" => input_ids_tensor,
-                "attention_mask" => attention_mask_tensor
-            }).map_err(|e| anyhow::anyhow!("ONNX session run failed: {e}"))?;
+            let mut outputs = session_guard
+                .run(ort::inputs! {
+                    "input_ids" => input_ids_tensor,
+                    "attention_mask" => attention_mask_tensor
+                })
+                .map_err(|e| anyhow::anyhow!("ONNX session run failed: {e}"))?;
 
             // Extract embeddings from output (typically last hidden state pooled)
             let output = outputs.remove("last_hidden_state").ok_or_else(|| {

@@ -47,9 +47,9 @@ use crate::compression::CompressionAlgorithm;
 use crate::transport::compression::{
     TransportCompressionConfig, TransportCompressionError, TransportCompressionStats,
 };
+mod decompression;
 #[path = "wrapper_helpers.rs"]
 mod helpers;
-mod decompression;
 use async_trait::async_trait;
 use helpers::CompressionResult;
 use std::fmt::Debug;
@@ -341,7 +341,6 @@ impl CompressedTransport {
             Ok(response)
         }
     }
-
 }
 
 #[async_trait]

@@ -28,7 +28,7 @@ proptest! {
     fn recommendation_session_serialization_roundtrip(
         session_id in uuid_strategy(),
         episode_id in uuid_strategy(),
-        timestamp_ms in 0i64..2_000_000_000_000_i64,
+        timestamp_ms in 0i64..2000000000000i64,
         recommended_patterns in prop::collection::vec(".*", 0..10),
         recommended_playbooks in prop::collection::vec(uuid_strategy(), 0..10)
     ) {
@@ -80,6 +80,7 @@ proptest! {
             adoption_rate: 0.0, // calculated
             success_after_adoption_rate: 0.0, // calculated
             avg_agent_rating: None,
+            ..Default::default()
         };
 
         prop_assert!(stats.successful_applications <= stats.patterns_applied);

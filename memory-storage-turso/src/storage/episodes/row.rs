@@ -6,113 +6,116 @@ use crate::TursoStorage;
 use memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
 use uuid::Uuid;
 
+#[cfg(feature = "compression")]
+use super::compression::decompress_json_field;
+
 /// Convert a database row to an Episode
-impl TursoStorage {
-    pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
-        let episode_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-        let task_type: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
-        let task_description: String = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
-        let context_json: String = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
-        let start_time_timestamp: i64 = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-        let end_time_timestamp: Option<i64> = row.get(5).ok();
-        let steps_json: String = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
-        let outcome_json: Option<String> = row.get(7).ok();
-        let reward_json: Option<String> = row.get(8).ok();
-        let reflection_json: Option<String> = row.get(9).ok();
-        let patterns_json: String = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
-        let heuristics_json: String = row.get(11).map_err(|e| Error::Storage(e.to_string()))?;
-        let metadata_json: String = row.get(12).map_err(|e| Error::Storage(e.to_string()))?;
-        let _domain: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
-        let _language: Option<String> = row.get(14).ok();
-        let archived_at: Option<i64> = row.get(15).ok();
+pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
+    let episode_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+    let task_type: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+    let task_description: String = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
+    let context_json: String = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
+    let start_time_timestamp: i64 = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
+    let end_time_timestamp: Option<i64> = row.get(5).ok();
+    let steps_json: String = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
+    let outcome_json: Option<String> = row.get(7).ok();
+    let reward_json: Option<String> = row.get(8).ok();
+    let reflection_json: Option<String> = row.get(9).ok();
+    let patterns_json: String = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
+    let heuristics_json: String = row.get(11).map_err(|e| Error::Storage(e.to_string()))?;
+    let metadata_json: String = row.get(12).map_err(|e| Error::Storage(e.to_string()))?;
+    let _domain: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
+    let _language: Option<String> = row.get(14).ok();
+    let archived_at: Option<i64> = row.get(15).ok();
 
-        let context: memory_core::TaskContext = serde_json::from_str(&context_json)
-            .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
-        let steps: Vec<memory_core::episode::ExecutionStep> = serde_json::from_str(&steps_json)
-            .map_err(|e| Error::Storage(format!("Failed to parse steps: {}", e)))?;
-        let outcome = outcome_json
-            .map(|s| serde_json::from_str::<memory_core::TaskOutcome>(&s))
-            .transpose()
-            .map_err(|e| Error::Storage(format!("Failed to parse outcome: {}", e)))?;
-        let reward = reward_json
-            .map(|s| serde_json::from_str::<memory_core::types::RewardScore>(&s))
-            .transpose()
-            .map_err(|e| Error::Storage(format!("Failed to parse reward: {}", e)))?;
-        let reflection = reflection_json
-            .map(|s| serde_json::from_str::<memory_core::Reflection>(&s))
-            .transpose()
-            .map_err(|e| Error::Storage(format!("Failed to parse reflection: {}", e)))?;
+    let context: memory_core::TaskContext = serde_json::from_str(&context_json)
+        .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
+    let steps: Vec<memory_core::episode::ExecutionStep> = serde_json::from_str(&steps_json)
+        .map_err(|e| Error::Storage(format!("Failed to parse steps: {}", e)))?;
+    let outcome = outcome_json
+        .map(|s| serde_json::from_str::<memory_core::TaskOutcome>(&s))
+        .transpose()
+        .map_err(|e| Error::Storage(format!("Failed to parse outcome: {}", e)))?;
+    let reward = reward_json
+        .map(|s| serde_json::from_str::<memory_core::types::RewardScore>(&s))
+        .transpose()
+        .map_err(|e| Error::Storage(format!("Failed to parse reward: {}", e)))?;
+    let reflection = reflection_json
+        .map(|s| serde_json::from_str::<memory_core::Reflection>(&s))
+        .transpose()
+        .map_err(|e| Error::Storage(format!("Failed to parse reflection: {}", e)))?;
 
-        // Parse patterns (with decompression if compression is enabled)
-        #[cfg(feature = "compression")]
-        use super::crud::decompress_json_field;
-        #[cfg(feature = "compression")]
-        let patterns_bytes = decompress_json_field(&patterns_json)?;
-        #[cfg(not(feature = "compression"))]
-        let patterns_bytes = patterns_json.as_bytes().to_vec();
+    // Parse patterns (with decompression if compression is enabled)
+    #[cfg(feature = "compression")]
+    let patterns_bytes = decompress_json_field(&patterns_json)?;
+    #[cfg(not(feature = "compression"))]
+    let patterns_bytes = patterns_json.as_bytes().to_vec();
 
-        let patterns_str = String::from_utf8(patterns_bytes)
-            .map_err(|e| Error::Storage(format!("Failed to convert patterns from UTF-8: {}", e)))?;
-        let patterns: Vec<memory_core::episode::PatternId> = serde_json::from_str(&patterns_str)
-            .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
+    let patterns_str = String::from_utf8(patterns_bytes)
+        .map_err(|e| Error::Storage(format!("Failed to convert patterns from UTF-8: {}", e)))?;
+    let patterns: Vec<memory_core::episode::PatternId> = serde_json::from_str(&patterns_str)
+        .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
 
-        // Parse heuristics (with decompression if compression is enabled)
-        #[cfg(feature = "compression")]
-        let heuristics_bytes = decompress_json_field(&heuristics_json)?;
-        #[cfg(not(feature = "compression"))]
-        let heuristics_bytes = heuristics_json.as_bytes().to_vec();
+    // Parse heuristics (with decompression if compression is enabled)
+    #[cfg(feature = "compression")]
+    let heuristics_bytes = decompress_json_field(&heuristics_json)?;
+    #[cfg(not(feature = "compression"))]
+    let heuristics_bytes = heuristics_json.as_bytes().to_vec();
 
-        let heuristics_str = String::from_utf8(heuristics_bytes).map_err(|e| {
-            Error::Storage(format!("Failed to convert heuristics from UTF-8: {}", e))
-        })?;
-        let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
-            .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
+    let heuristics_str = String::from_utf8(heuristics_bytes).map_err(|e| {
+        Error::Storage(format!("Failed to convert heuristics from UTF-8: {}", e))
+    })?;
+    let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
+        .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
 
-        // Parse metadata (with decompression if compression is enabled)
-        #[cfg(feature = "compression")]
-        let metadata_bytes = decompress_json_field(&metadata_json)?;
-        #[cfg(not(feature = "compression"))]
-        let metadata_bytes = metadata_json.as_bytes().to_vec();
+    // Parse metadata (with decompression if compression is enabled)
+    #[cfg(feature = "compression")]
+    let metadata_bytes = decompress_json_field(&metadata_json)?;
+    #[cfg(not(feature = "compression"))]
+    let metadata_bytes = metadata_json.as_bytes().to_vec();
 
-        let metadata_str = String::from_utf8(metadata_bytes)
-            .map_err(|e| Error::Storage(format!("Failed to convert metadata from UTF-8: {}", e)))?;
-        let mut metadata: std::collections::HashMap<String, String> =
-            serde_json::from_str(&metadata_str)
-                .map_err(|e| Error::Storage(format!("Failed to parse metadata: {}", e)))?;
+    let metadata_str = String::from_utf8(metadata_bytes)
+        .map_err(|e| Error::Storage(format!("Failed to convert metadata from UTF-8: {}", e)))?;
+    let mut metadata: std::collections::HashMap<String, String> =
+        serde_json::from_str(&metadata_str)
+            .map_err(|e| Error::Storage(format!("Failed to parse metadata: {}", e)))?;
 
-        // Add archived_at to metadata if present in database
-        if let Some(ts) = archived_at {
-            metadata.insert("archived_at".to_string(), ts.to_string());
-        }
-
-        Ok(Episode {
-            episode_id: uuid::Uuid::parse_str(&episode_id)
-                .map_err(|e| Error::Storage(format!("Invalid episode ID: {}", e)))?,
-            task_type: task_type
-                .parse::<TaskType>()
-                .map_err(|e| Error::Storage(e.to_string()))?,
-            task_description,
-            context,
-            steps,
-            outcome,
-            reward,
-            reflection,
-            patterns,
-            heuristics,
-            applied_patterns: Vec::new(),
-            salient_features: None,
-            tags: vec![],
-            checkpoints: vec![],
-            start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0)
-                .unwrap_or_default(),
-            end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
-            metadata,
-        })
+    // Add archived_at to metadata if present in database
+    if let Some(ts) = archived_at {
+        metadata.insert("archived_at".to_string(), ts.to_string());
     }
+
+    Ok(Episode {
+        episode_id: uuid::Uuid::parse_str(&episode_id)
+            .map_err(|e| Error::Storage(format!("Invalid episode ID: {}", e)))?,
+        task_type: task_type
+            .parse::<TaskType>()
+            .map_err(|e| Error::Storage(e.to_string()))?,
+        task_description,
+        context,
+        steps,
+        outcome,
+        reward,
+        reflection,
+        patterns,
+        heuristics,
+        applied_patterns: Vec::new(),
+        salient_features: None,
+        tags: vec![],
+        checkpoints: vec![],
+        start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0)
+            .unwrap_or_default(),
+        end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
+        metadata,
+    })
 }
 
 /// Convert a database row to an EpisodeSummary
 impl TursoStorage {
+    pub(crate) fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
+        row_to_episode(row)
+    }
+
     pub(crate) fn row_to_summary(row: &libsql::Row) -> Result<EpisodeSummary> {
         let episode_id: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
         let summary_text: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;

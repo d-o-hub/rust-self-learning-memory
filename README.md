@@ -304,6 +304,7 @@ async fn main() -> anyhow::Result<()> {
 | [Security](SECURITY.md) | Security policies and practices |
 | [Deployment](DEPLOYMENT.md) | Deployment strategies |
 | [Release Engineering](plans/adr/ADR-034-Release-Engineering-Modernization.md) | Release workflow and automation |
+| [Playbooks & Checkpoints](docs/PLAYBOOKS_AND_CHECKPOINTS.md) | Actionable memory and handoff |
 
 ### Agent Documentation
 

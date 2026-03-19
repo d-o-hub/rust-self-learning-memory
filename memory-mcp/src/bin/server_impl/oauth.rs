@@ -68,7 +68,6 @@ pub fn load_oauth_config() -> OAuthConfig {
 /// Note: This is a simplified implementation. Production systems should use
 /// a proper JWT library with signature verification against JWKS.
 #[cfg(feature = "oauth")]
-#[allow(dead_code)]
 pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResult {
     // Split JWT into parts
     let parts: Vec<&str> = token.split('.').collect();
@@ -145,7 +144,6 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
 /// Decodes base64url-encoded data. Base64url is a URL-safe variant of base64
 /// that uses `-` and `_` instead of `+` and `/`, and omits padding.
 #[cfg(feature = "oauth")]
-#[allow(dead_code)]
 pub fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
     // For simplicity, we'll do basic base64 decoding
     // In production, use a proper base64url crate
@@ -166,7 +164,6 @@ pub fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
 /// Validates that the token contains all required scopes for the requested operation.
 /// Scopes in the token are expected to be space-separated as per RFC 6749.
 #[cfg(feature = "oauth")]
-#[allow(dead_code)]
 pub fn check_scopes(token_scope: Option<&str>, required_scopes: &[String]) -> AuthorizationResult {
     let token_scopes: Vec<String> = match token_scope {
         Some(s) => s
@@ -206,7 +203,6 @@ pub fn check_scopes(token_scope: Option<&str>, required_scopes: &[String]) -> Au
 /// Note: For stdio mode, we can't access HTTP headers directly.
 /// This function is provided for future HTTP transport mode support.
 #[cfg(feature = "oauth")]
-#[allow(dead_code)]
 pub fn extract_bearer_token(_headers: &str) -> Option<String> {
     // For stdio mode, we can't access headers directly
     // This would be used for HTTP transport mode
@@ -223,7 +219,6 @@ pub fn extract_bearer_token(_headers: &str) -> Option<String> {
 /// * `error_description` - Human-readable error description
 /// * `realm` - Optional realm value
 #[cfg(feature = "oauth")]
-#[allow(dead_code)]
 pub fn create_www_authenticate_header(
     error: &str,
     error_description: Option<&str>,

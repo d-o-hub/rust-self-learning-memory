@@ -40,7 +40,6 @@ use cache::ModuleCache;
 #[derive(Debug)]
 pub struct JavyCompiler {
     config: JavyConfig,
-    #[allow(dead_code)]
     wasmtime_config: WasmtimeConfig,
     wasmtime_sandbox: Arc<WasmtimeSandbox>,
     metrics: Arc<RwLock<JavyMetrics>>,

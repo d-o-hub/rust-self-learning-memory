@@ -83,7 +83,7 @@ impl OpenAIEmbeddingProvider {
     async fn request_embeddings(
         &self,
         input: OpenAIEmbeddingInput,
-    ) -> Result<super::types::EmbeddingResponse> {
+    ) -> Result<super::super::config::openai::OpenAIEmbeddingResponse> {
         use super::super::config::openai::OpenAIEmbeddingRequest;
 
         let url = self.config.embeddings_url();
@@ -130,10 +130,11 @@ impl OpenAIEmbeddingProvider {
             let status = response.status();
 
             if status.is_success() {
-                let embedding_response: super::types::EmbeddingResponse = response
-                    .json()
-                    .await
-                    .context("Failed to parse OpenAI API response")?;
+                let embedding_response: super::super::config::openai::OpenAIEmbeddingResponse =
+                    response
+                        .json()
+                        .await
+                        .context("Failed to parse OpenAI API response")?;
                 return Ok(embedding_response);
             }
 

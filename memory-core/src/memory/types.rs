@@ -89,7 +89,6 @@ pub struct SelfLearningMemory {
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
-    #[allow(dead_code)]
     pub(super) cache_semaphore: Arc<Semaphore>,
 
     // Phase 2 (GENESIS) - Capacity management
@@ -109,15 +108,12 @@ pub struct SelfLearningMemory {
     /// Diversity maximizer using MMR for result set optimization
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
     /// Context-aware embeddings for task-specific similarity (future)
-    #[allow(dead_code)]
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
 
     // Semantic Search Integration
     /// Semantic service for embedding generation and search
-    #[allow(dead_code)]
     pub(super) semantic_service: Option<Arc<SemanticService>>,
     /// Configuration for semantic search
-    #[allow(dead_code)]
     pub(super) semantic_config: EmbeddingConfig,
 
     // v0.1.12: Query Caching
@@ -126,7 +122,6 @@ pub struct SelfLearningMemory {
 
     // Phase 3 (DBSCAN) - Anomaly Detection
     /// DBSCAN anomaly detector for identifying unusual episodes
-    #[allow(dead_code)]
     pub(super) dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
 
     // Security - Audit logging
@@ -135,7 +130,6 @@ pub struct SelfLearningMemory {
 
     // ADR-044 Feature 1 - Playbook Generation
     /// Playbook generator for synthesizing actionable playbooks
-    #[allow(dead_code)]
     pub(super) playbook_generator: PlaybookGenerator,
     /// Cache for episode summaries (ADR-044: persist semantic summary)
     pub(super) summaries_fallback: Arc<RwLock<HashMap<Uuid, EpisodeSummary>>>,

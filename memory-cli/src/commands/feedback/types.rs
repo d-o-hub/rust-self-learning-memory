@@ -12,7 +12,7 @@ pub enum FeedbackCommands {
         #[arg(short, long, value_delimiter = ',')]
         patterns: Vec<String>,
         /// Playbook IDs that were recommended (comma-separated)
-        #[arg(short = 'k', long, value_delimiter = ',')]
+        #[arg(short, long, value_delimiter = ',')]
         playbooks: Vec<String>,
     },
     /// Record feedback about which recommendations were used

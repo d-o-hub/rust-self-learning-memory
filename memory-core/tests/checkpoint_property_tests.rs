@@ -12,7 +12,7 @@ proptest! {
     #[test]
     fn checkpoint_meta_serialization_roundtrip(
         checkpoint_id in uuid_strategy(),
-        timestamp_ms in 0i64..2_000_000_000_000_i64,
+        timestamp_ms in 0i64..2000000000000i64,
         reason in ".*",
         step_number in 0usize..1000usize,
         note in prop::option::of(".*")

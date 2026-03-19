@@ -46,6 +46,7 @@
 
 mod builder;
 mod generator;
+mod templates;
 mod types;
 
 pub use builder::ReflectionData;

@@ -6,7 +6,6 @@
 use insta::assert_json_snapshot;
 use memory_mcp::mcp::tools::checkpoint::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
-    ResumeFromHandoffInput, ResumeFromHandoffOutput,
 };
 use memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
@@ -19,9 +18,8 @@ use memory_mcp::mcp::tools::pattern_search::{
     PatternResult, ScoreBreakdownResult, SearchPatternsInput, SearchPatternsOutput,
 };
 use memory_mcp::mcp::tools::recommendation_feedback::{
-    RecommendationStatsOutput, RecordRecommendationFeedbackInput,
-    RecordRecommendationFeedbackOutput, RecordRecommendationSessionInput,
-    RecordRecommendationSessionOutput, TaskOutcomeJson,
+    RecommendationStatsOutput, RecordRecommendationFeedbackInput, RecordRecommendationSessionInput,
+    TaskOutcomeJson,
 };
 use memory_mcp::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,

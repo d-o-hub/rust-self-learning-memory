@@ -3,9 +3,7 @@
 
 use super::builder::ReflectionData;
 use super::templates;
-use super::types::{
-    PlaybookRequest, PlaybookSynthesisSource, RecommendedPlaybook,
-};
+use super::types::{PlaybookRequest, PlaybookSynthesisSource, RecommendedPlaybook};
 use crate::error::Result;
 use crate::pattern::Pattern;
 use crate::semantic::EpisodeSummary;
@@ -99,7 +97,12 @@ impl PlaybookGenerator {
         let task_match_score = templates::calculate_task_match(request, patterns);
 
         // Step 2: Generate ordered steps from patterns
-        let ordered_steps = templates::synthesize_steps(patterns, &mut source, request.max_steps, self.max_patterns);
+        let ordered_steps = templates::synthesize_steps(
+            patterns,
+            &mut source,
+            request.max_steps,
+            self.max_patterns,
+        );
 
         // Step 3: Extract applicability rules
         let (when_to_apply, when_not_to_apply) =
@@ -109,7 +112,8 @@ impl PlaybookGenerator {
         let pitfalls = templates::synthesize_pitfalls(reflections, &mut source);
 
         // Step 5: Generate expected outcome
-        let expected_outcome = templates::synthesize_expected_outcome(patterns, summaries, &mut source);
+        let expected_outcome =
+            templates::synthesize_expected_outcome(patterns, summaries, &mut source);
 
         // Step 6: Calculate confidence
         let confidence = templates::calculate_confidence(patterns, summaries, &source);
@@ -118,7 +122,11 @@ impl PlaybookGenerator {
         let why_relevant = templates::generate_why_relevant(patterns, summaries, &source);
 
         // Step 8: Collect supporting IDs
-        let supporting_pattern_ids = patterns.iter().take(self.max_patterns).map(|p| p.id()).collect();
+        let supporting_pattern_ids = patterns
+            .iter()
+            .take(self.max_patterns)
+            .map(|p| p.id())
+            .collect();
         let supporting_episode_ids = source.episode_ids.clone();
 
         info!(playbook_id = %playbook_id, task_match_score, confidence, step_count = ordered_steps.len(), source_count = source.total_sources(), "Generated playbook");

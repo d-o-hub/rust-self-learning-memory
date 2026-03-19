@@ -8,7 +8,7 @@ use tracing::{debug, info};
 use uuid::Uuid;
 
 #[cfg(feature = "compression")]
-use super::compression::{compress_json_field};
+use super::compression::compress_json_field;
 
 impl TursoStorage {
     /// Store an episode

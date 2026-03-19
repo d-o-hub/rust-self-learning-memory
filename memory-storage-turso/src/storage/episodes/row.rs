@@ -62,9 +62,8 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     #[cfg(not(feature = "compression"))]
     let heuristics_bytes = heuristics_json.as_bytes().to_vec();
 
-    let heuristics_str = String::from_utf8(heuristics_bytes).map_err(|e| {
-        Error::Storage(format!("Failed to convert heuristics from UTF-8: {}", e))
-    })?;
+    let heuristics_str = String::from_utf8(heuristics_bytes)
+        .map_err(|e| Error::Storage(format!("Failed to convert heuristics from UTF-8: {}", e)))?;
     let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
         .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
 
@@ -103,8 +102,7 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         salient_features: None,
         tags: vec![],
         checkpoints: vec![],
-        start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0)
-            .unwrap_or_default(),
+        start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0).unwrap_or_default(),
         end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         metadata,
     })

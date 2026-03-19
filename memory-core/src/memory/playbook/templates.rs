@@ -3,9 +3,7 @@
 //! Extracted from `generator.rs` to maintain the ≤500 LOC invariant.
 
 use super::builder::{ReflectionData, StepsBuilder};
-use super::types::{
-    PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookSynthesisSource,
-};
+use super::types::{PlaybookPitfall, PlaybookRequest, PlaybookStep, PlaybookSynthesisSource};
 use crate::pattern::Pattern;
 use crate::semantic::EpisodeSummary;
 use crate::types::TaskContext;
@@ -234,8 +232,7 @@ pub(super) fn generate_why_relevant(
         reasons.push(format!(
             "Based on {} patterns with {:.0}% average success rate",
             patterns.len(),
-            patterns.iter().map(|p| p.success_rate()).sum::<f32>() / patterns.len() as f32
-                * 100.0
+            patterns.iter().map(|p| p.success_rate()).sum::<f32>() / patterns.len() as f32 * 100.0
         ));
     }
 

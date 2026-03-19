@@ -1,5 +1,10 @@
 //! CLI integration tests for episode update command
+//!
+//! Note: These tests spawn `cargo run` which is slow, so they have extended
+//! timeouts in `.config/nextest.toml` and use `#[serial]` to avoid resource
+//! contention when running in parallel.
 
+use serial_test::serial;
 use std::process::Command;
 
 /// Helper function to run memory-cli command
@@ -22,6 +27,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[serial]
     fn test_update_command_help() {
         let (success, stdout, _stderr) = run_command(&["episode", "update", "--help"]);
         assert!(success);
@@ -34,6 +40,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_update_command_invalid_id() {
         let (success, _stdout, stderr) = run_command(&[
             "episode",
@@ -49,6 +56,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_update_command_description_only() {
         // This test requires a working memory system, so we'll just test the help
         let (success, stdout, _stderr) = run_command(&["episode", "update", "--help"]);
@@ -57,6 +65,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_update_command_with_dry_run() {
         let (success, stdout, _stderr) = run_command(&[
             "--dry-run", // Global flag must come before subcommand
@@ -72,6 +81,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn test_update_command_metadata_format() {
         let (success, stdout, _stderr) = run_command(&["episode", "update", "--help"]);
         assert!(success);

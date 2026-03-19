@@ -7,7 +7,6 @@ use super::types::{PlaybookRequest, PlaybookSynthesisSource, RecommendedPlaybook
 use crate::error::Result;
 use crate::pattern::Pattern;
 use crate::semantic::EpisodeSummary;
-use crate::types::TaskContext;
 use tracing::{info, instrument};
 use uuid::Uuid;
 

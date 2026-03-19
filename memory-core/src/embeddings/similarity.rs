@@ -110,6 +110,7 @@ pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 ///
 /// # Returns
 /// Euclidean distance (0 = identical, higher = more different)
+#[allow(dead_code)]
 pub fn euclidean_distance(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() {
         return f32::INFINITY;
@@ -130,6 +131,7 @@ pub fn euclidean_distance(a: &[f32], b: &[f32]) -> f32 {
 ///
 /// # Returns
 /// Manhattan distance
+#[allow(dead_code)]
 pub fn manhattan_distance(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() {
         return f32::INFINITY;
@@ -139,6 +141,7 @@ pub fn manhattan_distance(a: &[f32], b: &[f32]) -> f32 {
 }
 
 /// Convert Euclidean distance to similarity score (0-1)
+#[allow(dead_code)]
 pub fn distance_to_similarity(distance: f32, max_distance: f32) -> f32 {
     if max_distance <= 0.0 {
         return 0.0;
@@ -150,6 +153,7 @@ pub fn distance_to_similarity(distance: f32, max_distance: f32) -> f32 {
 ///
 /// Uses dimensionality reduction or locality-sensitive hashing for faster
 /// similarity calculations at the cost of some accuracy.
+#[allow(dead_code)]
 pub fn approximate_similarity(a: &[f32], b: &[f32], precision: SimilarityPrecision) -> f32 {
     match precision {
         SimilarityPrecision::High => cosine_similarity(a, b),
@@ -170,6 +174,7 @@ pub fn approximate_similarity(a: &[f32], b: &[f32], precision: SimilarityPrecisi
 
 /// Precision level for similarity calculations
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 pub enum SimilarityPrecision {
     /// Full precision using all dimensions
     High,
@@ -190,6 +195,7 @@ pub enum SimilarityPrecision {
 ///
 /// # Returns
 /// Top k most similar candidates with similarity scores
+#[allow(dead_code)]
 pub fn batch_similarity_search(
     query: &[f32],
     candidates: &[EmbeddingWithMetadata],
@@ -220,6 +226,7 @@ pub fn batch_similarity_search(
 ///
 /// # Returns
 /// Weighted similarity score
+#[allow(dead_code)]
 pub fn weighted_similarity(
     embedding_similarity: f32,
     context_weight: f32,
@@ -251,6 +258,7 @@ pub fn weighted_similarity(
 ///
 /// # Returns
 /// Symmetric similarity matrix where matrix\[i\]\[j\] = similarity(embedding\[i\], embedding\[j\])
+#[allow(dead_code)]
 pub fn similarity_matrix(embeddings: &[Vec<f32>]) -> Vec<Vec<f32>> {
     let n = embeddings.len();
     let mut matrix = vec![vec![0.0; n]; n];

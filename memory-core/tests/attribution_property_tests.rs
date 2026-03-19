@@ -80,7 +80,6 @@ proptest! {
             adoption_rate: 0.0, // calculated
             success_after_adoption_rate: 0.0, // calculated
             avg_agent_rating: None,
-            ..Default::default()
         };
 
         prop_assert!(stats.successful_applications <= stats.patterns_applied);

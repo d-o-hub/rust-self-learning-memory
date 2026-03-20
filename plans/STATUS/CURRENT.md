@@ -1,10 +1,10 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-18
+**Last Updated**: 2026-03-20
 **Released Version**: v0.1.21
 **Next Version**: v0.1.22 (Quality & Feature Polish)
-**Branch**: `docs/v0.1.22-release-updates`
-**PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
+**Branch**: `feature/v0.1.22-completion-14277757658140810815`
+**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) (supersedes #369)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
 **Edition**: Rust 2024
 
@@ -16,16 +16,16 @@
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
 | Rust LOC | ~208K | — | — |
-| Total test functions | 2,898 | — | — |
-| Tests passing | 2,795 | — | ✅ |
-| Ignored tests | 113 | ≤10 | 🔴 70 blocked by upstream libsql bug (ADR-027) |
-| Timed-out tests | 0 | 0 | ✅ Ignored redundant clippy test |
+| Total test functions | 2,944 | — | — |
+| Tests passing | 2,820 | — | ✅ |
+| Ignored tests | 124 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
+| Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ Fixed (attribution clone, playbook sync) |
 | Production src files >500 LOC | 0 | 0 | ✅ Split: generator→builder, management→tags, handlers→feature_handlers |
-| `#[allow(dead_code)]` (production) | 70 | ≤40 | 🟡 |
-| Snapshot tests | 65 | ≥80 | 🟡 |
-| Property test files | 10 | ≥15 | 🟡 |
-| Broken markdown links | 149 | ≤80 | 🟡 |
+| `#[allow(dead_code)]` (production) | 46 | ≤40 | 🟡 Close (down from 70) |
+| Snapshot tests | 80 | ≥80 | ✅ Target met |
+| Property test files | 13 | ≥13 | ✅ Target met |
+| Broken markdown links | ~130 | ≤80 | 🟡 ~20 fixed by PR #391 |
 | Duplicate dependency roots | 134 | <80 | 🟡 Architectural limit reached |
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
@@ -39,14 +39,14 @@ All research/implementation phases are complete:
 - ✅ **Phase 3 (Spatiotemporal)**: Retrieval accuracy (+150%, 4.4× target)
 - ✅ **Phase 4 (Benchmarking)**: All research claims validated
 
-## v0.1.22 Features (ADR-044 — Shipped, Needs Polish)
+## v0.1.22 Features (ADR-044 — Polished)
 
 | Feature | Core | MCP | CLI | Tests | Doctests | Snapshots |
 |---------|------|-----|-----|-------|---------|-----------|
-| Actionable Playbooks | ✅ | ✅ | ✅ | 26 | 🔴 Broken | ❌ |
-| Recommendation Attribution | ✅ | ✅ | ✅ | 8 | 🔴 Broken | ❌ |
-| Episode Checkpoints/Handoff | ✅ | ✅ | ✅ | 6 | ✅ | ❌ |
-| Recommendation Feedback | ✅ | ✅ | ✅ | 3 | ✅ | ❌ |
+| Actionable Playbooks | ✅ | ✅ | ✅ | 26 | ✅ Fixed | ✅ |
+| Recommendation Attribution | ✅ | ✅ | ✅ | 8 | ✅ Fixed | ✅ |
+| Episode Checkpoints/Handoff | ✅ | ✅ | ✅ | 6 | ✅ | ✅ |
+| Recommendation Feedback | ✅ | ✅ | ✅ | 3 | ✅ | ✅ |
 
 ## Key Capabilities
 
@@ -73,12 +73,12 @@ All research/implementation phases are complete:
 
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
-| Ignored tests | 113 | — | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (production) | 70 | ≤40 | Embeddings + types hotspots |
-| Broken markdown links | 149 | ≤80 | Increased with new feature docs |
+| Ignored tests | 124 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
+| `#[allow(dead_code)]` (production) | 46 | ≤40 | Down from 70; 6 remaining in embeddings |
+| Broken markdown links | ~130 | ≤80 | ~20 fixed; remaining mostly in archived docs |
 | Duplicate dep roots | 134 | <80 | Architectural limit |
-| Snapshot tests | 65 | ≥80 | No snapshots for new features |
-| Property test files | 10 | ≥15 | No property tests for new features |
+| Snapshot tests | 80 | ≥80 | ✅ Target met via PR #391 |
+| Property test files | 13 | ≥13 | ✅ Target met (playbook, checkpoint, attribution) |
 
 ## Disabled Features
 
@@ -86,19 +86,19 @@ All research/implementation phases are complete:
 |---------|----------|--------|
 | `execute_agent_code` MCP tool | `handlers.rs:72-91` | WASM sandbox compilation issues |
 
-## Missing Implementation (Not Built)
+## Infrastructure (Completed via PR #391)
 
-| Feature | Since | Status |
-|---------|-------|--------|
-| Changelog automation (git-cliff) | v0.1.17 | ADR-034 Phase 4 — Not started |
+| Item | Since | Status |
+|------|-------|--------|
+| Changelog automation (git-cliff) | v0.1.17 | ✅ `.github/workflows/changelog.yml` |
+| libsql version monitor (T5.3) | v0.1.20 | ✅ `scripts/check-libsql-version.sh` |
+| Structured tech-debt registry | v0.1.17 | ✅ `docs/TECH_DEBT.md` |
 
 ## Infrastructure Backlog
 
 | Item | Since | Priority |
 |------|-------|----------|
 | Nightly trend tracking (T5.2) | v0.1.20 | P3 |
-| libsql version monitor (T5.3) | v0.1.20 | P3 |
-| Structured tech-debt registry | v0.1.17 | P3 |
 | CLI workflow parity generator | v0.1.17 | P3 |
 
 ## Cross-References

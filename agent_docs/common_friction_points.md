@@ -199,6 +199,60 @@ async fn test_network_dependent() {
 3. [ ] All tests pass
 4. [ ] No unrelated changes
 
+## Regression Prevention Learnings (v0.1.22)
+
+### 1. Doctest Quality Gate
+
+**Problem**: Doctests for new features (attribution, playbook) broke silently — moved values and sync/async mismatches.
+
+**Prevention**:
+- Always run `cargo test --doc -p <crate>` after adding or modifying doctests
+- Clone values before passing to functions that take ownership if the value is used afterward
+- Do not `.await` sync functions in doctests — check function signature first
+
+### 2. File Size Creep
+
+**Problem**: `generator.rs` grew to 631 LOC, `memory_handlers.rs` to 608 LOC during feature implementation without anyone noticing.
+
+**Prevention**:
+- Run `find <crate>/src -name "*.rs" ! -name "*test*" -exec wc -l {} \; | awk '$1 > 450 {print}'` before committing
+- When a file approaches 450 LOC, proactively plan a split
+- Extract template/helper code into separate modules early
+
+### 3. Plan Document Drift
+
+**Problem**: Plans reported stale metrics (e.g., "50 dead_code" when actual was 46; "76 snapshots" when actual was 80). Multiple plan files had inconsistent data.
+
+**Prevention**:
+- Always verify metrics by running actual commands, not trusting plan docs
+- Update ALL plan files (CURRENT.md, GOAP_STATE.md, ROADMAP_ACTIVE.md) together
+- Metrics to verify: `grep -r '#[allow(dead_code)]' | wc -l`, `find -name "*.snap" | wc -l`, `cargo nextest run --all 2>&1 | tail -5`
+
+### 4. PR Supersession Tracking
+
+**Problem**: PR #388 was closed/superseded by PR #389, then PR #391 implemented remaining items. Plan docs referenced stale PR #369.
+
+**Prevention**:
+- When a PR is superseded, update all plan docs that reference the old PR
+- Record the supersession chain in GOAP_STATE.md
+
+### 5. codecov/patch Failures on PRs
+
+**Problem**: PR #391 has `codecov/patch` failing despite all real CI checks passing. This is informational, not a blocker.
+
+**Prevention**:
+- `codecov/patch` is not a required check — don't block merges on it
+- If patch coverage is needed, add tests for new code paths in the same PR
+- Configure `codecov.yml` with appropriate patch thresholds
+
+### 6. Integration Test Crate Clippy Allows
+
+**Problem**: Integration test files are separate crate roots and don't inherit `.clippy.toml` settings from the workspace.
+
+**Prevention**:
+- Add `#![allow(clippy::unwrap_used)]` and `#![allow(clippy::expect_used)]` at the top of all integration test files
+- This is documented in Pattern CLIPPY-001
+
 ## Cross-References
 
 - [AGENTS.md](../AGENTS.md) - Primary coding guidelines

@@ -1,10 +1,10 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-19
+**Last Updated**: 2026-03-20
 **Released Version**: v0.1.21
 **Current Sprint**: v0.1.22 (Quality & Feature Polish)
-**Branch**: `main`
-**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391)
+**Branch**: `feature/v0.1.22-completion-14277757658140810815`
+**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) (all CI passing)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
 
 ---
@@ -31,10 +31,10 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Task | Description | Current | Target | Status | Issue |
 |------|-------------|---------|--------|--------|-------|
-| WG-043 | Reduce `#[allow(dead_code)]` | 50 | ≤40 | ⏳ Pending | #377 |
-| WG-044 | Fix broken markdown links | TBD | ≤80 | ⏳ Pending | #378 |
-| WG-045 | Add snapshot tests for new features | 76 | ≥80 | ⏳ Pending | #379 |
-| WG-046 | Add property tests for new features | 12 | ≥13 | ⏳ Pending | #380 |
+| WG-043 | Reduce `#[allow(dead_code)]` | 46 | ≤40 | 🟡 Near target | #377 |
+| WG-044 | Fix broken markdown links | ~130 | ≤80 | 🟡 ~20 fixed | #378 |
+| WG-045 | Add snapshot tests for new features | 80 | ≥80 | ✅ Complete | #379 |
+| WG-046 | Add property tests for new features | 13 | ≥13 | ✅ Complete | #380 |
 
 ### P2: Feature Enhancements
 
@@ -43,15 +43,15 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | WG-047 | MCP tool contract parity for new tools | ✅ Complete | #381 |
 | WG-048 | Integration tests for attribution + checkpoint flows | ✅ Complete | #382 |
 | WG-049 | Changelog automation (git-cliff) | ✅ Complete | #383 |
-| WG-050 | Documentation for new features | ⏳ Partial | #384 |
+| WG-050 | Documentation for new features | ✅ Complete | #384 |
 
 ### P3: Infrastructure (Carried Forward)
 
 | Task | Description | Since | Status | Issue |
 |------|-------------|-------|--------|-------|
 | WG-051 | Nightly trend tracking artifact | v0.1.20 | ⏳ Pending | #385 |
-| WG-052 | libsql upstream version monitor | v0.1.20 | ⏳ Pending | #386 |
-| WG-053 | Structured tech-debt registry | v0.1.17 | ⏳ Pending | #387 |
+| WG-052 | libsql upstream version monitor | v0.1.20 | ✅ Complete | #386 |
+| WG-053 | Structured tech-debt registry | v0.1.17 | ✅ Complete | #387 |
 
 ### Shipped in v0.1.21
 
@@ -74,23 +74,24 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Item | Current | Target | Effort |
 |------|---------|--------|--------|
-| `#[allow(dead_code)]` annotations | 50 | ≤40 | 4–6h |
-| Broken markdown links | TBD | ≤80 | 4–6h |
+| `#[allow(dead_code)]` annotations | 46 | ≤40 | 2–3h (6 remaining in embeddings) |
+| Broken markdown links | ~130 | ≤80 | 4–6h |
 
 ### Testing
 
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
-| Ignored tests | 113 | — | 70 upstream libsql bug, rest by design |
-| Property test expansion | 12 files | ≥15 | ADR-033; new features need property tests |
-| Snapshot test growth | 76 snaps | ≥80 | New MCP tools + CLI commands need snapshots |
+| Ignored tests | 124 | ≤125 ceiling | 70 upstream libsql bug, rest by design |
+| Property test expansion | 13 files | ≥13 | ✅ Target met |
+| Snapshot test growth | 80 snaps | ≥80 | ✅ Target met |
 
 ### Infrastructure
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Changelog automation (git-cliff) | ✅ Complete | .github/workflows/changelog.yml exists |
-| Structured tech-debt registry | Not started | Opportunity O7 |
+| Changelog automation (git-cliff) | ✅ Complete | `.github/workflows/changelog.yml` |
+| Structured tech-debt registry | ✅ Complete | `docs/TECH_DEBT.md` |
+| libsql version monitor | ✅ Complete | `scripts/check-libsql-version.sh` |
 | CLI workflow parity generator | Not started | Opportunity O6 |
 
 ---

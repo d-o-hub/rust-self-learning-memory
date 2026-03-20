@@ -1,0 +1,9 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: pitfall
+---
+{
+  "warning": "Avoid blocking operations in async context",
+  "reason": "Will block the entire tokio runtime",
+  "mitigation": null
+}

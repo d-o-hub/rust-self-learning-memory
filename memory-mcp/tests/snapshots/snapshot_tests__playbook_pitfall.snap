@@ -1,0 +1,9 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: pitfall
+---
+{
+  "warning": "Don't skip the type checking step",
+  "reason": "Missing type annotations can cause runtime errors",
+  "mitigation": "Always run `cargo clippy` before committing"
+}

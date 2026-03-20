@@ -74,27 +74,7 @@ Based on analysis of 34 sessions (234 messages, 97 commits):
 
 ## Tool Usage Patterns
 
-### Current State
-
-| Tool | Usage | Target |
-|------|-------|--------|
-| Bash | 1892 | Lower |
-| Grep | 110 | Higher |
-| Ratio | 17:1 | 2:1 |
-
-### Recommended Tool Selection
-
-**Use Grep for**:
-- Finding files by pattern: `Grep pattern="pattern"`
-- Searching content: `Grep pattern="search_term"`
-- Finding definitions: `Grep pattern="fn name"`
-- Checking usage: `Grep pattern="use module"`
-
-**Use Bash for**:
-- File operations: `cp`, `mv`, `rm`
-- Git commands: `git status`, `git diff`
-- Running scripts: `./scripts/build-rust.sh`
-- Build/test: `cargo build`, `cargo test`
+> For tool selection guidance (Grep vs Bash), see [AGENTS.md](../AGENTS.md#tool-selection-enforcement).
 
 ### Tool Error Prevention
 

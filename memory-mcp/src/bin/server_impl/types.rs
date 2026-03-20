@@ -7,6 +7,8 @@
 //! McpTool, ListToolsResult) are now defined in the library's protocol module and re-exported
 //! from core.rs for backward compatibility.
 
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 

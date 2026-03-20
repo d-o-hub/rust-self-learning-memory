@@ -9,10 +9,10 @@ pub enum FeedbackCommands {
         #[arg(short, long)]
         episode_id: String,
         /// Pattern IDs that were recommended (comma-separated)
-        #[arg(short, long, value_delimiter = ',')]
+        #[arg(short = 'p', long, value_delimiter = ',')]
         patterns: Vec<String>,
         /// Playbook IDs that were recommended (comma-separated)
-        #[arg(short, long, value_delimiter = ',')]
+        #[arg(short = 'P', long, value_delimiter = ',')]
         playbooks: Vec<String>,
     },
     /// Record feedback about which recommendations were used

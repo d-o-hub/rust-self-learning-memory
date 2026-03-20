@@ -5,8 +5,10 @@ use memory_core::{ExecutionStep, MemoryConfig, TaskContext, TaskType};
 #[tokio::test]
 async fn test_checkpoint_handoff_flow() {
     // Disable batching to ensure steps are persisted immediately for the test
-    let mut config = MemoryConfig::default();
-    config.batch_config = None;
+    let config = MemoryConfig {
+        batch_config: None,
+        ..MemoryConfig::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
 
     // 1. Start episode and log some steps

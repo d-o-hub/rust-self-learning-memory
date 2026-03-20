@@ -230,6 +230,7 @@ impl KDNode {
 
 /// KD-tree spatial index for efficient neighbor queries
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct KDTree {
     root: Option<Box<KDNode>>,
     max_depth: usize,

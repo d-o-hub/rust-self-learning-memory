@@ -7,6 +7,7 @@ pub mod crud;
 pub mod query;
 pub mod row;
 
+pub use compression::{compress_json_field, decompress_json_field};
 pub use row::row_to_episode;
 
 use memory_core::TaskType;

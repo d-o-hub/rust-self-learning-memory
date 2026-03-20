@@ -1,5 +1,7 @@
 //! Assertion helpers for common test validations
 
+#![allow(dead_code)]
+
 use memory_core::{Episode, RewardScore};
 
 /// Assert that an episode has been completed

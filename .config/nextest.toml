@@ -18,3 +18,12 @@ retries = 1
 slow-timeout = { period = "120s", terminate-after = 2 }
 failure-output = "final"
 status-level = "skip"
+
+# CLI integration tests that spawn cargo run need longer timeouts
+[[profile.default.overrides]]
+filter = "package(memory-cli) and test(Update)"
+slow-timeout = { period = "180s", terminate-after = 2 }
+
+[[profile.ci.overrides]]
+filter = "package(memory-cli) and test(Update)"
+slow-timeout = { period = "180s", terminate-after = 2 }

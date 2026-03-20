@@ -582,3 +582,56 @@ fn test_search_patterns_output() {
     };
     assert_json_snapshot!(output);
 }
+
+// =============================================================================
+// Playbook Type Snapshots (ADR-044 Feature 1)
+// =============================================================================
+
+/// Test PlaybookStep serialization
+#[test]
+fn test_playbook_step() {
+    use memory_core::memory::playbook::PlaybookStep;
+
+    let step = PlaybookStep::new(1, "Analyze existing authentication patterns".to_string())
+        .with_tool_hint("pattern_search")
+        .with_expected_result("List of relevant authentication patterns");
+
+    assert_json_snapshot!(step);
+}
+
+/// Test PlaybookStep with minimal fields
+#[test]
+fn test_playbook_step_minimal() {
+    use memory_core::memory::playbook::PlaybookStep;
+
+    let step = PlaybookStep::new(2, "Run tests to verify changes".to_string());
+
+    assert_json_snapshot!(step);
+}
+
+/// Test PlaybookPitfall serialization
+#[test]
+fn test_playbook_pitfall() {
+    use memory_core::memory::playbook::PlaybookPitfall;
+
+    let pitfall = PlaybookPitfall::new(
+        "Don't skip the type checking step",
+        "Missing type annotations can cause runtime errors",
+    )
+    .with_mitigation("Always run `cargo clippy` before committing");
+
+    assert_json_snapshot!(pitfall);
+}
+
+/// Test PlaybookPitfall without mitigation
+#[test]
+fn test_playbook_pitfall_no_mitigation() {
+    use memory_core::memory::playbook::PlaybookPitfall;
+
+    let pitfall = PlaybookPitfall::new(
+        "Avoid blocking operations in async context",
+        "Will block the entire tokio runtime",
+    );
+
+    assert_json_snapshot!(pitfall);
+}

@@ -1,0 +1,10 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: step
+---
+{
+  "order": 1,
+  "action": "Analyze existing authentication patterns",
+  "tool_hint": "pattern_search",
+  "expected_result": "List of relevant authentication patterns"
+}

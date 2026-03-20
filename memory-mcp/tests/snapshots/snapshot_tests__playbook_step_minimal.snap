@@ -1,0 +1,10 @@
+---
+source: memory-mcp/tests/snapshot_tests.rs
+expression: step
+---
+{
+  "order": 2,
+  "action": "Run tests to verify changes",
+  "tool_hint": null,
+  "expected_result": null
+}

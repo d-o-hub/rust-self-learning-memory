@@ -1,4 +1,4 @@
-//! Property-based tests for TaskContext matching
+//! Property-based tests for `TaskContext` matching
 //!
 //! These tests verify invariants for task context creation and matching
 //! using the proptest crate for property-based testing.

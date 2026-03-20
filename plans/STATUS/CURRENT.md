@@ -16,8 +16,8 @@
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
 | Rust LOC | ~208K | — | — |
-| Total test functions | 2,944 | — | — |
-| Tests passing | 2,820 | — | ✅ |
+| Total test functions | 2,971 | — | — |
+| Tests passing | 2,847 | — | ✅ |
 | Ignored tests | 124 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ Fixed (attribution clone, playbook sync) |

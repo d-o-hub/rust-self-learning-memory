@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-16 (v0.1.22 Sprint Analysis)
+- **Last Updated**: 2026-03-19 (Issue Verification)
 - **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -696,32 +696,49 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | 1 test timeout | `quality_gate_no_clippy_warnings` runs full clippy (>120s) | ACT-055 |
 | 3 files >500 LOC | `generator.rs` (631), `memory_handlers.rs` (608), `management.rs` (504) | ACT-056–058 |
 
-### Quality Metrics
+### Quality Metrics (2026-03-19 Verified)
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Tests passing | 2,795/2,898 | — | ✅ |
+| Tests passing | 2,816/2,816 | — | ✅ |
 | Ignored tests | 113 | ≤125 ceiling | ✅ |
-| `#[allow(dead_code)]` (prod) | 70 | ≤40 | 🟡 |
-| Broken markdown links | 149 | ≤80 | 🟡 |
-| Snapshot tests | 65 | ≥80 | 🟡 |
-| Property test files | 10 | ≥15 | 🟡 |
+| `#[allow(dead_code)]` (prod) | 50 | ≤40 | 🟡 Close |
+| Snapshot tests | 76 | ≥80 | 🟡 Close |
+| Property test files | 12 | ≥15 | 🟡 Close |
 
-### Sprint Goals (v0.1.22)
+### Sprint Goals (v0.1.22) — Updated 2026-03-19
 
-| ID | Goal | Priority | Status |
-|----|------|----------|--------|
-| WG-040 | Fix failing doctests | P0 | ✅ Complete — #374 closed |
-| WG-041 | Fix test timeout | P0 | ✅ Complete — #375 closed |
-| WG-042 | Split >500 LOC files | P0 | ✅ Complete — #376 closed |
-| WG-043 | Reduce dead_code annotations | P1 | ⏳ Pending |
-| WG-044 | Fix broken markdown links | P1 | ⏳ Pending |
-| WG-045 | Add snapshot tests for new features | P1 | ⏳ Pending |
-| WG-046 | Add property tests for new features | P1 | ⏳ Pending |
-| WG-047 | MCP tool contract parity | P2 | ⏳ Pending |
-| WG-048 | Integration tests for new features | P2 | ⏳ Pending |
-| WG-049 | Changelog automation (git-cliff) | P2 | ⏳ Pending |
-| WG-050 | New feature documentation | P2 | ⏳ Pending |
+| ID | Goal | Priority | Status | Issue |
+|----|------|----------|--------|-------|
+| WG-040 | Fix failing doctests | P0 | ✅ Complete | #374 |
+| WG-041 | Fix test timeout | P0 | ✅ Complete | #375 |
+| WG-042 | Split >500 LOC files | P0 | ✅ Complete | #376 |
+| WG-043 | Reduce dead_code annotations (50 → ≤40) | P1 | ⏳ Pending | #377 |
+| WG-044 | Fix broken markdown links | P1 | ⏳ Pending | #378 |
+| WG-045 | Add snapshot tests (76 → ≥80) | P1 | ⏳ Pending | #379 |
+| WG-046 | Add property tests (12 → ≥15) | P1 | ⏳ Pending | #380 |
+| WG-047 | MCP tool contract parity | P2 | ✅ Complete | #381 |
+| WG-048 | Integration tests for new features | P2 | ✅ Complete | #382 |
+| WG-049 | Changelog automation (git-cliff) | P2 | ✅ Complete | #383 |
+| WG-050 | New feature documentation | P2 | ⏳ Partial | #384 |
+| WG-051 | Nightly trend tracking | P3 | ⏳ Pending | #385 |
+| WG-052 | libsql version monitor | P3 | ⏳ Pending | #386 |
+| WG-053 | Structured tech-debt registry | P3 | ⏳ Pending | #387 |
+
+### Issue Verification Details (2026-03-19)
+
+**P2 Items Verified Complete:**
+- **WG-047**: MCP handlers for `recommend_playbooks`, `record_recommendation_session`, `record_recommendation_feedback` implemented in `memory-mcp/src/bin/server_impl/tools/feature_handlers.rs`
+- **WG-048**: Integration tests exist: `tests/attribution_integration_test.rs`, `tests/checkpoint_integration_test.rs`, `tests/playbook_integration_test.rs`
+- **WG-049**: `.github/workflows/changelog.yml` exists
+
+**P1 Items Near Target:**
+- WG-043: 50 dead_code annotations (need 10 more removed)
+- WG-045: 76 snapshots (need 4 more)
+- WG-046: 12 property test files (need 3 more)
+
+**P3 Items Not Started:**
+- No implementation found for WG-051, WG-052, WG-053
 
 ### PR #388 (Jules) — Closed
 

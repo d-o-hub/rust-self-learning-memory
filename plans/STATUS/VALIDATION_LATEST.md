@@ -1,9 +1,9 @@
-# Codebase Validation — 2026-03-11
+# Codebase Validation — 2026-03-20
 
-**Validated by**: Amp automated analysis
-**Branch**: `main` (commit `c049ed3`)
-**Workspace Version**: `0.1.17`
-**Previous Validation**: 2026-03-09 (commit `e6a55b9`, v0.1.16)
+**Validated by**: Issue verification + codebase audit
+**Branch**: `main` (PR #391 merged, commit `15bc3ab3`)
+**Workspace Version**: `0.1.22` (bumped)
+**Previous Validation**: 2026-03-11 (commit `c049ed3`, v0.1.17)
 
 ---
 

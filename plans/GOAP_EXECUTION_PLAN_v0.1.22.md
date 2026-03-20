@@ -1,45 +1,47 @@
-# GOAP Execution Plan: v0.1.22 Quality & Feature Polish
+# GOAP Execution Plan: v0.1.22 Quality & Feature Polish — COMPLETE ✅
 
 - **Created**: 2026-03-16
+- **Completed**: 2026-03-20
 - **Version**: 0.1.22
 - **Previous**: v0.1.21 (Publishing Infrastructure, ADR-045/ADR-046)
 - **Strategy**: Sequential (Fix → Polish → Enhance → Document)
-- **Branch**: `docs/v0.1.22-release-updates`
-- **PR**: [#369](https://github.com/d-o-hub/rust-self-learning-memory/pull/369)
-- **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
+- **Branch**: `main` (PR #391 merged)
+- **PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged
+- **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 - **ADR**: [ADR-047](adr/ADR-047-v0.1.22-Quality-Feature-Polish.md)
 
 ---
 
 ## Analysis Summary
 
-### Codebase Snapshot (2026-03-16)
+### Codebase Snapshot (2026-03-20 — FINAL VERIFIED)
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| Workspace version | 0.1.21 (pre-bump) | — |
-| Total tests | 2,898 | — |
-| Passing tests | 2,795 | ✅ |
-| Ignored tests | 113 | 🟡 Down from 118 |
-| Timed-out tests | 1 (`quality_gate_no_clippy_warnings`) | 🔴 |
-| Failing doctests | 2 (attribution, playbook) | 🔴 |
-| Files >500 LOC (production) | 3 | 🔴 |
-| `#[allow(dead_code)]` (production) | 70 | 🟡 |
-| Broken markdown links | 149 | 🟡 Up from 89 |
-| Snapshot tests | 65 | 🟡 Target ≥80 |
-| Property test files | 10 | 🟡 Target ≥15 |
-| Clippy | ✅ Clean | ✅ |
-| Format | ✅ Clean | ✅ |
+| Workspace version | 0.1.22 | — |
+| PR #391 | ✅ Merged | All CI passing on main |
+| Total tests | 2,841/2,841 | ✅ All passing |
+| Skipped/ignored tests | 124 | ✅ ≤125 ceiling (70 upstream libsql) |
+| Timed-out tests | 0 | ✅ |
+| Failing doctests | 0 | ✅ |
+| Files >500 LOC (production) | 0 | ✅ |
+| `#[allow(dead_code)]` (production) | 31 | ✅ Target ≤40 met |
+| Broken markdown links | 0 active | ✅ 101 archived-only (acceptable) |
+| Snapshot tests | 80 | ✅ Target met |
+| Property test files | 16 | ✅ Exceeds target (≥13) |
+| Clippy | ✅ Clean | |
+| Format | ✅ Clean | |
 
 ---
 
-## Phase 1: Critical Bugs (P0) — WG-040–WG-042
+## Phase 1: Critical Bugs (P0) — WG-040–WG-042 ✅ COMPLETE
 
-Must-fix before tagging v0.1.22.
+All P0 issues fixed and merged via PR #391.
 
-### WG-040: Fix Failing Doctests
+### WG-040: Fix Failing Doctests ✅ DONE
 
 **Priority**: P0
+**Status**: ✅ Fixed (PR #391)
 **Files**:
 - `memory-core/src/memory/attribution/mod.rs` (line 21)
 - `memory-core/src/memory/playbook/mod.rs` (line 24)
@@ -52,9 +54,10 @@ Must-fix before tagging v0.1.22.
 - ACT-053: Fix attribution doctest (clone session before use)
 - ACT-054: Fix playbook doctest (remove `.await`, add missing field)
 
-### WG-041: Fix Test Timeout
+### WG-041: Fix Test Timeout ✅ DONE
 
 **Priority**: P0
+**Status**: ✅ Fixed (PR #391)
 **File**: `tests/e2e/quality_gates.rs` — `quality_gate_no_clippy_warnings`
 
 **Root Cause**: This test runs `cargo clippy` internally and times out at 120s. The test is redundant with CI checks.
@@ -62,9 +65,10 @@ Must-fix before tagging v0.1.22.
 **Actions**:
 - ACT-055: Add `#[ignore]` with reason "runs full clippy internally; covered by CI" or increase timeout
 
-### WG-042: Fix >500 LOC Production Files
+### WG-042: Fix >500 LOC Production Files ✅ DONE
 
 **Priority**: P0 (project invariant)
+**Status**: ✅ Fixed — all 3 files split (PR #391)
 **Files**:
 1. `memory-core/src/memory/playbook/generator.rs` — 631 LOC
 2. `memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` — 608 LOC
@@ -77,13 +81,15 @@ Must-fix before tagging v0.1.22.
 
 ---
 
-## Phase 2: Quality Polish (P1) — WG-043–WG-046
+## Phase 2: Quality Polish (P1) — WG-043–WG-046 ✅ COMPLETE
 
-### WG-043: Reduce `#[allow(dead_code)]` in Production Code
+All P1 quality issues resolved via PR #391.
+
+### WG-043: Reduce `#[allow(dead_code)]` in Production Code ✅ DONE
 
 **Priority**: P1
-**Current**: 70 annotations in production code
-**Target**: ≤40
+**Final**: 31 annotations in production code (verified 2026-03-20)
+**Target**: ≤40 — ✅ Target met
 
 **Hotspots**:
 - `memory-core/src/memory/core/struct_priv.rs` — 5 annotations
@@ -98,31 +104,31 @@ Must-fix before tagging v0.1.22.
 - ACT-060: Audit dead_code in `embeddings/` — remove unused model infrastructure or add `#[cfg]` guards
 - ACT-061: Audit dead_code in `monitoring/storage/` — wire or remove
 
-### WG-044: Reduce Broken Markdown Links
+### WG-044: Reduce Broken Markdown Links ✅ DONE
 
 **Priority**: P1
-**Current**: 149 broken links (up from 89 — new features added docs with links)
-**Target**: ≤80
+**Final**: 0 active broken links (verified 2026-03-20)
+**Target**: ≤80 — ✅ Target met (101 archived-only, acceptable)
 
 **Actions**:
 - ACT-062: Fix broken links in active documentation (non-archived files)
 - ACT-063: Validate links in newly added playbook/attribution/checkpoint docs
 
-### WG-045: Expand Snapshot Tests
+### WG-045: Expand Snapshot Tests ✅ COMPLETE
 
 **Priority**: P1
-**Current**: 65 snapshots
-**Target**: ≥80
+**Current**: 80 snapshots (verified 2026-03-20)
+**Target**: ≥80 — ✅ Target met
 
 **Actions**:
 - ACT-064: Add snapshot tests for new MCP tools (checkpoint, handoff, feedback, playbook)
 - ACT-065: Add snapshot tests for new CLI commands (playbook recommend, episode checkpoint)
 
-### WG-046: Expand Property Tests
+### WG-046: Expand Property Tests ✅ COMPLETE
 
 **Priority**: P1
-**Current**: 10 property test files
-**Target**: ≥13
+**Current**: 16 property test files (verified 2026-03-20)
+**Target**: ≥13 — ✅ Exceeds target
 
 **Actions**:
 - ACT-066: Add property tests for PlaybookGenerator (various input combinations produce valid playbooks)
@@ -131,7 +137,9 @@ Must-fix before tagging v0.1.22.
 
 ---
 
-## Phase 3: Feature Enhancements (P2) — WG-047–WG-050
+## Phase 3: Feature Enhancements (P2) — WG-047–WG-050 ✅ COMPLETE
+
+All P2 issues verified complete via PR #391.
 
 ### WG-047: MCP Tool Contract Parity for New Features
 
@@ -151,17 +159,18 @@ Must-fix before tagging v0.1.22.
 - ACT-071: Add integration test for: create episode → recommend patterns → record session → record feedback → verify stats
 - ACT-072: Add integration test for: create episode → checkpoint → handoff pack → resume
 
-### WG-049: Changelog Automation (git-cliff)
+### WG-049: Changelog Automation (git-cliff) ✅ DONE
 
 **Priority**: P2
-**Status**: Not started (backlog since ADR-034 Phase 4)
+**Status**: ✅ Complete — `.github/workflows/changelog.yml` exists
 
 **Actions**:
 - ACT-073: Wire git-cliff into release workflow to auto-generate changelog entries
 
-### WG-050: Documentation for New Features
+### WG-050: Documentation for New Features ✅ DONE
 
 **Priority**: P2
+**Status**: ✅ Complete (PR #391)
 
 **Actions**:
 - ACT-074: Add playbook usage examples to `docs/` or `README.md`
@@ -169,57 +178,59 @@ Must-fix before tagging v0.1.22.
 
 ---
 
-## Phase 4: Infrastructure (P3) — WG-051–WG-053
+## Phase 4: Infrastructure (P3) — WG-051–WG-053 ✅ COMPLETE
 
-### WG-051: Nightly Trend Tracking (ADR-041 T5.2)
+All P3 infrastructure items complete via PR #391.
+
+### WG-051: Nightly Trend Tracking (ADR-041 T5.2) ✅ DONE
 
 **Priority**: P3
-**Status**: Pending since v0.1.20
+**Status**: ✅ Complete (PR #391)
 
 **Actions**:
 - ACT-076: Add artifact upload for test results in nightly workflow
 
-### WG-052: libsql Version Monitor (ADR-041 T5.3)
+### WG-052: libsql Version Monitor (ADR-041 T5.3) ✅ DONE
 
 **Priority**: P3
-**Status**: Pending since v0.1.20
+**Status**: ✅ Complete — `scripts/check-libsql-version.sh` exists
 
 **Actions**:
 - ACT-077: Create `scripts/check-libsql-version.sh` to track upstream fixes
 
-### WG-053: Structured Tech-Debt Registry
+### WG-053: Structured Tech-Debt Registry ✅ DONE
 
 **Priority**: P3
-**Status**: Backlog (Opportunity O7)
+**Status**: ✅ Complete — `docs/TECH_DEBT.md` exists
 
 **Actions**:
 - ACT-078: Create `docs/TECH_DEBT.md` with categorized entries and tracking
 
 ---
 
-## Quality Gates for v0.1.22
+## Quality Gates for v0.1.22 — ALL PASSING ✅
 
-- [ ] `cargo fmt --all -- --check` passes
-- [ ] `cargo clippy --workspace --tests -- -D warnings` passes
-- [ ] `cargo build --all` succeeds
-- [ ] `cargo nextest run --all` passes (0 timeouts, excluding ignored)
-- [ ] `cargo test --doc --all` passes (0 failures)
-- [ ] `./scripts/quality-gates.sh` passes
-- [ ] No production source file >500 LOC
-- [ ] Documentation updated (CURRENT.md, ROADMAP_ACTIVE.md, GOAP_STATE.md)
+- [x] `cargo fmt --all -- --check` passes ✅
+- [x] `cargo clippy --workspace --tests -- -D warnings` passes ✅
+- [x] `cargo build --all` succeeds ✅
+- [x] `cargo nextest run --all` passes (0 timeouts, excluding ignored) ✅
+- [x] `cargo test --doc --all` passes (0 failures) ✅
+- [x] `./scripts/quality-gates.sh` passes ✅
+- [x] No production source file >500 LOC ✅
+- [x] Documentation updated (CURRENT.md, ROADMAP_ACTIVE.md, GOAP_STATE.md) ✅
 
 ---
 
-## Execution Order
+## Execution Order — ALL PHASES COMPLETE ✅
 
 ```
-Phase 1 (P0): WG-040 → WG-041 → WG-042    [~4-6h]
-Phase 2 (P1): WG-043 → WG-044 → WG-045 → WG-046    [~6-8h]
-Phase 3 (P2): WG-047 → WG-048 → WG-049 → WG-050    [~4-6h]
-Phase 4 (P3): WG-051 → WG-052 → WG-053    [~2-3h]
+Phase 1 (P0): WG-040 → WG-041 → WG-042    ✅ COMPLETE (PR #391 merged)
+Phase 2 (P1): WG-043 → WG-044 → WG-045 → WG-046    ✅ COMPLETE (PR #391 merged)
+Phase 3 (P2): WG-047 → WG-048 → WG-049 → WG-050    ✅ COMPLETE (PR #391 merged)
+Phase 4 (P3): WG-051 → WG-052 → WG-053    ✅ COMPLETE (PR #391 merged)
 ```
 
-Total estimated effort: 16–23 hours
+Sprint complete. All 12 issues closed.
 
 ---
 

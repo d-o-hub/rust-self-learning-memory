@@ -38,5 +38,5 @@ Decision: switched to async embed to fix blocking in hot path
 
 ## See Also
 
-- [Session State Preservation](../../agent_docs/session_state_preservation.md) - Full guidelines
-- [Token Efficiency](../../agent_docs/token_efficiency.md) - Tool selection priority
+- [Session State Preservation](../../../agent_docs/session_state_preservation.md) - Full guidelines
+- [Token Efficiency](../../../agent_docs/token_efficiency.md) - Tool selection priority

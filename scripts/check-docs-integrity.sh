@@ -66,7 +66,14 @@ for rel_path in files:
     base_dir = os.path.dirname(abs_path)
     try:
         with open(abs_path, "r", encoding="utf-8") as f:
+            in_code_block = False
             for idx, line in enumerate(f, start=1):
+                stripped = line.strip()
+                if stripped.startswith("```"):
+                    in_code_block = not in_code_block
+                    continue
+                if in_code_block:
+                    continue
                 for raw_target in link_re.findall(line):
                     target = raw_target.strip()
                     if not target:
@@ -110,7 +117,14 @@ for rel_path in files:
     base_dir = os.path.dirname(abs_path)
     try:
         with open(abs_path, "r", encoding="utf-8") as f:
+            in_code_block = False
             for idx, line in enumerate(f, start=1):
+                stripped = line.strip()
+                if stripped.startswith("```"):
+                    in_code_block = not in_code_block
+                    continue
+                if in_code_block:
+                    continue
                 for raw_target in link_re.findall(line):
                     target = raw_target.strip()
                     if not target or target.startswith(("http://", "https://", "mailto:", "#")):

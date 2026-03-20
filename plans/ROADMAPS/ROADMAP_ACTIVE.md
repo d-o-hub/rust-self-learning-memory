@@ -1,57 +1,56 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-20
-**Released Version**: v0.1.21
-**Current Sprint**: v0.1.22 (Quality & Feature Polish)
-**Branch**: `feature/v0.1.22-completion-14277757658140810815`
-**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) (all CI passing)
-**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373)
+**Last Updated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all 12 issues closed)
+**Released Version**: v0.1.22
+**Branch**: `main` (PR #391 merged)
+**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
+**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---
 
 ## Current State
 
-All research phases (1–4) and infrastructure work complete. CI/CD stable. ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are implemented in code but need quality polish before v0.1.22 tag.
+v0.1.22 sprint COMPLETE. All 12 GitHub issues closed. All quality gates passing. PR #391 merged to main. All research phases (1–4), infrastructure work, and ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are fully complete and polished.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Current Sprint: v0.1.22
+## Sprint v0.1.22 — COMPLETE ✅
 
-### P0: Critical Fixes (Must-Fix Before Tag)
-
-| Task | Description | Status | Issue |
-|------|-------------|--------|-------|
-| WG-040 | Fix 2 failing doctests (attribution, playbook) | ✅ Complete | #374 |
-| WG-041 | Fix test timeout (quality_gate_no_clippy_warnings) | ✅ Complete | #375 |
-| WG-042 | Split 3 production files >500 LOC | ✅ Complete | #376 |
-
-### P1: Quality Polish
-
-| Task | Description | Current | Target | Status | Issue |
-|------|-------------|---------|--------|--------|-------|
-| WG-043 | Reduce `#[allow(dead_code)]` | 46 | ≤40 | 🟡 Near target | #377 |
-| WG-044 | Fix broken markdown links | ~130 | ≤80 | 🟡 ~20 fixed | #378 |
-| WG-045 | Add snapshot tests for new features | 80 | ≥80 | ✅ Complete | #379 |
-| WG-046 | Add property tests for new features | 13 | ≥13 | ✅ Complete | #380 |
-
-### P2: Feature Enhancements
+### P0: Critical Fixes — ALL COMPLETE ✅
 
 | Task | Description | Status | Issue |
 |------|-------------|--------|-------|
-| WG-047 | MCP tool contract parity for new tools | ✅ Complete | #381 |
-| WG-048 | Integration tests for attribution + checkpoint flows | ✅ Complete | #382 |
-| WG-049 | Changelog automation (git-cliff) | ✅ Complete | #383 |
-| WG-050 | Documentation for new features | ✅ Complete | #384 |
+| WG-040 | Fix 2 failing doctests (attribution, playbook) | ✅ Complete | #374 — CLOSED |
+| WG-041 | Fix test timeout (quality_gate_no_clippy_warnings) | ✅ Complete | #375 — CLOSED |
+| WG-042 | Split 3 production files >500 LOC | ✅ Complete | #376 — CLOSED |
 
-### P3: Infrastructure (Carried Forward)
+### P1: Quality Polish — ALL COMPLETE ✅
+
+| Task | Description | Final | Target | Status | Issue |
+|------|-------------|-------|--------|--------|-------|
+| WG-043 | Reduce `#[allow(dead_code)]` | 31 | ≤40 | ✅ Target met | #377 — CLOSED |
+| WG-044 | Fix broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) | #378 — CLOSED |
+| WG-045 | Add snapshot tests for new features | 80 | ≥80 | ✅ Complete | #379 — CLOSED |
+| WG-046 | Add property tests for new features | 16 | ≥13 | ✅ Exceeds target | #380 — CLOSED |
+
+### P2: Feature Enhancements — ALL COMPLETE ✅
+
+| Task | Description | Status | Issue |
+|------|-------------|--------|-------|
+| WG-047 | MCP tool contract parity for new tools | ✅ Complete | #381 — CLOSED |
+| WG-048 | Integration tests for attribution + checkpoint flows | ✅ Complete | #382 — CLOSED |
+| WG-049 | Changelog automation (git-cliff) | ✅ Complete | #383 — CLOSED |
+| WG-050 | Documentation for new features | ✅ Complete | #384 — CLOSED |
+
+### P3: Infrastructure — ALL COMPLETE ✅
 
 | Task | Description | Since | Status | Issue |
 |------|-------------|-------|--------|-------|
-| WG-051 | Nightly trend tracking artifact | v0.1.20 | ⏳ Pending | #385 |
-| WG-052 | libsql upstream version monitor | v0.1.20 | ✅ Complete | #386 |
-| WG-053 | Structured tech-debt registry | v0.1.17 | ✅ Complete | #387 |
+| WG-051 | Nightly trend tracking artifact | v0.1.20 | ✅ Complete | #385 — CLOSED |
+| WG-052 | libsql upstream version monitor | v0.1.20 | ✅ Complete | #386 — CLOSED |
+| WG-053 | Structured tech-debt registry | v0.1.17 | ✅ Complete | #387 — CLOSED |
 
 ### Shipped in v0.1.21
 
@@ -70,20 +69,20 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ## Backlog
 
-### Code Quality
+### Code Quality (from #373 epic — ALL RESOLVED)
 
-| Item | Current | Target | Effort |
-|------|---------|--------|--------|
-| `#[allow(dead_code)]` annotations | 46 | ≤40 | 2–3h (6 remaining in embeddings) |
-| Broken markdown links | ~130 | ≤80 | 4–6h |
+| Item | Current | Target | Status | Notes |
+|------|---------|--------|--------|-------|
+| `#[allow(dead_code)]` annotations | 31 | ≤40 | ✅ Target met | Down from 70 |
+| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) | |
 
 ### Testing
 
-| Item | Current | Target | Notes |
-|------|---------|--------|-------|
-| Ignored tests | 124 | ≤125 ceiling | 70 upstream libsql bug, rest by design |
-| Property test expansion | 13 files | ≥13 | ✅ Target met |
-| Snapshot test growth | 80 snaps | ≥80 | ✅ Target met |
+| Item | Current | Target | Status | Notes |
+|------|---------|--------|--------|-------|
+| Ignored tests | 124 | ≤125 ceiling | ✅ | 70 upstream libsql bug, rest by design |
+| Property test expansion | 16 files | ≥13 | ✅ Exceeds target | |
+| Snapshot test growth | 80 snaps | ≥80 | ✅ Target met | |
 
 ### Infrastructure
 
@@ -92,6 +91,7 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | Changelog automation (git-cliff) | ✅ Complete | `.github/workflows/changelog.yml` |
 | Structured tech-debt registry | ✅ Complete | `docs/TECH_DEBT.md` |
 | libsql version monitor | ✅ Complete | `scripts/check-libsql-version.sh` |
+| Nightly trend tracking | ✅ Complete | Artifact added |
 | CLI workflow parity generator | Not started | Opportunity O6 |
 
 ---

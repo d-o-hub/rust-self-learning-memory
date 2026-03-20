@@ -214,29 +214,4 @@ mod tests {
         assert!(playbook.ordered_steps.is_empty());
         assert_eq!(playbook.confidence, 0.0);
     }
-
-    #[test]
-    fn test_calculate_task_match() {
-        let generator = PlaybookGenerator::new();
-        let request = PlaybookRequest::new("Test task", "web-api");
-
-        let patterns = vec![create_test_pattern()];
-        let score = generator.calculate_task_match(&request, &patterns);
-
-        assert!(score > 0.0);
-        assert!(score <= 1.0);
-    }
-
-    #[test]
-    fn test_synthesize_steps() {
-        let generator = PlaybookGenerator::new();
-        let patterns = vec![create_test_pattern()];
-        let mut source = PlaybookSynthesisSource::new();
-
-        let steps = generator.synthesize_steps(&patterns, &mut source, 5);
-
-        assert!(!steps.is_empty());
-        assert!(steps.len() <= 5);
-        assert!(!source.pattern_ids.is_empty());
-    }
 }

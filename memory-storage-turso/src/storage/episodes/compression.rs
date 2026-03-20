@@ -23,6 +23,12 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> memory_core::Result
     }
 }
 
+/// Compress JSON data (no-op when compression feature is disabled)
+#[cfg(not(feature = "compression"))]
+pub fn compress_json_field(data: &[u8], _threshold: usize) -> memory_core::Result<Vec<u8>> {
+    Ok(data.to_vec())
+}
+
 /// Decompress JSON data if it's compressed
 #[cfg(feature = "compression")]
 pub fn decompress_json_field(data: &str) -> memory_core::Result<Vec<u8>> {
@@ -75,4 +81,10 @@ pub fn decompress_json_field(data: &str) -> memory_core::Result<Vec<u8>> {
         // Not compressed, return as-is
         Ok(data.as_bytes().to_vec())
     }
+}
+
+/// Decompress JSON data (no-op when compression feature is disabled)
+#[cfg(not(feature = "compression"))]
+pub fn decompress_json_field(data: &str) -> memory_core::Result<Vec<u8>> {
+    Ok(data.as_bytes().to_vec())
 }

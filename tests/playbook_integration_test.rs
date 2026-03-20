@@ -7,8 +7,10 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_playbook_generation_flow() {
     // Set low quality threshold for test
-    let mut config = MemoryConfig::default();
-    config.quality_threshold = 0.0;
+    let config = MemoryConfig {
+        quality_threshold: 0.0,
+        ..MemoryConfig::default()
+    };
     let memory = SelfLearningMemory::with_config(config);
 
     // 1. Create some historical data (episodes and patterns)

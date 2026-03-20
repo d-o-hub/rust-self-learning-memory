@@ -1,5 +1,7 @@
 //! Helper functions for common test operations
 
+#![allow(dead_code)]
+
 use memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
     memory::SelfLearningMemory,

@@ -3,9 +3,9 @@
 //! This module defines the core and extended tools for the MCP server.
 
 use crate::server::tool_definitions_extended;
-use crate::types::Tool;
 use std::collections::HashMap;
 
+#[path = "builder.rs"]
 mod builder;
 
 use builder::{create_additional_extended_tools, create_core_tools};

@@ -47,6 +47,7 @@ use crate::compression::CompressionAlgorithm;
 use crate::transport::compression::{
     TransportCompressionConfig, TransportCompressionError, TransportCompressionStats,
 };
+#[path = "decompression.rs"]
 mod decompression;
 #[path = "wrapper_helpers.rs"]
 mod helpers;

@@ -60,6 +60,7 @@ pub enum BackendChoice {
 
 /// Code heuristics for routing decisions
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct CodeHeuristics {
     pub is_simple: bool,
     pub is_short: bool,

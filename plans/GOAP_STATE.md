@@ -700,7 +700,7 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Tests passing | 2,820/2,820 | — | ✅ |
+| Tests passing | 2,847/2,847 | — | ✅ |
 | Ignored tests | 124 | ≤125 ceiling | ✅ |
 | `#[allow(dead_code)]` (prod) | 46 | ≤40 | 🟡 Close (down from 70) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |

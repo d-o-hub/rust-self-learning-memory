@@ -1,4 +1,4 @@
-//! Property-based tests for ExecutionStep
+//! Property-based tests for `ExecutionStep`
 //!
 //! These tests verify invariants for execution step creation and serialization
 //! using the proptest crate for property-based testing.
@@ -157,7 +157,7 @@ fn test_steps_same_fields() {
     assert_eq!(step1.action, step2.action);
 }
 
-/// Test that steps with different order have different step_number
+/// Test that steps with different order have different `step_number`
 #[test]
 fn test_steps_different_order() {
     let step1 = ExecutionStep::new(1, "tool".to_string(), "action".to_string());

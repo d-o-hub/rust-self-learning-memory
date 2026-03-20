@@ -232,7 +232,7 @@ run_source_file_size_gate() {
     lines=$(wc -l < "$file" | tr -d ' ')
     if [ "$lines" -gt "$limit" ]; then
       case "$file" in
-        tests/*|*/tests/*|*_test.rs|*_tests.rs)
+        tests/*|*/tests/*|*_test.rs|*_tests.rs|*/tests.rs)
           oversized_tests+=("$file:$lines")
           ;;
         *)

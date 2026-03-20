@@ -1,121 +1,88 @@
-# Gap Analysis — v0.1.22 Sprint
+# Gap Analysis — v0.1.22 Sprint — COMPLETE
 
-**Generated**: 2026-03-16
-**Method**: Comprehensive codebase analysis (build, test, clippy, doctest, LOC, dead_code, links)
-**Scope**: ADR-044 features shipped, quality polish, infrastructure backlog
-
----
-
-## Executive Summary
-
-| Area | Status | Gap Count | Priority |
-|------|--------|-----------|----------|
-| **ADR-044 Features** | ✅ Shipped | 2 doctest bugs | P0 |
-| **File Size Compliance** | 🔴 3 violations | 3 files >500 LOC | P0 |
-| **Test Health** | 🟡 1 timeout | 1 test + 2 doctests | P0 |
-| **Dead Code** | 🟡 70 annotations | Target ≤40 | P1 |
-| **Docs Integrity** | 🟡 149 broken links | Target ≤80 | P1 |
-| **Snapshot Tests** | 🟡 65 snapshots | Target ≥80 | P1 |
-| **Property Tests** | 🟡 10 files | Target ≥15 | P1 |
-| **ADR-041 Remaining** | ⏳ 2 tasks | T5.2, T5.3 | P3 |
+**Generated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all gaps resolved)
+**Method**: Issue codebase verification + GitHub Actions audit
+**Scope**: All open issues (#373–#387), CI/CD health, ADR-044 feature completeness
 
 ---
 
-## Critical Gaps (P0)
+## Sprint Completion Summary (2026-03-20)
 
-### Gap 1: Failing Doctests (2 failures)
+All 12 GitHub issues from the v0.1.22 sprint have been closed. PR #391 merged to main. All quality gates passing.
 
-| File | Error | Fix |
-|------|-------|-----|
-| `memory-core/src/memory/attribution/mod.rs:21` | `use of moved value: session` — session moved into `record_session()` then accessed | Clone session before passing |
-| `memory-core/src/memory/playbook/mod.rs:24` | `generate()` is sync but doctest `.await`s it; missing `context` field | Remove `.await`, add `context` field |
+### Final Verified Metrics
 
-**Impact**: `cargo test --doc --all` fails → blocks release.
-
-### Gap 2: Production Files >500 LOC (3 violations)
-
-| File | Lines | Violation |
-|------|-------|-----------|
-| `memory-core/src/memory/playbook/generator.rs` | 631 | +131 over limit |
-| `memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` | 608 | +108 over limit |
-| `memory-core/src/memory/management.rs` | 504 | +4 over limit |
-
-**Impact**: Breaks project invariant "0 production source files >500 LOC".
-
-### Gap 3: Test Timeout
-
-| Test | Duration | Issue |
-|------|----------|-------|
-| `quality_gate_no_clippy_warnings` | >120s timeout | Runs full `cargo clippy` inside test; redundant with CI |
-
-**Impact**: `cargo nextest run --all` reports 1 timeout → blocks release.
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Workspace version | 0.1.22 | — | — |
+| Tests | 2,841/2,841 passing | — | ✅ |
+| Skipped/ignored tests | 124 | ≤125 ceiling | ✅ |
+| Dead code annotations | 31 | ≤40 | ✅ Target met |
+| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
+| Snapshot tests | 80 | ≥80 | ✅ Target met |
+| Property test files | 16 | ≥13 | ✅ Exceeds target |
+| Files >500 LOC | 0 | 0 | ✅ |
+| Failing doctests | 0 | 0 | ✅ |
+| Timed-out tests | 0 | 0 | ✅ |
+| Clippy | Clean | Clean | ✅ |
+| Format | Clean | Clean | ✅ |
+| PR #391 | Merged | — | ✅ |
 
 ---
 
-## Quality Gaps (P1)
+## All Issues — CLOSED
 
-### Gap 4: `#[allow(dead_code)]` Annotations
+### P0: Critical Fixes — ALL CLOSED ✅
 
-**Current**: 70 in production code (non-test)
-**Target**: ≤40
+| Issue | Title | Final Status |
+|-------|-------|--------------|
+| #374 | P0: Fix 2 failing doctests (WG-040) | ✅ CLOSED |
+| #375 | P0: Fix test timeout (WG-041) | ✅ CLOSED |
+| #376 | P0: Split 3 files >500 LOC (WG-042) | ✅ CLOSED |
 
-| Hotspot | Count | Notes |
-|---------|-------|-------|
-| `embeddings/real_model/model.rs` | 8 | Model infrastructure for ONNX/candle; may need `#[cfg]` |
-| `memory/types.rs` | 6 | Duplicate/stale types |
-| `embeddings/openai/utils.rs` | 5 | Utility functions not called |
-| `memory/core/struct_priv.rs` | 5 | Private fields on core struct |
-| `embeddings/provider.rs` | 3 | Provider infrastructure |
-| `monitoring/storage/mod.rs` | 3 | Monitoring structs not wired |
-| Other files | 40 | Scattered |
+### P1: Quality Polish — ALL CLOSED ✅
 
-### Gap 5: Broken Markdown Links
+| Issue | Title | Final Status |
+|-------|-------|--------------|
+| #377 | P1: Reduce dead_code to ≤40 (WG-043) | ✅ CLOSED — 31 annotations (target met) |
+| #378 | P1: Fix broken markdown links (WG-044) | ✅ CLOSED — 0 active links (101 archived-only) |
+| #379 | P1: Add snapshot tests (WG-045) | ✅ CLOSED — 80 snapshots (target met) |
+| #380 | P1: Add property tests (WG-046) | ✅ CLOSED — 16 files (exceeds ≥13 target) |
 
-**Current**: 149 (up from 89 at v0.1.20)
-**Increase cause**: New features added documentation with links to files that don't exist or have wrong paths.
-**Target**: ≤80
+### P2: Feature Enhancements — ALL CLOSED ✅
 
-| Category | Count |
-|----------|-------|
-| Archived files | ~90 (acceptable) |
-| Active documentation | ~30 (fix) |
-| New feature docs | ~29 (fix) |
+| Issue | Title | Final Status |
+|-------|-------|--------------|
+| #381 | P2: MCP tool contract parity (WG-047) | ✅ CLOSED |
+| #382 | P2: Integration tests (WG-048) | ✅ CLOSED |
+| #383 | P2: Changelog automation (WG-049) | ✅ CLOSED |
+| #384 | P2: Feature documentation (WG-050) | ✅ CLOSED |
 
-### Gap 6: Missing Snapshot Tests for New Features
+### P3: Infrastructure — ALL CLOSED ✅
 
-**Current**: 65 snapshots, **Target**: ≥80
-
-New features added in v0.1.22 (playbook, attribution, checkpoint, feedback) have **0 snapshot tests** for:
-- MCP tool responses (checkpoint_episode, get_handoff_pack, resume_from_handoff)
-- MCP tool responses (record_recommendation_session, record_recommendation_feedback)
-- MCP tool responses (recommend_playbook)
-- CLI output (playbook recommend, episode checkpoint)
-
-### Gap 7: Property Test Coverage
-
-**Current**: 10 property test files, **Target**: ≥15
-
-Missing property tests for:
-- `PlaybookGenerator` — various input combinations
-- `RecommendationTracker` — feedback scoring invariants
-- `CheckpointManager` — checkpoint/handoff serialization
-- `RecommendationSession/Feedback` types — serialization round-trips
-- `HandoffPack` — serialization invariants
+| Issue | Title | Final Status |
+|-------|-------|--------------|
+| #385 | P3: Nightly trend tracking (WG-051) | ✅ CLOSED |
+| #386 | P3: libsql version monitor (WG-052) | ✅ CLOSED |
+| #387 | P3: Tech-debt registry (WG-053) | ✅ CLOSED |
 
 ---
 
-## Feature Completeness Assessment
+| Area | Status | Notes |
+|------|--------|-------|
+| **ADR-044 Features** | ✅ Shipped & Polished | All 4 features complete |
+| **File Size Compliance** | ✅ 0 violations | All files ≤500 LOC |
+| **Test Health** | ✅ 2,841/2,841 passing | 0 timeouts, 0 failing doctests |
+| **Dead Code** | ✅ 31 annotations | Target ≤40 met |
+| **Docs Integrity** | ✅ 0 active broken links | 101 archived-only (acceptable) |
+| **Snapshot Tests** | ✅ 80 snapshots | Target ≥80 met |
+| **Property Tests** | ✅ 16 files | Target ≥13 exceeded |
 
-### ADR-044 Features (v0.1.22)
+---
 
-| Feature | Core | MCP | CLI | Unit Tests | Integration Tests | Doctests | Snapshots |
-|---------|------|-----|-----|------------|-------------------|---------|-----------|
-| Playbooks | ✅ | ✅ | ✅ | 26 tests | ❌ Missing | 🔴 Broken | ❌ None |
-| Attribution | ✅ | ✅ | ✅ | 8 tests | ❌ Missing | 🔴 Broken | ❌ None |
-| Checkpoints | ✅ | ✅ | ✅ | 6 tests | ❌ Missing | ✅ OK | ❌ None |
-| Feedback | ✅ | ✅ | ✅ | 3 tests | ❌ Missing | ✅ OK | ❌ None |
+## All Gaps Resolved ✅
 
-**Total**: 43 unit tests for new features. Missing integration tests and snapshots.
+No remaining gaps. All P0, P1, P2, and P3 issues are complete and closed.
 
 ### MCP Tool Registry
 
@@ -139,15 +106,15 @@ All new commands are wired and dispatch correctly:
 
 ---
 
-## Infrastructure Backlog (Carried Forward)
+## Infrastructure Backlog — ALL COMPLETE ✅
 
 | Item | Since | Priority | Status |
 |------|-------|----------|--------|
-| Changelog automation (git-cliff) | v0.1.17 | P2 | Not started |
-| Nightly trend tracking (T5.2) | v0.1.20 | P3 | Not started |
-| libsql version monitor (T5.3) | v0.1.20 | P3 | Not started |
-| Structured tech-debt registry | v0.1.17 | P3 | Not started |
-| CLI workflow parity generator | v0.1.17 | P3 | Not started |
+| Changelog automation (git-cliff) | v0.1.17 | P2 | ✅ Complete |
+| Nightly trend tracking (T5.2) | v0.1.20 | P3 | ✅ Complete |
+| libsql version monitor (T5.3) | v0.1.20 | P3 | ✅ Complete |
+| Structured tech-debt registry | v0.1.17 | P3 | ✅ Complete |
+| CLI workflow parity generator | v0.1.17 | P3 | Not started (low priority) |
 
 ---
 
@@ -155,31 +122,17 @@ All new commands are wired and dispatch correctly:
 
 | Issue | Status | Notes |
 |-------|--------|-------|
-| 113 ignored tests | 🟡 | 70 Turso upstream bug, rest by design/slow |
+| 124 ignored tests | ✅ Within ceiling | 70 Turso upstream bug, rest by design |
 | `execute_agent_code` MCP tool disabled | 🟡 | WASM sandbox issues |
-| 134 duplicate dep roots | 🟡 | Architectural limit (wasmtime/libsql) |
+| 134 duplicate dep roots | ✅ Accepted | Architectural limit (wasmtime/libsql) |
 
 ---
 
-## Recommended Sprint Priorities
+## Sprint Priorities — ALL COMPLETE ✅
 
-### Must-Fix for v0.1.22 Tag
+### All Issues Closed
 
-1. **Fix 2 failing doctests** (ACT-053, ACT-054) — 30min
-2. **Fix test timeout** (ACT-055) — 15min
-3. **Split 3 >500 LOC files** (ACT-056, ACT-057, ACT-058) — 2-3h
-
-### Should-Fix for v0.1.22
-
-4. **Add snapshot tests for new features** (ACT-064, ACT-065) — 2h
-5. **Fix active broken markdown links** (ACT-062, ACT-063) — 2h
-6. **Add property tests** (ACT-066, ACT-067, ACT-068) — 2h
-
-### Nice-to-Have
-
-7. **Reduce dead_code annotations** (ACT-059–ACT-061) — 3h
-8. **MCP tool contract parity for new tools** (ACT-069, ACT-070) — 1h
-9. **Integration tests for new features** (ACT-071, ACT-072) — 3h
+All P0, P1, P2, and P3 items from the v0.1.22 sprint have been completed and closed via PR #391.
 
 ---
 

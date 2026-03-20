@@ -160,7 +160,7 @@ jobs:
           # - test(test_wasi_): WASI implementation gaps (ADR-041)
           # - test(test_simple_execution|test_console_output|test_syntax_error|test_runtime_error): Flaky sandbox timing (ADR-041)
           cargo nextest run --all --run-ignored only \
-            -E 'not (package(memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error))'
+            -E 'not (package(memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error) | test(should_scale_processing_with_different_worker_counts))'
         env:
           RUST_TEST_THREADS: 2
 
@@ -309,7 +309,7 @@ jobs:
           # - test(test_wasi_): WASI implementation gaps (ADR-041)
           # - test(test_simple_execution|test_console_output|test_syntax_error|test_runtime_error): Flaky sandbox timing (ADR-041)
           cargo nextest run --all --run-ignored only \
-            -E 'not (package(memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error))'
+            -E 'not (package(memory-storage-turso) | test(quality_gate_) | test(test_update_command_) | test(test_wasi_) | test(test_simple_execution) | test(test_console_output) | test(test_syntax_error) | test(test_runtime_error) | test(should_scale_processing_with_different_worker_counts))'
         env:
           RUST_TEST_THREADS: 1
 

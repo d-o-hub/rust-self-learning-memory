@@ -115,7 +115,7 @@ cargo build --release
 
 #### Links and References
 <!-- NOTE: The following are example link formats, not actual links -->
-`[Link text](path/to/file.md)` - Internal link format
+`[Link text]` `(path/to/file.md)` - Internal link format
 `[External link](https://example.com)` - External link format
 
 ### Content Guidelines

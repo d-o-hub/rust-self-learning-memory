@@ -108,22 +108,7 @@ export TURSO_AUTH_TOKEN=""  # No auth required for local
 
 No cloud account or auth token required for local development. See [LOCAL_DATABASE_SETUP.md](../docs/LOCAL_DATABASE_SETUP.md) for more details.
 
-### Quality Gates
-```bash
-# Run full quality check (coverage >90%)
-./scripts/quality-gates.sh
-
-# Individual quality checks
-cargo fmt --all -- --check
-cargo clippy --all -- -D warnings
-cargo test --all
-
-# Fix clippy suggestions automatically
-cargo clippy --fix --allow-dirty --all-targets --all-features
-
-# Fix formatting automatically
-cargo fmt --all
-```
+> For quality gates commands, see [running_tests.md](running_tests.md) or run `./scripts/quality-gates.sh`.
 
 ### Docker Setup (Optional)
 ```bash
@@ -138,47 +123,14 @@ docker-compose up -d
 
 ## Testing
 
-### Run All Tests
+> For testing commands, see [running_tests.md](running_tests.md).
+
 ```bash
-# Run entire test suite
-cargo test --all
+# Quick test
+cargo nextest run --all
 
-# With verbose output
-cargo test --all -- --nocapture
-
-# With debug logging
-RUST_LOG=debug cargo test
-
-# Specific test
-cargo test test_episode_creation
-```
-
-### Coverage Testing
-```bash
-# Install coverage tool (once)
-cargo install cargo-llvm-cov
-
-# Generate HTML coverage report
-cargo llvm-cov --html --output-dir coverage
-
-# Generate multiple formats
-cargo llvm-cov --html --lcov --json --output-dir coverage
-
-# View coverage
-open coverage/html/index.html  # macOS
-xdg-open coverage/html/index.html  # Linux
-```
-
-### Benchmarking
-```bash
-# Run all benchmarks
-cd benches && cargo bench
-
-# Specific benchmark
-cd benches && cargo bench --bench episode_lifecycle
-
-# Benchmark with criterion output
-cd benches && cargo bench -- --output-format html
+# Run doctests
+cargo test --doc
 ```
 
 ## Build Targets
@@ -265,5 +217,4 @@ rm -rf target/
 
 # Clean specific crate
 cargo clean -p memory-core
-```
 ```

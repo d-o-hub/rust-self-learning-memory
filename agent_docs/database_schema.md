@@ -8,23 +8,14 @@ The system uses two primary storage mechanisms:
 
 ## v0.1.7 Breaking Change: Postcard Serialization
 
-**IMPORTANT**: Since v0.1.7, the cache layer uses **Postcard** for serialization instead of Bincode:
+**IMPORTANT**: Since v0.1.7, the cache layer uses **Postcard** for serialization instead of Bincode.
 
-```rust
-// ✅ Use Postcard (v0.1.7+)
-use postcard::{from_bytes, to_allocvec};
-let serialized = postcard::to_allocvec(&episode)?;
-let deserialized: Episode = postcard::from_bytes(&serialized)?;
-
-// ❌ Do NOT use Bincode (deprecated)
-// let serialized = bincode::serialize(&episode)?;
-```
+> For Postcard usage examples, see [code_conventions.md](code_conventions.md#postcard-serialization-v017).
 
 **Why Postcard?**
 - Safer: No unsafe code operations
 - Smaller: More compact binary representation
 - `#[no_std]` compatible
-- Better performance for embedded use cases
 
 ## Turso Database Schema
 

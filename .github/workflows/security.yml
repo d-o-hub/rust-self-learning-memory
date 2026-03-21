@@ -111,7 +111,7 @@ jobs:
         run: cargo audit --ignore RUSTSEC-2026-0049
       - name: Upload audit report
         if: always()
-        run: cargo audit --json > audit-report.json
+        run: cargo audit --ignore RUSTSEC-2026-0049 --json > audit-report.json
       - name: Upload audit report artifact
         if: always()
         uses: actions/upload-artifact@v7

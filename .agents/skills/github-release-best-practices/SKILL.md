@@ -422,6 +422,19 @@ cargo dist init
 ```
 Generates: platform tarballs, checksums (SHA256), shell/PowerShell installers, release.yml workflow.
 
+**CRITICAL: Version Must Match Tag**
+cargo-dist requires `Cargo.toml` version to match the git tag. If they mismatch:
+```
+× This workspace doesn't have anything for dist to Release!
+help: --tag=v0.1.21 will Announce: memory-mcp, memory-cli
+```
+
+**Prevention**:
+1. Use `cargo release` (handles version + tag atomically)
+2. Or manually verify: `grep '^version =' Cargo.toml` matches tag (without 'v')
+
+**v0.1.22 Incident**: Tag pushed with Cargo.toml still at 0.1.21 → workflow failed.
+
 ## References
 
 - [ADR-034: Release Engineering Modernization](../../../plans/adr/ADR-034-Release-Engineering-Modernization.md)

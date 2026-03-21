@@ -108,10 +108,10 @@ jobs:
       - name: Install cargo-audit
         run: cargo install cargo-audit --locked
       - name: Run cargo audit
-        run: cargo audit --ignore RUSTSEC-2026-0049
+        run: cargo audit
       - name: Upload audit report
         if: always()
-        run: cargo audit --ignore RUSTSEC-2026-0049 --json > audit-report.json
+        run: cargo audit --json > audit-report.json
       - name: Upload audit report artifact
         if: always()
         uses: actions/upload-artifact@v7

@@ -242,6 +242,38 @@ async fn test_network_dependent() {
 - Use format-based assertions instead (e.g., `starts_with("memory-cli ")` + validate semver format)
 - When adding snapshot tests, ask: "Will this break on the next version bump?" If yes, use a non-snapshot assertion
 
+### 8. Hardcoded Security Advisory Ignores in CI
+
+**Problem**: `cargo audit --ignore RUSTSEC-XXXX-XXXX` hardcoded in CI workflow (`security.yml`) bypasses the proper config file mechanism. This creates two sources of truth and the ignores silently persist without review.
+
+**Prevention**:
+- Never use `--ignore` flags in CI workflow commands
+- Use `.cargo/audit.toml` as the single source of truth for `cargo audit` advisory ignores
+- Use `deny.toml` as the single source of truth for `cargo-deny` advisory ignores
+- Config files ARE the industry best practice for transitive dependency vulnerabilities that can't be fixed upstream
+- When an ignore is needed, document the full dependency chain, the semver constraint blocking the fix, and the upstream tracking issue
+
+**Example pattern**:
+```toml
+# .cargo/audit.toml - correct approach
+[advisories]
+ignore = [
+    # RUSTSEC-2026-0049: rustls-webpki CRL matching logic flaw
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.10 (semver-incompatible with rustls 0.22's ^0.102.8 constraint)
+    # Upstream: Requires libsql to migrate from hyper-rustls 0.25 (hyper 0.14) to 0.27 (hyper 1.x)
+    "RUSTSEC-2026-0049",
+]
+```
+
+```yaml
+# .github/workflows/security.yml - WRONG (never do this)
+run: cargo audit --ignore RUSTSEC-2026-0049
+
+# .github/workflows/security.yml - CORRECT (config file handles it)
+run: cargo audit
+```
+
 ## Cross-References
 
 - [AGENTS.md](../AGENTS.md) - Primary coding guidelines

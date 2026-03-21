@@ -20,7 +20,15 @@
      # Mitigation: rustls-pemfile is PEM parsing only, no known exploits at this time
      "RUSTSEC-2025-0134",
 
-     # RUSTSEC-2026-0002: lru has unsound IterMut implementation
+     # RUSTSEC-2026-0049: rustls-webpki CRL matching logic flaw
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.10 (semver-incompatible with rustls 0.22's ^0.102.8 constraint)
+    # Upstream: Requires libsql to migrate from hyper-rustls 0.25 (hyper 0.14) to 0.27 (hyper 1.x)
+    # Tracking: https://github.com/rustls/webpki/releases/tag/v/0.103.10
+    # Mitigation: CRL matching flaw is low impact; CRL validation not relied upon in our usage
+    "RUSTSEC-2026-0049",
+
+    # RUSTSEC-2026-0002: lru has unsound IterMut implementation
      # Dependency chain 1: augurs-changepoint 0.10.1 -> changepoint 0.14.2 -> rv 0.16.5 -> lru 0.9.0
      # Dependency chain 2: augurs 0.10.1 -> augurs-outlier 0.10.1 -> rv 0.18.1 -> lru 0.12.5
      # Solution: Awaiting augurs updates to use latest changepoint/rv versions

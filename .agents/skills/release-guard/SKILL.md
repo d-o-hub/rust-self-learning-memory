@@ -10,12 +10,14 @@ allowed-tools: Read, Bash(gh *:*), Bash(git *:*)
 - Releases **ONLY** from **main** after PR merge.
 - **ALL** CI jobs must COMPLETE + SUCCESS. NO queued jobs.
 - Verify branch protection requires status checks.
+- **Version MUST match tag** before creating release (cargo-dist requirement).
 
 ## Activation Steps
 1. **PR Check**: Ask for PR# if needed. Run `gh pr view $PR_NUM --json state,baseRefName`. Must: state=CLOSED, baseRefName=main.
 2. **Branch**: `git branch --show-current` + `gh repo view --json default_branch`. Fail if not main.
 3. **CI**: `gh run list --branch main --limit 5 --json status,conclusion`. ALL: completed + success. Log/screenshot.
 4. **Clean**: `git status` (clean working dir).
+5. **Version Check** (CRITICAL): `grep '^version =' Cargo.toml` must match tag (without 'v' prefix).
 
 ## Fail Response
 ```
@@ -24,7 +26,18 @@ Fix:
 - Merge PR to main
 - Wait CI: gh run list --branch main
 - git checkout main && git pull
+- BUMP VERSION in Cargo.toml FIRST (must match tag)
 Re-run task.
+```
+
+## Version Mismatch Example (v0.1.22 Incident)
+```
+Tag: v0.1.22 pushed at commit 05c0481
+Cargo.toml version: 0.1.21 (MISMATCH!)
+Result: cargo-dist failed: "This workspace doesn't have anything for dist to Release!"
+
+Fix: ALWAYS bump version BEFORE pushing tag.
+Use: cargo release patch|minor|major (handles atomically)
 ```
 
 ## Pass: Safe Release

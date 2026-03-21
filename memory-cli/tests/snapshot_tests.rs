@@ -62,9 +62,7 @@ fn test_cli_version_output() {
     );
     let version_part = trimmed.strip_prefix("memory-cli ").unwrap();
     assert!(
-        version_part
-            .chars()
-            .all(|c| c.is_ascii_digit() || c == '.'),
+        version_part.chars().all(|c| c.is_ascii_digit() || c == '.'),
         "Version should be numeric with dots, got: {version_part}"
     );
 }

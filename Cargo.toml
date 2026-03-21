@@ -88,13 +88,12 @@ toml = "1.0"
 # - getrandom versions come from rand 0.8/0.9/0.10 ecosystem split
 # - nalgebra/ndarray versions come from changepoint/argmin-math ecosystem
 
-# Security patches are now inline in workspace dependencies
-# - hyper-rustls 0.27.7 fixes RUSTSEC-2025-0134 (rustls-pemfile)
-# - changepoint 0.15.0 in memory-core fixes RUSTSEC-2026-0002 (lru)
-#
-# NOTE: These are documented but not forcing transitive dependencies yet due to
-# Cargo limitations. Requires upstream updates in libsql and augurs crates.
-# See SECURITY.md for details on advisories and mitigation.
+# Transitive dependency security advisories are tracked in config files:
+# - .cargo/audit.toml: cargo-audit advisory ignores
+# - deny.toml: cargo-deny advisory ignores
+# These document the dependency chain, semver constraints, and upstream status.
+# Never hardcode --ignore flags in CI workflow commands.
+# See agent_docs/dependency_upgrades.md for the advisory handling decision flowchart.
 
 # Coverage configuration for cargo-llvm-cov
 [workspace.metadata.coverage]

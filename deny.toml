@@ -10,10 +10,12 @@ version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
 ignore = [
-    # RUSTSEC-2026-0049: rustls-webpki CRL matching logic flaw (low impact).
-    # Pinned by libsql -> rustls 0.22.4 -> rustls-webpki 0.102.8.
-    # Fix requires >=0.103.10 which needs upstream libsql to upgrade rustls.
-    # Tracked: remove once libsql upgrades to rustls >=0.23.
+    # RUSTSEC-2026-0049: rustls-webpki CRL matching logic flaw
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.10 (semver-incompatible with rustls 0.22's ^0.102.8 constraint)
+    # Upstream: Requires libsql to migrate from hyper-rustls 0.25 (hyper 0.14) to 0.27 (hyper 1.x)
+    # Tracking: https://github.com/rustls/webpki/releases/tag/v/0.103.10
+    # Mitigation: CRL matching flaw is low impact; CRL validation not relied upon in our usage
     "RUSTSEC-2026-0049",
 ]
 

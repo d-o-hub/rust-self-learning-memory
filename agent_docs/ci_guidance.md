@@ -38,3 +38,14 @@ paths-ignore:
   - '.agents/**'
   - 'agent_docs/**'
 ```
+
+## Security Workflow Advisory Handling
+
+**CRITICAL**: Never hardcode `--ignore RUSTSEC-XXXX-XXXX` in CI workflow commands.
+
+| Tool | Config File | CI Command |
+|------|-------------|------------|
+| cargo-audit | `.cargo/audit.toml` | `cargo audit` (no flags) |
+| cargo-deny | `deny.toml` | `cargo-deny check` (no flags) |
+
+Config files are auto-discovered by the tools. They serve as the single source of truth and provide auditable documentation of why each advisory is ignored.

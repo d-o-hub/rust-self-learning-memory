@@ -9,7 +9,13 @@
 version = 2
 unmaintained = "workspace"  # Only error if crate is a direct dependency
 yanked = "deny"
-ignore = []
+ignore = [
+    # RUSTSEC-2026-0049: rustls-webpki CRL matching logic flaw (low impact).
+    # Pinned by libsql -> rustls 0.22.4 -> rustls-webpki 0.102.8.
+    # Fix requires >=0.103.10 which needs upstream libsql to upgrade rustls.
+    # Tracked: remove once libsql upgrades to rustls >=0.23.
+    "RUSTSEC-2026-0049",
+]
 
 [licenses]
 # The licenses section is for detecting incompatible licenses

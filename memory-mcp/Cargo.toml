@@ -43,8 +43,8 @@ wasmtime = { workspace = true, features = ["async", "cranelift", "wat", "cache"]
 wasmtime-wasi = { workspace = true, optional = true }  # Align with wasmtime version
 
 # Javy JavaScript to WASM compilation dependencies (optional)
-javy = { version = "6.0.0", optional = true }
-javy-codegen = { version = "3.0.0", optional = true }
+javy = { version = "7.0.0", optional = true }
+javy-codegen = { version = "4.0.0", optional = true }
 # javy-plugin-api = { version = "3.1.0", optional = true }  # Keep optional to avoid conflicts
 
 # Additional dependencies for unified sandbox

@@ -60,8 +60,8 @@ criterion = "0.8"
 
 # WASM and JavaScript execution
 rquickjs = "0.11.0"
-wasmtime = "42.0.1"
-wasmtime-wasi = "42.0.1"
+wasmtime = "43.0.0"
+wasmtime-wasi = "43.0.0"
 
 # Additional utilities
 parking_lot = "0.12.5"

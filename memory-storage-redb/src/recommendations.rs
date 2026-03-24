@@ -1,8 +1,8 @@
 //! Recommendation attribution storage for redb cache
 
 use crate::{
-    with_db_timeout, RedbStorage, RECOMMENDATION_EPISODE_INDEX_TABLE,
-    RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE,
+    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
+    RECOMMENDATION_SESSIONS_TABLE, RedbStorage, with_db_timeout,
 };
 use memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,

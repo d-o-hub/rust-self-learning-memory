@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS episodes (
     reflection TEXT,
     patterns TEXT NOT NULL,
     heuristics TEXT NOT NULL DEFAULT '[]',
+    checkpoints TEXT NOT NULL DEFAULT '[]',
     metadata TEXT NOT NULL,
     domain TEXT NOT NULL,
     language TEXT,
@@ -22,6 +23,10 @@ CREATE TABLE IF NOT EXISTS episodes (
     archived_at INTEGER
 )
 "#;
+
+/// Migration SQL to add checkpoints column to existing episodes table.
+pub const ADD_EPISODES_CHECKPOINTS_COLUMN: &str =
+    "ALTER TABLE episodes ADD COLUMN checkpoints TEXT NOT NULL DEFAULT '[]'";
 
 /// SQL to create the patterns table
 pub const CREATE_PATTERNS_TABLE: &str = r#"
@@ -49,6 +54,30 @@ CREATE TABLE IF NOT EXISTS heuristics (
     evidence TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+)
+"#;
+
+/// SQL to create recommendation sessions table (ADR-044)
+pub const CREATE_RECOMMENDATION_SESSIONS_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS recommendation_sessions (
+    session_id TEXT PRIMARY KEY NOT NULL,
+    episode_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    payload TEXT NOT NULL
+)
+"#;
+
+/// Index to quickly find sessions by episode
+pub const CREATE_RECOMMENDATION_SESSIONS_EPISODE_INDEX: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_recommendation_sessions_episode
+ON recommendation_sessions(episode_id, timestamp DESC)
+"#;
+
+/// SQL to create recommendation feedback table (ADR-044)
+pub const CREATE_RECOMMENDATION_FEEDBACK_TABLE: &str = r#"
+CREATE TABLE IF NOT EXISTS recommendation_feedback (
+    session_id TEXT PRIMARY KEY NOT NULL,
+    payload TEXT NOT NULL
 )
 "#;
 

@@ -3,6 +3,9 @@
 use super::config::{CacheConfig, CacheStats};
 use crate::TursoStorage;
 use async_trait::async_trait;
+use memory_core::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
 use memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
 use memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
 use std::sync::Arc;
@@ -405,5 +408,58 @@ impl StorageBackend for CachedTursoStorage {
             .get_embeddings_batch(ids)
             .await
             .map_err(|e| Error::Storage(format!("Batch get embeddings error: {}", e)))
+    }
+
+    async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
+        self.storage
+            .store_recommendation_session(session)
+            .await
+            .map_err(|e| Error::Storage(format!("Store recommendation session error: {}", e)))
+    }
+
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        self.storage
+            .get_recommendation_session(session_id)
+            .await
+            .map_err(|e| Error::Storage(format!("Get recommendation session error: {}", e)))
+    }
+
+    async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        self.storage
+            .get_recommendation_session_for_episode(episode_id)
+            .await
+            .map_err(|e| {
+                Error::Storage(format!("Get recommendation session (episode) error: {}", e))
+            })
+    }
+
+    async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        self.storage
+            .store_recommendation_feedback(feedback)
+            .await
+            .map_err(|e| Error::Storage(format!("Store recommendation feedback error: {}", e)))
+    }
+
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        self.storage
+            .get_recommendation_feedback(session_id)
+            .await
+            .map_err(|e| Error::Storage(format!("Get recommendation feedback error: {}", e)))
+    }
+
+    async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
+        self.storage
+            .get_recommendation_stats()
+            .await
+            .map_err(|e| Error::Storage(format!("Get recommendation stats error: {}", e)))
     }
 }

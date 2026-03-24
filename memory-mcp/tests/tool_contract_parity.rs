@@ -185,11 +185,10 @@ async fn test_dispatch_table_covers_advertised_tools() {
     // (covered by the other test)
 }
 
-/// Test that specific known-batch tools are NOT advertised.
+/// Test that deferred batch-analysis tools are NOT advertised.
 ///
-/// These tools were removed from the tool definitions because their
-/// handlers were commented out in handlers.rs. This test ensures
-/// they stay removed until the handlers are properly implemented.
+/// WG-053 decision: these tool names are intentionally absent from MCP
+/// `tools/list` until handlers exist and are wired into dispatch.
 #[tokio::test]
 async fn test_unimplemented_batch_tools_not_advertised() {
     disable_wasm_for_tests();
@@ -208,7 +207,7 @@ async fn test_unimplemented_batch_tools_not_advertised() {
     let advertised_tools = server.list_tools().await;
     let advertised_names: Vec<&str> = advertised_tools.iter().map(|t| t.name.as_str()).collect();
 
-    // These tools should NOT be advertised until their handlers are implemented
+    // These tools should NOT be advertised while intentionally deferred
     let unimplemented_tools = [
         "batch_query_episodes",
         "batch_pattern_analysis",
@@ -228,8 +227,7 @@ async fn test_unimplemented_batch_tools_not_advertised() {
         for name in &incorrectly_advertised {
             eprintln!("  - {}", name);
         }
-        eprintln!("\nThese tools were intentionally removed from tool_definitions_extended.rs");
-        eprintln!("because their handlers are commented out in handlers.rs.");
+        eprintln!("\nThese tools are intentionally deferred in WG-053.");
         eprintln!("\nTo re-enable these tools:");
         eprintln!("1. Implement the handlers in the appropriate module");
         eprintln!("2. Add them to the dispatch table in handlers.rs");
@@ -242,6 +240,40 @@ async fn test_unimplemented_batch_tools_not_advertised() {
         "Unimplemented tools should not be advertised: {:?}",
         incorrectly_advertised
     );
+}
+
+/// Test that deferred batch-analysis tools cannot be resolved by name.
+///
+/// This guards against docs/tests drift by asserting the runtime contract:
+/// these names are currently unsupported and absent from the tool registry.
+#[tokio::test]
+async fn test_deferred_batch_tools_cannot_be_resolved() {
+    disable_wasm_for_tests();
+
+    let server = MemoryMCPServer::new(
+        SandboxConfig::default(),
+        Arc::new(SelfLearningMemory::with_config(MemoryConfig {
+            quality_threshold: 0.0,
+            batch_config: None,
+            ..Default::default()
+        })),
+    )
+    .await
+    .expect("Failed to create MCP server");
+
+    let deferred_tools = [
+        "batch_query_episodes",
+        "batch_pattern_analysis",
+        "batch_compare_episodes",
+    ];
+
+    for tool in deferred_tools {
+        let result = server.get_tool(tool).await;
+        assert!(
+            result.is_none(),
+            "Deferred tool '{tool}' should not resolve from tool registry"
+        );
+    }
 }
 
 /// Test that the server's advertised tools match what's expected.

@@ -56,7 +56,9 @@ impl TursoStorage {
             r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
                    archived_at
             FROM episodes WHERE episode_id IN ({})
         "#,
@@ -273,7 +275,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, TaskContext, TaskType};
+    use memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
     use tempfile::TempDir;
     use uuid::Uuid;
 
@@ -378,6 +380,29 @@ mod tests {
 
         let _retrieved = storage.get_episodes_batch(&ids).await.unwrap();
         // Episodes should be in storage (we're checking by generated IDs)
+    }
+
+    #[tokio::test]
+    async fn test_get_episodes_batch_preserves_checkpoints() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let mut episode = Episode::new(
+            "Task with checkpoint".to_string(),
+            TaskContext::default(),
+            TaskType::Analysis,
+        );
+        episode
+            .checkpoints
+            .push(CheckpointMeta::new("batch checkpoint".to_string(), 1, None));
+        let episode_id = episode.episode_id;
+
+        storage.store_episodes_batch(vec![episode]).await.unwrap();
+
+        let retrieved = storage.get_episodes_batch(&[episode_id]).await.unwrap();
+        assert_eq!(retrieved.len(), 1);
+        let stored = retrieved[0].as_ref().unwrap();
+        assert_eq!(stored.checkpoints.len(), 1);
+        assert_eq!(stored.checkpoints[0].reason, "batch checkpoint");
     }
 
     #[tokio::test]

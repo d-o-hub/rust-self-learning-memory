@@ -1,23 +1,41 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all 12 issues closed)
-- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
+- **Last Updated**: 2026-03-24 (v0.1.23 WG-053 executed)
+- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.23.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **ADR**: `plans/adr/ADR-044-High-Impact-Features-v0.1.20.md`
+- **Primary ADRs**: ADR-022, ADR-032, ADR-033, ADR-038, ADR-044
 - **Branch**: main
-- **Version**: `0.1.22` (v0.1.22 sprint COMPLETE)
+- **Version**: `0.1.22` (post-release, audit in progress)
 
 ## Phase Status
 
-1. ANALYZE: Complete (2026-03-09 rebaseline)
-2. DECOMPOSE: Complete (ADR-028 item-by-item revalidation)
-3. STRATEGIZE: Complete (O1/O3/O5 opportunities prioritized)
-4. COORDINATE: Complete (Sprint 3 execution planning)
-5. EXECUTE: ✅ Complete (O1/O3/O5 implemented, ADR-044 shipped)
-6. SYNTHESIZE: Complete
-7. FEEDBACK: ✅ Complete (v0.1.22 released)
-8. **SPRINT COMPLETE**: All 12 issues closed, PR #391 merged, all quality gates passing
+| Phase | Status (2026-03-24) | Notes |
+|-------|---------------------|-------|
+| 1. ANALYZE | ✅ Complete | Audit + ADR review finished (implementation, docs, CI, disk) |
+| 2. DECOMPOSE | ✅ Complete | WGs 051-058 defined in GOALS.md |
+| 3. STRATEGIZE | ✅ Complete | Execution plan v0.1.23 authored |
+| 4. COORDINATE | 🚧 In progress | Owners/skills being assigned per WG |
+| 5. EXECUTE | 🚧 In progress | WG-051 through WG-053 complete; WG-054+ queued |
+| 6. SYNTHESIZE | ⏳ Not started | Will run after remediation work lands |
+| 7. FEEDBACK | ⏳ Not started | Depends on execution + validation rerun |
+
+### v0.1.23 Remediation Sprint Progress (2026-03-24)
+
+| WG | Status | Notes |
+|----|--------|-------|
+| WG-051 | ✅ Complete | Turso/redb recommendation tables, storage trait impls, and `tests/attribution_integration_test.rs` persistence validation (`cargo nextest run --test attribution_integration`) |
+| WG-052 | ✅ Complete | Turso `checkpoints` persistence added across CRUD/query/batch + `resume_from_handoff` now persists metadata via storage update path; validated with `cargo nextest run --test checkpoint_integration` and targeted Turso durability tests |
+| WG-053 | ✅ Complete | Decision taken: keep batch tool-level names intentionally deferred; parity tests + docs/plans aligned |
+| WG-054 | 🚧 Planned | Truth-source rewrite pending WG-051 handoff |
+| WG-055 | 🚧 Planned | CI expansion queued after durability fixes |
+| WG-056 | 🚧 Planned | Coverage enforcement tied to WG-055 |
+| WG-057 | 🚧 Planned | Disk hygiene pending durability + CI work |
+| WG-058 | 🚧 Planned | Agent guidance refresh blocked on docs truth sources |
+
+Previous phase summaries for v0.1.22 remain below for historical reference.
+
+---
 
 ## v0.1.17 Sprint 3 Status (2026-03-09)
 

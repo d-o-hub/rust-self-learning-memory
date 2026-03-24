@@ -4,6 +4,9 @@
 //! trait implementations to keep lib.rs under 500 LOC.
 
 use async_trait::async_trait;
+use memory_core::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
 use memory_core::{Error, Result, StorageBackend};
 
 /// Storage statistics
@@ -119,6 +122,39 @@ impl StorageBackend for super::TursoStorage {
             relationship_type,
         )
         .await
+    }
+
+    async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
+        super::TursoStorage::store_recommendation_session(self, session).await
+    }
+
+    async fn get_recommendation_session(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        super::TursoStorage::get_recommendation_session(self, session_id).await
+    }
+
+    async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: uuid::Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        super::TursoStorage::get_recommendation_session_for_episode(self, episode_id).await
+    }
+
+    async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        super::TursoStorage::store_recommendation_feedback(self, feedback).await
+    }
+
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        super::TursoStorage::get_recommendation_feedback(self, session_id).await
+    }
+
+    async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
+        super::TursoStorage::get_recommendation_stats(self).await
     }
 }
 

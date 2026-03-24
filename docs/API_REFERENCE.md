@@ -16,7 +16,7 @@
 - [Core Tools](#core-tools)
 - [Episode Management Tools](#episode-management-tools)
 - [Pattern Tools](#pattern-tools)
-- [Batch Operations](#batch-operations)
+- [Batch Tool Status](#batch-tool-status)
 - [Tag Management Tools](#tag-management-tools)
 - [Relationship Tools](#relationship-tools)
 - [Embedding Tools](#embedding-tools)
@@ -684,75 +684,17 @@ Statistical analysis and forecasting on time series data.
 
 ---
 
-## Batch Operations
+## Batch Tool Status
 
-### batch_query_episodes
+The following MCP tool names are intentionally deferred and are **not** part of the active `tools/list` contract:
 
-Query multiple episodes with filtering and aggregation.
+- `batch_query_episodes`
+- `batch_pattern_analysis`
+- `batch_compare_episodes`
 
-**Method**: `tools/call`  
-**Tool Name**: `batch_query_episodes`
+Attempting to call them via `tools/call` currently returns `Tool not found`.
 
-#### Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `episode_ids` | array | No | - | Specific episode IDs |
-| `filter` | object | No | - | Filter criteria |
-| `include_steps` | boolean | No | true | Include steps |
-| `include_patterns` | boolean | No | false | Include patterns |
-| `include_reflections` | boolean | No | false | Include reflections |
-| `limit` | integer | No | 100 | Maximum episodes |
-| `offset` | integer | No | 0 | Pagination offset |
-| `aggregate_stats` | boolean | No | true | Compute statistics |
-
-#### Filter Object
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `domain` | string | Filter by domain |
-| `task_type` | string | Filter by task type |
-| `tags` | array | Filter by tags |
-| `success_only` | boolean | Only successful episodes |
-
----
-
-### batch_pattern_analysis
-
-Analyze patterns across multiple episodes.
-
-**Method**: `tools/call`  
-**Tool Name**: `batch_pattern_analysis`
-
-#### Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `domain` | string | Yes | - | Task domain |
-| `task_type` | string | No | - | Specific task type |
-| `time_range` | object | No | - | Start/end ISO8601 dates |
-| `min_episodes` | integer | No | 3 | Minimum episodes for pattern |
-| `min_success_rate` | number | No | 0.6 | Minimum success rate |
-| `include_anti_patterns` | boolean | No | true | Include low-success patterns |
-| `limit` | integer | No | 50 | Maximum patterns |
-
----
-
-### batch_compare_episodes
-
-Compare multiple episodes.
-
-**Method**: `tools/call`  
-**Tool Name**: `batch_compare_episodes`
-
-#### Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `episode_ids` | array | Yes | - | 2-10 episode UUIDs |
-| `compare_metrics` | array | No | ["duration", "reward_score", "step_count"] | Metrics to compare |
-| `compare_approaches` | boolean | No | true | Compare approaches |
-| `generate_insights` | boolean | No | true | Generate AI insights |
+Transport-level batching is still available via JSON-RPC `batch/execute`.
 
 ---
 
@@ -1208,7 +1150,6 @@ Retry-After: 5
 - `get_episode`
 - `get_episode_timeline`
 - `bulk_episodes`
-- `batch_query_episodes`
 - `get_episode_tags`
 - `search_episodes_by_tags`
 - `get_episode_relationships`
@@ -1225,8 +1166,6 @@ Retry-After: 5
 - `delete_episode`
 - `analyze_patterns`
 - `advanced_pattern_analysis`
-- `batch_pattern_analysis`
-- `batch_compare_episodes`
 - `add_episode_tags`
 - `remove_episode_tags`
 - `set_episode_tags`

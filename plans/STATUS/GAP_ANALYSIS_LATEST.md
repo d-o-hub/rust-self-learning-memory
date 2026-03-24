@@ -1,144 +1,96 @@
-# Gap Analysis — v0.1.22 Sprint — COMPLETE
+# Gap Analysis — 2026-03-24 Audit (v0.1.22 Post-Release)
 
-**Generated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all gaps resolved)
-**Method**: Issue codebase verification + GitHub Actions audit
-**Scope**: All open issues (#373–#387), CI/CD health, ADR-044 feature completeness
-
----
-
-## Sprint Completion Summary (2026-03-20)
-
-All 12 GitHub issues from the v0.1.22 sprint have been closed. PR #391 merged to main. All quality gates passing.
-
-### Final Verified Metrics
-
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Workspace version | 0.1.22 | — | — |
-| Tests | 2,841/2,841 passing | — | ✅ |
-| Skipped/ignored tests | 124 | ≤125 ceiling | ✅ |
-| Dead code annotations | 31 | ≤40 | ✅ Target met |
-| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
-| Snapshot tests | 80 | ≥80 | ✅ Target met |
-| Property test files | 16 | ≥13 | ✅ Exceeds target |
-| Files >500 LOC | 0 | 0 | ✅ |
-| Failing doctests | 0 | 0 | ✅ |
-| Timed-out tests | 0 | 0 | ✅ |
-| Clippy | Clean | Clean | ✅ |
-| Format | Clean | Clean | ✅ |
-| PR #391 | Merged | — | ✅ |
+**Generated**: 2026-03-24 (GOAP audit reboot)
+**Method**: Read-only repo inspection + ADR cross-check + CLI/MCP contract review
+**Scope**: ADR-044 feature durability, documentation truth sources, CI/test coverage, disk hygiene
 
 ---
 
-## All Issues — CLOSED
+## Summary
 
-### P0: Critical Fixes — ALL CLOSED ✅
-
-| Issue | Title | Final Status |
-|-------|-------|--------------|
-| #374 | P0: Fix 2 failing doctests (WG-040) | ✅ CLOSED |
-| #375 | P0: Fix test timeout (WG-041) | ✅ CLOSED |
-| #376 | P0: Split 3 files >500 LOC (WG-042) | ✅ CLOSED |
-
-### P1: Quality Polish — ALL CLOSED ✅
-
-| Issue | Title | Final Status |
-|-------|-------|--------------|
-| #377 | P1: Reduce dead_code to ≤40 (WG-043) | ✅ CLOSED — 31 annotations (target met) |
-| #378 | P1: Fix broken markdown links (WG-044) | ✅ CLOSED — 0 active links (101 archived-only) |
-| #379 | P1: Add snapshot tests (WG-045) | ✅ CLOSED — 80 snapshots (target met) |
-| #380 | P1: Add property tests (WG-046) | ✅ CLOSED — 16 files (exceeds ≥13 target) |
-
-### P2: Feature Enhancements — ALL CLOSED ✅
-
-| Issue | Title | Final Status |
-|-------|-------|--------------|
-| #381 | P2: MCP tool contract parity (WG-047) | ✅ CLOSED |
-| #382 | P2: Integration tests (WG-048) | ✅ CLOSED |
-| #383 | P2: Changelog automation (WG-049) | ✅ CLOSED |
-| #384 | P2: Feature documentation (WG-050) | ✅ CLOSED |
-
-### P3: Infrastructure — ALL CLOSED ✅
-
-| Issue | Title | Final Status |
-|-------|-------|--------------|
-| #385 | P3: Nightly trend tracking (WG-051) | ✅ CLOSED |
-| #386 | P3: libsql version monitor (WG-052) | ✅ CLOSED |
-| #387 | P3: Tech-debt registry (WG-053) | ✅ CLOSED |
+The v0.1.22 sprint successfully shipped its 12 tracked issues, but the latest audit reveals new or resurfaced gaps. Documentation in `plans/` still states “all gaps resolved”, which no longer matches implementation reality. This report supersedes the 2026-03-20 gap analysis and feeds the new execution plan (`GOAP_EXECUTION_PLAN_v0.1.23.md`).
 
 ---
 
-| Area | Status | Notes |
-|------|--------|-------|
-| **ADR-044 Features** | ✅ Shipped & Polished | All 4 features complete |
-| **File Size Compliance** | ✅ 0 violations | All files ≤500 LOC |
-| **Test Health** | ✅ 2,841/2,841 passing | 0 timeouts, 0 failing doctests |
-| **Dead Code** | ✅ 31 annotations | Target ≤40 met |
-| **Docs Integrity** | ✅ 0 active broken links | 101 archived-only (acceptable) |
-| **Snapshot Tests** | ✅ 80 snapshots | Target ≥80 met |
-| **Property Tests** | ✅ 16 files | Target ≥13 exceeded |
+## Key Gaps (Prioritized)
+
+### P0 — Implementation Integrity (ADR-044)
+
+| Gap | Evidence | Impact | Linked WG |
+|-----|----------|--------|-----------|
+| ~~Checkpoint/handoff metadata dropped in storage round-trips~~ | ✅ Resolved 2026-03-24 via Turso `checkpoints` schema + serialization updates and `resume_from_handoff` storage-backed persistence | Restart and round-trip durability now validated by integration + targeted storage tests | WG-052 |
+| ~~Batch MCP tools unresolved~~ | ✅ Resolved 2026-03-24 via explicit defer decision + parity/docs/plans alignment | MCP contract now truthfully documents deferred tool-level batch analytics names | WG-053 |
+
+#### Remediation Progress (2026-03-24)
+
+- ✅ **WG-051** — Durable recommendation attribution implemented via `memory-storage-turso/src/storage/recommendations.rs`, `memory-storage-redb/src/recommendations.rs`, and storage trait impls/resilient wrappers. Integration evidence: `tests/attribution_integration_test.rs` (`cargo nextest run --test attribution_integration`).
+- ✅ **WG-052** — Durable checkpoints/handoffs implemented via Turso schema (`checkpoints` column), CRUD/query/batch checkpoint serialization, backward-compatible row conversion defaults, and storage-backed `resume_from_handoff` metadata persistence. Integration evidence: `cargo nextest run --test checkpoint_integration` and targeted Turso tests.
+
+### P1 — Documentation & Contract Drift
+
+| Gap | Evidence | Impact | Linked WG |
+|-----|----------|--------|-----------|
+| API reference outdated (v0.1.13 + obsolete tools) | `docs/API_REFERENCE.md:1-40`, `memory-mcp/tests/tool_contract_parity.rs` | Developers receive wrong schemas/tool availability | WG-054 |
+| Playbook/checkpoint/feedback docs mention non-existent CLI commands | `docs/PLAYBOOKS_AND_CHECKPOINTS.md:48-92` | CLI onboarding blocked/confusing | WG-054 |
+| README + plans advertise secure code execution + “all gaps closed” despite disabled tool | `README.md:14,60`, `plans/STATUS/CURRENT.md:11-29` | Oversells capability | WG-054 |
+| AGENTS.md/agent_docs/.agents/skills instructions lag behind script/CI reality | `AGENTS.md:29-92`, `.agents/skills/code-quality/SKILL.md` | Contributors follow wrong workflow | WG-058 |
+
+### P1 — Validation & Coverage Parity (ADR-033 / ADR-038)
+
+| Gap | Evidence | Impact | Linked WG |
+|-----|----------|--------|-----------|
+| Required PR CI only runs three `--lib` subsets | `.github/workflows/ci.yml:81-90` | Integration regressions slip past required checks | WG-055 |
+| Coverage script never enforces ≥90% target | `scripts/check-coverage.sh:17-82`, `tests/quality_gates.rs:28-34` | Quality gate provides false sense of security | WG-056 |
+| Benchmark workflow runs 4/14 benches | `.github/workflows/benchmarks.yml:155-160`, `benches/Cargo.toml` | Performance regressions undetected | WG-055 |
+
+### P2 — Disk / Developer Experience (ADR-032)
+
+| Gap | Evidence | Impact | Linked WG |
+|-----|----------|--------|-----------|
+| `target/` back to 32G locally | `du -sh target` (2026-03-24 audit) | Slow builds, storage pressure | WG-057 |
+| `node_modules/` present (130M) despite ADR claim of removal | `du -sh node_modules` | Confusion over frontend dependencies + disk bloat | WG-057 |
+| Mold linker removal undocumented in plans/skills | `.cargo/config.toml:51-55`, ADR-032 text | Contributors follow wrong guidance | WG-058 |
 
 ---
 
-## All Gaps Resolved ✅
+## Actions Tracked in GOAP v0.1.23
 
-No remaining gaps. All P0, P1, P2, and P3 issues are complete and closed.
+| WG | Description | Initial Actions |
+|----|-------------|-----------------|
+| WG-051 | Durable recommendation attribution | storage trait + schema design doc, integration tests, CLI verification |
+| WG-052 | Durable checkpoint/handoff persistence | Turso row serialization updates, resume pipeline tests |
+| WG-053 | MCP contract integrity | ✅ Complete — keep tool-level batch analytics deferred; parity tests + plans/README/API docs aligned |
+| WG-054 | Docs + CLI/API truth source refresh | Rewrite API reference, README, `docs/PLAYBOOKS_AND_CHECKPOINTS.md`, CLI help references |
+| WG-055 | CI/test surface expansion | Update `ci.yml`, `benchmarks.yml`, nightly to cover integration + benches |
+| WG-056 | Coverage enforcement | Update scripts/tests to parse coverage summaries and fail <90% |
+| WG-057 | Disk hygiene automation | Extend `scripts/clean-artifacts.sh`, document `CARGO_TARGET_DIR`, add dev workflow tips |
+| WG-058 | Agent guidance parity | Update AGENTS.md, agent_docs/, `.agents/skills/` to reflect script-first & disk/cov guidance |
 
-### MCP Tool Registry
-
-All new tools are registered and dispatchable:
-- ✅ `recommend_playbook`
-- ✅ `record_recommendation_session`
-- ✅ `record_recommendation_feedback`
-- ✅ `checkpoint_episode`
-- ✅ `get_handoff_pack`
-- ✅ `resume_from_handoff`
-
-### CLI Commands
-
-All new commands are wired and dispatch correctly:
-- ✅ `playbook recommend`
-- ✅ `playbook explain`
-- ✅ `feedback record`
-- ✅ `feedback stats`
-- ✅ `episode checkpoint`
-- ✅ `episode handoff`
+See `plans/GOAP_EXECUTION_PLAN_v0.1.23.md` for phase sequencing and quality gates.
 
 ---
 
-## Infrastructure Backlog — ALL COMPLETE ✅
+## Previously Closed Items (Reference Only)
 
-| Item | Since | Priority | Status |
-|------|-------|----------|--------|
-| Changelog automation (git-cliff) | v0.1.17 | P2 | ✅ Complete |
-| Nightly trend tracking (T5.2) | v0.1.20 | P3 | ✅ Complete |
-| libsql version monitor (T5.3) | v0.1.20 | P3 | ✅ Complete |
-| Structured tech-debt registry | v0.1.17 | P3 | ✅ Complete |
-| CLI workflow parity generator | v0.1.17 | P3 | Not started (low priority) |
+The v0.1.22 sprint closure data remains accessible in git history (commit `15bc3ab3`). Completed tables for WG-040—WG-053 remain accurate for that sprint but are no longer considered “current state”. Historical metrics are preserved below for comparison only.
 
----
+### Historical Snapshot — v0.1.22 Close-out (2026-03-20)
 
-## Pre-Existing Issues (Unchanged)
+| Metric | Value | Target |
+|--------|-------|--------|
+| Tests | 2,841/2,841 passing | — |
+| Ignored tests | 124 | ≤125 |
+| `#[allow(dead_code)]` | 31 | ≤40 |
+| Snapshot tests | 80 | ≥80 |
+| Property test files | 16 | ≥13 |
 
-| Issue | Status | Notes |
-|-------|--------|-------|
-| 124 ignored tests | ✅ Within ceiling | 70 Turso upstream bug, rest by design |
-| `execute_agent_code` MCP tool disabled | 🟡 | WASM sandbox issues |
-| 134 duplicate dep roots | ✅ Accepted | Architectural limit (wasmtime/libsql) |
-
----
-
-## Sprint Priorities — ALL COMPLETE ✅
-
-### All Issues Closed
-
-All P0, P1, P2, and P3 items from the v0.1.22 sprint have been completed and closed via PR #391.
+*(All other historical tables from the previous analysis were removed from the “current” view to avoid confusion.)*
 
 ---
 
 ## Cross-References
 
-- **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
-- **Current status**: [CURRENT.md](CURRENT.md)
-- **Active roadmap**: [ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
-- **ADR-044**: [adr/ADR-044-High-Impact-Features-v0.1.20.md](../adr/ADR-044-High-Impact-Features-v0.1.20.md)
+- `plans/STATUS/VALIDATION_LATEST.md`
+- `plans/GOAP_EXECUTION_PLAN_v0.1.23.md`
+- `plans/ROADMAPS/ROADMAP_ACTIVE.md`
+- ADR-022, ADR-032, ADR-033, ADR-038, ADR-044

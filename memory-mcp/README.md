@@ -178,15 +178,18 @@ Programmatically manage episodes through the MCP interface:
 
 📖 **[Complete Episode Lifecycle Documentation](EPISODE_LIFECYCLE_TOOLS.md)**
 
-### Batch Operations (NEW in v0.1.13)
+### Batch Operations Contract Status
 
-High-performance bulk operations for episodes (100x faster than individual calls):
+The MCP JSON-RPC endpoint supports `batch/execute` (multi-operation transport).
+However, tool-level batch analytics names are currently **deferred and not advertised**:
 
-- **`batch_query_episodes`** - Query multiple episodes with filtering and aggregation
-- **`batch_pattern_analysis`** - Analyze patterns across episodes to identify best practices
-- **`batch_compare_episodes`** - Compare episodes to understand performance differences
+- `batch_query_episodes`
+- `batch_pattern_analysis`
+- `batch_compare_episodes`
 
-📖 **[Complete Batch Operations Documentation](BATCH_OPERATIONS_TOOLS.md)**
+These names intentionally return `Tool not found` until dedicated handlers are implemented.
+
+📖 **[Batch Tool Status (WG-053)](BATCH_OPERATIONS_TOOLS.md)**
 
 ### Memory & Query Tools
 

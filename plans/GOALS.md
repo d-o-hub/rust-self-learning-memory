@@ -1,8 +1,60 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-11 (post-v0.1.17 revalidation)
+- **Last Updated**: 2026-03-24 (post-WG-052 execution)
 - **Source ADR**: ADR-037
 - **Status**: Active
+
+## v0.1.23 Remediation Goals (New)
+
+1. **WG-051**: Durable Recommendation Attribution
+   - Priority: P0
+   - Owner: feature-implementer + architecture
+   - Target: Persist recommendation sessions/feedback via storage traits (Turso + redb) and surface metrics/tests
+   - Status: ✅ Complete — Turso/redb recommendation tables + storage trait impls + `tests/attribution_integration_test.rs` persistence coverage (2026-03-24)
+
+2. **WG-052**: Durable Checkpoints & Handoff Packs
+   - Priority: P0
+   - Owner: feature-implementer + architecture
+   - Target: Round-trip checkpoint metadata through Turso/redb, validate resume flows, add integration tests
+   - Status: ✅ Complete — Turso schema/row/batch checkpoint persistence + durable `resume_from_handoff` metadata storage, validated by `checkpoint_integration` and targeted Turso tests (2026-03-24)
+
+3. **WG-053**: MCP Contract Integrity
+   - Priority: P0
+   - Owner: memory-mcp + documentation
+   - Target: Decide fate of batch MCP tools, align parity tests + plans/STATUS/README messaging
+   - Status: ✅ Complete — batch tool-level MCP names intentionally deferred (not advertised), parity tests hardened, and docs/plans aligned to contract truth (2026-03-24)
+
+4. **WG-054**: Docs & CLI/API Truth Source Refresh
+   - Priority: P1
+   - Owner: documentation + agents-update
+   - Target: Regenerate API reference, README, CLI command docs, playbook/checkpoint guide, plans/STATUS narratives
+   - Status: Planned
+
+5. **WG-055**: CI/Test Surface Expansion
+   - Priority: P1
+   - Owner: github-workflows + test-runner
+   - Target: Required PR workflows cover full workspace tests (or documented filtersets) + benchmark suite parity
+   - Status: Planned
+
+6. **WG-056**: Coverage Enforcement
+   - Priority: P1
+   - Owner: quality-unit-testing
+   - Target: Update scripts/tests to enforce ≥90% coverage target (quality_gates + check-coverage script)
+   - Status: Planned
+
+7. **WG-057**: Disk Hygiene & Developer Experience
+   - Priority: P2
+   - Owner: performance + build-compile
+   - Target: Automate `target/` cleanup, document `CARGO_TARGET_DIR` usage, reconcile ADR-032 claims, track `node_modules/`
+   - Status: Planned
+
+8. **WG-058**: Agent Guidance Alignment
+   - Priority: P2
+   - Owner: agents-update + documentation
+   - Target: Update AGENTS.md, agent_docs/, `.agents/skills/` to reflect script-first workflow, disk guidance, coverage policy
+   - Status: Planned
+
+---
 
 ## Current Goals
 

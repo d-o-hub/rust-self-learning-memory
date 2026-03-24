@@ -266,9 +266,11 @@ pub fn create_extended_tools() -> Vec<Tool> {
         }),
     ));
 
-    // NOTE: batch_query_episodes, batch_pattern_analysis, and batch_compare_episodes
-    // are intentionally not included because their handlers are not implemented.
-    // These tools should only be added when handlers are implemented.
+    // WG-053 contract decision (2026-03-24): keep tool-level batch analytics
+    // (`batch_query_episodes`, `batch_pattern_analysis`, `batch_compare_episodes`)
+    // intentionally absent from MCP tools/list because there are no corresponding
+    // tool handlers. If these are reintroduced later, this file, the dispatch table,
+    // and tool contract parity tests must be updated in the same change.
 
     // Episode tagging tools - add tags
     tools.push(Tool::new(

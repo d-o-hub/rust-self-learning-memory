@@ -61,11 +61,11 @@ const tools = await mcpClient.listTools();
 console.log(tools.length); // 8 (not 50+)
 
 // Client uses an extended tool - it's loaded automatically
-const result = await mcpClient.callTool("batch_query_episodes", {...});
+const result = await mcpClient.callTool("search_patterns", {...});
 
 // Next list_tools call includes the newly loaded tool
 const tools2 = await mcpClient.listTools();
-console.log(tools2.length); // 9 (core + batch_query_episodes)
+console.log(tools2.length); // 9 (core + search_patterns)
 ```
 
 ### Advanced Usage
@@ -74,7 +74,7 @@ For clients that want to preload specific extended tools:
 
 ```typescript
 // Request specific tools to be loaded
-const toolsToLoad = ["batch_query_episodes", "search_patterns"];
+const toolsToLoad = ["search_patterns", "query_semantic_memory"];
 await Promise.all(
   toolsToLoad.map(tool => mcpClient.callTool(tool, {}))
 );
@@ -204,23 +204,20 @@ The following query tools support the `fields` parameter:
 1. `query_memory` - Query episodic memory
 2. `analyze_patterns` - Analyze patterns
 3. `bulk_episodes` - Bulk retrieve episodes
-4. `batch_query_episodes` - Batch query episodes
-5. `batch_pattern_analysis` - Batch pattern analysis
-6. `batch_compare_episodes` - Compare episodes
-7. `get_episode` - Get episode details
-8. `get_episode_relationships` - Get relationships
-9. `find_related_episodes` - Find related episodes
-10. `get_dependency_graph` - Get dependency graph
-11. `get_topological_order` - Get topological order
-12. `search_episodes_by_tags` - Search by tags
-13. `get_episode_tags` - Get episode tags
-14. `get_episode_timeline` - Get episode timeline
-15. `bulk_episodes` - Bulk episode retrieval
-16. `recommend_patterns` - Recommend patterns
-17. `search_patterns` - Search patterns
-18. `get_metrics` - Get metrics
-19. `advanced_pattern_analysis` - Advanced analysis
-20. `quality_metrics` - Quality metrics
+4. `get_episode` - Get episode details
+5. `get_episode_relationships` - Get relationships
+6. `find_related_episodes` - Find related episodes
+7. `get_dependency_graph` - Get dependency graph
+8. `get_topological_order` - Get topological order
+9. `search_episodes_by_tags` - Search by tags
+10. `get_episode_tags` - Get episode tags
+11. `get_episode_timeline` - Get episode timeline
+12. `bulk_episodes` - Bulk episode retrieval
+13. `recommend_patterns` - Recommend patterns
+14. `search_patterns` - Search patterns
+15. `get_metrics` - Get metrics
+16. `advanced_pattern_analysis` - Advanced analysis
+17. `quality_metrics` - Quality metrics
 
 ## Best Practices
 

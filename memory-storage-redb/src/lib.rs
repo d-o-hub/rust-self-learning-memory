@@ -43,6 +43,7 @@ mod episodes_summaries;
 mod heuristics;
 mod patterns;
 mod persistence;
+mod recommendations;
 mod relationships;
 mod statistics;
 mod storage;
@@ -98,6 +99,12 @@ pub(crate) const METADATA_TABLE: TableDefinition<&str, &[u8]> = TableDefinition:
 pub(crate) const SUMMARIES_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("summaries");
 pub(crate) const RELATIONSHIPS_TABLE: TableDefinition<&str, &[u8]> =
     TableDefinition::new("relationships");
+pub(crate) const RECOMMENDATION_SESSIONS_TABLE: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("recommendation_sessions");
+pub(crate) const RECOMMENDATION_FEEDBACK_TABLE: TableDefinition<&str, &[u8]> =
+    TableDefinition::new("recommendation_feedback");
+pub(crate) const RECOMMENDATION_EPISODE_INDEX_TABLE: TableDefinition<&str, &str> =
+    TableDefinition::new("recommendation_episode_index");
 
 // ============================================================================
 // Timeout Helper Functions

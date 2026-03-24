@@ -4,7 +4,8 @@
 
 use super::{
     CacheMetrics, EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE,
-    PATTERNS_TABLE, RELATIONSHIPS_TABLE, SUMMARIES_TABLE, with_db_timeout,
+    PATTERNS_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
+    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::{RedbStorage, StorageStatistics};
 use memory_core::{Error, Result};
@@ -45,6 +46,30 @@ impl RedbStorage {
                 let _relationships = write_txn.open_table(RELATIONSHIPS_TABLE).map_err(|e| {
                     Error::Storage(format!("Failed to open relationships table: {}", e))
                 })?;
+                let _rec_sessions = write_txn
+                    .open_table(RECOMMENDATION_SESSIONS_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation sessions table: {}",
+                            e
+                        ))
+                    })?;
+                let _rec_feedback = write_txn
+                    .open_table(RECOMMENDATION_FEEDBACK_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation feedback table: {}",
+                            e
+                        ))
+                    })?;
+                let _rec_episode = write_txn
+                    .open_table(RECOMMENDATION_EPISODE_INDEX_TABLE)
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation episode index: {}",
+                            e
+                        ))
+                    })?;
             }
 
             write_txn

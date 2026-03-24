@@ -1,9 +1,61 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all 12 issues closed)
+- **Last Updated**: 2026-03-24 (v0.1.23 WG-053 execution complete)
 - **Related Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
 
 ## Active Actions
+
+### Remediation Sprint v0.1.23 (2026-03-24)
+
+1. **ACT-080**
+   - Goal: WG-054 / WG-058
+   - Action: Rewrite `plans/STATUS/*`, `ROADMAPS/ROADMAP_ACTIVE.md`, and `plans/README.md` to reflect 2026-03-24 audit findings (truth-source reset)
+   - Status: In progress (this update)
+
+2. **ACT-081**
+   - Goal: WG-051
+   - Action: Design + implement durable recommendation attribution storage APIs (memory-core storage trait, Turso schema, integration tests)
+   - Status: ✅ Complete (2026-03-24 — Turso/redb recommendation tables, storage trait impls, `tests/attribution_integration_test.rs` persistence flow)
+   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run --test attribution_integration`
+
+3. **ACT-082**
+   - Goal: WG-052
+   - Action: Persist checkpoint metadata + handoff packs through Turso/redb conversions; add resume integration test coverage
+   - Status: ✅ Complete (2026-03-24 — Turso checkpoints column/serialization, resume metadata persistence via storage update path, integration + targeted Turso durability tests)
+   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run --test checkpoint_integration`, `cargo nextest run -p memory-storage-turso test_store_and_get_episode_persists_checkpoints test_row_to_episode_defaults_missing_checkpoints_to_empty test_get_episodes_batch_preserves_checkpoints`
+
+4. **ACT-083**
+   - Goal: WG-053
+   - Action: Decide on batch MCP tool support (implement vs. deprecate) and align parity tests + docs accordingly
+   - Status: ✅ Complete (2026-03-24 — decision: keep tool-level batch analytics names deferred/absent; aligned parity tests + MCP/docs/plans)
+   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run -p memory-mcp --test tool_contract_parity`, targeted WG-053 parity/deferred-call assertions
+
+5. **ACT-084**
+   - Goal: WG-054
+   - Action: Regenerate API reference, README CLI section, and `docs/PLAYBOOKS_AND_CHECKPOINTS.md` from live code/contracts
+   - Status: Planned
+
+6. **ACT-085**
+   - Goal: WG-055
+   - Action: Expand `.github/workflows/ci.yml` + `benchmarks.yml` to run full workspace suites (or documented filter expressions) as required checks
+   - Status: Planned
+
+7. **ACT-086**
+   - Goal: WG-056
+   - Action: Enforce ≥90% coverage via `scripts/check-coverage.sh` parsing + `tests/quality_gates.rs` assertions
+   - Status: Planned
+
+8. **ACT-087**
+   - Goal: WG-057
+   - Action: Enhance `scripts/clean-artifacts.sh`, add dev docs for `CARGO_TARGET_DIR`, and document `node_modules/` expectations per ADR-032
+   - Status: Planned
+
+9. **ACT-088**
+   - Goal: WG-058
+   - Action: Update AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflows, disk guidance, coverage policy
+   - Status: Planned
+
+---
 
 1. **ACT-001**
    - Goal: WG-001

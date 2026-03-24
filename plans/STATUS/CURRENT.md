@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all 12 issues closed)
+**Last Updated**: 2026-03-24 (post-audit remediation in progress; WG-053 complete)
 **Released Version**: v0.1.22
 **Branch**: `main` (PR #391 merged)
 **PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
@@ -27,6 +27,14 @@
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
 
+### Post-v0.1.22 Audit Findings (2026-03-24)
+
+- **ADR-044 durability** — Recommendation attribution (WG-051) and checkpoint/handoff metadata durability (WG-052) now persist through Turso + redb-backed round-trips, including restart-safe resume metadata.
+- **MCP/CLI contract drift** — Batch tool contract truth is now aligned (WG-053 complete), but CLI/docs still list obsolete commands. (WG-054)
+- **CI/test coverage mismatch** — Required PR workflows only run `--lib` slices and coverage scripts do not enforce ≥90% as stated in AGENTS.md. (WG-055, WG-056)
+- **Disk & DX mismatch** — Local `target/` back to 32 GB, `node_modules/` restored, mold linker guidance stale. (WG-057, WG-058)
+- **Plan/docs drift** — `STATUS/` and `ROADMAPS/` files still declare “all gaps resolved” even though new gaps are open; AGENTS/skills docs lag script-first workflow. (WG-054, WG-058)
+
 ## Completed Phases
 
 All research/implementation phases are complete:
@@ -52,6 +60,8 @@ All research/implementation phases are complete:
 - **Episode management**: Full lifecycle with relationships, tagging, patterns
 - **Playbooks**: Template-driven actionable recommendations from patterns
 - **Attribution**: Recommendation session tracking and feedback loops
+- **Durable attribution storage**: Turso/redb persistence for sessions, feedback, and metrics (WG-051 validated via `tests/attribution_integration_test.rs`)
+- **Durable checkpoint/handoff storage**: Turso episode checkpoint serialization + restart-safe handoff resume metadata persistence (WG-052 validated via `tests/checkpoint_integration_test.rs`)
 - **Checkpoints**: Mid-task state snapshotting and agent handoff packs
 - **Storage**: Turso/libSQL (persistent) + redb (cache) dual-layer
 - **Security**: Wasmtime sandbox, path traversal protection, parameterized SQL

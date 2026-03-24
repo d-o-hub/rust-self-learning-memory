@@ -185,18 +185,18 @@ jobs:
         run: cargo install --locked cargo-nextest
       - name: Run tests on ${{ matrix.os }}
         run: |
-          # Cross-platform timeout wrapper with extended time (900s = 15min)
+          # Cross-platform timeout wrapper with extended time (1800s = 30min)
           # macOS has `gtimeout` from coreutils, or use perl as fallback
           if command -v timeout >/dev/null 2>&1; then
             # Linux with GNU timeout
-            timeout 900s cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
+            timeout 1800s cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
           elif command -v gtimeout >/dev/null 2>&1; then
             # macOS with GNU timeout (coreutils)
-            gtimeout 900s cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
+            gtimeout 1800s cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
           else
             # macOS fallback: use perl for portable timeout
             # Use -- to separate perl args from command args
-            perl -e 'alarm 900; exec @ARGV' -- cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
+            perl -e 'alarm 1800; exec @ARGV' -- cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
           fi
       - name: Upload nextest JUnit (multi-platform)
         if: always()

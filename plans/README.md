@@ -25,7 +25,7 @@
 | [ARCHITECTURE/ARCHITECTURE_PATTERNS.md](ARCHITECTURE/ARCHITECTURE_PATTERNS.md) | Design patterns |
 | [ARCHITECTURE/ARCHITECTURE_INTEGRATION.md](ARCHITECTURE/ARCHITECTURE_INTEGRATION.md) | Integration architecture |
 | [ARCHITECTURE/API_DOCUMENTATION.md](ARCHITECTURE/API_DOCUMENTATION.md) | API reference |
-| [adr/](adr/) | Architecture Decision Records (ADR-022 through ADR-038) |
+| [adr/](adr/) | Architecture Decision Records (ADR-022 through ADR-047) |
 
 ## Status & Validation
 

@@ -326,10 +326,10 @@ python .claude/skills/quality-unit-testing/scripts/analyze-test-quality.py path/
 cargo test --all
 
 # Run clippy
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh clippy --workspace
 
 # Run fmt check
-cargo fmt --all -- --check
+./scripts/code-quality.sh fmt
 ```
 
 ---

@@ -65,8 +65,8 @@ Validation covered docs/contract truth, CI-workflow surface expansion, coverage 
 
 | WG | Focus | Actions | Owners |
 |----|-------|---------|--------|
-| **WG-051** | Durable recommendation attribution | Extend storage traits + Turso schema, add integration tests, surface metrics | feature-implementer + architecture |
-| **WG-052** | Durable checkpoints/handoffs | Persist checkpoint metadata across storage/redb caches, verify resume flows | feature-implementer + architecture |
+| **WG-051** | Durable recommendation attribution | ✅ Complete — Turso/redb storage traits, integration tests, metrics surfaced | feature-implementer + architecture |
+| **WG-052** | Durable checkpoints/handoffs | ✅ Complete — checkpoint metadata persisted across storage/redb, resume flows verified | feature-implementer + architecture |
 | **WG-053** | MCP contract integrity | ✅ Complete — explicit defer decision + parity/tests/docs/plans alignment | memory-mcp + goap-agent |
 | **WG-054** | Docs/CLI/API parity | ✅ Complete — API/README/playbook + plans truth-source refresh verified against parity test and CLI help | documentation |
 | **WG-055** | Required CI coverage | ✅ Complete — CI test scope expanded to workspace nextest + benchmark workflow now covers full bench declarations | github-workflows + test-runner |

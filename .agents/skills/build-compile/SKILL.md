@@ -132,8 +132,8 @@ ldd target/release/memory-mcp
 ```bash
 #!/usr/bin/env bash
 set -euxo pipefail
-cargo fmt --all -- --check
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
 cargo build --release --workspace
 cargo test --all
 cargo doc --no-deps

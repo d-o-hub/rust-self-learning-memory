@@ -337,7 +337,7 @@ Invokes:
 ### Static Analysis
 ```bash
 # Clippy - Rust linter
-cargo clippy --all-targets -- -D warnings
+./scripts/code-quality.sh clippy --workspace
 
 # Check for specific issues
 cargo clippy -- -W clippy::too_many_arguments

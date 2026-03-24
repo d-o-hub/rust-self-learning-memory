@@ -10,7 +10,7 @@
 1. **ACT-080**
    - Goal: WG-054 / WG-058
    - Action: Rewrite `plans/STATUS/*`, `ROADMAPS/ROADMAP_ACTIVE.md`, and `plans/README.md` to reflect 2026-03-24 audit findings (truth-source reset)
-   - Status: In progress (this update)
+   - Status: ✅ Complete (2026-03-24)
 
 2. **ACT-081**
    - Goal: WG-051

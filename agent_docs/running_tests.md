@@ -222,8 +222,8 @@ async fn test_async_operation() {
 The CI pipeline runs:
 1. **Format checks**: `./scripts/code-quality.sh fmt` (or equivalent cargo fmt invocation)
 2. **Linting**: `./scripts/code-quality.sh clippy --workspace` (or equivalent cargo clippy invocation)
-3. **Unit tests**: `cargo test --lib`
-4. **Integration tests**: `cargo test --test '*'`
+3. **Tests**: `cargo nextest run --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils`
+4. **Doctests**: `cargo test --doc`
 5. **Code coverage**: `cargo llvm-cov --html` (threshold: >=90%)
 6. **Security audit**: `cargo audit`
 7. **Benchmarks**: Run on PRs for performance regression detection

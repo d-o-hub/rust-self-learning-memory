@@ -48,7 +48,7 @@ cargo build --workspace --exclude memory-mcp
 ### Clippy Lint Allow-List
 ```bash
 # See new warnings
-cargo clippy --all -- -D warnings | grep "warning:"
+./scripts/code-quality.sh clippy --workspace 2>&1 | grep "warning:"
 
 # Fix: Add #[allow(...)] comments
 ```

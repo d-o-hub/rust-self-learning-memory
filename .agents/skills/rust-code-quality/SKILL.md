@@ -34,8 +34,8 @@ cargo test --all
 cargo tarpaulin --out Html
 
 # Linting
-cargo fmt -- --check
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
 cargo audit
 ```
 

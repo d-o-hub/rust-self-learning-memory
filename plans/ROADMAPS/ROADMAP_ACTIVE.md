@@ -16,7 +16,7 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Upcoming Sprint — v0.1.23 Remediation (In Planning)
+## Upcoming Sprint — v0.1.23 Remediation (Complete)
 
 The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene. Full execution plan: [GOAP_EXECUTION_PLAN_v0.1.23.md](../GOAP_EXECUTION_PLAN_v0.1.23.md).
 

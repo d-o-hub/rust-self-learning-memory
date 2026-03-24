@@ -5,8 +5,8 @@
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-022, ADR-032, ADR-033, ADR-038, ADR-044
-- **Branch**: main
-- **Version**: `0.1.22` (post-release, audit in progress)
+- **Branch**: `remediation/wg051-wg053-durability-contract`
+- **Version**: `0.1.22` (post-release, remediation complete)
 
 ## Phase Status
 

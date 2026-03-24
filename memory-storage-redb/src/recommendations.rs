@@ -1,8 +1,8 @@
 //! Recommendation attribution storage for redb cache
 
 use crate::{
-    RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
-    RECOMMENDATION_SESSIONS_TABLE, RedbStorage, with_db_timeout,
+    with_db_timeout, RedbStorage, RECOMMENDATION_EPISODE_INDEX_TABLE,
+    RECOMMENDATION_FEEDBACK_TABLE, RECOMMENDATION_SESSIONS_TABLE,
 };
 use memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
@@ -178,9 +178,11 @@ impl RedbStorage {
             .collect_postcard_entries::<RecommendationFeedback>(RECOMMENDATION_FEEDBACK_TABLE)
             .await?;
 
-        let mut stats = RecommendationStats::default();
-        stats.total_sessions = sessions.len();
-        stats.total_feedback = feedback.len();
+        let mut stats = RecommendationStats {
+            total_sessions: sessions.len(),
+            total_feedback: feedback.len(),
+            ..RecommendationStats::default()
+        };
 
         let total_recommended: usize = sessions
             .iter()
@@ -277,10 +279,10 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to open table: {}", e)))?;
 
             let mut entries = Vec::new();
-            let mut iter = table
+            let iter = table
                 .iter()
                 .map_err(|e| Error::Storage(format!("Failed to iterate table entries: {}", e)))?;
-            while let Some(result) = iter.next() {
+            for result in iter {
                 let (_key, value) = result
                     .map_err(|e| Error::Storage(format!("Failed to read table entry: {}", e)))?;
                 let entry = postcard::from_bytes(value.value())

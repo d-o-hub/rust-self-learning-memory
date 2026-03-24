@@ -30,8 +30,8 @@ Use the code-quality scripts for all operations.
 
 | Check | Command |
 |-------|---------|
-| Format | `cargo fmt --all -- --check` |
-| Lint | `cargo clippy --all -- -D warnings` |
+| Format | `./scripts/code-quality.sh fmt` |
+| Lint | `./scripts/code-quality.sh clippy --workspace` |
 | Audit | `cargo audit` |
 | Full | `./scripts/quality-gates.sh` |
 | Coverage | `cargo llvm-cov --html --output-dir coverage` |
@@ -44,7 +44,7 @@ Use the code-quality scripts for all operations.
 | Structure | Files <500 LOC, module hierarchy | `find . -name "*.rs" -exec wc -l {} +` |
 | Error Handling | Custom Error, Result<T>, no unwrap | `rg "unwrap()" --glob "*.rs" --glob "!*/tests/*"` |
 | Async Patterns | async fn, spawn_blocking, no blocking | `rg "async fn\|spawn_blocking" --glob "*.rs"` |
-| Testing | >90% coverage, integration tests | `cargo llvm-cov` |
+| Testing | >=90% coverage, integration tests | `./scripts/quality-gates.sh` |
 | Documentation | Public APIs 100% documented | `cargo doc --no-deps` |
 
 ## Rust-Specific Anti-Patterns
@@ -63,7 +63,7 @@ Use the code-quality scripts for all operations.
 - [ ] No unwrap() in production code
 - [ ] async fn for IO operations
 - [ ] spawn_blocking for CPU work
-- [ ] >90% test coverage
+- [ ] >=90% test coverage
 - [ ] Public APIs documented
 - [ ] SOLID principles applied
 - [ ] No code duplication (DRY)

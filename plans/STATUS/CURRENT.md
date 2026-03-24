@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-24 (post-audit remediation in progress; WG-053 complete)
+**Last Updated**: 2026-03-24 (post-audit remediation complete; WG-051 through WG-058 complete)
 **Released Version**: v0.1.22
 **Branch**: `main` (PR #391 merged)
 **PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
@@ -30,10 +30,10 @@
 ### Post-v0.1.22 Audit Findings (2026-03-24)
 
 - **ADR-044 durability** — Recommendation attribution (WG-051) and checkpoint/handoff metadata durability (WG-052) now persist through Turso + redb-backed round-trips, including restart-safe resume metadata.
-- **MCP/CLI contract drift** — Batch tool contract truth is now aligned (WG-053 complete), but CLI/docs still list obsolete commands. (WG-054)
-- **CI/test coverage mismatch** — Required PR workflows only run `--lib` slices and coverage scripts do not enforce ≥90% as stated in AGENTS.md. (WG-055, WG-056)
-- **Disk & DX mismatch** — Local `target/` back to 32 GB, `node_modules/` restored, mold linker guidance stale. (WG-057, WG-058)
-- **Plan/docs drift** — `STATUS/` and `ROADMAPS/` files still declare “all gaps resolved” even though new gaps are open; AGENTS/skills docs lag script-first workflow. (WG-054, WG-058)
+- **MCP/CLI contract drift** — Batch tool contract truth remains aligned (WG-053), and core docs/CLI references were refreshed to runtime/parity truth source in WG-054.
+- **CI/test coverage remediation** — Required CI test scope now runs workspace nextest slices instead of `--lib`-only gates, benchmark workflow surface expanded, and coverage enforcement now fails below configured threshold (default 90). (WG-055/WG-056 complete)
+- **Disk hygiene remediation** — `scripts/clean-artifacts.sh` now supports practical cleanup modes, optional `--node-modules`, coverage artifact cleanup, and `CARGO_TARGET_DIR`-aware paths. (WG-057 complete)
+- **Guidance parity remediation** — AGENTS.md, `agent_docs/`, and relevant `.agents/skills/` now reflect script-first workflow, coverage `>=90%` expectations, and non-mold default linker guidance. (WG-058 complete)
 
 ## Completed Phases
 

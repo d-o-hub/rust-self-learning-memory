@@ -30,26 +30,26 @@ The v0.1.22 sprint successfully shipped its 12 tracked issues, but the latest au
 
 | Gap | Evidence | Impact | Linked WG |
 |-----|----------|--------|-----------|
-| API reference outdated (v0.1.13 + obsolete tools) | `docs/API_REFERENCE.md:1-40`, `memory-mcp/tests/tool_contract_parity.rs` | Developers receive wrong schemas/tool availability | WG-054 |
-| Playbook/checkpoint/feedback docs mention non-existent CLI commands | `docs/PLAYBOOKS_AND_CHECKPOINTS.md:48-92` | CLI onboarding blocked/confusing | WG-054 |
-| README + plans advertise secure code execution + “all gaps closed” despite disabled tool | `README.md:14,60`, `plans/STATUS/CURRENT.md:11-29` | Oversells capability | WG-054 |
-| AGENTS.md/agent_docs/.agents/skills instructions lag behind script/CI reality | `AGENTS.md:29-92`, `.agents/skills/code-quality/SKILL.md` | Contributors follow wrong workflow | WG-058 |
+| ~~API reference outdated (v0.1.13 + obsolete tools)~~ | ✅ Resolved in WG-054 via contract refresh from `memory-mcp/tests/tool_contract_parity.rs`; deferred batch tools explicitly marked absent | Contract index now matches runtime/parity tool list | WG-054 |
+| ~~Playbook/checkpoint/feedback docs mention non-existent CLI commands~~ | ✅ Resolved in WG-054 via `memory-cli --help` aligned command updates (`episode`, `playbook`, `feedback`) | CLI onboarding docs now reflect live command names | WG-054 |
+| ~~README + plans advertise secure code execution + “all gaps closed” despite disabled tool~~ | ✅ Resolved in WG-054 with conditional sandbox wording + status/roadmap truth updates | Reduced overclaiming in top-level docs/plans | WG-054 |
+| ~~AGENTS.md/agent_docs/.agents/skills instructions lag behind script/CI reality~~ | ✅ Resolved 2026-03-24 via AGENTS + agent docs + skills parity refresh (script-first, coverage >=90, disk guidance) | Workflow guidance now matches current scripts and policies | WG-058 |
 
 ### P1 — Validation & Coverage Parity (ADR-033 / ADR-038)
 
 | Gap | Evidence | Impact | Linked WG |
 |-----|----------|--------|-----------|
-| Required PR CI only runs three `--lib` subsets | `.github/workflows/ci.yml:81-90` | Integration regressions slip past required checks | WG-055 |
-| Coverage script never enforces ≥90% target | `scripts/check-coverage.sh:17-82`, `tests/quality_gates.rs:28-34` | Quality gate provides false sense of security | WG-056 |
-| Benchmark workflow runs 4/14 benches | `.github/workflows/benchmarks.yml:155-160`, `benches/Cargo.toml` | Performance regressions undetected | WG-055 |
+| ~~Required PR CI only runs three `--lib` subsets~~ | ✅ Resolved in WG-055: `ci.yml` now runs workspace nextest scope for required test jobs | Wider CI gate now exercises integration surfaces beyond lib-only smoke | WG-055 |
+| ~~Coverage script never enforces ≥90% target~~ | ✅ Resolved in WG-056: `scripts/check-coverage.sh` parses TOTAL coverage and fails below threshold (default 90); `tests/quality_gates.rs` defaults/parsing updated | Coverage gate now provides true failure semantics | WG-056 |
+| ~~Benchmark workflow runs 4/14 benches~~ | ✅ Resolved in WG-055: `benchmarks.yml` dynamically discovers/runs full bench set from `benches/Cargo.toml` | Performance regression coverage expanded to declared bench surface | WG-055 |
 
 ### P2 — Disk / Developer Experience (ADR-032)
 
 | Gap | Evidence | Impact | Linked WG |
 |-----|----------|--------|-----------|
-| `target/` back to 32G locally | `du -sh target` (2026-03-24 audit) | Slow builds, storage pressure | WG-057 |
-| `node_modules/` present (130M) despite ADR claim of removal | `du -sh node_modules` | Confusion over frontend dependencies + disk bloat | WG-057 |
-| Mold linker removal undocumented in plans/skills | `.cargo/config.toml:51-55`, ADR-032 text | Contributors follow wrong guidance | WG-058 |
+| `target/` back to 32G locally | `du -sh target` (2026-03-24 audit) | Addressed with stronger cleanup automation (`scripts/clean-artifacts.sh`) and `CARGO_TARGET_DIR` guidance | WG-057 |
+| `node_modules/` present (130M) despite ADR claim of removal | `du -sh node_modules` | Addressed with explicit optional cleanup mode (`--node-modules`) and documentation of expected local variance | WG-057 |
+| ~~Mold linker removal undocumented in plans/skills~~ | ✅ Resolved 2026-03-24 by removing mold-first guidance from active docs/skills | Guidance now reflects CI-compatible linker defaults | WG-058 |
 
 ---
 
@@ -60,11 +60,11 @@ The v0.1.22 sprint successfully shipped its 12 tracked issues, but the latest au
 | WG-051 | Durable recommendation attribution | storage trait + schema design doc, integration tests, CLI verification |
 | WG-052 | Durable checkpoint/handoff persistence | Turso row serialization updates, resume pipeline tests |
 | WG-053 | MCP contract integrity | ✅ Complete — keep tool-level batch analytics deferred; parity tests + plans/README/API docs aligned |
-| WG-054 | Docs + CLI/API truth source refresh | Rewrite API reference, README, `docs/PLAYBOOKS_AND_CHECKPOINTS.md`, CLI help references |
-| WG-055 | CI/test surface expansion | Update `ci.yml`, `benchmarks.yml`, nightly to cover integration + benches |
-| WG-056 | Coverage enforcement | Update scripts/tests to parse coverage summaries and fail <90% |
-| WG-057 | Disk hygiene automation | Extend `scripts/clean-artifacts.sh`, document `CARGO_TARGET_DIR`, add dev workflow tips |
-| WG-058 | Agent guidance parity | Update AGENTS.md, agent_docs/, `.agents/skills/` to reflect script-first & disk/cov guidance |
+| WG-054 | Docs + CLI/API truth source refresh | ✅ Complete — API reference, README, `docs/PLAYBOOKS_AND_CHECKPOINTS.md`, and plans status files refreshed against parity/CLI help |
+| WG-055 | CI/test surface expansion | ✅ Complete — `ci.yml` test jobs now run workspace nextest scopes; `mcp-build` test scope expanded; `benchmarks.yml` dynamically runs full bench list from `benches/Cargo.toml` |
+| WG-056 | Coverage enforcement | ✅ Complete — `scripts/check-coverage.sh` now parses TOTAL coverage and exits non-zero below threshold (default 90); `tests/quality_gates.rs` threshold/parsing updated with tests |
+| WG-057 | Disk hygiene automation | ✅ Complete — `scripts/clean-artifacts.sh` now supports `--help`, `--node-modules`, `--target-dir`, `--dry-run`, and expanded coverage artifact cleanup |
+| WG-058 | Agent guidance parity | ✅ Complete — AGENTS.md, relevant agent_docs, and relevant `.agents/skills/` aligned to script-first + coverage/disk guidance |
 
 See `plans/GOAP_EXECUTION_PLAN_v0.1.23.md` for phase sequencing and quality gates.
 

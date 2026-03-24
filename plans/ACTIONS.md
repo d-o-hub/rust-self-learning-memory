@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-03-24 (v0.1.23 WG-053 execution complete)
+- **Last Updated**: 2026-03-24 (v0.1.23 WG-054 through WG-058 execution complete)
 - **Related Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
 
 ## Active Actions
@@ -33,27 +33,32 @@
 5. **ACT-084**
    - Goal: WG-054
    - Action: Regenerate API reference, README CLI section, and `docs/PLAYBOOKS_AND_CHECKPOINTS.md` from live code/contracts
-   - Status: Planned
+   - Status: ✅ Complete (2026-03-24 — contract/docs refresh applied across docs + plans)
+   - Evidence: `cargo run -p memory-cli -- --help`, `./scripts/check-docs-integrity.sh`
 
 6. **ACT-085**
    - Goal: WG-055
    - Action: Expand `.github/workflows/ci.yml` + `benchmarks.yml` to run full workspace suites (or documented filter expressions) as required checks
-   - Status: Planned
+   - Status: ✅ Complete (2026-03-24 — CI test jobs now run workspace nextest scope (no `--lib`-only gate), MCP build test scope expanded, benchmark workflow dynamically discovers/runs all benches from `benches/Cargo.toml`)
+   - Evidence: `cargo fmt --all -- --check`, workflow diffs in `ci.yml` + `benchmarks.yml`
 
 7. **ACT-086**
    - Goal: WG-056
    - Action: Enforce ≥90% coverage via `scripts/check-coverage.sh` parsing + `tests/quality_gates.rs` assertions
-   - Status: Planned
+   - Status: ✅ Complete (2026-03-24 — coverage script now parses TOTAL line and fails below threshold; quality gate defaults/parsing tests updated to 90% policy)
+   - Evidence: `cargo nextest run --test quality_gates`, `./scripts/check-coverage.sh --threshold 90 --summary-mode`
 
 8. **ACT-087**
    - Goal: WG-057
    - Action: Enhance `scripts/clean-artifacts.sh`, add dev docs for `CARGO_TARGET_DIR`, and document `node_modules/` expectations per ADR-032
-   - Status: Planned
+   - Status: ✅ Complete (2026-03-24 — added `--help`, `--node-modules`, `--target-dir`, `--dry-run`; expanded coverage artifact cleanup; documented in AGENTS.md + `agent_docs/disk_hygiene.md`)
+   - Evidence: `./scripts/clean-artifacts.sh --help`, `./scripts/check-docs-integrity.sh`
 
 9. **ACT-088**
    - Goal: WG-058
    - Action: Update AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflows, disk guidance, coverage policy
-   - Status: Planned
+   - Status: ✅ Complete (2026-03-24 — aligned AGENTS.md + relevant docs/skills to script-first workflow and coverage >=90 guidance; removed stale mold-first guidance)
+   - Evidence: `./scripts/check-docs-integrity.sh`, `cargo fmt --all -- --check`
 
 ---
 

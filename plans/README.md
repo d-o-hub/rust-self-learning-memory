@@ -1,7 +1,7 @@
 # Plans Directory
 
 **Version**: v0.1.22 (released)  
-**Sprint**: v0.1.23 remediation (planning)  
+**Sprint**: v0.1.23 remediation (WG-051 through WG-058 complete)  
 **Last Updated**: 2026-03-24
 
 ## Quick Navigation

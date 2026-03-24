@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-24 (v0.1.23 WG-053 executed)
+- **Last Updated**: 2026-03-24 (v0.1.23 WG-054 through WG-058 updates executed)
 - **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.23.md`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -15,23 +15,23 @@
 | 1. ANALYZE | ✅ Complete | Audit + ADR review finished (implementation, docs, CI, disk) |
 | 2. DECOMPOSE | ✅ Complete | WGs 051-058 defined in GOALS.md |
 | 3. STRATEGIZE | ✅ Complete | Execution plan v0.1.23 authored |
-| 4. COORDINATE | 🚧 In progress | Owners/skills being assigned per WG |
-| 5. EXECUTE | 🚧 In progress | WG-051 through WG-053 complete; WG-054+ queued |
-| 6. SYNTHESIZE | ⏳ Not started | Will run after remediation work lands |
-| 7. FEEDBACK | ⏳ Not started | Depends on execution + validation rerun |
+| 4. COORDINATE | ✅ Complete | Specialist workstreams coordinated across docs/workflows/scripts/guidance |
+| 5. EXECUTE | ✅ Complete | WG-051 through WG-058 implemented |
+| 6. SYNTHESIZE | ✅ Complete | Validation evidence captured and status/roadmap docs updated |
+| 7. FEEDBACK | 🚧 In progress | Remaining risk tracking moved to blockers/next-sprint notes |
 
-### v0.1.23 Remediation Sprint Progress (2026-03-24)
+### v0.1.23 Remediation Sprint Progress (2026-03-24, post-WG-058)
 
 | WG | Status | Notes |
 |----|--------|-------|
 | WG-051 | ✅ Complete | Turso/redb recommendation tables, storage trait impls, and `tests/attribution_integration_test.rs` persistence validation (`cargo nextest run --test attribution_integration`) |
 | WG-052 | ✅ Complete | Turso `checkpoints` persistence added across CRUD/query/batch + `resume_from_handoff` now persists metadata via storage update path; validated with `cargo nextest run --test checkpoint_integration` and targeted Turso durability tests |
 | WG-053 | ✅ Complete | Decision taken: keep batch tool-level names intentionally deferred; parity tests + docs/plans aligned |
-| WG-054 | 🚧 Planned | Truth-source rewrite pending WG-051 handoff |
-| WG-055 | 🚧 Planned | CI expansion queued after durability fixes |
-| WG-056 | 🚧 Planned | Coverage enforcement tied to WG-055 |
-| WG-057 | 🚧 Planned | Disk hygiene pending durability + CI work |
-| WG-058 | 🚧 Planned | Agent guidance refresh blocked on docs truth sources |
+| WG-054 | ✅ Complete | Truth-source docs refresh applied against MCP parity test + `memory-cli --help` command contract |
+| WG-055 | ✅ Complete | CI test surface expanded from `--lib` slices to workspace scope; benchmark workflow now discovers/runs full bench list from `benches/Cargo.toml` |
+| WG-056 | ✅ Complete | Coverage gate enforcement hardened in `scripts/check-coverage.sh` and `tests/quality_gates.rs` (default threshold 90, parsing tests added) |
+| WG-057 | ✅ Complete | `scripts/clean-artifacts.sh` now supports help/flags, coverage cleanup, optional `--node-modules`, and `CARGO_TARGET_DIR`-aware target cleanup |
+| WG-058 | ✅ Complete | AGENTS/agent_docs/skills aligned to script-first workflow, coverage >=90 guidance, and current linker/disk reality |
 
 Previous phase summaries for v0.1.22 remain below for historical reference.
 

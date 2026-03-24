@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-24 (v0.1.23 remediation in progress; WG-053 complete)
+**Last Updated**: 2026-03-24 (v0.1.23 remediation complete; WG-051 through WG-058 complete)
 **Released Version**: v0.1.22
 **Branch**: `main` (PR #391 merged)
 **PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
@@ -32,21 +32,21 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-054 | Regenerate API reference, README, playbook/checkpoint docs, CLI command tables | 🚧 Planned |
-| WG-058 | Align AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflow + disk/cov guidance | 🚧 Planned |
+| WG-054 | Regenerate API reference, README, playbook/checkpoint docs, CLI command tables | ✅ Complete (2026-03-24) |
+| WG-058 | Align AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflow + disk/cov guidance | ✅ Complete (2026-03-24) |
 
 ### P1: Validation & Coverage Parity
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-055 | Expand PR-required CI workflows to cover integration + CLI/MCP suites, benchmark coverage | 🚧 Planned |
-| WG-056 | Enforce ≥90% coverage threshold in scripts/tests (update `scripts/check-coverage.sh`, `quality_gates.rs`) | 🚧 Planned |
+| WG-055 | Expand PR-required CI workflows to cover integration + CLI/MCP suites, benchmark coverage | ✅ Complete (2026-03-24) |
+| WG-056 | Enforce ≥90% coverage threshold in scripts/tests (update `scripts/check-coverage.sh`, `quality_gates.rs`) | ✅ Complete (2026-03-24) |
 
 ### P2: Disk & Developer Experience
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-057 | Reduce local disk footprint (target/node_modules) + automate cleanup | 🚧 Planned |
+| WG-057 | Reduce local disk footprint (target/node_modules) + automate cleanup | ✅ Complete (2026-03-24) |
 
 ---
 

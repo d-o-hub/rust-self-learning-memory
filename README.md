@@ -11,7 +11,7 @@
 [![Coverage](https://codecov.io/gh/d-o-hub/rust-self-learning-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/d-o-hub/rust-self-learning-memory)
 ![Open Issues](https://img.shields.io/github/issues/d-o-hub/rust-self-learning-memory)
 
-A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and secure code execution sandbox.
+A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and optional sandboxed code execution.
 
 [Overview](#overview) • [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Quality Gates](#quality-gates) • [License](#license)
 
@@ -19,14 +19,14 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 
 ## Overview
 
-The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server with secure code execution. It captures, stores, and learns from episodic experiences to improve future performance.
+The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server. It captures, stores, and learns from episodic experiences to improve future performance.
 
 **Architecture:**
 - **memory-core**: Core memory operations, pattern extraction, and reward scoring
 - **memory-storage-turso**: Primary database storage (libSQL)
 - **memory-storage-redb**: Fast embedded cache layer
 - **memory-mcp**: MCP server with secure WASM sandbox
-- **memory-cli**: Full-featured command-line interface (13 command groups)
+- **memory-cli**: Full-featured command-line interface (episode, pattern, storage, playbook, feedback, and more)
 - **test-utils**: Shared testing utilities
 - **benches**: Comprehensive benchmark suite
 - **examples**: Usage examples and demonstrations
@@ -57,8 +57,8 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Multi-signal ranking: semantic similarity, context match, effectiveness, recency, success rate
 - Minimum success rate filtering (default 70%)
 
-### 🔒 Secure Code Sandbox
-- Wasmtime WASM sandbox for safe code execution
+### 🔒 Secure Code Sandbox (conditional)
+- Wasmtime WASM sandbox for safe code execution when enabled/available
 - Resource limits (timeout, memory, CPU)
 - Defense-in-depth security with access controls
 - Support for concurrent executions (20 parallel by default)
@@ -81,7 +81,7 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - Execution monitoring and metrics tracking
 
 ### 🛠️ Full-Featured CLI
-- 13 command groups: episode, pattern, storage, config, health, backup, monitor, logs, eval, embedding, tag, relationship, completion
+- Top-level command groups include: episode, pattern, storage, config, health, backup, monitor, logs, eval, embedding, completion, tag, relationship, playbook, feedback
 - Episode management (create, list, view, search, complete, delete, update, bulk, filter)
 - Pattern analysis and effectiveness tracking (list, view, analyze, decay, batch)
 - Tag management (add, remove, search, rename, stats)
@@ -233,26 +233,29 @@ Configuration Wizard provides interactive step-by-step setup with sensible defau
 
 ```bash
 # Create an episode
-memory-cli ep create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
+memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
 
 # List episodes
-memory-cli ep list --limit 10
+memory-cli episode list --limit 10
 
 # Search episodes
-memory-cli ep search "authentication" --limit 5
+memory-cli episode search "authentication" --limit 5
 
 # Search patterns semantically
-memory-cli pat search --query "How to build REST API" --limit 5
+memory-cli pattern search --query "How to build REST API" --limit 5
 
 # Analyze patterns
-memory-cli pat list --min-confidence 0.8
+memory-cli pattern list --min-confidence 0.8
 
 # Tag management
-memory-cli tg add <episode-id> "important"
-memory-cli tg search "important"
+memory-cli tag add <episode-id> "important"
+memory-cli tag search "important"
 
 # Health check
-memory-cli hp check
+memory-cli health check
+
+# Playbook recommendation
+memory-cli playbook recommend "Implement JWT auth" --domain security
 ```
 
 #### MCP Server
@@ -295,6 +298,7 @@ async fn main() -> anyhow::Result<()> {
 | Document | Description |
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
+| [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
 | [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |

@@ -1,7 +1,7 @@
-# Codebase Validation — 2026-03-24
+# Codebase Validation — 2026-03-24 (WG-054 through WG-058)
 
-**Validated by**: Read-only repo audit + GOAP coordination
-**Branch**: `main` (HEAD aligned with origin/main)
+**Validated by**: GOAP multi-workstream remediation + local command verification
+**Branch**: `remediation/wg051-wg053-durability-contract` (working tree dirty during remediation)
 **Workspace Version**: `0.1.22`
 **Previous Validation**: 2026-03-20 (v0.1.22 tag readiness)
 
@@ -11,16 +11,20 @@
 
 | Command | Output (abridged) |
 |---------|-------------------|
-| `git status --short --branch` | `## main...origin/main` (clean, `audit-report.json` untracked) |
+| `git status --short --branch` | `## remediation/wg051-wg053-durability-contract...origin/remediation/wg051-wg053-durability-contract` + modified files for WG-054..WG-058 |
 | `du -sh . target node_modules benchmark_results data metrics .git` | `.` = **32G**, `target` = **32G**, `node_modules` = **130M**, `benchmark_results` = 152K, `data` = 1.8M, `metrics` = 12K, `.git` = 23M |
 | `ls plans/adr/ADR-0*.md | wc -l` | 25 ADRs reviewed for constraints (ADR-022/032/033/038/044 most relevant) |
 | `rg -n` (targeted) | Verified attribution/checkpoint persistence gaps and doc drift noted below |
-| `./scripts/code-quality.sh fmt` | ✅ Formatting check passed after new storage modules |
-| `cargo nextest run --test attribution_integration` | ✅ 2 attribution integration tests (durable persistence) |
-| `cargo nextest run --test checkpoint_integration` | ✅ 2 checkpoint/handoff integration tests (including restart durability) |
-| `cargo nextest run -p memory-storage-turso test_store_and_get_episode_persists_checkpoints test_row_to_episode_defaults_missing_checkpoints_to_empty test_get_episodes_batch_preserves_checkpoints` | ✅ 3 targeted Turso durability tests |
+| `cargo run -p memory-cli -- --help` | ✅ Command list confirms current top-level groups: `episode`, `pattern`, `storage`, `config`, `health`, `backup`, `monitor`, `logs`, `eval`, `embedding`, `completion`, `tag`, `relationship`, `playbook`, `feedback` |
+| `./scripts/check-docs-integrity.sh` | ⚠️ Reports many broken links in archived `plans/archive/**` and `plans/STATUS/archive/**`; active docs remain aligned and archived cleanup remains non-blocking |
+| `./scripts/clean-artifacts.sh --help` | ✅ Usage text now documents `quick|standard|full` modes plus `--node-modules`, `--target-dir`, and `--dry-run` |
+| `cargo fmt --all -- --check` | ✅ Passed |
+| `cargo nextest run --test quality_gates` | ✅ Passed (`12 passed, 1 skipped`) |
+| `cargo nextest run --test attribution_integration test_recommendation_persistence_with_storage` | ✅ Passed (Turso-backed recommendation session/feedback reload durability) |
+| `cargo nextest run --test checkpoint_integration test_resume_handoff_metadata_persists_across_storage_reload` | ✅ Passed (Turso-backed checkpoint/handoff metadata durability across reload) |
+| `./scripts/check-coverage.sh --threshold 90 --summary-mode` | ✅ Enforcement works: command exits non-zero with `Measured: 62.00%`, `Coverage check failed: 62.00% < 90%` |
 
-No build/test commands were executed in this validation slice per user request (read-only audit).
+Validation covered docs/contract truth, CI-workflow surface expansion, coverage gate enforcement logic, disk hygiene automation, and Turso durability evidence.
 
 ---
 
@@ -36,20 +40,24 @@ No build/test commands were executed in this validation slice per user request (
 - ✅ **Batch MCP contract aligned (WG-053)**: tool-level batch analytics names remain intentionally absent (`tool_definitions_extended.rs`), parity tests assert non-advertisement + direct-call rejection, and active docs/plans now reflect this deferred state.
 
 ### Documentation & Contract Drift
-- `docs/API_REFERENCE.md` still reports **v0.1.13** / MCP **v2024-11** and documents removed batch tools; it omits ADR-044 tools.
-- `docs/PLAYBOOKS_AND_CHECKPOINTS.md:48-92` and `plans/STATUS/GAP_ANALYSIS_LATEST.md:97-105` reference old CLI subcommands (`feedback add`, `provide_feedback`), but code exposes `record-session`, `record-feedback`, and `record_recommendation_feedback`.
-- `README.md:29-90` advertises “secure code execution sandbox” and “13 command groups” without acknowledging that `execute_agent_code` is disabled (see `plans/STATUS/CURRENT.md:79-83`).
-- `plans/STATUS/VALIDATION_LATEST.md` (previous version) and `plans/ROADMAPS/ROADMAP_ACTIVE.md` still tout “all gaps resolved”, contradicting current audit results.
+- ✅ `docs/API_REFERENCE.md` now reflects current MCP tool contract from `memory-mcp/tests/tool_contract_parity.rs` and explicitly marks deferred batch tools absent.
+- ✅ `docs/PLAYBOOKS_AND_CHECKPOINTS.md` now uses current CLI command families (`memory-cli episode ...`, `memory-cli feedback record-session`, `memory-cli feedback record-feedback`) and current MCP feedback tool naming (`record_recommendation_feedback`).
+- ✅ `README.md` CLI/docs references refreshed to current command groups and less overclaiming wording for conditional sandbox capability.
+- ✅ WG-054 status propagated to GOALS/ACTIONS/GOAP_STATE/ROADMAP/CURRENT/GAP_ANALYSIS/README plan docs.
 
-### Validation Coverage Gaps (ADR-033 & ADR-038)
-- `.github/workflows/ci.yml:81-90` runs `cargo nextest run --profile ci --package <crate> --lib` for only three crates; integration/CLI/MCP tests are not part of required PR checks despite AGENTS.md claims.
-- `scripts/check-coverage.sh:17-82` defaults to **70%** and always prints “Coverage check passed” without parsing actual coverage.
-- `benchmarks.yml:155-160` executes only 4 of 14 declared benches.
+### Validation Coverage & CI Parity (ADR-033 & ADR-038)
+- ✅ `.github/workflows/ci.yml` now runs workspace nextest scope in required test jobs (instead of three `--lib` slices), and `mcp-build` test scope no longer uses `--lib`-only execution.
+- ✅ `.github/workflows/benchmarks.yml` now discovers bench names dynamically from `benches/Cargo.toml` and executes the full declared bench surface (timeout-governed).
+- ✅ `scripts/check-coverage.sh` now enforces threshold by parsing TOTAL coverage and failing below target (default 90).
+- ✅ `tests/quality_gates.rs` now defaults coverage threshold to 90 and includes parsing robustness tests for TOTAL-row coverage extraction.
 
 ### Disk & Developer Experience Gaps (ADR-032)
-- Local `target/` regained **32G** (mostly `incremental/` and `deps/`), conflicting with ADR-032’s “19 GB after cleanup” claim.
-- `node_modules/` (130M) exists despite ADR-032 Phase 6 bullet stating “Removed orphaned node_modules/”.
-- `.cargo/config.toml:51-55` notes that mold linker support was removed, but ADR-032 still claims it is “installed and configured”. Guidance in AGENTS.md / skills does not reflect this.
+- ✅ `scripts/clean-artifacts.sh` now supports practical cleanup automation:
+  - mode help output (`--help`)
+  - optional JS cleanup (`--node-modules`)
+  - explicit target override (`--target-dir`) and `CARGO_TARGET_DIR` awareness
+  - coverage artifact cleanup (`coverage/`, `coverage-html/`, `*.profraw`, `*.profdata`, `lcov.info`, `cobertura.xml`)
+- ✅ AGENTS.md + relevant agent docs/skills now document current disk hygiene reality and remove stale mold-first guidance.
 
 ---
 
@@ -60,11 +68,11 @@ No build/test commands were executed in this validation slice per user request (
 | **WG-051** | Durable recommendation attribution | Extend storage traits + Turso schema, add integration tests, surface metrics | feature-implementer + architecture |
 | **WG-052** | Durable checkpoints/handoffs | Persist checkpoint metadata across storage/redb caches, verify resume flows | feature-implementer + architecture |
 | **WG-053** | MCP contract integrity | ✅ Complete — explicit defer decision + parity/tests/docs/plans alignment | memory-mcp + goap-agent |
-| **WG-054** | Docs/CLI/API parity | Regenerate API reference, README, CLI docs, playbook/feedback docs, plans/STATUS | documentation |
-| **WG-055** | Required CI coverage | Expand CI workflows to cover full workspace tests (or document scoped filtersets) | github-workflows + test-runner |
-| **WG-056** | Coverage gate enforcement | Update scripts/tests to enforce ≥90% threshold (per AGENTS.md) | quality-unit-testing |
-| **WG-057** | Disk hygiene | Automate cleanup + document CARGO_TARGET_DIR guidance, reconcile ADR-032 claims | performance |
-| **WG-058** | Agent guidance parity | Align AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflow + disk/CI reality | agents-update + documentation |
+| **WG-054** | Docs/CLI/API parity | ✅ Complete — API/README/playbook + plans truth-source refresh verified against parity test and CLI help | documentation |
+| **WG-055** | Required CI coverage | ✅ Complete — CI test scope expanded to workspace nextest + benchmark workflow now covers full bench declarations | github-workflows + test-runner |
+| **WG-056** | Coverage gate enforcement | ✅ Complete — script/test coverage thresholds and parsing now enforce <90% failures correctly | quality-unit-testing |
+| **WG-057** | Disk hygiene | ✅ Complete — cleanup script automation + `CARGO_TARGET_DIR` + optional node_modules mode + coverage artifact cleanup | performance |
+| **WG-058** | Agent guidance parity | ✅ Complete — AGENTS.md, relevant agent docs, and relevant skills aligned to script-first, coverage >=90 policy, and disk/linker reality | agents-update + documentation |
 
 All items are scoped and sequenced in `plans/GOAP_EXECUTION_PLAN_v0.1.23.md`.
 

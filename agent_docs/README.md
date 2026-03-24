@@ -13,6 +13,7 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 | 5 | `database_schema.md` | Turso + redb schemas, tables, indexes, relationships |
 | 6 | `service_communication_patterns.md` | Inter-service communication, MCP protocol, async patterns |
 | 7 | `common_friction_points.md` | Friction patterns from session analysis, prevention strategies |
+| 8 | `disk_hygiene.md` | Disk cleanup workflow, `CARGO_TARGET_DIR`, and coverage artifact hygiene |
 
 ## Quick Links
 
@@ -20,7 +21,7 @@ Quick reference for AI coding agents working on this project. Start with `AGENTS
 - **Architecture decisions**: `../plans/adr/`
 - **Active roadmap**: `../plans/ROADMAPS/ROADMAP_ACTIVE.md`
 - **Skills reference**: `../.agents/skills/`
-- **Scripts**: `../scripts/` (build-rust.sh, code-quality.sh, quality-gates.sh, check-docs-integrity.sh, release-manager.sh)
+- **Scripts**: `../scripts/` (build-rust.sh, code-quality.sh, quality-gates.sh, clean-artifacts.sh, check-docs-integrity.sh, release-manager.sh)
 - **Machine-readable context**: `../docs/architecture/context.yaml`
 
 ## Version Policy

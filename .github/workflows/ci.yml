@@ -80,14 +80,13 @@ jobs:
         shell: bash
       - name: Run tests with timeout protection
         run: |
-          # Run library tests for core packages (fast, isolated tests)
-          echo "Running memory-core library tests..."
-          cargo nextest run --profile ci --package memory-core --lib
-          echo "Running memory-storage-turso library tests..."
-          cargo nextest run --profile ci --package memory-storage-turso --lib
-          echo "Running memory-storage-redb library tests..."
-          cargo nextest run --profile ci --package memory-storage-redb --lib
-          echo "Library tests completed successfully"
+          # Run the practical workspace test surface for required CI checks.
+          # Intentionally exclude benches/examples/test-utils from required PR gating
+          # to keep runtime stable while still covering unit + integration tests.
+          cargo nextest run --profile ci --workspace \
+            --exclude memory-benches \
+            --exclude memory-examples \
+            --exclude test-utils
       - name: Upload nextest JUnit (test)
         if: always()
         uses: actions/upload-artifact@v7
@@ -139,7 +138,7 @@ jobs:
       - name: Build and test (default)
         run: |
           timeout 600s cargo build -p memory-mcp || exit 1
-          timeout 600s cargo nextest run --profile ci -p memory-mcp --lib || exit 1
+          timeout 600s cargo nextest run --profile ci -p memory-mcp || exit 1
       - name: Upload nextest JUnit (mcp-build)
         if: always()
         uses: actions/upload-artifact@v7
@@ -190,14 +189,14 @@ jobs:
           # macOS has `gtimeout` from coreutils, or use perl as fallback
           if command -v timeout >/dev/null 2>&1; then
             # Linux with GNU timeout
-            timeout 900s cargo nextest run --profile ci --lib --all
+            timeout 900s cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
           elif command -v gtimeout >/dev/null 2>&1; then
             # macOS with GNU timeout (coreutils)
-            gtimeout 900s cargo nextest run --profile ci --lib --all
+            gtimeout 900s cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
           else
             # macOS fallback: use perl for portable timeout
             # Use -- to separate perl args from command args
-            perl -e 'alarm 900; exec @ARGV' -- cargo nextest run --profile ci --lib --all
+            perl -e 'alarm 900; exec @ARGV' -- cargo nextest run --profile ci --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils
           fi
       - name: Upload nextest JUnit (multi-platform)
         if: always()
@@ -249,8 +248,8 @@ jobs:
           # Use --workspace so Codecov patch status can map PR diff lines correctly.
           # Exclude heavy non-gating crates to keep runtime reasonable.
           timeout 2400s cargo llvm-cov --workspace \
-            --exclude benches \
-            --exclude examples \
+            --exclude memory-benches \
+            --exclude memory-examples \
             --exclude test-utils \
             --lcov --output-path lcov.info --jobs 4
         env:

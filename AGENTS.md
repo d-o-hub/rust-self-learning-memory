@@ -5,6 +5,7 @@
 - **Quality**: `./scripts/code-quality.sh fmt|clippy|audit|check`
 - **Tests**: `cargo nextest run --all` (doctests: `cargo test --doc`)
 - **Quality Gates**: `./scripts/quality-gates.sh`
+- **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
 
 ## Project Overview
 Memory system: Rust/Tokio + Turso + redb + embeddings (OpenAI/Cohere/Ollama/local)
@@ -17,7 +18,7 @@ Always use Skill + CLI first for high-frequency ops:
 |-----------|-------|-----|
 | Build | `build-rust` | `./scripts/build-rust.sh` |
 | Format/Lint | `code-quality` | `./scripts/code-quality.sh` |
-| Tests | `test-runner` | `cargo nextest run --all` |
+| Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
 | Debug | `debug-troubleshoot` | - |
 
 Before task tool: skill? → script? → Skill+CLI? → task tool?
@@ -27,11 +28,12 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 2. Read existing patterns
 3. Add/update tests
 4. `./scripts/code-quality.sh fmt`
-5. `cargo clippy --all -- -D warnings`
+5. `./scripts/code-quality.sh clippy --workspace`
 6. `cargo nextest run -p <crate>`
 7. `cargo nextest run --all`
-8. `./scripts/quality-gates.sh`
-9. `git status` - verify all changes staged
+8. `cargo test --doc`
+9. `./scripts/quality-gates.sh` (coverage threshold is `QUALITY_GATE_COVERAGE_THRESHOLD`, default 90)
+10. `git status` - verify all changes staged
 
 ## Core Invariants (Never Break)
 - **Async**: Tokio everywhere. No blocking (use `spawn_blocking`)
@@ -73,8 +75,8 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 **Use Bash for**:
 - File operations: `cp`, `mv`, `rm`
 - Git commands: `git status`, `git diff`
-- Running scripts: `./scripts/build-rust.sh`
-- Build/test: `cargo build`, `cargo test`
+- Running scripts: `./scripts/*.sh`
+- Running workspace tests: `cargo nextest run --all`, `cargo test --doc`
 
 **Before Bash**: Consider if Grep would be more efficient.
 
@@ -85,10 +87,12 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 4. Never batch incomplete work
 
 ## Required Checks Before Commit
-- [ ] `cargo fmt --all -- --check`
-- [ ] `cargo clippy --workspace --tests -- -D warnings`
-- [ ] `cargo build --all`
+- [ ] `./scripts/code-quality.sh fmt`
+- [ ] `./scripts/code-quality.sh clippy --workspace`
+- [ ] `./scripts/build-rust.sh check`
 - [ ] `cargo nextest run --all`
+- [ ] `cargo test --doc`
+- [ ] `./scripts/quality-gates.sh` (coverage must be `>=90%`, unless threshold explicitly raised)
 - [ ] `git status` - verify all changes staged
 
 ## Git Workflow
@@ -125,10 +129,14 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 | Database | `agent_docs/database_schema.md` |
 | Patterns | `agent_docs/service_communication_patterns.md` |
 | Friction points | `agent_docs/common_friction_points.md` |
+| Disk hygiene | `agent_docs/disk_hygiene.md` |
 | Token efficiency | `agent_docs/token_efficiency.md` |
 | Planning | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
 | ADRs | `plans/adr/` |
 
 ## Disk Space
 - Dev profile: `debug = "line-tables-only"`, deps `debug = false`
-- Linker: Use `mold` on Linux
+- Default artifact path: `target/` (or `$CARGO_TARGET_DIR` when set)
+- For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)
+- Use `./scripts/clean-artifacts.sh standard` for routine cleanup
+- Use `./scripts/clean-artifacts.sh standard --node-modules` only when JS dependencies are not needed locally

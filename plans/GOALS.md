@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-24 (post-WG-052 execution)
+- **Last Updated**: 2026-03-24 (post-WG-054/WG-057/WG-058 updates)
 - **Source ADR**: ADR-037
 - **Status**: Active
 
@@ -25,34 +25,34 @@
    - Status: ✅ Complete — batch tool-level MCP names intentionally deferred (not advertised), parity tests hardened, and docs/plans aligned to contract truth (2026-03-24)
 
 4. **WG-054**: Docs & CLI/API Truth Source Refresh
-   - Priority: P1
-   - Owner: documentation + agents-update
-   - Target: Regenerate API reference, README, CLI command docs, playbook/checkpoint guide, plans/STATUS narratives
-   - Status: Planned
+    - Priority: P1
+    - Owner: documentation + agents-update
+    - Target: Regenerate API reference, README, CLI command docs, playbook/checkpoint guide, plans/STATUS narratives
+    - Status: ✅ Complete — API/CLI truth-source refresh landed for `docs/API_REFERENCE.md`, `docs/PLAYBOOKS_AND_CHECKPOINTS.md`, `README.md`, and WG-054 plan/status files (2026-03-24)
 
 5. **WG-055**: CI/Test Surface Expansion
    - Priority: P1
    - Owner: github-workflows + test-runner
    - Target: Required PR workflows cover full workspace tests (or documented filtersets) + benchmark suite parity
-   - Status: Planned
+   - Status: ✅ Complete — CI workflow test jobs now run workspace nextest coverage (not `--lib`-only slices), MCP tests run beyond lib-only mode, and benchmark workflow dynamically executes the full bench surface from `benches/Cargo.toml` (2026-03-24)
 
 6. **WG-056**: Coverage Enforcement
    - Priority: P1
    - Owner: quality-unit-testing
    - Target: Update scripts/tests to enforce ≥90% coverage target (quality_gates + check-coverage script)
-   - Status: Planned
+   - Status: ✅ Complete — `scripts/check-coverage.sh` now parses TOTAL coverage and fails when below threshold (default 90), and `tests/quality_gates.rs` default threshold + parsing tests were upgraded accordingly (2026-03-24)
 
 7. **WG-057**: Disk Hygiene & Developer Experience
    - Priority: P2
    - Owner: performance + build-compile
    - Target: Automate `target/` cleanup, document `CARGO_TARGET_DIR` usage, reconcile ADR-032 claims, track `node_modules/`
-   - Status: Planned
+   - Status: ✅ Complete — `scripts/clean-artifacts.sh` now supports practical modes, optional `--node-modules`, `--help`, coverage-artifact cleanup, and `CARGO_TARGET_DIR`-aware cleanup (2026-03-24)
 
 8. **WG-058**: Agent Guidance Alignment
    - Priority: P2
    - Owner: agents-update + documentation
    - Target: Update AGENTS.md, agent_docs/, `.agents/skills/` to reflect script-first workflow, disk guidance, coverage policy
-   - Status: Planned
+   - Status: ✅ Complete — AGENTS.md, relevant `agent_docs/`, and relevant `.agents/skills/` aligned to script-first workflow, coverage >=90 guidance, and current linker/disk reality (2026-03-24)
 
 ---
 

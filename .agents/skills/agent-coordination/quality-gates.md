@@ -129,8 +129,8 @@ Loop Agent Execution:
 
 | Gate | Command | Threshold |
 |------|---------|-----------|
-| Format | `cargo fmt --check` | 0 violations |
-| Clippy | `cargo clippy -- -D warnings` | 0 warnings |
+| Format | `./scripts/code-quality.sh fmt` | 0 violations |
+| Clippy | `./scripts/code-quality.sh clippy --workspace` | 0 warnings |
 | Tests | `cargo nextest run` | 100% pass |
 | Coverage | `cargo tarpaulin` | ≥90% |
 | Docs | `cargo doc` | No warnings |

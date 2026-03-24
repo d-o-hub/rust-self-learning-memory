@@ -201,13 +201,12 @@ All clippy warnings have been resolved using 2025 best practices:
 ```
 === Quality Gate: Code Formatting ===
 Threshold: 100% rustfmt compliant
-Running cargo fmt --check...
+Running formatting check...
 ✅ Formatting gate PASSED: All code properly formatted
 ```
 
 **If Failed:**
-- Run `cargo fmt --all` to auto-format code
-- Verify with `cargo fmt --all -- --check`
+- Run `./scripts/code-quality.sh fmt` to auto-format code
 
 ### Performance Gate
 

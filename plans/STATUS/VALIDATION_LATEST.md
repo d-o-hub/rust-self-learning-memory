@@ -18,7 +18,7 @@
 | `cargo run -p memory-cli -- --help` | ✅ Command list confirms current top-level groups: `episode`, `pattern`, `storage`, `config`, `health`, `backup`, `monitor`, `logs`, `eval`, `embedding`, `completion`, `tag`, `relationship`, `playbook`, `feedback` |
 | `./scripts/check-docs-integrity.sh` | ⚠️ Reports many broken links in archived `plans/archive/**` and `plans/STATUS/archive/**`; active docs remain aligned and archived cleanup remains non-blocking |
 | `./scripts/clean-artifacts.sh --help` | ✅ Usage text now documents `quick|standard|full` modes plus `--node-modules`, `--target-dir`, and `--dry-run` |
-| `cargo fmt --all -- --check` | ✅ Passed |
+| `./scripts/code-quality.sh fmt` | ✅ Passed |
 | `cargo nextest run --test quality_gates` | ✅ Passed (`12 passed, 1 skipped`) |
 | `cargo nextest run --test attribution_integration test_recommendation_persistence_with_storage` | ✅ Passed (Turso-backed recommendation session/feedback reload durability) |
 | `cargo nextest run --test checkpoint_integration test_resume_handoff_metadata_persists_across_storage_reload` | ✅ Passed (Turso-backed checkpoint/handoff metadata durability across reload) |

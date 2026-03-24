@@ -338,8 +338,8 @@ The project maintains high quality standards through automated quality gates:
 | Gate | Threshold | Description |
 |------|-----------|-------------|
 | **Build** | 0 errors | `cargo build --all` |
-| **Linting** | 0 warnings | `cargo clippy --workspace --tests -- -D warnings` |
-| **Formatting** | 100% | `cargo fmt --all -- --check` |
+| **Linting** | 0 warnings | `./scripts/code-quality.sh clippy --workspace` |
+| **Formatting** | 100% | `./scripts/code-quality.sh fmt` |
 | **Tests** | All pass | `cargo nextest run --all` |
 | **File Size** | ≤500 LOC | Production source files only |
 | **Security** | 0 vulns | `cargo audit` in CI |

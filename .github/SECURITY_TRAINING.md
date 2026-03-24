@@ -155,10 +155,10 @@ fn broken_function( {
 
 **Checks Performed** (in order):
 
-1. **Code Formatting** (`cargo fmt --check`)
+1. **Code Formatting** (`./scripts/code-quality.sh fmt`)
    - Auto-fixes if issues found
 
-2. **Clippy Lints** (`cargo clippy -- -D warnings`)
+2. **Clippy Lints** (`./scripts/code-quality.sh clippy --workspace`)
    - Blocks commit if warnings found
 
 3. **Security Audit** (`cargo audit`)
@@ -395,7 +395,7 @@ git commit -m "feat: add feature"
 # → ❌ Clippy found issues. Fix them before committing.
 
 # 2. Run Clippy manually to see details
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh clippy --workspace
 
 # 3. Fix the issues in your code
 vim src/lib.rs
@@ -524,9 +524,9 @@ unsafe {
 
 1. **Run security tools locally before committing**
    ```bash
-   cargo fmt --all
-   cargo clippy --all -- -D warnings
-   cargo test --all
+   ./scripts/code-quality.sh fmt
+   ./scripts/code-quality.sh clippy --workspace
+   cargo nextest run --all
    cargo audit
    cargo deny check
    ```

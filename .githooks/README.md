@@ -21,8 +21,8 @@ chmod +x .githooks/pre-push
 
 Runs before every commit to ensure code quality:
 
-- **Code Formatting**: Runs `cargo fmt --check` and auto-formats if needed
-- **Clippy Linting**: Runs `cargo clippy -- -D warnings`
+- **Code Formatting**: Runs `./scripts/code-quality.sh fmt` and auto-formats if needed
+- **Clippy Linting**: Runs `./scripts/code-quality.sh clippy --workspace`
 - **Unit Tests**: Runs `cargo test --lib --bins` to verify tests pass
 
 **Bypass** (not recommended): `git commit --no-verify`
@@ -73,8 +73,8 @@ chmod +x .githooks/pre-push
 
 Run the checks manually:
 ```bash
-cargo fmt --all -- --check
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
 cargo test --lib --bins
 ```
 

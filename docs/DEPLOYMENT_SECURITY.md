@@ -40,7 +40,7 @@ This guide provides comprehensive security hardening procedures for deploying th
 
 - [ ] **Zero Clippy Warnings**
   ```bash
-  cargo clippy --all -- -D warnings
+  ./scripts/code-quality.sh clippy --workspace
   ```
 
 - [ ] **Security Audit Pass**

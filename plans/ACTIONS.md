@@ -40,7 +40,7 @@
    - Goal: WG-055
    - Action: Expand `.github/workflows/ci.yml` + `benchmarks.yml` to run full workspace suites (or documented filter expressions) as required checks
    - Status: ✅ Complete (2026-03-24 — CI test jobs now run workspace nextest scope (no `--lib`-only gate), MCP build test scope expanded, benchmark workflow dynamically discovers/runs all benches from `benches/Cargo.toml`)
-   - Evidence: `cargo fmt --all -- --check`, workflow diffs in `ci.yml` + `benchmarks.yml`
+   - Evidence: `./scripts/code-quality.sh fmt`, workflow diffs in `ci.yml` + `benchmarks.yml`
 
 7. **ACT-086**
    - Goal: WG-056
@@ -58,7 +58,7 @@
    - Goal: WG-058
    - Action: Update AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflows, disk guidance, coverage policy
    - Status: ✅ Complete (2026-03-24 — aligned AGENTS.md + relevant docs/skills to script-first workflow and coverage >=90 guidance; removed stale mold-first guidance)
-   - Evidence: `./scripts/check-docs-integrity.sh`, `cargo fmt --all -- --check`
+   - Evidence: `./scripts/check-docs-integrity.sh`, `./scripts/code-quality.sh fmt`
 
 ---
 

@@ -32,8 +32,8 @@
 
 5. **Run Tests**
    ```bash
-   cargo fmt --all -- --check
-   cargo clippy --all -- -D warnings
+   ./scripts/code-quality.sh fmt
+   ./scripts/code-quality.sh clippy --workspace
    cargo nextest run --all  # preferred over cargo test
    cargo test --doc --all   # doctests require cargo test
    ```

@@ -106,8 +106,8 @@ agent: loop-agent
 max_iterations: 5
 quality_gates:
   - cargo test
-  - cargo clippy -- -D warnings
-  - cargo fmt --check
+  - ./scripts/code-quality.sh clippy --workspace
+  - ./scripts/code-quality.sh fmt
 on_failure: refine_and_retry
 on_success: complete
 ```

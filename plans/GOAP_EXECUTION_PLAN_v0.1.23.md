@@ -17,8 +17,8 @@
 ## Quality Gates
 
 - `git status --short --branch`
-- `cargo fmt --all -- --check`
-- `./scripts/code-quality.sh clippy`
+- `./scripts/code-quality.sh fmt`
+- `./scripts/code-quality.sh clippy --workspace`
 - `cargo test --doc`
 - `cargo nextest run --all`
 - `cargo llvm-cov nextest --all --summary-only`

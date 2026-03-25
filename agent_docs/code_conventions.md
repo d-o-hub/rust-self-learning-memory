@@ -336,6 +336,6 @@ let result = {
 1. Check docs.rs for breaking changes
 2. Run `cargo build` to identify errors
 3. Fix imports and API changes
-4. Run `cargo clippy --all -- -D warnings`
+4. Run `./scripts/code-quality.sh clippy --workspace`
 5. Run `cargo nextest run --all`
 6. Run `./scripts/quality-gates.sh`

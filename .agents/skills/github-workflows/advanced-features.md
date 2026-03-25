@@ -483,13 +483,6 @@ env:
   CARGO_PROFILE_DEV_DEBUG: 0  # Disable debug info for faster builds
 ```
 
-### 4. Faster Linker (Linux)
+### 4. Linker Notes (Linux)
 
-```yaml
-- name: Install mold linker
-  if: runner.os == 'Linux'
-  run: |
-    sudo apt-get update
-    sudo apt-get install -y mold
-    echo 'RUSTFLAGS="-C link-arg=-fuse-ld=mold"' >> $GITHUB_ENV
-```
+`mold` is **not** part of the default project guidance. Current `.cargo/config.toml` uses CI-compatible linker defaults. Only add a custom linker if profiling shows link time is a bottleneck.

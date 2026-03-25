@@ -1,4 +1,7 @@
 use async_trait::async_trait;
+use memory_core::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
 use memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
 use uuid::Uuid;
 
@@ -98,5 +101,38 @@ impl StorageBackend for RedbStorage {
     ) -> Result<bool> {
         self.relationship_exists(from_episode_id, to_episode_id, relationship_type)
             .await
+    }
+
+    async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
+        RedbStorage::store_recommendation_session(self, session).await
+    }
+
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        RedbStorage::get_recommendation_session(self, session_id).await
+    }
+
+    async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        RedbStorage::get_recommendation_session_for_episode(self, episode_id).await
+    }
+
+    async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        RedbStorage::store_recommendation_feedback(self, feedback).await
+    }
+
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        RedbStorage::get_recommendation_feedback(self, session_id).await
+    }
+
+    async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
+        RedbStorage::get_recommendation_stats(self).await
     }
 }

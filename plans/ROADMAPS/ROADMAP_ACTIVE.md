@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all 12 issues closed)
+**Last Updated**: 2026-03-24 (v0.1.23 remediation complete; WG-051 through WG-058 complete)
 **Released Version**: v0.1.22
 **Branch**: `main` (PR #391 merged)
 **PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
@@ -13,6 +13,40 @@
 v0.1.22 sprint COMPLETE. All 12 GitHub issues closed. All quality gates passing. PR #391 merged to main. All research phases (1–4), infrastructure work, and ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are fully complete and polished.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
+
+---
+
+## Upcoming Sprint — v0.1.23 Remediation (Complete)
+
+The 2026-03-24 audit reopened several items. The new sprint focuses on truth-source reset, ADR-044 durability, CI/test parity, and disk/DX hygiene. Full execution plan: [GOAP_EXECUTION_PLAN_v0.1.23.md](../GOAP_EXECUTION_PLAN_v0.1.23.md).
+
+### P0: Feature Integrity (ADR-044)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-051 | Persist recommendation sessions + feedback via storage traits and schema updates | ✅ Complete (2026-03-24) | 51 |
+| WG-052 | Persist checkpoints/handoffs across Turso/redb read paths | ✅ Complete (2026-03-24) | 52 |
+| WG-053 | Decide/implement batch MCP tool strategy + align status/docs | ✅ Complete (2026-03-24) | 53 |
+
+### P1: Documentation & Contract Truth Sources
+
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-054 | Regenerate API reference, README, playbook/checkpoint docs, CLI command tables | ✅ Complete (2026-03-24) |
+| WG-058 | Align AGENTS.md, agent_docs/, `.agents/skills/` with script-first workflow + disk/cov guidance | ✅ Complete (2026-03-24) |
+
+### P1: Validation & Coverage Parity
+
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-055 | Expand PR-required CI workflows to cover integration + CLI/MCP suites, benchmark coverage | ✅ Complete (2026-03-24) |
+| WG-056 | Enforce ≥90% coverage threshold in scripts/tests (update `scripts/check-coverage.sh`, `quality_gates.rs`) | ✅ Complete (2026-03-24) |
+
+### P2: Disk & Developer Experience
+
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-057 | Reduce local disk footprint (target/node_modules) + automate cleanup | ✅ Complete (2026-03-24) |
 
 ---
 
@@ -118,6 +152,6 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 - **Current status**: [STATUS/CURRENT.md](../STATUS/CURRENT.md)
 - **Gap analysis**: [STATUS/GAP_ANALYSIS_LATEST.md](../STATUS/GAP_ANALYSIS_LATEST.md)
-- **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
+- **Execution plans**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md), [GOAP_EXECUTION_PLAN_v0.1.23.md](../GOAP_EXECUTION_PLAN_v0.1.23.md)
 - **Long-term vision**: [ROADMAP_V030_VISION.md](ROADMAP_V030_VISION.md)
 - **ADRs**: [adr/](../adr/)

@@ -8,7 +8,6 @@ use crate::memory::SelfLearningMemory;
 use crate::memory::pattern_search::PatternSearchResult;
 use crate::pattern::Heuristic;
 use chrono::Utc;
-use std::sync::Arc;
 use tracing::{info, instrument, warn};
 use uuid::Uuid;
 
@@ -151,38 +150,33 @@ pub async fn resume_from_handoff(
         )
         .await;
 
-    // Store handoff context in episode metadata
-    {
-        let mut episodes = memory.episodes_fallback.write().await;
-        if let Some(episode_arc) = episodes.get(&new_episode_id) {
-            let mut episode = (**episode_arc).clone();
-            episode.metadata.insert(
-                "resumed_from_checkpoint".to_string(),
-                handoff.checkpoint_id.to_string(),
-            );
-            episode.metadata.insert(
-                "resumed_from_episode".to_string(),
-                handoff.episode_id.to_string(),
-            );
-            episode.metadata.insert(
-                "what_worked".to_string(),
-                serde_json::to_string(&handoff.what_worked).unwrap_or_default(),
-            );
-            episode.metadata.insert(
-                "what_failed".to_string(),
-                serde_json::to_string(&handoff.what_failed).unwrap_or_default(),
-            );
-            episode.metadata.insert(
-                "salient_facts".to_string(),
-                serde_json::to_string(&handoff.salient_facts).unwrap_or_default(),
-            );
-            episode.metadata.insert(
-                "suggested_next_steps".to_string(),
-                serde_json::to_string(&handoff.suggested_next_steps).unwrap_or_default(),
-            );
-            episodes.insert(new_episode_id, Arc::new(episode));
-        }
-    }
+    // Store handoff context in episode metadata using normal update path
+    let mut episode = memory.get_episode(new_episode_id).await?;
+    episode.metadata.insert(
+        "resumed_from_checkpoint".to_string(),
+        handoff.checkpoint_id.to_string(),
+    );
+    episode.metadata.insert(
+        "resumed_from_episode".to_string(),
+        handoff.episode_id.to_string(),
+    );
+    episode.metadata.insert(
+        "what_worked".to_string(),
+        serde_json::to_string(&handoff.what_worked).unwrap_or_default(),
+    );
+    episode.metadata.insert(
+        "what_failed".to_string(),
+        serde_json::to_string(&handoff.what_failed).unwrap_or_default(),
+    );
+    episode.metadata.insert(
+        "salient_facts".to_string(),
+        serde_json::to_string(&handoff.salient_facts).unwrap_or_default(),
+    );
+    episode.metadata.insert(
+        "suggested_next_steps".to_string(),
+        serde_json::to_string(&handoff.suggested_next_steps).unwrap_or_default(),
+    );
+    memory.update_episode_full(&episode).await?;
 
     info!(new_episode_id = %new_episode_id, "Created new episode for resumption");
 

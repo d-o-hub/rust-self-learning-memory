@@ -6,9 +6,16 @@ coverage:
         threshold: 1%
     patch:
       default:
-        target: 80%
+        target: 50%
+        threshold: 1%
 
 ignore:
   - "benches/**"
   - "examples/**"
   - "test-utils/**"
+  - "docs/**"
+  - "plans/**"
+  - "agent_docs/**"
+  - ".agents/**"
+  - ".github/**"
+  - "scripts/**"

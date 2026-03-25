@@ -1890,6 +1890,7 @@ dependencies = [
  "chrono",
  "futures",
  "governor",
+ "libsql",
  "memory-core",
  "memory-mcp",
  "memory-storage-redb",

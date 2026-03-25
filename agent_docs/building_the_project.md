@@ -1,18 +1,23 @@
 # Building the Project
 
-## Core Build Commands
+## Core Build Commands (Script-First)
 
 ### Quick Build & Test
 ```bash
 # Build all workspace members
-cargo build --all
+./scripts/build-rust.sh dev
 
-# Run all tests
-cargo test --all
+# Run all tests (nextest + doctests)
+cargo nextest run --all
+cargo test --doc
 
-# Combined build and test
-cargo build --all && cargo test --all
+# Combined quality flow
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
+./scripts/build-rust.sh check
 ```
+
+> Prefer wrappers in `./scripts/` for CI parity. Use raw `cargo` commands only when wrappers do not cover a specific case.
 
 ### Feature Flags
 
@@ -47,19 +52,19 @@ cd memory-core && cargo build --features openai
 ### Release Build
 ```bash
 # Optimized release build (LTO enabled, single codegen unit)
-cargo build --release --workspace
+./scripts/build-rust.sh release
 
 # Release with specific features
 cargo build --release --features "openai"
 
 # Check release build
-cargo build --release --workspace --all-targets
+./scripts/build-rust.sh check
 ```
 
 ### Development Build
 ```bash
 # Build with debug info and all features
-cargo build --all-features --workspace
+./scripts/build-rust.sh dev
 
 # Build specific crate
 cd memory-core && cargo build
@@ -131,24 +136,27 @@ cargo nextest run --all
 
 # Run doctests
 cargo test --doc
+
+# Full local gates (includes coverage threshold checks)
+./scripts/quality-gates.sh
 ```
 
 ## Build Targets
 
-- **Debug**: `cargo build`
-- **Release**: `cargo build --release` (optimized with LTO)
-- **All Features**: `cargo build --all-features`
-- **Check Only**: `cargo check` (faster, no binaries)
+- **Debug**: `./scripts/build-rust.sh dev`
+- **Release**: `./scripts/build-rust.sh release` (optimized with LTO)
+- **All Features**: use raw cargo when needed (`cargo build --all-features`)
+- **Check Only**: `./scripts/build-rust.sh check` (faster, no binaries)
 - **Doc Only**: `cargo doc --no-deps`
 
 ## Troubleshooting
 
 ### Common Build Issues
 1. **Missing dependencies**: Run `cargo update`
-2. **Format errors**: Run `cargo fmt --all`
+2. **Format errors**: Run `./scripts/code-quality.sh fmt`
 3. **Clippy warnings**:
-   - Run `cargo clippy --all -- -D warnings` to see warnings
-   - Apply fixes: `cargo clippy --fix --allow-dirty`
+   - Run `./scripts/code-quality.sh clippy --workspace` to see warnings
+   - Apply fixes: `./scripts/code-quality.sh clippy --fix`
    - For intentional violations, add `#[allow(...)]` with justification
    - See [CLAUDE.md](../CLAUDE.md) for recent changes and best practices
 4. **Test failures**: Check [TESTING.md](../TESTING.md) for debugging
@@ -170,19 +178,24 @@ cargo test --doc
 After building, verify with:
 ```bash
 # Format check
-cargo fmt -- --check
+./scripts/code-quality.sh fmt
 
 # Clippy check (zero warnings required)
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh clippy --workspace
 
 # Build check
-cargo build --all
+./scripts/build-rust.sh check
 
 # Test check
-cargo test --all
+cargo nextest run --all
+cargo test --doc
+
+# Coverage + integrated quality gates (default threshold: 90%)
+./scripts/quality-gates.sh
 
 # Documentation check
 cargo doc --no-deps
+```
 
 ## Disk Space Optimization
 
@@ -196,25 +209,27 @@ debug = "line-tables-only"  # Faster builds, smaller binaries
 debug = false  # Don't debug info for dependencies
 ```
 
-### Linker Optimization (Linux)
-Use `mold` linker for faster builds:
-```bash
-# Install mold
-cargo install mold
-
-# Add to .cargo/config.toml
-[build]
-rustflags = ["-C", "linker=mold"]
-```
-
 ### Cleanup Commands
 ```bash
-# Clean build artifacts
-cargo clean
+# Routine cleanup (recommended)
+./scripts/clean-artifacts.sh standard
 
-# Remove target directory completely
-rm -rf target/
+# Fast cleanup for daily iteration
+./scripts/clean-artifacts.sh quick
 
-# Clean specific crate
-cargo clean -p memory-core
+# Full reset (includes cargo clean)
+./scripts/clean-artifacts.sh full
+
+# Optional: include JS dependency cleanup
+./scripts/clean-artifacts.sh standard --node-modules
+```
+
+### Offloading Artifacts with `CARGO_TARGET_DIR`
+
+```bash
+# Build using external target directory
+CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/build-rust.sh dev
+
+# Clean that same target directory
+CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/clean-artifacts.sh standard
 ```

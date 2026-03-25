@@ -176,8 +176,8 @@ cargo test --lib
 cargo test --lib -- --nocapture
 
 # Check code quality
-cargo clippy --all -- -D warnings
-cargo fmt --all -- --check
+./scripts/code-quality.sh clippy --workspace
+./scripts/code-quality.sh fmt
 ```
 
 ## Success Criteria

@@ -59,13 +59,23 @@ inherits = "dev"
 debug = true                  # Full debug when needed: --profile debugging
 ```
 
-**Linker**: Use `mold` on Linux for 2-5x faster link times:
-```toml
-[target.'cfg(target_os = "linux")']
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+`mold` is **not** part of the default project guidance anymore. Current `.cargo/config.toml` keeps CI-compatible linker flags.
+
+**Cleanup (preferred)**:
+
+```bash
+./scripts/clean-artifacts.sh quick
+./scripts/clean-artifacts.sh standard
+./scripts/clean-artifacts.sh full
+./scripts/clean-artifacts.sh standard --node-modules
 ```
 
-**Cleanup**: `cargo clean` or `./scripts/clean-artifacts.sh`
+**Artifact offloading** with `CARGO_TARGET_DIR`:
+
+```bash
+CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/build-rust.sh dev
+CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/clean-artifacts.sh standard
+```
 
 ## Common Issues
 

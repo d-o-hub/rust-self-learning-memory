@@ -13,6 +13,7 @@ memory-storage-turso = { path = "../memory-storage-turso" }
 memory-storage-redb = { path = "../memory-storage-redb" }
 # memory-mcp: Enable wasmtime-backend for MCP tests
 memory-mcp = { path = "../memory-mcp", features = ["wasmtime-backend"] }
+libsql = { workspace = true }
 
 # Optional: Enable for embedding-specific tests only
 # memory-core = { path = "../memory-core", features = ["local-embeddings", "openai"] }

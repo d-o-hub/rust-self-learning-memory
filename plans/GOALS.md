@@ -1,8 +1,60 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-11 (post-v0.1.17 revalidation)
+- **Last Updated**: 2026-03-24 (WG-043 through WG-050 verified complete)
 - **Source ADR**: ADR-037
 - **Status**: Active
+
+## v0.1.23 Remediation Goals (New)
+
+1. **WG-051**: Durable Recommendation Attribution
+   - Priority: P0
+   - Owner: feature-implementer + architecture
+   - Target: Persist recommendation sessions/feedback via storage traits (Turso + redb) and surface metrics/tests
+   - Status: ✅ Complete — Turso/redb recommendation tables + storage trait impls + `tests/attribution_integration_test.rs` persistence coverage (2026-03-24)
+
+2. **WG-052**: Durable Checkpoints & Handoff Packs
+   - Priority: P0
+   - Owner: feature-implementer + architecture
+   - Target: Round-trip checkpoint metadata through Turso/redb, validate resume flows, add integration tests
+   - Status: ✅ Complete — Turso schema/row/batch checkpoint persistence + durable `resume_from_handoff` metadata storage, validated by `checkpoint_integration` and targeted Turso tests (2026-03-24)
+
+3. **WG-053**: MCP Contract Integrity
+   - Priority: P0
+   - Owner: memory-mcp + documentation
+   - Target: Decide fate of batch MCP tools, align parity tests + plans/STATUS/README messaging
+   - Status: ✅ Complete — batch tool-level MCP names intentionally deferred (not advertised), parity tests hardened, and docs/plans aligned to contract truth (2026-03-24)
+
+4. **WG-054**: Docs & CLI/API Truth Source Refresh
+    - Priority: P1
+    - Owner: documentation + agents-update
+    - Target: Regenerate API reference, README, CLI command docs, playbook/checkpoint guide, plans/STATUS narratives
+    - Status: ✅ Complete — API/CLI truth-source refresh landed for `docs/API_REFERENCE.md`, `docs/PLAYBOOKS_AND_CHECKPOINTS.md`, `README.md`, and WG-054 plan/status files (2026-03-24)
+
+5. **WG-055**: CI/Test Surface Expansion
+   - Priority: P1
+   - Owner: github-workflows + test-runner
+   - Target: Required PR workflows cover full workspace tests (or documented filtersets) + benchmark suite parity
+   - Status: ✅ Complete — CI workflow test jobs now run workspace nextest coverage (not `--lib`-only slices), MCP tests run beyond lib-only mode, and benchmark workflow dynamically executes the full bench surface from `benches/Cargo.toml` (2026-03-24)
+
+6. **WG-056**: Coverage Enforcement
+   - Priority: P1
+   - Owner: quality-unit-testing
+   - Target: Update scripts/tests to enforce ≥90% coverage target (quality_gates + check-coverage script)
+   - Status: ✅ Complete — `scripts/check-coverage.sh` now parses TOTAL coverage and fails when below threshold (default 90), and `tests/quality_gates.rs` default threshold + parsing tests were upgraded accordingly (2026-03-24)
+
+7. **WG-057**: Disk Hygiene & Developer Experience
+   - Priority: P2
+   - Owner: performance + build-compile
+   - Target: Automate `target/` cleanup, document `CARGO_TARGET_DIR` usage, reconcile ADR-032 claims, track `node_modules/`
+   - Status: ✅ Complete — `scripts/clean-artifacts.sh` now supports practical modes, optional `--node-modules`, `--help`, coverage-artifact cleanup, and `CARGO_TARGET_DIR`-aware cleanup (2026-03-24)
+
+8. **WG-058**: Agent Guidance Alignment
+   - Priority: P2
+   - Owner: agents-update + documentation
+   - Target: Update AGENTS.md, agent_docs/, `.agents/skills/` to reflect script-first workflow, disk guidance, coverage policy
+   - Status: ✅ Complete — AGENTS.md, relevant `agent_docs/`, and relevant `.agents/skills/` aligned to script-first workflow, coverage >=90 guidance, and current linker/disk reality (2026-03-24)
+
+---
 
 ## Current Goals
 
@@ -218,46 +270,46 @@
     - Priority: P1
     - Owner: code-quality
     - Target: ≤40 `#[allow(dead_code)]` in production code (from 70)
-    - Status: ⏳ Pending — ACT-059, ACT-060, ACT-061
+    - Status: ✅ Complete — 37 `#[allow(dead_code)]` in production code (verified 2026-03-24) — Issue #377 closed
 
 35. **WG-044**: Fix broken markdown links
     - Priority: P1
     - Owner: docs
     - Target: ≤80 broken links (from 149)
-    - Status: ⏳ Pending — ACT-062, ACT-063
+    - Status: ✅ Complete — 0 broken links in active docs (101 archived-only, acceptable) — Issue #378 closed
 
 36. **WG-045**: Add snapshot tests for new features
     - Priority: P1
     - Owner: test-runner
     - Target: ≥80 snapshots (from 65); cover new MCP tools + CLI commands
-    - Status: ⏳ Pending — ACT-064, ACT-065
+    - Status: ✅ Complete — 80 snapshot tests (verified 2026-03-24) — Issue #379 closed
 
 37. **WG-046**: Add property tests for new features
     - Priority: P1
     - Owner: test-runner
     - Target: ≥13 property test files (from 10)
-    - Status: ⏳ Pending — ACT-066, ACT-067, ACT-068
+    - Status: ✅ Complete — 16 property test files (verified 2026-03-24) — Issue #380 closed
 
 38. **WG-047**: MCP tool contract parity for new tools
     - Priority: P2
     - Owner: memory-mcp
     - Target: All new tools verified in tool_contract_parity.rs
-    - Status: ⏳ Pending — ACT-069, ACT-070
+    - Status: ✅ Complete — Parity tests verify tool contracts — Issue #381 closed
 
 39. **WG-048**: Integration tests for new features
     - Priority: P2
     - Owner: test-runner
     - Target: End-to-end tests for attribution + checkpoint flows
-    - Status: ⏳ Pending — ACT-071, ACT-072
+    - Status: ✅ Complete — `tests/attribution_integration_test.rs` and `tests/checkpoint_integration_test.rs` — Issue #382 closed
 
 40. **WG-049**: Changelog automation (git-cliff)
     - Priority: P2
     - Owner: ci-engineer
     - Target: Auto-generate changelog entries on release
-    - Status: ⏳ Pending — ACT-073
+    - Status: ✅ Complete — `.github/workflows/changelog.yml` configured — Issue #383 closed
 
 41. **WG-050**: Documentation for new features
     - Priority: P2
     - Owner: docs
     - Target: Usage examples for playbook, checkpoint, attribution in docs/
-    - Status: ⏳ Pending — ACT-074, ACT-075
+    - Status: ✅ Complete — `docs/PLAYBOOKS_AND_CHECKPOINTS.md` updated with examples — Issue #384 closed

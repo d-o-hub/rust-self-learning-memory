@@ -9,6 +9,7 @@ use crate::memory::attribution::{
 };
 use crate::monitoring::AgentMetrics;
 use std::time::Duration;
+use tracing::warn;
 
 use super::SelfLearningMemory;
 
@@ -90,6 +91,182 @@ impl SelfLearningMemory {
     }
 }
 
+impl SelfLearningMemory {
+    async fn persist_recommendation_session(&self, session: &RecommendationSession) {
+        if let Some(storage) = &self.turso_storage {
+            if let Err(err) = storage.store_recommendation_session(session).await {
+                warn!(
+                    session_id = %session.session_id,
+                    episode_id = %session.episode_id,
+                    error = %err,
+                    "Failed to persist recommendation session to durable storage"
+                );
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            if let Err(err) = cache.store_recommendation_session(session).await {
+                warn!(
+                    session_id = %session.session_id,
+                    episode_id = %session.episode_id,
+                    error = %err,
+                    "Failed to persist recommendation session to cache storage"
+                );
+            }
+        }
+    }
+
+    async fn persist_recommendation_feedback(&self, feedback: &RecommendationFeedback) {
+        if let Some(storage) = &self.turso_storage {
+            if let Err(err) = storage.store_recommendation_feedback(feedback).await {
+                warn!(
+                    session_id = %feedback.session_id,
+                    error = %err,
+                    "Failed to persist recommendation feedback to durable storage"
+                );
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            if let Err(err) = cache.store_recommendation_feedback(feedback).await {
+                warn!(
+                    session_id = %feedback.session_id,
+                    error = %err,
+                    "Failed to persist recommendation feedback to cache storage"
+                );
+            }
+        }
+    }
+
+    async fn fetch_session_for_episode_from_storage(
+        &self,
+        episode_id: uuid::Uuid,
+    ) -> Option<RecommendationSession> {
+        if let Some(storage) = &self.turso_storage {
+            match storage
+                .get_recommendation_session_for_episode(episode_id)
+                .await
+            {
+                Ok(Some(session)) => {
+                    self.recommendation_tracker
+                        .record_session(session.clone())
+                        .await;
+                    return Some(session);
+                }
+                Ok(None) => {}
+                Err(err) => warn!(
+                    episode_id = %episode_id,
+                    error = %err,
+                    "Failed to load recommendation session from durable storage"
+                ),
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            match cache
+                .get_recommendation_session_for_episode(episode_id)
+                .await
+            {
+                Ok(Some(session)) => {
+                    self.recommendation_tracker
+                        .record_session(session.clone())
+                        .await;
+                    return Some(session);
+                }
+                Ok(None) => {}
+                Err(err) => warn!(
+                    episode_id = %episode_id,
+                    error = %err,
+                    "Failed to load recommendation session from cache storage"
+                ),
+            }
+        }
+
+        None
+    }
+
+    async fn fetch_feedback_from_storage(
+        &self,
+        session_id: uuid::Uuid,
+    ) -> Option<RecommendationFeedback> {
+        if let Some(storage) = &self.turso_storage {
+            match storage.get_recommendation_feedback(session_id).await {
+                Ok(Some(feedback)) => {
+                    if let Err(err) = self
+                        .recommendation_tracker
+                        .record_feedback(feedback.clone())
+                        .await
+                    {
+                        warn!(
+                            session_id = %session_id,
+                            error = %err,
+                            "Failed to cache recommendation feedback after durable load"
+                        );
+                    }
+                    return Some(feedback);
+                }
+                Ok(None) => {}
+                Err(err) => warn!(
+                    session_id = %session_id,
+                    error = %err,
+                    "Failed to load recommendation feedback from durable storage"
+                ),
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            match cache.get_recommendation_feedback(session_id).await {
+                Ok(Some(feedback)) => {
+                    if let Err(err) = self
+                        .recommendation_tracker
+                        .record_feedback(feedback.clone())
+                        .await
+                    {
+                        warn!(
+                            session_id = %session_id,
+                            error = %err,
+                            "Failed to cache recommendation feedback after cache load"
+                        );
+                    }
+                    return Some(feedback);
+                }
+                Ok(None) => {}
+                Err(err) => warn!(
+                    session_id = %session_id,
+                    error = %err,
+                    "Failed to load recommendation feedback from cache storage"
+                ),
+            }
+        }
+
+        None
+    }
+
+    async fn fetch_recommendation_stats_from_storage(&self) -> Option<RecommendationStats> {
+        if let Some(storage) = &self.turso_storage {
+            match storage.get_recommendation_stats().await {
+                Ok(stats) => return Some(stats),
+                Err(err) => warn!(
+                    error = %err,
+                    "Failed to load recommendation stats from durable storage"
+                ),
+            }
+        }
+
+        if let Some(cache) = &self.cache_storage {
+            match cache.get_recommendation_stats().await {
+                Ok(stats) => return Some(stats),
+                Err(err) => warn!(
+                    error = %err,
+                    "Failed to load recommendation stats from cache storage"
+                ),
+            }
+        }
+
+        None
+    }
+}
+
 // ============================================================================
 // Recommendation Attribution (ADR-044 Feature 2)
 // ============================================================================
@@ -127,7 +304,10 @@ impl SelfLearningMemory {
     /// # }
     /// ```
     pub async fn record_recommendation_session(&self, session: RecommendationSession) {
-        self.recommendation_tracker.record_session(session).await;
+        self.recommendation_tracker
+            .record_session(session.clone())
+            .await;
+        self.persist_recommendation_session(&session).await;
     }
 
     /// Record feedback about a recommendation session.
@@ -174,7 +354,11 @@ impl SelfLearningMemory {
         &self,
         feedback: RecommendationFeedback,
     ) -> Result<()> {
-        self.recommendation_tracker.record_feedback(feedback).await
+        self.recommendation_tracker
+            .record_feedback(feedback.clone())
+            .await?;
+        self.persist_recommendation_feedback(&feedback).await;
+        Ok(())
     }
 
     /// Get the recommendation session for an episode.
@@ -185,8 +369,15 @@ impl SelfLearningMemory {
         &self,
         episode_id: uuid::Uuid,
     ) -> Option<RecommendationSession> {
-        self.recommendation_tracker
+        if let Some(session) = self
+            .recommendation_tracker
             .get_session_for_episode(episode_id)
+            .await
+        {
+            return Some(session);
+        }
+
+        self.fetch_session_for_episode_from_storage(episode_id)
             .await
     }
 
@@ -195,7 +386,11 @@ impl SelfLearningMemory {
         &self,
         session_id: uuid::Uuid,
     ) -> Option<RecommendationFeedback> {
-        self.recommendation_tracker.get_feedback(session_id).await
+        if let Some(feedback) = self.recommendation_tracker.get_feedback(session_id).await {
+            return Some(feedback);
+        }
+
+        self.fetch_feedback_from_storage(session_id).await
     }
 
     /// Get overall recommendation effectiveness statistics.
@@ -203,6 +398,10 @@ impl SelfLearningMemory {
     /// Returns aggregate metrics about recommendation adoption rates,
     /// success rates, and agent ratings.
     pub async fn get_recommendation_stats(&self) -> RecommendationStats {
+        if let Some(stats) = self.fetch_recommendation_stats_from_storage().await {
+            return stats;
+        }
+
         self.recommendation_tracker.get_stats().await
     }
 }

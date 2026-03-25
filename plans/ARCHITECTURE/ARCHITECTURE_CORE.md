@@ -536,9 +536,10 @@ The Memory-MCP server provides **~20 tools** for episodic memory operations acro
    - `query_memory`, `query_semantic_memory`
    - `bulk_episodes`, `search_episodes_by_tags`
 
-3. **Pattern Analysis** (6 tools)
+3. **Pattern Analysis** (5 active tools + deferred batch analytics)
    - `analyze_patterns`, `search_patterns`, `recommend_patterns`
-   - `advanced_pattern_analysis`, `batch_pattern_analysis`
+   - `advanced_pattern_analysis` (active)
+   - `batch_pattern_analysis` (deferred / not advertised in current MCP contract)
    - `pattern_effectiveness_tracking`
 
 4. **System & Monitoring** (5 tools)

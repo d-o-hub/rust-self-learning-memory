@@ -22,7 +22,7 @@
 2. Run `cargo build` to identify errors
 3. Search codebase for old API usage
 4. Fix imports in ALL files
-5. Run `cargo clippy --all -- -D warnings`
+5. Run `./scripts/code-quality.sh clippy --workspace`
 6. Run `cargo nextest run --all`
 
 ## Transitive Security Advisory Handling

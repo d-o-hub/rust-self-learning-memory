@@ -41,6 +41,15 @@ cargo test --doc  # doctests separately (nextest limitation)
 ```
 - Complete validation before commit
 
+### Step 3b: Coverage + Quality Gates
+
+```bash
+./scripts/quality-gates.sh
+```
+
+- Enforces local coverage threshold (default: `QUALITY_GATE_COVERAGE_THRESHOLD=90`)
+- Also runs docs-integrity and file-size guardrails
+
 ### Step 4: Mutation Testing (Periodic)
 ```bash
 cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib

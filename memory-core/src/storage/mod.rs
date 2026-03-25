@@ -8,6 +8,9 @@
 pub mod circuit_breaker;
 
 use crate::episode::{Direction, EpisodeRelationship, PatternId, RelationshipType};
+use crate::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
 use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -318,5 +321,51 @@ pub trait StorageBackend: Send + Sync {
     ) -> Result<bool> {
         let _ = (from_episode_id, to_episode_id, relationship_type);
         Ok(false)
+    }
+
+    // ========== Recommendation Attribution (ADR-044) ==========
+
+    /// Persist a recommendation session for durability and analytics.
+    async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
+        let _ = session;
+        Ok(())
+    }
+
+    /// Retrieve a recommendation session by ID.
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        let _ = session_id;
+        Ok(None)
+    }
+
+    /// Retrieve the most recent recommendation session for an episode.
+    async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        let _ = episode_id;
+        Ok(None)
+    }
+
+    /// Persist feedback associated with a recommendation session.
+    async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        let _ = feedback;
+        Ok(())
+    }
+
+    /// Retrieve feedback for a recommendation session.
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        let _ = session_id;
+        Ok(None)
+    }
+
+    /// Compute global recommendation statistics.
+    async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
+        Ok(RecommendationStats::default())
     }
 }

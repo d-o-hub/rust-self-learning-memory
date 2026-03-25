@@ -112,9 +112,9 @@ The March 6 analysis understates current test infrastructure maturity:
 
 ### Confirmed Missing or Partial Implementation
 
-1. **Batch-specific MCP tools remain disabled at runtime**
-   - Tool schemas exist for `batch_query_episodes`, `batch_pattern_analysis`, and `batch_compare_episodes`.
-   - Runtime dispatch in `memory-mcp/src/bin/server_impl/handlers.rs` still comments them out with `TODO: Re-enable when batch module is fixed`.
+1. **Batch-specific MCP analytics tools are intentionally deferred at tool level (WG-053)**
+   - `batch_query_episodes`, `batch_pattern_analysis`, and `batch_compare_episodes` are intentionally absent from MCP `tools/list`.
+   - Runtime dispatch in `memory-mcp/src/bin/server_impl/handlers.rs` does not expose handlers for these names.
 
 2. **CLI workflow coverage exposes real missing UX/features**
    - `tests/e2e/cli_workflows.rs` still ignores pattern discovery and episode search/filter workflows because expected commands/flags do not exist.
@@ -475,7 +475,7 @@ These are improvement features that emerged from the codebase audit but are not 
   - `memory-mcp/tests/adr024_lazy_loading_tests.rs`
   - new parity-focused test file, e.g. `memory-mcp/tests/tool_contract_parity.rs`
 
-**Likely First Failing Cases**:
+**Historical First Failing Cases (now deferred by design)**:
 - `batch_query_episodes`
 - `batch_pattern_analysis`
 - `batch_compare_episodes`

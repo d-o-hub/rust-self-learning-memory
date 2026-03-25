@@ -3,7 +3,7 @@
 //! This module provides schema initialization methods to keep lib.rs under 500 LOC.
 
 use crate::{Result, TursoStorage, schema};
-use tracing::info;
+use tracing::{debug, info};
 
 impl TursoStorage {
     /// Initialize the database schema
@@ -20,9 +20,14 @@ impl TursoStorage {
         // Create tables
         self.execute_with_retry(&conn, schema::CREATE_EPISODES_TABLE)
             .await?;
+        self.ensure_episodes_checkpoints_column(&conn).await?;
         self.execute_with_retry(&conn, schema::CREATE_PATTERNS_TABLE)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_TABLE)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE)
             .await?;
 
         // Create legacy embeddings table only when multi-dimension feature is NOT enabled
@@ -50,6 +55,8 @@ impl TursoStorage {
         self.execute_with_retry(&conn, schema::CREATE_PATTERNS_CONTEXT_INDEX)
             .await?;
         self.execute_with_retry(&conn, schema::CREATE_HEURISTICS_CONFIDENCE_INDEX)
+            .await?;
+        self.execute_with_retry(&conn, schema::CREATE_RECOMMENDATION_SESSIONS_EPISODE_INDEX)
             .await?;
 
         // Create legacy embeddings indexes
@@ -180,6 +187,41 @@ impl TursoStorage {
     #[cfg(not(feature = "turso_multi_dimension"))]
     #[allow(dead_code)]
     async fn initialize_vector_tables(&self, _conn: &libsql::Connection) -> Result<()> {
+        Ok(())
+    }
+
+    /// Ensure the episodes.checkpoints column exists for backward compatibility.
+    async fn ensure_episodes_checkpoints_column(&self, conn: &libsql::Connection) -> Result<()> {
+        let mut rows = conn
+            .query("PRAGMA table_info(episodes)", ())
+            .await
+            .map_err(|e| {
+                memory_core::Error::Storage(format!("Failed to inspect episodes schema: {}", e))
+            })?;
+
+        let mut has_checkpoints = false;
+        while let Some(row) = rows.next().await.map_err(|e| {
+            memory_core::Error::Storage(format!("Failed to read episodes schema row: {}", e))
+        })? {
+            let column_name: String = row.get(1).map_err(|e| {
+                memory_core::Error::Storage(format!(
+                    "Failed to parse episodes schema column name: {}",
+                    e
+                ))
+            })?;
+
+            if column_name == "checkpoints" {
+                has_checkpoints = true;
+                break;
+            }
+        }
+
+        if !has_checkpoints {
+            debug!("Adding missing episodes.checkpoints column");
+            self.execute_with_retry(conn, schema::ADD_EPISODES_CHECKPOINTS_COLUMN)
+                .await?;
+        }
+
         Ok(())
     }
 }

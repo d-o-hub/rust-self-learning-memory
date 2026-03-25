@@ -1,5 +1,22 @@
 # Running Tests
 
+> Script-first policy: use wrapper scripts for routine quality checks, and use raw `cargo` commands for focused debugging or unsupported combinations.
+
+## Recommended Validation Flow
+
+```bash
+# 1) Fast formatting/lint checks
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
+
+# 2) Full tests
+cargo nextest run --all
+cargo test --doc
+
+# 3) Full quality gates (coverage threshold defaults to 90%)
+./scripts/quality-gates.sh
+```
+
 ## Test Categories
 
 ### All Tests
@@ -80,7 +97,7 @@ cargo llvm-cov --all-features --workspace --html --output-dir coverage
 ```
 
 ### Coverage Targets (Enforced)
-- **Line coverage**: >90% target
+- **Line coverage**: >=90% target
 - **Branch coverage**: >85%
 - All public APIs must be tested
 - Test pass rate: >99% target
@@ -203,11 +220,11 @@ async fn test_async_operation() {
 ## CI/CD Testing
 
 The CI pipeline runs:
-1. **Format checks**: `cargo fmt -- --check`
-2. **Linting**: `cargo clippy --all -- -D warnings`
-3. **Unit tests**: `cargo test --lib`
-4. **Integration tests**: `cargo test --test '*'`
-5. **Code coverage**: `cargo llvm-cov --html` (threshold: >90%)
+1. **Format checks**: `./scripts/code-quality.sh fmt` (or equivalent cargo fmt invocation)
+2. **Linting**: `./scripts/code-quality.sh clippy --workspace` (or equivalent cargo clippy invocation)
+3. **Tests**: `cargo nextest run --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils`
+4. **Doctests**: `cargo test --doc`
+5. **Code coverage**: `cargo llvm-cov --html` (threshold: >=90%)
 6. **Security audit**: `cargo audit`
 7. **Benchmarks**: Run on PRs for performance regression detection
 
@@ -263,18 +280,19 @@ cd benches && cargo bench -- --save-baseline main
 7. **Use test-utils**: Leverage shared test helpers
 8. **Async tests**: Use `#[tokio::test]` for async code
 9. **Error testing**: Test both success and failure cases
-10. **Coverage**: Maintain >90% coverage
+10. **Coverage**: Maintain >=90% coverage
 
 ## Testing Commands Summary
 
 ```bash
-# Quick test
-cargo test --all
+# Quick test (preferred)
+cargo nextest run --all
+cargo test --doc
 
 # Full test with coverage
-cargo test --all && cargo llvm-cov --html --output-dir coverage
+cargo nextest run --all && cargo test --doc && cargo llvm-cov --html --output-dir coverage
 
-# Quality gates
+# Quality gates (recommended pre-PR)
 ./scripts/quality-gates.sh
 
 # Debug test

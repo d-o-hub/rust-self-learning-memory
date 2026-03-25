@@ -68,9 +68,9 @@ impl TursoStorage {
                 INSERT OR REPLACE INTO episodes (
                     episode_id, task_type, task_description, context,
                     start_time, end_time, steps, outcome, reward,
-                    reflection, patterns, heuristics, metadata, domain, language,
+                    reflection, patterns, heuristics, checkpoints, metadata, domain, language,
                     archived_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#;
 
             #[cfg(feature = "compression")]
@@ -155,6 +155,9 @@ impl TursoStorage {
                     .map_err(Error::Serialization)?
                     .into_bytes();
 
+                let checkpoints_json =
+                    serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+
                 let archived_at = episode
                     .metadata
                     .get("archived_at")
@@ -186,6 +189,7 @@ impl TursoStorage {
                             reflection_json,
                             patterns_str,
                             heuristics_str,
+                            checkpoints_json,
                             metadata_str,
                             episode.context.domain.clone(),
                             episode.context.language.clone(),

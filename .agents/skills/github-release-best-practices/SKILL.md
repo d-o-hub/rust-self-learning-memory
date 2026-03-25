@@ -187,8 +187,8 @@ cargo workspaces version --all
 ./scripts/quality-gates.sh
 
 # Specific validations
-cargo fmt --check
-cargo clippy --all -- -D warnings
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
 cargo test --all
 cargo audit
 cargo deny check

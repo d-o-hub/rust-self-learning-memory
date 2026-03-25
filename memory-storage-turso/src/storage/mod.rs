@@ -24,6 +24,7 @@ pub mod episodes;
 pub mod heuristics;
 pub mod monitoring;
 pub mod patterns;
+pub mod recommendations;
 pub mod search;
 pub mod tag_operations;
 

@@ -153,9 +153,9 @@ Quality Gate: Plan created and linked to ADR
 Quality Gate: All changes implemented
 
 ### Phase 4: Validation
-- Run: cargo fmt --all -- --check
-- Run: cargo clippy --all -- -D warnings
-- Run: cargo test --all
+- Run: ./scripts/code-quality.sh fmt
+- Run: ./scripts/code-quality.sh clippy --workspace
+- Run: cargo nextest run --all && cargo test --doc
 Quality Gate: Zero warnings, all tests pass
 
 ### Phase 5: Update Documentation

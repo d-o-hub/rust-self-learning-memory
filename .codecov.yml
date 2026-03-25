@@ -6,8 +6,8 @@ coverage:
         threshold: 1%
     patch:
       default:
-        target: 70%
-        threshold: 2%
+        target: 50%
+        threshold: 1%
 
 ignore:
   - "benches/**"

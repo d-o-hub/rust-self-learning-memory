@@ -5,8 +5,8 @@
 use super::{
     CacheMetrics, EMBEDDINGS_TABLE, EPISODES_TABLE, HEURISTICS_TABLE, METADATA_TABLE,
     PATTERNS_TABLE, RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
-    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SUMMARIES_TABLE, with_db_timeout,
-    SCHEMA_VERSION, SCHEMA_VERSION_TABLE,
+    RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SCHEMA_VERSION, SCHEMA_VERSION_TABLE,
+    SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::{RedbStorage, StorageStatistics};
 use memory_core::{Error, Result};
@@ -77,11 +77,9 @@ impl RedbStorage {
                             e
                         ))
                     })?;
-                let _schema_version = write_txn
-                    .open_table(SCHEMA_VERSION_TABLE)
-                    .map_err(|e| {
-                        Error::Storage(format!("Failed to open schema version table: {}", e))
-                    })?;
+                let _schema_version = write_txn.open_table(SCHEMA_VERSION_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open schema version table: {}", e))
+                })?;
             }
 
             write_txn
@@ -112,9 +110,9 @@ impl RedbStorage {
                 .begin_read()
                 .map_err(|e| Error::Storage(format!("Failed to begin read transaction: {}", e)))?;
 
-            let version_table = read_txn
-                .open_table(SCHEMA_VERSION_TABLE)
-                .map_err(|e| Error::Storage(format!("Failed to open schema version table: {}", e)))?;
+            let version_table = read_txn.open_table(SCHEMA_VERSION_TABLE).map_err(|e| {
+                Error::Storage(format!("Failed to open schema version table: {}", e))
+            })?;
 
             let stored_version = version_table
                 .get("version")
@@ -134,7 +132,10 @@ impl RedbStorage {
                     Ok(true)
                 }
                 None => {
-                    info!("No schema version found, storing version {}", current_version);
+                    info!(
+                        "No schema version found, storing version {}",
+                        current_version
+                    );
                     Ok(true)
                 }
             }
@@ -160,12 +161,13 @@ impl RedbStorage {
                 .map_err(|e| Error::Storage(format!("Failed to begin write transaction: {}", e)))?;
 
             {
-                let mut version_table = write_txn
-                    .open_table(SCHEMA_VERSION_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open schema version table: {}", e)))?;
-                version_table
-                    .insert("version", version)
-                    .map_err(|e| Error::Storage(format!("Failed to store schema version: {}", e)))?;
+                let mut version_table =
+                    write_txn.open_table(SCHEMA_VERSION_TABLE).map_err(|e| {
+                        Error::Storage(format!("Failed to open schema version table: {}", e))
+                    })?;
+                version_table.insert("version", version).map_err(|e| {
+                    Error::Storage(format!("Failed to store schema version: {}", e))
+                })?;
             }
 
             write_txn
@@ -226,9 +228,9 @@ impl RedbStorage {
                 drop(table);
 
                 // Heuristics
-                let mut table = write_txn
-                    .open_table(HEURISTICS_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open heuristics table: {}", e)))?;
+                let mut table = write_txn.open_table(HEURISTICS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open heuristics table: {}", e))
+                })?;
                 let keys: Vec<String> = table
                     .iter()
                     .map_err(|e| Error::Storage(format!("Failed to iterate heuristics: {}", e)))?
@@ -243,9 +245,9 @@ impl RedbStorage {
                 drop(table);
 
                 // Embeddings
-                let mut table = write_txn
-                    .open_table(EMBEDDINGS_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open embeddings table: {}", e)))?;
+                let mut table = write_txn.open_table(EMBEDDINGS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open embeddings table: {}", e))
+                })?;
                 let keys: Vec<String> = table
                     .iter()
                     .map_err(|e| Error::Storage(format!("Failed to iterate embeddings: {}", e)))?
@@ -277,9 +279,9 @@ impl RedbStorage {
                 drop(table);
 
                 // Summaries
-                let mut table = write_txn
-                    .open_table(SUMMARIES_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open summaries table: {}", e)))?;
+                let mut table = write_txn.open_table(SUMMARIES_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open summaries table: {}", e))
+                })?;
                 let keys: Vec<String> = table
                     .iter()
                     .map_err(|e| Error::Storage(format!("Failed to iterate summaries: {}", e)))?
@@ -294,9 +296,9 @@ impl RedbStorage {
                 drop(table);
 
                 // Relationships
-                let mut table = write_txn
-                    .open_table(RELATIONSHIPS_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open relationships table: {}", e)))?;
+                let mut table = write_txn.open_table(RELATIONSHIPS_TABLE).map_err(|e| {
+                    Error::Storage(format!("Failed to open relationships table: {}", e))
+                })?;
                 let keys: Vec<String> = table
                     .iter()
                     .map_err(|e| Error::Storage(format!("Failed to iterate relationships: {}", e)))?
@@ -313,16 +315,26 @@ impl RedbStorage {
                 // Recommendation sessions
                 let mut table = write_txn
                     .open_table(RECOMMENDATION_SESSIONS_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open recommendation_sessions table: {}", e)))?;
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation_sessions table: {}",
+                            e
+                        ))
+                    })?;
                 let keys: Vec<String> = table
                     .iter()
-                    .map_err(|e| Error::Storage(format!("Failed to iterate recommendation_sessions: {}", e)))?
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to iterate recommendation_sessions: {}", e))
+                    })?
                     .filter_map(|item| item.ok())
                     .map(|(k, _v)| k.value().to_string())
                     .collect();
                 for key in keys {
                     table.remove(key.as_str()).map_err(|e| {
-                        Error::Storage(format!("Failed to remove recommendation_sessions key: {}", e))
+                        Error::Storage(format!(
+                            "Failed to remove recommendation_sessions key: {}",
+                            e
+                        ))
                     })?;
                 }
                 drop(table);
@@ -330,16 +342,26 @@ impl RedbStorage {
                 // Recommendation feedback
                 let mut table = write_txn
                     .open_table(RECOMMENDATION_FEEDBACK_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open recommendation_feedback table: {}", e)))?;
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation_feedback table: {}",
+                            e
+                        ))
+                    })?;
                 let keys: Vec<String> = table
                     .iter()
-                    .map_err(|e| Error::Storage(format!("Failed to iterate recommendation_feedback: {}", e)))?
+                    .map_err(|e| {
+                        Error::Storage(format!("Failed to iterate recommendation_feedback: {}", e))
+                    })?
                     .filter_map(|item| item.ok())
                     .map(|(k, _v)| k.value().to_string())
                     .collect();
                 for key in keys {
                     table.remove(key.as_str()).map_err(|e| {
-                        Error::Storage(format!("Failed to remove recommendation_feedback key: {}", e))
+                        Error::Storage(format!(
+                            "Failed to remove recommendation_feedback key: {}",
+                            e
+                        ))
                     })?;
                 }
                 drop(table);
@@ -347,16 +369,29 @@ impl RedbStorage {
                 // Recommendation episode index (different key type: &str -> &str)
                 let mut table = write_txn
                     .open_table(RECOMMENDATION_EPISODE_INDEX_TABLE)
-                    .map_err(|e| Error::Storage(format!("Failed to open recommendation_episode_index table: {}", e)))?;
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to open recommendation_episode_index table: {}",
+                            e
+                        ))
+                    })?;
                 let keys: Vec<String> = table
                     .iter()
-                    .map_err(|e| Error::Storage(format!("Failed to iterate recommendation_episode_index: {}", e)))?
+                    .map_err(|e| {
+                        Error::Storage(format!(
+                            "Failed to iterate recommendation_episode_index: {}",
+                            e
+                        ))
+                    })?
                     .filter_map(|item| item.ok())
                     .map(|(k, _v)| k.value().to_string())
                     .collect();
                 for key in keys {
                     table.remove(key.as_str()).map_err(|e| {
-                        Error::Storage(format!("Failed to remove recommendation_episode_index key: {}", e))
+                        Error::Storage(format!(
+                            "Failed to remove recommendation_episode_index key: {}",
+                            e
+                        ))
                     })?;
                 }
                 drop(table);

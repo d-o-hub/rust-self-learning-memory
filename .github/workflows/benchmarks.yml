@@ -74,7 +74,7 @@ jobs:
       # Using 'read' for safety - 'write' only needed for main branch benchmark storage
       contents: read
       actions: write   # Required for caching
-    timeout-minutes: 30
+    timeout-minutes: 70
     env:
       RUSTC_WRAPPER: sccache
       SCCACHE_CACHE_SIZE: 2G

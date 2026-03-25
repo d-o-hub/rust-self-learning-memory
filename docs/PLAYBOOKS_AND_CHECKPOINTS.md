@@ -49,22 +49,21 @@ A checkpoint captures the current state, including:
 ```json
 {
   "episode_id": "uuid-of-current-episode",
-  "checkpoint_name": "Setup Complete",
-  "state_summary": "Database schema initialized, models created.",
-  "pending_actions": ["Implement CRUD handlers", "Add validation middleware"]
+  "reason": "Long-running task pause",
+  "note": "Setup Complete"
 }
 ```
 
 **Via CLI:**
 ```bash
-memory-cli ep checkpoint <episode-id> --name "Setup Complete" --summary "..."
+memory-cli episode checkpoint <episode-id> --reason "Long-running task pause" --note "Setup Complete"
 ```
 
 ### Performing a Handoff
 When you need to pass a task to another agent, generate a "Handoff Pack":
 
 ```bash
-memory-cli ep handoff <episode-id>
+memory-cli episode handoff <checkpoint-id>
 ```
 
 The handoff pack includes the most recent checkpoint, the episode history, and relevant patterns to help the new agent start with full context.
@@ -76,19 +75,22 @@ The handoff pack includes the most recent checkpoint, the episode history, and r
 To improve the quality of future recommendations, you can provide feedback on the playbooks and patterns suggested by the system.
 
 ### Providing Feedback
-**Via MCP (`provide_feedback`):**
+**Via MCP (`record_recommendation_feedback`):**
 ```json
 {
-  "recommendation_id": "uuid-from-playbook-or-pattern",
-  "relevance_score": 0.9,
-  "is_useful": true,
-  "comment": "The step about middleware was exactly what I needed."
+  "session_id": "session-id-from-record_recommendation_session",
+  "applied_pattern_ids": ["pattern-123"],
+  "consulted_episode_ids": ["episode-456"],
+  "outcome": "success",
+  "message": "The middleware step was exactly what I needed.",
+  "agent_rating": 0.9
 }
 ```
 
 **Via CLI:**
 ```bash
-memory-cli feedback add <recommendation-id> --score 0.9 --useful true --comment "..."
+memory-cli feedback record-session --episode-id <episode-id> --patterns <pattern-id-1,pattern-id-2>
+memory-cli feedback record-feedback --session <session-id> --outcome success --message "Worked well" --rating 0.9
 ```
 
 The system uses this feedback to boost the ranking of highly-rated patterns and suppress unhelpful ones in future queries.

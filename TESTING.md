@@ -282,8 +282,8 @@ criterion_main!(benches);
 - Add tests for edge cases
 
 ### Clippy warnings
-- Run `cargo clippy --all-targets --all-features`
-- Apply fixes with `cargo clippy --fix --allow-dirty`
+- Run `./scripts/code-quality.sh clippy --workspace`
+- Apply fixes with `./scripts/code-quality.sh clippy --fix`
 - For intentional violations, use `#[allow(clippy::...)]` with justification
 
 ## Best Practices
@@ -301,8 +301,8 @@ criterion_main!(benches);
 Before merging:
 - [ ] All tests passing
 - [ ] Code coverage >90% (quality gate threshold)
-- [ ] No clippy warnings (run `cargo clippy --all-targets --all-features`)
-- [ ] All code formatted (`cargo fmt --all -- --check`)
+- [ ] No clippy warnings (run `./scripts/code-quality.sh clippy --workspace`)
+- [ ] All code formatted (`./scripts/code-quality.sh fmt`)
 - [ ] Benchmarks within targets
 - [ ] Documentation updated with modern Rust patterns
 - [ ] Format strings use variable capture: `format!("{var}")`

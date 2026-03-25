@@ -24,7 +24,9 @@ impl TursoStorage {
             r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
                    archived_at
             FROM episodes WHERE 1=1
         "#,
@@ -97,7 +99,9 @@ impl TursoStorage {
         const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
                    archived_at
             FROM episodes
             WHERE start_time >= ?
@@ -167,7 +171,9 @@ impl TursoStorage {
             r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
                    archived_at
             FROM episodes
             WHERE json_extract(metadata, '$.{}') = '{}'

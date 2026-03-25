@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-20 (v0.1.22 sprint COMPLETE — all 12 issues closed)
+**Last Updated**: 2026-03-24 (post-audit remediation complete; WG-051 through WG-058 complete)
 **Released Version**: v0.1.22
 **Branch**: `main` (PR #391 merged)
 **PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
@@ -27,6 +27,14 @@
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
 
+### Post-v0.1.22 Audit Findings (2026-03-24)
+
+- **ADR-044 durability** — Recommendation attribution (WG-051) and checkpoint/handoff metadata durability (WG-052) now persist through Turso + redb-backed round-trips, including restart-safe resume metadata.
+- **MCP/CLI contract drift** — Batch tool contract truth remains aligned (WG-053), and core docs/CLI references were refreshed to runtime/parity truth source in WG-054.
+- **CI/test coverage remediation** — Required CI test scope now runs workspace nextest slices instead of `--lib`-only gates, benchmark workflow surface expanded, and coverage enforcement now fails below configured threshold (default 90). (WG-055/WG-056 complete)
+- **Disk hygiene remediation** — `scripts/clean-artifacts.sh` now supports practical cleanup modes, optional `--node-modules`, coverage artifact cleanup, and `CARGO_TARGET_DIR`-aware paths. (WG-057 complete)
+- **Guidance parity remediation** — AGENTS.md, `agent_docs/`, and relevant `.agents/skills/` now reflect script-first workflow, coverage `>=90%` expectations, and non-mold default linker guidance. (WG-058 complete)
+
 ## Completed Phases
 
 All research/implementation phases are complete:
@@ -52,6 +60,8 @@ All research/implementation phases are complete:
 - **Episode management**: Full lifecycle with relationships, tagging, patterns
 - **Playbooks**: Template-driven actionable recommendations from patterns
 - **Attribution**: Recommendation session tracking and feedback loops
+- **Durable attribution storage**: Turso/redb persistence for sessions, feedback, and metrics (WG-051 validated via `tests/attribution_integration_test.rs`)
+- **Durable checkpoint/handoff storage**: Turso episode checkpoint serialization + restart-safe handoff resume metadata persistence (WG-052 validated via `tests/checkpoint_integration_test.rs`)
 - **Checkpoints**: Mid-task state snapshotting and agent handoff packs
 - **Storage**: Turso/libSQL (persistent) + redb (cache) dual-layer
 - **Security**: Wasmtime sandbox, path traversal protection, parameterized SQL

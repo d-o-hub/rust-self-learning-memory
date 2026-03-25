@@ -25,12 +25,9 @@ const CLIPPY_EXCLUDE: &[&str] = &["e2e-tests", "memory-benches"];
 // Configuration & Thresholds
 // ============================================================================
 
-/// Minimum test coverage percentage (default: 85.0)
+/// Minimum test coverage percentage (default: 90.0)
 fn coverage_threshold() -> f64 {
-    env::var("QUALITY_GATE_COVERAGE_THRESHOLD")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(85.0)
+    parse_env_percentage("QUALITY_GATE_COVERAGE_THRESHOLD", 90.0)
 }
 
 /// Minimum pattern accuracy percentage (default: 70.0)
@@ -65,6 +62,25 @@ fn skip_optional_gates() -> bool {
         // Default to skipping optional gates when helper tools are not present in
         // a developer's environment (CI can override this explicitly).
         .unwrap_or(true)
+}
+
+fn parse_env_percentage(var_name: &str, default: f64) -> f64 {
+    env::var(var_name)
+        .ok()
+        .and_then(|s| parse_percentage_value(&s))
+        .unwrap_or(default)
+}
+
+fn parse_percentage_value(raw: &str) -> Option<f64> {
+    let trimmed = raw.trim();
+    let normalized = trimmed.strip_suffix('%').unwrap_or(trimmed).trim();
+    normalized.parse::<f64>().ok()
+}
+
+fn parse_percent_token(raw: &str) -> Option<f64> {
+    let trimmed = raw.trim().trim_end_matches([',', ';', ')']);
+    let value = trimmed.strip_suffix('%')?;
+    value.trim().parse::<f64>().ok()
 }
 
 #[cfg(test)]
@@ -108,6 +124,43 @@ mod unit_tests {
         unsafe {
             std::env::remove_var("QUALITY_GATE_SKIP_OPTIONAL");
         }
+    }
+
+    #[test]
+    #[serial]
+    fn coverage_threshold_defaults_to_ninety_when_unset() {
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("QUALITY_GATE_COVERAGE_THRESHOLD");
+        }
+        assert_eq!(coverage_threshold(), 90.0);
+    }
+
+    #[test]
+    #[serial]
+    fn coverage_threshold_accepts_percent_suffix_and_whitespace() {
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("QUALITY_GATE_COVERAGE_THRESHOLD", " 91.5% ");
+        }
+        assert_eq!(coverage_threshold(), 91.5);
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::remove_var("QUALITY_GATE_COVERAGE_THRESHOLD");
+        }
+    }
+
+    #[test]
+    fn parse_coverage_prefers_total_line_percentage() {
+        let stdout = r#"
+Filename Regions Missed Regions Cover Functions Missed Functions Executed
+memory-core/src/lib.rs 100 0 100.00% 20 0 100.00%
+TOTAL 250 20 92.00% 50 2 96.00%
+"#;
+        let stderr = "Some unrelated status: retry 50% complete";
+
+        let coverage = parse_coverage_percentage(stdout, stderr);
+        assert_eq!(coverage, 92.0);
     }
 }
 
@@ -218,12 +271,11 @@ fn quality_gate_test_coverage() {
 
 /// Parse coverage percentage from cargo llvm-cov output
 fn parse_coverage_percentage(stdout: &str, stderr: &str) -> f64 {
-    // Try multiple parsing strategies
     let combined = format!("{}\n{}", stdout, stderr);
 
+    // Prefer TOTAL row from llvm-cov summary output.
     for line in combined.lines() {
-        // Look for percentage in various formats
-        if let Some(percentage) = extract_percentage(line) {
+        if let Some(percentage) = extract_total_row_percentage(line) {
             return percentage;
         }
     }
@@ -235,20 +287,20 @@ fn parse_coverage_percentage(stdout: &str, stderr: &str) -> f64 {
     0.0
 }
 
-/// Extract percentage from a line of text
-fn extract_percentage(line: &str) -> Option<f64> {
-    // Match patterns like "63.41%" or "Coverage: 85.2%"
-    if line.contains('%') {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        for part in parts {
-            if part.ends_with('%') {
-                let num_str = part.trim_end_matches('%');
-                if let Ok(num) = num_str.parse::<f64>() {
-                    return Some(num);
-                }
-            }
+/// Extract coverage percentage from the llvm-cov TOTAL row.
+/// Example: TOTAL 250 20 92.00% 50 2 96.00%
+fn extract_total_row_percentage(line: &str) -> Option<f64> {
+    let trimmed = line.trim_start();
+    if !trimmed.starts_with("TOTAL") {
+        return None;
+    }
+
+    for token in trimmed.split_whitespace() {
+        if let Some(value) = parse_percent_token(token) {
+            return Some(value);
         }
     }
+
     None
 }
 

@@ -123,8 +123,8 @@ Prevents LLM access to sensitive files and detects hardcoded secrets.
 ### `pre-commit-security.sh`
 Comprehensive pre-commit validation:
 
-1. Code formatting (`cargo fmt --check`)
-2. Linting (`cargo clippy`)
+1. Code formatting (`./scripts/code-quality.sh fmt`)
+2. Linting (`./scripts/code-quality.sh clippy --workspace`)
 3. Security audit (`cargo audit`)
 4. Supply chain check (`cargo deny check`)
 5. Test execution (`cargo test`)

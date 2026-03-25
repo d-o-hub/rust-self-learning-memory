@@ -1,6 +1,13 @@
+use std::sync::Arc;
+
+use libsql::Builder;
 use memory_core::memory::SelfLearningMemory;
 use memory_core::memory::checkpoint::{checkpoint_episode, get_handoff_pack, resume_from_handoff};
+use memory_core::storage::StorageBackend;
 use memory_core::{ExecutionStep, MemoryConfig, TaskContext, TaskType};
+use memory_storage_redb::RedbStorage;
+use memory_storage_turso::TursoStorage;
+use tempfile::TempDir;
 
 #[tokio::test]
 async fn test_checkpoint_handoff_flow() {
@@ -56,5 +63,88 @@ async fn test_checkpoint_handoff_flow() {
         new_episode
             .task_description
             .contains("Checkpoint test task")
+    );
+}
+
+#[tokio::test]
+async fn test_resume_handoff_metadata_persists_across_storage_reload() {
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let db_path = temp_dir.path().join("checkpoint_resume.db");
+    let db = Builder::new_local(&db_path)
+        .build()
+        .await
+        .expect("create local db");
+    let turso = Arc::new(TursoStorage::from_database(db).expect("turso from db"));
+    turso.initialize_schema().await.expect("init schema");
+
+    let cache_dir = TempDir::new().expect("create cache dir");
+    let redb_path = cache_dir.path().join("checkpoint_cache.redb");
+    let redb = Arc::new(RedbStorage::new(&redb_path).await.expect("redb"));
+
+    let durable: Arc<dyn StorageBackend> = turso.clone();
+    let cache: Arc<dyn StorageBackend> = redb.clone();
+    let config = MemoryConfig {
+        batch_config: None,
+        ..MemoryConfig::default()
+    };
+
+    let memory = SelfLearningMemory::with_storage(config.clone(), durable.clone(), cache.clone());
+
+    let episode_id = memory
+        .start_episode(
+            "Durable handoff test task".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        )
+        .await;
+
+    memory
+        .log_step(
+            episode_id,
+            ExecutionStep::new(1, "tool1".to_string(), "action1".to_string()),
+        )
+        .await;
+
+    let checkpoint = checkpoint_episode(&memory, episode_id, "Durability handoff".to_string())
+        .await
+        .expect("create checkpoint");
+
+    let handoff = get_handoff_pack(&memory, checkpoint.checkpoint_id)
+        .await
+        .expect("get handoff pack");
+
+    let resumed_episode_id = resume_from_handoff(&memory, handoff)
+        .await
+        .expect("resume from handoff");
+
+    drop(memory);
+
+    let reloaded_memory = SelfLearningMemory::with_storage(config, durable, cache);
+    let resumed_episode = reloaded_memory
+        .get_episode(resumed_episode_id)
+        .await
+        .expect("get resumed episode after reload");
+
+    assert_eq!(
+        resumed_episode
+            .metadata
+            .get("resumed_from_checkpoint")
+            .expect("resumed_from_checkpoint metadata"),
+        &checkpoint.checkpoint_id.to_string()
+    );
+    assert_eq!(
+        resumed_episode
+            .metadata
+            .get("resumed_from_episode")
+            .expect("resumed_from_episode metadata"),
+        &episode_id.to_string()
+    );
+    assert!(resumed_episode.metadata.contains_key("what_worked"));
+    assert!(resumed_episode.metadata.contains_key("what_failed"));
+    assert!(resumed_episode.metadata.contains_key("salient_facts"));
+    assert!(
+        resumed_episode
+            .metadata
+            .contains_key("suggested_next_steps")
     );
 }

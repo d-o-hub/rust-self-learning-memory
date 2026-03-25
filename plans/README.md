@@ -1,18 +1,21 @@
 # Plans Directory
 
-**Version**: v0.1.17 (released)  
-**Sprint**: v0.1.18 complete (unreleased)  
-**Last Updated**: 2026-03-11
+**Version**: v0.1.22 (released)  
+**Sprint**: v0.1.23 remediation (WG-051 through WG-058 complete)  
+**Last Updated**: 2026-03-24
 
 ## Quick Navigation
 
 | Document | Purpose |
 |----------|---------|
 | [STATUS/CURRENT.md](STATUS/CURRENT.md) | Live project status and metrics |
+| [STATUS/VALIDATION_LATEST.md](STATUS/VALIDATION_LATEST.md) | Latest validation slice |
+| [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md) | Current gap register |
 | [ROADMAPS/ROADMAP_ACTIVE.md](ROADMAPS/ROADMAP_ACTIVE.md) | Active development roadmap |
 | [GOALS.md](GOALS.md) | GOAP goal index |
 | [ACTIONS.md](ACTIONS.md) | Action backlog |
 | [GOAP_STATE.md](GOAP_STATE.md) | GOAP phase snapshot |
+| [GOAP_EXECUTION_PLAN_v0.1.23.md](GOAP_EXECUTION_PLAN_v0.1.23.md) | Current execution plan |
 
 ## Architecture
 
@@ -22,7 +25,7 @@
 | [ARCHITECTURE/ARCHITECTURE_PATTERNS.md](ARCHITECTURE/ARCHITECTURE_PATTERNS.md) | Design patterns |
 | [ARCHITECTURE/ARCHITECTURE_INTEGRATION.md](ARCHITECTURE/ARCHITECTURE_INTEGRATION.md) | Integration architecture |
 | [ARCHITECTURE/API_DOCUMENTATION.md](ARCHITECTURE/API_DOCUMENTATION.md) | API reference |
-| [adr/](adr/) | Architecture Decision Records (ADR-022 through ADR-038) |
+| [adr/](adr/) | Architecture Decision Records (ADR-022 through ADR-047) |
 
 ## Status & Validation
 
@@ -30,7 +33,7 @@
 |----------|---------|
 | [STATUS/CURRENT.md](STATUS/CURRENT.md) | Current metrics and release state |
 | [STATUS/VALIDATION_LATEST.md](STATUS/VALIDATION_LATEST.md) | Latest automated validation report |
-| [STATUS/CODEBASE_ANALYSIS_LATEST.md](STATUS/CODEBASE_ANALYSIS_LATEST.md) | Latest GOAP codebase analysis |
+| [STATUS/GAP_ANALYSIS_LATEST.md](STATUS/GAP_ANALYSIS_LATEST.md) | Latest GOAP gap analysis |
 
 ## Long-Term Vision
 

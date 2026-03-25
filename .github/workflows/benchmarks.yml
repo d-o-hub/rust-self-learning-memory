@@ -74,7 +74,7 @@ jobs:
       # Using 'read' for safety - 'write' only needed for main branch benchmark storage
       contents: read
       actions: write   # Required for caching
-    timeout-minutes: 30
+    timeout-minutes: 70
     env:
       RUSTC_WRAPPER: sccache
       SCCACHE_CACHE_SIZE: 2G
@@ -151,21 +151,31 @@ jobs:
            START_TIME=$(date +%s)
            MAX_TOTAL_TIME=3300  # 55 minutes in seconds
 
-           # Run different benchmark categories with individual timeouts
-           declare -A bench_configs=(
-             ["episode_lifecycle"]="300"
-             ["pattern_extraction"]="300"
-             ["storage_operations"]="600"
-             ["concurrent_operations"]="600"
-           )
+           # Run the full benchmark surface declared in benches/Cargo.toml.
+           # This keeps CI coverage aligned with the bench crate definition.
+           mapfile -t bench_names < <(awk '
+             /^\[\[bench\]\]$/ { in_bench = 1; next }
+             /^\[/ && $0 != "[[bench]]" { in_bench = 0 }
+             in_bench && /^[[:space:]]*name[[:space:]]*=/ {
+               split($0, parts, "\"")
+               if (length(parts) >= 2) {
+                 print parts[2]
+               }
+             }
+           ' benches/Cargo.toml)
+
+           if [ "${#bench_names[@]}" -eq 0 ]; then
+             echo "⚠️ No benchmarks discovered from benches/Cargo.toml"
+             exit 1
+           fi
 
            SUCCESS_COUNT=0
            FAIL_COUNT=0
 
-           for bench_name in "${!bench_configs[@]}"; do
-             # Check if we're approaching overall timeout
-             CURRENT_TIME=$(date +%s)
-             ELAPSED=$((CURRENT_TIME - START_TIME))
+           for bench_name in "${bench_names[@]}"; do
+              # Check if we're approaching overall timeout
+              CURRENT_TIME=$(date +%s)
+              ELAPSED=$((CURRENT_TIME - START_TIME))
              REMAINING=$((MAX_TOTAL_TIME - ELAPSED))
 
              if [ "$REMAINING" -lt 60 ]; then
@@ -173,10 +183,18 @@ jobs:
                break
              fi
 
-             timeout="${bench_configs[$bench_name]}"
-             # Use the smaller of individual timeout or remaining time
-             if [ "$timeout" -gt "$REMAINING" ]; then
-               timeout="$REMAINING"
+              # Default per-benchmark timeout is 5 minutes, with longer windows
+              # for known heavier suites.
+              timeout="300"
+              case "$bench_name" in
+                storage_operations|concurrent_operations|phase3_retrieval_accuracy|phase3_cache_performance)
+                  timeout="600"
+                  ;;
+              esac
+
+              # Use the smaller of individual timeout or remaining time
+              if [ "$timeout" -gt "$REMAINING" ]; then
+                timeout="$REMAINING"
              fi
 
              echo ""

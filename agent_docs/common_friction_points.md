@@ -45,7 +45,8 @@ Based on analysis of 34 sessions (234 messages, 97 commits):
 1. Write tests first (TDD approach)
 2. Run cargo nextest run -p <crate> after changes
 3. Run cargo nextest run --all before commit
-4. Check edge cases explicitly
+4. Run cargo test --doc for doctest parity
+5. Check edge cases explicitly
 ```
 
 **Quick Check**:
@@ -167,10 +168,12 @@ async fn test_network_dependent() {
 
 ### Before Commit
 
-1. [ ] `cargo fmt --all`
-2. [ ] `cargo clippy --all -- -D warnings`
+1. [ ] `./scripts/code-quality.sh fmt`
+2. [ ] `./scripts/code-quality.sh clippy --workspace`
 3. [ ] `cargo nextest run --all`
-4. [ ] `git status` verification
+4. [ ] `cargo test --doc`
+5. [ ] `./scripts/quality-gates.sh` (coverage threshold defaults to 90%)
+6. [ ] `git status` verification
 
 ### Atomic Commits
 

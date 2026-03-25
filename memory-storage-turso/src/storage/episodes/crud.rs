@@ -23,9 +23,9 @@ impl TursoStorage {
             INSERT OR REPLACE INTO episodes (
                 episode_id, task_type, task_description, context,
                 start_time, end_time, steps, outcome, reward,
-                reflection, patterns, heuristics, metadata, domain, language,
+                reflection, patterns, heuristics, checkpoints, metadata, domain, language,
                 archived_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         // Get compression threshold from config
@@ -106,6 +106,9 @@ impl TursoStorage {
             .map_err(Error::Serialization)?
             .into_bytes();
 
+        let checkpoints_json =
+            serde_json::to_string(&episode.checkpoints).map_err(Error::Serialization)?;
+
         // Get archived_at from metadata if present
         let archived_at = episode
             .metadata
@@ -136,6 +139,7 @@ impl TursoStorage {
             reflection_json,
             patterns_str,
             heuristics_str,
+            checkpoints_json,
             metadata_str,
             episode.context.domain.clone(),
             episode.context.language.clone(),
@@ -181,7 +185,9 @@ impl TursoStorage {
         const SQL: &str = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
                    archived_at
             FROM episodes WHERE episode_id = ?
         "#;
@@ -336,7 +342,9 @@ impl TursoStorage {
         let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
-                   reflection, patterns, heuristics, metadata, domain, language,
+                   reflection, patterns, heuristics,
+                   COALESCE(checkpoints, '[]') AS checkpoints,
+                   metadata, domain, language,
                    archived_at
             FROM episodes WHERE task_description = ?
         "#;
@@ -362,7 +370,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, TaskContext, TaskType};
+    use memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
@@ -424,5 +432,30 @@ mod tests {
         let nonexistent_id = Uuid::new_v4();
         let result = storage.get_episode(nonexistent_id).await.unwrap();
         assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_store_and_get_episode_persists_checkpoints() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        let mut episode = Episode::new(
+            "Checkpoint test".to_string(),
+            TaskContext::default(),
+            TaskType::CodeGeneration,
+        );
+        episode.checkpoints.push(CheckpointMeta::new(
+            "handoff".to_string(),
+            2,
+            Some("persist me".to_string()),
+        ));
+
+        let episode_id = episode.episode_id;
+        storage.store_episode(&episode).await.unwrap();
+
+        let retrieved = storage.get_episode(episode_id).await.unwrap().unwrap();
+        assert_eq!(retrieved.checkpoints.len(), 1);
+        assert_eq!(retrieved.checkpoints[0].reason, "handoff");
+        assert_eq!(retrieved.checkpoints[0].step_number, 2);
+        assert_eq!(retrieved.checkpoints[0].note.as_deref(), Some("persist me"));
     }
 }

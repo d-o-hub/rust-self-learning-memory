@@ -23,10 +23,11 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let reflection_json: Option<String> = row.get(9).ok();
     let patterns_json: String = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
     let heuristics_json: String = row.get(11).map_err(|e| Error::Storage(e.to_string()))?;
-    let metadata_json: String = row.get(12).map_err(|e| Error::Storage(e.to_string()))?;
-    let _domain: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
-    let _language: Option<String> = row.get(14).ok();
-    let archived_at: Option<i64> = row.get(15).ok();
+    let checkpoints_json: Option<String> = row.get(12).ok();
+    let metadata_json: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
+    let _domain: String = row.get(14).map_err(|e| Error::Storage(e.to_string()))?;
+    let _language: Option<String> = row.get(15).ok();
+    let archived_at: Option<i64> = row.get(16).ok();
 
     let context: memory_core::TaskContext = serde_json::from_str(&context_json)
         .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
@@ -67,6 +68,14 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
         .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
 
+    let checkpoints: Vec<memory_core::memory::checkpoint::CheckpointMeta> = checkpoints_json
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .map(serde_json::from_str)
+        .transpose()
+        .map_err(|e| Error::Storage(format!("Failed to parse checkpoints: {}", e)))?
+        .unwrap_or_default();
+
     // Parse metadata (with decompression if compression is enabled)
     #[cfg(feature = "compression")]
     let metadata_bytes = decompress_json_field(&metadata_json)?;
@@ -101,7 +110,7 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
         applied_patterns: Vec::new(),
         salient_features: None,
         tags: vec![],
-        checkpoints: vec![],
+        checkpoints,
         start_time: chrono::DateTime::from_timestamp(start_time_timestamp, 0).unwrap_or_default(),
         end_time: end_time_timestamp.and_then(|t| chrono::DateTime::from_timestamp(t, 0)),
         metadata,
@@ -150,6 +159,7 @@ mod tests {
     use super::*;
     use memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
     use tempfile::TempDir;
+    use uuid::Uuid;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
         let dir = TempDir::new().unwrap();
@@ -219,5 +229,55 @@ mod tests {
             retrieved.metadata.get("assigned_to"),
             Some(&"developer".to_string())
         );
+    }
+
+    #[tokio::test]
+    async fn test_row_to_episode_defaults_missing_checkpoints_to_empty() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+        let conn = storage.get_connection().await.unwrap();
+        let episode_id = Uuid::new_v4();
+
+        let context_json = serde_json::to_string(&TaskContext::default()).unwrap();
+        let steps_json =
+            serde_json::to_string(&Vec::<memory_core::episode::ExecutionStep>::new()).unwrap();
+        let patterns_json =
+            serde_json::to_string(&Vec::<memory_core::episode::PatternId>::new()).unwrap();
+        let heuristics_json = serde_json::to_string(&Vec::<Uuid>::new()).unwrap();
+        let metadata_json =
+            serde_json::to_string(&std::collections::HashMap::<String, String>::new()).unwrap();
+
+        conn.execute(
+            r#"
+                INSERT INTO episodes (
+                    episode_id, task_type, task_description, context,
+                    start_time, end_time, steps, outcome, reward,
+                    reflection, patterns, heuristics, metadata, domain, language,
+                    archived_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            "#,
+            libsql::params![
+                episode_id.to_string(),
+                TaskType::CodeGeneration.to_string(),
+                "Legacy row without checkpoints".to_string(),
+                context_json,
+                chrono::Utc::now().timestamp(),
+                Option::<i64>::None,
+                steps_json,
+                Option::<String>::None,
+                Option::<String>::None,
+                Option::<String>::None,
+                patterns_json,
+                heuristics_json,
+                metadata_json,
+                "default".to_string(),
+                Option::<String>::None,
+                Option::<i64>::None,
+            ],
+        )
+        .await
+        .unwrap();
+
+        let retrieved = storage.get_episode(episode_id).await.unwrap().unwrap();
+        assert!(retrieved.checkpoints.is_empty());
     }
 }

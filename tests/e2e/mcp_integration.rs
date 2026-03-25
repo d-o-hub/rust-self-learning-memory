@@ -567,13 +567,13 @@ async fn test_mcp_tool_relationship_management() {
 }
 
 // ============================================================================
-// Test 8: Batch Operations Tool
+// Test 8: Deferred Batch Tool-Level Operations
 // ============================================================================
 
 #[tokio::test]
 #[serial]
-async fn test_mcp_tool_batch_operations() {
-    println!("🧪 Testing MCP batch operations tool...");
+async fn test_mcp_tool_batch_operations_are_deferred() {
+    println!("🧪 Testing MCP deferred batch tool-level operations...");
 
     let server = InMemoryMcpServer::new()
         .await
@@ -596,30 +596,25 @@ async fn test_mcp_tool_batch_operations() {
         episode_ids.push(result["episode_id"].as_str().unwrap().to_string());
     }
 
-    // Batch query
-    let batch_params = serde_json::json!({
-        "filter": {
-            "domain": "batch-test",
-            "limit": 10
-        }
-    });
+    // Tool-level batch analytics names are intentionally deferred in WG-053.
+    // They should return an error rather than execute.
+    let deferred_tool_names = [
+        "batch_query_episodes",
+        "batch_pattern_analysis",
+        "batch_compare_episodes",
+    ];
 
-    let batch_result = server
-        .call_tool("batch_query_episodes", batch_params)
-        .await
-        .expect("Failed to batch query");
+    for tool_name in deferred_tool_names {
+        let result = server.call_tool(tool_name, serde_json::json!({})).await;
+        assert!(
+            result.is_err(),
+            "Deferred tool '{}' should not execute successfully",
+            tool_name
+        );
+    }
 
-    assert!(
-        batch_result.get("episodes").is_some(),
-        "Result should have episodes"
-    );
-    assert!(
-        batch_result.get("total_count").is_some(),
-        "Result should have total_count"
-    );
-
-    println!("  ✓ Batch query returned results");
-    println!("✅ Batch operations tool test passed!");
+    println!("  ✓ Deferred batch tool-level names correctly rejected");
+    println!("✅ Deferred batch tool contract test passed!");
 }
 
 // ============================================================================

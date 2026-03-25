@@ -25,6 +25,9 @@
 //! ```
 
 use async_trait::async_trait;
+use memory_core::memory::attribution::{
+    RecommendationFeedback, RecommendationSession, RecommendationStats,
+};
 use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
 use memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend};
 use std::sync::Arc;
@@ -330,6 +333,87 @@ impl StorageBackend for ResilientStorage {
                 let storage = Arc::clone(&storage);
                 let ids = ids_vec;
                 async move { storage.get_embeddings_batch(&ids).await }
+            })
+            .await
+    }
+
+    async fn store_recommendation_session(&self, session: &RecommendationSession) -> Result<()> {
+        let storage = Arc::clone(&self.storage);
+        let session = session.clone();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.store_recommendation_session(&session).await }
+            })
+            .await
+    }
+
+    async fn get_recommendation_session(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        let storage = Arc::clone(&self.storage);
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.get_recommendation_session(session_id).await }
+            })
+            .await
+    }
+
+    async fn get_recommendation_session_for_episode(
+        &self,
+        episode_id: Uuid,
+    ) -> Result<Option<RecommendationSession>> {
+        let storage = Arc::clone(&self.storage);
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move {
+                    storage
+                        .get_recommendation_session_for_episode(episode_id)
+                        .await
+                }
+            })
+            .await
+    }
+
+    async fn store_recommendation_feedback(&self, feedback: &RecommendationFeedback) -> Result<()> {
+        let storage = Arc::clone(&self.storage);
+        let feedback = feedback.clone();
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.store_recommendation_feedback(&feedback).await }
+            })
+            .await
+    }
+
+    async fn get_recommendation_feedback(
+        &self,
+        session_id: Uuid,
+    ) -> Result<Option<RecommendationFeedback>> {
+        let storage = Arc::clone(&self.storage);
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.get_recommendation_feedback(session_id).await }
+            })
+            .await
+    }
+
+    async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
+        let storage = Arc::clone(&self.storage);
+
+        self.circuit_breaker
+            .call(move || {
+                let storage = Arc::clone(&storage);
+                async move { storage.get_recommendation_stats().await }
             })
             .await
     }

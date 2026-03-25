@@ -107,6 +107,29 @@ pub(crate) const RECOMMENDATION_EPISODE_INDEX_TABLE: TableDefinition<&str, &str>
     TableDefinition::new("recommendation_episode_index");
 
 // ============================================================================
+// Schema Versioning (Automatic Cache Invalidation)
+// ============================================================================
+
+/// Schema version for the redb cache.
+///
+/// This version is stored in the database and checked on startup.
+/// When the schema changes (e.g., Episode struct modified), increment this version
+/// to automatically invalidate stale cached data.
+///
+/// ## When to increment:
+/// - Adding/removing fields from Episode, Pattern, Heuristic, or other cached types
+/// - Changing the serialization format (postcard schema)
+/// - Any backward-incompatible change to cached data structures
+///
+/// ## Version history:
+/// - v1: Initial version (pre-versioning)
+/// - v2: Added checkpoints field to Episode (ADR-044 Feature 3)
+pub(crate) const SCHEMA_VERSION: u64 = 2;
+
+pub(crate) const SCHEMA_VERSION_TABLE: TableDefinition<&str, u64> =
+    TableDefinition::new("schema_version");
+
+// ============================================================================
 // Timeout Helper Functions
 // ============================================================================
 

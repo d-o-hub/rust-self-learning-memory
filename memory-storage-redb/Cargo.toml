@@ -48,7 +48,7 @@ parking_lot = "0.12.5"
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 serde_json = { workspace = true }
-proptest = "1.6"
+proptest = "1.11"
 
 [lints.rust]
 # In-process memory operations - focus on unsafe code and memory safety

@@ -87,7 +87,7 @@ strsim = "0.11.1"
 regex = "1.12"
 
 # Property testing (optional, enabled via feature flag)
-proptest = { version = "1.5", optional = true }
+proptest = { version = "1.11", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
@@ -97,8 +97,8 @@ memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
 serial_test = "3.4"
 criterion = "0.8"
-proptest = "1.6"
-insta = "1.42"
+proptest = "1.11"
+insta = "1.47"
 postcard = { workspace = true }
 # Enable proptest-arbitrary feature for tests
 memory-core = { path = ".", features = ["proptest-arbitrary"] }

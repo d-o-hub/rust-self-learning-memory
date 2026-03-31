@@ -1,8 +1,36 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-31 (v0.1.24 sprint complete)
+- **Last Updated**: 2026-03-31 (v0.1.24 release plan added)
 - **Source ADR**: ADR-037
 - **Status**: Active
+
+## v0.1.24 Release Goals (Pending)
+
+1. **WG-080**: Version bump 0.1.23 → 0.1.24
+   - Priority: P0
+   - Owner: release
+   - Target: `Cargo.toml` workspace version updated, `cargo check` passes
+   - Status: ⏳ Pending
+
+2. **WG-081**: CHANGELOG.md backfill (v0.1.20–v0.1.24)
+   - Priority: P0
+   - Owner: docs
+   - Target: 5 missing version entries added (v0.1.20, v0.1.21, v0.1.22, v0.1.23, v0.1.24)
+   - Status: ⏳ Pending
+
+3. **WG-082**: ROADMAP_ACTIVE.md sync to v0.1.24
+   - Priority: P1
+   - Owner: docs
+   - Target: Released version updated, v0.1.24 sprint section added
+   - Status: ⏳ Pending
+
+4. **WG-083**: Quality gates pass + tag v0.1.24
+   - Priority: P0
+   - Owner: release
+   - Target: All quality gates green, tag pushed, GitHub Release created with binaries
+   - Status: ⏳ Pending
+
+---
 
 ## v0.1.24 Stability & Hygiene Goals (Complete)
 

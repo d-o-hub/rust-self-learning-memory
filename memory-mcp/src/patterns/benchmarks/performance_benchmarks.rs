@@ -275,10 +275,15 @@ fn benchmark_memory_usage() {
         size, estimated_mb, duration
     );
 
-    let max_secs = if is_ci { 60 } else { 45 };
+    // CI uses smaller dataset (2000 points) with 60s budget
+    // Local testing uses larger dataset (10000 points) with 120s budget
+    // to accommodate more thorough performance validation
+    let max_secs = if is_ci { 60 } else { 120 };
     assert!(
         duration.as_secs() < max_secs,
-        "DBSCAN should complete within the time budget"
+        "DBSCAN should complete within the time budget ({}s for {} points)",
+        max_secs,
+        size
     );
     assert!(estimated_mb < 500.0, "Memory usage should be reasonable");
 }

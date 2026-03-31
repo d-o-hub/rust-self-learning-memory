@@ -40,7 +40,7 @@ libsql = "0.9.29"
 redb = "3.1"
 
 # UUID and time
-uuid = { version = "1.22", features = ["v4", "serde"] }
+uuid = { version = "1.23", features = ["v4", "serde"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 
 # Logging and tracing
@@ -49,8 +49,8 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # Testing
 tempfile = "3.27.0"
-proptest = "1.6"
-insta = { version = "1.46", features = ["json"] }
+proptest = "1.11"
+insta = { version = "1.47", features = ["json"] }
 serial_test = "3.4"
 assert_cmd = "2.2"
 predicates = "3.1"
@@ -79,7 +79,7 @@ lru = "0.16.3"
 regex = "1.12"
 
 # Configuration
-toml = "1.0"
+toml = "1.1"
 
 # Note: Some duplicates are from transitive dependencies we cannot easily control:
 # - argmin 0.8.1 and argmin-math 0.3.0 come from augurs-changepoint -> changepoint -> rv

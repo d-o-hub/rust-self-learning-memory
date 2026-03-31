@@ -81,8 +81,8 @@ tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
 memory-storage-redb = { path = "../memory-storage-redb" }
 wat = "1.245"  # WAT parsing for tests
-insta = { version = "1.42", features = ["json", "yaml"] }
-proptest = "1.6"
+insta = { version = "1.47", features = ["json", "yaml"] }
+proptest = "1.11"
 
 [[example]]
 name = "memory_mcp_integration"

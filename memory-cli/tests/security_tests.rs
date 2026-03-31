@@ -3,7 +3,6 @@
 //! These tests verify that the CLI properly handles malicious input,
 //! prevents injection attacks, and sanitizes user data.
 
-use do_memory_cli::test_utils::CliHarness;
 use std::fs;
 
 #[cfg(test)]

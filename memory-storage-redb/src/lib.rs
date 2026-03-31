@@ -137,7 +137,7 @@ pub(crate) const SCHEMA_VERSION_TABLE: TableDefinition<&str, u64> =
 const DB_OPERATION_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Execute a spawn_blocking operation with timeout
-async fn with_db_timeout<T, F>(operation: F) -> crate::Result<T>
+pub(crate) async fn with_db_timeout<T, F>(operation: F) -> crate::Result<T>
 where
     F: FnOnce() -> crate::Result<T> + Send + 'static,
     T: Send + 'static,

@@ -1,9 +1,9 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-24 (post-audit remediation complete; WG-051 through WG-058 complete)
-**Released Version**: v0.1.22
-**Branch**: `main` (PR #391 merged)
-**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
+**Last Updated**: 2026-03-31 (v0.1.24 stability sprint in progress)
+**Released Version**: v0.1.23
+**Branch**: `main` (PR #404 pending)
+**PR**: [#404](https://github.com/d-o-hub/rust-self-learning-memory/pull/404) — v0.1.24 test stability
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
@@ -14,9 +14,9 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.22 | — | — |
-| Total test functions | 2,841/2,841 | — | ✅ All passing |
-| Skipped/ignored tests | 124 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
+| Workspace version | 0.1.23 | — | — |
+| Total test functions | 2,849/2,849 | — | ✅ All passing |
+| Skipped/ignored tests | 115 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ Fixed (attribution clone, playbook sync) |
 | Production src files >500 LOC | 0 | 0 | ✅ Split: generator→builder, management→tags, handlers→feature_handlers |

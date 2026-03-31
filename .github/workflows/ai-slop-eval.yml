@@ -1,0 +1,390 @@
+name: 🧪 AI Slop Detector — Eval Suite
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Runs a labeled test suite against openrouter/free to validate the detector.
+# Triggers: manual dispatch, or schedule (weekly to catch model drift)
+# Outputs: pass/fail per case + accuracy score committed to eval-results.json
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: "Print full AI responses"
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 6 * * 1'  # every Monday 06:00 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run eval suite
+        uses: actions/github-script@v7
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          VERBOSE:            ${{ inputs.verbose || 'false' }}
+          REPO:               ${{ github.repository }}
+        with:
+          script: |
+            // ─────────────────────────────────────────────────────────────────
+            // EVAL DATASET — 20 labeled cases (10 SPAM, 10 LEGITIMATE)
+            // All SPAM cases are real-world patterns from observed bot issues.
+            // ─────────────────────────────────────────────────────────────────
+            const CASES = [
+
+              // ── SPAM CASES ─────────────────────────────────────────────────
+              {
+                id: 'spam-01-dispatch-visionairy',
+                expected: 'SPAM',
+                title: 'Add a description to improve Dispatch discoverability',
+                user:  'VisionAIrySE',
+                body: `Hi! Your Claude Code skill \`github-workflows\` has been discovered by Dispatch — a Claude Code runtime that proactively recommends tools at task shifts. Right now your skill has no description, which limits how effectively Dispatch can recommend it. A short 1–2 sentence description would significantly improve its visibility. Feel free to close this if you'd prefer not to add one — no action required. We reach out at most once per month per repository. — The Dispatch team`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-02-generic-promo-tool',
+                expected: 'SPAM',
+                title: 'Improve developer experience with our AI assistant',
+                user:  'DevToolsBot99',
+                body: `Hello! We noticed your repository and think our platform could help. Our tool automatically recommends the best plugins for your workflow. Feel free to close this — no action required. Check out our free tier at https://devtoolsai.example.com. We only reach out once per month.`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-03-skill-discovery',
+                expected: 'SPAM',
+                title: 'Your skill has been discovered',
+                user:  'SkillIndexBot',
+                body: `Your repository was indexed by SkillFinder. Your skill has no description which limits discoverability. Add a short description to help developers find your skill. No action required — feel free to close this issue.`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-04-soft-sell-mcp',
+                expected: 'SPAM',
+                title: 'Boost your MCP plugin visibility',
+                user:  'MCPIndexer',
+                body: `We help developers discover MCP plugins and skills. Your plugin currently has low visibility. Improve its visibility by adding metadata. Our platform proactively recommends tools to developers. Sign up for free at https://mcp-hub.example.io`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-05-minimal-body',
+                expected: 'SPAM',
+                title: 'We noticed your repo — improve discoverability',
+                user:  'RepoScoutAI',
+                body: `Hi, we noticed your repository and wanted to reach out. Our community tool can help improve your workflow. Check out our platform: https://reposcout.example.com. Feel free to close — no action required.`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-06-ai-code-assistant-promo',
+                expected: 'SPAM',
+                title: 'Supercharge your Rust development',
+                user:  'CodingAssistantBot',
+                body: `Hello developer! Our AI-powered coding assistant is now available for Rust projects. It automatically recommends refactoring suggestions and best practices. We reach out at most once per month. Try our free tier today!`,
+                heuristic_expected: 'spam_medium',
+              },
+              {
+                id: 'spam-07-github-action-promotion',
+                expected: 'SPAM',
+                title: 'Automated security scanning for your project',
+                user:  'SecurityScannerPro',
+                body: `Our platform automatically scans your repository for vulnerabilities. We noticed your repo has no security scanning configured. Sign up for free at https://securitypro.example.com — no action required, feel free to close this.`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-08-vague-improvement',
+                expected: 'SPAM',
+                title: 'Add README badges to improve visibility',
+                user:  'BadgeBot2025',
+                body: `Your repository would benefit from our badge service. We help developers discover quality projects by adding standardized badges. Our service is free. Check out https://badges.example.dev for more. We only reach out to repos once.`,
+                heuristic_expected: 'spam_medium',
+              },
+              {
+                id: 'spam-09-analytics-promo',
+                expected: 'SPAM',
+                title: 'Add analytics to track your repository growth',
+                user:  'RepoAnalytics',
+                body: `Hi! Our developer platform provides detailed analytics for open-source repositories. Your repo has great potential. Sign up for free to see your download trends and user analytics. No action required — feel free to close this.`,
+                heuristic_expected: 'spam_high',
+              },
+              {
+                id: 'spam-10-very-subtle',
+                expected: 'SPAM',
+                title: 'Consider adding a FUNDING.yml file',
+                user:  'OpenSourceSupport',
+                body: `Many popular repositories use GitHub Sponsors and other funding platforms. Our service helps connect open-source maintainers with sponsors. We noticed your project doesn't have funding configured. Check out our platform at https://fundit.example.com to learn more.`,
+                heuristic_expected: 'spam_medium',
+              },
+
+              // ── LEGITIMATE CASES ───────────────────────────────────────────
+              {
+                id: 'legit-01-real-bug-panic',
+                expected: 'LEGITIMATE',
+                title: 'Panic on empty input in memory parser',
+                user:  'alice_dev',
+                body: `## Bug Report\n\nWhen passing an empty string to the memory parser, the program panics.\n\n**Steps to reproduce:**\n1. Call \`parse_memory("")\`\n2. Observe panic: \`index out of bounds: the len is 0 but the index is 0\`\n\n**Cargo version:** 1.82.0\n**Rust version:** 1.83 stable`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-02-feature-request',
+                expected: 'LEGITIMATE',
+                title: 'Feature: async support for memory store operations',
+                user:  'bob_rustacean',
+                body: `Currently all memory store operations are synchronous. It would be great to have async versions using tokio. This would enable better integration with async Rust applications.\n\nHappy to submit a PR if the maintainers are interested.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-03-compilation-error',
+                expected: 'LEGITIMATE',
+                title: 'Compilation fails on nightly with lifetime error',
+                user:  'rustlang_fan',
+                body: `Getting a lifetime error on nightly (2024-12-01) that doesn't occur on stable:\n\n\`\`\`\nerror[E0597]: \`memory\` does not live long enough\n  --> src/store.rs:42:18\n\`\`\`\n\nThis seems like a regression. The code compiled fine on stable 1.82.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-04-question',
+                expected: 'LEGITIMATE',
+                title: 'How to configure memory retention policy?',
+                user:  'new_user_2025',
+                body: `Hi, I'm trying to configure how long memories are retained before expiry. I've read the README but I can't find any configuration option for TTL. Is there a way to set this via Cargo feature flags or at runtime?`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-05-security',
+                expected: 'LEGITIMATE',
+                title: 'Security: unsafe block in store.rs line 88 may cause UB',
+                user:  'security_researcher',
+                body: `Found a potential undefined behavior issue in the unsafe block at store.rs:88. The raw pointer dereference is not properly bounds-checked. This could potentially be exploited if the memory length is manipulated. Happy to provide a patch.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-06-dependency-update',
+                expected: 'LEGITIMATE',
+                title: 'Upgrade tokio to 1.42 to fix CVE-2024-XXXX',
+                user:  'dep_bot_human',
+                body: `The current dependency on tokio 1.38 has a known vulnerability (CVE-2024-XXXX). Upgrading to 1.42 fixes this. I can submit a PR with the Cargo.toml update + lock file changes.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-07-wasm-issue',
+                expected: 'LEGITIMATE',
+                title: 'WASM target fails to compile with wasm-pack',
+                user:  'wasm_developer',
+                body: `When compiling for wasm32-unknown-unknown with wasm-pack build --target web, the build fails:\n\n\`\`\`\nerror: the wasm32-unknown-unknown target is not supported by this crate\n\`\`\`\n\nIs WASM support planned? The README mentions future WASM support.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-08-clippy-warning',
+                expected: 'LEGITIMATE',
+                title: 'Fix clippy::needless_pass_by_value warnings',
+                user:  'clippy_enjoyer',
+                body: `Running cargo clippy produces several warnings in src/memory.rs:\n\n- clippy::needless_pass_by_value on line 34, 67, 103\n\nHappy to submit a PR fixing these. They're simple refactors to pass by reference instead.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-09-docs-issue',
+                expected: 'LEGITIMATE',
+                title: 'Docs: README example code does not compile',
+                user:  'docs_reader',
+                body: `The example in the README under "Getting Started" doesn't compile with the current version:\n\n\`\`\`rust\nlet store = MemoryStore::new(); // Error: expected 1 argument, found 0\n\`\`\`\n\nThe API signature changed but the docs weren't updated.`,
+                heuristic_expected: 'clean',
+              },
+              {
+                id: 'legit-10-performance',
+                expected: 'LEGITIMATE',
+                title: 'Performance regression: memory lookup 3x slower in v0.4.0',
+                user:  'bench_runner',
+                body: `After upgrading from v0.3.8 to v0.4.0, memory lookup operations are ~3x slower in my benchmarks:\n\n- v0.3.8: 142ns/op\n- v0.4.0: 438ns/op\n\nEnvironment: Linux x86_64, Rust 1.83 stable. cargo bench results attached.`,
+                heuristic_expected: 'clean',
+              },
+            ];
+
+            // ─────────────────────────────────────────────────────────────────
+            // Run heuristic stage for each case (inline — mirrors detector logic)
+            // ─────────────────────────────────────────────────────────────────
+            function runHeuristic(c) {
+              const combined = (c.title + '\n' + c.body).toLowerCase();
+              let score = 0;
+              const hits = [];
+
+              const highPhrases = [
+                'feel free to close this if you','no action required',
+                'we reach out at most once per month','has been discovered by',
+                'improve.*discoverability','proactively recommends? (tools|plugins|skills|mcps)',
+                'intercepts? when.*picks? something','help developers? discover',
+                'recommend it to developers',
+                'we noticed your repo',
+                'your (repo|repository|skill|plugin) has been','automatically recommends?',
+                'your skill has (no description|been discovered)',
+                'short 1[\\-–]2 sentence description','(improve|boost) its visibility',
+              ];
+              const medPhrases = [
+                'our (platform|service|tool|product)','sign up for free',
+                'free tier available',
+                'check out our','improve your workflow',
+                '(plugin|skill|mcp).*(discover|recommend)',
+                'developer platform',
+                'proactively recommend','at most once per (month|week)',
+                'we only reach out',
+                'dispatched by','community tool','unsubscribe',
+              ];
+
+              for (const p of highPhrases) {
+                try { if (new RegExp(p,'i').test(combined)) { score+=2; hits.push(p); } } catch(e) {}
+              }
+              for (const p of medPhrases) {
+                try { if (new RegExp(p,'i').test(combined)) { score+=1; hits.push(p); } } catch(e) {}
+              }
+              const spamDomains = ['visionairy.biz','dispatch.visionairy'];
+              for (const d of spamDomains) {
+                if (combined.includes(d)) { score+=2; hits.push(d); }
+              }
+              const urlRe = /https?:\/\/([^\s\)\"\'\]]+)/g;
+              const urls  = (c.body.match(urlRe)||[]).filter(u=>
+                !u.includes('github.com')&&!u.includes('rust-lang.org')&&
+                !u.includes('crates.io')&&!u.includes('docs.rs'));
+              if (urls.length) { score+=1; hits.push('external url'); }
+
+              const rustKw = ['rust','cargo','wasm','memory','trait','lifetime','borrow',
+                'async','tokio','error','bug','crash','panic','compile','clippy','test',
+                'bench','feature','performance','unsafe','refactor','ci','docs','crate'];
+              if (!rustKw.some(k=>c.title.toLowerCase().includes(k)) && c.body.length<800) {
+                score+=1; hits.push('no rust keyword + short');
+              }
+
+              if      (score>=5) return { verdict:'spam_high',   score, hits };
+              else if (score>=2) return { verdict:'spam_medium',  score, hits };
+              else               return { verdict:'clean',        score, hits };
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // Run AI classification via openrouter/free
+            // ─────────────────────────────────────────────────────────────────
+            async function classifyAI(c) {
+              if (!process.env.OPENROUTER_API_KEY) {
+                return { verdict: 'NO_KEY', confidence: 0, reason: 'No API key', model: 'none' };
+              }
+              const systemPrompt = `You are a GitHub issue classifier for a Rust open-source project.
+SPAM: promotional/bot content, promo URLs, soft-sell ("feel free to close"), zero technical relevance.
+LEGITIMATE: bugs, features, questions, security, dependency issues.
+Reply ONLY with valid JSON (no markdown): {"verdict":"SPAM","confidence":90,"reason":"one sentence"}`;
+
+              try {
+                const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type':  'application/json',
+                    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    'HTTP-Referer':  `https://github.com/${process.env.REPO}`,
+                    'X-Title':       'AI Slop Detector Eval',
+                  },
+                  body: JSON.stringify({
+                    model: 'openrouter/free',
+                    response_format: { type: 'json_object' },
+                    messages: [
+                      { role: 'system', content: systemPrompt },
+                      { role: 'user',   content: `Author: ${c.user}\nTitle: ${c.title}\nBody:\n${c.body.substring(0,800)}` },
+                    ],
+                    max_tokens: 100,
+                    temperature: 0,
+                  }),
+                });
+                const data  = await res.json();
+                const model = data.model || 'openrouter/free';
+                if (!res.ok) return { verdict:'ERROR', confidence:0, reason: JSON.stringify(data), model };
+                const raw    = data.choices?.[0]?.message?.content || '{}';
+                const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+                return {
+                  verdict:    parsed.verdict    || 'uncertain',
+                  confidence: Number(parsed.confidence) || 0,
+                  reason:     parsed.reason     || '',
+                  model,
+                };
+              } catch(e) {
+                return { verdict:'ERROR', confidence:0, reason:e.message, model:'openrouter/free' };
+              }
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // Run all cases
+            // ─────────────────────────────────────────────────────────────────
+            const verbose  = process.env.VERBOSE === 'true';
+            const results  = [];
+            let hPass=0, hFail=0, aiPass=0, aiFail=0, aiSkip=0;
+            const modelsUsed = new Set();
+
+            for (const c of CASES) {
+              const h  = runHeuristic(c);
+              const ai = await classifyAI(c);
+              if (ai.model) modelsUsed.add(ai.model);
+
+              // Heuristic pass = spam_high/spam_medium for SPAM, clean for LEGITIMATE
+              const hExpected = c.expected === 'SPAM' ? ['spam_high','spam_medium'] : ['clean'];
+              const hOk  = hExpected.includes(h.verdict);
+
+              // AI pass = SPAM for SPAM, LEGITIMATE for LEGITIMATE (confidence >= 60)
+              let aiOk = false;
+              if (ai.verdict === 'NO_KEY') { aiSkip++; }
+              else if (c.expected === 'SPAM'      && ai.verdict === 'SPAM'       && ai.confidence >= 60) { aiOk = true; aiPass++; }
+              else if (c.expected === 'LEGITIMATE' && ai.verdict === 'LEGITIMATE' && ai.confidence >= 60) { aiOk = true; aiPass++; }
+              else { aiFail++; }
+
+              if (hOk) hPass++; else hFail++;
+
+              const row = {
+                id: c.id, expected: c.expected,
+                h_verdict: h.verdict, h_score: h.score, h_ok: hOk,
+                ai_verdict: ai.verdict, ai_confidence: ai.confidence,
+                ai_model: ai.model, ai_reason: ai.reason, ai_ok: aiOk,
+              };
+              results.push(row);
+
+              const hIcon  = hOk  ? '✅' : '❌';
+              const aiIcon = aiOk ? '✅' : (ai.verdict==='NO_KEY' ? '⏭' : '❌');
+              core.info(`${c.id.padEnd(35)} H:${hIcon}(${h.verdict},${h.score}) AI:${aiIcon}(${ai.verdict},${ai.confidence}%)`);
+              if (verbose) core.info(`  → AI reason: ${ai.reason} [${ai.model}]`);
+            }
+
+            const hTotal  = CASES.length;
+            const aiTotal = CASES.length - aiSkip;
+            const hAcc    = ((hPass  / hTotal)  * 100).toFixed(1);
+            const aiAcc   = aiTotal > 0 ? ((aiPass / aiTotal) * 100).toFixed(1) : 'N/A';
+
+            core.info('');
+            core.info('═══════════════════════════════════════════════');
+            core.info(`EVAL RESULTS (${new Date().toISOString().split('T')[0]})`);
+            core.info(`Heuristic : ${hPass}/${hTotal} (${hAcc}%)`);
+            core.info(`AI (openrouter/free) : ${aiPass}/${aiTotal} (${aiAcc}%) — skipped: ${aiSkip}`);
+            core.info(`Models used: ${[...modelsUsed].join(', ')}`);
+            core.info('═══════════════════════════════════════════════');
+
+            if (parseFloat(hAcc) < 70 || (aiTotal > 0 && parseFloat(aiAcc) < 70)) {
+              core.warning('Accuracy below 70% — patterns may need updating');
+            }
+
+            // ─── Save results ───────────────────────────────────────────────
+            const fs = require('fs');
+            const summary = {
+              date:        new Date().toISOString(),
+              heuristic:   { pass: hPass, total: hTotal, accuracy: hAcc + '%' },
+              ai:          { pass: aiPass, total: aiTotal, accuracy: aiAcc + '%',
+                             skipped: aiSkip, models_seen: [...modelsUsed] },
+              cases:       results,
+            };
+            fs.mkdirSync('.github', { recursive: true });
+            fs.writeFileSync('.github/eval-results.json', JSON.stringify(summary, null, 2));
+            core.info('Results written to .github/eval-results.json');
+
+      - name: Commit eval results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/eval-results.json
+          git diff --cached --quiet || git commit -m "chore(ai-slop): eval results $(date +%Y-%m-%d) [skip ci]"
+          git push || true

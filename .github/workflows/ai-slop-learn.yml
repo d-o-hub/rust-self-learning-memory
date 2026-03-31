@@ -1,0 +1,199 @@
+name: 🧠 AI Slop Self-Learning
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggered when a human:
+#   • labels an issue with 'ai-slop'       → learn the spam pattern
+#   • labels an issue with 'false-positive' → protect this account/pattern
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues:   write
+  contents: write
+
+jobs:
+  learn:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.label.name == 'ai-slop' ||
+      github.event.label.name == 'false-positive'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Extract n-gram phrases + update patterns file ─────────────────────
+      - name: Learn from labeled issue
+        uses: actions/github-script@v7
+        env:
+          LABEL:        ${{ github.event.label.name }}
+          ISSUE_TITLE:  ${{ github.event.issue.title }}
+          ISSUE_BODY:   ${{ github.event.issue.body }}
+          ISSUE_USER:   ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_STATE:  ${{ github.event.issue.state }}
+        with:
+          script: |
+            const fs   = require('fs');
+            const label = process.env.LABEL;
+            const user  = process.env.ISSUE_USER;
+            const title = process.env.ISSUE_TITLE || '';
+            const body  = process.env.ISSUE_BODY  || '';
+
+            const patternsPath = '.github/workflows/ai-slop-patterns.json';
+            let patterns;
+            try {
+              patterns = JSON.parse(fs.readFileSync(patternsPath, 'utf8'));
+            } catch(e) {
+              core.setFailed('Cannot read patterns file: ' + e.message);
+              return;
+            }
+
+            // ── Helper: extract candidate phrases ─────────────────────────
+            function extractPhrases(text, minLen = 4, maxLen = 8) {
+              // Tokenize into words, extract n-grams (4–8 words)
+              const words = text
+                .toLowerCase()
+                .replace(/[^\w\s]/g, ' ')
+                .split(/\s+/)
+                .filter(w => w.length > 1);
+
+              const phrases = new Set();
+              for (let size = minLen; size <= Math.min(maxLen, words.length); size++) {
+                for (let i = 0; i <= words.length - size; i++) {
+                  const phrase = words.slice(i, i + size).join(' ');
+                  // Only keep phrases with >= 2 non-stopword content words
+                  const stopwords = new Set(['a','an','the','and','or','but','in','on',
+                    'at','to','for','of','with','by','from','this','that','is','are',
+                    'was','were','be','been','have','has','had','do','does','did',
+                    'will','would','could','should','may','might','your','our','my']);
+                  const contentWords = phrase.split(' ').filter(w => !stopwords.has(w));
+                  if (contentWords.length >= 2) phrases.add(phrase);
+                }
+              }
+              return [...phrases];
+            }
+
+            if (label === 'ai-slop') {
+              // ── LEARN: add spam patterns ──────────────────────────────────
+              core.info(`Learning spam patterns from issue by ${user}`);
+
+              patterns.learned_phrases  = patterns.learned_phrases  || [];
+              patterns.learned_accounts = patterns.learned_accounts || [];
+              patterns.stats            = patterns.stats            || {};
+
+              // Add account if not already known
+              if (!patterns.spam_accounts.includes(user) &&
+                  !patterns.learned_accounts.includes(user)) {
+                patterns.learned_accounts.push(user);
+                core.info(`Added learned spam account: ${user}`);
+              }
+
+              // Extract top candidate phrases from body (prefer body over title)
+              const allPhrases = extractPhrases(body);
+
+              // Score phrases by how "spammy" they sound (heuristic)
+              const spammyWords = ['discover','recommend','platform','service','tool',
+                'plugin','dispatch','improve','visibility','discoverability',
+                'reach out','sign up','free','month','repo','skill','mcp'];
+
+              const scored = allPhrases
+                .map(p => {
+                  let s = 0;
+                  spammyWords.forEach(w => { if (p.includes(w)) s++; });
+                  return { phrase: p, score: s };
+                })
+                .filter(p => p.score >= 1)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5); // take top 5 most indicative phrases
+
+              // Add to learned_phrases (avoid duplicates)
+              const existingPhrases = new Set(patterns.learned_phrases.map(p => p.phrase));
+              for (const { phrase, score } of scored) {
+                if (!existingPhrases.has(phrase)) {
+                  patterns.learned_phrases.push({
+                    phrase,
+                    weight:       score >= 2 ? 'high' : 'medium',
+                    learned_from: `issue #${process.env.ISSUE_NUMBER}`,
+                    added:        new Date().toISOString().split('T')[0]
+                  });
+                  core.info(`Learned phrase (${score >= 2 ? 'HIGH' : 'MEDIUM'}): "${phrase}"`);
+                }
+              }
+
+              patterns.stats.human_confirmed = (patterns.stats.human_confirmed || 0) + 1;
+              patterns.stats.true_positives  = (patterns.stats.true_positives  || 0) + 1;
+
+              // Also close + comment if still open
+              if (process.env.ISSUE_STATE === 'open') {
+                try {
+                  await github.rest.issues.createComment({
+                    ...context.issue,
+                    body: '🧠 Patterns learned from this spam issue. Closing.\n\n_Thanks for helping train the ai-slop-detector!_'
+                  });
+                  await github.rest.issues.update({
+                    ...context.issue,
+                    state: 'closed',
+                    state_reason: 'not_planned'
+                  });
+                } catch(e) {
+                  core.warning('Could not close issue: ' + e.message);
+                }
+              }
+
+            } else if (label === 'false-positive') {
+              // ── UNLEARN: protect this account ─────────────────────────────
+              core.info(`Recording false positive for ${user}`);
+
+              patterns.false_positives = patterns.false_positives || [];
+              if (!patterns.false_positives.includes(user)) {
+                patterns.false_positives.push(user);
+              }
+
+              // Remove from learned_accounts if present
+              patterns.learned_accounts = (patterns.learned_accounts || [])
+                .filter(a => a !== user);
+
+              patterns.stats = patterns.stats || {};
+              patterns.stats.false_positives = (patterns.stats.false_positives || 0) + 1;
+
+              // Reopen if auto-closed and labelled false-positive
+              if (process.env.ISSUE_STATE === 'closed') {
+                try {
+                  await github.rest.issues.update({
+                    ...context.issue,
+                    state: 'open'
+                  });
+                  await github.rest.issues.createComment({
+                    ...context.issue,
+                    body: [
+                      '♻️ Reopened — recorded as **false-positive**.',
+                      '',
+                      `User \`${user}\` has been added to the protected list and will not be auto-flagged again.`,
+                      '',
+                      '_Sorry for the false alarm!_'
+                    ].join('\n')
+                  });
+                } catch(e) {
+                  core.warning('Could not reopen issue: ' + e.message);
+                }
+              }
+            }
+
+            // ── Save updated patterns ─────────────────────────────────────
+            patterns._meta = patterns._meta || {};
+            patterns._meta.last_updated = new Date().toISOString().split('T')[0];
+            fs.writeFileSync(patternsPath, JSON.stringify(patterns, null, 2));
+            core.info('Patterns file updated.');
+
+      - name: Commit learned patterns
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/ai-slop-patterns.json
+          git diff --cached --quiet || git commit -m "chore(ai-slop): learn from issue #${{ github.event.issue.number }} (${{ github.event.label.name }}) [skip ci]"
+          git push

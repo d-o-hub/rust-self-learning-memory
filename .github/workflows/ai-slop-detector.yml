@@ -1,0 +1,399 @@
+name: 🤖 AI Slop Issue Detector
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Detects and auto-closes AI-generated spam issues using:
+#   Stage 1 — Pure heuristic scoring (no API, zero cost, instant)
+#   Stage 2 — openrouter/free (smart router across all free models)
+#             Uses response_format: json_object so the router only picks
+#             models that support structured output — no hardcoded list needed.
+#
+# Self-learning: human labels 'ai-slop' or 'false-positive' → patterns grow
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  issues:   write
+  contents: write
+
+env:
+  PATTERNS_FILE: .github/workflows/ai-slop-patterns.json
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    # Skip first-party bots we trust
+    if: |
+      !contains(fromJson('["dependabot[bot]","renovate[bot]","github-actions[bot]","copilot[bot]"]'),
+                github.event.issue.user.login)
+
+    steps:
+      # ── 0. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 1. Heuristic scoring (pure JS, no external calls) ──────────────────
+      - name: Stage 1 — Heuristic scoring
+        id: heuristic
+        uses: actions/github-script@v7
+        env:
+          ISSUE_TITLE:  ${{ github.event.issue.title }}
+          ISSUE_BODY:   ${{ github.event.issue.body }}
+          ISSUE_USER:   ${{ github.event.issue.user.login }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            let P = {
+              spam_phrases_high: [], spam_phrases_medium: [],
+              spam_domains: [], spam_accounts: [], spam_account_patterns: [],
+              learned_phrases: [], learned_accounts: [], false_positives: []
+            };
+            try { P = JSON.parse(fs.readFileSync(process.env.PATTERNS_FILE, 'utf8')); }
+            catch(e) { core.warning('Patterns file not found — using built-in defaults'); }
+
+            const title    = (process.env.ISSUE_TITLE || '').toLowerCase();
+            const body     = (process.env.ISSUE_BODY  || '').toLowerCase();
+            const user     = (process.env.ISSUE_USER  || '');
+            const combined = title + '\n' + body;
+
+            if ((P.false_positives || []).includes(user)) {
+              core.setOutput('verdict', 'clean');
+              core.setOutput('score',   '0');
+              core.setOutput('hits',    '[]');
+              return;
+            }
+
+            let score = 0;
+            const hits = [];
+
+            function matchPhrases(phrases, pts, prefix) {
+              for (const phrase of phrases) {
+                try {
+                  if (new RegExp(phrase, 'i').test(combined)) {
+                    score += pts;
+                    hits.push(`${prefix} [+${pts}]: "${phrase}"`);
+                  }
+                } catch(e) {}
+              }
+            }
+
+            // HIGH built-in phrases (+2 each)
+            matchPhrases([
+              'feel free to close this if you',
+              'no action required',
+              'we reach out at most once per month',
+              'has been discovered by',
+              'improve.*discoverability',
+              'proactively recommends? (tools|plugins|skills|mcps)',
+              'intercepts? when.*picks? something',
+              'help developers? discover',
+              'recommend it to developers',
+              'we noticed your repo',
+              'your (repo|repository|skill|plugin) has been',
+              'automatically recommends?',
+              'your skill has (no description|been discovered)',
+              'short 1[\\-–]2 sentence description',
+              '(improve|boost) its visibility',
+            ], 2, 'HIGH');
+
+            // MEDIUM built-in phrases (+1 each)
+            matchPhrases([
+              'our (platform|service|tool|product)',
+              'sign up for free',
+              'free tier available',
+              'check out our',
+              'improve your workflow',
+              '(plugin|skill|mcp).*(discover|recommend)',
+              'developer platform',
+              'proactively recommend',
+              'at most once per (month|week)',
+              'we only reach out',
+              'dispatched by',
+              'community tool',
+              'unsubscribe',
+            ], 1, 'MED');
+
+            // Learned phrases
+            const lHigh = (P.learned_phrases || []).filter(p => p.weight==='high').map(p=>p.phrase);
+            const lMed  = (P.learned_phrases || []).filter(p => p.weight==='medium').map(p=>p.phrase);
+            matchPhrases(lHigh, 2, 'LEARNED-HIGH');
+            matchPhrases(lMed,  1, 'LEARNED-MED');
+
+            // Known spam domains (+2 each)
+            const domains = [...(P.spam_domains||[]), 'visionairy.biz', 'dispatch.visionairy'];
+            for (const d of domains) {
+              if (body.includes(d.toLowerCase())) {
+                score += 2; hits.push(`Spam domain [+2]: ${d}`);
+              }
+            }
+
+            // Known spam accounts (+3)
+            const spamAccounts = [...(P.spam_accounts||[]), ...(P.learned_accounts||[])];
+            if (spamAccounts.includes(user)) {
+              score += 3; hits.push(`Known spam account [+3]: ${user}`);
+            }
+
+            // Spam account name patterns (+1 each)
+            const acctPatterns = [...(P.spam_account_patterns||[]), 'AIry', 'VisionAI'];
+            for (const pat of acctPatterns) {
+              try {
+                if (new RegExp(pat, 'i').test(user)) {
+                  score += 1; hits.push(`Account pattern [+1]: "${pat}" -> ${user}`);
+                }
+              } catch(e) {}
+            }
+
+            // External promo URLs (+1)
+            const urls = (body.match(/https?:\/\/([^\s\)\"\'\]]+)/g) || []);
+            const promoUrls = urls.filter(u =>
+              !u.includes('github.com') &&
+              !u.includes('rust-lang.org') &&
+              !u.includes('crates.io') &&
+              !u.includes('docs.rs') &&
+              !u.includes('lib.rs')
+            );
+            if (promoUrls.length > 0) {
+              score += 1; hits.push(`External promo URL(s) [+1]: ${promoUrls.slice(0,3).join(', ')}`);
+            }
+
+            // No Rust relevance + short body (+1)
+            const rustKeywords = ['rust','cargo','wasm','memory','trait','lifetime','borrow',
+              'async','tokio','error','bug','crash','panic','compile','clippy','test','bench',
+              'feature','performance','unsafe','refactor','ci','docs','dependency','crate'];
+            if (!rustKeywords.some(k => title.includes(k)) && body.length < 800) {
+              score += 1; hits.push('No Rust keyword in title + short body [+1]');
+            }
+
+            let verdict;
+            if      (score >= 5) verdict = 'spam_high';
+            else if (score >= 2) verdict = 'spam_medium';
+            else                 verdict = 'clean';
+
+            core.info(`Score: ${score} | Verdict: ${verdict}`);
+            if (hits.length) core.info('Hits:\n' + hits.map(h=>'  '+h).join('\n'));
+
+            core.setOutput('verdict', verdict);
+            core.setOutput('score',   String(score));
+            core.setOutput('hits',    JSON.stringify(hits));
+
+      # ── 2. AUTO-CLOSE: score >= 5 ─────────────────────────────────────────
+      - name: Stage 1 — Auto-close high-confidence spam
+        if: steps.heuristic.outputs.verdict == 'spam_high'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.issue;
+            const score = '${{ steps.heuristic.outputs.score }}';
+            const hits  = JSON.parse('${{ steps.heuristic.outputs.hits }}');
+
+            for (const [name, color, desc] of [
+              ['ai-slop',  'FF6B6B', 'AI-generated spam / promotional issue'],
+              ['invalid',  'e4e669', ''],
+            ]) {
+              try { await github.rest.issues.createLabel({ ...issue, name, color, description: desc }); }
+              catch(_) {}
+            }
+            await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop', 'invalid'] });
+
+            await github.rest.issues.createComment({ ...issue, body: [
+              '## 🤖 Auto-closed: AI-generated spam (heuristic, no AI API used)',
+              '',
+              `Confidence score: **${score}** — ${hits.length} signal(s) matched.`,
+              '',
+              '**Signals:**',
+              hits.map(h => `- ${h}`).join('\n'),
+              '',
+              '---',
+              '_False alarm? Add the `false-positive` label to reopen and teach the detector._',
+              '_Powered by [ai-slop-detector](.github/workflows/ai-slop-detector.yml)_',
+            ].join('\n')});
+
+            await github.rest.issues.update({ ...issue, state: 'closed', state_reason: 'not_planned' });
+            core.info(`Closed #${issue.number} (heuristic score: ${score})`);
+
+      # ── 3. openrouter/free — score 2-4 ────────────────────────────────────
+      # Uses the openrouter/free ROUTER (not a hardcoded model).
+      # response_format: json_object ensures only JSON-capable models are picked
+      # (Step 3.5 Flash, Nemotron Super, gpt-oss-120b, Qwen3 Coder, etc.)
+      - name: Stage 2 — openrouter/free classification
+        id: ai
+        if: steps.heuristic.outputs.verdict == 'spam_medium'
+        uses: actions/github-script@v7
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ISSUE_TITLE:        ${{ github.event.issue.title }}
+          ISSUE_BODY:         ${{ github.event.issue.body }}
+          ISSUE_USER:         ${{ github.event.issue.user.login }}
+          REPO:               ${{ github.repository }}
+        with:
+          script: |
+            if (!process.env.OPENROUTER_API_KEY) {
+              core.warning('OPENROUTER_API_KEY not set — skipping AI stage');
+              core.setOutput('verdict',    'uncertain');
+              core.setOutput('confidence', '0');
+              core.setOutput('reason',     'No API key configured');
+              core.setOutput('model_used', 'none');
+              return;
+            }
+
+            const systemPrompt = `You are a GitHub issue quality classifier for a Rust open-source project.
+
+SPAM: promotional content, bot advertising, unsolicited tool/service promotion, "feel free to close", zero technical relevance.
+LEGITIMATE: bug reports, feature requests, questions, security reports, dependency issues.
+
+Reply ONLY with a valid JSON object (no markdown):
+{"verdict":"SPAM","confidence":92,"reason":"one sentence max"}`;
+
+            const userPrompt = `Author: ${process.env.ISSUE_USER}
+Title: ${process.env.ISSUE_TITLE}
+Body:
+${(process.env.ISSUE_BODY || '').substring(0, 1200)}`;
+
+            let verdict = 'uncertain', confidence = 0, reason = 'API call failed', modelUsed = 'openrouter/free';
+
+            try {
+              const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type':  'application/json',
+                  'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                  'HTTP-Referer':  `https://github.com/${process.env.REPO}`,
+                  'X-Title':       'AI Slop Detector',
+                },
+                body: JSON.stringify({
+                  model:           'openrouter/free',
+                  response_format: { type: 'json_object' },
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user',   content: userPrompt   },
+                  ],
+                  max_tokens:  120,
+                  temperature: 0,
+                }),
+              });
+
+              const data = await res.json();
+              modelUsed = data.model || 'openrouter/free';
+
+              if (!res.ok) {
+                core.warning(`OpenRouter ${res.status}: ${JSON.stringify(data)}`);
+              } else {
+                const raw    = data.choices?.[0]?.message?.content || '{}';
+                const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+                verdict    = parsed.verdict    || 'uncertain';
+                confidence = Number(parsed.confidence) || 0;
+                reason     = parsed.reason     || '';
+                core.info(`${modelUsed}: ${verdict} (${confidence}%) — ${reason}`);
+              }
+            } catch(e) {
+              core.warning(`Error: ${e.message}`);
+            }
+
+            core.setOutput('verdict',    verdict);
+            core.setOutput('confidence', String(confidence));
+            core.setOutput('reason',     reason);
+            core.setOutput('model_used', modelUsed);
+
+      # ── 4a. AI confirmed SPAM ─────────────────────────────────────────────
+      - name: Stage 2 — Close AI-confirmed spam
+        if: |
+          steps.heuristic.outputs.verdict == 'spam_medium' &&
+          steps.ai.outputs.verdict == 'SPAM' &&
+          fromJSON(steps.ai.outputs.confidence) >= 70
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue  = context.issue;
+            const score  = '${{ steps.heuristic.outputs.score }}';
+            const hits   = JSON.parse('${{ steps.heuristic.outputs.hits }}');
+            const reason = '${{ steps.ai.outputs.reason }}';
+            const conf   = '${{ steps.ai.outputs.confidence }}';
+            const model  = '${{ steps.ai.outputs.model_used }}';
+
+            for (const [name, color, desc] of [
+              ['ai-slop', 'FF6B6B', 'AI-generated spam / promotional issue'],
+              ['invalid', 'e4e669', ''],
+            ]) {
+              try { await github.rest.issues.createLabel({ ...issue, name, color, description: desc }); }
+              catch(_) {}
+            }
+            await github.rest.issues.addLabels({ ...issue, labels: ['ai-slop', 'invalid'] });
+
+            await github.rest.issues.createComment({ ...issue, body: [
+              '## 🤖 Auto-closed: AI spam confirmed',
+              '',
+              `Heuristic score: **${score}** → escalated to AI. \`${model}\` confirmed SPAM with **${conf}% confidence**.`,
+              '',
+              `**AI assessment:** ${reason}`,
+              '',
+              '**Heuristic signals:**',
+              hits.map(h => `- ${h}`).join('\n'),
+              '',
+              '---',
+              '_Add `false-positive` label to reopen and protect this account._',
+              '_Via `openrouter/free` → [ai-slop-detector](.github/workflows/ai-slop-detector.yml)_',
+            ].join('\n')});
+
+            await github.rest.issues.update({ ...issue, state: 'closed', state_reason: 'not_planned' });
+
+      # ── 4b. AI uncertain → flag for human ────────────────────────────────
+      - name: Stage 2 — Flag for human review
+        if: |
+          steps.heuristic.outputs.verdict == 'spam_medium' &&
+          (steps.ai.outputs.verdict != 'SPAM' || fromJSON(steps.ai.outputs.confidence) < 70)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue   = context.issue;
+            const score   = '${{ steps.heuristic.outputs.score }}';
+            const hits    = JSON.parse('${{ steps.heuristic.outputs.hits }}');
+            const verdict = '${{ steps.ai.outputs.verdict }}';
+            const conf    = '${{ steps.ai.outputs.confidence }}';
+            const model   = '${{ steps.ai.outputs.model_used }}';
+
+            try { await github.rest.issues.createLabel({
+              ...issue, name: 'needs-review', color: 'FFA500',
+              description: 'Possible spam — needs human review'
+            }); } catch(_) {}
+
+            await github.rest.issues.addLabels({ ...issue, labels: ['needs-review'] });
+            await github.rest.issues.createComment({ ...issue, body: [
+              '## ⚠️ Possible spam — needs human review',
+              '',
+              `Heuristic: **${score}pts**. AI (\`${model || 'none'}\`): **${verdict}** at ${conf}% (below 70% auto-close threshold).`,
+              '',
+              '**Signals:**',
+              hits.map(h => `- ${h}`).join('\n'),
+              '',
+              '**Actions:**',
+              '- `ai-slop` → close as spam + teach detector',
+              '- `false-positive` → mark legitimate + protect account',
+            ].join('\n')});
+
+      # ── 5. Persist stats ──────────────────────────────────────────────────
+      - name: Update stats + commit
+        if: steps.heuristic.outputs.verdict != 'clean'
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+          const pf = process.env.PATTERNS_FILE;
+          try {
+            const P = JSON.parse(fs.readFileSync(pf, 'utf8'));
+            P.stats = P.stats || {};
+            P.stats.total_detected = (P.stats.total_detected || 0) + 1;
+            P._meta = P._meta || {};
+            P._meta.last_updated = new Date().toISOString().split('T')[0];
+            fs.writeFileSync(pf, JSON.stringify(P, null, 2));
+          } catch(e) { console.warn('Stats: ' + e.message); }
+          EOF
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$PATTERNS_FILE" || true
+          git diff --cached --quiet || \
+            git commit -m "chore(ai-slop): stats #${{ github.event.issue.number }} [skip ci]"
+          git push || true

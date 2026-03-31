@@ -610,6 +610,16 @@ fn quality_gate_formatting() {
 // Quality Gate 7: Performance Regression
 // ============================================================================
 
+/// # Ignore Reason
+/// This test runs `cargo test` as a subprocess, which inherently takes >120s
+/// and exceeds nextest timeout limits in CI. The performance validation is
+/// already covered by dedicated CI workflows (Performance Benchmarks workflow).
+/// Running this test in CI would always timeout, while local testing can use
+/// `cargo nextest run --test quality_gates -- --ignored` if needed.
+///
+/// # ADR Reference
+/// See ADR-048: v0.1.24 Stability Sprint - WG-060 fix.
+#[ignore = "runs full cargo test subprocess (>120s), covered by Performance Benchmarks CI workflow"]
 #[test]
 fn quality_gate_performance_regression() {
     println!("\n=== Quality Gate: Performance Regression ===");

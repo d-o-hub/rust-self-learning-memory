@@ -248,12 +248,12 @@ jobs:
               const urlRe = /https?:\/\/([^\s\)\"\'\]]+)/g;
               const urls  = (c.body.match(urlRe)||[]).filter(u=>
                 !u.includes('github.com')&&!u.includes('rust-lang.org')&&
-                !u.includes('crates.io')&&!u.includes('docs.rs'));
+                !u.includes('crates.io')&&!u.includes('docs.rs')&&!u.includes('lib.rs'));
               if (urls.length) { score+=1; hits.push('external url'); }
 
               const rustKw = ['rust','cargo','wasm','memory','trait','lifetime','borrow',
                 'async','tokio','error','bug','crash','panic','compile','clippy','test',
-                'bench','feature','performance','unsafe','refactor','ci','docs','crate'];
+                'bench','feature','performance','unsafe','refactor','ci','docs','dependency','crate'];
               if (!rustKw.some(k=>c.title.toLowerCase().includes(k)) && c.body.length<800) {
                 score+=1; hits.push('no rust keyword + short');
               }

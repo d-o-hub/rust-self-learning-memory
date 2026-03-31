@@ -194,6 +194,6 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/ai-slop-patterns.json
+          git add .github/workflows/ai-slop-patterns.json
           git diff --cached --quiet || git commit -m "chore(ai-slop): learn from issue #${{ github.event.issue.number }} (${{ github.event.label.name }}) [skip ci]"
           git push

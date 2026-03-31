@@ -4,7 +4,7 @@ expression: stdout
 ---
 Configuration validation and management
 
-Usage: memory-cli config <COMMAND>
+Usage: do-memory-cli config <COMMAND>
 
 Commands:
   validate  Validate configuration and connectivity

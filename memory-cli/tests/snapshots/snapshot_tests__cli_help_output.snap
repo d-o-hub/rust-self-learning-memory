@@ -4,7 +4,7 @@ expression: stdout
 ---
 Command-line interface for Self-Learning Memory System
 
-Usage: memory-cli [OPTIONS] <COMMAND>
+Usage: do-memory-cli [OPTIONS] <COMMAND>
 
 Commands:
   episode          Episode management commands

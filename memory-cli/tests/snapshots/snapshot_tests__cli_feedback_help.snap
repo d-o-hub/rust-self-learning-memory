@@ -4,7 +4,7 @@ expression: stdout
 ---
 Recommendation feedback tracking
 
-Usage: memory-cli feedback <COMMAND>
+Usage: do-memory-cli feedback <COMMAND>
 
 Commands:
   record-session   Record a recommendation session when patterns are suggested

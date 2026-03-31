@@ -4,7 +4,7 @@ expression: stdout
 ---
 Health monitoring and diagnostics
 
-Usage: memory-cli health <COMMAND>
+Usage: do-memory-cli health <COMMAND>
 
 Commands:
   check    Perform comprehensive health check

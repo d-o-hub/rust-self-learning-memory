@@ -4,7 +4,7 @@ expression: stdout
 ---
 Backup and restore operations
 
-Usage: memory-cli backup <COMMAND>
+Usage: do-memory-cli backup <COMMAND>
 
 Commands:
   create   Create a new backup

@@ -4,7 +4,7 @@ expression: stdout
 ---
 Storage operations commands
 
-Usage: memory-cli storage <COMMAND>
+Usage: do-memory-cli storage <COMMAND>
 
 Commands:
   stats        Show storage statistics

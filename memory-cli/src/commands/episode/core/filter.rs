@@ -14,7 +14,7 @@ fn get_filter_path() -> PathBuf {
                 .unwrap_or_else(|| PathBuf::from("."))
                 .join(".config")
         })
-        .join("memory-cli");
+        .join("do-memory-cli");
     base_dir.join("filters")
 }
 

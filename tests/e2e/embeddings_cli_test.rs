@@ -16,7 +16,7 @@ use tempfile::TempDir;
 /// Get the CLI binary path
 fn cli() -> Command {
     let bin_path =
-        std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "memory-cli".to_string());
+        std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| "do-memory-cli".to_string());
     Command::new(bin_path)
 }
 

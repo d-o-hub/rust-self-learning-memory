@@ -232,7 +232,7 @@ mod cli_coverage_tests {
             .execute(["--version"])
             .assert()
             .success()
-            .stdout(predicate::str::contains("memory-cli"));
+            .stdout(predicate::str::contains("do-memory-cli"));
     }
 
     // ── Multiple help flags ──────────────────────────────────────────

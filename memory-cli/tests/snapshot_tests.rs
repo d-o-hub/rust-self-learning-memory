@@ -57,10 +57,10 @@ fn test_cli_version_output() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let trimmed = stdout.trim();
     assert!(
-        trimmed.starts_with("memory-cli "),
-        "Version output should start with 'memory-cli ', got: {trimmed}"
+        trimmed.starts_with("do-memory-cli "),
+        "Version output should start with 'do-memory-cli ', got: {trimmed}"
     );
-    let version_part = trimmed.strip_prefix("memory-cli ").unwrap();
+    let version_part = trimmed.strip_prefix("do-memory-cli ").unwrap();
     assert!(
         version_part.chars().all(|c| c.is_ascii_digit() || c == '.'),
         "Version should be numeric with dots, got: {version_part}"

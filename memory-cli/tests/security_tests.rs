@@ -75,7 +75,7 @@ batch_size = 10
 
             #[allow(deprecated)]
             let mut cmd =
-                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&safe_config);
             cmd.args(["episode", "create", "test task"]);
 
@@ -144,7 +144,7 @@ default_format = "human; echo 'injected'"
 
             #[allow(deprecated)]
             let mut cmd =
-                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -299,7 +299,8 @@ batch_size = 10
         fs::write(&config_path, &sensitive_config).unwrap();
 
         #[allow(deprecated)]
-        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd =
+            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&config_path);
         cmd.args(["episode", "list"]);
 
@@ -623,7 +624,7 @@ batch_size = 10
 
             #[allow(deprecated)]
             let mut cmd =
-                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&config_path);
             cmd.args(["episode", "list"]);
 

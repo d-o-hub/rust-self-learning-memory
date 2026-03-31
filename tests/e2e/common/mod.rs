@@ -33,7 +33,7 @@ impl TestConfig {
         let temp_dir = TempDir::new()?;
 
         // Find CLI binary path
-        let cli_path = find_binary("memory-cli")?;
+        let cli_path = find_binary("do-memory-cli")?;
         let mcp_server_path = find_binary("memory-mcp-server")?;
 
         Ok(Self {

@@ -24,7 +24,7 @@ mod integration_tests {
             .execute(["--help"])
             .assert()
             .success()
-            .stdout(predicate::str::contains("memory-cli"))
+            .stdout(predicate::str::contains("do-memory-cli"))
             .stdout(predicate::str::contains("episode"))
             .stdout(predicate::str::contains("pattern"));
     }
@@ -86,7 +86,8 @@ batch_size = 10
         fs::write(&invalid_config_path, &invalid_config).unwrap();
 
         #[allow(deprecated)]
-        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd =
+            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&invalid_config_path);
         cmd.args(["config", "validate"]); // Validate config to trigger validation
 
@@ -151,7 +152,7 @@ batch_size = 10
             .execute(["completion", "bash"])
             .assert()
             .success()
-            .stdout(predicate::str::contains("memory-cli"));
+            .stdout(predicate::str::contains("do-memory-cli"));
 
         // Test zsh completion
         harness.execute(["completion", "zsh"]).assert().success();
@@ -229,7 +230,8 @@ batch_size = 50
         fs::write(&config_path, &custom_config).unwrap();
 
         #[allow(deprecated)]
-        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd =
+            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&config_path);
         cmd.args(["config", "show"]);
 
@@ -275,7 +277,8 @@ batch_size = 25
         std::env::set_current_dir(&temp_dir).unwrap();
 
         #[allow(deprecated)]
-        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd =
+            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
         cmd.args(["config", "show"]);
 
         cmd.assert().success();

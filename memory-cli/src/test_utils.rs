@@ -79,7 +79,8 @@ batch_size = 10
     {
         // Use assert_cmd's cargo_bin to find the binary correctly
         #[allow(deprecated)]
-        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd =
+            Command::cargo_bin("do-memory-cli").expect("Failed to find do-memory-cli binary");
         cmd.arg("--config").arg(&self.config_path);
         cmd.args(args);
         cmd

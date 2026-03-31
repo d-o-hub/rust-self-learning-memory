@@ -245,7 +245,7 @@ mod performance_tests {
 
         // Use a command that exits early (like --help)
         let mut cmd = std::process::Command::new("cargo")
-            .args(["run", "--bin", "memory-cli", "--", "--help"])
+            .args(["run", "--bin", "do-memory-cli", "--", "--help"])
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .spawn()
@@ -350,7 +350,7 @@ mod performance_tests {
 
             // Use --help as it exits quickly after parsing
             let mut cmd = std::process::Command::new("cargo")
-                .args(["run", "--bin", "memory-cli", "--", "--help"])
+                .args(["run", "--bin", "do-memory-cli", "--", "--help"])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .spawn()

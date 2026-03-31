@@ -13,7 +13,7 @@ mod command_parsing_tests {
 
     #[test]
     fn test_cli_parsing_basic_help() {
-        let args = vec!["memory-cli", "--help"];
+        let args = vec!["do-memory-cli", "--help"];
         let cli = Cli::try_parse_from(args);
         // Help should cause early exit, but parsing should work
         assert!(cli.is_err()); // clap exits with error for --help
@@ -21,14 +21,14 @@ mod command_parsing_tests {
 
     #[test]
     fn test_cli_parsing_version() {
-        let args = vec!["memory-cli", "--version"];
+        let args = vec!["do-memory-cli", "--version"];
         let cli = Cli::try_parse_from(args);
         assert!(cli.is_err()); // clap exits with error for --version
     }
 
     #[test]
     fn test_cli_parsing_config_flag() {
-        let args = vec!["memory-cli", "--config", "test.toml", "config"];
+        let args = vec!["do-memory-cli", "--config", "test.toml", "config"];
         let cli = Cli::parse_from(args);
         assert_eq!(cli.config, Some(PathBuf::from("test.toml")));
         assert_eq!(cli.format, do_memory_cli::output::OutputFormat::Human);
@@ -40,38 +40,38 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_format_flags() {
         // Test JSON format
-        let args = vec!["memory-cli", "--format", "json", "config"];
+        let args = vec!["do-memory-cli", "--format", "json", "config"];
         let cli = Cli::parse_from(args);
         assert_eq!(cli.format, do_memory_cli::output::OutputFormat::Json);
 
         // Test YAML format
-        let args = vec!["memory-cli", "--format", "yaml", "config"];
+        let args = vec!["do-memory-cli", "--format", "yaml", "config"];
         let cli = Cli::parse_from(args);
         assert_eq!(cli.format, do_memory_cli::output::OutputFormat::Yaml);
 
         // Test human format (default)
-        let args = vec!["memory-cli", "config"];
+        let args = vec!["do-memory-cli", "config"];
         let cli = Cli::parse_from(args);
         assert_eq!(cli.format, do_memory_cli::output::OutputFormat::Human);
     }
 
     #[test]
     fn test_cli_parsing_verbose_flag() {
-        let args = vec!["memory-cli", "--verbose", "config"];
+        let args = vec!["do-memory-cli", "--verbose", "config"];
         let cli = Cli::parse_from(args);
         assert!(cli.verbose);
     }
 
     #[test]
     fn test_cli_parsing_dry_run_flag() {
-        let args = vec!["memory-cli", "--dry-run", "config"];
+        let args = vec!["do-memory-cli", "--dry-run", "config"];
         let cli = Cli::parse_from(args);
         assert!(cli.dry_run);
     }
 
     #[test]
     fn test_cli_parsing_invalid_format() {
-        let args = vec!["memory-cli", "--format", "invalid", "config"];
+        let args = vec!["do-memory-cli", "--format", "invalid", "config"];
         let cli = Cli::try_parse_from(args);
         assert!(cli.is_err());
     }
@@ -79,7 +79,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_commands() {
         // Test episode create
-        let args = vec!["memory-cli", "episode", "create", "test task"];
+        let args = vec!["do-memory-cli", "episode", "create", "test task"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Episode { command } => {
@@ -92,7 +92,7 @@ mod command_parsing_tests {
         }
 
         // Test episode list
-        let args = vec!["memory-cli", "episode", "list"];
+        let args = vec!["do-memory-cli", "episode", "list"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Episode { command } => {
@@ -103,7 +103,7 @@ mod command_parsing_tests {
 
         // Test episode view with ID
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "view",
             "123e4567-e89b-12d3-a456-426614174000",
@@ -120,7 +120,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_pattern_commands() {
         // Test pattern list
-        let args = vec!["memory-cli", "pattern", "list"];
+        let args = vec!["do-memory-cli", "pattern", "list"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Pattern { command } => {
@@ -131,7 +131,7 @@ mod command_parsing_tests {
 
         // Test pattern view
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "pattern",
             "view",
             "123e4567-e89b-12d3-a456-426614174000",
@@ -148,7 +148,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_storage_commands() {
         // Test storage stats
-        let args = vec!["memory-cli", "storage", "stats"];
+        let args = vec!["do-memory-cli", "storage", "stats"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Storage { command } => {
@@ -158,7 +158,7 @@ mod command_parsing_tests {
         }
 
         // Test storage sync
-        let args = vec!["memory-cli", "storage", "sync"];
+        let args = vec!["do-memory-cli", "storage", "sync"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Storage { command } => {
@@ -172,7 +172,7 @@ mod command_parsing_tests {
     fn test_cli_parsing_completion_command() {
         use clap_complete::Shell;
 
-        let args = vec!["memory-cli", "completion", "bash"];
+        let args = vec!["do-memory-cli", "completion", "bash"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Completion { shell } => {
@@ -181,7 +181,7 @@ mod command_parsing_tests {
             _ => panic!("Expected completion command"),
         }
 
-        let args = vec!["memory-cli", "completion", "zsh"];
+        let args = vec!["do-memory-cli", "completion", "zsh"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Completion { shell } => {
@@ -193,21 +193,21 @@ mod command_parsing_tests {
 
     #[test]
     fn test_cli_parsing_config_command() {
-        let args = vec!["memory-cli", "config"];
+        let args = vec!["do-memory-cli", "config"];
         let cli = Cli::parse_from(args);
         matches!(cli.command, Commands::Config);
     }
 
     #[test]
     fn test_cli_parsing_missing_subcommand() {
-        let args = vec!["memory-cli"];
+        let args = vec!["do-memory-cli"];
         let cli = Cli::try_parse_from(args);
         assert!(cli.is_err());
     }
 
     #[test]
     fn test_cli_parsing_unknown_command() {
-        let args = vec!["memory-cli", "unknown"];
+        let args = vec!["do-memory-cli", "unknown"];
         let cli = Cli::try_parse_from(args);
         assert!(cli.is_err());
     }
@@ -215,7 +215,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_create_with_context() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "create",
             "test task",
@@ -242,7 +242,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_list_with_filters() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "list",
             "--task-type",
@@ -273,7 +273,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_complete() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "complete",
             "123e4567-e89b-12d3-a456-426614174000",
@@ -301,7 +301,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_log_step() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "log-step",
             "123e4567-e89b-12d3-a456-426614174000",
@@ -348,7 +348,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_list_with_advanced_filters() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "list",
             "--task-type",
@@ -413,7 +413,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_filter_save() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "filter",
             "save",
@@ -465,7 +465,7 @@ mod command_parsing_tests {
 
     #[test]
     fn test_cli_parsing_episode_filter_list() {
-        let args = vec!["memory-cli", "episode", "filter", "list"];
+        let args = vec!["do-memory-cli", "episode", "filter", "list"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Episode { command } => {
@@ -485,7 +485,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_filter_apply() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "filter",
             "apply",
@@ -521,7 +521,7 @@ mod command_parsing_tests {
 
     #[test]
     fn test_cli_parsing_episode_filter_delete() {
-        let args = vec!["memory-cli", "episode", "filter", "delete", "my-filter"];
+        let args = vec!["do-memory-cli", "episode", "filter", "delete", "my-filter"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Episode { command } => {
@@ -545,7 +545,7 @@ mod command_parsing_tests {
 
     #[test]
     fn test_cli_parsing_episode_filter_show() {
-        let args = vec!["memory-cli", "episode", "filter", "show", "my-filter"];
+        let args = vec!["do-memory-cli", "episode", "filter", "show", "my-filter"];
         let cli = Cli::parse_from(args);
         match cli.command {
             Commands::Episode { command } => {
@@ -570,7 +570,7 @@ mod command_parsing_tests {
     #[test]
     fn test_cli_parsing_episode_delete() {
         let args = vec![
-            "memory-cli",
+            "do-memory-cli",
             "episode",
             "delete",
             "123e4567-e89b-12d3-a456-426614174000",

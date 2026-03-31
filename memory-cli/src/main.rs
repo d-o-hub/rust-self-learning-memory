@@ -25,7 +25,7 @@ use config::{initialize_storage, load_config_with_validation};
 use output::OutputFormat;
 
 #[derive(Parser)]
-#[command(name = "memory-cli")]
+#[command(name = "do-memory-cli")]
 #[command(about = "Command-line interface for Self-Learning Memory System")]
 #[command(version, long_about = None)]
 struct Cli {
@@ -280,7 +280,7 @@ async fn main() -> anyhow::Result<()> {
             clap_complete::generate(
                 shell,
                 &mut Cli::command(),
-                "memory-cli",
+                "do-memory-cli",
                 &mut std::io::stdout(),
             );
             Ok(())

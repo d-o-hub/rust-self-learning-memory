@@ -1,16 +1,16 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-24 (v0.1.23 remediation complete; WG-051 through WG-058 complete)
-**Released Version**: v0.1.22
-**Branch**: `main` (PR #391 merged)
-**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged, all CI passing
+**Last Updated**: 2026-03-31 (v0.1.24 released)
+**Released Version**: v0.1.24
+**Branch**: `main` (PR #404 merged)
+**PR**: [#404](https://github.com/d-o-hub/rust-self-learning-memory/pull/404) ✅ Merged, all CI passing
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---
 
 ## Current State
 
-v0.1.22 sprint COMPLETE. All 12 GitHub issues closed. All quality gates passing. PR #391 merged to main. All research phases (1–4), infrastructure work, and ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) are fully complete and polished.
+v0.1.24 released. Test stability improvements (DBSCAN budget fixes, quality gate timeout) and dependency updates completed. PR #404 merged to main. All quality gates passing.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
@@ -134,6 +134,7 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.24 | 2026-03 | Test stability (DBSCAN budget, quality gate timeout), dependency updates |
 | v0.1.22 | 2026-03 | ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) |
 | v0.1.21 | 2026-03 | Publishing infrastructure (ADR-045), supply chain security |
 | v0.1.20 | 2026-03 | Test coverage improvements, sprint fixes, coverage script |

@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "version": "2.0.0",
+    "description": "Self-learning spam patterns. Updated by ai-slop-learn.yml and eval runs.",
+    "ai_model": "openrouter/free (auto-router, no hardcoded model)",
+    "last_updated": "2026-03-31",
+    "docs": "https://openrouter.ai/openrouter/free"
+  },
+  "spam_phrases_high": [
+    "feel free to close this if you",
+    "no action required",
+    "we reach out at most once per month",
+    "has been discovered by",
+    "improve.*discoverability",
+    "proactively recommends? (tools|plugins|skills|mcps)",
+    "intercepts? when.*picks? something",
+    "help developers? discover",
+    "recommend it to developers",
+    "we noticed your repo",
+    "your (repo|repository|skill|plugin) has been",
+    "automatically recommends?",
+    "your skill has (no description|been discovered)",
+    "(improve|boost) its visibility"
+  ],
+  "spam_phrases_medium": [
+    "our (platform|service|tool|product)",
+    "sign up for free",
+    "free tier available",
+    "check out our",
+    "improve your workflow",
+    "developer platform",
+    "proactively recommend",
+    "at most once per (month|week)",
+    "we only reach out",
+    "dispatched by",
+    "community tool",
+    "unsubscribe"
+  ],
+  "spam_domains": [
+    "visionairy.biz",
+    "dispatch.visionairy"
+  ],
+  "spam_accounts": [],
+  "spam_account_patterns": [
+    "AIry",
+    "VisionAI",
+    "DispatchBot",
+    "IndexBot",
+    "ScoutAI"
+  ],
+  "learned_phrases": [],
+  "learned_accounts": ["VisionAIrySE"],
+  "false_positives": [],
+  "stats": {
+    "total_detected": 1,
+    "true_positives": 1,
+    "false_positives": 0,
+    "human_confirmed": 0,
+    "last_ai_model": null
+  }
+}

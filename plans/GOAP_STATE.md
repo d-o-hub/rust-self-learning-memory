@@ -1,24 +1,57 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-24 (v0.1.23 WG-054 through WG-058 updates executed)
-- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.23.md`
+- **Last Updated**: 2026-03-31 (v0.1.24 release plan created)
+- **Plan**: `plans/RELEASE_v0.1.24.md` (release), `plans/GOAP_EXECUTION_PLAN_v0.1.25.md` (next sprint)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
-- **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-022, ADR-032, ADR-033, ADR-038, ADR-044
-- **Branch**: `remediation/wg051-wg053-durability-contract`
-- **Version**: `0.1.22` (post-release, remediation complete)
+- **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`, `plans/adr/ADR-049-Comprehensive-Analysis-v0.1.25.md`
+- **Primary ADRs**: ADR-048 (v0.1.24 stability), ADR-049 (v0.1.25 analysis)
+- **Branch**: `main`
+- **Version**: `0.1.23` (v0.1.24 release pending — version bump + changelog + tag)
 
-## Phase Status
+## Current Focus: v0.1.24 Release
 
-| Phase | Status (2026-03-24) | Notes |
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| Version bump | WG-080 | ⏳ Pending | `0.1.23` → `0.1.24` in Cargo.toml |
+| CHANGELOG backfill | WG-081 | ⏳ Pending | 5 missing versions (v0.1.20–v0.1.24) |
+| ROADMAP sync | WG-082 | ⏳ Pending | Released Version → v0.1.24 |
+| Tag + Release | WG-083 | ⏳ Pending | Quality gates → tag → GitHub Release |
+
+### v0.1.25 Planning (ADR-049)
+
+| Area | Key Items | Research Source |
+|------|-----------|----------------|
+| Bayesian ranking (WG-073) | Wilson score from attribution data | — |
+| Diversity retrieval (WG-077) | MMR reranking | arXiv:2602.02007 (xMemory) |
+| Episode GC/TTL (WG-075) | Retention policy | chaotic_semantic_memory `singularity_ttl.rs` |
+| MCP Server Card (WG-078) | `.well-known/mcp.json` | MCP Roadmap Mar 2026 |
+| spawn_blocking audit (WG-079) | CPU-heavy async paths | TokioConf/Carl Lerche Feb 2026 |
+| GitHub Pages (future) | mdBook + cargo doc | chaotic_semantic_memory `pages.yml` |
+| Cargo publish (future) | Crate name resolution | chaotic_semantic_memory release pipeline |
+| llms.txt (future) | LLM-agent discoverability | chaotic_semantic_memory convention |
+
+### Gaps Not Blocking v0.1.24
+
+| Gap | Details | Target |
+|-----|---------|--------|
+| GitHub Pages broken | Was active until Feb 2026 (10+ deploys), now 404. No `pages.yml` workflow, no `book/`. Match chaotic_semantic_memory: mdBook + cargo doc + deploy-pages | v0.1.25 |
+| No `llms.txt` | No LLM context file at repo root | v0.1.25 |
+| No version sync CI | Docs reference stale versions (v0.1.22) without CI enforcement | v0.1.25 |
+| Cargo publish blocked | `memory-core` taken on crates.io. **Decision: use `do-memory-*` namespace** (all 4 names verified available on crates.io + npm 2026-03-31) | v0.1.25 |
+| Issue #401 | External Dispatch discoverability request — close or trivial fix | v0.1.24 optional |
+
+---
+
+## Phase Status (v0.1.24 Stability Sprint — Complete)
+
+| Phase | Status (2026-03-31) | Notes |
 |-------|---------------------|-------|
-| 1. ANALYZE | ✅ Complete | Audit + ADR review finished (implementation, docs, CI, disk) |
-| 2. DECOMPOSE | ✅ Complete | WGs 051-058 defined in GOALS.md |
-| 3. STRATEGIZE | ✅ Complete | Execution plan v0.1.23 authored |
-| 4. COORDINATE | ✅ Complete | Specialist workstreams coordinated across docs/workflows/scripts/guidance |
-| 5. EXECUTE | ✅ Complete | WG-051 through WG-058 implemented |
-| 6. SYNTHESIZE | ✅ Complete | Validation evidence captured and status/roadmap docs updated |
-| 7. FEEDBACK | ✅ Complete | All WGs validated; risk tracking and status docs updated |
+| 1. ANALYZE | ✅ Complete | Audit identified test failures + dependency drift |
+| 2. DECOMPOSE | ✅ Complete | WGs 059-067 defined |
+| 3. STRATEGIZE | ✅ Complete | ADR-048 + execution plan v0.1.24 |
+| 4. EXECUTE | ✅ Complete | PR #404, #402, #403 merged |
+| 5. SYNTHESIZE | ✅ Complete | Plans/docs synced |
+| 6. RELEASE | ⏳ Pending | Version bump + changelog + tag remaining |
 
 ### v0.1.23 Remediation Sprint Progress (2026-03-24, post-WG-058)
 

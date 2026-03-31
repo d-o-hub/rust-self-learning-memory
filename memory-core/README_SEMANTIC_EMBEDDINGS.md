@@ -1,6 +1,6 @@
 # Semantic Embeddings for Memory-Core
 
-This document describes the semantic embedding capabilities added to the memory-core system, enabling semantic similarity search and enhanced context retrieval.
+This document describes the semantic embedding capabilities added to the do-memory-core system, enabling semantic similarity search and enhanced context retrieval.
 
 ## Overview
 
@@ -55,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
 ```
 
 **First Run Behavior:**
-- Model automatically downloads (~50MB) to `~/.cache/memory-cli/models/`
+- Model automatically downloads (~50MB) to `~/.cache/do-memory-cli/models/`
 - Download happens on first embedding generation
 - Subsequent runs use cached model (instant startup)
 - Model downloads once and persists across sessions
@@ -153,12 +153,12 @@ The default local provider automatically downloads the model on first use:
 // First use - model downloads automatically
 let semantic_service = SemanticService::default(storage).await?;
 let embedding = semantic_service.provider.embed_text("Hello").await?;
-// Model path: ~/.cache/memory-cli/models/gte-small-en-v1.5/
+// Model path: ~/.cache/do-memory-cli/models/gte-small-en-v1.5/
 ```
 
 ### Download Process
 
-1. **Check Cache**: Verifies if model exists in `~/.cache/memory-cli/models/`
+1. **Check Cache**: Verifies if model exists in `~/.cache/do-memory-cli/models/`
 2. **Download**: If missing, downloads from Hugging Face (~50MB)
 3. **Verify**: Validates model files and checksums
 4. **Load**: Loads model into memory for inference
@@ -192,8 +192,8 @@ let provider = LocalEmbeddingProvider::new().await?;
 
 | Platform | Path |
 |----------|------|
-| Linux/macOS | `~/.cache/memory-cli/models/` |
-| Windows | `%LOCALAPPDATA%\memory-cli\models\` |
+| Linux/macOS | `~/.cache/do-memory-cli/models/` |
+| Windows | `%LOCALAPPDATA%\do-memory-cli\models\` |
 | Custom | Set `MEMORY_MODEL_PATH` env var |
 
 ### Manual Model Download
@@ -218,11 +218,11 @@ let provider = LocalEmbeddingProvider::with_model_path(model_path).await?;
 
 **Permission denied**:
 - Ensure write permissions for cache directory
-- On Linux/macOS: `chmod 755 ~/.cache/memory-cli/models/`
+- On Linux/macOS: `chmod 755 ~/.cache/do-memory-cli/models/`
 
 **Disk space**:
 - Model requires ~100MB (compressed + expanded)
-- Clean cache if needed: `rm -rf ~/.cache/memory-cli/models/`
+- Clean cache if needed: `rm -rf ~/.cache/do-memory-cli/models/`
 
 ## Storage Integration
 
@@ -359,7 +359,7 @@ use memory_core::embeddings;         // ✅ Correct
 
 ### Migration Checklist
 
-- [ ] Update `Cargo.toml` to latest `memory-core` version
+- [ ] Update `Cargo.toml` to latest `do-memory-core` version
 - [ ] Update imports from `embeddings_simple` to `embeddings`
 - [ ] Run `backfill_episode_embeddings()` to migrate data
 - [ ] Update search queries to use `semantic_search_episodes()`
@@ -384,7 +384,7 @@ let provider = LocalEmbeddingProvider::with_model_path(model_path).await?;
 
 // Solution 3: Manual download
 // 1. Download from https://huggingface.co/models/gte-small-en-v1.5
-// 2. Extract to ~/.cache/memory-cli/models/gte-small-en-v1.5/
+// 2. Extract to ~/.cache/do-memory-cli/models/gte-small-en-v1.5/
 // 3. Restart application
 ```
 
@@ -392,7 +392,7 @@ let provider = LocalEmbeddingProvider::with_model_path(model_path).await?;
 
 ```bash
 # Solution: Fix cache directory permissions
-chmod 755 ~/.cache/memory-cli/models/
+chmod 755 ~/.cache/do-memory-cli/models/
 ```
 
 ### Storage Issues
@@ -790,4 +790,4 @@ The semantic embeddings system is designed to be extensible. You can:
 3. **Similarity functions**: Add new similarity calculations
 4. **Model integration**: Support additional embedding models
 
-See the examples in `memory-core/examples/semantic_search.rs` for detailed usage patterns.
+See the examples in `do-memory-core/examples/semantic_search.rs` for detailed usage patterns.

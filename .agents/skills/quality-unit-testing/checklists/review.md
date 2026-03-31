@@ -122,7 +122,7 @@ async fn test() {
 - [ ] No unexplained magic numbers
 - [ ] No production data or sensitive information
 - [ ] Builders used for complex object construction
-- [ ] Uses utilities from `test-utils` crate
+- [ ] Uses utilities from `do-memory-test-utils` crate
 
 ## 🔄 Test Independence
 
@@ -229,7 +229,7 @@ async fn test() -> anyhow::Result<()> {
 - [ ] Proper error handling
 - [ ] Clear variable names
 - [ ] No code duplication (uses helpers/builders)
-- [ ] Uses `test-utils` crate appropriately
+- [ ] Uses `do-memory-test-utils` crate appropriately
 
 ## 📚 Documentation
 

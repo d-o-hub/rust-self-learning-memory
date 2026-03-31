@@ -2,7 +2,7 @@
 //!
 //! This example shows the new semantic similarity features added to memory-core.
 
-use memory_core::embeddings_simple::{EmbeddingConfig, demonstrate_semantic_search};
+use do_memory_core::embeddings_simple::{EmbeddingConfig, demonstrate_semantic_search};
 
 fn main() -> anyhow::Result<()> {
     println!("🚀 Memory-Core: Semantic Embeddings Feature Demo");

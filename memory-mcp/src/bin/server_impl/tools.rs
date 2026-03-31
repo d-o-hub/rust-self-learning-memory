@@ -13,16 +13,18 @@
 //! - Rate limit violations
 
 use super::types::Content;
-use memory_mcp::MemoryMCPServer;
+use do_memory_mcp::MemoryMCPServer;
 use serde_json::Value;
 
 mod episode_handlers;
+mod external_signal_handlers;
 mod feature_handlers;
 mod memory_handlers;
 mod relationship_handlers;
 mod tag_handlers;
 
 pub use episode_handlers::*;
+pub use external_signal_handlers::*;
 pub use feature_handlers::*;
 pub use memory_handlers::*;
 pub use relationship_handlers::*;

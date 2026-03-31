@@ -23,8 +23,8 @@ pub use turso_utils::*;
 #[cfg(feature = "turso")]
 mod turso_utils {
     use super::*;
-    use memory_core::{Episode, embeddings::EmbeddingStorageBackend};
-    use memory_storage_turso::TursoStorage;
+    use do_memory_core::{Episode, embeddings::EmbeddingStorageBackend};
+    use do_memory_storage_turso::TursoStorage;
     use rand::{RngExt, SeedableRng};
     use rand_chacha::ChaCha8Rng;
     use std::sync::Arc;
@@ -69,7 +69,7 @@ mod turso_utils {
             dimension: usize,
             seed: u64,
         ) -> Result<(Episode, Vec<f32>)> {
-            use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+            use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
             // Create episode
             let context = TaskContext {
@@ -86,7 +86,7 @@ mod turso_utils {
                 TaskType::Testing,
             );
 
-            episode.complete(memory_core::types::TaskOutcome::Success {
+            episode.complete(do_memory_core::types::TaskOutcome::Success {
                 verdict: "Done".to_string(),
                 artifacts: vec![],
             });

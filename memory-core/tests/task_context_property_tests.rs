@@ -7,7 +7,7 @@
 
 #![allow(clippy::cast_precision_loss)]
 
-use memory_core::{ComplexityLevel, TaskContext};
+use do_memory_core::{ComplexityLevel, TaskContext};
 use proptest::prelude::*;
 
 /// Generate arbitrary domain names

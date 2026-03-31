@@ -1,6 +1,6 @@
 //! Integration tests for episode deletion functionality
 
-use memory_core::{ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
 use uuid::Uuid;
 
 #[tokio::test]

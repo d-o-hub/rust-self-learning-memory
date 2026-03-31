@@ -171,7 +171,7 @@ use memory_cli::config::Config;
 let config = Config::wizard().await?;
 
 // Save to file
-std::fs::write("memory-cli.toml", toml::to_string_pretty(&config)?)?;
+std::fs::write("do-memory-cli.toml", toml::to_string_pretty(&config)?)?;
 ```
 
 #### `validate(&self) -> Result<ValidationReport>`
@@ -536,7 +536,7 @@ export LOCAL_DATABASE_URL="sqlite:./data/memory.db"
 
 ### Metrics
 
-- **Module Files**: 8 modules in memory-cli/src/config/
+- **Module Files**: 8 modules in do-memory-cli/src/config/
 - **Documentation**: Complete with examples in doc comments
 - **Tests Passing**: All (57/57)
 - **Build Status**: Compiles without errors

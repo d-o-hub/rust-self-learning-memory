@@ -60,7 +60,7 @@
 //! ### Basic Usage
 //!
 //! ```
-//! use memory_core::retrieval::{QueryCache, CacheKey};
+//! use do_memory_core::retrieval::{QueryCache, CacheKey};
 //!
 //! let cache = QueryCache::new();
 //!
@@ -91,7 +91,7 @@
 //! ### Domain-Based Invalidation (Multi-Domain Workloads)
 //!
 //! ```
-//! use memory_core::retrieval::{QueryCache, CacheKey};
+//! use do_memory_core::retrieval::{QueryCache, CacheKey};
 //!
 //! let cache = QueryCache::new();
 //!

@@ -14,9 +14,9 @@
 //! - Backward compatibility
 //!
 
-use memory_core::memory::SelfLearningMemory;
-use memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
-use memory_core::{
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
+use do_memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
 };
 use std::collections::HashSet;

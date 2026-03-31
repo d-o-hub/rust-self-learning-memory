@@ -3,7 +3,7 @@
 //! These tests verify that the CLI works correctly across different
 //! configurations, platforms, and feature combinations.
 
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;

@@ -21,9 +21,9 @@ Phase 1 Quick Wins for Turso Database Performance Optimization has been successf
 **Status**: IMPLEMENTED AND VALIDATED
 
 **Implementation**:
-- Location: `memory-storage-turso/src/cache/wrapper.rs`
+- Location: `do-memory-storage-turso/src/cache/wrapper.rs`
 - Leverages existing `CachedTursoStorage` wrapper
-- Uses `AdaptiveCache` from memory-storage-redb for intelligent TTL management
+- Uses `AdaptiveCache` from do-memory-storage-redb for intelligent TTL management
 - Cache-first lookup before falling back to database queries
 
 **Key Features**:
@@ -34,7 +34,7 @@ Phase 1 Quick Wins for Turso Database Performance Optimization has been successf
 
 **Code Evidence**:
 ```rust
-// memory-storage-turso/src/cache/wrapper.rs:140-160
+// do-memory-storage-turso/src/cache/wrapper.rs:140-160
 pub async fn get_episode_cached(&self, id: Uuid) -> Result<Option<Episode>> {
     // Check cache first
     if let Some(ref cache) = self.episode_cache {
@@ -75,7 +75,7 @@ let cached_storage = storage.with_cache(cache_config);
 **Status**: IMPLEMENTED AND VALIDATED
 
 **Implementation**:
-- Location: `memory-storage-turso/src/storage/batch/`
+- Location: `do-memory-storage-turso/src/storage/batch/`
 - Modules: `episode_batch.rs`, `pattern_batch.rs`, `query_batch.rs`, `combined_batch.rs`
 - Batch operations use transactions for atomicity
 
@@ -120,7 +120,7 @@ pub struct BatchConfig {
 **Status**: IMPLEMENTED AND VALIDATED
 
 **Implementation**:
-- Location: `memory-storage-turso/src/prepared/cache.rs`
+- Location: `do-memory-storage-turso/src/prepared/cache.rs`
 - Thread-safe LRU cache for compiled SQL statements
 - Automatic eviction and refresh strategies
 
@@ -165,7 +165,7 @@ println!("Cache hit rate: {:.1}%", stats.hit_rate() * 100.0);
 **Status**: IMPLEMENTED AND VALIDATED
 
 **Implementation**:
-- Location: `memory-storage-turso/src/storage/episodes/query.rs:112-129`
+- Location: `do-memory-storage-turso/src/storage/episodes/query.rs:112-129`
 - Uses `json_extract()` instead of `LIKE` pattern matching
 - More efficient and can leverage indexes
 
@@ -190,7 +190,7 @@ ORDER BY start_time DESC
 
 **Code Evidence**:
 ```rust
-// memory-storage-turso/src/storage/episodes/query.rs:112-129
+// do-memory-storage-turso/src/storage/episodes/query.rs:112-129
 pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result<Vec<Episode>> {
     let sql = format!(
         r#"
@@ -215,7 +215,7 @@ pub async fn query_episodes_by_metadata(&self, key: &str, value: &str) -> Result
 **Status**: IMPLEMENTED
 
 **Implementation**:
-- Location: `memory-storage-turso/src/cache/query_cache.rs`
+- Location: `do-memory-storage-turso/src/cache/query_cache.rs`
 - Caches entire query results (not just individual items)
 - Reduces repeated query overhead
 
@@ -258,7 +258,7 @@ if let Some(cached) = query_cache.get_episodes(&key) {
 **Status**: IMPLEMENTED
 
 **Implementation**:
-- Location: `memory-storage-turso/src/metrics/performance.rs`
+- Location: `do-memory-storage-turso/src/metrics/performance.rs`
 - Comprehensive tracking of all optimization impacts
 - Beautiful console report generation
 
@@ -338,7 +338,7 @@ println!("{}", metrics.report());
 
 ### 1. ✅ Unit Tests
 
-**Location**: `memory-storage-turso/tests/phase1_optimization_test.rs`
+**Location**: `do-memory-storage-turso/tests/phase1_optimization_test.rs`
 
 **Test Coverage**:
 - ✅ `test_cache_first_read_strategy` - Validates cache hits are faster than misses
@@ -351,7 +351,7 @@ println!("{}", metrics.report());
 
 **Test Execution**:
 ```bash
-cd memory-storage-turso
+cd do-memory-storage-turso
 cargo test phase1_optimization --lib
 ```
 
@@ -483,22 +483,22 @@ tokio::spawn(async move {
 ## Files Created/Modified
 
 ### New Files
-1. ✅ `memory-storage-turso/src/cache/query_cache.rs` - Query result caching
-2. ✅ `memory-storage-turso/src/metrics/performance.rs` - Performance metrics
-3. ✅ `memory-storage-turso/tests/phase1_optimization_test.rs` - Test suite
+1. ✅ `do-memory-storage-turso/src/cache/query_cache.rs` - Query result caching
+2. ✅ `do-memory-storage-turso/src/metrics/performance.rs` - Performance metrics
+3. ✅ `do-memory-storage-turso/tests/phase1_optimization_test.rs` - Test suite
 4. ✅ `benches/turso_phase1_optimization.rs` - Benchmark suite
 5. ✅ `plans/PHASE1_OPTIMIZATION_COMPLETE.md` - This document
 
 ### Modified Files
-1. ✅ `memory-storage-turso/src/lib.rs` - Export new modules
-2. ✅ `memory-storage-turso/src/cache/mod.rs` - Export query_cache
-3. ✅ `memory-storage-turso/src/metrics/mod.rs` - Export performance module
+1. ✅ `do-memory-storage-turso/src/lib.rs` - Export new modules
+2. ✅ `do-memory-storage-turso/src/cache/mod.rs` - Export query_cache
+3. ✅ `do-memory-storage-turso/src/metrics/mod.rs` - Export performance module
 
 ### Existing Files (Already Optimized)
-1. ✅ `memory-storage-turso/src/cache/wrapper.rs` - Cache-first implementation
-2. ✅ `memory-storage-turso/src/storage/batch/*.rs` - Batch operations
-3. ✅ `memory-storage-turso/src/prepared/cache.rs` - Prepared statements
-4. ✅ `memory-storage-turso/src/storage/episodes/query.rs` - json_extract optimization
+1. ✅ `do-memory-storage-turso/src/cache/wrapper.rs` - Cache-first implementation
+2. ✅ `do-memory-storage-turso/src/storage/batch/*.rs` - Batch operations
+3. ✅ `do-memory-storage-turso/src/prepared/cache.rs` - Prepared statements
+4. ✅ `do-memory-storage-turso/src/storage/episodes/query.rs` - json_extract optimization
 
 ---
 

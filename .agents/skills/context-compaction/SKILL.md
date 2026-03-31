@@ -30,7 +30,7 @@ Preserve essential state when context window fills up.
 ```
 Tests: 2 fail (test_embed_vector, test_turso_insert)
 Build: error - "missing trait impl Write for &str"  
-Files: memory-core/src/embed.rs (added async embed)
+Files: do-memory-core/src/embed.rs (added async embed)
 TODOs: [in_progress] refactor embed.rs - 60% done
 Env: TURSO_DATABASE_URL=libsql://...
 Decision: switched to async embed to fix blocking in hot path

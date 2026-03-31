@@ -17,7 +17,7 @@ You are a specialized agent for implementing and maintaining Model Context Proto
 
 ## Role
 
-Your focus is on the memory-mcp crate, which provides:
+Your focus is on the do-memory-mcp crate, which provides:
 - MCP protocol implementation with JSON-RPC 2.0 transport
 - Tool definition, registration, and management
 - Progressive tool disclosure based on usage patterns
@@ -104,10 +104,10 @@ When implementing MCP functionality:
    - Read task description and requirements
    - Identify MCP protocol specification requirements
    - Review existing similar tools for patterns
-   - Check memory-mcp/README.md and MCP_ERROR_HANDLING.md
+   - Check do-memory-mcp/README.md and MCP_ERROR_HANDLING.md
 
 2. **Review Implementation**
-   - Examine memory-mcp/src/ structure:
+   - Examine do-memory-mcp/src/ structure:
      - `lib.rs` - Main entry point and exports
      - `server.rs` - MCP server implementation
      - `tools/` - Tool definitions and handlers
@@ -182,7 +182,7 @@ When implementing MCP functionality:
     - Verify no memory leaks
 
 12. **Documentation**
-    - Update memory-mcp/README.md
+    - Update do-memory-mcp/README.md
     - Document tool parameters and usage
     - Add examples to documentation
     - Update CHANGELOG.md
@@ -229,7 +229,7 @@ All MCP implementations must meet:
 
 ### DO:
 ✓ Always validate MCP protocol compliance with MCP Inspector
-✓ Follow existing tool patterns in memory-mcp/src/tools/
+✓ Follow existing tool patterns in do-memory-mcp/src/tools/
 ✓ Use proper JSON-RPC error codes
 ✓ Implement comprehensive error handling
 ✓ Add detailed error messages in `data.details` field
@@ -431,7 +431,7 @@ When completing MCP work or needing assistance:
 
 ```bash
 # Build MCP server
-cargo build --release --bin memory-mcp-server
+cargo build --release --bin do-memory-mcp-server
 
 # Configure MCP client (e.g., Claude Desktop)
 # Reference: mcp-config-memory.json
@@ -444,7 +444,7 @@ cargo build --release --bin memory-mcp-server
 npm install -g @modelcontextprotocol/inspector
 
 # Start MCP server with inspector
-npx @modelcontextprotocol/inspector ./target/release/memory-mcp-server
+npx @modelcontextprotocol/inspector ./target/release/do-memory-mcp-server
 
 # Verify tool list appears
 # Test tool execution
@@ -462,8 +462,8 @@ npx @modelcontextprotocol/inspector ./target/release/memory-mcp-server
 # Add server configuration:
 {
   "mcpServers": {
-    "memory-mcp": {
-      "command": "./target/release/memory-mcp-server",
+    "do-memory-mcp": {
+      "command": "./target/release/do-memory-mcp-server",
       "args": [],
       "env": {
         "RUST_LOG": "debug",
@@ -541,7 +541,7 @@ Provide results in this format:
 - Security Tests: [count]/[count] passing
 
 ### Documentation Updated
-- memory-mcp/README.md: ✅
+- do-memory-mcp/README.md: ✅
 - Tool examples: ✅
 - CHANGELOG.md: ✅
 
@@ -554,23 +554,23 @@ Provide results in this format:
 ## Key References
 
 ### MCP Documentation
-- **memory-mcp/README.md** - Implementation overview and usage
-- **memory-mcp/MCP_ERROR_HANDLING.md** - Error response formats
-- **memory-mcp/SECURITY_AUDIT.md** - Security audit report
+- **do-memory-mcp/README.md** - Implementation overview and usage
+- **do-memory-mcp/MCP_ERROR_HANDLING.md** - Error response formats
+- **do-memory-mcp/SECURITY_AUDIT.md** - Security audit report
 - **https://modelcontextprotocol.io** - Official MCP specification
 - **https://modelcontextprotocol.io/docs/tools/inspector** - MCP Inspector tool
 
 ### Testing References
-- **memory-mcp/tests/** - Comprehensive test suite
+- **do-memory-mcp/tests/** - Comprehensive test suite
 - **agent_docs/running_tests.md** - Testing strategies
 - **TESTING.md** - Project testing guidelines
 
 ### Code References
-- **memory-mcp/src/lib.rs** - Main library entry
-- **memory-mcp/src/server.rs** - MCP server implementation
-- **memory-mcp/src/tools/** - Tool definitions
-- **memory-mcp/src/sandbox.rs** - WASM sandbox
-- **memory-mcp/src/types.rs** - Core types
+- **do-memory-mcp/src/lib.rs** - Main library entry
+- **do-memory-mcp/src/server.rs** - MCP server implementation
+- **do-memory-mcp/src/tools/** - Tool definitions
+- **do-memory-mcp/src/sandbox.rs** - WASM sandbox
+- **do-memory-mcp/src/types.rs** - Core types
 
 ## Critical Implementation Notes
 

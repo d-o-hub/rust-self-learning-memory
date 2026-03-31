@@ -23,8 +23,8 @@
 - `cargo nextest run --all`
 - `cargo llvm-cov nextest --all --summary-only`
 - `./scripts/check-docs-integrity.sh`
-- `cargo run -p memory-cli -- --help`
-- `cargo test -p memory-mcp tool_contract_parity -- --nocapture`
+- `cargo run -p do-memory-cli -- --help`
+- `cargo test -p do-memory-mcp tool_contract_parity -- --nocapture`
 - `du -sh target node_modules`
 
 ## Phase Plan
@@ -36,7 +36,7 @@
 
 ### Phase 2 — Durable Learning Signals (Parallelizable once Phase 1 complete)
 - **WG-051** (✅ Complete — 2026-03-24): Persist recommendation sessions + feedback via storage traits + Turso schema
-  - Added Turso SQL + `memory-storage-turso/src/storage/recommendations.rs` and redb postcard-backed `memory-storage-redb/src/recommendations.rs`
+  - Added Turso SQL + `do-memory-storage-turso/src/storage/recommendations.rs` and redb postcard-backed `do-memory-storage-redb/src/recommendations.rs`
   - Extended storage trait impls/wrappers/resilient cache plus `tests/attribution_integration_test.rs` persistence coverage
   - Commands run: `./scripts/code-quality.sh fmt`, `cargo nextest run --test attribution_integration`
 - **WG-052**: Persist checkpoint/handoff metadata in Turso + redb read paths
@@ -45,7 +45,7 @@
 ### Phase 3 — Contract & Docs Integrity
 - **WG-053** (✅ Complete — 2026-03-24): Keep tool-level batch MCP analytics names intentionally deferred/absent; harden parity tests and align active docs/plans to contract truth
 - **WG-054**: Regenerate API + CLI + playbook/checkpoint docs + README references
-- Owners: memory-mcp specialist + documentation skillset
+- Owners: do-memory-mcp specialist + documentation skillset
 
 ### Phase 4 — Validation & Coverage Parity
 - **WG-055**: Expand PR-required CI jobs beyond `--lib` smoke subset

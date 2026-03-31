@@ -3,11 +3,13 @@
 use super::config::{CacheConfig, CacheStats};
 use crate::TursoStorage;
 use async_trait::async_trait;
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::{Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
-use memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
+use do_memory_core::{
+    Episode, Error, Heuristic, Pattern, Result, StorageBackend, episode::PatternId,
+};
+use do_memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use uuid::Uuid;
@@ -166,7 +168,7 @@ impl CachedTursoStorage {
     /// Get pattern with caching
     pub async fn get_pattern_cached(
         &self,
-        id: memory_core::episode::PatternId,
+        id: do_memory_core::episode::PatternId,
     ) -> Result<Option<Pattern>> {
         // PatternId is already a Uuid, use directly
         let cache_key = id;

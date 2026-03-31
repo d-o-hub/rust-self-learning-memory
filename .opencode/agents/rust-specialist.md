@@ -43,11 +43,11 @@ Provide expert Rust development capabilities including:
 ### 2. Service Architecture (from `agent_docs/service_architecture.md`)
 
 **Core Components**:
-- `memory-core/`: Episode lifecycle, pattern extraction, semantic embeddings
-- `memory-storage-turso/`: Primary persistent database (SQLite/libSQL)
-- `memory-storage-redb/`: High-performance cache layer
-- `memory-mcp/`: Model Context Protocol server
-- `memory-cli/`: Command-line interface
+- `do-memory-core/`: Episode lifecycle, pattern extraction, semantic embeddings
+- `do-memory-storage-turso/`: Primary persistent database (SQLite/libSQL)
+- `do-memory-storage-redb/`: High-performance cache layer
+- `do-memory-mcp/`: Model Context Protocol server
+- `do-memory-cli/`: Command-line interface
 
 **Data Flow Patterns**:
 - Episode lifecycle: Creation → Step Logging → Completion → Storage → Pattern Extraction
@@ -675,7 +675,7 @@ This agent leverages these skills when appropriate:
 **1. Task Analysis**
 ```
 Task: Add semantic search with filtering capability
-Scope: memory-core, memory-mcp
+Scope: do-memory-core, do-memory-mcp
 Risk: Medium - changes to core query logic
 Complexity: High - requires embedding similarity + database queries
 ```

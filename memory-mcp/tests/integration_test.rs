@@ -1,7 +1,7 @@
 //! Integration tests for MCP server and sandbox
 
-use memory_core::{MemoryConfig, SelfLearningMemory};
-use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -123,7 +123,7 @@ async fn test_tool_management() {
     .unwrap();
 
     // Add custom tool
-    let custom_tool = memory_mcp::types::Tool::new(
+    let custom_tool = do_memory_mcp::types::Tool::new(
         "custom_test".to_string(),
         "Custom test tool".to_string(),
         json!({"type": "object"}),
@@ -217,7 +217,7 @@ async fn test_complex_code_execution() {
     assert!(result.is_ok());
 
     match result.unwrap() {
-        memory_mcp::ExecutionResult::Success { stdout, .. } => {
+        do_memory_mcp::ExecutionResult::Success { stdout, .. } => {
             assert!(stdout.contains("Fibonacci of 10:"));
         }
         other => panic!("Expected success, got: {:?}", other),
@@ -254,7 +254,7 @@ async fn test_error_handling_in_code() {
 
     // Should succeed because error is handled
     match result.unwrap() {
-        memory_mcp::ExecutionResult::Success { .. } => {
+        do_memory_mcp::ExecutionResult::Success { .. } => {
             // Success expected
         }
         other => panic!("Expected success, got: {:?}", other),
@@ -335,10 +335,10 @@ async fn test_progressive_tool_disclosure() {
 #[tokio::test]
 async fn test_memory_integration_with_data() {
     disable_wasm_for_tests();
-    use memory_core::{
+    use do_memory_core::{
         ExecutionResult, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
     };
-    use memory_mcp::{MemoryMCPServer, SandboxConfig};
+    use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
     use std::sync::Arc;
 
     // Create a shared memory instance
@@ -416,8 +416,8 @@ async fn test_memory_integration_with_data() {
 #[tokio::test]
 async fn test_jsonrpc_response_format_execute_code() {
     disable_wasm_for_tests();
-    use memory_core::SelfLearningMemory;
-    use memory_mcp::{MemoryMCPServer, SandboxConfig};
+    use do_memory_core::SelfLearningMemory;
+    use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
     use serde_json::json;
     use std::sync::Arc;
 
@@ -435,8 +435,10 @@ async fn test_jsonrpc_response_format_execute_code() {
 
     // Test execute_agent_code directly to verify the result format
     let code = "return { success: true, value: 42 };";
-    let context =
-        memory_mcp::ExecutionContext::new("test execution".to_string(), json!({ "test": "data" }));
+    let context = do_memory_mcp::ExecutionContext::new(
+        "test execution".to_string(),
+        json!({ "test": "data" }),
+    );
 
     let result = server
         .execute_agent_code(code.to_string(), context)
@@ -460,7 +462,7 @@ async fn test_jsonrpc_response_format_execute_code() {
 
     // Test error case
     let error_code = "throw new Error('test error');";
-    let error_context = memory_mcp::ExecutionContext::new("test error".to_string(), json!({}));
+    let error_context = do_memory_mcp::ExecutionContext::new("test error".to_string(), json!({}));
 
     let error_result = server
         .execute_agent_code(error_code.to_string(), error_context)

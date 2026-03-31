@@ -6,8 +6,8 @@
 //! # Examples
 //!
 //! ```
-//! use memory_core::{Episode, TaskContext, TaskType, TaskOutcome, ExecutionStep};
-//! use memory_core::ExecutionResult;
+//! use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome, ExecutionStep};
+//! use do_memory_core::ExecutionResult;
 //!
 //! // Create a new episode
 //! let mut episode = Episode::new(

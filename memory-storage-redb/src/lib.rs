@@ -14,7 +14,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_storage_redb::RedbStorage;
+//! use do_memory_storage_redb::RedbStorage;
 //! use std::path::Path;
 //!
 //! # async fn example() -> anyhow::Result<()> {
@@ -23,7 +23,7 @@
 //! # }
 //! ```
 
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 use redb::{Database, TableDefinition};
 use std::path::Path;
 use std::sync::Arc;
@@ -172,7 +172,7 @@ impl RedbStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_redb::RedbStorage;
+    /// # use do_memory_storage_redb::RedbStorage;
     /// # use std::path::Path;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = RedbStorage::new(Path::new("./memory.redb")).await?;
@@ -196,7 +196,7 @@ impl RedbStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_redb::{RedbStorage, CacheConfig};
+    /// # use do_memory_storage_redb::{RedbStorage, CacheConfig};
     /// # use std::path::Path;
     /// # async fn example() -> anyhow::Result<()> {
     /// let config = CacheConfig {
@@ -247,7 +247,7 @@ impl RedbStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_redb::{RedbStorage, AdaptiveCacheConfig};
+    /// # use do_memory_storage_redb::{RedbStorage, AdaptiveCacheConfig};
     /// # use std::path::Path;
     /// # use std::time::Duration;
     /// # async fn example() -> anyhow::Result<()> {

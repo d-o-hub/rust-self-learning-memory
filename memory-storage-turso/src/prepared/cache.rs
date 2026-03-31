@@ -70,7 +70,7 @@ impl PreparedStatementCache {
     /// # Example
     ///
     /// ```rust
-    /// use memory_storage_turso::prepared::PreparedStatementCache;
+    /// use do_memory_storage_turso::prepared::PreparedStatementCache;
     ///
     /// let cache = PreparedStatementCache::new(100);
     /// ```

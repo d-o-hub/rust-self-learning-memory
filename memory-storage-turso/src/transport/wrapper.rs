@@ -12,7 +12,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use memory_storage_turso::transport::{
+//! use do_memory_storage_turso::transport::{
 //!     CompressedTransport, Transport, TransportCompressionConfig, TransportMetadata,
 //!     TransportResponse,
 //! };
@@ -86,7 +86,7 @@ impl CompressedTransport {
     /// # Example
     ///
     /// ```rust
-    /// use memory_storage_turso::transport::{
+    /// use do_memory_storage_turso::transport::{
     ///     CompressedTransport, TransportCompressionConfig, Transport, TransportMetadata,
     ///     TransportResponse,
     /// };

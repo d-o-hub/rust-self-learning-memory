@@ -27,14 +27,14 @@ All remaining phases from GOAP_DISK_TESTING_RELEASE_2026.md have been implemente
 
 Removed ~28 unused dependencies:
 - Workspace: 13 deps (approx, argmin, nalgebra, rv, etc.)
-- memory-cli: 4 deps (regex, rstest, serde_test, tokio-test)
-- memory-examples: 5 deps (chrono, memory-cli, rand, serde, uuid)
-- memory-mcp: 5 deps (async-trait, deep_causality, futures, rayon, streaming_algorithms)
-- memory-storage-redb: 2 deps (thiserror, bincode)
-- memory-storage-turso: 1 dep (sha2)
-- test-utils: 1 dep (tokio)
+- do-memory-cli: 4 deps (regex, rstest, serde_test, tokio-test)
+- memory-examples: 5 deps (chrono, do-memory-cli, rand, serde, uuid)
+- do-memory-mcp: 5 deps (async-trait, deep_causality, futures, rayon, streaming_algorithms)
+- do-memory-storage-redb: 2 deps (thiserror, bincode)
+- do-memory-storage-turso: 1 dep (sha2)
+- do-memory-test-utils: 1 dep (tokio)
 - benches: 4 deps (fs_extra, sysinfo, zipf, regex)
-- tests: 1 dep (memory-cli)
+- tests: 1 dep (do-memory-cli)
 
 **Metrics**: Duplicate roots 120 → 119
 
@@ -55,12 +55,12 @@ Removed ~28 unused dependencies:
 
 **5A: cargo-mutants** (Commit: `cfac516`)
 - Added nightly mutation testing job
-- Target: memory-core crate (pilot)
+- Target: do-memory-core crate (pilot)
 - 120min timeout, 4 parallel jobs
 - Non-blocking with artifact upload
 
 **5B: proptest** (Commit: `5f5c578`)
-- 22 property tests in memory-core/tests/property_tests.rs
+- 22 property tests in do-memory-core/tests/property_tests.rs
 - Categories: Serialization, State Machine, Edge Cases, Determinism
 - Tests: Episode roundtrips, tag invariants, success rate bounds
 
@@ -129,21 +129,21 @@ ed69a6c build(workspace): optimize build config and add release tooling
 
 **Dependencies (10 files)**:
 - Cargo.toml (workspace)
-- memory-cli/Cargo.toml
-- memory-mcp/Cargo.toml
+- do-memory-cli/Cargo.toml
+- do-memory-mcp/Cargo.toml
 - memory-storage-*/Cargo.toml
 - benches/Cargo.toml
 - examples/Cargo.toml
-- test-utils/Cargo.toml
+- do-memory-test-utils/Cargo.toml
 - tests/Cargo.toml
 - Cargo.lock
 
 **Testing (7 files)**:
-- memory-core/tests/property_tests.rs (created, 774 lines)
-- memory-cli/tests/snapshot_tests.rs (created)
-- memory-mcp/tests/snapshot_tests.rs (created)
-- memory-cli/tests/snapshots/*.snap (6 files)
-- memory-mcp/tests/snapshots/*.snap (7 files)
+- do-memory-core/tests/property_tests.rs (created, 774 lines)
+- do-memory-cli/tests/snapshot_tests.rs (created)
+- do-memory-mcp/tests/snapshot_tests.rs (created)
+- do-memory-cli/tests/snapshots/*.snap (6 files)
+- do-memory-mcp/tests/snapshots/*.snap (7 files)
 
 **Scripts (1 file)**:
 - scripts/quality-gates.sh (+25/-5 lines)

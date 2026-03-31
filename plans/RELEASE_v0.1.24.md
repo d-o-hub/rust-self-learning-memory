@@ -61,7 +61,7 @@
   - Added: Supply chain security workflow
   - Added: Claude Code configuration improvements (ADR-046)
 - [ ] Add `## [0.1.20] - 2026-03-15` section with:
-  - Fixed: memory-storage-redb compilation errors
+  - Fixed: do-memory-storage-redb compilation errors
   - Fixed: Stale `#[ignore]` reasons
   - Added: Ignored-test ceiling CI guard
   - Added: Code coverage improvements (ADR-042)
@@ -146,16 +146,16 @@ External request to add a description to the `github-workflows` skill for Dispat
 
 ### Gap 5: Cargo Publish Not Yet Executed
 
-**Current state**: `publish-crates.yml` exists but crates have never been published. Name `memory-core` is taken on crates.io. `release.toml` has `publish = false` at workspace level.
+**Current state**: `publish-crates.yml` exists but crates have never been published. Name `do-memory-core` is taken on crates.io. `release.toml` has `publish = false` at workspace level.
 
 **Decision: Use `do-memory-*` namespace** (verified available 2026-03-31):
 
 | Current Crate | Publish Name (crates.io) | npm Name | crates.io | npm |
 |---------------|--------------------------|----------|-----------|-----|
-| `memory-core` | `do-memory-core` | `do-memory-core` | ✅ Available | ✅ Available |
-| `memory-storage-turso` | `do-memory-storage-turso` | `do-memory-storage-turso` | ✅ Available | ✅ Available |
-| `memory-storage-redb` | `do-memory-storage-redb` | `do-memory-storage-redb` | ✅ Available | ✅ Available |
-| `memory-mcp` | `do-memory-mcp` | `do-memory-mcp` | ✅ Available | ✅ Available |
+| `do-memory-core` | `do-memory-core` | `do-memory-core` | ✅ Available | ✅ Available |
+| `do-memory-storage-turso` | `do-memory-storage-turso` | `do-memory-storage-turso` | ✅ Available | ✅ Available |
+| `do-memory-storage-redb` | `do-memory-storage-redb` | `do-memory-storage-redb` | ✅ Available | ✅ Available |
+| `do-memory-mcp` | `do-memory-mcp` | `do-memory-mcp` | ✅ Available | ✅ Available |
 
 **Implementation steps for v0.1.25**:
 1. Add `[package] name = "do-memory-core"` (publish name) to each crate's `Cargo.toml`

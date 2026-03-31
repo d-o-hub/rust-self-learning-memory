@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide documents the property-based testing implementation in memory-core, designed to catch edge cases and verify invariants that must hold regardless of input values.
+This guide documents the property-based testing implementation in do-memory-core, designed to catch edge cases and verify invariants that must hold regardless of input values.
 
 ## What is Property-Based Testing?
 
@@ -29,26 +29,26 @@ proptest = "1.5"
 
 Run all property tests:
 ```bash
-cargo test -p memory-core
+cargo test -p do-memory-core
 ```
 
 Run specific property test files:
 ```bash
-cargo test -p memory-core episode_property_tests
-cargo test -p memory-core pattern_property_tests
-cargo test -p memory-core relationship_property_tests
-cargo test -p memory-core tag_property_tests
+cargo test -p do-memory-core episode_property_tests
+cargo test -p do-memory-core pattern_property_tests
+cargo test -p do-memory-core relationship_property_tests
+cargo test -p do-memory-core tag_property_tests
 ```
 
 Run specific properties:
 ```bash
-cargo test -p memory-core episode_id_is_valid_uuid
+cargo test -p do-memory-core episode_id_is_valid_uuid
 cargo test -p memory_core similarity_is_reflexive
 ```
 
 Increase test cases for exhaustive testing:
 ```bash
-PROPTEST_CASES=10000 cargo test -p memory-core
+PROPTEST_CASES=10000 cargo test -p do-memory-core
 ```
 
 ## Property Test Structure
@@ -343,7 +343,7 @@ PROPTEST_CASES=1000 cargo test
 
 ```toml
 [[profile.dev.overrides]]
-package.memory-core.proptest = "release"
+package.do-memory-core.proptest = "release"
 
 [[profile.test.overrides]]
 opt-level = 1
@@ -520,7 +520,7 @@ In CI, consider:
 # Example CI configuration
 - name: Run property tests
   run: |
-    PROPTEST_CASES=1000 cargo test -p memory-core
+    PROPTEST_CASES=1000 cargo test -p do-memory-core
 ```
 
 ## Resources

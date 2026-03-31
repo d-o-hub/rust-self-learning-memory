@@ -6,7 +6,7 @@ Successfully implemented a comprehensive cache integration layer for TursoStorag
 ## ✅ Deliverables Completed
 
 ### 1. Updated TursoConfig with Cache Configuration
-**File**: `memory-storage-turso/src/lib.rs`
+**File**: `do-memory-storage-turso/src/lib.rs`
 
 Added cache configuration fields:
 - `cache_config: Option<CacheConfig>` - Optional cache configuration
@@ -15,8 +15,8 @@ Added cache configuration fields:
 
 ### 2. Cache Wrapper Implementation
 **Files**: 
-- `memory-storage-turso/src/cache/wrapper.rs` (292 lines)
-- `memory-storage-turso/src/cache/config.rs` (151 lines)
+- `do-memory-storage-turso/src/cache/wrapper.rs` (292 lines)
+- `do-memory-storage-turso/src/cache/config.rs` (151 lines)
 
 Key features:
 - **Read-through caching**: Check cache → Miss? → DB read → Populate cache
@@ -26,7 +26,7 @@ Key features:
 - **Statistics tracking**: Hit/miss counts, hit rate calculations
 
 ### 3. StorageBackend Trait Implementation
-**Location**: `memory-storage-turso/src/cache/wrapper.rs`
+**Location**: `do-memory-storage-turso/src/cache/wrapper.rs`
 
 Implemented full trait:
 ```rust
@@ -40,7 +40,7 @@ impl StorageBackend for CachedTursoStorage {
 ```
 
 ### 4. Comprehensive Tests
-**File**: `memory-storage-turso/src/cache/tests.rs` (431 lines)
+**File**: `do-memory-storage-turso/src/cache/tests.rs` (431 lines)
 
 **22 tests added** covering:
 - ✅ Cache creation (default, disabled, custom config)
@@ -149,15 +149,15 @@ println!("Cache sizes - Episodes: {}, Patterns: {}, Heuristics: {}",
 ## 📦 Files Created/Modified
 
 ### Created
-- `memory-storage-turso/src/cache/config.rs` (151 lines)
-- `memory-storage-turso/src/cache/mod.rs` (20 lines)
-- `memory-storage-turso/src/cache/wrapper.rs` (292 lines)
-- `memory-storage-turso/src/cache/tests.rs` (431 lines)
+- `do-memory-storage-turso/src/cache/config.rs` (151 lines)
+- `do-memory-storage-turso/src/cache/mod.rs` (20 lines)
+- `do-memory-storage-turso/src/cache/wrapper.rs` (292 lines)
+- `do-memory-storage-turso/src/cache/tests.rs` (431 lines)
 - `benches/cache_benchmarks.rs` (654 lines)
 
 ### Modified
-- `memory-storage-turso/src/lib.rs` (+465 lines)
-- `memory-storage-turso/src/tests.rs` (+174 lines)
+- `do-memory-storage-turso/src/lib.rs` (+465 lines)
+- `do-memory-storage-turso/src/tests.rs` (+174 lines)
 - `benches/Cargo.toml` (+6 lines)
 
 ## 🔗 Integration Points
@@ -171,7 +171,7 @@ pub struct TursoStorage {
 }
 ```
 
-### With AdaptiveCache (memory-storage-redb)
+### With AdaptiveCache (do-memory-storage-redb)
 ```rust
 use memory_storage_redb::cache::{AdaptiveCache, AdaptiveCacheConfig};
 

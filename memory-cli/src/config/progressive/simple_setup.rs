@@ -21,7 +21,7 @@ use tracing::info;
 /// # Example
 ///
 /// ```no_run
-/// use memory_cli::config::{SimpleSetup, ConfigPreset};
+/// use do_memory_cli::config::{SimpleSetup, ConfigPreset};
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
@@ -69,7 +69,7 @@ impl SimpleSetup {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_cli::config::{SimpleSetup, ConfigPreset};
+    /// # use do_memory_cli::config::{SimpleSetup, ConfigPreset};
     /// # #[tokio::main]
     /// # async fn example() -> anyhow::Result<()> {
     /// let config = SimpleSetup::preset(ConfigPreset::Local)

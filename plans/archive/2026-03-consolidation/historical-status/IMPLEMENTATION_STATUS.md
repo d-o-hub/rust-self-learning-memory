@@ -61,9 +61,9 @@
 
 | File | Original LOC | Final LOC | Submodules Created |
 |------|-------------|-----------|-------------------|
-| `memory-mcp/src/server/mod.rs` | 781 | 147 | `sandbox.rs`, `tool_definitions.rs`, `tool_definitions_extended.rs` |
-| `memory-mcp/src/server/tools/batch_operations.rs` | 753 | 3 modules | `batch/batch_query.rs`, `batch/batch_analysis.rs`, `batch/batch_compare.rs` |
-| `memory-mcp/src/server/tools/episode_lifecycle.rs` | 516 | 5 modules | `episode_create.rs`, `episode_steps.rs`, `episode_complete.rs`, `episode_get.rs`, `episode_timeline.rs` |
+| `do-memory-mcp/src/server/mod.rs` | 781 | 147 | `sandbox.rs`, `tool_definitions.rs`, `tool_definitions_extended.rs` |
+| `do-memory-mcp/src/server/tools/batch_operations.rs` | 753 | 3 modules | `batch/batch_query.rs`, `batch/batch_analysis.rs`, `batch/batch_compare.rs` |
+| `do-memory-mcp/src/server/tools/episode_lifecycle.rs` | 516 | 5 modules | `episode_create.rs`, `episode_steps.rs`, `episode_complete.rs`, `episode_get.rs`, `episode_timeline.rs` |
 
 **Total new modules created**: 12 files
 
@@ -75,62 +75,62 @@
 | `benches/genesis_benchmark.rs` | 571 | ✅ Exempt |
 | `benches/episode_lifecycle.rs` | 554 | ✅ Exempt |
 
-**⚠️ Compliance has regressed**: 31 source files now exceed 500 LOC. Largest: `memory-mcp/src/bin/server_impl/tools.rs` (1,311 LOC).
+**⚠️ Compliance has regressed**: 31 source files now exceed 500 LOC. Largest: `do-memory-mcp/src/bin/server_impl/tools.rs` (1,311 LOC).
 
 ### Files Analyzed for Splitting (Updated 2026-01-22)
 
 | File | Original LOC | Status | Notes |
 |------|--------------|--------|-------|
-| `memory-cli/src/config/types.rs | 1,052 | ⏳ PENDING | Needs splitting to 9 files, max 379 LOC (v0.1.12) |
-| `memory-core/src/memory/retrieval.rs | 891 | ⏳ PENDING | Needs splitting to 6 files, max 414 LOC (v0.1.12) |
-| `memory-core/src/patterns/optimized_validator.rs | 889 | ⏳ PENDING | Needs splitting to 6 files, max 448 LOC (v0.1.12) |
-| `memory-core/src/pre_storage/extractor.rs` | 911 | ✅ COMPLETED | Split to 7 files (2026-01-05) |
-| `memory-core/src/spatiotemporal/retriever.rs` | 1,014 | ✅ COMPLETED | Split to 4 modules (2026-01-05) |
-| `memory-storage-turso/src/storage.rs` | 2,502 | ✅ Already split | 9 modules in storage/ (2025-12-30) |
-| `memory-mcp/src/patterns/predictive.rs` | 2,435 | ✅ Already split | predictive/ directory exists |
-| `memory-core/src/memory/mod.rs` | 1,530 | ✅ COMPLETED | Split to init/monitoring/queries/tests |
-| `memory-storage-redb/src/storage.rs` | 1,514 | ⏳ Pending | Needs splitting |
-| `memory-mcp/src/server.rs` | 1,513 | ⏳ Pending | Needs splitting |
-| `memory-mcp/src/patterns/statistical.rs` | 1,132 | ⏳ Pending | Needs splitting |
-| `memory-core/src/spatiotemporal/index.rs` | 1,044 | ⏳ Pending | Needs splitting |
+| `do-memory-cli/src/config/types.rs | 1,052 | ⏳ PENDING | Needs splitting to 9 files, max 379 LOC (v0.1.12) |
+| `do-memory-core/src/memory/retrieval.rs | 891 | ⏳ PENDING | Needs splitting to 6 files, max 414 LOC (v0.1.12) |
+| `do-memory-core/src/patterns/optimized_validator.rs | 889 | ⏳ PENDING | Needs splitting to 6 files, max 448 LOC (v0.1.12) |
+| `do-memory-core/src/pre_storage/extractor.rs` | 911 | ✅ COMPLETED | Split to 7 files (2026-01-05) |
+| `do-memory-core/src/spatiotemporal/retriever.rs` | 1,014 | ✅ COMPLETED | Split to 4 modules (2026-01-05) |
+| `do-memory-storage-turso/src/storage.rs` | 2,502 | ✅ Already split | 9 modules in storage/ (2025-12-30) |
+| `do-memory-mcp/src/patterns/predictive.rs` | 2,435 | ✅ Already split | predictive/ directory exists |
+| `do-memory-core/src/memory/mod.rs` | 1,530 | ✅ COMPLETED | Split to init/monitoring/queries/tests |
+| `do-memory-storage-redb/src/storage.rs` | 1,514 | ⏳ Pending | Needs splitting |
+| `do-memory-mcp/src/server.rs` | 1,513 | ⏳ Pending | Needs splitting |
+| `do-memory-mcp/src/patterns/statistical.rs` | 1,132 | ⏳ Pending | Needs splitting |
+| `do-memory-core/src/spatiotemporal/index.rs` | 1,044 | ⏳ Pending | Needs splitting |
 
 ### Already Compliant Files
 
 | File | Current LOC |
 |------|-------------|
-| `memory-storage-turso/src/storage/mod.rs` | ~350 |
-| `memory-storage-turso/src/storage/episodes.rs` | ~500 |
-| `memory-storage-turso/src/storage/patterns.rs` | ~500 |
-| `memory-storage-turso/src/storage/search.rs` | ~500 |
-| `memory-storage-turso/src/storage/capacity.rs` | ~300 |
-| `memory-storage-turso/src/storage/heuristics.rs` | ~400 |
-| `memory-storage-turso/src/storage/monitoring.rs` | ~350 |
-| `memory-mcp/src/patterns/predictive/mod.rs` | 120 |
-| `memory-mcp/src/patterns/predictive/anomaly.rs` | 215 |
-| `memory-mcp/src/patterns/predictive/causal.rs` | 285 |
-| `memory-mcp/src/patterns/predictive/dbscan.rs` | 500 |
-| `memory-mcp/src/patterns/predictive/kdtree.rs` | 400 |
-| `memory-core/src/memory/mod.rs` | 442 |
-| `memory-core/src/memory/init.rs` | 265 |
-| `memory-core/src/memory/monitoring.rs` | 121 |
-| `memory-core/src/memory/queries.rs` | 177 |
-| `memory-core/src/memory/tests.rs` | 565 |
-| `memory-core/src/spatiotemporal/retriever/mod.rs` | 189 |
-| `memory-core/src/spatiotemporal/retriever/types.rs` | 141 |
-| `memory-core/src/spatiotemporal/retriever/scoring.rs` | 168 |
-| `memory-core/src/spatiotemporal/retriever/tests.rs` | 440 |
-| `memory-core/src/pre_storage/extractor/mod.rs` | 126 |
-| `memory-core/src/pre_storage/extractor/types.rs` | 127 |
-| `memory-core/src/pre_storage/extractor/decisions.rs` | 87 |
-| `memory-core/src/pre_storage/extractor/tools.rs` | 54 |
-| `memory-core/src/pre_storage/extractor/recovery.rs` | 91 |
-| `memory-core/src/pre_storage/extractor/insights.rs` | 50 |
-| `memory-core/src/pre_storage/extractor/tests.rs` | 407 |
-| `memory-core/src/patterns/mod.rs` | 28 |
-| `memory-core/src/mcp/mod.rs` | 9 |
-| `memory-core/src/reflection/mod.rs` | 110 |
-| `memory-cli/src/main.rs` | 259 |
-| `memory-core/src/learning/mod.rs` | 11 |
+| `do-memory-storage-turso/src/storage/mod.rs` | ~350 |
+| `do-memory-storage-turso/src/storage/episodes.rs` | ~500 |
+| `do-memory-storage-turso/src/storage/patterns.rs` | ~500 |
+| `do-memory-storage-turso/src/storage/search.rs` | ~500 |
+| `do-memory-storage-turso/src/storage/capacity.rs` | ~300 |
+| `do-memory-storage-turso/src/storage/heuristics.rs` | ~400 |
+| `do-memory-storage-turso/src/storage/monitoring.rs` | ~350 |
+| `do-memory-mcp/src/patterns/predictive/mod.rs` | 120 |
+| `do-memory-mcp/src/patterns/predictive/anomaly.rs` | 215 |
+| `do-memory-mcp/src/patterns/predictive/causal.rs` | 285 |
+| `do-memory-mcp/src/patterns/predictive/dbscan.rs` | 500 |
+| `do-memory-mcp/src/patterns/predictive/kdtree.rs` | 400 |
+| `do-memory-core/src/memory/mod.rs` | 442 |
+| `do-memory-core/src/memory/init.rs` | 265 |
+| `do-memory-core/src/memory/monitoring.rs` | 121 |
+| `do-memory-core/src/memory/queries.rs` | 177 |
+| `do-memory-core/src/memory/tests.rs` | 565 |
+| `do-memory-core/src/spatiotemporal/retriever/mod.rs` | 189 |
+| `do-memory-core/src/spatiotemporal/retriever/types.rs` | 141 |
+| `do-memory-core/src/spatiotemporal/retriever/scoring.rs` | 168 |
+| `do-memory-core/src/spatiotemporal/retriever/tests.rs` | 440 |
+| `do-memory-core/src/pre_storage/extractor/mod.rs` | 126 |
+| `do-memory-core/src/pre_storage/extractor/types.rs` | 127 |
+| `do-memory-core/src/pre_storage/extractor/decisions.rs` | 87 |
+| `do-memory-core/src/pre_storage/extractor/tools.rs` | 54 |
+| `do-memory-core/src/pre_storage/extractor/recovery.rs` | 91 |
+| `do-memory-core/src/pre_storage/extractor/insights.rs` | 50 |
+| `do-memory-core/src/pre_storage/extractor/tests.rs` | 407 |
+| `do-memory-core/src/patterns/mod.rs` | 28 |
+| `do-memory-core/src/mcp/mod.rs` | 9 |
+| `do-memory-core/src/reflection/mod.rs` | 110 |
+| `do-memory-cli/src/main.rs` | 259 |
+| `do-memory-core/src/learning/mod.rs` | 11 |
 
 ---
 
@@ -221,7 +221,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 
 **testing-qa (95% complete)**:
 - ✅ 6 comprehensive routing tests in `multi_dimension_routing.rs`
-- ✅ `MultiDimensionTestHarness` in `test-utils/multi_dimension.rs`
+- ✅ `MultiDimensionTestHarness` in `do-memory-test-utils/multi_dimension.rs`
 - ✅ `EmbeddingGenerator` for test data generation
 - ✅ `table_for_dimension()` helper function
 - ⚠️ NOT DONE: Remove `#[ignore]` (completed in Phase 1)
@@ -289,10 +289,10 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 #### Implementation Details
 
 **Schema Changes**:
-- Created 5 dimension-specific tables in `memory-storage-turso/src/schema.rs`
+- Created 5 dimension-specific tables in `do-memory-storage-turso/src/schema.rs`
 - Created 4 DiskANN vector indexes
 - Created 5 item lookup indexes
-- Updated `initialize_schema()` in `memory-storage-turso/src/lib.rs` (lines 370-405)
+- Updated `initialize_schema()` in `do-memory-storage-turso/src/lib.rs` (lines 370-405)
 
 **Storage Layer Changes**:
 - Updated `store_embedding_backend()` to route by dimension
@@ -321,17 +321,17 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 #### Files Created/Modified
 
 **Created Files**:
-- `memory-storage-turso/tests/phase1_validation.rs` (14 tests)
-- `test-utils/src/multi_dimension.rs` (test harnesses)
+- `do-memory-storage-turso/tests/phase1_validation.rs` (14 tests)
+- `do-memory-test-utils/src/multi_dimension.rs` (test harnesses)
 - `plans/PHASE1_MULTI_DIMENSION_COMPLETE.md`
 - `plans/PHASE1_MULTI_DIMENSION_VALIDATION_REPORT.md`
 
 **Modified Files**:
-- `memory-storage-turso/src/lib.rs` (+40 lines)
-- `memory-storage-turso/src/schema.rs` (+150 lines)
-- `memory-storage-turso/src/storage.rs` (+250 lines)
-- `memory-storage-turso/Cargo.toml` (feature flag added)
-- `memory-storage-turso/tests/multi_dimension_routing.rs` (6 tests enabled)
+- `do-memory-storage-turso/src/lib.rs` (+40 lines)
+- `do-memory-storage-turso/src/schema.rs` (+150 lines)
+- `do-memory-storage-turso/src/storage.rs` (+250 lines)
+- `do-memory-storage-turso/Cargo.toml` (feature flag added)
+- `do-memory-storage-turso/tests/multi_dimension_routing.rs` (6 tests enabled)
 
 ---
 
@@ -373,7 +373,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 
 ### Issue #1: Mock Embedding Provider Replacement - ✅ RESOLVED
 
-**File**: `memory-core/src/embeddings/local.rs:77-85`
+**File**: `do-memory-core/src/embeddings/local.rs:77-85`
 **Impact**: Semantic search returns meaningless results
 **Current**: ✅ Real embedding service integrated (gte-rs + ONNX)
 **Required**: ✅ Complete with production warnings
@@ -415,8 +415,8 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 #### Implementation Details
 
 **Files Modified**:
-- `memory-core/src/embeddings/local.rs` (+200 LOC)
-- `memory-core/src/embeddings/mod.rs` (updated interfaces)
+- `do-memory-core/src/embeddings/local.rs` (+200 LOC)
+- `do-memory-core/src/embeddings/mod.rs` (updated interfaces)
 
 **Key Features**:
 - gte-small-en-v1.5 model (384-dimensional embeddings)
@@ -428,7 +428,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 
 ### Issue #2: Hash-Based Pseudo-Embeddings Documentation - ✅ RESOLVED
 
-**File**: `memory-core/src/embeddings_simple.rs:49-79`
+**File**: `do-memory-core/src/embeddings_simple.rs:49-79`
 **Impact**: Entire embedding system non-functional in production
 **Current**: ✅ Production warnings and documentation added
 **Required**: ✅ Clear test-only documentation and production warning
@@ -462,8 +462,8 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 #### Implementation Details
 
 **Files Modified**:
-- `memory-core/src/embeddings_simple.rs` (updated docs)
-- `memory-core/src/embeddings/mod.rs` (updated exports)
+- `do-memory-core/src/embeddings_simple.rs` (updated docs)
+- `do-memory-core/src/embeddings/mod.rs` (updated exports)
 
 **Key Features**:
 - Compile-time warnings for mock usage
@@ -475,7 +475,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 
 ### Issue #3: Mock CLI Monitoring Implementation - ✅ RESOLVED
 
-**File**: `memory-cli/src/commands/monitor.rs:172-200`
+**File**: `do-memory-cli/src/commands/monitor.rs:172-200`
 **Impact**: Users cannot monitor actual system performance
 **Current**: ✅ Backend metrics integrated and ready for CLI display
 **Required**: ✅ Complete CLI implementation with real metric collection and display
@@ -505,8 +505,8 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 #### Implementation Details
 
 **Files Modified**:
-- `memory-cli/src/commands/monitor.rs` (+50 LOC)
-- `memory-core/src/monitoring/core.rs` (updated exports)
+- `do-memory-cli/src/commands/monitor.rs` (+50 LOC)
+- `do-memory-core/src/monitoring/core.rs` (updated exports)
 
 **Key Features**:
 - Real-time metric collection
@@ -531,7 +531,7 @@ Turso AI and embeddings features optimization leveraging Turso's native vector s
 
 ### 🚨 Issue #4: Configuration Complexity Reduction - NEW PRIORITY #1
 
-**File**: `memory-cli/src/config.rs` (200+ lines)
+**File**: `do-memory-cli/src/config.rs` (200+ lines)
 **Impact**: Primary bottleneck preventing users from unlocking full system potential
 **Current**: Complex configuration with duplication
 **Required**: Simplified, user-friendly configuration system
@@ -661,7 +661,7 @@ Phase 2 focuses on infrastructure-level optimizations to the Turso database laye
 
 #### 2.1 Connection Keep-Alive Pool ✅ COMPLETED
 
-**File**: `memory-storage-turso/src/pool/keepalive.rs`
+**File**: `do-memory-storage-turso/src/pool/keepalive.rs`
 **Priority**: 🔴 P0
 **Status**: ✅ **COMPLETED** (2026-01-22)
 
@@ -687,7 +687,7 @@ Phase 2 focuses on infrastructure-level optimizations to the Turso database laye
 
 #### 2.2 Adaptive Pool Sizing ✅ COMPLETED
 
-**File**: `memory-storage-turso/src/pool/adaptive.rs`
+**File**: `do-memory-storage-turso/src/pool/adaptive.rs`
 **Priority**: 🔴 P0
 **Status**: ✅ **COMPLETED** (2026-01-22)
 
@@ -715,7 +715,7 @@ Phase 2 focuses on infrastructure-level optimizations to the Turso database laye
 
 #### 2.3 Adaptive TTL (P1) ⏳ PENDING
 
-**File**: `memory-storage-turso/src/cache/adaptive_ttl.rs` (NEW)
+**File**: `do-memory-storage-turso/src/cache/adaptive_ttl.rs` (NEW)
 **Priority**: 🟡 P1
 **Status**: ⏳ PENDING
 **Estimated Effort**: 8-12 hours
@@ -729,7 +729,7 @@ Phase 2 focuses on infrastructure-level optimizations to the Turso database laye
 
 #### 2.4 Network Compression (P1) ⏳ PENDING
 
-**File**: `memory-storage-turso/src/transport/compression.rs` (NEW)
+**File**: `do-memory-storage-turso/src/transport/compression.rs` (NEW)
 **Priority**: 🟡 P1
 **Status**: ⏳ PENDING
 **Estimated Effort**: 6-10 hours

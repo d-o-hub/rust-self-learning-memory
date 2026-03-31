@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use memory_mcp::server::audit::{
+    use do_memory_mcp::server::audit::{
         AuditConfig, AuditDestination, AuditLogEntry, AuditLogLevel, AuditLogger,
     };
     use std::collections::HashSet;

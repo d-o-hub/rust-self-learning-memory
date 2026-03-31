@@ -24,13 +24,13 @@ This document provides a comprehensive integration plan for Phase 2 (GENESIS - C
 
 ### Completed Modules
 
-**CapacityManager** (`memory-core/src/episodic/capacity.rs`):
+**CapacityManager** (`do-memory-core/src/episodic/capacity.rs`):
 - Relevance-weighted eviction: `relevance_score = (quality * 0.7) + (recency * 0.3)`
 - Eviction policies: LRU, RelevanceWeighted
 - 19/19 tests passing
 - 617 LOC total
 
-**SemanticSummarizer** (`memory-core/src/semantic/summary.rs`):
+**SemanticSummarizer** (`do-memory-core/src/semantic/summary.rs`):
 - Episode compression: 100-200 word summaries
 - Extracts 10-20 key concepts, 3-5 critical steps
 - Optional embeddings for semantic search
@@ -39,12 +39,12 @@ This document provides a comprehensive integration plan for Phase 2 (GENESIS - C
 
 ### Current Storage Architecture
 
-**Turso (memory-storage-turso)**:
+**Turso (do-memory-storage-turso)**:
 - SQL database (libSQL/SQLite)
 - Primary durable storage
 - Tables: episodes, patterns, heuristics, embeddings, metadata
 
-**redb (memory-storage-redb)**:
+**redb (do-memory-storage-redb)**:
 - Embedded key-value store
 - Fast cache layer
 - Tables: EPISODES_TABLE, PATTERNS_TABLE, HEURISTICS_TABLE, EMBEDDINGS_TABLE, METADATA_TABLE
@@ -673,7 +673,7 @@ MEMORY_ENABLE_SUMMARIZATION=true
 4. Test: Episode count accurate after eviction
 5. Test: Summaries evicted with episodes
 
-**Output**: `memory-storage-turso/tests/capacity_enforcement_test.rs`
+**Output**: `do-memory-storage-turso/tests/capacity_enforcement_test.rs`
 
 **Tests**:
 ```rust
@@ -739,7 +739,7 @@ async fn test_batch_eviction() {
 4. Test: Episode count accurate
 5. Test: Summaries stored and retrieved
 
-**Output**: `memory-storage-redb/tests/capacity_enforcement_test.rs`
+**Output**: `do-memory-storage-redb/tests/capacity_enforcement_test.rs`
 
 **Tests** (same as Task 6.1 but for redb):
 ```rust
@@ -782,7 +782,7 @@ async fn test_redb_summary_storage() { }
 4. Test: Retrieve episode summary
 5. Test: Performance overhead ≤ 10ms
 
-**Output**: `memory-core/tests/genesis_integration_test.rs`
+**Output**: `do-memory-core/tests/genesis_integration_test.rs`
 
 **Tests**:
 ```rust

@@ -10,8 +10,8 @@
 //! - Test pool scaling behavior
 
 use chrono::Utc;
-use memory_core::{Episode, TaskContext, TaskType};
-use memory_storage_turso::TursoStorage;
+use do_memory_core::{Episode, TaskContext, TaskType};
+use do_memory_storage_turso::TursoStorage;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
@@ -174,7 +174,7 @@ fn create_test_episode(id: Uuid) -> Episode {
             domain: "load_test".to_string(),
             language: Some("rust".to_string()),
             framework: Some("tokio".to_string()),
-            complexity: memory_core::types::ComplexityLevel::Moderate,
+            complexity: do_memory_core::types::ComplexityLevel::Moderate,
             tags: vec!["connection_pool_test".to_string()],
         },
         steps: vec![],

@@ -5,7 +5,7 @@ use super::{EmbeddingCommands, TagCommands, embedding, tag};
 
 pub async fn handle_embedding_command(
     command: EmbeddingCommands,
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     _format: OutputFormat,
     _dry_run: bool,
@@ -22,7 +22,7 @@ pub async fn handle_embedding_command(
 
 pub async fn handle_tag_command(
     command: TagCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,

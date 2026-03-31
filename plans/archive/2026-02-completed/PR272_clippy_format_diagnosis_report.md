@@ -3,8 +3,8 @@
 ## Agent Information
 - **Agent**: Agent 4 of 4 (Parallel Diagnosis)
 - **Repository**: d-o-hub/rust-self-learning-memory
-- **PR**: #272 - fix(memory-mcp): resolve critical compilation and test issues
-- **Branch**: fix/memory-mcp-critical-issues
+- **PR**: #272 - fix(do-memory-mcp): resolve critical compilation and test issues
+- **Branch**: fix/do-memory-mcp-critical-issues
 - **Date**: 2026-02-11
 
 ---

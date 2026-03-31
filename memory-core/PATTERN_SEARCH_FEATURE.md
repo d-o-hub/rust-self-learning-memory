@@ -172,7 +172,7 @@ Two new MCP tools are available:
 
 ### Pattern Search
 ```bash
-memory-cli pattern search \
+do-memory-cli pattern search \
   --query "How to build a REST API" \
   --domain web-api \
   --tags rest,async \
@@ -182,7 +182,7 @@ memory-cli pattern search \
 
 ### Pattern Recommendations
 ```bash
-memory-cli pattern recommend \
+do-memory-cli pattern recommend \
   --task "Build async HTTP client" \
   --domain web-api \
   --tags async,http \
@@ -193,10 +193,10 @@ memory-cli pattern recommend \
 
 ### Module Structure
 ```
-memory-core/src/memory/pattern_search.rs    # Core implementation
-memory-mcp/src/mcp/tools/pattern_search.rs  # MCP tool definitions
-memory-mcp/src/server/tools/pattern_search.rs  # MCP server integration
-memory-cli/src/commands/pattern_v2/pattern/search.rs  # CLI commands
+do-memory-core/src/memory/pattern_search.rs    # Core implementation
+do-memory-mcp/src/mcp/tools/pattern_search.rs  # MCP tool definitions
+do-memory-mcp/src/server/tools/pattern_search.rs  # MCP server integration
+do-memory-cli/src/commands/pattern_v2/pattern/search.rs  # CLI commands
 ```
 
 ### Algorithm
@@ -223,12 +223,12 @@ memory-cli/src/commands/pattern_v2/pattern/search.rs  # CLI commands
 
 ### Unit Tests
 ```bash
-cargo test --package memory-core pattern_search
+cargo test --package do-memory-core pattern_search
 ```
 
 ### Integration Tests
 ```bash
-cargo test --package memory-core pattern_search_integration_test
+cargo test --package do-memory-core pattern_search_integration_test
 ```
 
 ### Example Demo
@@ -256,7 +256,7 @@ cargo run --example pattern_search_demo
 
 ## Dependencies
 
-- `memory-core`: Core pattern search implementation
+- `do-memory-core`: Core pattern search implementation
 - `serde`: Serialization for results
 - `chrono`: Recency calculations
 - Embeddings (optional): For semantic similarity
@@ -281,10 +281,10 @@ No migration needed. Simply upgrade to v0.1.13+ and start using the new APIs.
 
 ## Related Documentation
 
-- [Pattern Effectiveness Tracking](../memory-cli/src/commands/pattern/core/effectiveness.rs)
+- [Pattern Effectiveness Tracking](../do-memory-cli/src/commands/pattern/core/effectiveness.rs)
 - [Semantic Embeddings](EMBEDDING_PROVIDERS.md)
-- [MCP Protocol](../memory-mcp/README.md)
-- [CLI User Guide](../memory-cli/CLI_USER_GUIDE.md)
+- [MCP Protocol](../do-memory-mcp/README.md)
+- [CLI User Guide](../do-memory-cli/CLI_USER_GUIDE.md)
 
 ---
 

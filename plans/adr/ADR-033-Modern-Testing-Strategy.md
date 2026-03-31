@@ -24,9 +24,9 @@ Current testing approach has several gaps when measured against 2025/2026 Rust b
 | Unit tests | ✅ Present, good coverage |
 | Integration tests | ✅ Present in `tests/` crate |
 | cargo-nextest | ✅ Implemented (`ci.yml`, `nightly-tests.yml`, local scripts) |
-| Mutation testing | ✅ Implemented (nightly `cargo mutants` on `memory-core`) |
+| Mutation testing | ✅ Implemented (nightly `cargo mutants` on `do-memory-core`) |
 | Property testing | ✅ Implemented (`proptest` suites in core/cli/storage-redb) |
-| Snapshot testing | ✅ Implemented (`insta` tests in `memory-core`, `memory-cli`, `memory-mcp`) |
+| Snapshot testing | ✅ Implemented (`insta` tests in `do-memory-core`, `do-memory-cli`, `do-memory-mcp`) |
 | Test timing | ⚠️ Basic timeouts only |
 
 ## Decision
@@ -69,7 +69,7 @@ Add periodic mutation testing to validate test effectiveness:
     cargo mutants --timeout 120 --jobs 4 -- --lib
 ```
 
-**Scope**: Start with `memory-core` (highest-value crate), expand incrementally.
+**Scope**: Start with `do-memory-core` (highest-value crate), expand incrementally.
 
 **Acceptance criteria**: <20% "missed" mutants in core business logic modules.
 
@@ -84,7 +84,7 @@ Add property tests for key invariants:
 - Storage consistency (write → read = identity)
 
 ```toml
-# memory-core/Cargo.toml [dev-dependencies]
+# do-memory-core/Cargo.toml [dev-dependencies]
 proptest = "1.6"
 ```
 
@@ -124,7 +124,7 @@ cargo nextest run --run-ignored default
 | 1 | Standardize nextest everywhere | Week 1-2 | This |
 | 2 | Add `.config/nextest.toml` profiles | Week 1 | This |
 | 3 | Add JUnit XML to CI for test reporting | Week 2 | This |
-| 4 | Pilot cargo-mutants on memory-core | Week 3-4 | This |
+| 4 | Pilot cargo-mutants on do-memory-core | Week 3-4 | This |
 | 5 | Add proptest for serialization roundtrips | Week 4-6 | This |
 | 6 | Add insta for MCP/CLI output | Week 6-8 | This |
 | 7 | Nightly mutation testing CI job | Week 8 | This |

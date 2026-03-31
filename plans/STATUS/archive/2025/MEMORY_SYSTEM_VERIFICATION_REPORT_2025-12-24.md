@@ -6,11 +6,11 @@
 
 ## Summary
 
-Successfully completed the migration from `bincode` to `postcard` serialization in the memory-storage-redb crate. This is a breaking change that improves security and reduces binary sizes.
+Successfully completed the migration from `bincode` to `postcard` serialization in the do-memory-storage-redb crate. This is a breaking change that improves security and reduces binary sizes.
 
 ## Changes Completed
 
-### 1. Serialization Migration (memory-storage-redb)
+### 1. Serialization Migration (do-memory-storage-redb)
 - ✅ Replaced `bincode::serialize()` with `postcard::to_allocvec()`
 - ✅ Replaced `bincode::deserialize()` with `postcard::from_bytes()`
 - ✅ Removed bincode size limit configuration (no longer needed with postcard)
@@ -28,7 +28,7 @@ Successfully completed the migration from `bincode` to `postcard` serialization 
 - ✅ All 8 security tests pass
 
 ### 3. Dependencies
-- ✅ Updated `memory-storage-redb/Cargo.toml`:
+- ✅ Updated `do-memory-storage-redb/Cargo.toml`:
   - Removed `bincode` dependency
   - Added `postcard = { version = "1.0", features = ["alloc"] }`
 
@@ -39,7 +39,7 @@ Successfully completed the migration from `bincode` to `postcard` serialization 
 ## Test Results
 
 ```
-memory-storage-redb tests:
+do-memory-storage-redb tests:
 - Unit tests: 17 passed ✅
 - Integration tests: 7 passed ✅
 - Security tests: 8 passed ✅
@@ -64,7 +64,7 @@ Total: 37 tests passed, 0 failed
 
 - [ ] Consider creating a migration tool for existing databases
 - [ ] Update deployment documentation to note breaking change
-- [ ] Test integration with memory-mcp server
+- [ ] Test integration with do-memory-mcp server
 - [ ] Verify CLI operations with new serialization
 
 ## Files Changed
@@ -72,9 +72,9 @@ Total: 37 tests passed, 0 failed
 29 files changed, 2,429 insertions(+), 840 deletions(-)
 
 Key files:
-- `memory-storage-redb/src/storage.rs` - Core serialization logic
-- `memory-storage-redb/tests/postcard_security_test.rs` - Security validation
-- `memory-storage-redb/Cargo.toml` - Dependency updates
+- `do-memory-storage-redb/src/storage.rs` - Core serialization logic
+- `do-memory-storage-redb/tests/postcard_security_test.rs` - Security validation
+- `do-memory-storage-redb/Cargo.toml` - Dependency updates
 - `CHANGELOG.md` - Breaking change documentation
 
 ---

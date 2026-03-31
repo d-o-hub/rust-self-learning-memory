@@ -12,13 +12,13 @@ Targeted test execution. **Fast feedback** during development.
 
 ```bash
 # Single package
-cargo nextest run -p memory-core
+cargo nextest run -p do-memory-core
 
 # Specific test
 cargo nextest run test_episode_creation
 
 # With pattern
-cargo nextest run -p memory-core "episode"
+cargo nextest run -p do-memory-core "episode"
 
 # Single-threaded (debug race conditions)
 cargo nextest run --test-threads=1

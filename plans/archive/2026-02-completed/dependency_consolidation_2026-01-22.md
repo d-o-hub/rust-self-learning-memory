@@ -51,7 +51,7 @@ simba = "0.9.1"
 base64 = "0.22.1"
 ```
 
-### memory-core/Cargo.toml
+### do-memory-core/Cargo.toml
 ```toml
 # Changed from:
 lru = "0.16"

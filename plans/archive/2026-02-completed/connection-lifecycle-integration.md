@@ -131,7 +131,7 @@ When a connection is dropped:
 
 ### Unit Tests
 
-See `memory-storage-turso/src/pool/adaptive.rs` tests:
+See `do-memory-storage-turso/src/pool/adaptive.rs` tests:
 - `test_connection_id_uniqueness` - Verifies IDs are unique and increasing
 - `test_cleanup_callback_on_connection_drop` - Tests callback is invoked
 - `test_cleanup_callback_tracks_correct_connection_id` - Tests correct ID is passed
@@ -139,7 +139,7 @@ See `memory-storage-turso/src/pool/adaptive.rs` tests:
 
 ### Integration Tests
 
-See `memory-storage-turso/src/pool/cache_integration_test.rs`:
+See `do-memory-storage-turso/src/pool/cache_integration_test.rs`:
 - `test_cache_cleanup_on_connection_return` - Tests automatic cleanup
 - `test_cache_tracks_multiple_connections` - Tests multiple connections
 - `test_cache_statistics_with_cleanup` - Tests statistics accuracy

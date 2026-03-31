@@ -3,7 +3,7 @@
 //! Tests the new `get_episode()` and `get_episodes_by_ids()` methods
 //! to ensure they work correctly with multiple storage backends.
 
-use memory_core::{ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
 use uuid::Uuid;
 
 #[tokio::test]
@@ -53,7 +53,7 @@ async fn test_get_episode_not_found() {
     assert!(result.is_err());
 
     match result {
-        Err(memory_core::Error::NotFound(id)) => {
+        Err(do_memory_core::Error::NotFound(id)) => {
             assert_eq!(id, non_existent_id);
         }
         _ => panic!("Expected NotFound error"),

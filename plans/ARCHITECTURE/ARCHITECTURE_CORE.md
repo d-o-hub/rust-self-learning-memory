@@ -26,23 +26,23 @@ The Self-Learning Memory System is a production-ready Rust-based episodic learni
 
 | Crate | Purpose | Dependencies | Status |
 |-------|---------|--------------|--------|
-| **memory-core** | Core episodic learning system | tokio, serde, anyhow | ✅ Stable |
-| **memory-storage-turso** | Durable storage (libSQL/Turso) | libsql, tokio | ✅ Stable |
-| **memory-storage-redb** | High-speed cache (embedded) | redb, tokio | ✅ Stable |
-| **memory-mcp** | MCP protocol server | wasmtime, tokio | ✅ Stable (v0.1.14) 🔄 Planning Complete (2026-01-31) |
-| **memory-cli** | CLI for operations | clap, dialoguer | ✅ Stable |
-| **test-utils** | Shared test utilities | tokio-test | ✅ Stable |
+| **do-memory-core** | Core episodic learning system | tokio, serde, anyhow | ✅ Stable |
+| **do-memory-storage-turso** | Durable storage (libSQL/Turso) | libsql, tokio | ✅ Stable |
+| **do-memory-storage-redb** | High-speed cache (embedded) | redb, tokio | ✅ Stable |
+| **do-memory-mcp** | MCP protocol server | wasmtime, tokio | ✅ Stable (v0.1.14) 🔄 Planning Complete (2026-01-31) |
+| **do-memory-cli** | CLI for operations | clap, dialoguer | ✅ Stable |
+| **do-memory-test-utils** | Shared test utilities | tokio-test | ✅ Stable |
 | **benches** | Performance benchmarks | criterion | ✅ Stable |
 | **examples** | Integration examples | - | ✅ Stable |
 
 ---
 
-## Core Architecture: memory-core
+## Core Architecture: do-memory-core
 
 ### Module Organization
 
 ```
-memory-core/src/
+do-memory-core/src/
 ├── lib.rs                    # Public API and re-exports
 ├── memory/                   # Main orchestration
 │   ├── mod.rs               # SelfLearningMemory coordinator
@@ -250,7 +250,7 @@ pub trait StorageBackend: Send + Sync {
 
 ### Turso Storage: Durable Backend
 
-**Location**: `memory-storage-turso/`
+**Location**: `do-memory-storage-turso/`
 
 **Components**:
 - `TursoStorage` - Main storage implementation
@@ -345,7 +345,7 @@ pub struct TursoConfig {
 
 ### Redb Storage: Cache Layer
 
-**Location**: `memory-storage-redb/`
+**Location**: `do-memory-storage-redb/`
 
 **Components**:
 - `RedbStorage` - Main cache implementation
@@ -385,7 +385,7 @@ const MAX_EMBEDDING_SIZE: usize = 1 * 1024 * 1024;  // 1MB
 
 ### Relationship Module (NEW 2026-01-31)
 
-**Location**: `memory-core/src/episode/relationships.rs`, `memory-storage-turso/src/relationships.rs`
+**Location**: `do-memory-core/src/episode/relationships.rs`, `do-memory-storage-turso/src/relationships.rs`
 
 **Features**:
 - Episode-episode relationship tracking
@@ -420,7 +420,7 @@ CREATE INDEX idx_relationships_type ON episode_relationships(relationship_type);
 
 ### Caching Layer (Phase 3.1)
 
-**Location**: `memory-storage-turso/src/cache/`
+**Location**: `do-memory-storage-turso/src/cache/`
 
 **Components**:
 - **CachedTursoStorage** (403 LOC) - Cache wrapper with adaptive TTL
@@ -441,7 +441,7 @@ pub struct CacheConfig {
 
 ### Query Optimization (Phase 3.2)
 
-**Location**: `memory-storage-turso/src/prepared/`
+**Location**: `do-memory-storage-turso/src/prepared/`
 
 **Components**:
 - **PreparedStatementCache** (482 LOC) - SQL statement caching with LRU eviction
@@ -461,7 +461,7 @@ pub struct CacheStats {
 
 ### Batch Operations (Phase 3.3)
 
-**Location**: `memory-storage-turso/src/storage/batch/`
+**Location**: `do-memory-storage-turso/src/storage/batch/`
 
 **Components**: 1,569 LOC across 5 files
 - **episode_batch.rs** (293 LOC) - Batch episode operations
@@ -487,7 +487,7 @@ storage.store_episodes_batch(episodes, transaction).await?;
 
 ### Storage Synchronization
 
-**Location**: `memory-core/src/sync.rs`
+**Location**: `do-memory-core/src/sync.rs`
 
 **Strategy**: Turso is source of truth, redb is fast cache
 
@@ -557,7 +557,7 @@ The Memory-MCP server provides **~20 tools** for episodic memory operations acro
 
 **Architecture**:
 ```rust
-// memory-mcp/src/server/tools/mod.rs
+// do-memory-mcp/src/server/tools/mod.rs
 pub struct ToolSet {
     pub tools: HashMap<String, Tool>,
     // All schemas loaded eagerly
@@ -590,7 +590,7 @@ Based on research documents:
 ### Integration with Existing Systems
 
 #### SemanticService Integration
-- **Location**: `memory-core/src/embeddings/semantic/`
+- **Location**: `do-memory-core/src/embeddings/semantic/`
 - **Current Use**: Episode/pattern semantic search
 - **Extension**: Tool embedding index for semantic selection
 - **Dependencies**: OpenAI/local embedding providers
@@ -621,7 +621,7 @@ Based on research documents:
 
 - **Architecture Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
 - **Integration Details**: See [ARCHITECTURE_INTEGRATION.md](ARCHITECTURE_INTEGRATION.md)
-- **Configuration**: See [../../memory-cli/CONFIGURATION_GUIDE.md](../../memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
+- **Configuration**: See [../../do-memory-cli/CONFIGURATION_GUIDE.md](../../do-memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
 - **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 - **MCP Optimization**: See [../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md](../archive/2026-02-completed/MCP_TOKEN_REDUCTION_PHASE1_PLAN.md)
 - **ADR-024**: [MCP Lazy Tool Loading](../adr/ADR-024-MCP-Lazy-Tool-Loading.md)

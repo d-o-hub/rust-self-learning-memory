@@ -15,16 +15,16 @@ Due to build timeout during compilation, full verification is pending. However, 
 - [x] Backward compatibility: Optional field with None default
 
 ### Build Verification ⏳
-- [ ] Clean build: `cargo build --release --package memory-mcp`
-- [ ] Debug build: `cargo build --package memory-mcp`
+- [ ] Clean build: `cargo build --release --package do-memory-mcp`
+- [ ] Debug build: `cargo build --package do-memory-mcp`
 - [ ] No compilation errors: Rust compiler accepts changes
-- [ ] No clippy warnings: `cargo clippy --package memory-mcp`
+- [ ] No clippy warnings: `cargo clippy --package do-memory-mcp`
 
 **Status**: Build timed out (>120s) - pending retry
 
 ### Test Verification ⏳
-- [ ] Unit tests pass: `cargo test --package memory-mcp --lib`
-- [ ] Integration tests pass: `cargo test --package memory-mcp --all`
+- [ ] Unit tests pass: `cargo test --package do-memory-mcp --lib`
+- [ ] Integration tests pass: `cargo test --package do-memory-mcp --all`
 - [ ] No test failures: All existing tests continue to pass
 - [ ] No regressions: No new test failures
 
@@ -39,11 +39,11 @@ Due to build timeout during compilation, full verification is pending. However, 
 **Test Command**:
 ```bash
 # Test serialization directly
-cargo test --package memory-mcp --lib protocol::tests
+cargo test --package do-memory-mcp --lib protocol::tests
 
 # Test via JSON-RPC (after build)
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
-  cargo run --release --bin memory-mcp-server
+  cargo run --release --bin do-memory-mcp-server
 ```
 
 ### MCP Inspector Verification ⏳
@@ -56,7 +56,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
 **Test Command**:
 ```bash
 npx -y @modelcontextprotocol/inspector \
-  cargo run --release --bin memory-mcp-server
+  cargo run --release --bin do-memory-mcp-server
 ```
 
 ## Expected Test Results
@@ -224,16 +224,16 @@ npx -y @modelcontextprotocol/inspector \
 ### Existing Tests to Verify
 ```bash
 # Protocol tests
-cargo test --package memory-mcp --lib protocol::tests
+cargo test --package do-memory-mcp --lib protocol::tests
 
 # Integration tests
-cargo test --package memory-mcp --test mcp_integration_tests
+cargo test --package do-memory-mcp --test mcp_integration_tests
 
 # JSON-RPC tests
-cargo test --package memory-mcp --test jsonrpc_tests
+cargo test --package do-memory-mcp --test jsonrpc_tests
 
 # Response validation tests
-cargo test --package memory-mcp --test response_validation_test
+cargo test --package do-memory-mcp --test response_validation_test
 ```
 
 ### New Tests to Add (Recommended)

@@ -4,7 +4,7 @@
 //! from episode creation through completion and pattern analysis.
 
 use assert_cmd::Command;
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::fs;
 use tempfile::TempDir;
 

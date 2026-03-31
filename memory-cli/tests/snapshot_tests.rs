@@ -3,8 +3,8 @@
 //! These tests verify that CLI output (help, version, etc.) remains
 //! consistent across changes. Part of ADR-033 Phase 6.
 
+use do_memory_cli::test_utils::CliHarness;
 use insta::assert_snapshot;
-use memory_cli::test_utils::CliHarness;
 
 /// Test CLI help output snapshot
 #[test]

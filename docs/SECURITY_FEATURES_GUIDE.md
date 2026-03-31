@@ -25,7 +25,7 @@ Both features are production-ready and designed for enterprise security requirem
 # Audit Logging
 export AUDIT_LOG_ENABLED=true
 export AUDIT_LOG_DESTINATION=file
-export AUDIT_LOG_FILE_PATH=/var/log/memory-mcp/audit.log
+export AUDIT_LOG_FILE_PATH=/var/log/do-memory-mcp/audit.log
 
 # Rate Limiting
 export MCP_RATE_LIMIT_ENABLED=true
@@ -33,7 +33,7 @@ export MCP_RATE_LIMIT_READ_RPS=100
 export MCP_RATE_LIMIT_WRITE_RPS=20
 
 # Start MCP server
-memory-mcp server
+do-memory-mcp server
 ```
 
 ---
@@ -106,7 +106,7 @@ AUDIT_LOG_ENABLED=true
 AUDIT_LOG_DESTINATION=file
 
 # Log file path (only if destination is file or both)
-AUDIT_LOG_FILE_PATH=/var/log/memory-mcp/audit.log
+AUDIT_LOG_FILE_PATH=/var/log/do-memory-mcp/audit.log
 
 # Enable log rotation
 AUDIT_LOG_ENABLE_ROTATION=true
@@ -132,7 +132,7 @@ use memory_mcp::server::audit::{AuditConfig, AuditDestination, AuditLogLevel};
 let config = AuditConfig {
     enabled: true,
     destination: AuditDestination::File,
-    file_path: Some("/var/log/memory-mcp/audit.log".into()),
+    file_path: Some("/var/log/do-memory-mcp/audit.log".into()),
     enable_rotation: true,
     max_file_size_bytes: 10 * 1024 * 1024, // 10MB
     max_rotated_files: 10,
@@ -179,7 +179,7 @@ Each audit log entry is a single-line JSON object:
 
 ```bash
 # Get all episode creations in the last hour
-grep '"operation":"create_episode"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"create_episode"' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.timestamp > "2026-02-01T09:00:00Z")'
 ```
 
@@ -187,7 +187,7 @@ grep '"operation":"create_episode"' /var/log/memory-mcp/audit.log | \
 
 ```bash
 # Find all failed auth attempts
-grep '"operation":"authentication"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"authentication"' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.result == "failure")' | \
   jq -s 'group_by(.client_id) | map({client: .[0].client_id, count: length})'
 ```
@@ -197,14 +197,14 @@ grep '"operation":"authentication"' /var/log/memory-mcp/audit.log | \
 ```bash
 # Get all operations for a specific episode
 EPISODE_ID="550e8400-e29b-41d4-a716-446655440000"
-grep "$EPISODE_ID" /var/log/memory-mcp/audit.log | jq .
+grep "$EPISODE_ID" /var/log/do-memory-mcp/audit.log | jq .
 ```
 
 #### Example 4: Security Violations Report
 
 ```bash
 # Count security violations by client
-grep '"operation":"security_violation"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"security_violation"' /var/log/do-memory-mcp/audit.log | \
   jq -s 'group_by(.client_id) | 
          map({client: .[0].client_id, 
               violations: length, 
@@ -226,11 +226,11 @@ When rotation is enabled:
 #### 1. Secure Log Storage
 ```bash
 # Set restrictive permissions
-chmod 600 /var/log/memory-mcp/audit.log
-chown memory-mcp:memory-mcp /var/log/memory-mcp/audit.log
+chmod 600 /var/log/do-memory-mcp/audit.log
+chown do-memory-mcp:do-memory-mcp /var/log/do-memory-mcp/audit.log
 
 # Use dedicated partition to prevent disk exhaustion
-mount /dev/sdb1 /var/log/memory-mcp
+mount /dev/sdb1 /var/log/do-memory-mcp
 ```
 
 #### 2. Ship Logs to SIEM
@@ -241,13 +241,13 @@ filebeat.inputs:
 - type: log
   enabled: true
   paths:
-    - /var/log/memory-mcp/audit.log
+    - /var/log/do-memory-mcp/audit.log
   json.keys_under_root: true
   json.add_error_key: true
 
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
-  index: "memory-mcp-audit-%{+yyyy.MM.dd}"
+  index: "do-memory-mcp-audit-%{+yyyy.MM.dd}"
 ```
 
 #### 3. Regular Log Analysis
@@ -258,7 +258,7 @@ output.elasticsearch:
 
 # generate-audit-report.sh
 #!/bin/bash
-LOG_FILE="/var/log/memory-mcp/audit.log"
+LOG_FILE="/var/log/do-memory-mcp/audit.log"
 YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)
 
 echo "Audit Report for $YESTERDAY"
@@ -279,7 +279,7 @@ grep "$YESTERDAY" $LOG_FILE | \
 
 ```bash
 # Monitor for unusual patterns
-while inotifywait -e modify /var/log/memory-mcp/audit.log; do
+while inotifywait -e modify /var/log/do-memory-mcp/audit.log; do
   # Alert if >10 failed auth from same client in 1 minute
   FAILED_AUTHS=$(tail -1000 audit.log | \
     grep '"operation":"authentication"' | \
@@ -528,7 +528,7 @@ async function requestWithBackoff(url, options, maxRetries = 3) {
 
 ```bash
 # Daily rate limit report
-grep '"operation":"rate_limit_violation"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"rate_limit_violation"' /var/log/do-memory-mcp/audit.log | \
   jq -s 'group_by(.client_id) | 
          map({
            client: .[0].client_id, 
@@ -581,12 +581,12 @@ fi
 ### Example Production Configuration
 
 ```bash
-# /etc/memory-mcp/security.env
+# /etc/do-memory-mcp/security.env
 
 # Audit Logging - Production Settings
 AUDIT_LOG_ENABLED=true
 AUDIT_LOG_DESTINATION=file
-AUDIT_LOG_FILE_PATH=/var/log/memory-mcp/audit.log
+AUDIT_LOG_FILE_PATH=/var/log/do-memory-mcp/audit.log
 AUDIT_LOG_ENABLE_ROTATION=true
 AUDIT_LOG_MAX_FILE_SIZE=52428800        # 50MB
 AUDIT_LOG_MAX_ROTATED_FILES=30          # 30 days retention
@@ -606,7 +606,7 @@ MCP_RATE_LIMIT_CLIENT_ID_HEADER=X-Client-ID
 ### Systemd Service Integration
 
 ```ini
-# /etc/systemd/system/memory-mcp.service
+# /etc/systemd/system/do-memory-mcp.service
 
 [Unit]
 Description=Memory MCP Server with Security Features
@@ -614,10 +614,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=memory-mcp
-Group=memory-mcp
-EnvironmentFile=/etc/memory-mcp/security.env
-ExecStart=/usr/local/bin/memory-mcp server
+User=do-memory-mcp
+Group=do-memory-mcp
+EnvironmentFile=/etc/do-memory-mcp/security.env
+ExecStart=/usr/local/bin/do-memory-mcp server
 Restart=always
 RestartSec=10
 
@@ -626,7 +626,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/log/memory-mcp /var/lib/memory-mcp
+ReadWritePaths=/var/log/do-memory-mcp /var/lib/do-memory-mcp
 
 [Install]
 WantedBy=multi-user.target
@@ -641,16 +641,16 @@ WantedBy=multi-user.target
 #### Problem: No audit logs generated
 ```bash
 # Check if logging is enabled
-grep AUDIT_LOG_ENABLED /etc/memory-mcp/security.env
+grep AUDIT_LOG_ENABLED /etc/do-memory-mcp/security.env
 
 # Check file permissions
-ls -la /var/log/memory-mcp/audit.log
+ls -la /var/log/do-memory-mcp/audit.log
 
 # Check disk space
-df -h /var/log/memory-mcp
+df -h /var/log/do-memory-mcp
 
 # Check server logs for errors
-journalctl -u memory-mcp | grep audit
+journalctl -u do-memory-mcp | grep audit
 ```
 
 #### Problem: Log rotation not working
@@ -660,10 +660,10 @@ echo $AUDIT_LOG_ENABLE_ROTATION
 echo $AUDIT_LOG_MAX_FILE_SIZE
 
 # Check for rotated files
-ls -lh /var/log/memory-mcp/audit.log*
+ls -lh /var/log/do-memory-mcp/audit.log*
 
 # Manual rotation test
-kill -HUP $(pidof memory-mcp)
+kill -HUP $(pidof do-memory-mcp)
 ```
 
 ### Rate Limiting Issues
@@ -678,16 +678,16 @@ echo $MCP_RATE_LIMIT_WRITE_RPS
 curl -v http://localhost:3000/health | grep X-Client
 
 # Temporarily disable to test
-MCP_RATE_LIMIT_ENABLED=false memory-mcp server
+MCP_RATE_LIMIT_ENABLED=false do-memory-mcp server
 ```
 
 #### Problem: Rate limits not being enforced
 ```bash
 # Verify rate limiting is enabled
-grep MCP_RATE_LIMIT_ENABLED /etc/memory-mcp/security.env
+grep MCP_RATE_LIMIT_ENABLED /etc/do-memory-mcp/security.env
 
 # Check server logs
-journalctl -u memory-mcp | grep "rate limit"
+journalctl -u do-memory-mcp | grep "rate limit"
 
 # Test with curl
 for i in {1..150}; do 
@@ -707,7 +707,7 @@ done
 **A**: Not currently. All security-relevant operations are logged for compliance.
 
 ### Q: How do I rotate logs manually?
-**A**: Send SIGHUP to the process: `kill -HUP $(pidof memory-mcp)`
+**A**: Send SIGHUP to the process: `kill -HUP $(pidof do-memory-mcp)`
 
 ### Q: Can rate limits be different per client?
 **A**: Not currently. All clients share the same limits. Use a reverse proxy
@@ -732,9 +732,9 @@ for per-client custom limits.
 - Phase 4 Roadmap: `plans/PHASE4_IMPLEMENTATION_PLAN.md`
 
 ### Code References
-- Audit Logger: `memory-mcp/src/server/audit/`
-- Rate Limiter: `memory-mcp/src/server/rate_limiter.rs`
-- Integration Tests: `memory-mcp/tests/audit_tests.rs`, `memory-mcp/tests/rate_limiter_integration.rs`
+- Audit Logger: `do-memory-mcp/src/server/audit/`
+- Rate Limiter: `do-memory-mcp/src/server/rate_limiter.rs`
+- Integration Tests: `do-memory-mcp/tests/audit_tests.rs`, `do-memory-mcp/tests/rate_limiter_integration.rs`
 
 ### Support Channels
 - GitHub Issues: For bug reports and feature requests

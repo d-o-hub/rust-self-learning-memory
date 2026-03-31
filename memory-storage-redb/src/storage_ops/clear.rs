@@ -9,7 +9,7 @@ use super::super::{
     RECOMMENDATION_SESSIONS_TABLE, RELATIONSHIPS_TABLE, SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::RedbStorage;
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 use redb::ReadableTable;
 use std::sync::Arc;
 use tracing::info;

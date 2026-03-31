@@ -16,10 +16,10 @@
 
 | Priority | File | unwrap() Count | Risk Level | Est. Time |
 |----------|------|-----------------|------------|-----------|
-| 1 | memory-core/src/embeddings/local.rs | 25 | CRITICAL | 1-2h |
-| 2 | memory-core/src/search/regex.rs | 12 | HIGH | 30-60m |
-| 3 | memory-storage-turso/src/lib.rs | ~50 | CRITICAL | 2-3h |
-| 4 | memory-mcp/src/bin/server.rs | ~30 | HIGH | 1-2h |
+| 1 | do-memory-core/src/embeddings/local.rs | 25 | CRITICAL | 1-2h |
+| 2 | do-memory-core/src/search/regex.rs | 12 | HIGH | 30-60m |
+| 3 | do-memory-storage-turso/src/lib.rs | ~50 | CRITICAL | 2-3h |
+| 4 | do-memory-mcp/src/bin/server.rs | ~30 | HIGH | 1-2h |
 
 ## ADR References
 
@@ -50,7 +50,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
 #### Task Group 1: Core Infrastructure (2 Parallel Agents)
 
 **Agent 1: Local Embeddings Specialist** (Priority 1)
-- File: `memory-core/src/embeddings/local.rs`
+- File: `do-memory-core/src/embeddings/local.rs`
 - unwrap() count: 25
 - Risk: CRITICAL (file I/O, external input)
 - Actions:
@@ -60,7 +60,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
   - Test with various embedding providers
 
 **Agent 2: Database Operations Specialist** (Priority 2)
-- File: `memory-storage-turso/src/lib.rs`
+- File: `do-memory-storage-turso/src/lib.rs`
 - unwrap() count: ~50
 - Risk: CRITICAL (database operations)
 - Actions:
@@ -72,7 +72,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
 #### Task Group 2: User Interface (2 Parallel Agents)
 
 **Agent 3: Regex Search Specialist** (Priority 3)
-- File: `memory-core/src/search/regex.rs`
+- File: `do-memory-core/src/search/regex.rs`
 - unwrap() count: 12
 - Risk: HIGH (user input parsing)
 - Actions:
@@ -82,7 +82,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
   - Test with edge cases
 
 **Agent 4: MCP Server Specialist** (Priority 4)
-- File: `memory-mcp/src/bin/server.rs`
+- File: `do-memory-mcp/src/bin/server.rs`
 - unwrap() count: ~30
 - Risk: HIGH (external interface)
 - Actions:

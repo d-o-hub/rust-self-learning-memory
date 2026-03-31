@@ -33,7 +33,7 @@ cargo test test_name -- --exact --nocapture
 For targeted testing:
 ```bash
 # Specific crate
-cargo test -p memory-core
+cargo test -p do-memory-core
 
 # Specific test
 cargo test test_name -- --exact

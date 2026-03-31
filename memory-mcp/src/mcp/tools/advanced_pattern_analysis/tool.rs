@@ -6,7 +6,7 @@
 use crate::patterns::{predictive, statistical};
 use crate::types::Tool;
 use anyhow::Result;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -211,11 +211,11 @@ impl AdvancedPatternAnalysisTool {
         info!("Extracting time series data from memory episodes");
 
         // Query memory for relevant episodes (returns Vec<Arc<Episode>>)
-        let context = memory_core::TaskContext {
+        let context = do_memory_core::TaskContext {
             domain: domain.to_string(),
             language: None,
             framework: None,
-            complexity: memory_core::ComplexityLevel::Moderate,
+            complexity: do_memory_core::ComplexityLevel::Moderate,
             tags: vec![],
         };
 
@@ -231,7 +231,7 @@ impl AdvancedPatternAnalysisTool {
         }
 
         // Convert Vec<Arc<Episode>> to Vec<Episode> for the extractor
-        let episodes: Vec<memory_core::Episode> = arc_episodes
+        let episodes: Vec<do_memory_core::Episode> = arc_episodes
             .into_iter()
             .map(|arc_ep| arc_ep.as_ref().clone())
             .collect();
@@ -276,7 +276,7 @@ impl AdvancedPatternAnalysisTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::SelfLearningMemory;
+    use do_memory_core::SelfLearningMemory;
 
     #[tokio::test]
     async fn test_tool_definition() {

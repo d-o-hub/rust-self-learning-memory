@@ -1,11 +1,11 @@
 use super::{Content, MemoryMCPServer, Value, get_client_id};
-use memory_mcp::server::rate_limiter::OperationType;
+use do_memory_mcp::server::rate_limiter::OperationType;
 
 pub async fn handle_add_episode_relationship(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         AddEpisodeRelationshipInput, EpisodeRelationshipTools,
     };
 
@@ -69,7 +69,7 @@ pub async fn handle_remove_episode_relationship(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         EpisodeRelationshipTools, RemoveEpisodeRelationshipInput,
     };
 
@@ -119,7 +119,7 @@ pub async fn handle_get_episode_relationships(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         EpisodeRelationshipTools, GetEpisodeRelationshipsInput,
     };
 
@@ -170,7 +170,7 @@ pub async fn handle_find_related_episodes(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         EpisodeRelationshipTools, FindRelatedEpisodesInput,
     };
 
@@ -221,7 +221,7 @@ pub async fn handle_check_relationship_exists(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         CheckRelationshipExistsInput, EpisodeRelationshipTools,
     };
 
@@ -274,7 +274,7 @@ pub async fn handle_get_dependency_graph(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         DependencyGraphInput, EpisodeRelationshipTools,
     };
 
@@ -326,7 +326,7 @@ pub async fn handle_validate_no_cycles(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         EpisodeRelationshipTools, ValidateNoCyclesInput,
     };
 
@@ -388,7 +388,7 @@ pub async fn handle_get_topological_order(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_relationships::{
+    use do_memory_mcp::mcp::tools::episode_relationships::{
         EpisodeRelationshipTools, GetTopologicalOrderInput,
     };
 

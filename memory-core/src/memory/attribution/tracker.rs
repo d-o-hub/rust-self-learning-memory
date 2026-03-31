@@ -27,8 +27,8 @@ use crate::error::Result;
 /// # Example
 ///
 /// ```no_run
-/// use memory_core::memory::attribution::RecommendationTracker;
-/// use memory_core::memory::attribution::RecommendationSession;
+/// use do_memory_core::memory::attribution::RecommendationTracker;
+/// use do_memory_core::memory::attribution::RecommendationSession;
 /// use uuid::Uuid;
 ///
 /// # #[tokio::main]

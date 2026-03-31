@@ -109,11 +109,11 @@ hyperfine -N 'cargo build -j 1' 'cargo build -j 2' 'cargo build -j 4'
 cargo build --release
 
 # Strip debug symbols (80% size reduction)
-strip target/release/memory-mcp
+strip target/release/do-memory-mcp
 
 # Verify binary
-ldd target/release/memory-mcp
-./target/release/memory-mcp --version
+ldd target/release/do-memory-mcp
+./target/release/do-memory-mcp --version
 ```
 
 ## Verification Checklist
@@ -142,9 +142,9 @@ cargo doc --no-deps
 **Quick Development Cycle**
 ```bash
 #!/usr/bin/env bash
-cargo check -p memory-core
-cargo test -p memory-core --lib
-cargo build -p memory-core
+cargo check -p do-memory-core
+cargo test -p do-memory-core --lib
+cargo build -p do-memory-core
 ```
 
 **Production Release**

@@ -4,7 +4,7 @@
 
 ### Criteria
 - [ ] Workspace organization (Cargo.toml with proper dependencies)
-- [ ] Crate separation (core, storage, mcp, test-utils)
+- [ ] Crate separation (core, storage, mcp, do-memory-test-utils)
 - [ ] Module hierarchy (lib.rs, mod.rs structure)
 - [ ] File size limits (<500 LOC per file)
 - [ ] Naming conventions (snake_case, consistency)
@@ -208,7 +208,7 @@ pub fn get_description(&self) -> String {
 - [ ] Integration tests in tests/ directory
 - [ ] Benchmark tests in benches/
 - [ ] Test coverage >90% (use cargo-tarpaulin)
-- [ ] Test utilities in test-utils crate
+- [ ] Test utilities in do-memory-test-utils crate
 - [ ] Property-based tests for complex logic (proptest)
 - [ ] Mock implementations for testing
 

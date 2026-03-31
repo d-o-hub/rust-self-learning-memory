@@ -2,7 +2,7 @@ use super::PlaybookCommands;
 use super::commands;
 use crate::config::Config;
 use crate::output::OutputFormat;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 pub async fn handle_playbook_command(
     command: PlaybookCommands,

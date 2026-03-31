@@ -225,7 +225,7 @@ grep -r "map_err\|context\|with_context" --include="*.rs"
 ### For Rust Self-Learning Memory System
 
 #### Project Structure
-- **Workspace**: 8 crates (memory-core, memory-storage-turso, memory-storage-redb, etc.)
+- **Workspace**: 8 crates (do-memory-core, do-memory-storage-turso, do-memory-storage-redb, etc.)
 - **Code Locations**: src/, tests/, benches/
 - **Configuration**: Cargo.toml, .env files
 
@@ -291,19 +291,19 @@ Provide findings in this structured format:
 ## Research Summary
 
 ### Search Scope
-- **Query**: Find all async functions in memory-core
+- **Query**: Find all async functions in do-memory-core
 - **Approach**: Progressive search from broad to specific
-- **Files Searched**: memory-core/src/**/*.rs
+- **Files Searched**: do-memory-core/src/**/*.rs
 
 ### Key Findings
 
 #### Finding 1: Episode Management
-- **Location**: memory-core/src/episode/mod.rs
+- **Location**: do-memory-core/src/episode/mod.rs
 - **Evidence**: Found async fn for episode lifecycle operations
 - **Significance**: Core functionality, handles all async episode operations
 
 #### Finding 2: Pattern Extraction
-- **Location**: memory-core/src/patterns/mod.rs
+- **Location**: do-memory-core/src/patterns/mod.rs
 - **Evidence**: Async pattern extraction and storage operations
 - **Significance**: Background processing for learning
 
@@ -319,7 +319,7 @@ Provide findings in this structured format:
 ### Search Scope
 - **Query**: Find repeated database query patterns
 - **Approach**: Search for query patterns, then find usages
-- **Files Searched**: memory-storage-turso/src/**/*.rs
+- **Files Searched**: do-memory-storage-turso/src/**/*.rs
 
 ### Key Findings
 
@@ -350,7 +350,7 @@ find . -name "*.rs" -not -path "*/target/*"
 glob "**/storage*.rs"
 
 # List files in crate
-ls -1 memory-core/src/
+ls -1 do-memory-core/src/
 ```
 
 ### Content Search

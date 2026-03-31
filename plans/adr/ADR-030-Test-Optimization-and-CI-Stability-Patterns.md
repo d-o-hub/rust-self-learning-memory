@@ -78,7 +78,7 @@ pub async fn setup_test_memory() -> Result<(Arc<SelfLearningMemory>, TempDir)> {
 
 **Implementation**:
 ```rust
-// memory-core/tests/performance.rs
+// do-memory-core/tests/performance.rs
 #[tokio::test]
 async fn should_not_leak_memory_over_iterations() {
     let memory = Arc::new(setup_test_memory());
@@ -187,7 +187,7 @@ jobs:
 
 **Implementation**:
 ```rust
-// memory-storage-turso/tests/prepared_cache_integration_test.rs
+// do-memory-storage-turso/tests/prepared_cache_integration_test.rs
 #[tokio::test]
 async fn test_prepared_statement_cache_integration() {
     let timeout = Duration::from_secs(30);
@@ -258,7 +258,7 @@ async fn test_prepared_statement_cache_integration() {
 - [x] CLI test JSON parsing improvements (ANSI code stripping)
 
 ### Incremental Update (2026-02-23)
-- [x] CLI redb-only subprocess persistence remediation in `memory-cli/src/config/storage.rs`
+- [x] CLI redb-only subprocess persistence remediation in `do-memory-cli/src/config/storage.rs`
 - [x] CLI warm-start hydration on startup (`get_all_episodes()` preload)
 - [x] CLI workflow contract alignment in `tests/e2e/cli_workflows.rs` (complete/view argument forms)
 - [x] Targeted validation: `cargo test -p e2e-tests --test cli_workflows -- --nocapture` passed (6/6 active tests)

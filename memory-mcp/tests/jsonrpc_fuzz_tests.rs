@@ -8,7 +8,7 @@
 
 use std::io::Cursor;
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse, read_next_message};
+use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse, read_next_message};
 use proptest::prelude::*;
 use serde_json::json;
 

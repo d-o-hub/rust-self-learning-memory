@@ -15,7 +15,7 @@ Successfully integrated PREMem (Pre-Storage Reasoning for Episodic Memory) Phase
 ### Component 1: Episode Data Structure Modifications
 
 **Files Modified**:
-- `/workspaces/feat-phase3/memory-core/src/episode.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/episode.rs`
 
 **Changes**:
 1. ✅ Added `salient_features: Option<SalientFeatures>` field to `Episode` struct
@@ -30,7 +30,7 @@ Successfully integrated PREMem (Pre-Storage Reasoning for Episodic Memory) Phase
 ### Component 2: SelfLearningMemory Struct Modifications
 
 **Files Modified**:
-- `/workspaces/feat-phase3/memory-core/src/memory/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/memory/mod.rs`
 
 **Changes**:
 1. ✅ Added `quality_assessor: QualityAssessor` field
@@ -46,7 +46,7 @@ Successfully integrated PREMem (Pre-Storage Reasoning for Episodic Memory) Phase
 ### Component 3: MemoryConfig Modifications
 
 **Files Modified**:
-- `/workspaces/feat-phase3/memory-core/src/types.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/types.rs`
 
 **Changes**:
 1. ✅ Added `quality_threshold: f32` field to `MemoryConfig`
@@ -67,8 +67,8 @@ pub struct MemoryConfig {
 ### Component 4: complete_episode() Workflow Integration
 
 **Files Modified**:
-- `/workspaces/feat-phase3/memory-core/src/memory/learning.rs`
-- `/workspaces/feat-phase3/memory-core/src/error.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/memory/learning.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/error.rs`
 
 **Workflow Changes** (in order):
 
@@ -100,9 +100,9 @@ pub struct MemoryConfig {
 ### Component 5: Storage Backend Updates
 
 **Files Modified**:
-- `/workspaces/feat-phase3/memory-storage-turso/src/storage.rs`
-- `/workspaces/feat-phase3/memory-core/src/monitoring/storage.rs`
-- `/workspaces/feat-phase3/memory-core/src/patterns/clustering.rs`
+- `/workspaces/feat-phase3/do-memory-storage-turso/src/storage.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/monitoring/storage.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/patterns/clustering.rs`
 
 **Changes**:
 1. ✅ Updated Turso episode deserialization to include `salient_features: None`
@@ -117,7 +117,7 @@ pub struct MemoryConfig {
 ### Component 6: CLI Configuration Update
 
 **Files Modified**:
-- `/workspaces/feat-phase3/memory-cli/src/config/storage.rs`
+- `/workspaces/feat-phase3/do-memory-cli/src/config/storage.rs`
 
 **Changes**:
 1. ✅ Added `quality_threshold: 0.7` to `create_memory_config()` function
@@ -127,7 +127,7 @@ pub struct MemoryConfig {
 ### Component 7: Integration Tests
 
 **Files Created**:
-- `/workspaces/feat-phase3/memory-core/tests/premem_integration_test.rs`
+- `/workspaces/feat-phase3/do-memory-core/tests/premem_integration_test.rs`
 
 **Test Coverage** (6 comprehensive tests):
 
@@ -178,13 +178,13 @@ cargo fmt --all
 
 ### Linting
 ```bash
-cargo clippy --package memory-core --lib -- -D warnings
+cargo clippy --package do-memory-core --lib -- -D warnings
 ```
 ✅ **Status**: 0 clippy warnings on our modified code
 
 ### Testing
 ```bash
-cargo test --package memory-core --test premem_integration_test
+cargo test --package do-memory-core --test premem_integration_test
 ```
 ✅ **Status**: 6/6 tests passing
 
@@ -292,26 +292,26 @@ let memory = SelfLearningMemory::with_config(config);
 ### Files Modified (10 total)
 
 **Core Logic**:
-1. `/workspaces/feat-phase3/memory-core/src/episode.rs` - Added salient_features field
-2. `/workspaces/feat-phase3/memory-core/src/memory/mod.rs` - Added assessor/extractor
-3. `/workspaces/feat-phase3/memory-core/src/memory/learning.rs` - Integrated workflow
-4. `/workspaces/feat-phase3/memory-core/src/types.rs` - Added quality_threshold config
-5. `/workspaces/feat-phase3/memory-core/src/error.rs` - Added ValidationFailed error
+1. `/workspaces/feat-phase3/do-memory-core/src/episode.rs` - Added salient_features field
+2. `/workspaces/feat-phase3/do-memory-core/src/memory/mod.rs` - Added assessor/extractor
+3. `/workspaces/feat-phase3/do-memory-core/src/memory/learning.rs` - Integrated workflow
+4. `/workspaces/feat-phase3/do-memory-core/src/types.rs` - Added quality_threshold config
+5. `/workspaces/feat-phase3/do-memory-core/src/error.rs` - Added ValidationFailed error
 
 **Pre-Storage Components** (added Clone derive):
-6. `/workspaces/feat-phase3/memory-core/src/pre_storage/quality.rs`
-7. `/workspaces/feat-phase3/memory-core/src/pre_storage/extractor.rs`
+6. `/workspaces/feat-phase3/do-memory-core/src/pre_storage/quality.rs`
+7. `/workspaces/feat-phase3/do-memory-core/src/pre_storage/extractor.rs`
 
 **Storage Backends**:
-8. `/workspaces/feat-phase3/memory-storage-turso/src/storage.rs` - Updated deserialization
-9. `/workspaces/feat-phase3/memory-core/src/monitoring/storage.rs` - Fixed Episode construction
-10. `/workspaces/feat-phase3/memory-core/src/patterns/clustering.rs` - Fixed test Episode
+8. `/workspaces/feat-phase3/do-memory-storage-turso/src/storage.rs` - Updated deserialization
+9. `/workspaces/feat-phase3/do-memory-core/src/monitoring/storage.rs` - Fixed Episode construction
+10. `/workspaces/feat-phase3/do-memory-core/src/patterns/clustering.rs` - Fixed test Episode
 
 **CLI**:
-11. `/workspaces/feat-phase3/memory-cli/src/config/storage.rs` - Added quality_threshold
+11. `/workspaces/feat-phase3/do-memory-cli/src/config/storage.rs` - Added quality_threshold
 
 **Tests**:
-12. `/workspaces/feat-phase3/memory-core/tests/premem_integration_test.rs` - New integration tests
+12. `/workspaces/feat-phase3/do-memory-core/tests/premem_integration_test.rs` - New integration tests
 
 ---
 
@@ -353,8 +353,8 @@ All Phase 1 integration plan success criteria met:
 
 - **Integration Plan**: `/workspaces/feat-phase3/plans/PHASE1_INTEGRATION_PLAN.md`
 - **Research Plan**: `/workspaces/feat-phase3/plans/RESEARCH_INTEGRATION_EXECUTION_PLAN.md` (Phase 1, Days 6-7)
-- **Quality Assessment**: `/workspaces/feat-phase3/memory-core/src/pre_storage/quality.rs`
-- **Salient Extraction**: `/workspaces/feat-phase3/memory-core/src/pre_storage/extractor.rs`
+- **Quality Assessment**: `/workspaces/feat-phase3/do-memory-core/src/pre_storage/quality.rs`
+- **Salient Extraction**: `/workspaces/feat-phase3/do-memory-core/src/pre_storage/extractor.rs`
 
 ---
 

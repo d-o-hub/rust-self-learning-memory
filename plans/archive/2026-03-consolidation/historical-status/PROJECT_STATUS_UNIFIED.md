@@ -82,16 +82,16 @@ The Self-Learning Memory System is at **v0.1.16** on the `main` branch (edition 
 
 ### File Splitting Progress (v0.1.14)
 Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
-- `memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)
-- `memory-core/src/memory/retrieval.rs` (891 LOC → 6 files, max 414 LOC)
-- `memory-core/src/patterns/optimized_validator.rs` (889 LOC → 6 files, max 448 LOC)
-- `memory-storage-turso/src/lib.rs` (955 LOC → 8 files, max 292 LOC)
-- `memory-storage-turso/src/pool/keepalive.rs` (661 LOC → 5 files, max 255 LOC)
-- `memory-storage-turso/src/compression.rs` (573 LOC → 4 files, max 265 LOC)
-- `memory-storage-turso/src/pool/adaptive.rs` (526 LOC → 4 files, max 390 LOC)
-- `memory-storage-turso/src/cache/adaptive_ttl.rs` (916 LOC → 4 files, max 396 LOC)
-- `memory-storage-turso/src/transport/compression.rs` (606 LOC → 3 files, max 475 LOC)
-- Plus 8 additional module splits in memory-storage-turso
+- `do-memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)
+- `do-memory-core/src/memory/retrieval.rs` (891 LOC → 6 files, max 414 LOC)
+- `do-memory-core/src/patterns/optimized_validator.rs` (889 LOC → 6 files, max 448 LOC)
+- `do-memory-storage-turso/src/lib.rs` (955 LOC → 8 files, max 292 LOC)
+- `do-memory-storage-turso/src/pool/keepalive.rs` (661 LOC → 5 files, max 255 LOC)
+- `do-memory-storage-turso/src/compression.rs` (573 LOC → 4 files, max 265 LOC)
+- `do-memory-storage-turso/src/pool/adaptive.rs` (526 LOC → 4 files, max 390 LOC)
+- `do-memory-storage-turso/src/cache/adaptive_ttl.rs` (916 LOC → 4 files, max 396 LOC)
+- `do-memory-storage-turso/src/transport/compression.rs` (606 LOC → 3 files, max 475 LOC)
+- Plus 8 additional module splits in do-memory-storage-turso
 - **Status**: ⚠️ REGRESSED — 31 files >500 LOC as of 2026-02-24
 
 ### Release Metrics
@@ -231,7 +231,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
    - 621 total Rust files, ~141K LOC
 
 #### Test Results:
-- ✅ All 61 unit tests passing in memory-storage-turso
+- ✅ All 61 unit tests passing in do-memory-storage-turso
 - ✅ 8 new integration tests for cache functionality
 - ✅ Zero clippy warnings with `-D warnings`
 - ✅ All quality gates passing
@@ -302,7 +302,7 @@ Major refactoring for 500 LOC compliance - **ALL 17 oversized files split**:
 ### Resolved Issues ✅
 
 #### 1. **Quality Gate Failures** - RESOLVED
-- **Previous**: 198 clippy errors in memory-core alone
+- **Previous**: 198 clippy errors in do-memory-core alone
 - **Resolution**: Strategic use of `#[allow(...)]` attributes + bug fixes
 - **Current**: 0 warnings with `-D warnings` flag, all gates passing
 
@@ -450,7 +450,7 @@ Phases B and C can execute in parallel once Phase A is complete. Phase D is sequ
 - **Architecture**: Review [ARCHITECTURE_CORE.md](../ARCHITECTURE/ARCHITECTURE_CORE.md)
 - **Roadmap**: Check [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md) for current plans
 - **Implementation**: See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for technical details
-- **Configuration**: Reference [memory-cli/CONFIGURATION.md](../../memory-cli/CONFIGURATION.md)
+- **Configuration**: Reference [do-memory-cli/CONFIGURATION.md](../../do-memory-cli/CONFIGURATION.md)
 
 ### Maintenance Responsibility
 - **Primary**: Project maintainers and core team

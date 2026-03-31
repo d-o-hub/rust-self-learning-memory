@@ -64,7 +64,7 @@ Phase 2 implements infrastructure-level optimizations for the Turso database lay
 ### 2.1 Connection Keep-Alive Pool 🔴 P0
 
 **Priority**: P0 - Critical Path
-**File**: `memory-storage-turso/src/pool/keepalive.rs`
+**File**: `do-memory-storage-turso/src/pool/keepalive.rs`
 **New Module**: Yes
 
 #### Problem Statement
@@ -177,11 +177,11 @@ impl Default for PoolConfig {
 
 #### Integration Points
 
-**File**: `memory-storage-turso/src/lib.rs`
+**File**: `do-memory-storage-turso/src/lib.rs`
 - Replace direct `libsql::Connection` creation with `KeepAlivePool`
 - Export pool types for external use
 
-**File**: `memory-storage-turso/src/storage/mod.rs`
+**File**: `do-memory-storage-turso/src/storage/mod.rs`
 - Update `TursoStorage` to use pooled connections
 - Modify transaction handling for pooled access
 
@@ -208,7 +208,7 @@ impl Default for PoolConfig {
 ### 2.2 Adaptive Pool Sizing 🔴 P0
 
 **Priority**: P0 - Critical Path
-**File**: `memory-storage-turso/src/pool/adaptive.rs`
+**File**: `do-memory-storage-turso/src/pool/adaptive.rs`
 **New Module**: Yes
 
 #### Problem Statement
@@ -364,11 +364,11 @@ pub struct ScalingPolicy {
 
 #### Integration Points
 
-**File**: `memory-storage-turso/src/pool/mod.rs`
+**File**: `do-memory-storage-turso/src/pool/mod.rs`
 - Export `AdaptivePool` alongside `KeepAlivePool`
 - Provide builder pattern for pool creation
 
-**File**: `memory-storage-turso/src/storage/mod.rs`
+**File**: `do-memory-storage-turso/src/storage/mod.rs`
 - Wrap `KeepAlivePool` with `AdaptivePool`
 - Hook into request lifecycle for metrics collection
 
@@ -395,7 +395,7 @@ pub struct ScalingPolicy {
 ### 2.3 Adaptive TTL Cache 🟡 P1
 
 **Priority**: P1 - Medium Value
-**File**: `memory-storage-turso/src/cache/adaptive_ttl.rs`
+**File**: `do-memory-storage-turso/src/cache/adaptive_ttl.rs`
 **New Module**: Yes
 
 #### Problem Statement
@@ -561,7 +561,7 @@ impl AccessMetrics {
 ### 2.4 Network Compression 🟡 P1
 
 **Priority**: P1 - Medium Value
-**File**: `memory-storage-turso/src/transport/compression.rs`
+**File**: `do-memory-storage-turso/src/transport/compression.rs`
 **New Module**: Yes
 
 #### Problem Statement
@@ -639,7 +639,7 @@ impl<T: Read + Write> CompressedTransport<T> {
 ### Phase 2 Module Structure
 
 ```
-memory-storage-turso/src/
+do-memory-storage-turso/src/
 ├── lib.rs
 ├── pool/
 │   ├── mod.rs          # Pool exports and common types
@@ -714,12 +714,12 @@ memory-storage-turso/src/
 
 ```bash
 # Baseline benchmarks (before Phase 2)
-cargo bench --package memory-storage-turso -- baseline
+cargo bench --package do-memory-storage-turso -- baseline
 
 # Phase 2 benchmarks
-cargo bench --package memory-storage-turso -- keepalive_pool
-cargo bench --package memory-storage-turso -- adaptive_pool
-cargo bench --package memory-storage-turso -- compression
+cargo bench --package do-memory-storage-turso -- keepalive_pool
+cargo bench --package do-memory-storage-turso -- adaptive_pool
+cargo bench --package do-memory-storage-turso -- compression
 
 # Comparison report
 ./scripts/generate_benchmark_report.py --compare baseline phase2
@@ -789,10 +789,10 @@ cargo bench --package memory-storage-turso -- compression
 
 | File | Status | Description |
 |------|--------|-------------|
-| `memory-storage-turso/src/pool/keepalive.rs` | ✅ Complete | Connection pool implementation |
-| `memory-storage-turso/src/pool/adaptive.rs` | ✅ Complete | Adaptive sizing implementation |
-| `memory-storage-turso/src/cache/adaptive_ttl.rs` | ⏳ Pending | Adaptive TTL cache |
-| `memory-storage-turso/src/transport/compression.rs` | ⏳ Pending | Compression utilities |
+| `do-memory-storage-turso/src/pool/keepalive.rs` | ✅ Complete | Connection pool implementation |
+| `do-memory-storage-turso/src/pool/adaptive.rs` | ✅ Complete | Adaptive sizing implementation |
+| `do-memory-storage-turso/src/cache/adaptive_ttl.rs` | ⏳ Pending | Adaptive TTL cache |
+| `do-memory-storage-turso/src/transport/compression.rs` | ⏳ Pending | Compression utilities |
 
 ### Documentation Deliverables
 

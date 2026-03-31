@@ -4,7 +4,7 @@ pub async fn handle_add_episode_tags(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_tags::{AddEpisodeTagsInput, EpisodeTagTools};
+    use do_memory_mcp::mcp::tools::episode_tags::{AddEpisodeTagsInput, EpisodeTagTools};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
@@ -30,7 +30,7 @@ pub async fn handle_remove_episode_tags(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, RemoveEpisodeTagsInput};
+    use do_memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, RemoveEpisodeTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
@@ -56,7 +56,7 @@ pub async fn handle_set_episode_tags(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SetEpisodeTagsInput};
+    use do_memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SetEpisodeTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);
@@ -82,7 +82,7 @@ pub async fn handle_get_episode_tags(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, GetEpisodeTagsInput};
+    use do_memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, GetEpisodeTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let input: GetEpisodeTagsInput = serde_json::from_value(args)?;
@@ -99,7 +99,7 @@ pub async fn handle_search_episodes_by_tags(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SearchEpisodesByTagsInput};
+    use do_memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SearchEpisodesByTagsInput};
 
     let args = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let client_id = get_client_id(&args);

@@ -2,7 +2,7 @@
 //!
 //! Completion handler for the completion/complete request type.
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use serde_json::json;
 use tracing::{error, info};
 

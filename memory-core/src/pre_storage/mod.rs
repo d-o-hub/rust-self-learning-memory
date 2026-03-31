@@ -12,8 +12,8 @@
 //! # Examples
 //!
 //! ```no_run
-//! use memory_core::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
-//! use memory_core::{Episode, TaskContext, TaskType};
+//! use do_memory_core::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
+//! use do_memory_core::{Episode, TaskContext, TaskType};
 //!
 //! let config = QualityConfig::default();
 //! let assessor = QualityAssessor::new(config);

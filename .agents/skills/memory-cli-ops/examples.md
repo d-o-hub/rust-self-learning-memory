@@ -6,7 +6,7 @@
 
 ```bash
 # Create episode
-./target/release/memory-cli ep create -t "Implement authentication system"
+./target/release/do-memory-cli ep create -t "Implement authentication system"
 
 # Output
 Created episode: ep_abc123xyz
@@ -16,7 +16,7 @@ Created episode: ep_abc123xyz
 
 ```bash
 # Log successful step
-./target/release/memory-cli ep log-step ep_abc123xyz \
+./target/release/do-memory-cli ep log-step ep_abc123xyz \
   -t "compiler" \
   -a "build project" \
   --success \
@@ -24,7 +24,7 @@ Created episode: ep_abc123xyz
   -o "Build completed with 0 warnings"
 
 # Log failed step
-./target/release/memory-cli ep log-step ep_abc123xyz \
+./target/release/do-memory-cli ep log-step ep_abc123xyz \
   -t "test" \
   -a "run unit tests" \
   --success=false \
@@ -36,13 +36,13 @@ Created episode: ep_abc123xyz
 
 ```bash
 # Successful completion
-./target/release/memory-cli ep complete ep_abc123xyz success
+./target/release/do-memory-cli ep complete ep_abc123xyz success
 
 # Partial completion
-./target/release/memory-cli ep complete ep_abc123xyz partial
+./target/release/do-memory-cli ep complete ep_abc123xyz partial
 
 # Failed
-./target/release/memory-cli ep complete ep_abc123xyz failed
+./target/release/do-memory-cli ep complete ep_abc123xyz failed
 ```
 
 ## Pattern Analysis
@@ -51,13 +51,13 @@ Created episode: ep_abc123xyz
 
 ```bash
 # List patterns
-./target/release/memory-cli pat list --limit 20
+./target/release/do-memory-cli pat list --limit 20
 
 # View specific pattern
-./target/release/memory-cli pat view pat_xyz789
+./target/release/do-memory-cli pat view pat_xyz789
 
 # Filter by confidence
-./target/release/memory-cli pat list --min-confidence 0.8
+./target/release/do-memory-cli pat list --min-confidence 0.8
 ```
 
 ## Storage Operations
@@ -65,7 +65,7 @@ Created episode: ep_abc123xyz
 ### Check Status
 
 ```bash
-./target/release/memory-cli st status
+./target/release/do-memory-cli st status
 
 # Output
 Cache: 150 episodes, 45 patterns
@@ -76,7 +76,7 @@ Last sync: 2024-01-15 10:30:00 UTC
 ### Force Sync
 
 ```bash
-./target/release/memory-cli st sync --force
+./target/release/do-memory-cli st sync --force
 ```
 
 ## Configuration
@@ -84,16 +84,16 @@ Last sync: 2024-01-15 10:30:00 UTC
 ### Show Current Config
 
 ```bash
-./target/release/memory-cli cfg show
+./target/release/do-memory-cli cfg show
 
 # JSON output
-./target/release/memory-cli cfg show -f json
+./target/release/do-memory-cli cfg show -f json
 ```
 
 ### Validate Config
 
 ```bash
-./target/release/memory-cli cfg validate
+./target/release/do-memory-cli cfg validate
 
 # Output
 Configuration valid: 3 issues, 0 critical
@@ -106,10 +106,10 @@ Configuration valid: 3 issues, 0 critical
 ### Health Check
 
 ```bash
-./target/release/memory-cli hp
+./target/release/do-memory-cli hp
 
 # Detailed output
-./target/release/memory-cli hp --detailed
+./target/release/do-memory-cli hp --detailed
 
 # Output
 Status: Healthy

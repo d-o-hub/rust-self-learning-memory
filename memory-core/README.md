@@ -1,14 +1,14 @@
-# memory-core
+# do-memory-core
 
-[![Crates.io](https://img.shields.io/crates/v/memory-core.svg)](https://crates.io/crates/memory-core)
-[![Documentation](https://docs.rs/memory-core/badge.svg)](https://docs.rs/memory-core)
+[![Crates.io](https://img.shields.io/crates/v/do-memory-core.svg)](https://crates.io/crates/do-memory-core)
+[![Documentation](https://docs.rs/do-memory-core/badge.svg)](https://docs.rs/do-memory-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Version: v0.1.13** | Production-ready core episodic learning system for AI agents
 
 ## Overview
 
-`memory-core` provides the foundation for building AI agents that learn from their execution history. It implements a complete episode lifecycle (start → execute → score → learn → retrieve) with intelligent pattern extraction, semantic embeddings, and spatiotemporal indexing.
+`do-memory-core` provides the foundation for building AI agents that learn from their execution history. It implements a complete episode lifecycle (start → execute → score → learn → retrieve) with intelligent pattern extraction, semantic embeddings, and spatiotemporal indexing.
 
 ## Key Features
 
@@ -42,12 +42,12 @@ Enable optional embedding providers via Cargo features:
 
 ```toml
 # Individual providers
-memory-core = { version = "0.1", features = ["openai"] }
-memory-core = { version = "0.1", features = ["mistral"] }
-memory-core = { version = "0.1", features = ["local-embeddings"] }
+do-memory-core = { version = "0.1", features = ["openai"] }
+do-memory-core = { version = "0.1", features = ["mistral"] }
+do-memory-core = { version = "0.1", features = ["local-embeddings"] }
 
 # All providers
-memory-core = { version = "0.1", features = ["embeddings-full"] }
+do-memory-core = { version = "0.1", features = ["embeddings-full"] }
 ```
 
 ## Key Capabilities
@@ -88,9 +88,9 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-memory-core = "0.1"
-memory-storage-turso = "0.1"
-memory-storage-redb = "0.1"
+do-memory-core = "0.1"
+do-memory-storage-turso = "0.1"
+do-memory-storage-redb = "0.1"
 ```
 
 ### Basic Usage
@@ -157,7 +157,7 @@ async fn main() -> anyhow::Result<()> {
 
 ```toml
 [dependencies]
-memory-core = { version = "0.1", features = ["openai"] }
+do-memory-core = { version = "0.1", features = ["openai"] }
 ```
 
 ```rust
@@ -207,10 +207,10 @@ Reflections include:
 
 ## Storage Backends
 
-`memory-core` works with two storage backends:
+`do-memory-core` works with two storage backends:
 
-- **[memory-storage-turso](https://crates.io/crates/memory-storage-turso)**: Turso/libSQL for durable, distributed SQL storage
-- **[memory-storage-redb](https://crates.io/crates/memory-storage-redb)**: redb for fast embedded key-value caching
+- **[do-memory-storage-turso](https://crates.io/crates/do-memory-storage-turso)**: Turso/libSQL for durable, distributed SQL storage
+- **[do-memory-storage-redb](https://crates.io/crates/do-memory-storage-redb)**: redb for fast embedded key-value caching
 
 ## Performance
 
@@ -251,7 +251,7 @@ All operations meet or exceed performance targets:
 
 ## Documentation
 
-Comprehensive API documentation is available at [docs.rs/memory-core](https://docs.rs/memory-core).
+Comprehensive API documentation is available at [docs.rs/do-memory-core](https://docs.rs/do-memory-core).
 
 ### Additional Documentation
 - [README_SEMANTIC_EMBEDDINGS.md](./README_SEMANTIC_EMBEDDINGS.md) - Semantic search guide
@@ -263,13 +263,13 @@ Comprehensive API documentation is available at [docs.rs/memory-core](https://do
 Run the test suite:
 
 ```bash
-cargo test -p memory-core
+cargo test -p do-memory-core
 ```
 
 With debug logging:
 
 ```bash
-RUST_LOG=debug cargo test -p memory-core
+RUST_LOG=debug cargo test -p do-memory-core
 ```
 
 ## License

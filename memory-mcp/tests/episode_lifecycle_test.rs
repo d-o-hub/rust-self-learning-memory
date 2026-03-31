@@ -5,8 +5,8 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::{MemoryConfig, SelfLearningMemory};
-use memory_mcp::{MemoryMCPServer, SandboxConfig};
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 

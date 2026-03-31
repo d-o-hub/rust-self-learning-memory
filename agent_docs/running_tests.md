@@ -40,11 +40,11 @@ cargo test --all -- --test-threads=1
 cargo test --lib --all-features --workspace
 
 # Specific crate unit tests
-cd memory-core && cargo test --lib
-cd memory-storage-turso && cargo test --lib
-cd memory-storage-redb && cargo test --lib
-cd memory-mcp && cargo test --lib
-cd memory-cli && cargo test --lib
+cd do-memory-core && cargo test --lib
+cd do-memory-storage-turso && cargo test --lib
+cd do-memory-storage-redb && cargo test --lib
+cd do-memory-mcp && cargo test --lib
+cd do-memory-cli && cargo test --lib
 ```
 
 ### Integration Tests
@@ -90,7 +90,7 @@ cargo llvm-cov --html --output-dir coverage
 cargo llvm-cov --html --lcov --json --output-dir coverage
 
 # Coverage for specific crate
-cd memory-core && cargo llvm-cov --html --output-dir coverage
+cd do-memory-core && cargo llvm-cov --html --output-dir coverage
 
 # Coverage with all features
 cargo llvm-cov --all-features --workspace --html --output-dir coverage
@@ -222,7 +222,7 @@ async fn test_async_operation() {
 The CI pipeline runs:
 1. **Format checks**: `./scripts/code-quality.sh fmt` (or equivalent cargo fmt invocation)
 2. **Linting**: `./scripts/code-quality.sh clippy --workspace` (or equivalent cargo clippy invocation)
-3. **Tests**: `cargo nextest run --workspace --exclude memory-benches --exclude memory-examples --exclude test-utils`
+3. **Tests**: `cargo nextest run --workspace --exclude memory-benches --exclude memory-examples --exclude do-memory-test-utils`
 4. **Doctests**: `cargo test --doc`
 5. **Code coverage**: `cargo llvm-cov --html` (threshold: >=90%)
 6. **Security audit**: `cargo audit`
@@ -257,7 +257,7 @@ cargo llvm-cov --html --output-dir coverage
 open coverage/html/index.html
 
 # Review specific module
-cd memory-core && cargo llvm-cov --open -- src/memory/mod.rs
+cd do-memory-core && cargo llvm-cov --open -- src/memory/mod.rs
 ```
 
 ### Performance Regressions
@@ -277,7 +277,7 @@ cd benches && cargo bench -- --save-baseline main
 4. **Clear Names**: Descriptive test names
 5. **One Assertion**: Single logical assertion
 6. **Arrange-Act-Assert**: Clear structure
-7. **Use test-utils**: Leverage shared test helpers
+7. **Use do-memory-test-utils**: Leverage shared test helpers
 8. **Async tests**: Use `#[tokio::test]` for async code
 9. **Error testing**: Test both success and failure cases
 10. **Coverage**: Maintain >=90% coverage
@@ -299,7 +299,7 @@ cargo nextest run --all && cargo test --doc && cargo llvm-cov --html --output-di
 RUST_LOG=debug cargo test test_name -- --nocapture
 
 # Specific crate tests
-cd memory-core && cargo test --lib
+cd do-memory-core && cargo test --lib
 
 # Benchmarks
 cd benches && cargo bench

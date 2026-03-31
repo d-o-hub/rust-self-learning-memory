@@ -9,16 +9,16 @@
 
 | File | Count | Category | Action |
 |------|-------|----------|--------|
-| `memory-mcp/src/bin/server_impl/types.rs` | 13 | MCP types | Review for feature flags |
-| `memory-core/src/embeddings/real_model/model.rs` | 10 | Embeddings | Review for unused model types |
-| `memory-cli/src/errors.rs` | 10 | CLI errors | Error variants may be used |
-| `memory-core/tests/common/helpers.rs` | 7 | Test helpers | Acceptable |
-| `memory-storage-redb/src/tables.rs` | 6 | Storage | Review for feature flags |
-| `memory-mcp/src/bin/server_impl/oauth.rs` | 5 | OAuth | Feature-gated code |
-| `memory-core/src/memory/types.rs` | 5 | Memory types | Review for usage |
-| `memory-core/src/memory/learning_ops.rs` | 5 | Learning | Review for usage |
-| `memory-core/src/memory/core/struct_priv.rs` | 5 | Memory core | Review for usage |
-| `memory-core/src/embeddings/openai/utils.rs` | 5 | OpenAI | Review for usage |
+| `do-memory-mcp/src/bin/server_impl/types.rs` | 13 | MCP types | Review for feature flags |
+| `do-memory-core/src/embeddings/real_model/model.rs` | 10 | Embeddings | Review for unused model types |
+| `do-memory-cli/src/errors.rs` | 10 | CLI errors | Error variants may be used |
+| `do-memory-core/tests/common/helpers.rs` | 7 | Test helpers | Acceptable |
+| `do-memory-storage-redb/src/tables.rs` | 6 | Storage | Review for feature flags |
+| `do-memory-mcp/src/bin/server_impl/oauth.rs` | 5 | OAuth | Feature-gated code |
+| `do-memory-core/src/memory/types.rs` | 5 | Memory types | Review for usage |
+| `do-memory-core/src/memory/learning_ops.rs` | 5 | Learning | Review for usage |
+| `do-memory-core/src/memory/core/struct_priv.rs` | 5 | Memory core | Review for usage |
+| `do-memory-core/src/embeddings/openai/utils.rs` | 5 | OpenAI | Review for usage |
 
 ### Categories
 

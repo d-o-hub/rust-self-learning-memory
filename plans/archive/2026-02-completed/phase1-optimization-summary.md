@@ -13,7 +13,7 @@ Phase 1 optimization successfully implemented parallel execution in episode comp
 ### 1. ✅ Step Batching (Already Implemented)
 
 **Status**: Already existed in codebase  
-**Location**: `memory-core/src/memory/step_buffer/`  
+**Location**: `do-memory-core/src/memory/step_buffer/`  
 **Configuration**:
 - Default batch size: 50 steps
 - Flush interval: 5 seconds
@@ -27,7 +27,7 @@ Phase 1 optimization successfully implemented parallel execution in episode comp
 ### 2. ✅ Query Result Caching (Already Implemented)
 
 **Status**: Already existed in codebase  
-**Location**: `memory-core/src/retrieval/cache/`  
+**Location**: `do-memory-core/src/retrieval/cache/`  
 **Features**:
 - LRU cache with TTL (default: 1 hour)
 - Domain-based invalidation for multi-domain workloads
@@ -41,7 +41,7 @@ Phase 1 optimization successfully implemented parallel execution in episode comp
 ### 3. ✅ Parallel Episode Completion (NEW - Main Optimization)
 
 **Status**: Implemented in this Phase  
-**Location**: `memory-core/src/memory/completion.rs:157-220`  
+**Location**: `do-memory-core/src/memory/completion.rs:157-220`  
 **Changes**:
 - Parallelized reward calculation, reflection generation, and semantic summarization
 - Parallelized cache and Turso storage writes
@@ -87,7 +87,7 @@ tokio::spawn(async move { /* embedding ~30ms, doesn't block */ });
 ### 4. ⏸ Keepalive Connection Pooling (Pending)
 
 **Status**: Feature exists but not enabled by default  
-**Location**: `memory-storage-turso/src/pool/keepalive/`  
+**Location**: `do-memory-storage-turso/src/pool/keepalive/`  
 **Feature Flag**: `keepalive-pool`  
 **Action Required**: Enable by default or provide configuration
 
@@ -99,7 +99,7 @@ tokio::spawn(async move { /* embedding ~30ms, doesn't block */ });
 
 ### Files Modified
 
-1. **memory-core/src/memory/completion.rs** (Lines 157-340)
+1. **do-memory-core/src/memory/completion.rs** (Lines 157-340)
    - Parallelized learning analysis (reward, reflection, summary)
    - Parallelized storage writes (cache, Turso)
    - Made embedding generation async with `tokio::spawn`
@@ -127,7 +127,7 @@ $ cargo check --workspace
 ### Testing
 
 ```bash
-$ cargo test --lib --package memory-core
+$ cargo test --lib --package do-memory-core
 test result: ok. 0 passed; 0 failed; 0 ignored
 ```
 

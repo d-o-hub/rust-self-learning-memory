@@ -1,9 +1,9 @@
 //! Integration tests for pre-storage quality assessment.
 
 use chrono::Utc;
-use memory_core::pre_storage::{QualityAssessor, QualityConfig, QualityFeature};
-use memory_core::types::{ExecutionResult, Reflection};
-use memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use do_memory_core::pre_storage::{QualityAssessor, QualityConfig, QualityFeature};
+use do_memory_core::types::{ExecutionResult, Reflection};
+use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 
 #[test]
 fn test_quality_assessor_basic_usage() {

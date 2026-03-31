@@ -1,7 +1,7 @@
 //! Common test utilities for E2E tests
 
-use memory_core::SelfLearningMemory;
-use memory_storage_redb::RedbStorage;
+use do_memory_core::SelfLearningMemory;
+use do_memory_storage_redb::RedbStorage;
 use std::sync::Arc;
 use tempfile::tempdir;
 

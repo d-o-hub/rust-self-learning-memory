@@ -22,8 +22,8 @@
 //! # Example
 //!
 //! ```no_run
-//! use memory_core::memory::playbook::{PlaybookGenerator, PlaybookRequest};
-//! use memory_core::{TaskContext, TaskType};
+//! use do_memory_core::memory::playbook::{PlaybookGenerator, PlaybookRequest};
+//! use do_memory_core::{TaskContext, TaskType};
 //!
 //! # fn example() -> anyhow::Result<()> {
 //! let generator = PlaybookGenerator::new();

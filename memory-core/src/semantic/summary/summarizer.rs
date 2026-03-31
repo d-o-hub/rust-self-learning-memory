@@ -26,8 +26,8 @@ use chrono::Utc;
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::semantic::SemanticSummarizer;
-/// use memory_core::{Episode, TaskContext, TaskType, ExecutionStep, ExecutionResult, TaskOutcome};
+/// use do_memory_core::semantic::SemanticSummarizer;
+/// use do_memory_core::{Episode, TaskContext, TaskType, ExecutionStep, ExecutionResult, TaskOutcome};
 ///
 /// # async fn example() -> anyhow::Result<()> {
 /// let summarizer = SemanticSummarizer::new();
@@ -76,7 +76,7 @@ impl SemanticSummarizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::semantic::SemanticSummarizer;
+    /// use do_memory_core::semantic::SemanticSummarizer;
     ///
     /// let summarizer = SemanticSummarizer::new();
     /// ```
@@ -100,7 +100,7 @@ impl SemanticSummarizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::semantic::SemanticSummarizer;
+    /// use do_memory_core::semantic::SemanticSummarizer;
     ///
     /// let summarizer = SemanticSummarizer::with_config(50, 150, 3);
     /// ```
@@ -130,8 +130,8 @@ impl SemanticSummarizer {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::semantic::SemanticSummarizer;
-    /// use memory_core::{Episode, TaskContext, TaskType};
+    /// use do_memory_core::semantic::SemanticSummarizer;
+    /// use do_memory_core::{Episode, TaskContext, TaskType};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let summarizer = SemanticSummarizer::new();
@@ -178,9 +178,9 @@ impl SemanticSummarizer {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::semantic::SemanticSummarizer;
-    /// use memory_core::{Episode, TaskContext, TaskType};
-    /// use memory_core::embeddings::EmbeddingProvider;
+    /// use do_memory_core::semantic::SemanticSummarizer;
+    /// use do_memory_core::{Episode, TaskContext, TaskType};
+    /// use do_memory_core::embeddings::EmbeddingProvider;
     ///
     /// # async fn example(episode: Episode, provider: impl EmbeddingProvider) {
     /// let summarizer = SemanticSummarizer::new();
@@ -249,8 +249,8 @@ impl SemanticSummarizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::semantic::SemanticSummarizer;
-    /// use memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
+    /// use do_memory_core::semantic::SemanticSummarizer;
+    /// use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
     ///
     /// let summarizer = SemanticSummarizer::new();
     ///

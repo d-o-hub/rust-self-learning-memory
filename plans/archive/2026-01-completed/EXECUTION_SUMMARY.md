@@ -42,7 +42,7 @@
 - `is_wasm_sandbox_available()`: Made invalid plugin non-blocking
 - Added better debug messages for troubleshooting
 
-**File**: `memory-mcp/src/server/mod.rs` (lines 168-230)
+**File**: `do-memory-mcp/src/server/mod.rs` (lines 168-230)
 **Status**: ✅ Changes persisted and verified
 
 #### Task 2.3: Verify Feature Gating ⚠️ PARTIAL
@@ -68,11 +68,11 @@
   if: matrix.feature == 'javy-backend'
   run: |
     # Build with javy-backend feature - graceful degradation is expected
-    echo "Building memory-mcp with javy-backend feature..."
+    echo "Building do-memory-mcp with javy-backend feature..."
     echo "Note: javy-plugin.wasm is currently a 9-byte placeholder"
     echo "The feature will build successfully with graceful degradation"
-    cargo build -p memory-mcp --features javy-backend
-    cargo test -p memory-mcp --features javy-backend -- --test-threads=2
+    cargo build -p do-memory-mcp --features javy-backend
+    cargo test -p do-memory-mcp --features javy-backend -- --test-threads=2
     echo "✓ javy-backend feature build and tests completed successfully"
 ```
 
@@ -88,7 +88,7 @@
 # - Requires: javy-plugin.wasm (>100 bytes, valid WASM) OR javy CLI in PATH
 # - Current state: 9-byte placeholder, triggers graceful degradation
 # - Expected behavior: Builds successfully, tests pass
-# - See: memory-mcp/src/javy_compiler.rs for implementation details
+# - See: do-memory-mcp/src/javy_compiler.rs for implementation details
 ```
 
 **Status**: ✅ Changes persisted and verified
@@ -96,26 +96,26 @@
 ### Phase 4: Testing & Validation ✅ COMPLETE
 
 #### Task 4.1: Test Build Without javy-backend Feature ✅ COMPLETE
-**Command**: `cargo build -p memory-mcp`
+**Command**: `cargo build -p do-memory-mcp`
 **Result**: ✅ PASS (1m 24s)
 **Status**: Verified
 
 #### Task 4.2: Test Build With javy-backend Feature ⚠️ PARTIAL
-**Command**: `cargo build -p memory-mcp --features javy-backend`
+**Command**: `cargo build -p do-memory-mcp --features javy-backend`
 **Result**: ❌ TIMEOUT (5+ minutes on wasm-opt-sys compilation)
 **Note**: First build of wasm-opt-sys takes ~4-5 minutes, this is expected
 **Status**: Expected behavior, but javy_compiler.rs changes needed for graceful degradation
 
 #### Task 4.3: Run Quality Checks (Clippy + Fmt) ✅ COMPLETE
 **Commands**:
-- `cargo clippy -p memory-mcp -- -D warnings` ✅ PASS
+- `cargo clippy -p do-memory-mcp -- -D warnings` ✅ PASS
 - `cargo fmt --all -- --check` ✅ PASS
 
 **Result**: Zero clippy warnings, all formatting correct
 **Status**: Verified
 
 #### Task 4.4: Run Full Test Suite ✅ COMPLETE
-**Command**: `cargo test -p memory-mcp -- --test-threads=2 --skip javy`
+**Command**: `cargo test -p do-memory-mcp -- --test-threads=2 --skip javy`
 **Result**:
 - Security tests: ✅ 8/8 passed
 - Sandbox tests: ✅ 27/27 passed
@@ -139,7 +139,7 @@
 
 **Status**: ✅ Document created and verified
 
-#### Task 5.2: Update memory-mcp README ⏭️ NOT STARTED
+#### Task 5.2: Update do-memory-mcp README ⏭️ NOT STARTED
 **Reason**: Lower priority, javy_compiler.rs changes take precedence
 **Status**: Deferred
 
@@ -148,7 +148,7 @@
 ## Critical Issue: javy_compiler.rs Changes Not Persisted
 
 ### Root Cause Analysis
-The `edit` tool operations on `memory-mcp/src/javy_compiler.rs` failed to persist changes, resulting in:
+The `edit` tool operations on `do-memory-mcp/src/javy_compiler.rs` failed to persist changes, resulting in:
 - Old code remaining (no `is_valid_wasm_file()` function)
 - No plugin validation before javy_codegen use
 - javy_codegen will attempt to use 9-byte invalid plugin
@@ -214,7 +214,7 @@ Without these changes:
 
 ### Immediate Actions Required
 
-To complete the task, these specific changes need to be applied to `memory-mcp/src/javy_compiler.rs`:
+To complete the task, these specific changes need to be applied to `do-memory-mcp/src/javy_compiler.rs`:
 
 1. **Add `is_valid_wasm_file()` helper** (around line 461)
 2. **Update plugin validation logic** in `perform_compilation()` (lines 464-596)
@@ -225,7 +225,7 @@ To complete the task, these specific changes need to be applied to `memory-mcp/s
 ### Alternative Approaches
 
 **Option A: Manual File Edit**
-- Manually edit `memory-mcp/src/javy_compiler.rs`
+- Manually edit `do-memory-mcp/src/javy_compiler.rs`
 - Apply changes using text editor
 - Test and verify
 
@@ -278,7 +278,7 @@ To complete the task, these specific changes need to be applied to `memory-mcp/s
 
 ### After Phase 5
 - [x] Implementation documented in plans/
-- [ ] memory-mcp README updated
+- [ ] do-memory-mcp README updated
 - [ ] All success criteria met
 
 ---
@@ -302,8 +302,8 @@ Approach: Add javy-backend section to README
 ### Recommended Action Sequence
 
 1. Apply javy_compiler.rs changes using alternative method
-2. Test build: `cargo build -p memory-mcp --features javy-backend`
-3. Test without feature: `cargo build -p memory-mcp`
+2. Test build: `cargo build -p do-memory-mcp --features javy-backend`
+3. Test without feature: `cargo build -p do-memory-mcp`
 4. Run quality checks: `cargo clippy` and `cargo fmt`
 5. Update README documentation (optional)
 6. Verify all success criteria met

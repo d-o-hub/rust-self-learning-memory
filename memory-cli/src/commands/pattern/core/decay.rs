@@ -21,7 +21,7 @@ pub struct DecayResult {
 }
 
 pub async fn decay_patterns(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -32,7 +32,7 @@ pub async fn decay_patterns(
 
     // Get all patterns
     let patterns = memory
-        .retrieve_relevant_patterns(&memory_core::types::TaskContext::default(), 1000)
+        .retrieve_relevant_patterns(&do_memory_core::types::TaskContext::default(), 1000)
         .await;
 
     // Analyze which patterns would be decayed
@@ -49,18 +49,18 @@ pub async fn decay_patterns(
                 effectiveness,
                 pattern.sample_size(),
                 match pattern {
-                    memory_core::pattern::Pattern::ToolSequence { tools, .. } => {
+                    do_memory_core::pattern::Pattern::ToolSequence { tools, .. } => {
                         format!("Tool sequence: {}", tools.join(" → "))
                     }
-                    memory_core::pattern::Pattern::DecisionPoint {
+                    do_memory_core::pattern::Pattern::DecisionPoint {
                         condition, action, ..
                     } => {
                         format!("Decision: {} → {}", condition, action)
                     }
-                    memory_core::pattern::Pattern::ErrorRecovery { error_type, .. } => {
+                    do_memory_core::pattern::Pattern::ErrorRecovery { error_type, .. } => {
                         format!("Error recovery: {}", error_type)
                     }
-                    memory_core::pattern::Pattern::ContextPattern {
+                    do_memory_core::pattern::Pattern::ContextPattern {
                         recommended_approach,
                         ..
                     } => {

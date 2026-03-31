@@ -1,6 +1,6 @@
 //! Integration tests for agent monitoring functionality
 
-use memory_core::{SelfLearningMemory, AgentMetrics, TaskContext, TaskOutcome, TaskType, ExecutionStep, ExecutionResult};
+use do_memory_core::{SelfLearningMemory, AgentMetrics, TaskContext, TaskOutcome, TaskType, ExecutionStep, ExecutionResult};
 use std::time::{Duration, Instant};
 
 #[tokio::test]

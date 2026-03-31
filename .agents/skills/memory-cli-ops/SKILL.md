@@ -1,11 +1,11 @@
 ---
-name: memory-cli-ops
-description: Execute and troubleshoot memory-cli commands for episode management, pattern analysis, and storage operations. Use this skill when running CLI commands, debugging CLI issues, explaining command usage, or guiding users through CLI workflows.
+name: do-memory-cli-ops
+description: Execute and troubleshoot do-memory-cli commands for episode management, pattern analysis, and storage operations. Use this skill when running CLI commands, debugging CLI issues, explaining command usage, or guiding users through CLI workflows.
 ---
 
 # Memory CLI Operations
 
-Execute and troubleshoot the memory-cli for the self-learning memory system.
+Execute and troubleshoot the do-memory-cli for the self-learning memory system.
 
 ## Quick Reference
 
@@ -22,13 +22,13 @@ Execute and troubleshoot the memory-cli for the self-learning memory system.
 
 ## CLI Overview
 
-**Location**: `./target/release/memory-cli`
+**Location**: `./target/release/do-memory-cli`
 **Output Formats**: human (default), json, yaml
 
 ## Global Options
 
 ```bash
-memory-cli [OPTIONS] <COMMAND>
+do-memory-cli [OPTIONS] <COMMAND>
 
 Options:
   -c, --config <FILE>    Configuration file path

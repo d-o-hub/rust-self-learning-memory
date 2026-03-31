@@ -1,10 +1,10 @@
 //! Tests for pattern effectiveness tracking
 
 use chrono::Duration;
-use memory_core::TaskType;
-use memory_core::episode::{ApplicationOutcome, Episode, PatternId};
-use memory_core::pattern::{Pattern, PatternEffectiveness};
-use memory_core::types::{ComplexityLevel, TaskContext};
+use do_memory_core::TaskType;
+use do_memory_core::episode::{ApplicationOutcome, Episode, PatternId};
+use do_memory_core::pattern::{Pattern, PatternEffectiveness};
+use do_memory_core::types::{ComplexityLevel, TaskContext};
 
 #[test]
 #[allow(clippy::float_cmp)]
@@ -233,7 +233,7 @@ fn test_pattern_effectiveness_with_negative_reward() {
 
 #[tokio::test]
 async fn test_pattern_retrieval_updates_effectiveness() {
-    use memory_core::SelfLearningMemory;
+    use do_memory_core::SelfLearningMemory;
 
     let memory = SelfLearningMemory::new();
     let context = TaskContext::default();

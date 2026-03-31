@@ -14,7 +14,7 @@
 
 2. **ACT-081**
    - Goal: WG-051
-   - Action: Design + implement durable recommendation attribution storage APIs (memory-core storage trait, Turso schema, integration tests)
+   - Action: Design + implement durable recommendation attribution storage APIs (do-memory-core storage trait, Turso schema, integration tests)
    - Status: ✅ Complete (2026-03-24 — Turso/redb recommendation tables, storage trait impls, `tests/attribution_integration_test.rs` persistence flow)
    - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run --test attribution_integration`
 
@@ -22,19 +22,19 @@
    - Goal: WG-052
    - Action: Persist checkpoint metadata + handoff packs through Turso/redb conversions; add resume integration test coverage
    - Status: ✅ Complete (2026-03-24 — Turso checkpoints column/serialization, resume metadata persistence via storage update path, integration + targeted Turso durability tests)
-   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run --test checkpoint_integration`, `cargo nextest run -p memory-storage-turso test_store_and_get_episode_persists_checkpoints test_row_to_episode_defaults_missing_checkpoints_to_empty test_get_episodes_batch_preserves_checkpoints`
+   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run --test checkpoint_integration`, `cargo nextest run -p do-memory-storage-turso test_store_and_get_episode_persists_checkpoints test_row_to_episode_defaults_missing_checkpoints_to_empty test_get_episodes_batch_preserves_checkpoints`
 
 4. **ACT-083**
    - Goal: WG-053
    - Action: Decide on batch MCP tool support (implement vs. deprecate) and align parity tests + docs accordingly
    - Status: ✅ Complete (2026-03-24 — decision: keep tool-level batch analytics names deferred/absent; aligned parity tests + MCP/docs/plans)
-   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run -p memory-mcp --test tool_contract_parity`, targeted WG-053 parity/deferred-call assertions
+   - Evidence: `./scripts/code-quality.sh fmt`, `cargo nextest run -p do-memory-mcp --test tool_contract_parity`, targeted WG-053 parity/deferred-call assertions
 
 5. **ACT-084**
    - Goal: WG-054
    - Action: Regenerate API reference, README CLI section, and `docs/PLAYBOOKS_AND_CHECKPOINTS.md` from live code/contracts
    - Status: ✅ Complete (2026-03-24 — contract/docs refresh applied across docs + plans)
-   - Evidence: `cargo run -p memory-cli -- --help`, `./scripts/check-docs-integrity.sh`
+   - Evidence: `cargo run -p do-memory-cli -- --help`, `./scripts/check-docs-integrity.sh`
 
 6. **ACT-085**
    - Goal: WG-055
@@ -91,7 +91,7 @@
    - Goal: WG-005
    - Action: Fix missing snapshot baselines causing Code Coverage Analysis failures
    - Status: Complete (2026-03-06)
-   - Notes: Added 10 missing `.snap` files for memory-core snapshot tests
+   - Notes: Added 10 missing `.snap` files for do-memory-core snapshot tests
 
 7. **ACT-010**
    - Goal: WG-005
@@ -178,7 +178,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 ## v0.1.20 Sprint Actions (ADR-041)
 
-- **ACT-020**: Fix memory-storage-redb compilation errors
+- **ACT-020**: Fix do-memory-storage-redb compilation errors
   - Goal: WG-022
   - Action: Add `use crate::cache::{CacheConfig, CacheMetrics, LRUCache}` to `lib.rs`; fix `super::super::CacheConfig` in `adaptive/mod.rs:336`; remove unused `ReadableTable` import
   - Status: ✅ Complete — build and clippy pass (concurrent fix)
@@ -190,7 +190,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-022**: Refactor nightly exclusion filter
   - Goal: WG-024
-  - Action: Replace per-test-name exclusions with `package(memory-storage-turso)` filter
+  - Action: Replace per-test-name exclusions with `package(do-memory-storage-turso)` filter
   - Status: ✅ Complete — commit `c70db69`
 
 - **ACT-023**: Un-ignore pattern CLI e2e test
@@ -200,7 +200,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-024**: Fix sandbox timing tests
   - Goal: WG-025
-  - Action: Add `tokio::time::timeout` wrappers to 4 flaky sandbox tests in `memory-mcp/src/sandbox/tests.rs`
+  - Action: Add `tokio::time::timeout` wrappers to 4 flaky sandbox tests in `do-memory-mcp/src/sandbox/tests.rs`
   - Status: ✅ Complete — `8df031b`
 
 - **ACT-025**: Add ignored-test ceiling check
@@ -226,7 +226,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-026**: Add episode lifecycle tests
    - Goal: WG-027 (Critical Path Coverage)
-   - Action: Add tests for episode create, log step, complete flow in `memory-core/src/episode/`
+   - Action: Add tests for episode create, log step, complete flow in `do-memory-core/src/episode/`
    - Status: ✅ Complete — `f462730`
    - Estimated LOC: ~150
 
@@ -238,7 +238,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-028**: Add storage consistency tests
    - Goal: WG-027
-   - Action: Add write/read round-trip tests in `memory-storage-redb` and `memory-storage-turso`
+   - Action: Add write/read round-trip tests in `do-memory-storage-redb` and `do-memory-storage-turso`
    - Status: ✅ Complete — `5fe0073`
    - Estimated LOC: ~150
 
@@ -262,13 +262,13 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-032**: Add MCP JSON-RPC fuzz tests
    - Goal: WG-028
-   - Action: Add fuzz testing for JSON-RPC message parsing in `memory-mcp`
+   - Action: Add fuzz testing for JSON-RPC message parsing in `do-memory-mcp`
    - Status: ✅ Complete — `83cecf9`
    - Estimated LOC: ~150
 
 - **ACT-033**: Add CLI integration tests
    - Goal: WG-029 (Integration Coverage)
-   - Action: Add end-to-end tests for episode, pattern, tag commands in `memory-cli/tests/`
+   - Action: Add end-to-end tests for episode, pattern, tag commands in `do-memory-cli/tests/`
    - Status: ✅ Complete — CLI coverage tests verified
    - Estimated LOC: ~300
 
@@ -280,7 +280,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-035**: Add cache eviction tests
    - Goal: WG-029
-   - Action: Add tests for cache pressure scenarios in `memory-storage-redb/src/cache/`
+   - Action: Add tests for cache pressure scenarios in `do-memory-storage-redb/src/cache/`
    - Status: ✅ Complete — Cache eviction tests verified
    - Estimated LOC: ~150
 
@@ -300,7 +300,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 ### Phase 1: Cargo.toml Metadata
 
-- **ACT-038**: Add Cargo.toml metadata to memory-core
+- **ACT-038**: Add Cargo.toml metadata to do-memory-core
    - Goal: WG-031 (Publishing Readiness)
    - Action: Add description, documentation, readme, keywords, categories, include/exclude
    - Status: ✅ Already complete (v0.1.21)
@@ -308,13 +308,13 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-039**: Add Cargo.toml metadata to storage crates
    - Goal: WG-031
-   - Action: Add metadata to memory-storage-turso, memory-storage-redb
+   - Action: Add metadata to do-memory-storage-turso, do-memory-storage-redb
    - Status: ✅ Already complete (v0.1.21)
    - Priority: P1
 
-- **ACT-040**: Add Cargo.toml metadata to memory-mcp
+- **ACT-040**: Add Cargo.toml metadata to do-memory-mcp
    - Goal: WG-031
-   - Action: Add metadata to memory-mcp crate
+   - Action: Add metadata to do-memory-mcp crate
    - Status: ✅ Already complete (v0.1.21)
    - Priority: P1
 
@@ -366,13 +366,13 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-053**: Fix attribution doctest
    - Goal: WG-040
-   - Action: Clone `session` before passing to `record_session()` in `memory-core/src/memory/attribution/mod.rs` doctest
+   - Action: Clone `session` before passing to `record_session()` in `do-memory-core/src/memory/attribution/mod.rs` doctest
    - Status: ✅ Complete — PR #391
    - Priority: P0
 
 - **ACT-054**: Fix playbook doctest
    - Goal: WG-040
-   - Action: Remove `.await` from `generator.generate()` (sync fn); add missing `context` field to `PlaybookRequest` in `memory-core/src/memory/playbook/mod.rs` doctest
+   - Action: Remove `.await` from `generator.generate()` (sync fn); add missing `context` field to `PlaybookRequest` in `do-memory-core/src/memory/playbook/mod.rs` doctest
    - Status: ✅ Complete — PR #391
    - Priority: P0
 
@@ -384,19 +384,19 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-056**: Split generator.rs
    - Goal: WG-042
-   - Action: Extract template functions from `memory-core/src/memory/playbook/generator.rs` (631 LOC) into `templates.rs`
+   - Action: Extract template functions from `do-memory-core/src/memory/playbook/generator.rs` (631 LOC) into `templates.rs`
    - Status: ✅ Complete — PR #391
    - Priority: P0
 
 - **ACT-057**: Split memory_handlers.rs
    - Goal: WG-042
-   - Action: Extract playbook/checkpoint/feedback handlers from `memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` (608 LOC) into `feature_handlers.rs`
+   - Action: Extract playbook/checkpoint/feedback handlers from `do-memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` (608 LOC) into `feature_handlers.rs`
    - Status: ✅ Complete — PR #391
    - Priority: P0
 
 - **ACT-058**: Split management.rs
    - Goal: WG-042
-   - Action: Extract helper methods from `memory-core/src/memory/management.rs` (504 LOC) into `management_helpers.rs`
+   - Action: Extract helper methods from `do-memory-core/src/memory/management.rs` (504 LOC) into `management_helpers.rs`
    - Status: ✅ Complete — PR #391
    - Priority: P0
 
@@ -404,7 +404,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-059**: Audit dead_code in types.rs
    - Goal: WG-043
-   - Action: Remove or use suppressed fields in `memory-core/src/memory/types.rs` (6 annotations)
+   - Action: Remove or use suppressed fields in `do-memory-core/src/memory/types.rs` (6 annotations)
    - Status: ✅ Complete — PR #391
    - Priority: P1
 
@@ -416,7 +416,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-061**: Audit dead_code in monitoring/
    - Goal: WG-043
-   - Action: Wire or remove unused monitoring structs in `memory-core/src/monitoring/storage/mod.rs`
+   - Action: Wire or remove unused monitoring structs in `do-memory-core/src/monitoring/storage/mod.rs`
    - Status: ✅ Complete — PR #391
    - Priority: P1
 
@@ -466,7 +466,7 @@ All prior actions are complete. See v0.1.24 sprint actions below.
 
 - **ACT-069**: Verify new tools in tool_contract_parity.rs
    - Goal: WG-047
-   - Action: Add new checkpoint/feedback/playbook tools to `memory-mcp/tests/tool_contract_parity.rs`
+   - Action: Add new checkpoint/feedback/playbook tools to `do-memory-mcp/tests/tool_contract_parity.rs`
    - Status: ✅ Complete — PR #391
    - Priority: P2
 

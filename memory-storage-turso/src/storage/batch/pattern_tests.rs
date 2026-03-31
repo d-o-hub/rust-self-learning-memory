@@ -5,7 +5,7 @@
 #[cfg(test)]
 mod tests {
     use super::super::pattern_types::{BatchProgress, BatchResult};
-    use memory_core::{
+    use do_memory_core::{
         Pattern, PatternEffectiveness, TaskContext, episode::PatternId, types::OutcomeStats,
     };
     use tempfile::TempDir;
@@ -18,7 +18,7 @@ mod tests {
             .build()
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to create test database: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to create test database: {}", e))
             })?;
 
         let storage = crate::TursoStorage::from_database(db)?;

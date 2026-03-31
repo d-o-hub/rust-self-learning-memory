@@ -7,9 +7,9 @@
 //! - Error handling and recovery
 //! - Preset configurations
 
-use memory_cli::config::types::{CliConfig, Config, ConfigPreset, DatabaseConfig, StorageConfig};
-use memory_cli::config::validate_config;
-use memory_cli::config::wizard::{format_duration, quick_setup, show_template, ConfigWizard};
+use do_memory_cli::config::types::{CliConfig, Config, ConfigPreset, DatabaseConfig, StorageConfig};
+use do_memory_cli::config::validate_config;
+use do_memory_cli::config::wizard::{format_duration, quick_setup, show_template, ConfigWizard};
 
 use std::fs;
 use std::path::PathBuf;

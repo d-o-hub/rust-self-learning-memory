@@ -379,7 +379,7 @@ After unblocking:
 ```bash
 # 1. Run benchmarks (20-30 minutes)
 cargo bench --bench turso_vector_performance \
-  --features memory-storage-turso/turso_multi_dimension
+  --features do-memory-storage-turso/turso_multi_dimension
 
 # 2. Verify output shows:
 #    ✓ Vector extensions verified: vector32() function available

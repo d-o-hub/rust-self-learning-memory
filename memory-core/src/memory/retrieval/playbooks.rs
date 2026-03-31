@@ -43,8 +43,8 @@ impl SelfLearningMemory {
     /// # Example
     ///
     /// ```no_run
-    /// use memory_core::SelfLearningMemory;
-    /// use memory_core::{TaskContext, TaskType};
+    /// use do_memory_core::SelfLearningMemory;
+    /// use do_memory_core::{TaskContext, TaskType};
     ///
     /// # async fn example() {
     /// let memory = SelfLearningMemory::new();

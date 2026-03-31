@@ -1,9 +1,9 @@
 //! Error handling utilities with anyhow context support
 //!
 //! This module provides improved error handling that preserves error context
-//! while remaining compatible with the memory_core::Error::Storage(String) variant.
+//! while remaining compatible with the do_memory_core::Error::Storage(String) variant.
 
-use memory_core::Error;
+use do_memory_core::Error;
 
 /// Create a storage error with context preserved from the original error.
 ///

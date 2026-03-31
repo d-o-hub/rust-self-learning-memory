@@ -18,7 +18,7 @@ use uuid::Uuid;
 /// # Example
 ///
 /// ```no_run
-/// use memory_core::memory::playbook::PlaybookGenerator;
+/// use do_memory_core::memory::playbook::PlaybookGenerator;
 ///
 /// let generator = PlaybookGenerator::new();
 /// // Use generate() to create playbooks

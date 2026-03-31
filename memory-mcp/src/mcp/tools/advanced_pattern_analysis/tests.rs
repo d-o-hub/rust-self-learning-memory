@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 use super::tool::AdvancedPatternAnalysisTool;
 use super::types::AnalysisType;

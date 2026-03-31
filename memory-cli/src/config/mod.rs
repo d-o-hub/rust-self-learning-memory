@@ -6,7 +6,7 @@
 //! # Quick Start
 //!
 //! ```no_run
-//! use memory_cli::config::*;
+//! use do_memory_cli::config::*;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

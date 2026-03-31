@@ -3,7 +3,7 @@
 //! Database row to Episode conversion operations.
 
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
+use do_memory_core::{Episode, Error, Result, TaskType, semantic::EpisodeSummary};
 use uuid::Uuid;
 
 #[cfg(feature = "compression")]
@@ -29,20 +29,20 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let _language: Option<String> = row.get(15).ok();
     let archived_at: Option<i64> = row.get(16).ok();
 
-    let context: memory_core::TaskContext = serde_json::from_str(&context_json)
+    let context: do_memory_core::TaskContext = serde_json::from_str(&context_json)
         .map_err(|e| Error::Storage(format!("Failed to parse context: {}", e)))?;
-    let steps: Vec<memory_core::episode::ExecutionStep> = serde_json::from_str(&steps_json)
+    let steps: Vec<do_memory_core::episode::ExecutionStep> = serde_json::from_str(&steps_json)
         .map_err(|e| Error::Storage(format!("Failed to parse steps: {}", e)))?;
     let outcome = outcome_json
-        .map(|s| serde_json::from_str::<memory_core::TaskOutcome>(&s))
+        .map(|s| serde_json::from_str::<do_memory_core::TaskOutcome>(&s))
         .transpose()
         .map_err(|e| Error::Storage(format!("Failed to parse outcome: {}", e)))?;
     let reward = reward_json
-        .map(|s| serde_json::from_str::<memory_core::types::RewardScore>(&s))
+        .map(|s| serde_json::from_str::<do_memory_core::types::RewardScore>(&s))
         .transpose()
         .map_err(|e| Error::Storage(format!("Failed to parse reward: {}", e)))?;
     let reflection = reflection_json
-        .map(|s| serde_json::from_str::<memory_core::Reflection>(&s))
+        .map(|s| serde_json::from_str::<do_memory_core::Reflection>(&s))
         .transpose()
         .map_err(|e| Error::Storage(format!("Failed to parse reflection: {}", e)))?;
 
@@ -54,7 +54,7 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
 
     let patterns_str = String::from_utf8(patterns_bytes)
         .map_err(|e| Error::Storage(format!("Failed to convert patterns from UTF-8: {}", e)))?;
-    let patterns: Vec<memory_core::episode::PatternId> = serde_json::from_str(&patterns_str)
+    let patterns: Vec<do_memory_core::episode::PatternId> = serde_json::from_str(&patterns_str)
         .map_err(|e| Error::Storage(format!("Failed to parse patterns: {}", e)))?;
 
     // Parse heuristics (with decompression if compression is enabled)
@@ -68,7 +68,7 @@ pub fn row_to_episode(row: &libsql::Row) -> Result<Episode> {
     let heuristics: Vec<Uuid> = serde_json::from_str(&heuristics_str)
         .map_err(|e| Error::Storage(format!("Failed to parse heuristics: {}", e)))?;
 
-    let checkpoints: Vec<memory_core::memory::checkpoint::CheckpointMeta> = checkpoints_json
+    let checkpoints: Vec<do_memory_core::memory::checkpoint::CheckpointMeta> = checkpoints_json
         .as_deref()
         .filter(|s| !s.is_empty())
         .map(serde_json::from_str)
@@ -157,7 +157,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
+    use do_memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
     use tempfile::TempDir;
     use uuid::Uuid;
 
@@ -239,9 +239,9 @@ mod tests {
 
         let context_json = serde_json::to_string(&TaskContext::default()).unwrap();
         let steps_json =
-            serde_json::to_string(&Vec::<memory_core::episode::ExecutionStep>::new()).unwrap();
+            serde_json::to_string(&Vec::<do_memory_core::episode::ExecutionStep>::new()).unwrap();
         let patterns_json =
-            serde_json::to_string(&Vec::<memory_core::episode::PatternId>::new()).unwrap();
+            serde_json::to_string(&Vec::<do_memory_core::episode::PatternId>::new()).unwrap();
         let heuristics_json = serde_json::to_string(&Vec::<Uuid>::new()).unwrap();
         let metadata_json =
             serde_json::to_string(&std::collections::HashMap::<String, String>::new()).unwrap();

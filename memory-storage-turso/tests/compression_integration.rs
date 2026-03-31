@@ -10,8 +10,8 @@
 #![cfg(feature = "compression")]
 #![allow(clippy::expect_used)]
 
-use memory_core::embeddings::EmbeddingStorageBackend;
-use memory_storage_turso::TursoStorage;
+use do_memory_core::embeddings::EmbeddingStorageBackend;
+use do_memory_storage_turso::TursoStorage;
 use uuid::Uuid;
 
 async fn setup_storage_with_embeddings() -> TursoStorage {

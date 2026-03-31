@@ -1,6 +1,6 @@
 use serde_json::json;
 
-use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
+use do_memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
 #[derive(Debug, serde::Serialize)]
 struct InitializeResult {
     #[serde(rename = "protocolVersion")]

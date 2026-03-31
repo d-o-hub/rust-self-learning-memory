@@ -14,7 +14,7 @@
 
 #[cfg(feature = "compression")]
 mod transport_tests {
-    use memory_storage_turso::transport::{
+    use do_memory_storage_turso::transport::{
         TransportCompressionConfig, TransportMetadata, TransportResponse,
     };
 
@@ -112,8 +112,8 @@ mod transport_tests {
 
 #[cfg(feature = "compression")]
 mod compression_tests {
-    use memory_storage_turso::compression::{CompressionAlgorithm, CompressionStatistics};
-    use memory_storage_turso::transport::TransportCompressionStats;
+    use do_memory_storage_turso::compression::{CompressionAlgorithm, CompressionStatistics};
+    use do_memory_storage_turso::transport::TransportCompressionStats;
 
     #[test]
     fn test_compression_statistics_new() {
@@ -256,7 +256,7 @@ mod compression_tests {
 // ============================================================================
 
 mod keepalive_tests {
-    use memory_storage_turso::pool::keepalive::{KeepAliveConfig, KeepAliveStatistics};
+    use do_memory_storage_turso::pool::keepalive::{KeepAliveConfig, KeepAliveStatistics};
     use std::time::Duration;
 
     #[test]
@@ -314,7 +314,7 @@ mod keepalive_tests {
 // ============================================================================
 
 mod metrics_export_tests {
-    use memory_storage_turso::metrics::export::{
+    use do_memory_storage_turso::metrics::export::{
         ExportConfig, ExportFormat, ExportTarget, ExportedMetric, MetricType, MetricValue,
         PrometheusExporter,
     };
@@ -657,7 +657,7 @@ mod metrics_export_tests {
 // ============================================================================
 
 mod metrics_collector_tests {
-    use memory_storage_turso::metrics::MetricsCollector;
+    use do_memory_storage_turso::metrics::MetricsCollector;
     use std::time::Duration;
 
     #[test]
@@ -785,7 +785,7 @@ mod metrics_collector_tests {
 // ============================================================================
 
 mod pool_config_tests {
-    use memory_storage_turso::pool::PoolConfig;
+    use do_memory_storage_turso::pool::PoolConfig;
     use std::time::Duration;
 
     #[test]
@@ -819,7 +819,7 @@ mod pool_config_tests {
 // ============================================================================
 
 mod pool_statistics_tests {
-    use memory_storage_turso::pool::PoolStatistics;
+    use do_memory_storage_turso::pool::PoolStatistics;
 
     #[test]
     fn test_pool_statistics_defaults() {
@@ -862,7 +862,7 @@ mod pool_statistics_tests {
 // ============================================================================
 
 mod integration_tests {
-    use memory_storage_turso::metrics::export::{
+    use do_memory_storage_turso::metrics::export::{
         ExportConfig, ExportedMetric, MetricType, MetricValue, PrometheusExporter,
     };
     use std::time::Duration;

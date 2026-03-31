@@ -39,7 +39,7 @@ grep -r "actions-rs" .github/workflows/
 ### Optional Dependency Issues (libclang, wasmtime)
 ```bash
 # Build without problematic crate
-cargo build --workspace --exclude memory-mcp
+cargo build --workspace --exclude do-memory-mcp
 
 # Or fix the dependency
 cargo update -p libclang
@@ -84,7 +84,7 @@ cargo deny check
 
 # Build
 cargo build --workspace
-cargo build --workspace --exclude memory-mcp
+cargo build --workspace --exclude do-memory-mcp
 ```
 
 ## Success Criteria

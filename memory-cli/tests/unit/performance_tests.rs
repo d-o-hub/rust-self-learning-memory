@@ -3,7 +3,7 @@
 //! These tests verify that CLI operations perform within acceptable time bounds
 //! and scale appropriately with input size.
 
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::time::{Duration, Instant};
 
 #[cfg(test)]

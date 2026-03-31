@@ -9,8 +9,8 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, dead_code)]
 
-use memory_core::types::MemoryConfig;
-use memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+use do_memory_core::types::MemoryConfig;
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
 use std::sync::Arc;
 use uuid::Uuid;
 

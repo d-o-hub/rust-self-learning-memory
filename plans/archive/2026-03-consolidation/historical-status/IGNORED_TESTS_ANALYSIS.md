@@ -9,14 +9,14 @@
 
 | File | Line | Reason |
 |------|------|--------|
-| `memory-storage-turso/src/pool/adaptive_tests.rs` | 179 | Connection ID uniqueness |
-| `memory-storage-turso/src/pool/adaptive_tests.rs` | 203 | Cleanup callback timing |
-| `memory-storage-turso/src/pool/adaptive_tests.rs` | 322 | Connection cache timing |
-| `memory-storage-turso/src/pool/caching_pool_tests.rs` | 20 | Pool creation timing |
-| `memory-storage-turso/src/transport/compression.rs` | 90 | Decompression matching |
-| `memory-storage-turso/src/cache/query_cache_tests.rs` | 51 | Cache expiration timing |
-| `memory-storage-turso/src/cache/adaptive_ttl_tests.rs` | 80 | TTL adaptation timing |
-| `memory-storage-turso/src/cache/adaptive_ttl_tests.rs` | 101 | Cache expiration timing |
+| `do-memory-storage-turso/src/pool/adaptive_tests.rs` | 179 | Connection ID uniqueness |
+| `do-memory-storage-turso/src/pool/adaptive_tests.rs` | 203 | Cleanup callback timing |
+| `do-memory-storage-turso/src/pool/adaptive_tests.rs` | 322 | Connection cache timing |
+| `do-memory-storage-turso/src/pool/caching_pool_tests.rs` | 20 | Pool creation timing |
+| `do-memory-storage-turso/src/transport/compression.rs` | 90 | Decompression matching |
+| `do-memory-storage-turso/src/cache/query_cache_tests.rs` | 51 | Cache expiration timing |
+| `do-memory-storage-turso/src/cache/adaptive_ttl_tests.rs` | 80 | TTL adaptation timing |
+| `do-memory-storage-turso/src/cache/adaptive_ttl_tests.rs` | 101 | Cache expiration timing |
 
 **Fix Strategy**: Use `tokio::time::pause()` for time-dependent tests, increase timeouts for async operations.
 
@@ -24,15 +24,15 @@
 
 | File | Line | Reason |
 |------|------|--------|
-| `memory-mcp/src/sandbox/tests.rs` | 30 | Sandbox timing issues |
-| `memory-mcp/src/sandbox/tests.rs` | 49 | Sandbox timing issues |
-| `memory-mcp/src/sandbox/tests.rs` | 213 | Sandbox timing issues |
-| `memory-mcp/src/sandbox/tests.rs` | 235 | Sandbox timing issues |
-| `memory-mcp/src/unified_sandbox/tests.rs` | 47 | Binary data handling |
-| `memory-mcp/src/unified_sandbox/tests.rs` | 198 | Binary data handling |
-| `memory-mcp/src/wasmtime_sandbox/tests.rs` | 43 | WASI implementation |
-| `memory-mcp/src/wasmtime_sandbox/tests.rs` | 120 | WASI timeout handling |
-| `memory-mcp/src/wasm_sandbox/tests.rs` | 19 | WASM timeout enforcement |
+| `do-memory-mcp/src/sandbox/tests.rs` | 30 | Sandbox timing issues |
+| `do-memory-mcp/src/sandbox/tests.rs` | 49 | Sandbox timing issues |
+| `do-memory-mcp/src/sandbox/tests.rs` | 213 | Sandbox timing issues |
+| `do-memory-mcp/src/sandbox/tests.rs` | 235 | Sandbox timing issues |
+| `do-memory-mcp/src/unified_sandbox/tests.rs` | 47 | Binary data handling |
+| `do-memory-mcp/src/unified_sandbox/tests.rs` | 198 | Binary data handling |
+| `do-memory-mcp/src/wasmtime_sandbox/tests.rs` | 43 | WASI implementation |
+| `do-memory-mcp/src/wasmtime_sandbox/tests.rs` | 120 | WASI timeout handling |
+| `do-memory-mcp/src/wasm_sandbox/tests.rs` | 19 | WASM timeout enforcement |
 
 **Fix Strategy**: These are infrastructure tests - may remain ignored until proper WASM/WASI implementation.
 
@@ -40,11 +40,11 @@
 
 | File | Lines |
 |------|-------|
-| `memory-core/tests/tag_operations_test.rs` | 9 tests |
-| `memory-core/tests/heuristic_learning.rs` | 8 tests |
-| `memory-core/tests/performance.rs` | 7 tests |
-| `memory-core/tests/input_validation.rs` | 2 tests |
-| `memory-core/tests/learning_cycle.rs` | 1 test |
+| `do-memory-core/tests/tag_operations_test.rs` | 9 tests |
+| `do-memory-core/tests/heuristic_learning.rs` | 8 tests |
+| `do-memory-core/tests/performance.rs` | 7 tests |
+| `do-memory-core/tests/input_validation.rs` | 2 tests |
+| `do-memory-core/tests/learning_cycle.rs` | 1 test |
 
 **Fix Strategy**: These are intentionally slow tests for release CI - keep ignored for normal CI runs.
 
@@ -52,12 +52,12 @@
 
 | File | Line | Reason |
 |------|------|--------|
-| `memory-core/tests/relationship_integration.rs` | 432 | Requires real storage backends |
-| `memory-core/tests/regression.rs` | 319 | Non-deterministic pattern extraction |
-| `memory-core/tests/regression.rs` | 424 | Long-running performance test |
-| `memory-core/tests/compliance.rs` | 422 | Requires MCP server implementation |
-| `memory-core/tests/compliance.rs` | 434 | Requires MCP server implementation |
-| `memory-core/tests/performance.rs` | 400 | Requires pattern accuracy infrastructure |
+| `do-memory-core/tests/relationship_integration.rs` | 432 | Requires real storage backends |
+| `do-memory-core/tests/regression.rs` | 319 | Non-deterministic pattern extraction |
+| `do-memory-core/tests/regression.rs` | 424 | Long-running performance test |
+| `do-memory-core/tests/compliance.rs` | 422 | Requires MCP server implementation |
+| `do-memory-core/tests/compliance.rs` | 434 | Requires MCP server implementation |
+| `do-memory-core/tests/performance.rs` | 400 | Requires pattern accuracy infrastructure |
 
 **Fix Strategy**: Keep ignored until infrastructure is available.
 
@@ -65,8 +65,8 @@
 
 | File | Line | Reason |
 |------|------|--------|
-| `memory-core/src/embeddings/local.rs` | 330 | Random mock embeddings |
-| `memory-mcp/src/unified_sandbox/tests.rs` | 47, 198 | Binary data handling |
+| `do-memory-core/src/embeddings/local.rs` | 330 | Random mock embeddings |
+| `do-memory-mcp/src/unified_sandbox/tests.rs` | 47, 198 | Binary data handling |
 
 ## Recommended Actions
 

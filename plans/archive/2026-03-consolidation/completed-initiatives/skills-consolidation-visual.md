@@ -144,7 +144,7 @@ Unified State (.agents/skills/)
 │   ├── github-release-management/SKILL.md
 │   ├── github-workflow-automation/SKILL.md
 │   ├── hooks-automation/SKILL.md
-│   ├── memory-cli-ops/
+│   ├── do-memory-cli-ops/
 │   │   ├── SKILL.md
 │   │   └── troubleshooting.md
 │   ├── pair-programming/SKILL.md

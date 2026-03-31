@@ -15,6 +15,7 @@ pub mod episode_relationships;
 pub mod episode_steps;
 pub mod episode_timeline;
 pub mod episode_update;
+pub mod external_signals;
 pub mod field_projection;
 pub mod management;
 pub mod monitoring;

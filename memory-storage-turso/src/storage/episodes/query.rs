@@ -4,7 +4,7 @@
 
 use super::EpisodeQuery;
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Result, apply_query_limit as core_apply_limit};
+use do_memory_core::{Episode, Error, Result, apply_query_limit as core_apply_limit};
 use tracing::{debug, info};
 
 /// Apply query limit with defaults and bounds checking.
@@ -211,7 +211,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, TaskContext, TaskType};
+    use do_memory_core::{Episode, TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

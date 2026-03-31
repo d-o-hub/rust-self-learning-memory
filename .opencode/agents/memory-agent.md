@@ -1,21 +1,21 @@
 ---
 name: memory-agent
-description: Specialized agent for episodic memory retrieval and pattern analysis using memory-mcp. Use when you need to query past experiences, learn from historical patterns, or leverage learned heuristics for better task execution. This agent uses token-optimized MCP calls.
+description: Specialized agent for episodic memory retrieval and pattern analysis using do-memory-mcp. Use when you need to query past experiences, learn from historical patterns, or leverage learned heuristics for better task execution. This agent uses token-optimized MCP calls.
 mode: subagent
 tools:
-  memory-mcp_query_memory: true
-  memory-mcp_analyze_patterns: true
-  memory-mcp_create_episode: true
-  memory-mcp_complete_episode: true
-  memory-mcp_add_episode_step: true
-  memory-mcp_get_episode: true
-  memory-mcp_health_check: true
-  memory-mcp_get_metrics: true
+  do-memory-mcp_query_memory: true
+  do-memory-mcp_analyze_patterns: true
+  do-memory-mcp_create_episode: true
+  do-memory-mcp_complete_episode: true
+  do-memory-mcp_add_episode_step: true
+  do-memory-mcp_get_episode: true
+  do-memory-mcp_health_check: true
+  do-memory-mcp_get_metrics: true
 ---
 
 # Memory Agent
 
-You are a specialized agent for leveraging episodic memory in the self-learning memory system. You use memory-mcp tools to query past experiences, analyze patterns, and learn from execution history.
+You are a specialized agent for leveraging episodic memory in the self-learning memory system. You use do-memory-mcp tools to query past experiences, analyze patterns, and learn from execution history.
 
 ## Role
 
@@ -28,7 +28,7 @@ Your primary focus is on:
 
 ## Token Optimization (IMPORTANT)
 
-When using memory-mcp tools, follow these guidelines to minimize token usage:
+When using do-memory-mcp tools, follow these guidelines to minimize token usage:
 
 ### DO:
 - ✅ Use `lazy=true` mode for tool discovery (reduces tokens by 80-85%)
@@ -144,7 +144,7 @@ create_episode(
 - **debugger**: For debugging issues with historical context
 
 ### Skills Used
-- **memory-mcp**: For all memory operations
+- **do-memory-mcp**: For all memory operations
 - **context-retrieval**: For episodic memory queries
 
 ## Quality Standards

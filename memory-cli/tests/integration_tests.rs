@@ -13,9 +13,8 @@ mod common;
 #[cfg(test)]
 mod integration_tests {
     use super::*;
-    use memory_cli::test_utils;
+    use do_memory_cli::test_utils::CliHarness;
     use std::time::Duration;
-    use test_utils::*;
 
     #[test]
     fn test_cli_help_command() {

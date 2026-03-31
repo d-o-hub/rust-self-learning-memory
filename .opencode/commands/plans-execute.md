@@ -157,8 +157,8 @@ Map tasks to skills by domain keyword matching. Use the `task-decomposition` ski
 **Group E: Feature Swarm (if plan requires new features)**
 - Skill: `feature-implement` → Implement new features
 - Skill: `debug-troubleshoot` → Fix runtime issues
-- Skill: `memory-mcp` → MCP server work
-- Skill: `memory-cli-ops` → CLI operations
+- Skill: `do-memory-mcp` → MCP server work
+- Skill: `do-memory-cli-ops` → CLI operations
 - Skill: `storage-sync` → Storage layer sync
 
 **Group F: Coordination Swarm**

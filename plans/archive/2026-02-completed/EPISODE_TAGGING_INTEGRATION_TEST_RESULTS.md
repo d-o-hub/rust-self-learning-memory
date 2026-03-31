@@ -186,7 +186,7 @@ Found: 1 episode(s)
 
 ## Test Coverage Summary
 
-### Unit Tests (memory-mcp/src/mcp/tools/episode_tags/tests.rs)
+### Unit Tests (do-memory-mcp/src/mcp/tools/episode_tags/tests.rs)
 - 9/9 tests passing ✅
 - 100% code coverage
 - All edge cases covered
@@ -229,9 +229,9 @@ The episode tagging feature is:
 
 ## Test Artifacts
 
-- **Test Code**: `memory-mcp/examples/episode_tags_demo.rs`
-- **Unit Tests**: `memory-mcp/src/mcp/tools/episode_tags/tests.rs`
-- **Documentation**: `memory-mcp/EPISODE_TAGS_TOOLS.md`
+- **Test Code**: `do-memory-mcp/examples/episode_tags_demo.rs`
+- **Unit Tests**: `do-memory-mcp/src/mcp/tools/episode_tags/tests.rs`
+- **Documentation**: `do-memory-mcp/EPISODE_TAGS_TOOLS.md`
 
 ---
 

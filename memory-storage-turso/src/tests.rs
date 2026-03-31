@@ -3,7 +3,7 @@
 //! Integration tests for Turso storage backend.
 
 use super::*;
-use memory_core::StorageBackend;
+use do_memory_core::StorageBackend;
 use std::sync::Arc;
 use tempfile::TempDir;
 
@@ -275,7 +275,7 @@ async fn test_empty_embeddings_batch() {
 #[cfg(feature = "compression")]
 mod compression_tests {
     use super::*;
-    use memory_core::StorageBackend;
+    use do_memory_core::StorageBackend;
 
     /// Test that large episodes are compressed and retrieved correctly
     #[tokio::test]
@@ -285,7 +285,7 @@ mod compression_tests {
         // Create a large episode with many steps
         let mut steps = Vec::new();
         for i in 0..100 {
-            steps.push(memory_core::episode::ExecutionStep {
+            steps.push(do_memory_core::episode::ExecutionStep {
                 step_number: i,
                 tool: format!("tool_{}", i % 10),
                 action: format!("action_{}", i),
@@ -293,7 +293,7 @@ mod compression_tests {
                     "param": format!("value_{}", i),
                     "data": "x".repeat(100) // Add some repeatable data
                 }),
-                result: Some(memory_core::types::ExecutionResult::Success {
+                result: Some(do_memory_core::types::ExecutionResult::Success {
                     output: format!("output_{}", i),
                 }),
                 latency_ms: i as u64,
@@ -303,15 +303,15 @@ mod compression_tests {
             });
         }
 
-        let episode = memory_core::Episode {
+        let episode = do_memory_core::Episode {
             episode_id: uuid::Uuid::new_v4(),
-            task_type: memory_core::TaskType::CodeGeneration,
+            task_type: do_memory_core::TaskType::CodeGeneration,
             task_description: "Test large episode compression".to_string(),
-            context: memory_core::TaskContext {
+            context: do_memory_core::TaskContext {
                 domain: "test".to_string(),
                 language: Some("rust".to_string()),
                 framework: None,
-                complexity: memory_core::types::ComplexityLevel::Complex,
+                complexity: do_memory_core::types::ComplexityLevel::Complex,
                 tags: vec!["compression".to_string()],
             },
             steps,
@@ -347,15 +347,15 @@ mod compression_tests {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
         // Create a small episode
-        let episode = memory_core::Episode {
+        let episode = do_memory_core::Episode {
             episode_id: uuid::Uuid::new_v4(),
-            task_type: memory_core::TaskType::Analysis,
+            task_type: do_memory_core::TaskType::Analysis,
             task_description: "Test small episode without compression".to_string(),
-            context: memory_core::TaskContext {
+            context: do_memory_core::TaskContext {
                 domain: "test".to_string(),
                 language: Some("rust".to_string()),
                 framework: None,
-                complexity: memory_core::types::ComplexityLevel::Simple,
+                complexity: do_memory_core::types::ComplexityLevel::Simple,
                 tags: vec![],
             },
             steps: vec![],

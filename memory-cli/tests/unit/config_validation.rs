@@ -3,7 +3,7 @@
 //! These tests verify that configuration files are loaded correctly,
 //! validation works as expected, and defaults are applied properly.
 
-use memory_cli::config::{initialize_storage, CliConfig, Config, DatabaseConfig, StorageConfig};
+use do_memory_cli::config::{initialize_storage, CliConfig, Config, DatabaseConfig, StorageConfig};
 use std::fs;
 use tempfile::TempDir;
 

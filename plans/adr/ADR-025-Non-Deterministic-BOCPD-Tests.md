@@ -5,7 +5,7 @@
 
 ## Context
 
-The `test_temporal_consistency` test in `memory-mcp/src/patterns/statistical/bocpd_tests.rs` exhibits non-deterministic behavior due to the probabilistic nature of Bayesian Online Changepoint Detection (BOCPD) algorithm.
+The `test_temporal_consistency` test in `do-memory-mcp/src/patterns/statistical/bocpd_tests.rs` exhibits non-deterministic behavior due to the probabilistic nature of Bayesian Online Changepoint Detection (BOCPD) algorithm.
 
 ## Problem
 

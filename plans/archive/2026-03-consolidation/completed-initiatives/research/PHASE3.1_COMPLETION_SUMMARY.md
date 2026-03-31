@@ -27,7 +27,7 @@ Successfully implemented all 4 core modules for Phase 3 (Spatiotemporal Memory O
 ### 1. SpatiotemporalIndex Module ✅
 
 **Agent**: a4e45fb (feature-implementer)
-**File**: `memory-core/src/spatiotemporal/index.rs` (1,042 LOC)
+**File**: `do-memory-core/src/spatiotemporal/index.rs` (1,042 LOC)
 **Tests**: 15/15 passing
 
 **Implementation**:
@@ -66,7 +66,7 @@ pub struct TemporalCluster {
 ### 2. HierarchicalRetriever Module ✅
 
 **Agent**: a4b8302 (feature-implementer)
-**File**: `memory-core/src/spatiotemporal/retriever.rs` (29,879 bytes)
+**File**: `do-memory-core/src/spatiotemporal/retriever.rs` (29,879 bytes)
 **Tests**: 16/16 passing
 
 **Implementation**:
@@ -109,7 +109,7 @@ pub struct ScoredEpisode {
 ### 3. DiversityMaximizer Module ✅
 
 **Agent**: a73f036 (feature-implementer)
-**File**: `memory-core/src/spatiotemporal/diversity.rs` (739 LOC)
+**File**: `do-memory-core/src/spatiotemporal/diversity.rs` (739 LOC)
 **Tests**: 22/22 passing (220% of target!)
 
 **Implementation**:
@@ -147,7 +147,7 @@ pub struct DiversityMaximizer {
 ### 4. ContextAwareEmbeddings Module ✅
 
 **Agent**: a92d4d9 (feature-implementer)
-**File**: `memory-core/src/spatiotemporal/embeddings.rs` (21,683 bytes)
+**File**: `do-memory-core/src/spatiotemporal/embeddings.rs` (21,683 bytes)
 **Tests**: 11/11 passing
 
 **Implementation**:
@@ -310,7 +310,7 @@ All 4 modules are ready for Phase 3.2 integration:
 
 ### New Files Created
 
-**Core Modules** (in `memory-core/src/spatiotemporal/`):
+**Core Modules** (in `do-memory-core/src/spatiotemporal/`):
 1. ✅ `index.rs` - SpatiotemporalIndex (1,042 LOC)
 2. ✅ `retriever.rs` - HierarchicalRetriever (~900 LOC)
 3. ✅ `diversity.rs` - DiversityMaximizer (739 LOC)
@@ -325,8 +325,8 @@ All 4 modules are ready for Phase 3.2 integration:
 ### Modified Files
 
 **Core Library**:
-1. ✅ `memory-core/src/lib.rs` - Added spatiotemporal module
-2. ✅ `memory-core/src/types.rs` - Added `Hash` derive to `TaskType`
+1. ✅ `do-memory-core/src/lib.rs` - Added spatiotemporal module
+2. ✅ `do-memory-core/src/types.rs` - Added `Hash` derive to `TaskType`
 
 ---
 

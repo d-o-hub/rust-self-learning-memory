@@ -21,12 +21,12 @@
 
 | File | Count | Pattern | Assessment |
 |------|-------|---------|------------|
-| memory-core/src/retrieval/cache/lru.rs | 22 | Poisoned lock handling | ✅ Acceptable |
-| memory-core/src/embeddings/circuit_breaker.rs | 6 | Poisoned lock handling | ✅ Acceptable |
-| memory-storage-turso/src/storage/search.rs | 5 | Float similarity comparison | ✅ Acceptable |
-| memory-mcp/src/mcp/tools/quality_metrics/tool.rs | 1 | Documented invariant | ✅ Acceptable |
-| memory-core/src/memory/retrieval/context.rs | 1 | Documented invariant | ✅ Acceptable |
-| memory-core/src/extraction/extractors/mod.rs | 1 | Documented invariant | ✅ Acceptable |
+| do-memory-core/src/retrieval/cache/lru.rs | 22 | Poisoned lock handling | ✅ Acceptable |
+| do-memory-core/src/embeddings/circuit_breaker.rs | 6 | Poisoned lock handling | ✅ Acceptable |
+| do-memory-storage-turso/src/storage/search.rs | 5 | Float similarity comparison | ✅ Acceptable |
+| do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs | 1 | Documented invariant | ✅ Acceptable |
+| do-memory-core/src/memory/retrieval/context.rs | 1 | Documented invariant | ✅ Acceptable |
+| do-memory-core/src/extraction/extractors/mod.rs | 1 | Documented invariant | ✅ Acceptable |
 
 ### Pattern Distribution
 

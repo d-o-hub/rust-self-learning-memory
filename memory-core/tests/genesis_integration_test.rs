@@ -3,7 +3,7 @@
 //! End-to-end tests for capacity management and semantic summarization integration
 //! with `SelfLearningMemory`.
 
-use memory_core::{
+use do_memory_core::{
     EvictionPolicy, ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext,
     TaskOutcome, TaskType,
 };

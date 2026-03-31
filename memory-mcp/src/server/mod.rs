@@ -14,9 +14,9 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_mcp::server::MemoryMCPServer;
-//! use memory_mcp::types::SandboxConfig;
-//! use memory_core::SelfLearningMemory;
+//! use do_memory_mcp::server::MemoryMCPServer;
+//! use do_memory_mcp::types::SandboxConfig;
+//! use do_memory_core::SelfLearningMemory;
 //! use std::sync::Arc;
 //!
 //! #[tokio::main]
@@ -51,7 +51,7 @@ use crate::server::tools::registry::ToolRegistry;
 use crate::types::{ExecutionStats, SandboxConfig};
 use crate::unified_sandbox::UnifiedSandbox;
 use anyhow::Result;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use parking_lot::RwLock;
 use serde_json::Value;
 use std::collections::HashMap;

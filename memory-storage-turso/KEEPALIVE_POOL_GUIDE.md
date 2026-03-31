@@ -260,7 +260,7 @@ The keep-alive pool requires the `keepalive-pool` feature flag:
 
 ```toml
 [dependencies]
-memory-storage-turso = { version = "0.1", features = ["keepalive-pool"] }
+do-memory-storage-turso = { version = "0.1", features = ["keepalive-pool"] }
 ```
 
 ## Examples

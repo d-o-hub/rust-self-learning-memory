@@ -19,9 +19,9 @@
 
 ### Agent 1: metadata-agent
 **Tasks**: ACT-038, ACT-039, ACT-040
-- Add Cargo.toml metadata to memory-core
+- Add Cargo.toml metadata to do-memory-core
 - Add Cargo.toml metadata to storage crates
-- Add Cargo.toml metadata to memory-mcp
+- Add Cargo.toml metadata to do-memory-mcp
 
 ### Agent 2: security-agent
 **Tasks**: ACT-042, ACT-043

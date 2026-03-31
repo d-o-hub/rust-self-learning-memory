@@ -223,8 +223,8 @@ This document catalogs all `.md` file references found in the 40 SKILL.md files 
 
 ---
 
-### 23. memory-cli-ops
-**Location**: `.claude/skills/memory-cli-ops/SKILL.md`
+### 23. do-memory-cli-ops
+**Location**: `.claude/skills/do-memory-cli-ops/SKILL.md`
 **Referenced .md Files**:
 - `commands.md` - Full command reference
 - `troubleshooting.md` - Debugging guide
@@ -234,8 +234,8 @@ This document catalogs all `.md` file references found in the 40 SKILL.md files 
 
 ---
 
-### 24. memory-mcp
-**Location**: `.claude/skills/memory-mcp/SKILL.md`
+### 24. do-memory-mcp
+**Location**: `.claude/skills/do-memory-mcp/SKILL.md`
 **Referenced .md Files**:
 - `tools.md` - Complete MCP tools reference (query_memory, analyze_patterns, etc.)
 - `configuration.md` - .mcp.json structure and environment variables
@@ -400,7 +400,7 @@ This document catalogs all `.md` file references found in the 40 SKILL.md files 
 2. **skill-creator**: 6 files (skill creation documentation)
 3. **architecture-validation**: 5 files (validation dimensions)
 4. **goap-agent**: 5 files (planning methodology)
-5. **memory-mcp**: 5 files (MCP server documentation)
+5. **do-memory-mcp**: 5 files (MCP server documentation)
 
 ### Skills with No .md References (Self-Contained)
 - **17 skills** are completely self-contained with all content in SKILL.md
@@ -453,7 +453,7 @@ The following unique .md filenames are referenced across all skills:
 
 2. **Technical Deep-Dive Pattern**
    - Technical skills reference multiple specialized guides
-   - Example: memory-mcp (tools.md, configuration.md, validation.md, best-practices.md)
+   - Example: do-memory-mcp (tools.md, configuration.md, validation.md, best-practices.md)
 
 3. **Multi-File Documentation Pattern**
    - Complex skills split content across multiple focused files
@@ -467,14 +467,14 @@ The following unique .md filenames are referenced across all skills:
 
 | Filename | Count | Skills Using It |
 |----------|-------|-----------------|
-| examples.md | 8 | agent-coordination, analysis-swarm, feature-implement, goap-agent, loop-agent, memory-cli-ops, skill-creator |
+| examples.md | 8 | agent-coordination, analysis-swarm, feature-implement, goap-agent, loop-agent, do-memory-cli-ops, skill-creator |
 | patterns.md | 6 | agent-coordination, codebase-consolidation, feature-implement, goap-agent, loop-agent |
 | strategies.md | 3 | agent-coordination, web-search-researcher, feature-implement |
-| troubleshooting.md | 4 | debug-troubleshoot, github-workflows, memory-cli-ops, memory-mcp |
-| configuration.md | 3 | loop-agent, memory-mcp, skill-creator |
+| troubleshooting.md | 4 | debug-troubleshoot, github-workflows, do-memory-cli-ops, do-memory-mcp |
+| configuration.md | 3 | loop-agent, do-memory-mcp, skill-creator |
 | quality.md | 3 | feature-implement, web-search-researcher, codebase-consolidation |
-| validation.md | 3 | architecture-validation, memory-mcp, skill-creator |
-| tools.md | 2 | memory-mcp |
+| validation.md | 3 | architecture-validation, do-memory-mcp, skill-creator |
+| tools.md | 2 | do-memory-mcp |
 | methodology.md | 2 | goap-agent, web-search-researcher |
 | process.md | 2 | feature-implement, skill-creator |
 
@@ -504,7 +504,7 @@ The following unique .md filenames are referenced across all skills:
 5. configuration.md (3 skills)
 
 **Phase 2b - Domain-Specific Files**:
-6. Memory system: tools.md, best-practices.md (memory-mcp)
+6. Memory system: tools.md, best-practices.md (do-memory-mcp)
 7. GOAP system: methodology.md, agents.md (goap-agent)
 8. Planning: structure.md, process.md (feature-implement, skill-creator)
 9. Testing: quality.md, validation.md

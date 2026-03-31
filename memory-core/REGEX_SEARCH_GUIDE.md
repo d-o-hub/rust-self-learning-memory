@@ -174,26 +174,26 @@ assert!(validate_regex_pattern("(?i)bug|fix").is_ok());
 
 ```bash
 # Find API endpoints
-memory-cli episode search "/users/\d+" --regex
+do-memory-cli episode search "/users/\d+" --regex
 
 # Find version numbers
-memory-cli episode search "v?\d+\.\d+\.\d+" --regex
+do-memory-cli episode search "v?\d+\.\d+\.\d+" --regex
 
 # Case-insensitive OR
-memory-cli episode search "(?i)(bug|error|fix)" --regex
+do-memory-cli episode search "(?i)(bug|error|fix)" --regex
 ```
 
 ### Combine with Other Options
 
 ```bash
 # Regex + limit
-memory-cli episode search "error.*timeout" --regex --limit 20
+do-memory-cli episode search "error.*timeout" --regex --limit 20
 
 # Regex + domain filter
-memory-cli episode search "API|api" --regex --search-fields description,outcome
+do-memory-cli episode search "API|api" --regex --search-fields description,outcome
 
 # Regex with field selection
-memory-cli episode search "database.*connection" --regex --search-fields steps,outcome
+do-memory-cli episode search "database.*connection" --regex --search-fields steps,outcome
 ```
 
 ## Performance Considerations

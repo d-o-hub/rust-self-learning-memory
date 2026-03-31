@@ -9,8 +9,8 @@
 //! ## Example
 //!
 //! ```
-//! use memory_core::extraction::PatternExtractor;
-//! use memory_core::{Episode, TaskContext, TaskType, TaskOutcome, ExecutionStep};
+//! use do_memory_core::extraction::PatternExtractor;
+//! use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome, ExecutionStep};
 //!
 //! let context = TaskContext::default();
 //! let mut episode = Episode::new("Test task".to_string(), context, TaskType::Testing);

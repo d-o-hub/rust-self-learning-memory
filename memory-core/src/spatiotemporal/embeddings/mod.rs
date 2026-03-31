@@ -28,9 +28,9 @@ use std::sync::Arc;
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::spatiotemporal::embeddings::ContextAwareEmbeddings;
-/// use memory_core::embeddings::LocalEmbeddingProvider;
-/// use memory_core::types::TaskType;
+/// use do_memory_core::spatiotemporal::embeddings::ContextAwareEmbeddings;
+/// use do_memory_core::embeddings::LocalEmbeddingProvider;
+/// use do_memory_core::types::TaskType;
 /// use std::sync::Arc;
 ///
 /// # async fn example() -> anyhow::Result<()> {
@@ -219,8 +219,8 @@ impl ContextAwareEmbeddings {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::spatiotemporal::embeddings::ContextAwareEmbeddings;
-    /// use memory_core::embeddings::LocalEmbeddingProvider;
+    /// use do_memory_core::spatiotemporal::embeddings::ContextAwareEmbeddings;
+    /// use do_memory_core::embeddings::LocalEmbeddingProvider;
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {
@@ -259,9 +259,9 @@ impl ContextAwareEmbeddings {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::spatiotemporal::embeddings::ContextAwareEmbeddings;
-    /// use memory_core::embeddings::LocalEmbeddingProvider;
-    /// use memory_core::types::TaskType;
+    /// use do_memory_core::spatiotemporal::embeddings::ContextAwareEmbeddings;
+    /// use do_memory_core::embeddings::LocalEmbeddingProvider;
+    /// use do_memory_core::types::TaskType;
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {
@@ -341,9 +341,9 @@ impl ContextAwareEmbeddings {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::spatiotemporal::embeddings::{ContextAwareEmbeddings, ContrastivePair};
-    /// use memory_core::embeddings::LocalEmbeddingProvider;
-    /// use memory_core::types::TaskType;
+    /// use do_memory_core::spatiotemporal::embeddings::{ContextAwareEmbeddings, ContrastivePair};
+    /// use do_memory_core::embeddings::LocalEmbeddingProvider;
+    /// use do_memory_core::types::TaskType;
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {

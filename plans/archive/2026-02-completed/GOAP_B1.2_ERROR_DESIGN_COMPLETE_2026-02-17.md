@@ -5,7 +5,7 @@
 
 ## Finding
 
-The `memory-core/src/error/` module already contains a **well-designed error enum** that meets all requirements from B1.2:
+The `do-memory-core/src/error/` module already contains a **well-designed error enum** that meets all requirements from B1.2:
 
 ### Existing Design Strengths
 
@@ -44,13 +44,13 @@ The `memory-core/src/error/` module already contains a **well-designed error enu
 
 **Time Saved**: 1.5h can be reallocated to B1.3-B1.7 implementation.
 
-## Next Steps: B1.3 (Implement in memory-core)
+## Next Steps: B1.3 (Implement in do-memory-core)
 
 Since the error enum is ready, B1.3 can begin immediately:
 
-### B1.3 Task: Replace unwrap() in memory-core (2h)
+### B1.3 Task: Replace unwrap() in do-memory-core (2h)
 
-**Target**: Reduce memory-core from 262 unwrap/expect → ≤140
+**Target**: Reduce do-memory-core from 262 unwrap/expect → ≤140
 
 **Strategy**:
 1. Start with high-impact files (most unwrap() calls)
@@ -79,5 +79,5 @@ B1.2 is complete without any work needed. The existing error design is productio
 ---
 
 **Part of**: GOAP v0.1.16 Phase B execution
-**Next**: B1.3 (Implement error handling in memory-core)
+**Next**: B1.3 (Implement error handling in do-memory-core)
 **Time Saved**: 1.5h reallocated to implementation

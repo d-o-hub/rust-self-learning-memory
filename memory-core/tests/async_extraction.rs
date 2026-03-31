@@ -13,7 +13,7 @@
 //! - Queue statistics accuracy tracking
 //! - Performance requirements (< 100ms completion time)
 
-use memory_core::{
+use do_memory_core::{
     ExecutionResult, ExecutionStep, MemoryConfig, QueueConfig, SelfLearningMemory, TaskContext,
     TaskOutcome, TaskType,
 };

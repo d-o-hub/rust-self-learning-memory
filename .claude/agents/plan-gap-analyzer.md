@@ -53,11 +53,11 @@ ls benches/*.rs
 ```
 
 **Analyze each crate**:
-- `memory-core` - Episode, Pattern, Memory orchestrator
-- `memory-storage-turso` - Turso storage backend
-- `memory-storage-redb` - redb cache layer
-- `memory-mcp` - MCP server and sandbox
-- `test-utils` - Test utilities
+- `do-memory-core` - Episode, Pattern, Memory orchestrator
+- `do-memory-storage-turso` - Turso storage backend
+- `do-memory-storage-redb` - redb cache layer
+- `do-memory-mcp` - MCP server and sandbox
+- `do-memory-test-utils` - Test utilities
 - `benches` - Performance benchmarks
 
 ### 3. Gap Identification by Phase
@@ -77,9 +77,9 @@ For each phase, systematically check implementation status:
 
 **Grep Commands**:
 ```bash
-rg "pub struct Episode" memory-core/src/episode.rs -A 15
-rg "pub enum Pattern" memory-core/src/pattern.rs -A 30
-rg "pub struct TaskContext" memory-core/src/types.rs
+rg "pub struct Episode" do-memory-core/src/episode.rs -A 15
+rg "pub enum Pattern" do-memory-core/src/pattern.rs -A 30
+rg "pub struct TaskContext" do-memory-core/src/types.rs
 ```
 
 #### Phase 2 (PLAN) - Architecture Decisions
@@ -95,13 +95,13 @@ rg "pub struct TaskContext" memory-core/src/types.rs
 **Validation**:
 ```bash
 # Check circuit breaker
-rg "CircuitBreaker|circuit_breaker" memory-storage-turso/src/
+rg "CircuitBreaker|circuit_breaker" do-memory-storage-turso/src/
 
 # Check feature flags
-rg "FeatureFlags|feature_flags" memory-core/src/
+rg "FeatureFlags|feature_flags" do-memory-core/src/
 
 # Check telemetry
-rg "#\[instrument\]|tracing::" memory-core/src/
+rg "#\[instrument\]|tracing::" do-memory-core/src/
 ```
 
 #### Phase 3 (EXECUTE) - Week-by-Week Deliverables
@@ -190,13 +190,13 @@ rg "#\[test\]|#\[tokio::test\]" --glob "*.rs" | wc -l
 **Security Validation**:
 ```bash
 # Check SQL parameterization
-rg "execute\(.*params!" memory-storage-turso/src/
+rg "execute\(.*params!" do-memory-storage-turso/src/
 
 # Check input validation
-rg "validate|max.*size|ResourceLimit" memory-core/src/ memory-mcp/src/
+rg "validate|max.*size|ResourceLimit" do-memory-core/src/ do-memory-mcp/src/
 
 # Check sandbox security
-rg "SandboxSecurityConfig|malicious" memory-mcp/src/sandbox.rs
+rg "SandboxSecurityConfig|malicious" do-memory-mcp/src/sandbox.rs
 ```
 
 #### Phase 6 (FEEDBACK LOOP) - Refinements
@@ -257,7 +257,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### Critical Priority
 - [ ] **Missing Pattern variant: ContextPattern**
-  - **File**: memory-core/src/pattern.rs:45
+  - **File**: do-memory-core/src/pattern.rs:45
   - **Plan Reference**: plans/01-understand.md:70-77
   - **Current**: Only ToolSequence and DecisionPoint exist
   - **Required**: Add ContextPattern { context_features, recommended_approach, evidence }
@@ -266,7 +266,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### High Priority
 - [ ] **ExecutionStep missing tokens_used field**
-  - **File**: memory-core/src/episode.rs:89
+  - **File**: do-memory-core/src/episode.rs:89
   - **Plan Reference**: plans/01-understand.md:425
   - **Required**: Add tokens_used: Option<u64>
   - **Impact**: Cannot track LLM token usage
@@ -278,7 +278,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### Critical Priority
 - [ ] **Storage sync mechanism incomplete**
-  - **File**: memory-core/src/sync.rs
+  - **File**: do-memory-core/src/sync.rs
   - **Plan Reference**: plans/02-plan.md:564-579
   - **Current**: Basic sync exists
   - **Missing**: Conflict resolution strategy
@@ -291,7 +291,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### Week 1-2 Deliverables (Storage Layer)
 - [ ] **TursoStorage missing query_episodes_by_context**
-  - **File**: memory-storage-turso/src/storage.rs
+  - **File**: do-memory-storage-turso/src/storage.rs
   - **Plan Reference**: plans/03-execute.md:299-320
   - **Impact**: Cannot query by context filters
   - **Effort**: 4-6 hours
@@ -302,7 +302,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### Compliance Tests (FR1-FR7)
 - [ ] **Missing FR5 integration test**
-  - **File**: memory-core/tests/compliance.rs (new file)
+  - **File**: do-memory-core/tests/compliance.rs (new file)
   - **Plan Reference**: plans/04-review.md:108-136
   - **Required**: Test retrieve_relevant_context with 20 episodes
   - **Impact**: Cannot verify retrieval correctness
@@ -322,7 +322,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### Attack Surface Mitigations
 - [ ] **Resource limits not enforced in sandbox**
-  - **File**: memory-mcp/src/sandbox.rs:85
+  - **File**: do-memory-mcp/src/sandbox.rs:85
   - **Plan Reference**: plans/05-secure.md:27-49
   - **Current**: Limits defined but not checked
   - **Required**: Enforce max_memory_mb and max_cpu_percent
@@ -335,7 +335,7 @@ Generate comprehensive, actionable TODO list using this format:
 
 ### Edge Case Handling
 - [ ] **Two-phase commit not implemented**
-  - **File**: memory-core/src/sync.rs (enhancement)
+  - **File**: do-memory-core/src/sync.rs (enhancement)
   - **Plan Reference**: plans/06-feedback-loop.md:125-158
   - **Required**: Implement prepare-commit pattern
   - **Impact**: Data consistency during failures
@@ -386,7 +386,7 @@ done
 find . -name "*.rs" -not -path "*/target/*" > /tmp/rust_files.txt
 
 # Check each crate
-for crate in memory-core memory-storage-turso memory-storage-redb memory-mcp; do
+for crate in do-memory-core do-memory-storage-turso do-memory-storage-redb do-memory-mcp; do
     echo "Scanning $crate..."
 done
 ```

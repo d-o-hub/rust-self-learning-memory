@@ -4,8 +4,8 @@
 //! All malicious input should be safely stored as literal text without executing
 //! malicious SQL commands.
 
-use memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::TursoStorage;
+use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
 
 /// Helper to create a test episode with default values

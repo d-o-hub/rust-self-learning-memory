@@ -30,7 +30,7 @@
 - No modifications needed
 
 ### **Agent 2: CLI Interface**
-**File**: `memory-cli/src/commands/episode/relationships/helpers.rs`
+**File**: `do-memory-cli/src/commands/episode/relationships/helpers.rs`
 
 **Changes**: 3 unwrap() → Safe error handling
 - Lines 15-16: HashMap access with let-else pattern
@@ -59,7 +59,7 @@
 
 - [x] `cargo fmt --all` - No formatting issues
 - [x] `cargo clippy --all -- -D warnings` - Zero warnings
-- [x] `cargo test -p memory-cli` - 106/106 passing
+- [x] `cargo test -p do-memory-cli` - 106/106 passing
 - [x] Core modules - 712/712 passing
 - [x] Zero unwrap() in production paths (fixed areas)
 

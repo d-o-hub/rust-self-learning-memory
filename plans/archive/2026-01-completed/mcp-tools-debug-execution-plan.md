@@ -1,7 +1,7 @@
-# Execution Plan: Debug "memory-mcp Failed to get tools" Error
+# Execution Plan: Debug "do-memory-mcp Failed to get tools" Error
 
 ## Task Overview
-Debug and fix the "Failed to get tools" error in the memory-mcp server. This requires research into latest MCP standards, code analysis, root cause identification, and fix implementation.
+Debug and fix the "Failed to get tools" error in the do-memory-mcp server. This requires research into latest MCP standards, code analysis, root cause identification, and fix implementation.
 
 ## Execution Strategy: Sequential with Quality Gates
 - **Phase 1**: Web Research (CRITICAL DEPENDENCY - all later phases depend on this)
@@ -54,11 +54,11 @@ Research must be completed and validated before proceeding to Phase 2.
 ## Phase 2: Code Analysis & Diagnosis
 
 ### Objective
-Analyze memory-mcp implementation to identify misalignment with MCP standards.
+Analyze do-memory-mcp implementation to identify misalignment with MCP standards.
 
 ### Analysis Tasks
 1. **Locate MCP Server Implementation**:
-   - Find main MCP server file(s) in `memory-mcp/src/`
+   - Find main MCP server file(s) in `do-memory-mcp/src/`
    - Identify tool registration code
    - Locate tool handler implementations
 

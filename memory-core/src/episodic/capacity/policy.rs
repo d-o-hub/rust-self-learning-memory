@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use memory_core::episodic::EvictionPolicy;
+/// use do_memory_core::episodic::EvictionPolicy;
 ///
 /// let policy = EvictionPolicy::RelevanceWeighted;
 /// let lru_policy = EvictionPolicy::LRU;

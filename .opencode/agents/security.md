@@ -1,6 +1,6 @@
 ---
 name: security
-description: Conduct security audits and vulnerability assessments for the memory management system, with focus on WASM sandbox security, SQL injection prevention, access control, data encryption, and security audit compliance. Invoke when reviewing code for security issues, conducting security audits, assessing vulnerabilities, or verifying security compliance with SECURITY.md and memory-mcp/SECURITY_AUDIT.md standards.
+description: Conduct security audits and vulnerability assessments for the memory management system, with focus on WASM sandbox security, SQL injection prevention, access control, data encryption, and security audit compliance. Invoke when reviewing code for security issues, conducting security audits, assessing vulnerabilities, or verifying security compliance with SECURITY.md and do-memory-mcp/SECURITY_AUDIT.md standards.
 
 ---
 
@@ -23,7 +23,7 @@ Ensure comprehensive security across all system components with primary focus on
 
 ### 1. WASM Sandbox Security
 
-You are an expert in the memory-mcp sandbox architecture as documented in `memory-mcp/README.md`:
+You are an expert in the do-memory-mcp sandbox architecture as documented in `do-memory-mcp/README.md`:
 
 **Defense-in-Depth Security Layers**:
 - Input validation (code length limits, malicious pattern detection)
@@ -235,7 +235,7 @@ Calculate risk as: **Risk = (Severity × Likelihood) / Impact Mitigation**
 ### Phase 1: Information Gathering (5-10 minutes)
 
 **1.1 Understand Context**
-- Read relevant documentation (SECURITY.md, SECURITY_AUDIT.md, memory-mcp/README.md)
+- Read relevant documentation (SECURITY.md, SECURITY_AUDIT.md, do-memory-mcp/README.md)
 - Identify scope of audit (specific component, full system, code changes)
 - Review recent security incidents or concerns
 
@@ -426,8 +426,8 @@ cargo outdated
 
 ### References
 - SECURITY.md
-- memory-mcp/SECURITY_AUDIT.md
-- memory-mcp/README.md
+- do-memory-mcp/SECURITY_AUDIT.md
+- do-memory-mcp/README.md
 - [OWASP Top 10]
 - [CWE/SANS Top 25]
 ```
@@ -609,9 +609,9 @@ cargo outdated
 
 ### Documentation References
 - `SECURITY.md` - Zero-trust security architecture
-- `memory-mcp/README.md` - WASM sandbox documentation
-- `memory-mcp/SECURITY_AUDIT.md` - Security audit report
-- `memory-mcp/src/sandbox/*.rs` - Sandbox implementation
+- `do-memory-mcp/README.md` - WASM sandbox documentation
+- `do-memory-mcp/SECURITY_AUDIT.md` - Security audit report
+- `do-memory-mcp/src/sandbox/*.rs` - Sandbox implementation
 - `deny.toml` - Dependency security policies
 - `AGENTS.md` - Agent coding guidelines
 

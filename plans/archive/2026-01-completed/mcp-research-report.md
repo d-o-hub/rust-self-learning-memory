@@ -237,13 +237,13 @@ capabilities: ServerCapabilities {
 - **Error Message Formats**: Exact error message format for "Failed to get tools" not specified in documentation
 
 ### Limitations
-- No access to current memory-mcp implementation during research phase
+- No access to current do-memory-mcp implementation during research phase
 - Can't compare current implementation against standards until Phase 2
 
 ## Recommendations
 
 ### Immediate Actions (Phase 2 & 3)
-1. **Examine memory-mcp initialization**: Check for `tools` capability declaration
+1. **Examine do-memory-mcp initialization**: Check for `tools` capability declaration
 2. **Verify tool registration**: Ensure tools are registered before transport connection
 3. **Check logging**: Verify all logging uses stderr, not stdout (for STDIO transport)
 4. **Validate schemas**: Ensure all tool inputSchemas conform to JSON Schema specification
@@ -302,7 +302,7 @@ The "Failed to get tools" error most likely indicates one of the following:
 - Schema validation errors in tool definitions
 - Stdout pollution corrupting JSON-RPC messages
 
-Next phase (Phase 2) will examine the actual memory-mcp implementation to identify the specific root cause.
+Next phase (Phase 2) will examine the actual do-memory-mcp implementation to identify the specific root cause.
 
 ---
 

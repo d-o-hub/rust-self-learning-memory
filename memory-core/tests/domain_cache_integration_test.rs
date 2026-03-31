@@ -11,9 +11,9 @@
     clippy::vec_init_then_push
 )]
 
-use memory_core::episode::Episode;
-use memory_core::retrieval::{CacheKey, QueryCache};
-use memory_core::types::{TaskContext, TaskType};
+use do_memory_core::episode::Episode;
+use do_memory_core::retrieval::{CacheKey, QueryCache};
+use do_memory_core::types::{TaskContext, TaskType};
 use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;

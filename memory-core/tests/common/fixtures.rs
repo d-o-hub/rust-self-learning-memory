@@ -1,6 +1,6 @@
 //! Test fixtures and builder patterns for common test data structures
 
-use memory_core::{ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext};
+use do_memory_core::{ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext};
 use serde_json::json;
 use std::collections::HashMap;
 

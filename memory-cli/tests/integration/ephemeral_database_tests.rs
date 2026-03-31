@@ -4,7 +4,7 @@
 //! and realistic data scenarios.
 
 use assert_cmd::Command;
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::fs;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;

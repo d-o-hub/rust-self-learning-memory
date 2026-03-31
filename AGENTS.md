@@ -10,7 +10,7 @@
 ## Project Overview
 Memory system: Rust/Tokio + Turso + redb + embeddings (OpenAI/Cohere/Ollama/local)
 
-**Crates**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches
+**Crates**: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches
 
 ## Skill + CLI Pattern (CRITICAL)
 Always use Skill + CLI first for high-frequency ops:

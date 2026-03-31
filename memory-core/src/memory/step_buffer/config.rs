@@ -10,7 +10,7 @@
 /// # Examples
 ///
 /// ```
-/// use memory_core::BatchConfig;
+/// use do_memory_core::BatchConfig;
 ///
 /// // Default configuration (50 steps, 5 seconds)
 /// let config = BatchConfig::default();
@@ -65,7 +65,7 @@ impl BatchConfig {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::BatchConfig;
+    /// use do_memory_core::BatchConfig;
     ///
     /// let config = BatchConfig::new(100, 10000, true);
     /// assert_eq!(config.max_batch_size, 100);

@@ -4,7 +4,7 @@
 
 use std::time::Instant;
 
-use memory_core::{
+use do_memory_core::{
     memory::SelfLearningMemory,
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
 };

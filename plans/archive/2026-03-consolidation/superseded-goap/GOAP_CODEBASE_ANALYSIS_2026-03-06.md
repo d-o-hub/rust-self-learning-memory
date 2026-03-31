@@ -77,7 +77,7 @@
 - **ADR**: ADR-029 Phase 3-4
 
 #### G7: Property Test Expansion (ADR-033)
-- **Current**: 2 proptest files, memory-core only
+- **Current**: 2 proptest files, do-memory-core only
 - **Target**: Proptest in all 4 main crates (serialization roundtrips, state machines)
 - **Effort**: 6-8 hours
 - **ADR**: ADR-033 Phase 5
@@ -142,7 +142,7 @@ Week 1 (Mar 9-14) — Quick Wins + Foundation:
 
 Week 2 (Mar 17-21) — Error Handling + Testing:
   SEQUENTIAL:
-    └─ G1: Error handling — memory-core ─────────── 8-10h
+    └─ G1: Error handling — do-memory-core ─────────── 8-10h
   PARALLEL:
     ├─ G2: Test triage (fix 6 timing-dependent) ──── 4-6h
     └─ G7: Proptest expansion (storage crates) ───── 4-6h
@@ -205,7 +205,7 @@ G10-T2 (feature pruning) ──────────────────�
 |---|------|---------------|--------|-----|
 | 1 | Ignored tests | 58 ignored | ≤10 | ADR-028 #5 |
 | 2 | dead_code annotations | 140 | ≤10 | — |
-| 3 | Property testing | 2 files (memory-core only) | 4+ crates | ADR-033 |
+| 3 | Property testing | 2 files (do-memory-core only) | 4+ crates | ADR-033 |
 | 4 | Snapshot testing | 13 snapshots | ≥25 | ADR-033 |
 | 5 | Dependency deduplication | 129 roots | <80 | ADR-036 |
 | 6 | GH Actions optimization | Phase 1-2 done | Phase 4 done | ADR-029 |
@@ -245,7 +245,7 @@ G10-T2 (feature pruning) ──────────────────�
 
 | Risk | Prob | Impact | Mitigation |
 |------|------|--------|------------|
-| Error handling changes break public API | Med | High | Crate-by-crate rollout, start with memory-core |
+| Error handling changes break public API | Med | High | Crate-by-crate rollout, start with do-memory-core |
 | Large unwrap audit causes merge conflicts | Med | Med | Short-lived feature branches, daily merges |
 | Dependency dedup may break features | Low | Med | Use `cargo-machete --fix` with validation |
 | git-cliff config may not match commit history | Low | Low | Rewrite history not needed; start fresh |

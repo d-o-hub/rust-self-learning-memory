@@ -10,11 +10,11 @@ use crate::mcp::tools::episode_relationships::types::{
     ValidateNoCyclesOutput,
 };
 use anyhow::{Result, anyhow};
-use memory_core::SelfLearningMemory;
-use memory_core::episode::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::episode::{
     Direction, EpisodeRelationship, RelationshipMetadata, RelationshipType,
 };
-use memory_core::memory::relationship_query::RelationshipFilter;
+use do_memory_core::memory::relationship_query::RelationshipFilter;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, info, instrument};

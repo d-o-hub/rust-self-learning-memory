@@ -1,4 +1,4 @@
-use memory_core::{SelfLearningMemory, TaskContext, TaskType, ExecutionStep, ExecutionResult};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, ExecutionStep, ExecutionResult};
 use std::collections::HashMap;
 
 #[tokio::main]
@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let task_context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::ComplexityLevel::Moderate,
+        complexity: do_memory_core::ComplexityLevel::Moderate,
         domain: "debugging".to_string(),
         tags: vec!["mcp".to_string(), "configuration".to_string(), "opencode".to_string()],
     };

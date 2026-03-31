@@ -3,7 +3,7 @@
 use super::types::{FilterCommands, SavedFilter};
 use crate::config::Config;
 use crate::output::OutputFormat;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use std::fs;
 use std::path::{Path, PathBuf};
 

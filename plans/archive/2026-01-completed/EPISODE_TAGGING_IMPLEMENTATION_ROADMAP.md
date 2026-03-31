@@ -45,7 +45,7 @@ Week 3: Phase 5 (Docs + Testing)
 ### Tasks
 
 #### 1.1 Update Episode Structure (2 hours)
-**File**: `memory-core/src/episode/structs.rs`
+**File**: `do-memory-core/src/episode/structs.rs`
 
 ```rust
 // Add to Episode struct
@@ -76,7 +76,7 @@ impl Episode {
 - ✅ No clippy warnings
 
 #### 1.2 Database Schema Updates (2 hours)
-**File**: `memory-storage-turso/src/schema.rs`
+**File**: `do-memory-storage-turso/src/schema.rs`
 
 ```sql
 -- Add to schema initialization
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS tag_metadata (
 - ✅ Migration runs without errors
 
 #### 1.3 Turso Storage Backend Implementation (4 hours)
-**New File**: `memory-storage-turso/src/storage/tag_operations.rs`
+**New File**: `do-memory-storage-turso/src/storage/tag_operations.rs`
 
 ```rust
 // Core tag operations
@@ -141,7 +141,7 @@ pub async fn get_tag_statistics(
 ) -> Result<HashMap<String, TagStats>>
 ```
 
-**File Modified**: `memory-storage-turso/src/trait_impls/episodes.rs`
+**File Modified**: `do-memory-storage-turso/src/trait_impls/episodes.rs`
 
 Integrate tag operations into `StorageBackend` trait implementation.
 
@@ -152,7 +152,7 @@ Integrate tag operations into `StorageBackend` trait implementation.
 - ✅ Error handling complete
 
 #### 1.4 Redb Cache Integration (2 hours)
-**File**: `memory-storage-redb/src/storage.rs`
+**File**: `do-memory-storage-redb/src/storage.rs`
 
 ```rust
 // Tags automatically handled via Episode serialization (postcard)
@@ -167,7 +167,7 @@ async fn invalidate_episode_cache(&self, episode_id: &Uuid) -> Result<()>
 - ✅ Cache consistency maintained
 
 #### 1.5 Storage Integration Tests (2 hours)
-**New File**: `memory-storage-turso/tests/tag_integration_test.rs`
+**New File**: `do-memory-storage-turso/tests/tag_integration_test.rs`
 
 ```rust
 #[tokio::test]
@@ -188,12 +188,12 @@ async fn test_tag_persistence_after_restart()
 - ✅ Edge cases covered
 
 ### Deliverables
-- [x] `memory-core/src/episode/structs.rs` (modified)
-- [ ] `memory-storage-turso/src/schema.rs` (modified)
-- [ ] `memory-storage-turso/src/storage/tag_operations.rs` (new)
-- [ ] `memory-storage-turso/src/trait_impls/episodes.rs` (modified)
-- [ ] `memory-storage-redb/src/storage.rs` (modified)
-- [ ] `memory-storage-turso/tests/tag_integration_test.rs` (new)
+- [x] `do-memory-core/src/episode/structs.rs` (modified)
+- [ ] `do-memory-storage-turso/src/schema.rs` (modified)
+- [ ] `do-memory-storage-turso/src/storage/tag_operations.rs` (new)
+- [ ] `do-memory-storage-turso/src/trait_impls/episodes.rs` (modified)
+- [ ] `do-memory-storage-redb/src/storage.rs` (modified)
+- [ ] `do-memory-storage-turso/tests/tag_integration_test.rs` (new)
 
 ### Quality Gates
 - [ ] All tests pass (>95%)
@@ -218,7 +218,7 @@ async fn test_tag_persistence_after_restart()
 ### Tasks
 
 #### 2.1 Tag Management API (3 hours)
-**File**: `memory-core/src/memory/management.rs`
+**File**: `do-memory-core/src/memory/management.rs`
 
 ```rust
 impl SelfLearningMemory {
@@ -253,7 +253,7 @@ impl SelfLearningMemory {
 - ✅ Error handling complete
 
 #### 2.2 Tag Query API (3 hours)
-**File**: `memory-core/src/memory/queries.rs`
+**File**: `do-memory-core/src/memory/queries.rs`
 
 ```rust
 pub async fn list_episodes_by_tags(
@@ -272,7 +272,7 @@ pub async fn get_tag_statistics(
 ) -> Result<HashMap<String, TagStats>>
 ```
 
-**File**: `memory-core/src/types/mod.rs`
+**File**: `do-memory-core/src/types/mod.rs`
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -290,7 +290,7 @@ pub struct TagStats {
 - ✅ Pagination support
 
 #### 2.3 Core Integration Tests (2 hours)
-**New File**: `memory-core/tests/tag_operations_test.rs`
+**New File**: `do-memory-core/tests/tag_operations_test.rs`
 
 ```rust
 #[tokio::test]
@@ -306,10 +306,10 @@ async fn test_concurrent_tag_modifications()
 - ✅ Coverage >90%
 
 ### Deliverables
-- [ ] `memory-core/src/memory/management.rs` (modified)
-- [ ] `memory-core/src/memory/queries.rs` (modified)
-- [ ] `memory-core/src/types/mod.rs` (modified)
-- [ ] `memory-core/tests/tag_operations_test.rs` (new)
+- [ ] `do-memory-core/src/memory/management.rs` (modified)
+- [ ] `do-memory-core/src/memory/queries.rs` (modified)
+- [ ] `do-memory-core/src/types/mod.rs` (modified)
+- [ ] `do-memory-core/tests/tag_operations_test.rs` (new)
 
 ### Quality Gates
 - [ ] All tests pass (>95%)
@@ -333,7 +333,7 @@ async fn test_concurrent_tag_modifications()
 ### Tasks
 
 #### 3.1 MCP Tool Implementation (5 hours)
-**New File**: `memory-mcp/src/server/tools/episode_tags.rs`
+**New File**: `do-memory-mcp/src/server/tools/episode_tags.rs`
 
 ```rust
 // Tool: add_episode_tags
@@ -373,7 +373,7 @@ pub async fn search_episodes_by_tags_tool(
 ) -> Result<Value>
 ```
 
-**File Modified**: `memory-mcp/src/server/tools/mod.rs`
+**File Modified**: `do-memory-mcp/src/server/tools/mod.rs`
 
 Register all 6 tag tools.
 
@@ -383,7 +383,7 @@ Register all 6 tag tools.
 - ✅ Error responses well-formatted
 
 #### 3.2 MCP Tool Schemas (2 hours)
-**File**: `memory-mcp/src/server/tools/episode_tags.rs`
+**File**: `do-memory-mcp/src/server/tools/episode_tags.rs`
 
 Define JSON schemas for all tool inputs/outputs.
 
@@ -393,7 +393,7 @@ Define JSON schemas for all tool inputs/outputs.
 - ✅ Examples provided
 
 #### 3.3 MCP Integration Tests (2 hours)
-**New File**: `memory-mcp/tests/tag_tools_test.rs`
+**New File**: `do-memory-mcp/tests/tag_tools_test.rs`
 
 ```rust
 #[tokio::test]
@@ -409,7 +409,7 @@ async fn test_tool_error_handling()
 - ✅ Coverage >90%
 
 #### 3.4 MCP Documentation (1 hour)
-**New File**: `memory-mcp/EPISODE_TAGS_TOOLS.md`
+**New File**: `do-memory-mcp/EPISODE_TAGS_TOOLS.md`
 
 Complete documentation with examples for all 6 tools.
 
@@ -419,10 +419,10 @@ Complete documentation with examples for all 6 tools.
 - ✅ Schema reference complete
 
 ### Deliverables
-- [ ] `memory-mcp/src/server/tools/episode_tags.rs` (new)
-- [ ] `memory-mcp/src/server/tools/mod.rs` (modified)
-- [ ] `memory-mcp/tests/tag_tools_test.rs` (new)
-- [ ] `memory-mcp/EPISODE_TAGS_TOOLS.md` (new)
+- [ ] `do-memory-mcp/src/server/tools/episode_tags.rs` (new)
+- [ ] `do-memory-mcp/src/server/tools/mod.rs` (modified)
+- [ ] `do-memory-mcp/tests/tag_tools_test.rs` (new)
+- [ ] `do-memory-mcp/EPISODE_TAGS_TOOLS.md` (new)
 
 ### Quality Gates
 - [ ] All tests pass (>95%)
@@ -446,7 +446,7 @@ Complete documentation with examples for all 6 tools.
 ### Tasks
 
 #### 4.1 CLI Command Implementation (4 hours)
-**New File**: `memory-cli/src/commands/tag.rs`
+**New File**: `do-memory-cli/src/commands/tag.rs`
 
 ```rust
 // Command: tag add
@@ -491,7 +491,7 @@ pub async fn handle_tag_show(
 ) -> Result<()>
 ```
 
-**File Modified**: `memory-cli/src/commands/mod.rs`
+**File Modified**: `do-memory-cli/src/commands/mod.rs`
 
 Add tag command routing.
 
@@ -501,7 +501,7 @@ Add tag command routing.
 - ✅ Table formatting for lists
 
 #### 4.2 CLI Tests (2 hours)
-**New File**: `memory-cli/tests/tag_commands_test.rs`
+**New File**: `do-memory-cli/tests/tag_commands_test.rs`
 
 ```rust
 #[tokio::test]
@@ -517,7 +517,7 @@ async fn test_invalid_tag_input()
 - ✅ Coverage >90%
 
 #### 4.3 CLI Documentation (2 hours)
-**File Modified**: `memory-cli/CLI_USER_GUIDE.md`
+**File Modified**: `do-memory-cli/CLI_USER_GUIDE.md`
 
 Add comprehensive tag command documentation.
 
@@ -527,10 +527,10 @@ Add comprehensive tag command documentation.
 - ✅ Common workflows shown
 
 ### Deliverables
-- [ ] `memory-cli/src/commands/tag.rs` (new)
-- [ ] `memory-cli/src/commands/mod.rs` (modified)
-- [ ] `memory-cli/tests/tag_commands_test.rs` (new)
-- [ ] `memory-cli/CLI_USER_GUIDE.md` (modified)
+- [ ] `do-memory-cli/src/commands/tag.rs` (new)
+- [ ] `do-memory-cli/src/commands/mod.rs` (modified)
+- [ ] `do-memory-cli/tests/tag_commands_test.rs` (new)
+- [ ] `do-memory-cli/CLI_USER_GUIDE.md` (modified)
 
 ### Quality Gates
 - [ ] All tests pass (>95%)
@@ -555,7 +555,7 @@ Add comprehensive tag command documentation.
 ### Tasks
 
 #### 5.1 Usage Guide (1 hour)
-**New File**: `memory-core/EPISODE_TAGGING_GUIDE.md`
+**New File**: `do-memory-core/EPISODE_TAGGING_GUIDE.md`
 
 Complete guide covering:
 - Introduction and use cases
@@ -613,7 +613,7 @@ Add v0.1.13 entry with tag feature details.
 - ✅ Breaking changes noted (none expected)
 
 ### Deliverables
-- [ ] `memory-core/EPISODE_TAGGING_GUIDE.md` (new)
+- [ ] `do-memory-core/EPISODE_TAGGING_GUIDE.md` (new)
 - [ ] `examples/episode_tagging_demo.rs` (new)
 - [ ] `benches/tag_operations.rs` (new)
 - [ ] `CHANGELOG.md` (modified)
@@ -639,10 +639,10 @@ Add v0.1.13 entry with tag feature details.
 
 | Component | Target | Tracking |
 |-----------|--------|----------|
-| memory-core (tags) | >90% | `cargo tarpaulin` |
-| memory-storage-turso (tags) | >90% | `cargo tarpaulin` |
-| memory-mcp (tag tools) | >90% | `cargo tarpaulin` |
-| memory-cli (tag commands) | >90% | `cargo tarpaulin` |
+| do-memory-core (tags) | >90% | `cargo tarpaulin` |
+| do-memory-storage-turso (tags) | >90% | `cargo tarpaulin` |
+| do-memory-mcp (tag tools) | >90% | `cargo tarpaulin` |
+| do-memory-cli (tag commands) | >90% | `cargo tarpaulin` |
 | Overall project | >90% | Maintain current 92.5% |
 
 ## Risk Mitigation

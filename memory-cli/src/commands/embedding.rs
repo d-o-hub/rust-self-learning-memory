@@ -7,7 +7,7 @@ use crate::config::Config;
 use anyhow::Result;
 use clap::Subcommand;
 #[allow(unused_imports)] // All configs are used in match statements
-use memory_core::embeddings::{
+use do_memory_core::embeddings::{
     AzureOpenAIConfig, CustomConfig, EmbeddingProvider, LocalConfig, MistralConfig, OpenAIConfig,
 };
 use std::env;
@@ -349,7 +349,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
         "local" => {
             #[cfg(feature = "local-embeddings")]
             {
-                use memory_core::embeddings::LocalEmbeddingProvider;
+                use do_memory_core::embeddings::LocalEmbeddingProvider;
                 let model_config = LocalConfig::default();
                 let provider = LocalEmbeddingProvider::new(model_config).await?;
                 Ok(Box::new(provider))
@@ -364,7 +364,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
         "openai" => {
             #[cfg(feature = "openai")]
             {
-                use memory_core::embeddings::OpenAIEmbeddingProvider;
+                use do_memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config)?;
                 let model_config = OpenAIConfig::text_embedding_3_small();
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
@@ -380,7 +380,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
         "mistral" => {
             #[cfg(feature = "openai")]
             {
-                use memory_core::embeddings::OpenAIEmbeddingProvider;
+                use do_memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config)?;
                 let model_config = MistralConfig::mistral_embed();
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
@@ -396,7 +396,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
         "azure" => {
             #[cfg(feature = "openai")]
             {
-                use memory_core::embeddings::OpenAIEmbeddingProvider;
+                use do_memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config)?;
                 // Azure configuration requires deployment, resource, and version
                 let deployment = env::var("AZURE_DEPLOYMENT")
@@ -424,7 +424,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
         "custom" => {
             #[cfg(feature = "openai")]
             {
-                use memory_core::embeddings::OpenAIEmbeddingProvider;
+                use do_memory_core::embeddings::OpenAIEmbeddingProvider;
                 let api_key = get_api_key(config).unwrap_or_else(|_| "not-needed".to_string());
                 let base_url = config
                     .embeddings

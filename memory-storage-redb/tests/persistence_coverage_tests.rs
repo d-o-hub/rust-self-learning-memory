@@ -10,7 +10,7 @@
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
 
-use memory_storage_redb::{
+use do_memory_storage_redb::{
     AdaptiveCacheAdapter, AdaptiveCacheConfig, Cache, CacheMetrics, CachePersistence,
     CacheSnapshot, PersistedCacheEntry, PersistenceConfig, PersistenceManager, PersistenceStats,
     RedbStorage,

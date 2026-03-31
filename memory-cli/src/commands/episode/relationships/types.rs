@@ -12,7 +12,7 @@
 use crate::output::Output;
 use clap::{Subcommand, ValueEnum};
 use colored::Colorize;
-use memory_core::episode::{Direction, RelationshipType};
+use do_memory_core::episode::{Direction, RelationshipType};
 use serde::Serialize;
 use std::io::Write;
 

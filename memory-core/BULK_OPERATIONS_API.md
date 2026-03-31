@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the new bulk episode operations API added to `memory-core` to enable efficient episode retrieval by ID.
+This document describes the new bulk episode operations API added to `do-memory-core` to enable efficient episode retrieval by ID.
 
 ## Motivation
 
@@ -85,8 +85,8 @@ println!("Found {} out of {} episodes", episodes.len(), ids.len());
 ### File Structure
 
 **Modified Files**:
-- `memory-core/src/memory/query_api.rs` - Public API method `get_episodes_by_ids()`
-- `memory-core/src/memory/queries.rs` - Internal implementation `get_episodes_by_ids()`
+- `do-memory-core/src/memory/query_api.rs` - Public API method `get_episodes_by_ids()`
+- `do-memory-core/src/memory/queries.rs` - Internal implementation `get_episodes_by_ids()`
 
 **Note**: `get_episode()` was already implemented in `memory/episode.rs`, so we only added the bulk operation.
 
@@ -125,7 +125,7 @@ pub async fn get_episodes_by_ids(
 
 ### Test Coverage
 
-**Integration Tests** (`memory-core/tests/bulk_episode_retrieval_test.rs`):
+**Integration Tests** (`do-memory-core/tests/bulk_episode_retrieval_test.rs`):
 
 1. ✅ `test_get_episode_single_retrieval` - Basic single episode fetch
 2. ✅ `test_get_episode_not_found` - Error handling for missing episodes
@@ -155,7 +155,7 @@ RUST_LOG=debug cargo test --test bulk_episode_retrieval_test
 
 ### Complete Example
 
-See `memory-core/examples/bulk_episode_operations.rs` for a full working example.
+See `do-memory-core/examples/bulk_episode_operations.rs` for a full working example.
 
 ```bash
 cargo run --example bulk_episode_operations
@@ -297,9 +297,9 @@ Possible follow-up improvements:
 
 ## Related Documentation
 
-- `memory-core/EPISODE_MANAGEMENT.md` - Episode lifecycle overview
-- `memory-core/EPISODE_FILTERING.md` - Advanced filtering capabilities
-- `memory-core/README.md` - General memory system documentation
+- `do-memory-core/EPISODE_MANAGEMENT.md` - Episode lifecycle overview
+- `do-memory-core/EPISODE_FILTERING.md` - Advanced filtering capabilities
+- `do-memory-core/README.md` - General memory system documentation
 - `agent_docs/service_architecture.md` - System architecture
 
 ## Questions & Support
@@ -307,7 +307,7 @@ Possible follow-up improvements:
 For questions about this feature:
 1. See examples in `examples/bulk_episode_operations.rs`
 2. Run tests with `cargo test --test bulk_episode_retrieval_test`
-3. Check `memory-core/src/memory/query_api.rs` for API signatures
+3. Check `do-memory-core/src/memory/query_api.rs` for API signatures
 
 ## Changelog
 

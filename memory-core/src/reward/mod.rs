@@ -18,6 +18,9 @@
 pub mod adaptive;
 pub mod domain_stats;
 
+#[cfg(feature = "agentfs")]
+pub mod external;
+
 #[cfg(test)]
 pub mod tests;
 
@@ -358,7 +361,7 @@ impl RewardCalculator {
     /// # Example
     ///
     /// ```
-    /// use memory_core::reward::RewardCalculator;
+    /// use do_memory_core::reward::RewardCalculator;
     ///
     /// let calculator = RewardCalculator::new();
     ///

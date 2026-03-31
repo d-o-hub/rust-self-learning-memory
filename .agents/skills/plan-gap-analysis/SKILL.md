@@ -31,11 +31,11 @@ find . -name "*.rs" -not -path "*/target/*"
 ```
 
 **Crates to analyze**:
-- `memory-core` - Core data structures and orchestration
-- `memory-storage-turso` - Turso/libSQL backend
-- `memory-storage-redb` - redb cache layer
-- `memory-mcp` - MCP server and sandbox
-- `test-utils` - Test utilities
+- `do-memory-core` - Core data structures and orchestration
+- `do-memory-storage-turso` - Turso/libSQL backend
+- `do-memory-storage-redb` - redb cache layer
+- `do-memory-mcp` - MCP server and sandbox
+- `do-memory-test-utils` - Test utilities
 - `benches` - Performance benchmarks
 
 ### Phase 3: Gap Identification

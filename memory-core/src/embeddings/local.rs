@@ -22,7 +22,7 @@ use tokio::sync::RwLock;
 ///
 /// # Example
 /// ```no_run
-/// use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, LocalConfig};
+/// use do_memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, LocalConfig};
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {

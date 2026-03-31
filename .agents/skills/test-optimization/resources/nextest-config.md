@@ -41,9 +41,9 @@ test-threads = 1
 | Filter | Description | Example |
 |--------|-------------|---------|
 | `-E 'kind(lib)'` | Library tests only | `kind(lib) and not test(integration)` |
-| `-E 'package(memory-core)'` | Specific package | `package(memory-core)` |
+| `-E 'package(do-memory-core)'` | Specific package | `package(do-memory-core)` |
 | `-E 'test(test_name)'` | Specific test | `test(test_episode_creation)` |
-| `-E 'binary(binary_name)'` | Binary tests | `binary(memory-cli)` |
+| `-E 'binary(binary_name)'` | Binary tests | `binary(do-memory-cli)` |
 
 ## Running Tests
 

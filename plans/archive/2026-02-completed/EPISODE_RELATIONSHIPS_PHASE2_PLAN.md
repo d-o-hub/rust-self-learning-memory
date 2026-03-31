@@ -26,7 +26,7 @@ This phase provides the foundational logic that Phases 3-5 will build upon.
 ### Module Structure
 
 ```
-memory-core/src/episode/
+do-memory-core/src/episode/
 ├── relationships.rs          (Phase 1 - Complete ✅)
 ├── relationship_manager.rs   (Phase 2 - NEW)
 └── graph_algorithms.rs       (Phase 2 - NEW)
@@ -57,7 +57,7 @@ memory-core/src/episode/
 
 ## Component 1: RelationshipManager
 
-**File**: `memory-core/src/episode/relationship_manager.rs`  
+**File**: `do-memory-core/src/episode/relationship_manager.rs`  
 **Estimated LOC**: ~400  
 **Tests**: 10+
 
@@ -391,7 +391,7 @@ pub enum GraphError {
 
 ## Component 2: Graph Algorithms
 
-**File**: `memory-core/src/episode/graph_algorithms.rs`  
+**File**: `do-memory-core/src/episode/graph_algorithms.rs`  
 **Estimated LOC**: ~400  
 **Tests**: 10+
 

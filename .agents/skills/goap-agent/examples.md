@@ -147,7 +147,7 @@ Quality Gate: Plan created and linked to ADR
 - Task 1: Upgrade free-disk-space action
   └─ Edit .github/workflows/coverage.yml
 - Task 2: Optimize coverage exclusions
-  └─ Add --exclude for benches, examples, test-utils
+  └─ Add --exclude for benches, examples, do-memory-test-utils
 - Task 3: Document Dependabot resolution
   └─ Update plans/DEPENDABOT_TRIAGE_REPORT_*.md
 Quality Gate: All changes implemented

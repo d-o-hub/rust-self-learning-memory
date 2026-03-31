@@ -7,9 +7,9 @@
 //! - In-memory (last resort)
 
 use anyhow::Context;
-use memory_core::{Error, MemoryConfig, SelfLearningMemory};
-use memory_storage_redb::{CacheConfig, RedbStorage};
-use memory_storage_turso::{TursoConfig, TursoStorage};
+use do_memory_core::{Error, MemoryConfig, SelfLearningMemory};
+use do_memory_storage_redb::{CacheConfig, RedbStorage};
+use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::path::Path;
 use std::sync::Arc;
 use tracing::{info, warn};
@@ -83,7 +83,7 @@ pub async fn initialize_redb_only_storage() -> anyhow::Result<Arc<SelfLearningMe
     // Create memory system with redb cache and in-memory fallbacks for Turso
     // Note: We use the same redb instance for both turso and cache since we only have redb
     let memory_config = MemoryConfig::default();
-    let redb_arc: Arc<dyn memory_core::StorageBackend> = Arc::new(redb_storage);
+    let redb_arc: Arc<dyn do_memory_core::StorageBackend> = Arc::new(redb_storage);
     let memory = SelfLearningMemory::with_storage(memory_config, Arc::clone(&redb_arc), redb_arc);
 
     Ok(Arc::new(memory))

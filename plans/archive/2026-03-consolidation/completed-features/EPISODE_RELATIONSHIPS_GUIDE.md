@@ -40,9 +40,9 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 ### ✅ Phase 1: Storage Foundation (Complete)
 
 **Files**:
-- `memory-core/src/episode/relationships.rs` - Core data structures (386 LOC)
-- `memory-storage-turso/src/relationships.rs` - Turso storage (457 LOC)
-- `memory-storage-redb/src/relationships.rs` - Redb cache (326 LOC)
+- `do-memory-core/src/episode/relationships.rs` - Core data structures (386 LOC)
+- `do-memory-storage-turso/src/relationships.rs` - Turso storage (457 LOC)
+- `do-memory-storage-redb/src/relationships.rs` - Redb cache (326 LOC)
 
 **Features**:
 - 7 relationship types (ParentChild, DependsOn, Follows, RelatedTo, Blocks, Duplicates, References)
@@ -53,8 +53,8 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 ### ✅ Phase 2: Core API & Business Logic (Complete)
 
 **Files**:
-- `memory-core/src/memory/relationships.rs` - 9 relationship methods (510 LOC)
-- `memory-core/src/memory/relationship_query.rs` - Query types (392 LOC)
+- `do-memory-core/src/memory/relationships.rs` - 9 relationship methods (510 LOC)
+- `do-memory-core/src/memory/relationship_query.rs` - Query types (392 LOC)
 
 **Features**:
 - `add_episode_relationship()` - With full validation
@@ -76,13 +76,13 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 ### ✅ Phase 3: Memory Layer Integration (Complete)
 
 **Files Modified**:
-- `memory-storage-turso/src/trait_impls/mod.rs` - Storage trait overrides
-- `memory-storage-turso/src/relationships.rs` - `store_relationship()` method
-- `memory-storage-redb/src/lib.rs` - Storage trait overrides
-- `memory-storage-redb/src/relationships.rs` - Async wrappers
+- `do-memory-storage-turso/src/trait_impls/mod.rs` - Storage trait overrides
+- `do-memory-storage-turso/src/relationships.rs` - `store_relationship()` method
+- `do-memory-storage-redb/src/lib.rs` - Storage trait overrides
+- `do-memory-storage-redb/src/relationships.rs` - Async wrappers
 
 **Files Created**:
-- `memory-core/tests/relationship_integration.rs` - 13 integration tests (487 LOC)
+- `do-memory-core/tests/relationship_integration.rs` - 13 integration tests (487 LOC)
 - `docs/EPISODE_RELATIONSHIPS_GUIDE.md` - Quick reference
 - `plans/EPISODE_RELATIONSHIPS_PHASE3_COMPLETE.md` - Implementation report
 
@@ -109,7 +109,7 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 7. `validate_no_cycles` - Pre-flight validation
 8. `get_topological_order` - Sort episodes
 
-**Implementation Location**: `memory-mcp/src/bin/server/handlers.rs`
+**Implementation Location**: `do-memory-mcp/src/bin/server/handlers.rs`
 
 **Reference**: See archive/2026-02-completed/ for historical implementation plans
 
@@ -118,15 +118,15 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 **Status**: Ready to start - Can be parallel with Phase 4
 
 **Commands Needed**:
-1. `memory-cli episode add-relationship <from> --to <to> --type <type>`
-2. `memory-cli episode remove-relationship <rel_id>`
-3. `memory-cli episode list-relationships <ep_id> [--direction <dir>] [--type <type>]`
-4. `memory-cli episode find-related <ep_id> [--type <type>] [--limit <n>]`
-5. `memory-cli episode dependency-graph <ep_id> [--depth <n>] [--format <fmt>]`
-6. `memory-cli episode validate-cycles <ep_id> [--type <type>]`
-7. `memory-cli episode topological-sort <ep_id1> <ep_id2> ...`
+1. `do-memory-cli episode add-relationship <from> --to <to> --type <type>`
+2. `do-memory-cli episode remove-relationship <rel_id>`
+3. `do-memory-cli episode list-relationships <ep_id> [--direction <dir>] [--type <type>]`
+4. `do-memory-cli episode find-related <ep_id> [--type <type>] [--limit <n>]`
+5. `do-memory-cli episode dependency-graph <ep_id> [--depth <n>] [--format <fmt>]`
+6. `do-memory-cli episode validate-cycles <ep_id> [--type <type>]`
+7. `do-memory-cli episode topological-sort <ep_id1> <ep_id2> ...`
 
-**Implementation Location**: `memory-cli/src/commands/episode_v2/relationships.rs`
+**Implementation Location**: `do-memory-cli/src/commands/episode_v2/relationships.rs`
 
 **Output Formats Needed**:
 - Table format for lists
@@ -140,12 +140,12 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 
 ### Recommended Order:
 1. **Phase 4 MCP Tools** (2-3 days)
-   - Follow existing MCP patterns in `memory-mcp/src/bin/server/handlers.rs`
+   - Follow existing MCP patterns in `do-memory-mcp/src/bin/server/handlers.rs`
    - Implement 8 tools with JSON-RPC schemas
    - Add 16 tests (2 per tool)
 
 2. **Phase 5 CLI Commands** (2 days, parallel with Phase 4)
-   - Follow existing CLI patterns in `memory-cli/src/commands/episode_v2/`
+   - Follow existing CLI patterns in `do-memory-cli/src/commands/episode_v2/`
    - Implement 7 commands with multiple output formats
    - Add 14 tests (2 per command)
 
@@ -178,14 +178,14 @@ The Episode Relationships & Dependencies feature enables powerful workflow model
 ### Running Tests:
 ```bash
 # Phase 1 Storage tests
-cargo test -p memory-storage-turso relationships
-cargo test -p memory-storage-redb relationships
+cargo test -p do-memory-storage-turso relationships
+cargo test -p do-memory-storage-redb relationships
 
 # Phase 2-3 Memory layer tests
-cargo test -p memory-core relationship_integration
+cargo test -p do-memory-core relationship_integration
 
 # With debug output
-cargo test -p memory-core relationship_integration -- --nocapture
+cargo test -p do-memory-core relationship_integration -- --nocapture
 ```
 
 ---
@@ -194,32 +194,32 @@ cargo test -p memory-core relationship_integration -- --nocapture
 
 ### Core Implementation
 ```
-memory-core/src/
+do-memory-core/src/
 ├── episode/
 │   └── relationships.rs          # Data structures (Phase 1)
 └── memory/
     ├── relationships.rs          # 9 API methods (Phase 2)
     └── relationship_query.rs     # Query types (Phase 2)
 
-memory-storage-turso/src/
+do-memory-storage-turso/src/
 ├── schema.rs                     # Database schema (Phase 1)
 ├── relationships.rs              # Turso operations (Phase 1)
 └── trait_impls/mod.rs            # Trait overrides (Phase 3)
 
-memory-storage-redb/src/
+do-memory-storage-redb/src/
 ├── lib.rs                        # Storage trait overrides (Phase 3)
 └── relationships.rs              # Cache operations (Phase 1, Phase 3)
 
-memory-core/tests/
+do-memory-core/tests/
 └── relationship_integration.rs   # 13 integration tests (Phase 3)
 ```
 
 ### Pending Implementation
 ```
-memory-mcp/src/bin/server/
+do-memory-mcp/src/bin/server/
 └── handlers.rs                   # Add 8 MCP tools here (Phase 4)
 
-memory-cli/src/commands/episode_v2/
+do-memory-cli/src/commands/episode_v2/
 └── relationships.rs              # Add 7 CLI commands here (Phase 5)
 
 tests/integration/
@@ -322,13 +322,13 @@ let json = graph.to_json();
 ## Getting Started
 
 ### To Implement Phase 4 (MCP Tools):
-1. Review existing MCP tools in `memory-mcp/src/bin/server/handlers.rs`
+1. Review existing MCP tools in `do-memory-mcp/src/bin/server/handlers.rs`
 2. Implement 8 new tool handlers following existing patterns
 3. Add JSON-RPC schemas for each tool
 4. Write 16 tests (2 per tool)
 
 ### To Implement Phase 5 (CLI Commands):
-1. Review existing CLI commands in `memory-cli/src/commands/episode_v2/`
+1. Review existing CLI commands in `do-memory-cli/src/commands/episode_v2/`
 2. Create `relationships.rs` with 7 command structs
 3. Implement table, JSON, DOT, and ASCII output formatters
 4. Write 14 tests (2 per command)
@@ -358,13 +358,13 @@ let json = graph.to_json();
 ### Common Questions
 
 **Q: Where do I start implementing MCP tools?**
-A: Review existing MCP tools in `memory-mcp/src/bin/server/handlers.rs` for JSON-RPC schema patterns and implementation examples.
+A: Review existing MCP tools in `do-memory-mcp/src/bin/server/handlers.rs` for JSON-RPC schema patterns and implementation examples.
 
 **Q: Where do I start implementing CLI commands?**
-A: Review existing CLI commands in `memory-cli/src/commands/episode_v2/` for command signatures and output format examples.
+A: Review existing CLI commands in `do-memory-cli/src/commands/episode_v2/` for command signatures and output format examples.
 
 **Q: How do I test the relationship functionality?**  
-A: Run `cargo test -p memory-core relationship_integration` to execute the 13 integration tests.
+A: Run `cargo test -p do-memory-core relationship_integration` to execute the 13 integration tests.
 
 **Q: What's the critical path to completion?**  
 A: Phase 4 (MCP Tools) and Phase 5 (CLI Commands) can be done in parallel. Phase 6 (Testing & Documentation) comes after both are complete.

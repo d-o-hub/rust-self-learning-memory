@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 pub async fn view_pattern(
     pattern_id: String,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -33,7 +33,7 @@ pub async fn view_pattern(
         })?;
 
     let (pattern_type, details) = match &pattern {
-        memory_core::pattern::Pattern::ToolSequence {
+        do_memory_core::pattern::Pattern::ToolSequence {
             tools,
             context,
             success_rate,
@@ -50,7 +50,7 @@ pub async fn view_pattern(
                 "occurrence_count": occurrence_count
             }),
         ),
-        memory_core::pattern::Pattern::DecisionPoint {
+        do_memory_core::pattern::Pattern::DecisionPoint {
             condition,
             action,
             outcome_stats,
@@ -65,7 +65,7 @@ pub async fn view_pattern(
                 "context": context
             }),
         ),
-        memory_core::pattern::Pattern::ErrorRecovery {
+        do_memory_core::pattern::Pattern::ErrorRecovery {
             error_type,
             recovery_steps,
             success_rate,
@@ -80,7 +80,7 @@ pub async fn view_pattern(
                 "context": context
             }),
         ),
-        memory_core::pattern::Pattern::ContextPattern {
+        do_memory_core::pattern::Pattern::ContextPattern {
             context_features,
             recommended_approach,
             evidence,
@@ -119,17 +119,17 @@ pub async fn view_pattern(
         println!();
         println!("Details:");
         match &pattern {
-            memory_core::pattern::Pattern::ToolSequence { tools, context, .. } => {
+            do_memory_core::pattern::Pattern::ToolSequence { tools, context, .. } => {
                 println!("  Tools: {}", tools.join(" → "));
                 println!("  Context Domain: {}", context.domain);
             }
-            memory_core::pattern::Pattern::DecisionPoint {
+            do_memory_core::pattern::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
                 println!("  Condition: {}", condition);
                 println!("  Action: {}", action);
             }
-            memory_core::pattern::Pattern::ErrorRecovery {
+            do_memory_core::pattern::Pattern::ErrorRecovery {
                 error_type,
                 recovery_steps,
                 ..
@@ -140,7 +140,7 @@ pub async fn view_pattern(
                     println!("    {}. {}", i + 1, step);
                 }
             }
-            memory_core::pattern::Pattern::ContextPattern {
+            do_memory_core::pattern::Pattern::ContextPattern {
                 context_features,
                 recommended_approach,
                 ..

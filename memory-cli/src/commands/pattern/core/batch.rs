@@ -2,12 +2,12 @@
 
 use anyhow::Result;
 use clap::Subcommand;
-use memory_core::{
+use do_memory_core::{
     Pattern, PatternEffectiveness, TaskContext, episode::PatternId, types::OutcomeStats,
 };
 
 #[cfg(feature = "turso")]
-use memory_storage_turso::TursoStorage;
+use do_memory_storage_turso::TursoStorage;
 
 use serde::Serialize;
 use uuid::Uuid;

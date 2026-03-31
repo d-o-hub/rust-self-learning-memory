@@ -13,7 +13,7 @@ use std::cmp::Ordering;
 /// # Examples
 ///
 /// ```
-/// use memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
+/// use do_memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
 ///
 /// // Create maximizer with default lambda (0.7)
 /// let maximizer = DiversityMaximizer::default();
@@ -55,7 +55,7 @@ impl DiversityMaximizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::spatiotemporal::DiversityMaximizer;
+    /// use do_memory_core::spatiotemporal::DiversityMaximizer;
     ///
     /// // Default: 70% relevance, 30% diversity
     /// let maximizer = DiversityMaximizer::new(0.7);
@@ -109,7 +109,7 @@ impl DiversityMaximizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
+    /// use do_memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
     ///
     /// let maximizer = DiversityMaximizer::new(0.7);
     ///
@@ -231,7 +231,7 @@ impl DiversityMaximizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
+    /// use do_memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
     ///
     /// let maximizer = DiversityMaximizer::default();
     ///
@@ -303,7 +303,7 @@ impl DiversityMaximizer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
+    /// use do_memory_core::spatiotemporal::{DiversityMaximizer, ScoredEpisode};
     ///
     /// let maximizer = DiversityMaximizer::default();
     ///

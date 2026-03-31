@@ -4,7 +4,7 @@
 //!
 //! Run with: `cargo run --example pattern_search_demo`
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
 

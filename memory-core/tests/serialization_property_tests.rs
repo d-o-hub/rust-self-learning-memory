@@ -10,10 +10,10 @@
 )]
 
 use chrono::{Duration, Utc};
-use memory_core::episode::{Episode, ExecutionStep};
-use memory_core::pattern::PatternEffectiveness;
-use memory_core::reward::RewardCalculator;
-use memory_core::types::{
+use do_memory_core::episode::{Episode, ExecutionStep};
+use do_memory_core::pattern::PatternEffectiveness;
+use do_memory_core::reward::RewardCalculator;
+use do_memory_core::types::{
     ComplexityLevel, ExecutionResult, OutcomeStats, TaskContext, TaskOutcome, TaskType,
 };
 use proptest::prelude::*;

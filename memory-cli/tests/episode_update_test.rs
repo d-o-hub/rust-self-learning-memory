@@ -5,13 +5,13 @@ use std::collections::HashMap;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{TaskContext, TaskType};
+    use do_memory_core::{TaskContext, TaskType};
     use uuid::Uuid;
 
     /// Test updating episode description
     #[tokio::test]
     async fn test_update_description() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         // Create an episode
         let episode_id = memory
@@ -36,7 +36,7 @@ mod tests {
     /// Test updating episode metadata
     #[tokio::test]
     async fn test_update_metadata() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         // Create an episode
         let episode_id = memory
@@ -66,7 +66,7 @@ mod tests {
     /// Test updating both description and metadata
     #[tokio::test]
     async fn test_update_description_and_metadata() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         // Create an episode
         let episode_id = memory
@@ -99,7 +99,7 @@ mod tests {
     /// Test updating non-existent episode fails
     #[tokio::test]
     async fn test_update_nonexistent_episode() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         let fake_id = Uuid::new_v4();
         let result = memory
@@ -112,7 +112,7 @@ mod tests {
     /// Test updating episode with same description (no-op)
     #[tokio::test]
     async fn test_update_same_description() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         // Create an episode
         let episode_id = memory
@@ -137,7 +137,7 @@ mod tests {
     /// Test merging metadata with existing metadata
     #[tokio::test]
     async fn test_merge_metadata() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         // Create an episode
         let episode_id = memory
@@ -180,7 +180,7 @@ mod tests {
     /// Test updating tags (add, remove, set)
     #[tokio::test]
     async fn test_update_tags() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
 
         // Create an episode
         let episode_id = memory
@@ -241,7 +241,7 @@ mod tests {
     #[tokio::test]
     #[cfg(feature = "turso")]
     async fn test_update_persists_to_storage() {
-        use memory_storage_turso::TursoClient;
+        use do_memory_storage_turso::TursoClient;
         use std::sync::Arc;
 
         // This test requires actual Turso setup, so we'll skip if not configured
@@ -256,7 +256,7 @@ mod tests {
         }
 
         let turso = TursoClient::new(db_url.unwrap(), auth_token.unwrap()).unwrap();
-        let memory = memory_core::SelfLearningMemory::with_storage(Arc::new(turso), None, None);
+        let memory = do_memory_core::SelfLearningMemory::with_storage(Arc::new(turso), None, None);
 
         // Create episode
         let episode_id = memory

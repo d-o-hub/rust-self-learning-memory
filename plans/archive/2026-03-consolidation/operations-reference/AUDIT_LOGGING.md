@@ -254,7 +254,7 @@ Example:
 Run the audit logging tests:
 
 ```bash
-cargo test --package memory-mcp --test audit_tests
+cargo test --package do-memory-mcp --test audit_tests
 ```
 
 ## Troubleshooting

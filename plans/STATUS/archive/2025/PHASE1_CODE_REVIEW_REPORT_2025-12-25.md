@@ -54,8 +54,8 @@ The LOC violations are primarily due to:
 **Recommendation**:
 ```
 MANDATORY: Move unit tests to separate test files
-- Create memory-core/tests/pre_storage_quality_unit_test.rs
-- Create memory-core/tests/pre_storage_extractor_unit_test.rs
+- Create do-memory-core/tests/pre_storage_quality_unit_test.rs
+- Create do-memory-core/tests/pre_storage_extractor_unit_test.rs
 - Keep only 1-2 doctests per public method in source files
 
 Expected Results:
@@ -420,7 +420,7 @@ fn test_high_quality_episode_scores_above_threshold() {
 **Error**:
 ```
 error[E0063]: missing field `effectiveness` in initializer of `pattern::types::Pattern`
-  --> memory-core/src/extraction/tests.rs:66:13
+  --> do-memory-core/src/extraction/tests.rs:66:13
    |
 66 |             Pattern::ToolSequence {
    |             ^^^^^^^^^^^^^^^^^^^^^ missing `effectiveness`
@@ -495,13 +495,13 @@ score.clamp(0.0, 1.0)
 **Warnings**:
 ```
 error: clamp-like pattern without using clamp function
-  --> memory-core/src/pattern/types.rs:75:28
+  --> do-memory-core/src/pattern/types.rs:75:28
 
 error: item in documentation is missing backticks
-  --> memory-core/src/reward/adaptive.rs:60:12
+  --> do-memory-core/src/reward/adaptive.rs:60:12
 
 error: called `map(<f>).unwrap_or(false)` on an `Option` value
-  --> memory-core/src/reward/adaptive.rs:94:24
+  --> do-memory-core/src/reward/adaptive.rs:94:24
 ```
 
 **Note**: These are NOT in pre_storage modules but block `--all` builds
@@ -518,7 +518,7 @@ RECOMMENDED: Fix clippy warnings in related modules
 
 ## 8. Detailed File Review
 
-### 8.1 `/memory-core/src/pre_storage/quality.rs` (662 LOC)
+### 8.1 `/do-memory-core/src/pre_storage/quality.rs` (662 LOC)
 
 **Status**: ❌ LOC VIOLATION (662/500)
 
@@ -583,7 +583,7 @@ fn score_step_count(count: usize) -> f32 {
 }
 ```
 
-### 8.2 `/memory-core/src/pre_storage/extractor.rs` (913 LOC)
+### 8.2 `/do-memory-core/src/pre_storage/extractor.rs` (913 LOC)
 
 **Status**: ❌ SEVERE LOC VIOLATION (913/500)
 
@@ -649,7 +649,7 @@ pub fn extract(&self, episode: &Episode) -> SalientFeatures {
 //   │   └── insights.rs (extract_key_insights)
 ```
 
-### 8.3 `/memory-core/src/pre_storage/mod.rs` (41 LOC)
+### 8.3 `/do-memory-core/src/pre_storage/mod.rs` (41 LOC)
 
 **Status**: ✅ PASS
 
@@ -667,7 +667,7 @@ pub use quality::{QualityAssessor, QualityConfig, QualityFeature};
 - ✅ Good module-level documentation
 - ✅ Appropriate re-exports
 
-### 8.4 `/memory-core/src/memory/learning.rs` (Integration)
+### 8.4 `/do-memory-core/src/memory/learning.rs` (Integration)
 
 **Status**: ✅ GOOD
 
@@ -709,7 +709,7 @@ episode.salient_features = Some(salient_features.clone());
 - ✅ Clear error messages
 - ✅ Salient features stored with episode
 
-### 8.5 `/memory-mcp/src/mcp/tools/quality_metrics.rs` (694 LOC)
+### 8.5 `/do-memory-mcp/src/mcp/tools/quality_metrics.rs` (694 LOC)
 
 **Status**: ❌ LOC VIOLATION (694/500)
 

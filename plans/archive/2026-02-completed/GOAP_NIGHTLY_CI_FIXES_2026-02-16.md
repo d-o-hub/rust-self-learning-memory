@@ -51,7 +51,7 @@ The Nightly Full Tests workflow is failing consistently with:
   - **Commit**: `d3f6014` - Implemented in A1
 
 #### Phase 2: Test Fixes (HIGH - Parallel)
-- [x] **A3**: Fix memory leak test (memory-core/tests/performance.rs:501) ✅
+- [x] **A3**: Fix memory leak test (do-memory-core/tests/performance.rs:501) ✅
   - Reduce iterations from 1000 to 100
   - Add cleanup between iterations
   - Add memory checks per 100 iterations
@@ -178,7 +178,7 @@ Each logical change gets its own commit:
   - Added aggressive cleanup between test stages
   - Added disk space checkpoints with early failure (<5GB)
   - Added final cleanup after all tests complete
-  - Modified: .github/workflows/nightly-tests.yml, memory-core/tests/performance.rs, memory-storage-turso/tests/prepared_cache_integration_test.rs
+  - Modified: .github/workflows/nightly-tests.yml, do-memory-core/tests/performance.rs, do-memory-storage-turso/tests/prepared_cache_integration_test.rs
 
 - **Commit 5f6e6fa**: "[test] Fix failing tests and flaky integration tests"
   - Reduced memory leak test iterations from 1000 to 100

@@ -4,8 +4,8 @@
 //! (Ultra-Simple, Simple, and Advanced) work correctly and provide
 //! clear progression from simple to advanced setup.
 
-use memory_cli::config::progressive::*;
-use memory_cli::config::{ConfigPreset, StorageInitResult};
+use do_memory_cli::config::progressive::*;
+use do_memory_cli::config::{ConfigPreset, StorageInitResult};
 use tempfile::TempDir;
 use tokio::time::{Duration, timeout};
 

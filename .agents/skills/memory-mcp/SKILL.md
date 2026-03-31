@@ -1,5 +1,5 @@
 ---
-name: memory-mcp
+name: do-memory-mcp
 description: Use and troubleshoot the Memory MCP server for episodic memory retrieval and pattern analysis. Use when working with MCP server tools, validating the MCP implementation, or debugging MCP server issues.
 ---
 
@@ -18,7 +18,7 @@ Interacts with and troubleshoot the Memory Model Context Protocol (MCP) server f
 
 ## When to Use
 
-- Starting or configuring the memory-mcp server
+- Starting or configuring the do-memory-mcp server
 - Using MCP tools for memory retrieval and pattern analysis
 - Validating the MCP server implementation
 - Debugging MCP server issues
@@ -27,14 +27,14 @@ Interacts with and troubleshoot the Memory Model Context Protocol (MCP) server f
 
 ## MCP Server Overview
 
-The memory-mcp server exposes episodic memory functionality through the Model Context Protocol:
+The do-memory-mcp server exposes episodic memory functionality through the Model Context Protocol:
 - Query past experiences and learned patterns
 - Analyze successful strategies from historical episodes
 - Execute code in a secure sandbox environment
 - Perform advanced statistical and predictive analysis
 - Monitor server health and metrics
 
-**Location**: `./target/release/memory-mcp-server`
+**Location**: `./target/release/do-memory-mcp-server`
 **Configuration**: `.mcp.json`
 **Transport**: stdio (Standard Input/Output)
 
@@ -55,14 +55,14 @@ See **[tools.md](tools.md)** for detailed tool documentation and **[best-practic
 
 ```bash
 # Build
-cargo build --release --bin memory-mcp-server
+cargo build --release --bin do-memory-mcp-server
 
 # Run directly
 export TURSO_DATABASE_URL="file:./data/memory.db"
-./target/release/memory-mcp-server
+./target/release/do-memory-mcp-server
 
 # Run via MCP Inspector for testing
-npx -y @modelcontextprotocol/inspector ./target/release/memory-mcp-server
+npx -y @modelcontextprotocol/inspector ./target/release/do-memory-mcp-server
 ```
 
 See **[configuration.md](configuration.md)** for full environment setup and **[validation.md](validation.md)** for MCP Inspector workflow.

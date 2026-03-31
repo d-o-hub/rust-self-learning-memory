@@ -23,35 +23,35 @@ The project currently has a 90% code coverage target configured in `.codecov.yml
 
 | Crate | `#[cfg(test)]` Count | Coverage Priority |
 |-------|---------------------|-------------------|
-| memory-core | 104 files | HIGH - Core business logic |
-| memory-mcp | 52 files | HIGH - Protocol and security |
-| memory-storage-turso | 44 files | MEDIUM - Database operations |
-| memory-cli | 26 files | MEDIUM - User interface |
-| memory-storage-redb | 8 files | HIGH - Cache and persistence |
+| do-memory-core | 104 files | HIGH - Core business logic |
+| do-memory-mcp | 52 files | HIGH - Protocol and security |
+| do-memory-storage-turso | 44 files | MEDIUM - Database operations |
+| do-memory-cli | 26 files | MEDIUM - User interface |
+| do-memory-storage-redb | 8 files | HIGH - Cache and persistence |
 
 ### Identified Coverage Gaps
 
-1. **memory-core**
+1. **do-memory-core**
    - `reward/`: Complex calculation paths (efficiency, quality, learning bonuses)
    - `spatiotemporal/`: Index operations, retrieval logic
    - `sync/`: Two-phase commit, storage synchronization
    - `reflection/`: Insight generation paths
 
-2. **memory-storage-redb**
+2. **do-memory-storage-redb**
    - `persistence/`: Manager, config, types
    - `cache/adaptive/`: Adaptive TTL logic, eviction policies
 
-3. **memory-storage-turso**
+3. **do-memory-storage-turso**
    - `metrics/export/`: HTTP export, Prometheus formatting
    - `transport/`: Compression, wrapper operations
    - `pool/keepalive/`: Connection lifecycle
 
-4. **memory-mcp**
+4. **do-memory-mcp**
    - `batch/`: Dependency graph, batch execution
    - `patterns/predictive/`: Forecasting, ETS algorithms
    - `sandbox/`: Security boundaries
 
-5. **memory-cli**
+5. **do-memory-cli**
    - `commands/`: Episode, pattern, tag operations
    - `config/validator/rules/`: Validation logic
 
@@ -72,11 +72,11 @@ Implement a phased coverage improvement plan with realistic targets:
 
 | Crate | Phase 1 | Phase 3 | Final Target |
 |-------|---------|---------|--------------|
-| memory-core | 70% | 80% | 85% |
-| memory-storage-redb | 60% | 75% | 80% |
-| memory-storage-turso | 65% | 75% | 80% |
-| memory-mcp | 55% | 70% | 75% |
-| memory-cli | 50% | 65% | 70% |
+| do-memory-core | 70% | 80% | 85% |
+| do-memory-storage-redb | 60% | 75% | 80% |
+| do-memory-storage-turso | 65% | 75% | 80% |
+| do-memory-mcp | 55% | 70% | 75% |
+| do-memory-cli | 50% | 65% | 70% |
 
 ### Implementation Strategy
 
@@ -225,7 +225,7 @@ cargo mutants --timeout 120 --jobs 4 -- --lib
 
 | Action | Status | Details |
 |--------|--------|---------|
-| ACT-026 | ✅ Complete | Episode lifecycle tests in memory-core |
+| ACT-026 | ✅ Complete | Episode lifecycle tests in do-memory-core |
 | ACT-027 | ✅ Complete | Reward calculation property tests |
 | ACT-028 | ✅ Complete | Storage consistency tests |
 | ACT-029 | ✅ Complete | Error handling tests |
@@ -258,5 +258,5 @@ cargo mutants --timeout 120 --jobs 4 -- --lib
 - Updated snapshot tests for v0.1.19
 
 **Files Changed**:
-- `memory-mcp/src/server/tests.rs` - Fixed test assertion
-- `memory-cli/tests/snapshots/*` - Updated version snapshots
+- `do-memory-mcp/src/server/tests.rs` - Fixed test assertion
+- `do-memory-cli/tests/snapshots/*` - Updated version snapshots

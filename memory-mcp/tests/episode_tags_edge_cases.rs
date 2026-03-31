@@ -1,7 +1,7 @@
 //! Edge case and stress tests for episode tagging
 
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
-use memory_mcp::mcp::tools::episode_tags::{
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_mcp::mcp::tools::episode_tags::{
     AddEpisodeTagsInput, EpisodeTagTools, RemoveEpisodeTagsInput, SearchEpisodesByTagsInput,
     SetEpisodeTagsInput,
 };
@@ -308,9 +308,11 @@ async fn test_sequential_operations() {
 
     // Final check
     let result = tools
-        .get_tags(memory_mcp::mcp::tools::episode_tags::GetEpisodeTagsInput {
-            episode_id: episode_id.to_string(),
-        })
+        .get_tags(
+            do_memory_mcp::mcp::tools::episode_tags::GetEpisodeTagsInput {
+                episode_id: episode_id.to_string(),
+            },
+        )
         .await
         .unwrap();
 

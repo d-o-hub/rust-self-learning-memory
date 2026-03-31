@@ -7,11 +7,11 @@
 //! Note: After migration to postcard, these tests verify that size constraints
 //! are still enforced, even though postcard is inherently safer than bincode.
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, Episode, Evidence, ExecutionResult, ExecutionStep, Heuristic, Pattern,
     TaskContext, TaskType,
 };
-use memory_storage_redb::{MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE, RedbStorage};
+use do_memory_storage_redb::{MAX_EPISODE_SIZE, MAX_HEURISTIC_SIZE, MAX_PATTERN_SIZE, RedbStorage};
 use serde_json::json;
 use tempfile::TempDir;
 
@@ -122,13 +122,13 @@ fn create_large_pattern() -> Pattern {
         condition: format!("if {} then", large_condition),
         action: format!("do {}", large_action),
         context: TaskContext::default(),
-        outcome_stats: memory_core::OutcomeStats {
+        outcome_stats: do_memory_core::OutcomeStats {
             success_count: 9,
             failure_count: 1,
             total_count: 10,
             avg_duration_secs: 1.5,
         },
-        effectiveness: memory_core::PatternEffectiveness::new(),
+        effectiveness: do_memory_core::PatternEffectiveness::new(),
     }
 }
 
@@ -143,13 +143,13 @@ fn create_oversized_pattern() -> Pattern {
         condition: format!("if {} then", oversized_condition),
         action: format!("do {}", oversized_action),
         context: TaskContext::default(),
-        outcome_stats: memory_core::OutcomeStats {
+        outcome_stats: do_memory_core::OutcomeStats {
             success_count: 9,
             failure_count: 1,
             total_count: 10,
             avg_duration_secs: 1.5,
         },
-        effectiveness: memory_core::PatternEffectiveness::new(),
+        effectiveness: do_memory_core::PatternEffectiveness::new(),
     }
 }
 

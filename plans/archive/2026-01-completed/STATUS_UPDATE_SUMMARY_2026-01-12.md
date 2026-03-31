@@ -30,9 +30,9 @@
 - Updated document version from 4.1 to 4.2
 - Updated date to 2026-01-12
 - Updated file splitting table with v0.1.12 completions:
-  - memory-cli/src/config/types.rs: 1,052 → 9 files (max 379 LOC)
-  - memory-core/src/memory/retrieval.rs: 891 → 6 files (max 414 LOC)
-  - memory-core/src/patterns/optimized_validator.rs: 889 → 6 files (max 448 LOC)
+  - do-memory-cli/src/config/types.rs: 1,052 → 9 files (max 379 LOC)
+  - do-memory-core/src/memory/retrieval.rs: 891 → 6 files (max 414 LOC)
+  - do-memory-core/src/patterns/optimized_validator.rs: 889 → 6 files (max 448 LOC)
 - Updated total compliant modules from previous status
 
 ## Files Recommended for Archival

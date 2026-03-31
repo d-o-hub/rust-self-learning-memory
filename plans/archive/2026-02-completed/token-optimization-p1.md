@@ -10,7 +10,7 @@
 - **Tool Registration**: All 50+ tools loaded at server startup in `tool_definitions.rs` (225 LOC) and `tool_definitions_extended.rs` (682 LOC)
 - **Tool Exposure**: `list_tools()` returns all tool schemas upfront, causing massive input token consumption
 - **Query Tools**: 20+ query tools return full object structures without field filtering
-- **Tool Modules**: 14 tool modules in `memory-mcp/src/server/tools/` (~1,915 LOC total)
+- **Tool Modules**: 14 tool modules in `do-memory-mcp/src/server/tools/` (~1,915 LOC total)
 
 ### Token Usage Breakdown (Current)
 | Component | Estimated Tokens | Percentage |
@@ -24,7 +24,7 @@
 ### Phase 1: Dynamic Tool Loading (Input Token Reduction)
 
 #### 1.1 Tool Registry System
-**File**: `memory-mcp/src/server/tools/registry.rs` (NEW)
+**File**: `do-memory-mcp/src/server/tools/registry.rs` (NEW)
 
 ```rust
 pub struct ToolRegistry {
@@ -44,7 +44,7 @@ pub struct ToolRegistry {
 - Progressive disclosure based on usage patterns
 
 #### 1.2 Lazy Loading Implementation
-**File**: `memory-mcp/src/server/tools/mod.rs` (MODIFY)
+**File**: `do-memory-mcp/src/server/tools/mod.rs` (MODIFY)
 
 **Changes**:
 1. Replace static `list_tools()` with lazy-loading version
@@ -60,7 +60,7 @@ pub struct ToolRegistry {
 ### Phase 2: Field Selection System (Output Token Reduction)
 
 #### 2.1 Field Projection Module
-**File**: `memory-mcp/src/server/tools/field_projection.rs` (NEW)
+**File**: `do-memory-mcp/src/server/tools/field_projection.rs` (NEW)
 
 ```rust
 pub struct FieldSelector {
@@ -146,19 +146,19 @@ Add `fields` parameter to all query tools:
 ## Implementation Steps
 
 ### Step 1: Create Tool Registry (Dynamic Loading)
-1. Create `memory-mcp/src/server/tools/registry.rs`
+1. Create `do-memory-mcp/src/server/tools/registry.rs`
 2. Define core vs extended tool categorization
 3. Implement lazy loading logic
 4. Add session caching
 
 ### Step 2: Create Field Projection Module
-1. Create `memory-mcp/src/server/tools/field_projection.rs`
+1. Create `do-memory-mcp/src/server/tools/field_projection.rs`
 2. Implement generic field selector
 3. Add support for nested field paths
 4. Handle edge cases (invalid fields, nested objects)
 
 ### Step 3: Modify Tool Registration
-1. Update `memory-mcp/src/server/mod.rs`
+1. Update `do-memory-mcp/src/server/mod.rs`
 2. Replace static tool loading with registry
 3. Update `list_tools()` to use registry
 4. Ensure backward compatibility
@@ -194,20 +194,20 @@ Add `fields` parameter to all query tools:
 ## File Structure
 
 ### New Files
-- `memory-mcp/src/server/tools/registry.rs` (~300 LOC)
-- `memory-mcp/src/server/tools/field_projection.rs` (~250 LOC)
+- `do-memory-mcp/src/server/tools/registry.rs` (~300 LOC)
+- `do-memory-mcp/src/server/tools/field_projection.rs` (~250 LOC)
 
 ### Modified Files
-- `memory-mcp/src/server/tools/mod.rs` (add lazy loading)
-- `memory-mcp/src/server/tool_definitions.rs` (add core vs extended categorization)
-- `memory-mcp/src/server/tool_definitions_extended.rs` (mark as extended)
-- `memory-mcp/src/server/mod.rs` (use registry instead of static tools)
+- `do-memory-mcp/src/server/tools/mod.rs` (add lazy loading)
+- `do-memory-mcp/src/server/tool_definitions.rs` (add core vs extended categorization)
+- `do-memory-mcp/src/server/tool_definitions_extended.rs` (mark as extended)
+- `do-memory-mcp/src/server/mod.rs` (use registry instead of static tools)
 - All 20 query tool files (add `fields` parameter)
 
 ### Test Files
-- `memory-mcp/src/server/tools/registry_tests.rs` (NEW)
-- `memory-mcp/src/server/tools/field_projection_tests.rs` (NEW)
-- `memory-mcp/tests/token_optimization.rs` (NEW)
+- `do-memory-mcp/src/server/tools/registry_tests.rs` (NEW)
+- `do-memory-mcp/src/server/tools/field_projection_tests.rs` (NEW)
+- `do-memory-mcp/tests/token_optimization.rs` (NEW)
 
 ## Risk Mitigation
 

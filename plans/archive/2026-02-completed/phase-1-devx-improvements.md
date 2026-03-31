@@ -9,11 +9,11 @@ Improve developer experience through better error handling, quick-start config, 
 ## Tasks
 
 ### 1. Add anyhow::Context to storage errors
-- **Files**: memory-core/src/error/mod.rs, memory-storage-turso/src/lib.rs, memory-storage-redb/src/lib.rs
+- **Files**: do-memory-core/src/error/mod.rs, do-memory-storage-turso/src/lib.rs, do-memory-storage-redb/src/lib.rs
 - **Approach**: Replace string-based errors with anyhow::Context for better error chains
 
 ### 2. Create MemoryConfig::all_features() quick-start
-- **Files**: memory-core/src/config/mod.rs
+- **Files**: do-memory-core/src/config/mod.rs
 - **Approach**: Add builder method that enables all features
 
 ### 3. Document feature flags in README

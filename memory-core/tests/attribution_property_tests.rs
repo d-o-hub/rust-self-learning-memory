@@ -1,8 +1,8 @@
 use chrono::{TimeZone, Utc};
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::types::TaskOutcome;
+use do_memory_core::types::TaskOutcome;
 use proptest::prelude::*;
 use uuid::Uuid;
 

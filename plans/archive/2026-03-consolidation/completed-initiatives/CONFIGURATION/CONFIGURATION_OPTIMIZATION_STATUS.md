@@ -21,7 +21,7 @@ Configuration complexity **WAS** the **#1 barrier** preventing users from unlock
 
 ## Current State Analysis
 
-### File: memory-cli/src/config/
+### File: do-memory-cli/src/config/
 
 **Module Structure** (as of 2026-01-12):
 ```
@@ -362,9 +362,9 @@ config/
 ## Dependencies
 
 ### Internal Dependencies
-- ✅ memory-core: No changes needed
+- ✅ do-memory-core: No changes needed
 - ✅ memory-storage-*: No changes needed
-- ✅ memory-cli: Requires refactor (this blocker) - **RESOLVED**
+- ✅ do-memory-cli: Requires refactor (this blocker) - **RESOLVED**
 
 ### External Dependencies
 - ✅ clap: CLI argument parsing

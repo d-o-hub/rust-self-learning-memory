@@ -11,8 +11,8 @@
 
 use crate::TursoStorage;
 use async_trait::async_trait;
-use memory_core::embeddings::{EmbeddingStorageBackend, SimilaritySearchResult};
-use memory_core::{Episode, Pattern, Result, episode::PatternId};
+use do_memory_core::embeddings::{EmbeddingStorageBackend, SimilaritySearchResult};
+use do_memory_core::{Episode, Pattern, Result, episode::PatternId};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -183,7 +183,7 @@ impl TursoStorage {
                     stats.record_skipped();
                 }
                 // No compression, store as JSON
-                serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?
+                serde_json::to_string(embedding).map_err(do_memory_core::Error::Serialization)?
             } else {
                 if let Ok(mut stats) = self.compression_stats.lock() {
                     stats.record_compression(
@@ -203,12 +203,12 @@ impl TursoStorage {
             }
         } else {
             // No compression, store as JSON
-            serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?
+            serde_json::to_string(embedding).map_err(do_memory_core::Error::Serialization)?
         };
 
         #[cfg(not(feature = "compression"))]
         let embedding_data: String =
-            serde_json::to_string(embedding).map_err(memory_core::Error::Serialization)?;
+            serde_json::to_string(embedding).map_err(do_memory_core::Error::Serialization)?;
 
         const SQL: &str = r#"
             INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)
@@ -223,7 +223,7 @@ impl TursoStorage {
             .get_or_prepare(&conn, SQL)
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
             })?;
         stmt.execute(libsql::params![
             embedding_id,
@@ -234,7 +234,7 @@ impl TursoStorage {
             "default"
         ])
         .await
-        .map_err(|e| memory_core::Error::Storage(format!("Failed to store embedding: {}", e)))?;
+        .map_err(|e| do_memory_core::Error::Storage(format!("Failed to store embedding: {}", e)))?;
 
         info!("Successfully stored embedding: {}", item_id);
         Ok(())
@@ -264,96 +264,97 @@ impl TursoStorage {
             .get_or_prepare(&conn, SQL)
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
             })?;
         let mut rows = stmt
             .query(libsql::params![item_id.to_string(), item_type.to_string()])
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to query embedding: {}", e))
             })?;
 
         if let Some(row) = rows.next().await.map_err(|e| {
-            memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
+            do_memory_core::Error::Storage(format!("Failed to fetch embedding row: {}", e))
         })? {
             let embedding_data: String = row
                 .get(0)
-                .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
 
             // Check if data is compressed (only when compression is enabled)
             #[cfg(feature = "compression")]
-            let embedding: Vec<f32> =
-                if let Some(remainder) = embedding_data.strip_prefix("__compressed__:") {
-                    // Parse compressed format
-                    let newline_pos = remainder.find('\n').ok_or_else(|| {
-                        memory_core::Error::Storage(
-                            "Invalid compressed data format: missing newline".to_string(),
-                        )
-                    })?;
-                    let header = &remainder[..newline_pos];
-                    let encoded_data = &remainder[newline_pos + 1..];
-
-                    // Parse header
-                    let colon_pos = header.find(':').ok_or_else(|| {
-                        memory_core::Error::Storage("Invalid compressed header format".to_string())
-                    })?;
-                    let algorithm_str = &header[..colon_pos];
-                    let original_size: usize = header[colon_pos + 1..].parse().map_err(|_| {
-                        memory_core::Error::Storage(
-                            "Invalid original size in compressed header".to_string(),
-                        )
-                    })?;
-
-                    let algorithm = match algorithm_str {
-                        "lz4" => crate::CompressionAlgorithm::Lz4,
-                        "zstd" => crate::CompressionAlgorithm::Zstd,
-                        "gzip" => crate::CompressionAlgorithm::Gzip,
-                        _ => {
-                            return Err(memory_core::Error::Storage(format!(
-                                "Unknown compression algorithm: {}",
-                                algorithm_str
-                            )));
-                        }
-                    };
-
-                    let compressed_data = base64::Engine::decode(
-                        &base64::engine::general_purpose::STANDARD,
-                        encoded_data,
+            let embedding: Vec<f32> = if let Some(remainder) =
+                embedding_data.strip_prefix("__compressed__:")
+            {
+                // Parse compressed format
+                let newline_pos = remainder.find('\n').ok_or_else(|| {
+                    do_memory_core::Error::Storage(
+                        "Invalid compressed data format: missing newline".to_string(),
                     )
-                    .map_err(|e| {
-                        memory_core::Error::Storage(format!(
-                            "Failed to decode base64 compressed data: {}",
-                            e
-                        ))
-                    })?;
+                })?;
+                let header = &remainder[..newline_pos];
+                let encoded_data = &remainder[newline_pos + 1..];
 
-                    let payload = crate::CompressedPayload {
-                        original_size,
-                        compressed_size: compressed_data.len(),
-                        compression_ratio: compressed_data.len() as f64 / original_size as f64,
-                        data: compressed_data,
-                        algorithm,
-                    };
+                // Parse header
+                let colon_pos = header.find(':').ok_or_else(|| {
+                    do_memory_core::Error::Storage("Invalid compressed header format".to_string())
+                })?;
+                let algorithm_str = &header[..colon_pos];
+                let original_size: usize = header[colon_pos + 1..].parse().map_err(|_| {
+                    do_memory_core::Error::Storage(
+                        "Invalid original size in compressed header".to_string(),
+                    )
+                })?;
 
-                    let bytes = payload.decompress()?;
-                    bytes
-                        .chunks_exact(4)
-                        .map(|chunk| {
-                            let mut arr = [0u8; 4];
-                            arr.copy_from_slice(chunk);
-                            f32::from_le_bytes(arr)
-                        })
-                        .collect()
-                } else {
-                    // Not compressed, parse as JSON
-                    serde_json::from_str(&embedding_data).map_err(|e| {
-                        memory_core::Error::Storage(format!("Failed to parse embedding: {}", e))
-                    })?
+                let algorithm = match algorithm_str {
+                    "lz4" => crate::CompressionAlgorithm::Lz4,
+                    "zstd" => crate::CompressionAlgorithm::Zstd,
+                    "gzip" => crate::CompressionAlgorithm::Gzip,
+                    _ => {
+                        return Err(do_memory_core::Error::Storage(format!(
+                            "Unknown compression algorithm: {}",
+                            algorithm_str
+                        )));
+                    }
                 };
+
+                let compressed_data = base64::Engine::decode(
+                    &base64::engine::general_purpose::STANDARD,
+                    encoded_data,
+                )
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to decode base64 compressed data: {}",
+                        e
+                    ))
+                })?;
+
+                let payload = crate::CompressedPayload {
+                    original_size,
+                    compressed_size: compressed_data.len(),
+                    compression_ratio: compressed_data.len() as f64 / original_size as f64,
+                    data: compressed_data,
+                    algorithm,
+                };
+
+                let bytes = payload.decompress()?;
+                bytes
+                    .chunks_exact(4)
+                    .map(|chunk| {
+                        let mut arr = [0u8; 4];
+                        arr.copy_from_slice(chunk);
+                        f32::from_le_bytes(arr)
+                    })
+                    .collect()
+            } else {
+                // Not compressed, parse as JSON
+                serde_json::from_str(&embedding_data).map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to parse embedding: {}", e))
+                })?
+            };
 
             #[cfg(not(feature = "compression"))]
             let embedding: Vec<f32> = serde_json::from_str(&embedding_data).map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to parse embedding: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to parse embedding: {}", e))
             })?;
 
             Ok(Some(embedding))
@@ -375,13 +376,13 @@ impl TursoStorage {
             .get_or_prepare(&conn, SQL)
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
             })?;
         let rows_affected = stmt
             .execute(libsql::params![item_id.to_string()])
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
             })?;
 
         Ok(rows_affected > 0)
@@ -401,7 +402,7 @@ impl TursoStorage {
 
         for (item_id, embedding) in embeddings {
             let embedding_json =
-                serde_json::to_string(&embedding).map_err(memory_core::Error::Serialization)?;
+                serde_json::to_string(&embedding).map_err(do_memory_core::Error::Serialization)?;
 
             let embedding_id = self.generate_embedding_id(&item_id, "embedding");
 
@@ -411,7 +412,7 @@ impl TursoStorage {
                 .get_or_prepare(&conn, SQL)
                 .await
                 .map_err(|e| {
-                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
                 })?;
 
             stmt.execute(libsql::params![
@@ -424,7 +425,7 @@ impl TursoStorage {
             ])
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to store batch embedding: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to store batch embedding: {}", e))
             })?;
         }
 

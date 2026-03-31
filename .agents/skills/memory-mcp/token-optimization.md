@@ -1,13 +1,13 @@
 ---
-name: memory-mcp-token-optimization
-description: Optimize memory-mcp token usage for reduced costs and faster responses. Use lazy tool loading, field projection, and best practices to minimize token consumption.
+name: do-memory-mcp-token-optimization
+description: Optimize do-memory-mcp token usage for reduced costs and faster responses. Use lazy tool loading, field projection, and best practices to minimize token consumption.
 ---
 
 # Memory MCP Token Optimization
 
 ## Overview
 
-This skill provides guidance for minimizing token usage when using the memory-mcp server. Token optimization reduces:
+This skill provides guidance for minimizing token usage when using the do-memory-mcp server. Token optimization reduces:
 - LLM context window usage
 - API costs
 - Response latency
@@ -83,22 +83,22 @@ tools/list: ~1,237 tokens (full schemas)
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "memory-mcp": {
+    "do-memory-mcp": {
       "type": "local",
-      "command": ["/path/to/scripts/preflight-memory-mcp.sh"],
+      "command": ["/path/to/scripts/preflight-do-memory-mcp.sh"],
       "enabled": true,
       "timeout": 3000
     }
   },
   // Disable globally
   "tools": {
-    "memory-mcp_*": false
+    "do-memory-mcp_*": false
   },
   // Enable only for specific agents
   "agent": {
     "memory-agent": {
       "tools": {
-        "memory-mcp_*": true
+        "do-memory-mcp_*": true
       }
     }
   }
@@ -109,7 +109,7 @@ tools/list: ~1,237 tokens (full schemas)
 
 To reduce tokens without requiring client changes, modify the MCP server:
 
-### File: `memory-mcp/src/bin/server_impl/core.rs`
+### File: `do-memory-mcp/src/bin/server_impl/core.rs`
 
 Change the default from `lazy=false` to `lazy=true`:
 

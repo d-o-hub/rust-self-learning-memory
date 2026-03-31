@@ -34,8 +34,8 @@ pub use self::traversal::{
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use memory_core::episode::graph_algorithms::has_path_dfs;
-/// use memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
+/// use do_memory_core::episode::graph_algorithms::has_path_dfs;
+/// use do_memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
 /// use uuid::Uuid;
 ///
 /// let mut graph = HashMap::new();
@@ -78,8 +78,8 @@ where
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use memory_core::episode::graph_algorithms::find_path_dfs;
-/// use memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
+/// use do_memory_core::episode::graph_algorithms::find_path_dfs;
+/// use do_memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
 /// use uuid::Uuid;
 ///
 /// let mut graph = HashMap::new();
@@ -138,8 +138,8 @@ where
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use memory_core::episode::graph_algorithms::has_cycle;
-/// use memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
+/// use do_memory_core::episode::graph_algorithms::has_cycle;
+/// use do_memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
 /// use uuid::Uuid;
 ///
 /// // Create a cyclic graph: A -> B -> A
@@ -194,8 +194,8 @@ where
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use memory_core::episode::graph_algorithms::topological_sort;
-/// use memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
+/// use do_memory_core::episode::graph_algorithms::topological_sort;
+/// use do_memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
 /// use uuid::Uuid;
 ///
 /// // Create a DAG: A -> B, A -> C, B -> C
@@ -266,8 +266,8 @@ where
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use memory_core::episode::graph_algorithms::get_transitive_closure;
-/// use memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
+/// use do_memory_core::episode::graph_algorithms::get_transitive_closure;
+/// use do_memory_core::episode::{EpisodeRelationship, RelationshipType, RelationshipMetadata};
 /// use uuid::Uuid;
 ///
 /// // Create graph: A -> B -> C, A -> D

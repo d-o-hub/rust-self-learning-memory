@@ -6,7 +6,7 @@
 
 ```bash
 # Ensure binary exists
-ls ./target/release/memory-cli
+ls ./target/release/do-memory-cli
 
 # Add to PATH
 export PATH="./target/release:$PATH"
@@ -19,11 +19,11 @@ export PATH="./target/release:$PATH"
 ls -la data/
 
 # Repair database
-memory-cli storage repair
+do-memory-cli storage repair
 
 # Reinitialize
 rm data/memory.db
-memory-cli init
+do-memory-cli init
 ```
 
 ### Authentication Errors
@@ -55,23 +55,23 @@ curl -H "Authorization: Bearer $TURSO_TOKEN" $TURSO_URL
 
 ```bash
 # Check cache status
-memory-cli storage status
+do-memory-cli storage status
 
 # Clear cache
 rm -rf data/cache.redb
 
 # Rebuild cache
-memory-cli storage sync
+do-memory-cli storage sync
 ```
 
 ## Debug Mode
 
 ```bash
 # Enable verbose output
-memory-cli -v <command>
+do-memory-cli -v <command>
 
 # Enable debug logging
-RUST_LOG=debug memory-cli <command>
+RUST_LOG=debug do-memory-cli <command>
 ```
 
 ## Exit Codes
@@ -89,11 +89,11 @@ RUST_LOG=debug memory-cli <command>
 
 ```bash
 # View recent logs
-memory-cli logs --lines 100
+do-memory-cli logs --lines 100
 
 # Filter by level
-memory-cli logs --level error
+do-memory-cli logs --level error
 
 # Search for pattern
-memory-cli logs --grep "episode"
+do-memory-cli logs --grep "episode"
 ```

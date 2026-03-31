@@ -107,7 +107,7 @@ cargo llvm-cov --html --output-dir coverage
 # Review coverage/html/index.html for red/yellow sections
 
 # 3. Generate coverage report for specific crate
-cargo llvm-cov --package memory-core --html --output-dir coverage/memory-core
+cargo llvm-cov --package do-memory-core --html --output-dir coverage/do-memory-core
 ```
 
 ### Phase 3: Quality Gate Validation
@@ -251,8 +251,8 @@ Provide structured QA reports in this format:
 ### Coverage Gaps
 | File | Coverage | Uncovered Lines |
 |------|----------|-----------------|
-| `memory-core/src/lib.rs` | 75.2% | 10-15, 45-60 |
-| `memory-mcp/src/server.rs` | 88.1% | 120-125 |
+| `do-memory-core/src/lib.rs` | 75.2% | 10-15, 45-60 |
+| `do-memory-mcp/src/server.rs` | 88.1% | 120-125 |
 
 ### Quality Gate Validation
 | Gate | Status | Details |

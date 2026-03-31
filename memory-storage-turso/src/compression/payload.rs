@@ -4,14 +4,14 @@
 //! for the CompressedPayload type.
 
 use crate::compression::CompressionAlgorithm;
-use memory_core::Result;
+use do_memory_core::Result;
 
 /// A compressed payload with metadata for decompression
 ///
 /// # Example
 ///
 /// ```rust
-/// use memory_storage_turso::compression::CompressedPayload;
+/// use do_memory_storage_turso::compression::CompressedPayload;
 ///
 /// let data = b"hello world".repeat(100);
 /// let compressed = CompressedPayload::compress(&data, 1024).unwrap();
@@ -132,7 +132,7 @@ impl CompressedPayload {
 
         #[cfg(not(feature = "compression-zstd"))]
         {
-            Err(memory_core::Error::Storage(
+            Err(do_memory_core::Error::Storage(
                 "Zstd compression not available (enable compression-zstd feature)".to_string(),
             ))
         }
@@ -199,13 +199,13 @@ impl CompressedPayload {
         #[cfg(feature = "compression-lz4")]
         {
             lz4_flex::decompress(&self.data, self.original_size).map_err(|e| {
-                memory_core::Error::Storage(format!("LZ4 decompression failed: {}", e))
+                do_memory_core::Error::Storage(format!("LZ4 decompression failed: {}", e))
             })
         }
 
         #[cfg(not(feature = "compression-lz4"))]
         {
-            Err(memory_core::Error::Storage(
+            Err(do_memory_core::Error::Storage(
                 "LZ4 decompression not available (enable compression-lz4 feature)".to_string(),
             ))
         }
@@ -216,13 +216,13 @@ impl CompressedPayload {
         #[cfg(feature = "compression-zstd")]
         {
             zstd::stream::decode_all(&self.data[..]).map_err(|e| {
-                memory_core::Error::Storage(format!("Zstd decompression failed: {}", e))
+                do_memory_core::Error::Storage(format!("Zstd decompression failed: {}", e))
             })
         }
 
         #[cfg(not(feature = "compression-zstd"))]
         {
-            Err(memory_core::Error::Storage(
+            Err(do_memory_core::Error::Storage(
                 "Zstd decompression not available (enable compression-zstd feature)".to_string(),
             ))
         }
@@ -238,14 +238,14 @@ impl CompressedPayload {
             let mut decoder = GzDecoder::new(&self.data[..]);
             let mut decompressed = Vec::new();
             decoder.read_to_end(&mut decompressed).map_err(|e| {
-                memory_core::Error::Storage(format!("Gzip decompression failed: {}", e))
+                do_memory_core::Error::Storage(format!("Gzip decompression failed: {}", e))
             })?;
             Ok(decompressed)
         }
 
         #[cfg(not(feature = "compression-gzip"))]
         {
-            Err(memory_core::Error::Storage(
+            Err(do_memory_core::Error::Storage(
                 "Gzip decompression not available (enable compression-gzip feature)".to_string(),
             ))
         }

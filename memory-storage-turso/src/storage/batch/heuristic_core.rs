@@ -3,7 +3,7 @@
 //! Core batch operations for heuristics using transactions.
 
 use crate::TursoStorage;
-use memory_core::{Error, Heuristic, Result};
+use do_memory_core::{Error, Heuristic, Result};
 use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
@@ -336,7 +336,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
+    /// # use do_memory_storage_turso::TursoStorage;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;

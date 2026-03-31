@@ -9,11 +9,11 @@
 
 | Crate | unwrap() | .expect() | Total | Priority |
 |-------|----------|-----------|-------|----------|
-| memory-core | 215 | 47 | 262 | HIGH (public API) |
-| memory-storage-turso | 180 | 35 | 215 | HIGH (storage layer) |
-| memory-mcp | 108 | 3 | 111 | Medium |
-| memory-cli | 48 | 16 | 64 | Low |
-| memory-storage-redb | 26 | 21 | 47 | Low |
+| do-memory-core | 215 | 47 | 262 | HIGH (public API) |
+| do-memory-storage-turso | 180 | 35 | 215 | HIGH (storage layer) |
+| do-memory-mcp | 108 | 3 | 111 | Medium |
+| do-memory-cli | 48 | 16 | 64 | Low |
+| do-memory-storage-redb | 26 | 21 | 47 | Low |
 | **TOTAL** | **577** | **122** | **699** | - |
 
 ### Comparison to Documentation
@@ -37,14 +37,14 @@
 - Target: 60% reduction (699 → 280) to meet original goal
 
 **Contingency**:
-- If B1 exceeds 15h: Focus on public API boundaries only (memory-core, storage-turso)
+- If B1 exceeds 15h: Focus on public API boundaries only (do-memory-core, storage-turso)
 - Defer internal cleanup to v0.1.17
 
 ## Methodology
 
 ```bash
 # Count production code only (exclude tests)
-for crate in memory-core memory-storage-turso memory-storage-redb memory-mcp memory-cli; do
+for crate in do-memory-core do-memory-storage-turso do-memory-storage-redb do-memory-mcp do-memory-cli; do
   unwrap=$(find $crate -name "*.rs" -type f | grep -v test | xargs grep "unwrap()" | wc -l)
   expect=$(find $crate -name "*.rs" -type f | grep -v test | xargs grep ".expect(" | wc -l)
   echo "$crate: $unwrap unwrap + $expect expect"
@@ -54,21 +54,21 @@ done
 ## Next Steps (B1.2-B1.9)
 
 ### Priority Order (by impact)
-1. **memory-core** (262 calls) - Public API, highest priority
-2. **memory-storage-turso** (215 calls) - Storage layer, critical path
-3. **memory-mcp** (111 calls) - Server errors, user-facing
-4. **memory-cli** (64 calls) - CLI errors, low priority
-5. **memory-storage-redb** (47 calls) - Cache layer, lowest priority
+1. **do-memory-core** (262 calls) - Public API, highest priority
+2. **do-memory-storage-turso** (215 calls) - Storage layer, critical path
+3. **do-memory-mcp** (111 calls) - Server errors, user-facing
+4. **do-memory-cli** (64 calls) - CLI errors, low priority
+5. **do-memory-storage-redb** (47 calls) - Cache layer, lowest priority
 
 ### B1.2: Design Error Enum (1.5h)
-- Create base `Error` enum in `memory-core/src/error.rs`
+- Create base `Error` enum in `do-memory-core/src/error.rs`
 - Use `thiserror` for automatic implementations
 - Make extensible (add variants without breaking changes)
 
 ### B1.3-B1.7: Implement by Crate (6-8h)
-- Start with memory-core (validate design)
+- Start with do-memory-core (validate design)
 - Parallel: storage-turso + storage-redb
-- Parallel: memory-mcp + memory-cli
+- Parallel: do-memory-mcp + do-memory-cli
 - Total: 3 sequential rounds, 2 crates in parallel each round
 
 ### B1.8: Add Error Path Tests (1h)

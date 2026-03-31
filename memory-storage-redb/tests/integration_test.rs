@@ -1,7 +1,7 @@
 //! Integration tests for redb storage
 
-use memory_core::{Episode, StorageBackend, TaskContext, TaskType};
-use memory_storage_redb::{RedbQuery, RedbStorage};
+use do_memory_core::{Episode, StorageBackend, TaskContext, TaskType};
+use do_memory_storage_redb::{RedbQuery, RedbStorage};
 use tempfile::TempDir;
 
 async fn create_test_storage() -> anyhow::Result<(RedbStorage, TempDir)> {

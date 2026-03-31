@@ -55,9 +55,9 @@ pub struct PlaybookStep {
 
 | File | Change |
 |------|--------|
-| `memory-core/src/memory/completion.rs` | Persist semantic summary (currently dropped) |
-| `memory-core/src/memory/playbook/` | New module: `PlaybookGenerator` synthesizes playbooks from patterns + reflections + summaries |
-| `memory-core/src/memory/retrieval/context.rs` | Add `retrieve_playbooks()` returning playbooks instead of raw episodes |
+| `do-memory-core/src/memory/completion.rs` | Persist semantic summary (currently dropped) |
+| `do-memory-core/src/memory/playbook/` | New module: `PlaybookGenerator` synthesizes playbooks from patterns + reflections + summaries |
+| `do-memory-core/src/memory/retrieval/context.rs` | Add `retrieve_playbooks()` returning playbooks instead of raw episodes |
 | MCP: `handlers.rs` | Add `recommend_playbook`, `explain_pattern` tools |
 | CLI: `commands/playbook/` | Add `playbook recommend`, `playbook explain` commands |
 
@@ -97,10 +97,10 @@ pub struct RecommendationFeedback {
 
 | File | Change |
 |------|--------|
-| `memory-core/src/memory/attribution/` | New module: `RecommendationTracker` records sessions + feedback |
-| `memory-core/src/memory/learning.rs` | Wire completion to update pattern effectiveness for *applied* patterns |
-| `memory-core/src/memory/completion.rs` | Consume recommendation feedback metadata during completion |
-| `memory-core/src/reward/mod.rs` | Add adoption-rate bonus: patterns that are recommended AND applied AND succeed get boosted |
+| `do-memory-core/src/memory/attribution/` | New module: `RecommendationTracker` records sessions + feedback |
+| `do-memory-core/src/memory/learning.rs` | Wire completion to update pattern effectiveness for *applied* patterns |
+| `do-memory-core/src/memory/completion.rs` | Consume recommendation feedback metadata during completion |
+| `do-memory-core/src/reward/mod.rs` | Add adoption-rate bonus: patterns that are recommended AND applied AND succeed get boosted |
 | MCP: `handlers.rs` | Add `record_recommendation_feedback` tool |
 | CLI: `commands/feedback/` | Add `feedback record` command |
 
@@ -141,9 +141,9 @@ pub struct HandoffPack {
 
 | File | Change |
 |------|--------|
-| `memory-core/src/memory/checkpoint/` | New module: `checkpoint_episode()`, `get_handoff_pack()`, `resume_from_handoff()` |
-| `memory-core/src/extraction/extractor.rs` | Reuse salient extraction on partial episodes |
-| `memory-core/src/episode/structs.rs` | Add `checkpoints: Vec<CheckpointMeta>` to Episode |
+| `do-memory-core/src/memory/checkpoint/` | New module: `checkpoint_episode()`, `get_handoff_pack()`, `resume_from_handoff()` |
+| `do-memory-core/src/extraction/extractor.rs` | Reuse salient extraction on partial episodes |
+| `do-memory-core/src/episode/structs.rs` | Add `checkpoints: Vec<CheckpointMeta>` to Episode |
 | MCP: `handlers.rs` | Add `checkpoint_episode`, `get_handoff_pack`, `resume_from_handoff` tools |
 | CLI: `commands/episode/` | Add `episode checkpoint`, `episode handoff` subcommands |
 
@@ -205,7 +205,7 @@ These 3 features directly enable:
 
 - [ADR-028: Feature Enhancement Roadmap](ADR-028-Feature-Enhancement-Roadmap.md)
 - [ADR-043: Codebase Analysis v0.1.20](ADR-043-Comprehensive-Codebase-Analysis-v0.1.20.md)
-- [completion.rs](../../memory-core/src/memory/completion.rs) — episode completion & summary generation
-- [recommendation.rs](../../memory-core/src/memory/pattern_search/recommendation.rs) — pattern recommendation engine
-- [learning.rs](../../memory-core/src/memory/learning.rs) — heuristic update loop
-- [context.rs](../../memory-core/src/memory/retrieval/context.rs) — context retrieval
+- [completion.rs](../../do-memory-core/src/memory/completion.rs) — episode completion & summary generation
+- [recommendation.rs](../../do-memory-core/src/memory/pattern_search/recommendation.rs) — pattern recommendation engine
+- [learning.rs](../../do-memory-core/src/memory/learning.rs) — heuristic update loop
+- [context.rs](../../do-memory-core/src/memory/retrieval/context.rs) — context retrieval

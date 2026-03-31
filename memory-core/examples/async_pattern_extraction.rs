@@ -3,7 +3,7 @@
 //! Shows the difference between sync and async pattern extraction
 //! and how to use the queue system.
 
-use memory_core::{
+use do_memory_core::{
     ExecutionResult, ExecutionStep, QueueConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
 };

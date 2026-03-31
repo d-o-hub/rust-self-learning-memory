@@ -3,11 +3,11 @@
 //! These tests use proptest to verify that configuration validation rules
 //! are consistent and produce correct results across a wide range of inputs.
 
-use memory_cli::config::types::ConfigPreset;
-use memory_cli::config::types::{
+use do_memory_cli::config::types::ConfigPreset;
+use do_memory_cli::config::types::{
     CliConfig, Config, DatabaseConfig, EmbeddingsConfig, StorageConfig,
 };
-use memory_cli::config::validator::{
+use do_memory_cli::config::validator::{
     validate_cli_config, validate_config, validate_database_config, validate_storage_config,
 };
 use proptest::prelude::*;

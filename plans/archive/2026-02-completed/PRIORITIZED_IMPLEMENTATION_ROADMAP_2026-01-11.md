@@ -39,19 +39,19 @@ Achieve 100% codebase compliance with AGENTS.md standards
 **Risk**: Low
 
 **Files to Split**:
-1. `memory-mcp/src/wasm_sandbox.rs` (683 LOC → ≤500)
+1. `do-memory-mcp/src/wasm_sandbox.rs` (683 LOC → ≤500)
    - Create: `src/sandbox/runtime.rs` (~300 LOC)
    - Create: `src/sandbox/instance.rs` (~250 LOC)
    - Keep: `src/wasm_sandbox.rs` (~133 LOC)
    - Effort: 6-8 hours
 
-2. `memory-mcp/src/javy_compiler.rs` (679 LOC → ≤500)
+2. `do-memory-mcp/src/javy_compiler.rs` (679 LOC → ≤500)
    - Create: `src/compiler/phases.rs` (~250 LOC)
    - Create: `src/compiler/validation.rs` (~200 LOC)
    - Keep: `src/javy_compiler.rs` (~229 LOC)
    - Effort: 6-8 hours
 
-3. `memory-mcp/src/unified_sandbox.rs` (533 LOC → ≤500)
+3. `do-memory-mcp/src/unified_sandbox.rs` (533 LOC → ≤500)
    - Create: `src/sandbox/handler.rs` (~280 LOC)
    - Keep: `src/unified_sandbox.rs` (~253 LOC)
    - Effort: 4-6 hours
@@ -80,13 +80,13 @@ Achieve 100% codebase compliance with AGENTS.md standards
 **Risk**: Low
 
 **Files to Split**:
-1. `memory-storage-redb/src/cache.rs` (654 LOC → ≤500)
+1. `do-memory-storage-redb/src/cache.rs` (654 LOC → ≤500)
    - Extract cache operations: `cache/ops.rs` (~300 LOC)
    - Extract eviction logic: `cache/eviction.rs` (~200 LOC)
    - Keep: `cache.rs` (~154 LOC)
    - Effort: 5-7 hours
 
-2. `memory-storage-turso/src/pool.rs` (589 LOC → ≤500)
+2. `do-memory-storage-turso/src/pool.rs` (589 LOC → ≤500)
    - Extract pool management: `pool/manager.rs` (~280 LOC)
    - Extract connection logic: `pool/connection.rs` (~200 LOC)
    - Keep: `pool.rs` (~109 LOC)
@@ -125,8 +125,8 @@ Achieve 100% codebase compliance with AGENTS.md standards
 **Process**:
 ```bash
 # Find all unwrap/expect calls
-grep -r "unwrap()" memory-core/src
-grep -r "expect(" memory-core/src
+grep -r "unwrap()" do-memory-core/src
+grep -r "expect(" do-memory-core/src
 
 # Categorize:
 # Category A: Hot path unwraps (keep)
@@ -158,9 +158,9 @@ let max_episodes = config.max_episodes
 ```
 
 **Files to Update**:
-- `memory-core/src/config.rs`
-- `memory-core/src/types.rs`
-- `memory-cli/src/config/*.rs`
+- `do-memory-core/src/config.rs`
+- `do-memory-core/src/types.rs`
+- `do-memory-cli/src/config/*.rs`
 
 **Validation**:
 - [ ] All config unwraps converted
@@ -184,9 +184,9 @@ let episode = storage.get_episode(id)?
 ```
 
 **Files to Update**:
-- `memory-core/src/memory/learning.rs`
-- `memory-core/src/retrieval/cache/lru.rs`
-- `memory-core/src/sync.rs`
+- `do-memory-core/src/memory/learning.rs`
+- `do-memory-core/src/retrieval/cache/lru.rs`
+- `do-memory-core/src/sync.rs`
 
 **Validation**:
 - [ ] All database unwraps converted
@@ -350,10 +350,10 @@ let episode_ref = self.episodes[i].clone(); // Arc::clone, not Episode::clone
 ```
 
 **Files to Update**:
-1. `memory-core/src/episode.rs` - Wrap Episode in Arc
-2. `memory-core/src/pattern.rs` - Wrap Pattern in Arc
-3. `memory-core/src/memory/learning.rs` - Update usage
-4. `memory-core/src/retrieval/cache/lru.rs` - Update cache keys
+1. `do-memory-core/src/episode.rs` - Wrap Episode in Arc
+2. `do-memory-core/src/pattern.rs` - Wrap Pattern in Arc
+3. `do-memory-core/src/memory/learning.rs` - Update usage
+4. `do-memory-core/src/retrieval/cache/lru.rs` - Update cache keys
 
 **Steps**:
 ```rust
@@ -399,9 +399,9 @@ pub fn process_episode(&self, episode: Cow<Episode>) -> Result<Cow<Episode>> {
 ```
 
 **Files to Update**:
-1. `memory-core/src/extraction/extractor.rs`
-2. `memory-core/src/patterns/clustering.rs`
-3. `memory-core/src/retrieval/hierarchical.rs`
+1. `do-memory-core/src/extraction/extractor.rs`
+2. `do-memory-core/src/patterns/clustering.rs`
+3. `do-memory-core/src/retrieval/hierarchical.rs`
 
 **Validation**:
 - [ ] Conditional cloning implemented
@@ -547,7 +547,7 @@ Enhanced developer experience and production observability
 
 **Implementation**:
 ```rust
-// memory-core/src/patterns/dbscan.rs
+// do-memory-core/src/patterns/dbscan.rs
 pub struct DBSCANAnomalyDetector {
     eps: f64,
     min_samples: usize,
@@ -587,7 +587,7 @@ impl DBSCANAnomalyDetector {
 
 **Implementation**:
 ```rust
-// memory-core/src/patterns/changepoint.rs
+// do-memory-core/src/patterns/changepoint.rs
 pub struct ChangepointDetector {
     threshold: f64,
     window_size: usize,
@@ -711,7 +711,7 @@ impl ChangepointDetector {
 
 **Implementation**:
 ```rust
-// memory-core/src/monitoring/prometheus.rs
+// do-memory-core/src/monitoring/prometheus.rs
 pub struct PrometheusExporter {
     metrics: AgentMetrics,
     registry: prometheus::Registry,
@@ -812,7 +812,7 @@ Enterprise-ready features and advanced learning capabilities
 
 **Implementation**:
 ```rust
-// memory-core/src/embeddings/contrastive.rs
+// do-memory-core/src/embeddings/contrastive.rs
 pub struct ContrastiveLearner {
     encoder: Arc<dyn EmbeddingProvider>,
     temperature: f64,
@@ -849,7 +849,7 @@ impl ContrastiveLearner {
 
 **Implementation**:
 ```rust
-// memory-core/src/patterns/mining.rs
+// do-memory-core/src/patterns/mining.rs
 pub struct PatternMiner {
     min_support: f64,
     max_length: usize,
@@ -884,7 +884,7 @@ impl PatternMiner {
 
 **Implementation**:
 ```rust
-// memory-core/src/retrieval/cross_modal.rs
+// do-memory-core/src/retrieval/cross_modal.rs
 pub struct CrossModalRetriever {
     text_encoder: Arc<dyn EmbeddingProvider>,
     code_encoder: Arc<dyn CodeEmbeddingProvider>,
@@ -989,7 +989,7 @@ impl CrossModalRetriever {
 
 ### Immediate Next Steps (This Week)
 
-1. ✅ **Day 1-3**: Start P0 file splitting (memory-mcp sandbox files)
+1. ✅ **Day 1-3**: Start P0 file splitting (do-memory-mcp sandbox files)
 2. ✅ **Day 4-5**: Continue with storage files
 3. ✅ **Day 6-7**: Integration testing
 

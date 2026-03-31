@@ -18,7 +18,7 @@
 //! ## Usage
 //!
 //! ```no_run
-//! use memory_core::security::audit::{AuditLogger, AuditConfig, AuditContext, AuditOutput, episode_created};
+//! use do_memory_core::security::audit::{AuditLogger, AuditConfig, AuditContext, AuditOutput, episode_created};
 //! use uuid::Uuid;
 //!
 //! // Create a logger

@@ -7,11 +7,11 @@ use super::episodes::row_to_episode;
 #[allow(unused_imports)]
 use super::patterns::row_to_pattern;
 use crate::TursoStorage;
-use libsql::Connection;
-use memory_core::{
+use do_memory_core::{
     Episode, Error, Pattern, Result,
     embeddings::{SimilarityMetadata, SimilaritySearchResult, cosine_similarity},
 };
+use libsql::Connection;
 use tracing::{debug, info};
 
 impl TursoStorage {

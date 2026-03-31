@@ -3,11 +3,11 @@
 //! These tests simulate realistic application workflows using the Memory MCP server
 //! and verify that all database entries are created and stored correctly.
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
 };
-use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
+use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -338,7 +338,7 @@ return {
             .await
         {
             Ok(result) => match result {
-                memory_mcp::ExecutionResult::Success { output, .. } => {
+                do_memory_mcp::ExecutionResult::Success { output, .. } => {
                     println!("✅ Todo addition simulated successfully");
                     println!("📝 Result: {}", output);
                 }
@@ -372,7 +372,7 @@ return {
             .await
         {
             Ok(result) => match result {
-                memory_mcp::ExecutionResult::Success { output, .. } => {
+                do_memory_mcp::ExecutionResult::Success { output, .. } => {
                     println!("✅ Todo completion simulated successfully");
                     println!("📝 Result: {}", output);
                 }
@@ -414,7 +414,7 @@ return {
             .await
         {
             Ok(result) => match result {
-                memory_mcp::ExecutionResult::Success { output, .. } => {
+                do_memory_mcp::ExecutionResult::Success { output, .. } => {
                     println!("✅ Todo filtering simulated successfully");
                     println!("📝 Result: {}", output);
                 }
@@ -455,7 +455,7 @@ return {
             .await
         {
             Ok(result) => match result {
-                memory_mcp::ExecutionResult::Success { output, .. } => {
+                do_memory_mcp::ExecutionResult::Success { output, .. } => {
                     println!("✅ Clear completed simulated successfully");
                     println!("📝 Result: {}", output);
                 }

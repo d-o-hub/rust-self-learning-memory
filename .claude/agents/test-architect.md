@@ -66,7 +66,7 @@ You have access to the following skills:
 ## Example Analysis
 
 ```
-Module: memory-core::episode
+Module: do-memory-core::episode
 Current Coverage: 87%
 Critical Functions:
   - start_episode (covered)

@@ -80,14 +80,14 @@ export AZURE_RESOURCE="your-resource"
 
 ```toml
 [dependencies]
-memory-core = { version = "0.1.7", features = ["openai"] }
+do-memory-core = { version = "0.1.7", features = ["openai"] }
 ```
 
 ## Full Documentation
 
-- **Configuration Guide**: `memory-core/EMBEDDING_PROVIDERS.md`
-- **API Reference**: `memory-core/README_SEMANTIC_EMBEDDINGS.md`
-- **Example Code**: `memory-core/examples/multi_provider_embeddings.rs`
+- **Configuration Guide**: `do-memory-core/EMBEDDING_PROVIDERS.md`
+- **API Reference**: `do-memory-core/README_SEMANTIC_EMBEDDINGS.md`
+- **Example Code**: `do-memory-core/examples/multi_provider_embeddings.rs`
 
 ## Common Issues
 

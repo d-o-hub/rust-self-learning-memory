@@ -102,11 +102,14 @@ impl EpisodeRelationshipTools {
                 .push(rel);
         }
 
-        let would_create_cycle =
-            memory_core::episode::graph_algorithms::has_path_dfs(&adjacency_list, to_id, from_id)?;
+        let would_create_cycle = do_memory_core::episode::graph_algorithms::has_path_dfs(
+            &adjacency_list,
+            to_id,
+            from_id,
+        )?;
 
         let cycle_path = if would_create_cycle {
-            match memory_core::episode::graph_algorithms::find_path_dfs(
+            match do_memory_core::episode::graph_algorithms::find_path_dfs(
                 &adjacency_list,
                 to_id,
                 from_id,
@@ -177,7 +180,7 @@ impl EpisodeRelationshipTools {
             }
         }
 
-        let has_cycles = memory_core::episode::graph_algorithms::has_cycle(&adjacency_list)?;
+        let has_cycles = do_memory_core::episode::graph_algorithms::has_cycle(&adjacency_list)?;
         if has_cycles {
             return Ok(GetTopologicalOrderOutput {
                 success: true,
@@ -188,7 +191,8 @@ impl EpisodeRelationshipTools {
             });
         }
 
-        let sorted_ids = memory_core::episode::graph_algorithms::topological_sort(&adjacency_list)?;
+        let sorted_ids =
+            do_memory_core::episode::graph_algorithms::topological_sort(&adjacency_list)?;
 
         let mut order = Vec::new();
         for (position, id) in sorted_ids.iter().enumerate() {

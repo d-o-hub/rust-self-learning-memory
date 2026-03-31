@@ -27,30 +27,30 @@ Successfully implemented the **QualityAssessor** module for Phase 1 of the Resea
 
 ### Files Created
 
-1. **`memory-core/src/pre_storage/mod.rs`** (36 LOC)
+1. **`do-memory-core/src/pre_storage/mod.rs`** (36 LOC)
    - Module documentation and public API
    - Re-exports for clean public interface
 
-2. **`memory-core/src/pre_storage/quality.rs`** (662 LOC)
+2. **`do-memory-core/src/pre_storage/quality.rs`** (662 LOC)
    - `QualityConfig` struct with configurable thresholds and weights
    - `QualityFeature` enum with 5 quality dimensions
    - `QualityAssessor` struct with assessment logic
    - 13 unit tests embedded in module
    - Comprehensive documentation
 
-3. **`memory-core/tests/quality_assessment_test.rs`** (366 LOC)
+3. **`do-memory-core/tests/quality_assessment_test.rs`** (366 LOC)
    - 9 comprehensive integration tests
    - Tests for all quality features
    - Edge case testing
    - Custom configuration testing
 
-4. **`memory-core/src/lib.rs`** (modified)
+4. **`do-memory-core/src/lib.rs`** (modified)
    - Added `pre_storage` module to exports
 
 ### Module Structure
 
 ```
-memory-core/src/pre_storage/
+do-memory-core/src/pre_storage/
 ├── mod.rs              (Module interface)
 └── quality.rs          (Quality assessment implementation)
 ```
@@ -205,7 +205,7 @@ if !quality_assessor.should_store(&episode) {
 As per the execution plan, the next steps are:
 
 1. **Day 6-7**: Storage Decision Integration (10-15 hours)
-   - Modify `memory-core/src/memory/mod.rs`
+   - Modify `do-memory-core/src/memory/mod.rs`
    - Add `quality_assessor` field to `SelfLearningMemory`
    - Integrate into `complete_episode()` workflow
    - Add rejection logging
@@ -377,18 +377,18 @@ As per the execution plan, the next steps are:
 ### New Files
 
 ```
-memory-core/src/pre_storage/
+do-memory-core/src/pre_storage/
   ├── mod.rs                                 (NEW)
   └── quality.rs                             (NEW)
 
-memory-core/tests/
+do-memory-core/tests/
   └── quality_assessment_test.rs             (NEW)
 ```
 
 ### Modified Files
 
 ```
-memory-core/src/lib.rs                       (MODIFIED - added pre_storage module)
+do-memory-core/src/lib.rs                       (MODIFIED - added pre_storage module)
 ```
 
 ### Lines of Code
@@ -464,15 +464,15 @@ memory-core/src/lib.rs                       (MODIFIED - added pre_storage modul
 ### Build Status
 
 ```bash
-✅ cargo build --lib --package memory-core
-   Compiling memory-core v0.1.7
+✅ cargo build --lib --package do-memory-core
+   Compiling do-memory-core v0.1.7
    Finished `dev` profile in 9.15s
 ```
 
 ### Test Status
 
 ```bash
-✅ cargo test --package memory-core --test quality_assessment_test
+✅ cargo test --package do-memory-core --test quality_assessment_test
    running 9 tests
    test result: ok. 9 passed; 0 failed; 0 ignored
 ```
@@ -480,7 +480,7 @@ memory-core/src/lib.rs                       (MODIFIED - added pre_storage modul
 ### Formatting Status
 
 ```bash
-✅ cargo fmt --package memory-core -- --check
+✅ cargo fmt --package do-memory-core -- --check
    Formatting is correct
 ```
 

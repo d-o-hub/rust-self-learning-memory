@@ -6,7 +6,7 @@
 //! ## Example
 //!
 //! ```
-//! use memory_core::patterns::effectiveness::EffectivenessTracker;
+//! use do_memory_core::patterns::effectiveness::EffectivenessTracker;
 //! use uuid::Uuid;
 //!
 //! let mut tracker = EffectivenessTracker::new();

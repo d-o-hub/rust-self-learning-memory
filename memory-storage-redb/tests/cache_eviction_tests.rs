@@ -10,7 +10,7 @@
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
 
-use memory_storage_redb::{CacheConfig, LRUCache};
+use do_memory_storage_redb::{CacheConfig, LRUCache};
 use std::time::Duration;
 use uuid::Uuid;
 

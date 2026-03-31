@@ -18,8 +18,8 @@ use super::{EpisodeRelationship, RelationshipMetadata, RelationshipType};
 /// # Examples
 ///
 /// ```
-/// use memory_core::episode::relationship_manager::RelationshipManager;
-/// use memory_core::episode::{RelationshipType, RelationshipMetadata};
+/// use do_memory_core::episode::relationship_manager::RelationshipManager;
+/// use do_memory_core::episode::{RelationshipType, RelationshipMetadata};
 /// use uuid::Uuid;
 ///
 /// let mut manager = RelationshipManager::new();

@@ -472,14 +472,14 @@ MCP batch operations are **different** from standard JSON-RPC 2.0 batch requests
 
 ## Examples
 
-See `memory-mcp/examples/batch_operations_demo.rs` for runnable examples.
+See `do-memory-mcp/examples/batch_operations_demo.rs` for runnable examples.
 
 ## Testing
 
 Run batch operation tests:
 
 ```bash
-cargo test --package memory-mcp --test batch_operations_test
+cargo test --package do-memory-mcp --test batch_operations_test
 ```
 
 Run all 11 comprehensive tests covering:
@@ -503,5 +503,5 @@ Planned features:
 
 For issues or questions:
 - GitHub Issues: [memory system repository]
-- Documentation: `memory-mcp/README.md`
-- Examples: `memory-mcp/examples/`
+- Documentation: `do-memory-mcp/README.md`
+- Examples: `do-memory-mcp/examples/`

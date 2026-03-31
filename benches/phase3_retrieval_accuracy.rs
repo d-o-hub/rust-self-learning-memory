@@ -14,7 +14,7 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
     memory::SelfLearningMemory,
 };
@@ -51,7 +51,7 @@ fn create_test_episode(
                 format!("tool_{}", i % 5),
                 format!("Step {} action", i),
             );
-            step.result = Some(memory_core::ExecutionResult::Success {
+            step.result = Some(do_memory_core::ExecutionResult::Success {
                 output: format!("Step {} output", i),
             });
             memory.log_step(episode_id, step).await;

@@ -1,18 +1,18 @@
-# GOAP Plan: Add memory-cli Testing to GitHub Actions CI
+# GOAP Plan: Add do-memory-cli Testing to GitHub Actions CI
 
 **Date**: 2026-02-22
-**Task**: Add memory-cli to CI test matrix
+**Task**: Add do-memory-cli to CI test matrix
 **Domain**: ci-cd, testing
 **Complexity**: Medium
 
 ## Executive Summary
 
-Add memory-cli package to GitHub Actions CI test jobs. Currently:
+Add do-memory-cli package to GitHub Actions CI test jobs. Currently:
 - ✅ Format/Clippy tests all targets (includes CLI)
-- ❌ Test job only runs: memory-core, memory-storage-turso, memory-storage-redb
+- ❌ Test job only runs: do-memory-core, do-memory-storage-turso, do-memory-storage-redb
 - ⚠️ Multi-platform job uses `--lib --all` but may not properly test CLI binaries
 
-**Goal**: Ensure memory-cli tests run in both `test` and `multi-platform` jobs.
+**Goal**: Ensure do-memory-cli tests run in both `test` and `multi-platform` jobs.
 
 ---
 
@@ -31,10 +31,10 @@ Add memory-cli package to GitHub Actions CI test jobs. Currently:
 ### Test Job (ci.yml lines 57-85)
 ```yaml
 # Currently tested packages:
-cargo nextest run --package memory-core --lib
-cargo nextest run --package memory-storage-turso --lib
-cargo nextest run --package memory-storage-redb --lib
-# MISSING: memory-cli
+cargo nextest run --package do-memory-core --lib
+cargo nextest run --package do-memory-storage-turso --lib
+cargo nextest run --package do-memory-storage-redb --lib
+# MISSING: do-memory-cli
 ```
 
 ### Multi-Platform Job (ci.yml lines 123-161)
@@ -53,14 +53,14 @@ cargo nextest run --lib --all
 | Step | Action | Dependencies | Success Criteria |
 |------|--------|--------------|------------------|
 | 1.1 | Analyze ci.yml test commands | None | List all test commands and packages tested |
-| 1.2 | Identify test locations in memory-cli | None | Verify test file locations and types |
+| 1.2 | Identify test locations in do-memory-cli | None | Verify test file locations and types |
 | 1.3 | Determine required changes | 1.1, 1.2 | Document exact changes needed |
 
 ### Phase 2: Implementation (Atomic)
 
 | Step | Action | Dependencies | Success Criteria |
 |------|--------|--------------|------------------|
-| 2.1 | Add memory-cli to test job | 1.3 | Add `cargo nextest run -p memory-cli` to test job |
+| 2.1 | Add do-memory-cli to test job | 1.3 | Add `cargo nextest run -p do-memory-cli` to test job |
 | 2.2 | Verify multi-platform covers CLI | 1.3 | Ensure --lib --all or explicit CLI test |
 
 ### Phase 3: Quality Gates (Atomic)
@@ -69,7 +69,7 @@ cargo nextest run --lib --all
 |------|--------|--------------|------------------|
 | 3.1 | Run cargo fmt | 2.1 | `cargo fmt --all -- --check` passes |
 | 3.2 | Run cargo clippy | 2.1 | `cargo clippy --all -- -D warnings` passes |
-| 3.3 | Run memory-cli tests locally | 2.1 | `cargo nextest run -p memory-cli` passes |
+| 3.3 | Run do-memory-cli tests locally | 2.1 | `cargo nextest run -p do-memory-cli` passes |
 | 3.4 | Verify changes don't break CI syntax | 2.1 | YAML syntax valid |
 
 ---
@@ -101,19 +101,19 @@ cargo nextest run --lib --all
 - name: Run tests with timeout protection
   run: |
     # Run library tests for core packages (fast, isolated tests)
-    echo "Running memory-core library tests..."
-    cargo nextest run --package memory-core --lib
-    echo "Running memory-storage-turso library tests..."
-    cargo nextest run --package memory-storage-turso --lib
-    echo "Running memory-storage-redb library tests..."
-    cargo nextest run --package memory-storage-redb --lib
+    echo "Running do-memory-core library tests..."
+    cargo nextest run --package do-memory-core --lib
+    echo "Running do-memory-storage-turso library tests..."
+    cargo nextest run --package do-memory-storage-turso --lib
+    echo "Running do-memory-storage-redb library tests..."
+    cargo nextest run --package do-memory-storage-redb --lib
     echo "Library tests completed successfully"
 ```
 
-**Change**: Add memory-cli tests after line 84:
+**Change**: Add do-memory-cli tests after line 84:
 ```yaml
-    echo "Running memory-cli tests..."
-    cargo nextest run --package memory-cli
+    echo "Running do-memory-cli tests..."
+    cargo nextest run --package do-memory-cli
     echo "CLI tests completed successfully"
 ```
 
@@ -131,7 +131,7 @@ cargo nextest run --lib --all
     # ... etc
 ```
 
-**Issue**: `--lib` flag excludes binary targets (memory-cli is a binary)
+**Issue**: `--lib` flag excludes binary targets (do-memory-cli is a binary)
 
 **Fix**: Remove `--lib` flag to test all targets including binaries:
 ```yaml
@@ -140,10 +140,10 @@ cargo nextest run --lib --all
     # ... etc
 ```
 
-**OR** add explicit memory-cli test (if we want to keep --lib for speed):
+**OR** add explicit do-memory-cli test (if we want to keep --lib for speed):
 ```yaml
     timeout 900s cargo nextest run --lib --all
-    timeout 300s cargo nextest run -p memory-cli --bins  # Binary tests
+    timeout 300s cargo nextest run -p do-memory-cli --bins  # Binary tests
 ```
 
 **Recommendation**: Remove `--lib` flag since:
@@ -167,13 +167,13 @@ cargo clippy --all -- -D warnings
 cargo build --all
 
 # 4. Memory-cli tests
-cargo nextest run -p memory-cli
+cargo nextest run -p do-memory-cli
 ```
 
 ### CI Verification
 After PR merge, verify:
 - [ ] `essential` job passes (format, clippy, doctest)
-- [ ] `test` job passes (includes memory-cli)
+- [ ] `test` job passes (includes do-memory-cli)
 - [ ] `multi-platform` job passes (includes CLI binaries)
 - [ ] `quality-gates` job passes
 
@@ -185,19 +185,19 @@ After PR merge, verify:
 |------|--------|------------|
 | CLI tests fail | Medium | Fix test failures before merge |
 | CI timeout | Low | 15min timeout in multi-platform is generous |
-| Disk space | Low | memory-cli tests are lightweight |
+| Disk space | Low | do-memory-cli tests are lightweight |
 
 ---
 
 ## Verification Checklist
 
 - [ ] Analyze current ci.yml test commands
-- [ ] Identify memory-cli test locations
-- [ ] Add memory-cli to test job
+- [ ] Identify do-memory-cli test locations
+- [ ] Add do-memory-cli to test job
 - [ ] Verify multi-platform job tests CLI
 - [ ] Run cargo fmt (pass)
 - [ ] Run cargo clippy (pass)
-- [ ] Run memory-cli tests locally (pass)
+- [ ] Run do-memory-cli tests locally (pass)
 - [ ] Verify YAML syntax valid
 
 ---

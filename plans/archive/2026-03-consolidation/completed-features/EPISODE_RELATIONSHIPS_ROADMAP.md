@@ -67,10 +67,10 @@ Implement a comprehensive relationship system with:
 - ✅ Comprehensive test suite
 
 #### Key Files
-- `memory-core/src/episode/relationships.rs`
-- `memory-storage-turso/src/relationships.rs`
-- `memory-storage-redb/src/relationships.rs`
-- `memory-storage-turso/src/schema.rs`
+- `do-memory-core/src/episode/relationships.rs`
+- `do-memory-storage-turso/src/relationships.rs`
+- `do-memory-storage-redb/src/relationships.rs`
+- `do-memory-storage-turso/src/schema.rs`
 
 #### Lessons Learned
 - Postcard serialization performs well for cache
@@ -109,8 +109,8 @@ Implement a comprehensive relationship system with:
 - [ ] 20+ unit tests
 
 #### Key Files (New)
-- `memory-core/src/episode/relationship_manager.rs` (~400 LOC)
-- `memory-core/src/episode/graph_algorithms.rs` (~400 LOC)
+- `do-memory-core/src/episode/relationship_manager.rs` (~400 LOC)
+- `do-memory-core/src/episode/graph_algorithms.rs` (~400 LOC)
 
 #### Dependencies
 - Phase 1: Complete ✅
@@ -157,8 +157,8 @@ Implement a comprehensive relationship system with:
 - [ ] 15+ integration tests
 
 #### Key Files (Modified/New)
-- `memory-core/src/memory/mod.rs` (extend existing)
-- `memory-core/src/memory/query.rs` (new or extend)
+- `do-memory-core/src/memory/mod.rs` (extend existing)
+- `do-memory-core/src/memory/query.rs` (new or extend)
 
 #### Dependencies
 - Phase 1: Complete ✅
@@ -206,8 +206,8 @@ Implement a comprehensive relationship system with:
 - [ ] 16+ tool tests (2 per tool)
 
 #### Key Files (Modified)
-- `memory-mcp/src/bin/server/handlers.rs` (add 8 handlers)
-- `memory-mcp/src/bin/server/jsonrpc.rs` (extend schemas)
+- `do-memory-mcp/src/bin/server/handlers.rs` (add 8 handlers)
+- `do-memory-mcp/src/bin/server/jsonrpc.rs` (extend schemas)
 
 #### Dependencies
 - Phase 1: Complete ✅
@@ -257,7 +257,7 @@ Implement a comprehensive relationship system with:
 - [ ] 14+ CLI tests (2 per command)
 
 #### Key Files (New)
-- `memory-cli/src/commands/episode_v2/relationships.rs` (~500 LOC)
+- `do-memory-cli/src/commands/episode_v2/relationships.rs` (~500 LOC)
 
 #### Dependencies
 - Phase 1: Complete ✅

@@ -6,7 +6,7 @@ use super::super::{
     CacheMetrics, EPISODES_TABLE, HEURISTICS_TABLE, PATTERNS_TABLE, with_db_timeout,
 };
 use crate::{RedbStorage, StorageStatistics};
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 use redb::{ReadableDatabase, ReadableTableMetadata};
 use std::sync::Arc;
 
@@ -73,7 +73,7 @@ impl RedbStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_redb::RedbStorage;
+    /// # use do_memory_storage_redb::RedbStorage;
     /// # use std::path::Path;
     /// # async fn example() -> anyhow::Result<()> {
     /// # let storage = RedbStorage::new(Path::new("./memory.redb")).await?;

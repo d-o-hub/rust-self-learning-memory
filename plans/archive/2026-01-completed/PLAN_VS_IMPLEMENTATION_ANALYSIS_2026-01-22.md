@@ -32,7 +32,7 @@
 
 ### 2. MCP Protocol Version
 - **Plan**: Upgrade to MCP 2025-11-25 specification
-- **Actual**: ✅ Confirmed in `memory-mcp/src/protocol.rs:1`
+- **Actual**: ✅ Confirmed in `do-memory-mcp/src/protocol.rs:1`
   - `SUPPORTED_VERSIONS: &[&str] = &["2025-11-25", "2024-11-05"]`
 
 ### 3. Version Status
@@ -52,7 +52,7 @@
 - **Plan**: Enabled by default with comprehensive runbook
 - **Actual**: ✅ Implemented
   - Files: 11 files reference circuit breaker
-  - Location: `memory-core/src/storage/circuit_breaker/`
+  - Location: `do-memory-core/src/storage/circuit_breaker/`
 
 ### 6. Turso AI Enhancements (Phases 0-1)
 - **Plan**: Multi-dimension vector support, FTS5 hybrid search
@@ -76,12 +76,12 @@
 **Actual Status**:
 ```
 Files >500 LOC (excluding tests):
-1. memory-mcp/src/server/mod.rs ............ 781 LOC
-2. memory-mcp/src/server/tools/batch_operations.rs 753 LOC
+1. do-memory-mcp/src/server/mod.rs ............ 781 LOC
+2. do-memory-mcp/src/server/tools/batch_operations.rs 753 LOC
 3. memory-benches/spatiotemporal_benchmark.rs .... 609 LOC
 4. memory-benches/genesis_benchmark.rs ........... 571 LOC
 5. memory-benches/episode_lifecycle.rs ............ 554 LOC
-6. memory-mcp/src/server/tools/episode_lifecycle.rs 516 LOC
+6. do-memory-mcp/src/server/tools/episode_lifecycle.rs 516 LOC
 
 Total: 6 files >500 LOC (excluding benchmark/test files)
 ```

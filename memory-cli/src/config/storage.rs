@@ -7,7 +7,7 @@
 use super::types::{Config, DatabaseConfig};
 use anyhow::Context;
 use anyhow::Result;
-use memory_core::{MemoryConfig, SelfLearningMemory, StorageBackend};
+use do_memory_core::{MemoryConfig, SelfLearningMemory, StorageBackend};
 use std::sync::Arc;
 
 /// Storage initialization result with detailed information
@@ -107,7 +107,7 @@ async fn initialize_turso_storage(
     if let Some(turso_url) = &db_config.turso_url {
         let token = db_config.turso_token.as_deref().unwrap_or("");
 
-        match memory_storage_turso::TursoStorage::new(turso_url, token).await {
+        match do_memory_storage_turso::TursoStorage::new(turso_url, token).await {
             Ok(turso) => {
                 if let Err(e) = turso.initialize_schema().await {
                     status_messages
@@ -148,7 +148,8 @@ async fn try_local_sqlite_fallback(
 
             ensure_directory_exists(db_path)?;
 
-            match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+            match do_memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await
+            {
                 Ok(turso_storage) => {
                     if let Err(e) = turso_storage.initialize_schema().await {
                         status_messages.push(format!(
@@ -201,7 +202,7 @@ async fn initialize_redb_storage(
     if let Some(redb_path) = &db_config.redb_path {
         let path = std::path::Path::new(redb_path);
 
-        match memory_storage_redb::RedbStorage::new(path).await {
+        match do_memory_storage_redb::RedbStorage::new(path).await {
             Ok(redb) => {
                 storage = Some(Arc::new(redb) as Arc<dyn StorageBackend>);
                 status_messages.push(format!("redb storage initialized: {}", redb_path));
@@ -218,7 +219,7 @@ async fn initialize_redb_storage(
 /// Create memory system configuration
 fn create_memory_config(config: &Config) -> MemoryConfig {
     MemoryConfig {
-        storage: memory_core::StorageConfig {
+        storage: do_memory_core::StorageConfig {
             max_episodes_cache: config.storage.max_episodes_cache,
             sync_interval_secs: 300, // 5 minutes default
             enable_compression: false,
@@ -226,11 +227,11 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         enable_embeddings: config.embeddings.enabled, // Use config value
         pattern_extraction_threshold: 0.1,
         quality_threshold: 0.0, // Allow CLI workflows to complete minimal episodes
-        batch_config: Some(memory_core::BatchConfig::default()),
-        concurrency: memory_core::ConcurrencyConfig::default(),
+        batch_config: Some(do_memory_core::BatchConfig::default()),
+        concurrency: do_memory_core::ConcurrencyConfig::default(),
         // Phase 2 (GENESIS) - Capacity management
         max_episodes: None, // No capacity limit by default
-        eviction_policy: Some(memory_core::episodic::EvictionPolicy::RelevanceWeighted),
+        eviction_policy: Some(do_memory_core::episodic::EvictionPolicy::RelevanceWeighted),
         // Phase 2 (GENESIS) - Semantic summarization
         enable_summarization: true,
         summary_min_length: 100,
@@ -246,7 +247,7 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         enable_query_embedding_cache: true,
         semantic_similarity_threshold: 0.7,
         // Audit configuration
-        audit_config: memory_core::AuditConfig::default(),
+        audit_config: do_memory_core::AuditConfig::default(),
     }
 }
 
@@ -272,7 +273,8 @@ async fn determine_storage_combination(
             #[cfg(feature = "redb")]
             {
                 let temp_redb =
-                    memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?;
+                    do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:"))
+                        .await?;
                 let memory =
                     SelfLearningMemory::with_storage(memory_config, turso, Arc::new(temp_redb));
                 (StorageType::Turso, StorageType::Memory, memory)
@@ -335,7 +337,8 @@ async fn try_setup_local_sqlite_for_redis(
             let db_path = extract_db_path(&local_db_url);
             ensure_directory_exists(db_path)?;
 
-            match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+            match do_memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await
+            {
                 Ok(turso_storage) => {
                     if let Err(e) = turso_storage.initialize_schema().await {
                         eprintln!("Warning: Failed to initialize local SQLite schema: {}", e);
@@ -388,7 +391,8 @@ async fn try_setup_fallback_storage(
             let db_path = extract_db_path(&local_db_url);
             ensure_directory_exists(db_path)?;
 
-            match memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await {
+            match do_memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await
+            {
                 Ok(turso_storage) => {
                     if let Err(e) = turso_storage.initialize_schema().await {
                         eprintln!("Warning: Failed to initialize local SQLite schema: {}", e);
@@ -402,7 +406,7 @@ async fn try_setup_fallback_storage(
 
                         #[cfg(feature = "redb")]
                         {
-                            let temp_redb = memory_storage_redb::RedbStorage::new(
+                            let temp_redb = do_memory_storage_redb::RedbStorage::new(
                                 std::path::Path::new(":memory:"),
                             )
                             .await?;
@@ -422,7 +426,7 @@ async fn try_setup_fallback_storage(
                                     .storage_backends()
                                     .1
                                     .unwrap_or_else(|| {
-                                        Arc::new(memory_storage_redb::InMemoryStorage::new())
+                                        Arc::new(do_memory_storage_redb::InMemoryStorage::new())
                                     }),
                             );
                             Ok((StorageType::LocalSqlite, StorageType::Memory, memory))

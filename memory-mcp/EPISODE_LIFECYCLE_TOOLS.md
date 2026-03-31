@@ -498,5 +498,5 @@ Common error scenarios:
 
 - [Batch Operations](BATCH_OPERATIONS.md) - Bulk episode operations
 - [MCP Protocol](README.md) - General MCP server documentation
-- [Pattern Search](../memory-core/PATTERN_SEARCH_FEATURE.md) - Pattern analysis features
-- [Episode Management](../memory-core/EPISODE_MANAGEMENT.md) - Core episode APIs
+- [Pattern Search](../do-memory-core/PATTERN_SEARCH_FEATURE.md) - Pattern analysis features
+- [Episode Management](../do-memory-core/EPISODE_MANAGEMENT.md) - Core episode APIs

@@ -10,7 +10,7 @@ pub mod row;
 pub use compression::{compress_json_field, decompress_json_field};
 pub use row::row_to_episode;
 
-use memory_core::TaskType;
+use do_memory_core::TaskType;
 
 /// Query builder for episodes
 #[derive(Debug, Clone, Default)]

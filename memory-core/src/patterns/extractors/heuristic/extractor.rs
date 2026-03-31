@@ -26,8 +26,8 @@ use super::extraction::{extract_action, extract_condition, is_decision_action};
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::patterns::extractors::heuristic::HeuristicExtractor;
-/// use memory_core::Episode;
+/// use do_memory_core::patterns::extractors::heuristic::HeuristicExtractor;
+/// use do_memory_core::Episode;
 ///
 /// let extractor = HeuristicExtractor::new();
 /// // let heuristics = extractor.extract(&episode).await?;

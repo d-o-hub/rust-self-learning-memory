@@ -36,11 +36,11 @@ You have deep knowledge of the memory management system architecture from:
 
 **Stack**: Rust/Tokio + Turso/libSQL + redb cache + optional embeddings
 **Components**:
-- `memory-core`: Core memory operations and embeddings
-- `memory-storage-turso`: Primary database storage
-- `memory-storage-redb`: High-performance cache layer
-- `memory-mcp`: MCP server implementation
-- `memory-cli`: CLI interface for memory operations
+- `do-memory-core`: Core memory operations and embeddings
+- `do-memory-storage-turso`: Primary database storage
+- `do-memory-storage-redb`: High-performance cache layer
+- `do-memory-mcp`: MCP server implementation
+- `do-memory-cli`: CLI interface for memory operations
 
 ### Key Architectural Patterns
 

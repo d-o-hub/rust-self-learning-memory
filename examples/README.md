@@ -6,7 +6,7 @@ This directory contains examples demonstrating the memory system's functionality
 
 ### `memory_verification.html`
 
-A comprehensive HTML/TypeScript sample that verifies the complete memory-core system with both Turso and redb storage backends.
+A comprehensive HTML/TypeScript sample that verifies the complete do-memory-core system with both Turso and redb storage backends.
 
 ### Features Demonstrated
 

@@ -4,9 +4,9 @@
 
 use chrono::{DateTime, Duration, Utc};
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use memory_core::Episode;
-use memory_core::indexing::{HierarchicalIndex, HierarchicalQuery, SpatiotemporalIndex};
-use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+use do_memory_core::Episode;
+use do_memory_core::indexing::{HierarchicalIndex, HierarchicalQuery, SpatiotemporalIndex};
+use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 use std::hint::black_box;
 use uuid::Uuid;
 

@@ -2,7 +2,7 @@
 //!
 //! Time series extraction from memory episodes for analysis.
 
-use memory_core::{ComplexityLevel, TaskOutcome};
+use do_memory_core::{ComplexityLevel, TaskOutcome};
 
 const _EXECUTION_TIME_MS: &str = "execution_time_ms";
 const _SUCCESS_RATE: &str = "success_rate";
@@ -23,8 +23,8 @@ impl TimeSeriesExtractor {
     pub fn extract_metric(
         &self,
         metric: &str,
-        episode: &memory_core::Episode,
-        all_episodes: &[memory_core::Episode],
+        episode: &do_memory_core::Episode,
+        all_episodes: &[do_memory_core::Episode],
     ) -> Option<f64> {
         match metric {
             _EXECUTION_TIME_MS => {

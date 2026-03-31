@@ -1,11 +1,11 @@
 //! Monitoring storage operations for Turso
 
 use crate::TursoStorage;
-use libsql::Row;
-use memory_core::{
+use do_memory_core::{
     Error, Result,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
 };
+use libsql::Row;
 use tracing::{debug, info};
 
 impl TursoStorage {

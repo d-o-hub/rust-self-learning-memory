@@ -1,4 +1,4 @@
-use memory_core::{Heuristic, Pattern, Result, TaskContext};
+use do_memory_core::{Heuristic, Pattern, Result, TaskContext};
 
 pub(super) fn extract_pattern_data(
     pattern: &Pattern,

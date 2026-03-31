@@ -127,7 +127,7 @@ The server is designed to never panic due to JSON serialization failures. All `s
 
 Enable debug logging to see detailed error information:
 ```bash
-RUST_LOG=debug cargo run --bin memory-mcp-server
+RUST_LOG=debug cargo run --bin do-memory-mcp-server
 ```
 
 Look for log messages like:

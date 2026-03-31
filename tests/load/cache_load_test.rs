@@ -9,8 +9,8 @@
 //! - Verify cache hit rate > 80%
 //! - Test cache eviction under memory pressure
 
-use memory_core::{Episode, Pattern, TaskContext, TaskType};
-use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
+use do_memory_core::{Episode, Pattern, TaskContext, TaskType};
+use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;
@@ -172,7 +172,7 @@ fn create_test_episode(id: Uuid, index: usize) -> Episode {
             domain: "cache_test".to_string(),
             language: Some("rust".to_string()),
             framework: Some("tokio".to_string()),
-            complexity: memory_core::types::ComplexityLevel::Moderate,
+            complexity: do_memory_core::types::ComplexityLevel::Moderate,
             tags: vec!["cache_test".to_string(), format!("batch_{}", index / 1000)],
         },
         steps: vec![],

@@ -5,9 +5,9 @@
 //! that the prepare_cached mechanism works correctly, even though the cache
 //! is cleared after each use.
 
+use do_memory_core::{Episode, TaskContext, TaskType};
+use do_memory_storage_turso::TursoStorage;
 use libsql::Builder;
-use memory_core::{Episode, TaskContext, TaskType};
-use memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
 use tokio::time::{Duration, timeout};
 

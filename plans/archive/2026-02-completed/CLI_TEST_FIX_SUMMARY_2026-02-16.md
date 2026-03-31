@@ -78,7 +78,7 @@ let result: Value = serde_json::from_str(&json_str)?;
 
 ### 3. CLI Compilation Fixes
 
-**File Modified**: `memory-cli/src/commands/episode/core/view.rs`
+**File Modified**: `do-memory-cli/src/commands/episode/core/view.rs`
 
 **Changes**:
 - ✅ Added `#[derive(Deserialize)]` to `EpisodeDetail` struct
@@ -143,7 +143,7 @@ let result2 = cli.run(&["episode", "list"]);  // Subprocess 2 starts fresh, does
 
 ### Memory System Initialization
 
-**Current** (`memory-cli/src/config/storage.rs`):
+**Current** (`do-memory-cli/src/config/storage.rs`):
 ```rust
 pub fn setup_storage(config: &StorageConfig) -> Result<Arc<dyn Storage>> {
     // Creates storage connection
@@ -282,10 +282,10 @@ pub fn setup_storage(config: &StorageConfig) -> Result<Arc<dyn Storage>> {
 ## Files Modified
 
 1. `tests/e2e/cli_workflows.rs` - Test fixes and #[ignore] markers
-2. `memory-cli/src/commands/episode/core/view.rs` - Added Deserialize derive
-3. `memory-cli/src/commands/episode/core/create.rs` - Minor fixes
-4. `memory-cli/src/commands/episode/core/complete.rs` - Minor fixes
-5. `memory-cli/src/commands/episode/core/delete.rs` - Minor fixes
+2. `do-memory-cli/src/commands/episode/core/view.rs` - Added Deserialize derive
+3. `do-memory-cli/src/commands/episode/core/create.rs` - Minor fixes
+4. `do-memory-cli/src/commands/episode/core/complete.rs` - Minor fixes
+5. `do-memory-cli/src/commands/episode/core/delete.rs` - Minor fixes
 
 ---
 

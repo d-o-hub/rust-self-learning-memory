@@ -1,4 +1,4 @@
-use memory_core::memory::checkpoint::{CheckpointMeta, HandoffPack};
+use do_memory_core::memory::checkpoint::{CheckpointMeta, HandoffPack};
 // HandoffSummary is not public in checkpoint mod, but it's okay, we can test CheckpointMeta and HandoffPack
 use chrono::{TimeZone, Utc};
 use proptest::prelude::*;

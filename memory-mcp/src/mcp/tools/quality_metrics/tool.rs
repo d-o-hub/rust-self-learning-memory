@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
-use memory_core::SelfLearningMemory;
-use memory_core::pre_storage::{QualityAssessor, QualityConfig};
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
 use serde_json::json;
 use tracing::{debug, info, instrument};
 
@@ -174,13 +174,13 @@ impl QualityMetricsTool {
     async fn get_episodes_in_range(
         &self,
         time_cutoff: Option<chrono::DateTime<chrono::Utc>>,
-    ) -> Result<Vec<memory_core::Episode>> {
+    ) -> Result<Vec<do_memory_core::Episode>> {
         // Query memory for recent episodes
-        let context = memory_core::TaskContext {
+        let context = do_memory_core::TaskContext {
             domain: "all".to_string(),
             language: None,
             framework: None,
-            complexity: memory_core::ComplexityLevel::Moderate,
+            complexity: do_memory_core::ComplexityLevel::Moderate,
             tags: vec![],
         };
 
@@ -191,7 +191,7 @@ impl QualityMetricsTool {
             .await;
 
         // Convert Vec<Arc<Episode>> to Vec<Episode> by cloning
-        let mut episodes: Vec<memory_core::Episode> = arc_episodes
+        let mut episodes: Vec<do_memory_core::Episode> = arc_episodes
             .into_iter()
             .map(|arc_ep| arc_ep.as_ref().clone())
             .collect();

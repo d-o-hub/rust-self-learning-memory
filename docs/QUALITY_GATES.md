@@ -131,8 +131,8 @@ Current implementation meets baseline. Target is aspirational.
 **Note:** Pattern accuracy of 70% is an aspirational target. Current baseline is 25%.
 
 **If Below Baseline:**
-- Check pattern extraction logic in `memory-core/src/patterns/`
-- Review test cases in `memory-core/tests/pattern_accuracy.rs`
+- Check pattern extraction logic in `do-memory-core/src/patterns/`
+- Review test cases in `do-memory-core/tests/pattern_accuracy.rs`
 - Ensure pattern matching is working correctly
 
 ### Code Complexity Gate
@@ -143,7 +143,7 @@ Current implementation meets baseline. Target is aspirational.
 Threshold: Average complexity < 10
 Checking codebase structure...
 ⚠️  Files exceeding 500 LOC guideline:
-  - ./memory-core/src/lib.rs: 650 LOC
+  - ./do-memory-core/src/lib.rs: 650 LOC
 ✅ Code complexity check completed
 ```
 

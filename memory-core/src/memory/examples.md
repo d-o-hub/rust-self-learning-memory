@@ -195,4 +195,4 @@ async fn example() -> anyhow::Result<()> {
 }
 ```
 
-For more examples, see the [memory/examples](https://github.com/your-repo/memory-core/tree/main/examples) directory.
+For more examples, see the [memory/examples](https://github.com/your-repo/do-memory-core/tree/main/examples) directory.

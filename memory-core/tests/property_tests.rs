@@ -3,7 +3,7 @@
 //! These tests use proptest to verify serialization roundtrips and state invariants
 //! across a wide range of generated inputs.
 
-use memory_core::*;
+use do_memory_core::*;
 use proptest::prelude::*;
 
 // Re-export for use in tests

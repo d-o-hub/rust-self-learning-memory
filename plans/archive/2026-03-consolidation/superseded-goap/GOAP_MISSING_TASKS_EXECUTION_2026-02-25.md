@@ -24,13 +24,13 @@
 ### Key Findings
 
 1. **Batch Module Status** (D1):
-   - `memory-mcp/src/lib.rs:102` → `pub mod batch;` ✅ ENABLED
-   - `memory-mcp/src/server/tools/mod.rs:8` → `pub mod batch;` ✅ NOW ENABLED
+   - `do-memory-mcp/src/lib.rs:102` → `pub mod batch;` ✅ ENABLED
+   - `do-memory-mcp/src/server/tools/mod.rs:8` → `pub mod batch;` ✅ NOW ENABLED
    - Created `batch.rs` to re-export batch types for tool integration
    - **Status**: ✅ COMPLETE
 
 2. **Embeddings CLI Status** (D2):
-   - Already implemented in `memory-cli/src/commands/embedding.rs`
+   - Already implemented in `do-memory-cli/src/commands/embedding.rs`
    - Available commands: test, config, list-providers, benchmark, enable, disable
    - Semantic search available via `episode list --semantic-search <query>`
    - **Status**: ✅ ALREADY DONE
@@ -96,13 +96,13 @@ Phase 3 (If Time Permits):
 **Status**: Completed in commit 87aa8a1
 
 **Changes**:
-- Uncommented `pub mod batch;` in `memory-mcp/src/server/tools/mod.rs`
-- Created `memory-mcp/src/server/tools/batch.rs` to re-export batch types
+- Uncommented `pub mod batch;` in `do-memory-mcp/src/server/tools/mod.rs`
+- Created `do-memory-mcp/src/server/tools/batch.rs` to re-export batch types
 - All batch tests pass (11 tests)
 
 **Verification**:
-- [x] Build passes: `cargo build -p memory-mcp`
-- [x] Tests pass: `cargo test -p memory-mcp` (2292 passed)
+- [x] Build passes: `cargo build -p do-memory-mcp`
+- [x] Tests pass: `cargo test -p do-memory-mcp` (2292 passed)
 - [x] Clippy passes: zero warnings
 
 ---
@@ -113,16 +113,16 @@ Phase 3 (If Time Permits):
 
 **Commands Available**:
 ```
-memory-cli embedding test            # Test embedding provider
-memory-cli embedding config          # Show configuration
-memory-cli embedding list-providers  # List providers
-memory-cli embedding benchmark      # Benchmark performance
-memory-cli embedding enable          # Enable embeddings
-memory-cli embedding disable         # Disable embeddings
+do-memory-cli embedding test            # Test embedding provider
+do-memory-cli embedding config          # Show configuration
+do-memory-cli embedding list-providers  # List providers
+do-memory-cli embedding benchmark      # Benchmark performance
+do-memory-cli embedding enable          # Enable embeddings
+do-memory-cli embedding disable         # Disable embeddings
 ```
 
 **Semantic Search**:
-- Available via: `memory-cli episode list --semantic-search <query>`
+- Available via: `do-memory-cli episode list --semantic-search <query>`
 
 ---
 

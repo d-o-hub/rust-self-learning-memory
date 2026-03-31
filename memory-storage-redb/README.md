@@ -1,14 +1,14 @@
-# memory-storage-redb
+# do-memory-storage-redb
 
-[![Crates.io](https://img.shields.io/crates/v/memory-storage-redb.svg)](https://crates.io/crates/memory-storage-redb)
-[![Documentation](https://docs.rs/memory-storage-redb/badge.svg)](https://docs.rs/memory-storage-redb)
+[![Crates.io](https://img.shields.io/crates/v/do-memory-storage-redb.svg)](https://crates.io/crates/do-memory-storage-redb)
+[![Documentation](https://docs.rs/do-memory-storage-redb/badge.svg)](https://docs.rs/do-memory-storage-redb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Purpose**: High-performance embedded cache layer for memory-core
+**Purpose**: High-performance embedded cache layer for do-memory-core
 
 ## Overview
 
-`memory-storage-redb` implements the high-performance cache layer for AI agent episodic memory using [redb](https://www.redb.org), an embedded key-value database. It provides blazing fast reads for hot-path operations with minimal overhead.
+`do-memory-storage-redb` implements the high-performance cache layer for AI agent episodic memory using [redb](https://www.redb.org), an embedded key-value database. It provides blazing fast reads for hot-path operations with minimal overhead.
 
 ## Features
 
@@ -34,7 +34,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-memory-storage-redb = "0.1"
+do-memory-storage-redb = "0.1"
 ```
 
 ## Quick Start
@@ -135,7 +135,7 @@ Optimized for extremely fast read operations:
 
 ### Real-world Performance
 
-In production with memory-core (v0.1.13):
+In production with do-memory-core (v0.1.13):
 - **Cache hit rate**: 85-95% (varies by workload)
 - **Average read latency**: 5-8µs (cache hits)
 - **Average write latency**: 50-80µs
@@ -185,7 +185,7 @@ let cache = RedbStorage::with_full_config("./data/cache.redb", config)?;
 | `ttl_seconds` | Time-to-live in seconds | `None` (no TTL) |
 | `ttl_check_interval` | Cleanup interval in seconds | 60 |
 
-## Usage with memory-core
+## Usage with do-memory-core
 
 ```rust
 use memory_core::SelfLearningMemory;
@@ -329,13 +329,13 @@ println!("Cache file: {} bytes", health.cache_file_size);
 Run tests with an in-memory database:
 
 ```bash
-cargo test -p memory-storage-redb
+cargo test -p do-memory-storage-redb
 ```
 
 For integration tests with a real database file:
 
 ```bash
-cargo test -p memory-storage-redb -- --ignored
+cargo test -p do-memory-storage-redb -- --ignored
 ```
 
 ## Dependencies
@@ -353,7 +353,7 @@ cargo test -p memory-storage-redb -- --ignored
 
 ## Documentation
 
-Full API documentation: [docs.rs/memory-storage-redb](https://docs.rs/memory-storage-redb)
+Full API documentation: [docs.rs/do-memory-storage-redb](https://docs.rs/do-memory-storage-redb)
 
 ## Best Practices
 
@@ -414,7 +414,7 @@ if stats.total_evictions > stats.total_writes / 2 {
 let stats = cache.get_stats()?;
 if stats.hit_rate < 0.8 {
     // Check if cache is being used correctly
-    // Verify memory-core is configured to use cache
+    // Verify do-memory-core is configured to use cache
     println!("Consider increasing cache size or TTL");
 }
 ```

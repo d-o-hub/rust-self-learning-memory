@@ -785,9 +785,9 @@ impl PatternExtractionQueue {
    - Impact: 1.8x completion improvement
 
 **Deliverables:**
-- Configurable step buffer (memory-core/src/memory/step_buffer.rs)
-- Query cache with TTL (memory-core/src/retrieval/query_cache.rs)
-- Parallel episode completion (memory-core/src/memory/completion.rs)
+- Configurable step buffer (do-memory-core/src/memory/step_buffer.rs)
+- Query cache with TTL (do-memory-core/src/retrieval/query_cache.rs)
+- Parallel episode completion (do-memory-core/src/memory/completion.rs)
 - Performance benchmarks showing improvements
 
 ### Phase 2: Storage Optimization (Week 3-4) - **Expected: 2-2.5x improvement**
@@ -815,10 +815,10 @@ impl PatternExtractionQueue {
    - Impact: 5-10x read improvement for cache hits
 
 **Deliverables:**
-- Compression configuration (memory-storage-turso/src/compression.rs)
-- Batch write operations (memory-storage-turso/src/storage/batch/)
-- Prepared statement cache (memory-storage-turso/src/prepared.rs)
-- Read-through cache (memory-storage-redb/src/cache.rs)
+- Compression configuration (do-memory-storage-turso/src/compression.rs)
+- Batch write operations (do-memory-storage-turso/src/storage/batch/)
+- Prepared statement cache (do-memory-storage-turso/src/prepared.rs)
+- Read-through cache (do-memory-storage-redb/src/cache.rs)
 
 ### Phase 3: Algorithmic Optimization (Week 5-6) - **Expected: 2.5-3x improvement**
 
@@ -846,10 +846,10 @@ impl PatternExtractionQueue {
    - Impact: 2-3x retrieval improvement
 
 **Deliverables:**
-- Incremental pattern extractor (memory-core/src/extraction/incremental.rs)
-- Parallel extraction pipeline (memory-core/src/extraction/parallel.rs)
-- Optimized DBSCAN (memory-core/src/patterns/dbscan_opt.rs)
-- Hybrid search (memory-core/src/semantic/hybrid.rs)
+- Incremental pattern extractor (do-memory-core/src/extraction/incremental.rs)
+- Parallel extraction pipeline (do-memory-core/src/extraction/parallel.rs)
+- Optimized DBSCAN (do-memory-core/src/patterns/dbscan_opt.rs)
+- Hybrid search (do-memory-core/src/semantic/hybrid.rs)
 
 ### Phase 4: Concurrency & Scaling (Week 7-8) - **Expected: 3-4x improvement**
 
@@ -876,10 +876,10 @@ impl PatternExtractionQueue {
    - Impact: 10-15% improvement
 
 **Deliverables:**
-- DashMap-based storage (memory-core/src/memory/concurrent.rs)
-- Lock-free cache (memory-core/src/retrieval/atomic_cache.rs)
-- Work-stealing queue (memory-core/src/learning/work_stealing.rs)
-- Cache-line optimized structures (memory-core/src/memory/padded.rs)
+- DashMap-based storage (do-memory-core/src/memory/concurrent.rs)
+- Lock-free cache (do-memory-core/src/retrieval/atomic_cache.rs)
+- Work-stealing queue (do-memory-core/src/learning/work_stealing.rs)
+- Cache-line optimized structures (do-memory-core/src/memory/padded.rs)
 
 ## Performance Monitoring
 

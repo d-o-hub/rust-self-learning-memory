@@ -36,7 +36,7 @@
 
 **Problem**: Episode operations failed with cache directory error.
 
-**Solution**: Created `~/.local/share/memory-cli/cache/` directory.
+**Solution**: Created `~/.local/share/do-memory-cli/cache/` directory.
 
 **Verified Operations**:
 - `memory episode create` - Works correctly

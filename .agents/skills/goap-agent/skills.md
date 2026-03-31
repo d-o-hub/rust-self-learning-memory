@@ -40,8 +40,8 @@
 | **episode-start** | Start learning episodes |
 | **episode-log-steps** | Log execution steps |
 | **episode-complete** | Complete and score episodes |
-| **memory-mcp** | MCP server operations |
-| **memory-cli-ops** | CLI operations |
+| **do-memory-mcp** | MCP server operations |
+| **do-memory-cli-ops** | CLI operations |
 | **storage-sync** | Turso/redb synchronization |
 
 ## Workflow & Coordination Skills

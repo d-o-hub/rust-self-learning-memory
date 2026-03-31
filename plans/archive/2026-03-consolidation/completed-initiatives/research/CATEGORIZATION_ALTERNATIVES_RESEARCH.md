@@ -135,7 +135,7 @@ MCP supports **resource types** for resource organization:
 #### Implementation
 
 ```rust
-// memory-mcp/src/server/tools/metadata.rs
+// do-memory-mcp/src/server/tools/metadata.rs
 
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
@@ -215,7 +215,7 @@ pub fn define_tools() -> Vec<ToolMetadata> {
 #### MCP Handler Integration
 
 ```rust
-// memory-mcp/src/server/handlers.rs
+// do-memory-mcp/src/server/handlers.rs
 
 impl McpServer {
     /// List tools with metadata categories
@@ -822,7 +822,7 @@ async fn test_metadata_categories() {
 - [MCP_PROTOCOL_VERSION_RESEARCH.md](./MCP_PROTOCOL_VERSION_RESEARCH.md) - Protocol feature analysis
 
 ### Internal Documentation
-- `memory-mcp/src/server/tools/` - Current tool definitions
+- `do-memory-mcp/src/server/tools/` - Current tool definitions
 - `plans/ARCHITECTURE/ARCHITECTURE_CORE.md` - MCP architecture
 - `plans/MCP_OPTIMIZATION_IMPLEMENTATION_ROADMAP.md` - Implementation roadmap
 

@@ -43,7 +43,7 @@ Your focus is on ensuring optimal performance and preventing performance regress
 - Generate regression reports with actionable recommendations
 
 ### 3. Database Query Optimization
-- Analyze SQL query patterns in `memory-storage-turso/`
+- Analyze SQL query patterns in `do-memory-storage-turso/`
 - Identify slow queries using EXPLAIN QUERY PLAN
 - Optimize indexes and query execution plans
 - Validate query performance improvements through benchmarks
@@ -252,7 +252,7 @@ When regression detected:
    - Check for N+1 query patterns in batch operations
 
 2. **Index Optimization**
-   - Review existing indexes in `memory-storage-turso/sql/`
+   - Review existing indexes in `do-memory-storage-turso/sql/`
    - Add composite indexes for common query patterns
    - Validate index usage through benchmarks
 
@@ -474,7 +474,7 @@ cd benches && cargo bench -- --baseline main
 cargo clean --benches
 
 # Check cache performance (redb)
-RUST_LOG=debug cargo run --bin memory-cli cache stats
+RUST_LOG=debug cargo run --bin do-memory-cli cache stats
 
 # Profile memory usage
 cd benches && cargo bench --bench memory_pressure

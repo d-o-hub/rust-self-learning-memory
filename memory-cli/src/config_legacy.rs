@@ -47,7 +47,7 @@ pub mod config {
     /// Create a SelfLearningMemory instance with configured storage backends
     /// 
     /// This is the legacy storage initialization API that delegates to the new modular system.
-    pub async fn create_memory(&self) -> Result<memory_core::SelfLearningMemory, anyhow::Error> {
+    pub async fn create_memory(&self) -> Result<do_memory_core::SelfLearningMemory, anyhow::Error> {
         let storage_result = initialize_storage(self).await?;
         Ok(storage_result.memory)
     }

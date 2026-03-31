@@ -48,14 +48,14 @@ The 89% improvement target applies to remote Turso databases where TCP/TLS hands
 
 ### Components Implemented
 
-1. **KeepAlivePool** (`memory-storage-turso/src/pool/keepalive.rs`)
+1. **KeepAlivePool** (`do-memory-storage-turso/src/pool/keepalive.rs`)
    - Connection tracking with last-used timestamps
    - Stale connection detection and refresh
    - Proactive ping mechanism
    - Background maintenance task
    - Statistics tracking
 
-2. **Integration** (`memory-storage-turso/src/lib.rs`)
+2. **Integration** (`do-memory-storage-turso/src/lib.rs`)
    - TursoConfig options for keep-alive
    - Automatic pool wrapping when enabled
    - Public API for statistics and configuration
@@ -224,15 +224,15 @@ Keep-Alive Statistics:
 ## Files Modified/Created
 
 ### Modified
-- `memory-storage-turso/src/lib.rs` - Integrated keep-alive pool
-- `memory-storage-turso/src/pool/keepalive.rs` - Fixed unsafe code
-- `memory-storage-turso/Cargo.toml` - Already had feature flag
+- `do-memory-storage-turso/src/lib.rs` - Integrated keep-alive pool
+- `do-memory-storage-turso/src/pool/keepalive.rs` - Fixed unsafe code
+- `do-memory-storage-turso/Cargo.toml` - Already had feature flag
 
 ### Created
-- `memory-storage-turso/tests/keepalive_pool_integration_test.rs` - Integration tests
+- `do-memory-storage-turso/tests/keepalive_pool_integration_test.rs` - Integration tests
 - `benches/keepalive_pool_benchmark.rs` - Performance benchmarks
-- `memory-storage-turso/examples/keepalive_pool_demo.rs` - Working demo
-- `memory-storage-turso/KEEPALIVE_POOL_GUIDE.md` - User guide
+- `do-memory-storage-turso/examples/keepalive_pool_demo.rs` - Working demo
+- `do-memory-storage-turso/KEEPALIVE_POOL_GUIDE.md` - User guide
 - `plans/PHASE2_KEEPALIVE_POOL_IMPLEMENTATION_SUMMARY.md` - This document
 
 ## Known Limitations

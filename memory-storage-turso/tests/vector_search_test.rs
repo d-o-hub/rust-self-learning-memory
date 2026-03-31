@@ -1,7 +1,7 @@
 //! Tests for vector search functionality
 
-use memory_core::embeddings::EmbeddingStorageBackend;
-use memory_storage_turso::TursoStorage;
+use do_memory_core::embeddings::EmbeddingStorageBackend;
+use do_memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
 
 async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
@@ -45,8 +45,8 @@ async fn test_vector_search() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
     // Store some episodes with embeddings
-    use memory_core::Episode;
-    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+    use do_memory_core::Episode;
+    use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -61,7 +61,7 @@ async fn test_vector_search() {
         context.clone(),
         TaskType::CodeGeneration,
     );
-    episode1.complete(memory_core::types::TaskOutcome::Success {
+    episode1.complete(do_memory_core::types::TaskOutcome::Success {
         verdict: "Done".to_string(),
         artifacts: vec![],
     });
@@ -71,7 +71,7 @@ async fn test_vector_search() {
         context,
         TaskType::CodeGeneration,
     );
-    episode2.complete(memory_core::types::TaskOutcome::Success {
+    episode2.complete(do_memory_core::types::TaskOutcome::Success {
         verdict: "Done".to_string(),
         artifacts: vec![],
     });
@@ -110,8 +110,8 @@ async fn test_vector_search() {
 async fn test_vector_search_threshold() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
-    use memory_core::Episode;
-    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+    use do_memory_core::Episode;
+    use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -126,7 +126,7 @@ async fn test_vector_search_threshold() {
         context,
         TaskType::CodeGeneration,
     );
-    episode.complete(memory_core::types::TaskOutcome::Success {
+    episode.complete(do_memory_core::types::TaskOutcome::Success {
         verdict: "Done".to_string(),
         artifacts: vec![],
     });

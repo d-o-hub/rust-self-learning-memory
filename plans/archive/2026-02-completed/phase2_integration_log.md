@@ -43,13 +43,13 @@ git diff --name-only pr-272...pr-265 | sort
 - **Plan Files**: 10 files
 
 **Critical Files Requiring Manual Intervention**:
-1. `memory-mcp/src/bin/server_impl/tools.rs` - Make 2 functions public
-2. `memory-mcp/src/bin/server_impl/handlers.rs` - Add 2 imports + 2 routes
+1. `do-memory-mcp/src/bin/server_impl/tools.rs` - Make 2 functions public
+2. `do-memory-mcp/src/bin/server_impl/handlers.rs` - Add 2 imports + 2 routes
 
 #### Step 4: Backup Critical Files ✅
 ```bash
-cp memory-mcp/src/bin/server_impl/handlers.rs /tmp/handlers_backup.rs
-cp memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_backup.rs
+cp do-memory-mcp/src/bin/server_impl/handlers.rs /tmp/handlers_backup.rs
+cp do-memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_backup.rs
 ```
 
 **Result**: Critical files backed up to /tmp/
@@ -58,43 +58,43 @@ cp memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_backup.rs
 
 #### Step 6: Apply CLI Relationships Module ✅
 ```bash
-mkdir -p memory-cli/src/commands/relationships
-git show pr-265:memory-cli/src/commands/relationships/mod.rs > memory-cli/src/commands/relationships/mod.rs
-git show pr-265:memory-cli/src/commands/relationships/core.rs > memory-cli/src/commands/relationships/core.rs
-git show pr-265:memory-cli/src/commands/relationships/types.rs > memory-cli/src/commands/relationships/types.rs
+mkdir -p do-memory-cli/src/commands/relationships
+git show pr-265:do-memory-cli/src/commands/relationships/mod.rs > do-memory-cli/src/commands/relationships/mod.rs
+git show pr-265:do-memory-cli/src/commands/relationships/core.rs > do-memory-cli/src/commands/relationships/core.rs
+git show pr-265:do-memory-cli/src/commands/relationships/types.rs > do-memory-cli/src/commands/relationships/types.rs
 ```
 **Files Created**:
-- ✅ memory-cli/src/commands/relationships/mod.rs (5,587 bytes)
-- ✅ memory-cli/src/commands/relationships/core.rs (17,838 bytes)
-- ✅ memory-cli/src/commands/relationships/types.rs (10,231 bytes)
+- ✅ do-memory-cli/src/commands/relationships/mod.rs (5,587 bytes)
+- ✅ do-memory-cli/src/commands/relationships/core.rs (17,838 bytes)
+- ✅ do-memory-cli/src/commands/relationships/types.rs (10,231 bytes)
 
-**Validation**: `cargo check -p memory-cli` - ✅ No errors or warnings
+**Validation**: `cargo check -p do-memory-cli` - ✅ No errors or warnings
 
 #### Step 7: Apply CLI Tag Module Changes ✅
 ```bash
-git show pr-265:memory-cli/src/commands/tag/core.rs > memory-cli/src/commands/tag/core.rs
-git show pr-265:memory-cli/src/commands/tag/output.rs > memory-cli/src/commands/tag/output.rs
-git show pr-265:memory-cli/src/commands/tag/tests.rs > memory-cli/src/commands/tag/tests.rs
-git show pr-265:memory-cli/src/commands/tag/types.rs > memory-cli/src/commands/tag/types.rs
+git show pr-265:do-memory-cli/src/commands/tag/core.rs > do-memory-cli/src/commands/tag/core.rs
+git show pr-265:do-memory-cli/src/commands/tag/output.rs > do-memory-cli/src/commands/tag/output.rs
+git show pr-265:do-memory-cli/src/commands/tag/tests.rs > do-memory-cli/src/commands/tag/tests.rs
+git show pr-265:do-memory-cli/src/commands/tag/types.rs > do-memory-cli/src/commands/tag/types.rs
 ```
 **Files Modified**:
-- ✅ memory-cli/src/commands/tag/core.rs
-- ✅ memory-cli/src/commands/tag/output.rs
-- ✅ memory-cli/src/commands/tag/tests.rs
-- ✅ memory-cli/src/commands/tag/types.rs
+- ✅ do-memory-cli/src/commands/tag/core.rs
+- ✅ do-memory-cli/src/commands/tag/output.rs
+- ✅ do-memory-cli/src/commands/tag/tests.rs
+- ✅ do-memory-cli/src/commands/tag/types.rs
 
-**Validation**: `cargo check -p memory-cli` - ✅ No errors or warnings
+**Validation**: `cargo check -p do-memory-cli` - ✅ No errors or warnings
 
 #### Step 8: Apply CLI Main and Mod Changes ✅
 ```bash
-git show pr-265:memory-cli/src/main.rs > memory-cli/src/main.rs
-git show pr-265:memory-cli/src/commands/mod.rs > memory-cli/src/commands/mod.rs
+git show pr-265:do-memory-cli/src/main.rs > do-memory-cli/src/main.rs
+git show pr-265:do-memory-cli/src/commands/mod.rs > do-memory-cli/src/commands/mod.rs
 ```
 **Files Modified**:
-- ✅ memory-cli/src/main.rs (relationship command integration)
-- ✅ memory-cli/src/commands/mod.rs (relationship module export)
+- ✅ do-memory-cli/src/main.rs (relationship command integration)
+- ✅ do-memory-cli/src/commands/mod.rs (relationship module export)
 
-**Validation**: `cargo check -p memory-cli` - ✅ No errors or warnings
+**Validation**: `cargo check -p do-memory-cli` - ✅ No errors or warnings
 
 #### Step 9: Apply Core Memory Changes
 

@@ -157,7 +157,7 @@ Provide results in this structured format:
 **Process**: 
 1. Glob search: `**/*.rs` for episode-related files
 2. Grep search: `start_episode` across codebase
-3. Read key files: `memory-core/src/memory/mod.rs`
+3. Read key files: `do-memory-core/src/memory/mod.rs`
 4. Analyze: Identify creation patterns and storage logic
 
 ### Multi-step Task Example
@@ -165,6 +165,6 @@ Provide results in this structured format:
 **Process**:
 1. Search benchmarks: `benches/memory_pressure.rs`
 2. Examine storage implementations: `memory-storage-*/src/`
-3. Check monitoring: `memory-core/src/monitoring/`
+3. Check monitoring: `do-memory-core/src/monitoring/`
 4. Execute tests: `cargo test memory_pressure`
 5. Synthesize findings into comprehensive report

@@ -8,7 +8,7 @@ The testing infrastructure includes:
 - **Unit tests**: Located within each module (`#[cfg(test)]`)
 - **Integration tests**: Located in `tests/` directory
 - **Benchmarks**: Located in `benches/` directory
-- **Test utilities**: Shared helpers in `test-utils/` crate
+- **Test utilities**: Shared helpers in `do-memory-test-utils/` crate
 
 ### Modern Testing Stack (2026)
 
@@ -143,7 +143,7 @@ Based on 04-review.md requirements:
 
 ## Test Utilities
 
-The `test-utils` crate provides:
+The `do-memory-test-utils` crate provides:
 
 ### Episode Generators
 ```rust
@@ -319,8 +319,8 @@ Mutation testing injects bugs into your code to verify tests catch them:
 # Install cargo-mutants
 cargo install --locked cargo-mutants
 
-# Run on memory-core (recommended starting point)
-cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib
+# Run on do-memory-core (recommended starting point)
+cargo mutants -p do-memory-core --timeout 120 --jobs 4 -- --lib
 
 # Acceptance criteria: <20% missed mutants in core business logic
 ```

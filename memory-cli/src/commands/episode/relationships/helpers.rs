@@ -1,7 +1,7 @@
 //! Helper functions for relationship graph operations
 
 use colored::Colorize;
-use memory_core::episode::RelationshipType;
+use do_memory_core::episode::RelationshipType;
 use uuid::Uuid;
 
 pub(super) fn topological_sort_kahn(nodes: &[Uuid], edges: &[(Uuid, Uuid)]) -> Vec<Uuid> {
@@ -65,14 +65,14 @@ pub(super) fn topological_sort_kahn(nodes: &[Uuid], edges: &[(Uuid, Uuid)]) -> V
 }
 
 pub(super) fn render_ascii_tree(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     root_id: Uuid,
 ) -> String {
     let mut output = String::new();
     let mut visited = std::collections::HashSet::new();
 
     fn render_node(
-        graph: &memory_core::memory::relationship_query::RelationshipGraph,
+        graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
         node_id: Uuid,
         prefix: &str,
         is_last: bool,
@@ -143,7 +143,7 @@ pub(super) fn render_ascii_tree(
 
 /// Validate that no cycles exist in relationships
 pub(super) fn detect_cycle_in_graph(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     relationship_type: Option<RelationshipType>,
 ) -> bool {
     let mut visited = std::collections::HashSet::new();
@@ -160,7 +160,7 @@ pub(super) fn detect_cycle_in_graph(
 }
 
 fn has_cycle_util(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     node_id: Uuid,
     visited: &mut std::collections::HashSet<Uuid>,
     rec_stack: &mut std::collections::HashSet<Uuid>,
@@ -207,7 +207,7 @@ mod tests {
     };
     use crate::commands::episode::{DirectionArg, RelationshipTypeArg};
     use crate::output::Output;
-    use memory_core::episode::Direction;
+    use do_memory_core::episode::Direction;
 
     #[test]
     fn test_relationship_type_arg_conversion() {

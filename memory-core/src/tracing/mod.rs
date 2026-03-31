@@ -13,7 +13,7 @@
 //! # Usage
 //!
 //! ```no_run
-//! use memory_core::tracing::{init_tracing, CorrelationId};
+//! use do_memory_core::tracing::{init_tracing, CorrelationId};
 //! use tracing::info;
 //!
 //! // Initialize tracing (call once at application startup)
@@ -43,7 +43,7 @@ pub static INIT: Once = Once::new();
 /// # Example
 ///
 /// ```
-/// use memory_core::tracing::CorrelationId;
+/// use do_memory_core::tracing::CorrelationId;
 ///
 /// let id = CorrelationId::new();
 /// println!("Correlation ID: {}", id.0);
@@ -102,7 +102,7 @@ impl From<uuid::Uuid> for CorrelationId {
 /// # Example
 ///
 /// ```
-/// use memory_core::tracing::{CorrelationId, add_correlation_id};
+/// use do_memory_core::tracing::{CorrelationId, add_correlation_id};
 /// use tracing::info_span;
 ///
 /// let id = CorrelationId::new();
@@ -130,7 +130,7 @@ pub fn add_correlation_id(id: CorrelationId) -> impl Fn(&Span) + Clone + Send + 
 /// # Example
 ///
 /// ```
-/// use memory_core::tracing::init_tracing;
+/// use do_memory_core::tracing::init_tracing;
 ///
 /// // Initialize with default filter
 /// init_tracing(None);
@@ -165,7 +165,7 @@ pub fn init_tracing(filter: Option<&str>) {
 /// # Example
 ///
 /// ```
-/// use memory_core::tracing::init_tracing_json;
+/// use do_memory_core::tracing::init_tracing_json;
 ///
 /// // Initialize with JSON output
 /// init_tracing_json(Some("memory_core=debug"));

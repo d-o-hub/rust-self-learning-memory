@@ -260,13 +260,13 @@ The crate includes comprehensive security tests:
 
 ```bash
 # Run all tests
-cargo test --package memory-mcp
+cargo test --package do-memory-mcp
 
 # Run only security tests
-cargo test --package memory-mcp --test security_test
+cargo test --package do-memory-mcp --test security_test
 
 # Run integration tests
-cargo test --package memory-mcp --test integration_test
+cargo test --package do-memory-mcp --test integration_test
 ```
 
 ### Security Test Coverage

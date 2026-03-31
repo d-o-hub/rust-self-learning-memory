@@ -14,7 +14,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_storage_turso::metrics::export::{PrometheusExporter, ExportConfig};
+//! use do_memory_storage_turso::metrics::export::{PrometheusExporter, ExportConfig};
 //!
 //! let config = ExportConfig::default();
 //! let exporter = PrometheusExporter::new(config);

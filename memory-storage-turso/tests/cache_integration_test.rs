@@ -4,8 +4,8 @@
 //! in the libsql/turso native library that causes `malloc_consolidate(): unaligned fastbin chunk detected`
 //! in CI environments. See ADR-027 for details.
 
-use memory_core::{Episode, Pattern, PatternId, Result, StorageBackend, TaskContext, TaskType};
-use memory_storage_turso::{CacheConfig, PreparedCacheConfig, TursoStorage};
+use do_memory_core::{Episode, Pattern, PatternId, Result, StorageBackend, TaskContext, TaskType};
+use do_memory_storage_turso::{CacheConfig, PreparedCacheConfig, TursoStorage};
 use std::time::Duration;
 use tempfile::TempDir;
 
@@ -79,14 +79,14 @@ async fn test_cached_storage_pattern_operations() {
         id: PatternId::new_v4(),
         condition: "test condition".to_string(),
         action: "test action".to_string(),
-        outcome_stats: memory_core::types::OutcomeStats {
+        outcome_stats: do_memory_core::types::OutcomeStats {
             success_count: 5,
             failure_count: 1,
             total_count: 6,
             avg_duration_secs: 0.5,
         },
         context: TaskContext::default(),
-        effectiveness: memory_core::pattern::PatternEffectiveness::default(),
+        effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
     };
     let pattern_id = pattern.id();
 

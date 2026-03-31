@@ -14,7 +14,7 @@
     clippy::unnecessary_wraps
 )]
 
-use memory_core::embeddings::{MistralConfig, OpenAIConfig, OptimizationConfig, ProviderConfig};
+use do_memory_core::embeddings::{MistralConfig, OpenAIConfig, OptimizationConfig, ProviderConfig};
 
 fn main() {
     println!("🚀 Embedding Provider Optimization Demo\n");
@@ -31,7 +31,7 @@ fn main() {
     print_optimization_config("Mistral AI", &mistral_config.optimization);
 
     let azure_config =
-        ProviderConfig::AzureOpenAI(memory_core::embeddings::AzureOpenAIConfig::new(
+        ProviderConfig::AzureOpenAI(do_memory_core::embeddings::AzureOpenAIConfig::new(
             "deployment",
             "resource",
             "2023-05-15",
@@ -39,7 +39,7 @@ fn main() {
         ));
     print_optimization_config("Azure OpenAI", azure_config.optimization());
 
-    let custom_config = ProviderConfig::Custom(memory_core::embeddings::CustomConfig::new(
+    let custom_config = ProviderConfig::Custom(do_memory_core::embeddings::CustomConfig::new(
         "model",
         768,
         "http://localhost:1234/v1",

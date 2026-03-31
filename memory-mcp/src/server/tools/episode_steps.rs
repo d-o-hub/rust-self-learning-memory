@@ -5,7 +5,7 @@
 
 use crate::server::MemoryMCPServer;
 use anyhow::{Result, anyhow};
-use memory_core::ExecutionStep;
+use do_memory_core::ExecutionStep;
 use serde_json::{Value, json};
 use tracing::debug;
 use tracing::info;
@@ -72,21 +72,21 @@ impl MemoryMCPServer {
                 .unwrap_or("success");
 
             step.result = Some(match result_type {
-                "success" => memory_core::ExecutionResult::Success {
+                "success" => do_memory_core::ExecutionResult::Success {
                     output: result
                         .get("output")
                         .and_then(|v| v.as_str())
                         .unwrap_or("")
                         .to_string(),
                 },
-                "error" => memory_core::ExecutionResult::Error {
+                "error" => do_memory_core::ExecutionResult::Error {
                     message: result
                         .get("message")
                         .and_then(|v| v.as_str())
                         .unwrap_or("Unknown error")
                         .to_string(),
                 },
-                "timeout" => memory_core::ExecutionResult::Timeout,
+                "timeout" => do_memory_core::ExecutionResult::Timeout,
                 _ => {
                     return Err(anyhow!(
                         "Invalid result type: {}. Must be one of: success, error, timeout",

@@ -6,8 +6,8 @@
 //! 3. Query result caching
 //! 4. Performance metrics tracking
 
-use memory_core::{ComplexityLevel, Episode, StorageBackend, TaskContext, TaskType};
-use memory_storage_turso::{AdvancedQueryCache, CacheConfig, QueryKey, TursoStorage};
+use do_memory_core::{ComplexityLevel, Episode, StorageBackend, TaskContext, TaskType};
+use do_memory_storage_turso::{AdvancedQueryCache, CacheConfig, QueryKey, TursoStorage};
 // Note: PerformanceMetrics temporarily disabled due to existing metrics module issues
 use std::collections::HashMap;
 use std::time::{Duration, Instant};

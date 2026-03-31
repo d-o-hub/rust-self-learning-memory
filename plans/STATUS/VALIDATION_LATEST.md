@@ -15,7 +15,7 @@
 | `du -sh . target node_modules benchmark_results data metrics .git` | `.` = **32G**, `target` = **32G**, `node_modules` = **130M**, `benchmark_results` = 152K, `data` = 1.8M, `metrics` = 12K, `.git` = 23M |
 | `ls plans/adr/ADR-0*.md | wc -l` | 25 ADRs reviewed for constraints (ADR-022/032/033/038/044 most relevant) |
 | `rg -n` (targeted) | Verified attribution/checkpoint persistence gaps and doc drift noted below |
-| `cargo run -p memory-cli -- --help` | ✅ Command list confirms current top-level groups: `episode`, `pattern`, `storage`, `config`, `health`, `backup`, `monitor`, `logs`, `eval`, `embedding`, `completion`, `tag`, `relationship`, `playbook`, `feedback` |
+| `cargo run -p do-memory-cli -- --help` | ✅ Command list confirms current top-level groups: `episode`, `pattern`, `storage`, `config`, `health`, `backup`, `monitor`, `logs`, `eval`, `embedding`, `completion`, `tag`, `relationship`, `playbook`, `feedback` |
 | `./scripts/check-docs-integrity.sh` | ⚠️ Reports many broken links in archived `plans/archive/**` and `plans/STATUS/archive/**`; active docs remain aligned and archived cleanup remains non-blocking |
 | `./scripts/clean-artifacts.sh --help` | ✅ Usage text now documents `quick|standard|full` modes plus `--node-modules`, `--target-dir`, and `--dry-run` |
 | `./scripts/code-quality.sh fmt` | ✅ Passed |
@@ -31,7 +31,7 @@ Validation covered docs/contract truth, CI-workflow surface expansion, coverage 
 ## Findings Snapshot
 
 ### Implementation Gaps (ADR-044 compliance)
-- ✅ **Recommendation attribution durability restored**: Turso SQL + `memory-storage-turso/src/storage/recommendations.rs`, `memory-storage-redb/src/recommendations.rs`, and storage trait impls persist sessions/feedback/stats; validated via `tests/attribution_integration_test.rs` (WG-051).
+- ✅ **Recommendation attribution durability restored**: Turso SQL + `do-memory-storage-turso/src/storage/recommendations.rs`, `do-memory-storage-redb/src/recommendations.rs`, and storage trait impls persist sessions/feedback/stats; validated via `tests/attribution_integration_test.rs` (WG-051).
 - ✅ **Checkpoint/handoff durability restored (WG-052)**:
   - Turso episode schema + CRUD/query/batch paths now persist `Episode.checkpoints`.
   - `row_to_episode` now deserializes checkpoints (with backward-compatible defaulting for legacy rows).
@@ -40,8 +40,8 @@ Validation covered docs/contract truth, CI-workflow surface expansion, coverage 
 - ✅ **Batch MCP contract aligned (WG-053)**: tool-level batch analytics names remain intentionally absent (`tool_definitions_extended.rs`), parity tests assert non-advertisement + direct-call rejection, and active docs/plans now reflect this deferred state.
 
 ### Documentation & Contract Drift
-- ✅ `docs/API_REFERENCE.md` now reflects current MCP tool contract from `memory-mcp/tests/tool_contract_parity.rs` and explicitly marks deferred batch tools absent.
-- ✅ `docs/PLAYBOOKS_AND_CHECKPOINTS.md` now uses current CLI command families (`memory-cli episode ...`, `memory-cli feedback record-session`, `memory-cli feedback record-feedback`) and current MCP feedback tool naming (`record_recommendation_feedback`).
+- ✅ `docs/API_REFERENCE.md` now reflects current MCP tool contract from `do-memory-mcp/tests/tool_contract_parity.rs` and explicitly marks deferred batch tools absent.
+- ✅ `docs/PLAYBOOKS_AND_CHECKPOINTS.md` now uses current CLI command families (`do-memory-cli episode ...`, `do-memory-cli feedback record-session`, `do-memory-cli feedback record-feedback`) and current MCP feedback tool naming (`record_recommendation_feedback`).
 - ✅ `README.md` CLI/docs references refreshed to current command groups and less overclaiming wording for conditional sandbox capability.
 - ✅ WG-054 status propagated to GOALS/ACTIONS/GOAP_STATE/ROADMAP/CURRENT/GAP_ANALYSIS/README plan docs.
 
@@ -67,7 +67,7 @@ Validation covered docs/contract truth, CI-workflow surface expansion, coverage 
 |----|-------|---------|--------|
 | **WG-051** | Durable recommendation attribution | ✅ Complete — Turso/redb storage traits, integration tests, metrics surfaced | feature-implementer + architecture |
 | **WG-052** | Durable checkpoints/handoffs | ✅ Complete — checkpoint metadata persisted across storage/redb, resume flows verified | feature-implementer + architecture |
-| **WG-053** | MCP contract integrity | ✅ Complete — explicit defer decision + parity/tests/docs/plans alignment | memory-mcp + goap-agent |
+| **WG-053** | MCP contract integrity | ✅ Complete — explicit defer decision + parity/tests/docs/plans alignment | do-memory-mcp + goap-agent |
 | **WG-054** | Docs/CLI/API parity | ✅ Complete — API/README/playbook + plans truth-source refresh verified against parity test and CLI help | documentation |
 | **WG-055** | Required CI coverage | ✅ Complete — CI test scope expanded to workspace nextest + benchmark workflow now covers full bench declarations | github-workflows + test-runner |
 | **WG-056** | Coverage gate enforcement | ✅ Complete — script/test coverage thresholds and parsing now enforce <90% failures correctly | quality-unit-testing |

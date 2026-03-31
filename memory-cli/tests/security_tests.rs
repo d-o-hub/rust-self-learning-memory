@@ -3,14 +3,14 @@
 //! These tests verify that the CLI properly handles malicious input,
 //! prevents injection attacks, and sanitizes user data.
 
-use memory_cli::test_utils;
+use do_memory_cli::test_utils::CliHarness;
 use std::fs;
-use test_utils::*;
 
 #[cfg(test)]
 mod security_tests {
     use super::*;
     use assert_cmd::Command;
+    use do_memory_cli::test_utils::{CliHarness, security};
     use predicates::prelude::*;
     use tempfile::TempDir;
 

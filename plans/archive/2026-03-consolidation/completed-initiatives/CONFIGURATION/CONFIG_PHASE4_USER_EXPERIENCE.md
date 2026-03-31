@@ -147,7 +147,7 @@ pub enum WizardStep {
 
 ## 4.3 CLI Integration
 
-### File: `memory-cli/src/commands/config.rs`
+### File: `do-memory-cli/src/commands/config.rs`
 
 **Priority**: Medium - Add Simple Mode commands to CLI
 
@@ -173,7 +173,7 @@ pub async fn simple_setup(
     
     format.print_output(&display)?;
     println!("\n✅ Simple configuration created successfully!");
-    println!("💡 Use 'memory-cli config save <filename>' to save this configuration.");
+    println!("💡 Use 'do-memory-cli config save <filename>' to save this configuration.");
     Ok(())
 }
 

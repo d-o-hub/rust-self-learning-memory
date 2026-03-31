@@ -62,7 +62,7 @@ Skills are intentionally left unchanged. While overlaps exist, each serves a dis
 - Stage I: kNN representative selection for coverage + diversity
 - Stage II: Uncertainty-gated adaptive inclusion (only expand when it reduces reader uncertainty)
 
-**Actionable for v0.1.25**: Add diversity-aware retrieval to `memory-core/src/memory/retrieval/context.rs`. Currently returns top-k by cosine similarity — add coverage-diversity reranking using existing pattern categories as "themes". Low effort, high retrieval quality impact.
+**Actionable for v0.1.25**: Add diversity-aware retrieval to `do-memory-core/src/memory/retrieval/context.rs`. Currently returns top-k by cosine similarity — add coverage-diversity reranking using existing pattern categories as "themes". Low effort, high retrieval quality impact.
 
 ### R2: OpenSpace — Self-Evolving Skill Engine (HKUDS, Mar 2026)
 
@@ -90,7 +90,7 @@ Turso now supports **concurrent writes** (zero conflicts, no locking) and **nati
 
 Key takeaway from Tokio creator: "Tasks only yield at `.await` — long CPU work stalls the runtime." This project's DBSCAN clustering and pattern extraction are CPU-heavy operations that should use `spawn_blocking`.
 
-**Actionable**: Audit `memory-core/src/extraction/` and `memory-core/src/memory/pattern_search/` for CPU-heavy operations not wrapped in `spawn_blocking`. Already a core invariant in AGENTS.md but may not be fully enforced.
+**Actionable**: Audit `do-memory-core/src/extraction/` and `do-memory-core/src/memory/pattern_search/` for CPU-heavy operations not wrapped in `spawn_blocking`. Already a core invariant in AGENTS.md but may not be fully enforced.
 
 ---
 
@@ -100,7 +100,7 @@ Key takeaway from Tokio creator: "Tasks only yield at `.await` — long CPU work
 
 | Subsystem | Status | Impact |
 |-----------|--------|--------|
-| `AdaptiveCache` | Exists in `memory-storage-redb/src/cache/adaptive/` but not wired as default storage path | Medium — redb uses `AdaptiveCacheAdapter` for metadata-only; value caching requires explicit opt-in |
+| `AdaptiveCache` | Exists in `do-memory-storage-redb/src/cache/adaptive/` but not wired as default storage path | Medium — redb uses `AdaptiveCacheAdapter` for metadata-only; value caching requires explicit opt-in |
 | `CompressedTransport` | Exists as standalone utility, not wired into `TursoStorage` transport | Low — compression is used at embedding level, transport compression is optimization |
 | `execute_agent_code` MCP tool | Fully implemented but **permanently disabled** due to WASM sandbox compilation issues | High — code execution is a flagship feature; 35+ references across codebase are dead weight |
 

@@ -239,7 +239,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::{SelfLearningMemory, TaskOutcome};
+    /// use do_memory_core::{SelfLearningMemory, TaskOutcome};
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> anyhow::Result<()> {

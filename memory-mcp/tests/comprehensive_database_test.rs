@@ -3,11 +3,11 @@
 //! This test demonstrates full database functionality by running
 //! memory operations and MCP queries in the same process.
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
 };
-use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
+use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 
@@ -82,7 +82,7 @@ async fn test_comprehensive_database_operations() {
             "step": i + 1,
             "description": format!("Step {} implementation", i + 1)
         });
-        step.result = Some(memory_core::ExecutionResult::Success {
+        step.result = Some(do_memory_core::ExecutionResult::Success {
             output: format!("Step {} completed successfully", i + 1),
         });
         step.latency_ms = (i as u64 + 1) * 100;

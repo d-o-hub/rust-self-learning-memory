@@ -43,13 +43,13 @@
 |----|------|---------|-------|
 | WG-072 | Fix cli_update_test 670s bottleneck | Options: (a) build CLI binary once with `lazy_static`/`once_cell`, (b) convert to unit tests on command parsing, (c) add `#[ignore]` with CI-only profile. Preferred: (b) — test the parse/dispatch layer, not the binary rebuild. | test-fix |
 
-**Validation**: `cargo nextest run -p memory-cli --test cli_update_test` < 30s.
+**Validation**: `cargo nextest run -p do-memory-cli --test cli_update_test` < 30s.
 
 ### Phase 2 — Bayesian Pattern Ranking (Parallel, P0, Days 2-4)
 
 | WG | Task | Details | Owner |
 |----|------|---------|-------|
-| WG-073 | Implement Wilson/Bayesian scoring | Add `memory-core/src/memory/pattern_search/bayesian_ranking.rs`. Wilson score lower-bound replaces fixed `effectiveness_weight`. Consumes `RecommendationSession` + `RecommendationFeedback` data. Falls back to current weights when data < 10 observations. | feature-implement |
+| WG-073 | Implement Wilson/Bayesian scoring | Add `do-memory-core/src/memory/pattern_search/bayesian_ranking.rs`. Wilson score lower-bound replaces fixed `effectiveness_weight`. Consumes `RecommendationSession` + `RecommendationFeedback` data. Falls back to current weights when data < 10 observations. | feature-implement |
 
 **Validation**: Unit tests for Wilson score. Property tests for scoring invariants. Integration test showing ranking adapts with feedback.
 
@@ -59,7 +59,7 @@
 
 | WG | Task | Details | Owner |
 |----|------|---------|-------|
-| WG-077 | Add coverage-diversity reranking | In `memory-core/src/memory/retrieval/context.rs`, after top-k cosine retrieval, apply MMR (Maximal Marginal Relevance) reranking using existing pattern categories as diversity signal. Simple formula: `score = λ·relevance - (1-λ)·max_similarity_to_selected`. Default λ=0.7. | feature-implement |
+| WG-077 | Add coverage-diversity reranking | In `do-memory-core/src/memory/retrieval/context.rs`, after top-k cosine retrieval, apply MMR (Maximal Marginal Relevance) reranking using existing pattern categories as diversity signal. Simple formula: `score = λ·relevance - (1-λ)·max_similarity_to_selected`. Default λ=0.7. | feature-implement |
 
 **Validation**: Unit test showing diverse results vs. pure cosine. Property test: no two results from same pattern category unless insufficient diversity.
 
@@ -67,7 +67,7 @@
 
 | WG | Task | Details | Owner |
 |----|------|---------|-------|
-| WG-075 | Episode garbage collection | Add `memory-core/src/memory/retention.rs`: configurable TTL (default 90 days), soft-delete + hard-delete, storage trait extension `delete_episodes_before(cutoff)`. MCP tool: `gc_episodes`. CLI: `episode gc --older-than 90d`. | feature-implement |
+| WG-075 | Episode garbage collection | Add `do-memory-core/src/memory/retention.rs`: configurable TTL (default 90 days), soft-delete + hard-delete, storage trait extension `delete_episodes_before(cutoff)`. MCP tool: `gc_episodes`. CLI: `episode gc --older-than 90d`. | feature-implement |
 
 **Validation**: Unit + integration tests. GC'd episodes no longer returned by retrieval.
 
@@ -87,7 +87,7 @@
 
 | WG | Task | Details | Owner |
 |----|------|---------|-------|
-| WG-079 | Audit CPU-heavy async paths | Review `memory-core/src/extraction/`, `memory-core/src/memory/pattern_search/`, and DBSCAN clustering for CPU-heavy operations not wrapped in `spawn_blocking`. Fix any violations of the async invariant. | code-quality |
+| WG-079 | Audit CPU-heavy async paths | Review `do-memory-core/src/extraction/`, `do-memory-core/src/memory/pattern_search/`, and DBSCAN clustering for CPU-heavy operations not wrapped in `spawn_blocking`. Fix any violations of the async invariant. | code-quality |
 
 **Validation**: `cargo clippy` clean. No CPU-heavy loops (>1ms) outside `spawn_blocking` in production code.
 

@@ -48,7 +48,7 @@ grep -r "actions-rs" .github/workflows/
 
 ### Optional Dependency Issues (libclang, wasmtime)
 ```bash
-cargo build --workspace --exclude memory-mcp
+cargo build --workspace --exclude do-memory-mcp
 ```
 
 ### Clippy Lint Allow-List

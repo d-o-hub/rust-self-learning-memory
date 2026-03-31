@@ -225,7 +225,7 @@ impl Output for ConfigDisplay {
 
 // Command implementations
 pub async fn validate_config(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -313,7 +313,7 @@ pub async fn validate_config(
 }
 
 pub async fn check_config(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -434,7 +434,7 @@ pub async fn check_config(
 }
 
 pub async fn show_config(
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {

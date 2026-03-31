@@ -5,7 +5,7 @@
 //! - Hot/cold item detection
 //! - Window overflow handling
 
-use memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
+use do_memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
 use std::time::Duration;
 use uuid::Uuid;
 

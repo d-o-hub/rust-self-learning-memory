@@ -5,7 +5,7 @@
 ### ✅ Core Implementation
 
 1. **Cache Infrastructure Already Existed**
-   - `PreparedStatementCache` in `memory-storage-turso/src/prepared/cache.rs`
+   - `PreparedStatementCache` in `do-memory-storage-turso/src/prepared/cache.rs`
    - Connection-aware two-level cache: `ConnectionId -> {SQL -> Metadata}`
    - Thread-safe with `parking_lot::RwLock`
    - LRU eviction and statistics tracking
@@ -98,20 +98,20 @@ Concurrent Access: ~100 µs    (10M ops/sec)
 
 ### New Files (5)
 
-1. `memory-storage-turso/src/pool/connection_wrapper.rs` - Connection wrapper
-2. `memory-storage-turso/src/pool/caching_pool.rs` - True connection pool
-3. `memory-storage-turso/src/prepared/tests.rs` - Test suite
+1. `do-memory-storage-turso/src/pool/connection_wrapper.rs` - Connection wrapper
+2. `do-memory-storage-turso/src/pool/caching_pool.rs` - True connection pool
+3. `do-memory-storage-turso/src/prepared/tests.rs` - Test suite
 4. `benches/prepared_cache_benchmark.rs` - Benchmarks
 5. `plans/prepared_cache_implementation_report.md` - Full report
 
 ### Modified Files (7)
 
-1. `memory-storage-turso/src/pool/mod.rs` - Added exports
-2. `memory-storage-turso/src/prepared/mod.rs` - Added tests
-3. `memory-storage-turso/src/lib_impls/storage.rs` - Added field
-4. `memory-storage-turso/src/lib_impls/constructors_basic.rs` - Init field
-5. `memory-storage-turso/src/lib_impls/constructors_pool.rs` - Init field
-6. `memory-storage-turso/src/lib_impls/constructors_adaptive.rs` - Init field
+1. `do-memory-storage-turso/src/pool/mod.rs` - Added exports
+2. `do-memory-storage-turso/src/prepared/mod.rs` - Added tests
+3. `do-memory-storage-turso/src/lib_impls/storage.rs` - Added field
+4. `do-memory-storage-turso/src/lib_impls/constructors_basic.rs` - Init field
+5. `do-memory-storage-turso/src/lib_impls/constructors_pool.rs` - Init field
+6. `do-memory-storage-turso/src/lib_impls/constructors_adaptive.rs` - Init field
 7. `benches/Cargo.toml` - Added benchmark
 
 ---

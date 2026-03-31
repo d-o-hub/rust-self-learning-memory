@@ -1,5 +1,5 @@
 [package]
-name = "memory-benches"
+name = "do-memory-benches"
 version.workspace = true
 edition.workspace = true
 license = "MIT"
@@ -7,9 +7,9 @@ publish = false
 
 [dependencies]
 criterion = { version = "0.8", features = ["async_tokio", "async_futures"] }
-memory-core = { path = "../memory-core" }
-memory-storage-redb = { path = "../memory-storage-redb" }
-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool", "compression"] }
+do-memory-core = { path = "../memory-core" }
+do-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool", "compression"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
 tempfile = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }

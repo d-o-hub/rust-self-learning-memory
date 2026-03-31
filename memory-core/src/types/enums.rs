@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use memory_core::ComplexityLevel;
+/// use do_memory_core::ComplexityLevel;
 ///
 /// let simple_task = ComplexityLevel::Simple;      // Single-step, straightforward
 /// let moderate_task = ComplexityLevel::Moderate;  // Multi-step, some complexity
@@ -37,7 +37,7 @@ pub enum ComplexityLevel {
 /// # Examples
 ///
 /// ```
-/// use memory_core::TaskType;
+/// use do_memory_core::TaskType;
 ///
 /// let code_task = TaskType::CodeGeneration;  // Writing new code
 /// let fix_task = TaskType::Debugging;         // Finding and fixing bugs
@@ -107,7 +107,7 @@ impl std::str::FromStr for TaskType {
 /// # Examples
 ///
 /// ```
-/// use memory_core::TaskOutcome;
+/// use do_memory_core::TaskOutcome;
 ///
 /// // Complete success
 /// let success = TaskOutcome::Success {
@@ -163,7 +163,7 @@ pub enum TaskOutcome {
 /// # Examples
 ///
 /// ```
-/// use memory_core::ExecutionResult;
+/// use do_memory_core::ExecutionResult;
 ///
 /// // Successful execution
 /// let success = ExecutionResult::Success {

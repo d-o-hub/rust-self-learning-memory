@@ -6,34 +6,34 @@ Successfully implemented rate limiting for the MCP server to prevent DoS attacks
 ## Files Created/Modified
 
 ### New Files
-1. **`memory-mcp/src/server/rate_limiter.rs`** (396 LOC)
+1. **`do-memory-mcp/src/server/rate_limiter.rs`** (396 LOC)
    - Core rate limiter implementation with token bucket algorithm
    - Per-client rate limiting support
    - Different limits for read vs write operations
    - Rate limit headers generation
 
-2. **`memory-mcp/src/server/rate_limiter/types.rs`** (189 LOC)
+2. **`do-memory-mcp/src/server/rate_limiter/types.rs`** (189 LOC)
    - Type definitions for rate limiting
    - Configuration structures
    - Client ID types
    - Rate limit result types
 
-3. **`memory-mcp/tests/rate_limiter_integration.rs`** (352 LOC)
+3. **`do-memory-mcp/tests/rate_limiter_integration.rs`** (352 LOC)
    - Comprehensive integration tests
    - Tests for all rate limiting features
    - Edge case testing
 
 ### Modified Files
-1. **`memory-mcp/src/server/mod.rs`**
+1. **`do-memory-mcp/src/server/mod.rs`**
    - Added `pub mod rate_limiter;` export
 
-2. **`memory-mcp/src/bin/server/types.rs`**
+2. **`do-memory-mcp/src/bin/server/types.rs`**
    - Added `RateLimitEnvConfig` type for environment-based configuration
 
-3. **`memory-mcp/src/bin/server/mod.rs`**
+3. **`do-memory-mcp/src/bin/server/mod.rs`**
    - Added `RateLimitEnvConfig` to re-exports
 
-4. **`memory-mcp/src/bin/server/jsonrpc.rs`**
+4. **`do-memory-mcp/src/bin/server/jsonrpc.rs`**
    - Integrated rate limiting into request handling
    - Added `load_rate_limit_config()` function
    - Added `extract_client_id()` function

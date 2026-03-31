@@ -22,7 +22,7 @@ use anyhow::Result;
 /// # Examples
 ///
 /// ```
-/// # use memory_core::patterns::extractors::heuristic::is_decision_action;
+/// # use do_memory_core::patterns::extractors::heuristic::is_decision_action;
 /// assert!(is_decision_action("Check if input is valid"));
 /// assert!(is_decision_action("Verify the output"));
 /// assert!(is_decision_action("When ready, proceed"));

@@ -31,12 +31,12 @@ The publishing landscape has evolved significantly in 2025-2026 with new securit
 
 | Crate | Publish Priority | Reason |
 |-------|------------------|--------|
-| `memory-core` | HIGH | Stable public API, core abstractions |
-| `memory-storage-turso` | HIGH | Reference storage backend |
-| `memory-storage-redb` | HIGH | Pure-Rust embedded backend |
-| `memory-mcp` | MEDIUM | MCP server implementation |
-| `memory-cli` | LOW | CLI tool, distributed as binary |
-| `test-utils` | NEVER | Internal testing only |
+| `do-memory-core` | HIGH | Stable public API, core abstractions |
+| `do-memory-storage-turso` | HIGH | Reference storage backend |
+| `do-memory-storage-redb` | HIGH | Pure-Rust embedded backend |
+| `do-memory-mcp` | MEDIUM | MCP server implementation |
+| `do-memory-cli` | LOW | CLI tool, distributed as binary |
+| `do-memory-test-utils` | NEVER | Internal testing only |
 
 ---
 
@@ -88,7 +88,7 @@ version.workspace = true
 
 ```toml
 [package]
-name = "memory-core"
+name = "do-memory-core"
 version = "0.2.0"
 description = "Core episodic learning system for AI agents with pattern extraction"
 license = "MIT"
@@ -101,7 +101,7 @@ edition = "2024"
 ```toml
 [package]
 # Documentation
-documentation = "https://docs.rs/memory-core"
+documentation = "https://docs.rs/do-memory-core"
 readme = "README.md"
 
 # Discovery
@@ -134,7 +134,7 @@ include = [
 # scripts/verify-crate-metadata.sh
 # Verifies all required metadata before publishing
 
-for crate in memory-core memory-storage-turso memory-storage-redb memory-mcp; do
+for crate in do-memory-core do-memory-storage-turso do-memory-storage-redb do-memory-mcp; do
     echo "Checking $crate..."
     cargo metadata --format-version 1 --no-deps | jq -r ".packages[] | select(.name == \"$crate\") | {
         name: .name,
@@ -180,10 +180,10 @@ jobs:
     strategy:
       matrix:
         crate:
-          - memory-core
-          - memory-storage-turso
-          - memory-storage-redb
-          - memory-mcp
+          - do-memory-core
+          - do-memory-storage-turso
+          - do-memory-storage-redb
+          - do-memory-mcp
     steps:
       - uses: actions/checkout@v6
         with:
@@ -263,22 +263,22 @@ search = "## \\[Unreleased\\]"
 replace = "## [Unreleased]\n\n## [{{version}}] - {{date}}"
 
 # Individual crate settings
-[package.memory-core]
+[package.do-memory-core]
 publish = true
 
-[package.memory-storage-turso]
+[package.do-memory-storage-turso]
 publish = true
 
-[package.memory-storage-redb]
+[package.do-memory-storage-redb]
 publish = true
 
-[package.memory-mcp]
+[package.do-memory-mcp]
 publish = true
 
-[package.memory-cli]
+[package.do-memory-cli]
 publish = false  # Distributed as binary
 
-[package.test-utils]
+[package.do-memory-test-utils]
 publish = false  # Internal use only
 ```
 
@@ -289,13 +289,13 @@ For GitHub-native release automation:
 ```toml
 # release-plz.toml
 [[releaser]]
-name = "memory-core"
+name = "do-memory-core"
 [[releaser]]
-name = "memory-storage-turso"
+name = "do-memory-storage-turso"
 [[releaser]]
-name = "memory-storage-redb"
+name = "do-memory-storage-redb"
 [[releaser]]
-name = "memory-mcp"
+name = "do-memory-mcp"
 
 [workspace]
 changelog_update = true
@@ -419,7 +419,7 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 ```toml
 # Cargo.toml
 [package]
-documentation = "https://docs.rs/memory-core"
+documentation = "https://docs.rs/do-memory-core"
 
 [package.metadata.docs.rs]
 # All features for complete documentation
@@ -438,7 +438,7 @@ full = ["embeddings-full", "turso", "redb"]
 ```rust
 //! Crate-level documentation (lib.rs)
 //!
-//! # memory-core
+//! # do-memory-core
 //!
 //! Core episodic learning system for AI agents with pattern extraction,
 //! reward scoring, and dual storage backend support.
@@ -503,7 +503,7 @@ pub mod storage;
 **Example Feature Configuration**:
 
 ```toml
-# memory-core/Cargo.toml
+# do-memory-core/Cargo.toml
 [features]
 default = []
 
@@ -561,7 +561,7 @@ pub struct EmbeddingConfig {
 
 ```json
 {
-  "name": "@d-o-hub/memory-core",
+  "name": "@d-o-hub/do-memory-core",
   "version": "0.2.0",
   "description": "Episodic learning system for AI agents - WASM bindings",
   "license": "MIT",
@@ -724,10 +724,10 @@ npm provenance links published packages to their source code and build process:
 
 ```bash
 # View provenance for a published package
-npm view @d-o-hub/memory-core provenance
+npm view @d-o-hub/do-memory-core provenance
 
 # Verify provenance during install
-npm install @d-o-hub/memory-core --verify-provenance
+npm install @d-o-hub/do-memory-core --verify-provenance
 ```
 
 **SBOM Generation**:
@@ -753,12 +753,12 @@ npm install @d-o-hub/memory-core --verify-provenance
 ```json
 // Scoped package (recommended)
 {
-  "name": "@d-o-hub/memory-core"
+  "name": "@d-o-hub/do-memory-core"
 }
 
 // Unscoped package (not recommended for orgs)
 {
-  "name": "memory-core"
+  "name": "do-memory-core"
 }
 ```
 
@@ -920,7 +920,7 @@ npm install -g pkg-size
 pkg-size --publish
 
 # Alternative: bundlephobia CLI
-npx bundlephobia memory-core-wasm
+npx bundlephobia do-memory-core-wasm
 ```
 
 ---
@@ -934,7 +934,7 @@ npx bundlephobia memory-core-wasm
 ```toml
 # Cargo.toml (WASM crate)
 [package]
-name = "memory-core-wasm"
+name = "do-memory-core-wasm"
 version.workspace = true
 edition = "2024"
 
@@ -1014,7 +1014,7 @@ wasm-pack build \
     --target web \
     --out-dir npm/dist \
     --scope d-o-hub \
-    memory-core-wasm
+    do-memory-core-wasm
 
 # Optimize WASM binary
 wasm-opt -Oz \
@@ -1252,7 +1252,7 @@ jobs:
       - name: Publish with OIDC
         uses: rust-lang/crates-io-auth-action@v1
         with:
-          crate: memory-core
+          crate: do-memory-core
 ```
 
 **npm OIDC Setup**:
@@ -1535,9 +1535,9 @@ jobs:
     strategy:
       matrix:
         crate:
-          - memory-core
-          - memory-storage-turso
-          - memory-storage-redb
+          - do-memory-core
+          - do-memory-storage-turso
+          - do-memory-storage-redb
     steps:
       - name: Wait for registry propagation
         run: sleep 60
@@ -1560,7 +1560,7 @@ jobs:
 
       - name: Verify npm package
         run: |
-          npm install @d-o-hub/memory-core@${{ github.event.release.tag_name }}
+          npm install @d-o-hub/do-memory-core@${{ github.event.release.tag_name }}
           npm test
 
   notify:
@@ -1580,10 +1580,10 @@ jobs:
 
 ```bash
 # Yank a specific version (removes from index, existing users unaffected)
-cargo yank --vers 0.2.0 memory-core
+cargo yank --vers 0.2.0 do-memory-core
 
 # Unyank if mistake was made
-cargo yank --vers 0.2.0 --undo memory-core
+cargo yank --vers 0.2.0 --undo do-memory-core
 
 # Note: Yanking doesn't delete, just prevents new installations
 ```
@@ -1592,10 +1592,10 @@ cargo yank --vers 0.2.0 --undo memory-core
 
 ```bash
 # Deprecate a version (users see warning)
-npm deprecate @d-o-hub/memory-core@0.2.0 "Critical bug, please upgrade"
+npm deprecate @d-o-hub/do-memory-core@0.2.0 "Critical bug, please upgrade"
 
 # Deprecate all versions below a threshold
-npm deprecate @d-o-hub/memory-core@"<0.2.1" "Security vulnerability, upgrade required"
+npm deprecate @d-o-hub/do-memory-core@"<0.2.1" "Security vulnerability, upgrade required"
 ```
 
 **Emergency Release Process**:

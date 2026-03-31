@@ -981,8 +981,8 @@ Verify the tool works correctly:
 # Expected: Builds successfully, tests pass
 
 # Test with specific target
-./scripts/build-rust.sh dev memory-core
-# Expected: Builds only memory-core crate
+./scripts/build-rust.sh dev do-memory-core
+# Expected: Builds only do-memory-core crate
 
 # Test error handling
 ./scripts/build-rust.sh invalid-target
@@ -1344,8 +1344,8 @@ cargo build --release --workspace
 
 **Expected Output**:
 ```
-   Compiling memory-core v0.1.14
-   Compiling memory-storage-turso v0.1.14
+   Compiling do-memory-core v0.1.14
+   Compiling do-memory-storage-turso v0.1.14
    Finished release [optimized] target(s) in 2m 15s
 ```
 

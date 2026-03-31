@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use memory_mcp::jsonrpc::read_next_message;
+use do_memory_mcp::jsonrpc::read_next_message;
 
 #[test]
 fn test_read_next_message_line_json() {

@@ -24,7 +24,7 @@
 
 ### Nightly Failures (3 distinct issues)
 
-1. **Memory leak test** — `should_not_leak_memory_over_1000_iterations` at `memory-core/tests/performance.rs:535`
+1. **Memory leak test** — `should_not_leak_memory_over_1000_iterations` at `do-memory-core/tests/performance.rs:535`
    - Memory grew 53% after 800 iterations (threshold 50%)
    - CI-only issue — likely measurement noise on shared runners
 2. **7 e2e CLI workflow tests** — `tests/e2e/cli_workflows.rs`
@@ -93,9 +93,9 @@ A2 ──┤    B2       C2
 - **Likely root cause**: CLI binary not built before test execution, or config/path resolution issue introduced in v0.1.15
 - **Investigation steps**:
   1. Read `tests/e2e/cli_workflows.rs` — understand how CLI binary is located
-  2. Check if `cargo build -p memory-cli` produces expected binary path
+  2. Check if `cargo build -p do-memory-cli` produces expected binary path
   3. Verify test setup/fixtures — does it expect env vars or config files?
-  4. Check recent changes to `memory-cli/src/main.rs` that may have changed command structure
+  4. Check recent changes to `do-memory-cli/src/main.rs` that may have changed command structure
 - **Fix pattern**: Ensure test harness builds CLI binary first, or fix path resolution
 - **Validation**: `cargo test --test cli_workflows` passes locally + nightly
 - **Effort**: 2–4h
@@ -108,7 +108,7 @@ A2 ──┤    B2       C2
   1. Relax threshold from 50% to 75% (preferred — still catches real leaks)
   2. Mark `#[ignore]` with `// CI runner memory measurement is unreliable`
   3. Increase iteration count for more stable measurement
-- **File**: `memory-core/tests/performance.rs:535`
+- **File**: `do-memory-core/tests/performance.rs:535`
 - **Validation**: Nightly run passes
 - **Effort**: 0.5–1h
 
@@ -124,7 +124,7 @@ A2 ──┤    B2       C2
 
 - **Scope**: 561 `unwrap()` calls in production code (exclude tests)
 - **Approach**:
-  1. Categorize by crate: `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-mcp`, `memory-cli`
+  1. Categorize by crate: `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, `do-memory-mcp`, `do-memory-cli`
   2. Prioritize: public API boundaries > internal logic > CLI (where `unwrap()` is more acceptable)
   3. Replace with `?`, `.expect("reason")`, or proper error variants
   4. Target: reduce by 50% (≤280 remaining) in production code
@@ -169,7 +169,7 @@ A2 ──┤    B2       C2
 - **Reference**: ADR-028 §2
 - **Scope**: Rehabilitate batch operations module for bulk episode management
 - **Approach**:
-  1. Audit existing batch code (likely in `memory-core`)
+  1. Audit existing batch code (likely in `do-memory-core`)
   2. Fix/rewrite batch processing pipeline
   3. Add proper error handling (building on B1 work)
   4. Add unit + integration tests
@@ -186,7 +186,7 @@ A2 ──┤    B2       C2
   2. Add MCP tools for embedding queries
   3. Support multiple embedding providers (OpenAI, Cohere, Ollama, local)
   4. Add integration tests
-- **Validation**: `memory-cli embeddings` commands work, MCP tools registered
+- **Validation**: `do-memory-cli embeddings` commands work, MCP tools registered
 - **Effort**: 8–12h
 
 ---

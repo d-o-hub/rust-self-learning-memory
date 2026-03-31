@@ -119,7 +119,7 @@ These documents track the completion of specific components and phases. They ser
 - DBSCAN anomaly detection: 20+ tests passing
 - BOCPD changepoint detection: 13+ tests passing
 
-**Implementation**: Integrated and validated in memory-mcp
+**Implementation**: Integrated and validated in do-memory-mcp
 
 **Relevant Documents**:
 - `ets_forecasting_best_practices.md` - ETS implementation guide (ACTIVE REFERENCE)

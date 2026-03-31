@@ -5,8 +5,8 @@ use crate::mcp::tools::episode_relationships::{
     EpisodeRelationshipTools, FindRelatedEpisodesInput, GetEpisodeRelationshipsInput,
     GetTopologicalOrderInput, RemoveEpisodeRelationshipInput, ValidateNoCyclesInput,
 };
-use memory_core::SelfLearningMemory;
-use memory_core::{TaskContext, TaskType};
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::{TaskContext, TaskType};
 use std::sync::Arc;
 
 fn create_test_memory() -> Arc<SelfLearningMemory> {

@@ -203,7 +203,7 @@ pub async fn list_episodes(
 /// # Examples
 ///
 /// ```
-/// use memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
+/// use do_memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
 ///
 /// # async fn example() -> anyhow::Result<()> {
 /// let memory = SelfLearningMemory::new();

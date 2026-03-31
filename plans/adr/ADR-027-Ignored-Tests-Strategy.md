@@ -6,14 +6,14 @@
 ## Context
 
 121 tests are `#[ignore]` across the workspace:
-- **memory-storage-turso**: 71 tests (libsql memory corruption bug)
-- **memory-core**: 37 tests (slow integration tests, real storage backends)
-- **memory-mcp**: 9 tests (WASI, streaming, binary data)
+- **do-memory-storage-turso**: 71 tests (libsql memory corruption bug)
+- **do-memory-core**: 37 tests (slow integration tests, real storage backends)
+- **do-memory-mcp**: 9 tests (WASI, streaming, binary data)
 - **tests/**: 4 tests (e2e tests)
 
 ### libsql Memory Corruption Bug (71 Tests)
 
-The majority of ignored tests (71/121) are in `memory-storage-turso` and are blocked by an upstream bug:
+The majority of ignored tests (71/121) are in `do-memory-storage-turso` and are blocked by an upstream bug:
 - **Error**: `malloc_consolidate() unaligned fastbin chunk` in CI environment
 - **Root Cause**: libsql native library memory corruption
 - **Affected Files**: `sql_injection_tests.rs`, `multi_dimension_routing.rs`, `prepared_cache_integration_test.rs`, `security_tests.rs`
@@ -38,7 +38,7 @@ Ignored tests reduce:
 
 WG-008 target of ≤30 ignored tests is **not achievable** because:
 - 71 tests are blocked by upstream libsql memory corruption bug
-- 37 tests in memory-core are intentionally slow integration tests
+- 37 tests in do-memory-core are intentionally slow integration tests
 - Total unavoidable ignored tests: ~108
 
 **Revised target**: Document legitimate skips rather than reduce count.
@@ -101,7 +101,7 @@ fn test_wasi_stdout_stderr_capture() {
 
 ## Test Inventory
 
-### memory-mcp (9 tests)
+### do-memory-mcp (9 tests)
 
 | Test | File | Feature Gate | Priority |
 |------|------|--------------|----------|
@@ -112,7 +112,7 @@ fn test_wasi_stdout_stderr_capture() {
 | benchmark_streaming_performance | benchmarks.rs | streaming-impl | P2 |
 | stability_test | tests/soak/stability_test.rs | soak-tests | P4 |
 
-### memory-core (37 tests)
+### do-memory-core (37 tests)
 
 | Category | Count | Reason |
 |----------|-------|--------|
@@ -122,7 +122,7 @@ fn test_wasi_stdout_stderr_capture() {
 | `regression.rs` | 2 | Non-deterministic / long-running |
 | `embeddings/local.rs` | 1 | Flaky with random mock embeddings |
 
-### memory-storage-turso (71 tests)
+### do-memory-storage-turso (71 tests)
 
 All blocked by upstream libsql memory corruption bug.
 

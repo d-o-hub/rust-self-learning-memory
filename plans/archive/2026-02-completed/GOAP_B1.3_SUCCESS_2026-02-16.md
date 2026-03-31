@@ -75,8 +75,8 @@ a713bb1 [docs] Add B1.3 partial execution summary
 
 - [x] `cargo fmt --all` - No formatting issues
 - [x] `cargo clippy --all -- -D warnings` - Zero warnings
-- [x] `cargo test -p memory-cli` - 106/106 passing
-- [x] `cargo test -p memory-core` - 712/712 passing
+- [x] `cargo test -p do-memory-cli` - 106/106 passing
+- [x] `cargo test -p do-memory-core` - 712/712 passing
 - [x] Zero unwrap() in fixed modules
 
 ---

@@ -3,7 +3,7 @@
 //!
 
 use chrono::Duration;
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, Episode, ExecutionResult, ExecutionStep, Pattern, TaskContext, TaskOutcome,
     TaskType,
 };

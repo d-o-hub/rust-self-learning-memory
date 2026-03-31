@@ -6,7 +6,7 @@ use crate::errors::{EnhancedError, helpers};
 #[cfg(feature = "turso")]
 use crate::output::Output;
 use crate::output::OutputFormat;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 pub async fn view_episode(
     episode_id: String,
@@ -30,9 +30,9 @@ pub async fn view_episode(
     let outcome = episode.outcome.as_ref().map(|outcome| {
         serde_json::json!({
             "type": match outcome {
-                memory_core::TaskOutcome::Success { .. } => "success",
-                memory_core::TaskOutcome::PartialSuccess { .. } => "partial_success",
-                memory_core::TaskOutcome::Failure { .. } => "failure",
+                do_memory_core::TaskOutcome::Success { .. } => "success",
+                do_memory_core::TaskOutcome::PartialSuccess { .. } => "partial_success",
+                do_memory_core::TaskOutcome::Failure { .. } => "failure",
             },
         })
     });
@@ -49,9 +49,9 @@ pub async fn view_episode(
         "steps_count": episode.steps.len(),
         "steps": episode.steps.iter().enumerate().map(|(i, step)| {
             let (success, observation) = match &step.result {
-                Some(memory_core::ExecutionResult::Success { output }) => (true, Some(output.clone())),
-                Some(memory_core::ExecutionResult::Error { message }) => (false, Some(message.clone())),
-                Some(memory_core::ExecutionResult::Timeout) => (false, Some("Timeout".to_string())),
+                Some(do_memory_core::ExecutionResult::Success { output }) => (true, Some(output.clone())),
+                Some(do_memory_core::ExecutionResult::Error { message }) => (false, Some(message.clone())),
+                Some(do_memory_core::ExecutionResult::Timeout) => (false, Some("Timeout".to_string())),
                 None => (false, None),
             };
             serde_json::json!({

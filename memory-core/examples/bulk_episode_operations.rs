@@ -2,7 +2,7 @@
 //!
 //! Run with: `cargo run --example bulk_episode_operations`
 
-use memory_core::{ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
 use uuid::Uuid;
 
 #[tokio::main]

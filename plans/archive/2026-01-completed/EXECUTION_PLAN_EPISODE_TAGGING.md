@@ -15,13 +15,13 @@ This plan addresses three priorities:
 ## Status Assessment
 
 ### Completed (No Action Needed)
-- ✅ Prepared Statement Cache (`memory-storage-turso/src/prepared/`)
-- ✅ Metrics Module (`memory-storage-turso/src/metrics/`)
-- ✅ Batch Operations (`memory-storage-turso/src/storage/batch/`)
+- ✅ Prepared Statement Cache (`do-memory-storage-turso/src/prepared/`)
+- ✅ Metrics Module (`do-memory-storage-turso/src/metrics/`)
+- ✅ Batch Operations (`do-memory-storage-turso/src/storage/batch/`)
 - ✅ Files mentioned in GOAP_EXECUTION_PLAN.md already split (lib.rs, episodes.rs, keepalive.rs, compression.rs, cache/tests.rs)
 
 ### Critical Blocker
-- ❌ Compilation errors in `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+- ❌ Compilation errors in `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
   - `EmbeddingProviderType` import doesn't exist (should be `EmbeddingProvider`)
   - `provider_config` field access outdated (should be `provider`)
 
@@ -32,10 +32,10 @@ This plan addresses three priorities:
 
 ### Code Quality Issues
 - ⚠️ 4 files exceed 500 LOC:
-  1. `memory-storage-turso/src/cache/adaptive_ttl.rs` (645 lines)
-  2. `memory-storage-turso/src/storage/mod.rs` (562 lines)
-  3. `memory-storage-turso/src/pool/adaptive.rs` (526 lines)
-  4. `memory-storage-turso/src/storage/tag_operations.rs` (517 lines)
+  1. `do-memory-storage-turso/src/cache/adaptive_ttl.rs` (645 lines)
+  2. `do-memory-storage-turso/src/storage/mod.rs` (562 lines)
+  3. `do-memory-storage-turso/src/pool/adaptive.rs` (526 lines)
+  4. `do-memory-storage-turso/src/storage/tag_operations.rs` (517 lines)
 
 ## Phase 1: Fix Compilation Errors (P0 - Critical Path)
 
@@ -46,7 +46,7 @@ This plan addresses three priorities:
 ### Tasks
 
 #### 1.1 Fix Import Errors
-**File**: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+**File**: `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
 
 **Changes Required**:
 ```rust
@@ -60,7 +60,7 @@ This plan addresses three priorities:
 ```
 
 #### 1.2 Fix Field Access Errors
-**File**: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+**File**: `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
 
 **Changes Required**:
 ```rust
@@ -89,7 +89,7 @@ cargo clippy --all -- -D warnings
 - ✅ All tests pass
 
 **Deliverables**:
-- Fixed `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+- Fixed `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
 - Atomic git commit: `fix(mcp): update embedding config API usage`
 
 ---
@@ -106,7 +106,7 @@ Implement core data model and storage layer for episode tagging feature.
 ### Task Breakdown
 
 #### Task 2.1: Update Episode Structure (2 hours)
-**File**: `memory-core/src/episode/structs.rs`
+**File**: `do-memory-core/src/episode/structs.rs`
 
 **Implementation**:
 ```rust
@@ -184,7 +184,7 @@ impl Episode {
 }
 ```
 
-**Tests** (`memory-core/src/episode/structs_tests.rs`):
+**Tests** (`do-memory-core/src/episode/structs_tests.rs`):
 ```rust
 #[cfg(test)]
 mod tests {
@@ -230,14 +230,14 @@ mod tests {
 - ✅ File <500 LOC
 
 **Deliverable**:
-- Modified: `memory-core/src/episode/structs.rs`
-- Modified: `memory-core/src/episode/mod.rs` (if needed)
+- Modified: `do-memory-core/src/episode/structs.rs`
+- Modified: `do-memory-core/src/episode/mod.rs` (if needed)
 - Git commit: `feat(episode): add tags field and helper methods`
 
 ---
 
 #### Task 2.2: Database Schema Updates (2 hours)
-**File**: `memory-storage-turso/src/schema.rs`
+**File**: `do-memory-storage-turso/src/schema.rs`
 
 **Implementation**:
 ```rust
@@ -313,7 +313,7 @@ async fn create_tag_metadata_table(conn: &Connection) -> Result<()> {
 }
 ```
 
-**Migration Test** (`memory-storage-turso/tests/schema_migration_test.rs`):
+**Migration Test** (`do-memory-storage-turso/tests/schema_migration_test.rs`):
 ```rust
 #[tokio::test]
 async fn test_episode_tags_schema_migration() {
@@ -353,14 +353,14 @@ async fn test_episode_tags_schema_migration() {
 - ✅ Migration tests pass
 
 **Deliverables**:
-- Modified: `memory-storage-turso/src/schema.rs`
-- New: `memory-storage-turso/tests/schema_migration_test.rs`
+- Modified: `do-memory-storage-turso/src/schema.rs`
+- New: `do-memory-storage-turso/tests/schema_migration_test.rs`
 - Git commit: `feat(schema): add episode_tags and tag_metadata tables`
 
 ---
 
 #### Task 2.3: Turso Storage Backend Implementation (4 hours)
-**New File**: `memory-storage-turso/src/storage/tag_operations.rs`
+**New File**: `do-memory-storage-turso/src/storage/tag_operations.rs`
 
 **Implementation**:
 ```rust
@@ -723,13 +723,13 @@ mod tests {
 - ✅ File <500 LOC (may need split)
 
 **Deliverables**:
-- New: `memory-storage-turso/src/storage/tag_operations.rs`
+- New: `do-memory-storage-turso/src/storage/tag_operations.rs`
 - Git commit: `feat(turso): implement episode tag operations`
 
 ---
 
 #### Task 2.4: Redb Cache Integration (2 hours)
-**File**: `memory-storage-redb/src/storage.rs`
+**File**: `do-memory-storage-redb/src/storage.rs`
 
 **Implementation**:
 ```rust
@@ -766,7 +766,7 @@ impl StorageBackend for RedbStorage {
 }
 ```
 
-**Test** (`memory-storage-redb/tests/cache_invalidation_test.rs`):
+**Test** (`do-memory-storage-redb/tests/cache_invalidation_test.rs`):
 ```rust
 #[tokio::test]
 async fn test_tag_cache_invalidation() {
@@ -800,14 +800,14 @@ async fn test_tag_cache_invalidation() {
 - ✅ All tests pass
 
 **Deliverables**:
-- Modified: `memory-storage-redb/src/storage.rs`
-- New: `memory-storage-redb/tests/cache_invalidation_test.rs`
+- Modified: `do-memory-storage-redb/src/storage.rs`
+- New: `do-memory-storage-redb/tests/cache_invalidation_test.rs`
 - Git commit: `feat(redb): add tag cache invalidation`
 
 ---
 
 #### Task 2.5: Storage Integration Tests (2 hours)
-**New File**: `memory-storage-turso/tests/tag_integration_test.rs`
+**New File**: `do-memory-storage-turso/tests/tag_integration_test.rs`
 
 **Implementation**:
 ```rust
@@ -931,7 +931,7 @@ async fn test_tag_statistics_accuracy() {
 - ✅ Edge cases covered (concurrent, empty, duplicates)
 
 **Deliverables**:
-- New: `memory-storage-turso/tests/tag_integration_test.rs`
+- New: `do-memory-storage-turso/tests/tag_integration_test.rs`
 - Git commit: `test(turso): add tag integration tests`
 
 ---
@@ -960,7 +960,7 @@ async fn test_tag_statistics_accuracy() {
 
 ### Files to Split
 
-#### 3.1 Split `memory-storage-turso/src/cache/adaptive_ttl.rs` (645 lines)
+#### 3.1 Split `do-memory-storage-turso/src/cache/adaptive_ttl.rs` (645 lines)
 
 **Current Structure**:
 - Adaptive TTL cache implementation
@@ -980,7 +980,7 @@ async fn test_tag_statistics_accuracy() {
 
 ---
 
-#### 3.2 Split `memory-storage-turso/src/storage/mod.rs` (562 lines)
+#### 3.2 Split `do-memory-storage-turso/src/storage/mod.rs` (562 lines)
 
 **Current Structure**:
 - Storage module declarations
@@ -999,7 +999,7 @@ async fn test_tag_statistics_accuracy() {
 
 ---
 
-#### 3.3 Split `memory-storage-turso/src/pool/adaptive.rs` (526 lines)
+#### 3.3 Split `do-memory-storage-turso/src/pool/adaptive.rs` (526 lines)
 
 **Current Structure**:
 - Adaptive pool sizing logic
@@ -1018,7 +1018,7 @@ async fn test_tag_statistics_accuracy() {
 
 ---
 
-#### 3.4 Split `memory-storage-turso/src/storage/tag_operations.rs` (517 lines)
+#### 3.4 Split `do-memory-storage-turso/src/storage/tag_operations.rs` (517 lines)
 
 **Current Structure**:
 - Tag CRUD operations

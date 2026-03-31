@@ -26,14 +26,14 @@
 
 ```bash
 # Create new modular structure
-mkdir -p memory-cli/src/config/{types,loader,validator,storage,simple,wizard}
-touch memory-cli/src/config/{mod,types,loader,validator,storage,simple,wizard}.rs
+mkdir -p do-memory-cli/src/config/{types,loader,validator,storage,simple,wizard}
+touch do-memory-cli/src/config/{mod,types,loader,validator,storage,simple,wizard}.rs
 ```
 
 ### File Organization
 
 ```
-memory-cli/src/config/
+do-memory-cli/src/config/
 ├── mod.rs           # Module coordination and exports
 ├── types.rs         # Core configuration structures
 ├── loader.rs        # Configuration loading (refactored)
@@ -258,11 +258,11 @@ impl ConfigLoader {
     fn find_config_file() -> Result<PathBuf> {
         // Search in standard locations
         let search_paths = vec![
-            PathBuf::from("memory-cli.toml"),
-            PathBuf::from(".memory-cli.toml"),
-            PathBuf::from("memory-cli.json"),
-            PathBuf::from("memory-cli.yaml"),
-            PathBuf::from("memory-cli.yml"),
+            PathBuf::from("do-memory-cli.toml"),
+            PathBuf::from(".do-memory-cli.toml"),
+            PathBuf::from("do-memory-cli.json"),
+            PathBuf::from("do-memory-cli.yaml"),
+            PathBuf::from("do-memory-cli.yml"),
         ];
 
         for path in search_paths {
@@ -272,7 +272,7 @@ impl ConfigLoader {
         }
 
         // Return default path
-        Ok(PathBuf::from("memory-cli.toml"))
+        Ok(PathBuf::from("do-memory-cli.toml"))
     }
 
     fn detect_format(path: &Path) -> ConfigFormat {

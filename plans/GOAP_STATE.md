@@ -1,34 +1,32 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-31 (v0.1.24 release plan created)
-- **Plan**: `plans/RELEASE_v0.1.24.md` (release), `plans/GOAP_EXECUTION_PLAN_v0.1.25.md` (next sprint)
+- **Last Updated**: 2026-03-31 (v0.1.24 released)
+- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.25.md` (next sprint)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`, `plans/adr/ADR-049-Comprehensive-Analysis-v0.1.25.md`
 - **Primary ADRs**: ADR-048 (v0.1.24 stability), ADR-049 (v0.1.25 analysis)
 - **Branch**: `main`
-- **Version**: `0.1.23` (v0.1.24 release pending — version bump + changelog + tag)
+- **Version**: `0.1.24` (released 2026-03-31)
 
-## Current Focus: v0.1.24 Release
+## Current Focus: v0.1.25 Sprint Planning
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
-| Version bump | WG-080 | ⏳ Pending | `0.1.23` → `0.1.24` in Cargo.toml |
-| CHANGELOG backfill | WG-081 | ⏳ Pending | 5 missing versions (v0.1.20–v0.1.24) |
-| ROADMAP sync | WG-082 | ⏳ Pending | Released Version → v0.1.24 |
-| Tag + Release | WG-083 | ⏳ Pending | Quality gates → tag → GitHub Release |
+| Bayesian ranking | WG-073 | ⏳ Planned | Wilson score from attribution data |
+| Diversity retrieval | WG-077 | ⏳ Planned | MMR reranking |
+| Episode GC/TTL | WG-075 | ⏳ Planned | Retention policy |
+| MCP Server Card | WG-078 | ⏳ Planned | `.well-known/mcp.json` |
+| spawn_blocking audit | WG-079 | ⏳ Planned | CPU-heavy async paths |
 
-### v0.1.25 Planning (ADR-049)
+### v0.1.24 Release (Complete)
 
-| Area | Key Items | Research Source |
-|------|-----------|----------------|
-| Bayesian ranking (WG-073) | Wilson score from attribution data | — |
-| Diversity retrieval (WG-077) | MMR reranking | arXiv:2602.02007 (xMemory) |
-| Episode GC/TTL (WG-075) | Retention policy | chaotic_semantic_memory `singularity_ttl.rs` |
-| MCP Server Card (WG-078) | `.well-known/mcp.json` | MCP Roadmap Mar 2026 |
-| spawn_blocking audit (WG-079) | CPU-heavy async paths | TokioConf/Carl Lerche Feb 2026 |
-| GitHub Pages (future) | mdBook + cargo doc | chaotic_semantic_memory `pages.yml` |
-| Cargo publish (future) | Crate name resolution | chaotic_semantic_memory release pipeline |
-| llms.txt (future) | LLM-agent discoverability | chaotic_semantic_memory convention |
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| Version bump | WG-080 | ✅ Complete | `0.1.23` → `0.1.24` |
+| CHANGELOG backfill | WG-081 | ✅ Complete | 5 versions (v0.1.20–v0.1.24) |
+| ROADMAP sync | WG-082 | ✅ Complete | Released Version → v0.1.24 |
+| Tag + Release | WG-083 | ✅ Complete | Tag v0.1.24 pushed, GitHub Release created |
+| YAML fixes | — | ✅ Complete | ai-slop-*.yml colon spacing fixed |
 
 ### Gaps Not Blocking v0.1.24
 
@@ -37,7 +35,7 @@
 | GitHub Pages broken | Was active until Feb 2026 (10+ deploys), now 404. No `pages.yml` workflow, no `book/`. Match chaotic_semantic_memory: mdBook + cargo doc + deploy-pages | v0.1.25 |
 | No `llms.txt` | No LLM context file at repo root | v0.1.25 |
 | No version sync CI | Docs reference stale versions (v0.1.22) without CI enforcement | v0.1.25 |
-| Cargo publish blocked | `memory-core` taken on crates.io. **Decision: use `do-memory-*` namespace** (all 4 names verified available on crates.io + npm 2026-03-31) | v0.1.25 |
+| Cargo publish blocked | `do-memory-core` taken on crates.io. **Decision: use `do-memory-*` namespace** (all 4 names verified available on crates.io + npm 2026-03-31) | v0.1.25 |
 | Issue #401 | External Dispatch discoverability request — close or trivial fix | v0.1.24 optional |
 
 ---
@@ -60,7 +58,7 @@
 | WG-051 | ✅ Complete | Turso/redb recommendation tables, storage trait impls, and `tests/attribution_integration_test.rs` persistence validation (`cargo nextest run --test attribution_integration`) |
 | WG-052 | ✅ Complete | Turso `checkpoints` persistence added across CRUD/query/batch + `resume_from_handoff` now persists metadata via storage update path; validated with `cargo nextest run --test checkpoint_integration` and targeted Turso durability tests |
 | WG-053 | ✅ Complete | Decision taken: keep batch tool-level names intentionally deferred; parity tests + docs/plans aligned |
-| WG-054 | ✅ Complete | Truth-source docs refresh applied against MCP parity test + `memory-cli --help` command contract |
+| WG-054 | ✅ Complete | Truth-source docs refresh applied against MCP parity test + `do-memory-cli --help` command contract |
 | WG-055 | ✅ Complete | CI test surface expanded from `--lib` slices to workspace scope; benchmark workflow now discovers/runs full bench list from `benches/Cargo.toml` |
 | WG-056 | ✅ Complete | Coverage gate enforcement hardened in `scripts/check-coverage.sh` and `tests/quality_gates.rs` (default threshold 90, parsing tests added) |
 | WG-057 | ✅ Complete | `scripts/clean-artifacts.sh` now supports help/flags, coverage cleanup, optional `--node-modules`, and `CARGO_TARGET_DIR`-aware target cleanup |
@@ -84,7 +82,7 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 
 **O1 - MCP Tool Contract Parity:**
 - Removed batch tool definitions (batch_query_episodes, batch_pattern_analysis, batch_compare_episodes) since handlers are not implemented
-- Added `memory-mcp/tests/tool_contract_parity.rs` test file to verify all listed tools have dispatchable handlers
+- Added `do-memory-mcp/tests/tool_contract_parity.rs` test file to verify all listed tools have dispatchable handlers
 
 **O3 - Documentation Integrity:**
 - Fixed 86 broken markdown links (204 → 118 remaining) in initial pass
@@ -106,7 +104,7 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 
 1. **ADR-024 is fully implemented and tested**
    - Lazy tool stubs, single-tool schema fetch, and batch schema fetch all present
-   - Tests in `memory-mcp/tests/adr024_lazy_loading_tests.rs`
+   - Tests in `do-memory-mcp/tests/adr024_lazy_loading_tests.rs`
 
 2. **Embedding support in MCP is comprehensive**
    - `configure_embeddings`, `test_embeddings`, `generate_embedding`
@@ -152,7 +150,7 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 - Removed dead batch tool parameter schemas from `tool_params.rs` (137 lines)
 - Cleaned up commented batch handlers from `handlers.rs`
 - Updated NOTE comment in `tool_definitions_extended.rs`
-- All memory-mcp tests pass (555 tests)
+- All do-memory-mcp tests pass (555 tests)
 - PR #357 merged 2026-03-11
 
 ### WG-010 Implementation Details
@@ -165,7 +163,7 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 
 ### WG-011 Implementation Details
 
-- Removed unused `libsql` dependency from `test-utils/Cargo.toml`
+- Removed unused `libsql` dependency from `do-memory-test-utils/Cargo.toml`
 - Duplicate dependency count (134) is due to transitive dependencies from wasmtime/libsql
 - Target (<100) not achievable without removing features
 - Architectural decision: accept current duplicate count as inherent to feature set
@@ -175,7 +173,7 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 
 | Commit | Description |
 |--------|-------------|
-| `70661e7` | chore(deps): remove unused libsql dependency from test-utils |
+| `70661e7` | chore(deps): remove unused libsql dependency from do-memory-test-utils |
 | `13ca540` | docs: fix 29 broken markdown links in active documentation |
 
 ### ACT-018 Completion Details
@@ -204,7 +202,7 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 
 | ID | Action | Status | Commit |
 |----|--------|--------|--------|
-| ACT-020 | Fix memory-storage-redb compilation errors | ✅ Complete | `50eb29a` |
+| ACT-020 | Fix do-memory-storage-redb compilation errors | ✅ Complete | `50eb29a` |
 | ACT-021 | Fix stale `#[ignore]` reasons | ✅ Complete | `bf7abab` |
 | ACT-022 | Refactor nightly exclusion filter | ✅ Complete | `c70db69` |
 | ACT-023 | Un-ignore pattern CLI e2e test | ✅ Complete | `bf7abab` |
@@ -212,13 +210,13 @@ Previous phase summaries for v0.1.22 remain below for historical reference.
 
 ### Key Fixes
 
-1. **memory-cli dispatch errors**:
+1. **do-memory-cli dispatch errors**:
    - Fixed duplicate imports in `mod.rs`
    - Fixed `PatternCommands` import path
    - Fixed `EpisodeCommands::List` match fields
    - Added missing `Filter`, `Complete`, `Delete` match arms
 
-2. **memory-storage-redb re-exports**:
+2. **do-memory-storage-redb re-exports**:
    - Added `CacheConfig`, `CacheMetrics`, `LRUCache` to public re-exports
    - Added `storage_ops` module for `clear_all` and other operations
    - Removed duplicate impl block from `lib.rs`
@@ -301,7 +299,7 @@ All Dependabot PRs resolved. No pending dependency update PRs.
 ### GOAP Multi-Agent Execution
 
 **Strategy**: Hybrid (Parallel + Sequential phases)
-**Agents**: 4 specialized teammates (test-runner, feature-implementer x2, memory-cli)
+**Agents**: 4 specialized teammates (test-runner, feature-implementer x2, do-memory-cli)
 
 ### Completed Tasks
 
@@ -318,21 +316,21 @@ All Dependabot PRs resolved. No pending dependency update PRs.
 ### Implementation Details
 
 **AdaptiveCache Wiring:**
-- Created `memory-storage-redb/src/cache/adapter.rs` - AdaptiveCacheAdapter implementing Cache trait
-- Created `memory-storage-redb/src/cache/traits.rs` - Common Cache trait interface
-- Updated `memory-storage-redb/src/cache/lru.rs` - LRUCache now implements Cache trait
-- Updated `memory-storage-redb/src/cache/mod.rs` - Module exports
+- Created `do-memory-storage-redb/src/cache/adapter.rs` - AdaptiveCacheAdapter implementing Cache trait
+- Created `do-memory-storage-redb/src/cache/traits.rs` - Common Cache trait interface
+- Updated `do-memory-storage-redb/src/cache/lru.rs` - LRUCache now implements Cache trait
+- Updated `do-memory-storage-redb/src/cache/mod.rs` - Module exports
 - Tests: 3 new unit tests in adapter.rs
 
 **Adaptive TTL to Turso:**
-- Updated `memory-storage-turso/src/lib_impls/helpers.rs` - TTL helper functions
+- Updated `do-memory-storage-turso/src/lib_impls/helpers.rs` - TTL helper functions
 - Updated constructors and storage implementations
 - Tests: Updated runtime_wiring_adaptive_cache.rs
 
 **CLI Pattern Discovery:**
-- Updated `memory-cli/src/commands/pattern/core/analyze.rs` - Pattern analysis implementation
-- Updated `memory-cli/src/commands/pattern/core/types.rs` - Pattern types
-- Updated `memory-cli/src/commands/mod.rs` - Command routing
+- Updated `do-memory-cli/src/commands/pattern/core/analyze.rs` - Pattern analysis implementation
+- Updated `do-memory-cli/src/commands/pattern/core/types.rs` - Pattern types
+- Updated `do-memory-cli/src/commands/mod.rs` - Command routing
 - Updated snapshot tests
 
 **MCP Protocol Enhancements:**
@@ -431,7 +429,7 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 - Features confirmed: OAuth (oauth.rs), Completion (mcp/completion.rs), Elicitation (mcp/elicitation.rs)
 
 **G3.9 - Remove Duplicate embedding.rs:**
-- Deleted `memory-mcp/src/bin/server_impl/embedding.rs` (124 lines of dead code)
+- Deleted `do-memory-mcp/src/bin/server_impl/embedding.rs` (124 lines of dead code)
 - Live implementation is in jsonrpc.rs:28-128
 - Updated mod.rs to remove module declaration and re-exports
 
@@ -486,7 +484,7 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 
 | ID | Task | Status | Commit |
 |----|------|--------|--------|
-| WG-022 | Fix memory-storage-redb build errors | ✅ Complete | (concurrent fix) |
+| WG-022 | Fix do-memory-storage-redb build errors | ✅ Complete | (concurrent fix) |
 | WG-023 | Fix stale `#[ignore]` reasons + placeholder URLs | ✅ Complete | `bf7abab` |
 | WG-024 | Refactor nightly exclusion filter | ✅ Complete | `c70db69` |
 | WG-025 | Un-ignore pattern CLI e2e test | ✅ Complete | `bf7abab` |
@@ -535,9 +533,9 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 
 | Crate | New Tests | Focus Areas |
 |-------|-----------|-------------|
-| memory-core | 12 property tests | Serialization round-trips, reward bounds, episode lifecycle |
-| memory-storage-redb | 15+ tests | Adaptive cache, persistence manager |
-| memory-storage-turso | 50+ tests | Transport compression, metrics export, pool statistics |
+| do-memory-core | 12 property tests | Serialization round-trips, reward bounds, episode lifecycle |
+| do-memory-storage-redb | 15+ tests | Adaptive cache, persistence manager |
+| do-memory-storage-turso | 50+ tests | Transport compression, metrics export, pool statistics |
 
 ### CI Status
 
@@ -611,8 +609,8 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 ### Fixes Applied
 
 1. **Clippy Fix**:
-   - Added `#![allow(clippy::unwrap_used)]` to `memory-storage-redb/tests/persistence_coverage_tests.rs`
-   - Added `#![allow(clippy::expect_used)]` to `memory-mcp/tests/adr024_lazy_loading_tests.rs`
+   - Added `#![allow(clippy::unwrap_used)]` to `do-memory-storage-redb/tests/persistence_coverage_tests.rs`
+   - Added `#![allow(clippy::expect_used)]` to `do-memory-mcp/tests/adr024_lazy_loading_tests.rs`
    - Root cause: Integration tests are separate crate roots and don't inherit `.clippy.toml` settings
 
 2. **Security Fix**:
@@ -647,9 +645,9 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 
 | ID | Action | Status |
 |----|--------|--------|
-| ACT-038 | Add Cargo.toml metadata to memory-core | ✅ Already complete |
+| ACT-038 | Add Cargo.toml metadata to do-memory-core | ✅ Already complete |
 | ACT-039 | Add Cargo.toml metadata to storage crates | ✅ Already complete |
-| ACT-040 | Add Cargo.toml metadata to memory-mcp | ✅ Already complete |
+| ACT-040 | Add Cargo.toml metadata to do-memory-mcp | ✅ Already complete |
 | ACT-041 | Create verify-crate-metadata.sh | ✅ Complete |
 | ACT-042 | Configure cargo-deny | ✅ Already exists |
 | ACT-043 | Add supply-chain.yml workflow | ✅ Complete |
@@ -703,7 +701,7 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 | ACT-051 | Merge hooks.json into settings.json | ✅ Complete |
 | ACT-052 | Add quick compile check hook | ✅ Complete |
 
-### Verified Patterns (for memory-cli)
+### Verified Patterns (for do-memory-cli)
 
 | Pattern ID | Category | Description |
 |------------|----------|-------------|
@@ -718,7 +716,7 @@ All CI checks passing except codecov/patch (expected to resolve after commit).
 2. **Wrong Approach Pattern**: 8 instances - agents proceed without reading existing patterns
 3. **Atomic Commits**: 5 excessive_changes instances - need scope enforcement
 4. **Hook Consolidation**: Two hook config files create maintenance burden
-5. **Memory-CLI Cache Directory**: `~/.local/share/memory-cli/cache/` must exist before episode operations. Episode create/log-step/complete all work correctly after ensuring directory exists. Pattern extraction works after episode completion.
+5. **Memory-CLI Cache Directory**: `~/.local/share/do-memory-cli/cache/` must exist before episode operations. Episode create/log-step/complete all work correctly after ensuring directory exists. Pattern extraction works after episode completion.
 
 ## v0.1.22 Sprint Status — COMPLETE ✅
 

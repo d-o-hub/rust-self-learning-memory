@@ -8,8 +8,8 @@ use super::types::{
     RecordRecommendationSessionOutput,
 };
 use anyhow::{Result, anyhow};
-use memory_core::SelfLearningMemory;
-use memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};
 use std::sync::Arc;
 use tracing::{info, instrument};
 use uuid::Uuid;

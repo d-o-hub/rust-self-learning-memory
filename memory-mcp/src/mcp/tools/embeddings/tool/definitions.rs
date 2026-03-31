@@ -1,7 +1,7 @@
 //! Embedding tools implementation.
 
 use crate::types::Tool;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use serde_json::json;
 use std::sync::Arc;
 

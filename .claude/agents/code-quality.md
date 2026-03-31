@@ -307,7 +307,7 @@ None
 ### High Priority (2)
 
 #### 1. Unwrap in production code
-- **File**: `memory-core/src/sync.rs:145`
+- **File**: `do-memory-core/src/sync.rs:145`
 - **Warning**: `clippy::unwrap_used`
 - **Code**:
   ```rust
@@ -321,7 +321,7 @@ None
 - **Effort**: 5 minutes
 
 #### 2. Missing error documentation
-- **File**: `memory-storage-turso/src/lib.rs:89`
+- **File**: `do-memory-storage-turso/src/lib.rs:89`
 - **Warning**: `clippy::missing_errors_doc`
 - **Fix**: Add `# Errors` section to doc comment
 - **Impact**: Poor API documentation
@@ -330,7 +330,7 @@ None
 ### Medium Priority (1)
 
 #### 3. Needless clone
-- **File**: `memory-core/src/extraction.rs:234`
+- **File**: `do-memory-core/src/extraction.rs:234`
 - **Warning**: `clippy::needless_clone`
 - **Fix**: Pass `&episode.context` instead of cloning
 - **Impact**: Minor performance improvement

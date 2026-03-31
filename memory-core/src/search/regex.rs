@@ -38,7 +38,7 @@ fn check_repetition_count(capture: Option<Match<'_>>, max: usize) -> Result<(), 
 /// # Examples
 ///
 /// ```
-/// use memory_core::search::regex::validate_regex_pattern;
+/// use do_memory_core::search::regex::validate_regex_pattern;
 ///
 /// assert!(validate_regex_pattern("^test.*$").is_ok());
 /// assert!(validate_regex_pattern("(a+)+b").is_err()); // Catastrophic backtracking
@@ -105,7 +105,7 @@ pub fn validate_regex_pattern(pattern: &str) -> Result<(), String> {
 /// # Examples
 ///
 /// ```
-/// use memory_core::search::regex::regex_search;
+/// use do_memory_core::search::regex::regex_search;
 ///
 /// let matches = regex_search("error: database timeout", r"error.*timeout")
 ///     .expect("Valid regex pattern should compile");

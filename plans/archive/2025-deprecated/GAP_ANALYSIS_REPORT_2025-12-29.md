@@ -29,8 +29,8 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 | Gap | Impact | Effort | Status |
 |-----|--------|--------|--------|
 | File Size Violations | Codebase standards violation | 50-70 hours | 🔄 In Progress |
-| memory-mcp sandbox files | Server stability | 15-20 hours | ⏳ Pending |
-| memory-core large files | Core functionality | 25-35 hours | ⏳ Pending |
+| do-memory-mcp sandbox files | Server stability | 15-20 hours | ⏳ Pending |
+| do-memory-core large files | Core functionality | 25-35 hours | ⏳ Pending |
 
 ### P1 - HIGH (Quality of Life)
 | Gap | Impact | Effort | Status |
@@ -69,9 +69,9 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 - ✅ Circuit breaker for resilience
 - ✅ Storage backends for embeddings
 - ✅ Semantic service with fallback
-- ✅ CLI Integration - `memory-cli/src/commands/embedding.rs`
-- ✅ MCP Server Integration - `memory-mcp/src/mcp/tools/embeddings.rs`
-- ✅ Hierarchical Retrieval - `memory-core/src/memory/retrieval.rs`
+- ✅ CLI Integration - `do-memory-cli/src/commands/embedding.rs`
+- ✅ MCP Server Integration - `do-memory-mcp/src/mcp/tools/embeddings.rs`
+- ✅ Hierarchical Retrieval - `do-memory-core/src/memory/retrieval.rs`
 - ✅ E2E Testing - All tests passing
 
 ### 2. File Size Violations Gap (P0 - IN PROGRESS)
@@ -82,7 +82,7 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 
 #### Priority P0 Files (Immediate Action Required)
 
-**memory-mcp (Critical)**:
+**do-memory-mcp (Critical)**:
 | File | Current LOC | Target LOC | Effort |
 |------|-------------|------------|--------|
 | `src/wasm_sandbox.rs` | 683 | ≤500 | 6-8 hrs |
@@ -92,12 +92,12 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 **memory-storage (High)**:
 | File | Current LOC | Target LOC | Effort |
 |------|-------------|------------|--------|
-| `memory-storage-redb/src/cache.rs` | 654 | ≤500 | 5-7 hrs |
-| `memory-storage-turso/src/pool.rs` | 589 | ≤500 | 4-6 hrs |
+| `do-memory-storage-redb/src/cache.rs` | 654 | ≤500 | 5-7 hrs |
+| `do-memory-storage-turso/src/pool.rs` | 589 | ≤500 | 4-6 hrs |
 
 #### Priority P1 Files (Next Sprint)
 
-**memory-core (High)**:
+**do-memory-core (High)**:
 | File | Current LOC | Target LOC | Effort |
 |------|-------------|------------|--------|
 | `src/patterns/clustering.rs` | 673 | ≤500 | 5-7 hrs |
@@ -110,7 +110,7 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 
 #### Priority P2 Files (Future Sprints)
 
-**memory-core (Medium)**:
+**do-memory-core (Medium)**:
 | File | Current LOC | Target LOC | Effort |
 |------|-------------|------------|--------|
 | `src/embeddings/real_model.rs` | 634 | ≤500 | 4-5 hrs |
@@ -119,7 +119,7 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 | `src/episodic/capacity.rs` | 613 | ≤500 | 4-5 hrs |
 | `src/monitoring/storage.rs` | 598 | ≤500 | 4-5 hrs |
 
-**memory-cli (Medium)**:
+**do-memory-cli (Medium)**:
 | File | Current LOC | Target LOC | Effort |
 |------|-------------|------------|--------|
 | `src/config/validator.rs` | 636 | ≤500 | 4-5 hrs |
@@ -128,7 +128,7 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 
 #### Priority P3 Files (Cleanup)
 
-**memory-core (Low)**:
+**do-memory-core (Low)**:
 | File | Current LOC | Target LOC | Effort |
 |------|-------------|------------|--------|
 | `src/sync.rs` | 511 | ≤500 | 2-3 hrs |
@@ -144,7 +144,7 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 **Target**: Achieve 80% codebase compliance
 
 **Tasks**:
-- [ ] Week 1: Split memory-mcp sandbox files (wasm_sandbox, javy_compiler, unified_sandbox)
+- [ ] Week 1: Split do-memory-mcp sandbox files (wasm_sandbox, javy_compiler, unified_sandbox)
 - [ ] Week 2: Split memory-storage files (cache, pool)
 - [ ] Validation: All split files ≤ 500 LOC, tests passing
 
@@ -154,8 +154,8 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 **Target**: Achieve 90% codebase compliance
 
 **Tasks**:
-- [ ] Week 3: Split memory-core large files (clustering, learning, embeddings)
-- [ ] Week 4: Split memory-core remaining (quality, queue, config, episode)
+- [ ] Week 3: Split do-memory-core large files (clustering, learning, embeddings)
+- [ ] Week 4: Split do-memory-core remaining (quality, queue, config, episode)
 - [ ] Validation: Tests passing, clippy clean
 
 ### Phase 3: P2 File Compliance (Week 5-6)
@@ -164,8 +164,8 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 **Target**: Achieve 95%+ codebase compliance
 
 **Tasks**:
-- [ ] Week 5: Split remaining memory-core files (validation, capacity, storage)
-- [ ] Week 6: Split memory-cli config files
+- [ ] Week 5: Split remaining do-memory-core files (validation, capacity, storage)
+- [ ] Week 6: Split do-memory-cli config files
 - [ ] P3 cleanup for edge cases
 
 ### Phase 4: Code Quality (Week 7-8)
@@ -231,14 +231,14 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 
 ### Immediate (This Week)
 1. ✅ **File compliance analysis complete** - DONE
-2. ⏳ **Begin P0 file splitting** - Start with memory-mcp sandbox files
+2. ⏳ **Begin P0 file splitting** - Start with do-memory-mcp sandbox files
 
 ### Short-term (Next 2 Weeks)
-1. ⏳ **Split P0 files**: memory-mcp sandbox + memory-storage
+1. ⏳ **Split P0 files**: do-memory-mcp sandbox + memory-storage
 2. ⏳ **Validate**: Tests pass, clippy clean
 
 ### Medium-term (Next 1-2 Months)
-1. ⏳ **Complete P1 files**: memory-core large files
+1. ⏳ **Complete P1 files**: do-memory-core large files
 2. ⏳ **Complete P2 files**: remaining files
 3. ⏳ **Code quality improvements**: unwraps, clones
 
@@ -261,7 +261,7 @@ Analyzed the current codebase state for the v0.1.13 release. The system is produ
 
 **Report Status**: ✅ UPDATED
 **Last Updated**: 2026-01-09
-**Next Action**: Begin P0 file refactoring (memory-mcp sandbox files)
+**Next Action**: Begin P0 file refactoring (do-memory-mcp sandbox files)
 **Total Estimated Effort**: 185-275 hours (4.5-7 weeks)
 **Production Ready**: v0.1.12 (100%)
 **Gap to 100% Compliance**: ~50-70 hours for file compliance

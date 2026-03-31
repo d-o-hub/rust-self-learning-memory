@@ -1,6 +1,6 @@
 //! Integration test for adaptive reward calibration
 
-use memory_core::{
+use do_memory_core::{
     AdaptiveRewardCalculator, ComplexityLevel, DomainStatisticsCache, Episode, ExecutionResult,
     ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };

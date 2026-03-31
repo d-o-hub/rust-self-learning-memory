@@ -29,10 +29,10 @@ jobs:
       fail-fast: false
       matrix:
         crate:
-          - memory-core
-          - memory-storage-turso
-          - memory-storage-redb
-          - memory-mcp
+          - do-memory-core
+          - do-memory-storage-turso
+          - do-memory-storage-redb
+          - do-memory-mcp
     steps:
       - uses: actions/checkout@v6
         with:

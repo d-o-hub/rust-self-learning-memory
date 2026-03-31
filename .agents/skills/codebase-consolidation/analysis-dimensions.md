@@ -184,13 +184,13 @@ Module A → Interface I ← Module B
 
 **Issue 2: God Module**
 ```rust
-// memory-core/src/memory.rs (1200 LOC)
+// do-memory-core/src/memory.rs (1200 LOC)
 // Does everything: episodes, patterns, sync, retrieval, validation
 ```
 
 **Solution**: Split by responsibility
 ```
-memory-core/
+do-memory-core/
   ├── episode/     (Episode management)
   ├── pattern/     (Pattern extraction)
   ├── sync/        (Storage sync)

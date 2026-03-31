@@ -5,9 +5,9 @@
 //! Usage: cargo script test_prompt_storage.rs
 
 use std::sync::Arc;
-use memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
-use memory_storage_turso::{TursoConfig, TursoStorage};
-use memory_storage_redb::{CacheConfig, RedbStorage};
+use do_memory_core::{SelfLearningMemory, TaskContext, ComplexityLevel};
+use do_memory_storage_turso::{TursoConfig, TursoStorage};
+use do_memory_storage_redb::{CacheConfig, RedbStorage};
 use serde_json::json;
 use tokio::time::{sleep, Duration};
 
@@ -74,8 +74,8 @@ async fn test_turso_backend(prompt: &str, domain: &str, task_type: &str) -> anyh
     turso_storage.initialize_schema().await?;
 
     println!("  💾 Creating memory system with Turso backend...");
-    let memory_config = memory_core::MemoryConfig::default();
-    let turso_arc: Arc<dyn memory_core::StorageBackend> = Arc::new(turso_storage);
+    let memory_config = do_memory_core::MemoryConfig::default();
+    let turso_arc: Arc<dyn do_memory_core::StorageBackend> = Arc::new(turso_storage);
     let memory = SelfLearningMemory::with_storage(memory_config, Arc::clone(&turso_arc), Arc::clone(&turso_arc));
 
     println!("  🎯 Creating episode with test prompt...");
@@ -91,7 +91,7 @@ async fn test_turso_backend(prompt: &str, domain: &str, task_type: &str) -> anyh
     println!("    ✅ Episode created with ID: {}", episode_id);
 
     // Add some execution steps
-    memory.log_step(episode_id, memory_core::ExecutionStep {
+    memory.log_step(episode_id, do_memory_core::ExecutionStep {
         tool: "memory-mcp".to_string(),
         action: "store-prompt".to_string(),
         input: json!({"prompt": prompt}),
@@ -102,9 +102,9 @@ async fn test_turso_backend(prompt: &str, domain: &str, task_type: &str) -> anyh
     }).await?;
 
     // Complete the episode
-    memory.complete_episode(episode_id, memory_core::TaskOutcome {
-        verdict: memory_core::Verdict::Success,
-        reward: Some(memory_core::Reward {
+    memory.complete_episode(episode_id, do_memory_core::TaskOutcome {
+        verdict: do_memory_core::Verdict::Success,
+        reward: Some(do_memory_core::Reward {
             total: 0.9,
             components: vec![("correctness".to_string(), 0.9)],
         }),
@@ -171,8 +171,8 @@ async fn test_redb_backend(prompt: &str, domain: &str, task_type: &str) -> anyho
     let redb_storage = RedbStorage::new_with_cache_config(std::path::Path::new(cache_path), cache_config).await?;
 
     println!("  💾 Creating memory system with redb backend...");
-    let memory_config = memory_core::MemoryConfig::default();
-    let redb_arc: Arc<dyn memory_core::StorageBackend> = Arc::new(redb_storage);
+    let memory_config = do_memory_core::MemoryConfig::default();
+    let redb_arc: Arc<dyn do_memory_core::StorageBackend> = Arc::new(redb_storage);
     let memory = SelfLearningMemory::with_storage(memory_config, Arc::clone(&redb_arc), redb_arc);
 
     println!("  🎯 Creating episode with test prompt...");
@@ -188,7 +188,7 @@ async fn test_redb_backend(prompt: &str, domain: &str, task_type: &str) -> anyho
     println!("    ✅ Episode created with ID: {}", episode_id);
 
     // Add some execution steps
-    memory.log_step(episode_id, memory_core::ExecutionStep {
+    memory.log_step(episode_id, do_memory_core::ExecutionStep {
         tool: "memory-mcp".to_string(),
         action: "store-prompt".to_string(),
         input: json!({"prompt": prompt}),
@@ -199,9 +199,9 @@ async fn test_redb_backend(prompt: &str, domain: &str, task_type: &str) -> anyho
     }).await?;
 
     // Complete the episode
-    memory.complete_episode(episode_id, memory_core::TaskOutcome {
-        verdict: memory_core::Verdict::Success,
-        reward: Some(memory_core::Reward {
+    memory.complete_episode(episode_id, do_memory_core::TaskOutcome {
+        verdict: do_memory_core::Verdict::Success,
+        reward: Some(do_memory_core::Reward {
             total: 0.9,
             components: vec![("correctness".to_string(), 0.9)],
         }),
@@ -286,7 +286,7 @@ async fn test_dual_storage(prompt: &str, domain: &str, task_type: &str) -> anyho
     let redb_storage = RedbStorage::new_with_cache_config(std::path::Path::new(cache_path), cache_config).await?;
 
     println!("  💾 Creating memory system with dual storage...");
-    let memory_config = memory_core::MemoryConfig::default();
+    let memory_config = do_memory_core::MemoryConfig::default();
     let memory = SelfLearningMemory::with_storage(
         memory_config,
         Arc::new(turso_storage),
@@ -306,7 +306,7 @@ async fn test_dual_storage(prompt: &str, domain: &str, task_type: &str) -> anyho
     println!("    ✅ Episode created with ID: {}", episode_id);
 
     // Add some execution steps
-    memory.log_step(episode_id, memory_core::ExecutionStep {
+    memory.log_step(episode_id, do_memory_core::ExecutionStep {
         tool: "memory-mcp".to_string(),
         action: "store-prompt".to_string(),
         input: json!({"prompt": prompt}),
@@ -317,9 +317,9 @@ async fn test_dual_storage(prompt: &str, domain: &str, task_type: &str) -> anyho
     }).await?;
 
     // Complete the episode
-    memory.complete_episode(episode_id, memory_core::TaskOutcome {
-        verdict: memory_core::Verdict::Success,
-        reward: Some(memory_core::Reward {
+    memory.complete_episode(episode_id, do_memory_core::TaskOutcome {
+        verdict: do_memory_core::Verdict::Success,
+        reward: Some(do_memory_core::Reward {
             total: 0.95,
             components: vec![("correctness".to_string(), 0.9), ("persistence".to_string(), 0.05)],
         }),

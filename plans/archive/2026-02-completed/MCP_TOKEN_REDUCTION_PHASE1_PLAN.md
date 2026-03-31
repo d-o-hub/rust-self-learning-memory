@@ -101,7 +101,7 @@ const querySchema = await mcp.describe_tool("query_memory");
 
 **File Structure**:
 ```
-memory-mcp/src/server/tools/
+do-memory-mcp/src/server/tools/
 ├── mod.rs                    # Module exports
 ├── registry.rs               # NEW: ToolRegistry implementation
 ├── loader.rs                 # NEW: ToolLoader trait
@@ -111,7 +111,7 @@ memory-mcp/src/server/tools/
 **ToolRegistry Design**:
 
 ```rust
-// memory-mcp/src/server/tools/registry.rs
+// do-memory-mcp/src/server/tools/registry.rs
 
 use std::sync::OnceLock;
 use std::collections::HashMap;
@@ -217,7 +217,7 @@ pub struct ToolStub {
 **ToolLoader Trait**:
 
 ```rust
-// memory-mcp/src/server/tools/loader.rs
+// do-memory-mcp/src/server/tools/loader.rs
 
 use std::collections::HashMap;
 use async_trait::async_trait;
@@ -265,7 +265,7 @@ impl ToolLoader for DefaultToolLoader {
 **Schema Cache**:
 
 ```rust
-// memory-mcp/src/server/tools/cache.rs
+// do-memory-mcp/src/server/tools/cache.rs
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -370,7 +370,7 @@ async fn handle_list_tools(&self) -> Result<ListToolsResult, Error> {
 **Updated Handlers**:
 
 ```rust
-// memory-mcp/src/server/handlers.rs
+// do-memory-mcp/src/server/handlers.rs
 
 use crate::server::tools::registry::{ToolRegistry, ToolStub};
 
@@ -466,7 +466,7 @@ pub struct ToolSchemaDescription {
 **MCP Server Integration**:
 
 ```rust
-// memory-mcp/src/server.rs
+// do-memory-mcp/src/server.rs
 
 use crate::server::tools::registry::ToolRegistry;
 use crate::server::tools::loader::DefaultToolLoader;
@@ -542,7 +542,7 @@ impl McpServer {
 **Unit Tests**:
 
 ```rust
-// memory-mcp/src/server/tools/registry/tests.rs
+// do-memory-mcp/src/server/tools/registry/tests.rs
 
 #[cfg(test)]
 mod tests {
@@ -627,7 +627,7 @@ mod tests {
 **Integration Tests**:
 
 ```rust
-// memory-mcp/tests/integration/tool_loading.rs
+// do-memory-mcp/tests/integration/tool_loading.rs
 
 use memory_mcp::test_utils::TestServer;
 
@@ -753,7 +753,7 @@ async fn test_cache_effectiveness() {
 **Performance Tests**:
 
 ```rust
-// memory-mcp/benches/tool_loading.rs
+// do-memory-mcp/benches/tool_loading.rs
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use memory_mcp::server::tools::registry::ToolRegistry;
@@ -1140,7 +1140,7 @@ Add optional `include_fields` parameter:
 
 **File Structure**:
 ```
-memory-mcp/src/common/
+do-memory-mcp/src/common/
 ├── mod.rs              # Module exports
 └── projection.rs       # NEW: Field projection helper
 ```
@@ -1148,7 +1148,7 @@ memory-mcp/src/common/
 **Field Projection Helper**:
 
 ```rust
-// memory-mcp/src/common/projection.rs
+// do-memory-mcp/src/common/projection.rs
 
 use serde::Serialize;
 use serde_json::Value;
@@ -1315,7 +1315,7 @@ mod tests {
 **Example: query_memory Tool**:
 
 ```rust
-// memory-mcp/src/server/tools/episode/query.rs
+// do-memory-mcp/src/server/tools/episode/query.rs
 
 use crate::common::projection::FieldProjection;
 
@@ -1393,7 +1393,7 @@ pub async fn handle_query_memory(
 **Update All Tools**:
 
 ```rust
-// memory-mcp/src/server/tools/mod.rs
+// do-memory-mcp/src/server/tools/mod.rs
 
 // Episode tools
 pub mod episode;
@@ -1796,7 +1796,7 @@ Use this calculator to estimate token reduction for field selection:
 **Unit Tests**:
 
 ```rust
-// memory-mcp/src/common/projection/tests.rs
+// do-memory-mcp/src/common/projection/tests.rs
 
 #[cfg(test)]
 mod tests {
@@ -1808,7 +1808,7 @@ mod tests {
 **Integration Tests**:
 
 ```rust
-// memory-mcp/tests/integration/field_projection.rs
+// do-memory-mcp/tests/integration/field_projection.rs
 
 use memory_mcp::test_utils::TestServer;
 
@@ -1960,7 +1960,7 @@ async fn test_token_reduction_measurement() {
 **Performance Tests**:
 
 ```rust
-// memory-mcp/benches/field_projection.rs
+// do-memory-mcp/benches/field_projection.rs
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use memory_mcp::common::projection::FieldProjection;
@@ -2334,7 +2334,7 @@ This detailed implementation plan provides step-by-step guidance for implementin
 - [MCP_OPTIMIZATION_STATUS.md](./MCP_OPTIMIZATION_STATUS.md) - Status tracking (Task 3.3)
 
 ### Implementation References
-- `memory-mcp/src/server/tools/` - Tool implementation
-- `memory-mcp/src/common/` - Common utilities
-- `memory-core/src/embeddings/` - Semantic service
+- `do-memory-mcp/src/server/tools/` - Tool implementation
+- `do-memory-mcp/src/common/` - Common utilities
+- `do-memory-core/src/embeddings/` - Semantic service
 - `plans/ARCHITECTURE/ARCHITECTURE_CORE.md` - Architecture documentation

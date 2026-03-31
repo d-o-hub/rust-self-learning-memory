@@ -44,7 +44,7 @@ Successfully executed **GOAP Phase 1** with **3 parallel specialist agents** to 
 **Agent 2: Debug Specialist** ✅
 - Fixed `test_mcp_server_tools` failure
 - Added 7 missing extended tools to registry
-- All 26 memory-mcp tests now passing (100%)
+- All 26 do-memory-mcp tests now passing (100%)
 - **Commit**: `3f9f495`
 
 ### **Phase 2: Test Fixes (1 Sequential Agent)**
@@ -85,7 +85,7 @@ Successfully executed **GOAP Phase 1** with **3 parallel specialist agents** to 
 
 ```
 d458935 [analysis] Document CLI API changes and test mapping
-3f9f495 [test] Fix CLI workflow tests and memory-mcp issues
+3f9f495 [test] Fix CLI workflow tests and do-memory-mcp issues
 f0420f8 [docs] Add v0.1.16 roadmap and Phase 1 completion docs
 [Latest] [docs] Update ROADMAPS with Phase 1 and v0.1.16 planning
 ```
@@ -223,7 +223,7 @@ f0420f8 [docs] Add v0.1.16 roadmap and Phase 1 completion docs
 |------|--------|----------|
 | Create GOAP plan for remaining tests | ✅ Complete | High |
 | Analyze CLI API vs test expectations | ✅ Complete | High |
-| Fix memory-mcp test_mcp_server_tools | ✅ Complete | High |
+| Fix do-memory-mcp test_mcp_server_tools | ✅ Complete | High |
 | Fix CLI workflow tests | ✅ Complete | High |
 | Document CLI architectural issue | ✅ Complete | High |
 | Create PR #297 for review | ✅ Complete | High |
@@ -236,7 +236,7 @@ f0420f8 [docs] Add v0.1.16 roadmap and Phase 1 completion docs
 
 **Mission Status**: ✅ **PHASE 1 COMPLETE**
 **Next Phase**: 🚀 **v0.1.16 Phase B (Code Quality)**
-**Impact**: 84.6% test pass rate, 100% memory-mcp, comprehensive v0.1.16 planning
+**Impact**: 84.6% test pass rate, 100% do-memory-mcp, comprehensive v0.1.16 planning
 **Date**: 2026-02-16
 
 **🎉 READY FOR V0.1.16 SPRINT!**

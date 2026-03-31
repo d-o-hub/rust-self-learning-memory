@@ -66,15 +66,15 @@ All performance targets exceeded significantly:
 
 #### A. Clone Operations (P1 - HIGH VALUE)
 
-**Problem**: 183 clone operations in `memory-core/src/`
+**Problem**: 183 clone operations in `do-memory-core/src/`
 
 **Impact**: Unnecessary allocations, 5-15% performance improvement opportunity
 
 **Locations** (high-frequency hot paths):
-- `memory-core/src/episode.rs`: Episode cloning in retrieval loops
-- `memory-core/src/patterns/clustering.rs`: Pattern cloning during clustering
-- `memory-core/src/memory/learning.rs`: Heuristic cloning in learning cycle
-- `memory-core/src/retrieval/cache/lru.rs`: Cache key cloning
+- `do-memory-core/src/episode.rs`: Episode cloning in retrieval loops
+- `do-memory-core/src/patterns/clustering.rs`: Pattern cloning during clustering
+- `do-memory-core/src/memory/learning.rs`: Heuristic cloning in learning cycle
+- `do-memory-core/src/retrieval/cache/lru.rs`: Cache key cloning
 
 **Optimization Strategies**:
 1. **Arc for Shared Data**: Wrap Episode, Pattern, Heuristic in Arc
@@ -97,7 +97,7 @@ All performance targets exceeded significantly:
 
 #### B. Query Caching (P2 - MEDIUM VALUE)
 
-**Current State**: Basic LRU cache with TTL in `memory-core/src/retrieval/cache/lru.rs`
+**Current State**: Basic LRU cache with TTL in `do-memory-core/src/retrieval/cache/lru.rs`
 
 **Gap**: No query result caching for repeated queries
 
@@ -157,7 +157,7 @@ pub struct QueryKey {
 
 #### A. DBSCAN Anomaly Detection (Partially Implemented)
 
-**Current State**: Algorithm implemented in `memory-mcp/src/patterns/anomaly.rs`, testing incomplete
+**Current State**: Algorithm implemented in `do-memory-mcp/src/patterns/anomaly.rs`, testing incomplete
 
 **Gap**: Not integrated into production workflow
 
@@ -165,7 +165,7 @@ pub struct QueryKey {
 
 **Implementation**:
 ```rust
-// memory-core/src/patterns/dbscan.rs
+// do-memory-core/src/patterns/dbscan.rs
 pub struct DBSCANAnomalyDetector {
     eps: f64,
     min_samples: usize,
@@ -196,7 +196,7 @@ impl DBSCANAnomalyDetector {
 
 **Implementation**:
 ```rust
-// memory-core/src/patterns/changepoint.rs
+// do-memory-core/src/patterns/changepoint.rs
 pub struct ChangepointDetector {
     threshold: f64,
     window_size: usize,
@@ -244,7 +244,7 @@ impl ChangepointDetector {
 
 **Implementation**:
 ```rust
-// memory-core/src/embeddings/contrastive.rs
+// do-memory-core/src/embeddings/contrastive.rs
 pub struct ContrastiveLearner {
     encoder: Arc<dyn EmbeddingProvider>,
     temperature: f64,
@@ -298,7 +298,7 @@ impl ContrastiveLearner {
 
 **Implementation**:
 ```rust
-// memory-core/src/retrieval/hybrid.rs
+// do-memory-core/src/retrieval/hybrid.rs
 pub struct HybridRetriever {
     semantic: SemanticRetriever,
     keyword: KeywordRetriever,
@@ -357,9 +357,9 @@ impl HybridRetriever {
 
 | File | Original LOC | Final LOC | Submodules |
 |------|-------------|-----------|------------|
-| `memory-mcp/src/server/mod.rs` | 781 | 147 | 3 (sandbox, tool_definitions, tool_definitions_extended) |
-| `memory-mcp/src/server/tools/batch_operations.rs` | 753 | 3 modules | batch_query, batch_analysis, batch_compare |
-| `memory-mcp/src/server/tools/episode_lifecycle.rs` | 516 | 5 modules | episode_create, episode_steps, episode_complete, episode_get, episode_timeline |
+| `do-memory-mcp/src/server/mod.rs` | 781 | 147 | 3 (sandbox, tool_definitions, tool_definitions_extended) |
+| `do-memory-mcp/src/server/tools/batch_operations.rs` | 753 | 3 modules | batch_query, batch_analysis, batch_compare |
+| `do-memory-mcp/src/server/tools/episode_lifecycle.rs` | 516 | 5 modules | episode_create, episode_steps, episode_complete, episode_get, episode_timeline |
 
 **Benchmark Files** (exempt from 500 LOC limit per AGENTS.md):
 - `benches/spatiotemporal_benchmark.rs` (609 LOC)
@@ -407,7 +407,7 @@ impl HybridRetriever {
 **Target**: <100 clone operations (achieved ✅)
 
 **Before Phase 1**:
-- 183 clone() calls in `memory-core/src/`
+- 183 clone() calls in `do-memory-core/src/`
 - High-frequency hot paths: Episode, Pattern, Heuristic cloning
 - Conditional cloning in retrieval loops
 - Cache key cloning in LRU cache
@@ -485,7 +485,7 @@ atomic-polyfill 1.0.3
     └── postcard 1.1.3
         └── wasmtime (multiple versions)
             └── javy-codegen
-                └── memory-mcp
+                └── do-memory-mcp
 ```
 
 **Impact**: Potential security vulnerabilities, no updates
@@ -545,7 +545,7 @@ atomic-polyfill 1.0.3
 
 **Implementation**:
 ```rust
-// memory-mcp/src/sandbox/resource_limits.rs
+// do-memory-mcp/src/sandbox/resource_limits.rs
 pub struct ResourceLimits {
     max_memory: usize,
     max_cpu_time: Duration,
@@ -715,7 +715,7 @@ impl ResourceTracker {
 
 **Implementation**:
 ```rust
-// memory-core/src/monitoring/prometheus.rs
+// do-memory-core/src/monitoring/prometheus.rs
 pub struct PrometheusExporter {
     metrics: AgentMetrics,
 }

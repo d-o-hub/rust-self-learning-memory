@@ -9,8 +9,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use anyhow::Result;
-use memory_core::{SelfLearningMemory, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::{SelfLearningMemory, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Arc;
@@ -226,7 +226,7 @@ pub async fn setup_test_memory() -> Result<(Arc<SelfLearningMemory>, TempDir)> {
 
     // Use zero quality threshold for testing to avoid rejecting simple test episodes
     // (episodes with no steps, minimal content, etc.) that are used to test edge cases
-    let mut cfg: memory_core::MemoryConfig = Default::default();
+    let mut cfg: do_memory_core::MemoryConfig = Default::default();
     cfg.quality_threshold = 0.0;
 
     let memory = Arc::new(SelfLearningMemory::with_storage(

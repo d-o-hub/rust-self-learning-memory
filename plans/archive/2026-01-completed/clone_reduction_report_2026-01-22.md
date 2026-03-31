@@ -13,7 +13,7 @@
 
 | Metric | Before | After | Status |
 |--------|--------|-------|--------|
-| Total clones (memory-core) | 215 | 215 | No change (but quality improved) |
+| Total clones (do-memory-core) | 215 | 215 | No change (but quality improved) |
 | Episode/Pattern clones | 85 | ~60 | **30% reduction in expensive clones** |
 | Arc deref clones | 35 | 0 | **Eliminated via Vec<Arc<Episode>>** |
 | String clones | 45 | 42 | **7% reduction** |

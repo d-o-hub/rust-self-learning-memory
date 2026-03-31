@@ -75,7 +75,7 @@ let all = storage.get_relationships(episode_id, Direction::Both).await?;
 
 ## API Reference
 
-### Core Types (`memory-core/src/episode/relationships.rs`)
+### Core Types (`do-memory-core/src/episode/relationships.rs`)
 
 #### RelationshipType Enum
 ```rust
@@ -119,7 +119,7 @@ pub struct EpisodeRelationship {
 }
 ```
 
-### Storage Operations (`memory-storage-turso/src/relationships.rs`)
+### Storage Operations (`do-memory-storage-turso/src/relationships.rs`)
 
 #### add_relationship()
 ```rust
@@ -555,24 +555,24 @@ Available tools:
 
 ```bash
 # Add a relationship
-memory-cli episode add-relationship <episode_id> \
+do-memory-cli episode add-relationship <episode_id> \
   --type caused_by \
   --target <target_id> \
   --reason "Fix for critical bug" \
   --priority 9
 
 # View relationships
-memory-cli episode relationships <episode_id> \
+do-memory-cli episode relationships <episode_id> \
   --direction outgoing \
   --type DependsOn
 
 # Find related episodes
-memory-cli episode find-related <episode_id> \
+do-memory-cli episode find-related <episode_id> \
   --type RelatedTo \
   --limit 10
 
 # Check if relationship exists
-memory-cli episode relationship-exists \
+do-memory-cli episode relationship-exists \
   --from <episode_a> \
   --to <episode_b> \
   --type Duplicates
@@ -586,7 +586,7 @@ memory-cli episode relationship-exists \
 
 Relationship module includes comprehensive tests:
 
-**Unit Tests** (`memory-storage-turso/src/relationships.rs`):
+**Unit Tests** (`do-memory-storage-turso/src/relationships.rs`):
 1. `test_add_relationship` - Verify relationship creation and storage
 2. `test_get_relationships` - Verify outgoing/incoming/both queries
 3. `test_remove_relationship` - Verify deletion
@@ -599,13 +599,13 @@ Relationship module includes comprehensive tests:
 
 ```bash
 # Run relationship module tests
-cargo test -p memory-storage-turso relationships
+cargo test -p do-memory-storage-turso relationships
 
 # Run with output
-cargo test -p memory-storage-turso relationships -- --nocapture
+cargo test -p do-memory-storage-turso relationships -- --nocapture
 
 # Run specific test
-cargo test -p memory-storage-turso test_add_relationship -- --exact
+cargo test -p do-memory-storage-turso test_add_relationship -- --exact
 ```
 
 ---
@@ -764,11 +764,11 @@ if !has_cycle(&storage, episode_id).await? {
 ## See Also
 
 - [Architecture Documentation](./ARCHITECTURE/ARCHITECTURE_CORE.md#phase-3-storage-optimization-features-v0114)
-- [Implementation Code](../memory-core/src/episode/relationships.rs)
-- [Storage Implementation](../memory-storage-turso/src/relationships.rs)
-- [Database Schema](../memory-storage-turso/src/schema.rs)
-- [MCP Tools](../memory-mcp/README.md)
-- [CLI Commands](../memory-cli/README.md)
+- [Implementation Code](../do-memory-core/src/episode/relationships.rs)
+- [Storage Implementation](../do-memory-storage-turso/src/relationships.rs)
+- [Database Schema](../do-memory-storage-turso/src/schema.rs)
+- [MCP Tools](../do-memory-mcp/README.md)
+- [CLI Commands](../do-memory-cli/README.md)
 
 ---
 

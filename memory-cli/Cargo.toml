@@ -1,5 +1,5 @@
 [package]
-name = "memory-cli"
+name = "do-memory-cli"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -8,9 +8,9 @@ repository.workspace = true
 
 [dependencies]
 # Workspace dependencies
-memory-core = { path = "../memory-core" }
-memory-storage-turso = { path = "../memory-storage-turso", optional = true }
-memory-storage-redb = { path = "../memory-storage-redb", optional = true }
+do-memory-core = { path = "../memory-core" }
+do-memory-storage-turso = { path = "../memory-storage-turso", optional = true }
+do-memory-storage-redb = { path = "../memory-storage-redb", optional = true }
 
 
 
@@ -49,16 +49,16 @@ sysinfo = "0.38"
 # Test utilities dependencies
 assert_cmd = "2.2"
 tempfile = { workspace = true }
-test-utils = { path = "../test-utils" }
+do-memory-test-utils = { path = "../test-utils" }
 
 [features]
 default = ["redb"]
-turso = ["memory-storage-turso", "memory-storage-turso/keepalive-pool", "memory-storage-redb"]
-redb = ["memory-storage-redb"]
+turso = ["do-memory-storage-turso", "do-memory-storage-turso/keepalive-pool", "do-memory-storage-redb"]
+redb = ["do-memory-storage-redb"]
 # Embedding provider features (pass through to memory-core)
-openai = ["memory-core/openai"]
-local-embeddings = ["memory-core/local-embeddings"]
-embeddings-full = ["memory-core/embeddings-full"]
+openai = ["do-memory-core/openai"]
+local-embeddings = ["do-memory-core/local-embeddings"]
+embeddings-full = ["do-memory-core/embeddings-full"]
 # Full feature set
 full = ["turso", "redb", "embeddings-full"]
 
@@ -73,7 +73,7 @@ serial_test = "3.4"
 criterion = { version = "0.8", features = ["html_reports"] }
 
 # Test utilities
-test-utils = { path = "../test-utils" }
+do-memory-test-utils = { path = "../test-utils" }
 
 # Additional test dependencies
 proptest = "1.11"
@@ -84,9 +84,9 @@ name = "cli_benchmarks"
 harness = false
 
 [lib]
-name = "memory_cli"
+name = "do_memory_cli"
 path = "src/lib.rs"
 
 [[bin]]
-name = "memory-cli"
+name = "do-memory-cli"
 path = "src/main.rs"

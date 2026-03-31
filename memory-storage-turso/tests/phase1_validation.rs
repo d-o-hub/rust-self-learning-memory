@@ -3,8 +3,8 @@
 //! Comprehensive validation of multi-dimension vector support implementation.
 
 use anyhow::Result;
-use memory_core::embeddings::EmbeddingStorageBackend as _;
-use test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
+use do_memory_core::embeddings::EmbeddingStorageBackend as _;
+use do_memory_test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
 use tracing::info;
 
 // ============================================================================

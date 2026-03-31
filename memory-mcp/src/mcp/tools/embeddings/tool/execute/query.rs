@@ -5,7 +5,7 @@ use crate::mcp::tools::embeddings::types::{
     QuerySemanticMemoryInput, QuerySemanticMemoryOutput, SemanticResult,
 };
 use anyhow::Result;
-use memory_core::{ComplexityLevel, TaskContext, TaskOutcome};
+use do_memory_core::{ComplexityLevel, TaskContext, TaskOutcome};
 use tracing::{debug, info, instrument, warn};
 
 impl EmbeddingTools {
@@ -68,10 +68,10 @@ impl EmbeddingTools {
                         .map(|arc_ep| {
                             // Dereference Arc<Episode> to Episode
                             let episode = arc_ep.as_ref().clone();
-                            memory_core::embeddings::SimilaritySearchResult {
+                            do_memory_core::embeddings::SimilaritySearchResult {
                                 item: episode,
                                 similarity: 0.5,
-                                metadata: memory_core::embeddings::SimilarityMetadata::default(),
+                                metadata: do_memory_core::embeddings::SimilarityMetadata::default(),
                             }
                         })
                         .collect()

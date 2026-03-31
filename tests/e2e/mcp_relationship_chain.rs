@@ -9,9 +9,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::episode::{Direction, RelationshipMetadata, RelationshipType};
-use memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::episode::{Direction, RelationshipMetadata, RelationshipType};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;
 use tempfile::tempdir;
@@ -35,7 +35,7 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .expect("Failed to create cache storage");
 
     // Use zero quality threshold for testing to avoid rejecting simple test episodes
-    let config = memory_core::MemoryConfig {
+    let config = do_memory_core::MemoryConfig {
         quality_threshold: 0.0,
         ..Default::default()
     };
@@ -155,7 +155,7 @@ async fn test_mcp_relationship_full_chain() {
     assert!(exists, "Relationship should exist");
 
     // Find related episodes
-    let filter = memory_core::memory::relationship_query::RelationshipFilter {
+    let filter = do_memory_core::memory::relationship_query::RelationshipFilter {
         relationship_type: Some(RelationshipType::ParentChild),
         ..Default::default()
     };
@@ -249,7 +249,7 @@ async fn test_mcp_relationship_types() {
     assert_eq!(depends_on.len(), 1, "Should have 1 DependsOn relationship");
 
     // Use filter to find specific type
-    let filter = memory_core::memory::relationship_query::RelationshipFilter {
+    let filter = do_memory_core::memory::relationship_query::RelationshipFilter {
         relationship_type: Some(RelationshipType::DependsOn),
         ..Default::default()
     };

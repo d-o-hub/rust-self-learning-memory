@@ -9,8 +9,8 @@ Phase 2 of the Turso Database Optimization project has been successfully impleme
 
 ### ✅ 2.1 Keep-Alive Connection Pool
 **Files Modified**:
-- `memory-storage-turso/src/pool/keepalive.rs` (652 lines)
-- `memory-storage-turso/src/lib.rs` (integration)
+- `do-memory-storage-turso/src/pool/keepalive.rs` (652 lines)
+- `do-memory-storage-turso/src/lib.rs` (integration)
 
 **Implementation Details**:
 - Background task monitoring connection health
@@ -26,8 +26,8 @@ Phase 2 of the Turso Database Optimization project has been successfully impleme
 
 ### ✅ 2.2 Adaptive Pool Sizing  
 **Files Modified**:
-- `memory-storage-turso/src/pool/adaptive.rs` (523 lines)
-- `memory-storage-turso/src/lib.rs` (integration via `with_adaptive_pool()`)
+- `do-memory-storage-turso/src/pool/adaptive.rs` (523 lines)
+- `do-memory-storage-turso/src/lib.rs` (integration via `with_adaptive_pool()`)
 
 **Implementation Details**:
 - Dynamic scaling based on connection utilization
@@ -43,9 +43,9 @@ Phase 2 of the Turso Database Optimization project has been successfully impleme
 
 ### ✅ 2.4 Network Compression
 **Files Modified**:
-- `memory-storage-turso/src/compression.rs` (573 lines)
-- `memory-storage-turso/src/storage/mod.rs` (embedding compression)
-- `memory-storage-turso/src/storage/episodes.rs` (episode compression)
+- `do-memory-storage-turso/src/compression.rs` (573 lines)
+- `do-memory-storage-turso/src/storage/mod.rs` (embedding compression)
+- `do-memory-storage-turso/src/storage/episodes.rs` (episode compression)
 
 **Implementation Details**:
 - Multiple algorithms: LZ4, Zstd, Gzip
@@ -133,12 +133,12 @@ cargo bench --bench turso_vector_performance
 
 ## Files Changed
 **Modified**:
-- `memory-storage-turso/src/lib.rs`
-- `memory-storage-turso/src/storage/mod.rs`
-- `memory-storage-turso/src/storage/episodes.rs`
-- `memory-storage-turso/src/pool/adaptive.rs`
-- `memory-storage-turso/src/pool/keepalive.rs`
-- `memory-storage-turso/src/compression.rs`
+- `do-memory-storage-turso/src/lib.rs`
+- `do-memory-storage-turso/src/storage/mod.rs`
+- `do-memory-storage-turso/src/storage/episodes.rs`
+- `do-memory-storage-turso/src/pool/adaptive.rs`
+- `do-memory-storage-turso/src/pool/keepalive.rs`
+- `do-memory-storage-turso/src/compression.rs`
 
 **Created**:
 - All files already existed, only modifications made
@@ -150,7 +150,7 @@ cargo bench --bench turso_vector_performance
    - Document results in `benchmark_results/`
 
 2. **Documentation Updates**
-   - Update `memory-storage-turso/README.md` with new features
+   - Update `do-memory-storage-turso/README.md` with new features
    - Add configuration examples
    - Document performance characteristics
 

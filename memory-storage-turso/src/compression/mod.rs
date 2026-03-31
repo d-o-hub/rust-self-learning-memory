@@ -12,7 +12,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_storage_turso::compression::{CompressedPayload, compress, decompress};
+//! use do_memory_storage_turso::compression::{CompressedPayload, compress, decompress};
 //!
 //! let data = b"hello world".to_vec();
 //! let compressed = CompressedPayload::compress(&data, 1024).unwrap();
@@ -27,7 +27,7 @@ mod stats;
 pub use payload::CompressedPayload;
 pub use stats::CompressionStatistics;
 
-use memory_core::Result;
+use do_memory_core::Result;
 
 /// Compression algorithm selection
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -138,7 +138,7 @@ pub fn decompress_embedding(payload: &CompressedPayload, expected_size: usize) -
         .collect();
 
     if floats.len() != expected_size {
-        return Err(memory_core::Error::Storage(format!(
+        return Err(do_memory_core::Error::Storage(format!(
             "Embedding size mismatch: expected {}, got {}",
             expected_size,
             floats.len()

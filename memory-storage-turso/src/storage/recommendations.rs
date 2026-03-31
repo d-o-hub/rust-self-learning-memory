@@ -1,11 +1,11 @@
 //! Recommendation attribution storage operations (ADR-044)
 
 use crate::TursoStorage;
-use libsql::params;
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
+use libsql::params;
 use tracing::debug;
 use uuid::Uuid;
 
@@ -254,8 +254,8 @@ impl TursoStorage {
 
             if matches!(
                 feedback.outcome,
-                memory_core::types::TaskOutcome::Success { .. }
-                    | memory_core::types::TaskOutcome::PartialSuccess { .. }
+                do_memory_core::types::TaskOutcome::Success { .. }
+                    | do_memory_core::types::TaskOutcome::PartialSuccess { .. }
             ) {
                 successful_applications += feedback.applied_pattern_ids.len();
             }

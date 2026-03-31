@@ -142,6 +142,12 @@ enum Commands {
         #[command(subcommand)]
         command: FeedbackCommands,
     },
+    /// External signal provider management
+    #[command(alias = "sig", name = "external-signal")]
+    ExternalSignal {
+        #[command(subcommand)]
+        command: crate::commands::ExternalSignalCommands,
+    },
 }
 
 #[tokio::main]
@@ -311,6 +317,16 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Feedback { command } => {
             handle_feedback_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::ExternalSignal { command } => {
+            handle_external_signal_command(
                 command,
                 &storage_result.memory,
                 &config,

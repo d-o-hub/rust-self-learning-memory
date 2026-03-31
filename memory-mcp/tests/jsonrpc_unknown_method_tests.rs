@@ -1,4 +1,4 @@
-use memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
+use do_memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
 
 #[tokio::test]
 async fn test_unknown_method_notification_no_response() {
@@ -21,7 +21,7 @@ async fn bin_server_handle_request(req: JsonRpcRequest) -> Option<JsonRpcRespons
         jsonrpc: "2.0".into(),
         id: req.id,
         result: None,
-        error: Some(memory_mcp::jsonrpc::JsonRpcError {
+        error: Some(do_memory_mcp::jsonrpc::JsonRpcError {
             code: -32601,
             message: "Method not found".into(),
             data: None,

@@ -2,7 +2,7 @@
 
 use crate::output::OutputFormat;
 use anyhow::Result;
-use memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext};
+use do_memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext};
 use serde::{Deserialize, Serialize};
 
 /// Search for patterns semantically similar to a query
@@ -27,10 +27,10 @@ pub async fn search_patterns(
     };
 
     // Build config
-    let config = memory_core::memory::SearchConfig {
+    let config = do_memory_core::memory::SearchConfig {
         min_relevance,
         filter_by_domain,
-        ..memory_core::memory::SearchConfig::default()
+        ..do_memory_core::memory::SearchConfig::default()
     };
 
     // Execute search
@@ -184,18 +184,18 @@ pub async fn recommend_patterns(
 
                 // Show pattern details based on type
                 match &result.pattern {
-                    memory_core::Pattern::ToolSequence { tools, .. } => {
+                    do_memory_core::Pattern::ToolSequence { tools, .. } => {
                         println!("   Type: Tool Sequence");
                         println!("   Tools: {}", tools.join(" → "));
                     }
-                    memory_core::Pattern::DecisionPoint {
+                    do_memory_core::Pattern::DecisionPoint {
                         condition, action, ..
                     } => {
                         println!("   Type: Decision Point");
                         println!("   Condition: {}", condition);
                         println!("   Action: {}", action);
                     }
-                    memory_core::Pattern::ErrorRecovery {
+                    do_memory_core::Pattern::ErrorRecovery {
                         error_type,
                         recovery_steps,
                         ..
@@ -204,7 +204,7 @@ pub async fn recommend_patterns(
                         println!("   Error: {}", error_type);
                         println!("   Recovery: {}", recovery_steps.join(", "));
                     }
-                    memory_core::Pattern::ContextPattern {
+                    do_memory_core::Pattern::ContextPattern {
                         recommended_approach,
                         ..
                     } => {

@@ -37,9 +37,9 @@ PR #265 introduces 30 commands/tools (8 MCP relationship tools + 22 CLI commands
 
 | Agent | Task | Target Files |
 |-------|------|--------------|
-| A3 Compilation Fix | Extract PR #272 fixes: server_impl rename, batch removal | memory-mcp/src/bin/server_impl/ |
-| A4 Test Fix | Extract PR #272 test fixes: duplicate functions, std::sync::Once | tests/, memory-core/src/ |
-| A5 Security Fix | Extract PR #272 hardening: JWT validation, JavaScript escaping | memory-mcp/src/security/, oauth.rs |
+| A3 Compilation Fix | Extract PR #272 fixes: server_impl rename, batch removal | do-memory-mcp/src/bin/server_impl/ |
+| A4 Test Fix | Extract PR #272 test fixes: duplicate functions, std::sync::Once | tests/, do-memory-core/src/ |
+| A5 Security Fix | Extract PR #272 hardening: JWT validation, JavaScript escaping | do-memory-mcp/src/security/, oauth.rs |
 
 **Handoff Rule**: All 3 agents complete → Group 4 Integration can begin
 

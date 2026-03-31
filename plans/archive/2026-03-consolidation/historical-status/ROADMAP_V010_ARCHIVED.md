@@ -37,7 +37,7 @@ This document consolidates the roadmap history for v0.1.7, v0.1.8, and v0.1.9. T
 - Noise reduction: 42%
 - Memory quality improvement: +23%
 
-**Location**: `memory-core/src/pre_storage/`
+**Location**: `do-memory-core/src/pre_storage/`
 
 #### 2. GENESIS Integration (Phase 2)
 **Paper**: "GENESIS: A Generative Model of Episodic-Semantic Interaction", arXiv Oct 2025
@@ -52,7 +52,7 @@ This document consolidates the roadmap history for v0.1.7, v0.1.8, and v0.1.9. T
 - Capacity overhead: 113 µs (target: 10ms) - 88x better
 - Access speed: 65% faster (target: 50%) - 30% better
 
-**Location**: `memory-core/src/episodic/capacity.rs`, `memory-core/src/semantic/summary.rs`
+**Location**: `do-memory-core/src/episodic/capacity.rs`, `do-memory-core/src/semantic/summary.rs`
 
 #### 3. Spatiotemporal Memory Organization (Phase 3)
 **Paper**: "Enhancing RAG with Episodic Memory and Generative Semantic Embeddings", arXiv Nov 2025
@@ -68,7 +68,7 @@ This document consolidates the roadmap history for v0.1.7, v0.1.8, and v0.1.9. T
 - Query latency: 5.8ms @ 1000 episodes (target: 100ms) - 17x better
 - Diversity score: ≥0.7 (validated)
 
-**Location**: `memory-core/src/spatiotemporal/`
+**Location**: `do-memory-core/src/spatiotemporal/`
 
 #### 4. Benchmark Evaluation (Phase 4)
 **Results**: ALL research claims validated, exceeding targets by 4-2307x

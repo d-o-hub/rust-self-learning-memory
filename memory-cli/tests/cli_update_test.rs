@@ -7,13 +7,13 @@
 use serial_test::serial;
 use std::process::Command;
 
-/// Helper function to run memory-cli command
+/// Helper function to run do-memory-cli command
 fn run_command(args: &[&str]) -> (bool, String, String) {
     let output = Command::new("cargo")
-        .args(["run", "--package", "memory-cli", "--"])
+        .args(["run", "--package", "do-memory-cli", "--"])
         .args(args)
         .output()
-        .expect("Failed to execute memory-cli");
+        .expect("Failed to execute do-memory-cli");
 
     let success = output.status.success();
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();

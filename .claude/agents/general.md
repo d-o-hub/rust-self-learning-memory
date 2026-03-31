@@ -57,7 +57,7 @@ You have access to the following skills:
 ./scripts/build-rust.sh check
 
 # 3. Run targeted tests
-cargo test -p memory-core
+cargo test -p do-memory-core
 
 # 4. Full validation before commit
 ./scripts/quality-gates.sh

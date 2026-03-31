@@ -82,7 +82,7 @@
 
 | Task | Target | Files Affected |
 |------|--------|----------------|
-| Fix MCP batch module (disabled TODOs) | Module compiles and passes tests | `memory-mcp/src/server/tools/batch.rs` |
+| Fix MCP batch module (disabled TODOs) | Module compiles and passes tests | `do-memory-mcp/src/server/tools/batch.rs` |
 | Unwrap audit: convert 73 production unwraps | All production paths use proper error handling | Multiple source files |
 | Plans directory cleanup | Remove stale/conflicting docs, consolidate | `plans/` (~100 files) |
 
@@ -96,8 +96,8 @@
 
 | Task | Target | Files Affected |
 |------|--------|----------------|
-| Complete Adaptive TTL (Phase 2 Turso optimization) | Feature implemented and tested | `memory-storage-turso/` |
-| MCP Token Optimization implementation | Token-efficient MCP responses | `memory-mcp/` |
+| Complete Adaptive TTL (Phase 2 Turso optimization) | Feature implemented and tested | `do-memory-storage-turso/` |
+| MCP Token Optimization implementation | Token-efficient MCP responses | `do-memory-mcp/` |
 | Cut v0.1.14 GitHub release | Release published with changelog | GitHub Releases |
 | Cut v0.1.15 GitHub release | Release published with changelog | GitHub Releases |
 

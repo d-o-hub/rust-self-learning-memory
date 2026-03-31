@@ -23,13 +23,13 @@ Phase 2 targets storage layer optimization with 4 high-priority improvements:
 ## Current State Analysis
 
 ### Compression Module
-- **Location**: `memory-storage-turso/src/compression/`
+- **Location**: `do-memory-storage-turso/src/compression/`
 - **Status**: ✅ Fully implemented
 - **Features**: LZ4, Zstd, Gzip
 - **Issue**: Not enabled by default in Cargo.toml
 
 ### Turso Transport
-- **Location**: `memory-storage-turso/src/transport/`
+- **Location**: `do-memory-storage-turso/src/transport/`
 - **Status**: ✅ Compression support exists
 - **Issue**: Not actively used in storage operations
 
@@ -207,8 +207,8 @@ Phase 2 targets storage layer optimization with 4 high-priority improvements:
 Task: Enable Zstd compression for Turso transport
 
 Context:
-- Compression module already implemented in memory-storage-turso/src/compression/
-- Transport layer exists in memory-storage-turso/src/transport/
+- Compression module already implemented in do-memory-storage-turso/src/compression/
+- Transport layer exists in do-memory-storage-turso/src/transport/
 - Need to enable compression-zstd feature by default
 - Integrate into storage operations
 
@@ -245,8 +245,8 @@ Actions:
 6. Validate 2-3x improvement
 
 Deliverables:
-- memory-storage-turso/src/storage/batch/mod.rs
-- Tests in memory-storage-turso/tests/
+- do-memory-storage-turso/src/storage/batch/mod.rs
+- Tests in do-memory-storage-turso/tests/
 - Performance validation report
 ```
 
@@ -262,8 +262,8 @@ Actions:
 5. Validate 2-3x improvement
 
 Deliverables:
-- memory-storage-redb/src/storage/batch.rs
-- Tests in memory-storage-redb/tests/
+- do-memory-storage-redb/src/storage/batch.rs
+- Tests in do-memory-storage-redb/tests/
 - Performance validation report
 ```
 
@@ -279,8 +279,8 @@ Actions:
 5. Validate 5-10x improvement
 
 Deliverables:
-- memory-storage-redb/src/cache/read_through.rs
-- Tests in memory-storage-redb/tests/
+- do-memory-storage-redb/src/cache/read_through.rs
+- Tests in do-memory-storage-redb/tests/
 - Performance validation report
 ```
 

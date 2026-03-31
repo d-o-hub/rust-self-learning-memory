@@ -7,7 +7,7 @@ use crate::errors::{EnhancedError, helpers};
 #[cfg(feature = "turso")]
 use crate::output::Output;
 use crate::output::OutputFormat;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 pub async fn complete_episode(
     episode_id: String,
@@ -17,7 +17,7 @@ pub async fn complete_episode(
     format: OutputFormat,
     dry_run: bool,
 ) -> anyhow::Result<()> {
-    use memory_core::TaskOutcome as CoreTaskOutcome;
+    use do_memory_core::TaskOutcome as CoreTaskOutcome;
     use uuid::Uuid;
 
     if dry_run {

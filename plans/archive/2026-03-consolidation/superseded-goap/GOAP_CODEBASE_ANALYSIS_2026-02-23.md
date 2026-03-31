@@ -32,41 +32,41 @@
 #### 🔴 CRITICAL: File Size Compliance Regression (ADR-028 #3)
 - **Claimed**: 100% compliant (all files ≤500 LOC)
 - **Actual**: **31 files exceed 500 LOC**:
-  - ~~`memory-core/src/security/audit.rs` — 1,057 LOC~~ *(file no longer exists on main)*
-  - ~~`memory-core/src/indexing/spatiotemporal.rs` — 985 LOC~~ *(file no longer exists on main)*
-  - ~~`memory-core/src/episode/graph_algorithms.rs` — 974 LOC~~ *(file no longer exists on main)*
-  - `memory-storage-turso/src/cache/query_cache.rs` — 920 LOC
-  - `memory-storage-turso/src/prepared/cache.rs` — 883 LOC
-  - ~~`memory-core/src/indexing/hierarchical.rs` — 862 LOC~~ *(file no longer exists on main)*
-  - `memory-core/src/episode/relationship_manager_tests.rs` — 860 LOC
-  - `memory-storage-turso/src/cache/invalidation.rs` — 859 LOC
-  - `memory-storage-turso/src/pool/adaptive.rs` — 851 LOC
-  - `memory-storage-turso/src/cache/adaptive_ttl.rs` — 835 LOC
-  - `memory-core/src/episode/structs.rs` — 798 LOC
-  - `memory-storage-turso/src/transport/wrapper.rs` — 783 LOC
-  - `memory-mcp/src/server/tool_definitions_extended.rs` — 722 LOC
-  - `memory-core/src/monitoring/metrics.rs` — 708 LOC
-  - `memory-mcp/src/patterns/compatibility.rs` — 699 LOC
-  - `memory-storage-redb/src/lib.rs` — 583 LOC
-  - `memory-core/src/memory/queries.rs` — 553 LOC
-  - `memory-core/src/memory/relationships.rs` — 551 LOC
-  - `memory-storage-turso/src/pool/caching_pool.rs` — 543 LOC
-  - `memory-mcp/src/patterns/benchmarks.rs` — 526 LOC
-  - `memory-storage-turso/src/storage/tag_operations.rs` — 517 LOC
-  - `memory-mcp/src/bin/server_impl/tools.rs` — 1,311 LOC *(worst offender, missing from original analysis)*
-  - `memory-cli/src/commands/tag/core.rs` — 695 LOC
-  - `memory-mcp/src/mcp/tools/episode_relationships/tests.rs` — 680 LOC
-  - `memory-mcp/src/mcp/tools/episode_relationships/tool.rs` — 678 LOC
-  - `memory-mcp/src/patterns/predictive/extraction.rs` — 673 LOC
-  - `memory-mcp/src/patterns/statistical/bocpd_tests.rs` — 660 LOC
-  - `memory-mcp/src/server/tools/episode_relationships.rs` — 607 LOC
-  - `memory-cli/src/commands/relationships/core.rs` — 601 LOC
-  - `memory-cli/src/config/storage.rs` — 556 LOC
-  - `memory-storage-turso/src/storage/batch/pattern_core.rs` — 555 LOC
-  - `memory-storage-turso/src/storage/mod.rs` — 517 LOC
-  - `memory-cli/src/commands/mod.rs` — 517 LOC
-  - `memory-storage-turso/src/relationships.rs` — 511 LOC
-  - `memory-mcp/src/cache.rs` — 504 LOC
+  - ~~`do-memory-core/src/security/audit.rs` — 1,057 LOC~~ *(file no longer exists on main)*
+  - ~~`do-memory-core/src/indexing/spatiotemporal.rs` — 985 LOC~~ *(file no longer exists on main)*
+  - ~~`do-memory-core/src/episode/graph_algorithms.rs` — 974 LOC~~ *(file no longer exists on main)*
+  - `do-memory-storage-turso/src/cache/query_cache.rs` — 920 LOC
+  - `do-memory-storage-turso/src/prepared/cache.rs` — 883 LOC
+  - ~~`do-memory-core/src/indexing/hierarchical.rs` — 862 LOC~~ *(file no longer exists on main)*
+  - `do-memory-core/src/episode/relationship_manager_tests.rs` — 860 LOC
+  - `do-memory-storage-turso/src/cache/invalidation.rs` — 859 LOC
+  - `do-memory-storage-turso/src/pool/adaptive.rs` — 851 LOC
+  - `do-memory-storage-turso/src/cache/adaptive_ttl.rs` — 835 LOC
+  - `do-memory-core/src/episode/structs.rs` — 798 LOC
+  - `do-memory-storage-turso/src/transport/wrapper.rs` — 783 LOC
+  - `do-memory-mcp/src/server/tool_definitions_extended.rs` — 722 LOC
+  - `do-memory-core/src/monitoring/metrics.rs` — 708 LOC
+  - `do-memory-mcp/src/patterns/compatibility.rs` — 699 LOC
+  - `do-memory-storage-redb/src/lib.rs` — 583 LOC
+  - `do-memory-core/src/memory/queries.rs` — 553 LOC
+  - `do-memory-core/src/memory/relationships.rs` — 551 LOC
+  - `do-memory-storage-turso/src/pool/caching_pool.rs` — 543 LOC
+  - `do-memory-mcp/src/patterns/benchmarks.rs` — 526 LOC
+  - `do-memory-storage-turso/src/storage/tag_operations.rs` — 517 LOC
+  - `do-memory-mcp/src/bin/server_impl/tools.rs` — 1,311 LOC *(worst offender, missing from original analysis)*
+  - `do-memory-cli/src/commands/tag/core.rs` — 695 LOC
+  - `do-memory-mcp/src/mcp/tools/episode_relationships/tests.rs` — 680 LOC
+  - `do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs` — 678 LOC
+  - `do-memory-mcp/src/patterns/predictive/extraction.rs` — 673 LOC
+  - `do-memory-mcp/src/patterns/statistical/bocpd_tests.rs` — 660 LOC
+  - `do-memory-mcp/src/server/tools/episode_relationships.rs` — 607 LOC
+  - `do-memory-cli/src/commands/relationships/core.rs` — 601 LOC
+  - `do-memory-cli/src/config/storage.rs` — 556 LOC
+  - `do-memory-storage-turso/src/storage/batch/pattern_core.rs` — 555 LOC
+  - `do-memory-storage-turso/src/storage/mod.rs` — 517 LOC
+  - `do-memory-cli/src/commands/mod.rs` — 517 LOC
+  - `do-memory-storage-turso/src/relationships.rs` — 511 LOC
+  - `do-memory-mcp/src/cache.rs` — 504 LOC
 - **Impact**: Violates project convention, reduces maintainability
 
 #### 🟠 HIGH: Ignored Tests (ADR-028 #5, ADR-027)
@@ -81,7 +81,7 @@
 - **Impact**: Hides regressions, inflates false coverage confidence
 
 #### 🟠 HIGH: Batch Module Disabled (ADR-028 #2)
-- **Current**: Module exists in `memory-mcp/src/batch/` but **disabled** (`// pub mod batch;` in tools/mod.rs)
+- **Current**: Module exists in `do-memory-mcp/src/batch/` but **disabled** (`// pub mod batch;` in tools/mod.rs)
 - **Target**: Fully functional with native JSON-RPC handling
 - **Impact**: Batch operations unavailable to MCP clients
 
@@ -102,7 +102,7 @@
 - **Impact**: Manual changelog management, release friction
 
 #### 🟡 MEDIUM: Property/Snapshot Testing Coverage (ADR-033)
-- **Property tests**: Only in memory-core (2 files, ~1281 LOC) — missing for storage crates
+- **Property tests**: Only in do-memory-core (2 files, ~1281 LOC) — missing for storage crates
 - **Snapshot tests**: 10 snapshots total (6 CLI, 4 MCP) — missing MCP tool response schemas
 - **Target**: proptest for serialization roundtrips in all crates, insta for all MCP/CLI output
 
@@ -123,21 +123,21 @@
 
 | Task | ADR | Effort | Priority | Dependencies |
 |------|-----|--------|----------|--------------|
-| A1: Error handling — memory-core | ADR-028 #4 | 8-10h | P0 | None |
-| A2: Error handling — memory-storage-turso | ADR-028 #4 | 6-8h | P0 | A1 |
-| A3: Error handling — memory-storage-redb | ADR-028 #4 | 4-6h | P0 | A1 |
-| A4: Error handling — memory-mcp | ADR-028 #4 | 6-8h | P0 | A1 |
-| A5: Error handling — memory-cli | ADR-028 #4 | 4-6h | P0 | A1 |
+| A1: Error handling — do-memory-core | ADR-028 #4 | 8-10h | P0 | None |
+| A2: Error handling — do-memory-storage-turso | ADR-028 #4 | 6-8h | P0 | A1 |
+| A3: Error handling — do-memory-storage-redb | ADR-028 #4 | 4-6h | P0 | A1 |
+| A4: Error handling — do-memory-mcp | ADR-028 #4 | 6-8h | P0 | A1 |
+| A5: Error handling — do-memory-cli | ADR-028 #4 | 4-6h | P0 | A1 |
 
 ### Task Group B: File Size Compliance (P0) — ~15-20 hours → REVISED
 
 | Task | ADR | Effort | Priority | Dependencies | Status |
 |------|-----|--------|----------|--------------|--------|
-| B0: Validate metrics per crate | ADR-028 | 0.5h | P0 | None | ✅ memory-storage-turso done |
-| B1: Split memory-core >500 LOC files (9 files) | ADR-028 #3 | 8-10h | P0 | B0-core | ✅ Complete |
-| B2: Split memory-storage-turso >500 LOC files (8 files) | ADR-028 #3 | 6-8h | P0 | B0-turso | ✅ Complete |
-| B3: Split memory-mcp >500 LOC files (3 files) | ADR-028 #3 | 2-3h | P0 | None | ✅ Complete |
-| B4: Split memory-storage-redb >500 LOC files (1 file) | ADR-028 #3 | 1-2h | P0 | None | ✅ Complete |
+| B0: Validate metrics per crate | ADR-028 | 0.5h | P0 | None | ✅ do-memory-storage-turso done |
+| B1: Split do-memory-core >500 LOC files (9 files) | ADR-028 #3 | 8-10h | P0 | B0-core | ✅ Complete |
+| B2: Split do-memory-storage-turso >500 LOC files (8 files) | ADR-028 #3 | 6-8h | P0 | B0-turso | ✅ Complete |
+| B3: Split do-memory-mcp >500 LOC files (3 files) | ADR-028 #3 | 2-3h | P0 | None | ✅ Complete |
+| B4: Split do-memory-storage-redb >500 LOC files (1 file) | ADR-028 #3 | 1-2h | P0 | None | ✅ Complete |
 
 ### Task Group C: Test Rehabilitation (P1) — ~12-18 hours
 
@@ -258,14 +258,14 @@ Each task must pass before merging:
 
 | Agent | Tasks | Status | Progress |
 |-------|-------|--------|----------|
-| Agent 1 | B0+B1 (memory-core splits) | ⏸️ Aborted | Needs restart |
-| Agent 2 | B0+B2 (memory-storage-turso splits) | 🔄 In Progress | 2/8 files split |
-| Agent 3 | B3+B4 (memory-mcp + memory-storage-redb) | 🔄 In Progress | Partial work done |
+| Agent 1 | B0+B1 (do-memory-core splits) | ⏸️ Aborted | Needs restart |
+| Agent 2 | B0+B2 (do-memory-storage-turso splits) | 🔄 In Progress | 2/8 files split |
+| Agent 3 | B3+B4 (do-memory-mcp + do-memory-storage-redb) | 🔄 In Progress | Partial work done |
 | Agent 4 | E3+INFRA (deps + quality gates) | ✅ Completed (docs/planning) | Non-destructive E3 baseline/proposal + INFRA sync complete |
 
 ### Completed Work
 
-#### memory-storage-turso Splits (Agent 2)
+#### do-memory-storage-turso Splits (Agent 2)
 - ✅ `cache/query_cache.rs` (920 LOC) → Split into 4 files:
   - `query_cache.rs` (475 LOC)
   - `query_cache_config.rs` (91 LOC)
@@ -274,7 +274,7 @@ Each task must pass before merging:
 - ✅ `prepared/cache_types.rs` created (239 LOC)
 - ✅ Build passes, Clippy passes, Tests pass (210 passed, 11 ignored)
 
-#### memory-storage-redb Splits (Agent 3)
+#### do-memory-storage-redb Splits (Agent 3)
 - 🔄 `lib.rs` (583 LOC) → Partial split in progress
 
 #### INFRA Quality Gate Update (Agent 4)
@@ -289,7 +289,7 @@ Each task must pass before merging:
 
 ### Remaining Work — Week 1
 
-#### memory-storage-turso (6 files remaining)
+#### do-memory-storage-turso (6 files remaining)
 | File | Current LOC | Target Split |
 |------|-------------|--------------|
 | `prepared/cache.rs` | 883 | cache.rs + stats.rs |
@@ -299,7 +299,7 @@ Each task must pass before merging:
 | `transport/wrapper.rs` | 784 | wrapper.rs + transport_errors.rs |
 | `pool/caching_pool.rs` | 543 | caching_pool.rs + pool_cache.rs |
 
-#### memory-core (9 files pending)
+#### do-memory-core (9 files pending)
 | File | Current LOC | Target Split |
 |------|-------------|--------------|
 | `security/audit.rs` | 1,057 | audit.rs + audit_log.rs + audit_metrics.rs |
@@ -312,14 +312,14 @@ Each task must pass before merging:
 | `memory/relationships.rs` | 551 | relationships.rs + relationship_types.rs |
 | `episode/relationship_manager_tests.rs` | 860 | Test file - defer |
 
-#### memory-mcp (3 files pending)
+#### do-memory-mcp (3 files pending)
 | File | Current LOC | Target Split |
 |------|-------------|--------------|
 | `server/tool_definitions_extended.rs` | 722 | tool_definitions_extended.rs + tool_params.rs + tool_validators.rs |
 | `patterns/compatibility.rs` | 699 | compatibility.rs + compat_layers.rs + compat_types.rs |
 | `patterns/benchmarks.rs` | 526 | benchmarks.rs + benchmark_runner.rs |
 
-### Validated Metrics (from Agent 2 — memory-storage-turso)
+### Validated Metrics (from Agent 2 — do-memory-storage-turso)
 
 | Metric | Count |
 |--------|-------|
@@ -344,15 +344,15 @@ Each task must pass before merging:
 - ✅ `cargo tree -d | rg -c "^[a-z]"` => `121` duplicate dependency roots
 - ✅ `cargo machete` available (`0.9.1`) and executed as baseline inventory
 - ✅ Baseline findings (no manifest edits in this iteration):
-  - `memory-mcp/Cargo.toml`: `javy`, `wasmtime-wasi` flagged as potentially unused
-  - `test-utils/Cargo.toml`: `libsql` flagged as potentially unused
+  - `do-memory-mcp/Cargo.toml`: `javy`, `wasmtime-wasi` flagged as potentially unused
+  - `do-memory-test-utils/Cargo.toml`: `libsql` flagged as potentially unused
 - 🔄 Cleanup/deletion decisions deferred until after B1-B4 splits + file-size gate remediation
 
 ### Next Actions
 
-1. **Resume Agent 1**: Complete memory-core file splits (B1)
-2. **Resume Agent 2**: Complete remaining 6 memory-storage-turso splits (B2)
-3. **Resume Agent 3**: Complete memory-mcp + memory-storage-redb splits (B3+B4)
+1. **Resume Agent 1**: Complete do-memory-core file splits (B1)
+2. **Resume Agent 2**: Complete remaining 6 do-memory-storage-turso splits (B2)
+3. **Resume Agent 3**: Complete do-memory-mcp + do-memory-storage-redb splits (B3+B4)
 4. **Remediate nextest blockers** and restart validation from fmt per policy
 5. **Run quality gates** after all splits complete
 6. **Atomic commit** and push to branch
@@ -374,9 +374,9 @@ These are the minimum deterministic Week 1 tasks to complete now on branch `goap
 ### Grouped Specialist Handoff Coordination (Week 1)
 
 #### Group G1 - File Split Completion (Parallel)
-- **Agent A (rust-specialist)**: B1 memory-core splits
-- **Agent B (feature-implementer)**: B2 memory-storage-turso remaining 6 splits
-- **Agent C (feature-implementer)**: B3 memory-mcp splits + B4 memory-storage-redb split
+- **Agent A (rust-specialist)**: B1 do-memory-core splits
+- **Agent B (feature-implementer)**: B2 do-memory-storage-turso remaining 6 splits
+- **Agent C (feature-implementer)**: B3 do-memory-mcp splits + B4 do-memory-storage-redb split
 - **Inputs**: current branch state, existing in-progress diff, target split map in this plan
 - **Output gate**: all touched source files <=500 LOC and module wiring builds
 
@@ -491,7 +491,7 @@ These fields must match exactly across this file, `plans/ROADMAPS/ROADMAP_ACTIVE
 
 ### Progress Update (W1-G3-C-02 - CLI blocker remediation)
 
-- ✅ Implemented redb-only persistence wiring in `memory-cli/src/config/storage.rs` (no in-memory fallback for redb-only mode)
+- ✅ Implemented redb-only persistence wiring in `do-memory-cli/src/config/storage.rs` (no in-memory fallback for redb-only mode)
 - ✅ Added CLI warm-start hydration on initialization (`get_all_episodes()` preload)
 - ✅ Updated `episode complete` handling to preload episode before completion to support subprocess workflows
 - ✅ Reconciled `tests/e2e/cli_workflows.rs` command syntax with current CLI contract
@@ -519,7 +519,7 @@ Three-persona analysis (RYAN/FLASH/SOCRATES) compared all plan metrics against l
 |--------|---------------|---------------------|-------|
 | Rust files | 621 | **818** | Significant growth from test/example files |
 | Total LOC | ~141K | **~205K** | +64K LOC since last baseline |
-| Files >500 LOC (source) | 31 | **28** | 4 memory-core modules removed; some turso splits landed |
+| Files >500 LOC (source) | 31 | **28** | 4 do-memory-core modules removed; some turso splits landed |
 | Files >500 LOC (all incl. tests) | 64 (quality-gates) | **64** | Quality-gates.sh counts test files too |
 | unwrap() total | 1,162 | **2,534** | Previous count severely underestimated |
 | unwrap() prod only | — | **553** | New metric: excludes test/bench files |
@@ -533,7 +533,7 @@ Three-persona analysis (RYAN/FLASH/SOCRATES) compared all plan metrics against l
 | Test functions (#[test]) | 1,560 (sync) | **1,560** | Match |
 | Async tests (#[tokio::test]) | 1,178 | **1,178** | Match |
 | Snapshot files | 13 | **13** | No growth since baseline |
-| Proptest files | 2 | **2** (memory-core only) | No expansion to storage crates |
+| Proptest files | 2 | **2** (do-memory-core only) | No expansion to storage crates |
 | Batch module | Disabled | **Still disabled** | `// pub mod batch;` in tools/mod.rs |
 | git-cliff | None | **None** | ADR-034 Phase 4 not started |
 | Edition | 2024 | **2024** (all crates) | ✅ Confirmed |
@@ -559,11 +559,11 @@ Three-persona analysis (RYAN/FLASH/SOCRATES) compared all plan metrics against l
    - ADR-036 (Deps): 🟡 Monitoring only (121 roots, threshold 130)
    - ADR-028 (Features): 🔴 2/14 complete (#1 MCP Token Opt, #3 File Size partial)
 
-5. **REMOVED FILES STILL IN PLAN**: 4 memory-core files listed in B1 task group no longer exist:
-   - `memory-core/src/security/audit.rs` — removed
-   - `memory-core/src/indexing/spatiotemporal.rs` — removed
-   - `memory-core/src/indexing/hierarchical.rs` — removed
-   - `memory-core/src/episode/graph_algorithms.rs` — removed
+5. **REMOVED FILES STILL IN PLAN**: 4 do-memory-core files listed in B1 task group no longer exist:
+   - `do-memory-core/src/security/audit.rs` — removed
+   - `do-memory-core/src/indexing/spatiotemporal.rs` — removed
+   - `do-memory-core/src/indexing/hierarchical.rs` — removed
+   - `do-memory-core/src/episode/graph_algorithms.rs` — removed
    These should be struck from the B1 task list.
 
 ### Updated Success Criteria
@@ -580,9 +580,9 @@ Three-persona analysis (RYAN/FLASH/SOCRATES) compared all plan metrics against l
 | Snapshot tests | 13 | 25+ | ADR-033 | — |
 | Changelog automation | None | git-cliff | ADR-034 | — |
 
-### Revised B1 Task (memory-core splits)
+### Revised B1 Task (do-memory-core splits)
 
-After removing 4 deleted files, remaining memory-core files >500 LOC:
+After removing 4 deleted files, remaining do-memory-core files >500 LOC:
 
 | File | Current LOC | Target Split |
 |------|-------------|--------------|

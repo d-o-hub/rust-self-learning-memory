@@ -1,10 +1,10 @@
 //! Pattern CRUD operations for Turso storage
 
 use crate::TursoStorage;
-use libsql::Row;
-use memory_core::{
+use do_memory_core::{
     Error, Heuristic, Pattern as CorePattern, Result, TaskContext, episode::PatternId,
 };
+use libsql::Row;
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -299,7 +299,7 @@ pub(crate) fn row_to_pattern(row: &Row) -> Result<CorePattern> {
     // Convert to CorePattern enum
     // For simplicity, store as DecisionPoint variant with condition=description, action=heuristic
     let success_rate_f32 = success_rate as f32;
-    let outcome_stats = memory_core::types::OutcomeStats {
+    let outcome_stats = do_memory_core::types::OutcomeStats {
         success_count: (success_rate_f32 * occurrence_count as f32) as usize,
         failure_count: ((1.0 - success_rate_f32) * occurrence_count as f32) as usize,
         total_count: occurrence_count as usize,
@@ -312,7 +312,7 @@ pub(crate) fn row_to_pattern(row: &Row) -> Result<CorePattern> {
         action: format!("Heuristic: {}", pattern_data.heuristic.condition),
         outcome_stats,
         context: pattern_data.context,
-        effectiveness: memory_core::pattern::PatternEffectiveness::default(),
+        effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
     };
 
     Ok(pattern)

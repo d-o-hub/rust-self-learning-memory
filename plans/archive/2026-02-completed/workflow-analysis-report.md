@@ -301,7 +301,7 @@ Time 0:10 - Final validation complete
 ## Notes
 
 1. **Branch Context**: Current branch is `feat-episode-tagging`, not `main` or `develop`
-2. **Current State**: `cargo check` passes with 1 minor warning in memory-storage-turso
+2. **Current State**: `cargo check` passes with 1 minor warning in do-memory-storage-turso
 3. **Scripts Verified**: All referenced scripts exist and are executable
 4. **Configuration Verified**: `.config/nextest.toml` and `.codecov.yml` exist and are valid
 
@@ -316,8 +316,8 @@ Time 0:10 - Final validation complete
 
 #### 1. Formatting Issues ✅
 **Problem**: Code formatting was failing in CI
-- `memory-core/src/episode/relationships.rs`
-- `memory-storage-turso/src/relationships.rs`
+- `do-memory-core/src/episode/relationships.rs`
+- `do-memory-storage-turso/src/relationships.rs`
 
 **Solution**: Ran `cargo fmt --all` to fix all formatting issues
 
@@ -326,7 +326,7 @@ Time 0:10 - Final validation complete
 
 **Files Fixed**:
 
-##### memory-core/src/episode/relationship_manager.rs
+##### do-memory-core/src/episode/relationship_manager.rs
 - **Error 1**: Single-character variable names (`a`, `b`, `c`, `d`, `e`)
   - Fixed: Renamed to `episode_a`, `episode_b`, `episode_c`, `episode_d`, `episode_e`
   
@@ -336,11 +336,11 @@ Time 0:10 - Final validation complete
 - **Error 3**: Uninlined format arguments
   - Fixed: Changed `"Failed to add {:?} relationship", rel_type` to `"Failed to add {rel_type:?} relationship"`
 
-##### memory-core/src/episode/relationships.rs
+##### do-memory-core/src/episode/relationships.rs
 - **Error**: No-effect underscore bindings
   - Fixed: Changed `let _outgoing = Direction::Outgoing;` to `let _ = Direction::Outgoing;`
 
-##### memory-core/src/memory/relationship_query.rs
+##### do-memory-core/src/memory/relationship_query.rs
 - **Error**: Inefficient format strings
   - Fixed: Used inline format arguments and `writeln!` macro properly
 
@@ -425,10 +425,10 @@ A separate, independent coverage workflow that:
 ### Files Modified in Fix Phase
 - `.github/workflows/ci.yml` - Optimized quality-gates job
 - `.github/workflows/coverage.yml` - New independent coverage workflow (created)
-- `memory-core/src/episode/relationship_manager.rs` - Clippy fixes
-- `memory-core/src/episode/relationships.rs` - Clippy fixes
-- `memory-core/src/memory/relationship_query.rs` - Clippy fixes
-- `memory-storage-turso/src/relationships.rs` - Formatting fixes
+- `do-memory-core/src/episode/relationship_manager.rs` - Clippy fixes
+- `do-memory-core/src/episode/relationships.rs` - Clippy fixes
+- `do-memory-core/src/memory/relationship_query.rs` - Clippy fixes
+- `do-memory-storage-turso/src/relationships.rs` - Formatting fixes
 
 ---
 

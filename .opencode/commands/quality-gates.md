@@ -53,7 +53,7 @@ echo "=== All Gates Passed ==="
 ```
 FAIL: build
 ```
-**Fix**: Use `--exclude memory-mcp` or build without wasm features
+**Fix**: Use `--exclude do-memory-mcp` or build without wasm features
 
 ### New Clippy Warnings
 ```

@@ -2,11 +2,11 @@
 
 #[cfg(test)]
 mod tests {
-    use memory_core::memory::SelfLearningMemory;
-    use memory_core::monitoring::{AgentMonitor, MonitoringConfig};
-    use memory_core::monitoring::storage::SimpleMonitoringStorage;
-    use memory_core::storage::StorageBackend;
-    use memory_core::{TaskContext, TaskType};
+    use do_memory_core::memory::SelfLearningMemory;
+    use do_memory_core::monitoring::{AgentMonitor, MonitoringConfig};
+    use do_memory_core::monitoring::storage::SimpleMonitoringStorage;
+    use do_memory_core::storage::StorageBackend;
+    use do_memory_core::{TaskContext, TaskType};
     use std::sync::Arc;
     use std::time::Duration;
     use tempfile::tempdir;
@@ -19,7 +19,7 @@ mod tests {
         let storage_path = temp_dir.path().join("test_storage.redb");
         
         // Create a basic storage backend (redb for testing)
-        let storage = memory_storage_redb::RedbStorage::new(&storage_path)
+        let storage = do_memory_storage_redb::RedbStorage::new(&storage_path)
             .await
             .expect("Failed to create test storage");
         
@@ -48,7 +48,7 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let storage_path = temp_dir.path().join("test_storage2.redb");
         
-        let storage = memory_storage_redb::RedbStorage::new(&storage_path)
+        let storage = do_memory_storage_redb::RedbStorage::new(&storage_path)
             .await
             .expect("Failed to create test storage");
         
@@ -94,10 +94,10 @@ mod tests {
         let cache_path = temp_dir.path().join("test_cache.redb");
         
         // Create storage backends
-        let turso_storage = memory_storage_redb::RedbStorage::new(&turso_path)
+        let turso_storage = do_memory_storage_redb::RedbStorage::new(&turso_path)
             .await
             .expect("Failed to create turso storage");
-        let cache_storage = memory_storage_redb::RedbStorage::new(&cache_path)
+        let cache_storage = do_memory_storage_redb::RedbStorage::new(&cache_path)
             .await
             .expect("Failed to create cache storage");
         
@@ -145,7 +145,7 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let storage_path = temp_dir.path().join("test_detailed.redb");
         
-        let storage = memory_storage_redb::RedbStorage::new(&storage_path)
+        let storage = do_memory_storage_redb::RedbStorage::new(&storage_path)
             .await
             .expect("Failed to create test storage");
         
@@ -205,7 +205,7 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let storage_path = temp_dir.path().join("test_disabled.redb");
         
-        let storage = memory_storage_redb::RedbStorage::new(&storage_path)
+        let storage = do_memory_storage_redb::RedbStorage::new(&storage_path)
             .await
             .expect("Failed to create test storage");
         

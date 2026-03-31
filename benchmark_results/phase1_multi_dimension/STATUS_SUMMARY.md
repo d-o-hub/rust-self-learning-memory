@@ -110,7 +110,7 @@ export TURSO_AUTH_TOKEN="your-auth-token"
 ```bash
 cd /workspaces/feat-phase3
 cargo bench --bench turso_vector_performance \
-  --features memory-storage-turso/turso_multi_dimension
+  --features do-memory-storage-turso/turso_multi_dimension
 
 # Expected: ~20-30 minutes
 # Should see: "✓ Vector extensions verified: vector32() function available"

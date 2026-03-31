@@ -10,7 +10,7 @@ use common::{
     ContextBuilder, StepBuilder, assert_episode_completed, assert_has_patterns,
     assert_reward_in_range, create_success_step, create_test_context, setup_test_memory,
 };
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };
 
@@ -344,6 +344,6 @@ async fn should_extract_patterns_accurately_from_error_recovery_episodes() {
     assert!(
         patterns
             .iter()
-            .any(|p| matches!(p, memory_core::Pattern::ErrorRecovery { .. }))
+            .any(|p| matches!(p, do_memory_core::Pattern::ErrorRecovery { .. }))
     );
 }

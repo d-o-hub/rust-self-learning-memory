@@ -5,7 +5,7 @@
 
 use crate::server::MemoryMCPServer;
 use anyhow::{Result, anyhow};
-use memory_core::TaskOutcome;
+use do_memory_core::TaskOutcome;
 use serde_json::{Value, json};
 use tracing::debug;
 use tracing::info;

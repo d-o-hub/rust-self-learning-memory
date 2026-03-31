@@ -7,7 +7,7 @@ use crate::mcp::tools::episode_tags::types::{
     SetEpisodeTagsOutput,
 };
 use anyhow::{Result, anyhow};
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use std::sync::Arc;
 use tracing::{debug, info, instrument};
 use uuid::Uuid;
@@ -47,8 +47,8 @@ impl EpisodeTagTools {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, AddEpisodeTagsInput};
-    /// # use memory_core::SelfLearningMemory;
+    /// # use do_memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, AddEpisodeTagsInput};
+    /// # use do_memory_core::SelfLearningMemory;
     /// # use std::sync::Arc;
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = Arc::new(SelfLearningMemory::new());
@@ -287,8 +287,8 @@ impl EpisodeTagTools {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SearchEpisodesByTagsInput};
-    /// # use memory_core::SelfLearningMemory;
+    /// # use do_memory_mcp::mcp::tools::episode_tags::{EpisodeTagTools, SearchEpisodesByTagsInput};
+    /// # use do_memory_core::SelfLearningMemory;
     /// # use std::sync::Arc;
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = Arc::new(SelfLearningMemory::new());

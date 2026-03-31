@@ -2,10 +2,10 @@
 //!
 //! These tests verify basic MCP server functionality and database integration.
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
-use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
+use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 

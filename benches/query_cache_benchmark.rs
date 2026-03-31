@@ -11,8 +11,8 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use memory_core::retrieval::{CacheKey, QueryCache};
-use memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskType};
+use do_memory_core::retrieval::{CacheKey, QueryCache};
+use do_memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskType};
 use std::hint::black_box;
 use std::sync::Arc;
 use std::time::Duration;
@@ -33,7 +33,7 @@ fn create_test_episode(id: usize) -> Episode {
         start_time: chrono::Utc::now(),
         end_time: Some(chrono::Utc::now()),
         steps: vec![],
-        outcome: Some(memory_core::TaskOutcome::Success {
+        outcome: Some(do_memory_core::TaskOutcome::Success {
             verdict: "Feature implemented".to_string(),
             artifacts: vec!["src/feature.rs".to_string()],
         }),

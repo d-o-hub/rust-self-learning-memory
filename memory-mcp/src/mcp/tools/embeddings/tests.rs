@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 use crate::mcp::tools::embeddings::tool::{
     EmbeddingTools, configure_embeddings_tool, embedding_provider_status_tool,

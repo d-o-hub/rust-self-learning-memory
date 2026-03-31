@@ -14,8 +14,8 @@
 //!
 //! All tests follow the Given-When-Then pattern for clarity.
 
-use memory_core::memory::SelfLearningMemory;
-use memory_core::{
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome,
     TaskType,
 };
@@ -551,7 +551,7 @@ async fn should_not_leak_memory_over_iterations() {
 async fn should_cleanup_cache_when_exceeding_limits() {
     // Given: Memory system with limited cache (100 episodes max)
     let config = MemoryConfig {
-        storage: memory_core::StorageConfig {
+        storage: do_memory_core::StorageConfig {
             max_episodes_cache: 100,
             ..Default::default()
         },

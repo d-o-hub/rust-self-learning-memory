@@ -27,21 +27,21 @@ The Episode Tagging feature has been **successfully implemented** across all 5 p
 
 ### Core Implementation
 
-#### 1. Data Model (`memory-core/src/episode/structs.rs`)
+#### 1. Data Model (`do-memory-core/src/episode/structs.rs`)
 - ✅ Added `tags: Vec<String>` field to `Episode` struct
 - ✅ Tag validation (2-100 chars, alphanumeric + hyphen/underscore)
 - ✅ Tag normalization (lowercase, trimmed)
 - ✅ Helper methods: `add_tag()`, `remove_tag()`, `has_tag()`, `clear_tags()`, `get_tags()`
 - ✅ 20+ unit tests covering all edge cases
 
-#### 2. Memory API (`memory-core/src/memory/management.rs`)
+#### 2. Memory API (`do-memory-core/src/memory/management.rs`)
 - ✅ `add_episode_tags()` - Add tags to episode
 - ✅ `remove_episode_tags()` - Remove tags from episode
 - ✅ `set_episode_tags()` - Replace all tags
 - ✅ `get_episode_tags()` - Retrieve tags
 - ✅ Storage persistence (redb + Turso)
 
-#### 3. MCP Tools (`memory-mcp/src/mcp/tools/episode_tags/`)
+#### 3. MCP Tools (`do-memory-mcp/src/mcp/tools/episode_tags/`)
 **Files Created**:
 - `mod.rs` (16 lines) - Module exports
 - `types.rs` (140 lines) - Input/Output structures
@@ -271,10 +271,10 @@ These are potential improvements for future versions:
 
 ## 🔗 Related Documentation
 
-- [Episode Tagging Tools Guide](../memory-mcp/EPISODE_TAGS_TOOLS.md)
+- [Episode Tagging Tools Guide](../do-memory-mcp/EPISODE_TAGS_TOOLS.md)
 - [Episode Management Roadmap](./EPISODE_TAGGING_IMPLEMENTATION_ROADMAP.md)
 - [Feature Specification](./EPISODE_TAGGING_FEATURE_SPEC.md)
-- [Memory Core README](../memory-core/README.md)
+- [Memory Core README](../do-memory-core/README.md)
 
 ---
 

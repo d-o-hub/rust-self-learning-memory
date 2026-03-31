@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use memory_core::types::TaskOutcome;
+use do_memory_core::types::TaskOutcome;
 
 /// Input for recording recommendation feedback.
 #[derive(Debug, Clone, Serialize, Deserialize)]

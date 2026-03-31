@@ -7,22 +7,23 @@ Command-line interface for Self-Learning Memory System
 Usage: memory-cli [OPTIONS] <COMMAND>
 
 Commands:
-  episode       Episode management commands
-  pattern       Pattern analysis commands
-  storage       Storage operations commands
-  config        Configuration validation and management
-  health        Health monitoring and diagnostics
-  backup        Backup and restore operations
-  monitor       Monitoring and metrics
-  logs          Log analysis and search
-  eval          Evaluation and calibration commands
-  embedding     Embedding provider management and testing
-  completion    Generate shell completion scripts
-  tag           Tag management commands for episodes
-  relationship  Relationship management commands for episodes
-  playbook      Playbook recommendation and management
-  feedback      Recommendation feedback tracking
-  help          Print this message or the help of the given subcommand(s)
+  episode          Episode management commands
+  pattern          Pattern analysis commands
+  storage          Storage operations commands
+  config           Configuration validation and management
+  health           Health monitoring and diagnostics
+  backup           Backup and restore operations
+  monitor          Monitoring and metrics
+  logs             Log analysis and search
+  eval             Evaluation and calibration commands
+  embedding        Embedding provider management and testing
+  completion       Generate shell completion scripts
+  tag              Tag management commands for episodes
+  relationship     Relationship management commands for episodes
+  playbook         Playbook recommendation and management
+  feedback         Recommendation feedback tracking
+  external-signal  External signal provider management
+  help             Print this message or the help of the given subcommand(s)
 
 Options:
   -c, --config <FILE>

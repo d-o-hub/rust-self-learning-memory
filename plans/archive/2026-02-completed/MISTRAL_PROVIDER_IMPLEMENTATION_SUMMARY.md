@@ -5,7 +5,7 @@ Successfully implemented the Mistral embedding provider with full support for bo
 
 ## Files Created
 
-### 1. Configuration Module (`memory-core/src/embeddings/config/mistral/`)
+### 1. Configuration Module (`do-memory-core/src/embeddings/config/mistral/`)
 
 #### `config.rs` (369 lines)
 - `MistralModel` enum with support for:
@@ -40,7 +40,7 @@ Successfully implemented the Mistral embedding provider with full support for bo
 - Re-exports for convenience
 - Module organization
 
-### 2. Client Module (`memory-core/src/embeddings/mistral/`)
+### 2. Client Module (`do-memory-core/src/embeddings/mistral/`)
 
 #### `client.rs` (340 lines)
 - `MistralEmbeddingProvider` struct implementing `EmbeddingProvider` trait
@@ -80,12 +80,12 @@ Successfully implemented the Mistral embedding provider with full support for bo
 
 ### 4. Integration Changes
 
-#### `memory-core/src/embeddings/mod.rs`
+#### `do-memory-core/src/embeddings/mod.rs`
 - Added `#[cfg(feature = "mistral")] mod mistral;`
 - Added `#[cfg(feature = "mistral")] pub use mistral::MistralEmbeddingProvider;`
 - Added `#[cfg(all(test, feature = "mistral"))] mod mistral_tests;`
 
-#### `memory-core/Cargo.toml`
+#### `do-memory-core/Cargo.toml`
 - Added `mistral = ["reqwest"]` feature
 - Updated `embeddings-full = ["openai", "mistral"]`
 
@@ -130,7 +130,7 @@ Successfully implemented the Mistral embedding provider with full support for bo
 
 ## Compilation Status
 
-⚠️ **Pre-existing Issues**: The SemanticService in `memory-core/src/embeddings/mod.rs` has pre-existing bugs related to the config refactoring (lines 121, 140, 186). These reference `config.model` which no longer exists in the refactored EmbeddingConfig structure. These issues are NOT caused by the Mistral implementation.
+⚠️ **Pre-existing Issues**: The SemanticService in `do-memory-core/src/embeddings/mod.rs` has pre-existing bugs related to the config refactoring (lines 121, 140, 186). These reference `config.model` which no longer exists in the refactored EmbeddingConfig structure. These issues are NOT caused by the Mistral implementation.
 
 ### Mistral Module Status
 ✅ **Mistral module compiles successfully** when checked in isolation
@@ -143,10 +143,10 @@ Successfully implemented the Mistral embedding provider with full support for bo
 To verify the Mistral module specifically:
 ```bash
 # Check mistral module syntax
-cargo check -p memory-core --lib --features mistral 2>&1 | grep -v "SemanticService\|config.model"
+cargo check -p do-memory-core --lib --features mistral 2>&1 | grep -v "SemanticService\|config.model"
 
 # Run mistral-specific tests
-cargo test -p memory-core embeddings::mistral --features mistral -- --nocapture
+cargo test -p do-memory-core embeddings::mistral --features mistral -- --nocapture
 ```
 
 ## Implementation Notes

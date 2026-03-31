@@ -206,7 +206,7 @@ This document tracks the version history and major milestones of Self-Learning M
 - ⚠️ **Blocking Issues**:
   - 16 clippy warnings (unused variables in storage layer)
   - Incomplete storage implementation (TODO placeholders)
-  - Mixed lock types (parking_lot + tokio in memory-mcp)
+  - Mixed lock types (parking_lot + tokio in do-memory-mcp)
   - Unbounded timestamp storage
 
 **2. MCP Server Enhancements** (⚠️ File Size Violations)
@@ -241,7 +241,7 @@ This document tracks the version history and major milestones of Self-Learning M
 6. ⚠️ Cache implementation not integrated into tool handlers
 7. ⚠️ Monitoring storage layer incomplete
 8. ⚠️ Test assertion mismatch
-9. ⚠️ Mixed lock types in memory-mcp
+9. ⚠️ Mixed lock types in do-memory-mcp
 
 **Estimated Fix Time**: 7-13 hours (4-8 hours critical, 3-5 hours important)
 

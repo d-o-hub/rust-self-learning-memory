@@ -297,13 +297,13 @@ docker run --cpus=0.5 --memory=256m \
   --network=none \
   --read-only \
   --security-opt=no-new-privileges \
-  memory-mcp-server
+  do-memory-mcp-server
 
 # Or use cgroups directly
 cgcreate -g memory,cpu:/sandbox
 cgset -r memory.limit_in_bytes=268435456 sandbox  # 256MB
 cgset -r cpu.cfs_quota_us=50000 sandbox           # 50% CPU
-cgexec -g memory,cpu:sandbox ./memory-mcp-server
+cgexec -g memory,cpu:sandbox ./do-memory-mcp-server
 ```
 
 ### Kubernetes Deployment
@@ -312,7 +312,7 @@ cgexec -g memory,cpu:sandbox ./memory-mcp-server
 apiVersion: v1
 kind: Pod
 metadata:
-  name: memory-mcp-server
+  name: do-memory-mcp-server
 spec:
   securityContext:
     runAsNonRoot: true
@@ -320,7 +320,7 @@ spec:
     fsGroup: 1000
   containers:
   - name: mcp-server
-    image: memory-mcp:latest
+    image: do-memory-mcp:latest
     resources:
       limits:
         memory: "256Mi"

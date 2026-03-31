@@ -44,12 +44,12 @@ Comprehensive quality assessment of the memory management workspace completed wi
 ### Module Quality Status
 | Module | Formatting | Clippy | Security | Overall |
 |--------|------------|--------|----------|---------|
-| memory-core | ✅ | ✅ | ⚠️ | ⚠️ |
-| memory-storage-turso | ✅ | ✅ | ⚠️ | ⚠️ |
-| memory-storage-redb | ✅ | ✅ | ⚠️ | ⚠️ |
-| memory-mcp | ✅ | ✅ | ⚠️ | ⚠️ |
-| memory-cli | ✅ | ✅ | ⚠️ | ⚠️ |
-| test-utils | ✅ | ✅ | ⚠️ | ⚠️ |
+| do-memory-core | ✅ | ✅ | ⚠️ | ⚠️ |
+| do-memory-storage-turso | ✅ | ✅ | ⚠️ | ⚠️ |
+| do-memory-storage-redb | ✅ | ✅ | ⚠️ | ⚠️ |
+| do-memory-mcp | ✅ | ✅ | ⚠️ | ⚠️ |
+| do-memory-cli | ✅ | ✅ | ⚠️ | ⚠️ |
+| do-memory-test-utils | ✅ | ✅ | ⚠️ | ⚠️ |
 | benches | ✅ | ✅ | ⚠️ | ⚠️ |
 | tests | ✅ | ✅ | ⚠️ | ⚠️ |
 | examples | ✅ | ✅ | ⚠️ | ⚠️ |

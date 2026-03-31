@@ -12,31 +12,31 @@ This directory contains example configuration files for various use cases. Choos
 | ☁️ **Production Cloud** | `cloud-production.toml` | Turso cloud, large cache, JSON output |
 | 🧪 **CI/CD Testing** | `ci-testing.toml` | In-memory, fast, no persistence |
 | ⚡ **Minimal Setup** | `minimal.toml` | Bare minimum configuration |
-| 📝 **Full Template** | `memory-cli.toml` | Complete template with all options |
+| 📝 **Full Template** | `do-memory-cli.toml` | Complete template with all options |
 | 🧑‍💻 **Test Configuration** | `test-config.toml` | Used for testing the CLI itself |
 
 ### 2. Copy and Customize
 
 ```bash
 # For local development
-cp memory-cli/config/local-dev.toml memory-cli.toml
+cp do-memory-cli/config/local-dev.toml do-memory-cli.toml
 
 # Edit to customize
-nano memory-cli.toml
+nano do-memory-cli.toml
 
 # Verify configuration
-memory-cli config validate
+do-memory-cli config validate
 ```
 
 ### 3. Use Your Configuration
 
 ```bash
 # Use specific config file
-memory-cli --config memory-cli.toml health
+do-memory-cli --config do-memory-cli.toml health
 
 # Or set environment variable
-export MEMORY_CLI_CONFIG=memory-cli.toml
-memory-cli health
+export MEMORY_CLI_CONFIG=do-memory-cli.toml
+do-memory-cli health
 ```
 
 ## Configuration Files Explained
@@ -57,7 +57,7 @@ memory-cli health
 - You want detailed debug information
 
 ```bash
-cp memory-cli/config/local-dev.toml memory-cli.toml
+cp do-memory-cli/config/local-dev.toml do-memory-cli.toml
 ```
 
 ---
@@ -104,7 +104,7 @@ export TURSO_AUTH_TOKEN="your-token-here"
 # .github/workflows/test.yml
 - name: Run tests
   run: |
-    memory-cli --config memory-cli/config/ci-testing.toml test
+    do-memory-cli --config do-memory-cli/config/ci-testing.toml test
 ```
 
 ---
@@ -226,7 +226,7 @@ compress_backups = true
 ```toml
 [logging]
 level = "info"  # error, warn, info, debug, trace
-log_file = "./logs/memory-cli.log"
+log_file = "./logs/do-memory-cli.log"
 max_log_size_mb = 10
 max_log_files = 5
 ```
@@ -255,7 +255,7 @@ export MEMORY_CLI_FORMAT="json"
 export MEMORY_CLI_LOG_LEVEL="debug"
 
 # Run with environment variables
-memory-cli health
+do-memory-cli health
 ```
 
 ---
@@ -266,13 +266,13 @@ Validate your configuration before use:
 
 ```bash
 # Validate configuration file
-memory-cli config validate
+do-memory-cli config validate
 
 # Validate specific file
-memory-cli --config my-config.toml config validate
+do-memory-cli --config my-config.toml config validate
 
 # Show configuration summary
-memory-cli config show
+do-memory-cli config show
 ```
 
 ---
@@ -283,7 +283,7 @@ Use the interactive wizard to create a configuration:
 
 ```bash
 # Launch interactive wizard
-memory-cli config wizard
+do-memory-cli config wizard
 
 # Wizard will guide you through:
 # 1. Choosing a preset (Local/Cloud/Memory/Custom)
@@ -309,13 +309,13 @@ The wizard provides:
 ls -la *.toml
 
 # Use explicit path
-memory-cli --config /path/to/config.toml health
+do-memory-cli --config /path/to/config.toml health
 ```
 
 ### Validation errors
 ```bash
 # Run validation to see detailed errors
-memory-cli config validate
+do-memory-cli config validate
 
 # Common issues:
 # - Missing required fields
@@ -327,7 +327,7 @@ memory-cli config validate
 ### Database connection issues
 ```bash
 # Test database connection
-memory-cli health
+do-memory-cli health
 
 # Check Turso URL format
 # ✅ Correct: libsql://your-db.turso.io
@@ -373,7 +373,7 @@ export TURSO_AUTH_TOKEN="your-token"
 
 ### Upgrading from older versions
 
-If you're upgrading from an older version of memory-cli, your old configuration should still work (backward compatible). However, you can take advantage of new features:
+If you're upgrading from an older version of do-memory-cli, your old configuration should still work (backward compatible). However, you can take advantage of new features:
 
 1. **Add new sections** (optional):
    ```toml
@@ -393,7 +393,7 @@ If you're upgrading from an older version of memory-cli, your old configuration 
 
 3. **Validate** your updated config:
    ```bash
-   memory-cli config validate
+   do-memory-cli config validate
    ```
 
 ---
@@ -428,7 +428,7 @@ log_file = "./dev-data/debug.log"
 [database]
 turso_url = "libsql://prod-memory.turso.io"
 # Set TURSO_AUTH_TOKEN environment variable
-redb_path = "/var/lib/memory-cli/cache.redb"
+redb_path = "/var/lib/do-memory-cli/cache.redb"
 
 [storage]
 max_episodes_cache = 5000
@@ -442,7 +442,7 @@ batch_size = 500
 
 [logging]
 level = "warn"
-log_file = "/var/log/memory-cli/app.log"
+log_file = "/var/log/do-memory-cli/app.log"
 max_log_size_mb = 100
 max_log_files = 10
 ```
@@ -473,9 +473,9 @@ level = "warn"
 ## Getting Help
 
 - 📖 **Documentation:** See [CONFIGURATION.md](../CONFIGURATION.md)
-- 🎨 **Wizard:** Run `memory-cli config wizard`
-- ✅ **Validate:** Run `memory-cli config validate`
-- 🔍 **Show config:** Run `memory-cli config show`
+- 🎨 **Wizard:** Run `do-memory-cli config wizard`
+- ✅ **Validate:** Run `do-memory-cli config validate`
+- 🔍 **Show config:** Run `do-memory-cli config show`
 - 💬 **Issues:** https://github.com/d-o-hub/rust-self-learning-memory/issues
 
 ---

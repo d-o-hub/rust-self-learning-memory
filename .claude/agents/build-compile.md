@@ -115,11 +115,11 @@ find target/debug -type f -executable 2>/dev/null
 find target/release -type f -executable 2>/dev/null
 
 # Check binary sizes
-du -h target/debug/memory-cli 2>/dev/null
-du -h target/release/memory-cli 2>/dev/null
+du -h target/debug/do-memory-cli 2>/dev/null
+du -h target/release/do-memory-cli 2>/dev/null
 
 # Run basic smoke test if binary exists
-./target/debug/memory-cli --version 2>/dev/null || echo "Binary validation pending"
+./target/debug/do-memory-cli --version 2>/dev/null || echo "Binary validation pending"
 ```
 
 ### 6. Report Results
@@ -168,10 +168,10 @@ cargo clean
 cargo build --release --all
 
 # Strip symbols for smaller binary
-strip target/release/memory-cli
+strip target/release/do-memory-cli
 
 # Verify binary
-./target/release/memory-cli --version
+./target/release/do-memory-cli --version
 ```
 
 **Use when**: Creating production releases
@@ -321,7 +321,7 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 ### For Self-Learning Memory Project
 
 1. **Workspace Structure**:
-   - Multiple crates: memory-core, memory-cli, storage backends
+   - Multiple crates: do-memory-core, do-memory-cli, storage backends
    - Build specific crates during development
    - Build all for integration testing
 
@@ -376,19 +376,19 @@ Debug Build:
 ✓ cargo build --all: PASSED (45.2s)
   - Crates compiled: 24
   - Warnings: 0
-  - Binary: D:\path\to\target\debug\memory-cli (8.2 MB)
+  - Binary: D:\path\to\target\debug\do-memory-cli (8.2 MB)
 
 Release Build:
 ✓ cargo build --release --all: PASSED (2m 15.3s)
   - Crates compiled: 24
   - Warnings: 0
-  - Binary: D:\path\to\target\release\memory-cli (2.1 MB)
+  - Binary: D:\path\to\target\release\do-memory-cli (2.1 MB)
   - Size reduction: 74% vs debug
 
 Binary Verification:
 ✓ Debug binary executable: YES
 ✓ Release binary executable: YES
-✓ Version check: memory-cli 0.1.3
+✓ Version check: do-memory-cli 0.1.3
 
 Build Performance:
 - Debug build: 45.2s
@@ -417,13 +417,13 @@ Compilation Check:
 Error Details:
 --------------
 error[E0425]: cannot find function `undefined_function` in scope
-  --> memory-core/src/episode.rs:123:9
+  --> do-memory-core/src/episode.rs:123:9
    |
 123 |         undefined_function();
    |         ^^^^^^^^^^^^^^^^^^ not found in scope
 
 error[E0599]: no method named `missing_method` on type `Episode`
-  --> memory-cli/src/commands/episode.rs:45:18
+  --> do-memory-cli/src/commands/episode.rs:45:18
    |
 45  |         episode.missing_method()?;
    |                 ^^^^^^^^^^^^^^ method not found
@@ -433,11 +433,11 @@ Errors: 2
 Warnings: 3
 
 Recommendations:
-1. Fix error in memory-core/src/episode.rs:123
+1. Fix error in do-memory-core/src/episode.rs:123
    - Function `undefined_function` is not defined
    - Check for typo or missing import
 
-2. Fix error in memory-cli/src/commands/episode.rs:45
+2. Fix error in do-memory-cli/src/commands/episode.rs:45
    - Method `missing_method` does not exist on `Episode`
    - Review Episode API documentation
 
@@ -456,7 +456,7 @@ Next Steps:
 - **code-reviewer**: Verify build after code changes
 - **feature-implementer**: Build and verify new features
 - **debugger**: Compile with debug symbols for troubleshooting
-- **memory-cli**: Build CLI binary for testing
+- **do-memory-cli**: Build CLI binary for testing
 
 ### Typical Workflow:
 ```

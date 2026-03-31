@@ -18,7 +18,7 @@ Split 7 files exceeding 500 LOC into modular, single-responsibility components.
 ## Module Structure After Refactoring
 
 ```
-memory-storage-turso/src/
+do-memory-storage-turso/src/
 ├── lib.rs                    # 200 LOC (exports + struct def)
 ├── turso_config.rs           # 150 LOC (TursoConfig)
 ├── storage/

@@ -10,11 +10,11 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::MemoryConfig;
-use memory_core::SelfLearningMemory;
-use memory_core::episode::ExecutionStep;
-use memory_core::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::MemoryConfig;
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::episode::ExecutionStep;
+use do_memory_core::types::{ExecutionResult, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;
 use tempfile::tempdir;

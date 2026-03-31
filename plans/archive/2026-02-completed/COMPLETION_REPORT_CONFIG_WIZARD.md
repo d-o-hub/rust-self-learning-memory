@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully wired the existing config wizard into the main memory-cli command-line interface. The wizard was already implemented but needed proper exposure through the CLI command system.
+Successfully wired the existing config wizard into the main do-memory-cli command-line interface. The wizard was already implemented but needed proper exposure through the CLI command system.
 
 ## Implementation Details
 
@@ -12,12 +12,12 @@ Successfully wired the existing config wizard into the main memory-cli command-l
 
 The wizard command was already fully wired in the existing codebase:
 
-- **File:** `memory-cli/src/commands/config.rs`
+- **File:** `do-memory-cli/src/commands/config.rs`
   - `ConfigCommands` enum includes `Wizard` variant (line 17)
   - `ConfigCommands::Wizard` handler routed to `config::run_wizard()` (line 318)
   - `run_wizard()` function creates and runs the wizard (lines 473-481)
 
-- **File:** `memory-cli/src/main.rs`
+- **File:** `do-memory-cli/src/main.rs`
   - Uses `handle_config_command()` which supports all config subcommands
   - Wizard command automatically accessible through existing routing
 
@@ -60,7 +60,7 @@ The wizard provides a complete interactive experience with:
 
 ### 3. ✅ Tests Created
 
-**File:** `memory-cli/tests/unit/config_wizard_tests.rs` (NEW)
+**File:** `do-memory-cli/tests/unit/config_wizard_tests.rs` (NEW)
 
 **Test Coverage:**
 - Wizard initialization
@@ -156,7 +156,7 @@ The wizard provides a complete interactive experience with:
 
 ### 5. ✅ Module Registration
 
-**File:** `memory-cli/tests/unit/mod.rs` (MODIFIED)
+**File:** `do-memory-cli/tests/unit/mod.rs` (MODIFIED)
 
 **Changes:**
 - Added `config_wizard_tests` to module exports
@@ -175,19 +175,19 @@ The wizard provides a complete interactive experience with:
 ### 7. ✅ File Structure
 
 **Files Created:**
-1. `memory-cli/tests/unit/config_wizard-tests.rs` - Comprehensive test suite (NEW)
+1. `do-memory-cli/tests/unit/config_wizard-tests.rs` - Comprehensive test suite (NEW)
 2. `docs/CONFIG_WIZARD.md` - Complete wizard guide (NEW)
 3. `docs/CLI_COMMANDS.md` - CLI command reference (NEW)
 
 **Files Modified:**
-1. `memory-cli/tests/unit/mod.rs` - Added wizard test module
+1. `do-memory-cli/tests/unit/mod.rs` - Added wizard test module
 2. `README.md` - Added wizard documentation links and usage examples
 
 **Files Already Existed (No Changes Needed):**
-1. `memory-cli/src/commands/config.rs` - Already had Wizard command
-2. `memory-cli/src/main.rs` - Already handled config commands
-3. `memory-cli/src/config/wizard/` - Complete wizard implementation
-4. `memory-cli/src/config/mod.rs` - Already exported wizard
+1. `do-memory-cli/src/commands/config.rs` - Already had Wizard command
+2. `do-memory-cli/src/main.rs` - Already handled config commands
+3. `do-memory-cli/src/config/wizard/` - Complete wizard implementation
+4. `do-memory-cli/src/config/mod.rs` - Already exported wizard
 
 ## Usage Examples
 
@@ -198,7 +198,7 @@ memory config wizard
 
 # Select "Local Development" preset
 # Accept all defaults (press Enter)
-# Save to memory-cli.toml
+# Save to do-memory-cli.toml
 
 # Validate configuration
 memory config validate
@@ -212,7 +212,7 @@ memory episode list
 memory config wizard
 # Select "Cloud Setup" preset
 # Enter Turso URL and token
-# Save to .memory-cli.toml
+# Save to .do-memory-cli.toml
 
 memory config check  # Verify connectivity
 ```
@@ -234,16 +234,16 @@ memory --config ci-config.toml episode list --format json
 
 ```bash
 # Run all wizard tests
-cargo test --package memory-cli config_wizard
+cargo test --package do-memory-cli config_wizard
 
 # Run specific test
-cargo test --package memory-cli test_wizard_initialization
+cargo test --package do-memory-cli test_wizard_initialization
 
 # Run with output
-cargo test --package memory-cli config_wizard -- --nocapture
+cargo test --package do-memory-cli config_wizard -- --nocapture
 
 # Run all CLI tests
-cargo test --package memory-cli
+cargo test --package do-memory-cli
 ```
 
 ### Test Coverage
@@ -323,8 +323,8 @@ To verify the implementation:
 3. **Config Generation:**
    ```bash
    # Run through wizard with defaults
-   # Verify memory-cli.toml is created
-   cat memory-cli.toml
+   # Verify do-memory-cli.toml is created
+   cat do-memory-cli.toml
    ```
 
 4. **Validation:**
@@ -341,7 +341,7 @@ To verify the implementation:
 
 ## Build Notes
 
-**Note:** There are pre-existing build errors in the memory-core crate that prevent full compilation. These errors are:
+**Note:** There are pre-existing build errors in the do-memory-core crate that prevent full compilation. These errors are:
 1. Function signature mismatch in `generate_episode_embedding`
 2. Private field access in `SemanticService`
 
@@ -349,7 +349,7 @@ These errors are **NOT** related to the wizard implementation and need to be res
 
 ## Conclusion
 
-The config wizard has been successfully wired into the memory-cli command-line interface with:
+The config wizard has been successfully wired into the do-memory-cli command-line interface with:
 
 ✅ **CLI Command:** Fully accessible via `memory config wizard`
 ✅ **Comprehensive Tests:** 30+ unit and integration tests
@@ -358,7 +358,7 @@ The config wizard has been successfully wired into the memory-cli command-line i
 ✅ **All Presets:** Working Local, Cloud, Memory, and Custom presets
 ✅ **Integration:** Properly integrated with existing config system
 
-The wizard provides an excellent user experience for setting up memory-cli configuration, whether for development, production, or CI/CD environments.
+The wizard provides an excellent user experience for setting up do-memory-cli configuration, whether for development, production, or CI/CD environments.
 
 ## Estimated Time vs Actual
 

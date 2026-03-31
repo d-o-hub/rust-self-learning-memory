@@ -7,9 +7,9 @@
 //! their handlers are commented out or missing, which creates a broken
 //! contract with clients.
 
-use memory_core::{MemoryConfig, SelfLearningMemory};
-use memory_mcp::MemoryMCPServer;
-use memory_mcp::types::SandboxConfig;
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_mcp::MemoryMCPServer;
+use do_memory_mcp::types::SandboxConfig;
 use std::sync::Arc;
 
 /// Disable WASM sandbox for all tests to prevent rquickjs GC crashes

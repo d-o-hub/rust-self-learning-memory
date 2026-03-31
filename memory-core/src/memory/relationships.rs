@@ -41,8 +41,8 @@ impl SelfLearningMemory {
     /// # Example
     ///
     /// ```no_run
-    /// use memory_core::memory::SelfLearningMemory;
-    /// use memory_core::episode::{RelationshipType, RelationshipMetadata};
+    /// use do_memory_core::memory::SelfLearningMemory;
+    /// use do_memory_core::episode::{RelationshipType, RelationshipMetadata};
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> anyhow::Result<()> {

@@ -12,13 +12,13 @@
 ## New Resources (2026-02-22)
 
 ### Token Optimization
-- `.agents/skills/memory-mcp/token-optimization.md` - Token optimization guide
+- `.agents/skills/do-memory-mcp/token-optimization.md` - Token optimization guide
 - `.opencode/agent/memory-agent.md` - Memory agent with token optimization
 - `scripts/benchmark-mcp-tokens.sh` - Benchmark script
 - `plans/adr/ADR-024-MCP-Lazy-Tool-Loading.md` - Updated with measured results
 
 ### Opencode Configuration
-- `opencode.json` - Updated with default_agent and memory-mcp per-agent config
+- `opencode.json` - Updated with default_agent and do-memory-mcp per-agent config
 
 ## Workflow Automation Adoption (2026-03-05)
 

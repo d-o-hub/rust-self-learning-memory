@@ -512,7 +512,7 @@ Every audit log entry is a JSON object with the following structure:
   "session_id": "sess-abc123",
   "metadata": {
     "request_id": "req-xyz789",
-    "user_agent": "memory-cli/1.0.0"
+    "user_agent": "do-memory-cli/1.0.0"
   }
 }
 ```

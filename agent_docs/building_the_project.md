@@ -23,17 +23,17 @@ cargo test --doc
 
 The project supports the following optional features:
 
-**memory-core features:**
+**do-memory-core features:**
 - `openai` - Enable OpenAI embedding provider (requires `reqwest`)
 - `local-embeddings` - Enable local embedding models with ONNX Runtime
 - `embeddings-full` - Enable all embedding providers (implies `openai`)
 
-**memory-cli features:**
+**do-memory-cli features:**
 - `turso` - Enable Turso storage backend (implies redb)
 - `redb` - Enable redb storage backend (default)
 - `full` - Enable all storage backends (implies both turso and redb)
 
-**memory-mcp features:**
+**do-memory-mcp features:**
 - `wasmtime-backend` - Wasmtime WASM sandbox (default)
 - `wasm-rquickjs` - QuickJS JavaScript runtime (deprecated)
 - `javy-backend` - Javy JavaScript to WASM compilation
@@ -46,7 +46,7 @@ cargo build --all --features "openai,local-embeddings"
 cargo build --all --all-features
 
 # Build specific crate with features
-cd memory-core && cargo build --features openai
+cd do-memory-core && cargo build --features openai
 ```
 
 ### Release Build
@@ -67,11 +67,11 @@ cargo build --release --features "openai"
 ./scripts/build-rust.sh dev
 
 # Build specific crate
-cd memory-core && cargo build
-cd memory-storage-turso && cargo build
-cd memory-storage-redb && cargo build
-cd memory-mcp && cargo build
-cd memory-cli && cargo build
+cd do-memory-core && cargo build
+cd do-memory-storage-turso && cargo build
+cd do-memory-storage-redb && cargo build
+cd do-memory-mcp && cargo build
+cd do-memory-cli && cargo build
 ```
 
 ## Development Setup
@@ -117,12 +117,12 @@ No cloud account or auth token required for local development. See [LOCAL_DATABA
 
 ### Docker Setup (Optional)
 ```bash
-# Build memory-cli Docker image
-cd memory-cli
-docker build -t memory-cli .
+# Build do-memory-cli Docker image
+cd do-memory-cli
+docker build -t do-memory-cli .
 
 # Run with docker-compose
-cd memory-cli/docker
+cd do-memory-cli/docker
 docker-compose up -d
 ```
 

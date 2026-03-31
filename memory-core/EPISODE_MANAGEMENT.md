@@ -110,10 +110,10 @@ memory.delete_episode(episode_id).await?;
 
 ```bash
 # Delete by episode ID
-memory-cli episode delete <EPISODE_ID>
+do-memory-cli episode delete <EPISODE_ID>
 
 # Example
-memory-cli episode delete 550e8400-e29b-41d4-a716-446655440000
+do-memory-cli episode delete 550e8400-e29b-41d4-a716-446655440000
 ```
 
 **Output:**
@@ -241,11 +241,11 @@ let archived = memory.list_archived_episodes().await?;
 
 - [Episode Creation](src/memory/episode.rs)
 - [Pattern Extraction](src/extraction/)
-- [Storage Backends](../memory-storage-redb/README.md)
-- [CLI User Guide](../memory-cli/CLI_USER_GUIDE.md)
+- [Storage Backends](../do-memory-storage-redb/README.md)
+- [CLI User Guide](../do-memory-cli/CLI_USER_GUIDE.md)
 
 ## Examples
 
 See comprehensive examples in:
-- `memory-core/tests/episode_deletion_test.rs` - Integration tests
-- `memory-cli/tests/command_tests.rs` - CLI command tests
+- `do-memory-core/tests/episode_deletion_test.rs` - Integration tests
+- `do-memory-cli/tests/command_tests.rs` - CLI command tests

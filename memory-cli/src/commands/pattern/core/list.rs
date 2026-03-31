@@ -9,13 +9,13 @@ pub async fn list_patterns(
     min_confidence: f32,
     pattern_type: Option<super::types::PatternType>,
     limit: usize,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     // Get all patterns
     let patterns = memory
-        .retrieve_relevant_patterns(&memory_core::types::TaskContext::default(), 1000)
+        .retrieve_relevant_patterns(&do_memory_core::types::TaskContext::default(), 1000)
         .await;
 
     // Filter and transform patterns
@@ -30,10 +30,10 @@ pub async fn list_patterns(
         // Filter by pattern type
         if let Some(ref pt) = pattern_type {
             let pattern_type_str = match pattern {
-                memory_core::pattern::Pattern::ToolSequence { .. } => "ToolSequence",
-                memory_core::pattern::Pattern::DecisionPoint { .. } => "DecisionPoint",
-                memory_core::pattern::Pattern::ErrorRecovery { .. } => "ErrorRecovery",
-                memory_core::pattern::Pattern::ContextPattern { .. } => "ContextPattern",
+                do_memory_core::pattern::Pattern::ToolSequence { .. } => "ToolSequence",
+                do_memory_core::pattern::Pattern::DecisionPoint { .. } => "DecisionPoint",
+                do_memory_core::pattern::Pattern::ErrorRecovery { .. } => "ErrorRecovery",
+                do_memory_core::pattern::Pattern::ContextPattern { .. } => "ContextPattern",
             };
 
             let requested_type = match pt {
@@ -55,19 +55,19 @@ pub async fn list_patterns(
         let last_used = format_relative_time(effectiveness_data.last_used);
 
         let description = match &pattern {
-            memory_core::pattern::Pattern::ToolSequence { tools, context, .. } => {
+            do_memory_core::pattern::Pattern::ToolSequence { tools, context, .. } => {
                 format!(
                     "Tool sequence: {} in {} domain",
                     tools.join(" → "),
                     context.domain
                 )
             }
-            memory_core::pattern::Pattern::DecisionPoint {
+            do_memory_core::pattern::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
                 format!("Decision: {} → {}", condition, action)
             }
-            memory_core::pattern::Pattern::ErrorRecovery {
+            do_memory_core::pattern::Pattern::ErrorRecovery {
                 error_type,
                 recovery_steps,
                 ..
@@ -78,7 +78,7 @@ pub async fn list_patterns(
                     recovery_steps.len()
                 )
             }
-            memory_core::pattern::Pattern::ContextPattern {
+            do_memory_core::pattern::Pattern::ContextPattern {
                 recommended_approach,
                 ..
             } => {
@@ -87,10 +87,10 @@ pub async fn list_patterns(
         };
 
         let pattern_type_str = match &pattern {
-            memory_core::pattern::Pattern::ToolSequence { .. } => "ToolSequence",
-            memory_core::pattern::Pattern::DecisionPoint { .. } => "DecisionPoint",
-            memory_core::pattern::Pattern::ErrorRecovery { .. } => "ErrorRecovery",
-            memory_core::pattern::Pattern::ContextPattern { .. } => "ContextPattern",
+            do_memory_core::pattern::Pattern::ToolSequence { .. } => "ToolSequence",
+            do_memory_core::pattern::Pattern::DecisionPoint { .. } => "DecisionPoint",
+            do_memory_core::pattern::Pattern::ErrorRecovery { .. } => "ErrorRecovery",
+            do_memory_core::pattern::Pattern::ContextPattern { .. } => "ContextPattern",
         };
 
         summaries.push(PatternSummary {

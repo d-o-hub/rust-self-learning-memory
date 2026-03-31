@@ -9,9 +9,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::types::{MemoryConfig, TaskContext};
-use memory_core::{ExecutionResult, ExecutionStep, SelfLearningMemory, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::types::{MemoryConfig, TaskContext};
+use do_memory_core::{ExecutionResult, ExecutionStep, SelfLearningMemory, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use std::sync::Arc;
 use tempfile::tempdir;
 
@@ -54,7 +54,7 @@ async fn test_mcp_complete_episode_chain() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: Some("tokio".to_string()),
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-test".to_string(),
         tags: vec!["test".to_string()],
     };
@@ -113,7 +113,7 @@ async fn test_mcp_complete_episode_chain() {
     let query_context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-test".to_string(),
         tags: vec![],
     };
@@ -141,7 +141,7 @@ async fn test_mcp_error_handling_in_chain() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-error-test".to_string(),
         tags: vec![],
     };
@@ -215,7 +215,7 @@ async fn test_mcp_episode_chain_early_failure() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-fail-test".to_string(),
         tags: vec![],
     };
@@ -282,7 +282,7 @@ async fn test_mcp_episode_chain_with_latencies() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-latency-test".to_string(),
         tags: vec![],
     };
@@ -353,7 +353,7 @@ async fn test_mcp_episode_chain_with_parameters() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-param-test".to_string(),
         tags: vec![],
     };
@@ -415,7 +415,7 @@ async fn test_mcp_transaction_rollback_abandonment() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-tx-test".to_string(),
         tags: vec![],
     };
@@ -464,7 +464,7 @@ async fn test_mcp_episode_chain_concurrency() {
         let context = TaskContext {
             language: Some("rust".to_string()),
             framework: None,
-            complexity: memory_core::types::ComplexityLevel::Moderate,
+            complexity: do_memory_core::types::ComplexityLevel::Moderate,
             domain: domain.to_string(),
             tags: vec![],
         };
@@ -504,7 +504,7 @@ async fn test_mcp_episode_chain_concurrency() {
     let query_context = TaskContext {
         language: None,
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: domain.to_string(),
         tags: vec![],
     };
@@ -528,7 +528,7 @@ async fn test_mcp_episode_chain_with_token_usage() {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "mcp-token-test".to_string(),
         tags: vec![],
     };
@@ -594,7 +594,7 @@ async fn test_mcp_episode_chain_filtered_query() {
         let context = TaskContext {
             language: Some("rust".to_string()),
             framework: None,
-            complexity: memory_core::types::ComplexityLevel::Moderate,
+            complexity: do_memory_core::types::ComplexityLevel::Moderate,
             domain: domain.to_string(),
             tags: vec![],
         };
@@ -622,7 +622,7 @@ async fn test_mcp_episode_chain_filtered_query() {
     let context1 = TaskContext {
         language: None,
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "Domain 1".to_string(),
         tags: vec![],
     };
@@ -635,7 +635,7 @@ async fn test_mcp_episode_chain_filtered_query() {
     let context2 = TaskContext {
         language: None,
         framework: None,
-        complexity: memory_core::types::ComplexityLevel::Moderate,
+        complexity: do_memory_core::types::ComplexityLevel::Moderate,
         domain: "Domain 2".to_string(),
         tags: vec![],
     };
@@ -660,7 +660,7 @@ async fn test_mcp_episode_chain_bulk_operations() {
         let context = TaskContext {
             language: Some("rust".to_string()),
             framework: None,
-            complexity: memory_core::types::ComplexityLevel::Moderate,
+            complexity: do_memory_core::types::ComplexityLevel::Moderate,
             domain: "mcp-bulk-test".to_string(),
             tags: vec![],
         };

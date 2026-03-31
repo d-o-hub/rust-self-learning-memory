@@ -10,7 +10,7 @@
 //! - Path traversal attacks
 //! - Environment variable access
 
-use memory_mcp::{
+use do_memory_mcp::{
     CodeSandbox, ExecutionContext, ExecutionResult, SandboxConfig, SecurityViolationType,
 };
 use serde_json::json;

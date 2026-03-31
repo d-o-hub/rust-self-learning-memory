@@ -23,7 +23,7 @@ Successfully implemented the javy-backend feature to build successfully in CI wi
 
 ### Files Modified
 
-#### 1. `memory-mcp/src/javy_compiler.rs`
+#### 1. `do-memory-mcp/src/javy_compiler.rs`
 **Changes**: Enhanced graceful degradation for invalid Javy plugins
 
 **Key Changes**:
@@ -40,7 +40,7 @@ Successfully implemented the javy-backend feature to build successfully in CI wi
 - Comprehensive error messages for users
 - Debug-level logging for expected invalid plugin state
 
-#### 2. `memory-mcp/src/server/mod.rs`
+#### 2. `do-memory-mcp/src/server/mod.rs`
 **Changes**: Updated Javy plugin validation to be non-blocking
 
 **Key Changes**:
@@ -69,8 +69,8 @@ Successfully implemented the javy-backend feature to build successfully in CI wi
 - name: Build (javy-backend)
   if: matrix.feature == 'javy-backend'
   run: |
-    cargo build -p memory-mcp --features javy-backend
-    cargo test -p memory-mcp --features javy-backend -- --test-threads=2
+    cargo build -p do-memory-mcp --features javy-backend
+    cargo test -p do-memory-mcp --features javy-backend -- --test-threads=2
 ```
 
 ---
@@ -158,11 +158,11 @@ The implementation follows a three-tier fallback approach:
   if: matrix.feature == 'javy-backend'
   run: |
     # Build with javy-backend feature - graceful degradation is expected
-    echo "Building memory-mcp with javy-backend feature..."
+    echo "Building do-memory-mcp with javy-backend feature..."
     echo "Note: javy-plugin.wasm is currently a 9-byte placeholder"
     echo "The feature will build successfully with graceful degradation"
-    cargo build -p memory-mcp --features javy-backend
-    cargo test -p memory-mcp --features javy-backend -- --test-threads=2
+    cargo build -p do-memory-mcp --features javy-backend
+    cargo test -p do-memory-mcp --features javy-backend -- --test-threads=2
     echo "✓ javy-backend feature build and tests completed successfully"
 ```
 
@@ -172,7 +172,7 @@ The implementation follows a three-tier fallback approach:
 # - Requires: javy-plugin.wasm (>100 bytes, valid WASM) OR javy CLI in PATH
 # - Current state: 9-byte placeholder, triggers graceful degradation
 # - Expected behavior: Builds successfully, tests pass
-# - See: memory-mcp/src/javy_compiler.rs for implementation details
+# - See: do-memory-mcp/src/javy_compiler.rs for implementation details
 ```
 
 ---
@@ -191,7 +191,7 @@ Current state:
 - javy CLI: not found
 
 To enable full Javy support:
-- Download a valid Javy plugin and place at /path/to/memory-mcp/javy-plugin.wasm, or
+- Download a valid Javy plugin and place at /path/to/do-memory-mcp/javy-plugin.wasm, or
 - Set JAVY_PLUGIN environment variable to valid plugin path, or
 - Install javy CLI: cargo install javy-cli
 ```
@@ -341,8 +341,8 @@ All Javy compilation infrastructure is in place and ready for:
 ## References
 
 ### Implementation Files
-- `memory-mcp/src/javy_compiler.rs` - Core Javy compiler with graceful degradation
-- `memory-mcp/src/server/mod.rs` - Plugin validation (non-blocking)
+- `do-memory-mcp/src/javy_compiler.rs` - Core Javy compiler with graceful degradation
+- `do-memory-mcp/src/server/mod.rs` - Plugin validation (non-blocking)
 - `.github/workflows/ci.yml` - CI workflow (actual build, no skips)
 
 ### Documentation

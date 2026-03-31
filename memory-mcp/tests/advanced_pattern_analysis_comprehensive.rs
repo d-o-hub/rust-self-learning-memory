@@ -3,11 +3,11 @@
 //! This module provides comprehensive testing for the advanced pattern analysis MCP tool,
 //! covering unit tests, integration tests, performance tests, and security tests.
 
-use memory_core::SelfLearningMemory;
-use memory_mcp::mcp::tools::advanced_pattern_analysis::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
     AdvancedPatternAnalysisInput, AdvancedPatternAnalysisTool, AnalysisConfig, AnalysisType,
 };
-use memory_mcp::patterns::statistical;
+use do_memory_mcp::patterns::statistical;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::time::{Duration, timeout};

@@ -1,6 +1,6 @@
 use serde_json::json;
 
-use memory_mcp::jsonrpc::JsonRpcRequest;
+use do_memory_mcp::jsonrpc::JsonRpcRequest;
 
 #[test]
 fn test_protocol_version_negotiation() {

@@ -41,7 +41,7 @@ impl ConfigLoader {
         if let Some((timestamp, cached_config)) = cache.as_ref() {
             if timestamp.elapsed() < std::time::Duration::from_secs(300) {
                 // Verify path hasn't changed
-                if Self::paths_equal(path, &Some("memory-cli.toml".as_ref())) {
+                if Self::paths_equal(path, &Some("do-memory-cli.toml".as_ref())) {
                     return Ok(cached_config.clone());
                 }
             }

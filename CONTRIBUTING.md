@@ -75,7 +75,7 @@ See [Testing Guide](TESTING.md) for comprehensive testing information:
 - **Integration Tests**: Located in `tests/` directory
 - **Coverage**: >90% line coverage, >85% branch coverage
 - **All tests** must pass before merging
-- Use `test-utils` crate for shared helpers
+- Use `do-memory-test-utils` crate for shared helpers
 
 ## Commit Message Format
 

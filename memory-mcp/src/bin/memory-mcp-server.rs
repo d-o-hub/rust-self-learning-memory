@@ -6,7 +6,7 @@
 
 mod server_impl;
 
-use memory_mcp::SandboxConfig;
+use do_memory_mcp::SandboxConfig;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::info;
@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
     // Create MCP server with restrictive sandbox
     let sandbox_config = SandboxConfig::restrictive();
     let mcp_server = Arc::new(Mutex::new(
-        memory_mcp::MemoryMCPServer::new(sandbox_config, memory).await?,
+        do_memory_mcp::MemoryMCPServer::new(sandbox_config, memory).await?,
     ));
 
     info!("MCP Server initialized successfully");

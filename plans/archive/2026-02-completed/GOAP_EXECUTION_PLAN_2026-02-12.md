@@ -80,7 +80,7 @@
 **Source**: perplexity-researcher-reasoning-pro (2026 best practices)
 
 ### Dependabot PR Analysis
-**Finding**: All 6 PRs safe to merge; CI failures are pre-existing (7 memory-mcp tests)
+**Finding**: All 6 PRs safe to merge; CI failures are pre-existing (7 do-memory-mcp tests)
 **Risk Matrix**:
 - sysinfo 0.38.1: 5/100 (LOW) - patch, macOS support restore
 - reqwest 0.13.2: 5/100 (LOW) - patch, bug fixes
@@ -151,9 +151,9 @@
   4. PR #270: sysinfo 0.38.0 → 0.38.1 (patch, LOW risk)
   5. PR #269: reqwest 0.13.1 → 0.13.2 (patch, LOW risk)
   6. PR #271: criterion 0.5.1 → 0.8.2 (major dev-only, MEDIUM risk)
-- **Rationale**: CI failures are pre-existing (7 memory-mcp tests), NOT from dependency updates
+- **Rationale**: CI failures are pre-existing (7 do-memory-mcp tests), NOT from dependency updates
 - **Pre-Merge Validation**: ✅ All PRs build and pass clippy locally
-- **Expected Outcome**: 7 pre-existing test failures in memory-mcp (unrelated to deps)
+- **Expected Outcome**: 7 pre-existing test failures in do-memory-mcp (unrelated to deps)
 - **Acceptance**: All 6 PRs merged, CI green for non-pre-existing failures
 - **Effort**: 1-1.5 hours
 - **Dependencies**: None (parallel with 1.1, 1.2)
@@ -177,7 +177,7 @@
 
 #### Task 2.2: MCP Field Selection/Projection
 - **Action**: Implement `include_fields` parameter per ADR-021
-- **Files**: `memory-mcp/src/tools/queries.rs`, `memory-mcp/src/tools/episodes.rs`, new `memory-mcp/src/utils/serialization.rs`
+- **Files**: `do-memory-mcp/src/tools/queries.rs`, `do-memory-mcp/src/tools/episodes.rs`, new `do-memory-mcp/src/utils/serialization.rs`
 - **Rationale**: 20-60% additional token reduction on responses
 - **Acceptance**: `include_fields` parameter works on query_memory, get_episode; tests pass
 - **Effort**: 4-6 hours
@@ -185,7 +185,7 @@
 
 #### Task 2.3: Adaptive TTL Implementation
 - **Action**: Complete Phase 2.3 adaptive TTL for cache layer
-- **Files**: `memory-storage-turso/src/cache/adaptive_ttl.rs` and related modules
+- **Files**: `do-memory-storage-turso/src/cache/adaptive_ttl.rs` and related modules
 - **Rationale**: Dynamic TTL adjustment based on access patterns
 - **Acceptance**: Adaptive TTL tests pass, cache hit rate measurably improved
 - **Effort**: 6-8 hours
@@ -203,7 +203,7 @@
 
 #### Task 3.2: Complete Embeddings Integration
 - **Action**: Complete remaining 15% of embeddings integration
-- **Files**: `memory-core/src/embeddings/`, integration with pattern extraction
+- **Files**: `do-memory-core/src/embeddings/`, integration with pattern extraction
 - **Rationale**: Full embedding-based pattern clustering (Phase 2 of ADR-002)
 - **Acceptance**: Embedding-based clustering functional, ≥95% integration
 - **Effort**: 6-10 hours
@@ -272,7 +272,7 @@ Phase 3 (P2): Quality Improvements
 - **Changes**:
   - Upgraded `jlumbroso/free-disk-space@v1.3.1` → `v2`
   - Enabled more aggressive cleanup (tool-cache, swap-storage)
-  - Added exclusions for heavy crates (benches, examples, test-utils)
+  - Added exclusions for heavy crates (benches, examples, do-memory-test-utils)
   - Improved full workspace coverage scope
 - **Verification**: Clippy passes, formatting clean
 - **Status**: Deployed and ready for testing

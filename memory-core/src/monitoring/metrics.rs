@@ -13,7 +13,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_core::monitoring::metrics::MetricsRegistry;
+//! use do_memory_core::monitoring::metrics::MetricsRegistry;
 //!
 //! let registry = MetricsRegistry::new();
 //! ```

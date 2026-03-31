@@ -2,7 +2,7 @@
 //!
 //! These tests verify that rate limiting is properly integrated into the MCP server.
 
-use memory_mcp::server::rate_limiter::{
+use do_memory_mcp::server::rate_limiter::{
     ClientId, OperationType, RateLimitConfig, RateLimitResult, RateLimiter,
 };
 use std::time::Duration;

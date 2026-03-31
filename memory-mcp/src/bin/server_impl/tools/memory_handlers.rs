@@ -4,12 +4,12 @@
 //! and related operations.
 
 use super::{Content, MemoryMCPServer, Value, get_client_id, json_value_len};
-use memory_mcp::ExecutionContext;
-use memory_mcp::mcp::tools::embeddings::{
+use do_memory_mcp::ExecutionContext;
+use do_memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, GenerateEmbeddingInput,
     QuerySemanticMemoryInput, SearchByEmbeddingInput,
 };
-use memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
+use do_memory_mcp::mcp::tools::quality_metrics::QualityMetricsInput;
 use serde_json::json;
 
 /// Handle query_memory tool
@@ -190,11 +190,13 @@ pub async fn handle_advanced_pattern_analysis(
 
     let analysis_type = match analysis_type_str {
         "statistical" => {
-            memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Statistical
+            do_memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Statistical
         }
-        "predictive" => memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Predictive,
+        "predictive" => {
+            do_memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Predictive
+        }
         "comprehensive" => {
-            memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Comprehensive
+            do_memory_mcp::mcp::tools::advanced_pattern_analysis::AnalysisType::Comprehensive
         }
         _ => {
             return Err(anyhow::anyhow!(
@@ -217,11 +219,12 @@ pub async fn handle_advanced_pattern_analysis(
         .get("config")
         .and_then(|c| serde_json::from_value(c.clone()).ok());
 
-    let input = memory_mcp::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisInput {
-        analysis_type: analysis_type.clone(),
-        time_series_data,
-        config,
-    };
+    let input =
+        do_memory_mcp::mcp::tools::advanced_pattern_analysis::AdvancedPatternAnalysisInput {
+            analysis_type: analysis_type.clone(),
+            time_series_data,
+            config,
+        };
 
     let result = server.execute_advanced_pattern_analysis(input).await;
 

@@ -10,10 +10,10 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::SelfLearningMemory;
-use memory_core::episode::{Direction, ExecutionStep, RelationshipMetadata, RelationshipType};
-use memory_core::types::{ExecutionResult, MemoryConfig, TaskContext, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::episode::{Direction, ExecutionStep, RelationshipMetadata, RelationshipType};
+use do_memory_core::types::{ExecutionResult, MemoryConfig, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;
 use tempfile::tempdir;
@@ -256,7 +256,7 @@ async fn test_relationship_workflow_all_commands() {
     assert_eq!(relationships.len(), 2);
 
     // Test 5: find-related-episodes
-    let filter = memory_core::memory::relationship_query::RelationshipFilter::default();
+    let filter = do_memory_core::memory::relationship_query::RelationshipFilter::default();
     let related = memory
         .find_related_episodes(parent_id, filter)
         .await

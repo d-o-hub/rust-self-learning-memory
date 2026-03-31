@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 
-use memory_core::{Episode, RewardScore};
+use do_memory_core::{Episode, RewardScore};
 
 /// Assert that an episode has been completed
 ///
@@ -223,7 +223,7 @@ pub fn assert_min_steps(episode: &Episode, min_count: usize) {
 mod tests {
     use super::super::fixtures::test_context;
     use super::*;
-    use memory_core::{Episode, TaskType};
+    use do_memory_core::{Episode, TaskType};
 
     #[tokio::test]
     async fn test_assert_episode_completed() {
@@ -238,7 +238,7 @@ mod tests {
         memory
             .complete_episode(
                 episode_id,
-                memory_core::TaskOutcome::Success {
+                do_memory_core::TaskOutcome::Success {
                     verdict: "done".to_string(),
                     artifacts: vec![],
                 },

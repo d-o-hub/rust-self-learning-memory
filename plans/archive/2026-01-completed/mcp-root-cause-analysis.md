@@ -1,12 +1,12 @@
 # Root Cause Analysis: "Failed to get tools" Error
 
 ## Summary
-The "Failed to get tools" error in memory-mcp server is caused by a **JSON field naming mismatch** between the Rust struct definition and the MCP protocol specification.
+The "Failed to get tools" error in do-memory-mcp server is caused by a **JSON field naming mismatch** between the Rust struct definition and the MCP protocol specification.
 
 ## Root Cause Identification
 
 ### Issue Location
-**File**: `/workspaces/feat-phase3/memory-mcp/src/protocol.rs`
+**File**: `/workspaces/feat-phase3/do-memory-mcp/src/protocol.rs`
 **Lines**: 59-63
 
 ### The Problem

@@ -30,8 +30,8 @@ jobs:
         uses: actions/github-script@v7
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          VERBOSE:            ${{ inputs.verbose || 'false' }}
-          REPO:               ${{ github.repository }}
+          VERBOSE: ${{ inputs.verbose || 'false' }}
+          REPO: ${{ github.repository }}
         with:
           script: |
             // ─────────────────────────────────────────────────────────────────
@@ -271,9 +271,9 @@ jobs:
                 return { verdict: 'NO_KEY', confidence: 0, reason: 'No API key', model: 'none' };
               }
               const systemPrompt = `You are a GitHub issue classifier for a Rust open-source project.
-SPAM: promotional/bot content, promo URLs, soft-sell ("feel free to close"), zero technical relevance.
-LEGITIMATE: bugs, features, questions, security, dependency issues.
-Reply ONLY with valid JSON (no markdown): {"verdict":"SPAM","confidence":90,"reason":"one sentence"}`;
+              SPAM: promotional/bot content, promo URLs, soft-sell ("feel free to close"), zero technical relevance.
+              LEGITIMATE: bugs, features, questions, security, dependency issues.
+              Reply ONLY with valid JSON (no markdown): {"verdict":"SPAM","confidence":90,"reason":"one sentence"}`;
 
               try {
                 const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {

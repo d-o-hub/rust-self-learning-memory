@@ -16,7 +16,7 @@ echo "\"$CURRENT_PROMPT\""
 echo ""
 echo "🚀 Starting memory-mcp server..."
 cd /workspaces/feat-phase3/memory-mcp
-cargo run --bin memory-mcp-server > /tmp/mcp_server.log 2>&1 &
+cargo run --bin do-memory-mcp-server > /tmp/mcp_server.log 2>&1 &
 SERVER_PID=$!
 sleep 3
 
@@ -26,25 +26,25 @@ echo "📡 Server started with PID: $SERVER_PID"
 echo ""
 echo "🔌 Testing initialization..."
 INIT_REQUEST='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"clientInfo":{"name":"prompt-test","version":"1.0"}}}'
-echo "$INIT_REQUEST" | nc localhost 3000 2>/dev/null || echo "$INIT_REQUEST" | timeout 2s cargo run --bin memory-mcp-server
+echo "$INIT_REQUEST" | nc localhost 3000 2>/dev/null || echo "$INIT_REQUEST" | timeout 2s cargo run --bin do-memory-mcp-server
 
 # Test 2: List available tools
 echo ""
 echo "🔧 Testing tools list..."
 TOOLS_REQUEST='{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
-echo "$TOOLS_REQUEST" | timeout 2s cargo run --bin memory-mcp-server || echo "$TOOLS_REQUEST" | nc localhost 3000 2>/dev/null
+echo "$TOOLS_REQUEST" | timeout 2s cargo run --bin do-memory-mcp-server || echo "$TOOLS_REQUEST" | nc localhost 3000 2>/dev/null
 
 # Test 3: Store the current prompt using query_memory
 echo ""
 echo "💾 Testing prompt storage..."
 QUERY_REQUEST='{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"query_memory","arguments":{"query":"'$CURRENT_PROMPT'","domain":"verification","task_type":"analysis","limit":5}}}'
-echo "$QUERY_REQUEST" | timeout 5s cargo run --bin memory-mcp-server || echo "$QUERY_REQUEST" | nc localhost 3000 2>/dev/null
+echo "$QUERY_REQUEST" | timeout 5s cargo run --bin do-memory-mcp-server || echo "$QUERY_REQUEST" | nc localhost 3000 2>/dev/null
 
 # Test 4: Retrieve the stored prompt
 echo ""
 echo "🔍 Testing prompt retrieval..."
 RETRIEVE_REQUEST='{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"query_memory","arguments":{"query":"memory-mcp prompt verification","domain":"testing","task_type":"analysis","limit":10}}}'
-echo "$RETRIEVE_REQUEST" | timeout 5s cargo run --bin memory-mcp-server || echo "$RETRIEVE_REQUEST" | nc localhost 3000 2>/dev/null
+echo "$RETRIEVE_REQUEST" | timeout 5s cargo run --bin do-memory-mcp-server || echo "$RETRIEVE_REQUEST" | nc localhost 3000 2>/dev/null
 
 # Clean up
 echo ""

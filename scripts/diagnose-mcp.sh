@@ -14,10 +14,10 @@ echo
 
 # Check if the server binary exists
 echo "1. Checking server binary..."
-if [ ! -f "$PROJECT_ROOT/target/debug/memory-mcp-server" ]; then
+if [ ! -f "$PROJECT_ROOT/target/debug/do-memory-mcp-server" ]; then
     echo "❌ Server binary not found. Building..."
     cd "$PROJECT_ROOT"
-    if ! cargo build --bin memory-mcp-server 2>&1; then
+    if ! cargo build --bin do-memory-mcp-server 2>&1; then
         echo "❌ Build failed. Compilation errors detected."
         echo
         echo "Common issues:"
@@ -25,7 +25,7 @@ if [ ! -f "$PROJECT_ROOT/target/debug/memory-mcp-server" ]; then
         echo "- rquickjs version compatibility"
         echo "- Missing Debug implementations"
         echo
-        echo "Try running: cargo check --bin memory-mcp-server"
+        echo "Try running: cargo check --bin do-memory-mcp-server"
         exit 1
     fi
 fi
@@ -43,7 +43,7 @@ echo "Sending test request: $TEST_REQUEST"
 # Try to start server and send request
 timeout 10s bash -c "
 cd '$PROJECT_ROOT'
-echo '$TEST_REQUEST' | target/debug/memory-mcp-server 2>&1
+echo '$TEST_REQUEST' | target/debug/do-memory-mcp-server 2>&1
 " > /tmp/mcp_test_output 2>&1 || true
 
 echo
@@ -85,11 +85,11 @@ echo
 echo "4. Checking for compilation issues..."
 
 cd "$PROJECT_ROOT"
-if cargo check --bin memory-mcp-server >/dev/null 2>&1; then
+if cargo check --bin do-memory-mcp-server >/dev/null 2>&1; then
     echo "✅ Code compiles successfully"
 else
     echo "❌ Code has compilation errors"
-    echo "Run 'cargo check --bin memory-mcp-server' for details"
+    echo "Run 'cargo check --bin do-memory-mcp-server' for details"
 fi
 
 echo
@@ -99,7 +99,7 @@ if echo "$RESPONSE" | jq . >/dev/null 2>&1; then
     echo "✅ JSON parsing works - issue may be in client or specific requests"
 else
     echo "❌ Fix server compilation errors first"
-    echo "   Run: cargo check --bin memory-mcp-server"
+    echo "   Run: cargo check --bin do-memory-mcp-server"
     echo "   Fix the WASM sandbox API issues"
 fi
 

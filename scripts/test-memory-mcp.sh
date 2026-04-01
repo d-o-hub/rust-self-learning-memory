@@ -24,32 +24,32 @@ mkdir -p ./memory-mcp/data
 
 echo "=== Test 1: Initialize MCP Server ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Test 2: List Available Tools ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Test 3: Health Check ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"health_check","arguments":{}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Test 4: Query Memory (empty database) ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"query_memory","arguments":{"query":"test query","domain":"general","limit":5}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Test 5: Get Metrics ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"get_metrics","arguments":{"metric_type":"storage"}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Test 6: Analyze Patterns ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"analyze_patterns","arguments":{"task_type":"code_generation","min_success_rate":0.7,"limit":10}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Storage Backend Verification ===" | tee -a "$LOG_FILE"
@@ -85,26 +85,26 @@ echo "4. Retrieve context" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Use the CLI to create test episodes
-echo "Creating test episodes via memory-cli..." | tee -a "$LOG_FILE"
+echo "Creating test episodes via do-memory-cli..." | tee -a "$LOG_FILE"
 cd ./memory-mcp
 
 # Test with in-memory mode first
 export RUST_LOG=info
-echo "  Running memory-cli in test mode..." | tee -a "$LOG_FILE"
+echo "  Running do-memory-cli in test mode..." | tee -a "$LOG_FILE"
 cd ..
-cargo run --bin memory-cli -- episode --help 2>&1 | head -20 | tee -a "$LOG_FILE"
+cargo run --bin do-memory-cli -- episode --help 2>&1 | head -20 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Query memory again after potential episode creation
 echo "=== Test 8: Query Memory (after potential episodes) ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"query_memory","arguments":{"query":"test","domain":"general","limit":10}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Get detailed metrics
 echo "=== Test 9: Get Detailed Metrics ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"get_metrics","arguments":{"metric_type":"detailed"}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Test 10: Advanced Pattern Analysis ===" | tee -a "$LOG_FILE"
@@ -119,7 +119,7 @@ cat > /tmp/test_pattern_data.json <<'EOF'
 EOF
 
 echo '{"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"advanced_pattern_analysis","arguments":{"analysis_type":"statistical","time_series_data":{"success_rate":[0.8,0.85,0.82,0.88,0.9,0.87],"latency_ms":[120,115,130,110,105,108],"throughput":[50,55,52,58,60,59]}}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 # Summary

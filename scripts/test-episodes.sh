@@ -264,7 +264,7 @@ echo "" | tee -a "$LOG_FILE"
 
 echo "=== Querying Memory via MCP Server ===" | tee -a "$LOG_FILE"
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"query_memory","arguments":{"query":"async http client","domain":"web-api","limit":5}}}' | \
-  ./target/release/memory-mcp-server 2>&1 | grep -v "^\[" | tee -a "$LOG_FILE"
+  ./target/release/do-memory-mcp-server 2>&1 | grep -v "^\[" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "=== Summary ===" | tee -a "$LOG_FILE"

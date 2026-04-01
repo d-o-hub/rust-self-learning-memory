@@ -6,7 +6,7 @@ echo "CLI Direct Usage Verification for Storage Backends"
 echo "=================================================="
 echo ""
 
-CLI="./target/debug/memory-cli"
+CLI="./target/debug/do-memory-cli"
 
 echo "1. Health Check"
 echo "--------------------------------------------"

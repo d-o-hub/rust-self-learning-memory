@@ -34,7 +34,7 @@ impl TestConfig {
 
         // Find CLI binary path
         let cli_path = find_binary("do-memory-cli")?;
-        let mcp_server_path = find_binary("memory-mcp-server")?;
+        let mcp_server_path = find_binary("do-memory-mcp-server")?;
 
         Ok(Self {
             temp_dir,

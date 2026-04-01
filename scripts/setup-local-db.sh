@@ -268,7 +268,7 @@ main() {
     echo "  - Config: $PROJECT_ROOT/memory-cli.toml"
     echo
     log_info "You can now use Memory CLI with local storage:"
-    echo "  cd $PROJECT_ROOT && cargo run --bin memory-cli -- --help"
+    echo "  cd $PROJECT_ROOT && cargo run --bin do-memory-cli -- --help"
 }
 
 # Handle command line arguments

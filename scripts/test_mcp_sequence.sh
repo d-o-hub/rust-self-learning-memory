@@ -5,7 +5,7 @@ echo "Testing MCP server with sequential requests in single process"
 echo "Starting server in background..."
 
 # Start server as coprocess
-coproc SERVER { ./target/debug/memory-mcp-server 2>/dev/null; }
+coproc SERVER { ./target/debug/do-memory-mcp-server 2>/dev/null; }
 
 # Send initialize request
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}' >&${SERVER[1]}

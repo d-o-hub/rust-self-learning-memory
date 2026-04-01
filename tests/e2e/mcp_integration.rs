@@ -5,7 +5,7 @@
 //! - Server Lifecycle: Start server → Execute tools → Stop server
 //! - Error handling and graceful shutdown
 //!
-//! These tests use the memory-mcp-server binary and communicate via JSON-RPC
+//! These tests use the do-memory-mcp-server binary and communicate via JSON-RPC
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
@@ -55,7 +55,7 @@ impl TestMcpServer {
     /// Start the MCP server
     async fn start() -> Result<Self> {
         let mut process = Command::new("cargo")
-            .args(["run", "--bin", "memory-mcp-server", "--quiet"])
+            .args(["run", "--bin", "do-memory-mcp-server", "--quiet"])
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())

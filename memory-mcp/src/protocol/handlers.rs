@@ -74,7 +74,7 @@ pub async fn handle_initialize(
         protocol_version,
         capabilities,
         server_info: json!({
-            "name": "memory-mcp-server",
+            "name": "do-memory-mcp-server",
             "version": env!("CARGO_PKG_VERSION")
         }),
     };

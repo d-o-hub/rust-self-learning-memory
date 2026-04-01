@@ -8,9 +8,9 @@ echo "=== MCP Token Usage Benchmark ==="
 echo
 
 # Build if needed
-if [[ ! -x "target/release/memory-mcp-server" ]]; then
+if [[ ! -x "target/release/do-memory-mcp-server" ]]; then
     echo "Building MCP server..."
-    cargo build --release --package memory-mcp --bin memory-mcp-server
+    cargo build --release --package do-memory-mcp --bin do-memory-mcp-server
 fi
 
 # Function to send JSON-RPC request via stdio
@@ -31,7 +31,7 @@ EOF
     fi
     
     # Send request and capture response
-    RESPONSE=$(echo "$REQUEST" | target/release/memory-mcp-server 2>/dev/null)
+    RESPONSE=$(echo "$REQUEST" | target/release/do-memory-mcp-server 2>/dev/null)
     
     # Count characters and estimate tokens
     CHAR_COUNT=$(echo "$RESPONSE" | tr -d '\n' | wc -c)

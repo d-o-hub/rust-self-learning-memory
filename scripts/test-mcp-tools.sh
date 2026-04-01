@@ -31,7 +31,7 @@ test_tool_call() {
     # of lines and then extract the body depending on framing.
     RESPONSE_RAW=$(timeout 15s bash -c "
         cd '$PROJECT_ROOT'
-        echo '$REQUEST' | target/debug/memory-mcp-server 2>/dev/null | sed -n '1,200p'
+        echo '$REQUEST' | target/debug/do-memory-mcp-server 2>/dev/null | sed -n '1,200p'
     " 2>/dev/null || echo "TIMEOUT")
 
     if [ "$RESPONSE_RAW" = "TIMEOUT" ]; then

@@ -3,7 +3,6 @@ title = "Self-Learning Memory System"
 authors = ["d-o-hub"]
 description = "Documentation for the Self-Learning Memory System"
 language = "en"
-multilingual = false
 src = "src"
 
 [build]

@@ -8,17 +8,17 @@
 - **Branch**: `main`
 - **Version**: `0.1.26` (released 2026-04-01, published to crates.io)
 
-## Current Focus: v0.1.26 Sprint (In Progress)
+## Current Focus: v0.1.27 Sprint (In Progress)
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
 | Bayesian ranking | WG-073 | ⏳ In Progress | Wilson score from attribution data |
-| Diversity retrieval | WG-077 | ⏳ In Progress | MMR reranking |
+| Diversity retrieval | WG-077 | ✅ Complete | MMR reranking (already implemented in diversity/maximizer.rs) |
 | Episode GC/TTL | WG-075 | ⏳ In Progress | Retention policy |
-| MCP Server Card | WG-078 | ⏳ In Progress | `.well-known/mcp.json` |
+| MCP Server Card | WG-078 | ✅ Complete | `.well-known/mcp.json` |
 | spawn_blocking audit | WG-079 | ⏳ In Progress | CPU-heavy async paths |
-| GitHub Pages | WG-084 | ⏳ In Progress | mdBook + cargo doc |
-| llms.txt | WG-085 | ⏳ In Progress | LLM context file |
+| GitHub Pages | WG-084 | ✅ Complete | mdBook + cargo doc |
+| llms.txt | WG-085 | ✅ Complete | LLM context file |
 
 ### v0.1.26 Release (Complete)
 

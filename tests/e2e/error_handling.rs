@@ -86,9 +86,12 @@ async fn test_invalid_uuid_handling() {
     ];
 
     for uuid_str in invalid_uuids {
-        // Try to parse UUID
+        // Try to parse UUID - invalid test data, not sensitive
         let parse_result = Uuid::parse_str(uuid_str);
-        assert!(parse_result.is_err(), "UUID {} should be invalid", uuid_str);
+        assert!(
+            parse_result.is_err(),
+            "Invalid UUID format should be rejected"
+        );
     }
 
     println!("✓ Invalid UUID handling test passed");

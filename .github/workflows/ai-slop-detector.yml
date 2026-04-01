@@ -1,3 +1,4 @@
+---
 name: 🤖 AI Slop Issue Detector
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -9,7 +10,7 @@ name: 🤖 AI Slop Issue Detector
 #
 # Self-learning: human labels 'ai-slop' or 'false-positive' → patterns grow
 # ─────────────────────────────────────────────────────────────────────────────
-on:
+"on":
   issues:
     types: [opened, reopened]
 

@@ -1,3 +1,4 @@
+---
 name: 🧪 AI Slop Detector — Eval Suite
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -5,7 +6,7 @@ name: 🧪 AI Slop Detector — Eval Suite
 # Triggers: manual dispatch, or schedule (weekly to catch model drift)
 # Outputs: pass/fail per case + accuracy score committed to eval-results.json
 # ─────────────────────────────────────────────────────────────────────────────
-on:
+"on":
   workflow_dispatch:
     inputs:
       verbose:

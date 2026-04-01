@@ -1,22 +1,38 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-03-31 (v0.1.24 released)
-- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.25.md` (next sprint)
+- **Last Updated**: 2026-04-01 (v0.1.26 released)
+- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.26.md` (current sprint)
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
-- **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`, `plans/adr/ADR-049-Comprehensive-Analysis-v0.1.25.md`
+- **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-048 (v0.1.24 stability), ADR-049 (v0.1.25 analysis)
 - **Branch**: `main`
-- **Version**: `0.1.24` (released 2026-03-31)
+- **Version**: `0.1.26` (released 2026-04-01, published to crates.io)
 
-## Current Focus: v0.1.25 Sprint Planning
+## Current Focus: v0.1.26 Sprint (In Progress)
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
-| Bayesian ranking | WG-073 | ⏳ Planned | Wilson score from attribution data |
-| Diversity retrieval | WG-077 | ⏳ Planned | MMR reranking |
-| Episode GC/TTL | WG-075 | ⏳ Planned | Retention policy |
-| MCP Server Card | WG-078 | ⏳ Planned | `.well-known/mcp.json` |
-| spawn_blocking audit | WG-079 | ⏳ Planned | CPU-heavy async paths |
+| Bayesian ranking | WG-073 | ⏳ In Progress | Wilson score from attribution data |
+| Diversity retrieval | WG-077 | ⏳ In Progress | MMR reranking |
+| Episode GC/TTL | WG-075 | ⏳ In Progress | Retention policy |
+| MCP Server Card | WG-078 | ⏳ In Progress | `.well-known/mcp.json` |
+| spawn_blocking audit | WG-079 | ⏳ In Progress | CPU-heavy async paths |
+| GitHub Pages | WG-084 | ⏳ In Progress | mdBook + cargo doc |
+| llms.txt | WG-085 | ⏳ In Progress | LLM context file |
+
+### v0.1.26 Release (Complete)
+
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| Crate renaming | — | ✅ Complete | `memory-*` → `do-memory-*` namespace |
+| Version bump | — | ✅ Complete | `0.1.25` → `0.1.26` |
+| crates.io publish | — | ✅ Complete | All 4 crates published |
+| Binary names | — | ✅ Complete | `do-memory-mcp-server`, `do-memory-cli` |
+| GitHub Release | — | ✅ Complete | Tag v0.1.26 with multi-platform binaries |
+
+### v0.1.25 Release (Superseded by v0.1.26)
+
+v0.1.25 was skipped in favor of direct v0.1.26 release with crate renaming.
 
 ### v0.1.24 Release (Complete)
 

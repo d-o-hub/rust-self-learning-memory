@@ -1,34 +1,100 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-03-31 (v0.1.24 release plan added)
+- **Last Updated**: 2026-04-01 (v0.1.26 released)
 - **Source ADR**: ADR-037
 - **Status**: Active
 
-## v0.1.24 Release Goals (Pending)
+## v0.1.26 Release Goals (Complete)
+
+1. **WG-086**: Crate renaming `memory-*` → `do-memory-*`
+   - Priority: P0
+   - Owner: release
+   - Target: All crates renamed with `do-memory-` prefix
+   - Status: ✅ Complete
+
+2. **WG-087**: Version bump 0.1.25 → 0.1.26
+   - Priority: P0
+   - Owner: release
+   - Target: `Cargo.toml` workspace version updated, published to crates.io
+   - Status: ✅ Complete
+
+3. **WG-088**: GitHub Release v0.1.26
+   - Priority: P0
+   - Owner: release
+   - Target: Tag pushed, GitHub Release created with multi-platform binaries
+   - Status: ✅ Complete
+
+## v0.1.25 Sprint Goals (In Progress)
+
+1. **WG-073**: Bayesian ranking with Wilson score
+   - Priority: P1
+   - Owner: feature-implementer
+   - Target: Ranking module with confidence bounds
+   - Status: ⏳ In Progress
+
+2. **WG-077**: MMR diversity retrieval
+   - Priority: P1
+   - Owner: feature-implementer
+   - Target: Diversity reranking in retrieval
+   - Status: ⏳ In Progress
+
+3. **WG-075**: Episode GC/TTL
+   - Priority: P1
+   - Owner: feature-implementer
+   - Target: Retention policy and cleanup
+   - Status: ⏳ In Progress
+
+4. **WG-078**: MCP Server Card
+   - Priority: P2
+   - Owner: feature-implementer
+   - Target: `.well-known/mcp.json` endpoint
+   - Status: ⏳ In Progress
+
+5. **WG-079**: spawn_blocking audit
+   - Priority: P2
+   - Owner: code-reviewer
+   - Target: All CPU-heavy async paths use spawn_blocking
+   - Status: ⏳ In Progress
+
+6. **WG-084**: GitHub Pages restoration
+   - Priority: P2
+   - Owner: docs
+   - Target: mdBook + cargo doc deployment
+   - Status: ⏳ In Progress
+
+7. **WG-085**: llms.txt creation
+   - Priority: P2
+   - Owner: docs
+   - Target: LLM context file at repo root
+   - Status: ⏳ In Progress
+
+---
+
+## v0.1.24 Release Goals (Complete)
 
 1. **WG-080**: Version bump 0.1.23 → 0.1.24
    - Priority: P0
    - Owner: release
    - Target: `Cargo.toml` workspace version updated, `cargo check` passes
-   - Status: ⏳ Pending
+   - Status: ✅ Complete
 
 2. **WG-081**: CHANGELOG.md backfill (v0.1.20–v0.1.24)
    - Priority: P0
    - Owner: docs
    - Target: 5 missing version entries added (v0.1.20, v0.1.21, v0.1.22, v0.1.23, v0.1.24)
-   - Status: ⏳ Pending
+   - Status: ✅ Complete
 
 3. **WG-082**: ROADMAP_ACTIVE.md sync to v0.1.24
    - Priority: P1
    - Owner: docs
    - Target: Released version updated, v0.1.24 sprint section added
-   - Status: ⏳ Pending
+   - Status: ✅ Complete
 
 4. **WG-083**: Quality gates pass + tag v0.1.24
    - Priority: P0
    - Owner: release
    - Target: All quality gates green, tag pushed, GitHub Release created with binaries
-   - Status: ⏳ Pending
+   - Status: ✅ Complete
 
 ---
 

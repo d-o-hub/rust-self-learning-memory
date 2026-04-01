@@ -1,9 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-03-31 (v0.1.24 stability sprint in progress)
-**Released Version**: v0.1.23
-**Branch**: `main` (PR #404 pending)
-**PR**: [#404](https://github.com/d-o-hub/rust-self-learning-memory/pull/404) — v0.1.24 test stability
+**Last Updated**: 2026-04-01 (v0.1.26 released)
+**Released Version**: v0.1.26
+**Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
@@ -14,18 +13,25 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.23 | — | — |
+| Workspace version | 0.1.26 | — | ✅ Published to crates.io |
 | Total test functions | 2,849/2,849 | — | ✅ All passing |
 | Skipped/ignored tests | 115 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
-| Failing doctests | 0 | 0 | ✅ Fixed (attribution clone, playbook sync) |
-| Production src files >500 LOC | 0 | 0 | ✅ Split: generator→builder, management→tags, handlers→feature_handlers |
+| Failing doctests | 0 | 0 | ✅ |
+| Production src files >500 LOC | 0 | 0 | ✅ |
 | `#[allow(dead_code)]` (production) | 31 | ≤40 | ✅ Target met |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
-| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
+| Broken markdown links | 0 active | ≤80 | ✅ |
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
+
+## v0.1.26 Release Highlights
+
+- **Crate Renaming**: All crates renamed from `memory-*` to `do-memory-*` namespace
+- **crates.io Publishing**: All 4 crates published successfully
+- **Binary Names**: `do-memory-mcp-server`, `do-memory-cli`
+- **GitHub Release**: v0.1.26 with multi-platform binaries
 
 ### Post-v0.1.22 Audit Findings (2026-03-24)
 

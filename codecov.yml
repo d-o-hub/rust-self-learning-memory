@@ -28,6 +28,11 @@ ignore:
   - "**/examples/**"        # Example code
   - "**/test-utils/**"      # Test utilities
   - "**/*.generated.rs"     # Generated code
+  - ".agents/**"            # Agent skill files (markdown)
+  - "agent_docs/**"         # Documentation files
+  - "plans/**"              # Planning documents
+  - "scripts/**"            # Build scripts
+  - ".github/**"            # GitHub workflow files
 
 # PR comment configuration
 comment:

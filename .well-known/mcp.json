@@ -1,0 +1,39 @@
+{
+  "name": "do-memory-mcp-server",
+  "version": "0.1.26",
+  "description": "Self-Learning Memory MCP Server - Episodic memory with pattern extraction and intelligent retrieval",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d-o-hub/rust-self-learning-memory"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false,
+    "logging": true
+  },
+  "tools": [
+    {"name": "create_episode", "description": "Create a new episode"},
+    {"name": "log_step", "description": "Log a step to an episode"},
+    {"name": "complete_episode", "description": "Complete an episode"},
+    {"name": "get_episode", "description": "Get episode details"},
+    {"name": "list_episodes", "description": "List episodes with filters"},
+    {"name": "extract_patterns", "description": "Extract patterns from episodes"},
+    {"name": "search_patterns", "description": "Search for patterns"},
+    {"name": "store_memory", "description": "Store a memory"},
+    {"name": "retrieve_memory", "description": "Retrieve memories"},
+    {"name": "search_memory", "description": "Semantic search in memories"},
+    {"name": "record_recommendation_session", "description": "Record a recommendation session"},
+    {"name": "record_recommendation_feedback", "description": "Record feedback on a recommendation"},
+    {"name": "recommend_playbook", "description": "Get playbook recommendations"},
+    {"name": "checkpoint_episode", "description": "Create episode checkpoint"},
+    {"name": "get_handoff_pack", "description": "Get handoff pack for agent transfer"},
+    {"name": "resume_from_handoff", "description": "Resume from a handoff pack"}
+  ],
+  "embedding_providers": ["openai", "cohere", "ollama", "local"],
+  "storage_backends": ["turso", "redb"],
+  "license": "MIT",
+  "authors": ["d-o-hub"],
+  "homepage": "https://github.com/d-o-hub/rust-self-learning-memory",
+  "keywords": ["mcp", "memory", "ai", "episodic", "patterns", "self-learning"]
+}

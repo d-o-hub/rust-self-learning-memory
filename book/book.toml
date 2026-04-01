@@ -1,0 +1,18 @@
+[book]
+title = "Self-Learning Memory System"
+authors = ["d-o-hub"]
+description = "Documentation for the Self-Learning Memory System"
+language = "en"
+multilingual = false
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = true
+
+[output.html]
+git-repository-url = "https://github.com/d-o-hub/rust-self-learning-memory"
+edit-url-template = "https://github.com/d-o-hub/rust-self-learning-memory/edit/main/book/{path}"
+
+[output.html.search]
+enable = true

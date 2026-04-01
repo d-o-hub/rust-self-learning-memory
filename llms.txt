@@ -1,0 +1,125 @@
+# Self-Learning Memory System - LLM Context
+
+## Project Overview
+
+A Rust-based self-learning memory system with episodic memory, pattern extraction, and intelligent retrieval capabilities.
+
+**Repository**: https://github.com/d-o-hub/rust-self-learning-memory
+**Language**: Rust (Edition 2024)
+**Current Version**: 0.1.26
+
+## Architecture
+
+### Crates
+
+| Crate | Purpose |
+|-------|---------|
+| `do-memory-core` | Core memory types, episode management, pattern extraction |
+| `do-memory-storage-turso` | Turso/libSQL persistent storage backend |
+| `do-memory-storage-redb` | redb cache storage backend |
+| `do-memory-mcp` | MCP server implementation |
+| `do-memory-cli` | Command-line interface |
+| `do-memory-test-utils` | Testing utilities |
+
+### Key Modules
+
+- **Episode Management**: Create, log steps, complete episodes
+- **Pattern Extraction**: Extract patterns from episode history
+- **Memory Retrieval**: Semantic search with embeddings
+- **Recommendation System**: Suggest patterns based on context
+- **Attribution**: Track recommendation feedback
+
+## Build Commands
+
+```bash
+# Build
+./scripts/build-rust.sh dev
+
+# Test
+cargo nextest run --all
+
+# Quality
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
+
+# All quality gates
+./scripts/quality-gates.sh
+```
+
+## Key Conventions
+
+- **Async**: Tokio runtime everywhere
+- **Serialization**: Postcard (not bincode)
+- **Storage**: Parameterized SQL only
+- **Testing**: AAA pattern, ≥90% coverage
+- **File Size**: ≤500 LOC per source file
+- **Clippy**: Zero warnings (`-D warnings`)
+
+## Environment Variables
+
+- `TURSO_DATABASE_URL` - Turso database URL
+- `TURSO_AUTH_TOKEN` - Turso auth token (empty for local dev)
+- `OPENAI_API_KEY` - OpenAI API key for embeddings
+
+## Local Development
+
+```bash
+# Start local Turso
+turso dev --db-file ./data/memory.db --port 8080
+
+# Set env vars
+export TURSO_DATABASE_URL="http://127.0.0.1:8080"
+export TURSO_AUTH_TOKEN=""
+```
+
+## MCP Server
+
+Binary: `do-memory-mcp-server`
+
+Tools available:
+- Episode: create, log_step, complete, list, get
+- Pattern: extract, search, list, effectiveness
+- Memory: store, retrieve, search
+- Attribution: record_session, record_feedback
+- Playbook: recommend
+
+## CLI
+
+Binary: `do-memory-cli`
+
+```bash
+# Episode commands
+do-memory-cli episode create --task "My task"
+do-memory-cli episode list
+do-memory-cli pattern extract --episode-id <uuid>
+```
+
+## Documentation
+
+- `AGENTS.md` - Agent coding guidelines
+- `plans/ROADMAPS/ROADMAP_ACTIVE.md` - Current roadmap
+- `plans/STATUS/CURRENT.md` - Current status
+- `agent_docs/` - Detailed documentation
+
+## Testing Patterns
+
+- Unit tests in `#[cfg(test)]` modules
+- Integration tests in `tests/` directory
+- Property tests with proptest
+- Snapshot tests with insta
+
+## Quality Gates
+
+Before commit:
+1. `./scripts/code-quality.sh fmt`
+2. `./scripts/code-quality.sh clippy --workspace`
+3. `cargo nextest run --all`
+4. `cargo test --doc`
+5. `./scripts/quality-gates.sh`
+
+## Common Pitfalls
+
+1. **Wrong approach**: Read existing patterns before implementing
+2. **Buggy code**: Run tests after changes
+3. **Excessive changes**: Keep commits atomic
+4. **Tool errors**: Use correct tool for the task

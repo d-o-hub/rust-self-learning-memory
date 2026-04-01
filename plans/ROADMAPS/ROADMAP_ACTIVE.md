@@ -1,18 +1,43 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-03-31 (v0.1.24 released)
-**Released Version**: v0.1.24
-**Branch**: `main` (PR #404 merged)
-**PR**: [#404](https://github.com/d-o-hub/rust-self-learning-memory/pull/404) ✅ Merged, all CI passing
+**Last Updated**: 2026-04-01 (v0.1.26 released)
+**Released Version**: v0.1.26
+**Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---
 
 ## Current State
 
-v0.1.24 released. Test stability improvements (DBSCAN budget fixes, quality gate timeout) and dependency updates completed. PR #404 merged to main. All quality gates passing.
+v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crates published to crates.io. GitHub Release v0.1.26 created with multi-platform binaries.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
+
+---
+
+## Current Sprint — v0.1.27 Feature Sprint (In Progress)
+
+### P1: Feature Enhancements
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-073 | Bayesian ranking with Wilson score from attribution data | ⏳ In Progress | 73 |
+| WG-077 | MMR diversity retrieval for search results | ⏳ In Progress | 77 |
+| WG-075 | Episode GC/TTL with retention policy | ⏳ In Progress | 75 |
+| WG-078 | MCP Server Card at `.well-known/mcp.json` | ⏳ In Progress | 78 |
+
+### P2: Code Quality
+
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-079 | Audit spawn_blocking usage for CPU-heavy async paths | ⏳ In Progress |
+
+### P2: Infrastructure
+
+| Task | Description | Status |
+|------|-------------|--------|
+| WG-084 | Restore GitHub Pages with mdBook | ⏳ In Progress |
+| WG-085 | Add llms.txt for LLM context | ⏳ In Progress |
 
 ---
 

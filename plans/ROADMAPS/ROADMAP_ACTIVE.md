@@ -22,9 +22,9 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
 | WG-073 | Bayesian ranking with Wilson score from attribution data | ⏳ In Progress | 73 |
-| WG-077 | MMR diversity retrieval for search results | ⏳ In Progress | 77 |
+| WG-077 | MMR diversity retrieval for search results | ✅ Complete | 77 |
 | WG-075 | Episode GC/TTL with retention policy | ⏳ In Progress | 75 |
-| WG-078 | MCP Server Card at `.well-known/mcp.json` | ⏳ In Progress | 78 |
+| WG-078 | MCP Server Card at `.well-known/mcp.json` | ✅ Complete | 78 |
 
 ### P2: Code Quality
 
@@ -36,8 +36,8 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-084 | Restore GitHub Pages with mdBook | ⏳ In Progress |
-| WG-085 | Add llms.txt for LLM context | ⏳ In Progress |
+| WG-084 | Restore GitHub Pages with mdBook | ✅ Complete |
+| WG-085 | Add llms.txt for LLM context | ✅ Complete |
 
 ---
 

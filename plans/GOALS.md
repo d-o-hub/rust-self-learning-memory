@@ -24,49 +24,49 @@
    - Target: Tag pushed, GitHub Release created with multi-platform binaries
    - Status: ✅ Complete
 
-## v0.1.25 Sprint Goals (In Progress)
+## v0.1.27 Sprint Goals (In Progress)
 
 1. **WG-073**: Bayesian ranking with Wilson score
    - Priority: P1
-   - Owner: feature-implementer
+   - Owner: feature-bayesian
    - Target: Ranking module with confidence bounds
    - Status: ⏳ In Progress
 
 2. **WG-077**: MMR diversity retrieval
    - Priority: P1
-   - Owner: feature-implementer
+   - Owner: feature-mmr
    - Target: Diversity reranking in retrieval
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete (already implemented in diversity/maximizer.rs)
 
 3. **WG-075**: Episode GC/TTL
    - Priority: P1
-   - Owner: feature-implementer
+   - Owner: feature-gc
    - Target: Retention policy and cleanup
    - Status: ⏳ In Progress
 
 4. **WG-078**: MCP Server Card
    - Priority: P2
-   - Owner: feature-implementer
+   - Owner: feature-mcp-card
    - Target: `.well-known/mcp.json` endpoint
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete
 
 5. **WG-079**: spawn_blocking audit
    - Priority: P2
-   - Owner: code-reviewer
+   - Owner: audit-spawn-blocking
    - Target: All CPU-heavy async paths use spawn_blocking
    - Status: ⏳ In Progress
 
 6. **WG-084**: GitHub Pages restoration
    - Priority: P2
-   - Owner: docs
+   - Owner: infra-gh-pages
    - Target: mdBook + cargo doc deployment
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete
 
 7. **WG-085**: llms.txt creation
    - Priority: P2
-   - Owner: docs
+   - Owner: infra-llms-txt
    - Target: LLM context file at repo root
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete
 
 ---
 

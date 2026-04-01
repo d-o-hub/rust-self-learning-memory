@@ -24,13 +24,13 @@
    - Target: Tag pushed, GitHub Release created with multi-platform binaries
    - Status: ✅ Complete
 
-## v0.1.27 Sprint Goals (In Progress)
+## v0.1.27 Sprint Goals (Complete)
 
 1. **WG-073**: Bayesian ranking with Wilson score
    - Priority: P1
    - Owner: feature-bayesian
    - Target: Ranking module with confidence bounds
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete
 
 2. **WG-077**: MMR diversity retrieval
    - Priority: P1
@@ -42,7 +42,7 @@
    - Priority: P1
    - Owner: feature-gc
    - Target: Retention policy and cleanup
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete
 
 4. **WG-078**: MCP Server Card
    - Priority: P2
@@ -54,7 +54,7 @@
    - Priority: P2
    - Owner: audit-spawn-blocking
    - Target: All CPU-heavy async paths use spawn_blocking
-   - Status: ⏳ In Progress
+   - Status: ✅ Complete
 
 6. **WG-084**: GitHub Pages restoration
    - Priority: P2

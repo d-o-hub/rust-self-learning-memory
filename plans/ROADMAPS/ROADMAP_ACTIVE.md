@@ -21,16 +21,16 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-073 | Bayesian ranking with Wilson score from attribution data | ⏳ In Progress | 73 |
+| WG-073 | Bayesian ranking with Wilson score from attribution data | ✅ Complete | 73 |
 | WG-077 | MMR diversity retrieval for search results | ✅ Complete | 77 |
-| WG-075 | Episode GC/TTL with retention policy | ⏳ In Progress | 75 |
+| WG-075 | Episode GC/TTL with retention policy | ✅ Complete | 75 |
 | WG-078 | MCP Server Card at `.well-known/mcp.json` | ✅ Complete | 78 |
 
 ### P2: Code Quality
 
 | Task | Description | Status |
 |------|-------------|--------|
-| WG-079 | Audit spawn_blocking usage for CPU-heavy async paths | ⏳ In Progress |
+| WG-079 | Audit spawn_blocking usage for CPU-heavy async paths | ✅ Complete |
 
 ### P2: Infrastructure
 

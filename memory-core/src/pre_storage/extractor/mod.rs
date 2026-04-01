@@ -22,8 +22,8 @@ use crate::episode::Episode;
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::pre_storage::SalientExtractor;
-/// use memory_core::{Episode, TaskContext, TaskType};
+/// use do_memory_core::pre_storage::SalientExtractor;
+/// use do_memory_core::{Episode, TaskContext, TaskType};
 ///
 /// let extractor = SalientExtractor::new();
 ///
@@ -48,7 +48,7 @@ impl SalientExtractor {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::pre_storage::SalientExtractor;
+    /// use do_memory_core::pre_storage::SalientExtractor;
     ///
     /// let extractor = SalientExtractor::new();
     /// ```
@@ -78,8 +78,8 @@ impl SalientExtractor {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::pre_storage::SalientExtractor;
-    /// use memory_core::{Episode, TaskContext, TaskType, ExecutionStep, ExecutionResult};
+    /// use do_memory_core::pre_storage::SalientExtractor;
+    /// use do_memory_core::{Episode, TaskContext, TaskType, ExecutionStep, ExecutionResult};
     ///
     /// let extractor = SalientExtractor::new();
     /// let mut episode = Episode::new(

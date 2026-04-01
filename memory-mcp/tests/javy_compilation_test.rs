@@ -5,9 +5,9 @@
 
 #[cfg(feature = "javy-backend")]
 mod javy_tests {
-    use memory_mcp::javy_compiler::{JavyCompiler, JavyConfig};
+    use do_memory_mcp::javy_compiler::{JavyCompiler, JavyConfig};
     #[allow(unused_imports)]
-    use memory_mcp::types::{ExecutionContext, ExecutionResult};
+    use do_memory_mcp::types::{ExecutionContext, ExecutionResult};
     use std::io::Read;
 
     fn has_javy_plugin() -> bool {
@@ -102,7 +102,7 @@ mod javy_tests {
 
     #[tokio::test]
     async fn test_js_execution_with_console_log() {
-        use memory_mcp::ExecutionContext;
+        use do_memory_mcp::ExecutionContext;
 
         if !has_javy_plugin() {
             eprintln!("Skipping test_js_execution_with_console_log: Javy plugin not available");

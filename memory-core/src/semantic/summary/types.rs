@@ -24,7 +24,7 @@ use uuid::Uuid;
 /// # Examples
 ///
 /// ```
-/// use memory_core::semantic::EpisodeSummary;
+/// use do_memory_core::semantic::EpisodeSummary;
 /// use uuid::Uuid;
 /// use chrono::Utc;
 ///

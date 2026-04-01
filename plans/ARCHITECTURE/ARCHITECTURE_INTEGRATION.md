@@ -158,7 +158,7 @@ impl StorageSynchronizer<P, C> {
 
 ---
 
-## MCP Server: memory-mcp
+## MCP Server: do-memory-mcp
 
 ### Architecture
 
@@ -452,11 +452,11 @@ pub struct WasmtimeConfig {
 
 ---
 
-## CLI: memory-cli
+## CLI: do-memory-cli
 
 ### Command Structure
 
-**Main Binary**: `memory-cli`
+**Main Binary**: `do-memory-cli`
 
 **Commands (8 main)**:
 
@@ -499,7 +499,7 @@ pub struct WasmtimeConfig {
 
 ### Configuration System (Modular)
 
-**Location**: `memory-cli/src/config/`
+**Location**: `do-memory-cli/src/config/`
 
 **Modules**:
 1. **types.rs** - Core config structures
@@ -534,7 +534,7 @@ fn suggest_cache_size(available_gb: f64) -> usize; // gb * 200MB, clamped [1000,
 
 ## Feature Matrix
 
-| Feature | memory-core | memory-mcp | memory-cli | memory-storage-turso | memory-storage-redb |
+| Feature | do-memory-core | do-memory-mcp | do-memory-cli | do-memory-storage-turso | do-memory-storage-redb |
 |---------|------------|-----------|-----------|---------------------|---------------------|
 | **Embeddings** | ✅ Local/OpenAI | ❌ | ❌ | ❌ | ✅ Cache layer |
 | **Patterns** | ✅ Extraction/Validation | ✅ Analysis | ✅ Management | ✅ Storage | ✅ Cache |
@@ -550,23 +550,23 @@ fn suggest_cache_size(available_gb: f64) -> usize; // gb * 200MB, clamped [1000,
 ## Dependency Graph
 
 ```
-memory-cli
-├── memory-core
+do-memory-cli
+├── do-memory-core
 │   ├── storage/ (trait abstraction)
 │   ├── embeddings/ (local/openai via features)
 │   ├── patterns/ (extraction/validation)
 │   ├── reflection/ (insight generation)
 │   ├── reward/ (multi-component scoring)
 │   └── learning/ (async queue)
-├── memory-storage-redb
+├── do-memory-storage-redb
 │   └── redb (embedded KV)
-└── memory-storage-turso
+└── do-memory-storage-turso
     └── libsql (remote/local)
 
-memory-mcp
-├── memory-core (shared)
-├── memory-storage-turso (shared)
-├── memory-storage-redb (shared)
+do-memory-mcp
+├── do-memory-core (shared)
+├── do-memory-storage-turso (shared)
+├── do-memory-storage-redb (shared)
 ├── wasmtime (WASM execution)
 ├── javy (optional JS→WASM)
 ├── augurs (forecasting)
@@ -584,7 +584,7 @@ Shared Dependencies:
 
 ## Feature Flags
 
-### memory-core
+### do-memory-core
 ```toml
 [features]
 default = []
@@ -593,7 +593,7 @@ embeddings-full = ["openai", "local-embeddings"]
 local-embeddings = ["candle-core", "candle-nn", "tokenizers"]
 ```
 
-### memory-mcp
+### do-memory-mcp
 ```toml
 [features]
 default = ["wasmtime-backend"]
@@ -603,12 +603,12 @@ wasm-rquickjs = ["rquickjs"]
 full = ["wasmtime-backend", "javy-backend"]
 ```
 
-### memory-cli
+### do-memory-cli
 ```toml
 [features]
 default = ["redb"]
-turso = ["memory-storage-turso"]
-redb = ["memory-storage-redb"]
+turso = ["do-memory-storage-turso"]
+redb = ["do-memory-storage-redb"]
 full = ["turso", "redb"]
 ```
 
@@ -618,7 +618,7 @@ full = ["turso", "redb"]
 
 - **Core Components**: See [ARCHITECTURE_CORE.md](ARCHITECTURE_CORE.md)
 - **Patterns**: See [ARCHITECTURE_PATTERNS.md](ARCHITECTURE_PATTERNS.md)
-- **Configuration**: See [../../memory-cli/CONFIGURATION_GUIDE.md](../../memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
+- **Configuration**: See [../../do-memory-cli/CONFIGURATION_GUIDE.md](../../do-memory-cli/CONFIGURATION_GUIDE.md) for configuration documentation
 - **Current Status**: See [../ROADMAPS/ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 
 ---

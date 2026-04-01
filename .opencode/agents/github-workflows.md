@@ -107,12 +107,12 @@ gh run view <run-id> --json jobs
 
 ### Workspace Structure
 The memory management system requires specialized CI/CD handling:
-- **memory-core**: Core memory operations with embeddings
-- **memory-storage-turso**: Database storage with libSQL
-- **memory-storage-redb**: Cache layer with redb
-- **memory-mcp**: MCP server with WASM compilation
-- **memory-cli**: CLI tool with multiple commands
-- **test-utils**: Shared testing utilities
+- **do-memory-core**: Core memory operations with embeddings
+- **do-memory-storage-turso**: Database storage with libSQL
+- **do-memory-storage-redb**: Cache layer with redb
+- **do-memory-mcp**: MCP server with WASM compilation
+- **do-memory-cli**: CLI tool with multiple commands
+- **do-memory-test-utils**: Shared testing utilities
 - **benches**: Performance benchmarks
 - **examples**: Usage examples and demos
 

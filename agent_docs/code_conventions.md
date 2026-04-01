@@ -83,7 +83,7 @@ pub async fn process_data(data: &str) -> Result<ProcessedData> {
 
 ### Module Structure Example
 ```
-memory-core/src/
+do-memory-core/src/
 ├── patterns/          # Pattern extraction (5319 LOC - split into multiple files)
 │   ├── mod.rs
 │   ├── optimized_validator.rs

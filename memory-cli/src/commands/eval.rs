@@ -243,20 +243,20 @@ pub async fn calibration(
     domain_filter: Option<String>,
     show_all: bool,
     min_episodes: usize,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
-    use memory_core::DomainStatisticsCache;
+    use do_memory_core::DomainStatisticsCache;
 
     // Get all episodes to calculate statistics (returns Vec<Arc<Episode>>)
-    let context = memory_core::types::TaskContext::default();
+    let context = do_memory_core::types::TaskContext::default();
     let arc_episodes = memory
         .retrieve_relevant_context("".to_string(), context, 10000)
         .await;
 
     // Convert Vec<Arc<Episode>> to Vec<Episode> for grouping
-    let all_episodes: Vec<memory_core::Episode> = arc_episodes
+    let all_episodes: Vec<do_memory_core::Episode> = arc_episodes
         .iter()
         .map(|arc_ep| arc_ep.as_ref().clone())
         .collect();
@@ -320,14 +320,14 @@ pub async fn calibration(
 
 pub async fn domain_stats(
     domain: String,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
-    use memory_core::DomainStatisticsCache;
+    use do_memory_core::DomainStatisticsCache;
 
     // Get all episodes for this domain (returns Vec<Arc<Episode>>)
-    let context = memory_core::types::TaskContext {
+    let context = do_memory_core::types::TaskContext {
         domain: domain.clone(),
         ..Default::default()
     };
@@ -336,7 +336,7 @@ pub async fn domain_stats(
         .await;
 
     // Convert Vec<Arc<Episode>> to Vec<Episode> for filtering
-    let episodes: Vec<memory_core::Episode> = arc_episodes
+    let episodes: Vec<do_memory_core::Episode> = arc_episodes
         .iter()
         .map(|arc_ep| arc_ep.as_ref().clone())
         .collect();
@@ -394,7 +394,7 @@ pub async fn set_threshold(
     domain: String,
     duration: Option<f32>,
     steps: Option<usize>,
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     _format: OutputFormat,
 ) -> anyhow::Result<()> {

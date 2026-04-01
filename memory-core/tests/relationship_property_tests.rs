@@ -6,8 +6,8 @@
 //! - Relationship types are valid
 //! - Bidirectional relationships are consistent
 
-use memory_core::episode::relationship_manager::RelationshipManager;
-use memory_core::episode::{EpisodeRelationship, RelationshipMetadata, RelationshipType};
+use do_memory_core::episode::relationship_manager::RelationshipManager;
+use do_memory_core::episode::{EpisodeRelationship, RelationshipMetadata, RelationshipType};
 use proptest::prelude::*;
 use std::collections::HashSet;
 use uuid::Uuid;

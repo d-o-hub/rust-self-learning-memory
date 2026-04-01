@@ -13,8 +13,8 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
 
-use memory_core::{MemoryConfig, SelfLearningMemory};
-use memory_mcp::{
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_mcp::{
     MemoryMCPServer, SandboxConfig, Tool,
     jsonrpc::JsonRpcRequest,
     protocol::{handle_describe_tool, handle_describe_tools, handle_list_tools_with_lazy},

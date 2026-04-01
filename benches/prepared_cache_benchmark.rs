@@ -6,7 +6,7 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
-use memory_storage_turso::prepared::PreparedStatementCache;
+use do_memory_storage_turso::prepared::PreparedStatementCache;
 use std::hint::black_box;
 
 /// Benchmark basic cache operations
@@ -65,7 +65,7 @@ fn bench_cache_multiple_connections(c: &mut Criterion) {
 
     group.bench_function("100_connections", |b| {
         let cache = PreparedStatementCache::with_config(
-            memory_storage_turso::prepared::PreparedCacheConfig {
+            do_memory_storage_turso::prepared::PreparedCacheConfig {
                 max_size: 100,
                 max_connections: 100,
                 ..Default::default()

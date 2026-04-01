@@ -4,7 +4,7 @@
 //!
 //! Run with: cargo run --example keepalive_pool_demo --features keepalive-pool
 
-use memory_storage_turso::{TursoConfig, TursoStorage};
+use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::time::Instant;
 
 #[tokio::main]

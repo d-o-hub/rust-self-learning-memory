@@ -1,8 +1,8 @@
 //! Demonstration of episode tagging MCP tools
 //! Run with: cargo run --example episode_tags_demo
 
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
-use memory_mcp::mcp::tools::episode_tags::{
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_mcp::mcp::tools::episode_tags::{
     AddEpisodeTagsInput, EpisodeTagTools, GetEpisodeTagsInput, RemoveEpisodeTagsInput,
     SearchEpisodesByTagsInput, SetEpisodeTagsInput,
 };

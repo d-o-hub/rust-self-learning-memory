@@ -28,7 +28,7 @@ Phase 1 of the Turso Database Optimization Plan has been **successfully complete
 
 ### 1. ✅ Optimized Metadata Queries with json_extract
 
-**File**: `memory-storage-turso/src/storage/episodes.rs:342-362`
+**File**: `do-memory-storage-turso/src/storage/episodes.rs:342-362`
 
 **Before**:
 ```sql
@@ -63,7 +63,7 @@ WHERE json_extract(metadata, '$.key') = 'value'
 
 ### 2.1 Connection Keep-Alive Pool 🔴 P0
 
-**File**: `memory-storage-turso/src/pool/keepalive.rs` (NEW)
+**File**: `do-memory-storage-turso/src/pool/keepalive.rs` (NEW)
 
 **Problem**: Each database operation establishes a new connection, adding ~45ms overhead per operation.
 
@@ -124,7 +124,7 @@ impl KeepAlivePool {
 
 ### 2.2 Adaptive Pool Sizing 🔴 P0
 
-**File**: `memory-storage-turso/src/pool/adaptive.rs` (NEW)
+**File**: `do-memory-storage-turso/src/pool/adaptive.rs` (NEW)
 
 **Problem**: Fixed-size connection pool underperforms under variable load.
 
@@ -183,7 +183,7 @@ impl AdaptivePool {
 
 ### 2.3 Adaptive TTL (P1)
 
-**File**: `memory-storage-turso/src/cache/adaptive_ttl.rs` (NEW)
+**File**: `do-memory-storage-turso/src/cache/adaptive_ttl.rs` (NEW)
 
 **Problem**: Fixed TTL doesn't adapt to access patterns.
 
@@ -218,7 +218,7 @@ impl<K, V> AdaptiveTtlCache<K, V> {
 
 ### 2.4 Network Compression (P1)
 
-**File**: `memory-storage-turso/src/transport/compression.rs` (NEW)
+**File**: `do-memory-storage-turso/src/transport/compression.rs` (NEW)
 
 **Problem**: Large payloads transmitted uncompressed.
 
@@ -315,14 +315,14 @@ impl<K, V> AdaptiveTtlCache<K, V> {
 
 ### Phase 1 Files
 
-1. `memory-storage-turso/src/storage/episodes.rs` - Optimized metadata query
+1. `do-memory-storage-turso/src/storage/episodes.rs` - Optimized metadata query
 
 ### Phase 2 Files (Planned)
 
-1. `memory-storage-turso/src/pool/keepalive.rs` - Connection pool (NEW)
-2. `memory-storage-turso/src/pool/adaptive.rs` - Adaptive sizing (NEW)
-3. `memory-storage-turso/src/cache/adaptive_ttl.rs` - Adaptive TTL (NEW)
-4. `memory-storage-turso/src/transport/compression.rs` - Compression (NEW)
+1. `do-memory-storage-turso/src/pool/keepalive.rs` - Connection pool (NEW)
+2. `do-memory-storage-turso/src/pool/adaptive.rs` - Adaptive sizing (NEW)
+3. `do-memory-storage-turso/src/cache/adaptive_ttl.rs` - Adaptive TTL (NEW)
+4. `do-memory-storage-turso/src/transport/compression.rs` - Compression (NEW)
 
 ---
 

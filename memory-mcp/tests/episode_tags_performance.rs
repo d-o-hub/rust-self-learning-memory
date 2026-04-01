@@ -1,7 +1,7 @@
 //! Performance and stress tests for episode tagging
 
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
-use memory_mcp::mcp::tools::episode_tags::{
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_mcp::mcp::tools::episode_tags::{
     AddEpisodeTagsInput, EpisodeTagTools, SearchEpisodesByTagsInput,
 };
 use std::sync::Arc;

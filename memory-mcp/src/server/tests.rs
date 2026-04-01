@@ -3,7 +3,7 @@
 use crate::server::MemoryMCPServer;
 use crate::server::sandbox;
 use crate::types::{ExecutionContext, SandboxConfig};
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use serde_json::json;
 use std::sync::Arc;
 

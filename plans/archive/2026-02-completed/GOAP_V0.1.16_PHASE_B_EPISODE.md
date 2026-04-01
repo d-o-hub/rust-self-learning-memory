@@ -52,7 +52,7 @@ Execute v0.1.16 Phase B (Code Quality Remediation) using GOAP methodology to red
 ### Week 1: Quick Wins + B1 Start
 - **B2 (Test Triage)**: 4-6h - Categorize and fix ignored tests
 - **B3 (dead_code Cleanup)**: 3-5h - Remove unused code
-- **B1 (Error Handling)**: 4-6h - Start with memory-core crate
+- **B1 (Error Handling)**: 4-6h - Start with do-memory-core crate
 
 ### Week 2: B1 Complete + C1+C2 Start
 - **B1 (Error Handling)**: 4-6h - Complete remaining crates
@@ -103,32 +103,32 @@ Execute v0.1.16 Phase B (Code Quality Remediation) using GOAP methodology to red
 **Agent**: refactorer + feature-implementer
 **Strategy**: Per-crate sequential execution with validation gates
 
-**B3.1: memory-core** (2-3h)
+**B3.1: do-memory-core** (2-3h)
 - Count unwrap/expect calls
 - Introduce thiserror::Error enums
 - Replace unwraps with proper error handling
 - Add unit tests for new error paths
-- Validate: cargo test -p memory-core, cargo clippy
+- Validate: cargo test -p do-memory-core, cargo clippy
 
-**B3.2: memory-storage-turso** (2-3h)
-- Same process as memory-core
+**B3.2: do-memory-storage-turso** (2-3h)
+- Same process as do-memory-core
 - Focus on database operation errors
-- Validate: cargo test -p memory-storage-turso
+- Validate: cargo test -p do-memory-storage-turso
 
-**B3.3: memory-storage-redb** (2-3h)
-- Same process as memory-core
+**B3.3: do-memory-storage-redb** (2-3h)
+- Same process as do-memory-core
 - Focus on cache operation errors
-- Validate: cargo test -p memory-storage-redb
+- Validate: cargo test -p do-memory-storage-redb
 
-**B3.4: memory-mcp** (1-2h)
-- Same process as memory-core
+**B3.4: do-memory-mcp** (1-2h)
+- Same process as do-memory-core
 - Focus on MCP tool errors
-- Validate: cargo test -p memory-mcp
+- Validate: cargo test -p do-memory-mcp
 
-**B3.5: memory-cli** (1-2h)
-- Same process as memory-core
+**B3.5: do-memory-cli** (1-2h)
+- Same process as do-memory-core
 - CLI unwraps more acceptable, focus on config errors
-- Validate: cargo test -p memory-cli
+- Validate: cargo test -p do-memory-cli
 
 #### Phase B.4: Validation & Quality Gates (Sequential - 1-2h)
 **Agent**: test-runner + code-reviewer

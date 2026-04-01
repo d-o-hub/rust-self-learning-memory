@@ -3,27 +3,27 @@
 //! These tests verify that tool definitions, responses, and error formats
 //! remain consistent across changes. Part of ADR-033 Phase 6.
 
-use insta::assert_json_snapshot;
-use memory_mcp::mcp::tools::checkpoint::{
+use do_memory_mcp::mcp::tools::checkpoint::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
 };
-use memory_mcp::mcp::tools::embeddings::{
+use do_memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput, EmbeddingProviderStatusInput,
     EmbeddingProviderStatusOutput, EmbeddingSearchResult, GenerateEmbeddingInput,
     GenerateEmbeddingOutput, ProviderTestResult, QuerySemanticMemoryInput,
     QuerySemanticMemoryOutput, SearchByEmbeddingInput, SearchByEmbeddingOutput, SemanticResult,
     TestEmbeddingsOutput,
 };
-use memory_mcp::mcp::tools::pattern_search::{
+use do_memory_mcp::mcp::tools::pattern_search::{
     PatternResult, ScoreBreakdownResult, SearchPatternsInput, SearchPatternsOutput,
 };
-use memory_mcp::mcp::tools::recommendation_feedback::{
+use do_memory_mcp::mcp::tools::recommendation_feedback::{
     RecommendationStatsOutput, RecordRecommendationFeedbackInput, RecordRecommendationSessionInput,
     TaskOutcomeJson,
 };
-use memory_mcp::types::{
+use do_memory_mcp::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,
 };
+use insta::assert_json_snapshot;
 use serde_json::json;
 
 /// Test that Tool struct serialization produces consistent output
@@ -91,7 +91,7 @@ fn test_execution_result_timeout() {
 /// Test execution result security violation format
 #[test]
 fn test_execution_result_security_violation() {
-    use memory_mcp::types::SecurityViolationType;
+    use do_memory_mcp::types::SecurityViolationType;
 
     let result = ExecutionResult::SecurityViolation {
         reason: "Attempted filesystem access to /etc/passwd".to_string(),
@@ -590,7 +590,7 @@ fn test_search_patterns_output() {
 /// Test PlaybookStep serialization
 #[test]
 fn test_playbook_step() {
-    use memory_core::memory::playbook::PlaybookStep;
+    use do_memory_core::memory::playbook::PlaybookStep;
 
     let step = PlaybookStep::new(1, "Analyze existing authentication patterns".to_string())
         .with_tool_hint("pattern_search")
@@ -602,7 +602,7 @@ fn test_playbook_step() {
 /// Test PlaybookStep with minimal fields
 #[test]
 fn test_playbook_step_minimal() {
-    use memory_core::memory::playbook::PlaybookStep;
+    use do_memory_core::memory::playbook::PlaybookStep;
 
     let step = PlaybookStep::new(2, "Run tests to verify changes".to_string());
 
@@ -612,7 +612,7 @@ fn test_playbook_step_minimal() {
 /// Test PlaybookPitfall serialization
 #[test]
 fn test_playbook_pitfall() {
-    use memory_core::memory::playbook::PlaybookPitfall;
+    use do_memory_core::memory::playbook::PlaybookPitfall;
 
     let pitfall = PlaybookPitfall::new(
         "Don't skip the type checking step",
@@ -626,7 +626,7 @@ fn test_playbook_pitfall() {
 /// Test PlaybookPitfall without mitigation
 #[test]
 fn test_playbook_pitfall_no_mitigation() {
-    use memory_core::memory::playbook::PlaybookPitfall;
+    use do_memory_core::memory::playbook::PlaybookPitfall;
 
     let pitfall = PlaybookPitfall::new(
         "Avoid blocking operations in async context",

@@ -196,15 +196,15 @@ impl TursoStorage {
             .query("PRAGMA table_info(episodes)", ())
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to inspect episodes schema: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to inspect episodes schema: {}", e))
             })?;
 
         let mut has_checkpoints = false;
         while let Some(row) = rows.next().await.map_err(|e| {
-            memory_core::Error::Storage(format!("Failed to read episodes schema row: {}", e))
+            do_memory_core::Error::Storage(format!("Failed to read episodes schema row: {}", e))
         })? {
             let column_name: String = row.get(1).map_err(|e| {
-                memory_core::Error::Storage(format!(
+                do_memory_core::Error::Storage(format!(
                     "Failed to parse episodes schema column name: {}",
                     e
                 ))

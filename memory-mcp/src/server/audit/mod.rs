@@ -22,7 +22,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use memory_mcp::server::audit::{AuditLogger, AuditConfig, AuditDestination};
+//! use do_memory_mcp::server::audit::{AuditLogger, AuditConfig, AuditDestination};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

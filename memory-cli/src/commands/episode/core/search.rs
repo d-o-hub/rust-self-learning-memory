@@ -3,9 +3,9 @@
 use super::types::{EpisodeList, SearchSortOrder};
 use crate::config::Config;
 use crate::output::OutputFormat;
-use memory_core::EpisodeFilter;
-use memory_core::search::{SearchField, SearchMode};
-use memory_core::{Episode, SelfLearningMemory, TaskOutcome, TaskType};
+use do_memory_core::EpisodeFilter;
+use do_memory_core::search::{SearchField, SearchMode};
+use do_memory_core::{Episode, SelfLearningMemory, TaskOutcome, TaskType};
 
 /// Calculate a success score for an episode (higher = more successful)
 fn outcome_score(episode: &Episode) -> u8 {
@@ -68,7 +68,7 @@ pub async fn search_episodes(
     // Configure search mode (priority: regex > fuzzy > exact)
     if regex {
         // Validate regex pattern before using it
-        if let Err(e) = memory_core::search::validate_regex_pattern(&query) {
+        if let Err(e) = do_memory_core::search::validate_regex_pattern(&query) {
             return Err(anyhow::anyhow!("Invalid regex pattern: {}", e));
         }
         filter_builder = filter_builder.search_mode(SearchMode::Regex);

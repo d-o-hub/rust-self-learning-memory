@@ -49,9 +49,9 @@ Successfully executed **GOAP Phase B1.2** using **ADR orchestration** with **4 p
 ### **Test Results**
 | Test Suite | Result | Status |
 |------------|--------|--------|
-| memory-core | ✅ 727/727 passing | 100% |
-| memory-storage-turso | ✅ 206/206 passing | 100% |
-| memory-mcp | ✅ 255/255 passing | 100% |
+| do-memory-core | ✅ 727/727 passing | 100% |
+| do-memory-storage-turso | ✅ 206/206 passing | 100% |
+| do-memory-mcp | ✅ 255/255 passing | 100% |
 | CLI workflows | ⚠️ 4/6 failing | Expected (v0.1.17) |
 
 ---

@@ -8,11 +8,11 @@
 //! - Metadata tracking of episode count
 
 use chrono::Utc;
-use memory_core::episodic::{CapacityManager, EvictionPolicy};
-use memory_core::pre_storage::SalientFeatures;
-use memory_core::semantic::EpisodeSummary;
-use memory_core::{Episode, RewardScore, TaskContext, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+use do_memory_core::pre_storage::SalientFeatures;
+use do_memory_core::semantic::EpisodeSummary;
+use do_memory_core::{Episode, RewardScore, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use tempfile::tempdir;
 use uuid::Uuid;
 
@@ -29,7 +29,7 @@ async fn create_test_storage() -> anyhow::Result<RedbStorage> {
 /// `serde_json::Value` which is not compatible with postcard serialization.
 /// This is a known limitation that will be addressed in future work.
 fn create_episode_with_quality(task_description: &str, quality_score: f32) -> Episode {
-    use memory_core::ComplexityLevel;
+    use do_memory_core::ComplexityLevel;
 
     Episode {
         episode_id: Uuid::new_v4(),

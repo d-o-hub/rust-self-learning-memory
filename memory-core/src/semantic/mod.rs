@@ -11,8 +11,8 @@
 //! # Examples
 //!
 //! ```no_run
-//! use memory_core::semantic::{SemanticSummarizer, EpisodeSummary};
-//! use memory_core::{Episode, TaskContext, TaskType};
+//! use do_memory_core::semantic::{SemanticSummarizer, EpisodeSummary};
+//! use do_memory_core::{Episode, TaskContext, TaskType};
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! let summarizer = SemanticSummarizer::new();

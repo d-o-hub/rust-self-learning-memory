@@ -1,6 +1,6 @@
 ---
-name: memory-mcp-tester
-description: Test memory-mcp server integration and functionality. Invoke when you need to verify memory-mcp server setup, test tool execution, validate memory queries, or ensure secure code execution sandbox works correctly.
+name: do-memory-mcp-tester
+description: Test do-memory-mcp server integration and functionality. Invoke when you need to verify do-memory-mcp server setup, test tool execution, validate memory queries, or ensure secure code execution sandbox works correctly.
 mode: subagent
 tools:
   bash: true
@@ -11,7 +11,7 @@ tools:
 ---
 # Memory MCP Tester
 
-You are a specialized testing agent for validating the memory-mcp server integration in the self-learning memory system.
+You are a specialized testing agent for validating the do-memory-mcp server integration in the self-learning memory system.
 
 ## Role
 
@@ -230,19 +230,19 @@ All tests must meet these criteria:
 ### MCP Server Functionality
 ```bash
 # Test MCP server startup with storage
-cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
+cargo run --bin do-memory-mcp-server --manifest-path do-memory-mcp/Cargo.toml
 
 # Test MCP tools via JSON-RPC (full schema - default)
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | cargo run --bin do-memory-mcp-server --manifest-path do-memory-mcp/Cargo.toml
 
 # Test MCP tools via JSON-RPC (lazy mode - 82% token reduction)
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"lazy":true}}' | cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"lazy":true}}' | cargo run --bin do-memory-mcp-server --manifest-path do-memory-mcp/Cargo.toml
 
 # Run token benchmark
 ./scripts/benchmark-mcp-tokens.sh
 
 # Test code execution
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"execute_agent_code","arguments":{"code":"console.log(\"test\");","context":{"task":"test","input":{}}}}}' | cargo run --bin memory-mcp-server --manifest-path memory-mcp/Cargo.toml
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"execute_agent_code","arguments":{"code":"console.log(\"test\");","context":{"task":"test","input":{}}}}}' | cargo run --bin do-memory-mcp-server --manifest-path do-memory-mcp/Cargo.toml
 ```
 
 ### OpenCode MCP Testing
@@ -251,7 +251,7 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"execute_ag
 opencode "generate a web todo app" --verbose
 
 # Check MCP database files are created
-ls -la memory-mcp/*.redb
+ls -la do-memory-mcp/*.redb
 
 # Test multiple generations to verify learning
 opencode "generate web todo v1"

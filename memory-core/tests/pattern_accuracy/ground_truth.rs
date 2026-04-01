@@ -3,7 +3,7 @@
 //!
 
 use chrono::Duration;
-use memory_core::Pattern;
+use do_memory_core::Pattern;
 use uuid::Uuid;
 
 use super::helpers::create_test_context;
@@ -25,7 +25,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.95,
             avg_latency: Duration::milliseconds(150),
             occurrence_count: 10,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 2: Connect -> Query -> Process
         Pattern::ToolSequence {
@@ -39,7 +39,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.92,
             avg_latency: Duration::milliseconds(200),
             occurrence_count: 8,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 3: Auth -> Verify -> Grant
         Pattern::ToolSequence {
@@ -53,7 +53,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.98,
             avg_latency: Duration::milliseconds(80),
             occurrence_count: 15,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 4: Fetch -> Transform -> Store
         Pattern::ToolSequence {
@@ -67,7 +67,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.88,
             avg_latency: Duration::milliseconds(250),
             occurrence_count: 12,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 5: Build -> Test -> Deploy
         Pattern::ToolSequence {
@@ -81,7 +81,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.85,
             avg_latency: Duration::milliseconds(5000),
             occurrence_count: 20,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 6: Request -> Validate -> Response
         Pattern::ToolSequence {
@@ -95,7 +95,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.93,
             avg_latency: Duration::milliseconds(120),
             occurrence_count: 18,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 7: Parse -> Compile -> Execute
         Pattern::ToolSequence {
@@ -109,7 +109,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.90,
             avg_latency: Duration::milliseconds(300),
             occurrence_count: 7,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 8: Monitor -> Analyze -> Alert
         Pattern::ToolSequence {
@@ -123,7 +123,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.87,
             avg_latency: Duration::milliseconds(180),
             occurrence_count: 9,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 9: Serialize -> Compress -> Send
         Pattern::ToolSequence {
@@ -137,7 +137,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.94,
             avg_latency: Duration::milliseconds(160),
             occurrence_count: 11,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Sequence 10: Load -> Cache -> Serve
         Pattern::ToolSequence {
@@ -151,7 +151,7 @@ pub fn create_ground_truth_tool_sequences() -> Vec<Pattern> {
             success_rate: 0.96,
             avg_latency: Duration::milliseconds(90),
             occurrence_count: 16,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
     ]
 }
@@ -166,70 +166,70 @@ pub fn create_ground_truth_decision_points() -> Vec<Pattern> {
             id: Uuid::new_v4(),
             condition: "Check if cache is valid".to_string(),
             action: "cache_validator".to_string(),
-            outcome_stats: memory_core::OutcomeStats {
+            outcome_stats: do_memory_core::OutcomeStats {
                 success_count: 45,
                 failure_count: 5,
                 total_count: 50,
                 avg_duration_secs: 0.05,
             },
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Decision 2: Verify permissions
         Pattern::DecisionPoint {
             id: Uuid::new_v4(),
             condition: "Verify user has permissions".to_string(),
             action: "permission_checker".to_string(),
-            outcome_stats: memory_core::OutcomeStats {
+            outcome_stats: do_memory_core::OutcomeStats {
                 success_count: 38,
                 failure_count: 12,
                 total_count: 50,
                 avg_duration_secs: 0.08,
             },
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Decision 3: Check resource availability
         Pattern::DecisionPoint {
             id: Uuid::new_v4(),
             condition: "Check if resource is available".to_string(),
             action: "resource_checker".to_string(),
-            outcome_stats: memory_core::OutcomeStats {
+            outcome_stats: do_memory_core::OutcomeStats {
                 success_count: 42,
                 failure_count: 8,
                 total_count: 50,
                 avg_duration_secs: 0.06,
             },
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Decision 4: Validate input format
         Pattern::DecisionPoint {
             id: Uuid::new_v4(),
             condition: "Verify input format is correct".to_string(),
             action: "format_validator".to_string(),
-            outcome_stats: memory_core::OutcomeStats {
+            outcome_stats: do_memory_core::OutcomeStats {
                 success_count: 47,
                 failure_count: 3,
                 total_count: 50,
                 avg_duration_secs: 0.04,
             },
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Decision 5: Check rate limit
         Pattern::DecisionPoint {
             id: Uuid::new_v4(),
             condition: "Check if rate limit exceeded".to_string(),
             action: "rate_limiter".to_string(),
-            outcome_stats: memory_core::OutcomeStats {
+            outcome_stats: do_memory_core::OutcomeStats {
                 success_count: 40,
                 failure_count: 10,
                 total_count: 50,
                 avg_duration_secs: 0.03,
             },
             context,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
     ]
 }
@@ -249,7 +249,7 @@ pub fn create_ground_truth_error_recoveries() -> Vec<Pattern> {
             ],
             success_rate: 0.85,
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Recovery 2: Authentication failure
         Pattern::ErrorRecovery {
@@ -261,7 +261,7 @@ pub fn create_ground_truth_error_recoveries() -> Vec<Pattern> {
             ],
             success_rate: 0.92,
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Recovery 3: Resource not found
         Pattern::ErrorRecovery {
@@ -273,7 +273,7 @@ pub fn create_ground_truth_error_recoveries() -> Vec<Pattern> {
             ],
             success_rate: 0.78,
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Recovery 4: Parse error
         Pattern::ErrorRecovery {
@@ -285,7 +285,7 @@ pub fn create_ground_truth_error_recoveries() -> Vec<Pattern> {
             ],
             success_rate: 0.88,
             context: context.clone(),
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
         // Recovery 5: Rate limit exceeded
         Pattern::ErrorRecovery {
@@ -297,7 +297,7 @@ pub fn create_ground_truth_error_recoveries() -> Vec<Pattern> {
             ],
             success_rate: 0.95,
             context,
-            effectiveness: memory_core::PatternEffectiveness::new(),
+            effectiveness: do_memory_core::PatternEffectiveness::new(),
         },
     ]
 }

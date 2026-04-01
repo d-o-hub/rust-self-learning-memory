@@ -24,8 +24,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_mcp::wasm_sandbox::{WasmSandbox, WasmConfig};
-//! use memory_mcp::types::ExecutionContext;
+//! use do_memory_mcp::wasm_sandbox::{WasmSandbox, WasmConfig};
+//! use do_memory_mcp::types::ExecutionContext;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

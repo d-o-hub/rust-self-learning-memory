@@ -125,7 +125,7 @@ memory.remove_episode_relationship(relationship_id).await?;
 ### Add Relationship
 
 ```bash
-memory-cli episode relationship add \
+do-memory-cli episode relationship add \
   --from <episode-id> \
   --to <episode-id> \
   --type parent_child \
@@ -137,45 +137,45 @@ memory-cli episode relationship add \
 
 ```bash
 # Get all relationships
-memory-cli episode relationship get <episode-id>
+do-memory-cli episode relationship get <episode-id>
 
 # Get by direction
-memory-cli episode relationship get <episode-id> --direction outgoing
+do-memory-cli episode relationship get <episode-id> --direction outgoing
 
 # Get by type
-memory-cli episode relationship get <episode-id> --type depends_on
+do-memory-cli episode relationship get <episode-id> --type depends_on
 
 # With limit
-memory-cli episode relationship get <episode-id> --limit 10
+do-memory-cli episode relationship get <episode-id> --limit 10
 ```
 
 ### Build Relationship Graph
 
 ```bash
 # Basic graph
-memory-cli episode relationship graph <episode-id>
+do-memory-cli episode relationship graph <episode-id>
 
 # With depth limit
-memory-cli episode relationship graph <episode-id> --depth 3
+do-memory-cli episode relationship graph <episode-id> --depth 3
 
 # Export to DOT
-memory-cli episode relationship graph <episode-id> --format dot > graph.dot
+do-memory-cli episode relationship graph <episode-id> --format dot > graph.dot
 
 # Render with Graphviz
 dot -Tpng graph.dot -o graph.png
 
 # Export to JSON
-memory-cli episode relationship graph <episode-id> --format json > graph.json
+do-memory-cli episode relationship graph <episode-id> --format json > graph.json
 ```
 
 ### Find Related Episodes
 
 ```bash
 # Find all related
-memory-cli episode relationship find <episode-id>
+do-memory-cli episode relationship find <episode-id>
 
 # With filters
-memory-cli episode relationship find <episode-id> \
+do-memory-cli episode relationship find <episode-id> \
   --type depends_on \
   --direction outgoing \
   --limit 5 \
@@ -185,13 +185,13 @@ memory-cli episode relationship find <episode-id> \
 ### Remove Relationship
 
 ```bash
-memory-cli episode relationship remove <relationship-id>
+do-memory-cli episode relationship remove <relationship-id>
 ```
 
 ### Check Relationship Exists
 
 ```bash
-memory-cli episode relationship exists \
+do-memory-cli episode relationship exists \
   --from <episode-id> \
   --to <episode-id> \
   --type depends_on
@@ -201,7 +201,7 @@ memory-cli episode relationship exists \
 
 All relationship operations are available through MCP:
 
-### `memory-mcp_add_episode_relationship`
+### `do-memory-mcp_add_episode_relationship`
 
 ```json
 {
@@ -214,7 +214,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_remove_episode_relationship`
+### `do-memory-mcp_remove_episode_relationship`
 
 ```json
 {
@@ -222,7 +222,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_get_episode_relationships`
+### `do-memory-mcp_get_episode_relationships`
 
 ```json
 {
@@ -232,7 +232,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_find_related_episodes`
+### `do-memory-mcp_find_related_episodes`
 
 ```json
 {
@@ -244,7 +244,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_add_episode_tags`
+### `do-memory-mcp_add_episode_tags`
 
 ```json
 {
@@ -253,7 +253,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_get_episode_tags`
+### `do-memory-mcp_get_episode_tags`
 
 ```json
 {
@@ -261,7 +261,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_search_episodes_by_tags`
+### `do-memory-mcp_search_episodes_by_tags`
 
 ```json
 {
@@ -271,7 +271,7 @@ All relationship operations are available through MCP:
 }
 ```
 
-### `memory-mcp_get_dependency_graph`
+### `do-memory-mcp_get_dependency_graph`
 
 ```json
 {
@@ -412,7 +412,7 @@ digraph RelationshipGraph {
 
 ```bash
 # Generate DOT file
-memory-cli episode relationship graph <root-id> --format dot > graph.dot
+do-memory-cli episode relationship graph <root-id> --format dot > graph.dot
 
 # Render to PNG
 dot -Tpng graph.dot -o graph.png
@@ -504,8 +504,8 @@ match memory.add_episode_relationship(...).await {
 
 ## See Also
 
-- [Storage Layer](../memory-storage-turso/src/relationships.rs)
-- [Memory Layer](../memory-core/src/memory/relationships.rs)
-- [Integration Tests](../memory-core/tests/relationship_integration.rs)
-- [MCP Tools](../memory-mcp/src/server/tools/episode_relationships.rs)
-- [CLI Commands](../memory-core/src/episode/relationships.rs)
+- [Storage Layer](../do-memory-storage-turso/src/relationships.rs)
+- [Memory Layer](../do-memory-core/src/memory/relationships.rs)
+- [Integration Tests](../do-memory-core/tests/relationship_integration.rs)
+- [MCP Tools](../do-memory-mcp/src/server/tools/episode_relationships.rs)
+- [CLI Commands](../do-memory-core/src/episode/relationships.rs)

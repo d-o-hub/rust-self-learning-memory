@@ -7,7 +7,7 @@
 
 #![allow(clippy::cast_precision_loss)]
 
-use memory_core::{ExecutionResult, ExecutionStep};
+use do_memory_core::{ExecutionResult, ExecutionStep};
 use proptest::prelude::*;
 
 /// Generate arbitrary order numbers

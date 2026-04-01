@@ -14,13 +14,13 @@ Successfully completed all file splitting tasks and code quality improvements fo
 ### Phase 1: Already Completed Files
 | File | Before | After | Modules Created |
 |------|--------|-------|-----------------|
-| `memory-mcp/src/wasm_sandbox.rs` | 683 LOC | 53 LOC | config.rs, types.rs, sandbox.rs, executor.rs, tests.rs |
-| `memory-mcp/src/unified_sandbox.rs` | 533 LOC | Directory | handler.rs, types.rs, tests.rs |
-| `memory-storage-redb/src/cache.rs` | 654 LOC | 20 LOC | types.rs, state.rs, lru.rs, tests.rs |
-| `memory-storage-redb/src/storage.rs` | 1,514 LOC | 3 LOC | lib.rs, episodes.rs, patterns.rs, heuristics.rs, embeddings*.rs, cache/, etc. |
-| `memory-mcp/src/server.rs` | 1,513 LOC | 441 LOC | cache_warming.rs, tools/core.rs, tools/*.rs, tests.rs |
-| `memory-mcp/src/patterns/statistical.rs` | 1,132 LOC | 19 LOC | analysis/types.rs, analysis/bocpd.rs, analysis/engine.rs, tests.rs |
-| `memory-core/src/memory/retrieval.rs` | 891 LOC | 9 LOC | context.rs, helpers.rs, heuristics.rs, patterns.rs, scoring.rs |
+| `do-memory-mcp/src/wasm_sandbox.rs` | 683 LOC | 53 LOC | config.rs, types.rs, sandbox.rs, executor.rs, tests.rs |
+| `do-memory-mcp/src/unified_sandbox.rs` | 533 LOC | Directory | handler.rs, types.rs, tests.rs |
+| `do-memory-storage-redb/src/cache.rs` | 654 LOC | 20 LOC | types.rs, state.rs, lru.rs, tests.rs |
+| `do-memory-storage-redb/src/storage.rs` | 1,514 LOC | 3 LOC | lib.rs, episodes.rs, patterns.rs, heuristics.rs, embeddings*.rs, cache/, etc. |
+| `do-memory-mcp/src/server.rs` | 1,513 LOC | 441 LOC | cache_warming.rs, tools/core.rs, tools/*.rs, tests.rs |
+| `do-memory-mcp/src/patterns/statistical.rs` | 1,132 LOC | 19 LOC | analysis/types.rs, analysis/bocpd.rs, analysis/engine.rs, tests.rs |
+| `do-memory-core/src/memory/retrieval.rs` | 891 LOC | 9 LOC | context.rs, helpers.rs, heuristics.rs, patterns.rs, scoring.rs |
 
 ### Phase 2: Files Split This Session
 | File | Before | After | Modules Created |
@@ -34,20 +34,20 @@ Successfully completed all file splitting tasks and code quality improvements fo
 | `spatiotemporal/index.rs` | 1,044 LOC | 317 LOC | domain_index.rs, types.rs |
 
 ### Remaining Files to Check
-- `memory-cli/src/config/types.rs` (1,052 LOC) - Need to verify if already split
+- `do-memory-cli/src/config/types.rs` (1,052 LOC) - Need to verify if already split
 
 ## Error Handling
 
 ### Phase 1: Configuration Unwraps ✅
-- `memory-cli/src/config/loader.rs` - 12 unwraps converted
-- `memory-cli/src/config/validator.rs` - 1 unwrap removed
-- `memory-cli/src/config/wizard/database.rs` - 1 unwrap removed
-- `memory-cli/src/config/types.rs` - 4 unwraps converted
-- `memory-cli/src/config/progressive.rs` - 3 unwraps converted
+- `do-memory-cli/src/config/loader.rs` - 12 unwraps converted
+- `do-memory-cli/src/config/validator.rs` - 1 unwrap removed
+- `do-memory-cli/src/config/wizard/database.rs` - 1 unwrap removed
+- `do-memory-cli/src/config/types.rs` - 4 unwraps converted
+- `do-memory-cli/src/config/progressive.rs` - 3 unwraps converted
 
 ### Phase 2: Database Unwraps ✅
-- `memory-storage-turso/src/storage/search.rs` - 5 expect() calls converted
-- `memory-storage-turso/src/lib.rs` - Added `#![forbid(clippy::unwrap_used, clippy::expect_used)]`
+- `do-memory-storage-turso/src/storage/search.rs` - 5 expect() calls converted
+- `do-memory-storage-turso/src/lib.rs` - Added `#![forbid(clippy::unwrap_used, clippy::expect_used)]`
 
 ### Analysis Result
 - Most remaining unwraps are appropriate patterns (lock operations, unwrap_or defaults, test code)
@@ -93,7 +93,7 @@ Successfully completed all file splitting tasks and code quality improvements fo
 
 ## Next Steps
 
-1. Verify remaining file `memory-cli/src/config/types.rs` (1,052 LOC)
+1. Verify remaining file `do-memory-cli/src/config/types.rs` (1,052 LOC)
 2. Run comprehensive test suite
 3. Update AGENTS.md with any new patterns discovered
 4. Create release notes for v0.1.13

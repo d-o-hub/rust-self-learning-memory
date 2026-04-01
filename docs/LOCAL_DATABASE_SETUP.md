@@ -38,7 +38,7 @@ Create a `.env` file in the project root:
 
 ```bash
 # Copy the template
-cp memory-cli/.env.example .env
+cp do-memory-cli/.env.example .env
 ```
 
 Edit `.env` with your local database preferences:
@@ -90,7 +90,7 @@ sqlite3 ./data/memory.db < scripts/schema.sql
 
 ### Configuration File
 
-You can also use a `memory-cli.toml` file:
+You can also use a `do-memory-cli.toml` file:
 
 ```toml
 [database]
@@ -166,25 +166,25 @@ CREATE TABLE episodes (
 
 ```bash
 # Initialize and test the setup
-cargo run --bin memory-cli -- config show
+cargo run --bin do-memory-cli -- config show
 
 # Store an episode
-cargo run --bin memory-cli -- episode store \
+cargo run --bin do-memory-cli -- episode store \
   --description "Implement user authentication" \
   --context '{"language": "rust", "domain": "auth"}' \
   --outcome "success" \
   --verdict "Auth system implemented with JWT tokens"
 
 # Retrieve relevant context
-cargo run --bin memory-cli -- context retrieve \
+cargo run --bin do-memory-cli -- context retrieve \
   --query "add user authorization" \
   --limit 5
 
 # List stored episodes
-cargo run --bin memory-cli -- episode list --limit 10
+cargo run --bin do-memory-cli -- episode list --limit 10
 
 # Show patterns
-cargo run --bin memory-cli -- pattern list
+cargo run --bin do-memory-cli -- pattern list
 ```
 
 ### Programmatic Usage
@@ -237,7 +237,7 @@ sqlite3 ./data/memory.db < turso_backup.sql
 
 ### 3. Update Configuration
 
-Update your `.env` or `memory-cli.toml` to use local paths instead of Turso URLs.
+Update your `.env` or `do-memory-cli.toml` to use local paths instead of Turso URLs.
 
 ## Performance Considerations
 
@@ -268,13 +268,13 @@ The system supports automatic backups to the configured backup directory:
 
 ```bash
 # Manual backup
-cargo run --bin memory-cli -- backup create --name "manual-backup-$(date +%Y%m%d)"
+cargo run --bin do-memory-cli -- backup create --name "manual-backup-$(date +%Y%m%d)"
 
 # List backups
-cargo run --bin memory-cli -- backup list
+cargo run --bin do-memory-cli -- backup list
 
 # Restore from backup
-cargo run --bin memory-cli -- backup restore --name "manual-backup-20231201"
+cargo run --bin do-memory-cli -- backup restore --name "manual-backup-20231201"
 ```
 
 ### Manual Backup
@@ -329,7 +329,7 @@ chmod 644 ./data/memory.db 2>/dev/null || true
 
 # Or manually
 rm ./data/memory.db
-cargo run --bin memory-cli -- config show  # This will recreate the schema
+cargo run --bin do-memory-cli -- config show  # This will recreate the schema
 ```
 
 ### Debug Mode
@@ -337,7 +337,7 @@ cargo run --bin memory-cli -- config show  # This will recreate the schema
 Enable debug logging for troubleshooting:
 
 ```bash
-RUST_LOG=debug cargo run --bin memory-cli -- <command>
+RUST_LOG=debug cargo run --bin do-memory-cli -- <command>
 ```
 
 ### Database Inspection
@@ -462,12 +462,12 @@ CACHE_DB_URL=sqlite:./data/cache.db
 ## Next Steps
 
 1. **Run the setup script**: `./scripts/setup-local-db.sh`
-2. **Test the configuration**: `cargo run --bin memory-cli -- config show`
+2. **Test the configuration**: `cargo run --bin do-memory-cli -- config show`
 3. **Try basic operations**: Store and retrieve some episodes
 4. **Explore the API**: Check the programmatic usage examples
 5. **Configure backups**: Set up automated backup schedule
 
 For more information, see:
-- [Memory CLI Documentation](../memory-cli/README.md)
-- [Core API Documentation](../memory-core/README.md)
-- [Configuration Reference](../memory-cli/CONFIGURATION_GUIDE.md)
+- [Memory CLI Documentation](../do-memory-cli/README.md)
+- [Core API Documentation](../do-memory-core/README.md)
+- [Configuration Reference](../do-memory-cli/CONFIGURATION_GUIDE.md)

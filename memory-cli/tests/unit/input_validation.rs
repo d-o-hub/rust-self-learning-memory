@@ -3,7 +3,7 @@
 //! These tests verify that input sanitization, validation,
 //! and security checks work correctly.
 
-use memory_cli::test_utils::security;
+use do_memory_cli::do_memory_test_utils::security;
 use uuid::Uuid;
 
 #[cfg(test)]

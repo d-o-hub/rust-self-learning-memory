@@ -1,8 +1,8 @@
 //! Comprehensive tests for semantic summarization.
 
-use memory_core::pre_storage::SalientFeatures;
-use memory_core::semantic::{EpisodeSummary, SemanticSummarizer};
-use memory_core::{
+use do_memory_core::pre_storage::SalientFeatures;
+use do_memory_core::semantic::{EpisodeSummary, SemanticSummarizer};
+use do_memory_core::{
     ComplexityLevel, Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };
 

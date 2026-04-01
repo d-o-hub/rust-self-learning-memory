@@ -805,7 +805,7 @@ pub struct MemoryConfig {
 5. Test query latency ≤100ms
 6. Test with large episode collections (1000+)
 
-**Output**: `memory-core/tests/spatiotemporal_integration_test.rs`
+**Output**: `do-memory-core/tests/spatiotemporal_integration_test.rs`
 
 **Tests**:
 ```rust

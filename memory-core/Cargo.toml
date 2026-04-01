@@ -1,5 +1,5 @@
 [package]
-name = "memory-core"
+name = "do-memory-core"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -10,7 +10,7 @@ readme = "README.md"
 description = "Core episodic learning system for AI agents with pattern extraction, reward scoring, and dual storage backend"
 keywords = ["ai", "memory", "learning", "episodic", "patterns"]
 categories = ["database", "development-tools", "science"]
-documentation = "https://docs.rs/memory-core"
+documentation = "https://docs.rs/do-memory-core"
 
 [features]
 default = []
@@ -26,6 +26,8 @@ local-embeddings = ["ort", "tokenizers", "ndarray", "reqwest/stream"]
 hybrid_search = []
 # Enable proptest Arbitrary implementations for property testing
 proptest-arbitrary = ["proptest"]
+# Enable AgentFS SDK integration for external signals
+agentfs = []
 
 [dependencies]
 # Async runtime
@@ -92,8 +94,8 @@ proptest = { version = "1.11", optional = true }
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool"] }
-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-storage-turso = { path = "../memory-storage-turso", features = ["keepalive-pool"] }
+do-memory-storage-redb = { path = "../memory-storage-redb" }
 libsql = { workspace = true }
 serial_test = "3.4"
 criterion = "0.8"
@@ -101,7 +103,7 @@ proptest = "1.11"
 insta = "1.47"
 postcard = { workspace = true }
 # Enable proptest-arbitrary feature for tests
-memory-core = { path = ".", features = ["proptest-arbitrary"] }
+do-memory-core = { path = ".", features = ["proptest-arbitrary"] }
 
 [lints.clippy]
 # Core library gets pedantic linting for best practices

@@ -7,8 +7,8 @@
 //! cargo run --example regex_search_demo
 //! ```
 
-use memory_core::search::SearchMode;
-use memory_core::{EpisodeFilter, SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::search::SearchMode;
+use do_memory_core::{EpisodeFilter, SelfLearningMemory, TaskContext, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -152,7 +152,7 @@ async fn main() -> anyhow::Result<()> {
     let dangerous_pattern = "(a+)+b"; // Catastrophic backtracking
     println!("Attempting dangerous pattern: {dangerous_pattern}");
 
-    match memory_core::search::validate_regex_pattern(dangerous_pattern) {
+    match do_memory_core::search::validate_regex_pattern(dangerous_pattern) {
         Ok(()) => println!("  ❌ Pattern was allowed (should be blocked)"),
         Err(e) => println!("  ✅ Pattern blocked: {e}"),
     }

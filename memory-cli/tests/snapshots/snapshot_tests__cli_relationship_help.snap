@@ -4,7 +4,7 @@ expression: stdout
 ---
 Relationship management commands for episodes
 
-Usage: memory-cli relationship <COMMAND>
+Usage: do-memory-cli relationship <COMMAND>
 
 Commands:
   add       Add a relationship between two episodes

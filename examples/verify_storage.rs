@@ -4,7 +4,7 @@
 //! data from both Turso and redb storage backends.
 
 use anyhow::Result;
-use memory_core::{
+use do_memory_core::{
     MemoryConfig,
     episode::ExecutionStep,
     memory::SelfLearningMemory,
@@ -61,8 +61,8 @@ async fn test_redb_only() -> Result<()> {
     let storage_path = temp_dir.path().join("verification_storage.redb");
     let cache_path = temp_dir.path().join("verification_cache.redb");
 
-    let storage = memory_storage_redb::RedbStorage::new(&storage_path).await?;
-    let cache = memory_storage_redb::RedbStorage::new(&cache_path).await?;
+    let storage = do_memory_storage_redb::RedbStorage::new(&storage_path).await?;
+    let cache = do_memory_storage_redb::RedbStorage::new(&cache_path).await?;
 
     // Initialize memory system
     let config = MemoryConfig::default();
@@ -196,7 +196,8 @@ async fn test_dual_storage() -> Result<()> {
     println!("Connecting to local Turso database at: {}", turso_url);
 
     // Create Turso storage
-    let turso_storage = memory_storage_turso::TursoStorage::new(&turso_url, &turso_token).await?;
+    let turso_storage =
+        do_memory_storage_turso::TursoStorage::new(&turso_url, &turso_token).await?;
     turso_storage.initialize_schema().await?;
 
     println!("✅ Connected to local Turso database");
@@ -204,7 +205,7 @@ async fn test_dual_storage() -> Result<()> {
     // Create redb cache in temporary directory
     let temp_dir = tempdir()?;
     let cache_path = temp_dir.path().join("verification_dual_cache.redb");
-    let cache = memory_storage_redb::RedbStorage::new(&cache_path).await?;
+    let cache = do_memory_storage_redb::RedbStorage::new(&cache_path).await?;
 
     // Initialize memory system with both backends
     let config = MemoryConfig::default();
@@ -265,8 +266,8 @@ async fn test_data_persistence() -> Result<()> {
 
     {
         println!("  Creating first memory instance...");
-        let storage = memory_storage_redb::RedbStorage::new(&storage_path).await?;
-        let cache = memory_storage_redb::RedbStorage::new(&cache_path).await?;
+        let storage = do_memory_storage_redb::RedbStorage::new(&storage_path).await?;
+        let cache = do_memory_storage_redb::RedbStorage::new(&cache_path).await?;
 
         let config = MemoryConfig::default();
         let memory = SelfLearningMemory::with_storage(config, Arc::new(storage), Arc::new(cache));
@@ -303,8 +304,8 @@ async fn test_data_persistence() -> Result<()> {
 
     // Create second instance with same files
     println!("  Creating second memory instance...");
-    let storage2 = memory_storage_redb::RedbStorage::new(&storage_path).await?;
-    let cache2 = memory_storage_redb::RedbStorage::new(&cache_path).await?;
+    let storage2 = do_memory_storage_redb::RedbStorage::new(&storage_path).await?;
+    let cache2 = do_memory_storage_redb::RedbStorage::new(&cache_path).await?;
 
     let config2 = MemoryConfig::default();
     let memory2 = SelfLearningMemory::with_storage(config2, Arc::new(storage2), Arc::new(cache2));

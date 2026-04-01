@@ -6,8 +6,8 @@
 //! ## Example
 //!
 //! ```
-//! use memory_core::patterns::validation::{PatternValidator, ValidationConfig};
-//! use memory_core::Pattern;
+//! use do_memory_core::patterns::validation::{PatternValidator, ValidationConfig};
+//! use do_memory_core::Pattern;
 //!
 //! let validator = PatternValidator::new(ValidationConfig::default());
 //!

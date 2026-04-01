@@ -6,8 +6,8 @@
 //! Comprehensive integration tests verifying MCP tool registration,
 //! schema validation, uniqueness, and basic tool invocation.
 
-use memory_core::{MemoryConfig, SelfLearningMemory};
-use memory_mcp::{ExecutionStats, MemoryMCPServer, SandboxConfig};
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_mcp::{ExecutionStats, MemoryMCPServer, SandboxConfig};
 use std::collections::HashSet;
 use std::sync::Arc;
 

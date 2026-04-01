@@ -7,15 +7,15 @@
 **Symptoms**: Process exits immediately or hangs
 
 **Checks**:
-1. Binary exists: `ls -la ./target/release/memory-mcp-server`
-2. Binary is executable: `chmod +x ./target/release/memory-mcp-server`
+1. Binary exists: `ls -la ./target/release/do-memory-mcp-server`
+2. Binary is executable: `chmod +x ./target/release/do-memory-mcp-server`
 3. Database files exist: `ls -la ./data/`
 4. Environment variables set: `env | grep -E '(TURSO|REDB|RUST_LOG)'`
 
 **Solutions**:
 ```bash
 # Rebuild
-cargo build --release --bin memory-mcp-server
+cargo build --release --bin do-memory-mcp-server
 
 # Create data directory
 mkdir -p ./data
@@ -39,7 +39,7 @@ export REDB_CACHE_PATH="./data/cache.redb"
 **Debug Commands**:
 ```bash
 # Run with debug logging
-RUST_LOG=debug ./target/release/memory-mcp-server
+RUST_LOG=debug ./target/release/do-memory-mcp-server
 
 # Check database
 sqlite3 ./data/memory.db ".tables"
@@ -84,11 +84,11 @@ export MCP_CACHE_WARMING_ENABLED="false"
 **Solutions**:
 ```bash
 # Kill existing processes
-pkill memory-mcp-server
+pkill do-memory-mcp-server
 
 # Verify no zombie processes
-ps aux | grep memory-mcp-server
+ps aux | grep do-memory-mcp-server
 
 # Restart inspector
-npx -y @modelcontextprotocol/inspector ./target/release/memory-mcp-server
+npx -y @modelcontextprotocol/inspector ./target/release/do-memory-mcp-server
 ```

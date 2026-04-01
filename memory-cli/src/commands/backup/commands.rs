@@ -10,7 +10,7 @@ use crate::output::OutputFormat;
 use super::types::*;
 
 pub async fn create_backup(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     path: PathBuf,
@@ -25,7 +25,7 @@ pub async fn create_backup(
         turso
             .query_episodes_since(
                 chrono::Utc::now() - chrono::Duration::days(365),
-                Some(memory_core::MAX_QUERY_LIMIT),
+                Some(do_memory_core::MAX_QUERY_LIMIT),
             )
             .await?
     } else {
@@ -108,7 +108,7 @@ pub async fn create_backup(
 }
 
 pub async fn list_backups(
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     path: PathBuf,
@@ -150,7 +150,7 @@ pub async fn list_backups(
 }
 
 pub async fn restore_backup(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     path: PathBuf,
@@ -174,7 +174,7 @@ pub async fn restore_backup(
         .and_then(|e| e.get("episodes").and_then(|ep| ep.as_array()));
 
     for episode in episodes.into_iter().flatten() {
-        match serde_json::from_value::<memory_core::Episode>(episode.clone()) {
+        match serde_json::from_value::<do_memory_core::Episode>(episode.clone()) {
             Ok(ep) => {
                 // Store episode in available backends
                 let mut stored = false;
@@ -224,7 +224,7 @@ pub async fn restore_backup(
 }
 
 pub async fn verify_backup(
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     path: PathBuf,

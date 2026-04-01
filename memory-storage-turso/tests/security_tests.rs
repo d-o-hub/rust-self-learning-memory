@@ -3,7 +3,7 @@
 //! Tests TLS/HTTPS enforcement and certificate validation to ensure
 //! only secure protocols are used for database connections.
 
-use memory_storage_turso::TursoStorage;
+use do_memory_storage_turso::TursoStorage;
 
 #[tokio::test]
 #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]

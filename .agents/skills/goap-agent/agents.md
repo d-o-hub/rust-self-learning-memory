@@ -12,7 +12,7 @@
 | **loop-agent** | Iterative refinement, convergence | Task, Read, TodoWrite, Glob, Grep | Progressive improvements |
 | **agent-creator** | Create new Task Agents | Write, Read, Glob, Grep, Edit | New capabilities |
 | **Explore** | Fast codebase exploration | All tools | Finding files, architecture |
-| **memory-cli** | CLI development, testing | Read, Write, Edit, Bash, Glob, Grep | CLI features |
+| **do-memory-cli** | CLI development, testing | Read, Write, Edit, Bash, Glob, Grep | CLI features |
 
 ## Assignment Principles
 

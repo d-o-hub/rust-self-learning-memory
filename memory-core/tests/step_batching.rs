@@ -13,7 +13,9 @@
 mod common;
 
 use common::{ContextBuilder, create_success_step, setup_memory_with_config};
-use memory_core::{BatchConfig, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType};
+use do_memory_core::{
+    BatchConfig, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,
+};
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 

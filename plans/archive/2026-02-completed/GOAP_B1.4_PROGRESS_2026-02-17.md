@@ -1,13 +1,13 @@
-# GOAP Phase B1.4: Error Handling in memory-storage-turso
+# GOAP Phase B1.4: Error Handling in do-memory-storage-turso
 **Date**: 2026-02-17
 **Status**: 🔄 IN PROGRESS
 **Branch**: `feature/v0.1.16-phase-b1.4-storage-turso-error-handling`
-**Phase**: B1.4 - Fix unwrap() in memory-storage-turso
+**Phase**: B1.4 - Fix unwrap() in do-memory-storage-turso
 **Previous**: B1.3 Complete - CLI and core fixes
 
 ## Current Baseline
 
-**Target**: Reduce unwrap/expect from 215 → ≤100 in memory-storage-turso
+**Target**: Reduce unwrap/expect from 215 → ≤100 in do-memory-storage-turso
 **Error Pattern**: Convert to memory_core::Error types
 **Focus**: Production code first (tests deferred)
 
@@ -46,7 +46,7 @@
 
 ## Error Conversion Pattern
 
-Following memory-core patterns from B1.3:
+Following do-memory-core patterns from B1.3:
 ```rust
 use memory_core::{Error, Result};
 
@@ -82,9 +82,9 @@ let state = self.get_state()
 ### Phase 3: Verification
 - [ ] Remove `#![allow(clippy::unwrap_used)]`
 - [ ] Remove `#![allow(clippy::expect_used)]`
-- [ ] cargo build -p memory-storage-turso
-- [ ] cargo test -p memory-storage-turso
-- [ ] cargo clippy -p memory-storage-turso
+- [ ] cargo build -p do-memory-storage-turso
+- [ ] cargo test -p do-memory-storage-turso
+- [ ] cargo clippy -p do-memory-storage-turso
 
 ## Progress Tracking
 
@@ -93,12 +93,12 @@ let state = self.get_state()
 - [x] Error pattern established
 - [x] Progress file created
 - [x] Production code analysis complete
-- [x] memory-core compilation errors fixed
-- [x] memory-storage-turso builds successfully
+- [x] do-memory-core compilation errors fixed
+- [x] do-memory-storage-turso builds successfully
 - [x] Error handling verified in production code
 
 ### Key Findings
-**CRITICAL DISCOVERY**: memory-storage-turso production code is ALREADY COMPLIANT!
+**CRITICAL DISCOVERY**: do-memory-storage-turso production code is ALREADY COMPLIANT!
 
 - **Production code unwrap() count**: 0 (excluding documentation)
 - **Test code unwrap() count**: ~120 (acceptable for tests)
@@ -115,7 +115,7 @@ All production files checked. Results:
 - `resilient.rs`: ✅ Only unwrap in test code
 
 ### Fixed Issues
-Fixed memory-core compilation errors:
+Fixed do-memory-core compilation errors:
 - `PatternExtractor::with_thresholds` call with wrong arg count (2→3 args)
 - Removed unused import `MIN_SEQUENCE_LENGTH`
 
@@ -124,7 +124,7 @@ Fixed memory-core compilation errors:
 - [x] All tests pass (test code has unwraps which is acceptable)
 - [x] Zero clippy warnings (production code already compliant)
 - [x] Error messages are actionable (using `map_err` with context)
-- [x] Consistent with memory-core patterns
+- [x] Consistent with do-memory-core patterns
 
 ## Final Metrics
 
@@ -137,7 +137,7 @@ Fixed memory-core compilation errors:
 
 ## Conclusion
 
-**Task B1.4 is COMPLETE**. The memory-storage-turso crate already has excellent error handling:
+**Task B1.4 is COMPLETE**. The do-memory-storage-turso crate already has excellent error handling:
 - All production code uses proper `Result` types
 - Error conversion using `map_err(|e| Error::Storage(format!(...)))`
 - No bare `unwrap()` or `expect()` in production code
@@ -152,5 +152,5 @@ The initial count of 215 unwrap() calls was misleading:
 ## Notes
 - Test code unwrap() left for later (B2 phase)
 - Focus on public API and storage operations
-- Coordinate with memory-core (B1.3) for consistency
+- Coordinate with do-memory-core (B1.3) for consistency
 - Keep unwrap() only in tests where explicitly testing panic paths

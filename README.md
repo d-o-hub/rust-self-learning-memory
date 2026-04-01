@@ -22,14 +22,14 @@ A self-learning episodic memory system with semantic pattern search, embeddings,
 The Rust Self-Learning Memory System provides persistent memory across agent interactions through a comprehensive MCP (Model Context Protocol) server. It captures, stores, and learns from episodic experiences to improve future performance.
 
 **Architecture:**
-- **memory-core**: Core memory operations, pattern extraction, and reward scoring
-- **memory-storage-turso**: Primary database storage (libSQL)
-- **memory-storage-redb**: Fast embedded cache layer
-- **memory-mcp**: MCP server with secure WASM sandbox
-- **memory-cli**: Full-featured command-line interface (episode, pattern, storage, playbook, feedback, and more)
-- **test-utils**: Shared testing utilities
-- **benches**: Comprehensive benchmark suite
-- **examples**: Usage examples and demonstrations
+- **do-memory-core**: Core memory operations, pattern extraction, and reward scoring
+- **do-memory-storage-turso**: Primary database storage (libSQL)
+- **do-memory-storage-redb**: Fast embedded cache layer
+- **do-memory-mcp**: MCP server with secure WASM sandbox
+- **do-memory-cli**: Full-featured command-line interface (episode, pattern, storage, playbook, feedback, and more)
+- **do-memory-test-utils**: Shared testing utilities
+- **do-memory-benches**: Comprehensive benchmark suite
+- **do-memory-examples**: Usage examples and demonstrations
 
 **Tech Stack:** Rust 2024 edition / Tokio + Turso/libSQL + redb cache + Wasmtime WASM + optional embeddings (OpenAI, Mistral, local)
 
@@ -170,7 +170,7 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-**Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
+**Documentation:** See `do-memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
 - Rust stable (2024 edition)
@@ -203,7 +203,7 @@ cargo test --doc
 ./scripts/setup-local-db.sh
 
 # Or manual setup
-cp memory-cli/.env.example .env
+cp do-memory-cli/.env.example .env
 mkdir -p ./data ./backups
 ```
 
@@ -213,7 +213,7 @@ mkdir -p ./data ./backups
 
 ```bash
 # Run interactive configuration wizard
-memory-cli config wizard
+do-memory-cli config wizard
 
 # Follow the prompts to configure:
 # - Database (local SQLite or remote Turso)
@@ -221,10 +221,10 @@ memory-cli config wizard
 # - CLI (output format, progress bars, batch size)
 
 # Validate configuration
-memory-cli config validate
+do-memory-cli config validate
 
 # Check configuration status
-memory-cli config check
+do-memory-cli config check
 ```
 
 Configuration Wizard provides interactive step-by-step setup with sensible defaults and validation.
@@ -233,39 +233,39 @@ Configuration Wizard provides interactive step-by-step setup with sensible defau
 
 ```bash
 # Create an episode
-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
+do-memory-cli episode create --task "Implement user authentication" --context '{"language": "rust", "domain": "auth"}'
 
 # List episodes
-memory-cli episode list --limit 10
+do-memory-cli episode list --limit 10
 
 # Search episodes
-memory-cli episode search "authentication" --limit 5
+do-memory-cli episode search "authentication" --limit 5
 
 # Search patterns semantically
-memory-cli pattern search --query "How to build REST API" --limit 5
+do-memory-cli pattern search --query "How to build REST API" --limit 5
 
 # Analyze patterns
-memory-cli pattern list --min-confidence 0.8
+do-memory-cli pattern list --min-confidence 0.8
 
 # Tag management
-memory-cli tag add <episode-id> "important"
-memory-cli tag search "important"
+do-memory-cli tag add <episode-id> "important"
+do-memory-cli tag search "important"
 
 # Health check
-memory-cli health check
+do-memory-cli health check
 
 # Playbook recommendation
-memory-cli playbook recommend "Implement JWT auth" --domain security
+do-memory-cli playbook recommend "Implement JWT auth" --domain security
 ```
 
 #### MCP Server
 
 ```bash
 # Start the MCP server
-cargo run --bin memory-mcp-server
+cargo run --bin do-memory-mcp-server
 
 # Or run with custom config
-cargo run --bin memory-mcp-server -- --config mcp-config-memory.json
+cargo run --bin do-memory-mcp-server -- --config mcp-config-memory.json
 ```
 
 #### Programmatic Usage
@@ -299,7 +299,7 @@ async fn main() -> anyhow::Result<()> {
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
-| [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
+| [Configuration Guide](do-memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
 | [YAML Validation](docs/YAML_VALIDATION.md) | Configuration validation strategy |
@@ -325,11 +325,11 @@ async fn main() -> anyhow::Result<()> {
 
 | Crate | Description |
 |-------|-------------|
-| [memory-core](memory-core/README.md) | Core episodic learning system |
-| [memory-mcp](memory-mcp/README.md) | MCP server with secure sandbox |
-| [memory-cli](memory-cli/README.md) | Command-line interface |
-| [memory-storage-turso](memory-storage-turso/README.md) | Turso/libSQL storage backend |
-| [memory-storage-redb](memory-storage-redb/README.md) | redb cache backend |
+| [do-memory-core](do-memory-core/README.md) | Core episodic learning system |
+| [do-memory-mcp](do-memory-mcp/README.md) | MCP server with secure sandbox |
+| [do-memory-cli](do-memory-cli/README.md) | Command-line interface |
+| [do-memory-storage-turso](do-memory-storage-turso/README.md) | Turso/libSQL storage backend |
+| [do-memory-storage-redb](do-memory-storage-redb/README.md) | redb cache backend |
 
 ## Quality Gates
 
@@ -371,16 +371,16 @@ cargo build --features embeddings-full
 ```
 
 **Available Features:**
-- `openai`: OpenAI API embeddings support (memory-core)
-- `mistral`: Mistral AI embeddings support (memory-core)
-- `local-embeddings`: CPU-based local embeddings (memory-core)
-- `embeddings-full`: All embedding providers (memory-core)
-- `turso`: Turso cloud storage with keepalive pool (memory-cli)
-- `redb`: redb local cache layer (memory-cli, default)
-- `full`: All features combined (memory-cli)
-- `wasmtime-backend`: Wasmtime WASM sandbox (memory-mcp, default)
-- `compression`: Network compression — lz4, zstd, gzip (memory-storage-turso)
-- `hybrid_search`: FTS5 hybrid search (memory-storage-turso)
+- `openai`: OpenAI API embeddings support (do-memory-core)
+- `mistral`: Mistral AI embeddings support (do-memory-core)
+- `local-embeddings`: CPU-based local embeddings (do-memory-core)
+- `embeddings-full`: All embedding providers (do-memory-core)
+- `turso`: Turso cloud storage with keepalive pool (do-memory-cli)
+- `redb`: redb local cache layer (do-memory-cli, default)
+- `full`: All features combined (do-memory-cli)
+- `wasmtime-backend`: Wasmtime WASM sandbox (do-memory-mcp, default)
+- `compression`: Network compression — lz4, zstd, gzip (do-memory-storage-turso)
+- `hybrid_search`: FTS5 hybrid search (do-memory-storage-turso)
 
 ## Configuration
 
@@ -400,7 +400,7 @@ MEMORY_MAX_EPISODES_CACHE=1000
 MEMORY_CACHE_TTL_SECONDS=3600
 
 # CLI config
-MEMORY_CLI_CONFIG=./memory-cli.toml
+MEMORY_CLI_CONFIG=./do-memory-cli.toml
 
 # Embeddings (CLI/MCP)
 EMBEDDING_PROVIDER=openai|mistral|azure|local
@@ -414,7 +414,7 @@ EMBEDDING_BATCH_SIZE=32
 
 # Sandbox settings
 MCP_USE_WASM=true
-JAVY_PLUGIN=./memory-mcp/javy-plugin.wasm
+JAVY_PLUGIN=./do-memory-mcp/javy-plugin.wasm
 ```
 
 ### TOML Configuration
@@ -509,7 +509,7 @@ Typical performance numbers are from internal benchmarks on a warm cache; result
 
 ## Benchmarks
 
-Run `cargo bench` for workspace benchmarks. CLI benchmarks live in `memory-cli/benches/cli_benchmarks.rs`; quality gate expectations and regression checks are documented in `docs/QUALITY_GATES.md`.
+Run `cargo bench` for workspace benchmarks. CLI benchmarks live in `do-memory-cli/benches/cli_benchmarks.rs`; quality gate expectations and regression checks are documented in `docs/QUALITY_GATES.md`.
 
 ## Contributing
 

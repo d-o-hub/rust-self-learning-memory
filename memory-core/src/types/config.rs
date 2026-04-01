@@ -13,7 +13,7 @@ use crate::security::audit::AuditConfig;
 /// # Examples
 ///
 /// ```
-/// use memory_core::StorageConfig;
+/// use do_memory_core::StorageConfig;
 ///
 /// // Default configuration
 /// let config = StorageConfig::default();
@@ -53,7 +53,7 @@ impl Default for StorageConfig {
 /// # Examples
 ///
 /// ```
-/// use memory_core::ConcurrencyConfig;
+/// use do_memory_core::ConcurrencyConfig;
 ///
 /// // Default configuration (moderate concurrency)
 /// let config = ConcurrencyConfig::default();
@@ -93,8 +93,8 @@ impl Default for ConcurrencyConfig {
 /// # Examples
 ///
 /// ```
-/// use memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy};
-/// use memory_core::security::audit::AuditConfig;
+/// use do_memory_core::{MemoryConfig, StorageConfig, BatchConfig, ConcurrencyConfig, EvictionPolicy};
+/// use do_memory_core::security::audit::AuditConfig;
 ///
 /// // Default configuration
 /// let config = MemoryConfig::default();
@@ -249,7 +249,7 @@ impl MemoryConfig {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::MemoryConfig;
+    /// use do_memory_core::MemoryConfig;
     ///
     /// // With environment variables set:
     /// // MEMORY_MAX_EPISODES=10000

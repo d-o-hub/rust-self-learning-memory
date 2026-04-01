@@ -25,8 +25,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_mcp::{UnifiedSandbox, SandboxBackend};
-//! use memory_mcp::types::{ExecutionContext, SandboxConfig};
+//! use do_memory_mcp::{UnifiedSandbox, SandboxBackend};
+//! use do_memory_mcp::types::{ExecutionContext, SandboxConfig};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

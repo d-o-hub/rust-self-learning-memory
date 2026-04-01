@@ -17,12 +17,12 @@
 - **Performance**: Ready for benchmark validation
 
 ### Files Modified:
-- memory-storage-turso/src/pool/keepalive.rs (652 lines)
-- memory-storage-turso/src/pool/adaptive.rs (523 lines)
-- memory-storage-turso/src/compression.rs (573 lines)
-- memory-storage-turso/src/storage/mod.rs (compression integration)
-- memory-storage-turso/src/storage/episodes.rs (compression integration)
-- memory-storage-turso/src/lib.rs (pool/compression wiring)
+- do-memory-storage-turso/src/pool/keepalive.rs (652 lines)
+- do-memory-storage-turso/src/pool/adaptive.rs (523 lines)
+- do-memory-storage-turso/src/compression.rs (573 lines)
+- do-memory-storage-turso/src/storage/mod.rs (compression integration)
+- do-memory-storage-turso/src/storage/episodes.rs (compression integration)
+- do-memory-storage-turso/src/lib.rs (pool/compression wiring)
 
 ### Next Steps:
 1. Run performance benchmarks to validate improvements

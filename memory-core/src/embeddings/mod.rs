@@ -20,7 +20,7 @@
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ProviderConfig, LocalConfig};
+//! use do_memory_core::embeddings::{EmbeddingProvider, LocalEmbeddingProvider, ProviderConfig, LocalConfig};
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! // Local embedding provider (offline)

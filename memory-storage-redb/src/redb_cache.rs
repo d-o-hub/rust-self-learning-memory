@@ -3,10 +3,10 @@
 //! Implements the unified StorageBackend trait for the redb cache layer.
 
 use async_trait::async_trait;
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::{
+use do_memory_core::{
     episode::{Direction, EpisodeRelationship, PatternId, RelationshipType},
     Episode, Heuristic, Pattern, Result, StorageBackend,
 };

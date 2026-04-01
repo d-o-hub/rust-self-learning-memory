@@ -34,8 +34,8 @@ The Episode Tagging Task 1.1 implementation is **PARTIALLY COMPLETE** but has **
 - Type mismatch causes compilation failures
 
 **Location**:
-- `memory-core/src/memory/management.rs:243`
-- `memory-core/src/episode/structs.rs:239`
+- `do-memory-core/src/memory/management.rs:243`
+- `do-memory-core/src/episode/structs.rs:239`
 
 **Root Cause**: API contract mismatch between Episode struct implementation and management code expectations.
 
@@ -54,7 +54,7 @@ The Episode Tagging Task 1.1 implementation is **PARTIALLY COMPLETE** but has **
 - Exceeds 500 LOC limit by 17 lines
 
 **Location**:
-- `memory-storage-turso/src/storage/tag_operations.rs`
+- `do-memory-storage-turso/src/storage/tag_operations.rs`
 
 **Fix Required**: Split into focused modules (crud.rs, queries.rs, stats.rs, mod.rs)
 
@@ -250,10 +250,10 @@ pub fn add_tag(&mut self, tag: String) -> Result<bool, String>  // Returns error
 ## Files Reviewed
 
 ### Implementation Files
-1. `memory-core/src/episode/structs.rs` (496 lines)
-2. `memory-core/src/memory/management.rs` (partial)
-3. `memory-storage-turso/src/storage/tag_operations.rs` (517 lines)
-4. `memory-core/tests/tag_operations_test.rs`
+1. `do-memory-core/src/episode/structs.rs` (496 lines)
+2. `do-memory-core/src/memory/management.rs` (partial)
+3. `do-memory-storage-turso/src/storage/tag_operations.rs` (517 lines)
+4. `do-memory-core/tests/tag_operations_test.rs`
 
 ### Specification Files
 1. `plans/EPISODE_TAGGING_FEATURE_SPEC.md`

@@ -44,7 +44,7 @@ Phase 1 (PREMem - Pre-Storage Reasoning for Memory Quality) has been successfull
 - ✅ All feature flags working
 
 **Compilation Issues Fixed During Validation**:
-1. Missing `anyhow::Context` import in `memory-core/src/embeddings/openai.rs` - ✅ FIXED
+1. Missing `anyhow::Context` import in `do-memory-core/src/embeddings/openai.rs` - ✅ FIXED
 2. Missing `PatternEffectiveness` imports in test files - ✅ FIXED
 3. Missing `effectiveness` field in Pattern test initializations - ✅ FIXED
 
@@ -174,9 +174,9 @@ Based on comprehensive code review (see plans/PHASE1_CODE_REVIEW_REPORT_2025-12-
 
 **Issues Found**:
 - ⚠️ LOC limit violations (3 files exceed 500 LOC due to inline tests)
-  - memory-core/src/pre_storage/quality.rs: 662 LOC (32% over)
-  - memory-core/src/pre_storage/extractor.rs: 913 LOC (83% over)
-  - memory-mcp/src/mcp/tools/quality_metrics.rs: 694 LOC (39% over)
+  - do-memory-core/src/pre_storage/quality.rs: 662 LOC (32% over)
+  - do-memory-core/src/pre_storage/extractor.rs: 913 LOC (83% over)
+  - do-memory-mcp/src/mcp/tools/quality_metrics.rs: 694 LOC (39% over)
 - ⚠️ Test compilation failures (fixed during validation)
 - ⚠️ Some clippy warnings in unrelated files (pattern/types.rs, reward/adaptive.rs)
 
@@ -261,12 +261,12 @@ Based on comprehensive code review (see plans/PHASE1_CODE_REVIEW_REPORT_2025-12-
 
 | Deliverable | Status | Location |
 |-------------|--------|----------|
-| **QualityAssessor module** | ✅ COMPLETE | memory-core/src/pre_storage/quality.rs |
-| **SalientExtractor module** | ✅ COMPLETE | memory-core/src/pre_storage/extractor.rs |
-| **Storage integration** | ✅ COMPLETE | memory-core/src/memory/mod.rs, learning.rs |
-| **Quality metrics (MCP)** | ✅ COMPLETE | memory-mcp/src/mcp/tools/quality_metrics.rs |
-| **Episode data structure** | ✅ COMPLETE | memory-core/src/episode.rs (salient_features field) |
-| **Configuration** | ✅ COMPLETE | memory-core/src/types.rs (quality_threshold) |
+| **QualityAssessor module** | ✅ COMPLETE | do-memory-core/src/pre_storage/quality.rs |
+| **SalientExtractor module** | ✅ COMPLETE | do-memory-core/src/pre_storage/extractor.rs |
+| **Storage integration** | ✅ COMPLETE | do-memory-core/src/memory/mod.rs, learning.rs |
+| **Quality metrics (MCP)** | ✅ COMPLETE | do-memory-mcp/src/mcp/tools/quality_metrics.rs |
+| **Episode data structure** | ✅ COMPLETE | do-memory-core/src/episode.rs (salient_features field) |
+| **Configuration** | ✅ COMPLETE | do-memory-core/src/types.rs (quality_threshold) |
 | **Unit tests** | ✅ COMPLETE | 27+ tests across modules |
 | **Integration tests** | ✅ COMPLETE | 6 tests in premem_integration_test.rs |
 | **Documentation** | ✅ COMPLETE | API docs, user guides, examples |
@@ -288,8 +288,8 @@ Based on comprehensive code review (see plans/PHASE1_CODE_REVIEW_REPORT_2025-12-
 - **Effort**: 30 minutes
 
 **2. Extract Inline Tests to Meet LOC Limits** (3-4 hours)
-- Create memory-core/tests/pre_storage_quality_unit_test.rs
-- Create memory-core/tests/pre_storage_extractor_unit_test.rs
+- Create do-memory-core/tests/pre_storage_quality_unit_test.rs
+- Create do-memory-core/tests/pre_storage_extractor_unit_test.rs
 - Move inline tests from quality.rs and extractor.rs
 - **Impact**: quality.rs → ~400 LOC, extractor.rs → ~500 LOC, quality_metrics.rs → ~450 LOC
 - **Effort**: 3-4 hours

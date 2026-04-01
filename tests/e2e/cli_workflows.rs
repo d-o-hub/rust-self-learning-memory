@@ -26,12 +26,12 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
         .unwrap_or_else(|_| std::path::PathBuf::from("target"));
 
     let candidates = [
-        target_dir.join("debug/memory-cli"),
-        target_dir.join("release/memory-cli"),
-        std::path::PathBuf::from("target/debug/memory-cli"),
-        std::path::PathBuf::from("target/release/memory-cli"),
-        std::path::PathBuf::from("../target/debug/memory-cli"),
-        std::path::PathBuf::from("../target/release/memory-cli"),
+        target_dir.join("debug/do-memory-cli"),
+        target_dir.join("release/do-memory-cli"),
+        std::path::PathBuf::from("target/debug/do-memory-cli"),
+        std::path::PathBuf::from("target/release/do-memory-cli"),
+        std::path::PathBuf::from("../target/debug/do-memory-cli"),
+        std::path::PathBuf::from("../target/release/do-memory-cli"),
     ];
 
     for candidate in &candidates {
@@ -45,22 +45,22 @@ fn find_cli_binary() -> Result<std::path::PathBuf> {
         .args([
             "build",
             "-p",
-            "memory-cli",
+            "do-memory-cli",
             "--bin",
-            "memory-cli",
+            "do-memory-cli",
             "--message-format=short",
         ])
         .output()?;
 
     if !output.status.success() {
         anyhow::bail!(
-            "Failed to build memory-cli: {}",
+            "Failed to build do-memory-cli: {}",
             String::from_utf8_lossy(&output.stderr)
         );
     }
 
     // Return the path respecting CARGO_TARGET_DIR
-    Ok(target_dir.join("debug/memory-cli"))
+    Ok(target_dir.join("debug/do-memory-cli"))
 }
 
 /// Helper to create a test config file

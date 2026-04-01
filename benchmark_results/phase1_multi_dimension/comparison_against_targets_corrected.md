@@ -205,7 +205,7 @@ export TURSO_DATABASE_URL="libsql://127.0.0.1:8080"
 export TURSO_AUTH_TOKEN=""  # Empty for local dev
 
 cargo bench --bench turso_vector_performance \
-  --features memory-storage-turso/turso_multi_dimension
+  --features do-memory-storage-turso/turso_multi_dimension
 
 # 3. Verify vector extensions are used
 # Check benchmark output for:
@@ -239,7 +239,7 @@ cargo bench --bench turso_vector_performance \
 2. ⚠️ **Execute all benchmarks** with vector extensions
    ```bash
    cargo bench --bench turso_vector_performance \
-     --features memory-storage-turso/turso_multi_dimension
+     --features do-memory-storage-turso/turso_multi_dimension
    ```
 
 3. ⚠️ **Update this report** with actual measurements

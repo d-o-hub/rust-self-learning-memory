@@ -3,14 +3,13 @@
 //! These tests verify that the CLI properly handles malicious input,
 //! prevents injection attacks, and sanitizes user data.
 
-use memory_cli::test_utils;
 use std::fs;
-use test_utils::*;
 
 #[cfg(test)]
 mod security_tests {
     use super::*;
     use assert_cmd::Command;
+    use do_memory_cli::test_utils::{CliHarness, security};
     use predicates::prelude::*;
     use tempfile::TempDir;
 
@@ -76,7 +75,7 @@ batch_size = 10
 
             #[allow(deprecated)]
             let mut cmd =
-                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&safe_config);
             cmd.args(["episode", "create", "test task"]);
 
@@ -145,7 +144,7 @@ default_format = "human; echo 'injected'"
 
             #[allow(deprecated)]
             let mut cmd =
-                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -300,7 +299,8 @@ batch_size = 10
         fs::write(&config_path, &sensitive_config).unwrap();
 
         #[allow(deprecated)]
-        let mut cmd = Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd =
+            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
         cmd.arg("--config").arg(&config_path);
         cmd.args(["episode", "list"]);
 
@@ -624,7 +624,7 @@ batch_size = 10
 
             #[allow(deprecated)]
             let mut cmd =
-                Command::cargo_bin("memory-cli").expect("Failed to find memory-cli binary");
+                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
             cmd.arg("--config").arg(&config_path);
             cmd.args(["episode", "list"]);
 

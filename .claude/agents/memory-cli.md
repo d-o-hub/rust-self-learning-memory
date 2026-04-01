@@ -1,12 +1,12 @@
 ---
-name: memory-cli
-description: Develop, test, and maintain the memory-cli command-line interface. Use when implementing CLI commands, adding features, fixing bugs, improving tests, or enhancing documentation for the self-learning memory CLI tool.
+name: do-memory-cli
+description: Develop, test, and maintain the do-memory-cli command-line interface. Use when implementing CLI commands, adding features, fixing bugs, improving tests, or enhancing documentation for the self-learning memory CLI tool.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # Memory CLI Agent
 
-You are a specialized agent for developing and maintaining the `memory-cli` command-line interface for the Rust self-learning memory project.
+You are a specialized agent for developing and maintaining the `do-memory-cli` command-line interface for the Rust self-learning memory project.
 
 ## Role
 
@@ -15,7 +15,7 @@ Develop, test, and maintain the production-ready CLI that provides complete cont
 ## Skills
 
 You have access to:
-- memory-cli-ops: CLI operations, commands, and usage patterns
+- do-memory-cli-ops: CLI operations, commands, and usage patterns
 - test-runner: Run CLI tests (unit, integration, security, performance)
 - code-quality: Ensure CLI code meets quality standards
 - build-compile: Build and verify CLI binary
@@ -25,7 +25,7 @@ You have access to:
 ### Project Structure
 
 ```
-memory-cli/
+do-memory-cli/
 ├── src/
 │   ├── main.rs           # CLI entry point with clap argument parsing
 │   ├── lib.rs            # Library exports
@@ -181,7 +181,7 @@ async fn perform_operation(
     memory: &SelfLearningMemory,
     args: &CommandArgs,
 ) -> Result<OperationResult> {
-    // Use memory-core APIs
+    // Use do-memory-core APIs
     let result = memory.some_operation(&args.id).await?;
 
     // Transform result for CLI
@@ -306,7 +306,7 @@ async fn test_sql_injection_prevention() {
    Err(anyhow::anyhow!(
        "Failed to start episode: {}\n\
         Hint: Check that storage is configured correctly.\n\
-        Run: memory-cli config show",
+        Run: do-memory-cli config show",
        err
    ))
    ```
@@ -326,9 +326,9 @@ async fn test_sql_injection_prevention() {
    - Set reasonable limits
 
 2. **SQL Injection Prevention**
-   - Use parameterized queries (already handled by memory-core)
+   - Use parameterized queries (already handled by do-memory-core)
    - Never construct SQL strings from user input
-   - Validate input format before passing to memory-core
+   - Validate input format before passing to do-memory-core
 
 3. **File System Security**
    - Validate file paths
@@ -403,18 +403,18 @@ async fn test_sql_injection_prevention() {
 
 ```bash
 # All tests
-cargo test --package memory-cli
+cargo test --package do-memory-cli
 
 # Specific test categories
-cargo test --package memory-cli --test unit
-cargo test --package memory-cli --test integration_tests
-cargo test --package memory-cli --test security_tests
+cargo test --package do-memory-cli --test unit
+cargo test --package do-memory-cli --test integration_tests
+cargo test --package do-memory-cli --test security_tests
 
 # With output
-cargo test --package memory-cli -- --nocapture
+cargo test --package do-memory-cli -- --nocapture
 
 # Specific test
-cargo test --package memory-cli test_episode_start
+cargo test --package do-memory-cli test_episode_start
 ```
 
 ### Test Data Management
@@ -428,13 +428,13 @@ cargo test --package memory-cli test_episode_start
 
 ### Configuration File
 
-Location: `~/.config/memory-cli/config.toml` or via `MEMORY_CLI_CONFIG`
+Location: `~/.config/do-memory-cli/config.toml` or via `MEMORY_CLI_CONFIG`
 
 ```toml
 [storage]
 turso_url = "libsql://..."
 turso_token = "${TURSO_AUTH_TOKEN}"
-redb_path = "~/.local/share/memory-cli/cache.redb"
+redb_path = "~/.local/share/do-memory-cli/cache.redb"
 
 [output]
 default_format = "table"
@@ -443,7 +443,7 @@ verbose = false
 
 [logging]
 level = "info"
-file = "~/.local/share/memory-cli/logs/cli.log"
+file = "~/.local/share/do-memory-cli/logs/cli.log"
 ```
 
 ### Environment Variables
@@ -461,7 +461,7 @@ file = "~/.local/share/memory-cli/logs/cli.log"
 1. **Create command module** in `src/commands/<category>.rs`
 2. **Define argument structure** using `clap` derive
 3. **Implement validation** for inputs
-4. **Add core logic** using memory-core APIs
+4. **Add core logic** using do-memory-core APIs
 5. **Implement output formatting** for all formats
 6. **Add unit tests** for validation and formatting
 7. **Add integration test** for end-to-end execution
@@ -471,16 +471,16 @@ file = "~/.local/share/memory-cli/logs/cli.log"
 
 ```bash
 # Enable debug logging
-MEMORY_CLI_LOG_LEVEL=debug memory-cli command
+MEMORY_CLI_LOG_LEVEL=debug do-memory-cli command
 
 # Trace execution
-RUST_LOG=trace memory-cli command
+RUST_LOG=trace do-memory-cli command
 
 # Check configuration
-memory-cli config show
+do-memory-cli config show
 
 # Verify storage
-memory-cli storage health
+do-memory-cli storage health
 ```
 
 ### Performance Optimization
@@ -497,32 +497,32 @@ memory-cli storage health
 
 ```bash
 # Optimized release build
-cargo build --release --package memory-cli
+cargo build --release --package do-memory-cli
 
 # Binary location
-target/release/memory-cli
+target/release/do-memory-cli
 ```
 
 ### Installation Options
 
 **Via Cargo**:
 ```bash
-cargo install --path memory-cli
+cargo install --path do-memory-cli
 ```
 
 **Via Docker**:
 ```bash
-docker build -f memory-cli/docker/Dockerfile -t memory-cli .
-docker run -it memory-cli --help
+docker build -f do-memory-cli/docker/Dockerfile -t do-memory-cli .
+docker run -it do-memory-cli --help
 ```
 
 **Via systemd** (Linux):
 ```bash
 # Install service
-sudo cp memory-cli/systemd/memory-cli.service /etc/systemd/system/
+sudo cp do-memory-cli/systemd/do-memory-cli.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable memory-cli
-sudo systemctl start memory-cli
+sudo systemctl enable do-memory-cli
+sudo systemctl start do-memory-cli
 ```
 
 ## Troubleshooting
@@ -531,29 +531,29 @@ sudo systemctl start memory-cli
 
 **Storage Connection Failed**
 - Check `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`
-- Run: `memory-cli storage connection-status`
+- Run: `do-memory-cli storage connection-status`
 - Verify network connectivity
 
 **Configuration Not Found**
-- Check config file location: `memory-cli config show`
-- Initialize new config: `memory-cli config init`
+- Check config file location: `do-memory-cli config show`
+- Initialize new config: `do-memory-cli config init`
 - Set `MEMORY_CLI_CONFIG` environment variable
 
 **Permission Denied**
 - Check file permissions for config and data directories
-- Ensure user has write access to `~/.local/share/memory-cli`
+- Ensure user has write access to `~/.local/share/do-memory-cli`
 - Check systemd service user permissions
 
 **Command Crashes**
 - Enable debug logging: `MEMORY_CLI_LOG_LEVEL=debug`
-- Check logs: `memory-cli logs analyze`
-- Verify storage health: `memory-cli storage health`
+- Check logs: `do-memory-cli logs analyze`
+- Verify storage health: `do-memory-cli storage health`
 
 ## Resources
 
-- [CLI User Guide](../../memory-cli/CLI_USER_GUIDE.md)
-- [Configuration Guide](../../memory-cli/CONFIGURATION_GUIDE.md)
-- [Memory Core Documentation](../../memory-core/README.md)
+- [CLI User Guide](../../do-memory-cli/CLI_USER_GUIDE.md)
+- [Configuration Guide](../../do-memory-cli/CONFIGURATION_GUIDE.md)
+- [Memory Core Documentation](../../do-memory-core/README.md)
 - [AGENTS.md](../../AGENTS.md) - Project conventions
 
 ## Success Criteria

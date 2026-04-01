@@ -17,38 +17,38 @@ I've successfully implemented **Phase 1 Turso Database Performance Optimization*
 
 Your codebase already had **80% of Phase 1 optimizations implemented**:
 
-- ✅ **Cache-First Read Strategy** - `memory-storage-turso/src/cache/wrapper.rs`
+- ✅ **Cache-First Read Strategy** - `do-memory-storage-turso/src/cache/wrapper.rs`
   - Uses `AdaptiveCache` from redb
   - Automatic cache-first lookups
   - Statistics tracking (hits, misses, evictions)
   
-- ✅ **Request Batching API** - `memory-storage-turso/src/storage/batch/*.rs`
+- ✅ **Request Batching API** - `do-memory-storage-turso/src/storage/batch/*.rs`
   - `store_episodes_batch()` - Store multiple episodes in one transaction
   - `get_episodes_batch()` - Retrieve multiple episodes in one query
   - `store_patterns_batch()` - Batch pattern storage
   - `get_patterns_batch()` - Batch pattern retrieval
   - Combined operations available
 
-- ✅ **Prepared Statement Caching** - `memory-storage-turso/src/prepared/cache.rs`
+- ✅ **Prepared Statement Caching** - `do-memory-storage-turso/src/prepared/cache.rs`
   - Thread-safe LRU cache
   - Automatic statement reuse
   - Statistics tracking (hits, misses, preparation time)
 
-- ✅ **Metadata Query Optimization** - `memory-storage-turso/src/storage/episodes/query.rs`
+- ✅ **Metadata Query Optimization** - `do-memory-storage-turso/src/storage/episodes/query.rs`
   - Uses `json_extract()` instead of LIKE
   - 70% faster metadata queries
   - Index-friendly approach
 
 ### 2. **Added New Enhancement Features**
 
-- ✅ **Query Result Caching** (NEW) - `memory-storage-turso/src/cache/query_cache.rs`
+- ✅ **Query Result Caching** (NEW) - `do-memory-storage-turso/src/cache/query_cache.rs`
   - 371 lines of code
   - Caches entire query results (not just individual items)
   - TTL-based expiration
   - LRU eviction strategy
   - Statistics tracking
 
-- ✅ **Performance Metrics Module** (NEW) - `memory-storage-turso/src/metrics/performance.rs`
+- ✅ **Performance Metrics Module** (NEW) - `do-memory-storage-turso/src/metrics/performance.rs`
   - 419 lines of code
   - Comprehensive tracking of all 4 optimization areas
   - Beautiful console report generation
@@ -57,7 +57,7 @@ Your codebase already had **80% of Phase 1 optimizations implemented**:
 
 ### 3. **Created Comprehensive Test Suite**
 
-- ✅ **Integration Tests** - `memory-storage-turso/tests/phase1_optimization_test.rs`
+- ✅ **Integration Tests** - `do-memory-storage-turso/tests/phase1_optimization_test.rs`
   - 404 lines of code
   - 7 comprehensive test cases:
     1. `test_cache_first_read_strategy` - Validates cache performance
@@ -101,11 +101,11 @@ Your codebase already had **80% of Phase 1 optimizations implemented**:
 ## 📁 Files Created
 
 ### Production Code (1,033 LOC)
-1. ✅ `memory-storage-turso/src/cache/query_cache.rs` (371 LOC)
-2. ✅ `memory-storage-turso/src/metrics/performance.rs` (419 LOC)
+1. ✅ `do-memory-storage-turso/src/cache/query_cache.rs` (371 LOC)
+2. ✅ `do-memory-storage-turso/src/metrics/performance.rs` (419 LOC)
 
 ### Test Code (643 LOC)
-3. ✅ `memory-storage-turso/tests/phase1_optimization_test.rs` (404 LOC)
+3. ✅ `do-memory-storage-turso/tests/phase1_optimization_test.rs` (404 LOC)
 4. ✅ `benches/turso_phase1_optimization.rs` (239 LOC)
 
 ### Documentation (47KB)

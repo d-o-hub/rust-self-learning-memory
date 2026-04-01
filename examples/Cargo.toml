@@ -1,5 +1,5 @@
 [package]
-name = "memory-examples"
+name = "do-memory-examples"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -8,9 +8,9 @@ repository.workspace = true
 
 [dependencies]
 # Workspace dependencies
-memory-core = { path = "../memory-core" }
-memory-storage-redb = { path = "../memory-storage-redb" }
-memory-storage-turso = { path = "../memory-storage-turso" }
+do-memory-core = { path = "../memory-core" }
+do-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-storage-turso = { path = "../memory-storage-turso" }
 anyhow.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

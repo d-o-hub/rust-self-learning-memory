@@ -24,16 +24,16 @@ Fixed unused function warning in batch_operations_test.rs that was causing Quick
 ## Fixes Applied
 
 ### Code Fixes
-1. **memory-core/src/sync/synchronizer.rs**: Removed unused imports (Episode, TwoPhaseCommit, ConflictResolution)
-2. **memory-mcp/src/batch/dependency_graph.rs**: Fixed unused variable `_e`
-3. **memory-cli/src/commands/episode_v2/episode/filter.rs**:
+1. **do-memory-core/src/sync/synchronizer.rs**: Removed unused imports (Episode, TwoPhaseCommit, ConflictResolution)
+2. **do-memory-mcp/src/batch/dependency_graph.rs**: Fixed unused variable `_e`
+3. **do-memory-cli/src/commands/episode_v2/episode/filter.rs**:
    - Changed `map_or` to `is_some_and`
    - Changed `PathBuf` to `Path` (ptr_arg fix)
-4. **memory-cli/src/commands/episode_v2/episode/list.rs**: Added `#[allow(clippy::too_many_arguments)]`
-5. **memory-core/src/memory/mod.rs**: Fixed 3 doc examples with correct TaskContext fields
+4. **do-memory-cli/src/commands/episode_v2/episode/list.rs**: Added `#[allow(clippy::too_many_arguments)]`
+5. **do-memory-core/src/memory/mod.rs**: Fixed 3 doc examples with correct TaskContext fields
 
 ### Test Configuration
-6. **memory-core/tests/episode_filtering_test.rs**: Lowered quality threshold to 0.4 for integration tests
+6. **do-memory-core/tests/episode_filtering_test.rs**: Lowered quality threshold to 0.4 for integration tests
 
 ## GitHub Actions Status
 

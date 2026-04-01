@@ -10,12 +10,12 @@
 #![allow(deprecated)]
 use anyhow::Result;
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use memory_core::{
+use do_memory_core::{
     Episode,
     embeddings::EmbeddingStorageBackend,
     types::{ComplexityLevel, TaskContext, TaskType},
 };
-use memory_storage_turso::TursoStorage;
+use do_memory_storage_turso::TursoStorage;
 use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use std::hint::black_box;
@@ -47,7 +47,7 @@ fn create_test_episode(id: usize) -> Episode {
         context,
         TaskType::CodeGeneration,
     );
-    episode.complete(memory_core::types::TaskOutcome::Success {
+    episode.complete(do_memory_core::types::TaskOutcome::Success {
         verdict: "Done".to_string(),
         artifacts: vec![],
     });

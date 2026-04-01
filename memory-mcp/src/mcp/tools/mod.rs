@@ -7,6 +7,7 @@ pub mod checkpoint;
 pub mod embeddings;
 pub mod episode_relationships;
 pub mod episode_tags;
+pub mod external_signals;
 pub mod pattern_search;
 pub mod quality_metrics;
 pub mod recommendation_feedback;

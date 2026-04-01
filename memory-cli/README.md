@@ -28,7 +28,7 @@ Memory CLI provides a comprehensive command-line interface for managing the self
 cargo build --release --features full
 
 # Or install globally
-cargo install --path memory-cli --features full
+cargo install --path do-memory-cli --features full
 ```
 
 ### Feature Flags
@@ -42,19 +42,19 @@ cargo install --path memory-cli --features full
 The CLI supports configuration via:
 
 1. **Default locations** (searched in order):
-    - `memory-cli.toml` / `memory-cli.json` / `memory-cli.yaml`
-    - `.memory-cli.toml` / `.memory-cli.json` / `.memory-cli.yaml`
+    - `do-memory-cli.toml` / `do-memory-cli.json` / `do-memory-cli.yaml`
+    - `.do-memory-cli.toml` / `.do-memory-cli.json` / `.do-memory-cli.yaml`
     - `config.toml` / `config.json` / `config.yaml`
-    - `~/.config/memory-cli/config.*` (user config directory)
+    - `~/.config/do-memory-cli/config.*` (user config directory)
 
 2. **Explicit path**:
     ```bash
-    memory-cli --config /path/to/config.toml <command>
+    do-memory-cli --config /path/to/config.toml <command>
     ```
 
 3. **Configuration wizard**:
     ```bash
-    memory-cli config wizard
+    do-memory-cli config wizard
     ```
 
 ### Key Configuration Features
@@ -115,39 +115,39 @@ batch_size = 100
 
 #### Create Episode
 ```bash
-memory-cli episode create --task "Implement user authentication" --context user-context.json
+do-memory-cli episode create --task "Implement user authentication" --context user-context.json
 ```
 
 #### List Episodes
 ```bash
 # List all episodes
-memory-cli episode list
+do-memory-cli episode list
 
 # Filter by task type and limit results
-memory-cli episode list --task-type "feature" --limit 10
+do-memory-cli episode list --task-type "feature" --limit 10
 
 # Filter by status
-memory-cli episode list --status completed
+do-memory-cli episode list --status completed
 ```
 
 #### View Episode
 ```bash
-memory-cli episode view 12345678-1234-1234-1234-123456789abc
+do-memory-cli episode view 12345678-1234-1234-1234-123456789abc
 ```
 
 #### Complete Episode
 ```bash
-memory-cli episode complete 12345678-1234-1234-1234-123456789abc --outcome success
+do-memory-cli episode complete 12345678-1234-1234-1234-123456789abc --outcome success
 ```
 
 #### Search Episodes
 ```bash
-memory-cli episode search "authentication" --limit 5
+do-memory-cli episode search "authentication" --limit 5
 ```
 
 #### Log Step
 ```bash
-memory-cli episode log-step 12345678-1234-1234-1234-123456789abc \
+do-memory-cli episode log-step 12345678-1234-1234-1234-123456789abc \
   --tool "grep" \
   --action "Search for authentication patterns" \
   --success true \
@@ -161,79 +161,79 @@ memory-cli episode log-step 12345678-1234-1234-1234-123456789abc \
 #### List Patterns
 ```bash
 # List all patterns
-memory-cli pattern list
+do-memory-cli pattern list
 
 # Filter by confidence and type
-memory-cli pattern list --min-confidence 0.8 --pattern-type ToolSequence
+do-memory-cli pattern list --min-confidence 0.8 --pattern-type ToolSequence
 
 # Limit results
-memory-cli pattern list --limit 20
+do-memory-cli pattern list --limit 20
 ```
 
 #### View Pattern
 ```bash
-memory-cli pattern view pattern-123
+do-memory-cli pattern view pattern-123
 ```
 
 #### Analyze Pattern
 ```bash
-memory-cli pattern analyze pattern-123 --episodes 100
+do-memory-cli pattern analyze pattern-123 --episodes 100
 ```
 
 #### Pattern Effectiveness
 ```bash
 # Show top 10 most effective patterns
-memory-cli pattern effectiveness --top 10
+do-memory-cli pattern effectiveness --top 10
 
 # Filter by minimum uses
-memory-cli pattern effectiveness --min-uses 5
+do-memory-cli pattern effectiveness --min-uses 5
 ```
 
 #### Pattern Decay
 ```bash
 # Preview decay operation
-memory-cli pattern decay --dry-run
+do-memory-cli pattern decay --dry-run
 
 # Apply decay (requires confirmation)
-memory-cli pattern decay --force
+do-memory-cli pattern decay --force
 ```
 
 ### Storage Operations
 
 #### Storage Statistics
 ```bash
-memory-cli storage stats
+do-memory-cli storage stats
 ```
 
 #### Sync Storage
 ```bash
 # Normal sync
-memory-cli storage sync
+do-memory-cli storage sync
 
 # Force full sync
-memory-cli storage sync --force
+do-memory-cli storage sync --force
 
 # Preview sync operation
-memory-cli storage sync --dry-run
+do-memory-cli storage sync --dry-run
 ```
 
 #### Vacuum Storage
 ```bash
 # Preview vacuum operation
-memory-cli storage vacuum --dry-run
+do-memory-cli storage vacuum --dry-run
 
 # Execute vacuum
-memory-cli storage vacuum
+do-memory-cli storage vacuum
 ```
 
 #### Health Check
 ```bash
-memory-cli storage health
+do-memory-cli storage health
 ```
 
 #### Connection Status
 ```bash
-memory-cli storage connections
+do-memory-cli storage connections
 ```
 
 ### Configuration Management
@@ -241,13 +241,13 @@ memory-cli storage connections
 #### Validate Configuration
 ```bash
 # Basic validation
-memory-cli config validate
+do-memory-cli config validate
 
 # Check with recommendations
-memory-cli config check
+do-memory-cli config check
 
 # Show current configuration
-memory-cli config show
+do-memory-cli config show
 ```
 
 ### Health Monitoring
@@ -255,13 +255,13 @@ memory-cli config show
 #### Health Check
 ```bash
 # Comprehensive health check
-memory-cli health check
+do-memory-cli health check
 
 # Show current status
-memory-cli health status
+do-memory-cli health status
 
 # Monitor continuously
-memory-cli health monitor --interval 30 --duration 300
+do-memory-cli health monitor --interval 30 --duration 300
 ```
 
 ### Backup and Restore
@@ -269,45 +269,45 @@ memory-cli health monitor --interval 30 --duration 300
 #### Create Backup
 ```bash
 # Create JSON backup
-memory-cli backup create ./backups --format json --compress
+do-memory-cli backup create ./backups --format json --compress
 
 # Create SQL backup
-memory-cli backup create ./backups --format sql
+do-memory-cli backup create ./backups --format sql
 ```
 
 #### List Backups
 ```bash
-memory-cli backup list ./backups
+do-memory-cli backup list ./backups
 ```
 
 #### Restore from Backup
 ```bash
 # Restore specific backup
-memory-cli backup restore ./backups --backup-id backup_20251117_120000
+do-memory-cli backup restore ./backups --backup-id backup_20251117_120000
 
 # Force restore (overwrite existing data)
-memory-cli backup restore ./backups --backup-id backup_20251117_120000 --force
+do-memory-cli backup restore ./backups --backup-id backup_20251117_120000 --force
 ```
 
 #### Verify Backup
 ```bash
-memory-cli backup verify ./backups --backup-id backup_20251117_120000
+do-memory-cli backup verify ./backups --backup-id backup_20251117_120000
 ```
 
 ### Monitoring and Metrics
 
 #### Show Status
 ```bash
-memory-cli monitor status
+do-memory-cli monitor status
 ```
 
 #### Export Metrics
 ```bash
 # Export as Prometheus format
-memory-cli monitor export --format prometheus
+do-memory-cli monitor export --format prometheus
 
 # Export as JSON
-memory-cli monitor export --format json
+do-memory-cli monitor export --format json
 ```
 
 ### Log Analysis (alias: `log`)
@@ -315,33 +315,33 @@ memory-cli monitor export --format json
 #### Analyze Logs
 ```bash
 # Analyze last 24 hours
-memory-cli logs analyze --since 24h
+do-memory-cli logs analyze --since 24h
 
 # Analyze with custom filter
-memory-cli logs analyze --since 7d --filter "error"
+do-memory-cli logs analyze --since 7d --filter "error"
 ```
 
 #### Search Logs
 ```bash
 # Search for specific terms
-memory-cli logs search "authentication" --limit 20 --since 24h
+do-memory-cli logs search "authentication" --limit 20 --since 24h
 
 # Search with multiple terms
-memory-cli logs search "timeout connection" --since 1h
+do-memory-cli logs search "timeout connection" --since 1h
 ```
 
 #### Export Logs
 ```bash
 # Export as JSON
-memory-cli logs export ./exports/logs.json --format json --since 24h
+do-memory-cli logs export ./exports/logs.json --format json --since 24h
 
 # Export as CSV
-memory-cli logs export ./exports/logs.csv --format csv --since 7d
+do-memory-cli logs export ./exports/logs.csv --format csv --since 7d
 ```
 
 #### Log Statistics
 ```bash
-memory-cli logs stats --since 24h
+do-memory-cli logs stats --since 24h
 ```
 
 ### Evaluation and Calibration (alias: `ev`)
@@ -349,27 +349,27 @@ memory-cli logs stats --since 24h
 #### Calibration Statistics
 ```bash
 # View all domains
-memory-cli eval calibration --all
+do-memory-cli eval calibration --all
 
 # View specific domain
-memory-cli eval calibration --domain web-development
+do-memory-cli eval calibration --domain web-development
 
 # View reliable domains only
-memory-cli eval calibration --min-episodes 10
+do-memory-cli eval calibration --min-episodes 10
 ```
 
 #### Domain Statistics
 ```bash
-memory-cli eval stats web-development
+do-memory-cli eval stats web-development
 ```
 
 #### Set Threshold
 ```bash
 # Set duration threshold
-memory-cli eval set-threshold --domain web-development --duration 300
+do-memory-cli eval set-threshold --domain web-development --duration 300
 
 # Set step count threshold
-memory-cli eval set-threshold --domain web-development --steps 15
+do-memory-cli eval set-threshold --domain web-development --steps 15
 ```
 
 ### Meta Commands
@@ -377,13 +377,13 @@ memory-cli eval set-threshold --domain web-development --steps 15
 #### Generate Completions (alias: `comp`)
 ```bash
 # Bash
-memory-cli completion bash > memory-cli.bash
+do-memory-cli completion bash > do-memory-cli.bash
 
 # Zsh
-memory-cli completion zsh > _memory-cli
+do-memory-cli completion zsh > _do-memory-cli
 
 # Fish
-memory-cli completion fish > memory-cli.fish
+do-memory-cli completion fish > do-memory-cli.fish
 ```
 
 ## Command Aliases
@@ -406,10 +406,10 @@ The CLI provides convenient shortcuts for frequently used commands:
 Example:
 ```bash
 # Long form
-memory-cli episode list
+do-memory-cli episode list
 
 # Short form
-memory-cli ep list
+do-memory-cli ep list
 ```
 
 ## Recent Improvements (v0.1.4)
@@ -482,12 +482,12 @@ total_count: 150
 #!/bin/bash
 
 # Get recent episodes as JSON
-episodes=$(memory-cli episode list --limit 10 --format json)
+episodes=$(do-memory-cli episode list --limit 10 --format json)
 
 # Process each episode
 echo "$episodes" | jq -r '.episodes[].episode_id' | while read episode_id; do
     echo "Processing episode: $episode_id"
-    memory-cli episode view "$episode_id" --format json > "episode_$episode_id.json"
+    do-memory-cli episode view "$episode_id" --format json > "episode_$episode_id.json"
 done
 ```
 
@@ -496,7 +496,7 @@ done
 #!/bin/bash
 
 # Get pattern effectiveness as JSON
-effectiveness=$(memory-cli pattern effectiveness --top 5 --format json)
+effectiveness=$(do-memory-cli pattern effectiveness --top 5 --format json)
 
 # Check for patterns below threshold
 echo "$effectiveness" | jq '.patterns[] | select(.effectiveness < 0.7)' | while read pattern; do
@@ -510,9 +510,9 @@ done
 #!/bin/bash
 
 # Check storage health
-if ! memory-cli storage health --format json | jq -e '.overall == "healthy"' > /dev/null; then
+if ! do-memory-cli storage health --format json | jq -e '.overall == "healthy"' > /dev/null; then
     echo "Storage health check failed!"
-    memory-cli storage health
+    do-memory-cli storage health
     exit 1
 fi
 
@@ -554,7 +554,7 @@ The CLI includes comprehensive operational features for production deployment:
 docker-compose -f docker/docker-compose.yml up -d
 
 # View logs
-docker-compose -f docker/docker-compose.yml logs -f memory-cli
+docker-compose -f docker/docker-compose.yml logs -f do-memory-cli
 
 # Scale monitoring services
 docker-compose -f docker/docker-compose.yml up -d --scale prometheus=2
@@ -563,14 +563,14 @@ docker-compose -f docker/docker-compose.yml up -d --scale prometheus=2
 #### Systemd Service
 ```bash
 # Enable and start service
-sudo systemctl enable memory-cli
-sudo systemctl start memory-cli
+sudo systemctl enable do-memory-cli
+sudo systemctl start do-memory-cli
 
 # Check status
-sudo systemctl status memory-cli
+sudo systemctl status do-memory-cli
 
 # View logs
-sudo journalctl -u memory-cli -f
+sudo journalctl -u do-memory-cli -f
 ```
 
 ### Health Monitoring
@@ -578,10 +578,10 @@ sudo journalctl -u memory-cli -f
 #### Automated Health Checks
 ```bash
 # Continuous monitoring
-memory-cli health monitor --interval 30 --duration 3600
+do-memory-cli health monitor --interval 30 --duration 3600
 
 # Health check in scripts
-if memory-cli health check --format json | jq -e '.overall_status == "Healthy"'; then
+if do-memory-cli health check --format json | jq -e '.overall_status == "Healthy"'; then
     echo "System is healthy"
 else
     echo "Health check failed"
@@ -592,10 +592,10 @@ fi
 #### Integration with Monitoring Systems
 ```bash
 # Export Prometheus metrics
-memory-cli monitor export --format prometheus > metrics.txt
+do-memory-cli monitor export --format prometheus > metrics.txt
 
 # Export for external analysis
-memory-cli monitor export --format json > metrics.json
+do-memory-cli monitor export --format json > metrics.json
 ```
 
 ### Backup and Recovery
@@ -607,7 +607,7 @@ memory-cli monitor export --format json > metrics.json
 BACKUP_DIR="./backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 
-memory-cli backup create "$BACKUP_DIR" \
+do-memory-cli backup create "$BACKUP_DIR" \
     --format json \
     --compress \
     --backup-id "daily_$DATE"
@@ -619,10 +619,10 @@ find "$BACKUP_DIR" -name "daily_*" -mtime +30 -delete
 #### Disaster Recovery
 ```bash
 # Verify backup integrity
-memory-cli backup verify ./backups --backup-id daily_20251117_020000
+do-memory-cli backup verify ./backups --backup-id daily_20251117_020000
 
 # Restore from backup
-memory-cli backup restore ./backups --backup-id daily_20251117_020000 --force
+do-memory-cli backup restore ./backups --backup-id daily_20251117_020000 --force
 ```
 
 ### Log Analysis and Troubleshooting
@@ -630,20 +630,20 @@ memory-cli backup restore ./backups --backup-id daily_20251117_020000 --force
 #### Automated Log Analysis
 ```bash
 # Daily log analysis
-memory-cli logs analyze --since 24h > daily_report.json
+do-memory-cli logs analyze --since 24h > daily_report.json
 
 # Error trend analysis
-memory-cli logs search "error timeout" --since 7d --format json | \
+do-memory-cli logs search "error timeout" --since 7d --format json | \
     jq '.results | group_by(.episode_id) | map({episode: .[0].episode_id, errors: length})'
 ```
 
 #### Performance Monitoring
 ```bash
 # Export performance metrics
-memory-cli logs stats --since 1h --format json
+do-memory-cli logs stats --since 1h --format json
 
 # Identify slow operations
-memory-cli logs analyze --since 24h --format json | \
+do-memory-cli logs analyze --since 24h --format json | \
     jq '.performance_trends[] | select(.average_latency_ms > 1000)'
 ```
 
@@ -684,14 +684,14 @@ Both interfaces share the same core logic and validation, ensuring consistency.
 
 Enable verbose logging for troubleshooting:
 ```bash
-memory-cli --verbose <command>
+do-memory-cli --verbose <command>
 ```
 
 ### Dry Run
 
 Preview operations without executing them:
 ```bash
-memory-cli --dry-run <command>
+do-memory-cli --dry-run <command>
 ```
 
 ## Contributing
@@ -748,6 +748,6 @@ This CLI is part of the Self-Learning Memory System and follows the same MIT lic
 
 ### Core Integrations
 
-- **memory-core**: Core memory operations and APIs
-- **memory-storage-turso**: Turso database backend (optional)
-- **memory-storage-redb**: redb database backend (optional)
+- **do-memory-core**: Core memory operations and APIs
+- **do-memory-storage-turso**: Turso database backend (optional)
+- **do-memory-storage-redb**: redb database backend (optional)

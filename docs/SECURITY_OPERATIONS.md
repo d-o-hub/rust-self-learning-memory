@@ -89,13 +89,13 @@ This guide provides comprehensive security operations procedures for the Rust Se
 **Automated Detection**:
 ```bash
 # Monitor for security violations in real-time
-tail -f /var/log/memory-mcp/audit.log | jq 'select(.operation == "security_violation")'
+tail -f /var/log/do-memory-mcp/audit.log | jq 'select(.operation == "security_violation")'
 
 # Alert on rate limit violations
-watch -n 5 'grep "rate_limit_violation" /var/log/memory-mcp/audit.log | tail -20'
+watch -n 5 'grep "rate_limit_violation" /var/log/do-memory-mcp/audit.log | tail -20'
 
 # Check for failed authentication spikes
-grep "authentication" /var/log/memory-mcp/audit.log | \
+grep "authentication" /var/log/do-memory-mcp/audit.log | \
   jq 'select(.result == "failure")' | \
   jq -s 'group_by(.client_id) | map({client: .[0].client_id, count: length}) | .[] | select(.count > 10)'
 ```
@@ -114,7 +114,7 @@ grep "authentication" /var/log/memory-mcp/audit.log | \
 1. **Isolate Affected Components**:
 ```bash
 # Stop the MCP server
-sudo systemctl stop memory-mcp
+sudo systemctl stop do-memory-mcp
 
 # Or disable specific tools
 export MCP_DISABLE_TOOLS="execute_agent_code,configure_embeddings"
@@ -152,24 +152,24 @@ export MCP_BLOCKED_CLIENTS="192.168.1.100,malicious-client-id"
 START_TIME="2026-02-01T10:00:00Z"
 END_TIME="2026-02-01T12:00:00Z"
 
-grep -E "$START_TIME|$END_TIME" /var/log/memory-mcp/audit.log > /tmp/incident_audit.log
+grep -E "$START_TIME|$END_TIME" /var/log/do-memory-mcp/audit.log > /tmp/incident_audit.log
 
 # 2. Extract all operations by suspicious client
 SUSPICIOUS_CLIENT="attacker-client-id"
-grep "$SUSPICIOUS_CLIENT" /var/log/memory-mcp/audit.log > /tmp/suspicious_client.log
+grep "$SUSPICIOUS_CLIENT" /var/log/do-memory-mcp/audit.log > /tmp/suspicious_client.log
 
 # 3. Get failed authentication attempts
-grep '"operation":"authentication"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"authentication"' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.result == "failure")' > /tmp/failed_auths.log
 
 # 4. Check for data exfiltration
-grep -E '(bulk_episodes|batch_query)' /var/log/memory-mcp/audit.log | \
+grep -E '(bulk_episodes|batch_query)' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.metadata.limit > 100)' > /tmp/large_queries.log
 
 # 5. System state snapshot
-sudo systemctl status memory-mcp > /tmp/service_status.txt
-sudo netstat -tulpn | grep memory-mcp > /tmp/network_connections.txt
-sudo ps aux | grep memory-mcp > /tmp/process_info.txt
+sudo systemctl status do-memory-mcp > /tmp/service_status.txt
+sudo netstat -tulpn | grep do-memory-mcp > /tmp/network_connections.txt
+sudo ps aux | grep do-memory-mcp > /tmp/process_info.txt
 df -h > /tmp/disk_usage.txt
 free -h > /tmp/memory_usage.txt
 ```
@@ -215,14 +215,14 @@ turso db tokens create prod-memory-db --expiration 24h
 export TURSO_AUTH_TOKEN="new-token-here"
 
 # Restart service
-sudo systemctl restart memory-mcp
+sudo systemctl restart do-memory-mcp
 ```
 
 3. **Clean Up Malicious Data** (if applicable):
 ```bash
 # Delete suspicious episodes (if created by attacker)
-# Use memory-cli or direct database access
-memory-cli episode delete --id <suspicious-episode-id> --confirm
+# Use do-memory-cli or direct database access
+do-memory-cli episode delete --id <suspicious-episode-id> --confirm
 ```
 
 #### Phase 5: Recovery (24-48 hours)
@@ -240,7 +240,7 @@ export MCP_RATE_LIMIT_READ_RPS=50
 export MCP_RATE_LIMIT_WRITE_RPS=10
 
 # 3. Monitor closely
-sudo journalctl -u memory-mcp -f | grep -E "(error|warning|security)"
+sudo journalctl -u do-memory-mcp -f | grep -E "(error|warning|security)"
 
 # 4. Restore normal rate limits after 24h
 export MCP_RATE_LIMIT_READ_RPS=100
@@ -288,31 +288,31 @@ echo "Last updated: $(date)"
 echo ""
 
 echo "=== Failed Authentications (Last Hour) ==="
-grep '"operation":"authentication"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"authentication"' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.timestamp > "'$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M)'")' | \
   jq 'select(.result == "failure")' | \
   jq -s 'group_by(.client_id) | map({client: .[0].client_id, failures: length}) | sort_by(.failures) | reverse | .[0:5]'
 
 echo ""
 echo "=== Rate Limit Violations (Last Hour) ==="
-grep '"operation":"rate_limit_violation"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"rate_limit_violation"' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.timestamp > "'$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M)'")' | \
   jq -s 'length'
 
 echo ""
 echo "=== Top Clients by Activity (Last Hour) ==="
-grep -E '"timestamp":"'$(date -u -d '1 hour ago' +%Y-%m-%dT)'.*Z"' /var/log/memory-mcp/audit.log | \
+grep -E '"timestamp":"'$(date -u -d '1 hour ago' +%Y-%m-%dT)'.*Z"' /var/log/do-memory-mcp/audit.log | \
   jq -r '.client_id' | sort | uniq -c | sort -rn | head -5
 
 echo ""
 echo "=== Security Violations (24h) ==="
-grep '"operation":"security_violation"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"security_violation"' /var/log/do-memory-mcp/audit.log | \
   jq -s 'group_by(.metadata.violation_type) | map({type: .[0].metadata.violation_type, count: length})'
 
 echo ""
 echo "=== Suspicious Activity ==="
 # Episodes deleted (potential data destruction)
-grep '"operation":"delete_episode"' /var/log/memory-mcp/audit.log | \
+grep '"operation":"delete_episode"' /var/log/do-memory-mcp/audit.log | \
   jq 'select(.timestamp > "'$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M)'")' | \
   jq -s 'length'
 ```
@@ -418,9 +418,9 @@ send_alert "critical" "High failed authentication rate detected"
 #!/bin/bash
 # daily-security-report.sh
 
-LOG_FILE="/var/log/memory-mcp/audit.log"
+LOG_FILE="/var/log/do-memory-mcp/audit.log"
 YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)
-REPORT_FILE="/var/log/memory-mcp/reports/security-${YESTERDAY}.json"
+REPORT_FILE="/var/log/do-memory-mcp/reports/security-${YESTERDAY}.json"
 
 mkdir -p "$(dirname "$REPORT_FILE")"
 
@@ -451,11 +451,11 @@ filebeat.inputs:
 - type: log
   enabled: true
   paths:
-    - /var/log/memory-mcp/audit.log
+    - /var/log/do-memory-mcp/audit.log
   json.keys_under_root: true
   json.add_error_key: true
   fields:
-    service: memory-mcp
+    service: do-memory-mcp
     log_type: security
   fields_under_root: true
 
@@ -467,11 +467,11 @@ processors:
 
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
-  index: "memory-mcp-security-%{+yyyy.MM.dd}"
+  index: "do-memory-mcp-security-%{+yyyy.MM.dd}"
   
 template.enabled: true
-template.name: "memory-mcp-security"
-template.pattern: "memory-mcp-security-*"
+template.name: "do-memory-mcp-security"
+template.pattern: "do-memory-mcp-security-*"
 ```
 
 ---
@@ -527,9 +527,9 @@ How to protect yourself before upgrading.
 
 ## Upgrade Instructions
 ```bash
-cargo update -p memory-mcp
+cargo update -p do-memory-mcp
 cargo build --release
-sudo systemctl restart memory-mcp
+sudo systemctl restart do-memory-mcp
 ```
 
 ## Credit
@@ -624,7 +624,7 @@ echo "Rate Limiting: $MCP_RATE_LIMIT_ENABLED" > "$OUTPUT_DIR/security-config.txt
 echo "Audit Logging: $AUDIT_LOG_ENABLED" >> "$OUTPUT_DIR/security-config.txt"
 
 # 4. Recent audit logs (last 30 days)
-find /var/log/memory-mcp -name "audit.log*" -mtime -30 -exec cp {} "$OUTPUT_DIR/" \;
+find /var/log/do-memory-mcp -name "audit.log*" -mtime -30 -exec cp {} "$OUTPUT_DIR/" \;
 
 # 5. Create tarball
 tar -czf "$OUTPUT_DIR.tar.gz" "$OUTPUT_DIR"

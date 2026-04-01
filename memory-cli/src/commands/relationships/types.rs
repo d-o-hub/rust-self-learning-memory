@@ -3,7 +3,7 @@
 use crate::output::Output;
 use clap::ValueEnum;
 use colored::Colorize;
-use memory_core::episode::RelationshipType;
+use do_memory_core::episode::RelationshipType;
 use serde::Serialize;
 use std::io::Write;
 
@@ -54,11 +54,11 @@ pub enum DirectionArg {
 
 impl DirectionArg {
     /// Convert to core Direction
-    pub fn to_core_direction(self) -> memory_core::episode::Direction {
+    pub fn to_core_direction(self) -> do_memory_core::episode::Direction {
         match self {
-            Self::Outgoing => memory_core::episode::Direction::Outgoing,
-            Self::Incoming => memory_core::episode::Direction::Incoming,
-            Self::Both => memory_core::episode::Direction::Both,
+            Self::Outgoing => do_memory_core::episode::Direction::Outgoing,
+            Self::Incoming => do_memory_core::episode::Direction::Incoming,
+            Self::Both => do_memory_core::episode::Direction::Both,
         }
     }
 }

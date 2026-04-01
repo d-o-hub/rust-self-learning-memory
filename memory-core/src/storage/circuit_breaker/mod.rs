@@ -18,7 +18,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
+//! use do_memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
 //! use std::sync::Arc;
 //!
 //! # async fn example() -> anyhow::Result<()> {
@@ -28,7 +28,7 @@
 //! // Execute operation with circuit breaker protection
 //! let result = circuit_breaker.call(|| async {
 //!     // Your Turso operation here
-//!     Ok::<_, memory_core::Error>(())
+//!     Ok::<_, do_memory_core::Error>(())
 //! }).await;
 //! # Ok(())
 //! # }

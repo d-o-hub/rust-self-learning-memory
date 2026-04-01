@@ -20,11 +20,11 @@ mod types;
 
 // Re-export JSON-RPC types from memory_mcp for convenient access
 #[allow(unused)]
-pub use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+pub use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 
 // Re-export OAuthConfig from library protocol module
 #[allow(unused)]
-pub use memory_mcp::protocol::OAuthConfig;
+pub use do_memory_mcp::protocol::OAuthConfig;
 
 // Re-export types needed by other modules
 #[allow(unused)]

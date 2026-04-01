@@ -10,10 +10,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use anyhow::Result;
-use memory_core::{SelfLearningMemory, TaskOutcome, TaskType};
-use memory_mcp::server::MemoryMCPServer;
-use memory_mcp::types::SandboxConfig;
-use memory_storage_redb::RedbStorage;
+use do_memory_core::{SelfLearningMemory, TaskOutcome, TaskType};
+use do_memory_mcp::server::MemoryMCPServer;
+use do_memory_mcp::types::SandboxConfig;
+use do_memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;
 use tempfile::TempDir;
@@ -155,7 +155,7 @@ impl InMemoryMcpServer {
     }
 
     /// List available tools
-    async fn list_tools(&self) -> Vec<memory_mcp::types::Tool> {
+    async fn list_tools(&self) -> Vec<do_memory_mcp::types::Tool> {
         let server = self.server.lock().await;
         server.list_tools().await
     }

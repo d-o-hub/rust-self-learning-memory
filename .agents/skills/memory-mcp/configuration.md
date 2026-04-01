@@ -5,9 +5,9 @@
 ```json
 {
   "mcpServers": {
-    "memory-mcp": {
+    "do-memory-mcp": {
       "type": "stdio",
-      "command": "./target/release/memory-mcp-server",
+      "command": "./target/release/do-memory-mcp-server",
       "args": [],
       "env": {
         "TURSO_DATABASE_URL": "file:/workspaces/feat-phase3/data/memory.db",
@@ -42,7 +42,7 @@
 ### Build the Server
 
 ```bash
-cargo build --release --bin memory-mcp-server
+cargo build --release --bin do-memory-mcp-server
 ```
 
 ### Run Directly
@@ -54,13 +54,13 @@ export LOCAL_DATABASE_URL="sqlite:./data/memory.db"
 export REDB_CACHE_PATH="./data/cache.redb"
 export RUST_LOG=info
 
-./target/release/memory-mcp-server
+./target/release/do-memory-mcp-server
 ```
 
 ### Run via MCP Inspector
 
 ```bash
-npx -y @modelcontextprotocol/inspector ./target/release/memory-mcp-server
+npx -y @modelcontextprotocol/inspector ./target/release/do-memory-mcp-server
 ```
 
 This opens a web interface at `http://localhost:5173` where you can:

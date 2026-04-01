@@ -3,8 +3,8 @@
 use crate::config::Config;
 use crate::output::OutputFormat;
 use anyhow::{Result, anyhow};
-use memory_core::SelfLearningMemory;
-use memory_core::memory::checkpoint::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::memory::checkpoint::{
     checkpoint_episode, checkpoint_episode_with_note, get_handoff_pack, resume_from_handoff,
 };
 use serde::Serialize;

@@ -4,7 +4,7 @@ use crate::mcp::tools::episode_tags::{
     AddEpisodeTagsInput, EpisodeTagTools, GetEpisodeTagsInput, RemoveEpisodeTagsInput,
     SearchEpisodesByTagsInput, SetEpisodeTagsInput,
 };
-use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
 use std::sync::Arc;
 
 fn create_test_memory() -> Arc<SelfLearningMemory> {

@@ -4,7 +4,7 @@ expression: stdout
 ---
 Log analysis and search
 
-Usage: memory-cli logs <COMMAND>
+Usage: do-memory-cli logs <COMMAND>
 
 Commands:
   analyze  Analyze episode logs for patterns and insights

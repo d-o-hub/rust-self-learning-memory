@@ -1,9 +1,9 @@
 //! Episode relationship CLI commands
 
 use colored::Colorize;
-use memory_core::episode::{Direction, RelationshipMetadata};
-use memory_core::memory::SelfLearningMemory;
-use memory_core::memory::relationship_query::RelationshipFilter;
+use do_memory_core::episode::{Direction, RelationshipMetadata};
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::memory::relationship_query::RelationshipFilter;
 use uuid::Uuid;
 
 use crate::config::Config;
@@ -271,14 +271,14 @@ pub async fn dependency_graph(
 
 /// Render graph as ASCII tree
 fn render_ascii_tree(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     root_id: Uuid,
 ) -> String {
     let mut output = String::new();
     let mut visited = std::collections::HashSet::new();
 
     fn render_node(
-        graph: &memory_core::memory::relationship_query::RelationshipGraph,
+        graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
         node_id: Uuid,
         prefix: &str,
         is_last: bool,

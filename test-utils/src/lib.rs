@@ -8,7 +8,7 @@
 //! - Test fixtures
 //! - Helper functions
 
-use memory_core::*;
+use do_memory_core::*;
 use uuid::Uuid;
 
 /// Create a test episode with minimal configuration

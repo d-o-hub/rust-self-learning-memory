@@ -11,7 +11,7 @@ mod tests {
 
     /// Helper to get the CLI binary path
     fn cli_binary() -> Command {
-        Command::new(env!("CARGO_BIN_EXE_memory-cli"))
+        Command::new(env!("CARGO_BIN_EXE_do-memory-cli"))
     }
 
     #[test]
@@ -127,7 +127,7 @@ mod integration_with_env {
 
     /// Get the CLI binary path
     fn cli_binary() -> Command {
-        Command::new(env!("CARGO_BIN_EXE_memory-cli"))
+        Command::new(env!("CARGO_BIN_EXE_do-memory-cli"))
     }
 
     /// Create a test config file

@@ -1,4 +1,4 @@
-# ✅ Task B1.4 COMPLETE: Error Handling in memory-storage-turso
+# ✅ Task B1.4 COMPLETE: Error Handling in do-memory-storage-turso
 
 **Date**: 2026-02-17
 **Status**: ✅ COMPLETE
@@ -19,8 +19,8 @@
 *Note: Initial count of 215 was misleading. It included test code (~120) and documentation examples.
 
 ### Code Quality
-- ✅ `cargo build -p memory-storage-turso` - **SUCCESS**
-- ✅ `cargo build -p memory-core` - **SUCCESS** (fixed compilation errors)
+- ✅ `cargo build -p do-memory-storage-turso` - **SUCCESS**
+- ✅ `cargo build -p do-memory-core` - **SUCCESS** (fixed compilation errors)
 - ✅ Production code uses proper `Result` types
 - ✅ Error conversion with `map_err(|e| Error::Storage(format!(...)))`
 - ✅ Zero bare `unwrap()` in production code
@@ -30,7 +30,7 @@
 ## 🎯 Key Achievements
 
 ### 1. Discovery: Code Already Compliant
-**Critical Finding**: memory-storage-turso production code is **ALREADY EXCELLENT**!
+**Critical Finding**: do-memory-storage-turso production code is **ALREADY EXCELLENT**!
 
 After thorough analysis:
 - **0** unwrap() calls in production code (excluding docs/tests)
@@ -39,7 +39,7 @@ After thorough analysis:
 - Consistent error conversion patterns
 
 ### 2. Fixed memory-Core Compilation Issues
-Fixed 2 errors in memory-core that were blocking the build:
+Fixed 2 errors in do-memory-core that were blocking the build:
 ```rust
 // Before (error - 3 args but function takes 2)
 PatternExtractor::with_thresholds(config.pattern_extraction_threshold, 2, 5);
@@ -118,7 +118,7 @@ let tag: String = row
 
 | Check | Status | Details |
 |-------|--------|---------|
-| **Build** | ✅ PASS | `cargo build -p memory-storage-turso` successful |
+| **Build** | ✅ PASS | `cargo build -p do-memory-storage-turso` successful |
 | **Format** | ✅ PASS | Code follows rustfmt conventions |
 | **Clippy** | ✅ PASS | Production code has no warnings |
 | **Tests** | ⚠️ PARTIAL | Lib tests pass, integration tests have unrelated issues |
@@ -152,13 +152,13 @@ Test code has ~120 unwrap() calls. These are acceptable for tests but could be i
 
 ## 📋 Task Checklist
 
-- [x] Analyze unwrap() count in memory-storage-turso
-- [x] Coordinate with memory-core patterns (B1.3)
+- [x] Analyze unwrap() count in do-memory-storage-turso
+- [x] Coordinate with do-memory-core patterns (B1.3)
 - [x] Focus on production code (not tests)
 - [x] Use conversion pattern with memory_core::Error
 - [x] Verify compilation succeeds
 - [x] Confirm error messages are actionable
-- [x] Check consistency with memory-core patterns
+- [x] Check consistency with do-memory-core patterns
 - [x] Update progress file
 - [x] Document findings
 
@@ -169,7 +169,7 @@ Test code has ~120 unwrap() calls. These are acceptable for tests but could be i
 ### Immediate
 - ✅ **0 production unwrap() calls** (down from ~130 estimated)
 - ✅ **0 production expect() calls** (down from ~60)
-- ✅ Fixed memory-core compilation errors
+- ✅ Fixed do-memory-core compilation errors
 - ✅ Verified all production code uses proper error handling
 
 ### Process
@@ -204,11 +204,11 @@ Test code has ~120 unwrap() calls. These are acceptable for tests but could be i
 
 ## ✅ Task B1.4 Status: **COMPLETE**
 
-**Decision**: Task is complete. memory-storage-turso production code is already compliant with excellent error handling.
+**Decision**: Task is complete. do-memory-storage-turso production code is already compliant with excellent error handling.
 
 **Next Action**: Proceed to next GOAP task (B1.5 or B2.1)
 
-**Impact**: Verified 0 unwrap() in production code, fixed memory-core compilation, documented error handling patterns.
+**Impact**: Verified 0 unwrap() in production code, fixed do-memory-core compilation, documented error handling patterns.
 
 ---
 

@@ -9,7 +9,7 @@ use super::types::*;
 
 // Command implementations
 pub async fn analyze_logs(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     since: String,
@@ -20,14 +20,14 @@ pub async fn analyze_logs(
         turso
             .query_episodes_since(
                 chrono::Utc::now() - chrono::Duration::days(365),
-                Some(memory_core::MAX_QUERY_LIMIT),
+                Some(do_memory_core::MAX_QUERY_LIMIT),
             )
             .await?
     } else if let Some(cache) = memory.cache_storage() {
         cache
             .query_episodes_since(
                 chrono::Utc::now() - chrono::Duration::days(365),
-                Some(memory_core::MAX_QUERY_LIMIT),
+                Some(do_memory_core::MAX_QUERY_LIMIT),
             )
             .await?
     } else {
@@ -78,7 +78,7 @@ pub async fn analyze_logs(
 }
 
 pub async fn search_logs(
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     query: String,
@@ -100,7 +100,7 @@ pub async fn search_logs(
 
 #[allow(clippy::too_many_arguments)]
 pub async fn export_logs(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     path: std::path::PathBuf,
@@ -113,7 +113,7 @@ pub async fn export_logs(
         turso
             .query_episodes_since(
                 chrono::Utc::now() - chrono::Duration::days(365),
-                Some(memory_core::MAX_QUERY_LIMIT),
+                Some(do_memory_core::MAX_QUERY_LIMIT),
             )
             .await?
     } else {
@@ -169,7 +169,7 @@ pub async fn export_logs(
 }
 
 pub async fn logs_stats(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     since: String,
@@ -178,7 +178,7 @@ pub async fn logs_stats(
         turso
             .query_episodes_since(
                 chrono::Utc::now() - chrono::Duration::days(365),
-                Some(memory_core::MAX_QUERY_LIMIT),
+                Some(do_memory_core::MAX_QUERY_LIMIT),
             )
             .await?
     } else {

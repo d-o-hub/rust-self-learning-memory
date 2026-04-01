@@ -78,7 +78,7 @@ Better error:
 💡 Fix: Choose one of these options:
   • Local development: SimpleMode::setup_local()
   • Cloud setup: Configure database.turso_url and database.turso_token
-  • Quick start: Run 'memory-cli config wizard'
+  • Quick start: Run 'do-memory-cli config wizard'
 "
 ```
 
@@ -93,7 +93,7 @@ Better error:
 ### Root Cause Analysis
 
 **Configuration Complexity**:
-- **Historical State**: 403+ lines in `memory-cli/src/config.rs`
+- **Historical State**: 403+ lines in `do-memory-cli/src/config.rs`
 - **Code Duplication**: 18.6% duplication measured
 - **Complex Fallback Logic**: Repeated 3-4 times
 
@@ -445,30 +445,30 @@ impl ConfigWizard {
 
 ```bash
 # Simple Mode Commands
-memory-cli config simple dev          # Quick dev setup
-memory-cli config simple prod         # Quick prod setup
-memory-cli config simple test         # Quick test setup
+do-memory-cli config simple dev          # Quick dev setup
+do-memory-cli config simple prod         # Quick prod setup
+do-memory-cli config simple test         # Quick test setup
 
 # Wizard Mode
-memory-cli config wizard              # Interactive setup
+do-memory-cli config wizard              # Interactive setup
 
 # Advanced Mode
-memory-cli config edit                # Edit config file
-memory-cli config validate            # Validate config
-memory-cli config show                # Show current config
+do-memory-cli config edit                # Edit config file
+do-memory-cli config validate            # Validate config
+do-memory-cli config show                # Show current config
 ```
 
 **Usage Examples**:
 
 ```bash
 # Quick local development setup
-$ memory-cli config simple dev
+$ do-memory-cli config simple dev
 ✅ Created development configuration
-📁 Config file: ~/.config/memory-cli/config.toml
-🚀 Ready to use! Run 'memory-cli episode create' to get started
+📁 Config file: ~/.config/do-memory-cli/config.toml
+🚀 Ready to use! Run 'do-memory-cli episode create' to get started
 
 # Production setup with wizard
-$ memory-cli config wizard
+$ do-memory-cli config wizard
 🧠 Welcome to Memory CLI Configuration!
 ...
 ```
@@ -515,10 +515,10 @@ impl ConfigMigrationAssistant {
     pub async fn check_and_migrate() -> Result<bool> {
         // Check for old configuration files
         let old_paths = vec![
-            "memory-cli.toml",
-            ".memory-cli.toml",
-            "memory-cli.json",
-            "memory-cli.yaml",
+            "do-memory-cli.toml",
+            ".do-memory-cli.toml",
+            "do-memory-cli.json",
+            "do-memory-cli.yaml",
         ];
 
         let mut found_old = None;
@@ -568,7 +568,7 @@ impl ConfigMigrationAssistant {
         }
 
         // Save new configuration
-        let new_path = "memory-cli.toml";
+        let new_path = "do-memory-cli.toml";
         let content = toml::to_string_pretty(&new_config)?;
         std::fs::write(new_path, content)?;
 
@@ -657,9 +657,9 @@ impl ConfigMigrationAssistant {
 ## Cross-References
 
 ### Configuration Implementation Files
-- `memory-cli/src/config/loader.rs` - Configuration loading (150 LOC, refactored)
-- `memory-cli/src/config/mod.rs` - Main configuration module
-- `memory-cli/src/config/validation.rs` - Validation framework
+- `do-memory-cli/src/config/loader.rs` - Configuration loading (150 LOC, refactored)
+- `do-memory-cli/src/config/mod.rs` - Main configuration module
+- `do-memory-cli/src/config/validation.rs` - Validation framework
 
 ### Related Planning Documents
 - **Status**: See [CONFIGURATION_OPTIMIZATION_STATUS.md](CONFIGURATION_OPTIMIZATION_STATUS.md)

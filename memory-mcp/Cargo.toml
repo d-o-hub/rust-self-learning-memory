@@ -1,5 +1,5 @@
 [package]
-name = "memory-mcp"
+name = "do-memory-mcp"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -10,10 +10,10 @@ readme = "README.md"
 description = "Model Context Protocol (MCP) server with secure code execution sandbox for AI agents"
 keywords = ["mcp", "sandbox", "code-execution", "ai", "security"]
 categories = ["development-tools", "web-programming"]
-documentation = "https://docs.rs/memory-mcp"
+documentation = "https://docs.rs/do-memory-mcp"
 
 [[bin]]
-name = "memory-mcp-server"
+name = "do-memory-mcp-server"
 path = "src/bin/memory-mcp-server.rs"
 
 [dependencies]
@@ -27,9 +27,9 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 # Local dependencies
-memory-core = { path = "../memory-core" }
-memory-storage-turso = { path = "../memory-storage-turso" }
-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-core = { path = "../memory-core" }
+do-memory-storage-turso = { path = "../memory-storage-turso" }
+do-memory-storage-redb = { path = "../memory-storage-redb" }
 
 # MCP-specific dependencies
 parking_lot = "0.12.5"
@@ -79,7 +79,7 @@ streaming-impl = []
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-storage-redb = { path = "../memory-storage-redb" }
 wat = "1.245"  # WAT parsing for tests
 insta = { version = "1.47", features = ["json", "yaml"] }
 proptest = "1.11"

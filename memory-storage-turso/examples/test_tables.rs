@@ -1,6 +1,6 @@
 //! Test which tables are created during schema initialization
 
-use memory_storage_turso::TursoStorage;
+use do_memory_storage_turso::TursoStorage;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

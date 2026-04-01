@@ -13,7 +13,7 @@ All core infrastructure implementations from the plans folder have been complete
 
 ## Completed Tasks
 
-### MCP Relationship Tools (memory-mcp/src/server/tools/episode_relationships.rs)
+### MCP Relationship Tools (do-memory-mcp/src/server/tools/episode_relationships.rs)
 | Tool | Status | Location |
 |------|--------|----------|
 | add_episode_relationship | ✅ Complete | Line 46-89 |
@@ -25,18 +25,18 @@ All core infrastructure implementations from the plans folder have been complete
 | validate_no_cycles | ✅ Complete | Line 421-509 |
 | get_topological_order | ✅ Complete | Line 512-620 |
 
-### Rate Limiting (memory-mcp/src/server/rate_limiter.rs)
+### Rate Limiting (do-memory-mcp/src/server/rate_limiter.rs)
 - ✅ READ operations: 100 RPS, burst 150
 - ✅ WRITE operations: 20 RPS, burst 30
 - ✅ Headers included in all responses
 - ✅ Environment variable configuration
 
-### Audit Logging (memory-mcp/src/server/audit/)
+### Audit Logging (do-memory-mcp/src/server/audit/)
 - ✅ All 8 relationship tools logged
 - ✅ Logged fields: user context, operation type, resource IDs, success/failure
 - ✅ File and console destinations
 
-### CLI Relationship Commands (memory-cli/src/commands/relationships/)
+### CLI Relationship Commands (do-memory-cli/src/commands/relationships/)
 | Command | Status |
 |---------|--------|
 | relationship add | ✅ Complete |
@@ -47,7 +47,7 @@ All core infrastructure implementations from the plans folder have been complete
 | relationship validate | ✅ Complete |
 | relationship info | ✅ Complete |
 
-### CLI Tag Commands (memory-cli/src/commands/tag/)
+### CLI Tag Commands (do-memory-cli/src/commands/tag/)
 | Command | Status |
 |---------|--------|
 | tag add | ✅ Complete |
@@ -77,8 +77,8 @@ cargo test --workspace --lib ✅ 252 passed, 2 failed, 8 ignored
 
 ## Git Commits (Recent)
 
-1. `fix(memory-mcp): enable wasmtime-backend by default and fix conditional compilation`
-2. `feat(memory-mcp): integrate rate limiting and audit logging for episode relationships`
+1. `fix(do-memory-mcp): enable wasmtime-backend by default and fix conditional compilation`
+2. `feat(do-memory-mcp): integrate rate limiting and audit logging for episode relationships`
 3. `feat: comprehensive implementation status - infrastructure complete`
 
 ## Next Steps
@@ -98,13 +98,13 @@ cargo test --workspace --lib ✅ 252 passed, 2 failed, 8 ignored
 
 ## Files Modified in Recent Commits
 
-- `memory-core/src/memory/episode.rs`
-- `memory-core/src/sync/synchronizer.rs`
-- `memory-mcp/src/lib.rs`
-- `memory-mcp/src/server/mod.rs`
-- `memory-mcp/src/server/tools/episode_relationships.rs`
-- `memory-mcp/src/bin/server_impl/tools.rs`
-- `memory-mcp/Cargo.toml`
+- `do-memory-core/src/memory/episode.rs`
+- `do-memory-core/src/sync/synchronizer.rs`
+- `do-memory-mcp/src/lib.rs`
+- `do-memory-mcp/src/server/mod.rs`
+- `do-memory-mcp/src/server/tools/episode_relationships.rs`
+- `do-memory-mcp/src/bin/server_impl/tools.rs`
+- `do-memory-mcp/Cargo.toml`
 
 ## Verification Commands
 

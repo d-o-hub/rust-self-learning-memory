@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use memory_core::embeddings::config::openai::{EncodingFormat, OpenAIConfig, OpenAIModel};
+    use do_memory_core::embeddings::config::openai::{EncodingFormat, OpenAIConfig, OpenAIModel};
 
     #[test]
     fn test_openai_config_creation() {

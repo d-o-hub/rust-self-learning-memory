@@ -162,7 +162,7 @@ impl Output for MetricsExport {
 
 // Command implementations
 pub async fn monitor_status(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -236,7 +236,7 @@ pub async fn monitor_status(
 }
 
 pub async fn monitor_metrics(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -245,7 +245,7 @@ pub async fn monitor_metrics(
 }
 
 pub async fn export_metrics(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     export_format: ExportFormat,

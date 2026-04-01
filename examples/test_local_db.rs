@@ -1,8 +1,8 @@
-use memory_core::{
+use do_memory_core::{
     ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
-use memory_storage_redb::RedbStorage;
-use memory_storage_turso::TursoStorage;
+use do_memory_storage_redb::RedbStorage;
+use do_memory_storage_turso::TursoStorage;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -22,8 +22,8 @@ async fn main() -> anyhow::Result<()> {
     let memory_config = MemoryConfig::default();
     let memory = SelfLearningMemory::with_storage(
         memory_config,
-        Arc::new(turso_storage) as Arc<dyn memory_core::StorageBackend>,
-        Arc::new(redb_storage) as Arc<dyn memory_core::StorageBackend>,
+        Arc::new(turso_storage) as Arc<dyn do_memory_core::StorageBackend>,
+        Arc::new(redb_storage) as Arc<dyn do_memory_core::StorageBackend>,
     );
     println!("✓ Memory system created with local database");
 
@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
             TaskContext {
                 language: Some("rust".to_string()),
                 framework: None,
-                complexity: memory_core::ComplexityLevel::Simple,
+                complexity: do_memory_core::ComplexityLevel::Simple,
                 domain: "testing".to_string(),
                 tags: vec!["local-db".to_string()],
             },
@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
             TaskContext {
                 language: Some("rust".to_string()),
                 framework: None,
-                complexity: memory_core::ComplexityLevel::Simple,
+                complexity: do_memory_core::ComplexityLevel::Simple,
                 domain: "testing".to_string(),
                 tags: vec![],
             },

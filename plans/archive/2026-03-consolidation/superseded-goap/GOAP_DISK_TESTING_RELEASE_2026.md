@@ -16,8 +16,8 @@
 | Rust edition | 2024 (all 9 crates) | 2024 | ✅ Done | `rg 'edition' */Cargo.toml` |
 | Codebase size | **867 files, ~208K LOC** | — | 📊 Rebaselined | `find + wc -l` |
 | Test runner | nextest + profiles (default/ci/nightly) | nextest everywhere (except doctests) | ✅ Done | `.config/nextest.toml` |
-| Mutation testing | Nightly `cargo mutants` for `memory-core` | cargo-mutants on core | ✅ Done | `.github/workflows/nightly-tests.yml` |
-| Property testing | 2 files in `memory-core` only | proptest on invariants across crates | 🟡 Partial — no expansion | `rg -l 'proptest!'` |
+| Mutation testing | Nightly `cargo mutants` for `do-memory-core` | cargo-mutants on core | ✅ Done | `.github/workflows/nightly-tests.yml` |
+| Property testing | 2 files in `do-memory-core` only | proptest on invariants across crates | 🟡 Partial — no expansion | `rg -l 'proptest!'` |
 | Snapshot testing | 13 snapshot files (6 CLI, 7 MCP) | ≥25 snapshots | 🟡 No growth | `find -path '*/snapshots/*.snap'` |
 | Release automation | `release.toml` + `dist-workspace.toml` present | cargo-release + cargo-dist | 🟡 Partial | cargo-dist 0.30.4 configured |
 | Semver checking | Enabled in CI | cargo-semver-checks in CI | ✅ Done | `.github/workflows/ci.yml` |
@@ -93,7 +93,7 @@
 ```
 ┌─────────────────────────────────┐
 │  5A. cargo-mutants pilot        │  ADR-033 Phase 4
-│  - memory-core first            │
+│  - do-memory-core first            │
 │  - Nightly CI job               │
 └─────────────────────────────────┘
 ┌─────────────────────────────────┐
@@ -148,9 +148,9 @@ Phase 3 (Deps/Linker) ────┤
 - [x] nextest profiles configured for default/ci/nightly
 - [x] cargo-semver-checks in CI pipeline
 - [x] cargo-release workflow documented and tested
-- [x] Mutation testing running on memory-core (nightly)
-- [x] ≥ 5 proptest property tests in memory-core
-- [x] ≥ 3 insta snapshot tests in memory-mcp or memory-cli
+- [x] Mutation testing running on do-memory-core (nightly)
+- [x] ≥ 5 proptest property tests in do-memory-core
+- [x] ≥ 3 insta snapshot tests in do-memory-mcp or do-memory-cli
 - [x] Edition 2024 across all workspace crates
 - [ ] Duplicate dep roots < 80
 - [x] node_modules/ removed

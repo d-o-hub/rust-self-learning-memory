@@ -13,7 +13,7 @@
 //! 7. Timing-based Attacks
 //! 8. Memory Corruption Attempts
 
-use memory_mcp::{
+use do_memory_mcp::{
     CodeSandbox, ExecutionContext, ExecutionResult, NetworkRestrictions, ResourceLimits,
     SandboxConfig, SecurityViolationType,
 };

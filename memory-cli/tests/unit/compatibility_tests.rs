@@ -3,7 +3,7 @@
 //! These tests verify that the CLI works correctly across different
 //! configurations, platforms, and feature combinations.
 
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;
@@ -87,8 +87,8 @@ batch_size = 10
             fs::write(&config_path, config_content).unwrap();
 
             // Test that CLI can load config from this path
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
-                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string(),
             ));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
@@ -163,8 +163,8 @@ cli:
             let config_path = temp_dir.path().join(format!("config.{}", format_name));
             fs::write(&config_path, config_content).unwrap();
 
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
-                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string(),
             ));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
@@ -191,8 +191,8 @@ cli:
 
         for (scenario_name, env_vars) in env_scenarios {
             // Set environment variables for this test
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
-                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string(),
             ));
             cmd.arg("--config").arg(harness.config_path());
             cmd.arg("config");
@@ -250,8 +250,8 @@ default_format = "json"
                 .join(format!("{}.toml", config_name.replace(" ", "_")));
             fs::write(&config_path, config_content).unwrap();
 
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
-                |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(
+                |_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string(),
             ));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
@@ -297,8 +297,8 @@ batch_size = 100
 
         fs::write(&config_path, config_content).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
-            |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(
+            |_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string(),
         ));
         cmd.arg("--config").arg(&config_path);
         cmd.arg("config");
@@ -372,8 +372,8 @@ batch_size = 10
         let config_path = temp_dir.path().join("utf8_config.toml");
         fs::write(&config_path, utf8_config).unwrap();
 
-        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(
-            |_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string(),
+        let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(
+            |_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string(),
         ));
         cmd.arg("--config").arg(&config_path);
         cmd.arg("config");
@@ -417,8 +417,8 @@ batch_size = 10
 
         // Test relative path
         let mut cmd_relative = Command::new(
-            std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| {
-                "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()
+            std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| {
+                "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string()
             }),
         );
         cmd_relative.arg("--config").arg(config_path_relative);
@@ -427,8 +427,8 @@ batch_size = 10
 
         // Test absolute path
         let mut cmd_absolute = Command::new(
-            std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| {
-                "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()
+            std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| {
+                "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string()
             }),
         );
         cmd_absolute.arg("--config").arg(&config_path_absolute);

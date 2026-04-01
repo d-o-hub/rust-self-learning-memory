@@ -7,7 +7,7 @@ Fixed the "Failed to get tools" error by correcting the JSON field naming in the
 
 ### 1. Fixed `McpTool` Struct in protocol.rs
 
-**File**: `/workspaces/feat-phase3/memory-mcp/src/protocol.rs`
+**File**: `/workspaces/feat-phase3/do-memory-mcp/src/protocol.rs`
 **Lines**: 59-64
 
 #### Before (Non-compliant):
@@ -37,7 +37,7 @@ pub struct McpTool {
 
 ### 2. Updated Tool Listing in core.rs
 
-**File**: `/workspaces/feat-phase3/memory-mcp/src/bin/server/core.rs`
+**File**: `/workspaces/feat-phase3/do-memory-mcp/src/bin/server/core.rs`
 **Lines**: 83-90
 
 #### Before:
@@ -127,8 +127,8 @@ This allows future enhancement to add human-readable titles without breaking exi
 
 | File | Lines Changed | Type |
 |------|--------------|------|
-| `memory-mcp/src/protocol.rs` | 59-64 | Struct definition |
-| `memory-mcp/src/bin/server/core.rs` | 83-90 | Tool mapping |
+| `do-memory-mcp/src/protocol.rs` | 59-64 | Struct definition |
+| `do-memory-mcp/src/bin/server/core.rs` | 83-90 | Tool mapping |
 
 ## Code Quality
 
@@ -149,7 +149,7 @@ This allows future enhancement to add human-readable titles without breaking exi
 ### 1. Build Verification
 ```bash
 cd /workspaces/feat-phase3
-cargo build --release --package memory-mcp
+cargo build --release --package do-memory-mcp
 ```
 
 **Expected**: Successful compilation, no errors
@@ -157,7 +157,7 @@ cargo build --release --package memory-mcp
 ### 2. Test Execution
 ```bash
 cd /workspaces/feat-phase3
-cargo test --package memory-mcp --all
+cargo test --package do-memory-mcp --all
 ```
 
 **Expected**: All tests pass, no regressions
@@ -167,11 +167,11 @@ Run server and inspect `tools/list` response:
 
 ```bash
 # Start server
-cargo run --release --bin memory-mcp-server
+cargo run --release --bin do-memory-mcp-server
 
 # In another terminal, send tools/list request
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
-  cargo run --release --bin memory-mcp-server
+  cargo run --release --bin do-memory-mcp-server
 ```
 
 **Expected Output**:
@@ -198,7 +198,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | \
 ```bash
 # Install and run MCP Inspector
 npx -y @modelcontextprotocol/inspector \
-  cargo run --release --bin memory-mcp-server
+  cargo run --release --bin do-memory-mcp-server
 ```
 
 **Expected**:
@@ -270,7 +270,7 @@ If issues arise:
 
 **Command**:
 ```bash
-git checkout memory-mcp/src/protocol.rs memory-mcp/src/bin/server/core.rs
+git checkout do-memory-mcp/src/protocol.rs do-memory-mcp/src/bin/server/core.rs
 ```
 
 ## Summary

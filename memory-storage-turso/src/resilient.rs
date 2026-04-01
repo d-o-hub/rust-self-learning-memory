@@ -10,8 +10,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_storage_turso::{TursoStorage, ResilientStorage};
-//! use memory_core::storage::circuit_breaker::CircuitBreakerConfig;
+//! use do_memory_storage_turso::{TursoStorage, ResilientStorage};
+//! use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! let turso = TursoStorage::new("libsql://localhost:8080", "token").await?;
@@ -25,17 +25,19 @@
 //! ```
 
 use async_trait::async_trait;
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
-use memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend};
+use do_memory_core::storage::circuit_breaker::{
+    CircuitBreaker, CircuitBreakerConfig, CircuitState,
+};
+use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend};
 use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
 
 #[cfg(test)]
-use memory_core::Error;
+use do_memory_core::Error;
 
 use crate::TursoStorage;
 
@@ -63,8 +65,8 @@ impl ResilientStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::{TursoStorage, ResilientStorage};
-    /// # use memory_core::storage::circuit_breaker::CircuitBreakerConfig;
+    /// # use do_memory_storage_turso::{TursoStorage, ResilientStorage};
+    /// # use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
     /// # async fn example() -> anyhow::Result<()> {
     /// let turso = TursoStorage::new("libsql://localhost:8080", "token").await?;
     ///
@@ -94,8 +96,8 @@ impl ResilientStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::ResilientStorage;
-    /// # use memory_core::storage::circuit_breaker::CircuitState;
+    /// # use do_memory_storage_turso::ResilientStorage;
+    /// # use do_memory_core::storage::circuit_breaker::CircuitState;
     /// # async fn example(storage: ResilientStorage) {
     /// let state = storage.circuit_state().await;
     /// match state {
@@ -114,7 +116,7 @@ impl ResilientStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::ResilientStorage;
+    /// # use do_memory_storage_turso::ResilientStorage;
     /// # async fn example(storage: ResilientStorage) {
     /// let stats = storage.circuit_stats().await;
     /// println!("Total calls: {}", stats.total_calls);
@@ -124,7 +126,7 @@ impl ResilientStorage {
     /// ```
     pub async fn circuit_stats(
         &self,
-    ) -> memory_core::storage::circuit_breaker::CircuitBreakerStats {
+    ) -> do_memory_core::storage::circuit_breaker::CircuitBreakerStats {
         self.circuit_breaker.stats().await
     }
 
@@ -201,7 +203,7 @@ impl StorageBackend for ResilientStorage {
             .await
     }
 
-    async fn get_pattern(&self, id: memory_core::episode::PatternId) -> Result<Option<Pattern>> {
+    async fn get_pattern(&self, id: do_memory_core::episode::PatternId) -> Result<Option<Pattern>> {
         let storage = Arc::clone(&self.storage);
 
         self.circuit_breaker
@@ -422,7 +424,7 @@ impl StorageBackend for ResilientStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::storage::circuit_breaker::CircuitBreakerConfig;
+    use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
     use std::time::Duration;
     use tempfile::TempDir;
 
@@ -472,7 +474,7 @@ mod tests {
         let episode = Episode::new(
             "test".to_string(),
             Default::default(),
-            memory_core::TaskType::CodeGeneration,
+            do_memory_core::TaskType::CodeGeneration,
         );
         let result = storage.store_episode(&episode).await;
         assert!(result.is_ok());

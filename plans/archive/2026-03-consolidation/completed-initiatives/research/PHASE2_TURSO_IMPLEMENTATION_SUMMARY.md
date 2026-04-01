@@ -16,7 +16,7 @@ Successfully implemented Turso storage backend for Phase 2 (GENESIS) capacity-co
 
 ### 1. Database Schema (Task 1.1, 1.3)
 
-**File**: `memory-storage-turso/src/schema.rs`
+**File**: `do-memory-storage-turso/src/schema.rs`
 
 Added three new SQL schemas:
 
@@ -60,7 +60,7 @@ Updated `TursoStorage::initialize_schema()` to create Phase 2 tables and indexes
 
 ### 2. Episode Summary Storage (Task 2.1)
 
-**File**: `memory-storage-turso/src/storage.rs`
+**File**: `do-memory-storage-turso/src/storage.rs`
 
 #### Methods Implemented
 
@@ -95,7 +95,7 @@ pub async fn get_episode_summary(
 
 ### 3. Capacity Enforcement (Task 2.2)
 
-**File**: `memory-storage-turso/src/storage.rs`
+**File**: `do-memory-storage-turso/src/storage.rs`
 
 #### Core Method
 
@@ -151,7 +151,7 @@ async fn update_episode_count(&self, conn: &Connection, count: usize) -> Result<
 
 ### 4. Batch Eviction (Task 2.3)
 
-**File**: `memory-storage-turso/src/storage.rs`
+**File**: `do-memory-storage-turso/src/storage.rs`
 
 ##### `batch_evict_episodes()`
 ```rust
@@ -173,7 +173,7 @@ DELETE FROM episodes WHERE episode_id IN (?, ?, ?, ...)
 
 ## Integration Testing
 
-**File**: `memory-storage-turso/tests/capacity_enforcement_test.rs`
+**File**: `do-memory-storage-turso/tests/capacity_enforcement_test.rs`
 
 ### Test Coverage (8 Tests - All Passing ✅)
 
@@ -235,7 +235,7 @@ test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured
 
 ## Dependencies
 
-### Added to `memory-storage-turso/Cargo.toml`:
+### Added to `do-memory-storage-turso/Cargo.toml`:
 ```toml
 postcard = { workspace = true }
 ```
@@ -248,15 +248,15 @@ postcard = { workspace = true }
 
 ### Compilation
 ```bash
-$ cargo build --package memory-storage-turso
-   Compiling memory-storage-turso v0.1.7
+$ cargo build --package do-memory-storage-turso
+   Compiling do-memory-storage-turso v0.1.7
    Finished `dev` profile [unoptimized + debuginfo] target(s)
 ```
 ✅ **Zero errors, zero warnings**
 
 ### All Turso Tests
 ```bash
-$ cargo test --package memory-storage-turso
+$ cargo test --package do-memory-storage-turso
    Running unittests src/lib.rs ... ok. 3 passed
    Running tests/capacity_enforcement_test.rs ... ok. 8 passed
    Running tests/pool_integration_test.rs ... ok. 14 passed
@@ -425,14 +425,14 @@ From plans/PHASE2_INTEGRATION_PLAN.md:
 ## Files Changed
 
 ### Modified
-- `memory-storage-turso/src/schema.rs` (+42 lines)
-- `memory-storage-turso/src/storage.rs` (+365 lines)
-- `memory-storage-turso/src/lib.rs` (+6 lines)
-- `memory-storage-turso/Cargo.toml` (+1 line)
-- `memory-cli/src/config/storage.rs` (+6 lines)
+- `do-memory-storage-turso/src/schema.rs` (+42 lines)
+- `do-memory-storage-turso/src/storage.rs` (+365 lines)
+- `do-memory-storage-turso/src/lib.rs` (+6 lines)
+- `do-memory-storage-turso/Cargo.toml` (+1 line)
+- `do-memory-cli/src/config/storage.rs` (+6 lines)
 
 ### Created
-- `memory-storage-turso/tests/capacity_enforcement_test.rs` (+460 lines)
+- `do-memory-storage-turso/tests/capacity_enforcement_test.rs` (+460 lines)
 
 ### Total Impact
 - **Lines Added**: ~880

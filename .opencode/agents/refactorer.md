@@ -139,10 +139,10 @@ You have access to and coordinate these skills:
    **Split Module**
    ```rust
    // Before (single 600-line file)
-   // memory-core/src/storage.rs
+   // do-memory-core/src/storage.rs
 
    // After (split into focused modules)
-   // memory-core/src/storage/
+   // do-memory-core/src/storage/
    //   mod.rs      # Public API
    //   turso.rs    # Turso operations (<500 LOC)
    //   redb.rs     # Redb operations (<500 LOC)
@@ -157,7 +157,7 @@ You have access to and coordinate these skills:
    }
 
    // After - extracted to shared utility
-   // memory-core/src/utils/mod.rs
+   // do-memory-core/src/utils/mod.rs
    pub mod timestamp;
 
    // Use everywhere

@@ -42,7 +42,7 @@ grep -r "actions-rs" .github/workflows/
 ```bash
 # Pattern: --all-features triggered optional dep issues
 # Fix: Use workspace exclude
-cargo build --workspace --exclude memory-mcp
+cargo build --workspace --exclude do-memory-mcp
 ```
 
 ### Clippy Lint Allow-List

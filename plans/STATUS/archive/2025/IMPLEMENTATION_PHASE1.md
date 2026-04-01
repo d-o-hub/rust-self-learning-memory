@@ -28,8 +28,8 @@ Phase 1 transforms the configuration system from a complex, 403-line monolith in
 **Tasks**:
 1. **Create new modular structure**
    ```bash
-   mkdir -p memory-cli/src/config/{types,loader,validator,storage,simple,wizard}
-   touch memory-cli/src/config/{mod,types,loader,validator,storage,simple,wizard}.rs
+   mkdir -p do-memory-cli/src/config/{types,loader,validator,storage,simple,wizard}
+   touch do-memory-cli/src/config/{mod,types,loader,validator,storage,simple,wizard}.rs
    ```
 
 2. **Define core types** (types.rs)
@@ -91,7 +91,7 @@ impl ConfigLoader {
         // Extract from existing config.rs lines 68-110
         // Enhance error messages with context
         // Add format detection
-        let config_path = path.unwrap_or(Path::new("memory-cli.toml"));
+        let config_path = path.unwrap_or(Path::new("do-memory-cli.toml"));
 
         if !config_path.exists() {
             return Err(ConfigError::FileNotFound {
@@ -501,7 +501,7 @@ impl ConfigLoader {
         if let Some((timestamp, cached_config)) = cache.as_ref() {
             if timestamp.elapsed() < std::time::Duration::from_secs(300) {
                 // Verify path hasn't changed
-                if Self::paths_equal(path, &Some("memory-cli.toml".as_ref())) {
+                if Self::paths_equal(path, &Some("do-memory-cli.toml".as_ref())) {
                     return Ok(cached_config.clone());
                 }
             }

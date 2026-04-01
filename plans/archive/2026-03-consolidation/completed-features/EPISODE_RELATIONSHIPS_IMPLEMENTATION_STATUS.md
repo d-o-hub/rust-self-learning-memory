@@ -36,7 +36,7 @@ The Episode Relationships & Dependencies feature enables tracking relationships 
 
 ### ✅ Completed Components
 
-#### 1. Core Data Structures (`memory-core/src/episode/relationships.rs` - 386 LOC)
+#### 1. Core Data Structures (`do-memory-core/src/episode/relationships.rs` - 386 LOC)
 
 **RelationshipType Enum** (7 variants):
 - ✅ `ParentChild` - Hierarchical relationships
@@ -73,7 +73,7 @@ The Episode Relationships & Dependencies feature enables tracking relationships 
 - ✅ `Incoming` - Relationships to this episode
 - ✅ `Both` - Bidirectional query
 
-#### 2. Database Schema (`memory-storage-turso/src/schema.rs`)
+#### 2. Database Schema (`do-memory-storage-turso/src/schema.rs`)
 
 **Table**: `episode_relationships`
 ```sql
@@ -104,7 +104,7 @@ CREATE TABLE episode_relationships (
 - ✅ FOREIGN KEY with CASCADE delete ensures referential integrity
 - ✅ NOT NULL enforcement on critical fields
 
-#### 3. Turso Storage Layer (`memory-storage-turso/src/relationships.rs` - 457 LOC)
+#### 3. Turso Storage Layer (`do-memory-storage-turso/src/relationships.rs` - 457 LOC)
 
 **Storage Operations** (7 methods implemented):
 
@@ -160,7 +160,7 @@ CREATE TABLE episode_relationships (
 
 **Test Coverage**: 100% (all public methods tested)
 
-#### 4. Redb Cache Layer (`memory-storage-redb/src/relationships.rs` - 326 LOC)
+#### 4. Redb Cache Layer (`do-memory-storage-redb/src/relationships.rs` - 326 LOC)
 
 **Cache Operations** (6 methods implemented):
 
@@ -213,7 +213,7 @@ CREATE TABLE episode_relationships (
 ### Phase 2: Core API & Business Logic ✅ COMPLETE
 
 **Completed**: 2026-01-31  
-**Files**: `memory-core/src/memory/relationships.rs`, `memory-core/src/memory/relationship_query.rs`
+**Files**: `do-memory-core/src/memory/relationships.rs`, `do-memory-core/src/memory/relationship_query.rs`
 
 #### 2.1 Relationship Manager ✅
 - ✅ `RelationshipManager` struct with graph state
@@ -239,7 +239,7 @@ CREATE TABLE episode_relationships (
 - ✅ `RelationshipGraph` - Visualization and analysis
 - ✅ `EpisodeWithRelationships` - Query result type
 
-**Lines of Code**: ~900 LOC (memory-core/src/memory/relationships.rs, relationship_query.rs)
+**Lines of Code**: ~900 LOC (do-memory-core/src/memory/relationships.rs, relationship_query.rs)
 
 ---
 
@@ -260,7 +260,7 @@ CREATE TABLE episode_relationships (
   - Cache invalidation on changes
 
 #### 3.2 Integration Tests ✅
-- ✅ `memory-core/tests/relationship_integration.rs` - 13 comprehensive tests
+- ✅ `do-memory-core/tests/relationship_integration.rs` - 13 comprehensive tests
 - ✅ Tests cover all API methods
 - ✅ Tests include error cases and edge cases
 - ✅ Tests for graph operations and export
@@ -336,52 +336,52 @@ CREATE TABLE episode_relationships (
 
 #### 5.1 CLI Commands (7 new commands needed)
 
-1. ❌ **`memory-cli episode add-relationship`**
+1. ❌ **`do-memory-cli episode add-relationship`**
    ```bash
-   memory-cli episode add-relationship <from_id> \
+   do-memory-cli episode add-relationship <from_id> \
      --to <to_id> \
      --type <type> \
      --reason <reason> \
      --priority <1-10>
    ```
 
-2. ❌ **`memory-cli episode remove-relationship`**
+2. ❌ **`do-memory-cli episode remove-relationship`**
    ```bash
-   memory-cli episode remove-relationship <relationship_id>
+   do-memory-cli episode remove-relationship <relationship_id>
    ```
 
-3. ❌ **`memory-cli episode list-relationships`**
+3. ❌ **`do-memory-cli episode list-relationships`**
    ```bash
-   memory-cli episode list-relationships <episode_id> \
+   do-memory-cli episode list-relationships <episode_id> \
      --direction [outgoing|incoming|both] \
      --type <type_filter> \
      --format [table|json]
    ```
 
-4. ❌ **`memory-cli episode find-related`**
+4. ❌ **`do-memory-cli episode find-related`**
    ```bash
-   memory-cli episode find-related <episode_id> \
+   do-memory-cli episode find-related <episode_id> \
      --type <type_filter> \
      --max-depth <n> \
      --limit <n>
    ```
 
-5. ❌ **`memory-cli episode dependency-graph`**
+5. ❌ **`do-memory-cli episode dependency-graph`**
    ```bash
-   memory-cli episode dependency-graph <episode_id> \
+   do-memory-cli episode dependency-graph <episode_id> \
      --depth <n> \
      --format [dot|json|ascii]
    ```
 
-6. ❌ **`memory-cli episode validate-cycles`**
+6. ❌ **`do-memory-cli episode validate-cycles`**
    ```bash
-   memory-cli episode validate-cycles <episode_id> \
+   do-memory-cli episode validate-cycles <episode_id> \
      --type <type>
    ```
 
-7. ❌ **`memory-cli episode topological-sort`**
+7. ❌ **`do-memory-cli episode topological-sort`**
    ```bash
-   memory-cli episode topological-sort <episode_id1> <episode_id2> ...
+   do-memory-cli episode topological-sort <episode_id1> <episode_id2> ...
    ```
 
 #### 5.2 Output Formatting
@@ -430,11 +430,11 @@ CREATE TABLE episode_relationships (
 
 | Module | Tests Passing | Coverage | Status |
 |--------|--------------|----------|--------|
-| `memory-core/relationships.rs` | Data structures | 100% | ✅ |
-| `memory-core/memory/relationships.rs` | 9 methods | >90% | ✅ |
-| `memory-core/tests/relationship_integration.rs` | 13/13 | >90% | ✅ |
-| `memory-storage-turso/relationships.rs` | 5/5 | 100% | ✅ |
-| `memory-storage-redb/relationships.rs` | 6/6 | 100% | ✅ |
+| `do-memory-core/relationships.rs` | Data structures | 100% | ✅ |
+| `do-memory-core/memory/relationships.rs` | 9 methods | >90% | ✅ |
+| `do-memory-core/tests/relationship_integration.rs` | 13/13 | >90% | ✅ |
+| `do-memory-storage-turso/relationships.rs` | 5/5 | 100% | ✅ |
+| `do-memory-storage-redb/relationships.rs` | 6/6 | 100% | ✅ |
 | **Phase 1-3 Total** | **24/24** | **>90%** | ✅ |
 | Phase 4-5 (MCP/CLI) | 0/30 | N/A | ⏳ |
 | Phase 6 (E2E/Benchmarks) | 0/25 | N/A | ⏳ |
@@ -444,17 +444,17 @@ CREATE TABLE episode_relationships (
 
 ```bash
 # Run Phase 1 storage tests
-cargo test -p memory-storage-turso relationships
-cargo test -p memory-storage-redb relationships
+cargo test -p do-memory-storage-turso relationships
+cargo test -p do-memory-storage-redb relationships
 
 # Run Phase 2-3 memory layer tests
-cargo test -p memory-core relationship_integration
+cargo test -p do-memory-core relationship_integration
 
 # Run with output
-cargo test -p memory-core relationship_integration -- --nocapture
+cargo test -p do-memory-core relationship_integration -- --nocapture
 
 # Run specific test
-cargo test -p memory-storage-turso test_add_relationship -- --exact
+cargo test -p do-memory-storage-turso test_add_relationship -- --exact
 ```
 
 **All tests passing**: ✅ 24/24 (Phases 1-3 complete)
@@ -548,8 +548,8 @@ cargo test -p memory-storage-turso test_add_relationship -- --exact
 3. **Error Handling** - Existing patterns well-established ✅
 
 ### Mitigation Strategies
-- **MCP Protocol**: Follow existing tool patterns in `memory-mcp/src/bin/server/handlers.rs`
-- **CLI UX**: Review existing command patterns in `memory-cli/src/commands/episode_v2/`
+- **MCP Protocol**: Follow existing tool patterns in `do-memory-mcp/src/bin/server/handlers.rs`
+- **CLI UX**: Review existing command patterns in `do-memory-cli/src/commands/episode_v2/`
 - **Performance**: Add benchmarks in Phase 6, optimize hot paths
 - **Testing**: Write tests during implementation, not after
 
@@ -558,7 +558,7 @@ cargo test -p memory-storage-turso test_add_relationship -- --exact
 ## Next Steps (Immediate Actions)
 
 ### ✅ COMPLETED - Phase 2
-1. ✅ Created `memory-core/src/episode/relationship_manager.rs`
+1. ✅ Created `do-memory-core/src/episode/relationship_manager.rs`
 2. ✅ Implemented `RelationshipManager` struct
 3. ✅ Implemented basic validation rules
 4. ✅ Implemented cycle detection (DFS-based)
@@ -569,11 +569,11 @@ cargo test -p memory-storage-turso test_add_relationship -- --exact
 1. ✅ Extended `MemoryManager` with relationship methods (9 methods)
 2. ✅ Implemented enhanced query capabilities (`RelationshipFilter`)
 3. ✅ Added cache integration (Turso + Redb storage layers)
-4. ✅ Added integration tests (13 tests in `memory-core/tests/`)
+4. ✅ Added integration tests (13 tests in `do-memory-core/tests/`)
 
 ### ⏳ NEXT - Phase 4 & 5
-1. ⏳ Implement 8 MCP tools in `memory-mcp/src/bin/server/handlers.rs`
-2. ⏳ Implement 7 CLI commands in `memory-cli/src/commands/episode_v2/relationships.rs`
+1. ⏳ Implement 8 MCP tools in `do-memory-mcp/src/bin/server/handlers.rs`
+2. ⏳ Implement 7 CLI commands in `do-memory-cli/src/commands/episode_v2/relationships.rs`
 3. ⏳ Add MCP tool tests (16 tests)
 4. ⏳ Add CLI command tests (14 tests)
 5. ⏳ Create end-to-end integration tests
@@ -622,23 +622,23 @@ cargo test -p memory-storage-turso test_add_relationship -- --exact
 ## References
 
 ### Phase 1 (Storage Foundation)
-- **Core Data Structures**: `memory-core/src/episode/relationships.rs`
-- **Turso Storage**: `memory-storage-turso/src/relationships.rs`
-- **Redb Cache**: `memory-storage-redb/src/relationships.rs`
-- **Database Schema**: `memory-storage-turso/src/schema.rs`
+- **Core Data Structures**: `do-memory-core/src/episode/relationships.rs`
+- **Turso Storage**: `do-memory-storage-turso/src/relationships.rs`
+- **Redb Cache**: `do-memory-storage-redb/src/relationships.rs`
+- **Database Schema**: `do-memory-storage-turso/src/schema.rs`
 
 ### Phase 2 (Core API)
-- **RelationshipManager**: `memory-core/src/memory/relationships.rs` (510 LOC)
-- **Graph Operations**: `memory-core/src/memory/relationship_query.rs` (392 LOC)
-- **Relationship Types**: `memory-core/src/episode/relationships.rs`
+- **RelationshipManager**: `do-memory-core/src/memory/relationships.rs` (510 LOC)
+- **Graph Operations**: `do-memory-core/src/memory/relationship_query.rs` (392 LOC)
+- **Relationship Types**: `do-memory-core/src/episode/relationships.rs`
 
 ### Phase 3 (Memory Integration)
-- **Integration Tests**: `memory-core/tests/relationship_integration.rs` (487 LOC, 13 tests)
-- **Storage Trait Impls**: `memory-storage-turso/src/trait_impls/mod.rs`, `memory-storage-redb/src/lib.rs`
+- **Integration Tests**: `do-memory-core/tests/relationship_integration.rs` (487 LOC, 13 tests)
+- **Storage Trait Impls**: `do-memory-storage-turso/src/trait_impls/mod.rs`, `do-memory-storage-redb/src/lib.rs`
 
 ### Phase 4-5 (Pending)
-- **MCP Tools**: `memory-mcp/src/bin/server/handlers.rs` (needs 8 new tools)
-- **CLI Commands**: `memory-cli/src/commands/episode_v2/relationships.rs` (needs 7 commands)
+- **MCP Tools**: `do-memory-mcp/src/bin/server/handlers.rs` (needs 8 new tools)
+- **CLI Commands**: `do-memory-cli/src/commands/episode_v2/relationships.rs` (needs 7 commands)
 
 ### Documentation
 - **Quick Reference**: `docs/EPISODE_RELATIONSHIPS_GUIDE.md`

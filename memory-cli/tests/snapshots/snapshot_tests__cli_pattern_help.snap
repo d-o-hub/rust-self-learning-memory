@@ -4,7 +4,7 @@ expression: stdout
 ---
 Pattern analysis commands
 
-Usage: memory-cli pattern <COMMAND>
+Usage: do-memory-cli pattern <COMMAND>
 
 Commands:
   list           List patterns

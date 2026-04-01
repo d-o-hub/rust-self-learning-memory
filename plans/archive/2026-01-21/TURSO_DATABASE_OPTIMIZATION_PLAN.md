@@ -1,7 +1,7 @@
 # Turso Database Optimization Plan
 
 **Analysis Date**: 2026-01-21
-**Target System**: memory-mcp Turso/libSQL database + redb cache
+**Target System**: do-memory-mcp Turso/libSQL database + redb cache
 **Episode ID**: c60bdf1b-c7b4-496d-9fa2-2e5e7c038686
 
 ---
@@ -576,7 +576,7 @@ ALTER TABLE episodes ADD COLUMN compressed BOOLEAN DEFAULT 0;
 
 ### Current State
 ```rust
-// memory-storage-redb/src/cache/lru.rs
+// do-memory-storage-redb/src/cache/lru.rs
 impl Default for CacheConfig {
     fn default() -> Self {
         Self {

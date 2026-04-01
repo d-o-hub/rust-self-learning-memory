@@ -234,10 +234,10 @@ curl https://api.openai.com/v1/models \
 ### CLI Tests Fail
 ```bash
 # Build CLI first
-cargo build --release --package memory-cli
+cargo build --release --package do-memory-cli
 
 # Run test with full path
-CARGO_BIN_EXE_memory-cli=./target/release/memory-cli \
+CARGO_BIN_EXE_do-memory-cli=./target/release/do-memory-cli \
   cargo test --test embeddings_cli
 ```
 

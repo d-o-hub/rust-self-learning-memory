@@ -10,7 +10,7 @@
 /// # Examples
 ///
 /// ```
-/// use memory_core::pre_storage::{QualityConfig, QualityFeature};
+/// use do_memory_core::pre_storage::{QualityConfig, QualityFeature};
 /// use std::collections::HashMap;
 ///
 /// // Default configuration (quality threshold 0.7)
@@ -41,7 +41,7 @@ impl QualityConfig {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::pre_storage::QualityConfig;
+    /// use do_memory_core::pre_storage::QualityConfig;
     ///
     /// let config = QualityConfig::new(0.75);
     /// assert_eq!(config.quality_threshold, 0.75);

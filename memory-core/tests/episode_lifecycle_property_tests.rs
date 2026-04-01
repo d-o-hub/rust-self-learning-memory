@@ -7,7 +7,7 @@
 
 #![allow(clippy::cast_precision_loss)]
 
-use memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use do_memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 use proptest::prelude::*;
 
 /// Generate arbitrary task descriptions

@@ -9,8 +9,8 @@
 //! - Maintain performance throughout test
 //! - Generate periodic metrics
 
-use memory_core::{types::ExecutionResult, Episode, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
+use do_memory_core::{types::ExecutionResult, Episode, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -327,7 +327,7 @@ async fn worker_task(
     state: Arc<SoakTestState>,
     worker_id: usize,
 ) {
-    use memory_core::StorageBackend;
+    use do_memory_core::StorageBackend;
 
     let mut cycle = 0u64;
 
@@ -352,7 +352,7 @@ async fn worker_task(
                     domain: "soak_test".to_string(),
                     language: Some("rust".to_string()),
                     framework: Some("tokio".to_string()),
-                    complexity: memory_core::types::ComplexityLevel::Moderate,
+                    complexity: do_memory_core::types::ComplexityLevel::Moderate,
                     tags: vec!["soak_test".to_string(), format!("worker_{}", worker_id)],
                 },
                 TaskType::CodeGeneration,
@@ -363,7 +363,7 @@ async fn worker_task(
 
             // Add some steps
             for step_num in 0..3 {
-                let mut step = memory_core::episode::ExecutionStep::new(
+                let mut step = do_memory_core::episode::ExecutionStep::new(
                     step_num + 1,
                     format!("tool_{}", step_num),
                     format!("Execute step {} in cycle {}", step_num, cycle),

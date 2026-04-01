@@ -932,14 +932,14 @@ fn test_error_message_helpfulness() {
 ## Implementation Files
 
 ### Core Validation Implementation
-- `memory-cli/src/config/validation.rs` - Main validation framework
-- `memory-cli/src/config/validator.rs` - Individual validation rules
-- `memory-cli/src/config/error.rs` - Error types and messages
+- `do-memory-cli/src/config/validation.rs` - Main validation framework
+- `do-memory-cli/src/config/validator.rs` - Individual validation rules
+- `do-memory-cli/src/config/error.rs` - Error types and messages
 
 ### Test Files
-- `memory-cli/tests/config_validation.rs` - Unit tests for validation rules
-- `memory-cli/tests/config_integration.rs` - Integration tests with lifecycle
-- `memory-cli/benches/config_validation.rs` - Performance benchmarks
+- `do-memory-cli/tests/config_validation.rs` - Unit tests for validation rules
+- `do-memory-cli/tests/config_integration.rs` - Integration tests with lifecycle
+- `do-memory-cli/benches/config_validation.rs` - Performance benchmarks
 
 ---
 

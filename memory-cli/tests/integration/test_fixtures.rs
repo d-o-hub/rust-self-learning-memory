@@ -2,7 +2,7 @@
 //!
 //! Provides realistic test data for integration testing.
 
-use memory_core::*;
+use do_memory_core::*;
 use std::collections::HashMap;
 
 /// Test fixture for creating realistic episodes

@@ -28,8 +28,8 @@ pub enum OutcomeType {
 /// # Examples
 ///
 /// ```
-/// use memory_core::EpisodeFilter;
-/// use memory_core::TaskType;
+/// use do_memory_core::EpisodeFilter;
+/// use do_memory_core::TaskType;
 /// use chrono::Utc;
 ///
 /// // Filter for successful code generation episodes in the last week

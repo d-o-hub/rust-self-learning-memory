@@ -42,7 +42,7 @@ git checkout -b release/v0.1.X
 
 # 3. Update snapshot tests if needed
 cargo insta test --accept
-git add memory-cli/tests/snapshots/
+git add do-memory-cli/tests/snapshots/
 
 # 4. Verify version matches intended tag
 grep '^version =' Cargo.toml  # Must show 0.1.X for tag v0.1.X
@@ -65,7 +65,7 @@ gh pr create --title "chore: release v0.1.X" --body "..."
 **v0.1.22 Incident**: Tag was pushed with `Cargo.toml` still at `0.1.21`. cargo-dist failed:
 ```
 × This workspace doesn't have anything for dist to Release!
-help: --tag=v0.1.21 will Announce: memory-mcp, memory-cli
+help: --tag=v0.1.21 will Announce: do-memory-mcp, do-memory-cli
 ```
 
 **Prevention**: Always verify `grep '^version =' Cargo.toml` matches tag (without 'v' prefix) before pushing tag.
@@ -93,5 +93,5 @@ git diff --stat # Review what changed
 When version changes, snapshot tests need updates:
 ```bash
 cargo insta test --accept
-git add memory-cli/tests/snapshots/
+git add do-memory-cli/tests/snapshots/
 ```

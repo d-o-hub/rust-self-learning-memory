@@ -26,7 +26,7 @@ This report analyzes the security features and documentation for the rust-self-l
 ### 1.1 P0 - Critical Security Gaps (Immediate Action Required)
 
 #### **P0.1: Missing Rate Limiting for MCP Tools**
-- **Location**: `memory-mcp/src/mcp/tools/`
+- **Location**: `do-memory-mcp/src/mcp/tools/`
 - **Gap**: No rate limiting implemented for MCP tool invocations
 - **Risk**: DoS attacks through excessive tool calls, resource exhaustion
 - **Evidence**: 
@@ -36,7 +36,7 @@ This report analyzes the security features and documentation for the rust-self-l
 - **Recommendation**: Implement per-client rate limiting with configurable thresholds
 
 #### **P0.2: Missing Audit Logging for Security Events**
-- **Location**: `memory-mcp/src/`
+- **Location**: `do-memory-mcp/src/`
 - **Gap**: No centralized audit logging for security-relevant events
 - **Risk**: Cannot detect or investigate security incidents
 - **Evidence**:
@@ -46,7 +46,7 @@ This report analyzes the security features and documentation for the rust-self-l
 - **Recommendation**: Implement structured audit logging for all security events
 
 #### **P0.3: Resource Limits Are Advisory Only**
-- **Location**: `memory-mcp/src/sandbox.rs`
+- **Location**: `do-memory-mcp/src/sandbox.rs`
 - **Gap**: CPU and memory limits are documented but not actively enforced
 - **Risk**: Resource exhaustion attacks
 - **Evidence**: SECURITY.md states "These limits are documented but not actively enforced" (lines 109-114)
@@ -55,28 +55,28 @@ This report analyzes the security features and documentation for the rust-self-l
 ### 1.2 P1 - High Priority Security Gaps
 
 #### **P1.1: No Input Sanitization for Episode Data**
-- **Location**: `memory-core/src/episode/`
+- **Location**: `do-memory-core/src/episode/`
 - **Gap**: Episode descriptions and metadata are not sanitized
 - **Risk**: XSS if data is rendered in web UI, injection attacks
 - **Evidence**: No HTML/JS sanitization found in episode creation
 - **Recommendation**: Add input sanitization for user-provided content
 
 #### **P1.2: Missing Output Sanitization**
-- **Location**: `memory-mcp/src/sandbox.rs`
+- **Location**: `do-memory-mcp/src/sandbox.rs`
 - **Gap**: Sandbox output is not scanned for sensitive data
 - **Risk**: Data exfiltration via output
 - **Evidence**: SECURITY.md states "No active sanitization of output content" (lines 161-163)
 - **Recommendation**: Scan output for API keys, tokens, sensitive patterns
 
 #### **P1.3: Pattern-Based Detection Can Be Bypassed**
-- **Location**: `memory-mcp/src/sandbox.rs:detect_security_violations()`
+- **Location**: `do-memory-mcp/src/sandbox.rs:detect_security_violations()`
 - **Gap**: Simple string matching for malicious code detection
 - **Risk**: Obfuscated attacks may bypass detection
 - **Evidence**: SECURITY_AUDIT.md notes "String concat doesn't bypass checks" but limited to simple cases
 - **Recommendation**: Implement AST-based static analysis
 
 #### **P1.4: No Timing Attack Mitigation**
-- **Location**: `memory-mcp/src/sandbox.rs`
+- **Location**: `do-memory-mcp/src/sandbox.rs`
 - **Gap**: Execution time is exposed in results without jitter
 - **Risk**: Timing side-channel attacks
 - **Evidence**: SECURITY.md states "No active defense" for timing attacks (lines 259-261)
@@ -85,21 +85,21 @@ This report analyzes the security features and documentation for the rust-self-l
 ### 1.3 P2 - Medium Priority Security Gaps
 
 #### **P2.1: Missing API Authentication/Authorization**
-- **Location**: `memory-mcp/src/bin/server/`
+- **Location**: `do-memory-mcp/src/bin/server/`
 - **Gap**: OAuth configuration exists but no enforcement of authentication
 - **Risk**: Unauthorized access to memory system
 - **Evidence**: OAuth config present but no middleware enforcing auth
 - **Recommendation**: Implement JWT validation middleware
 
 #### **P2.2: No Encryption at Rest for Sensitive Data**
-- **Location**: `memory-storage-turso/`, `memory-storage-redb/`
+- **Location**: `do-memory-storage-turso/`, `do-memory-storage-redb/`
 - **Gap**: Episode data stored in plaintext
 - **Risk**: Data exposure if storage is compromised
 - **Evidence**: No encryption layer found in storage implementations
 - **Recommendation**: Add field-level encryption for sensitive fields
 
 #### **P2.3: Missing Security Headers in HTTP Responses**
-- **Location**: `memory-mcp/src/bin/server/`
+- **Location**: `do-memory-mcp/src/bin/server/`
 - **Gap**: No security headers (CSP, HSTS, X-Frame-Options)
 - **Risk**: XSS, clickjacking attacks
 - **Evidence**: No security header middleware found
@@ -184,7 +184,7 @@ This report analyzes the security features and documentation for the rust-self-l
 
 #### **P2.3: Incomplete WASM Sandbox Documentation**
 - **Gap**: wasm_sandbox module lacks comprehensive docs
-- **Evidence**: `memory-mcp/src/wasm_sandbox/mod.rs` has basic docs but no detailed usage
+- **Evidence**: `do-memory-mcp/src/wasm_sandbox/mod.rs` has basic docs but no detailed usage
 - **Recommendation**: Expand WASM sandbox documentation
 
 ### 2.4 P3 - Low Priority Documentation Improvements
@@ -320,27 +320,27 @@ This report analyzes the security features and documentation for the rust-self-l
 
 ### Security-Related Files
 - `/workspaces/feat-phase3/SECURITY.md` - Main security policy
-- `/workspaces/feat-phase3/memory-mcp/SECURITY.md` - Sandbox security analysis
-- `/workspaces/feat-phase3/memory-mcp/SECURITY_AUDIT.md` - Security audit report
-- `/workspaces/feat-phase3/memory-mcp/src/sandbox.rs` - Main sandbox implementation
-- `/workspaces/feat-phase3/memory-mcp/src/sandbox/fs.rs` - File system restrictions
-- `/workspaces/feat-phase3/memory-mcp/src/sandbox/network.rs` - Network restrictions
-- `/workspaces/feat-phase3/memory-mcp/src/sandbox/isolation.rs` - Process isolation
-- `/workspaces/feat-phase3/memory-mcp/src/wasm_sandbox/` - WASM sandbox implementation
+- `/workspaces/feat-phase3/do-memory-mcp/SECURITY.md` - Sandbox security analysis
+- `/workspaces/feat-phase3/do-memory-mcp/SECURITY_AUDIT.md` - Security audit report
+- `/workspaces/feat-phase3/do-memory-mcp/src/sandbox.rs` - Main sandbox implementation
+- `/workspaces/feat-phase3/do-memory-mcp/src/sandbox/fs.rs` - File system restrictions
+- `/workspaces/feat-phase3/do-memory-mcp/src/sandbox/network.rs` - Network restrictions
+- `/workspaces/feat-phase3/do-memory-mcp/src/sandbox/isolation.rs` - Process isolation
+- `/workspaces/feat-phase3/do-memory-mcp/src/wasm_sandbox/` - WASM sandbox implementation
 
 ### Documentation Files
 - `/workspaces/feat-phase3/docs/` - Main documentation directory (5 files)
 - `/workspaces/feat-phase3/agent_docs/` - Agent documentation (6 files)
-- `/workspaces/feat-phase3/memory-core/` - 14 documentation files
-- `/workspaces/feat-phase3/memory-mcp/` - 7 documentation files
-- `/workspaces/feat-phase3/memory-cli/` - 6 documentation files
+- `/workspaces/feat-phase3/do-memory-core/` - 14 documentation files
+- `/workspaces/feat-phase3/do-memory-mcp/` - 7 documentation files
+- `/workspaces/feat-phase3/do-memory-cli/` - 6 documentation files
 - **Total**: 467 markdown files across the project
 
 ### Examples
 - `/workspaces/feat-phase3/examples/` - 4 Rust examples
-- `/workspaces/feat-phase3/memory-core/examples/` - 15 Rust examples
-- `/workspaces/feat-phase3/memory-mcp/examples/` - 3 Rust examples
-- `/workspaces/feat-phase3/memory-storage-turso/examples/` - 2 Rust examples
+- `/workspaces/feat-phase3/do-memory-core/examples/` - 15 Rust examples
+- `/workspaces/feat-phase3/do-memory-mcp/examples/` - 3 Rust examples
+- `/workspaces/feat-phase3/do-memory-storage-turso/examples/` - 2 Rust examples
 - **Total**: 24 Rust example files
 
 ---

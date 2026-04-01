@@ -1,15 +1,15 @@
 # CLI Commands - Config Wizard
 
-The configuration wizard command provides an interactive, guided experience for setting up memory-cli configuration files with sensible defaults and validation.
+The configuration wizard command provides an interactive, guided experience for setting up do-memory-cli configuration files with sensible defaults and validation.
 
 ## Command Reference
 
-### `memory-cli config wizard`
+### `do-memory-cli config wizard`
 
 Launches the interactive configuration wizard.
 
 ```bash
-memory-cli config wizard
+do-memory-cli config wizard
 ```
 
 **Description:**
@@ -23,7 +23,7 @@ Guides you through creating a configuration file step-by-step with:
 
 ```bash
 # Quick start with wizard
-memory-cli config wizard
+do-memory-cli config wizard
 
 # Select preset and accept all defaults
 # (1) Choose "Local Development" preset
@@ -31,7 +31,7 @@ memory-cli config wizard
 # (3) Confirm and save
 
 # Full interactive setup
-memory-cli config wizard
+do-memory-cli config wizard
 # Follow prompts to customize each setting
 ```
 
@@ -78,25 +78,25 @@ memory-cli config wizard
 
 **Save Locations:**
 
-- `memory-cli.toml` - Current directory (recommended)
-- `.memory-cli.toml` - Hidden file in current directory
-- `data/memory-cli.toml` - Data subdirectory
+- `do-memory-cli.toml` - Current directory (recommended)
+- `.do-memory-cli.toml` - Hidden file in current directory
+- `data/do-memory-cli.toml` - Data subdirectory
 - Custom path - Specify any location
 
 ## Related Commands
 
 ```bash
 # Validate existing configuration
-memory-cli config validate
+do-memory-cli config validate
 
 # Check configuration for issues and recommendations
-memory-cli config check
+do-memory-cli config check
 
 # Show current configuration
-memory-cli config show
+do-memory-cli config show
 
 # Show configuration template
-memory-cli config show-template  # (if implemented)
+do-memory-cli config show-template  # (if implemented)
 ```
 
 ## Configuration File Format
@@ -126,18 +126,18 @@ You can specify a custom configuration file location:
 
 ```bash
 # Use specific config file
-memory-cli --config my-config.toml config wizard
+do-memory-cli --config my-config.toml config wizard
 
 # Or set environment variable
 export MEMORY_CLI_CONFIG=/path/to/config.toml
-memory-cli config wizard
+do-memory-cli config wizard
 ```
 
 ## Aliases
 
 ```bash
 # Short form using alias
-memory-cli cfg wizard
+do-memory-cli cfg wizard
 ```
 
 ## Examples
@@ -145,10 +145,10 @@ memory-cli cfg wizard
 ### Example 1: First-Time Setup
 
 ```bash
-$ memory-cli config wizard
+$ do-memory-cli config wizard
 🚀 Memory CLI Configuration Wizard
 ===================================
-This wizard will guide you through setting up memory-cli with optimal defaults.
+This wizard will guide you through setting up do-memory-cli with optimal defaults.
 You can customize each setting or press Enter to accept recommended values.
 
 📋 Step 1 of 5: Configuration Preset
@@ -278,23 +278,23 @@ Review your configuration before saving.
 Choose where to save your configuration file:
 
 Save location:
-> ⭐ memory-cli.toml (Current directory - Recommended)
-  🔒 .memory-cli.toml (Hidden file in current directory)
-  📁 data/memory-cli.toml (Data directory)
+> ⭐ do-memory-cli.toml (Current directory - Recommended)
+  🔒 .do-memory-cli.toml (Hidden file in current directory)
+  📁 data/do-memory-cli.toml (Data directory)
   ⚙️  Custom path (Specify your own location)
 
-✅ Configuration successfully saved to: memory-cli.toml
+✅ Configuration successfully saved to: do-memory-cli.toml
 
 💡 Next steps:
-   • Test your configuration: memory-cli --config memory-cli.toml
-   • Edit manually if needed: memory-cli.toml
-   • Run the wizard again to update: memory-cli config wizard
+   • Test your configuration: do-memory-cli --config do-memory-cli.toml
+   • Edit manually if needed: do-memory-cli.toml
+   • Run the wizard again to update: do-memory-cli config wizard
 ```
 
 ### Example 2: Production Setup
 
 ```bash
-$ memory-cli config wizard
+$ do-memory-cli config wizard
 # ...
 📋 Step 1 of 5: Configuration Preset
 Select configuration preset:
@@ -327,7 +327,7 @@ Select configuration preset:
 ### Example 3: CI/CD Setup
 
 ```bash
-$ memory-cli config wizard
+$ do-memory-cli config wizard
 # ...
 📋 Step 1 of 5: Configuration Preset
 Select configuration preset:
@@ -366,7 +366,7 @@ Select configuration preset:
 ### Example 4: Updating Configuration
 
 ```bash
-$ memory-cli config wizard
+$ do-memory-cli config wizard
 🚀 Memory CLI Configuration Wizard (Update Mode)
 ═════════════════════════════════════════════════
 Updating existing configuration with new values.
@@ -399,51 +399,51 @@ Enable progress bars [Y/n]:
 
 ```bash
 # 1. Run wizard with default preset
-memory-cli config wizard
+do-memory-cli config wizard
 
 # 2. Accept all defaults by pressing Enter
 # (1) Local Development preset ✓
 # (2) Default database paths ✓
 # (3) Default storage settings ✓
 # (4) Default CLI settings ✓
-# (5) Save to memory-cli.toml ✓
+# (5) Save to do-memory-cli.toml ✓
 
 # 3. Validate configuration
-memory-cli config validate
+do-memory-cli config validate
 
 # 4. Test
-memory-cli episode list
+do-memory-cli episode list
 ```
 
 ### Setup Multiple Environments
 
 ```bash
 # Development config
-memory-cli config wizard
+do-memory-cli config wizard
 # Save as dev.toml
 
 # Staging config (use existing as template)
 cp dev.toml staging.toml
 # Edit staging.toml to use stage database
-memory-cli --config staging.toml config wizard
+do-memory-cli --config staging.toml config wizard
 # Update settings and save
 
 # Production config
-memory-cli config wizard
+do-memory-cli config wizard
 # Select Cloud preset and enter production Turso details
 # Save as prod.toml
 
 # Use environment-specific configs
-memory-cli --config dev.toml     episode list
-memory-cli --config prod.toml    episode list
-memory-cli --config staging.toml episode list
+do-memory-cli --config dev.toml     episode list
+do-memory-cli --config prod.toml    episode list
+do-memory-cli --config staging.toml episode list
 ```
 
 ### Validate Configuration
 
 ```bash
 # After running wizard, always validate
-memory-cli config validate
+do-memory-cli config validate
 
 # Output:
 ✅ Configuration is valid
@@ -462,7 +462,7 @@ Issues found: (none)
 
 ```bash
 # Check if config already exists
-ls -la memory-cli.toml .memory-cli.toml
+ls -la do-memory-cli.toml .do-memory-cli.toml
 
 # Run wizard with verbose output
 memory --verbose config wizard
@@ -472,7 +472,7 @@ memory --verbose config wizard
 
 ```bash
 # After wizard completes, if validation fails:
-memory-cli config check
+do-memory-cli config check
 
 # Output shows:
 # ⚠️ Configuration Warnings
@@ -487,16 +487,16 @@ memory-cli config check
 
 ```bash
 # If remote database fails to connect:
-memory-cli config check
+do-memory-cli config check
 
 # Shows connectivity errors, then update config:
-memory-cli config wizard
+do-memory-cli config wizard
 # Reconfigure database with correct URL/token
 ```
 
 ## See Also
 
 <!-- NOTE: CONFIG_WIZARD.md is planned documentation -->
-- [Configuration Guide](../memory-cli/CONFIGURATION_GUIDE.md) - Complete configuration reference
+- [Configuration Guide](../do-memory-cli/CONFIGURATION_GUIDE.md) - Complete configuration reference
 - [Config Commands (CLI Reference)](#config-commands) - All config subcommands
 - [Local Database Setup](./LOCAL_DATABASE_SETUP.md) - Database implementation details

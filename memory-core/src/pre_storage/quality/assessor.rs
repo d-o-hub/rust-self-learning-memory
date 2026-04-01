@@ -14,8 +14,8 @@ use std::collections::HashSet;
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::pre_storage::{QualityAssessor, QualityConfig};
-/// use memory_core::{Episode, TaskContext, TaskType};
+/// use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
+/// use do_memory_core::{Episode, TaskContext, TaskType};
 ///
 /// let assessor = QualityAssessor::new(QualityConfig::default());
 ///
@@ -43,7 +43,7 @@ impl QualityAssessor {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::pre_storage::{QualityAssessor, QualityConfig};
+    /// use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
     ///
     /// let assessor = QualityAssessor::new(QualityConfig::default());
     /// ```
@@ -68,8 +68,8 @@ impl QualityAssessor {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::pre_storage::{QualityAssessor, QualityConfig};
-    /// use memory_core::{Episode, TaskContext, TaskType};
+    /// use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
+    /// use do_memory_core::{Episode, TaskContext, TaskType};
     ///
     /// let assessor = QualityAssessor::new(QualityConfig::default());
     /// let episode = Episode::new(
@@ -111,8 +111,8 @@ impl QualityAssessor {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_core::pre_storage::{QualityAssessor, QualityConfig};
-    /// use memory_core::{Episode, TaskContext, TaskType};
+    /// use do_memory_core::pre_storage::{QualityAssessor, QualityConfig};
+    /// use do_memory_core::{Episode, TaskContext, TaskType};
     ///
     /// let assessor = QualityAssessor::new(QualityConfig::default());
     /// let episode = Episode::new(

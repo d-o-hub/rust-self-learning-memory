@@ -73,9 +73,9 @@ This document summarizes the comprehensive analysis of `.md` files in `plans/` a
 6. `plans/STATUS/VALIDATION_LATEST.md` - Added benchmark exemption note
 
 ### Code Changes
-- `memory-mcp/src/server/mod.rs` - 781 → 147 LOC + 3 submodules
-- `memory-mcp/src/server/tools/batch_operations.rs` - 753 → 3 batch submodules
-- `memory-mcp/src/server/tools/episode_lifecycle.rs` - 516 → 5 episode submodules
+- `do-memory-mcp/src/server/mod.rs` - 781 → 147 LOC + 3 submodules
+- `do-memory-mcp/src/server/tools/batch_operations.rs` - 753 → 3 batch submodules
+- `do-memory-mcp/src/server/tools/episode_lifecycle.rs` - 516 → 5 episode submodules
 - 12 new module files created
 
 ---

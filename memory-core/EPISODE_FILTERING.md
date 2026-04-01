@@ -327,7 +327,7 @@ let episodes = memory.list_episodes_filtered(filter, Some(10), None).await?;
 
 ## CLI Integration
 
-The filtering API is designed to work seamlessly with the memory-cli. See the CLI documentation for command-line usage examples.
+The filtering API is designed to work seamlessly with the do-memory-cli. See the CLI documentation for command-line usage examples.
 
 ## Future Enhancements
 
@@ -342,5 +342,5 @@ Planned features for future releases:
 
 For issues or questions:
 - GitHub Issues: [memory system repository]
-- Documentation: `memory-core/README.md`
-- Examples: `memory-core/tests/episode_filtering_test.rs`
+- Documentation: `do-memory-core/README.md`
+- Examples: `do-memory-core/tests/episode_filtering_test.rs`

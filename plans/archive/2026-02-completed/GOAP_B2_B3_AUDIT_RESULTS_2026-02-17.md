@@ -34,12 +34,12 @@ async fn test_24_hour_stability() {
 
 | Crate | Count | Priority |
 |-------|-------|----------|
-| memory-core | 70 | High (public API) |
-| memory-mcp | 32 | Medium |
-| memory-storage-turso | 13 | Low |
-| memory-cli | 11 | Medium |
-| memory-storage-redb | 7 | Low |
-| test-utils | 0 | ✅ Clean |
+| do-memory-core | 70 | High (public API) |
+| do-memory-mcp | 32 | Medium |
+| do-memory-storage-turso | 13 | Low |
+| do-memory-cli | 11 | Medium |
+| do-memory-storage-redb | 7 | Low |
+| do-memory-test-utils | 0 | ✅ Clean |
 | Other (tests/benches) | ~770 | N/A (test code) |
 
 **Files Affected**: 49 files
@@ -54,12 +54,12 @@ async fn test_24_hour_stability() {
 
 ## B1.1: Error Handling Baseline ✅ STARTED
 
-**memory-core crate**:
+**do-memory-core crate**:
 - `unwrap()`: 205 calls
 - `.expect()`: 45 calls
 - **Total**: 250 calls
 
-**Target**: ≤140 (50% reduction for memory-core)
+**Target**: ≤140 (50% reduction for do-memory-core)
 
 **Next**: Audit remaining crates for complete baseline
 
@@ -79,7 +79,7 @@ async fn test_24_hour_stability() {
 3. **Quick Wins Confirmed**:
    - B2: 1 test is trivial to document
    - B3: 903 is manageable, mostly in test/bench code
-   - B1: memory-core baseline (250) is reasonable starting point
+   - B1: do-memory-core baseline (250) is reasonable starting point
 
 ---
 

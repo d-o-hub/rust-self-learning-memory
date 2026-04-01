@@ -4,7 +4,7 @@ expression: stdout
 ---
 Playbook recommendation and management
 
-Usage: memory-cli playbook <COMMAND>
+Usage: do-memory-cli playbook <COMMAND>
 
 Commands:
   recommend  Generate a playbook for a task

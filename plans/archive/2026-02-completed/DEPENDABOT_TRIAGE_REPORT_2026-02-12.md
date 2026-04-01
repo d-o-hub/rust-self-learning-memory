@@ -59,7 +59,7 @@ git push origin --delete dependabot/github_actions/github/codeql-action-4
 
 #### Files Modified
 - `Cargo.lock` (12 lines)
-- `memory-cli/Cargo.toml` (dependency version)
+- `do-memory-cli/Cargo.toml` (dependency version)
 - Plus test updates from base commit
 
 #### Clippy Results
@@ -123,7 +123,7 @@ Finished `dev` profile in 35.91s - No warnings
 
 #### Files Modified
 - `Cargo.lock` (45 lines)
-- `Cargo.toml` (workspace, benches, memory-cli, memory-core)
+- `Cargo.toml` (workspace, benches, do-memory-cli, do-memory-core)
 - `benches/Cargo.toml`
 
 #### Clippy Results

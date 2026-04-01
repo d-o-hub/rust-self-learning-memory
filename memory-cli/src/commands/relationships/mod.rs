@@ -148,7 +148,7 @@ pub enum StandaloneRelationshipCommands {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::episode::{Direction, RelationshipType};
+    use do_memory_core::episode::{Direction, RelationshipType};
 
     #[test]
     fn test_relationship_type_arg_conversion() {

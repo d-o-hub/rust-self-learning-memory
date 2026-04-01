@@ -1,5 +1,5 @@
 [package]
-name = "memory-storage-turso"
+name = "do-memory-storage-turso"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,10 +7,10 @@ license.workspace = true
 repository.workspace = true
 homepage = "https://github.com/d-o-hub/rust-self-learning-memory"
 readme = "README.md"
-description = "Turso/libSQL storage backend for the memory-core episodic learning system"
+description = "Turso/libSQL storage backend for the do-memory-core episodic learning system"
 keywords = ["turso", "libsql", "storage", "database", "ai-memory"]
 categories = ["database"]
-documentation = "https://docs.rs/memory-storage-turso"
+documentation = "https://docs.rs/do-memory-storage-turso"
 
 [features]
 # Enable multi-dimension vector schema for Turso (Phase 0)
@@ -34,8 +34,8 @@ compression-gzip = ["flate2"]
 
 [dependencies]
 # Core dependencies
-memory-core = { path = "../memory-core", features = ["hybrid_search"] }
-memory-storage-redb = { path = "../memory-storage-redb" }
+do-memory-core = { path = "../memory-core", features = ["hybrid_search"] }
+do-memory-storage-redb = { path = "../memory-storage-redb" }
 
 # Async runtime
 tokio = { workspace = true }
@@ -77,7 +77,7 @@ base64 = { version = "0.22.1", optional = true }
 tokio = { workspace = true, features = ["test-util"] }
 tempfile = { workspace = true }
 futures = "0.3.32"
-test-utils = { path = "../test-utils", features = ["turso"] }
+do-memory-test-utils = { path = "../test-utils", features = ["turso"] }
 proptest = "1.11"
 
 [lints.rust]

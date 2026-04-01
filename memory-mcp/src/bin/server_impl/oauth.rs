@@ -15,7 +15,7 @@
 use super::types::AuthorizationResult;
 
 // Import OAuthConfig from the library's protocol module
-use memory_mcp::protocol::OAuthConfig;
+use do_memory_mcp::protocol::OAuthConfig;
 
 #[cfg(feature = "oauth")]
 use tracing::debug;

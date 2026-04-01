@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  memory-cli:
+  do-memory-cli:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: memory-cli
+    container_name: do-memory-cli
     restart: unless-stopped
 
     # Configuration
@@ -20,11 +20,11 @@ services:
       - .env
     environment:
       - RUST_LOG=info
-      - MEMORY_CLI_CONFIG=/app/config/memory-cli.toml
+      - MEMORY_CLI_CONFIG=/app/config/do-memory-cli.toml
 
     # Health check
     healthcheck:
-      test: ["CMD", "memory-cli", "health", "check", "--format", "json"]
+      test: ["CMD", "do-memory-cli", "health", "check", "--format", "json"]
       interval: 30s
       timeout: 10s
       retries: 3

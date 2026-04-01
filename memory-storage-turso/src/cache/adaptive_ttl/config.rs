@@ -1,7 +1,7 @@
 //! Configuration and state types for Adaptive TTL cache
 
 use crate::cache::CacheConfig;
-use memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
+use do_memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
 use std::sync::atomic::AtomicU64;
 use std::sync::Arc;
 use std::time::Duration;

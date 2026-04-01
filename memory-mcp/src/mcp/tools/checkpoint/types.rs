@@ -1,6 +1,6 @@
 //! Checkpoint tool types and input/output structures.
 
-use memory_core::HandoffPack;
+use do_memory_core::HandoffPack;
 use serde::{Deserialize, Serialize};
 
 /// Input parameters for creating a checkpoint

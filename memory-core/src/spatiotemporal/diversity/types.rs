@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use memory_core::spatiotemporal::ScoredEpisode;
+/// use do_memory_core::spatiotemporal::ScoredEpisode;
 ///
 /// let episode = ScoredEpisode::new(
 ///     "episode-123".to_string(),
@@ -45,7 +45,7 @@ impl ScoredEpisode {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::spatiotemporal::ScoredEpisode;
+    /// use do_memory_core::spatiotemporal::ScoredEpisode;
     ///
     /// let episode = ScoredEpisode::new(
     ///     "ep1".to_string(),

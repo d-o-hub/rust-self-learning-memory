@@ -2,7 +2,7 @@
 
 ## Overview
 
-The memory-cli now supports semantic embeddings for enhanced search capabilities. This guide explains how to configure and use embeddings in the CLI.
+The do-memory-cli now supports semantic embeddings for enhanced search capabilities. This guide explains how to configure and use embeddings in the CLI.
 
 ## Configuration
 
@@ -111,7 +111,7 @@ base_url = "https://api.example.com/v1"
 ### Test Embedding Configuration
 
 ```bash
-memory-cli embedding test
+do-memory-cli embedding test
 ```
 
 Tests your embedding provider configuration:
@@ -123,7 +123,7 @@ Tests your embedding provider configuration:
 ### Show Configuration
 
 ```bash
-memory-cli embedding config
+do-memory-cli embedding config
 ```
 
 Displays current embedding configuration:
@@ -135,7 +135,7 @@ Displays current embedding configuration:
 ### List Available Providers
 
 ```bash
-memory-cli embedding list-providers
+do-memory-cli embedding list-providers
 ```
 
 Shows all available embedding providers with details:
@@ -147,7 +147,7 @@ Shows all available embedding providers with details:
 ### Benchmark Performance
 
 ```bash
-memory-cli embedding benchmark
+do-memory-cli embedding benchmark
 ```
 
 Runs performance benchmarks:
@@ -159,10 +159,10 @@ Runs performance benchmarks:
 
 ```bash
 # Enable (session-based)
-memory-cli embedding enable
+do-memory-cli embedding enable
 
 # Disable (session-based)
-memory-cli embedding disable
+do-memory-cli embedding disable
 ```
 
 Note: To persist changes, edit your config file and set `enabled = true` in the `[embeddings]` section.
@@ -173,33 +173,33 @@ Note: To persist changes, edit your config file and set `enabled = true` in the 
 
 ```bash
 # Basic semantic search
-memory-cli episode search --semantic "user authentication"
+do-memory-cli episode search --semantic "user authentication"
 
 # With similarity threshold
-memory-cli episode search --semantic --similarity 0.8 "API design"
+do-memory-cli episode search --semantic --similarity 0.8 "API design"
 
 # With limit
-memory-cli episode search --semantic --limit 5 "database optimization"
+do-memory-cli episode search --semantic --limit 5 "database optimization"
 ```
 
 ### Episode List with Semantic Search
 
 ```bash
 # List episodes semantically similar to query
-memory-cli episode list --semantic-search "REST API"
+do-memory-cli episode list --semantic-search "REST API"
 
 # With domain filter
-memory-cli episode list --semantic-search "web-api" --domain "web-api"
+do-memory-cli episode list --semantic-search "web-api" --domain "web-api"
 
 # With outcome filter
-memory-cli episode list --semantic-search "testing" --outcome success
+do-memory-cli episode list --semantic-search "testing" --outcome success
 ```
 
 ### Pattern Search
 
 ```bash
 # Search patterns by semantic similarity
-memory-cli pattern list --semantic-search "error handling"
+do-memory-cli pattern list --semantic-search "error handling"
 ```
 
 ## Configuration Options
@@ -249,7 +249,7 @@ memory-cli pattern list --semantic-search "error handling"
 
 If you see "Embeddings are disabled", either:
 1. Enable in config: Set `enabled = true` in `[embeddings]`
-2. Use session flag: `memory-cli embedding enable`
+2. Use session flag: `do-memory-cli embedding enable`
 
 ### API Key Not Set Error
 
@@ -266,7 +266,7 @@ export AZURE_OPENAI_API_KEY="your-key-here"
 
 If using local provider, ensure:
 1. Feature flag enabled: `--features local-embeddings`
-2. Dependencies installed: Check `memory-core` build output
+2. Dependencies installed: Check `do-memory-core` build output
 3. Model downloaded: First run may download model files
 
 ### Performance Issues
@@ -283,7 +283,7 @@ If embeddings are slow:
 
 ```bash
 # 1. Create config file
-cat > memory-cli.toml << EOF
+cat > do-memory-cli.toml << EOF
 [embeddings]
 enabled = true
 provider = "local"
@@ -293,10 +293,10 @@ similarity_threshold = 0.7
 EOF
 
 # 2. Test configuration
-memory-cli embedding test
+do-memory-cli embedding test
 
 # 3. Search semantically
-memory-cli episode search --semantic "database migration"
+do-memory-cli episode search --semantic "database migration"
 ```
 
 ### Example 2: Setup with OpenAI
@@ -306,7 +306,7 @@ memory-cli episode search --semantic "database migration"
 export OPENAI_API_KEY="sk-..."
 
 # 2. Create config file
-cat > memory-cli.toml << EOF
+cat > do-memory-cli.toml << EOF
 [embeddings]
 enabled = true
 provider = "openai"
@@ -317,10 +317,10 @@ similarity_threshold = 0.75
 EOF
 
 # 3. Test configuration
-memory-cli embedding test
+do-memory-cli embedding test
 
 # 4. Benchmark performance
-memory-cli embedding benchmark
+do-memory-cli embedding benchmark
 ```
 
 ### Example 3: Semantic Search in CI/CD
@@ -329,7 +329,7 @@ memory-cli embedding benchmark
 # Use embeddings in CI with OpenAI
 export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
 
-memory-cli episode list \
+do-memory-cli episode list \
   --semantic-search "authentication" \
   --limit 10 \
   --format json \
@@ -342,12 +342,12 @@ To migrate from keyword search to semantic search:
 
 **Before:**
 ```bash
-memory-cli episode search "authentication"
+do-memory-cli episode search "authentication"
 ```
 
 **After:**
 ```bash
-memory-cli episode search --semantic "authentication"
+do-memory-cli episode search --semantic "authentication"
 ```
 
 The semantic search will find episodes related to:
@@ -369,7 +369,7 @@ Embeddings integrate with the memory system in several ways:
 
 ## API Integration
 
-The CLI embedding commands use the same embedding providers as the memory-core API:
+The CLI embedding commands use the same embedding providers as the do-memory-core API:
 
 ```rust
 use memory_core::embeddings::{

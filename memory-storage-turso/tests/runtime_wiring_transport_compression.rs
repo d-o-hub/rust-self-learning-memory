@@ -33,7 +33,7 @@
 #![allow(clippy::expect_used)]
 
 use async_trait::async_trait;
-use memory_storage_turso::{
+use do_memory_storage_turso::{
     CompressedTransport, CompressionStatistics, Transport, TransportCompressionConfig,
     TransportMetadata, TransportResponse, compress, decompress,
 };

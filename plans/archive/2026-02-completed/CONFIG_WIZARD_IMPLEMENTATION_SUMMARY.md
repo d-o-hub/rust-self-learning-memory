@@ -5,7 +5,7 @@ The configuration wizard has been successfully wired to the CLI. The implementat
 
 ## Files Modified
 
-### 1. memory-cli/src/commands/config.rs
+### 1. do-memory-cli/src/commands/config.rs
 - **Line 17**: `Wizard` variant already exists in `ConfigCommands` enum
 - **Lines 473-481**: `run_wizard()` function implemented
 
@@ -30,7 +30,7 @@ pub async fn run_wizard() -> anyhow::Result<()> {
 }
 ```
 
-### 2. memory-cli/src/commands/mod.rs
+### 2. do-memory-cli/src/commands/mod.rs
 - **Line 351**: Wizard command handler already wired in `handle_config_command`
 
 ```rust
@@ -50,21 +50,21 @@ pub async fn handle_config_command(
 }
 ```
 
-### 3. memory-cli/src/main.rs
+### 3. do-memory-cli/src/main.rs
 - **Lines 74-77**: Config command already defined in CLI
 - **Lines 185-193**: Config command handler already dispatched
 
 ## Wizard Implementation
 
 ### Core Files
-1. **memory-cli/src/config/wizard/mod.rs**: Main wizard struct and flow
-2. **memory-cli/src/config/wizard/helpers.rs**: Helper functions (format_duration, quick_setup, show_template)
-3. **memory-cli/src/config/wizard/presets.rs**: Configuration presets
-4. **memory-cli/src/config/wizard/database.rs**: Database configuration step
-5. **memory-cli/src/config/wizard/storage.rs**: Storage configuration step
-6. **memory-cli/src/config/wizard/cli.rs**: CLI configuration step
-7. **memory-cli/src/config/wizard/validation.rs**: Validation step
-8. **memory-cli/src/config/wizard/save.rs**: Save configuration step
+1. **do-memory-cli/src/config/wizard/mod.rs**: Main wizard struct and flow
+2. **do-memory-cli/src/config/wizard/helpers.rs**: Helper functions (format_duration, quick_setup, show_template)
+3. **do-memory-cli/src/config/wizard/presets.rs**: Configuration presets
+4. **do-memory-cli/src/config/wizard/database.rs**: Database configuration step
+5. **do-memory-cli/src/config/wizard/storage.rs**: Storage configuration step
+6. **do-memory-cli/src/config/wizard/cli.rs**: CLI configuration step
+7. **do-memory-cli/src/config/wizard/validation.rs**: Validation step
+8. **do-memory-cli/src/config/wizard/save.rs**: Save configuration step
 
 ### Wizard Flow
 1. **Step 1**: Choose configuration preset (Local, Cloud, Memory, Custom)
@@ -76,7 +76,7 @@ pub async fn handle_config_command(
 ## Tests
 
 ### Unit Tests
-**File**: `memory-cli/tests/unit/config_wizard_tests.rs`
+**File**: `do-memory-cli/tests/unit/config_wizard_tests.rs`
 
 Comprehensive test coverage including:
 - Wizard initialization (test_wizard_initialization)
@@ -124,11 +124,11 @@ memory config show
 ## Pre-existing Issues Fixed
 
 During verification, fixed compilation errors:
-1. **memory-core/src/error.rs**: Removed duplicate file (error/ directory exists)
-2. **memory-core/src/indexing/hierarchical.rs**: Fixed variable reference (line 509)
-3. **memory-cli/src/commands/pattern/core/types.rs**: Added feature gating for Batch variant
-4. **memory-cli/src/commands/pattern/mod.rs**: Added feature gating for execute_pattern_batch_command
-5. **memory-cli/src/commands/mod.rs**: Added feature gating for PatternCommands::Batch handler
+1. **do-memory-core/src/error.rs**: Removed duplicate file (error/ directory exists)
+2. **do-memory-core/src/indexing/hierarchical.rs**: Fixed variable reference (line 509)
+3. **do-memory-cli/src/commands/pattern/core/types.rs**: Added feature gating for Batch variant
+4. **do-memory-cli/src/commands/pattern/mod.rs**: Added feature gating for execute_pattern_batch_command
+5. **do-memory-cli/src/commands/mod.rs**: Added feature gating for PatternCommands::Batch handler
 
 ## Conclusion
 

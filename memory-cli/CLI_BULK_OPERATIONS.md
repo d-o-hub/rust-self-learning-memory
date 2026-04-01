@@ -6,20 +6,20 @@ Added a new `bulk` subcommand to the CLI for efficient bulk episode retrieval us
 
 ## New Command
 
-### `memory-cli episode bulk <ids>`
+### `do-memory-cli episode bulk <ids>`
 
 Retrieve multiple episodes by their IDs in a single efficient operation.
 
 **Usage:**
 ```bash
 # Get multiple episodes (comma-separated UUIDs)
-memory-cli episode bulk abc123...,def456...,ghi789...
+do-memory-cli episode bulk abc123...,def456...,ghi789...
 
 # JSON output
-memory-cli episode bulk abc123...,def456... --format json
+do-memory-cli episode bulk abc123...,def456... --format json
 
 # YAML output  
-memory-cli episode bulk abc123...,def456... --format yaml
+do-memory-cli episode bulk abc123...,def456... --format yaml
 ```
 
 **Features:**
@@ -64,12 +64,12 @@ Episode 2 of 2
 ## Implementation Details
 
 ### Files Added
-- `memory-cli/src/commands/episode_v2/episode/bulk.rs` (~200 LOC)
+- `do-memory-cli/src/commands/episode_v2/episode/bulk.rs` (~200 LOC)
 
 ### Files Modified
-- `memory-cli/src/commands/episode_v2/episode/mod.rs` (added bulk module)
-- `memory-cli/src/commands/episode_v2/mod.rs` (exported bulk_get_episodes)
-- `memory-cli/src/commands/episode.rs` (re-exported for backward compat)
+- `do-memory-cli/src/commands/episode_v2/episode/mod.rs` (added bulk module)
+- `do-memory-cli/src/commands/episode_v2/mod.rs` (exported bulk_get_episodes)
+- `do-memory-cli/src/commands/episode.rs` (re-exported for backward compat)
 
 ### Code Structure
 
@@ -93,7 +93,7 @@ pub async fn bulk_get_episodes(
 
 ### Invalid UUID Format
 ```bash
-$ memory-cli episode bulk invalid-id,abc123...
+$ do-memory-cli episode bulk invalid-id,abc123...
 
 Error: Failed to parse episode IDs:
   [1] Invalid UUID: invalid-id
@@ -103,13 +103,13 @@ Expected format: UUID v4 (e.g., 550e8400-e29b-41d4-a716-446655440000)
 
 ### No Episodes Found
 ```bash
-$ memory-cli episode bulk non-existent-id
+$ do-memory-cli episode bulk non-existent-id
 
 Error: No episodes found for the provided IDs.
 
 Requested 1 episode(s), found 0.
 
-Tip: Use 'memory-cli episode list' to see available episodes.
+Tip: Use 'do-memory-cli episode list' to see available episodes.
 ```
 
 ### Partial Results
@@ -164,7 +164,7 @@ for episode in episodes {
 
 The bulk command needs to be wired into the main CLI argument parser.
 
-**TODO:** Add to `memory-cli/src/main.rs` or wherever episode subcommands are parsed:
+**TODO:** Add to `do-memory-cli/src/main.rs` or wherever episode subcommands are parsed:
 
 ```rust
 // In EpisodeCommands enum
@@ -199,29 +199,29 @@ match episode_cmd {
 
 ### Manual Testing
 
-Once memory-core compilation errors are fixed:
+Once do-memory-core compilation errors are fixed:
 
 ```bash
 # Build the CLI
-cd memory-cli
+cd do-memory-cli
 cargo build --features turso
 
 # Create test episodes
-./target/debug/memory-cli episode create "Test task 1"
-./target/debug/memory-cli episode create "Test task 2"
-./target/debug/memory-cli episode create "Test task 3"
+./target/debug/do-memory-cli episode create "Test task 1"
+./target/debug/do-memory-cli episode create "Test task 2"
+./target/debug/do-memory-cli episode create "Test task 3"
 
 # List episodes to get IDs
-./target/debug/memory-cli episode list
+./target/debug/do-memory-cli episode list
 
 # Test bulk retrieval (use actual IDs from list)
-./target/debug/memory-cli episode bulk <id1>,<id2>,<id3>
+./target/debug/do-memory-cli episode bulk <id1>,<id2>,<id3>
 
 # Test with non-existent ID
-./target/debug/memory-cli episode bulk <id1>,invalid-uuid,<id2>
+./target/debug/do-memory-cli episode bulk <id1>,invalid-uuid,<id2>
 
 # Test JSON output
-./target/debug/memory-cli episode bulk <id1>,<id2> --format json
+./target/debug/do-memory-cli episode bulk <id1>,<id2> --format json
 ```
 
 ### Expected Behavior
@@ -238,11 +238,11 @@ cargo build --features turso
 ### CLI Help Text
 
 ```bash
-$ memory-cli episode bulk --help
+$ do-memory-cli episode bulk --help
 
 Retrieve multiple episodes by their IDs (bulk operation)
 
-Usage: memory-cli episode bulk <IDS>
+Usage: do-memory-cli episode bulk <IDS>
 
 Arguments:
   <IDS>  Comma-separated list of episode UUIDs
@@ -262,7 +262,7 @@ Add to CLI user documentation:
 > for efficient retrieval:
 >
 > ```bash
-> memory-cli episode bulk <id1>,<id2>,<id3>
+> do-memory-cli episode bulk <id1>,<id2>,<id3>
 > ```
 >
 > This is much faster than calling `view` multiple times, as it retrieves all
@@ -281,22 +281,22 @@ Possible improvements:
 
 1. **Read IDs from file:**
    ```bash
-   memory-cli episode bulk --from-file episode_ids.txt
+   do-memory-cli episode bulk --from-file episode_ids.txt
    ```
 
 2. **Filter bulk results:**
    ```bash
-   memory-cli episode bulk <ids> --status completed
+   do-memory-cli episode bulk <ids> --status completed
    ```
 
 3. **Export bulk results:**
    ```bash
-   memory-cli episode bulk <ids> --export episodes.json
+   do-memory-cli episode bulk <ids> --export episodes.json
    ```
 
 4. **Interactive selection:**
    ```bash
-   memory-cli episode list | memory-cli episode bulk --interactive
+   do-memory-cli episode list | do-memory-cli episode bulk --interactive
    ```
 
 ## Status
@@ -305,12 +305,12 @@ Possible improvements:
 - ✅ Module wiring complete
 - ✅ Documentation complete
 - ⏳ Pending: Wire into main CLI argument parser
-- ⏳ Pending: Fix memory-core compilation errors
+- ⏳ Pending: Fix do-memory-core compilation errors
 - ⏳ Pending: Manual testing
 - ⏳ Pending: Add CLI help integration
 
 ## Related Documentation
 
-- `memory-core/BULK_OPERATIONS_API.md` - Core API documentation
-- `memory-core/examples/bulk_episode_operations.rs` - API usage example
-- `memory-cli/CLI_USER_GUIDE.md` - General CLI documentation
+- `do-memory-core/BULK_OPERATIONS_API.md` - Core API documentation
+- `do-memory-core/examples/bulk_episode_operations.rs` - API usage example
+- `do-memory-cli/CLI_USER_GUIDE.md` - General CLI documentation

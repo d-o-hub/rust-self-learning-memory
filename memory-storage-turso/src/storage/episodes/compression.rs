@@ -4,7 +4,7 @@
 
 /// Compress JSON data if compression is enabled and data is large enough
 #[cfg(feature = "compression")]
-pub fn compress_json_field(data: &[u8], threshold: usize) -> memory_core::Result<Vec<u8>> {
+pub fn compress_json_field(data: &[u8], threshold: usize) -> do_memory_core::Result<Vec<u8>> {
     use crate::compression::CompressedPayload;
 
     let compressed = CompressedPayload::compress(data, threshold)?;
@@ -25,14 +25,14 @@ pub fn compress_json_field(data: &[u8], threshold: usize) -> memory_core::Result
 
 /// Compress JSON data (no-op when compression feature is disabled)
 #[cfg(not(feature = "compression"))]
-pub fn compress_json_field(data: &[u8], _threshold: usize) -> memory_core::Result<Vec<u8>> {
+pub fn compress_json_field(data: &[u8], _threshold: usize) -> do_memory_core::Result<Vec<u8>> {
     Ok(data.to_vec())
 }
 
 /// Decompress JSON data if it's compressed
 #[cfg(feature = "compression")]
-pub fn decompress_json_field(data: &str) -> memory_core::Result<Vec<u8>> {
-    use memory_core::Error;
+pub fn decompress_json_field(data: &str) -> do_memory_core::Result<Vec<u8>> {
+    use do_memory_core::Error;
     if let Some(remainder) = data.strip_prefix("__compressed__:") {
         // Parse the compressed format: __compressed__:<algorithm>:<original_size>\n<base64_data>
         let newline_pos = remainder.find('\n').ok_or_else(|| {
@@ -85,6 +85,6 @@ pub fn decompress_json_field(data: &str) -> memory_core::Result<Vec<u8>> {
 
 /// Decompress JSON data (no-op when compression feature is disabled)
 #[cfg(not(feature = "compression"))]
-pub fn decompress_json_field(data: &str) -> memory_core::Result<Vec<u8>> {
+pub fn decompress_json_field(data: &str) -> do_memory_core::Result<Vec<u8>> {
     Ok(data.as_bytes().to_vec())
 }

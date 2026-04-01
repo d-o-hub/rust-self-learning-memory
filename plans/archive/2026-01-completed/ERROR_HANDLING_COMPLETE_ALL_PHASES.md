@@ -41,8 +41,8 @@ Successfully completed **all three phases** of comprehensive error handling impr
 **Completed**:
 - ✅ Comprehensive audit of 249+ unwrap/expect calls
 - ✅ Identified 50 true production unwraps (vs 249 including tests)
-- ✅ Fixed `memory-core/src/retrieval/cache/lru.rs` (1 unwrap)
-- ✅ Fixed `memory-cli/src/config/loader.rs` (26 unwraps)
+- ✅ Fixed `do-memory-core/src/retrieval/cache/lru.rs` (1 unwrap)
+- ✅ Fixed `do-memory-cli/src/config/loader.rs` (26 unwraps)
 - ✅ Created error handling strategy document
 
 **Impact**: 27 unwraps fixed (54% of production unwraps)
@@ -54,14 +54,14 @@ Successfully completed **all three phases** of comprehensive error handling impr
 **Result**: ✅ Complete
 
 **Files Fixed**:
-1. ✅ `memory-core/src/embeddings/circuit_breaker.rs` (6 unwraps)
-2. ✅ `memory-cli/src/commands/embedding.rs` (2 unwraps)
-3. ✅ `memory-core/src/memory/retrieval/context.rs` (1 unwrap)
-4. ✅ `memory-cli/src/config/validator.rs` (1 unwrap)
-5. ✅ `memory-cli/src/config/wizard/database.rs` (1 unwrap)
-6. ✅ `memory-cli/src/commands/storage/commands.rs` (2 unwraps)
-7. ✅ `memory-mcp/src/patterns/predictive/kdtree.rs` (2 unwraps)
-8. ✅ `memory-mcp/src/mcp/tools/quality_metrics/tool.rs` (1 unwrap)
+1. ✅ `do-memory-core/src/embeddings/circuit_breaker.rs` (6 unwraps)
+2. ✅ `do-memory-cli/src/commands/embedding.rs` (2 unwraps)
+3. ✅ `do-memory-core/src/memory/retrieval/context.rs` (1 unwrap)
+4. ✅ `do-memory-cli/src/config/validator.rs` (1 unwrap)
+5. ✅ `do-memory-cli/src/config/wizard/database.rs` (1 unwrap)
+6. ✅ `do-memory-cli/src/commands/storage/commands.rs` (2 unwraps)
+7. ✅ `do-memory-mcp/src/patterns/predictive/kdtree.rs` (2 unwraps)
+8. ✅ `do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs` (1 unwrap)
 
 **Impact**: 16 unwraps fixed (32% of production unwraps)
 
@@ -108,26 +108,26 @@ let value = collection.get(key)
 
 ## 📝 Files Modified by Crate
 
-### memory-core (4 files - 9 unwraps)
+### do-memory-core (4 files - 9 unwraps)
 - `src/retrieval/cache/lru.rs` - NonZeroUsize validation
 - `src/embeddings/circuit_breaker.rs` - Mutex lock operations
 - `src/memory/retrieval/context.rs` - Option handling
 
-### memory-cli (5 files - 32 unwraps)
+### do-memory-cli (5 files - 32 unwraps)
 - `src/config/loader.rs` - Config cache mutex operations
 - `src/commands/embedding.rs` - Iterator min/max
 - `src/config/validator.rs` - Option unwrapping
 - `src/config/wizard/database.rs` - Option unwrapping
 - `src/commands/storage/commands.rs` - ProgressStyle templates
 
-### memory-mcp (2 files - 3 unwraps)
+### do-memory-mcp (2 files - 3 unwraps)
 - `src/patterns/predictive/kdtree.rs` - Vector access
 - `src/mcp/tools/quality_metrics/tool.rs` - HashMap access
 
-### memory-storage-turso (0 files)
+### do-memory-storage-turso (0 files)
 - Already using `.expect()` with good messages ✅
 
-### memory-storage-redb (0 files)
+### do-memory-storage-redb (0 files)
 - Already compliant with zero unwraps ✅
 
 ---
@@ -136,21 +136,21 @@ let value = collection.get(key)
 
 **Total**: 3 unwraps in doc comments (acceptable)
 
-### 1. memory-core/src/episode.rs:434
+### 1. do-memory-core/src/episode.rs:434
 ```rust
 /// let duration = episode.duration().unwrap();
 ```
 **Status**: ✅ Acceptable - documentation example  
 **Context**: Example code showing API usage
 
-### 2. memory-core/src/memory/episode.rs:171
+### 2. do-memory-core/src/memory/episode.rs:171
 ```rust
 /// let episode = memory.get_episode(episode_id).await.unwrap();
 ```
 **Status**: ✅ Acceptable - documentation example  
 **Context**: Example code showing API usage
 
-### 3. memory-core/src/semantic/summary/summarizer.rs:187
+### 3. do-memory-core/src/semantic/summary/summarizer.rs:187
 ```rust
 /// let summary = summarizer.summarize_with_embedding(&episode, &provider).await.unwrap();
 ```

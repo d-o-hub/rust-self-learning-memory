@@ -1,7 +1,7 @@
 //! Pattern search MCP tool implementation
 
-use memory_core::memory::{PatternSearchResult, SearchConfig};
-use memory_core::{SelfLearningMemory, TaskContext};
+use do_memory_core::memory::{PatternSearchResult, SearchConfig};
+use do_memory_core::{SelfLearningMemory, TaskContext};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -86,7 +86,7 @@ pub async fn execute(
         domain: input.domain.clone(),
         language: None,
         framework: None,
-        complexity: memory_core::ComplexityLevel::Moderate,
+        complexity: do_memory_core::ComplexityLevel::Moderate,
         tags: input.tags.clone(),
     };
 
@@ -119,7 +119,7 @@ pub async fn execute(
 
 /// Convert PatternSearchResult to PatternResult
 fn pattern_search_result_to_pattern_result(result: &PatternSearchResult) -> PatternResult {
-    use memory_core::Pattern;
+    use do_memory_core::Pattern;
 
     let pattern = &result.pattern;
     let (id, pattern_type, description, domain) = match pattern {
@@ -220,7 +220,7 @@ pub async fn execute_recommend(
         domain: input.domain.clone(),
         language: None,
         framework: None,
-        complexity: memory_core::ComplexityLevel::Moderate,
+        complexity: do_memory_core::ComplexityLevel::Moderate,
         tags: input.tags.clone(),
     };
 

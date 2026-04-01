@@ -7,9 +7,9 @@
 //! - Building relationship graphs
 //! - Cascade deletion
 
-use memory_core::episode::{RelationshipMetadata, RelationshipType};
-use memory_core::memory::SelfLearningMemory;
-use memory_core::{TaskContext, TaskOutcome, TaskType};
+use do_memory_core::episode::{RelationshipMetadata, RelationshipType};
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::{TaskContext, TaskOutcome, TaskType};
 use uuid::Uuid;
 
 /// Helper to create a test episode and return its ID
@@ -96,7 +96,7 @@ async fn test_get_episode_relationships() {
 
     // Get outgoing relationships from ep1
     let outgoing = memory
-        .get_episode_relationships(ep1, memory_core::episode::Direction::Outgoing)
+        .get_episode_relationships(ep1, do_memory_core::episode::Direction::Outgoing)
         .await
         .expect("Failed to get outgoing relationships");
 
@@ -106,7 +106,7 @@ async fn test_get_episode_relationships() {
 
     // Get incoming relationships to ep2
     let incoming = memory
-        .get_episode_relationships(ep2, memory_core::episode::Direction::Incoming)
+        .get_episode_relationships(ep2, do_memory_core::episode::Direction::Incoming)
         .await
         .expect("Failed to get incoming relationships");
 
@@ -131,7 +131,7 @@ async fn test_remove_episode_relationship() {
 
     // Verify relationship exists
     let relationships = memory
-        .get_episode_relationships(ep1, memory_core::episode::Direction::Outgoing)
+        .get_episode_relationships(ep1, do_memory_core::episode::Direction::Outgoing)
         .await
         .expect("Failed to get relationships");
     assert_eq!(relationships.len(), 1);
@@ -144,7 +144,7 @@ async fn test_remove_episode_relationship() {
 
     // Verify relationship is gone
     let relationships = memory
-        .get_episode_relationships(ep1, memory_core::episode::Direction::Outgoing)
+        .get_episode_relationships(ep1, do_memory_core::episode::Direction::Outgoing)
         .await
         .expect("Failed to get relationships");
     assert_eq!(relationships.len(), 0);
@@ -152,8 +152,8 @@ async fn test_remove_episode_relationship() {
 
 #[tokio::test]
 async fn test_find_related_episodes() {
-    use memory_core::episode::Direction;
-    use memory_core::memory::relationship_query::RelationshipFilter;
+    use do_memory_core::episode::Direction;
+    use do_memory_core::memory::relationship_query::RelationshipFilter;
 
     let memory = SelfLearningMemory::new();
 
@@ -446,7 +446,7 @@ async fn test_relationships_with_storage() {
 
     // Verify it persisted
     let relationships = memory
-        .get_episode_relationships(ep1, memory_core::episode::Direction::Outgoing)
+        .get_episode_relationships(ep1, do_memory_core::episode::Direction::Outgoing)
         .await
         .expect("Failed to get relationships");
 

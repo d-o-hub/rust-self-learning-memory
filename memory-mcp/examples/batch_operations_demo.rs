@@ -6,8 +6,8 @@
 //! Run with: `cargo run --example batch_operations_demo`
 
 use anyhow::Context;
-use memory_core::SelfLearningMemory;
-use memory_mcp::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::{
     BatchExecutor, BatchMode, BatchOperation, BatchRequest, MemoryMCPServer, SandboxConfig,
 };
 use serde_json::json;

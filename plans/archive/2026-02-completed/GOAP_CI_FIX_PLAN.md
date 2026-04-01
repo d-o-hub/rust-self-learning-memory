@@ -14,7 +14,7 @@
 - CI Status: Multiple workflows in progress, cannot access failure logs yet
 
 ### Root Cause Identified
-**Build Error**: `memory-mcp-server.rs` calls `load_oauth_config()` but:
+**Build Error**: `do-memory-mcp-server.rs` calls `load_oauth_config()` but:
 - Function is gated behind `#[cfg(feature = "oauth")]`
 - The `oauth` feature is NOT enabled by default
 - Cargo.toml shows: `oauth = []` (opt-in feature)

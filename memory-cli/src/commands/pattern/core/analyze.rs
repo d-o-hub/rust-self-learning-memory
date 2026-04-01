@@ -10,7 +10,7 @@ pub async fn analyze_pattern(
     pattern_id: Option<String>,
     domain: Option<String>,
     episodes: usize,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -44,7 +44,7 @@ pub async fn analyze_pattern(
         })?;
 
     // Get recent episodes to analyze (returns Vec<Arc<Episode>>)
-    let context = memory_core::types::TaskContext::default();
+    let context = do_memory_core::types::TaskContext::default();
     let arc_episodes = memory
         .retrieve_relevant_context("".to_string(), context, episodes)
         .await;
@@ -68,9 +68,9 @@ pub async fn analyze_pattern(
 
                 // Calculate improvement score (simplified)
                 let base_complexity = match episode.context.complexity {
-                    memory_core::types::ComplexityLevel::Simple => 1.0,
-                    memory_core::types::ComplexityLevel::Moderate => 2.0,
-                    memory_core::types::ComplexityLevel::Complex => 3.0,
+                    do_memory_core::types::ComplexityLevel::Simple => 1.0,
+                    do_memory_core::types::ComplexityLevel::Moderate => 2.0,
+                    do_memory_core::types::ComplexityLevel::Complex => 3.0,
                 };
 
                 let efficiency_score = reward.total / base_complexity;
@@ -137,7 +137,7 @@ pub async fn analyze_pattern(
 async fn analyze_domain_patterns(
     domain: &str,
     episodes: usize,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     use serde::Serialize;
@@ -152,7 +152,7 @@ async fn analyze_domain_patterns(
     }
 
     // Get recent episodes in the domain
-    let context = memory_core::types::TaskContext {
+    let context = do_memory_core::types::TaskContext {
         domain: domain.to_string(),
         ..Default::default()
     };

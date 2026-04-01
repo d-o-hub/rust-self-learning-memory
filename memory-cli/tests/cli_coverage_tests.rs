@@ -10,8 +10,7 @@ mod common;
 #[cfg(test)]
 mod cli_coverage_tests {
     use super::*;
-    use memory_cli::test_utils;
-    use test_utils::*;
+    use do_memory_cli::test_utils::CliHarness;
 
     // ── Episode subcommand help ──────────────────────────────────────
 
@@ -233,7 +232,7 @@ mod cli_coverage_tests {
             .execute(["--version"])
             .assert()
             .success()
-            .stdout(predicate::str::contains("memory-cli"));
+            .stdout(predicate::str::contains("do-memory-cli"));
     }
 
     // ── Multiple help flags ──────────────────────────────────────────

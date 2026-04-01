@@ -27,8 +27,8 @@ From `gh run list --branch main --status failure --limit 60`:
   - URL: https://github.com/d-o-hub/rust-self-learning-memory/actions/runs/22085572056
 - Symptom: E2E CLI tests fail with `error: unrecognized subcommand 'step'`.
 - Likely root cause:
-  - E2E test invokes `memory-cli episode step ...` in `tests/e2e/cli_workflows.rs`.
-  - CLI defines `episode log-step` (kebab-case) in `memory-cli/src/commands/episode/core/types.rs` (`EpisodeCommands::LogStep`).
+  - E2E test invokes `do-memory-cli episode step ...` in `tests/e2e/cli_workflows.rs`.
+  - CLI defines `episode log-step` (kebab-case) in `do-memory-cli/src/commands/episode/core/types.rs` (`EpisodeCommands::LogStep`).
 - Note: earlier nightly failures (e.g., run `22049835142` on `2026-02-16`) were driven by different issues (slow/perf tests and other E2E failures) covered by ADR-030; this document focuses on the current CLI contract regression.
 
 ### Security (schedule) is failing due to gitleaks findings
@@ -65,7 +65,7 @@ Re-verify only if they reoccur.
 
 **Preconditions**
 
-- `memory-cli` has an episode step logging command (`EpisodeCommands::LogStep`).
+- `do-memory-cli` has an episode step logging command (`EpisodeCommands::LogStep`).
 - `tests/e2e/cli_workflows.rs` is part of the nightly suite.
 
 **Actions (ordered)**
@@ -78,11 +78,11 @@ Re-verify only if they reoccur.
 3. **Add CLI alias (if ADR-031 accepted)**
    - Add clap alias `step` for `EpisodeCommands::LogStep`.
 4. **Add/refresh a CLI argument parsing test**
-   - Ensure `memory-cli` unit parsing tests cover both `episode log-step` and `episode step` (alias).
+   - Ensure `do-memory-cli` unit parsing tests cover both `episode log-step` and `episode step` (alias).
 
 **Verification**
 
-- Local: `cargo test -p memory-cli --tests`
+- Local: `cargo test -p do-memory-cli --tests`
 - Local: `cargo test --test cli_workflows` (or `cargo test --all` if E2E is wired differently)
 - CI: Re-run Nightly Full Tests on `main` after merge.
 
@@ -138,4 +138,4 @@ Re-verify only if they reoccur.
 - Nightly failure run: `22085572056` (2026-02-17)
 - Security failure run: `22027889183` (2026-02-15)
 - E2E test file: `tests/e2e/cli_workflows.rs`
-- CLI command definitions: `memory-cli/src/commands/episode/core/types.rs`
+- CLI command definitions: `do-memory-cli/src/commands/episode/core/types.rs`

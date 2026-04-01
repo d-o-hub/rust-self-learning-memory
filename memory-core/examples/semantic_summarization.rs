@@ -5,9 +5,9 @@
 //! cargo run --example semantic_summarization
 //! ```
 
-use memory_core::pre_storage::SalientFeatures;
-use memory_core::semantic::SemanticSummarizer;
-use memory_core::{
+use do_memory_core::pre_storage::SalientFeatures;
+use do_memory_core::semantic::SemanticSummarizer;
+use do_memory_core::{
     ComplexityLevel, Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType,
 };
 

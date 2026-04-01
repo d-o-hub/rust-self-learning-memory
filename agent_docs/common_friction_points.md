@@ -238,11 +238,11 @@ async fn test_network_dependent() {
 
 ### 7. Snapshot Tests on Version-Dependent Output
 
-**Problem**: `test_cli_version_output` used `insta::assert_snapshot!` to snapshot `--version` output, which hardcodes the version string (e.g., `memory-cli 0.1.21`). Every version bump breaks this test in CI.
+**Problem**: `test_cli_version_output` used `insta::assert_snapshot!` to snapshot `--version` output, which hardcodes the version string (e.g., `do-memory-cli 0.1.21`). Every version bump breaks this test in CI.
 
 **Prevention**:
 - Never use `assert_snapshot!` for output that contains the crate version
-- Use format-based assertions instead (e.g., `starts_with("memory-cli ")` + validate semver format)
+- Use format-based assertions instead (e.g., `starts_with("do-memory-cli ")` + validate semver format)
 - When adding snapshot tests, ask: "Will this break on the next version bump?" If yes, use a non-snapshot assertion
 
 ### 8. Hardcoded Security Advisory Ignores in CI

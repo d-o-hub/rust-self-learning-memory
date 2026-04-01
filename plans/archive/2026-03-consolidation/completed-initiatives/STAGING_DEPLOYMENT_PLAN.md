@@ -49,7 +49,7 @@
 
 ```toml
 [dependencies]
-memory-storage-turso = { 
+do-memory-storage-turso = { 
     version = "0.1.12",
     features = [
         "turso",              # Turso database support
@@ -61,7 +61,7 @@ memory-storage-turso = {
 }
 
 # Optional: Enable all compression algorithms for testing
-# memory-storage-turso = { 
+# do-memory-storage-turso = { 
 #     version = "0.1.12",
 #     features = ["full"]  # All features enabled
 # }

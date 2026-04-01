@@ -5,7 +5,7 @@
 #[cfg(test)]
 mod tests {
     use super::super::heuristic_types::{HeuristicBatchProgress, HeuristicBatchResult};
-    use memory_core::{Heuristic, types::Evidence};
+    use do_memory_core::{Heuristic, types::Evidence};
     use tempfile::TempDir;
     use uuid::Uuid;
 
@@ -17,7 +17,7 @@ mod tests {
             .build()
             .await
             .map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to create test database: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to create test database: {}", e))
             })?;
 
         let storage = crate::TursoStorage::from_database(db)?;

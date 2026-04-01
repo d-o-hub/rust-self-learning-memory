@@ -27,7 +27,7 @@ Specialized agents that handle complex, multi-step tasks autonomously:
 - `create-agent.md` - Create new opencode agents with proper format and configuration
 - `git-worktree-manager.md` - Manage git worktrees for efficient multi-branch development
 - `github-action-editor.md` - Edit and create GitHub Actions workflows
-- `memory-mcp-tester.md` - Test memory-mcp server integration and functionality
+- `do-memory-mcp-tester.md` - Test do-memory-mcp server integration and functionality
 
 ### Research Agents
 - `perplexity-researcher-pro.md` - Complex research with multi-step reasoning

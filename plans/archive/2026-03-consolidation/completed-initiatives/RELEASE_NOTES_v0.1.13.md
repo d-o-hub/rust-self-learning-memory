@@ -32,10 +32,10 @@ This release focuses on codebase quality improvements, file size compliance, and
 
 | Package | Files Processed | LOC Before | LOC After |
 |---------|----------------|------------|-----------|
-| **memory-mcp** | 8 modules | 5,884 | 2,453 |
-| **memory-core** | 6 modules | 4,927 | 1,908 |
-| **memory-storage-redb** | 17 modules | 2,168 | 2,338 |
-| **memory-storage-turso** | 1 module | 589 | 249 |
+| **do-memory-mcp** | 8 modules | 5,884 | 2,453 |
+| **do-memory-core** | 6 modules | 4,927 | 1,908 |
+| **do-memory-storage-redb** | 17 modules | 2,168 | 2,338 |
+| **do-memory-storage-turso** | 1 module | 589 | 249 |
 
 ### MCP Protocol Enhancement
 

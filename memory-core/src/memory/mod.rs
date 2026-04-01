@@ -11,8 +11,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_core::memory::SelfLearningMemory;
-//! use memory_core::{TaskContext, TaskType, TaskOutcome, ExecutionStep};
+//! use do_memory_core::memory::SelfLearningMemory;
+//! use do_memory_core::{TaskContext, TaskType, TaskOutcome, ExecutionStep};
 //!
 //! #[tokio::main]
 //! async fn main() {

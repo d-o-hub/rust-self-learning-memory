@@ -1,7 +1,7 @@
 //! Core implementations for relationship commands
 
-use memory_core::memory::SelfLearningMemory;
-use memory_core::memory::relationship_query::RelationshipFilter;
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::memory::relationship_query::RelationshipFilter;
 use uuid::Uuid;
 
 use crate::config::Config;
@@ -67,7 +67,7 @@ pub async fn add_relationship(
     }
 
     // Build metadata
-    let relationship_metadata = memory_core::episode::RelationshipMetadata {
+    let relationship_metadata = do_memory_core::episode::RelationshipMetadata {
         reason,
         created_by,
         priority,

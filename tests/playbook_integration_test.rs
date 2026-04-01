@@ -1,7 +1,7 @@
-use memory_core::ExecutionStep;
-use memory_core::memory::SelfLearningMemory;
-use memory_core::pattern::{Pattern, PatternEffectiveness};
-use memory_core::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
+use do_memory_core::ExecutionStep;
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::pattern::{Pattern, PatternEffectiveness};
+use do_memory_core::types::{MemoryConfig, TaskContext, TaskOutcome, TaskType};
 use uuid::Uuid;
 
 #[tokio::test]

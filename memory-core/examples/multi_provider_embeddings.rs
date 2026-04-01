@@ -9,7 +9,7 @@
 
 #![allow(clippy::doc_markdown, clippy::unnecessary_wraps)]
 
-use memory_core::embeddings::{AzureOpenAIConfig, CustomConfig, MistralConfig, OpenAIConfig};
+use do_memory_core::embeddings::{AzureOpenAIConfig, CustomConfig, MistralConfig, OpenAIConfig};
 
 fn main() {
     println!("🌐 Multi-Provider Embedding Configuration Examples\n");

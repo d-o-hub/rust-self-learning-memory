@@ -1,5 +1,5 @@
 use super::*;
-use memory_core::{TaskContext, TaskType};
+use do_memory_core::{TaskContext, TaskType};
 use serial_test::serial;
 use tempfile::tempdir;
 

@@ -7,13 +7,13 @@ use crate::output::{Output, OutputFormat};
 pub async fn pattern_effectiveness(
     top: usize,
     min_uses: usize,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
     // Get all patterns
     let patterns = memory
-        .retrieve_relevant_patterns(&memory_core::types::TaskContext::default(), 1000)
+        .retrieve_relevant_patterns(&do_memory_core::types::TaskContext::default(), 1000)
         .await;
 
     // Create effectiveness rankings
@@ -32,18 +32,18 @@ pub async fn pattern_effectiveness(
         let effectiveness = effectiveness_data.effectiveness_score();
 
         let description = match &pattern {
-            memory_core::pattern::Pattern::ToolSequence { tools, .. } => {
+            do_memory_core::pattern::Pattern::ToolSequence { tools, .. } => {
                 format!("Tool sequence: {}", tools.join(" → "))
             }
-            memory_core::pattern::Pattern::DecisionPoint {
+            do_memory_core::pattern::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
                 format!("Decision: {} → {}", condition, action)
             }
-            memory_core::pattern::Pattern::ErrorRecovery { error_type, .. } => {
+            do_memory_core::pattern::Pattern::ErrorRecovery { error_type, .. } => {
                 format!("Error recovery: {}", error_type)
             }
-            memory_core::pattern::Pattern::ContextPattern {
+            do_memory_core::pattern::Pattern::ContextPattern {
                 recommended_approach,
                 ..
             } => {

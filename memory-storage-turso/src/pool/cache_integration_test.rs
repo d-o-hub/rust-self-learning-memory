@@ -3,8 +3,8 @@
 //! This module tests the integration between the adaptive connection pool's
 //! cleanup callback mechanism and the prepared statement cache.
 
-use memory_storage_turso::pool::{AdaptiveConnectionPool, AdaptivePoolConfig, ConnectionId};
-use memory_storage_turso::prepared::{PreparedCacheConfig, PreparedStatementCache};
+use do_memory_storage_turso::pool::{AdaptiveConnectionPool, AdaptivePoolConfig, ConnectionId};
+use do_memory_storage_turso::prepared::{PreparedCacheConfig, PreparedStatementCache};
 use std::sync::Arc;
 use std::time::Duration;
 use tempfile::TempDir;

@@ -5,10 +5,10 @@
 //!
 //! All tests follow the Given-When-Then pattern for clarity.
 
-use memory_core::sync::{ConflictResolution, StorageSynchronizer, SyncConfig};
-use memory_core::{Episode, TaskContext, TaskType};
-use memory_storage_redb::RedbStorage;
-use memory_storage_turso::TursoStorage;
+use do_memory_core::sync::{ConflictResolution, StorageSynchronizer, SyncConfig};
+use do_memory_core::{Episode, TaskContext, TaskType};
+use do_memory_storage_redb::RedbStorage;
+use do_memory_storage_turso::TursoStorage;
 use std::sync::Arc;
 use std::time::Duration;
 use tempfile::TempDir;
@@ -199,7 +199,7 @@ fn should_resolve_conflicts_with_turso_wins_strategy() {
     let episode2 = Arc::new(episode2);
 
     // When: Resolving conflict with TursoWins strategy
-    let resolved = memory_core::sync::resolve_episode_conflict(
+    let resolved = do_memory_core::sync::resolve_episode_conflict(
         &episode1,
         &episode2,
         ConflictResolution::TursoWins,
@@ -223,7 +223,7 @@ fn should_resolve_conflicts_with_redb_wins_strategy() {
     let episode2 = Arc::new(episode2);
 
     // When: Resolving conflict with RedbWins strategy
-    let resolved = memory_core::sync::resolve_episode_conflict(
+    let resolved = do_memory_core::sync::resolve_episode_conflict(
         &episode1,
         &episode2,
         ConflictResolution::RedbWins,
@@ -248,7 +248,7 @@ fn should_resolve_conflicts_with_most_recent_strategy() {
     let episode2 = Arc::new(episode2);
 
     // When: Resolving conflict with MostRecent strategy
-    let resolved = memory_core::sync::resolve_episode_conflict(
+    let resolved = do_memory_core::sync::resolve_episode_conflict(
         &episode1,
         &episode2,
         ConflictResolution::MostRecent,

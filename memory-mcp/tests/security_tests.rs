@@ -2,8 +2,8 @@
 //!
 //! Tests security aspects of the advanced pattern analysis tool.
 
-use memory_core::SelfLearningMemory;
-use memory_mcp::mcp::tools::advanced_pattern_analysis::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
     AdvancedPatternAnalysisInput, AdvancedPatternAnalysisTool, AnalysisConfig, AnalysisType,
 };
 use std::collections::HashMap;

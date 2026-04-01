@@ -103,13 +103,13 @@ git diff --name-only pr-272...pr-265 | sort > /tmp/pr265_all_changes.txt
 
 # Categorize
 echo "=== SERVER FILES (Manual Merge Required) ==="
-git diff --name-only pr-272...pr-265 | grep "memory-mcp/src/bin/server/"
+git diff --name-only pr-272...pr-265 | grep "do-memory-mcp/src/bin/server/"
 
 echo "=== CLI FILES (Auto-apply Safe) ==="
-git diff --name-only pr-272...pr-265 | grep "memory-cli/src/"
+git diff --name-only pr-272...pr-265 | grep "do-memory-cli/src/"
 
 echo "=== CORE FILES (Check for conflicts) ==="
-git diff --name-only pr-272...pr-265 | grep "memory-core/src/"
+git diff --name-only pr-272...pr-265 | grep "do-memory-core/src/"
 
 echo "=== TEST FILES (Auto-apply Safe) ==="
 git diff --name-only pr-272...pr-265 | grep "tests/"
@@ -120,8 +120,8 @@ git diff --name-only pr-272...pr-265 | grep "plans/"
 
 **Expected Categories**:
 - **Critical (Manual)**: 2 files in server_impl/
-- **CLI Features**: ~8 files in memory-cli/
-- **Core Changes**: 4 files in memory-core/ (verify no conflicts)
+- **CLI Features**: ~8 files in do-memory-cli/
+- **Core Changes**: 4 files in do-memory-core/ (verify no conflicts)
 - **Tests**: ~8 files in tests/
 - **Plans/Docs**: ~50+ files (safe to auto-apply)
 
@@ -130,11 +130,11 @@ git diff --name-only pr-272...pr-265 | grep "plans/"
 #### Step 4: Backup Critical Files
 ```bash
 # Backup the files we'll modify manually
-cp memory-mcp/src/bin/server_impl/handlers.rs /tmp/handlers_backup.rs
-cp memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_backup.rs
+cp do-memory-mcp/src/bin/server_impl/handlers.rs /tmp/handlers_backup.rs
+cp do-memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_backup.rs
 
-cp memory-mcp/src/bin/server_impl/handlers.rs /tmp/handlers_new.rs
-cp memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_new.rs
+cp do-memory-mcp/src/bin/server_impl/handlers.rs /tmp/handlers_new.rs
+cp do-memory-mcp/src/bin/server_impl/tools.rs /tmp/tools_new.rs
 ```
 
 ---
@@ -182,23 +182,23 @@ These changes have no conflicts with PR #272 and can be applied directly.
 #### Step 6: Apply CLI Relationships Module
 ```bash
 # Create the relationships directory if it doesn't exist
-mkdir -p memory-cli/src/commands/relationships
+mkdir -p do-memory-cli/src/commands/relationships
 
 # Extract files from PR #265
-git show pr-265:memory-cli/src/commands/relationships/mod.rs > memory-cli/src/commands/relationships/mod.rs
-git show pr-265:memory-cli/src/commands/relationships/core.rs > memory-cli/src/commands/relationships/core.rs
-git show pr-265:memory-cli/src/commands/relationships/types.rs > memory-cli/src/commands/relationships/types.rs
+git show pr-265:do-memory-cli/src/commands/relationships/mod.rs > do-memory-cli/src/commands/relationships/mod.rs
+git show pr-265:do-memory-cli/src/commands/relationships/core.rs > do-memory-cli/src/commands/relationships/core.rs
+git show pr-265:do-memory-cli/src/commands/relationships/types.rs > do-memory-cli/src/commands/relationships/types.rs
 
 # Verify files were created
-ls -la memory-cli/src/commands/relationships/
+ls -la do-memory-cli/src/commands/relationships/
 
 # Stage changes
-git add memory-cli/src/commands/relationships/
+git add do-memory-cli/src/commands/relationships/
 ```
 
 **Validation**:
 ```bash
-cargo check -p memory-cli 2>&1 | grep -E "(error|warning)" | head -20
+cargo check -p do-memory-cli 2>&1 | grep -E "(error|warning)" | head -20
 ```
 **Expected**: No compilation errors
 
@@ -207,18 +207,18 @@ cargo check -p memory-cli 2>&1 | grep -E "(error|warning)" | head -20
 #### Step 7: Apply CLI Tag Module Changes
 ```bash
 # Apply tag module changes (these modify existing files)
-git show pr-265:memory-cli/src/commands/tag/core.rs > memory-cli/src/commands/tag/core.rs
-git show pr-265:memory-cli/src/commands/tag/output.rs > memory-cli/src/commands/tag/output.rs
-git show pr-265:memory-cli/src/commands/tag/tests.rs > memory-cli/src/commands/tag/tests.rs
-git show pr-265:memory-cli/src/commands/tag/types.rs > memory-cli/src/commands/tag/types.rs
+git show pr-265:do-memory-cli/src/commands/tag/core.rs > do-memory-cli/src/commands/tag/core.rs
+git show pr-265:do-memory-cli/src/commands/tag/output.rs > do-memory-cli/src/commands/tag/output.rs
+git show pr-265:do-memory-cli/src/commands/tag/tests.rs > do-memory-cli/src/commands/tag/tests.rs
+git show pr-265:do-memory-cli/src/commands/tag/types.rs > do-memory-cli/src/commands/tag/types.rs
 
 # Stage changes
-git add memory-cli/src/commands/tag/
+git add do-memory-cli/src/commands/tag/
 ```
 
 **Validation**:
 ```bash
-cargo check -p memory-cli 2>&1 | grep -E "(error|warning)" | head -20
+cargo check -p do-memory-cli 2>&1 | grep -E "(error|warning)" | head -20
 ```
 
 ---
@@ -226,18 +226,18 @@ cargo check -p memory-cli 2>&1 | grep -E "(error|warning)" | head -20
 #### Step 8: Apply CLI Main and Mod Changes
 ```bash
 # Apply main.rs changes
-git show pr-265:memory-cli/src/main.rs > memory-cli/src/main.rs
+git show pr-265:do-memory-cli/src/main.rs > do-memory-cli/src/main.rs
 
 # Apply commands/mod.rs changes
-git show pr-265:memory-cli/src/commands/mod.rs > memory-cli/src/commands/mod.rs
+git show pr-265:do-memory-cli/src/commands/mod.rs > do-memory-cli/src/commands/mod.rs
 
 # Stage changes
-git add memory-cli/src/main.rs memory-cli/src/commands/mod.rs
+git add do-memory-cli/src/main.rs do-memory-cli/src/commands/mod.rs
 ```
 
 **Validation**:
 ```bash
-cargo check -p memory-cli 2>&1 | grep -E "(error|warning)" | head -20
+cargo check -p do-memory-cli 2>&1 | grep -E "(error|warning)" | head -20
 ```
 **Expected**: No compilation errors (may have unused import warnings, acceptable)
 
@@ -245,24 +245,24 @@ cargo check -p memory-cli 2>&1 | grep -E "(error|warning)" | head -20
 
 #### Step 9: Apply Core Memory Changes
 ```bash
-# Check what changes exist in memory-core
-git diff pr-272 pr-265 -- memory-core/src/ > /tmp/memory_core_changes.patch
+# Check what changes exist in do-memory-core
+git diff pr-272 pr-265 -- do-memory-core/src/ > /tmp/memory_core_changes.patch
 
 # Review the patch
 cat /tmp/memory_core_changes.patch | head -100
 
 # Apply if safe (no conflicts expected)
-git show pr-265:memory-core/src/memory/core/struct_priv.rs > memory-core/src/memory/core/struct_priv.rs
-git show pr-265:memory-core/src/memory/init.rs > memory-core/src/memory/init.rs
-git show pr-265:memory-core/src/memory/types.rs > memory-core/src/memory/types.rs
+git show pr-265:do-memory-core/src/memory/core/struct_priv.rs > do-memory-core/src/memory/core/struct_priv.rs
+git show pr-265:do-memory-core/src/memory/init.rs > do-memory-core/src/memory/init.rs
+git show pr-265:do-memory-core/src/memory/types.rs > do-memory-core/src/memory/types.rs
 
 # Stage changes
-git add memory-core/src/
+git add do-memory-core/src/
 ```
 
 **Validation**:
 ```bash
-cargo check -p memory-core 2>&1 | grep -E "(error|warning)" | head -20
+cargo check -p do-memory-core 2>&1 | grep -E "(error|warning)" | head -20
 ```
 
 ---
@@ -273,7 +273,7 @@ This is the critical phase where we manually resolve the path rename conflict.
 
 #### Step 10: Modify tools.rs (Server Implementation)
 
-**File**: `memory-mcp/src/bin/server_impl/tools.rs`
+**File**: `do-memory-mcp/src/bin/server_impl/tools.rs`
 
 **Changes Required**:
 1. Rename `_handle_validate_no_cycles` → `handle_validate_no_cycles` (make pub)
@@ -285,7 +285,7 @@ This is the critical phase where we manually resolve the path rename conflict.
 
 ```bash
 # First, let's see the current function signatures
-grep -n "async fn _handle_validate_no_cycles\|async fn _handle_get_topological" memory-mcp/src/bin/server_impl/tools.rs
+grep -n "async fn _handle_validate_no_cycles\|async fn _handle_get_topological" do-memory-mcp/src/bin/server_impl/tools.rs
 
 # Expected output shows the private functions with underscore prefix
 ```
@@ -323,10 +323,10 @@ pub async fn handle_get_topological_order(
 **Verification**:
 ```bash
 # Check the changes
-grep -n "pub async fn handle_validate_no_cycles\|pub async fn handle_get_topological" memory-mcp/src/bin/server_impl/tools.rs
+grep -n "pub async fn handle_validate_no_cycles\|pub async fn handle_get_topological" do-memory-mcp/src/bin/server_impl/tools.rs
 
 # Build to verify
-cargo check -p memory-mcp 2>&1 | grep -E "error" | head -20
+cargo check -p do-memory-mcp 2>&1 | grep -E "error" | head -20
 ```
 
 **Expected**: No compilation errors
@@ -335,7 +335,7 @@ cargo check -p memory-mcp 2>&1 | grep -E "error" | head -20
 
 #### Step 11: Modify handlers.rs (Server Implementation)
 
-**File**: `memory-mcp/src/bin/server_impl/handlers.rs`
+**File**: `do-memory-mcp/src/bin/server_impl/handlers.rs`
 
 **Changes Required**:
 1. Add imports for `handle_get_topological_order` and `handle_validate_no_cycles`
@@ -381,10 +381,10 @@ The `handle_batch_execute` function references a batch module that was deleted i
 **Verification**:
 ```bash
 # Check imports
-grep -n "handle_validate_no_cycles\|handle_get_topological_order" memory-mcp/src/bin/server_impl/handlers.rs
+grep -n "handle_validate_no_cycles\|handle_get_topological_order" do-memory-mcp/src/bin/server_impl/handlers.rs
 
 # Build to verify
-cargo check -p memory-mcp 2>&1 | grep -E "error" | head -20
+cargo check -p do-memory-mcp 2>&1 | grep -E "error" | head -20
 ```
 
 ---
@@ -419,8 +419,8 @@ fi
 #### Step 13: Test Verification (Critical Checkpoint)
 
 ```bash
-# Run tests for memory-mcp specifically
-cargo test -p memory-mcp 2>&1 | tee /tmp/test_check_step13.log
+# Run tests for do-memory-mcp specifically
+cargo test -p do-memory-mcp 2>&1 | tee /tmp/test_check_step13.log
 
 # Check test results
 if grep -q "test result: FAILED" /tmp/test_check_step13.log; then
@@ -543,12 +543,12 @@ cat > plans/phase2_merge_completion_report.md << 'EOF'
 - ✅ 8 MCP relationship tools
 
 ### Files Modified
-- ✅ memory-mcp/src/bin/server_impl/handlers.rs (2 imports added, 2 routes added)
-- ✅ memory-mcp/src/bin/server_impl/tools.rs (2 functions made public)
-- ✅ memory-cli/src/commands/relationships/ (3 new files)
-- ✅ memory-cli/src/commands/tag/ (4 modified files)
-- ✅ memory-cli/src/main.rs (relationship command integration)
-- ✅ memory-cli/src/commands/mod.rs (relationship module export)
+- ✅ do-memory-mcp/src/bin/server_impl/handlers.rs (2 imports added, 2 routes added)
+- ✅ do-memory-mcp/src/bin/server_impl/tools.rs (2 functions made public)
+- ✅ do-memory-cli/src/commands/relationships/ (3 new files)
+- ✅ do-memory-cli/src/commands/tag/ (4 modified files)
+- ✅ do-memory-cli/src/main.rs (relationship command integration)
+- ✅ do-memory-cli/src/commands/mod.rs (relationship module export)
 - ✅ Additional test and documentation files
 
 ### Verification Results
@@ -578,13 +578,13 @@ EOF
 
 | Step | Order | File | Action | Risk |
 |------|-------|------|--------|------|
-| 1 | 1 | memory-cli/src/commands/relationships/ | Create new directory with 3 files | Low |
-| 2 | 2 | memory-cli/src/commands/tag/ | Modify 4 existing files | Low |
-| 3 | 3 | memory-cli/src/main.rs | Modify to add relationship command | Low |
-| 4 | 4 | memory-cli/src/commands/mod.rs | Modify to export relationships | Low |
-| 5 | 5 | memory-core/src/memory/ | Modify 3 files | Medium |
-| 6 | 6 | memory-mcp/src/bin/server_impl/tools.rs | **Critical**: Make functions public | High |
-| 7 | 7 | memory-mcp/src/bin/server_impl/handlers.rs | **Critical**: Add imports and routing | High |
+| 1 | 1 | do-memory-cli/src/commands/relationships/ | Create new directory with 3 files | Low |
+| 2 | 2 | do-memory-cli/src/commands/tag/ | Modify 4 existing files | Low |
+| 3 | 3 | do-memory-cli/src/main.rs | Modify to add relationship command | Low |
+| 4 | 4 | do-memory-cli/src/commands/mod.rs | Modify to export relationships | Low |
+| 5 | 5 | do-memory-core/src/memory/ | Modify 3 files | Medium |
+| 6 | 6 | do-memory-mcp/src/bin/server_impl/tools.rs | **Critical**: Make functions public | High |
+| 7 | 7 | do-memory-mcp/src/bin/server_impl/handlers.rs | **Critical**: Add imports and routing | High |
 | 8 | 8 | tests/ | Apply test changes | Low |
 | 9 | 9 | plans/ | Apply documentation | Low |
 
@@ -665,10 +665,10 @@ Phase 4: Finalization
 **Execution**:
 ```bash
 # After each phase:
-cargo check -p memory-cli  # For CLI changes
-cargo check -p memory-mcp  # For server changes
-cargo test -p memory-cli   # For CLI tests
-cargo test -p memory-mcp   # For server tests
+cargo check -p do-memory-cli  # For CLI changes
+cargo check -p do-memory-mcp  # For server changes
+cargo test -p do-memory-cli   # For CLI tests
+cargo test -p do-memory-mcp   # For server tests
 ```
 
 #### Strategy 2: File Backups
@@ -701,10 +701,10 @@ git reset --soft HEAD~1
 **Execution**:
 ```bash
 # For critical files, show the diff we expect:
-git diff pr-272 pr-265 -- memory-mcp/src/bin/server/tools.rs | grep -A 5 -B 5 "handle_validate"
+git diff pr-272 pr-265 -- do-memory-mcp/src/bin/server/tools.rs | grep -A 5 -B 5 "handle_validate"
 
 # After our changes, verify they match:
-git diff HEAD -- memory-mcp/src/bin/server_impl/tools.rs | grep -A 5 -B 5 "handle_validate"
+git diff HEAD -- do-memory-mcp/src/bin/server_impl/tools.rs | grep -A 5 -B 5 "handle_validate"
 ```
 
 ---
@@ -716,21 +716,21 @@ git diff HEAD -- memory-mcp/src/bin/server_impl/tools.rs | grep -A 5 -B 5 "handl
 #### Scenario A: Build Failure After Tools.rs Changes
 ```bash
 # Immediate rollback
-cp /tmp/tools_backup.rs memory-mcp/src/bin/server_impl/tools.rs
-cargo check -p memory-mcp
+cp /tmp/tools_backup.rs do-memory-mcp/src/bin/server_impl/tools.rs
+cargo check -p do-memory-mcp
 
 # Or use git
-git checkout HEAD -- memory-mcp/src/bin/server_impl/tools.rs
+git checkout HEAD -- do-memory-mcp/src/bin/server_impl/tools.rs
 ```
 
 #### Scenario B: Build Failure After Handlers.rs Changes
 ```bash
 # Immediate rollback
-cp /tmp/handlers_backup.rs memory-mcp/src/bin/server_impl/handlers.rs
-cargo check -p memory-mcp
+cp /tmp/handlers_backup.rs do-memory-mcp/src/bin/server_impl/handlers.rs
+cargo check -p do-memory-mcp
 
 # Or use git
-git checkout HEAD -- memory-mcp/src/bin/server_impl/handlers.rs
+git checkout HEAD -- do-memory-mcp/src/bin/server_impl/handlers.rs
 ```
 
 #### Scenario C: Test Failures
@@ -782,9 +782,9 @@ git reset --hard checkpoint/phase2-safe-changes
 ### Build Commands
 ```bash
 # Check specific crate
-cargo check -p memory-cli
-cargo check -p memory-mcp
-cargo check -p memory-core
+cargo check -p do-memory-cli
+cargo check -p do-memory-mcp
+cargo check -p do-memory-core
 
 # Build all
 cargo build --all
@@ -796,8 +796,8 @@ cargo clippy --all -- -D warnings
 ### Test Commands
 ```bash
 # Test specific crate
-cargo test -p memory-cli
-cargo test -p memory-mcp
+cargo test -p do-memory-cli
+cargo test -p do-memory-mcp
 
 # Test all
 cargo test --all
@@ -863,16 +863,16 @@ cargo clippy --all -- -D warnings 2>&1 | grep "warning:" | wc -l
 ### Files Requiring Manual Intervention
 | File | Lines Changed | Type | Complexity |
 |------|---------------|------|------------|
-| memory-mcp/src/bin/server_impl/tools.rs | ~4 lines | Rename + visibility | Low |
-| memory-mcp/src/bin/server_impl/handlers.rs | ~6 lines | Imports + routing | Low |
+| do-memory-mcp/src/bin/server_impl/tools.rs | ~4 lines | Rename + visibility | Low |
+| do-memory-mcp/src/bin/server_impl/handlers.rs | ~6 lines | Imports + routing | Low |
 
 ### Files Applied Automatically (No Conflicts)
 | Directory/Pattern | File Count | Type |
 |-------------------|------------|------|
-| memory-cli/src/commands/relationships/ | 3 files | New module |
-| memory-cli/src/commands/tag/ | 4 files | Modifications |
-| memory-cli/src/ | 2 files | Integration |
-| memory-core/src/memory/ | 3 files | Core changes |
+| do-memory-cli/src/commands/relationships/ | 3 files | New module |
+| do-memory-cli/src/commands/tag/ | 4 files | Modifications |
+| do-memory-cli/src/ | 2 files | Integration |
+| do-memory-core/src/memory/ | 3 files | Core changes |
 | tests/ | 6 files | Test updates |
 | plans/ | 50+ files | Documentation |
 

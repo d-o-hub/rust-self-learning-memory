@@ -17,7 +17,7 @@ This document provides comprehensive guidance for deploying the rust-self-learni
 
 The rust-self-learning-memory system consists of:
 
-- **Rust Binary**: Compiled application (memory-core, memory-storage-turso, memory-storage-redb, memory-mcp)
+- **Rust Binary**: Compiled application (do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp)
 - **Turso Remote Database**: Durable SQL storage for episodes, patterns, and heuristics
 - **redb Local Cache**: Hot key-value cache for fast retrieval
 
@@ -183,9 +183,9 @@ ls -lh target/release/
 ```
 
 **Build Output**:
-- `target/release/memory-core` - Core library
-- `target/release/memory-mcp` - MCP server binary
-- `target/release/memory-cli` - CLI binary
+- `target/release/do-memory-core` - Core library
+- `target/release/do-memory-mcp` - MCP server binary
+- `target/release/do-memory-cli` - CLI binary
 - `target/release/memory-service` - Service binary (if applicable)
 
 **Build Configuration**:
@@ -221,7 +221,7 @@ Or using the Turso CLI:
 # Connect to database
 turso db shell prod-memory-db
 
-# Run schema initialization (copy from memory-storage-turso/src/schema.rs)
+# Run schema initialization (copy from do-memory-storage-turso/src/schema.rs)
 -- See schema.rs for CREATE TABLE statements
 ```
 

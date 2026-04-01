@@ -27,7 +27,7 @@
 //! Enable via configuration:
 //!
 //! ```no_run
-//! use memory_core::security::audit::{AuditConfig, AuditLogger, AuditLogLevel, AuditOutput};
+//! use do_memory_core::security::audit::{AuditConfig, AuditLogger, AuditLogLevel, AuditOutput};
 //!
 //! let config = AuditConfig {
 //!     enabled: true,

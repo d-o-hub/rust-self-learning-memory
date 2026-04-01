@@ -7,7 +7,7 @@ use crate::output::OutputFormat;
 
 pub async fn handle_episode_command(
     command: EpisodeCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -174,7 +174,7 @@ pub async fn handle_episode_command(
 
 pub async fn handle_relationships_command(
     command: crate::commands::episode::RelationshipCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,

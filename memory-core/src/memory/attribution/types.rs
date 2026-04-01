@@ -17,7 +17,7 @@ use crate::types::TaskOutcome;
 /// # Example
 ///
 /// ```
-/// use memory_core::memory::attribution::RecommendationSession;
+/// use do_memory_core::memory::attribution::RecommendationSession;
 /// use uuid::Uuid;
 ///
 /// let session = RecommendationSession {
@@ -51,8 +51,8 @@ pub struct RecommendationSession {
 /// # Example
 ///
 /// ```
-/// use memory_core::memory::attribution::RecommendationFeedback;
-/// use memory_core::TaskOutcome;
+/// use do_memory_core::memory::attribution::RecommendationFeedback;
+/// use do_memory_core::TaskOutcome;
 /// use uuid::Uuid;
 ///
 /// let feedback = RecommendationFeedback {

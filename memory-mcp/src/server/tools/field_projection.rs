@@ -15,7 +15,7 @@
 //! ```rust
 //! # use anyhow::Result;
 //! # fn main() -> Result<()> {
-//! use memory_mcp::server::tools::field_projection::FieldSelector;
+//! use do_memory_mcp::server::tools::field_projection::FieldSelector;
 //! use serde_json::json;
 //!
 //! // Create selector from request

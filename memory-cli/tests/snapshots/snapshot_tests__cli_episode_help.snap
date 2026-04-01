@@ -1,11 +1,10 @@
 ---
 source: memory-cli/tests/snapshot_tests.rs
-assertion_line: 48
 expression: stdout
 ---
 Episode management commands
 
-Usage: memory-cli episode <COMMAND>
+Usage: do-memory-cli episode <COMMAND>
 
 Commands:
   create         Create a new episode

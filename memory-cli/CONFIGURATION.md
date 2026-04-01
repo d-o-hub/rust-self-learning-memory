@@ -20,10 +20,10 @@
 
 ```bash
 # Use intelligent defaults
-memory-cli init
+do-memory-cli init
 
 # Start using immediately
-memory-cli episode list
+do-memory-cli episode list
 ```
 
 The CLI will automatically:
@@ -51,12 +51,12 @@ let config = Config::simple_with_performance(PerformanceLevel::High).await?;
 
 ### Configuration File
 
-Create `~/.config/memory-cli/config.toml`:
+Create `~/.config/do-memory-cli/config.toml`:
 
 ```toml
 [database]
 # Local embedded database (recommended for development)
-redb_path = "~/.local/share/memory-cli/memory.redb"
+redb_path = "~/.local/share/do-memory-cli/memory.redb"
 
 # OR cloud database (recommended for production)
 # turso_url = "libsql://your-db.turso.io"
@@ -86,9 +86,9 @@ Memory CLI supports multiple configuration methods (in priority order):
 ### Method 1: Command-Line Arguments
 
 ```bash
-memory-cli --config /path/to/config.toml episode list
-memory-cli --database local episode add "Implement feature"
-memory-cli --format json episode list
+do-memory-cli --config /path/to/config.toml episode list
+do-memory-cli --database local episode add "Implement feature"
+do-memory-cli --format json episode list
 ```
 
 ### Method 2: Environment Variables
@@ -106,7 +106,7 @@ export MEMORY_POOL_SIZE=10
 export MEMORY_CACHE_SIZE=5000
 
 # Run CLI
-memory-cli episode list
+do-memory-cli episode list
 ```
 
 ### Method 3: Configuration File
@@ -114,11 +114,11 @@ memory-cli episode list
 Memory CLI searches for configuration files in these locations (in order):
 
 1. Path specified by `MEMORY_CLI_CONFIG` environment variable
-2. `./memory-cli.toml` (current directory)
+2. `./do-memory-cli.toml` (current directory)
 3. `./config.toml`
-4. `~/.config/memory-cli/config.toml` (user config directory)
-5. `~/.memory-cli.toml` (user home directory)
-6. `/etc/memory-cli/config.toml` (system-wide, Linux/macOS only)
+4. `~/.config/do-memory-cli/config.toml` (user config directory)
+5. `~/.do-memory-cli.toml` (user home directory)
+6. `/etc/do-memory-cli/config.toml` (system-wide, Linux/macOS only)
 
 Supported formats:
 - **TOML** (recommended): `config.toml`
@@ -128,7 +128,7 @@ Supported formats:
 ### Method 4: Interactive Wizard
 
 ```bash
-memory-cli config wizard
+do-memory-cli config wizard
 
 # Follow the prompts:
 # - Choose preset (local/cloud/custom)
@@ -154,7 +154,7 @@ Controls where and how episodes are stored.
 ```toml
 [database]
 # Local embedded database (redb)
-redb_path = "~/.local/share/memory-cli/memory.redb"
+redb_path = "~/.local/share/do-memory-cli/memory.redb"
 
 # OR Cloud database (Turso)
 turso_url = "libsql://your-db.turso.io"
@@ -249,7 +249,7 @@ Config::simple_full(DatabaseType::Local, PerformanceLevel::High).await?
 ### Defaults by Database Type
 
 **Local (redb)**:
-- Path: `~/.local/share/memory-cli/memory.redb`
+- Path: `~/.local/share/do-memory-cli/memory.redb`
 - Pool size: Based on CPU count
 - Cache: 1000 episodes (standard), 5000 (high)
 
@@ -271,7 +271,7 @@ Interactive step-by-step configuration setup.
 ### Running the Wizard
 
 ```bash
-memory-cli config wizard
+do-memory-cli config wizard
 ```
 
 ### Wizard Steps
@@ -414,10 +414,10 @@ auto_confirm = true  # Don't prompt in CI
 **Problem**: `Config file not found` error
 
 **Solutions**:
-1. Specify config path: `memory-cli --config /path/to/config.toml`
+1. Specify config path: `do-memory-cli --config /path/to/config.toml`
 2. Set environment variable: `export MEMORY_CLI_CONFIG=/path/to/config.toml`
-3. Place config in default location: `~/.config/memory-cli/config.toml`
-4. Run wizard: `memory-cli config wizard`
+3. Place config in default location: `~/.config/do-memory-cli/config.toml`
+4. Run wizard: `do-memory-cli config wizard`
 
 ### Database Connection Failed
 
@@ -440,7 +440,7 @@ auto_confirm = true  # Don't prompt in CI
 
 **Solutions**:
 1. Check error message for specific field
-2. Run wizard for guided setup: `memory-cli config wizard`
+2. Run wizard for guided setup: `do-memory-cli config wizard`
 3. Verify all required fields are present
 4. Check value ranges (e.g., pool_size > 0)
 
@@ -460,7 +460,7 @@ auto_confirm = true  # Don't prompt in CI
 2. **Use Config File** for reproducible deployments and teams
 3. **Use Environment Variables** for secrets (Turso tokens, etc.)
 4. **Use Wizard** when unsure about settings or for first-time setup
-5. **Validate After Changes**: Run `memory-cli config validate` to check
+5. **Validate After Changes**: Run `do-memory-cli config validate` to check
 6. **Version Control**: Commit config files (except secrets)
 7. **Performance Tuning**: Start with defaults, adjust based on metrics
 
@@ -471,8 +471,8 @@ auto_confirm = true  # Don't prompt in CI
 Memory CLI supports layered configuration:
 
 1. Default settings (lowest priority)
-2. System config (`/etc/memory-cli/config.toml`)
-3. User config (`~/.config/memory-cli/config.toml`)
+2. System config (`/etc/do-memory-cli/config.toml`)
+3. User config (`~/.config/do-memory-cli/config.toml`)
 4. Project config (`./config.toml`)
 5. Environment variables
 6. Command-line arguments (highest priority)
@@ -510,7 +510,7 @@ Available presets for quick setup:
 Use in wizard or CLI:
 
 ```bash
-memory-cli config init --preset production
+do-memory-cli config init --preset production
 ```
 
 ## Migration Guide
@@ -538,8 +538,8 @@ memory-cli config init --preset production
 
 For help with configuration:
 
-1. **Documentation**: This file and `memory-cli --help`
-2. **Wizard**: Run `memory-cli config wizard` for guided setup
-3. **Validation**: Run `memory-cli config validate` to check settings
+1. **Documentation**: This file and `do-memory-cli --help`
+2. **Wizard**: Run `do-memory-cli config wizard` for guided setup
+3. **Validation**: Run `do-memory-cli config validate` to check settings
 4. **Examples**: See `examples/` directory for sample configs
 5. **Issues**: Report bugs at https://github.com/your-repo/issues

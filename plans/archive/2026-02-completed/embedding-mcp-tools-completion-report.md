@@ -16,7 +16,7 @@ Successfully implemented and integrated the three embedding MCP tools for the me
 
 ### 1. Files Created
 
-All files created in `memory-mcp/src/server/tools/embeddings/`:
+All files created in `do-memory-mcp/src/server/tools/embeddings/`:
 
 #### **configure.rs** (60 lines)
 - Handler for `configure_embeddings` tool
@@ -61,7 +61,7 @@ All files created in `memory-mcp/src/server/tools/embeddings/`:
 ### 2. Module Structure
 
 ```
-memory-mcp/src/server/tools/embeddings/
+do-memory-mcp/src/server/tools/embeddings/
 ├── mod.rs              # Module organization
 ├── configure.rs        # configure_embeddings handler
 ├── query.rs            # query_semantic_memory handler
@@ -71,7 +71,7 @@ memory-mcp/src/server/tools/embeddings/
 
 ### 3. Tool Registration (Already Complete)
 
-Tools are registered in `memory-mcp/src/server/tool_definitions.rs`:
+Tools are registered in `do-memory-mcp/src/server/tool_definitions.rs`:
 
 ```rust
 tools.push(crate::mcp::tools::embeddings::configure_embeddings_tool());
@@ -82,7 +82,7 @@ tools.push(crate::mcp::tools::embeddings::test_embeddings_tool());
 ### 4. Core Logic (Existing)
 
 The core embedding functionality was already implemented in:
-- `memory-mcp/src/mcp/tools/embeddings/`
+- `do-memory-mcp/src/mcp/tools/embeddings/`
   - `types.rs` - Input/output type definitions
   - `tool/definitions.rs` - Tool definitions
   - `tool/execute.rs` - Core execution logic
@@ -187,26 +187,26 @@ The new server-side handlers wrap this core logic and integrate with the MCP ser
 
 The embedding tools follow a layered architecture:
 
-1. **Tool Definitions Layer** (`memory-mcp/src/mcp/tools/embeddings/`)
+1. **Tool Definitions Layer** (`do-memory-mcp/src/mcp/tools/embeddings/`)
    - Defines tool schemas and input/output types
    - Contains core execution logic
    - Handles embedding provider configuration and generation
 
-2. **Server Handler Layer** (`memory-mcp/src/server/tools/embeddings/`)
+2. **Server Handler Layer** (`do-memory-mcp/src/server/tools/embeddings/`)
    - Wraps core embedding functionality
    - Integrates with MCP server monitoring
    - Tracks tool usage
    - Provides proper error handling
 
-3. **Registration Layer** (`memory-mcp/src/server/tool_definitions.rs`)
+3. **Registration Layer** (`do-memory-mcp/src/server/tool_definitions.rs`)
    - Registers tools with the MCP server
    - Makes tools available to clients
 
 ### Dependencies
 
 Tools depend on:
-- `memory-core`: SelfLearningMemory and embedding services
-- `memory-mcp::mcp::tools::embeddings`: Core embedding tool implementations
+- `do-memory-core`: SelfLearningMemory and embedding services
+- `do-memory-mcp::mcp::tools::embeddings`: Core embedding tool implementations
 - `anyhow`: Error handling
 - `serde_json`: JSON serialization/deserialization
 - `tracing`: Logging and debugging
@@ -225,7 +225,7 @@ Currently supported embedding providers:
 ## Test Coverage
 
 ### Unit Tests (Existing)
-Location: `memory-mcp/src/mcp/tools/embeddings/tests.rs`
+Location: `do-memory-mcp/src/mcp/tools/embeddings/tests.rs`
 
 - ✅ Tool definition validation
 - ✅ Provider configuration (local, OpenAI, Azure)
@@ -234,7 +234,7 @@ Location: `memory-mcp/src/mcp/tools/embeddings/tests.rs`
 - ✅ Semantic service test
 
 ### Integration Tests (New)
-Location: `memory-mcp/src/server/tools/embeddings/tests.rs`
+Location: `do-memory-mcp/src/server/tools/embeddings/tests.rs`
 
 - ✅ Handler existence and callable
 - ✅ Verify output structure for configure_embeddings
@@ -295,10 +295,10 @@ Location: `memory-mcp/src/server/tools/embeddings/tests.rs`
 
 ## Build Status
 
-⚠️ **Note**: The embedding tools code is syntactically correct and will compile once dependency issues in `memory-storage-turso` are resolved.
+⚠️ **Note**: The embedding tools code is syntactically correct and will compile once dependency issues in `do-memory-storage-turso` are resolved.
 
 Current blocking issues (unrelated to embedding tools):
-- `memory-storage-turso` has compilation errors in:
+- `do-memory-storage-turso` has compilation errors in:
   - `pattern_core.rs`: async/await issue
   - `query_batch.rs`: duplicate function definitions
   - `adaptive.rs`: Debug trait implementation issue
@@ -327,19 +327,19 @@ The embedding MCP tools have been successfully implemented and integrated into t
 ## Files Modified/Created
 
 ### Created Files:
-1. `memory-mcp/src/server/tools/embeddings/configure.rs` (60 lines)
-2. `memory-mcp/src/server/tools/embeddings/query.rs` (78 lines)
-3. `memory-mcp/src/server/tools/embeddings/test.rs` (47 lines)
-4. `memory-mcp/src/server/tools/embeddings/mod.rs` (13 lines)
-5. `memory-mcp/src/server/tools/embeddings/tests.rs` (133 lines)
+1. `do-memory-mcp/src/server/tools/embeddings/configure.rs` (60 lines)
+2. `do-memory-mcp/src/server/tools/embeddings/query.rs` (78 lines)
+3. `do-memory-mcp/src/server/tools/embeddings/test.rs` (47 lines)
+4. `do-memory-mcp/src/server/tools/embeddings/mod.rs` (13 lines)
+5. `do-memory-mcp/src/server/tools/embeddings/tests.rs` (133 lines)
 
 ### Modified Files:
-1. `memory-mcp/src/server/tools/mod.rs` - Added embeddings_handlers module reference
-2. `memory-mcp/src/server/tools/embeddings.rs` - Removed (replaced with directory structure)
+1. `do-memory-mcp/src/server/tools/mod.rs` - Added embeddings_handlers module reference
+2. `do-memory-mcp/src/server/tools/embeddings.rs` - Removed (replaced with directory structure)
 
 ### Leveraged Existing Files:
-1. `memory-mcp/src/server/tool_definitions.rs` - Already had tool registration (lines 147-149)
-2. `memory-mcp/src/mcp/tools/embeddings/` - Core implementation (not modified)
+1. `do-memory-mcp/src/server/tool_definitions.rs` - Already had tool registration (lines 147-149)
+2. `do-memory-mcp/src/mcp/tools/embeddings/` - Core implementation (not modified)
 
 **Total New Code**: 331 lines
 **Total Effort**: ~3 hours (within 4-6 hour estimate)

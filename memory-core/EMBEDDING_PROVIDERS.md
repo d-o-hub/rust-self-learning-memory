@@ -1,6 +1,6 @@
 # Embedding Provider Configuration Guide
 
-This guide explains how to configure different embedding providers for the memory-core system.
+This guide explains how to configure different embedding providers for the do-memory-core system.
 
 ## Overview
 
@@ -358,16 +358,16 @@ All existing code continues to work! The default behavior is unchanged:
 
 ## Examples
 
-See the `memory-core/examples/` directory for complete examples:
+See the `do-memory-core/examples/` directory for complete examples:
 - `multi_provider_embeddings.rs` - Configuration examples for all providers
 - `semantic_embeddings_demo.rs` - Basic semantic search demo
 
 ## API Reference
 
 For complete API documentation, see the inline documentation in:
-- `memory-core/src/embeddings/config.rs` - Configuration structures
-- `memory-core/src/embeddings/openai.rs` - OpenAI provider implementation
-- `memory-core/src/embeddings/provider.rs` - Provider trait
+- `do-memory-core/src/embeddings/config.rs` - Configuration structures
+- `do-memory-core/src/embeddings/openai.rs` - OpenAI provider implementation
+- `do-memory-core/src/embeddings/provider.rs` - Provider trait
 
 ## Related Documentation
 

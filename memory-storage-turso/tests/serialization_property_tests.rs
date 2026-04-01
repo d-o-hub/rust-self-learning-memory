@@ -3,7 +3,7 @@
 //! These tests verify that types serialized with postcard (the storage format)
 //! and serde_json survive roundtrip serialization without data loss.
 
-use memory_core::*;
+use do_memory_core::*;
 use proptest::prelude::*;
 
 // ============================================================================

@@ -3,7 +3,7 @@
 //! These tests verify that CLI operations perform within acceptable time bounds
 //! and scale appropriately with input size.
 
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::time::{Duration, Instant};
 
 #[cfg(test)]
@@ -245,7 +245,7 @@ mod performance_tests {
 
         // Use a command that exits early (like --help)
         let mut cmd = std::process::Command::new("cargo")
-            .args(["run", "--bin", "memory-cli", "--", "--help"])
+            .args(["run", "--bin", "do-memory-cli", "--", "--help"])
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .spawn()
@@ -350,7 +350,7 @@ mod performance_tests {
 
             // Use --help as it exits quickly after parsing
             let mut cmd = std::process::Command::new("cargo")
-                .args(["run", "--bin", "memory-cli", "--", "--help"])
+                .args(["run", "--bin", "do-memory-cli", "--", "--help"])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .spawn()

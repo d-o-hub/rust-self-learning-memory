@@ -9,10 +9,10 @@
 #![allow(clippy::expect_used)]
 
 use anyhow::Result;
-use memory_core::{Episode, StorageBackend};
-use memory_storage_turso::TursoStorage;
+use do_memory_core::{Episode, StorageBackend};
+use do_memory_storage_turso::TursoStorage;
+use do_memory_test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
 use tempfile::TempDir;
-use test_utils::multi_dimension::{MultiDimensionTestHarness, table_for_dimension};
 
 /// Helper to create test storage with initialized schema
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
@@ -140,7 +140,7 @@ async fn test_backward_compatibility_embedding_retrieval() {
         .expect("Failed to create storage");
 
     // Create and store episode with embedding (using current API)
-    use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+    use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -151,7 +151,7 @@ async fn test_backward_compatibility_embedding_retrieval() {
     };
 
     let mut episode = Episode::new("Test episode".to_string(), context, TaskType::Testing);
-    episode.complete(memory_core::types::TaskOutcome::Success {
+    episode.complete(do_memory_core::types::TaskOutcome::Success {
         verdict: "Done".to_string(),
         artifacts: vec![],
     });

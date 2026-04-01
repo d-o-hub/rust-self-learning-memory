@@ -13,7 +13,7 @@ Successfully implemented quality metrics tracking for the MCP server to enable P
 
 ### Files Created
 
-1. **`memory-mcp/src/mcp/tools/quality_metrics.rs`** (500 lines)
+1. **`do-memory-mcp/src/mcp/tools/quality_metrics.rs`** (500 lines)
    - Main implementation of the quality metrics tool
    - Comprehensive quality score tracking
    - Noise reduction rate calculation
@@ -21,7 +21,7 @@ Successfully implemented quality metrics tracking for the MCP server to enable P
    - Actionable recommendations generation
    - 11 comprehensive unit tests
 
-2. **`memory-mcp/tests/quality_metrics_integration_test.rs`** (272 lines)
+2. **`do-memory-mcp/tests/quality_metrics_integration_test.rs`** (272 lines)
    - 7 integration tests
    - End-to-end tool execution
    - MCP server integration validation
@@ -35,10 +35,10 @@ Successfully implemented quality metrics tracking for the MCP server to enable P
 
 ### Files Modified
 
-1. **`memory-mcp/src/mcp/tools/mod.rs`**
+1. **`do-memory-mcp/src/mcp/tools/mod.rs`**
    - Added `pub mod quality_metrics;` export
 
-2. **`memory-mcp/src/server.rs`**
+2. **`do-memory-mcp/src/server.rs`**
    - Added `quality_metrics` tool to default tools list
    - Implemented `execute_quality_metrics()` method
    - Tool properly registered in MCP server
@@ -153,13 +153,13 @@ Generated based on:
 
 ### ✅ Zero Clippy Warnings
 ```bash
-cargo clippy --package memory-mcp -- -D warnings
+cargo clippy --package do-memory-mcp -- -D warnings
 # All checks passed
 ```
 
 ### ✅ Formatted with rustfmt
 ```bash
-cargo fmt --package memory-mcp
+cargo fmt --package do-memory-mcp
 # All files formatted
 ```
 
@@ -318,8 +318,8 @@ The feature is complete, tested, documented, and ready to be used for monitoring
 
 ## Related Files
 
-- Implementation: `/workspaces/feat-phase3/memory-mcp/src/mcp/tools/quality_metrics.rs`
-- Integration: `/workspaces/feat-phase3/memory-mcp/src/server.rs`
-- Tests: `/workspaces/feat-phase3/memory-mcp/tests/quality_metrics_integration_test.rs`
+- Implementation: `/workspaces/feat-phase3/do-memory-mcp/src/mcp/tools/quality_metrics.rs`
+- Integration: `/workspaces/feat-phase3/do-memory-mcp/src/server.rs`
+- Tests: `/workspaces/feat-phase3/do-memory-mcp/tests/quality_metrics_integration_test.rs`
 - Documentation: `/workspaces/feat-phase3/docs/QUALITY_METRICS_TOOL.md`
 - Plan: `/workspaces/feat-phase3/plans/RESEARCH_INTEGRATION_EXECUTION_PLAN.md`

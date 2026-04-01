@@ -4,10 +4,10 @@ use crate::{
     RECOMMENDATION_EPISODE_INDEX_TABLE, RECOMMENDATION_FEEDBACK_TABLE,
     RECOMMENDATION_SESSIONS_TABLE, RedbStorage, with_db_timeout,
 };
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 use redb::{ReadableDatabase, ReadableTable, TableDefinition};
 use serde::de::DeserializeOwned;
 use std::sync::Arc;
@@ -197,8 +197,8 @@ impl RedbStorage {
             total_applied += fb.applied_pattern_ids.len();
             if matches!(
                 fb.outcome,
-                memory_core::types::TaskOutcome::Success { .. }
-                    | memory_core::types::TaskOutcome::PartialSuccess { .. }
+                do_memory_core::types::TaskOutcome::Success { .. }
+                    | do_memory_core::types::TaskOutcome::PartialSuccess { .. }
             ) {
                 successful_applications += fb.applied_pattern_ids.len();
             }

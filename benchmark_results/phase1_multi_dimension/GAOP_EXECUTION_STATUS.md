@@ -187,7 +187,7 @@ verify_vector_extensions(&storage).await.expect("Vector extensions not available
    ```bash
    cd /workspaces/feat-phase3
    cargo bench --bench turso_vector_performance \
-     --features memory-storage-turso/turso_multi_dimension
+     --features do-memory-storage-turso/turso_multi_dimension
    ```
 
 ### Option 2: Complete libsql-server Build

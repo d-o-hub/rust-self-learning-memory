@@ -3,9 +3,9 @@
 //! Tests quality assessment and salient feature extraction integration
 //! into the `SelfLearningMemory` workflow.
 
-use memory_core::ExecutionStep;
-use memory_core::memory::SelfLearningMemory;
-use memory_core::types::{
+use do_memory_core::ExecutionStep;
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::types::{
     ComplexityLevel, ExecutionResult, MemoryConfig, TaskContext, TaskOutcome, TaskType,
 };
 
@@ -243,7 +243,7 @@ async fn test_low_quality_episode_rejected() {
 
     // Verify error is ValidationFailed
     match result.unwrap_err() {
-        memory_core::Error::ValidationFailed(msg) => {
+        do_memory_core::Error::ValidationFailed(msg) => {
             assert!(msg.contains("quality score"));
             assert!(msg.contains("below threshold"));
         }
@@ -293,7 +293,7 @@ async fn test_custom_quality_threshold() {
         Err(err) => {
             // If still rejected, that's also valid - quality might still be below 0.4
             match err {
-                memory_core::Error::ValidationFailed(_) => {
+                do_memory_core::Error::ValidationFailed(_) => {
                     // Expected if quality is below 0.4
                 }
                 other => panic!("Unexpected error: {other:?}"),

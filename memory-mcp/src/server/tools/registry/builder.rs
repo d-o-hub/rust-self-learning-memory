@@ -22,6 +22,10 @@ pub(super) fn create_additional_extended_tools() -> Vec<Tool> {
         crate::mcp::tools::embeddings::generate_embedding_tool(),
         crate::mcp::tools::embeddings::search_by_embedding_tool(),
         crate::mcp::tools::embeddings::embedding_provider_status_tool(),
+        // External signal provider tools
+        crate::mcp::tools::external_signals::configure_agentfs_tool(),
+        crate::mcp::tools::external_signals::external_signal_status_tool(),
+        crate::mcp::tools::external_signals::test_agentfs_connection_tool(),
         // Pattern search tool
         Tool::new(
             "search_patterns".to_string(),

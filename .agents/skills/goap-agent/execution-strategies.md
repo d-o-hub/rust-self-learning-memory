@@ -53,12 +53,12 @@ Before choosing strategy:
 
 ### Example
 ```
-Task: Implement multi-crate feature across memory-core, memory-storage-turso, memory-storage-redb
+Task: Implement multi-crate feature across do-memory-core, do-memory-storage-turso, do-memory-storage-redb
 
 Parallel agents:
-1. feature-implementer (Agent 1) → memory-core changes
-2. feature-implementer (Agent 2) → memory-storage-turso changes
-3. feature-implementer (Agent 3) → memory-storage-redb changes
+1. feature-implementer (Agent 1) → do-memory-core changes
+2. feature-implementer (Agent 2) → do-memory-storage-turso changes
+3. feature-implementer (Agent 3) → do-memory-storage-redb changes
 4. test-runner (Agent 4) → Run tests after all complete
 
 Benefits: 3x faster than sequential
@@ -190,9 +190,9 @@ Hybrid execution:
    - Quality Gate: Design approved
 
 2. [Parallel] Implementation
-   - Agent A → memory-core error types
-   - Agent B → memory-storage-turso error handling
-   - Agent C → memory-storage-redb error handling
+   - Agent A → do-memory-core error types
+   - Agent B → do-memory-storage-turso error handling
+   - Agent C → do-memory-storage-redb error handling
    - Quality Gate: All implementations complete
 
 3. [Sequential] Integration

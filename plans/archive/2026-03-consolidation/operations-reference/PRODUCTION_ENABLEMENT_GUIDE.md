@@ -205,13 +205,13 @@ let config = TursoConfig {
 
 ```toml
 [dependencies]
-memory-storage-turso = { 
+do-memory-storage-turso = { 
     version = "0.1.12", 
     features = ["compression", "compression-zstd"]  # Enable Zstd compression
 }
 
 # Or enable all compression algorithms
-memory-storage-turso = { 
+do-memory-storage-turso = { 
     version = "0.1.12", 
     features = ["compression", "compression-lz4", "compression-zstd", "compression-gzip"]
 }
@@ -657,15 +657,15 @@ async fn benchmark_optimizations(storage: &impl StorageBackend) -> anyhow::Resul
 ## 📚 Additional Resources
 
 ### Documentation
-- `memory-storage-turso/README.md` - Turso storage overview
-- `memory-storage-turso/KEEPALIVE_POOL_GUIDE.md` - Keep-alive details
+- `do-memory-storage-turso/README.md` - Turso storage overview
+- `do-memory-storage-turso/KEEPALIVE_POOL_GUIDE.md` - Keep-alive details
 - `plans/PHASE1_OPTIMIZATION_COMPLETE.md` - Technical details
 - `plans/PHASE1_IMPLEMENTATION_SUMMARY.md` - Executive summary
 
 ### Example Code
 - `examples/verify_storage.rs` - Storage verification
 - `benches/turso_phase1_optimization.rs` - Performance benchmarks
-- `memory-storage-turso/tests/phase1_optimization_test.rs` - Integration tests
+- `do-memory-storage-turso/tests/phase1_optimization_test.rs` - Integration tests
 
 ---
 

@@ -22,7 +22,7 @@ Phase 2 addresses algorithmic gaps in the pattern analysis system, implementing 
 
 ## Issue #4: ETS Forecasting Implementation - ✅ COMPLETED
 
-**File**: `memory-mcp/src/patterns/predictive.rs:178-196`
+**File**: `do-memory-mcp/src/patterns/predictive.rs:178-196`
 **Status**: ✅ **COMPLETED** (2025-12-25)
 **Impact**: Predictive analytics provide trivial results
 **Expected**: Proper Exponential Smoothing Time Series model with confidence intervals
@@ -71,7 +71,7 @@ Phase 2 addresses algorithmic gaps in the pattern analysis system, implementing 
 
 ## Issue #5: DBSCAN Anomaly Detection - ✅ COMPLETED
 
-**File**: `memory-mcp/src/patterns/predictive/dbscan.rs`
+**File**: `do-memory-mcp/src/patterns/predictive/dbscan.rs`
 **Status**: ✅ **COMPLETED** (2025-12-30)
 **Impact**: Uses simple thresholding instead of proper clustering
 **Current**: Adaptive DBSCAN with KDTree acceleration
@@ -241,7 +241,7 @@ impl AnomalyDetector {
 
 ## Issue #6: Bayesian Changepoint Detection - ✅ COMPLETED
 
-**File**: `memory-mcp/src/patterns/statistical.rs`
+**File**: `do-memory-mcp/src/patterns/statistical.rs`
 **Status**: ✅ **COMPLETED** (2025-12-30)
 **Impact**: Uses simple mean-shift instead of proper detection
 **Current**: BOCPD with log-space arithmetic and adaptive parameters
@@ -396,7 +396,7 @@ impl BOCPD {
 
 ## Issue #7: Pattern Extraction Implementation
 
-**File**: `memory-core/src/patterns/clustering.rs:387-391`
+**File**: `do-memory-core/src/patterns/clustering.rs:387-391`
 **Status**: 🔵 NOT STARTED
 **Impact**: Returns empty results
 **Current**: Empty vector return
@@ -451,7 +451,7 @@ impl BOCPD {
 
 ## Issue #8: Tool Compatibility Risk Assessment
 
-**File**: `memory-core/src/patterns/optimized_validator.rs:211`
+**File**: `do-memory-core/src/patterns/optimized_validator.rs:211`
 **Status**: 🔵 NOT STARTED
 **Impact**: Always returns 0.0 (meaningless validation)
 **Current**: Placeholder returning 0.0

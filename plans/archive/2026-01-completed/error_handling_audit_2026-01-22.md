@@ -2,8 +2,8 @@
 
 **Audit Date:** 2026-01-22  
 **Auditor:** Code Quality Agent  
-**Scope:** Production code in memory-core, memory-mcp, memory-cli, memory-storage-turso, memory-storage-redb  
-**Exclusions:** tests/*, benches/*, examples/*, test-utils/*, *_test.rs, *test*.rs
+**Scope:** Production code in do-memory-core, do-memory-mcp, do-memory-cli, do-memory-storage-turso, do-memory-storage-redb  
+**Exclusions:** tests/*, benches/*, examples/*, do-memory-test-utils/*, *_test.rs, *test*.rs
 
 ---
 
@@ -37,13 +37,13 @@ These are performance-critical operations in the retrieval and embedding pipelin
 
 | File | Count | Type |
 |------|-------|------|
-| `memory-core/src/embeddings/local.rs` | 14 | unwrap |
-| `memory-core/src/retrieval/cache/lru.rs` | 8 | expect |
-| `memory-core/src/patterns/extractors/hybrid.rs` | 6 | unwrap |
-| `memory-core/src/patterns/extractors/context_pattern.rs` | 3 | unwrap |
-| `memory-core/src/patterns/extractors/decision_point.rs` | 3 | unwrap |
-| `memory-core/src/patterns/extractors/error_recovery.rs` | 3 | unwrap |
-| `memory-core/src/patterns/extractors/tool_sequence.rs` | 3 | unwrap |
+| `do-memory-core/src/embeddings/local.rs` | 14 | unwrap |
+| `do-memory-core/src/retrieval/cache/lru.rs` | 8 | expect |
+| `do-memory-core/src/patterns/extractors/hybrid.rs` | 6 | unwrap |
+| `do-memory-core/src/patterns/extractors/context_pattern.rs` | 3 | unwrap |
+| `do-memory-core/src/patterns/extractors/decision_point.rs` | 3 | unwrap |
+| `do-memory-core/src/patterns/extractors/error_recovery.rs` | 3 | unwrap |
+| `do-memory-core/src/patterns/extractors/tool_sequence.rs` | 3 | unwrap |
 
 **Risk Assessment:** Medium - These are in performance-sensitive code paths where panics could affect throughput.
 
@@ -57,10 +57,10 @@ Configuration parsing and validation. These should use proper error handling.
 
 | File | Count | Type |
 |------|-------|------|
-| `memory-cli/src/config/types.rs` | 4 | expect |
-| `memory-cli/src/config/loader/cache.rs` | 5 | expect |
-| `memory-cli/src/config/progressive/simple_setup.rs` | 2 | unwrap |
-| `memory-cli/src/config/progressive/quick_setup.rs` | 1 | unwrap |
+| `do-memory-cli/src/config/types.rs` | 4 | expect |
+| `do-memory-cli/src/config/loader/cache.rs` | 5 | expect |
+| `do-memory-cli/src/config/progressive/simple_setup.rs` | 2 | unwrap |
+| `do-memory-cli/src/config/progressive/quick_setup.rs` | 1 | unwrap |
 
 **Risk Assessment:** Low-Medium - Configuration errors should fail gracefully with meaningful error messages.
 
@@ -74,8 +74,8 @@ Database and storage layer operations.
 
 | File | Count | Type |
 |------|-------|------|
-| `memory-storage-turso/src/resilient.rs` | 4 | unwrap |
-| `memory-core/src/retrieval/cache/lru.rs` | 4 | expect |
+| `do-memory-storage-turso/src/resilient.rs` | 4 | unwrap |
+| `do-memory-core/src/retrieval/cache/lru.rs` | 4 | expect |
 
 **Risk Assessment:** High - Database operations can fail for many reasons (network, disk, schema). Proper error handling is critical.
 
@@ -94,11 +94,11 @@ Infrastructure code including:
 
 | File | Count | Type |
 |------|-------|------|
-| `memory-core/src/monitoring/core.rs` | 13 | unwrap |
-| `memory-core/src/retrieval/cache/lru.rs` | 10 | expect |
-| `memory-core/src/embeddings/local.rs` | 8 | unwrap |
-| `memory-mcp/src/batch/executor.rs` | 8 | unwrap |
-| `memory-core/src/embeddings/circuit_breaker.rs` | 6 | expect |
+| `do-memory-core/src/monitoring/core.rs` | 13 | unwrap |
+| `do-memory-core/src/retrieval/cache/lru.rs` | 10 | expect |
+| `do-memory-core/src/embeddings/local.rs` | 8 | unwrap |
+| `do-memory-mcp/src/batch/executor.rs` | 8 | unwrap |
+| `do-memory-core/src/embeddings/circuit_breaker.rs` | 6 | expect |
 
 **Risk Assessment:** Low-Medium - Lock poisoning checks are defensive; panics here indicate serious concurrency bugs.
 
@@ -108,11 +108,11 @@ Infrastructure code including:
 
 | Crate | Total | `.unwrap()` | `.expect()` |
 |-------|-------|-------------|-------------|
-| memory-core | 98 | 68 | 30 |
-| memory-mcp | 21 | 20 | 1 |
-| memory-cli | 19 | 3 | 16 |
-| memory-storage-turso | 5 | 5 | 0 |
-| memory-storage-redb | 0 | 0 | 0 |
+| do-memory-core | 98 | 68 | 30 |
+| do-memory-mcp | 21 | 20 | 1 |
+| do-memory-cli | 19 | 3 | 16 |
+| do-memory-storage-turso | 5 | 5 | 0 |
+| do-memory-storage-redb | 0 | 0 | 0 |
 | **Total** | **143** | **96** | **47** |
 
 ---
@@ -121,14 +121,14 @@ Infrastructure code including:
 
 | File | Total | Risk Level |
 |------|-------|------------|
-| `memory-core/src/embeddings/local.rs` | 25 | High |
-| `memory-core/src/retrieval/cache/lru.rs` | 22 | Medium |
-| `memory-core/src/monitoring/core.rs` | 13 | Low |
-| `memory-mcp/src/batch/executor.rs` | 8 | Medium |
-| `memory-core/src/patterns/extractors/hybrid.rs` | 6 | Medium |
-| `memory-storage-turso/src/resilient.rs` | 5 | High |
-| `memory-core/src/embeddings/circuit_breaker.rs` | 6 | Low |
-| `memory-cli/src/config/loader/cache.rs` | 8 | Medium |
+| `do-memory-core/src/embeddings/local.rs` | 25 | High |
+| `do-memory-core/src/retrieval/cache/lru.rs` | 22 | Medium |
+| `do-memory-core/src/monitoring/core.rs` | 13 | Low |
+| `do-memory-mcp/src/batch/executor.rs` | 8 | Medium |
+| `do-memory-core/src/patterns/extractors/hybrid.rs` | 6 | Medium |
+| `do-memory-storage-turso/src/resilient.rs` | 5 | High |
+| `do-memory-core/src/embeddings/circuit_breaker.rs` | 6 | Low |
+| `do-memory-cli/src/config/loader/cache.rs` | 8 | Medium |
 
 ---
 
@@ -136,7 +136,7 @@ Infrastructure code including:
 
 ### Priority 1: Database Operations (High Risk)
 
-**Files:** `memory-storage-turso/src/resilient.rs` (4 unwraps)
+**Files:** `do-memory-storage-turso/src/resilient.rs` (4 unwraps)
 
 Replace with proper error handling:
 
@@ -151,7 +151,7 @@ self.connection.execute(query)
 
 ### Priority 2: Hot Path Operations (Medium Risk)
 
-**Files:** `memory-core/src/embeddings/local.rs`, pattern extractors
+**Files:** `do-memory-core/src/embeddings/local.rs`, pattern extractors
 
 For truly hot paths where performance is critical, document why unwrap is acceptable:
 
@@ -174,7 +174,7 @@ use parking_lot::RwLock;
 
 ### Priority 3: Configuration (Low-Medium Risk)
 
-**Files:** `memory-cli/src/config/*`
+**Files:** `do-memory-cli/src/config/*`
 
 These should use `?` operator with proper error types:
 
@@ -189,7 +189,7 @@ let value = config.get("key")
 
 ### Priority 4: Lock Poisoning (Low Risk)
 
-**Files:** `memory-core/src/retrieval/cache/lru.rs` (21 expects)
+**Files:** `do-memory-core/src/retrieval/cache/lru.rs` (21 expects)
 
 Lock poisoning checks are defensive. Options:
 

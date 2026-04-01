@@ -16,10 +16,10 @@
 //! cargo run --example memory_mcp_integration
 //! ```
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
-use memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
+use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::time::{Duration, sleep};
@@ -87,7 +87,7 @@ async fn main() -> anyhow::Result<()> {
                 _ => "unknown"
             }
         });
-        step.result = Some(memory_core::ExecutionResult::Success {
+        step.result = Some(do_memory_core::ExecutionResult::Success {
             output: match i {
                 0 => "Created binary (application) `auth-api` package".to_string(),
                 1 => "Implemented User and AuthToken structs with validation".to_string(),
@@ -191,20 +191,20 @@ async fn main() -> anyhow::Result<()> {
         .execute_agent_code(code.to_string(), context)
         .await?;
     match exec_result {
-        memory_mcp::ExecutionResult::Success { output, .. } => {
+        do_memory_mcp::ExecutionResult::Success { output, .. } => {
             println!("       ✅ Code execution successful");
             println!(
                 "       📄 Output: {}",
                 output.chars().take(100).collect::<String>()
             );
         }
-        memory_mcp::ExecutionResult::Error { message, .. } => {
+        do_memory_mcp::ExecutionResult::Error { message, .. } => {
             println!("       ❌ Code execution failed: {}", message);
         }
-        memory_mcp::ExecutionResult::SecurityViolation { reason, .. } => {
+        do_memory_mcp::ExecutionResult::SecurityViolation { reason, .. } => {
             println!("       ❌ Security violation: {}", reason);
         }
-        memory_mcp::ExecutionResult::Timeout { elapsed_ms, .. } => {
+        do_memory_mcp::ExecutionResult::Timeout { elapsed_ms, .. } => {
             println!("       ❌ Code execution timed out after {}ms", elapsed_ms);
         }
     }

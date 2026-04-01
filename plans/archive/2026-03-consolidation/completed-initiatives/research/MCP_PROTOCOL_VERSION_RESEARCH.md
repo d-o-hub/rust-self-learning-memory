@@ -176,8 +176,8 @@ let results = mcp.call_tools_parallel(&[
 
 - **MCP Specification**: https://modelcontextprotocol.io/
 - **MCP 2025-11-25 Release Notes**: (URL to be added when available)
-- **Current Implementation**: `memory-mcp/` crate
-- **Current Tests**: `memory-mcp/tests/` (27 tests passing)
+- **Current Implementation**: `do-memory-mcp/` crate
+- **Current Tests**: `do-memory-mcp/tests/` (27 tests passing)
 
 ---
 

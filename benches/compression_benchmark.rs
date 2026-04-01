@@ -8,8 +8,8 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use memory_core::{Episode, TaskContext, TaskType};
-use memory_storage_turso::{TursoConfig, TursoStorage};
+use do_memory_core::{Episode, TaskContext, TaskType};
+use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::hint::black_box;
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -103,7 +103,7 @@ fn bench_compression_overhead(c: &mut Criterion) {
                 b.iter(|| {
                     #[cfg(feature = "compression")]
                     {
-                        use memory_storage_turso::compression::CompressedPayload;
+                        use do_memory_storage_turso::compression::CompressedPayload;
                         let compressed = CompressedPayload::compress(serialized.as_bytes(), 1024)
                             .expect("Compression failed");
                         black_box(compressed)
@@ -138,7 +138,7 @@ fn bench_compression_ratio(c: &mut Criterion) {
 
     #[cfg(feature = "compression")]
     {
-        use memory_storage_turso::compression::CompressedPayload;
+        use do_memory_storage_turso::compression::CompressedPayload;
 
         for size_kb in [1, 5, 10, 50, 100].iter() {
             let episode = create_episode_with_size(*size_kb);
@@ -226,7 +226,7 @@ fn bench_decompression(c: &mut Criterion) {
 
     #[cfg(feature = "compression")]
     {
-        use memory_storage_turso::compression::CompressedPayload;
+        use do_memory_storage_turso::compression::CompressedPayload;
 
         for size_kb in [5, 10, 50].iter() {
             let episode = create_episode_with_size(*size_kb);
@@ -254,7 +254,7 @@ fn bench_compression_algorithms(c: &mut Criterion) {
 
     #[cfg(feature = "compression")]
     {
-        use memory_storage_turso::compression::CompressedPayload;
+        use do_memory_storage_turso::compression::CompressedPayload;
 
         let episode = create_episode_with_size(10);
         let serialized = serde_json::to_string(&episode).expect("Failed to serialize");

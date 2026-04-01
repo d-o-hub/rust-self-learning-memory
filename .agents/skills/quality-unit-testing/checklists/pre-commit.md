@@ -77,7 +77,7 @@ Before committing your tests, verify the following:
 - [ ] No `TODO` comments (create issues instead)
 - [ ] No `#[ignore]` without reason documented
 - [ ] Test code follows same standards as production code
-- [ ] Uses project's test utilities from `test-utils` crate
+- [ ] Uses project's test utilities from `do-memory-test-utils` crate
 
 ## ⚠️ Rust-Specific Anti-Patterns to Avoid
 
@@ -167,7 +167,7 @@ Use the provided script to automate checks:
 
 ```bash
 # Analyze test quality
-python .claude/skills/quality-unit-testing/scripts/analyze-test-quality.py crates/memory-core/src/lib.rs
+python .claude/skills/quality-unit-testing/scripts/analyze-test-quality.py crates/do-memory-core/src/lib.rs
 
 # Run tests
 cargo test --lib

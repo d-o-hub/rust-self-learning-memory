@@ -62,9 +62,9 @@ Phase 1 implemented the PREMem (Pattern Recognition and Episodic Memory) framewo
 ### Implementation Details
 
 **Core Modules**:
-- `memory-core/src/quality/` - Quality assessment logic
-- `memory-core/src/scoring.rs` - Episode scoring algorithms
-- `memory-mcp/src/tools/quality_metrics.rs` - MCP tool integration
+- `do-memory-core/src/quality/` - Quality assessment logic
+- `do-memory-core/src/scoring.rs` - Episode scoring algorithms
+- `do-memory-mcp/src/tools/quality_metrics.rs` - MCP tool integration
 
 **Database Integration**:
 - Quality scores stored with each episode
@@ -136,9 +136,9 @@ Phase 2 implemented the GENESIS (Generative Episode Storage with Intelligent Sca
 ### Implementation Details
 
 **Core Modules**:
-- `memory-storage-turso/` - Turso storage implementation
-- `memory-storage-redb/` - redb cache implementation
-- `memory-core/src/storage/` - Storage abstraction layer
+- `do-memory-storage-turso/` - Turso storage implementation
+- `do-memory-storage-redb/` - redb cache implementation
+- `do-memory-core/src/storage/` - Storage abstraction layer
 
 **Storage Operations**:
 - **SAVE**: Write-through to both Turso and redb
@@ -224,10 +224,10 @@ Phase 3 implemented advanced retrieval mechanisms including semantic similarity 
 ### Implementation Details
 
 **Core Modules**:
-- `memory-core/src/embeddings/` - Embedding generation and storage
-- `memory-core/src/retrieval/` - Semantic search algorithms
-- `memory-core/src/diversity/` - MMR implementation
-- `memory-storage-turso/src/embeddings.rs` - Embedding storage
+- `do-memory-core/src/embeddings/` - Embedding generation and storage
+- `do-memory-core/src/retrieval/` - Semantic search algorithms
+- `do-memory-core/src/diversity/` - MMR implementation
+- `do-memory-storage-turso/src/embeddings.rs` - Embedding storage
 
 **Semantic Search Flow**:
 1. Generate embedding for query (384-dimensional vector)
@@ -318,10 +318,10 @@ Implemented Turso's native vector search with DiskANN indexing for semantic simi
 
 #### Files Modified
 
-- `memory-storage-turso/src/schema.rs` - Added vector column and index
-- `memory-storage-turso/src/lib.rs` - Added vector index to initialization
-- `memory-storage-turso/src/storage.rs` - Implemented native vector search
-- `memory-storage-turso/tests/vector_search_test.rs` - Comprehensive tests
+- `do-memory-storage-turso/src/schema.rs` - Added vector column and index
+- `do-memory-storage-turso/src/lib.rs` - Added vector index to initialization
+- `do-memory-storage-turso/src/storage.rs` - Implemented native vector search
+- `do-memory-storage-turso/tests/vector_search_test.rs` - Comprehensive tests
 - `plans/VECTOR_SEARCH_OPTIMIZATION.md` - Updated documentation
 
 ---
@@ -335,7 +335,7 @@ Implemented Turso's native vector search with DiskANN indexing for semantic simi
 
 #### Summary
 
-Optimized the memory-cli configuration system with three major improvements: configuration caching, wizard UX enhancements, and comprehensive documentation.
+Optimized the do-memory-cli configuration system with three major improvements: configuration caching, wizard UX enhancements, and comprehensive documentation.
 
 #### Key Accomplishments
 
@@ -388,11 +388,11 @@ Optimized the memory-cli configuration system with three major improvements: con
 
 #### Files Modified
 
-- `memory-cli/src/config/loader.rs` - Added `ConfigCache` struct
-- `memory-cli/src/config/mod.rs` - Exported cache functions
-- `memory-cli/src/config/wizard.rs` - Enhanced UX
-- `memory-cli/src/config/validator.rs` - Updated path validation
-- `memory-cli/CONFIGURATION.md` - Comprehensive docs
+- `do-memory-cli/src/config/loader.rs` - Added `ConfigCache` struct
+- `do-memory-cli/src/config/mod.rs` - Exported cache functions
+- `do-memory-cli/src/config/wizard.rs` - Enhanced UX
+- `do-memory-cli/src/config/validator.rs` - Updated path validation
+- `do-memory-cli/CONFIGURATION.md` - Comprehensive docs
 
 ---
 

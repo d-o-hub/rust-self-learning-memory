@@ -43,9 +43,9 @@ impl KeepAliveConnection {
     /// # Errors
     ///
     /// Returns an error if the underlying connection is not available.
-    pub fn connection(&self) -> memory_core::Result<&Connection> {
+    pub fn connection(&self) -> do_memory_core::Result<&Connection> {
         self.pooled.connection().ok_or_else(|| {
-            memory_core::Error::Storage(
+            do_memory_core::Error::Storage(
                 "KeepAliveConnection: underlying connection is None".to_string(),
             )
         })
@@ -75,7 +75,7 @@ impl KeepAliveConnection {
     /// # Errors
     ///
     /// Returns an error if the underlying connection is not available.
-    pub fn into_connection(mut self) -> memory_core::Result<Connection> {
+    pub fn into_connection(mut self) -> do_memory_core::Result<Connection> {
         // Safety: We're taking the pooled connection out and preventing the Drop
         // from running on self.pooled by using ManuallyDrop.
         let pooled = unsafe { ManuallyDrop::take(&mut self.pooled) };

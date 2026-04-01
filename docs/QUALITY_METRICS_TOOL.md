@@ -263,7 +263,7 @@ The tool handles various error cases gracefully:
 ## Related Documentation
 
 - `plans/RESEARCH_INTEGRATION_EXECUTION_PLAN.md` - PREMem integration plan
-- `memory-core/src/pre_storage/quality.rs` - Quality assessment implementation
+- `do-memory-core/src/pre_storage/quality.rs` - Quality assessment implementation
 - `TESTING.md` - Testing guidelines for quality metrics
 
 ## Future Enhancements

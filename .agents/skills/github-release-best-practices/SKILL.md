@@ -245,7 +245,7 @@ This patch release resolves critical bugs, improves code quality, and enhances C
 
 ## Added
 - GOAP execution plan documentation for complex workflows
-- Response validation test suite for memory-mcp server
+- Response validation test suite for do-memory-mcp server
 
 ## Technical Details
 - All GitHub Actions workflows passing (Quick Check, Performance Benchmarks, Security, CodeQL)
@@ -426,7 +426,7 @@ Generates: platform tarballs, checksums (SHA256), shell/PowerShell installers, r
 cargo-dist requires `Cargo.toml` version to match the git tag. If they mismatch:
 ```
 × This workspace doesn't have anything for dist to Release!
-help: --tag=v0.1.21 will Announce: memory-mcp, memory-cli
+help: --tag=v0.1.21 will Announce: do-memory-mcp, do-memory-cli
 ```
 
 **Prevention**:

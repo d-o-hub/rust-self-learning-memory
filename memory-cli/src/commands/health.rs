@@ -170,7 +170,7 @@ impl Output for HealthStatusSummary {
 
 // Command implementations
 pub async fn health_check(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -322,7 +322,7 @@ pub async fn health_check(
 }
 
 pub async fn health_status(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -361,7 +361,7 @@ pub async fn health_status(
 }
 
 pub async fn health_monitor(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     _format: OutputFormat,
     interval: u64,

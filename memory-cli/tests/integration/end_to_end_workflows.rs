@@ -4,7 +4,7 @@
 //! from episode creation through completion and pattern analysis.
 
 use assert_cmd::Command;
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::fs;
 use tempfile::TempDir;
 
@@ -59,7 +59,7 @@ batch_size = 5
             I: IntoIterator<Item = S>,
             S: AsRef<std::ffi::OsStr>,
         {
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string())).expect("Failed to find binary");
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string())).expect("Failed to find binary");
             cmd.arg("--config").arg(&self.config_path);
             cmd.args(args);
             cmd
@@ -768,7 +768,7 @@ cli:
             let config_path = temp_dir.path().join(filename);
             std::fs::write(&config_path, content).unwrap();
 
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string()));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -795,7 +795,7 @@ default_format = "json"
             let config_path = temp_dir.path().join(filename);
             std::fs::write(&config_path, content).unwrap();
 
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string()));
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 

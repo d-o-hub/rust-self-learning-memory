@@ -11,7 +11,7 @@
 mod common;
 
 use common::{create_test_step, setup_test_memory, test_context};
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, Pattern, TaskContext, TaskOutcome, TaskType,
     memory::SelfLearningMemory,
 };
@@ -31,7 +31,7 @@ fn load_historical_test_episodes() -> Vec<Episode> {
 
 /// Create an episode with error recovery pattern
 fn create_error_recovery_episode() -> Episode {
-    use memory_core::episode::Episode;
+    use do_memory_core::episode::Episode;
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -78,7 +78,7 @@ fn create_error_recovery_episode() -> Episode {
 
 /// Create episode with tool sequence pattern
 fn create_tool_sequence_episode() -> Episode {
-    use memory_core::episode::Episode;
+    use do_memory_core::episode::Episode;
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -113,7 +113,7 @@ fn create_tool_sequence_episode() -> Episode {
 
 /// Create episode with optimization pattern
 fn create_optimization_episode() -> Episode {
-    use memory_core::episode::Episode;
+    use do_memory_core::episode::Episode;
 
     let context = TaskContext {
         language: Some("rust".to_string()),
@@ -152,7 +152,7 @@ fn create_optimization_episode() -> Episode {
 /// Load reference patterns (known good patterns)
 fn load_reference_patterns() -> Vec<Pattern> {
     use chrono::Duration;
-    use memory_core::PatternEffectiveness;
+    use do_memory_core::PatternEffectiveness;
 
     vec![
         Pattern::ErrorRecovery {
@@ -265,7 +265,7 @@ struct TestQuery {
     context: TaskContext,
 }
 
-use memory_core::episode::Episode;
+use do_memory_core::episode::Episode;
 
 /// Setup memory with 10K episodes for performance testing
 async fn setup_memory_with_10k_episodes() -> SelfLearningMemory {

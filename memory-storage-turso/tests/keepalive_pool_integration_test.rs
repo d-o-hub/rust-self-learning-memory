@@ -4,7 +4,7 @@
 
 #![allow(clippy::expect_used)]
 
-use memory_storage_turso::{TursoConfig, TursoStorage};
+use do_memory_storage_turso::{TursoConfig, TursoStorage};
 
 /// Helper to create a test database with keep-alive pool enabled
 #[cfg(feature = "keepalive-pool")]

@@ -11,16 +11,16 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{Criterion, criterion_group, criterion_main};
+use do_memory_core::{
+    episode::ExecutionStep,
+    memory::SelfLearningMemory,
+    types::{TaskContext, TaskOutcome, TaskType},
+};
 use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     generate_large_episode_description, generate_many_execution_steps, setup_temp_memory,
     setup_temp_turso_memory,
-};
-use memory_core::{
-    episode::ExecutionStep,
-    memory::SelfLearningMemory,
-    types::{TaskContext, TaskOutcome, TaskType},
 };
 use std::hint::black_box;
 use uuid::Uuid;

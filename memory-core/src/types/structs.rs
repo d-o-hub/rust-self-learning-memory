@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use memory_core::{TaskContext, ComplexityLevel};
+/// use do_memory_core::{TaskContext, ComplexityLevel};
 ///
 /// // Web API development context
 /// let context = TaskContext {
@@ -88,7 +88,7 @@ impl Default for TaskContext {
 /// # Examples
 ///
 /// ```
-/// use memory_core::RewardScore;
+/// use do_memory_core::RewardScore;
 ///
 /// let high_score = RewardScore {
 ///     total: 1.8,
@@ -130,7 +130,7 @@ pub struct RewardScore {
 /// # Examples
 ///
 /// ```
-/// use memory_core::Reflection;
+/// use do_memory_core::Reflection;
 /// use chrono::Utc;
 ///
 /// let reflection = Reflection {
@@ -167,7 +167,7 @@ pub struct Reflection {
 /// # Examples
 ///
 /// ```
-/// use memory_core::OutcomeStats;
+/// use do_memory_core::OutcomeStats;
 ///
 /// let stats = OutcomeStats {
 ///     success_count: 8,
@@ -200,7 +200,7 @@ impl OutcomeStats {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::OutcomeStats;
+    /// use do_memory_core::OutcomeStats;
     ///
     /// let stats = OutcomeStats {
     ///     success_count: 7,
@@ -229,7 +229,7 @@ impl OutcomeStats {
 /// # Examples
 ///
 /// ```
-/// use memory_core::Evidence;
+/// use do_memory_core::Evidence;
 /// use uuid::Uuid;
 ///
 /// let evidence = Evidence {

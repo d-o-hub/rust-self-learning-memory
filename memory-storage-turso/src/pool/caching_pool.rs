@@ -4,8 +4,8 @@
 //! enabling effective prepared statement caching.
 
 use super::connection_wrapper::PooledConnection;
+use do_memory_core::{Error, Result};
 use libsql::Database;
-use memory_core::{Error, Result};
 use parking_lot::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
@@ -369,9 +369,9 @@ impl ConnectionGuard {
     /// # Errors
     ///
     /// Returns an error if the connection has been taken (should not happen in normal usage).
-    pub fn id(&self) -> memory_core::Result<u64> {
+    pub fn id(&self) -> do_memory_core::Result<u64> {
         self.connection.as_ref().map(|c| c.id()).ok_or_else(|| {
-            memory_core::Error::Storage(
+            do_memory_core::Error::Storage(
                 "ConnectionGuard::id() called on guard without connection".to_string(),
             )
         })
@@ -382,12 +382,12 @@ impl ConnectionGuard {
     /// # Errors
     ///
     /// Returns an error if the connection has been taken (should not happen in normal usage).
-    pub fn connection(&self) -> memory_core::Result<&libsql::Connection> {
+    pub fn connection(&self) -> do_memory_core::Result<&libsql::Connection> {
         self.connection
             .as_ref()
             .map(|c| c.connection())
             .ok_or_else(|| {
-                memory_core::Error::Storage(
+                do_memory_core::Error::Storage(
                     "ConnectionGuard::connection() called on guard without connection".to_string(),
                 )
             })

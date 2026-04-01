@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document synthesizes three key academic papers published in late 2025 (EMNLP 2025 and arXiv) that provide valuable insights for enhancing our self-learning memory system. Each paper includes component mappings to our architecture (memory-core, memory-storage-turso, memory-storage-redb, memory-mcp).
+This document synthesizes three key academic papers published in late 2025 (EMNLP 2025 and arXiv) that provide valuable insights for enhancing our self-learning memory system. Each paper includes component mappings to our architecture (do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp).
 
 **Key Insights**:
 - **PREMem**: Pre-storage reasoning improves memory quality by 23% (EMNLP 2025)
@@ -59,7 +59,7 @@ Compressed Episode → Storage Backend
 ### Implementation Recommendations
 
 #### Priority 1: Pre-Storage Reasoning Module
-**Component**: `memory-core/src/pre_storage.rs` (NEW)
+**Component**: `do-memory-core/src/pre_storage.rs` (NEW)
 
 **Effort Estimate**: 40-60 hours
 **Expected Impact**: +23% memory quality, 42% noise reduction
@@ -68,7 +68,7 @@ Compressed Episode → Storage Backend
 
 1. **Quality Assessment Module**
    ```rust
-   // memory-core/src/pre_storage/quality.rs
+   // do-memory-core/src/pre_storage/quality.rs
    pub struct QualityAssessor {
        min_quality_threshold: f32,  // Default: 0.7
        features: Vec<QualityFeature>,
@@ -92,7 +92,7 @@ Compressed Episode → Storage Backend
 
 2. **Salient Feature Extractor**
    ```rust
-   // memory-core/src/pre_storage/extractor.rs
+   // do-memory-core/src/pre_storage/extractor.rs
    pub struct SalientExtractor;
 
    impl SalientExtractor {
@@ -109,7 +109,7 @@ Compressed Episode → Storage Backend
 
 3. **Learned Compression** (Future Enhancement)
    ```rust
-   // memory-core/src/pre_storage/compression.rs
+   // do-memory-core/src/pre_storage/compression.rs
    pub struct LearnedCompressor {
        model: CompressionModel,  // Future: Autoencoder
    }
@@ -123,7 +123,7 @@ Compressed Episode → Storage Backend
    ```
 
 #### Priority 2: Storage Decision Filter
-**Component**: `memory-core/src/memory/mod.rs` (MODIFY)
+**Component**: `do-memory-core/src/memory/mod.rs` (MODIFY)
 
 **Integration Points**:
 - Before `SelfLearningMemory::complete_episode()`
@@ -159,11 +159,11 @@ impl SelfLearningMemory {
 
 | Component | Crate | Module | Effort |
 |-----------|-------|--------|--------|
-| **QualityAssessor** | memory-core | src/pre_storage/quality.rs | 15-20 hrs |
-| **SalientExtractor** | memory-core | src/pre_storage/extractor.rs | 15-20 hrs |
-| **LearnedCompressor** | memory-core | src/pre_storage/compression.rs | 10-20 hrs |
-| **Storage Decision** | memory-core | src/memory/mod.rs | 10-15 hrs |
-| **Quality Metrics** | memory-mcp | src/tools/quality_assessment.rs | 5-10 hrs |
+| **QualityAssessor** | do-memory-core | src/pre_storage/quality.rs | 15-20 hrs |
+| **SalientExtractor** | do-memory-core | src/pre_storage/extractor.rs | 15-20 hrs |
+| **LearnedCompressor** | do-memory-core | src/pre_storage/compression.rs | 10-20 hrs |
+| **Storage Decision** | do-memory-core | src/memory/mod.rs | 10-15 hrs |
+| **Quality Metrics** | do-memory-mcp | src/tools/quality_assessment.rs | 5-10 hrs |
 
 ### Testing Strategy
 
@@ -231,7 +231,7 @@ Semantic Memory (Unlimited)
 ### Implementation Recommendations
 
 #### Priority 1: Capacity-Constrained Encoding
-**Component**: `memory-core/src/episodic/capacity.rs` (NEW)
+**Component**: `do-memory-core/src/episodic/capacity.rs` (NEW)
 
 **Effort Estimate**: 30-40 hours
 **Expected Impact**: 3.2x storage compression, 65% faster access
@@ -240,7 +240,7 @@ Semantic Memory (Unlimited)
 
 1. **Capacity Manager**
    ```rust
-   // memory-core/src/episodic/capacity.rs
+   // do-memory-core/src/episodic/capacity.rs
    pub struct CapacityManager {
        max_episodes: usize,           // Default: 10,000
        current_count: AtomicUsize,
@@ -283,7 +283,7 @@ Semantic Memory (Unlimited)
 
 2. **Semantic Summarization**
    ```rust
-   // memory-core/src/semantic/summary.rs
+   // do-memory-core/src/semantic/summary.rs
    pub struct SemanticSummarizer {
        embedding_provider: Arc<dyn EmbeddingProvider>,
    }
@@ -329,7 +329,7 @@ Semantic Memory (Unlimited)
 
 3. **Generative Reconstruction** (Future Enhancement)
    ```rust
-   // memory-core/src/semantic/reconstruction.rs
+   // do-memory-core/src/semantic/reconstruction.rs
    pub struct GenerativeReconstructor;
 
    impl GenerativeReconstructor {
@@ -344,7 +344,7 @@ Semantic Memory (Unlimited)
    ```
 
 #### Priority 2: Integration with Storage Backends
-**Component**: `memory-storage-turso/src/capacity.rs` (NEW), `memory-storage-redb/src/capacity.rs` (NEW)
+**Component**: `do-memory-storage-turso/src/capacity.rs` (NEW), `do-memory-storage-redb/src/capacity.rs` (NEW)
 
 **Effort Estimate**: 20-30 hours
 **Expected Impact**: Storage efficiency, automatic capacity management
@@ -352,7 +352,7 @@ Semantic Memory (Unlimited)
 **Implementation**:
 
 ```rust
-// memory-storage-turso/src/capacity.rs
+// do-memory-storage-turso/src/capacity.rs
 impl TursoStorage {
     pub async fn enforce_capacity_limit(&self, max_episodes: usize) -> Result<()> {
         // Count current episodes
@@ -385,11 +385,11 @@ impl TursoStorage {
 
 | Component | Crate | Module | Effort |
 |-----------|-------|--------|--------|
-| **CapacityManager** | memory-core | src/episodic/capacity.rs | 15-20 hrs |
-| **SemanticSummarizer** | memory-core | src/semantic/summary.rs | 10-15 hrs |
-| **GenerativeReconstructor** | memory-core | src/semantic/reconstruction.rs | 5-10 hrs |
-| **Capacity Enforcement** | memory-storage-turso | src/capacity.rs | 10-15 hrs |
-| **Capacity Enforcement** | memory-storage-redb | src/capacity.rs | 10-15 hrs |
+| **CapacityManager** | do-memory-core | src/episodic/capacity.rs | 15-20 hrs |
+| **SemanticSummarizer** | do-memory-core | src/semantic/summary.rs | 10-15 hrs |
+| **GenerativeReconstructor** | do-memory-core | src/semantic/reconstruction.rs | 5-10 hrs |
+| **Capacity Enforcement** | do-memory-storage-turso | src/capacity.rs | 10-15 hrs |
+| **Capacity Enforcement** | do-memory-storage-redb | src/capacity.rs | 10-15 hrs |
 
 ### Testing Strategy
 
@@ -460,7 +460,7 @@ Ranked Episodes
 ### Implementation Recommendations
 
 #### Priority 1: Spatiotemporal Memory Organization
-**Component**: `memory-core/src/retrieval/spatiotemporal.rs` (NEW)
+**Component**: `do-memory-core/src/retrieval/spatiotemporal.rs` (NEW)
 
 **Effort Estimate**: 35-45 hours
 **Expected Impact**: +34% RAG retrieval accuracy, 43% faster retrieval
@@ -469,7 +469,7 @@ Ranked Episodes
 
 1. **Spatiotemporal Index**
    ```rust
-   // memory-core/src/retrieval/spatiotemporal.rs
+   // do-memory-core/src/retrieval/spatiotemporal.rs
    pub struct SpatiotemporalIndex {
        time_index: BTreeMap<DateTime<Utc>, Vec<Uuid>>,  // Time → episodes
        domain_index: HashMap<String, Vec<Uuid>>,          // Domain → episodes
@@ -552,7 +552,7 @@ Ranked Episodes
 
 2. **Hierarchical Retrieval**
    ```rust
-   // memory-core/src/retrieval/hierarchical.rs
+   // do-memory-core/src/retrieval/hierarchical.rs
    pub struct HierarchicalRetriever {
        semantic_service: Arc<SemanticService>,
        spatiotemporal_index: Arc<SpatiotemporalIndex>,
@@ -624,7 +624,7 @@ Ranked Episodes
 
 3. **Diversity Maximization**
    ```rust
-   // memory-core/src/retrieval/diversity.rs
+   // do-memory-core/src/retrieval/diversity.rs
    pub fn maximize_diversity(episodes: &mut Vec<Episode>, embedding_dim: usize) {
        // Maximal Marginal Relevance (MMR) algorithm
        let mut selected = Vec::new();
@@ -658,7 +658,7 @@ Ranked Episodes
    ```
 
 #### Priority 2: Context-Aware Embedding Generation
-**Component**: `memory-core/src/embeddings/contextual.rs` (NEW)
+**Component**: `do-memory-core/src/embeddings/contextual.rs` (NEW)
 
 **Effort Estimate**: 20-30 hours
 **Expected Impact**: +25% semantic relevance
@@ -666,7 +666,7 @@ Ranked Episodes
 **Implementation**:
 
 ```rust
-// memory-core/src/embeddings/contextual.rs
+// do-memory-core/src/embeddings/contextual.rs
 pub struct ContextualEmbeddingProvider {
    base_provider: Arc<dyn EmbeddingProvider>,
    domain_adapters: HashMap<String, Vec<f32>>,  // Domain-specific shifts
@@ -711,11 +711,11 @@ impl ContextualEmbeddingProvider {
 
 | Component | Crate | Module | Effort |
 |-----------|-------|--------|--------|
-| **SpatiotemporalIndex** | memory-core | src/retrieval/spatiotemporal.rs | 15-20 hrs |
-| **HierarchicalRetriever** | memory-core | src/retrieval/hierarchical.rs | 10-15 hrs |
-| **ContextualEmbeddingProvider** | memory-core | src/embeddings/contextual.rs | 10-15 hrs |
-| **Diversity Maximization** | memory-core | src/retrieval/diversity.rs | 10-10 hrs |
-| **MCP Tool Updates** | memory-mcp | src/tools/query_memory.rs | 5-10 hrs |
+| **SpatiotemporalIndex** | do-memory-core | src/retrieval/spatiotemporal.rs | 15-20 hrs |
+| **HierarchicalRetriever** | do-memory-core | src/retrieval/hierarchical.rs | 10-15 hrs |
+| **ContextualEmbeddingProvider** | do-memory-core | src/embeddings/contextual.rs | 10-15 hrs |
+| **Diversity Maximization** | do-memory-core | src/retrieval/diversity.rs | 10-10 hrs |
+| **MCP Tool Updates** | do-memory-mcp | src/tools/query_memory.rs | 5-10 hrs |
 
 ### Testing Strategy
 
@@ -745,8 +745,8 @@ impl ContextualEmbeddingProvider {
 **Expected Impact**: +23% memory quality, 42% noise reduction
 
 **Tasks**:
-1. Create `memory-core/src/pre_storage/quality.rs` (QualityAssessor)
-2. Create `memory-core/src/pre_storage/extractor.rs` (SalientExtractor)
+1. Create `do-memory-core/src/pre_storage/quality.rs` (QualityAssessor)
+2. Create `do-memory-core/src/pre_storage/extractor.rs` (SalientExtractor)
 3. Integrate into `SelfLearningMemory::complete_episode()`
 4. Add quality metrics to MCP tools
 5. Write unit and integration tests
@@ -760,9 +760,9 @@ impl ContextualEmbeddingProvider {
 **Expected Impact**: 3.2x storage compression, 65% faster access
 
 **Tasks**:
-1. Create `memory-core/src/episodic/capacity.rs` (CapacityManager)
-2. Create `memory-core/src/semantic/summary.rs` (SemanticSummarizer)
-3. Add capacity enforcement to `memory-storage-turso` and `memory-storage-redb`
+1. Create `do-memory-core/src/episodic/capacity.rs` (CapacityManager)
+2. Create `do-memory-core/src/semantic/summary.rs` (SemanticSummarizer)
+3. Add capacity enforcement to `do-memory-storage-turso` and `do-memory-storage-redb`
 4. Integrate capacity management into `SelfLearningMemory`
 5. Write unit and integration tests
 6. Validate storage efficiency (target: 2x compression)
@@ -775,10 +775,10 @@ impl ContextualEmbeddingProvider {
 **Expected Impact**: +34% RAG retrieval accuracy, 43% faster retrieval
 
 **Tasks**:
-1. Create `memory-core/src/retrieval/spatiotemporal.rs` (SpatiotemporalIndex)
-2. Create `memory-core/src/retrieval/hierarchical.rs` (HierarchicalRetriever)
-3. Create `memory-core/src/retrieval/diversity.rs` (Diversity maximization)
-4. Create `memory-core/src/embeddings/contextual.rs` (ContextualEmbeddingProvider)
+1. Create `do-memory-core/src/retrieval/spatiotemporal.rs` (SpatiotemporalIndex)
+2. Create `do-memory-core/src/retrieval/hierarchical.rs` (HierarchicalRetriever)
+3. Create `do-memory-core/src/retrieval/diversity.rs` (Diversity maximization)
+4. Create `do-memory-core/src/embeddings/contextual.rs` (ContextualEmbeddingProvider)
 5. Update MCP query_memory tool with hierarchical retrieval
 6. Write unit and integration tests
 7. Validate retrieval accuracy (target: +30%)

@@ -1,9 +1,9 @@
 //! Episode summaries and capacity operations for redb cache
 
 use crate::{EPISODES_TABLE, METADATA_TABLE, RedbStorage, SUMMARIES_TABLE};
-use memory_core::episodic::CapacityManager;
-use memory_core::semantic::EpisodeSummary;
-use memory_core::{Episode, Error, Result};
+use do_memory_core::episodic::CapacityManager;
+use do_memory_core::semantic::EpisodeSummary;
+use do_memory_core::{Episode, Error, Result};
 use redb::{ReadableDatabase, ReadableTable, ReadableTableMetadata};
 use std::sync::Arc;
 use tracing::{debug, info, warn};
@@ -92,8 +92,8 @@ impl RedbStorage {
     /// # Examples
     ///
     /// ```no_run
-    /// # use memory_storage_redb::RedbStorage;
-    /// # use memory_core::semantic::EpisodeSummary;
+    /// # use do_memory_storage_redb::RedbStorage;
+    /// # use do_memory_core::semantic::EpisodeSummary;
     /// # use std::path::Path;
     /// # use uuid::Uuid;
     /// # use chrono::Utc;
@@ -165,7 +165,7 @@ impl RedbStorage {
     /// # Examples
     ///
     /// ```no_run
-    /// # use memory_storage_redb::RedbStorage;
+    /// # use do_memory_storage_redb::RedbStorage;
     /// # use std::path::Path;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
@@ -228,9 +228,9 @@ impl RedbStorage {
     /// # Examples
     ///
     /// ```no_run
-    /// # use memory_storage_redb::RedbStorage;
-    /// # use memory_core::{Episode, TaskContext, TaskType};
-    /// # use memory_core::episodic::{CapacityManager, EvictionPolicy};
+    /// # use do_memory_storage_redb::RedbStorage;
+    /// # use do_memory_core::{Episode, TaskContext, TaskType};
+    /// # use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
     /// # use std::path::Path;
     /// # async fn example() -> anyhow::Result<()> {
     /// # let storage = RedbStorage::new(Path::new("./test.redb")).await?;

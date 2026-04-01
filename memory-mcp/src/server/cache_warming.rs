@@ -4,7 +4,7 @@
 //! episodes, patterns, and query patterns to improve initial query performance.
 
 use anyhow::Result;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use std::sync::Arc;
 use tracing::{debug, info};
 
@@ -127,11 +127,11 @@ async fn warm_episodes_cache(
     );
 
     // Create a generic context to retrieve diverse episodes
-    let context = memory_core::TaskContext {
+    let context = do_memory_core::TaskContext {
         domain: "general".to_string(),
         language: None,
         framework: None,
-        complexity: memory_core::ComplexityLevel::Moderate,
+        complexity: do_memory_core::ComplexityLevel::Moderate,
         tags: vec![],
     };
 
@@ -172,11 +172,11 @@ async fn warm_patterns_cache(
     ];
 
     for domain in &common_domains {
-        let context = memory_core::TaskContext {
+        let context = do_memory_core::TaskContext {
             domain: domain.to_string(),
             language: None,
             framework: None,
-            complexity: memory_core::ComplexityLevel::Moderate,
+            complexity: do_memory_core::ComplexityLevel::Moderate,
             tags: vec![domain.to_string()],
         };
 
@@ -207,11 +207,11 @@ async fn warm_query_patterns(
 
     // Execute sample queries to warm up retrieval systems
     for query in &config.sample_queries {
-        let context = memory_core::TaskContext {
+        let context = do_memory_core::TaskContext {
             domain: query.domain.clone(),
             language: query.language.clone(),
             framework: query.framework.clone(),
-            complexity: memory_core::ComplexityLevel::Moderate,
+            complexity: do_memory_core::ComplexityLevel::Moderate,
             tags: query.tags.clone(),
         };
 

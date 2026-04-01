@@ -13,8 +13,8 @@
 //! # Example
 //!
 //! ```no_run
-//! use memory_core::memory::checkpoint::{checkpoint_episode, get_handoff_pack, resume_from_handoff};
-//! use memory_core::SelfLearningMemory;
+//! use do_memory_core::memory::checkpoint::{checkpoint_episode, get_handoff_pack, resume_from_handoff};
+//! use do_memory_core::SelfLearningMemory;
 //! use uuid::Uuid;
 //!
 //! # async fn example(memory: SelfLearningMemory) -> anyhow::Result<()> {

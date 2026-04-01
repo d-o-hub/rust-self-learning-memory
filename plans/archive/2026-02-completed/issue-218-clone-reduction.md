@@ -15,25 +15,25 @@ Reduce clone operations from current count to less than 200 across all productio
 
 | Module | Current Clones | Target | Reduction Needed |
 |--------|---------------|--------|------------------|
-| memory-core | 213 | <85 | 128 |
-| memory-mcp | 170 | <68 | 102 |
-| memory-storage-turso | 102 | <41 | 61 |
-| memory-cli | 53 | <21 | 32 |
-| memory-storage-redb | 18 | <7 | 11 |
+| do-memory-core | 213 | <85 | 128 |
+| do-memory-mcp | 170 | <68 | 102 |
+| do-memory-storage-turso | 102 | <41 | 61 |
+| do-memory-cli | 53 | <21 | 32 |
+| do-memory-storage-redb | 18 | <7 | 11 |
 
 ## Optimization Strategy
 
 ### Phase 1: High-Impact Arc Conversions (~120 clones)
 
 #### 1.1 Episode Retrieval Returns Arc<Episode>
-- **File**: `memory-core/src/memory/retrieval/context.rs`
+- **File**: `do-memory-core/src/memory/retrieval/context.rs`
 - **Function**: `retrieve_relevant_context`
 - **Current**: Returns `Vec<Episode>`
 - **Target**: Returns `Vec<Arc<Episode>>`
 - **Impact**: ~30 clones eliminated
 
 #### 1.2 Conflict Resolution Arc-Based
-- **File**: `memory-core/src/sync/conflict.rs`
+- **File**: `do-memory-core/src/sync/conflict.rs`
 - **Functions**: `resolve_episode_conflict`, `resolve_pattern_conflict`
 - **Current**: Returns owned `Episode`/`Pattern`
 - **Target**: Returns `Arc<Episode>`/`Arc<Pattern>`
@@ -42,26 +42,26 @@ Reduce clone operations from current count to less than 200 across all productio
 ### Phase 2: Pattern Storage Optimization (~50 clones)
 
 #### 2.1 Avoid Clone Before Format
-- **File**: `memory-storage-turso/src/storage/batch/pattern_batch.rs`
+- **File**: `do-memory-storage-turso/src/storage/batch/pattern_batch.rs`
 - **Pattern**: Clone before `format!()` or `join()`
 - **Target**: Use iterator directly
 - **Impact**: ~15 clones eliminated
 
 #### 2.2 Use AsRef for String Parameters
-- **File**: `memory-storage-turso/src/storage/patterns.rs`
+- **File**: `do-memory-storage-turso/src/storage/patterns.rs`
 - **Target**: Accept `&str` instead of `String` where possible
 - **Impact**: ~25 clones eliminated
 
 ### Phase 3: Embedding Tool Optimization (~40 clones)
 
 #### 3.1 Accept &str for Optional Fields
-- **File**: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+- **File**: `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
 - **Function**: `execute_query_semantic_memory`
 - **Target**: Accept `&str` for `domain`, `query` parameters
 - **Impact**: ~20 clones eliminated
 
 #### 3.2 Reduce Arc Dereference Clones
-- **File**: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+- **File**: `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
 - **Pattern**: `(*arc_ep).clone()`
 - **Target**: Use `Arc::clone()` or return `Arc`
 - **Impact**: ~15 clones eliminated
@@ -69,7 +69,7 @@ Reduce clone operations from current count to less than 200 across all productio
 ### Phase 4: Caching Optimization (~30 clones)
 
 #### 4.1 Cache Results as Arc
-- **File**: `memory-mcp/src/cache.rs`
+- **File**: `do-memory-mcp/src/cache.rs`
 - **Pattern**: `result.clone()` on cache hit
 - **Target**: Store as `Arc<Vec<Episode>>`
 - **Impact**: ~6 clones eliminated
@@ -81,7 +81,7 @@ Reduce clone operations from current count to less than 200 across all productio
 ### Phase 5: Context and TaskContext Optimization (~50 clones)
 
 #### 5.1 Use Cow for Context Fields
-- **File**: `memory-core/src/types/structs.rs`
+- **File**: `do-memory-core/src/types/structs.rs`
 - **Target**: Use `Cow<'_, str>` for domain, language, framework
 - **Impact**: ~25 clones eliminated
 

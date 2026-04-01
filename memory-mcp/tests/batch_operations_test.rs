@@ -7,7 +7,7 @@
 //! - Sequential and fail-fast modes
 //! - Performance characteristics
 
-use memory_mcp::{BatchExecutor, BatchMode, BatchOperation, BatchRequest};
+use do_memory_mcp::{BatchExecutor, BatchMode, BatchOperation, BatchRequest};
 use serde_json::json;
 use std::time::Duration;
 
@@ -284,7 +284,7 @@ async fn test_batch_fail_fast_mode() {
 
 #[tokio::test]
 async fn test_batch_circular_dependency_detection() {
-    use memory_mcp::DependencyGraph;
+    use do_memory_mcp::DependencyGraph;
 
     let operations = vec![
         BatchOperation {
@@ -309,7 +309,7 @@ async fn test_batch_circular_dependency_detection() {
 
 #[tokio::test]
 async fn test_batch_missing_dependency() {
-    use memory_mcp::DependencyGraph;
+    use do_memory_mcp::DependencyGraph;
 
     let operations = vec![BatchOperation {
         id: "op1".to_string(),

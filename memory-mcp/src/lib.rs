@@ -30,9 +30,9 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_core::SelfLearningMemory;
-//! use memory_mcp::server::MemoryMCPServer;
-//! use memory_mcp::types::{SandboxConfig, ExecutionContext};
+//! use do_memory_core::SelfLearningMemory;
+//! use do_memory_mcp::server::MemoryMCPServer;
+//! use do_memory_mcp::types::{SandboxConfig, ExecutionContext};
 //! use serde_json::json;
 //! use std::sync::Arc;
 //!

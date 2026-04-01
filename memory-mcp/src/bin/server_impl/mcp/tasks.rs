@@ -2,7 +2,7 @@
 //!
 //! Handlers for task/create, task/update, task/complete, task/cancel, and task/list.
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Mutex;

@@ -33,8 +33,8 @@
 //! ## Basic Spatiotemporal Index
 //!
 //! ```
-//! use memory_core::indexing::{SpatiotemporalIndex, TimeBucket};
-//! use memory_core::{Episode, TaskContext, TaskType};
+//! use do_memory_core::indexing::{SpatiotemporalIndex, TimeBucket};
+//! use do_memory_core::{Episode, TaskContext, TaskType};
 //!
 //! let mut index = SpatiotemporalIndex::new();
 //!
@@ -59,8 +59,8 @@
 //! ## Hierarchical Index
 //!
 //! ```
-//! use memory_core::indexing::{HierarchicalIndex, HierarchicalQuery};
-//! use memory_core::{Episode, TaskContext, TaskType};
+//! use do_memory_core::indexing::{HierarchicalIndex, HierarchicalQuery};
+//! use do_memory_core::{Episode, TaskContext, TaskType};
 //!
 //! let mut index = HierarchicalIndex::new();
 //!

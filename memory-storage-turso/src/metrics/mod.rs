@@ -13,7 +13,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_storage_turso::metrics::{TursoMetrics, MetricsCollector};
+//! use do_memory_storage_turso::metrics::{TursoMetrics, MetricsCollector};
 //!
 //! let metrics = TursoMetrics::new();
 //! ```

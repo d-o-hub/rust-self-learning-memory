@@ -3,7 +3,7 @@
 //! This test validates that the MCP server always produces valid JSON-RPC responses
 //! that can be parsed by clients, addressing issue #143.
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
+use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
 
 #[test]
 fn test_valid_jsonrpc_response() {

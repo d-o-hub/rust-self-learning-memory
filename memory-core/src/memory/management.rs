@@ -38,7 +38,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();

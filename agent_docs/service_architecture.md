@@ -17,13 +17,13 @@ The memory management system provides persistent memory across agent interaction
 
 ## Current Status
 
-- **9 workspace members**: memory-core, memory-storage-turso, memory-storage-redb, memory-mcp, memory-cli, test-utils, benches, tests, examples
+- **9 workspace members**: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches, tests, examples
 - **Test coverage**: exceeds 90% target
 - **File size compliance**: 100% (≤500 LOC per file)
 
 ## Workspace Members
 
-### 1. Memory Core (`memory-core/`)
+### 1. Memory Core (`do-memory-core/`)
 **Purpose**: Core memory operations and embeddings (~44,250 LOC)
 
 **Module Breakdown** (by size):
@@ -67,7 +67,7 @@ The memory management system provides persistent memory across agent interaction
 - `src/episode.rs` - Episode lifecycle
 - `src/storage/` - Storage abstraction layer
 
-### 2. Turso Storage (`memory-storage-turso/`)
+### 2. Turso Storage (`do-memory-storage-turso/`)
 **Purpose**: Primary persistent database storage (libSQL)
 
 **Features**:
@@ -87,7 +87,7 @@ The memory management system provides persistent memory across agent interaction
 - Configurable via environment variables
 - Automatic connection reuse
 
-### 3. Redb Cache (`memory-storage-redb/`)
+### 3. Redb Cache (`do-memory-storage-redb/`)
 **Purpose**: High-performance cache layer
 
 **Features**:
@@ -104,7 +104,7 @@ The memory management system provides persistent memory across agent interaction
 
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
-### 4. MCP Server (`memory-mcp/)
+### 4. MCP Server (`do-memory-mcp/)
 **Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
 
 **Architecture**:
@@ -140,7 +140,7 @@ The memory management system provides persistent memory across agent interaction
 - Error handling and recovery
 - Security boundaries enforcement
 
-### 5. CLI Interface (`memory-cli/`)
+### 5. CLI Interface (`do-memory-cli/`)
 **Purpose**: Command-line interface for memory operations (~13,690 LOC)
 
 **Commands** (9 main commands + 9 aliases):
@@ -166,7 +166,7 @@ The memory management system provides persistent memory across agent interaction
 - JSON
 - YAML
 
-### 6. Test Utils (`test-utils/`)
+### 6. Test Utils (`do-memory-test-utils/`)
 **Purpose**: Shared testing utilities
 
 **Features**:
@@ -250,8 +250,8 @@ TURSO_POOL_SIZE=10
 ```
 
 ### Configuration Files
-- `memory-cli.toml` - CLI configuration
-- `memory-cli/config/` - User-specific settings
+- `do-memory-cli.toml` - CLI configuration
+- `do-memory-cli/config/` - User-specific settings
 - `.env` - Environment variables (NOT in git)
 - `rust-toolchain.toml` - Rust version
 
@@ -297,8 +297,8 @@ TURSO_POOL_SIZE=10
 ## Monitoring
 
 ### Health Checks
-- `memory-mcp_health_check` - System status
-- `memory-mcp_get_metrics` - Performance metrics
+- `do-memory-mcp_health_check` - System status
+- `do-memory-mcp_get_metrics` - Performance metrics
 - Database connectivity monitoring
 - Cache hit rate tracking
 
@@ -322,7 +322,7 @@ TURSO_POOL_SIZE=10
 ```bash
 # Local development setup
 ./scripts/setup-local-db.sh
-cargo run --bin memory-mcp
+cargo run --bin do-memory-mcp
 ```
 
 ### Production

@@ -12,7 +12,7 @@ mod integration_tests {
         use crate::mcp::tools::embeddings::ConfigureEmbeddingsInput;
         use crate::server::MemoryMCPServer;
         use crate::types::SandboxConfig;
-        use memory_core::SelfLearningMemory;
+        use do_memory_core::SelfLearningMemory;
         use std::sync::Arc;
 
         let memory = Arc::new(SelfLearningMemory::new());
@@ -58,7 +58,7 @@ mod integration_tests {
         use crate::mcp::tools::embeddings::QuerySemanticMemoryInput;
         use crate::server::MemoryMCPServer;
         use crate::types::SandboxConfig;
-        use memory_core::SelfLearningMemory;
+        use do_memory_core::SelfLearningMemory;
         use std::sync::Arc;
 
         let memory = Arc::new(SelfLearningMemory::new());
@@ -103,7 +103,7 @@ mod integration_tests {
         // This test verifies that the handler method exists and is callable
         use crate::server::MemoryMCPServer;
         use crate::types::SandboxConfig;
-        use memory_core::SelfLearningMemory;
+        use do_memory_core::SelfLearningMemory;
         use std::sync::Arc;
 
         let memory = Arc::new(SelfLearningMemory::new());

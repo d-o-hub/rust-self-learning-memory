@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 /// # Examples
 ///
 /// ```
-/// use memory_core::pre_storage::SalientFeatures;
+/// use do_memory_core::pre_storage::SalientFeatures;
 ///
 /// let features = SalientFeatures {
 ///     critical_decisions: vec![
@@ -52,7 +52,7 @@ impl SalientFeatures {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::pre_storage::SalientFeatures;
+    /// use do_memory_core::pre_storage::SalientFeatures;
     ///
     /// let features = SalientFeatures::new();
     /// assert!(features.is_empty());
@@ -76,7 +76,7 @@ impl SalientFeatures {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::pre_storage::SalientFeatures;
+    /// use do_memory_core::pre_storage::SalientFeatures;
     ///
     /// let empty = SalientFeatures::new();
     /// assert!(empty.is_empty());
@@ -102,7 +102,7 @@ impl SalientFeatures {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::pre_storage::SalientFeatures;
+    /// use do_memory_core::pre_storage::SalientFeatures;
     ///
     /// let mut features = SalientFeatures::new();
     /// features.critical_decisions.push("Decision 1".to_string());

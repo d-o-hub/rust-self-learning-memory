@@ -10,7 +10,7 @@
 mod common;
 
 use common::{ContextBuilder, StepBuilder, setup_test_memory};
-use memory_core::{ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use do_memory_core::{ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 use uuid::Uuid;
 
 /// Test data for large input scenarios
@@ -360,7 +360,7 @@ async fn should_provide_type_safe_uuid_handling() {
 
     // And: The error should contain the UUID we queried
     match result {
-        Err(memory_core::Error::NotFound(id)) => {
+        Err(do_memory_core::Error::NotFound(id)) => {
             assert_eq!(id, valid_id, "Error should contain the UUID we queried");
         }
         _ => panic!("Expected NotFound error"),

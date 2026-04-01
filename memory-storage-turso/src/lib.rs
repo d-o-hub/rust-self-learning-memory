@@ -27,7 +27,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_storage_turso::TursoStorage;
+//! use do_memory_storage_turso::TursoStorage;
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! let storage = TursoStorage::new("libsql://localhost:8080", "token").await?;
@@ -36,7 +36,7 @@
 //! # }
 //! ```
 
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 
 // Cache module for performance optimization
 pub mod cache;

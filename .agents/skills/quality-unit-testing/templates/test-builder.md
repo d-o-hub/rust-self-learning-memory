@@ -145,7 +145,7 @@ fn test_using_named_constructor() {
 ## Create Builder in test_utils
 
 ```rust
-// In test-utils/src/lib.rs or test-utils/src/builders.rs
+// In do-memory-test-utils/src/lib.rs or do-memory-test-utils/src/builders.rs
 
 pub struct EpisodeBuilder {
     // ... fields ...

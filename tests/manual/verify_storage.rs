@@ -1,4 +1,4 @@
-use memory_storage_redb::RedbStorage;
+use do_memory_storage_redb::RedbStorage;
 use uuid::Uuid;
 
 #[tokio::main]
@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Try Turso storage
     println!("\nChecking Turso storage...");
-    let turso = memory_storage_turso::TursoStorage::new("file:./data/memory.db", "").await?;
+    let turso = do_memory_storage_turso::TursoStorage::new("file:./data/memory.db", "").await?;
     let turso_episode = turso.get_episode(episode_id).await?;
 
     match turso_episode {

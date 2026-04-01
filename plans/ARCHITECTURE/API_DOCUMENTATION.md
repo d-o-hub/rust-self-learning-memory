@@ -9,22 +9,22 @@
 
 ## Purpose
 
-This document provides comprehensive API documentation for all public APIs in the Self-Learning Memory System. It covers the main crates: `memory-core`, `memory-storage-turso`, `memory-storage-redb`, and `memory-mcp`.
+This document provides comprehensive API documentation for all public APIs in the Self-Learning Memory System. It covers the main crates: `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, and `do-memory-mcp`.
 
 ---
 
 ## Table of Contents
 
-1. [memory-core API](#memory-core-api)
-2. [memory-storage-turso API](#memory-storage-turso-api)
-3. [memory-storage-redb API](#memory-storage-redb-api)
-4. [memory-mcp API](#memory-mcp-api)
+1. [do-memory-core API](#do-memory-core-api)
+2. [do-memory-storage-turso API](#do-memory-storage-turso-api)
+3. [do-memory-storage-redb API](#do-memory-storage-redb-api)
+4. [do-memory-mcp API](#do-memory-mcp-api)
 5. [Configuration Types](#configuration-types)
 6. [Examples](#examples)
 
 ---
 
-## memory-core API
+## do-memory-core API
 
 ### Core Types
 
@@ -32,7 +32,7 @@ This document provides comprehensive API documentation for all public APIs in th
 
 The main orchestrator for episodic memory management.
 
-**Location**: `memory-core/src/memory/mod.rs`
+**Location**: `do-memory-core/src/memory/mod.rs`
 
 ```rust
 pub struct SelfLearningMemory {
@@ -133,7 +133,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Represents a complete execution episode.
 
-**Location**: `memory-core/src/episode.rs`
+**Location**: `do-memory-core/src/episode.rs`
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -239,7 +239,7 @@ pub enum TaskType {
 
 Abstract interface for pattern extraction strategies.
 
-**Location**: `memory-core/src/patterns/extractor.rs`
+**Location**: `do-memory-core/src/patterns/extractor.rs`
 
 ```rust
 #[async_trait]
@@ -260,7 +260,7 @@ pub trait PatternExtractor: Send + Sync {
 
 Represents a learned pattern.
 
-**Location**: `memory-core/src/patterns/types.rs`
+**Location**: `do-memory-core/src/patterns/types.rs`
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -307,7 +307,7 @@ pub enum Pattern {
 
 Combines multiple extraction strategies.
 
-**Location**: `memory-core/src/patterns/extractors/hybrid.rs`
+**Location**: `do-memory-core/src/patterns/extractors/hybrid.rs`
 
 ```rust
 pub struct HybridPatternExtractor {
@@ -337,7 +337,7 @@ impl HybridPatternExtractor {
 
 Calculates reward scores for completed episodes.
 
-**Location**: `memory-core/src/reward.rs`
+**Location**: `do-memory-core/src/reward.rs`
 
 ```rust
 pub struct RewardCalculator {
@@ -402,7 +402,7 @@ pub struct RewardScore {
 
 Abstract interface for embedding generation.
 
-**Location**: `memory-core/src/embeddings/provider.rs`
+**Location**: `do-memory-core/src/embeddings/provider.rs`
 
 ```rust
 #[async_trait]
@@ -426,7 +426,7 @@ pub trait EmbeddingProvider: Send + Sync {
 
 Offline embeddings using local models.
 
-**Location**: `memory-core/src/embeddings/local.rs`
+**Location**: `do-memory-core/src/embeddings/local.rs`
 
 ```rust
 pub struct LocalEmbeddingProvider {
@@ -485,7 +485,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Abstract interface for storage backends.
 
-**Location**: `memory-core/src/storage/mod.rs`
+**Location**: `do-memory-core/src/storage/mod.rs`
 
 ```rust
 #[async_trait]
@@ -548,13 +548,13 @@ pub struct PatternQuery {
 
 ---
 
-## memory-storage-turso API
+## do-memory-storage-turso API
 
 ### TursoStorage
 
 Primary storage implementation using Turso/libSQL.
 
-**Location**: `memory-storage-turso/src/storage.rs`
+**Location**: `do-memory-storage-turso/src/storage.rs`
 
 ```rust
 pub struct TursoStorage {
@@ -634,7 +634,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Manages a pool of Turso connections.
 
-**Location**: `memory-storage-turso/src/pool.rs`
+**Location**: `do-memory-storage-turso/src/pool.rs`
 
 ```rust
 pub struct ConnectionPool {
@@ -665,13 +665,13 @@ impl ConnectionPool {
 
 ---
 
-## memory-storage-redb API
+## do-memory-storage-redb API
 
 ### RedbStorage
 
 Cache layer implementation using redb.
 
-**Location**: `memory-storage-redb/src/storage.rs`
+**Location**: `do-memory-storage-redb/src/storage.rs`
 
 ```rust
 pub struct RedbStorage {
@@ -726,7 +726,7 @@ pub struct RedbConfig {
 
 In-memory LRU cache.
 
-**Location**: `memory-storage-redb/src/cache.rs`
+**Location**: `do-memory-storage-redb/src/cache.rs`
 
 ```rust
 pub struct LRUCache {
@@ -761,13 +761,13 @@ impl LRUCache {
 
 ---
 
-## memory-mcp API
+## do-memory-mcp API
 
 ### MemoryMCPServer
 
 Main MCP server implementation.
 
-**Location**: `memory-mcp/src/server.rs`
+**Location**: `do-memory-mcp/src/server.rs`
 
 ```rust
 pub struct MemoryMCPServer {
@@ -991,7 +991,7 @@ async fn handle_advanced_pattern_analysis(
 
 Abstract sandbox supporting multiple backends.
 
-**Location**: `memory-mcp/src/unified_sandbox.rs`
+**Location**: `do-memory-mcp/src/unified_sandbox.rs`
 
 ```rust
 pub struct UnifiedSandbox {
@@ -1054,7 +1054,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### MemoryConfig
 
-Configuration for memory-core.
+Configuration for do-memory-core.
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1311,7 +1311,7 @@ fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 
 ### MemoryError
 
-Error type for memory-core operations.
+Error type for do-memory-core operations.
 
 ```rust
 #[derive(Debug, thiserror::Error)]
@@ -1393,10 +1393,10 @@ Current version: **0.1.7**
 
 ## References
 
-- [memory-core Documentation](../../memory-core/README.md)
-- [memory-storage-turso Documentation](../../memory-storage-turso/README.md)
-- [memory-storage-redb Documentation](../../memory-storage-redb/README.md)
-- [memory-mcp Documentation](../../memory-mcp/README.md)
+- [do-memory-core Documentation](../../do-memory-core/README.md)
+- [do-memory-storage-turso Documentation](../../do-memory-storage-turso/README.md)
+- [do-memory-storage-redb Documentation](../../do-memory-storage-redb/README.md)
+- [do-memory-mcp Documentation](../../do-memory-mcp/README.md)
 - [Architecture Decision Records](../adr/)
 - Current Architecture - See ROADMAP_ACTIVE.md for current state
 

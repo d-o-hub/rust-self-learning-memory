@@ -1,4 +1,4 @@
-use memory_core::memory::playbook::{
+use do_memory_core::memory::playbook::{
     PlaybookPitfall, PlaybookStep, PlaybookSynthesisSource, RecommendedPlaybook,
 };
 use proptest::prelude::*;

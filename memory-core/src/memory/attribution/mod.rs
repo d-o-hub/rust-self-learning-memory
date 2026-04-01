@@ -19,10 +19,10 @@
 //! # Example
 //!
 //! ```no_run
-//! use memory_core::memory::attribution::{
+//! use do_memory_core::memory::attribution::{
 //!     RecommendationTracker, RecommendationSession, RecommendationFeedback,
 //! };
-//! use memory_core::TaskOutcome;
+//! use do_memory_core::TaskOutcome;
 //! use uuid::Uuid;
 //! use chrono::Utc;
 //!

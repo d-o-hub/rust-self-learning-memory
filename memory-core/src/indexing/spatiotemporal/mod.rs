@@ -222,7 +222,7 @@ impl SpatiotemporalIndex {
     /// # Example
     ///
     /// ```
-    /// use memory_core::indexing::spatiotemporal::{SpatiotemporalIndex, TimeBucket};
+    /// use do_memory_core::indexing::spatiotemporal::{SpatiotemporalIndex, TimeBucket};
     ///
     /// let index = SpatiotemporalIndex::new();
     ///

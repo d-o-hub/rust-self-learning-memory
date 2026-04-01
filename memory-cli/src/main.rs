@@ -25,7 +25,7 @@ use config::{initialize_storage, load_config_with_validation};
 use output::OutputFormat;
 
 #[derive(Parser)]
-#[command(name = "memory-cli")]
+#[command(name = "do-memory-cli")]
 #[command(about = "Command-line interface for Self-Learning Memory System")]
 #[command(version, long_about = None)]
 struct Cli {
@@ -141,6 +141,12 @@ enum Commands {
     Feedback {
         #[command(subcommand)]
         command: FeedbackCommands,
+    },
+    /// External signal provider management
+    #[command(alias = "sig", name = "external-signal")]
+    ExternalSignal {
+        #[command(subcommand)]
+        command: crate::commands::ExternalSignalCommands,
     },
 }
 
@@ -274,7 +280,7 @@ async fn main() -> anyhow::Result<()> {
             clap_complete::generate(
                 shell,
                 &mut Cli::command(),
-                "memory-cli",
+                "do-memory-cli",
                 &mut std::io::stdout(),
             );
             Ok(())
@@ -311,6 +317,16 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Feedback { command } => {
             handle_feedback_command(
+                command,
+                &storage_result.memory,
+                &config,
+                cli.format,
+                cli.dry_run,
+            )
+            .await
+        }
+        Commands::ExternalSignal { command } => {
+            handle_external_signal_command(
                 command,
                 &storage_result.memory,
                 &config,

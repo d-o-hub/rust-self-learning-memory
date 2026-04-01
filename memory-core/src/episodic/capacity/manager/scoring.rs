@@ -24,8 +24,8 @@ use crate::episode::Episode;
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::episodic::{CapacityManager, EvictionPolicy};
-/// use memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
+/// use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+/// use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
 ///
 /// let manager = CapacityManager::new(100, EvictionPolicy::RelevanceWeighted);
 ///

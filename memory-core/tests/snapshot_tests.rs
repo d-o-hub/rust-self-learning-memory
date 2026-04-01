@@ -3,9 +3,9 @@
 //! These tests verify that error messages remain consistent across changes.
 //! Part of ADR-033 Phase 6.
 
+use do_memory_core::episode::RelationshipType;
+use do_memory_core::error::{CacheError, Error, RelationshipError};
 use insta::assert_snapshot;
-use memory_core::episode::RelationshipType;
-use memory_core::error::{CacheError, Error, RelationshipError};
 use uuid::Uuid;
 
 // =============================================================================

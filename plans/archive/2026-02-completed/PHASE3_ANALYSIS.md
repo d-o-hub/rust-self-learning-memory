@@ -18,14 +18,14 @@
 ## Key Findings
 
 ### 1. Existing Cache Infrastructure
-**Discovery**: `memory-storage-redb` already has an adaptive cache implementation!
+**Discovery**: `do-memory-storage-redb` already has an adaptive cache implementation!
 
 **Files Found**:
-- `memory-storage-redb/src/cache/adaptive/mod.rs` (345 lines)
-- `memory-storage-redb/src/cache/adaptive/entry.rs`
-- `memory-storage-redb/src/cache/adaptive/state.rs`
-- `memory-storage-redb/src/cache/adaptive/tests.rs`
-- `memory-storage-redb/src/cache/adaptive/types.rs`
+- `do-memory-storage-redb/src/cache/adaptive/mod.rs` (345 lines)
+- `do-memory-storage-redb/src/cache/adaptive/entry.rs`
+- `do-memory-storage-redb/src/cache/adaptive/state.rs`
+- `do-memory-storage-redb/src/cache/adaptive/tests.rs`
+- `do-memory-storage-redb/src/cache/adaptive/types.rs`
 
 **Public API**:
 ```rust

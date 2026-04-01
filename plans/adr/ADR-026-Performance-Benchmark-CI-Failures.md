@@ -5,7 +5,7 @@
 
 ## Context
 
-`benchmark_streaming_performance` in `memory-mcp/src/patterns/benchmarks.rs` fails in CI due to timing variability. The test requires minimum throughput:
+`benchmark_streaming_performance` in `do-memory-mcp/src/patterns/benchmarks.rs` fails in CI due to timing variability. The test requires minimum throughput:
 - Local: 100 pts/sec
 - CI: 10 pts/sec
 

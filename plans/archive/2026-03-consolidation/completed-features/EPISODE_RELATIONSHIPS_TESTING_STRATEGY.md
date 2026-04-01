@@ -38,9 +38,9 @@ This document outlines the comprehensive testing strategy for the Episode Relati
 
 | Module | Tests | Status | Coverage |
 |--------|-------|--------|----------|
-| `memory-core/relationships.rs` | Data structures only | N/A | 100% |
-| `memory-storage-turso/relationships.rs` | 5 | ✅ All passing | 100% |
-| `memory-storage-redb/relationships.rs` | 6 | ✅ All passing | 100% |
+| `do-memory-core/relationships.rs` | Data structures only | N/A | 100% |
+| `do-memory-storage-turso/relationships.rs` | 5 | ✅ All passing | 100% |
+| `do-memory-storage-redb/relationships.rs` | 6 | ✅ All passing | 100% |
 | **Phase 1 Total** | **11** | **✅** | **100%** |
 
 ### Test Details
@@ -108,16 +108,16 @@ This document outlines the comprehensive testing strategy for the Episode Relati
 
 ```bash
 # Run all Turso tests
-cargo test -p memory-storage-turso relationships -- --nocapture
+cargo test -p do-memory-storage-turso relationships -- --nocapture
 
 # Run all Redb tests
-cargo test -p memory-storage-redb relationships -- --nocapture
+cargo test -p do-memory-storage-redb relationships -- --nocapture
 
 # Run specific test
-cargo test -p memory-storage-turso test_add_relationship -- --exact
+cargo test -p do-memory-storage-turso test_add_relationship -- --exact
 
 # With debug logging
-RUST_LOG=debug cargo test -p memory-storage-turso relationships
+RUST_LOG=debug cargo test -p do-memory-storage-turso relationships
 ```
 
 ---
@@ -379,7 +379,7 @@ For each of 7 commands, test:
 
 1. **`test_cli_add_relationship_success`**
    ```rust
-   let output = Command::new("memory-cli")
+   let output = Command::new("do-memory-cli")
        .args(&["episode", "add-relationship", "abc-123", 
                "--to", "def-456", "--type", "depends_on"])
        .output()
@@ -389,7 +389,7 @@ For each of 7 commands, test:
 
 2. **`test_cli_add_relationship_missing_arg`**
    ```rust
-   let output = Command::new("memory-cli")
+   let output = Command::new("do-memory-cli")
        .args(&["episode", "add-relationship", "abc-123"])
        .output()
        .expect("Failed to execute");
@@ -548,9 +548,9 @@ For each of 7 commands, test:
 cargo test --workspace
 
 # Run specific phase tests
-cargo test -p memory-core relationships
-cargo test -p memory-storage-turso relationships
-cargo test -p memory-mcp relationships
+cargo test -p do-memory-core relationships
+cargo test -p do-memory-storage-turso relationships
+cargo test -p do-memory-mcp relationships
 
 # Run with coverage
 cargo tarpaulin --workspace --out Html --output-dir coverage

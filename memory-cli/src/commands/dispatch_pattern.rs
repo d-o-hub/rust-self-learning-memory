@@ -5,7 +5,7 @@ use crate::output::OutputFormat;
 
 pub async fn handle_pattern_command(
     command: PatternCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -72,7 +72,7 @@ pub async fn handle_pattern_command(
         } => pattern::decay_patterns(memory, config, format, decay_dry_run || dry_run, force).await,
         #[cfg(feature = "turso")]
         PatternCommands::Batch { command } => {
-            use memory_storage_turso::TursoStorage;
+            use do_memory_storage_turso::TursoStorage;
             let turso_url = config
                 .database
                 .turso_url

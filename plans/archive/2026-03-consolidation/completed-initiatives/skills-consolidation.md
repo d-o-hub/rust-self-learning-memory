@@ -28,7 +28,7 @@ This plan consolidates skills from two directories into a unified `.agents/skill
    - Both have valuable content
 
 3. **Unique Skills**:
-   - `.opencode`: build-rust, memory-mcp (no, exists in .claude too), rust-code-quality
+   - `.opencode`: build-rust, do-memory-mcp (no, exists in .claude too), rust-code-quality
    - `.claude`: 40+ skills including agentdb-*, v3-*, codebase-*, quality-unit-testing
 
 ## 1. Consolidation Strategy
@@ -246,7 +246,7 @@ fi
 Skills requiring manual comparison:
 - analysis-swarm (515 vs 41 lines + 4 supporting files)
 - goap-agent (893 vs 48 lines + 6 supporting files)
-- memory-mcp (475 vs 67 lines + 5 supporting files)
+- do-memory-mcp (475 vs 67 lines + 5 supporting files)
 
 ### 4.2 Supporting File Conflicts
 
@@ -586,7 +586,7 @@ rm -rf .agents/skills
 - github-workflows (5)
 - goap-agent (7)
 - loop-agent (5)
-- memory-cli-ops (4)
+- do-memory-cli-ops (4)
 - quality-unit-testing (11 + subdirs)
 - rust-async-testing (4 + resources/)
 - skill-creator (7)

@@ -13,8 +13,8 @@
 #![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use std::hint::black_box;
-use memory_core::{Episode, Pattern, StorageBackend, TaskContext, TaskType};
-use memory_storage_turso::{CacheConfig, TursoStorage};
+use do_memory_core::{Episode, Pattern, StorageBackend, TaskContext, TaskType};
+use do_memory_storage_turso::{CacheConfig, TursoStorage};
 use std::collections::HashMap;
 use std::time::Duration;
 use tempfile::tempdir;
@@ -34,7 +34,7 @@ fn create_test_episode(id: Uuid, domain: &str) -> Episode {
             domain: domain.to_string(),
             language: Some("rust".to_string()),
             framework: None,
-            complexity: memory_core::types::ComplexityLevel::Simple,
+            complexity: do_memory_core::types::ComplexityLevel::Simple,
             tags: vec![],
         },
         start_time: chrono::Utc::now(),

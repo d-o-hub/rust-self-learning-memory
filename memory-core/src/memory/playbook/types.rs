@@ -18,7 +18,7 @@ use crate::types::TaskType;
 /// # Example
 ///
 /// ```
-/// use memory_core::memory::playbook::PlaybookStep;
+/// use do_memory_core::memory::playbook::PlaybookStep;
 ///
 /// let step = PlaybookStep {
 ///     order: 1,
@@ -173,7 +173,7 @@ impl PlaybookSynthesisSource {
 /// # Example
 ///
 /// ```
-/// use memory_core::memory::playbook::{RecommendedPlaybook, PlaybookStep, PlaybookPitfall};
+/// use do_memory_core::memory::playbook::{RecommendedPlaybook, PlaybookStep, PlaybookPitfall};
 /// use uuid::Uuid;
 /// use chrono::Utc;
 ///

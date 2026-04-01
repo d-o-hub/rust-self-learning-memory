@@ -9,7 +9,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::embeddings::{
+use do_memory_core::embeddings::{
     cosine_similarity, EmbeddingProvider, OpenAIConfig, OpenAIEmbeddingProvider, OpenAIModel,
 };
 use std::env;

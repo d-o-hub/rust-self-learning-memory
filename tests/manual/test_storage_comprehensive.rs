@@ -1,9 +1,9 @@
 // Comprehensive test of memory-mcp with Turso and redb
 // This demonstrates actual usage of both storage backends
 
-use memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType, ExecutionStep};
-use memory_storage_turso::{TursoConfig, TursoStorage};
-use memory_storage_redb::{CacheConfig, RedbStorage};
+use do_memory_core::{ComplexityLevel, SelfLearningMemory, TaskContext, TaskOutcome, TaskType, ExecutionStep};
+use do_memory_storage_turso::{TursoConfig, TursoStorage};
+use do_memory_storage_redb::{CacheConfig, RedbStorage};
 use serde_json::json;
 use std::sync::Arc;
 use std::path::Path;

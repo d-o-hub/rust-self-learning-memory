@@ -4,7 +4,7 @@
 
 use crate::types::Tool;
 use anyhow::Result;
-use memory_core::{Episode, Pattern, TaskOutcome};
+use do_memory_core::{Episode, Pattern, TaskOutcome};
 use serde_json::json;
 use std::collections::HashMap;
 use tracing::debug;
@@ -100,11 +100,11 @@ impl crate::server::MemoryMCPServer {
         let start = std::time::Instant::now();
 
         // Build task context from parameters
-        let context = memory_core::TaskContext {
+        let context = do_memory_core::TaskContext {
             domain,
             language: None,
             framework: None,
-            complexity: memory_core::ComplexityLevel::Moderate,
+            complexity: do_memory_core::ComplexityLevel::Moderate,
             tags: task_type
                 .as_ref()
                 .map(|t| vec![t.clone()])
@@ -261,11 +261,11 @@ impl crate::server::MemoryMCPServer {
         );
 
         // Build context for pattern retrieval
-        let context = memory_core::TaskContext {
+        let context = do_memory_core::TaskContext {
             domain: task_type.clone(),
             language: None,
             framework: None,
-            complexity: memory_core::ComplexityLevel::Moderate,
+            complexity: do_memory_core::ComplexityLevel::Moderate,
             tags: vec![task_type],
         };
 
@@ -352,7 +352,7 @@ impl crate::server::MemoryMCPServer {
     pub async fn get_episodes_by_ids(
         &self,
         episode_ids: &[uuid::Uuid],
-    ) -> Result<Vec<memory_core::Episode>> {
+    ) -> Result<Vec<do_memory_core::Episode>> {
         self.track_tool_usage("bulk_episodes").await;
 
         debug!("Bulk retrieving {} episodes", episode_ids.len());

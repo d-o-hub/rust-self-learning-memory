@@ -73,8 +73,8 @@ The skills system has undergone a **consolidation migration** that created criti
 ✅ goap-agent (48 lines)
 ✅ hooks-automation (1201 lines)
 ✅ loop-agent (43 lines)
-✅ memory-cli-ops (52 lines)
-✅ memory-mcp (67 lines)
+✅ do-memory-cli-ops (52 lines)
+✅ do-memory-mcp (67 lines)
 ✅ pair-programming (1202 lines)
 ✅ parallel-execution (72 lines)
 ✅ perplexity-researcher-pro (428 lines)
@@ -915,8 +915,8 @@ rm -rf .agents/skills/skill/
 | goap-agent | 48 | ✅ | |
 | hooks-automation | 1201 | ⚠️ | **500+ LOC: Consider splitting** |
 | loop-agent | 43 | ✅ | |
-| memory-cli-ops | 52 | ✅ | |
-| memory-mcp | 67 | ✅ | |
+| do-memory-cli-ops | 52 | ✅ | |
+| do-memory-mcp | 67 | ✅ | |
 | pair-programming | 1202 | ⚠️ | **500+ LOC: Consider splitting** |
 | parallel-execution | 72 | ✅ | |
 | perplexity-researcher-pro | 428 | ✅ | |
@@ -1167,7 +1167,7 @@ Efficiently build Rust workspaces with the build-rust CLI.
 ./scripts/build-rust.sh clean
 
 # Build specific crate
-./scripts/build-rust.sh release memory-core
+./scripts/build-rust.sh release do-memory-core
 ```
 
 ## Modes

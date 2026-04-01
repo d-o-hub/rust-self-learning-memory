@@ -49,9 +49,9 @@ Verified all roadmap claims against actual code to categorize gaps accurately:
 
 | Subsystem | Location | Gap |
 |-----------|----------|-----|
-| Adaptive TTL | `memory-storage-turso/src/cache/adaptive_ttl.rs` (435 LOC) | Not integrated into `TursoStorage` query paths |
-| Transport Compression | `memory-storage-turso/src/transport/wrapper.rs` | `CompressedTransport` only used in tests; `TursoConfig.enable_transport_compression` flag unused in constructors |
-| Adaptive Cache | `memory-storage-redb/src/cache/adaptive/` (327 LOC) | `RedbStorage` creates `LRUCache`; AdaptiveCache has different interface (stores values vs metadata) |
+| Adaptive TTL | `do-memory-storage-turso/src/cache/adaptive_ttl.rs` (435 LOC) | Not integrated into `TursoStorage` query paths |
+| Transport Compression | `do-memory-storage-turso/src/transport/wrapper.rs` | `CompressedTransport` only used in tests; `TursoConfig.enable_transport_compression` flag unused in constructors |
+| Adaptive Cache | `do-memory-storage-redb/src/cache/adaptive/` (327 LOC) | `RedbStorage` creates `LRUCache`; AdaptiveCache has different interface (stores values vs metadata) |
 
 #### Not Built (Updated 2026-03-13)
 

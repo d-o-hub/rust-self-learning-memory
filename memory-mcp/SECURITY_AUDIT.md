@@ -32,7 +32,7 @@ Comprehensive security hardening has been implemented for the MCP sandbox. The s
 
 ### 1.1 Enhanced Resource Limits
 
-**Location**: `memory-mcp/src/types.rs`
+**Location**: `do-memory-mcp/src/types.rs`
 
 ```rust
 pub struct ResourceLimits {
@@ -55,7 +55,7 @@ pub struct ResourceLimits {
 
 ### 1.2 Process Isolation
 
-**Location**: `memory-mcp/src/sandbox/isolation.rs`
+**Location**: `do-memory-mcp/src/sandbox/isolation.rs`
 
 **Features**:
 - Separate Node.js process execution
@@ -82,7 +82,7 @@ pub struct IsolationConfig {
 
 ### 1.3 File System Restrictions
 
-**Location**: `memory-mcp/src/sandbox/fs.rs`
+**Location**: `do-memory-mcp/src/sandbox/fs.rs`
 
 **Features**:
 - Whitelist-only file access
@@ -116,7 +116,7 @@ pub struct FileSystemRestrictions {
 
 ### 1.4 Network Access Control
 
-**Location**: `memory-mcp/src/sandbox/network.rs`
+**Location**: `do-memory-mcp/src/sandbox/network.rs`
 
 **Features**:
 - Block all network access by default
@@ -369,17 +369,17 @@ The MCP sandbox has been comprehensively hardened with multiple layers of securi
 ## 9. Files Modified/Created
 
 ### Created:
-- `memory-mcp/src/sandbox/isolation.rs` (271 lines) - Process isolation
-- `memory-mcp/src/sandbox/fs.rs` (385 lines) - File system restrictions
-- `memory-mcp/src/sandbox/network.rs` (409 lines) - Network access control
-- `memory-mcp/tests/penetration_tests.rs` (663 lines) - Comprehensive pentests
-- `memory-mcp/SECURITY_AUDIT.md` (this document)
+- `do-memory-mcp/src/sandbox/isolation.rs` (271 lines) - Process isolation
+- `do-memory-mcp/src/sandbox/fs.rs` (385 lines) - File system restrictions
+- `do-memory-mcp/src/sandbox/network.rs` (409 lines) - Network access control
+- `do-memory-mcp/tests/penetration_tests.rs` (663 lines) - Comprehensive pentests
+- `do-memory-mcp/SECURITY_AUDIT.md` (this document)
 
 ### Modified:
-- `memory-mcp/src/sandbox.rs` - Added security module imports
-- `memory-mcp/src/types.rs` - Added ResourceLimits struct
-- `memory-mcp/src/lib.rs` - Exported new security types
-- `memory-mcp/Cargo.toml` - Added `url` and `libc` dependencies
+- `do-memory-mcp/src/sandbox.rs` - Added security module imports
+- `do-memory-mcp/src/types.rs` - Added ResourceLimits struct
+- `do-memory-mcp/src/lib.rs` - Exported new security types
+- `do-memory-mcp/Cargo.toml` - Added `url` and `libc` dependencies
 
 ### Total Lines of Code Added: ~1,750 lines
 

@@ -10,8 +10,8 @@
 //! # Examples
 //!
 //! ```no_run
-//! use memory_core::episodic::{CapacityManager, EvictionPolicy};
-//! use memory_core::{Episode, TaskContext, TaskType};
+//! use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
+//! use do_memory_core::{Episode, TaskContext, TaskType};
 //!
 //! let manager = CapacityManager::new(1000, EvictionPolicy::RelevanceWeighted);
 //!

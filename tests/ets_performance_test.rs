@@ -1,6 +1,6 @@
 #!/usr/bin/env cargo run --bin ets_performance_test
 
-use memory_mcp::patterns::predictive::*;
+use do_memory_mcp::patterns::predictive::*;
 use std::collections::HashMap;
 use std::time::Instant;
 

@@ -326,7 +326,7 @@ println!("Rejection rate: {:.1}%", rejection_rate * 100.0);
 Full API documentation is available via:
 
 ```bash
-cargo doc --package memory-core --open
+cargo doc --package do-memory-core --open
 ```
 
 Look for `memory_core::pre_storage` module.

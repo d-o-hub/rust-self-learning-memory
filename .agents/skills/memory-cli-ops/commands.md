@@ -5,9 +5,9 @@
 ### Create Episode
 
 ```bash
-memory-cli episode create --task "task description" [--context context.json]
+do-memory-cli episode create --task "task description" [--context context.json]
 # Alias
-memory-cli ep create -t "task description" [-c context.json]
+do-memory-cli ep create -t "task description" [-c context.json]
 ```
 
 **Options**:
@@ -17,9 +17,9 @@ memory-cli ep create -t "task description" [-c context.json]
 ### List Episodes
 
 ```bash
-memory-cli episode list [OPTIONS]
+do-memory-cli episode list [OPTIONS]
 # Alias
-memory-cli ep list [OPTIONS]
+do-memory-cli ep list [OPTIONS]
 ```
 
 **Options**:
@@ -30,15 +30,15 @@ memory-cli ep list [OPTIONS]
 ### View Episode Details
 
 ```bash
-memory-cli episode view <EPISODE_ID>
-memory-cli ep view <EPISODE_ID>
+do-memory-cli episode view <EPISODE_ID>
+do-memory-cli ep view <EPISODE_ID>
 ```
 
 ### Complete Episode
 
 ```bash
-memory-cli episode complete <EPISODE_ID> <OUTCOME>
-memory-cli ep complete <EPISODE_ID> <OUTCOME>
+do-memory-cli episode complete <EPISODE_ID> <OUTCOME>
+do-memory-cli ep complete <EPISODE_ID> <OUTCOME>
 ```
 
 **Outcomes**: `success`, `partial`, `failed`
@@ -46,8 +46,8 @@ memory-cli ep complete <EPISODE_ID> <OUTCOME>
 ### Log Execution Step
 
 ```bash
-memory-cli episode log-step <EPISODE_ID> [OPTIONS]
-memory-cli ep log-step <EPISODE_ID> [OPTIONS]
+do-memory-cli episode log-step <EPISODE_ID> [OPTIONS]
+do-memory-cli ep log-step <EPISODE_ID> [OPTIONS]
 ```
 
 **Options**:
@@ -62,8 +62,8 @@ memory-cli ep log-step <EPISODE_ID> [OPTIONS]
 ### List Patterns
 
 ```bash
-memory-cli pattern list [OPTIONS]
-memory-cli pat list [OPTIONS]
+do-memory-cli pattern list [OPTIONS]
+do-memory-cli pat list [OPTIONS]
 ```
 
 **Options**:
@@ -74,8 +74,8 @@ memory-cli pat list [OPTIONS]
 ### View Pattern Details
 
 ```bash
-memory-cli pattern view <PATTERN_ID>
-memory-cli pat view <PATTERN_ID>
+do-memory-cli pattern view <PATTERN_ID>
+do-memory-cli pat view <PATTERN_ID>
 ```
 
 ## Storage Commands
@@ -83,22 +83,22 @@ memory-cli pat view <PATTERN_ID>
 ### Synchronize
 
 ```bash
-memory-cli storage sync
-memory-cli st sync
+do-memory-cli storage sync
+do-memory-cli st sync
 ```
 
 ### Status
 
 ```bash
-memory-cli storage status
-memory-cli st status
+do-memory-cli storage status
+do-memory-cli st status
 ```
 
 ### Repair
 
 ```bash
-memory-cli storage repair
-memory-cli st repair
+do-memory-cli storage repair
+do-memory-cli st repair
 ```
 
 ## Config Commands
@@ -106,15 +106,15 @@ memory-cli st repair
 ### Show Config
 
 ```bash
-memory-cli config show
-memory-cli cfg show
+do-memory-cli config show
+do-memory-cli cfg show
 ```
 
 ### Validate Config
 
 ```bash
-memory-cli config validate
-memory-cli cfg validate
+do-memory-cli config validate
+do-memory-cli cfg validate
 ```
 
 ## Health Commands
@@ -122,13 +122,13 @@ memory-cli cfg validate
 ### Check Health
 
 ```bash
-memory-cli health
-memory-cli hp
+do-memory-cli health
+do-memory-cli hp
 ```
 
 ### Detailed Check
 
 ```bash
-memory-cli health --detailed
-memory-cli hp --detailed
+do-memory-cli health --detailed
+do-memory-cli hp --detailed
 ```

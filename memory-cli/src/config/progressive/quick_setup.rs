@@ -25,7 +25,7 @@ use tracing::{info, warn};
 /// # Example
 ///
 /// ```no_run
-/// use memory_cli::config::progressive::setup_quick_redb;
+/// use do_memory_cli::config::progressive::setup_quick_redb;
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {

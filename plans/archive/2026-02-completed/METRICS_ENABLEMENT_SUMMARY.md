@@ -30,43 +30,43 @@
 
 ## Files Modified
 
-1. **memory-storage-turso/src/lib.rs**
+1. **do-memory-storage-turso/src/lib.rs**
    - Enabled metrics module (line 34)
    - Enabled performance metrics re-exports (lines 65-69)
 
-2. **memory-storage-turso/src/metrics/mod.rs**
+2. **do-memory-storage-turso/src/metrics/mod.rs**
    - Enabled performance module (line 23)
    - Added performance metrics re-exports (lines 30-35)
 
-3. **memory-storage-turso/src/metrics/collector.rs**
+3. **do-memory-storage-turso/src/metrics/collector.rs**
    - Removed unused imports (line 7)
    - Removed incorrect clippy lint (line 184)
 
-4. **memory-storage-turso/src/metrics/core.rs**
+4. **do-memory-storage-turso/src/metrics/core.rs**
    - Prefixed unused parameter (line 45)
    - Removed incorrect clippy lint (line 170)
 
-5. **memory-storage-turso/src/metrics/types.rs**
+5. **do-memory-storage-turso/src/metrics/types.rs**
    - Removed unused imports (lines 5-8)
 
 ## Verification Results
 
 ### ✅ Compilation
 ```bash
-cargo check --package memory-storage-turso
+cargo check --package do-memory-storage-turso
 # Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.17s
 # Zero compilation errors
 ```
 
 ### ✅ Code Formatting
 ```bash
-cargo fmt --package memory-storage-turso
+cargo fmt --package do-memory-storage-turso
 # No formatting errors
 ```
 
 ### ✅ Metrics Tests (12/12 Passed)
 ```bash
-cargo test --package memory-storage-turso --lib metrics
+cargo test --package do-memory-storage-turso --lib metrics
 test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 69 filtered out; finished in 0.01s
 ```
 
@@ -89,7 +89,7 @@ All metrics types are now accessible from external code:
 ## Module Structure
 
 ```
-memory-storage-turso/src/metrics/
+do-memory-storage-turso/src/metrics/
 ├── mod.rs          # Module exports and re-exports
 ├── collector.rs     # MetricsCollector implementation
 ├── core.rs         # TursoMetrics with atomic counters

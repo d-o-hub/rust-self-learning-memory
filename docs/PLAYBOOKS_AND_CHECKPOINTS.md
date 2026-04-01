@@ -26,7 +26,7 @@ Use the `recommend_playbook` tool to get guidance for a new task:
 
 ### Using Playbooks via CLI
 ```bash
-memory-cli playbook recommend "Implement a JWT authentication flow" --domain security
+do-memory-cli playbook recommend "Implement a JWT authentication flow" --domain security
 ```
 
 ---
@@ -56,14 +56,14 @@ A checkpoint captures the current state, including:
 
 **Via CLI:**
 ```bash
-memory-cli episode checkpoint <episode-id> --reason "Long-running task pause" --note "Setup Complete"
+do-memory-cli episode checkpoint <episode-id> --reason "Long-running task pause" --note "Setup Complete"
 ```
 
 ### Performing a Handoff
 When you need to pass a task to another agent, generate a "Handoff Pack":
 
 ```bash
-memory-cli episode handoff <checkpoint-id>
+do-memory-cli episode handoff <checkpoint-id>
 ```
 
 The handoff pack includes the most recent checkpoint, the episode history, and relevant patterns to help the new agent start with full context.
@@ -89,8 +89,8 @@ To improve the quality of future recommendations, you can provide feedback on th
 
 **Via CLI:**
 ```bash
-memory-cli feedback record-session --episode-id <episode-id> --patterns <pattern-id-1,pattern-id-2>
-memory-cli feedback record-feedback --session <session-id> --outcome success --message "Worked well" --rating 0.9
+do-memory-cli feedback record-session --episode-id <episode-id> --patterns <pattern-id-1,pattern-id-2>
+do-memory-cli feedback record-feedback --session <session-id> --outcome success --message "Worked well" --rating 0.9
 ```
 
 The system uses this feedback to boost the ranking of highly-rated patterns and suppress unhelpful ones in future queries.

@@ -49,13 +49,13 @@ assert!(diversity_score >= 0.7);
 
 ```bash
 # Run diversity tests
-cargo test --package memory-core --lib spatiotemporal::diversity::tests
+cargo test --package do-memory-core --lib spatiotemporal::diversity::tests
 
 # Check implementation
-cargo clippy --package memory-core --lib
+cargo clippy --package do-memory-core --lib
 
 # Build
-cargo build --package memory-core --lib
+cargo build --package do-memory-core --lib
 ```
 
 **Test Results**: 22/22 tests passing ✅
@@ -132,7 +132,7 @@ Based on: **"Hierarchical Spatiotemporal Memory Organization for Efficient Episo
 
 See inline documentation:
 ```bash
-cargo doc --package memory-core --no-deps --open
+cargo doc --package do-memory-core --no-deps --open
 ```
 
 Navigate to: `memory_core::spatiotemporal`

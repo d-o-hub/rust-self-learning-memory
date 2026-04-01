@@ -15,7 +15,7 @@
 |--------|----------------------|-------|
 | Workspace version | `0.1.16` | From workspace `Cargo.toml` |
 | Rust edition | `2024` | Workspace-wide |
-| Workspace members | 9 | `memory-core`, `memory-storage-turso`, `memory-storage-redb`, `memory-mcp`, `memory-cli`, `test-utils`, `benches`, `tests`, `examples` |
+| Workspace members | 9 | `do-memory-core`, `do-memory-storage-turso`, `do-memory-storage-redb`, `do-memory-mcp`, `do-memory-cli`, `do-memory-test-utils`, `benches`, `tests`, `examples` |
 | Rust files | **867** | `rg --files -g '*.rs'` |
 | Rust LOC | **207,679** | `wc -l` across Rust files |
 | Duplicate dependency roots | **134** | `cargo tree -d` |
@@ -30,7 +30,7 @@
 |-------|--------|-------|
 | All Rust files | 45 files >500 LOC | Mostly test, e2e, bench, or internal test modules |
 | Production source files | **0 files >500 LOC** | Excluding `tests/`, `benches/`, `examples/`, and `*_test*.rs`/`tests.rs` files |
-| Largest oversize src modules | `memory-core/src/episode/relationship_manager_tests.rs` (860), `memory-mcp/src/patterns/statistical/bocpd_tests.rs` (660) | Internal test modules under `src/` |
+| Largest oversize src modules | `do-memory-core/src/episode/relationship_manager_tests.rs` (860), `do-memory-mcp/src/patterns/statistical/bocpd_tests.rs` (660) | Internal test modules under `src/` |
 
 ### Error Handling Baseline
 
@@ -45,11 +45,11 @@ Pragmatic non-test-named `src` breakdown:
 
 | Crate | unwrap | expect |
 |-------|--------|--------|
-| `memory-core` | 140 | 25 |
-| `memory-storage-turso` | 98 | 15 |
-| `memory-storage-redb` | 26 | 21 |
-| `memory-mcp` | 90 | 3 |
-| `memory-cli` | 48 | 6 |
+| `do-memory-core` | 140 | 25 |
+| `do-memory-storage-turso` | 98 | 15 |
+| `do-memory-storage-redb` | 26 | 21 |
+| `do-memory-mcp` | 90 | 3 |
+| `do-memory-cli` | 48 | 6 |
 
 ---
 
@@ -70,8 +70,8 @@ Pragmatic non-test-named `src` breakdown:
 
 | Item | Feature | Status | Evidence |
 |------|---------|--------|----------|
-| #1 | MCP token optimization | ✅ Complete | `memory-mcp/src/protocol/handlers.rs`, `memory-mcp/src/bin/server_impl/core.rs`, `memory-mcp/tests/adr024_lazy_loading_tests.rs` |
-| #2 | Batch module rehabilitation | 🟡 Partial | Generic `batch/execute` exists, but named batch handlers are still commented out in `memory-mcp/src/bin/server_impl/handlers.rs` |
+| #1 | MCP token optimization | ✅ Complete | `do-memory-mcp/src/protocol/handlers.rs`, `do-memory-mcp/src/bin/server_impl/core.rs`, `do-memory-mcp/tests/adr024_lazy_loading_tests.rs` |
+| #2 | Batch module rehabilitation | 🟡 Partial | Generic `batch/execute` exists, but named batch handlers are still commented out in `do-memory-mcp/src/bin/server_impl/handlers.rs` |
 | #3 | File size compliance | ✅ Complete for production code | No non-test production source files exceed 500 LOC |
 | #4 | Error handling improvement | 🔴 Incomplete | 472 pragmatic non-test-named `unwrap`/`expect` calls remain |
 | #5 | Ignored test rehabilitation | 🔴 Regressed | 121 ignored tests remain, concentrated in Turso integration tests |
@@ -84,7 +84,7 @@ Pragmatic non-test-named `src` breakdown:
 
 The March 6 analysis understates current test infrastructure maturity:
 
-- `proptest!` appears in 7 files across `memory-core`, `memory-cli`, `memory-storage-redb`, `memory-storage-turso`, and `memory-mcp`.
+- `proptest!` appears in 7 files across `do-memory-core`, `do-memory-cli`, `do-memory-storage-redb`, `do-memory-storage-turso`, and `do-memory-mcp`.
 - Snapshot testing is established in 3 test harnesses with 65 committed `.snap` files.
 - The remaining gap is not tool adoption; it is reducing ignores/flakiness and keeping docs in sync with the actual test estate.
 
@@ -114,17 +114,17 @@ The March 6 analysis understates current test infrastructure maturity:
 
 1. **Batch-specific MCP tools remain disabled at runtime**
    - Tool schemas exist for `batch_query_episodes`, `batch_pattern_analysis`, and `batch_compare_episodes`.
-   - Runtime dispatch in `memory-mcp/src/bin/server_impl/handlers.rs` still comments them out with `TODO: Re-enable when batch module is fixed`.
+   - Runtime dispatch in `do-memory-mcp/src/bin/server_impl/handlers.rs` still comments them out with `TODO: Re-enable when batch module is fixed`.
 
 2. **CLI workflow coverage exposes real missing UX/features**
    - `tests/e2e/cli_workflows.rs` still ignores pattern discovery and episode search/filter workflows because expected commands/flags do not exist.
 
 3. **Adaptive TTL is not the default runtime path**
-   - `memory-storage-redb/src/cache/adaptive/*` is implemented.
-   - `memory-storage-redb/src/lib.rs` still creates `LRUCache`, not `AdaptiveCache`, in the main `RedbStorage` flow.
+   - `do-memory-storage-redb/src/cache/adaptive/*` is implemented.
+   - `do-memory-storage-redb/src/lib.rs` still creates `LRUCache`, not `AdaptiveCache`, in the main `RedbStorage` flow.
 
 4. **Transport compression is not wired into the concrete Turso runtime path**
-   - `memory-storage-turso/src/transport/wrapper.rs` implements `CompressedTransport`.
+   - `do-memory-storage-turso/src/transport/wrapper.rs` implements `CompressedTransport`.
    - Search did not find production construction of `CompressedTransport::new(...)`; current evidence points to tests and helper modules only.
 
 ### Issue Register
@@ -132,7 +132,7 @@ The March 6 analysis understates current test infrastructure maturity:
 #### P1: Ignored test concentration is now the largest visible quality debt
 
 - 121 ignored tests total.
-- 70 ignored tests are in `memory-storage-turso/tests`.
+- 70 ignored tests are in `do-memory-storage-turso/tests`.
 - Most Turso ignores cite the same libsql native memory-corruption reason and still reference a placeholder issue URL (`issues/XXX` in file headers).
 
 #### P1: Status-document drift is significant
@@ -168,7 +168,7 @@ Important planning/status docs already affected before this pass:
 
 #### P2: Documentation drift in redb serialization comments
 
-`memory-storage-redb/src/lib.rs` still states that redb uses bincode serialization, while the crate implementation is using postcard in production code paths. This is an architecture/documentation mismatch against project conventions.
+`do-memory-storage-redb/src/lib.rs` still states that redb uses bincode serialization, while the crate implementation is using postcard in production code paths. This is an architecture/documentation mismatch against project conventions.
 
 ---
 
@@ -234,8 +234,8 @@ These are improvement features that emerged from the codebase audit but are not 
 **Problem**: Tool definitions, tool registry visibility, and runtime dispatch can drift apart.
 
 **Current evidence**:
-- Batch tool schemas exist in `memory-mcp/src/server/tool_definitions_extended.rs`
-- Runtime dispatch still leaves batch-specific handlers commented out in `memory-mcp/src/bin/server_impl/handlers.rs`
+- Batch tool schemas exist in `do-memory-mcp/src/server/tool_definitions_extended.rs`
+- Runtime dispatch still leaves batch-specific handlers commented out in `do-memory-mcp/src/bin/server_impl/handlers.rs`
 
 **Proposal**:
 - Add a test/validation layer that verifies every advertised MCP tool is either:
@@ -249,10 +249,10 @@ These are improvement features that emerged from the codebase audit but are not 
 **Effort**: Small to Medium
 
 **Files likely affected**:
-- `memory-mcp/src/bin/server_impl/handlers.rs`
-- `memory-mcp/src/server/tool_definitions.rs`
-- `memory-mcp/src/server/tool_definitions_extended.rs`
-- `memory-mcp/tests/`
+- `do-memory-mcp/src/bin/server_impl/handlers.rs`
+- `do-memory-mcp/src/server/tool_definitions.rs`
+- `do-memory-mcp/src/server/tool_definitions_extended.rs`
+- `do-memory-mcp/tests/`
 
 ### O2: Single-Source MCP Schema Generation
 
@@ -260,7 +260,7 @@ These are improvement features that emerged from the codebase audit but are not 
 
 **Current evidence**:
 - Tool definitions exist in multiple places
-- Separate parameter-schema helpers also exist in `memory-mcp/src/server/tool_params.rs`
+- Separate parameter-schema helpers also exist in `do-memory-mcp/src/server/tool_params.rs`
 
 **Proposal**:
 - Generate public MCP schemas from a single tool-definition source
@@ -274,10 +274,10 @@ These are improvement features that emerged from the codebase audit but are not 
 **Effort**: Medium
 
 **Files likely affected**:
-- `memory-mcp/src/server/tool_definitions.rs`
-- `memory-mcp/src/server/tool_definitions_extended.rs`
-- `memory-mcp/src/server/tool_params.rs`
-- `memory-mcp/src/server/tools/registry/`
+- `do-memory-mcp/src/server/tool_definitions.rs`
+- `do-memory-mcp/src/server/tool_definitions_extended.rs`
+- `do-memory-mcp/src/server/tool_params.rs`
+- `do-memory-mcp/src/server/tools/registry/`
 
 ### O3: Docs Integrity Ownership Report
 
@@ -309,7 +309,7 @@ These are improvement features that emerged from the codebase audit but are not 
 **Problem**: Some code comments and documentation now contradict implementation reality.
 
 **Current evidence**:
-- `memory-storage-redb/src/lib.rs` still references bincode-oriented wording while production serialization is postcard-based
+- `do-memory-storage-redb/src/lib.rs` still references bincode-oriented wording while production serialization is postcard-based
 
 **Proposal**:
 - Add a lightweight lint/check for known architecture invariants:
@@ -325,8 +325,8 @@ These are improvement features that emerged from the codebase audit but are not 
 **Effort**: Small to Medium
 
 **Files likely affected**:
-- `memory-storage-redb/src/lib.rs`
-- `memory-core/src/types/constants.rs`
+- `do-memory-storage-redb/src/lib.rs`
+- `do-memory-core/src/types/constants.rs`
 - `scripts/`
 - `plans/adr/`
 
@@ -352,10 +352,10 @@ These are improvement features that emerged from the codebase audit but are not 
 **Effort**: Medium
 
 **Files likely affected**:
-- `memory-storage-redb/src/lib.rs`
-- `memory-storage-redb/tests/`
-- `memory-storage-turso/src/transport/`
-- `memory-storage-turso/tests/`
+- `do-memory-storage-redb/src/lib.rs`
+- `do-memory-storage-redb/tests/`
+- `do-memory-storage-turso/src/transport/`
+- `do-memory-storage-turso/tests/`
 
 ### O6: CLI Workflow Parity Generator
 
@@ -375,7 +375,7 @@ These are improvement features that emerged from the codebase audit but are not 
 **Effort**: Medium
 
 **Files likely affected**:
-- `memory-cli/src/commands/`
+- `do-memory-cli/src/commands/`
 - `tests/e2e/cli_workflows.rs`
 - CLI test helpers
 
@@ -405,8 +405,8 @@ These are improvement features that emerged from the codebase audit but are not 
 **Files likely affected**:
 - `plans/STATUS/`
 - `tests/`
-- `memory-mcp/src/bin/server_impl/handlers.rs`
-- `memory-storage-turso/tests/`
+- `do-memory-mcp/src/bin/server_impl/handlers.rs`
+- `do-memory-storage-turso/tests/`
 
 ### Suggested Execution Order
 
@@ -463,17 +463,17 @@ These are improvement features that emerged from the codebase audit but are not 
 - Parity checks run in test/CI without manual inspection.
 
 **Primary Code Areas**:
-- `memory-mcp/src/bin/server_impl/handlers.rs`
-- `memory-mcp/src/bin/server_impl/core.rs`
-- `memory-mcp/src/server/tool_definitions.rs`
-- `memory-mcp/src/server/tool_definitions_extended.rs`
-- `memory-mcp/src/server/tools/registry/`
+- `do-memory-mcp/src/bin/server_impl/handlers.rs`
+- `do-memory-mcp/src/bin/server_impl/core.rs`
+- `do-memory-mcp/src/server/tool_definitions.rs`
+- `do-memory-mcp/src/server/tool_definitions_extended.rs`
+- `do-memory-mcp/src/server/tools/registry/`
 
 **Recommended Tests**:
 - Extend or add tests under:
-  - `memory-mcp/tests/simple_integration_tests.rs`
-  - `memory-mcp/tests/adr024_lazy_loading_tests.rs`
-  - new parity-focused test file, e.g. `memory-mcp/tests/tool_contract_parity.rs`
+  - `do-memory-mcp/tests/simple_integration_tests.rs`
+  - `do-memory-mcp/tests/adr024_lazy_loading_tests.rs`
+  - new parity-focused test file, e.g. `do-memory-mcp/tests/tool_contract_parity.rs`
 
 **Likely First Failing Cases**:
 - `batch_query_episodes`
@@ -512,19 +512,19 @@ These are improvement features that emerged from the codebase audit but are not 
 - Status docs no longer overstate subsystem readiness.
 
 **Primary Code Areas**:
-- `memory-storage-redb/src/lib.rs`
-- `memory-storage-redb/src/cache/adaptive/`
-- `memory-storage-turso/src/transport/mod.rs`
-- `memory-storage-turso/src/transport/wrapper.rs`
-- `memory-storage-turso/src/lib.rs`
+- `do-memory-storage-redb/src/lib.rs`
+- `do-memory-storage-redb/src/cache/adaptive/`
+- `do-memory-storage-turso/src/transport/mod.rs`
+- `do-memory-storage-turso/src/transport/wrapper.rs`
+- `do-memory-storage-turso/src/lib.rs`
 
 **Recommended Tests**:
 - Add or extend tests under:
-  - `memory-storage-redb/tests/`
-  - `memory-storage-turso/tests/`
+  - `do-memory-storage-redb/tests/`
+  - `do-memory-storage-turso/tests/`
   - feature-specific verification tests such as:
-    - `memory-storage-redb/tests/runtime_wiring_adaptive_cache.rs`
-    - `memory-storage-turso/tests/runtime_wiring_transport_compression.rs`
+    - `do-memory-storage-redb/tests/runtime_wiring_adaptive_cache.rs`
+    - `do-memory-storage-turso/tests/runtime_wiring_transport_compression.rs`
 
 **Decision Gate**:
 - If runtime wiring is absent but subsystem code is sound:

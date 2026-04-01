@@ -5,6 +5,7 @@ pub mod config;
 pub mod embedding;
 pub mod episode;
 pub mod eval;
+pub mod external_signals;
 pub mod feedback;
 pub mod health;
 pub mod logs;
@@ -20,6 +21,7 @@ pub use config::*;
 pub use embedding::*;
 pub use episode::*;
 pub use eval::*;
+pub use external_signals::*;
 pub use feedback::*;
 pub use health::*;
 pub use logs::*;
@@ -43,7 +45,7 @@ pub use dispatch_pattern::handle_pattern_command;
 
 pub async fn handle_storage_command(
     command: StorageCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -64,7 +66,7 @@ pub async fn handle_storage_command(
 
 pub async fn handle_config_command(
     command: ConfigCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     _dry_run: bool,
@@ -79,7 +81,7 @@ pub async fn handle_config_command(
 
 pub async fn handle_health_command(
     command: HealthCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -95,7 +97,7 @@ pub async fn handle_health_command(
 
 pub async fn handle_backup_command(
     command: BackupCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -131,7 +133,7 @@ pub async fn handle_backup_command(
 
 pub async fn handle_monitor_command(
     command: MonitorCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     _dry_run: bool,
@@ -147,7 +149,7 @@ pub async fn handle_monitor_command(
 
 pub async fn handle_logs_command(
     command: LogsCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -185,7 +187,7 @@ pub async fn handle_logs_command(
 
 pub async fn handle_eval_command(
     command: EvalCommands,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     config: &Config,
     format: OutputFormat,
     _dry_run: bool,
@@ -203,4 +205,14 @@ pub async fn handle_eval_command(
             steps,
         } => eval::set_threshold(domain, duration, steps, memory, config, format).await,
     }
+}
+
+pub async fn handle_external_signal_command(
+    command: ExternalSignalCommands,
+    memory: &do_memory_core::SelfLearningMemory,
+    config: &Config,
+    format: OutputFormat,
+    _dry_run: bool,
+) -> anyhow::Result<()> {
+    external_signals::handle_external_signal_command(command, memory, config, format).await
 }

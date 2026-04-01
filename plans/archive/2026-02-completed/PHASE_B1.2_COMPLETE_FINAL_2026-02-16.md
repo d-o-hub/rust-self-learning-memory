@@ -75,9 +75,9 @@
 - ✅ Clear error messages for debugging
 
 ### **3. Test Results**
-- ✅ memory-core: 727/727 passing (100%)
-- ✅ memory-storage-turso: 206/206 passing (100%)
-- ✅ memory-mcp: 255/255 passing (100%)
+- ✅ do-memory-core: 727/727 passing (100%)
+- ✅ do-memory-storage-turso: 206/206 passing (100%)
+- ✅ do-memory-mcp: 255/255 passing (100%)
 - ⚠️ CLI workflows: 4/6 failing (expected - deferred to v0.1.17)
 
 ### **4. Quality Gates**

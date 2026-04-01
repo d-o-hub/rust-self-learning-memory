@@ -15,7 +15,7 @@ Execute and manage Rust tests for the self-learning memory project.
 | Integration | `cargo nextest run --test '*'` | `cargo test --test '*'` | End-to-end workflows |
 | Doc | `cargo test --doc` | (nextest unsupported) | Documentation examples |
 | All | `cargo nextest run --all` | `cargo test --all` | Complete validation |
-| Mutation | `cargo mutants -p memory-core` | — | Test effectiveness |
+| Mutation | `cargo mutants -p do-memory-core` | — | Test effectiveness |
 | Snapshot | `cargo insta test` | — | Output regression |
 
 ## Execution Strategy
@@ -52,7 +52,7 @@ cargo test --doc  # doctests separately (nextest limitation)
 
 ### Step 4: Mutation Testing (Periodic)
 ```bash
-cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib
+cargo mutants -p do-memory-core --timeout 120 --jobs 4 -- --lib
 ```
 - Verifies test suite catches real bugs
 - Run nightly or before releases (ADR-033)

@@ -25,7 +25,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_storage_turso::prepared::{PreparedStatementCache, ConnectionId};
+//! use do_memory_storage_turso::prepared::{PreparedStatementCache, ConnectionId};
 //!
 //! let cache = PreparedStatementCache::new(100);
 //! let conn_id = cache.get_connection_id();

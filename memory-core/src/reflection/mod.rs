@@ -8,8 +8,8 @@
 //! ## Example
 //!
 //! ```
-//! use memory_core::reflection::ReflectionGenerator;
-//! use memory_core::{Episode, TaskContext, TaskType, TaskOutcome, ExecutionStep};
+//! use do_memory_core::reflection::ReflectionGenerator;
+//! use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome, ExecutionStep};
 //!
 //! let context = TaskContext::default();
 //! let mut episode = Episode::new("Test task".to_string(), context, TaskType::Testing);

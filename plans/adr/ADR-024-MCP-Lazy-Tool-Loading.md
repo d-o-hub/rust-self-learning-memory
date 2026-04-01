@@ -89,17 +89,17 @@
 
 ### Core Changes
 
-**`memory-mcp/src/bin/server_impl/core.rs`**: `handle_list_tools`
+**`do-memory-mcp/src/bin/server_impl/core.rs`**: `handle_list_tools`
 - Added `lazy` parameter parsing from request params
 - Default: `lazy=false` → returns full schemas via `list_all_tools()`
 - `lazy=true` → returns ToolStub list (name + description)
 
-**`memory-mcp/src/server/tools/core.rs`**: `list_all_tools()`
+**`do-memory-mcp/src/server/tools/core.rs`**: `list_all_tools()`
 - New method returning all tools with complete JSON schemas
 - Used by default, or when `lazy=false` is explicitly requested
 - Aggregates tools from all registries
 
-**`memory-mcp/src/server/tools/registry/mod.rs`**: `get_all_extended_tools()`
+**`do-memory-mcp/src/server/tools/registry/mod.rs`**: `get_all_extended_tools()`
 - Registry-level method providing full tool definitions
 - Called by `list_all_tools()` to collect all registered tools with schemas
 - Returns `Vec<Tool>` with complete `inputSchema` definitions
@@ -142,9 +142,9 @@ See: `scripts/benchmark-mcp-tokens.sh`
 
 ## Files Affected
 
-- `memory-mcp/src/bin/server_impl/core.rs` — `handle_list_tools` lazy parameter handling
-- `memory-mcp/src/server/tools/core.rs` — `list_all_tools()` method
-- `memory-mcp/src/server/tools/registry/mod.rs` — `get_all_extended_tools()` method
+- `do-memory-mcp/src/bin/server_impl/core.rs` — `handle_list_tools` lazy parameter handling
+- `do-memory-mcp/src/server/tools/core.rs` — `list_all_tools()` method
+- `do-memory-mcp/src/server/tools/registry/mod.rs` — `get_all_extended_tools()` method
 
 ---
 
@@ -169,7 +169,7 @@ See: `scripts/benchmark-mcp-tokens.sh`
 ## Opencode Integration (2026-02-22)
 
 ### Current Usage
-- Opencode uses memory-mcp with default `lazy=false` (full schemas)
+- Opencode uses do-memory-mcp with default `lazy=false` (full schemas)
 - Token cost: ~1,237 tokens per `tools/list` call (8 tools)
 
 ### Recommendation
@@ -178,7 +178,7 @@ See: `scripts/benchmark-mcp-tokens.sh`
 
 ### Files Created
 - `.opencode/agent/memory-agent.md` - Agent with token optimization guidelines
-- `.agents/skills/memory-mcp/token-optimization.md` - Token optimization guide
+- `.agents/skills/do-memory-mcp/token-optimization.md` - Token optimization guide
 - `scripts/benchmark-mcp-tokens.sh` - Benchmark script
 
 ---

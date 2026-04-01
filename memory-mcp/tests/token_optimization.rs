@@ -4,8 +4,8 @@
 //! 1. Dynamic tool loading (only core tools in initial list_tools response)
 //! 2. Field projection (only requested fields in query responses)
 
-use memory_mcp::server::tools::field_projection::FieldSelector;
-use memory_mcp::server::tools::registry::create_default_registry;
+use do_memory_mcp::server::tools::field_projection::FieldSelector;
+use do_memory_mcp::server::tools::registry::create_default_registry;
 use serde_json::json;
 
 /// Estimate token count for a JSON value

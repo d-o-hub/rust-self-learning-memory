@@ -4,7 +4,7 @@
 //! playbook recommendations, pattern explanations, and pattern search/recommend.
 
 use super::{Content, MemoryMCPServer, Value, get_client_id, json_value_len};
-use memory_mcp::mcp::tools::pattern_search::{RecommendPatternsInput, SearchPatternsInput};
+use do_memory_mcp::mcp::tools::pattern_search::{RecommendPatternsInput, SearchPatternsInput};
 
 /// Handle search_patterns tool
 pub async fn handle_search_patterns(
@@ -84,13 +84,13 @@ pub async fn handle_recommend_playbook(
         .unwrap_or("code_generation");
 
     let task_type = match task_type_str {
-        "code_generation" => memory_core::TaskType::CodeGeneration,
-        "debugging" => memory_core::TaskType::Debugging,
-        "refactoring" => memory_core::TaskType::Refactoring,
-        "testing" => memory_core::TaskType::Testing,
-        "analysis" => memory_core::TaskType::Analysis,
-        "documentation" => memory_core::TaskType::Documentation,
-        _ => memory_core::TaskType::CodeGeneration,
+        "code_generation" => do_memory_core::TaskType::CodeGeneration,
+        "debugging" => do_memory_core::TaskType::Debugging,
+        "refactoring" => do_memory_core::TaskType::Refactoring,
+        "testing" => do_memory_core::TaskType::Testing,
+        "analysis" => do_memory_core::TaskType::Analysis,
+        "documentation" => do_memory_core::TaskType::Documentation,
+        _ => do_memory_core::TaskType::CodeGeneration,
     };
 
     let max_steps = args.get("max_steps").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
@@ -114,11 +114,11 @@ pub async fn handle_recommend_playbook(
         })
         .unwrap_or_default();
 
-    let context = memory_core::TaskContext {
+    let context = do_memory_core::TaskContext {
         domain: domain.clone(),
         language,
         framework,
-        complexity: memory_core::ComplexityLevel::Moderate,
+        complexity: do_memory_core::ComplexityLevel::Moderate,
         tags,
     };
 
@@ -196,12 +196,13 @@ pub async fn handle_record_recommendation_session(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let _client_id = get_client_id(&args);
-    let input: memory_mcp::mcp::tools::recommendation_feedback::RecordRecommendationSessionInput =
+    let input: do_memory_mcp::mcp::tools::recommendation_feedback::RecordRecommendationSessionInput =
         serde_json::from_value(args)?;
 
-    let tools = memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
-        server.memory(),
-    );
+    let tools =
+        do_memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
+            server.memory(),
+        );
     let result = tools.record_session(input).await?;
 
     let content = vec![Content::Text {
@@ -217,12 +218,13 @@ pub async fn handle_record_recommendation_feedback(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let _client_id = get_client_id(&args);
-    let input: memory_mcp::mcp::tools::recommendation_feedback::RecordRecommendationFeedbackInput =
+    let input: do_memory_mcp::mcp::tools::recommendation_feedback::RecordRecommendationFeedbackInput =
         serde_json::from_value(args)?;
 
-    let tools = memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
-        server.memory(),
-    );
+    let tools =
+        do_memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
+            server.memory(),
+        );
     let result = tools.record_feedback(input).await?;
 
     let content = vec![Content::Text {
@@ -236,9 +238,10 @@ pub async fn handle_get_recommendation_stats(
     server: &mut MemoryMCPServer,
     _arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
-    let tools = memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
-        server.memory(),
-    );
+    let tools =
+        do_memory_mcp::mcp::tools::recommendation_feedback::RecommendationFeedbackTools::new(
+            server.memory(),
+        );
     let result = tools.get_stats().await?;
 
     let content = vec![Content::Text {
@@ -254,10 +257,10 @@ pub async fn handle_checkpoint_episode(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let _client_id = get_client_id(&args);
-    let input: memory_mcp::mcp::tools::checkpoint::CheckpointEpisodeInput =
+    let input: do_memory_mcp::mcp::tools::checkpoint::CheckpointEpisodeInput =
         serde_json::from_value(args)?;
 
-    let tools = memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
+    let tools = do_memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
     let result = tools.checkpoint_episode(input).await?;
 
     let content = vec![Content::Text {
@@ -273,10 +276,10 @@ pub async fn handle_get_handoff_pack(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let _client_id = get_client_id(&args);
-    let input: memory_mcp::mcp::tools::checkpoint::GetHandoffPackInput =
+    let input: do_memory_mcp::mcp::tools::checkpoint::GetHandoffPackInput =
         serde_json::from_value(args)?;
 
-    let tools = memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
+    let tools = do_memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
     let result = tools.get_handoff_pack(input).await?;
 
     let content = vec![Content::Text {
@@ -292,10 +295,10 @@ pub async fn handle_resume_from_handoff(
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.ok_or_else(|| anyhow::anyhow!("Missing arguments"))?;
     let _client_id = get_client_id(&args);
-    let input: memory_mcp::mcp::tools::checkpoint::ResumeFromHandoffInput =
+    let input: do_memory_mcp::mcp::tools::checkpoint::ResumeFromHandoffInput =
         serde_json::from_value(args)?;
 
-    let tools = memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
+    let tools = do_memory_mcp::mcp::tools::checkpoint::CheckpointTools::new(server.memory());
     let result = tools.resume_from_handoff(input).await?;
 
     let content = vec![Content::Text {

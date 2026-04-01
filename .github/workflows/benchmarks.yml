@@ -79,7 +79,7 @@ jobs:
       RUSTC_WRAPPER: sccache
       SCCACHE_CACHE_SIZE: 2G
       SCCACHE_DIRECT: true
-      JAVY_PLUGIN: "${{ github.workspace }}/memory-mcp/javy-plugin.wasm"
+      JAVY_PLUGIN: "${{ github.workspace }}/do-memory-mcp/javy-plugin.wasm"
 
     steps:
       - name: Set build directories
@@ -200,7 +200,7 @@ jobs:
              echo ""
              echo "▶️ Running $bench_name benchmark (timeout: ${timeout}s, elapsed: ${ELAPSED}s)..."
 
-             if timeout "$timeout" cargo bench -p memory-benches --bench "$bench_name" --quiet 2>/dev/null; then
+             if timeout "$timeout" cargo bench -p do-memory-benches --bench "$bench_name" --quiet 2>/dev/null; then
                echo "✅ $bench_name completed successfully"
                SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
              else

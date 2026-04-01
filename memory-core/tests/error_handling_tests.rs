@@ -14,8 +14,8 @@
 #![allow(clippy::unnecessary_literal_unwrap)]
 #![allow(clippy::unnecessary_wraps)]
 
-use memory_core::episode::RelationshipType;
-use memory_core::error::{CacheError, Error, RelationshipError, Result};
+use do_memory_core::episode::RelationshipType;
+use do_memory_core::error::{CacheError, Error, RelationshipError, Result};
 use uuid::Uuid;
 
 // ============================================================================

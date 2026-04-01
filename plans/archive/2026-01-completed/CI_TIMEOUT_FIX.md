@@ -70,8 +70,8 @@ The test job tried to upload artifacts from `target/nextest/ci/junit.xml` withou
 
 ### Fix 3: MCP Build Timeout Handling
 ```yaml
-timeout 300s cargo build -p memory-mcp || exit 1
-timeout 300s cargo test -p memory-mcp --lib || exit 1
+timeout 300s cargo build -p do-memory-mcp || exit 1
+timeout 300s cargo test -p do-memory-mcp --lib || exit 1
 ```
 
 **Changes**:

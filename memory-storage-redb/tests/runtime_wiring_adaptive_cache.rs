@@ -26,8 +26,8 @@
 
 #![allow(clippy::expect_used)]
 
-use memory_core::{Episode, TaskContext, TaskType};
-use memory_storage_redb::{
+use do_memory_core::{Episode, TaskContext, TaskType};
+use do_memory_storage_redb::{
     AdaptiveCache, AdaptiveCacheAdapter, AdaptiveCacheConfig, Cache, CacheConfig, CacheMetrics,
     LRUCache, RedbStorage,
 };

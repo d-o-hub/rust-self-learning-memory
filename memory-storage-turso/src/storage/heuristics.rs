@@ -1,8 +1,8 @@
 //! Heuristic CRUD operations for Turso storage
 
 use crate::TursoStorage;
+use do_memory_core::{Error, Heuristic, Result};
 use libsql::Row;
-use memory_core::{Error, Heuristic, Result};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -147,7 +147,7 @@ pub fn row_to_heuristic(row: &Row) -> Result<Heuristic> {
     let created_at_timestamp: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
     let updated_at_timestamp: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
 
-    let evidence: memory_core::types::Evidence = serde_json::from_str(&evidence_json)
+    let evidence: do_memory_core::types::Evidence = serde_json::from_str(&evidence_json)
         .map_err(|e| Error::Storage(format!("Failed to parse evidence: {}", e)))?;
 
     Ok(Heuristic {

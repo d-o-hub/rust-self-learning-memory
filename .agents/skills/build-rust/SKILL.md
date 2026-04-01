@@ -26,7 +26,7 @@ Efficiently build Rust workspaces with the build-rust CLI.
 ./scripts/build-rust.sh clean
 
 # Build specific crate
-./scripts/build-rust.sh release memory-core
+./scripts/build-rust.sh release do-memory-core
 ```
 
 ## Modes

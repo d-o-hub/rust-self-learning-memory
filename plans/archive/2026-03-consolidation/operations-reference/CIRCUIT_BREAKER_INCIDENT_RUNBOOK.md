@@ -1,7 +1,7 @@
 # Circuit Breaker Incident Runbook
 
 **Component**: Embedding Provider Circuit Breaker
-**Location**: `memory-core/src/embeddings/circuit_breaker.rs`
+**Location**: `do-memory-core/src/embeddings/circuit_breaker.rs`
 **Purpose**: Prevent cascading failures when embedding providers become unavailable
 **Last Updated**: 2025-12-28
 **Status**: ✅ Production Ready (Enabled by default in v0.1.7)
@@ -251,7 +251,7 @@ curl http://localhost:8080/health
    POST /admin/circuit-breaker/reset
 
    // Or via CLI:
-   memory-cli debug circuit-breaker reset
+   do-memory-cli debug circuit-breaker reset
    ```
 
 2. **Increase Timeouts**:
@@ -285,7 +285,7 @@ systemctl restart memory-service
 #### Method 2: Code Patch (If No Feature Flag)
 
 ```rust
-// memory-core/src/embeddings/circuit_breaker.rs
+// do-memory-core/src/embeddings/circuit_breaker.rs
 impl CircuitBreaker {
     pub fn allow_request(&self) -> Result<(), CircuitOpenError> {
         // EMERGENCY BYPASS - REMOVE AFTER INCIDENT
@@ -300,7 +300,7 @@ impl CircuitBreaker {
 
 ```bash
 # Rebuild and deploy
-cargo build --release -p memory-core
+cargo build --release -p do-memory-core
 systemctl restart memory-service
 ```
 
@@ -794,8 +794,8 @@ After any circuit breaker incident, complete this checklist:
 
 ## Additional Resources
 
-- **Code**: `memory-core/src/embeddings/circuit_breaker.rs`
-- **Tests**: `memory-core/src/embeddings/circuit_breaker.rs::tests`
+- **Code**: `do-memory-core/src/embeddings/circuit_breaker.rs`
+- **Tests**: `do-memory-core/src/embeddings/circuit_breaker.rs::tests`
 - **Architecture**: `plans/ANALYSIS_SWARM_VERIFICATION_REPORT.md`
 - **Monitoring**: `plans/CIRCUIT_BREAKER_MONITORING.md` (if created)
 

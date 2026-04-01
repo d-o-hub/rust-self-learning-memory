@@ -17,7 +17,7 @@ use memory_benches::benchmark_helpers::{
     setup_temp_memory,
 };
 use memory_benches::TokioExecutor;
-use memory_core::types::{TaskOutcome, TaskType};
+use do_memory_core::types::{TaskOutcome, TaskType};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};

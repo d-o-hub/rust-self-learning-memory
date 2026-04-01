@@ -11,7 +11,7 @@
 //! ## Example
 //!
 //! ```ignore
-//! use memory_core::sync::StorageSynchronizer;
+//! use do_memory_core::sync::StorageSynchronizer;
 //!
 //! let sync = StorageSynchronizer::new(turso_storage, redb_storage);
 //! sync.start_periodic_sync(Duration::from_secs(300)).await;

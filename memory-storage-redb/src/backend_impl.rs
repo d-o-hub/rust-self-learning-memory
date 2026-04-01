@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use memory_core::memory::attribution::{
+use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
-use memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
+use do_memory_core::{Episode, Heuristic, Pattern, Result, StorageBackend, episode::PatternId};
 use uuid::Uuid;
 
 use crate::RedbStorage;
@@ -76,7 +76,7 @@ impl StorageBackend for RedbStorage {
 
     async fn store_relationship(
         &self,
-        relationship: &memory_core::episode::EpisodeRelationship,
+        relationship: &do_memory_core::episode::EpisodeRelationship,
     ) -> Result<()> {
         self.store_relationship(relationship).await
     }
@@ -88,8 +88,8 @@ impl StorageBackend for RedbStorage {
     async fn get_relationships(
         &self,
         episode_id: Uuid,
-        direction: memory_core::episode::Direction,
-    ) -> Result<Vec<memory_core::episode::EpisodeRelationship>> {
+        direction: do_memory_core::episode::Direction,
+    ) -> Result<Vec<do_memory_core::episode::EpisodeRelationship>> {
         self.get_relationships(episode_id, direction).await
     }
 
@@ -97,7 +97,7 @@ impl StorageBackend for RedbStorage {
         &self,
         from_episode_id: Uuid,
         to_episode_id: Uuid,
-        relationship_type: memory_core::episode::RelationshipType,
+        relationship_type: do_memory_core::episode::RelationshipType,
     ) -> Result<bool> {
         self.relationship_exists(from_episode_id, to_episode_id, relationship_type)
             .await

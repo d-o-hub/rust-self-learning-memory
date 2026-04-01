@@ -6,7 +6,7 @@ use super::types::{
 use crate::config::Config;
 use crate::output::OutputFormat;
 use chrono::Utc;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn list_episodes(

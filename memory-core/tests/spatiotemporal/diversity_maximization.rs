@@ -4,7 +4,7 @@
 
 use std::collections::HashSet;
 
-use memory_core::{
+use do_memory_core::{
     memory::SelfLearningMemory,
     spatiotemporal::{DiversityMaximizer, ScoredEpisode},
     MemoryConfig, TaskContext, TaskType,

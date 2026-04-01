@@ -1,14 +1,14 @@
-# memory-storage-turso
+# do-memory-storage-turso
 
-[![Crates.io](https://img.shields.io/crates/v/memory-storage-turso.svg)](https://crates.io/crates/memory-storage-turso)
-[![Documentation](https://docs.rs/memory-storage-turso/badge.svg)](https://docs.rs/memory-storage-turso)
+[![Crates.io](https://img.shields.io/crates/v/do-memory-storage-turso.svg)](https://crates.io/crates/do-memory-storage-turso)
+[![Documentation](https://docs.rs/do-memory-storage-turso/badge.svg)](https://docs.rs/do-memory-storage-turso)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Purpose**: Primary durable storage using Turso/libSQL
 
 ## Overview
 
-`memory-storage-turso` implements the durable storage layer for AI agent episodic memory using [Turso](https://turso.tech) and libSQL. It provides production-ready distributed SQL storage with connection pooling, circuit breaking, and resilient error handling.
+`do-memory-storage-turso` implements the durable storage layer for AI agent episodic memory using [Turso](https://turso.tech) and libSQL. It provides production-ready distributed SQL storage with connection pooling, circuit breaking, and resilient error handling.
 
 ## Features
 
@@ -35,7 +35,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-memory-storage-turso = "0.1"
+do-memory-storage-turso = "0.1"
 ```
 
 ## Quick Start
@@ -182,7 +182,7 @@ Connection pooling and query optimization ensure excellent performance:
 | Vector Search | < 50ms | 50+ ops/s |
 | Spatiotemporal Query | < 20ms | 100+ ops/s |
 
-## Usage with memory-core
+## Usage with do-memory-core
 
 ```rust
 use memory_core::SelfLearningMemory;
@@ -271,7 +271,7 @@ println!("Last failure: {:?}", status.last_failure);
 Run integration tests with a local libSQL database:
 
 ```bash
-cargo test -p memory-storage-turso
+cargo test -p do-memory-storage-turso
 ```
 
 For production testing against Turso, set environment variables first:
@@ -279,7 +279,7 @@ For production testing against Turso, set environment variables first:
 ```bash
 export TURSO_DATABASE_URL="libsql://your-test-db.turso.io"
 export TURSO_AUTH_TOKEN="your-test-token"
-cargo test -p memory-storage-turso
+cargo test -p do-memory-storage-turso
 ```
 
 ## Dependencies
@@ -296,7 +296,7 @@ cargo test -p memory-storage-turso
 
 ## Documentation
 
-Full API documentation: [docs.rs/memory-storage-turso](https://docs.rs/memory-storage-turso)
+Full API documentation: [docs.rs/do-memory-storage-turso](https://docs.rs/do-memory-storage-turso)
 
 ### Additional Documentation
 - [LOCAL_DATABASE_SETUP.md](../docs/LOCAL_DATABASE_SETUP.md) - Local database configuration

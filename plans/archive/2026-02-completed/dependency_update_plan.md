@@ -32,10 +32,10 @@ Update all Rust workspace packages to the latest compatible versions while maint
 ### Individual Packages
 | Package | Key Dependencies |
 |---------|------------------|
-| memory-core | ort 2.0.0-rc.11, tokenizers 0.22, augurs-changepoint 0.10.1 |
-| memory-storage-turso | lz4_flex 0.12, zstd 0.13, flate2 1.1 |
-| memory-mcp | javy 6.0.0, augurs 0.10.1, deep_causality 0.13.2 |
-| memory-cli | toml 0.9, serde_yaml 0.9, dirs 6.0 |
+| do-memory-core | ort 2.0.0-rc.11, tokenizers 0.22, augurs-changepoint 0.10.1 |
+| do-memory-storage-turso | lz4_flex 0.12, zstd 0.13, flate2 1.1 |
+| do-memory-mcp | javy 6.0.0, augurs 0.10.1, deep_causality 0.13.2 |
+| do-memory-cli | toml 0.9, serde_yaml 0.9, dirs 6.0 |
 
 ## Task Phases
 

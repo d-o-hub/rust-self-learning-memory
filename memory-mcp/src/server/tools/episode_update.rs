@@ -146,12 +146,12 @@ impl MemoryMCPServer {
 mod tests {
     use super::*;
     use crate::types::SandboxConfig;
-    use memory_core::{TaskContext, TaskType};
+    use do_memory_core::{TaskContext, TaskType};
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_update_episode_description() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
         let server = MemoryMCPServer::new(SandboxConfig::default(), Arc::new(memory))
             .await
             .unwrap();
@@ -190,7 +190,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_episode_tags() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
         let server = MemoryMCPServer::new(SandboxConfig::default(), Arc::new(memory))
             .await
             .unwrap();
@@ -223,7 +223,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_update_episode_invalid_id() {
-        let memory = memory_core::SelfLearningMemory::new();
+        let memory = do_memory_core::SelfLearningMemory::new();
         let server = MemoryMCPServer::new(SandboxConfig::default(), Arc::new(memory))
             .await
             .unwrap();

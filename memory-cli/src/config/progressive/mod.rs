@@ -16,7 +16,7 @@
 //! ## Ultra-Simple (30-second setup)
 //!
 //! ```no_run
-//! use memory_cli::config::progressive::setup_quick_redb;
+//! use do_memory_cli::config::progressive::setup_quick_redb;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
@@ -29,7 +29,7 @@
 //! ## Simple Mode (Guided preset selection)
 //!
 //! ```no_run
-//! use memory_cli::config::{SimpleSetup, ConfigPreset};
+//! use do_memory_cli::config::{SimpleSetup, ConfigPreset};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
@@ -49,7 +49,7 @@
 //! ## Advanced Mode (Full configuration)
 //!
 //! ```no_run
-//! use memory_cli::config::quick_setup;
+//! use do_memory_cli::config::quick_setup;
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

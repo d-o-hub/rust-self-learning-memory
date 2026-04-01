@@ -69,7 +69,7 @@
 
 ### Fixed
 
-- **memory-storage-redb compilation errors** - Fix cache imports and trait implementations
+- **do-memory-storage-redb compilation errors** - Fix cache imports and trait implementations
 - **Stale `#[ignore]` reasons** - Update test ignore annotations with current reasons
 
 ### Added
@@ -82,7 +82,7 @@
 ### Fixed
 
 - **ADR-041 build and CLI dispatch errors** - Complete test health remediation
-  - Fix compilation errors in memory-storage-redb (cache imports, trait implementations)
+  - Fix compilation errors in do-memory-storage-redb (cache imports, trait implementations)
   - Fix CLI command dispatch for episode and pattern subcommands
   - Update proptest! macro syntax for tests without parameters
   - Fix clippy approx_constant warnings in coverage tests
@@ -103,7 +103,7 @@
 ### Added
 
 - **AdaptiveCache with Cache trait adapter** - Enables intelligent TTL adjustment for cached entries
-  - New `Cache` trait interface for cache abstraction (`memory-storage-redb/src/cache/traits.rs`)
+  - New `Cache` trait interface for cache abstraction (`do-memory-storage-redb/src/cache/traits.rs`)
   - `AdaptiveCacheAdapter` wrapping `AdaptiveCache<()>` for metadata-only caching
   - `LRUCache` now implements `Cache` trait for unified interface
 - **CLI pattern discovery commands** - Full pattern analysis and search functionality
@@ -133,7 +133,7 @@
 
 - Implement O1/O3/O5 opportunities - tool parity, docs fixes, runtime wiring tests
 - Implement embedding tools for MCP server with snapshot tests
-- Add semantic embedding service to memory-core
+- Add semantic embedding service to do-memory-core
 - Enhance cache configuration loader in CLI
 - Add ADR-024 integration tests for lazy tool loading
 - Add MCP embedding tools and property tests
@@ -146,7 +146,7 @@
 ### Changed
 
 - Implement G2/G9 tasks - remove dead code and split oversized files
-- Split large modules into modular structure (memory-core)
+- Split large modules into modular structure (do-memory-core)
 - Flatten test modules for indexing and graph algorithms
 - Split embedding tools into separate modules (MCP)
 - Remove legacy claude command artifacts
@@ -178,7 +178,7 @@
 
 - Add property-based and snapshot tests across crates
 - Add snapshot tests for backup, monitor, logs, eval CLI commands
-- Add error message snapshot tests for memory-core
+- Add error message snapshot tests for do-memory-core
 - Update snapshot baselines for help output
 - Add insta for snapshot testing
 - Increase wait timeout for slow CI environments
@@ -209,7 +209,7 @@
   - Standardized `cargo nextest run` across all CI workflows
   - nextest profiles: `default`, `ci`, `nightly` in `.config/nextest.toml`
   - JUnit XML output for CI test reporting
-  - Mutation testing with `cargo-mutants` (nightly CI job on memory-core)
+  - Mutation testing with `cargo-mutants` (nightly CI job on do-memory-core)
   - Property testing with `proptest` for serialization roundtrips and state machines
   - Snapshot testing with `insta` for MCP responses and CLI output
 
@@ -510,9 +510,9 @@ This release was prepared with the following specialized agents:
   - Comprehensive test coverage (>90%)
 
 ### Documentation
-- Added `memory-core/EPISODE_TAGGING_GUIDE.md` - comprehensive usage guide
-- Added `memory-mcp/EPISODE_TAGS_TOOLS.md` - MCP tool documentation
-- Updated `memory-cli/CLI_USER_GUIDE.md` - CLI command documentation
+- Added `do-memory-core/EPISODE_TAGGING_GUIDE.md` - comprehensive usage guide
+- Added `do-memory-mcp/EPISODE_TAGS_TOOLS.md` - MCP tool documentation
+- Updated `do-memory-cli/CLI_USER_GUIDE.md` - CLI command documentation
 - Added `examples/episode_tagging_demo.rs` - working example
 - Added `benches/tag_operations.rs` - performance benchmarks
 
@@ -537,7 +537,7 @@ This release was prepared with the following specialized agents:
 ### Added
 
 - **File Size Compliance Refactoring**: Comprehensive refactoring to meet ≤500 LOC requirement
-  - Split 17 files across memory-core, memory-cli, and memory-mcp
+  - Split 17 files across do-memory-core, do-memory-cli, and do-memory-mcp
   - All modules now compliant with project guidelines
   - Improved maintainability through better separation of concerns
 
@@ -557,16 +557,16 @@ This release was prepared with the following specialized agents:
 ### Changed
 
 - **Error Handling**: Replaced 43 production `.unwrap()` calls with `.expect()` + contextual error messages
-  - Fixed memory-core/src/retrieval/cache/lru.rs - NonZeroUsize initialization safety
-  - Fixed memory-core/src/embeddings/circuit_breaker.rs - Mutex lock error context (6 calls)
-  - Fixed memory-core/src/memory/retrieval/context.rs - Option handling with invariant documentation
-  - Fixed memory-cli/src/config/loader.rs - Config cache mutex operations (26 calls)
-  - Fixed memory-cli/src/commands/embedding.rs - Iterator min/max safety checks
-  - Fixed memory-cli/src/config/validator.rs - Option unwrapping after validation
-  - Fixed memory-cli/src/config/wizard/database.rs - Database config option handling
-  - Fixed memory-cli/src/commands/storage/commands.rs - ProgressStyle template safety
-  - Fixed memory-mcp/src/patterns/predictive/kdtree.rs - Vector access bounds checking
-  - Fixed memory-mcp/src/mcp/tools/quality_metrics/tool.rs - HashMap access safety
+  - Fixed do-memory-core/src/retrieval/cache/lru.rs - NonZeroUsize initialization safety
+  - Fixed do-memory-core/src/embeddings/circuit_breaker.rs - Mutex lock error context (6 calls)
+  - Fixed do-memory-core/src/memory/retrieval/context.rs - Option handling with invariant documentation
+  - Fixed do-memory-cli/src/config/loader.rs - Config cache mutex operations (26 calls)
+  - Fixed do-memory-cli/src/commands/embedding.rs - Iterator min/max safety checks
+  - Fixed do-memory-cli/src/config/validator.rs - Option unwrapping after validation
+  - Fixed do-memory-cli/src/config/wizard/database.rs - Database config option handling
+  - Fixed do-memory-cli/src/commands/storage/commands.rs - ProgressStyle template safety
+  - Fixed do-memory-mcp/src/patterns/predictive/kdtree.rs - Vector access bounds checking
+  - Fixed do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs - HashMap access safety
 
 - **MCP Protocol Compliance**: Proper JSON-RPC response formatting
   - Fixed `server_info` → `serverInfo` in initialize response
@@ -674,14 +674,14 @@ This release was prepared with the following specialized agents:
   - CLI commands: `pattern search` and `pattern recommend` with JSON and text output
   - Comprehensive tests and documentation (95%+ coverage)
   - Example demo: `cargo run --example pattern_search_demo`
-  - Documentation: `memory-core/PATTERN_SEARCH_FEATURE.md`
+  - Documentation: `do-memory-core/PATTERN_SEARCH_FEATURE.md`
   - Zero warnings with `-D warnings`, fully backward compatible
 
 ### Changed
 - **Code Organization**: Split 3 large files into 21 modular files for 500 LOC compliance
-  - `memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)
-  - `memory-core/src/memory/retrieval.rs` (891 LOC → 6 files, max 414 LOC)
-  - `memory-core/src/patterns/optimized_validator.rs` (889 LOC → 6 files, max 448 LOC)
+  - `do-memory-cli/src/config/types.rs` (1,052 LOC → 9 files, max 379 LOC)
+  - `do-memory-core/src/memory/retrieval.rs` (891 LOC → 6 files, max 414 LOC)
+  - `do-memory-core/src/patterns/optimized_validator.rs` (889 LOC → 6 files, max 448 LOC)
   - All split files now comply with <500 LOC guideline
   - Improved maintainability through better separation of concerns
 
@@ -737,7 +737,7 @@ This release was prepared with the following specialized agents:
   - Moves from Phase 3 MVP to Phase 4 production-ready implementation
   - Added euclidean_distance helper function for efficient distance calculations
   - Converted train_adapter to async for embedding generation
-  - See: `memory-core/src/spatiotemporal/embeddings.rs`
+  - See: `do-memory-core/src/spatiotemporal/embeddings.rs`
 
 - **Spatiotemporal Integration**: Full spatiotemporal index integration into retrieval pipeline
   - Integrated spatiotemporal index for improved temporal and spatial retrieval
@@ -859,7 +859,7 @@ This release was prepared with the following specialized agents:
 ### Technical Details
 - All tests passing: 432/432 unit tests, 0 failures
 - Zero cache-specific clippy warnings
-- Cache module: 428 lines (`memory-core/src/retrieval/cache.rs`)
+- Cache module: 428 lines (`do-memory-core/src/retrieval/cache.rs`)
 - Benchmark suite: 322 lines (`benches/query_cache_benchmark.rs`)
 - Total implementation: ~660 lines added/modified
 - Analysis-swarm code quality score: 9.2/10 (improved from 8.5/10)
@@ -937,7 +937,7 @@ This release was prepared with the following specialized agents:
   - 448+ new tests for multi-dimension validation
 
 - **CLI Enhancements**: Embedding commands and configuration
-  - Added embedding commands to memory-cli
+  - Added embedding commands to do-memory-cli
   - Enhanced configuration with embedding provider settings
   - Added Simple Mode, minimal, and test configurations
   - Updated CLI user guide with embedding workflows
@@ -1067,7 +1067,7 @@ Comprehensive gap analysis completed on 2025-12-29 identifying 217-307 hours of 
   - System call filtering with conservative whitelist
 
 ### Changed
-- **[BREAKING]** Migrated from bincode to postcard for serialization in memory-storage-redb
+- **[BREAKING]** Migrated from bincode to postcard for serialization in do-memory-storage-redb
   - Replaced `bincode::serialize`/`deserialize` with `postcard::to_allocvec`/`from_bytes`
   - Postcard provides better security guarantees and smaller binary sizes
   - Existing redb databases will need to be recreated or migrated
@@ -1178,9 +1178,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### CLI Quality-of-Life Improvements (memory-cli)
+#### CLI Quality-of-Life Improvements (do-memory-cli)
 - **Enhanced Error Messages**: New error handling infrastructure with context-rich error messages
-  - `memory-cli/src/errors.rs` module (120 LOC) with `EnhancedError` trait
+  - `do-memory-cli/src/errors.rs` module (120 LOC) with `EnhancedError` trait
   - Color-coded error output (red errors, yellow suggestions, cyan numbering)
   - Pre-defined helper messages for common error scenarios (episode not found, storage connection, etc.)
   - 100% test coverage for error handling module
@@ -1200,7 +1200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Critical Bug Fixes
 - **Duplicate Storage Initialization**: Fixed critical issue where episode commands were creating duplicate storage instances
   - Root cause: Each command was initializing both Turso and redb storage, causing database lock errors
-  - Solution: Refactored 6 functions in `memory-cli/src/commands/episode.rs` to use shared `SelfLearningMemory` instance
+  - Solution: Refactored 6 functions in `do-memory-cli/src/commands/episode.rs` to use shared `SelfLearningMemory` instance
   - Removed ~600 LOC of duplicate initialization code
   - Impact: Reduced memory usage (~50MB per command), faster execution (~100-200ms saved), cleaner architecture
   - All episode commands now work correctly without lock errors
@@ -1272,7 +1272,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Complete CLI Implementation (memory-cli)
+#### Complete CLI Implementation (do-memory-cli)
 - **Functional Command-Line Interface**: Full CLI with 10 working commands for episode, pattern, and storage management
 - **Pattern Commands**: `list_patterns`, `view_pattern`, `analyze_pattern`, `pattern_effectiveness`, `decay_patterns` with real storage integration
 - **Storage Commands**: `sync_storage`, `vacuum_storage`, `storage_health`, `connection_status`, enhanced `storage_stats` with backend monitoring
@@ -1293,15 +1293,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Monitoring System (In Progress - v0.2.0)
 - **Agent Performance Monitoring**: Track agent execution metrics (success rate, duration, task-level aggregation)
-  - `memory-core/src/monitoring/` - Core monitoring infrastructure (894 LOC)
-  - `memory-mcp/src/monitoring/` - MCP monitoring endpoints and metrics (800 LOC)
+  - `do-memory-core/src/monitoring/` - Core monitoring infrastructure (894 LOC)
+  - `do-memory-mcp/src/monitoring/` - MCP monitoring endpoints and metrics (800 LOC)
   - Integrated into `SelfLearningMemory` with methods for recording and retrieving agent metrics
   - Health check endpoints and system metrics tracking
   - **Status**: ⚠️ Incomplete - storage layer has placeholder TODOs, requires clippy fixes
 
 #### MCP Server Enhancements (In Progress - v0.2.0)
 - **Cache System**: Query result caching with TTL-based expiration
-  - `memory-mcp/src/cache.rs` (458 LOC) - LRU-style cache for expensive operations
+  - `do-memory-mcp/src/cache.rs` (458 LOC) - LRU-style cache for expensive operations
   - Configurable via environment variables (cache size, TTL)
   - **Status**: ⚠️ Implemented but not integrated into tool handlers
 - **Enhanced Server**: Expanded from 3 to 5 MCP tools
@@ -1318,7 +1318,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `multi_backend_comparison.rs` - Turso vs redb performance (470 LOC)
   - `scalability.rs` - Large-scale episode handling (410 LOC)
 - **Benchmark Helpers**: `benches/src/benchmark_helpers.rs` for shared utilities
-- **Status**: ❌ Compilation errors - API mismatches with memory-core
+- **Status**: ❌ Compilation errors - API mismatches with do-memory-core
 
 ### Changed
 
@@ -1339,8 +1339,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cleaned up unused code**: Removed unused `jsonrpc` field and `InitializeParams` struct in MCP server binary
 - **Code formatting**: Ran `cargo fmt --all` to fix all formatting issues
 - **Clippy warnings**: Fixed 16+ unused variable warnings in monitoring code
-  - Prefixed unused variables with underscore in `memory-core/src/monitoring/*.rs`
-  - Removed unused `ConcurrencyConfig` import from `memory-core/src/memory/mod.rs`
+  - Prefixed unused variables with underscore in `do-memory-core/src/monitoring/*.rs`
+  - Removed unused `ConcurrencyConfig` import from `do-memory-core/src/memory/mod.rs`
 - **Dependencies**: Added missing `fs_extra = "1.3"` to `benches/Cargo.toml`
 - **Test fixes**: Updated test assertion in `simple_integration_tests.rs` (3 → 5 tools)
 - **Improved code hygiene**: Eliminated compiler warnings for better code quality and maintainability
@@ -1354,15 +1354,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Fix: Remove `.expect()` calls on non-Result methods
 
 2. **File Size Violations** (AGENTS.md compliance):
-   - `memory-mcp/src/server.rs`: 1051 LOC (511 over 500 limit)
-   - `memory-mcp/src/bin/server.rs`: 579 LOC (79 over limit)
+   - `do-memory-mcp/src/server.rs`: 1051 LOC (511 over 500 limit)
+   - `do-memory-mcp/src/bin/server.rs`: 579 LOC (79 over limit)
    - `benches/episode_lifecycle.rs`: 567 LOC (67 over limit)
    - Fix: Split into smaller modules
 
 3. **Code Formatting**: Multiple files fail `cargo fmt --check`
    - Fix: Run `cargo fmt --all`
 
-4. **Clippy Warnings**: 16 unused variable warnings in `memory-core/src/monitoring/*.rs`
+4. **Clippy Warnings**: 16 unused variable warnings in `do-memory-core/src/monitoring/*.rs`
    - Fix: Prefix unused variables with underscore
 
 5. **Missing Dependencies**: `benches/Cargo.toml` missing `fs_extra` crate
@@ -1371,7 +1371,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 6. **Cache Integration**: Cache implemented but not used in MCP tool handlers
 7. **Monitoring Storage**: Incomplete implementation with TODO placeholders
 8. **Test Assertion**: `simple_integration_tests.rs:22` expects 3 tools, should be 5
-9. **Mixed Lock Types**: `memory-mcp` uses both `parking_lot::RwLock` (blocking) and `tokio::sync::Mutex`
+9. **Mixed Lock Types**: `do-memory-mcp` uses both `parking_lot::RwLock` (blocking) and `tokio::sync::Mutex`
 
 ## [0.1.1] - 2025-11-14
 

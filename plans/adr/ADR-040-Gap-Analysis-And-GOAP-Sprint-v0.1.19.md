@@ -169,7 +169,7 @@ The `execute_agent_code` tool has been disabled since ~v0.1.14. Root cause is a 
 
 ### G4.1 Transport Compression Integration Plan (Documented 2026-03-13)
 
-The `CompressedTransport` wrapper exists at `memory-storage-turso/src/transport/wrapper.rs` but is not wired into `TursoStorage`. The integration path:
+The `CompressedTransport` wrapper exists at `do-memory-storage-turso/src/transport/wrapper.rs` but is not wired into `TursoStorage`. The integration path:
 
 1. **Current State**: `TursoConfig.enable_transport_compression` flag exists in config but is unused in constructors
 2. **Implementation Path**:

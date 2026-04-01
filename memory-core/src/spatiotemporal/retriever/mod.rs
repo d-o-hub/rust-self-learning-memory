@@ -37,7 +37,7 @@ use tracing::{debug, instrument};
 /// # Examples
 ///
 /// ```no_run
-/// use memory_core::spatiotemporal::HierarchicalRetriever;
+/// use do_memory_core::spatiotemporal::HierarchicalRetriever;
 ///
 /// // Create with default settings
 /// let retriever = HierarchicalRetriever::new();
@@ -83,7 +83,7 @@ impl HierarchicalRetriever {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::spatiotemporal::HierarchicalRetriever;
+    /// use do_memory_core::spatiotemporal::HierarchicalRetriever;
     ///
     /// // Favor very recent episodes
     /// let recent_focused = HierarchicalRetriever::with_config(0.5, 3);
@@ -120,8 +120,8 @@ impl HierarchicalRetriever {
     /// # Examples
     ///
     /// ```no_run
-    /// # use memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
-    /// # use memory_core::TaskType;
+    /// # use do_memory_core::spatiotemporal::{HierarchicalRetriever, RetrievalQuery};
+    /// # use do_memory_core::TaskType;
     /// # use std::collections::HashMap;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {

@@ -1,11 +1,11 @@
 //! Common utilities for memory system benchmarks
 
-use memory_core::{
+use do_memory_core::{
     memory::SelfLearningMemory,
     types::{ComplexityLevel, MemoryConfig, TaskContext},
 };
-use memory_storage_redb::RedbStorage;
-use memory_storage_turso::TursoStorage;
+use do_memory_storage_redb::RedbStorage;
+use do_memory_storage_turso::TursoStorage;
 use std::sync::Arc;
 use tempfile::TempDir;
 
@@ -88,12 +88,12 @@ pub fn generate_episode_description(id: usize) -> String {
 }
 
 /// Generate realistic execution steps for an episode
-pub fn generate_execution_steps(count: usize) -> Vec<memory_core::episode::ExecutionStep> {
-    use memory_core::types::ExecutionResult;
+pub fn generate_execution_steps(count: usize) -> Vec<do_memory_core::episode::ExecutionStep> {
+    use do_memory_core::types::ExecutionResult;
 
     (0..count)
         .map(|i| {
-            let mut step = memory_core::episode::ExecutionStep::new(
+            let mut step = do_memory_core::episode::ExecutionStep::new(
                 i + 1,
                 format!("tool_{}", i),
                 format!("Execute step {} of the process", i),
@@ -117,12 +117,12 @@ pub fn generate_large_episode_description(id: usize) -> String {
 }
 
 /// Generate many execution steps for memory pressure testing
-pub fn generate_many_execution_steps(count: usize) -> Vec<memory_core::episode::ExecutionStep> {
-    use memory_core::types::ExecutionResult;
+pub fn generate_many_execution_steps(count: usize) -> Vec<do_memory_core::episode::ExecutionStep> {
+    use do_memory_core::types::ExecutionResult;
 
     (0..count)
         .map(|i| {
-            let mut step = memory_core::episode::ExecutionStep::new(
+            let mut step = do_memory_core::episode::ExecutionStep::new(
                 i + 1,
                 format!("comprehensive_tool_{}", i),
                 format!("Execute comprehensive step {} involving multiple operations, validations, and transformations", i),

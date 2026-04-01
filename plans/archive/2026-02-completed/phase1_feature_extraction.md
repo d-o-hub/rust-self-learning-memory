@@ -23,15 +23,15 @@ Total: **30 commands/tools** across MCP and CLI interfaces.
 ## Section 1: MCP Relationship Tools (8 Tools)
 
 ### Tool Registration
-**Location**: `memory-mcp/src/bin/server/handlers.rs:152-171`
-**Tool Definitions**: `memory-mcp/src/server/tool_definitions_extended.rs:499-719`
-**Handler Functions**: `memory-mcp/src/bin/server/tools.rs:829-1110`
+**Location**: `do-memory-mcp/src/bin/server/handlers.rs:152-171`
+**Tool Definitions**: `do-memory-mcp/src/server/tool_definitions_extended.rs:499-719`
+**Handler Functions**: `do-memory-mcp/src/bin/server/tools.rs:829-1110`
 
 ### Tool 1: add_episode_relationship
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:58-108
-Handler: memory-mcp/src/bin/server/tools.rs:830-869
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:501-539
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:58-108
+Handler: do-memory-mcp/src/bin/server/tools.rs:830-869
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:501-539
 
 Function Signature:
 pub async fn add_relationship(
@@ -61,9 +61,9 @@ Validates episode existence, prevents self-relationships, and checks for cycles.
 
 ### Tool 2: remove_episode_relationship
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:126-146
-Handler: memory-mcp/src/bin/server/tools.rs:872-898
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:542-556
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:126-146
+Handler: do-memory-mcp/src/bin/server/tools.rs:872-898
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:542-556
 
 Function Signature:
 pub async fn remove_relationship(
@@ -84,9 +84,9 @@ Description: Removes a relationship by its ID.
 
 ### Tool 3: get_episode_relationships
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:164-227
-Handler: memory-mcp/src/bin/server/tools.rs:900-930
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:559-584
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:164-227
+Handler: do-memory-mcp/src/bin/server/tools.rs:900-930
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:559-584
 
 Function Signature:
 pub async fn get_relationships(
@@ -112,9 +112,9 @@ Description: Gets all relationships for an episode with optional direction and t
 
 ### Tool 4: find_related_episodes
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:241-320
-Handler: memory-mcp/src/bin/server/tools.rs:932-962
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:587-616
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:241-320
+Handler: do-memory-mcp/src/bin/server/tools.rs:932-962
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:587-616
 
 Function Signature:
 pub async fn find_related(
@@ -140,9 +140,9 @@ Description: Finds episodes related to the given episode with optional filtering
 
 ### Tool 5: check_relationship_exists
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:332-369
-Handler: memory-mcp/src/bin/server/tools.rs:964-996
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:619-642
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:332-369
+Handler: do-memory-mcp/src/bin/server/tools.rs:964-996
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:619-642
 
 Function Signature:
 pub async fn check_exists(
@@ -168,9 +168,9 @@ Description: Checks if a specific relationship exists between two episodes.
 
 ### Tool 6: get_dependency_graph
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:383-451
-Handler: memory-mcp/src/bin/server/tools.rs:998-1029
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:645-672
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:383-451
+Handler: do-memory-mcp/src/bin/server/tools.rs:998-1029
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:645-672
 
 Function Signature:
 pub async fn get_dependency_graph(
@@ -198,9 +198,9 @@ Description: Builds a relationship graph starting from an episode up to a specif
 
 ### Tool 7: validate_no_cycles
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:463-540
-Handler: memory-mcp/src/bin/server/tools.rs:1031-1072
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:675-698
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:463-540
+Handler: do-memory-mcp/src/bin/server/tools.rs:1031-1072
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:675-698
 
 Function Signature:
 pub async fn validate_no_cycles(
@@ -226,9 +226,9 @@ Only checks for acyclic relationship types.
 
 ### Tool 8: get_topological_order
 ```
-Location: memory-mcp/src/mcp/tools/episode_relationships/tool.rs:554-655
-Handler: memory-mcp/src/bin/server/tools.rs:1074-1110
-Definition: memory-mcp/src/server/tool_definitions_extended.rs:701-719
+Location: do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs:554-655
+Handler: do-memory-mcp/src/bin/server/tools.rs:1074-1110
+Definition: do-memory-mcp/src/server/tool_definitions_extended.rs:701-719
 
 Function Signature:
 pub async fn get_topological_order(
@@ -262,14 +262,14 @@ Only works on directed acyclic graphs (DAGs).
 
 ### Module Structure
 ```
-memory-cli/src/commands/relationships/
+do-memory-cli/src/commands/relationships/
 ├── mod.rs          # Command definitions (182 lines)
 ├── core.rs         # Implementation (602 lines)
 └── types.rs        # Types and output (371 lines)
 ```
 
 ### Command Registration
-**Location**: `memory-cli/src/main.rs:127-132`
+**Location**: `do-memory-cli/src/main.rs:127-132`
 ```rust
 #[command(alias = "rel")]
 Relationship {
@@ -280,8 +280,8 @@ Relationship {
 
 ### Command 1: relationship add
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:23-53
-Handler: memory-cli/src/commands/relationships/core.rs:14-89
+Location: do-memory-cli/src/commands/relationships/mod.rs:23-53
+Handler: do-memory-cli/src/commands/relationships/core.rs:14-89
 
 Structure:
 relationship add \
@@ -307,8 +307,8 @@ Arguments:
 
 ### Command 2: relationship remove
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:55-61
-Handler: memory-cli/src/commands/relationships/core.rs:91-115
+Location: do-memory-cli/src/commands/relationships/mod.rs:55-61
+Handler: do-memory-cli/src/commands/relationships/core.rs:91-115
 
 Structure:
 relationship remove <RELATIONSHIP_ID>
@@ -321,8 +321,8 @@ Arguments:
 
 ### Command 3: relationship list
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:63-81
-Handler: memory-cli/src/commands/relationships/core.rs:117-181
+Location: do-memory-cli/src/commands/relationships/mod.rs:63-81
+Handler: do-memory-cli/src/commands/relationships/core.rs:117-181
 
 Structure:
 relationship list \
@@ -342,8 +342,8 @@ Arguments:
 
 ### Command 4: relationship find
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:83-105
-Handler: memory-cli/src/commands/relationships/core.rs:183-270
+Location: do-memory-cli/src/commands/relationships/mod.rs:83-105
+Handler: do-memory-cli/src/commands/relationships/core.rs:183-270
 
 Structure:
 relationship find \
@@ -365,8 +365,8 @@ Arguments:
 
 ### Command 5: relationship info
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:107-113
-Handler: memory-cli/src/commands/relationships/core.rs:272-285
+Location: do-memory-cli/src/commands/relationships/mod.rs:107-113
+Handler: do-memory-cli/src/commands/relationships/core.rs:272-285
 
 Structure:
 relationship info <RELATIONSHIP_ID>
@@ -381,8 +381,8 @@ Note: Currently not fully implemented - directs users to use list command.
 
 ### Command 6: relationship graph
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:115-133
-Handler: memory-cli/src/commands/relationships/core.rs:287-325
+Location: do-memory-cli/src/commands/relationships/mod.rs:115-133
+Handler: do-memory-cli/src/commands/relationships/core.rs:287-325
 
 Structure:
 relationship graph \
@@ -402,8 +402,8 @@ Arguments:
 
 ### Command 7: relationship validate
 ```
-Location: memory-cli/src/commands/relationships/mod.rs:135-146
-Handler: memory-cli/src/commands/relationships/core.rs:405-453
+Location: do-memory-cli/src/commands/relationships/mod.rs:135-146
+Handler: do-memory-cli/src/commands/relationships/core.rs:405-453
 
 Structure:
 relationship validate \
@@ -430,14 +430,14 @@ Arguments:
 
 ### Module Structure
 ```
-memory-cli/src/commands/episode/relationships/
+do-memory-cli/src/commands/episode/relationships/
 ├── mod.rs          # Implementation (427 lines)
 ├── helpers.rs      # Helper functions
 └── types.rs        # Types and output (492 lines)
 ```
 
 ### Command Registration
-**Location**: `memory-cli/src/commands/mod.rs:173-176`
+**Location**: `do-memory-cli/src/commands/mod.rs:173-176`
 ```rust
 EpisodeCommands::Relationships(cmd) => {
     handle_relationships_command(cmd, memory, config, format, dry_run).await
@@ -467,7 +467,7 @@ All nested under `episode relationships`:
 
 ### Module Structure
 ```
-memory-cli/src/commands/tag/
+do-memory-cli/src/commands/tag/
 ├── mod.rs          # Module exports (20 lines)
 ├── core.rs         # Implementation (696 lines)
 ├── types.rs        # Types and enums (233 lines)
@@ -476,7 +476,7 @@ memory-cli/src/commands/tag/
 ```
 
 ### Command Registration
-**Location**: `memory-cli/src/main.rs:121-126`
+**Location**: `do-memory-cli/src/main.rs:121-126`
 ```rust
 #[command(alias = "tg")]
 Tag {
@@ -487,8 +487,8 @@ Tag {
 
 ### Command 1: tag add
 ```
-Location: memory-cli/src/commands/tag/types.rs:8-22
-Handler: memory-cli/src/commands/tag/core.rs:74-136
+Location: do-memory-cli/src/commands/tag/types.rs:8-22
+Handler: do-memory-cli/src/commands/tag/core.rs:74-136
 
 Structure:
 tag add <EPISODE_ID> <TAG>... [--color <COLOR>]
@@ -503,8 +503,8 @@ Output: TagAddResult (types.rs:115-121)
 
 ### Command 2: tag remove
 ```
-Location: memory-cli/src/commands/tag/types.rs:24-33
-Handler: memory-cli/src/commands/tag/core.rs:138-181
+Location: do-memory-cli/src/commands/tag/types.rs:24-33
+Handler: do-memory-cli/src/commands/tag/core.rs:138-181
 
 Structure:
 tag remove <EPISODE_ID> <TAG>...
@@ -518,8 +518,8 @@ Output: TagRemoveResult (types.rs:124-130)
 
 ### Command 3: tag set
 ```
-Location: memory-cli/src/commands/tag/types.rs:35-44
-Handler: memory-cli/src/commands/tag/core.rs:209-243
+Location: do-memory-cli/src/commands/tag/types.rs:35-44
+Handler: do-memory-cli/src/commands/tag/core.rs:209-243
 
 Structure:
 tag set <EPISODE_ID> <TAG>...
@@ -533,8 +533,8 @@ Output: TagSetResult (types.rs:133-139)
 
 ### Command 4: tag list
 ```
-Location: memory-cli/src/commands/tag/types.rs:46-55
-Handler: memory-cli/src/commands/tag/core.rs:183-207 (episode), 246-317 (all)
+Location: do-memory-cli/src/commands/tag/types.rs:46-55
+Handler: do-memory-cli/src/commands/tag/core.rs:183-207 (episode), 246-317 (all)
 
 Structure:
 tag list [--episode <EPISODE_ID>] [--sort-by <count|name|recent>]
@@ -550,8 +550,8 @@ Outputs:
 
 ### Command 5: tag search
 ```
-Location: memory-cli/src/commands/tag/types.rs:57-78
-Handler: memory-cli/src/commands/tag/core.rs:320-429
+Location: do-memory-cli/src/commands/tag/types.rs:57-78
+Handler: do-memory-cli/src/commands/tag/core.rs:320-429
 
 Structure:
 tag search <TAG>... [--all] [--partial] [--case-sensitive] [--limit <N>]
@@ -568,8 +568,8 @@ Output: TagSearchResult (types.rs:167-185)
 
 ### Command 6: tag show
 ```
-Location: memory-cli/src/commands/tag/types.rs:80-85
-Handler: memory-cli/src/commands/tag/core.rs:431-472
+Location: do-memory-cli/src/commands/tag/types.rs:80-85
+Handler: do-memory-cli/src/commands/tag/core.rs:431-472
 
 Structure:
 tag show <EPISODE_ID>
@@ -582,8 +582,8 @@ Output: TagShowResult (types.rs:188-199)
 
 ### Command 7: tag rename
 ```
-Location: memory-cli/src/commands/tag/types.rs:87-100
-Handler: memory-cli/src/commands/tag/core.rs:474-564
+Location: do-memory-cli/src/commands/tag/types.rs:87-100
+Handler: do-memory-cli/src/commands/tag/core.rs:474-564
 
 Structure:
 tag rename <OLD_TAG> <NEW_TAG> [--dry-run]
@@ -598,8 +598,8 @@ Output: TagRenameResult (types.rs:202-208)
 
 ### Command 8: tag stats
 ```
-Location: memory-cli/src/commands/tag/types.rs:102-112
-Handler: memory-cli/src/commands/tag/core.rs:566-689
+Location: do-memory-cli/src/commands/tag/types.rs:102-112
+Handler: do-memory-cli/src/commands/tag/core.rs:566-689
 
 Structure:
 tag stats [--top <N>] [--sort <count|name|recent>]
@@ -615,7 +615,7 @@ Output: TagStatsDetailedResult (types.rs:211-232)
 
 ## Section 5: Dependencies and Types Required
 
-### From memory-core
+### From do-memory-core
 
 #### Types
 ```rust
@@ -684,37 +684,37 @@ chrono = "0.4"
 ## Section 6: Implementation Checklist
 
 ### MCP Relationship Tools
-- [ ] `memory-mcp/src/mcp/tools/episode_relationships/mod.rs` (19 lines)
-- [ ] `memory-mcp/src/mcp/tools/episode_relationships/types.rs` (284 lines)
-- [ ] `memory-mcp/src/mcp/tools/episode_relationships/tool.rs` (679 lines)
-- [ ] `memory-mcp/src/mcp/tools/episode_relationships/tests.rs` (existing tests)
-- [ ] `memory-mcp/src/mcp/tools/mod.rs` - Add module export
-- [ ] `memory-mcp/src/bin/server/tools.rs` - Add 8 handler functions (lines 829-1110)
-- [ ] `memory-mcp/src/bin/server/handlers.rs` - Add tool routing (lines 152-171)
-- [ ] `memory-mcp/src/server/tool_definitions_extended.rs` - Add 8 tool definitions (lines 499-719)
+- [ ] `do-memory-mcp/src/mcp/tools/episode_relationships/mod.rs` (19 lines)
+- [ ] `do-memory-mcp/src/mcp/tools/episode_relationships/types.rs` (284 lines)
+- [ ] `do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs` (679 lines)
+- [ ] `do-memory-mcp/src/mcp/tools/episode_relationships/tests.rs` (existing tests)
+- [ ] `do-memory-mcp/src/mcp/tools/mod.rs` - Add module export
+- [ ] `do-memory-mcp/src/bin/server/tools.rs` - Add 8 handler functions (lines 829-1110)
+- [ ] `do-memory-mcp/src/bin/server/handlers.rs` - Add tool routing (lines 152-171)
+- [ ] `do-memory-mcp/src/server/tool_definitions_extended.rs` - Add 8 tool definitions (lines 499-719)
 
 ### CLI Standalone Relationship Commands
-- [ ] `memory-cli/src/commands/relationships/mod.rs` (182 lines)
-- [ ] `memory-cli/src/commands/relationships/core.rs` (602 lines)
-- [ ] `memory-cli/src/commands/relationships/types.rs` (371 lines)
-- [ ] `memory-cli/src/commands/mod.rs` - Add module export and handler
-- [ ] `memory-cli/src/main.rs` - Add Relationship command variant (lines 127-132)
+- [ ] `do-memory-cli/src/commands/relationships/mod.rs` (182 lines)
+- [ ] `do-memory-cli/src/commands/relationships/core.rs` (602 lines)
+- [ ] `do-memory-cli/src/commands/relationships/types.rs` (371 lines)
+- [ ] `do-memory-cli/src/commands/mod.rs` - Add module export and handler
+- [ ] `do-memory-cli/src/main.rs` - Add Relationship command variant (lines 127-132)
 
 ### CLI Episode Relationship Commands
-- [ ] `memory-cli/src/commands/episode/relationships/mod.rs` (427 lines)
-- [ ] `memory-cli/src/commands/episode/relationships/types.rs` (492 lines)
-- [ ] `memory-cli/src/commands/episode/relationships/helpers.rs`
-- [ ] `memory-cli/src/commands/episode/mod.rs` - Add relationships module
-- [ ] `memory-cli/src/commands/mod.rs` - Add handler function
+- [ ] `do-memory-cli/src/commands/episode/relationships/mod.rs` (427 lines)
+- [ ] `do-memory-cli/src/commands/episode/relationships/types.rs` (492 lines)
+- [ ] `do-memory-cli/src/commands/episode/relationships/helpers.rs`
+- [ ] `do-memory-cli/src/commands/episode/mod.rs` - Add relationships module
+- [ ] `do-memory-cli/src/commands/mod.rs` - Add handler function
 
 ### CLI Tag Commands
-- [ ] `memory-cli/src/commands/tag/mod.rs` (20 lines)
-- [ ] `memory-cli/src/commands/tag/core.rs` (696 lines)
-- [ ] `memory-cli/src/commands/tag/types.rs` (233 lines)
-- [ ] `memory-cli/src/commands/tag/output.rs` (376 lines)
-- [ ] `memory-cli/src/commands/tag/tests.rs`
-- [ ] `memory-cli/src/commands/mod.rs` - Add module export
-- [ ] `memory-cli/src/main.rs` - Add Tag command variant (lines 121-126)
+- [ ] `do-memory-cli/src/commands/tag/mod.rs` (20 lines)
+- [ ] `do-memory-cli/src/commands/tag/core.rs` (696 lines)
+- [ ] `do-memory-cli/src/commands/tag/types.rs` (233 lines)
+- [ ] `do-memory-cli/src/commands/tag/output.rs` (376 lines)
+- [ ] `do-memory-cli/src/commands/tag/tests.rs`
+- [ ] `do-memory-cli/src/commands/mod.rs` - Add module export
+- [ ] `do-memory-cli/src/main.rs` - Add Tag command variant (lines 121-126)
 
 ---
 
@@ -735,7 +735,7 @@ chrono = "0.4"
    - Custom error types from `memory_core::error::relationship` may need updating
 
 4. **Audit Logging**:
-   - MCP tools integrate with audit logger at `memory-mcp/src/bin/server/tools.rs`
+   - MCP tools integrate with audit logger at `do-memory-mcp/src/bin/server/tools.rs`
    - Ensure audit methods exist:
      - `log_add_relationship`
      - `log_remove_relationship`
@@ -767,11 +767,11 @@ chrono = "0.4"
 ### Testing Requirements
 
 1. **MCP Tool Tests**:
-   - Located in `memory-mcp/src/mcp/tools/episode_relationships/tests.rs`
+   - Located in `do-memory-mcp/src/mcp/tools/episode_relationships/tests.rs`
    - Tests use mock memory and verify tool outputs
 
 2. **CLI Tests**:
-   - Unit tests in `memory-cli/src/commands/tag/tests.rs`
+   - Unit tests in `do-memory-cli/src/commands/tag/tests.rs`
    - Integration tests may be needed for relationship commands
 
 ### Build Integration

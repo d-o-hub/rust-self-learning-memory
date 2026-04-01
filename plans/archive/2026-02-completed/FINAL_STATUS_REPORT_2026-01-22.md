@@ -22,9 +22,9 @@ All tasks from the plan analysis have been completed. The codebase is now fully 
 | Benchmark exemption | N/A | Added | ✅ Policy Complete |
 
 **Files Split**:
-- `memory-mcp/src/server/mod.rs` (781 → 147 + 3 submodules)
-- `memory-mcp/src/server/tools/batch_operations.rs` (753 → 3 batch modules)
-- `memory-mcp/src/server/tools/episode_lifecycle.rs` (516 → 5 episode modules)
+- `do-memory-mcp/src/server/mod.rs` (781 → 147 + 3 submodules)
+- `do-memory-mcp/src/server/tools/batch_operations.rs` (753 → 3 batch modules)
+- `do-memory-mcp/src/server/tools/episode_lifecycle.rs` (516 → 5 episode modules)
 
 **Total new modules**: 12 files
 

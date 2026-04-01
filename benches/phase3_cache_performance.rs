@@ -8,8 +8,8 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use memory_core::{Episode, Pattern, PatternId, StorageBackend, TaskContext, TaskType};
-use memory_storage_turso::{CacheConfig, TursoStorage};
+use do_memory_core::{Episode, Pattern, PatternId, StorageBackend, TaskContext, TaskType};
+use do_memory_storage_turso::{CacheConfig, TursoStorage};
 use std::hint::black_box;
 use std::time::Duration;
 use tempfile::TempDir;
@@ -46,14 +46,14 @@ fn create_patterns(count: usize) -> Vec<Pattern> {
             id: PatternId::new_v4(),
             condition: format!("condition_{}", i),
             action: format!("action_{}", i),
-            outcome_stats: memory_core::types::OutcomeStats {
+            outcome_stats: do_memory_core::types::OutcomeStats {
                 success_count: 5,
                 failure_count: 1,
                 total_count: 6,
                 avg_duration_secs: 0.5,
             },
             context: TaskContext::default(),
-            effectiveness: memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
         })
         .collect()
 }

@@ -14,27 +14,27 @@
 
 ### Priority Order (largest first)
 
-1. **memory-core/src/memory/mod.rs** (686 LOC)
-2. **memory-core/src/embeddings/openai.rs** (672 LOC)
-3. **memory-core/src/patterns/clustering.rs** (673 LOC)
-4. **memory-core/src/pre_storage/quality.rs** (666 LOC)
-5. **memory-core/src/learning/queue.rs** (662 LOC)
-6. **memory-core/src/embeddings/config.rs** (660 LOC)
-7. **memory-core/src/episode.rs** (649 LOC)
-8. **memory-core/src/episodic/capacity.rs** (613 LOC)
-9. **memory-core/src/patterns/effectiveness.rs** (631 LOC)
-10. **memory-core/src/memory/step_buffer/mod.rs** (610 LOC)
-11. **memory-core/src/monitoring/storage.rs** (598 LOC)
-12. **memory-mcp/src/mcp/tools/advanced_pattern_analysis/tool.rs** (656 LOC)
-13. **memory-mcp/src/bin/server/jsonrpc.rs** (591 LOC)
-14. **memory-core/src/patterns/validation.rs** (623 LOC)
-15. **memory-core/src/memory/filters.rs** (572 LOC)
-16. **memory-core/src/memory/tests.rs** (562 LOC)
-17. **memory-core/src/patterns/extractors/heuristic/mod.rs** (553 LOC)
-18. **memory-core/src/embeddings/real_model.rs** (638 LOC)
-19. **memory-core/src/patterns/extractors/clustering.rs** (506 LOC)
-20. **memory-mcp/src/mcp/tools/embeddings/tool.rs** (531 LOC)
-21. **memory-core/src/reward/adaptive.rs** (510 LOC)
+1. **do-memory-core/src/memory/mod.rs** (686 LOC)
+2. **do-memory-core/src/embeddings/openai.rs** (672 LOC)
+3. **do-memory-core/src/patterns/clustering.rs** (673 LOC)
+4. **do-memory-core/src/pre_storage/quality.rs** (666 LOC)
+5. **do-memory-core/src/learning/queue.rs** (662 LOC)
+6. **do-memory-core/src/embeddings/config.rs** (660 LOC)
+7. **do-memory-core/src/episode.rs** (649 LOC)
+8. **do-memory-core/src/episodic/capacity.rs** (613 LOC)
+9. **do-memory-core/src/patterns/effectiveness.rs** (631 LOC)
+10. **do-memory-core/src/memory/step_buffer/mod.rs** (610 LOC)
+11. **do-memory-core/src/monitoring/storage.rs** (598 LOC)
+12. **do-memory-mcp/src/mcp/tools/advanced_pattern_analysis/tool.rs** (656 LOC)
+13. **do-memory-mcp/src/bin/server/jsonrpc.rs** (591 LOC)
+14. **do-memory-core/src/patterns/validation.rs** (623 LOC)
+15. **do-memory-core/src/memory/filters.rs** (572 LOC)
+16. **do-memory-core/src/memory/tests.rs** (562 LOC)
+17. **do-memory-core/src/patterns/extractors/heuristic/mod.rs** (553 LOC)
+18. **do-memory-core/src/embeddings/real_model.rs** (638 LOC)
+19. **do-memory-core/src/patterns/extractors/clustering.rs** (506 LOC)
+20. **do-memory-mcp/src/mcp/tools/embeddings/tool.rs** (531 LOC)
+21. **do-memory-core/src/reward/adaptive.rs** (510 LOC)
 
 ---
 
@@ -53,7 +53,7 @@ For each file:
 
 ## Progress Log
 
-### [x] 1. memory-core/src/memory/mod.rs (686 LOC → 177 LOC) ✅
+### [x] 1. do-memory-core/src/memory/mod.rs (686 LOC → 177 LOC) ✅
 
 **Plan**:
 - Extract extensive example documentation to separate `examples.md` file
@@ -68,7 +68,7 @@ For each file:
 
 ---
 
-### [ ] 2. memory-core/src/embeddings/openai.rs (672 LOC)
+### [ ] 2. do-memory-core/src/embeddings/openai.rs (672 LOC)
 
 **Plan**:
 - Extract API types to `openai/types.rs`
@@ -80,7 +80,7 @@ For each file:
 
 ---
 
-### [ ] 3. memory-core/src/patterns/clustering.rs (673 LOC)
+### [ ] 3. do-memory-core/src/patterns/clustering.rs (673 LOC)
 
 **Plan**:
 - Extract cluster types to `patterns/cluster_types.rs`
@@ -91,7 +91,7 @@ For each file:
 
 ---
 
-### [ ] 4. memory-core/src/pre_storage/quality.rs (666 LOC)
+### [ ] 4. do-memory-core/src/pre_storage/quality.rs (666 LOC)
 
 **Plan**:
 - Extract QualityConfig and QualityFeature to `pre_storage/quality_config.rs`
@@ -102,7 +102,7 @@ For each file:
 
 ---
 
-### [ ] 5. memory-core/src/learning/queue.rs (662 LOC)
+### [ ] 5. do-memory-core/src/learning/queue.rs (662 LOC)
 
 **Plan**:
 - Extract worker logic to `learning/queue_worker.rs`
@@ -114,7 +114,7 @@ For each file:
 
 ---
 
-### [ ] 6. memory-core/src/embeddings/config.rs (660 LOC)
+### [ ] 6. do-memory-core/src/embeddings/config.rs (660 LOC)
 
 **Plan**:
 - Extract optimization config to `embeddings/optimization.rs`
@@ -166,7 +166,7 @@ Run final checks after all files refactored:
 
 ```bash
 # Count lines in all source files
-find memory-core/src -name "*.rs" -exec wc -l {} + | sort -rn | head -20
+find do-memory-core/src -name "*.rs" -exec wc -l {} + | sort -rn | head -20
 
 # Run all tests
 cargo test --all

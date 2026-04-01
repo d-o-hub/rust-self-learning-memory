@@ -17,19 +17,19 @@ Successfully implemented the DiversityMaximizer module with Maximal Marginal Rel
 
 ### Files Created
 
-#### `/workspaces/feat-phase3/memory-core/src/spatiotemporal/diversity.rs`
+#### `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/diversity.rs`
 - **Lines**: 739 (well under 500 LOC guideline for single module)
 - **Purpose**: MMR algorithm for diverse episode selection
 - **Tests**: 22 unit tests (inline)
 - **Coverage**: >95% (all public methods tested)
 
-#### `/workspaces/feat-phase3/memory-core/src/spatiotemporal/mod.rs`
+#### `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/mod.rs`
 - **Purpose**: Module organization and exports
 - **Exports**: `DiversityMaximizer`, `ScoredEpisode`
 
 ### Module Integration
 
-**Updated**: `/workspaces/feat-phase3/memory-core/src/lib.rs`
+**Updated**: `/workspaces/feat-phase3/do-memory-core/src/lib.rs`
 - Added `pub mod spatiotemporal;` to expose the new module
 
 ---
@@ -343,7 +343,7 @@ pub fn embedding(&self) -> &[f32]
 ## Integration Points
 
 ### Current State
-- ✅ Module exposed via `memory-core::spatiotemporal`
+- ✅ Module exposed via `do-memory-core::spatiotemporal`
 - ✅ Public API documented
 - ✅ Ready for integration with retrieval systems
 
@@ -485,11 +485,11 @@ assert!(diversity >= 0.7);
 ## Files Modified/Created
 
 ### Created
-- `/workspaces/feat-phase3/memory-core/src/spatiotemporal/diversity.rs` (739 lines)
-- `/workspaces/feat-phase3/memory-core/src/spatiotemporal/mod.rs` (45 lines)
+- `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/diversity.rs` (739 lines)
+- `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/mod.rs` (45 lines)
 
 ### Modified
-- `/workspaces/feat-phase3/memory-core/src/lib.rs` (added `pub mod spatiotemporal;`)
+- `/workspaces/feat-phase3/do-memory-core/src/lib.rs` (added `pub mod spatiotemporal;`)
 
 ### Total Lines Added
 - Implementation: 482 lines
@@ -503,27 +503,27 @@ assert!(diversity >= 0.7);
 
 ### Run Tests
 ```bash
-cargo test --package memory-core --lib spatiotemporal::diversity::tests
+cargo test --package do-memory-core --lib spatiotemporal::diversity::tests
 ```
 
 ### Check Clippy
 ```bash
-cargo clippy --package memory-core --lib -- -D warnings
+cargo clippy --package do-memory-core --lib -- -D warnings
 ```
 
 ### Build
 ```bash
-cargo build --package memory-core --lib
+cargo build --package do-memory-core --lib
 ```
 
 ### Format
 ```bash
-cargo fmt --package memory-core
+cargo fmt --package do-memory-core
 ```
 
 ### Documentation
 ```bash
-cargo doc --package memory-core --no-deps --open
+cargo doc --package do-memory-core --no-deps --open
 ```
 
 ---

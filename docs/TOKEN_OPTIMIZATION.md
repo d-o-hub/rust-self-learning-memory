@@ -443,12 +443,12 @@ For questions or issues:
 
 1. Check the tool schema documentation
 2. Review test examples in `tests/token_optimization.rs`
-3. Examine tool definitions in `memory-mcp/src/server/tools/`
+3. Examine tool definitions in `do-memory-mcp/src/server/tools/`
 4. Open an issue on GitHub
 
 ## References
 
-- **Implementation**: `memory-mcp/src/server/tools/registry.rs`
-- **Field Projection**: `memory-mcp/src/server/tools/field_projection.rs`
-- **Tests**: `memory-mcp/tests/token_optimization.rs`
-- **Tool Definitions**: `memory-mcp/src/server/tool_definitions*.rs`
+- **Implementation**: `do-memory-mcp/src/server/tools/registry.rs`
+- **Field Projection**: `do-memory-mcp/src/server/tools/field_projection.rs`
+- **Tests**: `do-memory-mcp/tests/token_optimization.rs`
+- **Tool Definitions**: `do-memory-mcp/src/server/tool_definitions*.rs`

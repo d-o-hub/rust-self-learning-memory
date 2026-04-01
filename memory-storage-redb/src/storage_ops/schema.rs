@@ -10,7 +10,7 @@ use super::super::{
     SUMMARIES_TABLE, with_db_timeout,
 };
 use crate::RedbStorage;
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 use redb::ReadableDatabase;
 use std::sync::Arc;
 use tracing::info;

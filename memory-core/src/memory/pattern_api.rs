@@ -22,7 +22,7 @@ impl SelfLearningMemory {
     ///
     /// # Example
     /// ```no_run
-    /// use memory_core::{SelfLearningMemory, TaskContext};
+    /// use do_memory_core::{SelfLearningMemory, TaskContext};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
@@ -97,7 +97,7 @@ impl SelfLearningMemory {
     ///
     /// # Example
     /// ```no_run
-    /// use memory_core::{SelfLearningMemory, TaskContext};
+    /// use do_memory_core::{SelfLearningMemory, TaskContext};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
@@ -152,7 +152,7 @@ impl SelfLearningMemory {
     ///
     /// # Example
     /// ```no_run
-    /// use memory_core::{SelfLearningMemory, TaskContext};
+    /// use do_memory_core::{SelfLearningMemory, TaskContext};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();

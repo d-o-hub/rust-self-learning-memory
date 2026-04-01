@@ -3,7 +3,7 @@
 //! Tests the complete filtering workflow with real memory system operations.
 
 use chrono::Utc;
-use memory_core::{
+use do_memory_core::{
     EpisodeFilter, ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext,
     TaskOutcome, TaskType,
 };

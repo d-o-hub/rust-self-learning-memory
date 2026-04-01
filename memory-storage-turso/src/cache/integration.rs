@@ -12,7 +12,7 @@ use crate::cache::query_cache::{
     AdvancedCacheStats, AdvancedQueryCache, AdvancedQueryCacheConfig, QueryKey, TableDependency,
 };
 use anyhow::Result;
-use memory_core::{Episode, Pattern};
+use do_memory_core::{Episode, Pattern};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;

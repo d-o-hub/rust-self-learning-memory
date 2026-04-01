@@ -5,7 +5,7 @@
 #![allow(clippy::excessive_nesting)]
 
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Pattern, Result};
+use do_memory_core::{Episode, Error, Pattern, Result};
 use tracing::{debug, error, info};
 
 #[cfg(feature = "compression")]
@@ -25,8 +25,8 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
-    /// # use memory_core::{Episode, Pattern, TaskContext, TaskType};
+    /// # use do_memory_storage_turso::TursoStorage;
+    /// # use do_memory_core::{Episode, Pattern, TaskContext, TaskType};
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
     ///
@@ -233,7 +233,7 @@ impl TursoStorage {
                         } => {
                             let tools_vec = tools.clone();
                             let desc = format!("Tool sequence: {}", tools_vec.join(" -> "));
-                            let heur = memory_core::Heuristic::new(
+                            let heur = do_memory_core::Heuristic::new(
                                 format!("When need tools: {}", tools_vec.join(", ")),
                                 format!("Use sequence: {}", tools_vec.join(" -> ")),
                                 *success_rate,
@@ -255,7 +255,7 @@ impl TursoStorage {
                             effectiveness: _,
                         } => {
                             let desc = format!("Decision: {} -> {}", condition, action);
-                            let heur = memory_core::Heuristic::new(
+                            let heur = do_memory_core::Heuristic::new(
                                 condition.clone(),
                                 action.clone(),
                                 outcome_stats.success_rate(),
@@ -277,7 +277,7 @@ impl TursoStorage {
                             effectiveness: _,
                         } => {
                             let desc = format!("Error recovery for: {}", error_type);
-                            let heur = memory_core::Heuristic::new(
+                            let heur = do_memory_core::Heuristic::new(
                                 format!("Error: {}", error_type),
                                 format!("Recovery: {}", recovery_steps.join(" -> ")),
                                 *success_rate,
@@ -299,14 +299,14 @@ impl TursoStorage {
                             effectiveness: _,
                         } => {
                             let desc = format!("Context pattern: {}", recommended_approach);
-                            let heur = memory_core::Heuristic::new(
+                            let heur = do_memory_core::Heuristic::new(
                                 format!("Features: {}", context_features.join(", ")),
                                 recommended_approach.clone(),
                                 *success_rate,
                             );
                             (
                                 desc,
-                                memory_core::TaskContext::default(),
+                                do_memory_core::TaskContext::default(),
                                 heur,
                                 *success_rate,
                                 context_features.len(),
@@ -375,7 +375,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, PatternId, TaskContext, TaskType};
+    use do_memory_core::{Episode, PatternId, TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
@@ -427,14 +427,14 @@ mod tests {
             id: PatternId::new_v4(),
             condition: "refactoring needed".to_string(),
             action: "create tests first".to_string(),
-            outcome_stats: memory_core::types::OutcomeStats {
+            outcome_stats: do_memory_core::types::OutcomeStats {
                 success_count: 10,
                 failure_count: 2,
                 total_count: 12,
                 avg_duration_secs: 0.0,
             },
             context: TaskContext::default(),
-            effectiveness: memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
         }];
 
         let result = storage
@@ -459,7 +459,7 @@ mod tests {
             recommended_approach: "Break down into smaller parts".to_string(),
             evidence: vec![],
             success_rate: 0.85,
-            effectiveness: memory_core::pattern::PatternEffectiveness::default(),
+            effectiveness: do_memory_core::pattern::PatternEffectiveness::default(),
         }];
 
         let result = storage

@@ -13,7 +13,7 @@ Advanced test optimization with cargo-nextest, property testing, and benchmarkin
 cargo nextest run --all              # all tests
 cargo nextest run --profile ci       # CI with retries + JUnit XML
 cargo nextest run --profile nightly  # extended timeouts
-cargo nextest run -E 'package(memory-core)'  # filterset DSL
+cargo nextest run -E 'package(do-memory-core)'  # filterset DSL
 cargo test --doc --all               # doctests (nextest limitation)
 ```
 
@@ -41,12 +41,12 @@ slow-timeout = { period = "120s", terminate-after = 2 }
 Verifies tests actually catch bugs by injecting mutations:
 
 ```bash
-cargo mutants -p memory-core --timeout 120 --jobs 4 -- --lib
+cargo mutants -p do-memory-core --timeout 120 --jobs 4 -- --lib
 ```
 
 - **Acceptance**: <20% missed mutants in core business logic
 - **Frequency**: Nightly CI or pre-release
-- **Scope**: Start with memory-core, expand incrementally
+- **Scope**: Start with do-memory-core, expand incrementally
 
 ## Property-Based Testing (proptest)
 

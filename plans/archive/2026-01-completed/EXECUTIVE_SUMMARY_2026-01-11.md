@@ -42,11 +42,11 @@
 **Files**: 20+ files exceed 500 LOC
 
 **Top 5 Files** (Start Here):
-1. `memory-mcp/src/wasm_sandbox.rs` (683 LOC)
-2. `memory-mcp/src/javy_compiler.rs` (679 LOC)
-3. `memory-mcp/src/unified_sandbox.rs` (533 LOC)
-4. `memory-storage-redb/src/cache.rs` (654 LOC)
-5. `memory-storage-turso/src/pool.rs` (589 LOC)
+1. `do-memory-mcp/src/wasm_sandbox.rs` (683 LOC)
+2. `do-memory-mcp/src/javy_compiler.rs` (679 LOC)
+3. `do-memory-mcp/src/unified_sandbox.rs` (533 LOC)
+4. `do-memory-storage-redb/src/cache.rs` (654 LOC)
+5. `do-memory-storage-turso/src/pool.rs` (589 LOC)
 
 ### 2. Error Handling Audit ⚠️ URGENT
 **Impact**: Production robustness, 598 unwrap() calls in core (3.6x higher than previously reported)
@@ -141,7 +141,7 @@
 **Goal**: Achieve 100% codebase compliance
 
 **Week 1-2**: File Size Compliance (P0 files only)
-- Split 5 large files in memory-mcp
+- Split 5 large files in do-memory-mcp
 - Split 2 large files in storage
 - Integration testing
 
@@ -301,7 +301,7 @@
 **Day 1-3**: Start P0 File Splitting
 ```bash
 # File 1: wasm_sandbox.rs
-cd memory-mcp/src
+cd do-memory-mcp/src
 mkdir -p sandbox
 # Extract runtime/instance modules
 # Verify with cargo build && cargo test
@@ -315,7 +315,7 @@ mkdir -p compiler
 **Day 4**: Continue with Storage Files
 ```bash
 # File 3: cache.rs
-cd memory-storage-redb/src
+cd do-memory-storage-redb/src
 mkdir -p cache
 # Extract ops/eviction modules
 # Verify
@@ -339,8 +339,8 @@ cargo test --all
 **Day 4-7**: Start Error Handling Audit
 ```bash
 # Find all unwrap/expect calls
-grep -r "unwrap()" memory-core/src
-grep -r "expect(" memory-core/src
+grep -r "unwrap()" do-memory-core/src
+grep -r "expect(" do-memory-core/src
 
 # Categorize: hot path | config | database | test
 ```

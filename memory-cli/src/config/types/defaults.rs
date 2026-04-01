@@ -15,10 +15,10 @@ pub fn detect_data_directory() -> PathBuf {
 
     // Platform-appropriate default directories
     if let Some(mut data_dir) = dirs::data_dir() {
-        data_dir.push("memory-cli");
+        data_dir.push("do-memory-cli");
         data_dir
     } else if let Some(mut home_dir) = dirs::home_dir() {
-        home_dir.push(".memory-cli");
+        home_dir.push(".do-memory-cli");
         home_dir
     } else {
         // Fallback to current directory

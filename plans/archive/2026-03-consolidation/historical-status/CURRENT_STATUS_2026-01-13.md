@@ -19,9 +19,9 @@ This document provides an accurate snapshot of the Rust Self-Learning Memory Sys
 
 ## 1. Actual Module Structure
 
-### Core Library: memory-core/src/
+### Core Library: do-memory-core/src/
 
-The memory-core library contains 134 Rust files totaling **35,466 lines of code**.
+The do-memory-core library contains 134 Rust files totaling **35,466 lines of code**.
 
 #### **Existing Modules** (from original docs)
 
@@ -147,7 +147,7 @@ storage/
 #### **NEW Modules** (not in original documentation)
 
 ##### 1. retrieval/ - Query Caching
-**Location**: `/workspaces/feat-phase3/memory-core/src/retrieval/`
+**Location**: `/workspaces/feat-phase3/do-memory-core/src/retrieval/`
 **Purpose**: Efficient episode retrieval with LRU caching and TTL
 
 ```
@@ -174,7 +174,7 @@ let results = cache.get_or_compute(key, || expensive_query()).await;
 ```
 
 ##### 2. spatiotemporal/ - Hierarchical Indexing
-**Location**: `/workspaces/feat-phase3/memory-core/src/spatiotemporal/`
+**Location**: `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/`
 **Purpose**: Domain → task_type → temporal clustering for efficient retrieval
 
 ```
@@ -216,7 +216,7 @@ SpatiotemporalIndex
 ```
 
 ##### 3. semantic/ - Semantic Summarization
-**Location**: `/workspaces/feat-phase3/memory-core/src/semantic/`
+**Location**: `/workspaces/feat-phase3/do-memory-core/src/semantic/`
 **Purpose**: Episode compression and summarization
 
 ```
@@ -234,7 +234,7 @@ semantic/
 - `EpisodeSummary`: Compressed episode representation
 
 ##### 4. episodic/ - Capacity Management
-**Location**: `/workspaces/feat-phase3/memory-core/src/episodic/`
+**Location**: `/workspaces/feat-phase3/do-memory-core/src/episodic/`
 **Purpose**: Episode storage limits and eviction policies
 
 ```
@@ -248,10 +248,10 @@ episodic/
 - `EvictionPolicy`: LRU, FIFO, LFU strategies
 - `CapacityConfig`: Storage thresholds and limits
 
-**Reference**: `/workspaces/feat-phase3/memory-core/src/memory/mod.rs:245`
+**Reference**: `/workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:245`
 
 ##### 5. pre_storage/ - PREMem (Quality Assessment)
-**Location**: `/workspaces/feat-phase3/memory-core/src/pre_storage/`
+**Location**: `/workspaces/feat-phase3/do-memory-core/src/pre_storage/`
 **Purpose**: Pre-storage reasoning for quality enhancement (EMNLP 2025 approach)
 
 ```
@@ -274,10 +274,10 @@ pre_storage/
 - `SalientFeatures`: Extracted key features
 - `QualityConfig`: Assessment thresholds
 
-**Reference**: `/workspaces/feat-phase3/memory-core/src/memory/mod.rs:212-213`
+**Reference**: `/workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:212-213`
 
 ##### 6. search/ - Hybrid Search
-**Location**: `/workspaces/feat-phase3/memory-core/src/search/`
+**Location**: `/workspaces/feat-phase3/do-memory-core/src/search/`
 **Purpose**: Combined semantic + keyword search
 
 ```
@@ -305,7 +305,7 @@ async fn new(storage: Arc<dyn StorageBackend>) -> Result<Self>
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/mod.rs:285
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:285
 #[must_use]
 pub fn new() -> Self {
     init::with_config(MemoryConfig::default())
@@ -343,7 +343,7 @@ async fn start_episode(...) -> Result<Uuid>
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/episode.rs
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/episode.rs
 pub async fn start_episode(
     &self,
     task_description: String,
@@ -375,7 +375,7 @@ async fn complete_episode(
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/learning.rs
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/learning.rs
 pub async fn complete_episode(
     &self,
     episode_id: Uuid,
@@ -406,7 +406,7 @@ async fn retrieve_relevant_context(
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/retrieval.rs
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/retrieval.rs
 // Multiple retrieval methods with different signatures
 
 // Basic retrieval
@@ -452,7 +452,7 @@ pub struct TaskContext {
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/types/structs.rs:45
+// File: /workspaces/feat-phase3/do-memory-core/src/types/structs.rs:45
 pub struct TaskContext {
     /// Programming language (e.g., "rust", "python")
     pub language: Option<String>,      // ✅ Optional
@@ -493,7 +493,7 @@ pub enum TaskOutcome {
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/types/enums.rs:132
+// File: /workspaces/feat-phase3/do-memory-core/src/types/enums.rs:132
 pub enum TaskOutcome {
     /// Task completed successfully with all objectives met
     Success {
@@ -560,7 +560,7 @@ pub struct ExecutionStep {
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/episode.rs:91
+// File: /workspaces/feat-phase3/do-memory-core/src/episode.rs:91
 pub struct ExecutionStep {
     /// Step number in sequence (1-indexed)
     pub step_number: usize,                          // ✅ step_number, not step_id
@@ -615,7 +615,7 @@ pub struct Pattern {
 
 **Actual (CORRECT)**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/pattern/types.rs:107
+// File: /workspaces/feat-phase3/do-memory-core/src/pattern/types.rs:107
 pub enum Pattern {
     ToolSequence {
         id: PatternId,
@@ -655,7 +655,7 @@ pub enum Pattern {
 
 **PatternEffectiveness Structure**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/pattern/types.rs:12
+// File: /workspaces/feat-phase3/do-memory-core/src/pattern/types.rs:12
 pub struct PatternEffectiveness {
     /// Number of times this pattern was retrieved in queries
     pub times_retrieved: usize,
@@ -681,7 +681,7 @@ pub struct PatternEffectiveness {
 ### Query Caching
 
 **Module**: `retrieval/cache/`
-**File**: `/workspaces/feat-phase3/memory-core/src/retrieval/cache/lru.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/retrieval/cache/lru.rs`
 
 **Features**:
 - LRU cache for query results
@@ -691,7 +691,7 @@ pub struct PatternEffectiveness {
 
 **API**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/mod.rs:372-374
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:372-374
 pub fn get_cache_metrics(&self) -> crate::retrieval::CacheMetrics {
     monitoring::get_cache_metrics(&self.query_cache)
 }
@@ -708,7 +708,7 @@ pub fn clear_cache(&self) {
 ### Spatiotemporal Indexing
 
 **Module**: `spatiotemporal/`
-**File**: `/workspaces/feat-phase3/memory-core/src/spatiotemporal/mod.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/mod.rs`
 
 **Features**:
 - Hierarchical indexing: Domain → TaskType → Temporal Clusters
@@ -718,7 +718,7 @@ pub fn clear_cache(&self) {
 
 **Architecture**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/spatiotemporal/types.rs
+// File: /workspaces/feat-phase3/do-memory-core/src/spatiotemporal/types.rs
 pub struct SpatiotemporalIndex {
     pub domain_index: HashMap<String, DomainNode>,
 }
@@ -736,7 +736,7 @@ pub struct TaskNode {
 
 **Integration in SelfLearningMemory**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/mod.rs:252-258
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:252-258
 pub(super) spatiotemporal_index:
     Option<Arc<RwLock<crate::spatiotemporal::SpatiotemporalIndex>>>,
 pub(super) hierarchical_retriever: Option<crate::spatiotemporal::HierarchicalRetriever>,
@@ -746,7 +746,7 @@ pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer
 ### Pre-Storage Reasoning (PREMem)
 
 **Module**: `pre_storage/`
-**File**: `/workspaces/feat-phase3/memory-core/src/pre_storage/mod.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/pre_storage/mod.rs`
 
 **Features**:
 - Quality assessment before storing episodes
@@ -758,7 +758,7 @@ pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer
 
 **Quality Features**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/pre_storage/quality.rs
+// File: /workspaces/feat-phase3/do-memory-core/src/pre_storage/quality.rs
 pub struct QualityFeature {
     pub name: String,
     pub score: f32,
@@ -779,7 +779,7 @@ pub struct QualityFeature {
 ### Capacity Management
 
 **Module**: `episodic/capacity.rs`
-**File**: `/workspaces/feat-phase3/memory-core/src/episodic/capacity.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/episodic/capacity.rs`
 
 **Features**:
 - Configurable storage limits (episode count, total size)
@@ -807,7 +807,7 @@ pub enum EvictionPolicy {
 ### Hybrid Search
 
 **Module**: `search/hybrid.rs`
-**File**: `/workspaces/feat-phase3/memory-core/src/search/hybrid.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/search/hybrid.rs`
 
 **Features**:
 - Combines semantic and keyword search
@@ -836,7 +836,7 @@ Query
 ### Pattern Search
 
 **Module**: `memory/pattern_search.rs`
-**File**: `/workspaces/feat-phase3/memory-core/src/memory/pattern_search.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/memory/pattern_search.rs`
 
 **Features**:
 - Semantic pattern search with embeddings
@@ -851,7 +851,7 @@ Query
 
 **API**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/mod.rs:496-512
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:496-512
 pub async fn search_patterns_semantic(
     &self,
     query: &str,
@@ -888,7 +888,7 @@ pub struct ScoreBreakdown {
 ### Adaptive Reward Calculation
 
 **Module**: `reward/adaptive.rs`
-**File**: `/workspaces/feat-phase3/memory-core/src/reward/adaptive.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/reward/adaptive.rs`
 
 **Features**:
 - Dynamic reward calculation based on multiple factors
@@ -913,7 +913,7 @@ pub struct RewardScore {
 ### Agent Monitoring
 
 **Module**: `monitoring/core.rs`
-**File**: `/workspaces/feat-phase3/memory-core/src/monitoring/core.rs`
+**File**: `/workspaces/feat-phase3/do-memory-core/src/monitoring/core.rs`
 
 **Features**:
 - Track agent execution metrics
@@ -924,7 +924,7 @@ pub struct RewardScore {
 
 **API**:
 ```rust
-// File: /workspaces/feat-phase3/memory-core/src/memory/mod.rs:326-364
+// File: /workspaces/feat-phase3/do-memory-core/src/memory/mod.rs:326-364
 pub async fn record_agent_execution(
     &self,
     agent_name: &str,
@@ -960,7 +960,7 @@ pub struct AgentMetrics {
 
 ### All MCP Tools (11+ tools)
 
-**File**: `/workspaces/feat-phase3/memory-mcp/src/bin/server/tools.rs`
+**File**: `/workspaces/feat-phase3/do-memory-mcp/src/bin/server/tools.rs`
 
 #### 1. query_memory
 **Handler**: `handle_query_memory()`
@@ -1073,7 +1073,7 @@ pub struct AgentMetrics {
 
 ### CLI V2 Structure
 
-**File**: `/workspaces/feat-phase3/memory-cli/src/main.rs`
+**File**: `/workspaces/feat-phase3/do-memory-cli/src/main.rs`
 
 ### Top-Level Commands
 
@@ -1128,7 +1128,7 @@ pub enum Commands {
 ### Episode V2 Subcommands
 
 **Module**: `commands/episode_v2/`
-**File**: `/workspaces/feat-phase3/memory-cli/src/commands/episode_v2/mod.rs`
+**File**: `/workspaces/feat-phase3/do-memory-cli/src/commands/episode_v2/mod.rs`
 
 ```rust
 pub enum EpisodeCommands {
@@ -1204,51 +1204,51 @@ pub enum EpisodeCommands {
 
 #### 1. embedding
 **Module**: `commands/embedding.rs`
-**File**: `/workspaces/feat-phase3/memory-cli/src/commands/embedding.rs`
+**File**: `/workspaces/feat-phase3/do-memory-cli/src/commands/embedding.rs`
 
 **Subcommands**:
 ```bash
-memory-cli embedding configure    # Configure embedding provider
-memory-cli embedding test        # Test embedding provider
-memory-cli embedding status      # Show embedding status
-memory-cli embedding list        # List available models
+do-memory-cli embedding configure    # Configure embedding provider
+do-memory-cli embedding test        # Test embedding provider
+do-memory-cli embedding status      # Show embedding status
+do-memory-cli embedding list        # List available models
 ```
 
 #### 2. eval
 **Module**: `commands/eval.rs`
-**File**: `/workspaces/feat-phase3/memory-cli/src/commands/eval.rs`
+**File**: `/workspaces/feat-phase3/do-memory-cli/src/commands/eval.rs`
 
 **Subcommands**:
 ```bash
-memory-cli eval quality         # Evaluate episode quality
-memory-cli eval patterns        # Evaluate pattern effectiveness
-memory-cli eval metrics        # Show evaluation metrics
-memory-cli eval benchmark      # Run benchmarks
+do-memory-cli eval quality         # Evaluate episode quality
+do-memory-cli eval patterns        # Evaluate pattern effectiveness
+do-memory-cli eval metrics        # Show evaluation metrics
+do-memory-cli eval benchmark      # Run benchmarks
 ```
 
 ### Episode V2 Usage Examples
 
 ```bash
 # Create episode
-memory-cli ep create "Implement auth" --task-type code_generation --domain web-api --tags rust async
+do-memory-cli ep create "Implement auth" --task-type code_generation --domain web-api --tags rust async
 
 # Log step
-memory-cli log-step <episode-id> 1 "read_file" "Read config" --latency-ms 15
+do-memory-cli log-step <episode-id> 1 "read_file" "Read config" --latency-ms 15
 
 # Complete episode
-memory-cli ep complete <episode-id> --success "Auth implemented" --artifacts auth.rs auth_test.rs
+do-memory-cli ep complete <episode-id> --success "Auth implemented" --artifacts auth.rs auth_test.rs
 
 # Search episodes
-memory-cli ep search "authentication" --domain web-api --semantic --limit 10
+do-memory-cli ep search "authentication" --domain web-api --semantic --limit 10
 
 # List episodes
-memory-cli ep list --limit 20 --completed-only true --domain web-api
+do-memory-cli ep list --limit 20 --completed-only true --domain web-api
 
 # View episode
-memory-cli ep view <episode-id> --output json
+do-memory-cli ep view <episode-id> --output json
 
 # Delete episode
-memory-cli ep delete <episode-id> --force
+do-memory-cli ep delete <episode-id> --force
 ```
 
 ---
@@ -1257,7 +1257,7 @@ memory-cli ep delete <episode-id> --force
 
 ### Core Memory Structure
 
-**Main Module**: `/workspaces/feat-phase3/memory-core/src/memory/mod.rs`
+**Main Module**: `/workspaces/feat-phase3/do-memory-core/src/memory/mod.rs`
 - Constructor methods: Lines 285-302
 - Query caching: Line 273
 - Spatiotemporal indexing: Lines 253-258
@@ -1266,12 +1266,12 @@ memory-cli ep delete <episode-id> --force
 - Pattern search: Lines 496-634
 - Agent monitoring: Lines 326-364
 
-**Type Definitions**: `/workspaces/feat-phase3/memory-core/src/types/`
+**Type Definitions**: `/workspaces/feat-phase3/do-memory-core/src/types/`
 - Structs: `structs.rs` (TaskContext, RewardScore, Reflection, etc.)
 - Enums: `enums.rs` (TaskOutcome, ExecutionResult, TaskType)
 - Config: `config.rs` (MemoryConfig, StorageConfig, ConcurrencyConfig)
 
-**Episode Module**: `/workspaces/feat-phase3/memory-core/src/episode.rs`
+**Episode Module**: `/workspaces/feat-phase3/do-memory-core/src/episode.rs`
 - Episode struct: Lines 262-295
 - ExecutionStep: Lines 91-110
 - PatternApplication: Lines 11-33
@@ -1279,43 +1279,43 @@ memory-cli ep delete <episode-id> --force
 ### New Modules
 
 **Query Caching**:
-- `/workspaces/feat-phase3/memory-core/src/retrieval/mod.rs`
-- `/workspaces/feat-phase3/memory-core/src/retrieval/cache/lru.rs`
-- `/workspaces/feat-phase3/memory-core/src/retrieval/cache/types.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/retrieval/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/retrieval/cache/lru.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/retrieval/cache/types.rs`
 
 **Spatiotemporal Indexing**:
-- `/workspaces/feat-phase3/memory-core/src/spatiotemporal/mod.rs`
-- `/workspaces/feat-phase3/memory-core/src/spatiotemporal/types.rs`
-- `/workspaces/feat-phase3/memory-core/src/spatiotemporal/index.rs`
-- `/workspaces/feat-phase3/memory-core/src/spatiotemporal/retriever/`
+- `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/types.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/index.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/spatiotemporal/retriever/`
 
 **Semantic Summarization**:
-- `/workspaces/feat-phase3/memory-core/src/semantic/mod.rs`
-- `/workspaces/feat-phase3/memory-core/src/semantic/summary/`
+- `/workspaces/feat-phase3/do-memory-core/src/semantic/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/semantic/summary/`
 
 **Capacity Management**:
-- `/workspaces/feat-phase3/memory-core/src/episodic/mod.rs`
-- `/workspaces/feat-phase3/memory-core/src/episodic/capacity.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/episodic/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/episodic/capacity.rs`
 
 **PREMem**:
-- `/workspaces/feat-phase3/memory-core/src/pre_storage/mod.rs`
-- `/workspaces/feat-phase3/memory-core/src/pre_storage/quality.rs`
-- `/workspaces/feat-phase3/memory-core/src/pre_storage/extractor/`
+- `/workspaces/feat-phase3/do-memory-core/src/pre_storage/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/pre_storage/quality.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/pre_storage/extractor/`
 
 **Hybrid Search**:
-- `/workspaces/feat-phase3/memory-core/src/search/mod.rs`
-- `/workspaces/feat-phase3/memory-core/src/search/hybrid.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/search/mod.rs`
+- `/workspaces/feat-phase3/do-memory-core/src/search/hybrid.rs`
 
 ### Pattern System
 
-**Pattern Types**: `/workspaces/feat-phase3/memory-core/src/pattern/types.rs`
+**Pattern Types**: `/workspaces/feat-phase3/do-memory-core/src/pattern/types.rs`
 - PatternEffectiveness: Lines 12-102
 - Pattern enum: Lines 107-149
 
-**Pattern Search**: `/workspaces/feat-phase3/memory-core/src/memory/pattern_search.rs`
+**Pattern Search**: `/workspaces/feat-phase3/do-memory-core/src/memory/pattern_search.rs`
 - Search results, scoring, ranking
 
-**Pattern Extractors**: `/workspaces/feat-phase3/memory-core/src/patterns/extractors/`
+**Pattern Extractors**: `/workspaces/feat-phase3/do-memory-core/src/patterns/extractors/`
 - Tool sequence: `tool_sequence.rs`
 - Decision point: `decision_point.rs`
 - Error recovery: `error_recovery.rs`
@@ -1323,30 +1323,30 @@ memory-cli ep delete <episode-id> --force
 
 ### MCP Server
 
-**Tools Handler**: `/workspaces/feat-phase3/memory-mcp/src/bin/server/tools.rs`
+**Tools Handler**: `/workspaces/feat-phase3/do-memory-mcp/src/bin/server/tools.rs`
 - All 11+ tool handlers
 
-**Core MCP**: `/workspaces/feat-phase3/memory-mcp/src/bin/server/core.rs`
+**Core MCP**: `/workspaces/feat-phase3/do-memory-mcp/src/bin/server/core.rs`
 - Protocol handlers
 
 **Tool Types**:
-- `/workspaces/feat-phase3/memory-mcp/src/mcp/tools/embeddings/`
-- `/workspaces/feat-phase3/memory-mcp/src/mcp/tools/pattern_search.rs`
-- `/workspaces/feat-phase3/memory-mcp/src/mcp/tools/quality_metrics/`
-- `/workspaces/feat-phase3/memory-mcp/src/mcp/tools/advanced_pattern_analysis/`
+- `/workspaces/feat-phase3/do-memory-mcp/src/mcp/tools/embeddings/`
+- `/workspaces/feat-phase3/do-memory-mcp/src/mcp/tools/pattern_search.rs`
+- `/workspaces/feat-phase3/do-memory-mcp/src/mcp/tools/quality_metrics/`
+- `/workspaces/feat-phase3/do-memory-mcp/src/mcp/tools/advanced_pattern_analysis/`
 
 ### CLI
 
-**Main Entry**: `/workspaces/feat-phase3/memory-cli/src/main.rs`
+**Main Entry**: `/workspaces/feat-phase3/do-memory-cli/src/main.rs`
 - Command definitions: Lines 52-121
 
-**Episode V2**: `/workspaces/feat-phase3/memory-cli/src/commands/episode_v2/`
+**Episode V2**: `/workspaces/feat-phase3/do-memory-cli/src/commands/episode_v2/`
 - Episode subcommands
 - Log step: `episode/log_step.rs`
 
 **New Commands**:
-- Embedding: `/workspaces/feat-phase3/memory-cli/src/commands/embedding.rs`
-- Eval: `/workspaces/feat-phase3/memory-cli/src/commands/eval.rs`
+- Embedding: `/workspaces/feat-phase3/do-memory-cli/src/commands/embedding.rs`
+- Eval: `/workspaces/feat-phase3/do-memory-cli/src/commands/eval.rs`
 
 ---
 
@@ -1368,7 +1368,7 @@ memory-cli ep delete <episode-id> --force
 | ExecutionStep.output | `String` | `result: Option<...>` | episode.rs:103 |
 | Pattern.effectiveness | `f32` | `PatternEffectiveness` | pattern/types.rs:12 |
 | Pattern.usage_count | `usize` | `occurrence_count: usize` | pattern/types.rs:115 |
-| memory-core LOC | ~15,000 | **~35,466** | 134 files |
+| do-memory-core LOC | ~15,000 | **~35,466** | 134 files |
 | MCP Tools | 8 | **11+** | bin/server/tools.rs |
 | CLI Episodes | Old structure | **V2 structure** | commands/episode_v2/ |
 

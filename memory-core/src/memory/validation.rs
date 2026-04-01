@@ -26,7 +26,7 @@ use crate::types::{
 /// # Examples
 ///
 /// ```
-/// use memory_core::memory::validation::validate_task_description;
+/// use do_memory_core::memory::validation::validate_task_description;
 ///
 /// // Valid description
 /// let valid = "Implement authentication".to_string();
@@ -67,8 +67,8 @@ pub fn validate_task_description(description: &str) -> Result<()> {
 /// # Examples
 ///
 /// ```
-/// use memory_core::{Episode, ExecutionStep, TaskContext, TaskType, ExecutionResult};
-/// use memory_core::memory::validation::validate_execution_step;
+/// use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskType, ExecutionResult};
+/// use do_memory_core::memory::validation::validate_execution_step;
 ///
 /// let episode = Episode::new(
 ///     "Test task".to_string(),
@@ -176,8 +176,8 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
 /// # Examples
 ///
 /// ```
-/// use memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
-/// use memory_core::memory::validation::validate_episode_size;
+/// use do_memory_core::{Episode, TaskContext, TaskType, TaskOutcome};
+/// use do_memory_core::memory::validation::validate_episode_size;
 ///
 /// let mut episode = Episode::new(
 ///     "Test task".to_string(),

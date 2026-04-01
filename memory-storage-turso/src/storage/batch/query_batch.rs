@@ -5,7 +5,7 @@
 use super::super::episodes::row_to_episode;
 use super::super::patterns::row_to_pattern;
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Heuristic, Pattern, Result, episode::PatternId};
+use do_memory_core::{Episode, Error, Heuristic, Pattern, Result, episode::PatternId};
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -25,7 +25,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
+    /// # use do_memory_storage_turso::TursoStorage;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
@@ -114,8 +114,8 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
-    /// # use memory_core::episode::PatternId;
+    /// # use do_memory_storage_turso::TursoStorage;
+    /// # use do_memory_core::episode::PatternId;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
     ///
@@ -200,7 +200,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
+    /// # use do_memory_storage_turso::TursoStorage;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
@@ -275,7 +275,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
+    use do_memory_core::{Episode, TaskContext, TaskType, memory::checkpoint::CheckpointMeta};
     use tempfile::TempDir;
     use uuid::Uuid;
 
@@ -471,7 +471,7 @@ mod tests {
     }
 
     fn create_test_heuristic_with_id(id: Uuid) -> Heuristic {
-        use memory_core::types::Evidence;
+        use do_memory_core::types::Evidence;
 
         Heuristic {
             heuristic_id: id,

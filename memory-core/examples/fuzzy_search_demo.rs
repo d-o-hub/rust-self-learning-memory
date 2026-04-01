@@ -7,8 +7,8 @@
 //! cargo run --example fuzzy_search_demo
 //! ```
 
-use memory_core::search::SearchMode;
-use memory_core::{EpisodeFilter, SelfLearningMemory, TaskContext, TaskType};
+use do_memory_core::search::SearchMode;
+use do_memory_core::{EpisodeFilter, SelfLearningMemory, TaskContext, TaskType};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

@@ -6,7 +6,7 @@ Implemented complete batch operations for patterns with 4-6x throughput improvem
 
 ## Files Created/Modified
 
-### Storage Layer (`memory-storage-turso`)
+### Storage Layer (`do-memory-storage-turso`)
 
 1. **`src/storage/batch/pattern_core.rs`** (Enhanced)
    - Added `get_patterns_batch()` - Bulk retrieval by IDs (lines 101-172)
@@ -26,7 +26,7 @@ Implemented complete batch operations for patterns with 4-6x throughput improvem
    - Added `test_transaction_rollback_on_error()` - Transaction safety test
    - Added `test_batch_performance_improvement()` - Performance benchmark test
 
-### CLI Integration (`memory-cli`)
+### CLI Integration (`do-memory-cli`)
 
 3. **`src/commands/pattern/core/batch.rs`** (NEW - 393 lines)
    - `PatternBatchCommands` enum with 5 subcommands
@@ -45,7 +45,7 @@ Implemented complete batch operations for patterns with 4-6x throughput improvem
 6. **`src/commands/mod.rs`** (Modified)
    - Added batch command handling in `handle_pattern_command()`
 
-### MCP Tools (`memory-mcp`)
+### MCP Tools (`do-memory-mcp`)
 
 7. **`src/server/tools/batch/batch_patterns.rs`** (NEW - 307 lines)
    - `store_patterns_batch()` - MCP tool for bulk storage
@@ -106,30 +106,30 @@ Implemented complete batch operations for patterns with 4-6x throughput improvem
 
 ### Store Patterns Batch
 ```bash
-memory-cli pattern batch store --count 100
-memory-cli pattern batch store --count 50 --dry-run
+do-memory-cli pattern batch store --count 100
+do-memory-cli pattern batch store --count 50 --dry-run
 ```
 
 ### Get Patterns Batch
 ```bash
-memory-cli pattern batch get "id1,id2,id3" --format table
-memory-cli pattern batch get "id1,id2,id3" --format json
+do-memory-cli pattern batch get "id1,id2,id3" --format table
+do-memory-cli pattern batch get "id1,id2,id3" --format json
 ```
 
 ### Update Patterns Batch
 ```bash
-memory-cli pattern batch update "id1,id2,id3" --success-rate 0.85
+do-memory-cli pattern batch update "id1,id2,id3" --success-rate 0.85
 ```
 
 ### Delete Patterns Batch
 ```bash
-memory-cli pattern batch delete "id1,id2,id3" --force
-memory-cli pattern batch delete "id1,id2,id3" --dry-run
+do-memory-cli pattern batch delete "id1,id2,id3" --force
+do-memory-cli pattern batch delete "id1,id2,id3" --dry-run
 ```
 
 ### Benchmark
 ```bash
-memory-cli pattern batch benchmark --count 100 --batch-size 50
+do-memory-cli pattern batch benchmark --count 100 --batch-size 50
 ```
 
 ## MCP Tool Usage

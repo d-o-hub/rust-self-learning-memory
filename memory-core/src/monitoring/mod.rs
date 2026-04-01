@@ -11,7 +11,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_core::monitoring::{AgentMonitor, AgentMetrics, TaskMetrics};
+//! use do_memory_core::monitoring::{AgentMonitor, AgentMetrics, TaskMetrics};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

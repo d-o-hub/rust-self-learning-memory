@@ -217,7 +217,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Inlined format arguments in semantic_summary tests for better readability
 
    ## Added
-   - Comprehensive response validation tests for memory-mcp server
+   - Comprehensive response validation tests for do-memory-mcp server
    - GOAP execution plan documentation
 
    ## Technical Details
@@ -288,7 +288,7 @@ This patch release resolves GitHub Actions CI failures and improves code quality
 ## 📚 Added
 
 - GOAP execution plan documentation for complex workflows
-- Response validation test suite for memory-mcp server
+- Response validation test suite for do-memory-mcp server
 
 ## 🚀 CI/CD Improvements
 

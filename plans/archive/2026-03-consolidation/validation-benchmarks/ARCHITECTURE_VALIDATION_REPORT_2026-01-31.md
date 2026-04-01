@@ -46,8 +46,8 @@ The codebase demonstrates **strong architectural compliance** with documented pl
 
 **Implementation**: Commit 5884aae
 **Files Added**:
-- `memory-core/src/episode/relationships.rs` (386 LOC)
-- `memory-storage-turso/src/relationships.rs` (458 LOC)
+- `do-memory-core/src/episode/relationships.rs` (386 LOC)
+- `do-memory-storage-turso/src/relationships.rs` (458 LOC)
 
 **What Was Implemented**:
 - Full CRUD operations for episode relationships
@@ -184,17 +184,17 @@ The codebase demonstrates **strong architectural compliance** with documented pl
 **What Was Implemented** (per issue-218-results.md):
 
 #### 4.1 Core Retrieval API Change ✅
-- **File**: `memory-core/src/memory/retrieval/context.rs`
+- **File**: `do-memory-core/src/memory/retrieval/context.rs`
 - **Change**: `Vec<Episode>` → `Vec<Arc<Episode>>`
 - **Impact**: Eliminated 3 major clone points per retrieval
 
 #### 4.2 Cache Layer Optimization ✅
-- **File**: `memory-core/src/retrieval/cache/lru.rs`
+- **File**: `do-memory-core/src/retrieval/cache/lru.rs`
 - **Change**: Cache stores and returns `Arc<Episode>`
 - **Impact**: Eliminated Arc→Episode→Arc conversion cycles
 
 #### 4.3 Conflict Resolution ✅
-- **File**: `memory-core/src/sync/conflict.rs`
+- **File**: `do-memory-core/src/sync/conflict.rs`
 - **Change**: Functions accept and return `Arc<T>` instead of owned values
 - **Impact**: 92% clone reduction in sync module
 
@@ -215,11 +215,11 @@ The codebase demonstrates **strong architectural compliance** with documented pl
 
 | Module | Plan Target | Actual Reduction | Status |
 |--------|-------------|------------------|--------|
-| memory-core | <85 clones | 19 (63% in retrieval) | ✅ On track |
-| memory-mcp | <68 clones | 5 (3%) | 🟡 Partial |
-| memory-storage-turso | <41 clones | 7 (7%) | 🟡 Partial |
-| memory-cli | <21 clones | 3 (6%) | 🟡 Partial |
-| memory-storage-redb | <7 clones | Not measured | ⏳ Pending |
+| do-memory-core | <85 clones | 19 (63% in retrieval) | ✅ On track |
+| do-memory-mcp | <68 clones | 5 (3%) | 🟡 Partial |
+| do-memory-storage-turso | <41 clones | 7 (7%) | 🟡 Partial |
+| do-memory-cli | <21 clones | 3 (6%) | 🟡 Partial |
+| do-memory-storage-redb | <7 clones | Not measured | ⏳ Pending |
 
 **Overall Clone Count**: Plan target <200 | Current estimated: ~360-400 clones | **Progress: ~30% reduction**
 
@@ -341,8 +341,8 @@ cargo bench --bench batch_operations
 
 **Implementation**: Commit 571e8c0 (Phase 1 complete)
 **Files**:
-- `memory-core/src/episode/structs.rs` (tags field with helpers)
-- `memory-storage-turso/src/storage/tag_operations.rs` (449 LOC)
+- `do-memory-core/src/episode/structs.rs` (tags field with helpers)
+- `do-memory-storage-turso/src/storage/tag_operations.rs` (449 LOC)
 - MCP tools for tag management
 
 **Documentation Status**: ✅ **WELL DOCUMENTED**
@@ -366,7 +366,7 @@ cargo bench --bench batch_operations
 ### 2. Adaptive Connection Pool ✅ **Positive Finding**
 
 **Implementation**: Commit 571e8c0
-**File**: `memory-storage-turso/src/pool/adaptive/` (3 modules, ~700 LOC)
+**File**: `do-memory-storage-turso/src/pool/adaptive/` (3 modules, ~700 LOC)
 
 **Features**:
 - Dynamic scaling based on utilization
@@ -550,7 +550,7 @@ All implementations either:
 
 - **Validation Method**: Dynamic plan-based analysis with codebase verification
 - **Plan Files Scanned**: 8 files (ARCHITECTURE_*.md, PHASE3*.md, issue-218-*.md)
-- **Codebase Files Analyzed**: 20+ files across memory-core, memory-storage-turso, memory-mcp
+- **Codebase Files Analyzed**: 20+ files across do-memory-core, do-memory-storage-turso, do-memory-mcp
 - **Patterns Validated**: Storage patterns, caching, Arc usage, SQL schema, module organization
 - **Validation Date**: 2026-01-31
 - **Validator**: Architecture Validator Agent v2.0

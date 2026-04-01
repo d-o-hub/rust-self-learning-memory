@@ -3,8 +3,8 @@
 //! This module contains the adaptive pool constructor method for TursoStorage:
 //! - new_with_adaptive_pool()
 
+use do_memory_core::Result;
 use libsql::Builder;
-use memory_core::Result;
 use std::sync::Arc;
 use tracing::info;
 
@@ -32,7 +32,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// use memory_storage_turso::{TursoStorage, TursoConfig, AdaptivePoolConfig};
+    /// use do_memory_storage_turso::{TursoStorage, TursoConfig, AdaptivePoolConfig};
     /// use std::time::Duration;
     ///
     /// # async fn example() -> anyhow::Result<()> {
@@ -71,7 +71,7 @@ impl TursoStorage {
             && !url.starts_with("file:")
             && !url.starts_with(":memory:")
         {
-            return Err(memory_core::Error::Security(format!(
+            return Err(do_memory_core::Error::Security(format!(
                 "Insecure database URL: {}. Only libsql://, file:, or :memory: protocols are allowed",
                 url
             )));
@@ -79,7 +79,7 @@ impl TursoStorage {
 
         // SECURITY: Validate token is provided for remote connections
         if url.starts_with("libsql://") && token.trim().is_empty() {
-            return Err(memory_core::Error::Security(
+            return Err(do_memory_core::Error::Security(
                 "Authentication token required for remote Turso connections".to_string(),
             ));
         }
@@ -89,7 +89,7 @@ impl TursoStorage {
                 .build()
                 .await
                 .map_err(|e| {
-                    memory_core::Error::Storage(format!("Failed to connect to Turso: {}", e))
+                    do_memory_core::Error::Storage(format!("Failed to connect to Turso: {}", e))
                 })?
         } else {
             let path = if let Some(stripped) = url.strip_prefix("file:") {
@@ -98,7 +98,7 @@ impl TursoStorage {
                 url
             };
             Builder::new_local(path).build().await.map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to connect to Turso: {}", e))
+                do_memory_core::Error::Storage(format!("Failed to connect to Turso: {}", e))
             })?
         };
 

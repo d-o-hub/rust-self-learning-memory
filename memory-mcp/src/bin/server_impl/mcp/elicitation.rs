@@ -2,7 +2,7 @@
 //!
 //! Handlers for elicitation/request, elicitation/data, and elicitation/cancel.
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
+use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcRequest, JsonRpcResponse};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Mutex;

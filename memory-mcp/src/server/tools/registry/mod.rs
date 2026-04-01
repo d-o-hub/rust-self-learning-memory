@@ -89,7 +89,7 @@ impl ToolRegistry {
     /// # Usage
     ///
     /// ```rust,no_run
-    /// use memory_mcp::server::tools::registry::create_default_registry;
+    /// use do_memory_mcp::server::tools::registry::create_default_registry;
     ///
     /// # #[tokio::main]
     /// # async fn main() {

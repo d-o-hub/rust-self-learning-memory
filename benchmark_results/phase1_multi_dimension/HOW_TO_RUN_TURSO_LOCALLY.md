@@ -124,7 +124,7 @@ async fn setup_storage_with_data(
 ```bash
 # In another terminal
 cd benches
-cargo bench --bench turso_vector_performance --features memory-storage-turso/turso_multi_dimension
+cargo bench --bench turso_vector_performance --features do-memory-storage-turso/turso_multi_dimension
 ```
 
 ---

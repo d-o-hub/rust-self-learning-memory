@@ -11,7 +11,7 @@ The embeddings CLI integration has been successfully completed. All core functio
 ## What Was Implemented
 
 ### 1. Configuration System ✅
-**File**: `memory-cli/src/config/types/structs.rs`
+**File**: `do-memory-cli/src/config/types/structs.rs`
 
 The `EmbeddingsConfig` struct provides comprehensive configuration options:
 - Provider selection (local, openai, mistral, azure, custom)
@@ -32,25 +32,25 @@ similarity_threshold = 0.7
 ```
 
 ### 2. CLI Commands ✅
-**File**: `memory-cli/src/commands/embedding.rs`
+**File**: `do-memory-cli/src/commands/embedding.rs`
 
 Six fully-functional commands:
 
-#### `memory-cli embedding test`
+#### `do-memory-cli embedding test`
 Tests embedding provider:
 - Verifies connectivity
 - Generates test embeddings
 - Measures performance
 - Tests similarity calculations
 
-#### `memory-cli embedding config`
+#### `do-memory-cli embedding config`
 Shows current configuration:
 - Provider status
 - Model information
 - Settings and defaults
 - API key status
 
-#### `memory-cli embedding list-providers`
+#### `do-memory-cli embedding list-providers`
 Lists available providers:
 - Local (free, CPU-based)
 - OpenAI (text-embedding-3-small/large)
@@ -58,39 +58,39 @@ Lists available providers:
 - Azure OpenAI (custom deployments)
 - Custom (OpenAI-compatible APIs)
 
-#### `memory-cli embedding benchmark`
+#### `do-memory-cli embedding benchmark`
 Performance benchmarks:
 - Single embedding speed
 - Batch embedding throughput
 - Similarity calculation performance
 
-#### `memory-cli embedding enable/disable`
+#### `do-memory-cli embedding enable/disable`
 Session-based control:
 - Enable/disable for current session
 - Provides config file editing guidance
 
 ### 3. Episode Command Integration ✅
-**File**: `memory-cli/src/commands/episode/core/types.rs`
+**File**: `do-memory-cli/src/commands/episode/core/types.rs`
 
 Semantic search flags added to episode commands:
 
 ```bash
 # List with semantic search
-memory-cli episode list --semantic-search "database query"
+do-memory-cli episode list --semantic-search "database query"
 
 # Search with semantic search
-memory-cli episode search --semantic "authentication"
+do-memory-cli episode search --semantic "authentication"
 
 # With provider overrides
-memory-cli episode search --semantic --embedding-provider openai "API design"
+do-memory-cli episode search --semantic --embedding-provider openai "API design"
 ```
 
 **Note**: Flags are implemented and parse correctly. Full semantic search functionality depends on storage backend integration (see "Known Limitations" below).
 
 ### 4. Comprehensive Tests ✅
 **Files**:
-- `memory-cli/tests/integration/embeddings.rs`
-- `memory-cli/tests/unit/semantic_search_test.rs` (NEW)
+- `do-memory-cli/tests/integration/embeddings.rs`
+- `do-memory-cli/tests/unit/semantic_search_test.rs` (NEW)
 
 **Test Coverage**:
 - ✅ Command parsing and execution
@@ -129,19 +129,19 @@ Comprehensive usage guide including:
 ## Files Modified/Created
 
 ### Modified
-1. ✅ `memory-cli/src/commands/embedding.rs` - Fixed imports for config types
+1. ✅ `do-memory-cli/src/commands/embedding.rs` - Fixed imports for config types
 
 ### Created
-2. ✅ `memory-cli/tests/unit/semantic_search_test.rs` - Configuration unit tests
+2. ✅ `do-memory-cli/tests/unit/semantic_search_test.rs` - Configuration unit tests
 3. ✅ `docs/EMBEDDINGS_CLI_GUIDE.md` - Comprehensive usage guide
 4. ✅ `plans/embeddings_cli_completion_report.md` - Detailed completion report
 
 ### Verified (Already Existed)
-- ✅ `memory-cli/src/config/types/structs.rs` - EmbeddingsConfig struct
-- ✅ `memory-cli/src/config/types/defaults_impl.rs` - Default configuration
-- ✅ `memory-cli/src/commands/embedding.rs` - All CLI commands
-- ✅ `memory-cli/src/commands/episode/core/types.rs` - Semantic search flags
-- ✅ `memory-cli/tests/integration/embeddings.rs` - Integration tests
+- ✅ `do-memory-cli/src/config/types/structs.rs` - EmbeddingsConfig struct
+- ✅ `do-memory-cli/src/config/types/defaults_impl.rs` - Default configuration
+- ✅ `do-memory-cli/src/commands/embedding.rs` - All CLI commands
+- ✅ `do-memory-cli/src/commands/episode/core/types.rs` - Semantic search flags
+- ✅ `do-memory-cli/tests/integration/embeddings.rs` - Integration tests
 
 ---
 
@@ -151,7 +151,7 @@ Comprehensive usage guide including:
 
 ```bash
 # 1. Create config
-cat > memory-cli.toml << EOF
+cat > do-memory-cli.toml << EOF
 [embeddings]
 enabled = true
 provider = "local"
@@ -161,13 +161,13 @@ similarity_threshold = 0.7
 EOF
 
 # 2. Test configuration
-memory-cli embedding test
+do-memory-cli embedding test
 
 # 3. List available providers
-memory-cli embedding list-providers
+do-memory-cli embedding list-providers
 
 # 4. Benchmark performance
-memory-cli embedding benchmark
+do-memory-cli embedding benchmark
 ```
 
 ### Using OpenAI Provider
@@ -177,7 +177,7 @@ memory-cli embedding benchmark
 export OPENAI_API_KEY="sk-..."
 
 # 2. Configure
-cat > memory-cli.toml << EOF
+cat > do-memory-cli.toml << EOF
 [embeddings]
 enabled = true
 provider = "openai"
@@ -188,21 +188,21 @@ similarity_threshold = 0.75
 EOF
 
 # 3. Test and benchmark
-memory-cli embedding test
-memory-cli embedding benchmark
+do-memory-cli embedding test
+do-memory-cli embedding benchmark
 ```
 
 ### Semantic Search (When Storage Integration Complete)
 
 ```bash
 # Find episodes about authentication
-memory-cli episode search --semantic "user login"
+do-memory-cli episode search --semantic "user login"
 
 # Find database-related episodes
-memory-cli episode list --semantic-search "database optimization" --limit 5
+do-memory-cli episode list --semantic-search "database optimization" --limit 5
 
 # With custom threshold
-memory-cli episode search --semantic --similarity 0.9 "API design"
+do-memory-cli episode search --semantic --similarity 0.9 "API design"
 ```
 
 ---
@@ -227,7 +227,7 @@ memory-cli episode search --semantic --similarity 0.9 "API design"
 Semantic search requires:
 1. Pre-computed embeddings in storage
 2. Vector similarity indexes in database
-3. Integration with memory-core's SemanticService
+3. Integration with do-memory-core's SemanticService
 
 **Timeline**: Separate task for "Storage Backend Semantic Search Integration"
 
@@ -345,7 +345,7 @@ Coverage: Configuration, CLI commands, Error handling, All providers
    - Known limitations
    - Future enhancements
 
-3. ✅ **Unit Tests**: `memory-cli/tests/unit/semantic_search_test.rs` (200+ lines)
+3. ✅ **Unit Tests**: `do-memory-cli/tests/unit/semantic_search_test.rs` (200+ lines)
    - Configuration validation
    - Provider tests
    - Edge case handling
@@ -381,16 +381,16 @@ To verify the implementation:
 
 ```bash
 # 1. Check configuration
-memory-cli embedding config
+do-memory-cli embedding config
 
 # 2. List available providers
-memory-cli embedding list-providers
+do-memory-cli embedding list-providers
 
 # 3. Test with local provider
-memory-cli embedding test
+do-memory-cli embedding test
 
 # 4. Run tests
-cargo test --package memory-cli test_embedding
+cargo test --package do-memory-cli test_embedding
 
 # 5. Check documentation
 cat docs/EMBEDDINGS_CLI_GUIDE.md

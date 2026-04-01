@@ -3,7 +3,7 @@
 use super::super::definitions::EmbeddingTools;
 use crate::mcp::tools::embeddings::types::{ConfigureEmbeddingsInput, ConfigureEmbeddingsOutput};
 use anyhow::{Result, anyhow};
-use memory_core::embeddings::config::{
+use do_memory_core::embeddings::config::{
     AzureOpenAIConfig, CustomConfig, EmbeddingConfig, EmbeddingProvider, LocalConfig,
     ProviderConfig,
 };

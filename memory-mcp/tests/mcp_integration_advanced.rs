@@ -2,12 +2,12 @@
 //!
 //! Tests the advanced pattern analysis tool integrated with the MCP server.
 
-use memory_core::SelfLearningMemory;
-use memory_mcp::mcp::tools::advanced_pattern_analysis::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
     AdvancedPatternAnalysisInput, AnalysisConfig, AnalysisType,
 };
-use memory_mcp::server::MemoryMCPServer;
-use memory_mcp::types::SandboxConfig;
+use do_memory_mcp::server::MemoryMCPServer;
+use do_memory_mcp::types::SandboxConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 

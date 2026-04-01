@@ -25,7 +25,7 @@
 
 ### SpatiotemporalIndex Overview
 
-**Module**: `memory-core/src/spatiotemporal/index.rs` (1043 lines)
+**Module**: `do-memory-core/src/spatiotemporal/index.rs` (1043 lines)
 
 **Core Components**:
 
@@ -64,7 +64,7 @@ pub struct TemporalCluster {
 
 ### Current Usage Analysis
 
-**In SelfLearningMemory** (`memory-core/src/memory/mod.rs:235`):
+**In SelfLearningMemory** (`do-memory-core/src/memory/mod.rs:235`):
 
 ```rust
 pub struct SelfLearningMemory {
@@ -85,7 +85,7 @@ pub struct SelfLearningMemory {
 | `retrieve_relevant_context()` | ❌ No | Index never queried during retrieval |
 | Index initialization | ✅ Yes | Initialized in `new()` and `from_config()` |
 
-**Current Retrieval Flow** (`memory-core/src/memory/retrieval.rs:206-319`):
+**Current Retrieval Flow** (`do-memory-core/src/memory/retrieval.rs:206-319`):
 
 ```rust
 // Phase 3 retrieval (current implementation)
@@ -298,7 +298,7 @@ let scored_episodes = match self.hierarchical_retriever.retrieve(&query, &comple
 
 #### Step 1: Update `complete_episode()` to Insert Episodes
 
-**File**: `memory-core/src/memory/mod.rs`
+**File**: `do-memory-core/src/memory/mod.rs`
 
 **Change**:
 ```rust
@@ -327,7 +327,7 @@ impl SelfLearningMemory {
 
 #### Step 2: Update `retrieve_relevant_context()` to Query Index
 
-**File**: `memory-core/src/memory/retrieval.rs`
+**File**: `do-memory-core/src/memory/retrieval.rs`
 
 **Change**:
 ```rust
@@ -387,7 +387,7 @@ pub async fn retrieve_relevant_context(
 
 #### Step 3: Update Episode Eviction to Remove from Index
 
-**File**: `memory-core/src/memory/capacity.rs` (or wherever eviction happens)
+**File**: `do-memory-core/src/memory/capacity.rs` (or wherever eviction happens)
 
 **Change**:
 ```rust

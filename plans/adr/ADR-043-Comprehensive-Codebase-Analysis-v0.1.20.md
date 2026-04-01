@@ -35,10 +35,10 @@ Full codebase audit on 2026-03-15 against ADR-028 roadmap, ADR-042 coverage plan
 
 | File | Line | Error | Fix |
 |------|------|-------|-----|
-| `memory-storage-redb/tests/persistence_coverage_tests.rs` | 29 | `unwrap()` on Result | Use `?` or `.expect("msg")` |
-| `memory-storage-redb/tests/persistence_coverage_tests.rs` | 34 | `unwrap()` on Result | Use `?` or `.expect("msg")` |
-| `memory-storage-redb/tests/persistence_coverage_tests.rs` | 44 | `unwrap()` on Result | Use `?` or `.expect("msg")` |
-| `memory-mcp/tests/adr024_lazy_loading_tests.rs` | 43 | `expect()` on Result | `.clippy.toml` has `allow-expect-in-tests = true` but test is integration test — needs `#![allow(clippy::expect_used)]` at crate level |
+| `do-memory-storage-redb/tests/persistence_coverage_tests.rs` | 29 | `unwrap()` on Result | Use `?` or `.expect("msg")` |
+| `do-memory-storage-redb/tests/persistence_coverage_tests.rs` | 34 | `unwrap()` on Result | Use `?` or `.expect("msg")` |
+| `do-memory-storage-redb/tests/persistence_coverage_tests.rs` | 44 | `unwrap()` on Result | Use `?` or `.expect("msg")` |
+| `do-memory-mcp/tests/adr024_lazy_loading_tests.rs` | 43 | `expect()` on Result | `.clippy.toml` has `allow-expect-in-tests = true` but test is integration test — needs `#![allow(clippy::expect_used)]` at crate level |
 
 **Root Cause**: `.clippy.toml` sets `allow-unwrap-in-tests = true` and `allow-expect-in-tests = true`, but these only apply to `#[cfg(test)]` modules, NOT to integration test files in `tests/` directories. Integration tests are separate crate roots and don't inherit clippy config for inline test modules.
 
@@ -79,7 +79,7 @@ Full codebase audit on 2026-03-15 against ADR-028 roadmap, ADR-042 coverage plan
 | Category | Count | Target (WG-018) | Gap |
 |----------|-------|-----------------|-----|
 | `#[allow(dead_code)]` in prod src | 69 | ≤20 | -49 to remove |
-| Hotspots | `memory-core/src/embeddings/` (12), `memory-core/src/memory/` (7), `memory-core/src/monitoring/` (3) | — | — |
+| Hotspots | `do-memory-core/src/embeddings/` (12), `do-memory-core/src/memory/` (7), `do-memory-core/src/monitoring/` (3) | — | — |
 
 ### E. Pending Goals (Unfulfilled from GOALS.md)
 
@@ -253,7 +253,7 @@ Phase A (Parallel, 1h)           Phase B (Parallel, 4h)        Phase C (Sequenti
 
 - **Estimated**: 55-65% (improving)
 - **Target**: 70% (Phase 1) → 75% (Phase 2) → 80% (Phase 3)
-- **Completed**: 77+ new tests across memory-core, redb, turso (ACT-026—031)
+- **Completed**: 77+ new tests across do-memory-core, redb, turso (ACT-026—031)
 - **Pending**: 5 actions (ACT-032—037) for fuzz, integration, and monitoring
 
 ### 🔧 Enhancements Needed

@@ -6,7 +6,7 @@ use crate::mcp::tools::embeddings::types::{
     SearchByEmbeddingOutput,
 };
 use anyhow::{Result, anyhow};
-use memory_core::TaskOutcome;
+use do_memory_core::TaskOutcome;
 use tracing::{debug, info, instrument, warn};
 
 impl EmbeddingTools {
@@ -37,7 +37,7 @@ impl EmbeddingTools {
             // Normalize if requested
             let normalized = input.normalize;
             if normalized {
-                embedding = memory_core::embeddings::normalize_vector(embedding);
+                embedding = do_memory_core::embeddings::normalize_vector(embedding);
             }
 
             let generation_time_ms = start_time.elapsed().as_micros() as f64 / 1000.0;

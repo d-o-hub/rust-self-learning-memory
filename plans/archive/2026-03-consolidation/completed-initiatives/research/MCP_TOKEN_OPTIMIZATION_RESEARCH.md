@@ -104,7 +104,7 @@ Only load and return tool schemas when explicitly requested via `tools/describe`
 
 **Architecture**:
 ```rust
-// memory-mcp/src/server/tools/registry.rs
+// do-memory-mcp/src/server/tools/registry.rs
 
 use std::sync::OnceLock;
 use std::collections::HashMap;
@@ -166,7 +166,7 @@ impl ToolRegistry {
 
 **MCP Handler Updates**:
 ```rust
-// memory-mcp/src/server/handlers.rs
+// do-memory-mcp/src/server/handlers.rs
 
 impl McpServer {
     /// Lightweight: Return only tool names
@@ -313,7 +313,7 @@ Add optional `include_fields` parameter to all MCP tools:
 
 **API Design**:
 ```rust
-// memory-mcp/src/common/projection.rs
+// do-memory-mcp/src/common/projection.rs
 
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
@@ -386,7 +386,7 @@ mod tests {
 
 **Tool Handler Integration**:
 ```rust
-// memory-mcp/src/server/tools/episode/query.rs
+// do-memory-mcp/src/server/tools/episode/query.rs
 
 use crate::common::projection::FieldProjection;
 
@@ -569,7 +569,7 @@ Leverage existing SemanticService to enable natural language tool selection:
 
 **Architecture**:
 ```rust
-// memory-mcp/src/server/tools/semantic_discovery.rs
+// do-memory-mcp/src/server/tools/semantic_discovery.rs
 
 use memory_core::embeddings::SemanticService;
 
@@ -775,7 +775,7 @@ Array-heavy responses repeat field names for every element:
 Use table-oriented format (similar to TOON - Text Object Oriented Notation):
 
 ```rust
-// memory-mcp/src/common/compression.rs
+// do-memory-mcp/src/common/compression.rs
 
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
@@ -958,7 +958,7 @@ mod tests {
 
 **Tool Integration**:
 ```rust
-// memory-mcp/src/server/tools/patterns/analyze.rs
+// do-memory-mcp/src/server/tools/patterns/analyze.rs
 
 pub async fn handle_analyze_patterns(
     req: AnalyzePatternsRequest,
@@ -1031,7 +1031,7 @@ Large result sets returned entirely, even when client only needs first few resul
 #### Solution: Cursor-Based Pagination
 
 ```rust
-// memory-mcp/src/server/common/pagination.rs
+// do-memory-mcp/src/server/common/pagination.rs
 
 use serde::{Serialize, Deserialize};
 
@@ -1119,7 +1119,7 @@ fn decode_cursor(cursor: &str) -> Result<(u64, String), Error> {
 
 **Tool Handler Update**:
 ```rust
-// memory-mcp/src/server/tools/episode/bulk.rs
+// do-memory-mcp/src/server/tools/episode/bulk.rs
 
 pub async fn handle_bulk_episodes(
     req: BulkEpisodesRequest,
@@ -1219,7 +1219,7 @@ cache.get("query_memory:storage:issue")  // Cache miss
 Use embeddings to cache by similarity:
 
 ```rust
-// memory-mcp/src/server/cache/semantic.rs
+// do-memory-mcp/src/server/cache/semantic.rs
 
 use memory_core::embeddings::SemanticService;
 use std::collections::HashMap;
@@ -1339,7 +1339,7 @@ return patterns; // Client waits 10s with no feedback
 Stream results as they become available:
 
 ```rust
-// memory-mcp/src/server/handlers/streaming.rs
+// do-memory-mcp/src/server/handlers/streaming.rs
 
 use tokio::sync::mpsc;
 
@@ -1534,7 +1534,7 @@ let result = semantic_cache.get("database errors").await?
 ### Token Counting
 
 ```rust
-// memory-mcp/src/metrics/token_counter.rs
+// do-memory-mcp/src/metrics/token_counter.rs
 
 use tiktoken_rs::cl100k_base;
 
@@ -1572,7 +1572,7 @@ mod tests {
 ### A/B Testing Framework
 
 ```rust
-// memory-mcp/tests/token_optimization.rs
+// do-memory-mcp/tests/token_optimization.rs
 
 #[tokio::test]
 async fn test_dynamic_loading_token_reduction() {
@@ -1610,9 +1610,9 @@ async fn test_dynamic_loading_token_reduction() {
 - [Tool Schema Reference](https://modelcontextprotocol.io/docs/tools/schema)
 
 ### Related Implementation
-- Current MCP server: `memory-mcp/src/server/`
-- Tool definitions: `memory-mcp/src/server/tools/`
-- Semantic service: `memory-core/src/embeddings/`
+- Current MCP server: `do-memory-mcp/src/server/`
+- Tool definitions: `do-memory-mcp/src/server/tools/`
+- Semantic service: `do-memory-core/src/embeddings/`
 
 ### Token Optimization Research
 - [OpenAI Token Counting](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)

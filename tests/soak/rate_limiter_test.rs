@@ -14,8 +14,8 @@ use governor::{
     state::{InMemoryState, NotKeyed},
     Quota, RateLimiter,
 };
-use memory_core::{types::ExecutionResult, Episode, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::{
+use do_memory_core::{types::ExecutionResult, Episode, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_turso::{
     CacheConfig, CachedTursoStorage, PoolConfig, TursoConfig, TursoStorage,
 };
 use std::num::NonZeroU32;
@@ -181,7 +181,7 @@ async fn execute_request(
                         domain: "rate_limiter_test".to_string(),
                         language: Some("rust".to_string()),
                         framework: Some("tokio".to_string()),
-                        complexity: memory_core::types::ComplexityLevel::Simple,
+                        complexity: do_memory_core::types::ComplexityLevel::Simple,
                         tags: vec!["rate_limiter_test".to_string()],
                     },
                     TaskType::CodeGeneration,
@@ -189,7 +189,7 @@ async fn execute_request(
                 .await;
 
             // Add a step
-            let mut step = memory_core::episode::ExecutionStep::new(
+            let mut step = do_memory_core::episode::ExecutionStep::new(
                 1,
                 "test_tool".to_string(),
                 "Execute test operation".to_string(),

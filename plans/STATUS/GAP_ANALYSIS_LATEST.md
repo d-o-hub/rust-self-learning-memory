@@ -23,15 +23,15 @@ The v0.1.22 sprint successfully shipped its 12 tracked issues, but the latest au
 
 #### Remediation Progress (2026-03-24)
 
-- ✅ **WG-051** — Durable recommendation attribution implemented via `memory-storage-turso/src/storage/recommendations.rs`, `memory-storage-redb/src/recommendations.rs`, and storage trait impls/resilient wrappers. Integration evidence: `tests/attribution_integration_test.rs` (`cargo nextest run --test attribution_integration`).
+- ✅ **WG-051** — Durable recommendation attribution implemented via `do-memory-storage-turso/src/storage/recommendations.rs`, `do-memory-storage-redb/src/recommendations.rs`, and storage trait impls/resilient wrappers. Integration evidence: `tests/attribution_integration_test.rs` (`cargo nextest run --test attribution_integration`).
 - ✅ **WG-052** — Durable checkpoints/handoffs implemented via Turso schema (`checkpoints` column), CRUD/query/batch checkpoint serialization, backward-compatible row conversion defaults, and storage-backed `resume_from_handoff` metadata persistence. Integration evidence: `cargo nextest run --test checkpoint_integration` and targeted Turso tests.
 
 ### P1 — Documentation & Contract Drift
 
 | Gap | Evidence | Impact | Linked WG |
 |-----|----------|--------|-----------|
-| ~~API reference outdated (v0.1.13 + obsolete tools)~~ | ✅ Resolved in WG-054 via contract refresh from `memory-mcp/tests/tool_contract_parity.rs`; deferred batch tools explicitly marked absent | Contract index now matches runtime/parity tool list | WG-054 |
-| ~~Playbook/checkpoint/feedback docs mention non-existent CLI commands~~ | ✅ Resolved in WG-054 via `memory-cli --help` aligned command updates (`episode`, `playbook`, `feedback`) | CLI onboarding docs now reflect live command names | WG-054 |
+| ~~API reference outdated (v0.1.13 + obsolete tools)~~ | ✅ Resolved in WG-054 via contract refresh from `do-memory-mcp/tests/tool_contract_parity.rs`; deferred batch tools explicitly marked absent | Contract index now matches runtime/parity tool list | WG-054 |
+| ~~Playbook/checkpoint/feedback docs mention non-existent CLI commands~~ | ✅ Resolved in WG-054 via `do-memory-cli --help` aligned command updates (`episode`, `playbook`, `feedback`) | CLI onboarding docs now reflect live command names | WG-054 |
 | ~~README + plans advertise secure code execution + “all gaps closed” despite disabled tool~~ | ✅ Resolved in WG-054 with conditional sandbox wording + status/roadmap truth updates | Reduced overclaiming in top-level docs/plans | WG-054 |
 | ~~AGENTS.md/agent_docs/.agents/skills instructions lag behind script/CI reality~~ | ✅ Resolved 2026-03-24 via AGENTS + agent docs + skills parity refresh (script-first, coverage >=90, disk guidance) | Workflow guidance now matches current scripts and policies | WG-058 |
 

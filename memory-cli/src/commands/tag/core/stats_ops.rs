@@ -1,5 +1,5 @@
 use crate::output::OutputFormat;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 
 use super::{TagRenameResult, TagStatsDetailedEntry, TagStatsDetailedResult};
 

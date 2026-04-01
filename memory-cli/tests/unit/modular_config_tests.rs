@@ -3,7 +3,7 @@
 use super::*;
 use tempfile::TempDir;
 use std::fs;
-use memory_cli::config::{initialize_storage};
+use do_memory_cli::config::{initialize_storage};
 
 #[cfg(test)]
 mod config_tests {

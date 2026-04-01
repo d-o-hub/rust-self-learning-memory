@@ -1,10 +1,12 @@
 //! Integration tests for quality metrics MCP tool
 
-use memory_core::types::{ComplexityLevel, ExecutionResult, Reflection};
-use memory_core::{Episode, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType};
-use memory_mcp::SandboxConfig;
-use memory_mcp::mcp::tools::quality_metrics::{QualityMetricsInput, QualityMetricsTool};
-use memory_mcp::server::MemoryMCPServer;
+use do_memory_core::types::{ComplexityLevel, ExecutionResult, Reflection};
+use do_memory_core::{
+    Episode, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
+};
+use do_memory_mcp::SandboxConfig;
+use do_memory_mcp::mcp::tools::quality_metrics::{QualityMetricsInput, QualityMetricsTool};
+use do_memory_mcp::server::MemoryMCPServer;
 use std::sync::Arc;
 
 /// Create test episodes with varying quality levels

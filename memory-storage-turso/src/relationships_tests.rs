@@ -1,6 +1,6 @@
 use super::*;
-use memory_core::episode::Episode;
-use memory_core::{TaskContext, TaskType};
+use do_memory_core::episode::Episode;
+use do_memory_core::{TaskContext, TaskType};
 use std::sync::Arc;
 use tempfile::TempDir;
 

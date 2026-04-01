@@ -3,9 +3,9 @@
 //! Provides utilities for setting up temporary databases and test environments.
 
 use anyhow::Result;
-use memory_core::{MemoryConfig, SelfLearningMemory};
-use memory_storage_redb::RedbStorage;
-use memory_storage_turso::TursoStorage;
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
+use do_memory_storage_redb::RedbStorage;
+use do_memory_storage_turso::TursoStorage;
 use std::sync::Arc;
 use tempfile::TempDir;
 

@@ -1,7 +1,7 @@
 //! Capacity-constrained storage operations for Turso
 
 use crate::{Result, TursoStorage};
-use memory_core::Episode;
+use do_memory_core::Episode;
 use std::collections::HashMap;
 use tracing::{debug, info, warn};
 
@@ -39,19 +39,18 @@ impl TursoStorage {
         // Count current episodes
         const COUNT_SQL: &str = "SELECT COUNT(*) as count FROM episodes";
 
-        let mut count_rows = conn
-            .query(COUNT_SQL, ())
-            .await
-            .map_err(|e| memory_core::Error::Storage(format!("Failed to count episodes: {}", e)))?;
+        let mut count_rows = conn.query(COUNT_SQL, ()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to count episodes: {}", e))
+        })?;
 
         let current_count = if let Some(row) = count_rows
             .next()
             .await
-            .map_err(|e| memory_core::Error::Storage(e.to_string()))?
+            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
         {
             let count: i64 = row
                 .get(0)
-                .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
             count as usize
         } else {
             0
@@ -80,18 +79,18 @@ impl TursoStorage {
         );
 
         let mut evict_rows = conn.query(&evict_sql, ()).await.map_err(|e| {
-            memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
+            do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
         })?;
 
         let mut evicted = Vec::new();
         while let Some(row) = evict_rows
             .next()
             .await
-            .map_err(|e| memory_core::Error::Storage(e.to_string()))?
+            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
         {
             let episode_id: String = row
                 .get(0)
-                .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
             evicted.push(episode_id);
         }
 
@@ -116,13 +115,13 @@ impl TursoStorage {
                 .get_or_prepare(&conn, DELETE_SQL)
                 .await
                 .map_err(|e| {
-                    memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
                 })?;
 
             stmt.execute(libsql::params![episode_id.clone()])
                 .await
                 .map_err(|e| {
-                    memory_core::Error::Storage(format!("Failed to delete episode: {}", e))
+                    do_memory_core::Error::Storage(format!("Failed to delete episode: {}", e))
                 })?;
             drop(conn);
         }
@@ -159,17 +158,17 @@ impl TursoStorage {
             #[allow(clippy::literal_string_with_formatting_args)]
             let sql = format!("SELECT COUNT(*) FROM {}", table);
             let mut rows = conn.query(&sql, ()).await.map_err(|e| {
-                memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))
+                do_memory_core::Error::Storage(format!("Failed to count {}: {}", table, e))
             })?;
 
             if let Some(row) = rows
                 .next()
                 .await
-                .map_err(|e| memory_core::Error::Storage(e.to_string()))?
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
             {
                 let count: i64 = row
                     .get(0)
-                    .map_err(|e| memory_core::Error::Storage(e.to_string()))?;
+                    .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
                 table_counts.insert(table.to_string(), count as usize);
             }
         }

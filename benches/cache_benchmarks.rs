@@ -8,8 +8,8 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{Criterion, criterion_group, criterion_main};
-use memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
-use memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
+use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
+use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};
 use std::hint::black_box;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;
@@ -53,7 +53,7 @@ fn create_test_episode(id: Uuid) -> Episode {
             domain: "benchmark".to_string(),
             language: Some("rust".to_string()),
             framework: Some("tokio".to_string()),
-            complexity: memory_core::types::ComplexityLevel::Moderate,
+            complexity: do_memory_core::types::ComplexityLevel::Moderate,
             tags: vec!["performance".to_string(), "test".to_string()],
         },
         steps: vec![],

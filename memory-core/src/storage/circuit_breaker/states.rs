@@ -104,7 +104,7 @@ impl CircuitBreaker {
     /// # Example
     ///
     /// ```
-    /// use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
+    /// use do_memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
     ///
     /// let config = CircuitBreakerConfig {
     ///     failure_threshold: 3,
@@ -138,13 +138,13 @@ impl CircuitBreaker {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_core::storage::circuit_breaker::CircuitBreaker;
-    /// # use memory_core::storage::circuit_breaker::CircuitBreakerConfig;
-    /// # async fn example() -> memory_core::Result<()> {
+    /// # use do_memory_core::storage::circuit_breaker::CircuitBreaker;
+    /// # use do_memory_core::storage::circuit_breaker::CircuitBreakerConfig;
+    /// # async fn example() -> do_memory_core::Result<()> {
     /// let cb = CircuitBreaker::new(CircuitBreakerConfig::default());
     /// let result = cb.call(|| async {
     ///     // Your database operation
-    ///     Ok::<_, memory_core::Error>(())
+    ///     Ok::<_, do_memory_core::Error>(())
     /// }).await?;
     /// # Ok(())
     /// # }
@@ -299,7 +299,7 @@ impl CircuitBreaker {
     /// # Example
     ///
     /// ```
-    /// # use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
+    /// # use do_memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
     /// # async fn example() {
     /// let cb = CircuitBreaker::new(CircuitBreakerConfig::default());
     /// let state = cb.state().await;
@@ -316,7 +316,7 @@ impl CircuitBreaker {
     /// # Example
     ///
     /// ```
-    /// # use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
+    /// # use do_memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
     /// # async fn example() {
     /// let cb = CircuitBreaker::new(CircuitBreakerConfig::default());
     /// let stats = cb.stats().await;
@@ -341,7 +341,7 @@ impl CircuitBreaker {
     /// # Example
     ///
     /// ```
-    /// # use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
+    /// # use do_memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
     /// let cb = CircuitBreaker::new(CircuitBreakerConfig::default());
     /// let delay = cb.calculate_backoff(0); // 100ms
     /// let delay = cb.calculate_backoff(1); // 200ms
@@ -363,7 +363,7 @@ impl CircuitBreaker {
     /// # Example
     ///
     /// ```
-    /// # use memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
+    /// # use do_memory_core::storage::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitState};
     /// # async fn example() {
     /// let cb = CircuitBreaker::new(CircuitBreakerConfig::default());
     /// cb.reset().await;

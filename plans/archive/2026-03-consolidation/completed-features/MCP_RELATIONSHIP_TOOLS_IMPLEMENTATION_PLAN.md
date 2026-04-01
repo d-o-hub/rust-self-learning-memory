@@ -11,7 +11,7 @@
 
 This plan implements 8 MCP tools for episode relationship management as documented in `EPISODE_RELATIONSHIPS_PHASE4_5_PLAN.md`. These tools provide the MCP interface for creating, querying, and managing relationships between episodes.
 
-**Current Status**: The `memory-mcp/src/mcp/tools/episode_relationships/` directory exists with basic structure but the tools are NOT implemented.
+**Current Status**: The `do-memory-mcp/src/mcp/tools/episode_relationships/` directory exists with basic structure but the tools are NOT implemented.
 
 ---
 
@@ -48,7 +48,7 @@ This plan implements 8 MCP tools for episode relationship management as document
 - Strength must be between 0.0 and 1.0
 - Cycle detection for "follows" and "causes" types
 
-**Implementation Location**: `memory-mcp/src/mcp/tools/episode_relationships/tool.rs`
+**Implementation Location**: `do-memory-mcp/src/mcp/tools/episode_relationships/tool.rs`
 
 **Code Structure**:
 ```rust
@@ -65,7 +65,7 @@ pub async fn add_episode_relationship(
 }
 ```
 
-**Audit Logging**: Yes - via `memory-mcp/src/server/audit/relationship_ops.rs`
+**Audit Logging**: Yes - via `do-memory-mcp/src/server/audit/relationship_ops.rs`
 
 ---
 
@@ -444,7 +444,7 @@ pub async fn get_dependency_graph(
 ## File Structure
 
 ```
-memory-mcp/src/mcp/tools/episode_relationships/
+do-memory-mcp/src/mcp/tools/episode_relationships/
 ├── mod.rs                    (exports)
 ├── tool.rs                   (main implementation - ADD 8 functions)
 ├── types.rs                  (request/response types)
@@ -459,7 +459,7 @@ memory-mcp/src/mcp/tools/episode_relationships/
 ## Integration Points
 
 ### 1. Tool Registration
-**File**: `memory-mcp/src/server/tool_definitions.rs`
+**File**: `do-memory-mcp/src/server/tool_definitions.rs`
 
 Add to tool list:
 ```rust
@@ -473,7 +473,7 @@ Tool {
 Repeat for all 8 tools.
 
 ### 2. Tool Execution
-**File**: `memory-mcp/src/bin/server/tools.rs`
+**File**: `do-memory-mcp/src/bin/server/tools.rs`
 
 Add match arms:
 ```rust
@@ -483,7 +483,7 @@ Add match arms:
 ```
 
 ### 3. Audit Logging
-**File**: `memory-mcp/src/server/audit/relationship_ops.rs`
+**File**: `do-memory-mcp/src/server/audit/relationship_ops.rs`
 
 Already exists - verify all operations are logged.
 
@@ -512,7 +512,7 @@ Already exists - verify all operations are logged.
 ## Dependencies
 
 **Storage Layer**: 
-- ✅ `memory-core/src/episodic/relationships.rs` - Already implemented
+- ✅ `do-memory-core/src/episodic/relationships.rs` - Already implemented
 - ✅ Storage traits support relationships
 
 **No new dependencies required** - all functionality uses existing backend.

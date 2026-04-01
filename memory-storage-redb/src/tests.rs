@@ -1,7 +1,7 @@
 //! Tests for redb storage backend.
 
 use super::*;
-use memory_core::StorageBackend;
+use do_memory_core::StorageBackend;
 use tempfile::tempdir;
 
 async fn create_test_storage() -> Result<RedbStorage> {

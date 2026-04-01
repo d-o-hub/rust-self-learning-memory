@@ -4,9 +4,9 @@
 //! in the libsql/turso native library that causes `malloc_consolidate(): unaligned fastbin chunk detected`
 //! in CI environments. See ADR-027 for details.
 
-use memory_core::semantic::{EpisodeSummary, SemanticSummarizer};
-use memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
-use memory_storage_turso::TursoStorage;
+use do_memory_core::semantic::{EpisodeSummary, SemanticSummarizer};
+use do_memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
 
 /// Helper to create a test storage instance

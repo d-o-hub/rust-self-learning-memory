@@ -4,7 +4,7 @@ use super::types::{PatternExplanation, PlaybookStepSummary, PlaybookSummary};
 use crate::config::Config;
 use crate::output::OutputFormat;
 use anyhow::Result;
-use memory_core::types::{ComplexityLevel, TaskContext, TaskType};
+use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
 /// Generate a playbook recommendation for a task
 #[allow(clippy::too_many_arguments)]
@@ -16,7 +16,7 @@ pub async fn recommend_playbook(
     language: Option<&str>,
     framework: Option<&str>,
     tags: Vec<String>,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> Result<()> {
@@ -91,7 +91,7 @@ pub async fn recommend_playbook(
 /// Explain a pattern in human-readable form
 pub async fn explain_pattern(
     pattern_id: &str,
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> Result<()> {

@@ -98,8 +98,8 @@
 //! ### Basic Episode Recording
 //!
 //! ```no_run
-//! use memory_core::memory::SelfLearningMemory;
-//! use memory_core::{TaskContext, TaskType, TaskOutcome, ExecutionStep, ExecutionResult};
+//! use do_memory_core::memory::SelfLearningMemory;
+//! use do_memory_core::{TaskContext, TaskType, TaskOutcome, ExecutionStep, ExecutionResult};
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -146,9 +146,9 @@
 //! The system automatically extracts reusable patterns from completed episodes:
 //!
 //! ```no_run
-//! use memory_core::memory::SelfLearningMemory;
-//! use memory_core::patterns::HybridPatternExtractor;
-//! use memory_core::episode::Episode;
+//! use do_memory_core::memory::SelfLearningMemory;
+//! use do_memory_core::patterns::HybridPatternExtractor;
+//! use do_memory_core::episode::Episode;
 //!
 //! # #[tokio::main]
 //! # async fn main() {
@@ -164,9 +164,9 @@
 //! ### Semantic Search with Embeddings
 //!
 //! ```no_run
-//! use memory_core::embeddings::{SemanticService, EmbeddingConfig, InMemoryEmbeddingStorage};
-//! use memory_core::episode::Episode;
-//! use memory_core::TaskContext;
+//! use do_memory_core::embeddings::{SemanticService, EmbeddingConfig, InMemoryEmbeddingStorage};
+//! use do_memory_core::episode::Episode;
+//! use do_memory_core::TaskContext;
 //!
 //! # #[tokio::main]
 //! # async fn main() {
@@ -201,7 +201,7 @@
 //! Most functions return [`Result<T>`] for proper error handling:
 //!
 //! ```no_run
-//! use memory_core::{Error, Result};
+//! use do_memory_core::{Error, Result};
 //!
 //! async fn example() -> Result<()> {
 //!     // Operations that can fail

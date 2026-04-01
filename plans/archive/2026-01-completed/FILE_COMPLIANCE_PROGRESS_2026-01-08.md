@@ -19,7 +19,7 @@ This report tracks the progress of the 500 LOC file size compliance initiative p
 
 ## Current Large Files (>500 LOC)
 
-### memory-core (Critical - Core functionality)
+### do-memory-core (Critical - Core functionality)
 
 | File | Current LOC | Status | Priority |
 |------|-------------|--------|----------|
@@ -40,7 +40,7 @@ This report tracks the progress of the 500 LOC file size compliance initiative p
 | `src/reward/adaptive.rs` | 510 | ⚠️ Just over | P3 |
 | `src/pattern/mod.rs` | 497 | ✅ Compliant | - |
 
-### memory-mcp (Critical - Server functionality)
+### do-memory-mcp (Critical - Server functionality)
 
 | File | Current LOC | Status | Priority |
 |------|-------------|--------|----------|
@@ -50,7 +50,7 @@ This report tracks the progress of the 500 LOC file size compliance initiative p
 | `src/sandbox.rs` | 433 | ✅ Compliant | - |
 | `src/wasmtime_sandbox.rs` | 383 | ✅ Compliant | - |
 
-### memory-cli (CLI functionality)
+### do-memory-cli (CLI functionality)
 
 | File | Current LOC | Status | Priority |
 |------|-------------|--------|----------|
@@ -63,8 +63,8 @@ This report tracks the progress of the 500 LOC file size compliance initiative p
 
 | File | Current LOC | Status | Priority |
 |------|-------------|--------|----------|
-| `memory-storage-redb/src/cache.rs` | 654 | ❌ Exceeds | P1 |
-| `memory-storage-turso/src/pool.rs` | 589 | ❌ Exceeds | P1 |
+| `do-memory-storage-redb/src/cache.rs` | 654 | ❌ Exceeds | P1 |
+| `do-memory-storage-turso/src/pool.rs` | 589 | ❌ Exceeds | P1 |
 
 ---
 
@@ -74,13 +74,13 @@ These files were successfully split in early January 2026:
 
 | Original File | Before | After | Status |
 |---------------|--------|-------|--------|
-| `memory-mcp/src/sandbox.rs` | 690 | 433 + 258 | ✅ Split |
-| `memory-mcp/src/wasmtime_sandbox.rs` | 595 | 366 + 187 | ✅ Split |
-| `memory-core/src/reward.rs` | 790 | 367 + 424 | ✅ Split |
-| `memory-core/src/embeddings/mod.rs` | 774 | 422 + 312 | ✅ Split |
-| `memory-core/src/spatiotemporal/embeddings.rs` | 765 | 462 + 262 | ✅ Split |
-| `memory-core/src/semantic/summary.rs` | 727 | 5 modules | ✅ Split |
-| `memory-mcp/src/patterns/statistical/analysis.rs` | 811 | 4 modules | ✅ Split |
+| `do-memory-mcp/src/sandbox.rs` | 690 | 433 + 258 | ✅ Split |
+| `do-memory-mcp/src/wasmtime_sandbox.rs` | 595 | 366 + 187 | ✅ Split |
+| `do-memory-core/src/reward.rs` | 790 | 367 + 424 | ✅ Split |
+| `do-memory-core/src/embeddings/mod.rs` | 774 | 422 + 312 | ✅ Split |
+| `do-memory-core/src/spatiotemporal/embeddings.rs` | 765 | 462 + 262 | ✅ Split |
+| `do-memory-core/src/semantic/summary.rs` | 727 | 5 modules | ✅ Split |
+| `do-memory-mcp/src/patterns/statistical/analysis.rs` | 811 | 4 modules | ✅ Split |
 
 ---
 
@@ -88,7 +88,7 @@ These files were successfully split in early January 2026:
 
 ### Priority P0 (Critical - Blockers)
 
-**memory-mcp files**:
+**do-memory-mcp files**:
 1. `wasm_sandbox.rs` (683 LOC) → Split into runtime/compiler/modules
 2. `javy_compiler.rs` (679 LOC) → Extract compiler phases
 3. `unified_sandbox.rs` (533 LOC) → Split handler/implementation
@@ -105,19 +105,19 @@ src/wasm_sandbox/
 
 ### Priority P1 (High - Next Sprint)
 
-**memory-core embedding & pattern files**:
+**do-memory-core embedding & pattern files**:
 1. `embeddings/openai.rs` (672 LOC) → Extract request/response handling
 2. `embeddings/config.rs` (660 LOC) → Extract validation helpers
 3. `patterns/clustering.rs` (673 LOC) → Extract algorithm modules
 4. `patterns/validation.rs` (623 LOC) → Extract validator types
 
 **memory-storage files**:
-5. `memory-storage-redb/src/cache.rs` (654 LOC) → Split cache ops
-6. `memory-storage-turso/src/pool.rs` (589 LOC) → Extract pool management
+5. `do-memory-storage-redb/src/cache.rs` (654 LOC) → Split cache ops
+6. `do-memory-storage-turso/src/pool.rs` (589 LOC) → Extract pool management
 
 ### Priority P2 (Medium - Future Sprints)
 
-**memory-core files**:
+**do-memory-core files**:
 - `memory/learning.rs` (673 LOC)
 - `pre_storage/quality.rs` (666 LOC)
 - `learning/queue.rs` (662 LOC)
@@ -125,14 +125,14 @@ src/wasm_sandbox/
 - `patterns/effectiveness.rs` (631 LOC)
 - `episodic/capacity.rs` (613 LOC)
 
-**memory-cli files**:
+**do-memory-cli files**:
 - `config/validator.rs` (636 LOC)
 - `config/loader.rs` (623 LOC)
 - `config/progressive.rs` (564 LOC)
 
 ### Priority P3 (Low - Cleanup)
 
-**memory-core files** (just over 500 LOC):
+**do-memory-core files** (just over 500 LOC):
 - `sync.rs` (511 LOC)
 - `reward/adaptive.rs` (510 LOC)
 
@@ -158,7 +158,7 @@ After each refactoring:
 
 ### Immediate (This Week)
 
-1. **Prioritize P0 files**: Start with `memory-mcp` sandbox files
+1. **Prioritize P0 files**: Start with `do-memory-mcp` sandbox files
    - `wasm_sandbox.rs` (683 LOC)
    - `javy_compiler.rs` (679 LOC)
 
@@ -193,7 +193,7 @@ After each refactoring:
 
 **Report Status**: IN PROGRESS
 **Last Updated**: 2026-01-09
-**Next Action**: Begin P0 file refactoring (memory-mcp sandbox files)
+**Next Action**: Begin P0 file refactoring (do-memory-mcp sandbox files)
 
 ---
 

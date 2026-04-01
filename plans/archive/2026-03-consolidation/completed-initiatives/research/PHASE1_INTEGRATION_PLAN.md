@@ -12,8 +12,8 @@
 This document provides atomic task decomposition for integrating pre-storage reasoning (PREMem) into the SelfLearningMemory workflow.
 
 **Status**:
-- ✅ QualityAssessor implemented (memory-core/src/pre_storage/quality.rs)
-- ✅ SalientExtractor implemented (memory-core/src/pre_storage/extractor.rs)
+- ✅ QualityAssessor implemented (do-memory-core/src/pre_storage/quality.rs)
+- ✅ SalientExtractor implemented (do-memory-core/src/pre_storage/extractor.rs)
 - 🔄 Integration into SelfLearningMemory (this plan)
 
 **Goal**: Enable quality-based episode filtering and salient feature storage before persisting to storage backends.
@@ -96,11 +96,11 @@ Main Goal: Integrate PREMem into SelfLearningMemory
 **Risk**: Low
 
 **Input Requirements**:
-- Current Episode struct definition (memory-core/src/episode.rs)
+- Current Episode struct definition (do-memory-core/src/episode.rs)
 - SalientFeatures struct from pre_storage::extractor
 
 **Implementation Steps**:
-1. Locate Episode struct in `memory-core/src/episode.rs`
+1. Locate Episode struct in `do-memory-core/src/episode.rs`
 2. Add field: `pub salient_features: Option<SalientFeatures>`
 3. Import SalientFeatures from pre_storage::extractor
 4. Update Episode::new() or builder to accept salient_features
@@ -159,11 +159,11 @@ Main Goal: Integrate PREMem into SelfLearningMemory
 **Risk**: Low
 
 **Input Requirements**:
-- Current SelfLearningMemory struct (memory-core/src/memory/mod.rs)
+- Current SelfLearningMemory struct (do-memory-core/src/memory/mod.rs)
 - QualityAssessor from pre_storage::quality
 
 **Implementation Steps**:
-1. Locate SelfLearningMemory struct in `memory-core/src/memory/mod.rs`
+1. Locate SelfLearningMemory struct in `do-memory-core/src/memory/mod.rs`
 2. Add field: `quality_assessor: QualityAssessor`
 3. Import QualityAssessor from pre_storage::quality
 4. Update constructor/builder to initialize quality_assessor

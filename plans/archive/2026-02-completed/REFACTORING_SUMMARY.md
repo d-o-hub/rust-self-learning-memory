@@ -1,19 +1,19 @@
 # KeepAlive Pool Refactoring Summary
 
 ## Overview
-Successfully split `memory-storage-turso/src/pool/keepalive.rs` (653 lines) into 5 modular submodules, each ≤ 500 LOC.
+Successfully split `do-memory-storage-turso/src/pool/keepalive.rs` (653 lines) into 5 modular submodules, each ≤ 500 LOC.
 
 ## Refactoring Details
 
 ### Before
 ```
-memory-storage-turso/src/pool/
+do-memory-storage-turso/src/pool/
 └── keepalive.rs (653 lines) ❌ OVER LIMIT
 ```
 
 ### After
 ```
-memory-storage-turso/src/pool/
+do-memory-storage-turso/src/pool/
 └── keepalive/
     ├── mod.rs         (255 lines) ✅ Main API & pool implementation
     ├── config.rs      ( 70 lines) ✅ Configuration & statistics
@@ -156,7 +156,7 @@ use memory_storage_turso::pool::{
 
 ## Notes
 
-- Pre-existing compilation errors in memory-storage-turso (110 errors) are unrelated to this refactoring
+- Pre-existing compilation errors in do-memory-storage-turso (110 errors) are unrelated to this refactoring
 - These errors exist in other parts of the codebase (constructors, storage layer, etc.)
 - The keepalive module itself compiles without errors or warnings
 - All keepalive functionality is preserved and working correctly

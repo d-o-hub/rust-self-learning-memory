@@ -4,7 +4,7 @@ expression: stdout
 ---
 Monitoring and metrics
 
-Usage: memory-cli monitor <COMMAND>
+Usage: do-memory-cli monitor <COMMAND>
 
 Commands:
   status   Show current monitoring status

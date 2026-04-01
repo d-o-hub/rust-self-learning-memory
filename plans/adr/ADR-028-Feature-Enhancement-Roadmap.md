@@ -47,7 +47,7 @@ Tool Invocation  → Load full schema on demand → Cache
 Response         → Apply field projection → Return minimal payload
 ```
 
-**Files Affected**: `memory-mcp/src/server/tools/`, `memory-mcp/src/server/mod.rs`
+**Files Affected**: `do-memory-mcp/src/server/tools/`, `do-memory-mcp/src/server/mod.rs`
 
 **Rationale**: Aligns with ADR-024 (MCP Lazy Tool Loading). Token reduction directly improves agent efficiency and reduces API costs. Lazy loading keeps startup fast. Field projection is additive — clients that don't request projection get full responses (backward compatible).
 
@@ -57,7 +57,7 @@ Response         → Apply field projection → Return minimal payload
 
 ### 2. Batch Module Rehabilitation
 
-**Problem**: MCP batch operations (`memory-mcp/src/server/tools/batch.rs`) are disabled due to dependency on non-existent `jsonrpsee`/`ServerState` types. The rest of the MCP server uses native JSON-RPC handling.
+**Problem**: MCP batch operations (`do-memory-mcp/src/server/tools/batch.rs`) are disabled due to dependency on non-existent `jsonrpsee`/`ServerState` types. The rest of the MCP server uses native JSON-RPC handling.
 
 **Decision**: Replace `jsonrpsee` dependency with native JSON-RPC handling, consistent with existing MCP server patterns.
 
@@ -74,7 +74,7 @@ Batch Request (JSON-RPC) → Deserialize with serde_json
   → Serialize batch response
 ```
 
-**Files Affected**: `memory-mcp/src/server/tools/batch.rs`, `memory-mcp/Cargo.toml`
+**Files Affected**: `do-memory-mcp/src/server/tools/batch.rs`, `do-memory-mcp/Cargo.toml`
 
 **Rationale**: Native JSON-RPC handling is already proven in the codebase. Adding `jsonrpsee` as a dependency for one module creates unnecessary coupling and version management burden. Consistency across the MCP server simplifies maintenance.
 
@@ -86,7 +86,7 @@ Batch Request (JSON-RPC) → Deserialize with serde_json
 
 **Problem**: 29 files exceed the 500 LOC limit established in project conventions. Large files reduce readability and increase merge conflict probability.
 
-**Decision**: Split oversized files into submodules following the `memory-storage-turso` precedent.
+**Decision**: Split oversized files into submodules following the `do-memory-storage-turso` precedent.
 
 - Each file >500 LOC gets a corresponding directory module (`foo.rs` → `foo/mod.rs` + `foo/submodule.rs`)
 - Split along logical boundaries: types, operations, helpers, tests
@@ -103,7 +103,7 @@ Batch Request (JSON-RPC) → Deserialize with serde_json
 
 **Files Affected**: All crates — prioritized by file size descending
 
-**Rationale**: The `memory-storage-turso` crate successfully completed this pattern. Consistent module structure across crates aids navigation. Re-exports ensure no public API breakage.
+**Rationale**: The `do-memory-storage-turso` crate successfully completed this pattern. Consistent module structure across crates aids navigation. Re-exports ensure no public API breakage.
 
 **Risks**: Circular dependency between submodules (mitigated: enforce single-direction dependency within a module). Churn in `use` statements across codebase (mitigated: re-exports from `mod.rs`).
 
@@ -139,7 +139,7 @@ pub enum Error {
 
 **Rationale**: `thiserror` is already a workspace dependency. Crate-level error enums follow Rust ecosystem conventions. Proper error handling is prerequisite for production reliability and library consumers.
 
-**Risks**: Large diff across many files (mitigated: phased rollout crate-by-crate, starting with `memory-core`). Public API breaking changes (mitigated: error types are additive; existing `Result` return types gain more specific error variants).
+**Risks**: Large diff across many files (mitigated: phased rollout crate-by-crate, starting with `do-memory-core`). Public API breaking changes (mitigated: error types are additive; existing `Result` return types gain more specific error variants).
 
 ---
 
@@ -188,7 +188,7 @@ Cache Write → Set initial TTL = base_ttl
 Eviction Task → Every 60s, scan entries where now > last_access + computed_ttl → Evict
 ```
 
-**Files Affected**: `memory-storage-redb/src/`, `memory-core/src/config.rs`
+**Files Affected**: `do-memory-storage-redb/src/`, `do-memory-core/src/config.rs`
 
 **Depends On**: Near-term Phase 3 (File Size Compliance) — redb storage files need splitting before adding TTL complexity.
 
@@ -196,7 +196,7 @@ Eviction Task → Every 60s, scan entries where now > last_access + computed_ttl
 
 ### 7. Embeddings Integration Completion
 
-**Problem**: Embedding generation is available in `memory-core` but not exposed through CLI or MCP tools. Users cannot generate or inspect embeddings interactively.
+**Problem**: Embedding generation is available in `do-memory-core` but not exposed through CLI or MCP tools. Users cannot generate or inspect embeddings interactively.
 
 **Decision**: Add embedding-related commands to CLI and MCP tool registry.
 
@@ -205,7 +205,7 @@ Eviction Task → Every 60s, scan entries where now > last_access + computed_ttl
 - Use existing `EmbeddingProvider` trait — no new embedding logic needed
 - Feature-gated: `openai`, `local-embeddings` flags control which providers are available
 
-**Files Affected**: `memory-cli/src/commands/`, `memory-mcp/src/server/tools/`
+**Files Affected**: `do-memory-cli/src/commands/`, `do-memory-mcp/src/server/tools/`
 
 **Depends On**: Near-term Phase 1 (MCP Token Optimization) — embedding tools should use lazy loading from day one.
 
@@ -222,7 +222,7 @@ Eviction Task → Every 60s, scan entries where now > last_access + computed_ttl
 - Fallback: if Turso server doesn't support compression, transmit uncompressed (no failure)
 - Feature-gated under `turso` feature flag — no impact on non-Turso builds
 
-**Files Affected**: `memory-storage-turso/src/client.rs`, `Cargo.toml` (workspace dependency)
+**Files Affected**: `do-memory-storage-turso/src/client.rs`, `Cargo.toml` (workspace dependency)
 
 **Depends On**: Near-term Phase 2 (Batch Module Rehabilitation) — compression benefits are largest for batch operations.
 
@@ -272,7 +272,7 @@ Instance A ←→ Sync Protocol (gRPC) ←→ Instance B
   - Export to OTLP-compatible backend (Jaeger, Grafana Tempo)
 - Feature-gated: `observability` feature flag — zero overhead when disabled
 
-**Files Affected**: New `memory-core/src/observability/` module, instrumentation across all crates
+**Files Affected**: New `do-memory-core/src/observability/` module, instrumentation across all crates
 
 **Rationale**: Production systems need metrics and tracing. Feature gating ensures zero cost for development/testing. `metrics` + `tracing-opentelemetry` are the Rust ecosystem standards.
 
@@ -322,7 +322,7 @@ Episode Complete → Add to sliding window
   → Update pattern index for retrieval
 ```
 
-**Files Affected**: `memory-core/src/patterns/`, new `memory-core/src/learning/` module
+**Files Affected**: `do-memory-core/src/patterns/`, new `do-memory-core/src/learning/` module
 
 **Rationale**: Batch pattern extraction misses temporal patterns and delays learning. Online refinement enables the system to adapt to changing usage patterns without manual reprocessing.
 
@@ -340,7 +340,7 @@ Episode Complete → Add to sliding window
 - Custom models registered as an `EmbeddingProvider` implementation
 - Feature-gated under `local-embeddings` flag
 
-**Files Affected**: `memory-core/src/embeddings/`, new `custom.rs` provider
+**Files Affected**: `do-memory-core/src/embeddings/`, new `custom.rs` provider
 
 **Rationale**: `ort` is already in the dependency tree. ONNX is the standard interchange format — most PyTorch/TensorFlow models can be exported to ONNX. No new native dependencies required.
 
@@ -367,7 +367,7 @@ Episode Created → Assign variant (consistent hash)
 Experiment Complete → Statistical analysis → Winner determination
 ```
 
-**Files Affected**: New `memory-core/src/experiments/` module
+**Files Affected**: New `do-memory-core/src/experiments/` module
 
 **Depends On**: #10 (Observability Stack) for metrics collection.
 

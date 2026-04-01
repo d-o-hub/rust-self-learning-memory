@@ -3,8 +3,8 @@
 //! These tests verify that MCP types survive JSON roundtrip serialization
 //! without data loss, which is critical for the JSON-RPC protocol.
 
-use memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
-use memory_mcp::types::{
+use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
+use do_memory_mcp::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,
 };
 use proptest::prelude::*;

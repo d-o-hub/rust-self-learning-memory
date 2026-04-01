@@ -119,7 +119,7 @@ Phase 2 focuses on infrastructure-level optimizations for the Turso database lay
 ### 2.1 Connection Keep-Alive Pool ✅ IMPLEMENTED
 
 **Status**: ✅ COMPLETE
-**File**: `memory-storage-turso/src/pool/keepalive.rs`
+**File**: `do-memory-storage-turso/src/pool/keepalive.rs`
 **Priority**: P0 - Critical Path
 **Implementation Date**: 2026-01-22
 
@@ -216,7 +216,7 @@ impl Default for PoolConfig {
 ### 2.2 Adaptive Pool Sizing ✅ IMPLEMENTED
 
 **Status**: ✅ COMPLETE
-**File**: `memory-storage-turso/src/pool/adaptive.rs`
+**File**: `do-memory-storage-turso/src/pool/adaptive.rs`
 **Priority**: P0 - Critical Path
 **Implementation Date**: 2026-01-22
 
@@ -312,7 +312,7 @@ pub struct ScalingPolicy {
 
 **Status**: ⏳ PENDING
 **Priority**: P1 - Medium Value
-**File**: `memory-storage-turso/src/cache/adaptive_ttl.rs`
+**File**: `do-memory-storage-turso/src/cache/adaptive_ttl.rs`
 **Estimated Effort**: 8-12 hours
 
 #### Problem Statement
@@ -340,7 +340,7 @@ Current cache uses fixed TTL for all entries, regardless of access patterns. Fre
 
 **Status**: ⏳ PENDING
 **Priority**: P1 - Medium Value
-**File**: `memory-storage-turso/src/transport/compression.rs`
+**File**: `do-memory-storage-turso/src/transport/compression.rs`
 **Estimated Effort**: 6-10 hours
 
 #### Problem Statement
@@ -490,11 +490,11 @@ Large query results and payloads are transmitted uncompressed, wasting bandwidth
 
 | File | Status | LOC | Description |
 |------|--------|-----|-------------|
-| `memory-storage-turso/src/pool/keepalive.rs` | ✅ Complete | ~250 | Keep-Alive Pool implementation |
-| `memory-storage-turso/src/pool/adaptive.rs` | ✅ Complete | ~300 | Adaptive sizing implementation |
-| `memory-storage-turso/src/pool/mod.rs` | ✅ Complete | ~50 | Module exports |
-| `memory-storage-turso/src/cache/adaptive_ttl.rs` | ⏳ Pending | ~350 | Adaptive TTL (pending) |
-| `memory-storage-turso/src/transport/compression.rs` | ⏳ Pending | ~200 | Compression (pending) |
+| `do-memory-storage-turso/src/pool/keepalive.rs` | ✅ Complete | ~250 | Keep-Alive Pool implementation |
+| `do-memory-storage-turso/src/pool/adaptive.rs` | ✅ Complete | ~300 | Adaptive sizing implementation |
+| `do-memory-storage-turso/src/pool/mod.rs` | ✅ Complete | ~50 | Module exports |
+| `do-memory-storage-turso/src/cache/adaptive_ttl.rs` | ⏳ Pending | ~350 | Adaptive TTL (pending) |
+| `do-memory-storage-turso/src/transport/compression.rs` | ⏳ Pending | ~200 | Compression (pending) |
 
 ### Documentation Deliverables
 

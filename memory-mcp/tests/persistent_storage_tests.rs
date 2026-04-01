@@ -3,12 +3,12 @@
 //! These tests verify that data is correctly saved and loaded from Turso and redb
 //! storage backends, not just the in-memory fallback.
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
 };
-use memory_mcp::{MemoryMCPServer, SandboxConfig};
-use memory_storage_redb::RedbStorage;
+use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
+use do_memory_storage_redb::RedbStorage;
 use std::sync::Arc;
 use tempfile::TempDir;
 
@@ -19,7 +19,7 @@ async fn setup_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory>, T
     let redb_path = temp_dir.path().join("test_memory.redb");
 
     // Create redb storage (cache layer)
-    let redb_storage: Arc<dyn memory_core::StorageBackend> =
+    let redb_storage: Arc<dyn do_memory_core::StorageBackend> =
         Arc::new(RedbStorage::new(&redb_path).await?);
 
     // Create memory system with redb storage

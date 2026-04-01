@@ -2,14 +2,14 @@ use colored::Colorize;
 use uuid::Uuid;
 
 pub(super) fn render_text_tree(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     root_id: Uuid,
 ) -> String {
     let mut output = String::new();
     let mut visited = std::collections::HashSet::new();
 
     fn render_node(
-        graph: &memory_core::memory::relationship_query::RelationshipGraph,
+        graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
         node_id: Uuid,
         prefix: &str,
         is_last: bool,
@@ -77,8 +77,8 @@ pub(super) fn render_text_tree(
 }
 
 pub(super) fn detect_cycle(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
-    relationship_type: Option<memory_core::episode::RelationshipType>,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
+    relationship_type: Option<do_memory_core::episode::RelationshipType>,
 ) -> bool {
     let mut visited = std::collections::HashSet::new();
     let mut rec_stack = std::collections::HashSet::new();
@@ -93,11 +93,11 @@ pub(super) fn detect_cycle(
 }
 
 fn has_cycle_dfs(
-    graph: &memory_core::memory::relationship_query::RelationshipGraph,
+    graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     node_id: Uuid,
     visited: &mut std::collections::HashSet<Uuid>,
     rec_stack: &mut std::collections::HashSet<Uuid>,
-    relationship_type: Option<memory_core::episode::RelationshipType>,
+    relationship_type: Option<do_memory_core::episode::RelationshipType>,
 ) -> bool {
     visited.insert(node_id);
     rec_stack.insert(node_id);

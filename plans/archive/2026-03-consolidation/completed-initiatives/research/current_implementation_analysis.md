@@ -9,13 +9,13 @@
 
 The codebase demonstrates a mature, well-architected episodic learning system with comprehensive pattern extraction, validation, and predictive analysis capabilities. However, several implementations show placeholder or incomplete features marked with TODO comments, indicating planned but unfinished functionality.
 
-**Overall Architecture:** 4-crate modular design (memory-core, memory-mcp, memory-storage-turso, memory-storage-redb) with 558 total source files and extensive testing infrastructure.
+**Overall Architecture:** 4-crate modular design (do-memory-core, do-memory-mcp, do-memory-storage-turso, do-memory-storage-redb) with 558 total source files and extensive testing infrastructure.
 
 ---
 
 ## Target Implementation Analysis
 
-### 1. Predictive Analysis (memory-mcp/src/patterns/predictive.rs)
+### 1. Predictive Analysis (do-memory-mcp/src/patterns/predictive.rs)
 
 **Current State:**
 - **Lines 178-196:** Basic forecasting implementation using simple exponential smoothing placeholder
@@ -39,7 +39,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 **Integration Points:** MCP server statistical analysis tools  
 **Testing:** Minimal - no specific predictive model tests found
 
-### 2. Statistical Analysis (memory-mcp/src/patterns/statistical.rs)
+### 2. Statistical Analysis (do-memory-mcp/src/patterns/statistical.rs)
 
 **Current State:**
 - **Around line 321:** Simple changepoint detection implementation
@@ -62,7 +62,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 **Integration Points:** MCP statistical analysis tools  
 **Testing:** Limited test coverage
 
-### 3. Pattern Clustering (memory-core/src/patterns/clustering.rs)
+### 3. Pattern Clustering (do-memory-core/src/patterns/clustering.rs)
 
 **Current State:**
 - **Lines 387-391:** Empty `extract_common_patterns()` method returning Vec::new()
@@ -85,7 +85,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 **Integration Points:** Pattern extraction pipeline  
 **Testing:** Basic structure tests only
 
-### 4. Optimized Validator (memory-core/src/patterns/optimized_validator.rs)
+### 4. Optimized Validator (do-memory-core/src/patterns/optimized_validator.rs)
 
 **Current State:**
 - **Around line 211:** Basic risk assessment framework
@@ -107,7 +107,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 **Integration Points:** Pattern validation pipeline, execution planning  
 **Testing:** Basic validation structure tests
 
-### 5. Memory Core Module (memory-core/src/memory/mod.rs)
+### 5. Memory Core Module (do-memory-core/src/memory/mod.rs)
 
 **Current State:**
 - **Around line 281:** Memory initialization with storage fallbacks
@@ -127,9 +127,9 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 
 **Dependencies:** All major system components  
 **Integration Points:** Central orchestrator for all system operations  
-**Testing:** Extensive test coverage in memory-core/tests/
+**Testing:** Extensive test coverage in do-memory-core/tests/
 
-### 6. Turso Storage Integration (memory-storage-turso/tests/integration_test.rs)
+### 6. Turso Storage Integration (do-memory-storage-turso/tests/integration_test.rs)
 
 **Current State:**
 - Complete test suite with proper test structure
@@ -152,7 +152,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 **Integration Points:** Production database operations  
 **Testing:** Comprehensive but requires external database setup
 
-### 7. Compliance Testing (memory-core/tests/compliance.rs)
+### 7. Compliance Testing (do-memory-core/tests/compliance.rs)
 
 **Current State:**
 - Comprehensive BDD-style test suite for FR1-FR7 requirements
@@ -174,7 +174,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 - MCP integration tests marked as TODO (require server implementation)
 - Some edge case scenarios
 
-**Dependencies:** Full memory-core system  
+**Dependencies:** Full do-memory-core system  
 **Integration Points:** System-wide functional requirements  
 **Testing:** Excellent coverage with 493 lines of comprehensive tests
 
@@ -226,7 +226,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Memory MCP Server                       │
-│                   (memory-mcp crate)                        │
+│                   (do-memory-mcp crate)                        │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
 │  │   Statistical   │  │    Predictive   │  │    MCP       │ │
@@ -241,7 +241,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    Memory Core System                       │
-│                  (memory-core crate)                        │
+│                  (do-memory-core crate)                        │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
 │  │   Pattern       │  │     Memory      │  │   Storage    │ │
@@ -266,7 +266,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 
 ### Integration Points
 
-1. **MCP Server Integration**: memory-mcp provides MCP protocol tools for statistical analysis
+1. **MCP Server Integration**: do-memory-mcp provides MCP protocol tools for statistical analysis
 2. **Pattern Pipeline**: Episodes → Extractors → Validation → Storage → Retrieval
 3. **Dual Storage**: Turso (durable) + redb (cache) with in-memory fallbacks
 4. **Async Architecture**: Full async support with tokio throughout
@@ -279,7 +279,7 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 ### Code Quality Metrics
 
 **Size Distribution:**
-- Largest source file: memory-mcp/src/server.rs (1,258 lines)
+- Largest source file: do-memory-mcp/src/server.rs (1,258 lines)
 - Average file size: ~346 lines
 - Total source code: 67,228 lines across 194 files
 
@@ -301,9 +301,9 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 ### Testing Infrastructure
 
 **Test Coverage:**
-- **memory-core**: 11 test files with comprehensive coverage
-- **memory-mcp**: 19 test files including security and performance tests
-- **memory-cli**: Integration and end-to-end workflow tests
+- **do-memory-core**: 11 test files with comprehensive coverage
+- **do-memory-mcp**: 19 test files including security and performance tests
+- **do-memory-cli**: Integration and end-to-end workflow tests
 - **Benchmarks**: 6 benchmark files for performance testing
 
 **Quality Indicators:**
@@ -338,32 +338,32 @@ The codebase demonstrates a mature, well-architected episodic learning system wi
 
 ### High Priority Gaps
 
-1. **Predictive Analysis Completeness** (memory-mcp/src/patterns/predictive.rs)
+1. **Predictive Analysis Completeness** (do-memory-mcp/src/patterns/predictive.rs)
    - Implement proper ETS forecasting algorithms
    - Add DBSCAN-based anomaly detection
    - Integrate advanced time series analysis
 
-2. **Statistical Engine Enhancement** (memory-mcp/src/patterns/statistical.rs)
+2. **Statistical Engine Enhancement** (do-memory-mcp/src/patterns/statistical.rs)
    - Implement Bayesian changepoint detection (BOCPD)
    - Add ARGP-CP integration
    - Enhance correlation analysis capabilities
 
-3. **Pattern Clustering Implementation** (memory-core/src/patterns/clustering.rs)
+3. **Pattern Clustering Implementation** (do-memory-core/src/patterns/clustering.rs)
    - Complete pattern clustering algorithms
    - Implement similarity scoring
    - Add deduplication logic
 
 ### Medium Priority Gaps
 
-4. **Risk Assessment Enhancement** (memory-core/src/patterns/optimized_validator.rs)
+4. **Risk Assessment Enhancement** (do-memory-core/src/patterns/optimized_validator.rs)
    - Implement tool compatibility risk calculations
    - Add comprehensive validation algorithms
 
-5. **Test Infrastructure** (memory-storage-turso/tests/integration_test.rs)
+5. **Test Infrastructure** (do-memory-storage-turso/tests/integration_test.rs)
    - Resolve database setup requirements
    - Add performance stress testing
 
-6. **MCP Integration Testing** (memory-core/tests/compliance.rs)
+6. **MCP Integration Testing** (do-memory-core/tests/compliance.rs)
    - Complete MCP integration test implementations
    - Add end-to-end workflow validation
 

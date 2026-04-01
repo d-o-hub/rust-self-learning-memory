@@ -2,12 +2,12 @@
 
 ## Status: ✅ RESOLVED
 
-The "Failed to get tools" error in the memory-mcp server has been successfully fixed and verified.
+The "Failed to get tools" error in the do-memory-mcp server has been successfully fixed and verified.
 
 ## Resolution Summary
 
 ### Root Cause
-**File**: `/workspaces/feat-phase3/memory-mcp/src/protocol.rs`
+**File**: `/workspaces/feat-phase3/do-memory-mcp/src/protocol.rs`
 **Line**: 62
 **Issue**: JSON field naming mismatch between Rust struct (snake_case) and MCP specification (camelCase)
 
@@ -80,8 +80,8 @@ pub struct McpTool {
 
 | File | Lines Changed | Type | Purpose |
 |------|--------------|------|---------|
-| `memory-mcp/src/protocol.rs` | 59-66 | Add `title` field and `rename` attribute |
-| `memory-mcp/src/bin/server/core.rs` | 83-91 | Initialize `title` field to `None` |
+| `do-memory-mcp/src/protocol.rs` | 59-66 | Add `title` field and `rename` attribute |
+| `do-memory-mcp/src/bin/server/core.rs` | 83-91 | Initialize `title` field to `None` |
 
 ## Technical Details
 
@@ -158,21 +158,21 @@ Added `title: Option<String>` field for future enhancements:
 ### 1. Release Build (Optional - for production)
 ```bash
 cd /workspaces/feat-phase3
-cargo build --release --package memory-mcp
+cargo build --release --package do-memory-mcp
 ```
 **Note**: Full workspace build may take several minutes. The syntax check already verified correctness.
 
 ### 2. Run Tests
 ```bash
 cd /workspaces/feat-phase3
-cargo test --package memory-mcp --all
+cargo test --package do-memory-mcp --all
 ```
 **Expected**: All tests pass, no regressions
 
 ### 3. Verify with MCP Inspector
 ```bash
 npx -y @modelcontextprotocol/inspector \
-  cargo run --release --bin memory-mcp-server
+  cargo run --release --bin do-memory-mcp-server
 ```
 **Expected**:
 - Inspector connects to server
@@ -184,7 +184,7 @@ npx -y @modelcontextprotocol/inspector \
 ```bash
 # After starting server, test a tool
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"query_memory","arguments":{"query":"test","domain":"testing"}}' | \
-  cargo run --release --bin memory-mcp-server
+  cargo run --release --bin do-memory-mcp-server
 ```
 **Expected**: Tool executes successfully and returns results
 
@@ -267,11 +267,11 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"query_memo
 
 ## Conclusion
 
-The "Failed to get tools" error in the memory-mcp server has been **successfully resolved**. The fix involves a single serde attribute addition that ensures the `inputSchema` field is correctly serialized in camelCase format as required by the MCP specification.
+The "Failed to get tools" error in the do-memory-mcp server has been **successfully resolved**. The fix involves a single serde attribute addition that ensures the `inputSchema` field is correctly serialized in camelCase format as required by the MCP specification.
 
 ### What Was Done
 1. ✅ Researched latest MCP specifications (2025-06-18 and 2025-11-25)
-2. ✅ Analyzed complete memory-mcp implementation
+2. ✅ Analyzed complete do-memory-mcp implementation
 3. ✅ Identified root cause: `input_schema` (snake_case) vs `inputSchema` (camelCase)
 4. ✅ Implemented fix: Added `#[serde(rename = "inputSchema")]` attribute
 5. ✅ Verified code correctness: Syntax check passed
@@ -300,7 +300,7 @@ The "Failed to get tools" error in the memory-mcp server has been **successfully
 
 ### The Fix (One Line Change)
 ```rust
-// In: memory-mcp/src/protocol.rs, line 64
+// In: do-memory-mcp/src/protocol.rs, line 64
 #[serde(rename = "inputSchema")]  // ← Add this attribute
 pub input_schema: Value,
 ```

@@ -4,7 +4,7 @@ expression: stdout
 ---
 Evaluation and calibration commands
 
-Usage: memory-cli eval <COMMAND>
+Usage: do-memory-cli eval <COMMAND>
 
 Commands:
   calibration    View domain calibration statistics

@@ -19,7 +19,7 @@ use super::super::CompressionStatistics;
 use super::super::cache::AdaptiveTTLCache;
 
 #[cfg(feature = "adaptive-ttl")]
-use memory_core::Episode;
+use do_memory_core::Episode;
 
 /// Turso storage backend for durable persistence
 pub struct TursoStorage {

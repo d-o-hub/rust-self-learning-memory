@@ -19,7 +19,7 @@
     clippy::unnecessary_wraps
 )]
 
-use memory_core::embeddings::{
+use do_memory_core::embeddings::{
     EmbeddingConfig, ProviderConfig,
     config::mistral::{MistralConfig, OutputDtype},
     config::openai::OpenAIConfig,

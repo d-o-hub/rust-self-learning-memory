@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Implement a comprehensive tagging system for episodes that enables better organization, filtering, and retrieval across all system components (memory-core, memory-mcp, memory-cli, and storage backends).
+Implement a comprehensive tagging system for episodes that enables better organization, filtering, and retrieval across all system components (do-memory-core, do-memory-mcp, do-memory-cli, and storage backends).
 
 ### Business Value
 - **Organization**: Better categorization of episodes by type, priority, or domain
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS tag_metadata (
 
 ### API Design
 
-#### Core API (memory-core)
+#### Core API (do-memory-core)
 ```rust
 // Tag management
 pub async fn add_episode_tags(&self, episode_id: Uuid, tags: Vec<String>) -> Result<()>
@@ -166,22 +166,22 @@ pub async fn get_tag_statistics(&self) -> Result<HashMap<String, TagStats>>
 #### CLI Commands
 ```bash
 # Add tags
-memory-cli tag add <episode-id> <tag1> [tag2...]
+do-memory-cli tag add <episode-id> <tag1> [tag2...]
 
 # Remove tags
-memory-cli tag remove <episode-id> <tag1> [tag2...]
+do-memory-cli tag remove <episode-id> <tag1> [tag2...]
 
 # Set tags (replace all)
-memory-cli tag set <episode-id> <tag1> [tag2...]
+do-memory-cli tag set <episode-id> <tag1> [tag2...]
 
 # List all tags with statistics
-memory-cli tag list [--sort-by count|name|recent]
+do-memory-cli tag list [--sort-by count|name|recent]
 
 # Search episodes by tags
-memory-cli tag search <tag1> [tag2...] [--match-all] [--limit N]
+do-memory-cli tag search <tag1> [tag2...] [--match-all] [--limit N]
 
 # Show tags for episode
-memory-cli tag show <episode-id>
+do-memory-cli tag show <episode-id>
 ```
 
 ## Implementation Phases
@@ -198,10 +198,10 @@ memory-cli tag show <episode-id>
 6. Write integration tests
 
 **Deliverables**:
-- Modified: `memory-core/src/episode/structs.rs`
-- Modified: `memory-storage-turso/src/schema.rs`
-- New: `memory-storage-turso/src/storage/tag_operations.rs`
-- New: `memory-storage-turso/tests/tag_integration_test.rs`
+- Modified: `do-memory-core/src/episode/structs.rs`
+- Modified: `do-memory-storage-turso/src/schema.rs`
+- New: `do-memory-storage-turso/src/storage/tag_operations.rs`
+- New: `do-memory-storage-turso/tests/tag_integration_test.rs`
 
 **Success Criteria**:
 - ✅ Tags persist in Turso database
@@ -219,9 +219,9 @@ memory-cli tag show <episode-id>
 5. Write API integration tests
 
 **Deliverables**:
-- Modified: `memory-core/src/memory/management.rs`
-- Modified: `memory-core/src/memory/queries.rs`
-- New: `memory-core/tests/tag_operations_test.rs`
+- Modified: `do-memory-core/src/memory/management.rs`
+- Modified: `do-memory-core/src/memory/queries.rs`
+- New: `do-memory-core/tests/tag_operations_test.rs`
 
 **Success Criteria**:
 - ✅ Tag CRUD operations work
@@ -239,10 +239,10 @@ memory-cli tag show <episode-id>
 5. Update MCP documentation
 
 **Deliverables**:
-- New: `memory-mcp/src/server/tools/episode_tags.rs`
-- Modified: `memory-mcp/src/server/tools/mod.rs`
-- New: `memory-mcp/tests/tag_tools_test.rs`
-- New: `memory-mcp/EPISODE_TAGS_TOOLS.md`
+- New: `do-memory-mcp/src/server/tools/episode_tags.rs`
+- Modified: `do-memory-mcp/src/server/tools/mod.rs`
+- New: `do-memory-mcp/tests/tag_tools_test.rs`
+- New: `do-memory-mcp/EPISODE_TAGS_TOOLS.md`
 
 **Success Criteria**:
 - ✅ All 6 MCP tools operational
@@ -261,10 +261,10 @@ memory-cli tag show <episode-id>
 6. Update CLI documentation
 
 **Deliverables**:
-- New: `memory-cli/src/commands/tag.rs`
-- Modified: `memory-cli/src/commands/mod.rs`
-- New: `memory-cli/tests/tag_commands_test.rs`
-- Modified: `memory-cli/CLI_USER_GUIDE.md`
+- New: `do-memory-cli/src/commands/tag.rs`
+- Modified: `do-memory-cli/src/commands/mod.rs`
+- New: `do-memory-cli/tests/tag_commands_test.rs`
+- Modified: `do-memory-cli/CLI_USER_GUIDE.md`
 
 **Success Criteria**:
 - ✅ All CLI commands work
@@ -282,7 +282,7 @@ memory-cli tag show <episode-id>
 5. Add performance benchmarks
 
 **Deliverables**:
-- New: `memory-core/EPISODE_TAGGING_GUIDE.md`
+- New: `do-memory-core/EPISODE_TAGGING_GUIDE.md`
 - New: `examples/episode_tagging_demo.rs`
 - Modified: `CHANGELOG.md`
 - New: `benches/tag_operations.rs`
@@ -387,11 +387,11 @@ memory-cli tag show <episode-id>
 ## Dependencies
 
 ### Internal
-- memory-core: Episode struct, storage traits
-- memory-storage-turso: Database operations
-- memory-storage-redb: Cache operations
-- memory-mcp: MCP protocol handlers
-- memory-cli: Command parsing and execution
+- do-memory-core: Episode struct, storage traits
+- do-memory-storage-turso: Database operations
+- do-memory-storage-redb: Cache operations
+- do-memory-mcp: MCP protocol handlers
+- do-memory-cli: Command parsing and execution
 
 ### External
 - sqlx: Database queries

@@ -16,17 +16,17 @@ After successfully fixing Nightly CI and 31 of 39 flaky tests, **8 tests remain 
 - **Impact**: Blocks CLI workflow validation
 - **Files**: `tests/e2e/cli_workflows.rs`
 
-**memory-mcp Test (1 test)** - MEDIUM PRIORITY
+**do-memory-mcp Test (1 test)** - MEDIUM PRIORITY
 - **Test**: `test_mcp_server_tools`
 - **Status**: Needs investigation
-- **File**: `memory-mcp/tests/simple_integration_tests.rs`
+- **File**: `do-memory-mcp/tests/simple_integration_tests.rs`
 
 ## GOAP Decomposition
 
 ### Goals (Ordered by Priority)
 
 1. **CRITICAL**: Fix 7 CLI workflow tests to validate CLI functionality
-2. **HIGH**: Investigate and fix 1 remaining memory-mcp test
+2. **HIGH**: Investigate and fix 1 remaining do-memory-mcp test
 3. **MEDIUM**: Prepare for v0.1.16 development (Code Quality + Pattern Algorithms)
 4. **LOW**: Update ROADMAP with remaining work
 
@@ -51,7 +51,7 @@ After successfully fixing Nightly CI and 31 of 39 flaky tests, **8 tests remain 
   - Validate no regressions in other tests
   - Target: Quality Agent
 
-#### Phase 2: memory-mcp Investigation (HIGH - Parallel with A3)
+#### Phase 2: do-memory-mcp Investigation (HIGH - Parallel with A3)
 
 - [ ] **A4**: Investigate test_mcp_server_tools failure
   - Run test with debug logging
@@ -84,7 +84,7 @@ After successfully fixing Nightly CI and 31 of 39 flaky tests, **8 tests remain 
 2. **Test Fix Agent** (A2) → Handoff to Quality Agent
 
 ### Group 2: Parallel Investigation (During A2)
-3. **Debug Agent** (A4) → Investigate memory-mcp test
+3. **Debug Agent** (A4) → Investigate do-memory-mcp test
 
 ### Group 3: Sequential (After A1-A4 complete)
 4. **Architecture Agent** (A5) → Handoff to Plan Agent
@@ -105,7 +105,7 @@ After successfully fixing Nightly CI and 31 of 39 flaky tests, **8 tests remain 
 ```
 [analysis] Document CLI API changes and test mapping
 [test] Update CLI workflow tests to current API
-[fix] Fix remaining memory-mcp test
+[fix] Fix remaining do-memory-mcp test
 [docs] Update ROADMAPS for v0.1.16 preparation
 ```
 
@@ -135,7 +135,7 @@ After successfully fixing Nightly CI and 31 of 39 flaky tests, **8 tests remain 
 | A1 | Analysis | 🟡 Pending | CLI API analysis |
 | A2 | Test Fix | ⚪ Blocked | Waiting on A1 |
 | A3 | Quality | ⚪ Blocked | Waiting on A2 |
-| A4 | Debug | 🟡 Pending | memory-mcp investigation |
+| A4 | Debug | 🟡 Pending | do-memory-mcp investigation |
 | A5 | Architecture | ⚪ Blocked | Waiting on A1-A4 |
 | A6 | Plan | ⚪ Blocked | Waiting on A5 |
 | A7 | Documentation | ⚪ Blocked | Waiting on A6 |
@@ -144,6 +144,6 @@ After successfully fixing Nightly CI and 31 of 39 flaky tests, **8 tests remain 
 
 ### 2026-02-16 Initial Planning
 - Created comprehensive GOAP plan for remaining work
-- Identified 8 remaining test failures (7 CLI + 1 memory-mcp)
+- Identified 8 remaining test failures (7 CLI + 1 do-memory-mcp)
 - Planned sequential execution with handoffs
 - Branch: `fix/remaining-tests-cli-api-2026-02-16`

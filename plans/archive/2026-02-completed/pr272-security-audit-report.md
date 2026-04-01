@@ -30,9 +30,9 @@ PR #272 implements comprehensive security hardening across the MCP memory system
 
 ## 1. JWT Validation Enhancements
 
-### 1.1 Bearer Token Validation (`memory-mcp/src/bin/server_impl/oauth.rs`)
+### 1.1 Bearer Token Validation (`do-memory-mcp/src/bin/server_impl/oauth.rs`)
 
-**File**: `memory-mcp/src/bin/server_impl/oauth.rs`  
+**File**: `do-memory-mcp/src/bin/server_impl/oauth.rs`  
 **Lines**: 56-126
 
 #### Implemented JWT Validation Features:
@@ -115,9 +115,9 @@ PR #272 implements comprehensive security hardening across the MCP memory system
    - Ensures subject claim is present
    - Required for identifying authenticated user
 
-### 1.2 Scope Checking (`memory-mcp/src/bin/server_impl/oauth.rs:152-185`)
+### 1.2 Scope Checking (`do-memory-mcp/src/bin/server_impl/oauth.rs:152-185`)
 
-**File**: `memory-mcp/src/bin/server_impl/oauth.rs`  
+**File**: `do-memory-mcp/src/bin/server_impl/oauth.rs`  
 **Lines**: 152-185
 
 ```rust
@@ -155,9 +155,9 @@ pub fn check_scopes(token_scope: Option<&str>, required_scopes: &[String]) -> Au
 - Space-separated scope parsing per RFC 6749
 - Returns specific missing scopes for debugging
 
-### 1.3 WWW-Authenticate Header Generation (`memory-mcp/src/bin/server_impl/oauth.rs:208-224`)
+### 1.3 WWW-Authenticate Header Generation (`do-memory-mcp/src/bin/server_impl/oauth.rs:208-224`)
 
-**File**: `memory-mcp/src/bin/server_impl/oauth.rs`  
+**File**: `do-memory-mcp/src/bin/server_impl/oauth.rs`  
 **Lines**: 208-224
 
 ```rust
@@ -187,9 +187,9 @@ pub fn create_www_authenticate_header(
 
 ## 2. Sandbox Security - JavaScript Escaping Implementation
 
-### 2.1 Input Code Escaping (`memory-mcp/src/sandbox.rs:220-235`)
+### 2.1 Input Code Escaping (`do-memory-mcp/src/sandbox.rs:220-235`)
 
-**File**: `memory-mcp/src/sandbox.rs`  
+**File**: `do-memory-mcp/src/sandbox.rs`  
 **Lines**: 220-235
 
 #### JavaScript Escaping Implementation:
@@ -225,9 +225,9 @@ fn create_secure_wrapper(&self, user_code: &str, context: &ExecutionContext) -> 
 | `\x0b` | `\x0b` | Vertical tab injection |
 | `\x0c` | `\x0c` | Form feed injection |
 
-### 2.2 Security Wrapper Template (`memory-mcp/src/sandbox.rs:242-304`)
+### 2.2 Security Wrapper Template (`do-memory-mcp/src/sandbox.rs:242-304`)
 
-**File**: `memory-mcp/src/sandbox.rs`  
+**File**: `do-memory-mcp/src/sandbox.rs`  
 **Lines**: 242-304
 
 ```rust
@@ -312,9 +312,9 @@ const context = {};
    - Throws `TIMEOUT_EXCEEDED` error
    - Works alongside Rust-level timeout
 
-### 2.3 Malicious Pattern Detection (`memory-mcp/src/sandbox.rs:136-216`)
+### 2.3 Malicious Pattern Detection (`do-memory-mcp/src/sandbox.rs:136-216`)
 
-**File**: `memory-mcp/src/sandbox.rs`  
+**File**: `do-memory-mcp/src/sandbox.rs`  
 **Lines**: 136-216
 
 ```rust
@@ -416,9 +416,9 @@ fn detect_security_violations(&self, code: &str) -> Option<SecurityViolationType
 
 ## 3. Timeout Policies and Resource Limits
 
-### 3.1 Execution Timeout Configuration (`memory-mcp/src/types.rs:78-127`)
+### 3.1 Execution Timeout Configuration (`do-memory-mcp/src/types.rs:78-127`)
 
-**File**: `memory-mcp/src/types.rs`  
+**File**: `do-memory-mcp/src/types.rs`  
 **Lines**: 78-127
 
 ```rust
@@ -482,9 +482,9 @@ impl ResourceLimits {
 | **Default** | 50% | 128MB | 5s | 0 | 0 |
 | **Permissive** | 80% | 256MB | 10s | 100 | 10 |
 
-### 3.2 SandboxConfig Implementation (`memory-mcp/src/types.rs:129-200`)
+### 3.2 SandboxConfig Implementation (`do-memory-mcp/src/types.rs:129-200`)
 
-**File**: `memory-mcp/src/types.rs`  
+**File**: `do-memory-mcp/src/types.rs`  
 **Lines**: 129-200
 
 ```rust
@@ -516,9 +516,9 @@ pub struct SandboxConfig {
 }
 ```
 
-### 3.3 Timeout Enforcement (`memory-mcp/src/sandbox.rs:309-347`)
+### 3.3 Timeout Enforcement (`do-memory-mcp/src/sandbox.rs:309-347`)
 
-**File**: `memory-mcp/src/sandbox.rs`  
+**File**: `do-memory-mcp/src/sandbox.rs`  
 **Lines**: 309-347
 
 ```rust
@@ -567,9 +567,9 @@ async fn execute_isolated(
 - `kill_on_drop(true)` ensures process cleanup
 - Dual timeout: JavaScript-level + Rust-level
 
-### 3.4 Process Isolation (`memory-mcp/src/sandbox/isolation.rs`)
+### 3.4 Process Isolation (`do-memory-mcp/src/sandbox/isolation.rs`)
 
-**File**: `memory-mcp/src/sandbox/isolation.rs`  
+**File**: `do-memory-mcp/src/sandbox/isolation.rs`  
 **Lines**: 28-173
 
 ```rust
@@ -611,9 +611,9 @@ impl Default for IsolationConfig {
 
 ## 4. Input Validation Enhancements
 
-### 4.1 Code Length Validation (`memory-mcp/src/sandbox.rs:118-124`)
+### 4.1 Code Length Validation (`do-memory-mcp/src/sandbox.rs:118-124`)
 
-**File**: `memory-mcp/src/sandbox.rs`  
+**File**: `do-memory-mcp/src/sandbox.rs`  
 **Lines**: 118-124
 
 ```rust
@@ -628,9 +628,9 @@ if code.len() > 100_000 {
 
 **Maximum Code Size**: 100KB (100,000 bytes)
 
-### 4.2 File System Restrictions (`memory-mcp/src/sandbox/fs.rs`)
+### 4.2 File System Restrictions (`do-memory-mcp/src/sandbox/fs.rs`)
 
-**File**: `memory-mcp/src/sandbox/fs.rs`  
+**File**: `do-memory-mcp/src/sandbox/fs.rs`  
 **Lines**: 14-65
 
 ```rust
@@ -665,9 +665,9 @@ impl Default for FileSystemRestrictions {
 - Path depth limiting (max 10 levels)
 - Symlink resolution disabled by default
 
-### 4.3 Path Sanitization (`memory-mcp/src/sandbox/fs.rs:166-212`)
+### 4.3 Path Sanitization (`do-memory-mcp/src/sandbox/fs.rs:166-212`)
 
-**File**: `memory-mcp/src/sandbox/fs.rs`  
+**File**: `do-memory-mcp/src/sandbox/fs.rs`  
 **Lines**: 166-212
 
 ```rust
@@ -721,9 +721,9 @@ fn sanitize_path(path: &Path) -> Result<PathBuf> {
 }
 ```
 
-### 4.4 Suspicious Filename Detection (`memory-mcp/src/sandbox/fs.rs:261-286`)
+### 4.4 Suspicious Filename Detection (`do-memory-mcp/src/sandbox/fs.rs:261-286`)
 
-**File**: `memory-mcp/src/sandbox/fs.rs`  
+**File**: `do-memory-mcp/src/sandbox/fs.rs`  
 **Lines**: 261-286
 
 ```rust
@@ -756,9 +756,9 @@ fn is_suspicious_filename(name: &str) -> bool {
 }
 ```
 
-### 4.5 Network Restrictions (`memory-mcp/src/sandbox/network.rs`)
+### 4.5 Network Restrictions (`do-memory-mcp/src/sandbox/network.rs`)
 
-**File**: `memory-mcp/src/sandbox/network.rs`  
+**File**: `do-memory-mcp/src/sandbox/network.rs`  
 **Lines**: 14-44
 
 ```rust
@@ -811,16 +811,16 @@ impl Default for NetworkRestrictions {
 
 | Test File | Purpose | Tests |
 |-----------|---------|-------|
-| `memory-mcp/src/sandbox/tests.rs` | Sandbox unit tests | 12 |
-| `memory-mcp/tests/penetration_tests.rs` | Penetration tests | 18 |
-| `memory-mcp/tests/security_tests.rs` | Advanced pattern analysis security | 4 |
-| `memory-mcp/src/sandbox/fs.rs` (tests) | File system security tests | 8 |
-| `memory-mcp/src/sandbox/network.rs` (tests) | Network security tests | 9 |
-| `memory-mcp/src/sandbox/isolation.rs` (tests) | Process isolation tests | 5 |
+| `do-memory-mcp/src/sandbox/tests.rs` | Sandbox unit tests | 12 |
+| `do-memory-mcp/tests/penetration_tests.rs` | Penetration tests | 18 |
+| `do-memory-mcp/tests/security_tests.rs` | Advanced pattern analysis security | 4 |
+| `do-memory-mcp/src/sandbox/fs.rs` (tests) | File system security tests | 8 |
+| `do-memory-mcp/src/sandbox/network.rs` (tests) | Network security tests | 9 |
+| `do-memory-mcp/src/sandbox/isolation.rs` (tests) | Process isolation tests | 5 |
 
 **Total Security Tests**: 65 tests
 
-### 5.2 Penetration Test Coverage (`memory-mcp/tests/penetration_tests.rs`)
+### 5.2 Penetration Test Coverage (`do-memory-mcp/tests/penetration_tests.rs`)
 
 **Attack Categories Tested:**
 
@@ -865,7 +865,7 @@ impl Default for NetworkRestrictions {
 9. **Security Summary** (1 test)
    - All 5 critical controls validated
 
-### 5.3 Sandbox Unit Test Coverage (`memory-mcp/src/sandbox/tests.rs`)
+### 5.3 Sandbox Unit Test Coverage (`do-memory-mcp/src/sandbox/tests.rs`)
 
 | Test | Purpose | Line |
 |------|---------|------|
@@ -887,16 +887,16 @@ All 65 security tests are passing:
 
 ```bash
 # Run penetration tests
-cargo test --package memory-mcp --test penetration_tests
+cargo test --package do-memory-mcp --test penetration_tests
 
 # Run sandbox security tests
-cargo test --package memory-mcp sandbox::tests
+cargo test --package do-memory-mcp sandbox::tests
 
 # Run file system security tests
-cargo test --package memory-mcp sandbox::fs::tests
+cargo test --package do-memory-mcp sandbox::fs::tests
 
 # Run network security tests
-cargo test --package memory-mcp sandbox::network::tests
+cargo test --package do-memory-mcp sandbox::network::tests
 ```
 
 ---

@@ -35,7 +35,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
 
 1. **P0-HIGH**: Fix unwrap() in high-risk production code
 2. **P1-MEDIUM**: Fix unwrap() in CLI interface
-3. **P2-LOW**: Fix unwrap() in memory-core internal modules
+3. **P2-LOW**: Fix unwrap() in do-memory-core internal modules
 4. **P3-LOW**: Fix unwrap() in MCP internal modules
 
 ### Actions (Atomic Tasks - Parallel Execution)
@@ -43,7 +43,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
 #### Task Group 1: High-Risk Production (2-3 Parallel Agents)
 
 **Agent 1: Core Internal Modules Specialist**
-- **Files**: memory-core/src/episode/*.rs, memory-core/src/patterns/*.rs
+- **Files**: do-memory-core/src/episode/*.rs, do-memory-core/src/patterns/*.rs
 - **unwrap() Count**: ~40 calls
 - **Risk**: MEDIUM (core business logic)
 - **Actions**:
@@ -54,7 +54,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
   - Test after each module
 
 **Agent 2: CLI Interface Specialist**
-- **Files**: memory-cli/src/**/*.rs
+- **Files**: do-memory-cli/src/**/*.rs
 - **unwrap() Count**: ~20 calls
 - **Risk**: MEDIUM (user-facing)
 - **Actions**:
@@ -66,7 +66,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
 #### Task Group 2: MCP Internal (1-2 Parallel Agents)
 
 **Agent 3: MCP Tools Specialist**
-- **Files**: memory-mcp/src/tools/*.rs, memory-mcp/src/patterns/*.rs
+- **Files**: do-memory-mcp/src/tools/*.rs, do-memory-mcp/src/patterns/*.rs
 - **unwrap() Count**: ~30 calls
 - **Risk**: LOW (internal tools, not external interface)
 - **Actions**:
@@ -76,7 +76,7 @@ let value = result.map_err(|e| anyhow::anyhow!("Context: {}", e))?;
   - Test MCP server
 
 **Agent 4: Storage Layer Specialist**
-- **Files**: memory-storage-redb/src/**/*.rs
+- **Files**: do-memory-storage-redb/src/**/*.rs
 - **unwrap() Count**: ~15 calls
 - **Risk**: LOW (cache layer, has fallback)
 - **Actions**:

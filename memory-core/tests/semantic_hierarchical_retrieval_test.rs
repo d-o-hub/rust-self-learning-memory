@@ -3,7 +3,7 @@
 
 use std::time::Instant;
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome,
     TaskType,
     embeddings::{InMemoryEmbeddingStorage, SemanticService},

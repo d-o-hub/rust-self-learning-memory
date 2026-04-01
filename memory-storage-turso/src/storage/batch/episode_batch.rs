@@ -3,7 +3,7 @@
 //! Configuration options for batch operations.
 
 use crate::TursoStorage;
-use memory_core::{Episode, Error, Result};
+use do_memory_core::{Episode, Error, Result};
 use tracing::{debug, error, info};
 
 #[cfg(feature = "compression")]
@@ -51,8 +51,8 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
-    /// # use memory_core::{Episode, TaskContext, TaskType};
+    /// # use do_memory_storage_turso::TursoStorage;
+    /// # use do_memory_core::{Episode, TaskContext, TaskType};
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
     ///
@@ -257,7 +257,7 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::{Episode, TaskContext, TaskType};
+    use do_memory_core::{Episode, TaskContext, TaskType};
     use tempfile::TempDir;
 
     async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {

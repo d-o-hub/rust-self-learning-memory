@@ -3,7 +3,7 @@
 **Date**: 2026-02-16
 **Status**: ✅ Phase 1 Complete - PR Created
 **Branch**: `fix/remaining-tests-cli-api-2026-02-16`
-**PR**: [fix(tests): CLI workflow fixes and memory-mcp improvements](https://github.com/d-o-hub/rust-self-learning-memory/pull/297)
+**PR**: [fix(tests): CLI workflow fixes and do-memory-mcp improvements](https://github.com/d-o-hub/rust-self-learning-memory/pull/297)
 
 ## Executive Summary
 
@@ -38,7 +38,7 @@ Successfully executed **GOAP Phase 1** with parallel specialist agents to addres
 - Investigated `test_mcp_server_tools` failure
 - Identified root cause: 7 missing extended tools in lazy-loading registry
 - Applied fix: Added `create_additional_extended_tools()` function
-- Verified: 26 memory-mcp tests now passing (100%)
+- Verified: 26 do-memory-mcp tests now passing (100%)
 - **Commit**: `3f9f495`
 
 ### Phase 2: Test Fixes (1 Sequential Agent)
@@ -57,7 +57,7 @@ Successfully executed **GOAP Phase 1** with parallel specialist agents to addres
 
 ```
 d458935 [analysis] Document CLI API changes and test mapping
-3f9f495 [test] Fix CLI workflow tests and memory-mcp issues
+3f9f495 [test] Fix CLI workflow tests and do-memory-mcp issues
 [style] Apply rustfmt formatting (pending)
 ```
 
@@ -97,7 +97,7 @@ d458935 [analysis] Document CLI API changes and test mapping
 - `search_patterns`
 - `recommend_patterns`
 
-**Impact**: 26/26 memory-mcp tests passing (100%)
+**Impact**: 26/26 do-memory-mcp tests passing (100%)
 
 ### 2. CLI Command Syntax ✅
 

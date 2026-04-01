@@ -20,7 +20,7 @@ The Rust Self-Learning Memory System demonstrates **strong documentation practic
 
 **Key Strengths**:
 - 267+ markdown documentation files
-- Strong crate-level documentation (`memory-core`, `memory-mcp`, `memory-cli`)
+- Strong crate-level documentation (`do-memory-core`, `do-memory-mcp`, `do-memory-cli`)
 - Extensive agent and developer guides
 - Well-maintained CHANGELOG.md (939 lines)
 - Good inline documentation on core modules
@@ -44,13 +44,13 @@ The Rust Self-Learning Memory System demonstrates **strong documentation practic
 
 | Crate | Status | File | Quality |
 |--------|--------|-------|---------|
-| `memory-core` | ✅ Complete | `src/lib.rs` | Excellent - 100 lines with examples |
-| `memory-mcp` | ✅ Complete | `src/lib.rs` | Excellent - 100+ lines with architecture diagrams |
-| `memory-cli` | ✅ Complete | `src/lib.rs` | Good - 22 lines, basic |
-| `memory-storage-turso` | ⚠️ Basic | `src/lib.rs` | Basic - minimal crate docs |
-| `memory-storage-redb` | ⚠️ Basic | `src/lib.rs` | Basic - minimal crate docs |
+| `do-memory-core` | ✅ Complete | `src/lib.rs` | Excellent - 100 lines with examples |
+| `do-memory-mcp` | ✅ Complete | `src/lib.rs` | Excellent - 100+ lines with architecture diagrams |
+| `do-memory-cli` | ✅ Complete | `src/lib.rs` | Good - 22 lines, basic |
+| `do-memory-storage-turso` | ⚠️ Basic | `src/lib.rs` | Basic - minimal crate docs |
+| `do-memory-storage-redb` | ⚠️ Basic | `src/lib.rs` | Basic - minimal crate docs |
 
-**Example** - `memory-core/src/lib.rs`:
+**Example** - `do-memory-core/src/lib.rs`:
 ```rust
 //! # Memory Core
 //!
@@ -66,14 +66,14 @@ The Rust Self-Learning Memory System demonstrates **strong documentation practic
 
 **Strong** module-level documentation in key areas:
 
-**memory-core/src/memory/mod.rs** (444 LOC):
+**do-memory-core/src/memory/mod.rs** (444 LOC):
 - Comprehensive module-level docs (150+ lines)
 - Learning cycle explanation
 - Usage examples
 - Architecture description
 - Storage integration guidance
 
-**memory-mcp/src/server.rs**:
+**do-memory-mcp/src/server.rs**:
 - Detailed MCP server architecture
 - Security layers explanation
 - Tool interface documentation
@@ -107,13 +107,13 @@ The Rust Self-Learning Memory System demonstrates **strong documentation practic
 
 | Gap | File:Line | Impact | Priority |
 |------|-----------|--------|----------|
-| Missing `record_agent_execution()` docs | `memory-core/src/memory/mod.rs` | P2 |
-| Missing `get_agent_metrics()` docs | `memory-core/src/memory/mod.rs` | P2 |
-| Missing cache management function docs | `memory-core/src/retrieval/cache.rs` | P1 |
-| Missing embedding provider docs | `memory-core/src/embeddings/provider.rs` | P1 |
-| Missing pattern extractor docs | `memory-core/src/extraction/extractors/mod.rs` | P2 |
-| Missing storage backend trait docs | `memory-core/src/storage/mod.rs` | P1 |
-| Incomplete Turso storage docs | `memory-storage-turso/src/lib.rs` | P1 |
+| Missing `record_agent_execution()` docs | `do-memory-core/src/memory/mod.rs` | P2 |
+| Missing `get_agent_metrics()` docs | `do-memory-core/src/memory/mod.rs` | P2 |
+| Missing cache management function docs | `do-memory-core/src/retrieval/cache.rs` | P1 |
+| Missing embedding provider docs | `do-memory-core/src/embeddings/provider.rs` | P1 |
+| Missing pattern extractor docs | `do-memory-core/src/extraction/extractors/mod.rs` | P2 |
+| Missing storage backend trait docs | `do-memory-core/src/storage/mod.rs` | P1 |
+| Incomplete Turso storage docs | `do-memory-storage-turso/src/lib.rs` | P1 |
 
 ### Recommended Additions
 
@@ -165,9 +165,9 @@ pub use episode::{Episode, ExecutionStep, PatternId};
 **Mixed** - Some areas have detailed comments, others lack explanations:
 
 **Good Examples**:
-- `memory-core/src/learning/queue.rs` - Detailed algorithm comments
-- `memory-core/src/patterns/optimized_validator.rs` - Validation logic explained
-- `memory-mcp/src/sandbox/` - Security layer explanations
+- `do-memory-core/src/learning/queue.rs` - Detailed algorithm comments
+- `do-memory-core/src/patterns/optimized_validator.rs` - Validation logic explained
+- `do-memory-mcp/src/sandbox/` - Security layer explanations
 
 **Missing Examples**:
 - Complex algorithms in `spatiotemporal/diversity/`
@@ -191,10 +191,10 @@ pub use episode::{Episode, ExecutionStep, PatternId};
 
 | Gap | File:Line | Impact | Priority |
 |------|-----------|--------|----------|
-| Missing algorithm explanations | `memory-core/src/spatiotemporal/diversity/mod.rs` | Medium | P2 |
-| Missing cache policy docs | `memory-core/src/retrieval/cache.rs` | Medium | P2 |
-| Missing embedding batch processing docs | `memory-core/src/embeddings/provider.rs` | Medium | P2 |
-| Missing pattern clustering logic comments | `memory-core/src/patterns/optimized_validator.rs` | Low | P3 |
+| Missing algorithm explanations | `do-memory-core/src/spatiotemporal/diversity/mod.rs` | Medium | P2 |
+| Missing cache policy docs | `do-memory-core/src/retrieval/cache.rs` | Medium | P2 |
+| Missing embedding batch processing docs | `do-memory-core/src/embeddings/provider.rs` | Medium | P2 |
+| Missing pattern clustering logic comments | `do-memory-core/src/patterns/optimized_validator.rs` | Low | P3 |
 
 ### Recommended Additions
 
@@ -248,34 +248,34 @@ pub use episode::{Episode, ExecutionStep, PatternId};
 
 **Good** crate-specific documentation:
 
-**memory-cli/README.md**:
+**do-memory-cli/README.md**:
 - Complete CLI reference
 - Installation instructions
 - Feature flags
 - Configuration guide
 - Links to detailed guides
 
-**memory-mcp/README.md**:
+**do-memory-mcp/README.md**:
 - MCP protocol documentation
 - Security architecture
 - Usage examples
 - Implementation status
 
-**memory-core/README.md**: ⚠️ Missing
+**do-memory-core/README.md**: ⚠️ Missing
 - **Gap**: No dedicated README for core crate
 - Users must rely on inline rustdoc
 - Should provide getting started guide
 
 #### CLI User Guide ✅
 
-**Found**: `memory-cli/CLI_USER_GUIDE.md` (referenced but not verified)
+**Found**: `do-memory-cli/CLI_USER_GUIDE.md` (referenced but not verified)
 - Should contain comprehensive command reference
 - Usage examples
 - Configuration details
 
 #### Configuration Guide ✅
 
-**Found**: `memory-cli/CONFIGURATION_GUIDE.md` (referenced)
+**Found**: `do-memory-cli/CONFIGURATION_GUIDE.md` (referenced)
 - Configuration options
 - Environment variables
 - TOML/JSON/YAML formats
@@ -284,7 +284,7 @@ pub use episode::{Episode, ExecutionStep, PatternId};
 
 | Gap | File:Line | Impact | Priority |
 |------|-----------|--------|----------|
-| Missing core crate README | `memory-core/README.md` | High | P1 |
+| Missing core crate README | `do-memory-core/README.md` | High | P1 |
 | Missing user tutorial | N/A | High | P1 |
 | Missing troubleshooting guide | N/A | Medium | P2 |
 | Missing migration guide | N/A | Medium | P2 |
@@ -607,7 +607,7 @@ pub use episode::{Episode, ExecutionStep, PatternId};
 
 #### Error Types ✅
 
-**Well-structured** error types in `memory-core/src/error.rs` (88 LOC):
+**Well-structured** error types in `do-memory-core/src/error.rs` (88 LOC):
 
 ```rust
 #[derive(Debug, thiserror::Error)]

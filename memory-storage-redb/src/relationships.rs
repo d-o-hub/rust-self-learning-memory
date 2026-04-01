@@ -2,8 +2,8 @@
 
 use crate::{RELATIONSHIPS_TABLE, RedbStorage, Result};
 #[allow(unused_imports)] // False positive - import is used in error mapping
-use memory_core::Error;
-use memory_core::episode::{Direction, EpisodeRelationship, RelationshipType};
+use do_memory_core::Error;
+use do_memory_core::episode::{Direction, EpisodeRelationship, RelationshipType};
 use redb::{ReadableDatabase, ReadableTable, ReadableTableMetadata};
 use tracing::debug;
 use uuid::Uuid;
@@ -50,21 +50,22 @@ impl RedbStorage {
         let write_txn = self
             .db
             .begin_write()
-            .map_err(|e| memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
         {
             let mut table = write_txn
                 .open_table(RELATIONSHIPS_TABLE)
-                .map_err(|e| memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+                .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
             let key = relationship.id.to_string();
-            let value = postcard::to_allocvec(relationship)
-                .map_err(|e| memory_core::Error::Storage(format!("Serialization error: {}", e)))?;
+            let value = postcard::to_allocvec(relationship).map_err(|e| {
+                do_memory_core::Error::Storage(format!("Serialization error: {}", e))
+            })?;
             table
                 .insert(key.as_str(), value.as_slice())
-                .map_err(|e| memory_core::Error::Storage(format!("Insert failed: {}", e)))?;
+                .map_err(|e| do_memory_core::Error::Storage(format!("Insert failed: {}", e)))?;
         }
         write_txn
             .commit()
-            .map_err(|e| memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
 
         debug!("Cached relationship {} in redb", relationship.id);
         Ok(())
@@ -78,21 +79,21 @@ impl RedbStorage {
         let read_txn = self
             .db
             .begin_read()
-            .map_err(|e| memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
         let table = read_txn
             .open_table(RELATIONSHIPS_TABLE)
-            .map_err(|e| memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
         let key = relationship_id.to_string();
 
         match table
             .get(key.as_str())
-            .map_err(|e| memory_core::Error::Storage(format!("Get failed: {}", e)))?
+            .map_err(|e| do_memory_core::Error::Storage(format!("Get failed: {}", e)))?
         {
             Some(value) => {
                 let bytes = value.value();
                 let relationship: EpisodeRelationship =
                     postcard::from_bytes(bytes).map_err(|e| {
-                        memory_core::Error::Storage(format!("Deserialization error: {}", e))
+                        do_memory_core::Error::Storage(format!("Deserialization error: {}", e))
                     })?;
                 Ok(Some(relationship))
             }
@@ -105,19 +106,19 @@ impl RedbStorage {
         let write_txn = self
             .db
             .begin_write()
-            .map_err(|e| memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
         {
             let mut table = write_txn
                 .open_table(RELATIONSHIPS_TABLE)
-                .map_err(|e| memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+                .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
             let key = relationship_id.to_string();
             table
                 .remove(key.as_str())
-                .map_err(|e| memory_core::Error::Storage(format!("Remove failed: {}", e)))?;
+                .map_err(|e| do_memory_core::Error::Storage(format!("Remove failed: {}", e)))?;
         }
         write_txn
             .commit()
-            .map_err(|e| memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
 
         debug!("Removed relationship {} from cache", relationship_id);
         Ok(())
@@ -132,22 +133,23 @@ impl RedbStorage {
         let read_txn = self
             .db
             .begin_read()
-            .map_err(|e| memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
         let table = read_txn
             .open_table(RELATIONSHIPS_TABLE)
-            .map_err(|e| memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
 
         let mut relationships = Vec::new();
-        let iter = table
-            .iter()
-            .map_err(|e| memory_core::Error::Storage(format!("Iterator creation failed: {}", e)))?;
+        let iter = table.iter().map_err(|e| {
+            do_memory_core::Error::Storage(format!("Iterator creation failed: {}", e))
+        })?;
 
         for item in iter {
-            let (_, value) = item
-                .map_err(|e| memory_core::Error::Storage(format!("Iterator next failed: {}", e)))?;
+            let (_, value) = item.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Iterator next failed: {}", e))
+            })?;
             let bytes = value.value();
             let relationship: EpisodeRelationship = postcard::from_bytes(bytes).map_err(|e| {
-                memory_core::Error::Storage(format!("Deserialization error: {}", e))
+                do_memory_core::Error::Storage(format!("Deserialization error: {}", e))
             })?;
 
             let matches = match direction {
@@ -179,20 +181,20 @@ impl RedbStorage {
         let write_txn = self
             .db
             .begin_write()
-            .map_err(|e| memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin write failed: {}", e)))?;
         {
             let mut table = write_txn
                 .open_table(RELATIONSHIPS_TABLE)
-                .map_err(|e| memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+                .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
             // Remove all entries
             let keys: Vec<String> = {
                 let iter = table.iter().map_err(|e| {
-                    memory_core::Error::Storage(format!("Iterator creation failed: {}", e))
+                    do_memory_core::Error::Storage(format!("Iterator creation failed: {}", e))
                 })?;
                 let mut keys = Vec::new();
                 for item in iter {
                     let (key, _) = item.map_err(|e| {
-                        memory_core::Error::Storage(format!("Iterator next failed: {}", e))
+                        do_memory_core::Error::Storage(format!("Iterator next failed: {}", e))
                     })?;
                     keys.push(key.value().to_string());
                 }
@@ -202,12 +204,12 @@ impl RedbStorage {
             for key in keys {
                 table
                     .remove(key.as_str())
-                    .map_err(|e| memory_core::Error::Storage(format!("Remove failed: {}", e)))?;
+                    .map_err(|e| do_memory_core::Error::Storage(format!("Remove failed: {}", e)))?;
             }
         }
         write_txn
             .commit()
-            .map_err(|e| memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Commit failed: {}", e)))?;
 
         debug!("Cleared all cached relationships");
         Ok(())
@@ -218,12 +220,12 @@ impl RedbStorage {
         let read_txn = self
             .db
             .begin_read()
-            .map_err(|e| memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Begin read failed: {}", e)))?;
         let table = read_txn
             .open_table(RELATIONSHIPS_TABLE)
-            .map_err(|e| memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
+            .map_err(|e| do_memory_core::Error::Storage(format!("Open table failed: {}", e)))?;
         let count = table.len().map_err(|e| {
-            memory_core::Error::Storage(format!("Failed to get table length: {}", e))
+            do_memory_core::Error::Storage(format!("Failed to get table length: {}", e))
         })? as usize;
         Ok(count)
     }
@@ -232,7 +234,7 @@ impl RedbStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use memory_core::episode::RelationshipType;
+    use do_memory_core::episode::RelationshipType;
     use tempfile::TempDir;
 
     async fn create_test_storage() -> (RedbStorage, TempDir) {

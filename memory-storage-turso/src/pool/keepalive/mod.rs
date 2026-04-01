@@ -4,7 +4,7 @@
 //! overhead from 45ms to ~5ms by maintaining active connections and refreshing
 //! them proactively before they become stale.
 
-use memory_core::{Error, Result};
+use do_memory_core::{Error, Result};
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;

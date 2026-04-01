@@ -3,7 +3,7 @@
 //! Core batch operations for patterns using transactions.
 
 use crate::TursoStorage;
-use memory_core::{Error, Pattern, Result, episode::PatternId};
+use do_memory_core::{Error, Pattern, Result, episode::PatternId};
 use tracing::{debug, error, info, warn};
 
 use super::pattern_types::{BatchProgress, BatchResult};
@@ -299,8 +299,8 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
-    /// # use memory_core::episode::PatternId;
+    /// # use do_memory_storage_turso::TursoStorage;
+    /// # use do_memory_core::episode::PatternId;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
@@ -386,8 +386,8 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
-    /// # use memory_core::episode::PatternId;
+    /// # use do_memory_storage_turso::TursoStorage;
+    /// # use do_memory_core::episode::PatternId;
     /// # use uuid::Uuid;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;

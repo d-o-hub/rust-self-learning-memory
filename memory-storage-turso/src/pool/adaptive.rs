@@ -1,7 +1,7 @@
 //! Adaptive connection pool that dynamically adjusts pool size based on load.
 
+use do_memory_core::{Error, Result};
 use libsql::Database;
-use memory_core::{Error, Result};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
@@ -380,8 +380,8 @@ impl AdaptiveConnectionPool {
     ///
     /// ```no_run
     /// use std::sync::Arc;
-    /// use memory_storage_turso::pool::{AdaptiveConnectionPool, ConnectionId};
-    /// use memory_storage_turso::PreparedStatementCache;
+    /// use do_memory_storage_turso::pool::{AdaptiveConnectionPool, ConnectionId};
+    /// use do_memory_storage_turso::PreparedStatementCache;
     ///
     /// # async fn example(pool: AdaptiveConnectionPool) {
     /// let cache = Arc::new(PreparedStatementCache::new(100));

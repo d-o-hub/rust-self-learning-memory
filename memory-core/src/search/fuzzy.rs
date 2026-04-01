@@ -24,7 +24,7 @@ use strsim::normalized_levenshtein;
 /// # Examples
 ///
 /// ```
-/// use memory_core::search::fuzzy::fuzzy_match;
+/// use do_memory_core::search::fuzzy::fuzzy_match;
 ///
 /// // Exact match
 /// assert_eq!(fuzzy_match("database", "database", 0.8), Some(1.0));
@@ -74,7 +74,7 @@ pub fn fuzzy_match(text: &str, query: &str, threshold: f64) -> Option<f64> {
 /// # Examples
 ///
 /// ```
-/// use memory_core::search::fuzzy::fuzzy_search_in_text;
+/// use do_memory_core::search::fuzzy::fuzzy_search_in_text;
 ///
 /// let text = "This is a database connection example";
 /// let matches = fuzzy_search_in_text(text, "databse", 0.8);

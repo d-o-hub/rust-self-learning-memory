@@ -20,7 +20,7 @@ This report consolidates multiple GitHub Actions fix operations for the Rust sel
 ### Issues Identified
 
 #### 1. CodeQL Alert ❌
-- **Location**: `memory-mcp/tests/episode_tags_error_handling.rs:25`
+- **Location**: `do-memory-mcp/tests/episode_tags_error_handling.rs:25`
 - **Issue**: Logging potentially unsanitized invalid UUID strings in test assertions
 - **Type**: Security/coding practice alert
 - **Severity**: Medium
@@ -33,7 +33,7 @@ This report consolidates multiple GitHub Actions fix operations for the Rust sel
 - **Impact**: Quality gates couldn't complete, preventing final validation
 
 #### 3. Tag Validation Bug 🐛 (Pre-existing)
-- **Location**: `memory-core/src/episode/structs.rs:normalize_tag()`
+- **Location**: `do-memory-core/src/episode/structs.rs:normalize_tag()`
 - **Issue**: Missing minimum length validation for tags
 - **Impact**: Test `test_tag_length_validation` was failing (expected 2-char minimum, but code allowed 1-char tags)
 - **Severity**: Test failure blocking CI
@@ -43,7 +43,7 @@ This report consolidates multiple GitHub Actions fix operations for the Rust sel
 Earlier fixes (2026-01-14 to 2026-01-15) addressed:
 - Unused function warnings in `batch_operations_test.rs`
 - 4 Clippy fixes across multiple files
-- 3 outdated doc examples in `memory-core/src/memory/mod.rs`
+- 3 outdated doc examples in `do-memory-core/src/memory/mod.rs`
 - Quality threshold adjustments for integration tests
 
 ---
@@ -72,7 +72,7 @@ Re-run CI to verify all green
 ### Fixes Applied
 
 #### Fix 1: CodeQL Alert Resolution ✅
-**File**: `memory-mcp/tests/episode_tags_error_handling.rs`
+**File**: `do-memory-mcp/tests/episode_tags_error_handling.rs`
 
 **Before**:
 ```rust
@@ -93,7 +93,7 @@ assert!(result.is_err(), "Should fail with invalid UUID format");  // <-- Generi
 ---
 
 #### Fix 2: Tag Validation Enhancement ✅
-**File**: `memory-core/src/episode/structs.rs`
+**File**: `do-memory-core/src/episode/structs.rs`
 
 **Added minimum length check**:
 ```rust
@@ -200,7 +200,7 @@ Skipped: 1 (normal)
 
 ```bash
 # All tests passing
-✅ cargo test --package memory-mcp --test episode_tags_error_handling
+✅ cargo test --package do-memory-mcp --test episode_tags_error_handling
    Result: 14/14 tests passed
 
 # Formatting clean
@@ -303,11 +303,11 @@ Skipped: 1 (normal)
 .github/workflows/ci.yml
   - Quality Gates timeout: 10 → 30 minutes
 
-memory-core/src/episode/structs.rs
+do-memory-core/src/episode/structs.rs
   - Added minimum length validation: 2 characters
   - Function: normalize_tag()
 
-memory-mcp/tests/episode_tags_error_handling.rs
+do-memory-mcp/tests/episode_tags_error_handling.rs
   - Removed UUID logging from assertions
   - Generic error message instead
 
@@ -318,8 +318,8 @@ plans/github-actions-fix-summary.md
 ### Lines Changed
 ```diff
 .github/workflows/ci.yml: +1 -1
-memory-core/src/episode/structs.rs: +4 -0
-memory-mcp/tests/episode_tags_error_handling.rs: +1 -5
+do-memory-core/src/episode/structs.rs: +4 -0
+do-memory-mcp/tests/episode_tags_error_handling.rs: +1 -5
 plans/github-actions-fix-summary.md: +245 (new file)
 ```
 
@@ -418,16 +418,16 @@ All objectives achieved:
 ### Earlier Fixes (2026-01-14 to 2026-01-15)
 
 #### Code Fixes Applied
-1. **memory-core/src/sync/synchronizer.rs**: Removed unused imports (Episode, TwoPhaseCommit, ConflictResolution)
-2. **memory-mcp/src/batch/dependency_graph.rs**: Fixed unused variable `_e`
-3. **memory-cli/src/commands/episode_v2/episode/filter.rs**:
+1. **do-memory-core/src/sync/synchronizer.rs**: Removed unused imports (Episode, TwoPhaseCommit, ConflictResolution)
+2. **do-memory-mcp/src/batch/dependency_graph.rs**: Fixed unused variable `_e`
+3. **do-memory-cli/src/commands/episode_v2/episode/filter.rs**:
    - Changed `map_or` to `is_some_and`
    - Changed `PathBuf` to `Path` (ptr_arg fix)
-4. **memory-cli/src/commands/episode_v2/episode/list.rs**: Added `#[allow(clippy::too_many_arguments)]`
-5. **memory-core/src/memory/mod.rs**: Fixed 3 doc examples with correct TaskContext fields
+4. **do-memory-cli/src/commands/episode_v2/episode/list.rs**: Added `#[allow(clippy::too_many_arguments)]`
+5. **do-memory-core/src/memory/mod.rs**: Fixed 3 doc examples with correct TaskContext fields
 
 #### Test Configuration
-6. **memory-core/tests/episode_filtering_test.rs**: Lowered quality threshold to 0.4 for integration tests
+6. **do-memory-core/tests/episode_filtering_test.rs**: Lowered quality threshold to 0.4 for integration tests
 
 #### Quality Checks Results (Historical)
 | Check | Status | Notes |

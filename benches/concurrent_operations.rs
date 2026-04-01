@@ -6,13 +6,13 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use do_memory_core::types::{TaskOutcome, TaskType};
 use futures::future::join_all;
 use memory_benches::TokioExecutor;
 use memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
 };
-use memory_core::types::{TaskOutcome, TaskType};
 use rand::{RngExt, SeedableRng};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
@@ -55,7 +55,7 @@ impl WorkloadPattern {
 }
 
 async fn setup_concurrent_benchmark_data(
-    memory: &memory_core::memory::SelfLearningMemory,
+    memory: &do_memory_core::memory::SelfLearningMemory,
     episode_count: usize,
 ) -> Vec<uuid::Uuid> {
     let context = create_benchmark_context();
@@ -94,7 +94,7 @@ async fn setup_concurrent_benchmark_data(
 }
 
 async fn run_concurrent_workload(
-    memory: Arc<memory_core::memory::SelfLearningMemory>,
+    memory: Arc<do_memory_core::memory::SelfLearningMemory>,
     episode_ids: &[uuid::Uuid],
     pattern: WorkloadPattern,
     operations: usize,

@@ -1,6 +1,6 @@
 use parking_lot::RwLock;
 
-/// Metrics for redb cache operations (mirrors memory_storage_redb::metrics::RedbMetrics)
+/// Metrics for redb cache operations (mirrors do_memory_storage_redb::metrics::RedbMetrics)
 #[derive(Debug, Default)]
 pub struct RedbMetrics {
     cache_hits: std::sync::atomic::AtomicU64,

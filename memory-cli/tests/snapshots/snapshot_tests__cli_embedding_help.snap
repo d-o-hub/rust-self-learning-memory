@@ -4,7 +4,7 @@ expression: stdout
 ---
 Embedding provider management and testing
 
-Usage: memory-cli embedding <COMMAND>
+Usage: do-memory-cli embedding <COMMAND>
 
 Commands:
   test            Test embedding provider connectivity and configuration

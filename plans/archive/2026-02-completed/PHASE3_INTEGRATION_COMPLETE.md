@@ -39,7 +39,7 @@ Phase 3 cache infrastructure has been successfully integrated into the TursoStor
 - ✅ Fixed test helper in `src/tests.rs` to include `prepared_cache` field
 
 ### 4. Testing
-- ✅ All 61 unit tests pass in memory-storage-turso
+- ✅ All 61 unit tests pass in do-memory-storage-turso
 - ✅ Created comprehensive integration test: `tests/cache_integration_test.rs`
   - Tests cached episode operations
   - Tests cached pattern operations  
@@ -147,19 +147,19 @@ Based on Phase 3 plan targets:
 ## 📝 Files Modified (This Session)
 
 ### Core Changes
-1. `memory-storage-turso/src/lib.rs` - Added prepared cache to TursoStorage struct (6 locations)
-2. `memory-storage-turso/src/storage/mod.rs` - Exported batch module
-3. `memory-storage-turso/src/storage/patterns.rs` - Made PatternDataJson pub(crate)
-4. `memory-storage-turso/src/prepared/cache.rs` - Fixed borrow checker issues
-5. `memory-storage-turso/src/storage/batch/query_batch.rs` - Fixed libsql API usage
-6. `memory-storage-turso/src/tests.rs` - Fixed test helper
+1. `do-memory-storage-turso/src/lib.rs` - Added prepared cache to TursoStorage struct (6 locations)
+2. `do-memory-storage-turso/src/storage/mod.rs` - Exported batch module
+3. `do-memory-storage-turso/src/storage/patterns.rs` - Made PatternDataJson pub(crate)
+4. `do-memory-storage-turso/src/prepared/cache.rs` - Fixed borrow checker issues
+5. `do-memory-storage-turso/src/storage/batch/query_batch.rs` - Fixed libsql API usage
+6. `do-memory-storage-turso/src/tests.rs` - Fixed test helper
 
 ### Test Fixes
-7. `memory-storage-turso/src/storage/batch/combined_batch.rs` - Fixed test compilation (2 fixes)
-8. `memory-storage-turso/src/storage/batch/pattern_batch.rs` - Fixed test compilation
+7. `do-memory-storage-turso/src/storage/batch/combined_batch.rs` - Fixed test compilation (2 fixes)
+8. `do-memory-storage-turso/src/storage/batch/pattern_batch.rs` - Fixed test compilation
 
 ### New Files
-9. `memory-storage-turso/tests/cache_integration_test.rs` - Integration tests (139 lines, 8 tests)
+9. `do-memory-storage-turso/tests/cache_integration_test.rs` - Integration tests (139 lines, 8 tests)
 10. `plans/PHASE3_INTEGRATION_COMPLETE.md` - This document
 
 ## ✅ Quality Metrics

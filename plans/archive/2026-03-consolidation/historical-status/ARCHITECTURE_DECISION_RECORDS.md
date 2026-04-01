@@ -62,17 +62,17 @@ This document records significant architectural decisions made throughout the Se
 
 ### Implementation Status
 ✅ **COMPLETED**
-- TursoStorage implemented in `memory-storage-turso/src/storage.rs`
-- RedbStorage implemented in `memory-storage-redb/src/storage.rs`
-- StorageSynchronizer implemented in `memory-core/src/sync.rs`
+- TursoStorage implemented in `do-memory-storage-turso/src/storage.rs`
+- RedbStorage implemented in `do-memory-storage-redb/src/storage.rs`
+- StorageSynchronizer implemented in `do-memory-core/src/sync.rs`
 - Two-phase commit for critical operations
 - Circuit breaker pattern for resilience
 - LRU cache with TTL configuration
 
 **Files Affected**:
-- `memory-core/src/sync.rs` (new, ~200 LOC)
-- `memory-storage-turso/src/resilient.rs` (circuit breaker)
-- `memory-storage-redb/src/cache.rs` (LRU implementation)
+- `do-memory-core/src/sync.rs` (new, ~200 LOC)
+- `do-memory-storage-turso/src/resilient.rs` (circuit breaker)
+- `do-memory-storage-redb/src/cache.rs` (LRU implementation)
 - All storage backends updated to support dual writes
 
 **Next Steps**: None (feature complete)
@@ -141,13 +141,13 @@ This document records significant architectural decisions made throughout the Se
 - Hybrid ranking (rules + embeddings)
 
 **Files Affected**:
-- `memory-core/src/patterns/extractors/tool_sequence.rs`
-- `memory-core/src/patterns/extractors/decision_point.rs`
-- `memory-core/src/patterns/extractors/error_recovery.rs`
-- `memory-core/src/patterns/extractors/context_pattern.rs`
-- `memory-core/src/patterns/extractors/hybrid.rs`
-- `memory-core/src/patterns/validation.rs`
-- `memory-core/src/patterns/clustering.rs`
+- `do-memory-core/src/patterns/extractors/tool_sequence.rs`
+- `do-memory-core/src/patterns/extractors/decision_point.rs`
+- `do-memory-core/src/patterns/extractors/error_recovery.rs`
+- `do-memory-core/src/patterns/extractors/context_pattern.rs`
+- `do-memory-core/src/patterns/extractors/hybrid.rs`
+- `do-memory-core/src/patterns/validation.rs`
+- `do-memory-core/src/patterns/clustering.rs`
 
 **Next Steps**:
 - [ ] Integrate embeddings into pattern extraction
@@ -210,9 +210,9 @@ This document records significant architectural decisions made throughout the Se
 
 ### Implementation Status
 ✅ **COMPLETED**
-- UnifiedSandbox abstraction in `memory-mcp/src/unified_sandbox.rs`
-- WasmtimeSandbox implementation in `memory-mcp/src/wasmtime_sandbox.rs`
-- Javy compiler in `memory-mcp/src/javy_compiler.rs`
+- UnifiedSandbox abstraction in `do-memory-mcp/src/unified_sandbox.rs`
+- WasmtimeSandbox implementation in `do-memory-mcp/src/wasmtime_sandbox.rs`
+- Javy compiler in `do-memory-mcp/src/javy_compiler.rs`
 - Fuel-based timeout enforcement (5s default)
 - Memory limits (128MB default)
 - Semaphore pool for concurrent execution (max 20)
@@ -220,11 +220,11 @@ This document records significant architectural decisions made throughout the Se
 - 55+ security tests passing
 
 **Files Affected**:
-- `memory-mcp/src/unified_sandbox.rs` (new, ~150 LOC)
-- `memory-mcp/src/wasmtime_sandbox.rs` (new, ~200 LOC)
-- `memory-mcp/src/javy_compiler.rs` (new, ~120 LOC)
-- `memory-mcp/src/sandbox/fs.rs` (WASI filesystem restrictions)
-- `memory-mcp/src/sandbox/isolation.rs` (resource limits)
+- `do-memory-mcp/src/unified_sandbox.rs` (new, ~150 LOC)
+- `do-memory-mcp/src/wasmtime_sandbox.rs` (new, ~200 LOC)
+- `do-memory-mcp/src/javy_compiler.rs` (new, ~120 LOC)
+- `do-memory-mcp/src/sandbox/fs.rs` (WASI filesystem restrictions)
+- `do-memory-mcp/src/sandbox/isolation.rs` (resource limits)
 
 **Next Steps**: None (feature complete, preferred backend)
 
@@ -293,9 +293,9 @@ This document records significant architectural decisions made throughout the Se
 - Breaking change documented in CHANGELOG.md
 
 **Files Affected**:
-- `memory-storage-redb/src/storage.rs` (serialization logic)
-- `memory-storage-redb/tests/postcard_security_test.rs` (renamed, updated)
-- `memory-storage-redb/Cargo.toml` (dependencies)
+- `do-memory-storage-redb/src/storage.rs` (serialization logic)
+- `do-memory-storage-redb/tests/postcard_security_test.rs` (renamed, updated)
+- `do-memory-storage-redb/Cargo.toml` (dependencies)
 - `CHANGELOG.md` (breaking change notice)
 
 **Breaking Changes**:
@@ -386,11 +386,11 @@ This document records significant architectural decisions made throughout the Se
 - [ ] User acceptance testing
 
 **Files Affected**:
-- `memory-cli/src/config/loader.rs` (refactored, ~150 LOC)
-- `memory-cli/src/config/validator.rs` (new, 558 LOC)
-- `memory-cli/src/config/types.rs` (with Simple Mode types)
-- `memory-cli/src/config/simple.rs` (Simple Mode API)
-- Total: 8 files in memory-cli/src/config/, ~12.6KB
+- `do-memory-cli/src/config/loader.rs` (refactored, ~150 LOC)
+- `do-memory-cli/src/config/validator.rs` (new, 558 LOC)
+- `do-memory-cli/src/config/types.rs` (with Simple Mode types)
+- `do-memory-cli/src/config/simple.rs` (Simple Mode API)
+- Total: 8 files in do-memory-cli/src/config/, ~12.6KB
 
 **Progress Metrics**:
 - Current LOC: ~1480
@@ -465,7 +465,7 @@ This document records significant architectural decisions made throughout the Se
 - 7 tests passing (including previously ignored `test_ets_seasonality_detection`)
 
 **Files Affected**:
-- `memory-mcp/src/patterns/predictive.rs` (ETS implementation, ~200 LOC)
+- `do-memory-mcp/src/patterns/predictive.rs` (ETS implementation, ~200 LOC)
 
 **Test Status**: All 7 ETS tests passing, seasonality detection validated
 
@@ -536,10 +536,10 @@ This document records significant architectural decisions made throughout the Se
 **Risk Level**: Low (backwards compatible, optional feature)
 
 **Files Affected** (Planned):
-- `memory-mcp/src/tools/registry.rs` (new, ~200 LOC)
-- `memory-mcp/src/tools/lazy_loader.rs` (new, ~200 LOC)
-- `memory-mcp/src/handlers/tools.rs` (modify for lazy loading)
-- `memory-mcp/Cargo.toml` (add lru crate)
+- `do-memory-mcp/src/tools/registry.rs` (new, ~200 LOC)
+- `do-memory-mcp/src/tools/lazy_loader.rs` (new, ~200 LOC)
+- `do-memory-mcp/src/handlers/tools.rs` (modify for lazy loading)
+- `do-memory-mcp/Cargo.toml` (add lru crate)
 
 **Success Metrics**:
 - Token reduction ≥90% (target: 96%)
@@ -651,10 +651,10 @@ let output = if let Some(fields) = input.include_fields {
 **Risk Level**: Very Low (backwards compatible, optional parameter)
 
 **Files Affected** (Planned):
-- `memory-mcp/src/tools/queries.rs` (add field projection)
-- `memory-mcp/src/tools/episodes.rs` (add field projection)
-- `memory-mcp/src/tools/patterns.rs` (add field projection)
-- `memory-mcp/src/utils/serialization.rs` (new, projection helpers, ~50 LOC)
+- `do-memory-mcp/src/tools/queries.rs` (add field projection)
+- `do-memory-mcp/src/tools/episodes.rs` (add field projection)
+- `do-memory-mcp/src/tools/patterns.rs` (add field projection)
+- `do-memory-mcp/src/utils/serialization.rs` (new, projection helpers, ~50 LOC)
 - `docs/MCP_TOOLS.md` (document available fields)
 
 **Success Metrics**:
@@ -738,9 +738,9 @@ let output = if let Some(fields) = input.include_fields {
 ✅ **IMPLEMENTED** (2026-02-12)
 
 **Core Changes**:
-- `memory-mcp/src/bin/server_impl/core.rs`: Added `lazy` parameter handling to `handle_list_tools`
-- `memory-mcp/src/server/tools/core.rs`: New `list_all_tools()` method for full schemas
-- `memory-mcp/src/server/tools/registry/mod.rs`: New `get_all_extended_tools()` method
+- `do-memory-mcp/src/bin/server_impl/core.rs`: Added `lazy` parameter handling to `handle_list_tools`
+- `do-memory-mcp/src/server/tools/core.rs`: New `list_all_tools()` method for full schemas
+- `do-memory-mcp/src/server/tools/registry/mod.rs`: New `get_all_extended_tools()` method
 
 **Token Impact**:
 | Scenario | Before | After (lazy=true) | Reduction |
@@ -756,9 +756,9 @@ let output = if let Some(fields) = input.include_fields {
 | Lazy mode | 910 chars | ~227 | **82%** |
 
 **Files Affected**:
-- `memory-mcp/src/bin/server_impl/core.rs` (~30 LOC modified)
-- `memory-mcp/src/server/tools/core.rs` (~40 LOC added)
-- `memory-mcp/src/server/tools/registry/mod.rs` (~50 LOC added)
+- `do-memory-mcp/src/bin/server_impl/core.rs` (~30 LOC modified)
+- `do-memory-mcp/src/server/tools/core.rs` (~40 LOC added)
+- `do-memory-mcp/src/server/tools/registry/mod.rs` (~50 LOC added)
 - `scripts/benchmark-mcp-tokens.sh` (new benchmark script)
 
 **Next Steps**:

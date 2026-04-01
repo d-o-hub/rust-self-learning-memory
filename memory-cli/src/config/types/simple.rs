@@ -27,7 +27,7 @@ impl Config {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_cli::config::Config;
+    /// use do_memory_cli::config::Config;
     ///
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
@@ -159,7 +159,7 @@ impl Config {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_cli::config::{Config, DatabaseType};
+    /// use do_memory_cli::config::{Config, DatabaseType};
     ///
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
@@ -218,7 +218,7 @@ impl Config {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_cli::config::{Config, PerformanceLevel};
+    /// use do_memory_cli::config::{Config, PerformanceLevel};
     ///
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {
@@ -306,7 +306,7 @@ impl Config {
     /// # Examples
     ///
     /// ```no_run
-    /// use memory_cli::config::{Config, DatabaseType, PerformanceLevel};
+    /// use do_memory_cli::config::{Config, DatabaseType, PerformanceLevel};
     ///
     /// #[tokio::main]
     /// async fn main() -> anyhow::Result<()> {

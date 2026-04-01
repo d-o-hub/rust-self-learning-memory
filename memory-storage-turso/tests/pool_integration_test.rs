@@ -1,6 +1,6 @@
 //! Integration tests for connection pool performance and functionality
 
-use memory_storage_turso::{ConnectionPool, PoolConfig};
+use do_memory_storage_turso::{ConnectionPool, PoolConfig};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tempfile::TempDir;

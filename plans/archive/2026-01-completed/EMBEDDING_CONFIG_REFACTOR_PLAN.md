@@ -9,7 +9,7 @@ This plan outlines the comprehensive refactoring of the embedding configuration 
 ### Existing Configuration Structure
 
 ```
-memory-core/src/embeddings/config/
+do-memory-core/src/embeddings/config/
 ├── mod.rs                    # Module exports
 ├── model_config.rs           # Single ModelConfig for ALL providers (to be replaced)
 ├── optimization_config.rs    # Provider-specific optimization settings (keep)
@@ -32,7 +32,7 @@ memory-core/src/embeddings/config/
 ### New Configuration Architecture
 
 ```
-memory-core/src/embeddings/config/
+do-memory-core/src/embeddings/config/
 ├── mod.rs                    # Updated exports
 ├── provider_enum.rs          # EmbeddingProvider enum (unchanged)
 ├── optimization_config.rs    # OptimizationConfig (unchanged)
@@ -79,7 +79,7 @@ EmbeddingConfig
 
 ### 1. OpenAI Configuration
 
-#### File: `memory-core/src/embeddings/config/openai/config.rs`
+#### File: `do-memory-core/src/embeddings/config/openai/config.rs`
 
 ```rust
 //! OpenAI-specific embedding configuration
@@ -347,7 +347,7 @@ mod tests {
 }
 ```
 
-#### File: `memory-core/src/embeddings/config/openai/types.rs`
+#### File: `do-memory-core/src/embeddings/config/openai/types.rs`
 
 ```rust
 //! OpenAI API request/response types
@@ -465,7 +465,7 @@ mod tests {
 }
 ```
 
-#### File: `memory-core/src/embeddings/config/openai/mod.rs`
+#### File: `do-memory-core/src/embeddings/config/openai/mod.rs`
 
 ```rust
 //! OpenAI-specific embedding configuration and types
@@ -479,7 +479,7 @@ mod types;
 
 ### 2. Mistral Configuration
 
-#### File: `memory-core/src/embeddings/config/mistral/config.rs`
+#### File: `do-memory-core/src/embeddings/config/mistral/config.rs`
 
 ```rust
 //! Mistral-specific embedding configuration
@@ -852,7 +852,7 @@ mod tests {
 }
 ```
 
-#### File: `memory-core/src/embeddings/config/mistral/types.rs`
+#### File: `do-memory-core/src/embeddings/config/mistral/types.rs`
 
 ```rust
 //! Mistral API request/response types
@@ -986,7 +986,7 @@ mod tests {
 }
 ```
 
-#### File: `memory-core/src/embeddings/config/mistral/mod.rs`
+#### File: `do-memory-core/src/embeddings/config/mistral/mod.rs`
 
 ```rust
 //! Mistral-specific embedding configuration and types
@@ -1000,7 +1000,7 @@ mod types;
 
 ### 3. Unified Provider Configuration
 
-#### File: `memory-core/src/embeddings/config/provider_config.rs`
+#### File: `do-memory-core/src/embeddings/config/provider_config.rs`
 
 ```rust
 //! Unified provider configuration enum
@@ -1381,7 +1381,7 @@ mod tests {
 
 ### 4. Updated EmbeddingConfig
 
-#### File: `memory-core/src/embeddings/config/embedding_config.rs` (Modified)
+#### File: `do-memory-core/src/embeddings/config/embedding_config.rs` (Modified)
 
 ```rust
 //! Configuration for the embedding system
@@ -1641,7 +1641,7 @@ mod tests {
 
 ### 5. Updated Module Exports
 
-#### File: `memory-core/src/embeddings/config/mod.rs` (Modified)
+#### File: `do-memory-core/src/embeddings/config/mod.rs` (Modified)
 
 ```rust
 //! Configuration for embedding providers
@@ -1679,7 +1679,7 @@ pub use openai::{EncodingFormat, OpenAIConfig, OpenAIModel};
 
 ### OpenAI Provider Updates
 
-#### File: `memory-core/src/embeddings/openai/client.rs` (Modified)
+#### File: `do-memory-core/src/embeddings/openai/client.rs` (Modified)
 
 ```rust
 //! OpenAI embedding provider client implementation.
@@ -1760,7 +1760,7 @@ impl OpenAIEmbeddingProvider {
 
 ### New Mistral Provider
 
-#### File: `memory-core/src/embeddings/mistral/client.rs` (New)
+#### File: `do-memory-core/src/embeddings/mistral/client.rs` (New)
 
 ```rust
 //! Mistral embedding provider client implementation
@@ -1909,69 +1909,69 @@ Since backward compatibility is NOT required, we will perform a clean replacemen
 
 1. **Create directory structure**:
    ```bash
-   mkdir -p memory-core/src/embeddings/config/openai
-   mkdir -p memory-core/src/embeddings/config/mistral
-   mkdir -p memory-core/src/embeddings/mistral
+   mkdir -p do-memory-core/src/embeddings/config/openai
+   mkdir -p do-memory-core/src/embeddings/config/mistral
+   mkdir -p do-memory-core/src/embeddings/mistral
    ```
 
 2. **Create new config files**:
-   - `memory-core/src/embeddings/config/openai/mod.rs`
-   - `memory-core/src/embeddings/config/openai/config.rs`
-   - `memory-core/src/embeddings/config/openai/types.rs`
-   - `memory-core/src/embeddings/config/mistral/mod.rs`
-   - `memory-core/src/embeddings/config/mistral/config.rs`
-   - `memory-core/src/embeddings/config/mistral/types.rs`
-   - `memory-core/src/embeddings/config/provider_config.rs`
+   - `do-memory-core/src/embeddings/config/openai/mod.rs`
+   - `do-memory-core/src/embeddings/config/openai/config.rs`
+   - `do-memory-core/src/embeddings/config/openai/types.rs`
+   - `do-memory-core/src/embeddings/config/mistral/mod.rs`
+   - `do-memory-core/src/embeddings/config/mistral/config.rs`
+   - `do-memory-core/src/embeddings/config/mistral/types.rs`
+   - `do-memory-core/src/embeddings/config/provider_config.rs`
 
 ### Phase 2: Update Existing Files
 
-1. **Update `memory-core/src/embeddings/config/mod.rs`**:
+1. **Update `do-memory-core/src/embeddings/config/mod.rs`**:
    - Add new module exports
    - Re-export convenience types
 
-2. **Update `memory-core/src/embeddings/config/embedding_config.rs`**:
+2. **Update `do-memory-core/src/embeddings/config/embedding_config.rs`**:
    - Replace `ModelConfig` with `ProviderConfig`
    - Add validation logic
    - Update tests
 
-3. **Update `memory-core/src/embeddings/openai/client.rs`**:
+3. **Update `do-memory-core/src/embeddings/openai/client.rs`**:
    - Change from `ModelConfig` to `OpenAIConfig`
    - Update request building to use new types
    - Support dimensions parameter
 
-4. **Update `memory-core/src/embeddings/mod.rs`**:
+4. **Update `do-memory-core/src/embeddings/mod.rs`**:
    - Update exports
    - Update `EmbeddingService` to use new config types
 
 ### Phase 3: Remove Old Code
 
-1. **Delete `memory-core/src/embeddings/config/model_config.rs`**:
+1. **Delete `do-memory-core/src/embeddings/config/model_config.rs`**:
    - After confirming all usages are migrated
 
 2. **Update tests**:
-   - `memory-core/src/embeddings/openai_tests.rs`
-   - `memory-core/src/embeddings/tests.rs`
+   - `do-memory-core/src/embeddings/openai_tests.rs`
+   - `do-memory-core/src/embeddings/tests.rs`
    - Any other test files using old config
 
 ### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `memory-core/src/embeddings/config/mod.rs` | Add new module exports |
-| `memory-core/src/embeddings/config/embedding_config.rs` | Use ProviderConfig |
-| `memory-core/src/embeddings/config/provider_config.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/config/openai/mod.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/config/openai/config.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/config/openai/types.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/config/mistral/mod.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/config/mistral/config.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/config/mistral/types.rs` | **NEW FILE** |
-| `memory-core/src/embeddings/openai/client.rs` | Use OpenAIConfig |
-| `memory-core/src/embeddings/openai/mod.rs` | Update exports |
-| `memory-core/src/embeddings/mod.rs` | Update exports and service |
-| `memory-core/src/embeddings/tests.rs` | Update tests |
-| `memory-core/src/embeddings/openai_tests.rs` | Update tests |
-| `memory-core/src/embeddings/config/model_config.rs` | **DELETE** |
+| `do-memory-core/src/embeddings/config/mod.rs` | Add new module exports |
+| `do-memory-core/src/embeddings/config/embedding_config.rs` | Use ProviderConfig |
+| `do-memory-core/src/embeddings/config/provider_config.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/config/openai/mod.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/config/openai/config.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/config/openai/types.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/config/mistral/mod.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/config/mistral/config.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/config/mistral/types.rs` | **NEW FILE** |
+| `do-memory-core/src/embeddings/openai/client.rs` | Use OpenAIConfig |
+| `do-memory-core/src/embeddings/openai/mod.rs` | Update exports |
+| `do-memory-core/src/embeddings/mod.rs` | Update exports and service |
+| `do-memory-core/src/embeddings/tests.rs` | Update tests |
+| `do-memory-core/src/embeddings/openai_tests.rs` | Update tests |
+| `do-memory-core/src/embeddings/config/model_config.rs` | **DELETE** |
 
 ## Testing Strategy
 
@@ -2201,7 +2201,7 @@ mod codestral_tests {
 4. Implement `mistral/config.rs` with all types and tests
 5. Implement `mistral/types.rs` with request/response types
 6. Implement `provider_config.rs` with unified enum
-7. Run tests: `cargo test -p memory-core embeddings::config`
+7. Run tests: `cargo test -p do-memory-core embeddings::config`
 
 **Success Criteria**:
 - All new config modules compile
@@ -2263,7 +2263,7 @@ mod codestral_tests {
 
 **Tasks**:
 1. Delete `config/model_config.rs`
-2. Run full test suite: `cargo test -p memory-core`
+2. Run full test suite: `cargo test -p do-memory-core`
 3. Run quality gates: `./scripts/quality-gates.sh`
 4. Update documentation
 5. Create example usage code

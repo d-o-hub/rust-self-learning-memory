@@ -3,7 +3,7 @@
 //! These tests verify that different output formats (human, JSON, YAML)
 //! work correctly and produce valid output.
 
-use memory_cli::output::{Output, OutputFormat};
+use do_memory_cli::output::{Output, OutputFormat};
 use serde::Serialize;
 use std::io::Cursor;
 

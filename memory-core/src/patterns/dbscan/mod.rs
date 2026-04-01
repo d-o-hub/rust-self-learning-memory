@@ -11,7 +11,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_core::patterns::DBSCANAnomalyDetector;
+//! use do_memory_core::patterns::DBSCANAnomalyDetector;
 //!
 //! let detector = DBSCANAnomalyDetector::new();
 //! // Use in async context:

@@ -12,7 +12,7 @@ use super::types::*;
 
 // Command implementations
 pub async fn storage_stats(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -61,7 +61,7 @@ pub async fn storage_stats(
 
 #[allow(clippy::excessive_nesting)]
 pub async fn sync_storage(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     force: bool,
@@ -147,7 +147,7 @@ pub async fn sync_storage(
 
     // Query recent episodes from Turso (source of truth) - use max limit for sync
     let episodes = match turso
-        .query_episodes_since(since, Some(memory_core::MAX_QUERY_LIMIT))
+        .query_episodes_since(since, Some(do_memory_core::MAX_QUERY_LIMIT))
         .await
     {
         Ok(episodes) => episodes,
@@ -240,7 +240,7 @@ pub async fn sync_storage(
 }
 
 pub async fn vacuum_storage(
-    _memory: &memory_core::SelfLearningMemory,
+    _memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
     dry_run: bool,
@@ -332,7 +332,7 @@ pub async fn vacuum_storage(
 }
 
 pub async fn storage_health(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {
@@ -423,7 +423,7 @@ pub async fn storage_health(
 }
 
 pub async fn connection_status(
-    memory: &memory_core::SelfLearningMemory,
+    memory: &do_memory_core::SelfLearningMemory,
     _config: &Config,
     format: OutputFormat,
 ) -> anyhow::Result<()> {

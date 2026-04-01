@@ -38,7 +38,7 @@ All Phase 1 (P0) CI/CD GitHub Actions remediation tasks have been successfully c
 3. Optimized full workspace coverage to exclude heavy directories:
    - `--exclude benches`
    - `--exclude examples` 
-   - `--exclude test-utils`
+   - `--exclude do-memory-test-utils`
 
 **Verification**:
 ```bash

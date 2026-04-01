@@ -7,7 +7,7 @@
 //! ## Example
 //!
 //! ```
-//! use memory_core::patterns::changepoint::{ChangepointDetector, ChangepointConfig};
+//! use do_memory_core::patterns::changepoint::{ChangepointDetector, ChangepointConfig};
 //!
 //! // Create detector with default settings (needs to be mutable for detection)
 //! let mut detector = ChangepointDetector::new(ChangepointConfig::default());

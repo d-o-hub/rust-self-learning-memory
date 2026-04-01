@@ -40,8 +40,8 @@ pub use config::{PoolConfig, PoolStatistics, PooledConnection};
 pub use connection_wrapper::PooledConnection as WrappedPooledConnection;
 pub use keepalive::{KeepAliveConfig, KeepAliveConnection, KeepAlivePool, KeepAliveStatistics};
 
+use do_memory_core::{Error, Result};
 use libsql::{Connection, Database};
-use memory_core::{Error, Result};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -75,7 +75,7 @@ impl ConnectionPool {
     /// ```no_run
     /// use std::sync::Arc;
     /// use libsql::Builder;
-    /// use memory_storage_turso::pool::{ConnectionPool, PoolConfig};
+    /// use do_memory_storage_turso::pool::{ConnectionPool, PoolConfig};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let db = Builder::new_local("test.db").build().await?;

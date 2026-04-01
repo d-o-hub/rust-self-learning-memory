@@ -25,29 +25,29 @@ tag-name = "v{{version}}"
 pre-release-hook = ["./scripts/update-changelog.sh"]
 
 # Individual crate settings
-[package.memory-core]
+[package.do-memory-core]
 publish = true
 
-[package.memory-storage-turso]
+[package.do-memory-storage-turso]
 publish = true
 
-[package.memory-storage-redb]
+[package.do-memory-storage-redb]
 publish = true
 
-[package.memory-mcp]
+[package.do-memory-mcp]
 publish = true
 
-[package.memory-cli]
+[package.do-memory-cli]
 publish = false  # Distributed as binary
 
-[package.test-utils]
+[package.do-memory-test-utils]
 publish = false  # Internal use only
 
-[package.benches]
+[package.do-memory-benches]
 publish = false
 
-[package.tests]
+[package.e2e-tests]
 publish = false
 
-[package.examples]
+[package.do-memory-examples]
 publish = false

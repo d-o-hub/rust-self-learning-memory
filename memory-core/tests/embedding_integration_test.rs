@@ -15,16 +15,16 @@
     clippy::doc_markdown
 )]
 
-use memory_core::StorageBackend;
-use memory_core::embeddings::{
+use do_memory_core::StorageBackend;
+use do_memory_core::embeddings::{
     EmbeddingConfig, EmbeddingProvider, EmbeddingStorageBackend, InMemoryEmbeddingStorage,
     LocalConfig, LocalEmbeddingProvider, SemanticService, cosine_similarity,
 };
-use memory_core::episode::{ExecutionStep, PatternId};
-use memory_core::memory::SelfLearningMemory;
-use memory_core::pattern::Pattern;
-use memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::episode::{ExecutionStep, PatternId};
+use do_memory_core::memory::SelfLearningMemory;
+use do_memory_core::pattern::Pattern;
+use do_memory_core::types::{ComplexityLevel, TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use std::sync::Arc;
 use tempfile::TempDir;
 use uuid::Uuid;
@@ -93,7 +93,7 @@ async fn test_end_to_end_batch_embeddings() {
 
 #[tokio::test]
 async fn test_episode_embedding_workflow() {
-    let mut config = memory_core::MemoryConfig::default();
+    let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
 
@@ -487,7 +487,7 @@ async fn test_pattern_embedding_with_service() {
 
 #[tokio::test]
 async fn test_memory_semantic_retrieval() {
-    let mut config = memory_core::MemoryConfig::default();
+    let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
 
@@ -530,7 +530,7 @@ async fn test_memory_semantic_retrieval() {
 
 #[tokio::test]
 async fn test_memory_fallback_to_keyword() {
-    let mut config = memory_core::MemoryConfig::default();
+    let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
 
@@ -551,7 +551,7 @@ async fn test_memory_fallback_to_keyword() {
 
 #[tokio::test]
 async fn test_memory_with_multiple_episodes() {
-    let mut config = memory_core::MemoryConfig::default();
+    let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
 
@@ -666,7 +666,7 @@ async fn test_storage_with_nonexistent_id() {
 
 // Helper Functions
 
-fn create_test_episode_helper(description: &str, domain: &str) -> memory_core::Episode {
+fn create_test_episode_helper(description: &str, domain: &str) -> do_memory_core::Episode {
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: Some("tokio".to_string()),
@@ -676,7 +676,7 @@ fn create_test_episode_helper(description: &str, domain: &str) -> memory_core::E
     };
 
     let mut episode =
-        memory_core::Episode::new(description.to_string(), context, TaskType::CodeGeneration);
+        do_memory_core::Episode::new(description.to_string(), context, TaskType::CodeGeneration);
 
     for i in 1..=5 {
         let step = ExecutionStep::new(i, format!("tool_{}", i), format!("Action {}", i));

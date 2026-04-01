@@ -43,8 +43,8 @@ All P0 issues fixed and merged via PR #391.
 **Priority**: P0
 **Status**: ✅ Fixed (PR #391)
 **Files**:
-- `memory-core/src/memory/attribution/mod.rs` (line 21)
-- `memory-core/src/memory/playbook/mod.rs` (line 24)
+- `do-memory-core/src/memory/attribution/mod.rs` (line 21)
+- `do-memory-core/src/memory/playbook/mod.rs` (line 24)
 
 **Root Causes**:
 1. Attribution doctest: `use of moved value: session` — `record_session(session)` moves, then `session.session_id` is accessed. Fix: clone session before passing.
@@ -70,9 +70,9 @@ All P0 issues fixed and merged via PR #391.
 **Priority**: P0 (project invariant)
 **Status**: ✅ Fixed — all 3 files split (PR #391)
 **Files**:
-1. `memory-core/src/memory/playbook/generator.rs` — 631 LOC
-2. `memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` — 608 LOC
-3. `memory-core/src/memory/management.rs` — 504 LOC
+1. `do-memory-core/src/memory/playbook/generator.rs` — 631 LOC
+2. `do-memory-mcp/src/bin/server_impl/tools/memory_handlers.rs` — 608 LOC
+3. `do-memory-core/src/memory/management.rs` — 504 LOC
 
 **Actions**:
 - ACT-056: Split `generator.rs` into `generator.rs` + `templates.rs` (extract template functions)
@@ -92,12 +92,12 @@ All P1 quality issues resolved via PR #391.
 **Target**: ≤40 — ✅ Target met
 
 **Hotspots**:
-- `memory-core/src/memory/core/struct_priv.rs` — 5 annotations
-- `memory-core/src/memory/types.rs` — 6 annotations
-- `memory-core/src/embeddings/real_model/model.rs` — 8 annotations
-- `memory-core/src/embeddings/openai/utils.rs` — 5 annotations
-- `memory-core/src/embeddings/provider.rs` — 3 annotations
-- `memory-core/src/monitoring/storage/mod.rs` — 3 annotations
+- `do-memory-core/src/memory/core/struct_priv.rs` — 5 annotations
+- `do-memory-core/src/memory/types.rs` — 6 annotations
+- `do-memory-core/src/embeddings/real_model/model.rs` — 8 annotations
+- `do-memory-core/src/embeddings/openai/utils.rs` — 5 annotations
+- `do-memory-core/src/embeddings/provider.rs` — 3 annotations
+- `do-memory-core/src/monitoring/storage/mod.rs` — 3 annotations
 
 **Actions**:
 - ACT-059: Audit dead_code in `types.rs` — remove or use suppressed fields

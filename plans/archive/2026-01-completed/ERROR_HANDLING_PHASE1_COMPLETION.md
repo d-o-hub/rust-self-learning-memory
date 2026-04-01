@@ -24,11 +24,11 @@ Successfully completed Phase 1 of error handling improvements by:
 ### 1. Comprehensive Audit
 - **Audited**: 249 production unwrap/expect calls
 - **Breakdown**:
-  - memory-core: 142 calls
-  - memory-mcp: 44 calls
-  - memory-cli: 56 calls
-  - memory-storage-turso: 7 calls
-  - memory-storage-redb: 0 calls ✅
+  - do-memory-core: 142 calls
+  - do-memory-mcp: 44 calls
+  - do-memory-cli: 56 calls
+  - do-memory-storage-turso: 7 calls
+  - do-memory-storage-redb: 0 calls ✅
 - **Key Finding**: Majority of unwraps are in test code (acceptable pattern)
 
 ### 2. Error Handling Strategy
@@ -40,7 +40,7 @@ Created comprehensive strategy document identifying:
 
 ### 3. Critical Production Fixes
 
-#### Fix #1: memory-core/src/retrieval/cache/lru.rs
+#### Fix #1: do-memory-core/src/retrieval/cache/lru.rs
 **Issue**: `NonZeroUsize::new(capacity).unwrap()` on line 45 could panic on zero capacity
 
 **Solution**:
@@ -58,7 +58,7 @@ let cache = LruCache::new(
 
 **Impact**: Prevents initialization panics, ensures minimum capacity of 1
 
-#### Fix #2: memory-cli/src/config/loader.rs
+#### Fix #2: do-memory-cli/src/config/loader.rs
 **Issue**: 26 Mutex `.lock().unwrap()` calls without error context
 
 **Solution**: Replaced all with `.expect()` with detailed messages:
@@ -86,8 +86,8 @@ let entries = self
 ## Quality Assurance ✅
 
 - ✅ **Compilation**: Both packages compile successfully
-  - memory-core: ✅ Finished in 27.16s
-  - memory-cli: ✅ Finished successfully
+  - do-memory-core: ✅ Finished in 27.16s
+  - do-memory-cli: ✅ Finished successfully
 - ✅ **Formatting**: All changes formatted with `cargo fmt`
 - ✅ **Zero New Warnings**: No clippy warnings introduced
 - ✅ **Existing Tests**: All existing test patterns preserved
@@ -108,7 +108,7 @@ let entries = self
 
 ## Files Modified
 
-### 1. memory-core/src/retrieval/cache/lru.rs
+### 1. do-memory-core/src/retrieval/cache/lru.rs
 - **Lines**: 307
 - **Changes**: 
   - Added capacity validation (line 45-49)
@@ -116,7 +116,7 @@ let entries = self
   - Updated 3 capacity references
 - **Risk**: Low (conservative change)
 
-### 2. memory-cli/src/config/loader.rs  
+### 2. do-memory-cli/src/config/loader.rs  
 - **Lines**: 623
 - **Changes**:
   - Updated 26 lock operations
@@ -129,10 +129,10 @@ let entries = self
 ## Remaining Work (Optional - Future Phases)
 
 ### Phase 2: Additional Production Code (15-20 hours)
-- ~30-50 unwraps in memory-core (embeddings, patterns)
-- ~10-20 unwraps in memory-mcp (sandbox, protocol)
-- ~7 unwraps in memory-storage-turso (database ops)
-- ~10-15 unwraps in memory-cli (commands, output)
+- ~30-50 unwraps in do-memory-core (embeddings, patterns)
+- ~10-20 unwraps in do-memory-mcp (sandbox, protocol)
+- ~7 unwraps in do-memory-storage-turso (database ops)
+- ~10-15 unwraps in do-memory-cli (commands, output)
 
 **Target**: Reduce to <50 total production unwraps (80% reduction)
 

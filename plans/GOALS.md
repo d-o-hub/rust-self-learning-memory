@@ -106,7 +106,7 @@
 
 3. **WG-053**: MCP Contract Integrity
    - Priority: P0
-   - Owner: memory-mcp + documentation
+   - Owner: do-memory-mcp + documentation
    - Target: Decide fate of batch MCP tools, align parity tests + plans/STATUS/README messaging
    - Status: ✅ Complete — batch tool-level MCP names intentionally deferred (not advertised), parity tests hardened, and docs/plans aligned to contract truth (2026-03-24)
 
@@ -196,14 +196,14 @@
 
 9. **WG-009**: Resolve batch MCP tool state
    - Priority: P0
-   - Owner: memory-mcp
+   - Owner: do-memory-mcp
    - Target: remove unreachable batch schemas or re-enable handlers
    - Status: ✅ Complete (PR #357 merged 2026-03-11)
 
-10. **WG-010**: Error handling reduction (memory-core)
+10. **WG-010**: Error handling reduction (do-memory-core)
     - Priority: P1
     - Owner: code-quality
-    - Target: reduce unwrap/expect in memory-core from 165 to ≤50
+    - Target: reduce unwrap/expect in do-memory-core from 165 to ≤50
     - Status: ✅ Complete - Analysis revealed production code already follows best practices
 
 11. **WG-011**: Dependency deduplication
@@ -272,7 +272,7 @@
 
 ## Next Goals (v0.1.20 Sprint — ADR-041)
 
-22. **WG-022**: Fix memory-storage-redb compilation errors
+22. **WG-022**: Fix do-memory-storage-redb compilation errors
     - Priority: P0
     - Owner: code-quality
     - Target: `cargo build --all` compiles cleanly (4 errors + 3 warnings)
@@ -289,7 +289,7 @@
     - Priority: P1
     - Owner: ci-engineer
     - Target: Replace 18 per-test-name exclusions with category-based (crate/binary) filters
-    - Status: ✅ Complete — nightly uses `package(memory-storage-turso)` filter (commit `c70db69`)
+    - Status: ✅ Complete — nightly uses `package(do-memory-storage-turso)` filter (commit `c70db69`)
 
 25. **WG-025**: Un-ignore fixable tests
     - Priority: P2
@@ -378,7 +378,7 @@
 
 38. **WG-047**: MCP tool contract parity for new tools
     - Priority: P2
-    - Owner: memory-mcp
+    - Owner: do-memory-mcp
     - Target: All new tools verified in tool_contract_parity.rs
     - Status: ✅ Complete — Parity tests verify tool contracts — Issue #381 closed
 

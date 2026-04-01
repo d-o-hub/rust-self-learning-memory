@@ -6,7 +6,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use memory_storage_redb::metrics::RedbMetrics;
+//! use do_memory_storage_redb::metrics::RedbMetrics;
 //!
 //! let metrics = RedbMetrics::new();
 //! metrics.record_cache_hit();

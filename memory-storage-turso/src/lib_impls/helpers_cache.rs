@@ -6,7 +6,7 @@
 #[cfg(feature = "adaptive-ttl")]
 use crate::cache::{AdaptiveTTLCache, TTLConfig};
 #[cfg(feature = "adaptive-ttl")]
-use memory_core::Episode;
+use do_memory_core::Episode;
 
 #[cfg(feature = "adaptive-ttl")]
 impl super::TursoStorage {
@@ -29,7 +29,7 @@ impl super::TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::{TursoStorage, TTLConfig};
+    /// # use do_memory_storage_turso::{TursoStorage, TTLConfig};
     /// # use std::time::Duration;
     /// # async fn example(storage: &mut TursoStorage) -> anyhow::Result<()> {
     /// let config = TTLConfig::default()
@@ -56,7 +56,7 @@ impl super::TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::TursoStorage;
+    /// # use do_memory_storage_turso::TursoStorage;
     /// # async fn example(storage: &mut TursoStorage) -> anyhow::Result<()> {
     /// storage.enable_episode_cache_default();
     /// # Ok(())

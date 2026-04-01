@@ -34,27 +34,27 @@
 
 | Task ID | Description | Priority | Effort | Dependencies | Agent |
 |---------|-------------|----------|--------|--------------|-------|
-| B.3.1-CORE | Audit memory-core unwrap/expect | P1 | 30m | B.1.1 | refactorer |
-| B.3.2-CORE | Introduce error types in memory-core | P1 | 1-2h | B.3.1-CORE | feature-implementer |
-| B.3.3-CORE | Replace unwraps in memory-core | P1 | 1-2h | B.3.2-CORE | refactorer |
-| B.3.4-CORE | Add error path tests for memory-core | P1 | 30m | B.3.3-CORE | test-runner |
-| B.3.5-CORE | Validate memory-core | P1 | 30m | B.3.4-CORE | code-reviewer |
-| B.3.6-TURSO | Audit memory-storage-turso unwrap/expect | P1 | 30m | B.3.5-CORE | refactorer |
+| B.3.1-CORE | Audit do-memory-core unwrap/expect | P1 | 30m | B.1.1 | refactorer |
+| B.3.2-CORE | Introduce error types in do-memory-core | P1 | 1-2h | B.3.1-CORE | feature-implementer |
+| B.3.3-CORE | Replace unwraps in do-memory-core | P1 | 1-2h | B.3.2-CORE | refactorer |
+| B.3.4-CORE | Add error path tests for do-memory-core | P1 | 30m | B.3.3-CORE | test-runner |
+| B.3.5-CORE | Validate do-memory-core | P1 | 30m | B.3.4-CORE | code-reviewer |
+| B.3.6-TURSO | Audit do-memory-storage-turso unwrap/expect | P1 | 30m | B.3.5-CORE | refactorer |
 | B.3.7-TURSO | Introduce error types in Turso | P1 | 1-2h | B.3.6-TURSO | feature-implementer |
 | B.3.8-TURSO | Replace unwraps in Turso | P1 | 1-2h | B.3.7-TURSO | refactorer |
 | B.3.9-TURSO | Add error path tests for Turso | P1 | 30m | B.3.8-TURSO | test-runner |
 | B.3.10-TURSO | Validate Turso | P1 | 30m | B.3.9-TURSO | code-reviewer |
-| B.3.11-REDB | Audit memory-storage-redb unwrap/expect | P1 | 30m | B.3.10-TURSO | refactorer |
+| B.3.11-REDB | Audit do-memory-storage-redb unwrap/expect | P1 | 30m | B.3.10-TURSO | refactorer |
 | B.3.12-REDB | Introduce error types in redb | P1 | 1-2h | B.3.11-REDB | feature-implementer |
 | B.3.13-REDB | Replace unwraps in redb | P1 | 1-2h | B.3.12-REDB | refactorer |
 | B.3.14-REDB | Add error path tests for redb | P1 | 30m | B.3.13-REDB | test-runner |
 | B.3.15-REDB | Validate redb | P1 | 30m | B.3.14-REDB | code-reviewer |
-| B.3.16-MCP | Audit memory-mcp unwrap/expect | P1 | 30m | B.3.15-REDB | refactorer |
+| B.3.16-MCP | Audit do-memory-mcp unwrap/expect | P1 | 30m | B.3.15-REDB | refactorer |
 | B.3.17-MCP | Introduce error types in MCP | P1 | 1h | B.3.16-MCP | feature-implementer |
 | B.3.18-MCP | Replace unwraps in MCP | P1 | 1h | B.3.17-MCP | refactorer |
 | B.3.19-MCP | Add error path tests for MCP | P1 | 30m | B.3.18-MCP | test-runner |
 | B.3.20-MCP | Validate MCP | P1 | 30m | B.3.19-MCP | code-reviewer |
-| B.3.21-CLI | Audit memory-cli unwrap/expect | P1 | 30m | B.3.20-MCP | refactorer |
+| B.3.21-CLI | Audit do-memory-cli unwrap/expect | P1 | 30m | B.3.20-MCP | refactorer |
 | B.3.22-CLI | Introduce error types in CLI | P1 | 1h | B.3.21-CLI | feature-implementer |
 | B.3.23-CLI | Replace unwraps in CLI | P1 | 1h | B.3.22-CLI | refactorer |
 | B.3.24-CLI | Add error path tests for CLI | P1 | 30m | B.3.23-CLI | test-runner |
@@ -127,7 +127,7 @@ GOAP: Monitor progress, collect results
       → B.2 complete: ≤10 ignored tests, ≤40 dead_code annotations
 ```
 
-**Day 3**: Phase B.3 Start - memory-core
+**Day 3**: Phase B.3 Start - do-memory-core
 ```
 GOAP: Execute B.3.1-CORE through B.3.5-CORE sequentially
       → refactorer: Audit unwraps
@@ -136,7 +136,7 @@ GOAP: Execute B.3.1-CORE through B.3.5-CORE sequentially
       → test-runner: Add error path tests
       → code-reviewer: Validate
 
-GOAP: Create atomic commit for memory-core
+GOAP: Create atomic commit for do-memory-core
       → git commit -m "refactor(core): improve error handling"
 ```
 
@@ -145,13 +145,13 @@ GOAP: Create atomic commit for memory-core
 **Day 4-5**: Phase B.3 - Storage Crates (Turso + redb)
 ```
 GOAP: Execute B.3.6-TURSO through B.3.10-TURSO sequentially
-      → [Same pattern as memory-core]
+      → [Same pattern as do-memory-core]
 
 GOAP: Create atomic commit for Turso
       → git commit -m "refactor(turso): improve error handling"
 
 GOAP: Execute B.3.11-REDB through B.3.15-REDB sequentially
-      → [Same pattern as memory-core]
+      → [Same pattern as do-memory-core]
 
 GOAP: Create atomic commit for redb
       → git commit -m "refactor(redb): improve error handling"
@@ -160,13 +160,13 @@ GOAP: Create atomic commit for redb
 **Day 6**: Phase B.3 - MCP + CLI
 ```
 GOAP: Execute B.3.16-MCP through B.3.20-MCP sequentially
-      → [Same pattern as memory-core]
+      → [Same pattern as do-memory-core]
 
 GOAP: Create atomic commit for MCP
       → git commit -m "refactor(mcp): improve error handling"
 
 GOAP: Execute B.3.21-CLI through B.3.25-CLI sequentially
-      → [Same pattern as memory-core]
+      → [Same pattern as do-memory-core]
 
 GOAP: Create atomic commit for CLI
       → git commit -m "refactor(cli): improve error handling"
@@ -230,7 +230,7 @@ cargo clippy --all 2>&1 | grep "dead_code"      # Should be ≤40
 One commit per completed task group:
 - B.2.1-B.2.4: Single commit for test triage
 - B.2.5-B.2.7: Single commit for dead_code cleanup
-- B.3.1-B.3.5-CORE: Single commit for memory-core
+- B.3.1-B.3.5-CORE: Single commit for do-memory-core
 - B.3.6-B.3.10-TURSO: Single commit for Turso
 - B.3.11-B.3.15-REDB: Single commit for redb
 - B.3.16-B.3.20-MCP: Single commit for MCP

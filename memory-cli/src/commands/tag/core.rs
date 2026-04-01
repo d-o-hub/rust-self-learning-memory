@@ -7,7 +7,7 @@ use super::types::{
 };
 use crate::config::Config;
 use crate::output::OutputFormat;
-use memory_core::SelfLearningMemory;
+use do_memory_core::SelfLearningMemory;
 use uuid::Uuid;
 
 mod stats_ops;

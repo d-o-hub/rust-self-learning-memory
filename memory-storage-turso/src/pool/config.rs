@@ -2,8 +2,8 @@
 //!
 //! Provides configuration structs, statistics tracking, and connection guards.
 
+use do_memory_core::{Error, Result};
 use libsql::Connection;
-use memory_core::{Error, Result};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use std::time::Duration;

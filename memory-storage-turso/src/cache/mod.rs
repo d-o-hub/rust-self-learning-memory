@@ -24,7 +24,7 @@
 //! ## Usage
 //!
 //! ```no_run
-//! use memory_storage_turso::{TursoStorage, CacheConfig};
+//! use do_memory_storage_turso::{TursoStorage, CacheConfig};
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! // Use default cache configuration
@@ -44,7 +44,7 @@
 //! ## Advanced Usage (AdaptiveTTLCache)
 //!
 //! ```no_run
-//! use memory_storage_turso::cache::{
+//! use do_memory_storage_turso::cache::{
 //!     AdaptiveTTLCache, TTLConfig, TTLConfigError
 //! };
 //! use std::time::Duration;
@@ -68,7 +68,7 @@
 //! ## Advanced Query Caching with Smart Invalidation
 //!
 //! ```no_run
-//! use memory_storage_turso::cache::{
+//! use do_memory_storage_turso::cache::{
 //!     AdvancedQueryCache, AdvancedQueryCacheConfig, InvalidationManager,
 //!     InvalidationConfig, TableDependency, QueryKey
 //! };

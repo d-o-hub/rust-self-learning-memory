@@ -323,14 +323,14 @@ Loop-agent can leverage skills each iteration:
 
 ---
 
-#### 13. memory-cli.md (573 lines)
+#### 13. do-memory-cli.md (573 lines)
 **Skill Integration**: Lines 15-22
 
 ```markdown
 ## Skills
 
 You have access to:
-- memory-cli-ops: CLI operations, commands, and usage patterns
+- do-memory-cli-ops: CLI operations, commands, and usage patterns
 - test-runner: Run CLI tests (unit, integration, security, performance)
 - code-quality: Ensure CLI code meets quality standards
 - build-compile: Build and verify CLI binary
@@ -712,7 +712,7 @@ POOR                                0 agents (0%)
 3. **Build/Compile**: build-compile
 4. **Debugging**: debug-troubleshoot, test-fix
 5. **Coordination**: agent-coordination, task-decomposition, parallel-execution
-6. **Domain-Specific**: memory-cli-ops, architecture-validation, plan-gap-analysis
+6. **Domain-Specific**: do-memory-cli-ops, architecture-validation, plan-gap-analysis
 7. **Episodic Memory**: episode-start, episode-log-steps, episode-complete
 
 ---
@@ -831,7 +831,7 @@ Plus body content showing invocation patterns.
 | feature-implementer.md | GOOD | 4 skills | Pipeline coverage |
 | goap-agent.md | EXCELLENT | 7 skills | Episode integration |
 | loop-agent.md | GOOD | 2 skills | Iteration-focused |
-| memory-cli.md | GOOD | 4 skills | CLI-specific |
+| do-memory-cli.md | GOOD | 4 skills | CLI-specific |
 | plan-gap-analyzer.md | EXCELLENT | 1 (YAML) | Formal declaration |
 | refactorer.md | GOOD | 4 skills | Refactoring workflow |
 | rust-quality-reviewer.md | EXCELLENT | 1 (YAML) | Professional approach |

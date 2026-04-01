@@ -35,7 +35,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
+    /// use do_memory_core::{SelfLearningMemory, TaskContext, TaskType, ComplexityLevel};
     ///
     /// # async fn example() {
     /// let memory = SelfLearningMemory::new();
@@ -155,8 +155,8 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
-    /// use memory_core::{ExecutionStep, ExecutionResult};
+    /// use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use do_memory_core::{ExecutionStep, ExecutionResult};
     ///
     /// # async fn example() {
     /// let memory = SelfLearningMemory::new();
@@ -285,8 +285,8 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::{SelfLearningMemory, TaskContext, TaskType};
-    /// use memory_core::ExecutionStep;
+    /// use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
+    /// use do_memory_core::ExecutionStep;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();

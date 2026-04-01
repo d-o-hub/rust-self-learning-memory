@@ -121,9 +121,9 @@
 
 ### Phase 2: DECOMPOSE
 1. Design storage interface (architecture)
-2. Implement for memory-core (base types)
-3. Implement for memory-storage-turso
-4. Implement for memory-storage-redb
+2. Implement for do-memory-core (base types)
+3. Implement for do-memory-storage-turso
+4. Implement for do-memory-storage-redb
 5. Integration testing
 6. Documentation
 

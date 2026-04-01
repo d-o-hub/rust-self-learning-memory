@@ -211,4 +211,47 @@ impl AuditLogger {
         )
         .await;
     }
+
+    // === External Signal Provider Operations ===
+
+    /// Log external signal provider configuration change
+    pub async fn log_external_signal_config(
+        &self,
+        client_id: &str,
+        provider: &str,
+        db_path: &str,
+        enabled: bool,
+        success: bool,
+    ) {
+        let metadata = json!({
+            "provider": provider,
+            "db_path": db_path,
+            "enabled": enabled
+        });
+
+        self.log_event(
+            AuditLogLevel::Warn,
+            client_id,
+            "external_signal_config_change",
+            if success { "success" } else { "failure" },
+            metadata,
+        )
+        .await;
+    }
+
+    /// Log external signal provider connection test
+    pub async fn log_external_signal_test(&self, client_id: &str, provider: &str, success: bool) {
+        let metadata = json!({
+            "provider": provider
+        });
+
+        self.log_event(
+            AuditLogLevel::Info,
+            client_id,
+            "external_signal_connection_test",
+            if success { "success" } else { "failure" },
+            metadata,
+        )
+        .await;
+    }
 }

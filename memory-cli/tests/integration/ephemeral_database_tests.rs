@@ -4,7 +4,7 @@
 //! and realistic data scenarios.
 
 use assert_cmd::Command;
-use memory_cli::test_utils::*;
+use do_memory_cli::do_memory_test_utils::*;
 use std::fs;
 use tempfile::TempDir;
 use tokio::runtime::Runtime;
@@ -66,7 +66,7 @@ batch_size = 10
             I: IntoIterator<Item = S>,
             S: AsRef<std::ffi::OsStr>,
         {
-            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string())).expect("Failed to find memory-cli binary");
+            let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string())).expect("Failed to find do-memory-cli binary");
             cmd.arg("--config").arg(&self.config_path);
             cmd.args(args);
             cmd
@@ -165,7 +165,7 @@ batch_size = 10
             .map(|_| {
                 let harness_clone = harness.config_path.clone();
                 std::thread::spawn(move || {
-                    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/memory-cli".to_string()));
+                    let mut cmd = Command::new(std::env::var("CARGO_BIN_EXE_do-memory-cli").unwrap_or_else(|_| "/workspaces/rust-self-learning-memory/target/debug/do-memory-cli".to_string()));
                     cmd.arg("--config").arg(harness_clone);
                     cmd.arg("config");
                     cmd.assert().success();

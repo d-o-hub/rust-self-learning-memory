@@ -213,7 +213,7 @@ systemctl restart memory-service
 
 ```bash
 export MEMORY_DISABLE_CIRCUIT_BREAKER=true
-memory-mcp-server
+do-memory-mcp-server
 ```
 
 #### Method 3: Runtime (If Implemented)
@@ -657,8 +657,8 @@ Or restart the service (circuit resets to closed state).
 
 ## Additional Resources
 
-- **Code**: `memory-core/src/embeddings/circuit_breaker.rs`
-- **Tests**: `memory-core/src/embeddings/circuit_breaker.rs::tests`
+- **Code**: `do-memory-core/src/embeddings/circuit_breaker.rs`
+- **Tests**: `do-memory-core/src/embeddings/circuit_breaker.rs::tests`
 - **Incident Runbook**: `plans/CIRCUIT_BREAKER_INCIDENT_RUNBOOK.md`
 - **Verification Report**: `plans/ANALYSIS_SWARM_VERIFICATION_REPORT.md`
 

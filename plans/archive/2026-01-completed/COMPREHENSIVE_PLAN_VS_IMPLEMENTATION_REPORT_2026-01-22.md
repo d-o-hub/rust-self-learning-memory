@@ -72,7 +72,7 @@ Result: ✅ PASS - 100% compliant
 
 #### 2.2 MCP Protocol Version
 **Plan Claim**: Upgrade to MCP 2025-11-25 specification
-**Actual**: ✅ Confirmed in `memory-mcp/src/protocol.rs:1`
+**Actual**: ✅ Confirmed in `do-memory-mcp/src/protocol.rs:1`
 ```rust
 pub const SUPPORTED_VERSIONS: &[&str] = &["2025-11-25", "2024-11-05"];
 ```
@@ -84,12 +84,12 @@ pub const SUPPORTED_VERSIONS: &[&str] = &["2025-11-25", "2024-11-05"];
 **Actual**: ✅ Confirmed via `Cargo.toml` files
 ```
 All 8 workspace crates at version: 0.1.12
-- memory-core
-- memory-storage-turso
-- memory-storage-redb
-- memory-mcp
-- memory-cli
-- test-utils
+- do-memory-core
+- do-memory-storage-turso
+- do-memory-storage-redb
+- do-memory-mcp
+- do-memory-cli
+- do-memory-test-utils
 - memory-benches
 - memory-examples
 ```
@@ -109,11 +109,11 @@ All 8 workspace crates at version: 0.1.12
 **Plan Claim**: Enabled by default with comprehensive runbook
 **Actual**: ✅ Implemented across 11 files
 ```
-memory-core/src/embeddings/circuit_breaker.rs
-memory-core/src/storage/circuit_breaker/mod.rs
-memory-core/src/storage/circuit_breaker/states.rs
-memory-core/src/storage/circuit_breaker/tests.rs
-memory-storage-turso/src/resilient.rs
+do-memory-core/src/embeddings/circuit_breaker.rs
+do-memory-core/src/storage/circuit_breaker/mod.rs
+do-memory-core/src/storage/circuit_breaker/states.rs
+do-memory-core/src/storage/circuit_breaker/tests.rs
+do-memory-storage-turso/src/resilient.rs
 ... (6 more files)
 ```
 
@@ -143,9 +143,9 @@ memory-storage-turso/src/resilient.rs
 **Actual Status** (verified 2026-01-22):
 ```
 Files >500 LOC (excluding tests):
-1. memory-mcp/src/server/mod.rs ................... 781 LOC ✅ Needs splitting
-2. memory-mcp/src/server/tools/batch_operations.rs . 753 LOC ✅ Needs splitting
-3. memory-mcp/src/server/tools/episode_lifecycle.rs 516 LOC ✅ Needs splitting
+1. do-memory-mcp/src/server/mod.rs ................... 781 LOC ✅ Needs splitting
+2. do-memory-mcp/src/server/tools/batch_operations.rs . 753 LOC ✅ Needs splitting
+3. do-memory-mcp/src/server/tools/episode_lifecycle.rs 516 LOC ✅ Needs splitting
 4. memory-benches/spatiotemporal_benchmark.rs .... 609 LOC ⚠️ Benchmark (exempt?)
 5. memory-benches/genesis_benchmark.rs ........... 571 LOC ⚠️ Benchmark (exempt?)
 6. memory-benches/episode_lifecycle.rs ............ 554 LOC ⚠️ Benchmark (exempt?)
@@ -204,7 +204,7 @@ find . -name "*.rs" -not -path "*/target/*" -not -path "*/tests/*" -not -path "*
 **Actual Status**:
 ```
 Lib tests only: 172 passed, 5 ignored, 0 failed
-(memory-core: 124, memory-storage-redb: 27, memory-storage-turso: 16, test-utils: 5)
+(do-memory-core: 124, do-memory-storage-redb: 27, do-memory-storage-turso: 16, do-memory-test-utils: 5)
 ```
 
 **Discrepancy**: 172 vs 424 tests - different test scopes being reported.
@@ -287,9 +287,9 @@ Lib tests only: 172 passed, 5 ignored, 0 failed
 ### Short-term Actions (This Week)
 
 3. **File Splitting Implementation**
-   - [ ] Split `memory-mcp/src/server/mod.rs` (781 LOC)
-   - [ ] Split `memory-mcp/src/server/tools/batch_operations.rs` (753 LOC)
-   - [ ] Split `memory-mcp/src/server/tools/episode_lifecycle.rs` (516 LOC)
+   - [ ] Split `do-memory-mcp/src/server/mod.rs` (781 LOC)
+   - [ ] Split `do-memory-mcp/src/server/tools/batch_operations.rs` (753 LOC)
+   - [ ] Split `do-memory-mcp/src/server/tools/episode_lifecycle.rs` (516 LOC)
 
 4. **Benchmark File Decision**
    - [ ] Clarify AGENTS.md policy on benchmark file sizes
@@ -364,7 +364,7 @@ find . -name "*.rs" -not -path "*/target/*" -not -path "*/tests/*" -exec wc -l {
 grep -r "\.unwrap\|\.expect" --include="*.rs" | wc -l
 
 # MCP protocol version check
-grep "SUPPORTED_VERSIONS" memory-mcp/src/protocol.rs
+grep "SUPPORTED_VERSIONS" do-memory-mcp/src/protocol.rs
 
 # Workspace version check
 grep "version.*=.*\"0.1" Cargo.toml memory-*/Cargo.toml

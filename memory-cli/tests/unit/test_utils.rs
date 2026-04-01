@@ -3,7 +3,7 @@
 //! Provides common test data generators, mock objects,
 //! and helper functions for unit testing.
 
-use memory_core::*;
+use do_memory_core::*;
 use std::collections::HashMap;
 
 /// Create a test episode with predictable data

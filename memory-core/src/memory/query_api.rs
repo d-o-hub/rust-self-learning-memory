@@ -80,7 +80,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
+    /// use do_memory_core::{SelfLearningMemory, EpisodeFilter, TaskType};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
@@ -138,7 +138,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::SelfLearningMemory;
+    /// use do_memory_core::SelfLearningMemory;
     /// use uuid::Uuid;
     ///
     /// # async fn example() -> anyhow::Result<()> {
@@ -174,7 +174,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::SelfLearningMemory;
+    /// use do_memory_core::SelfLearningMemory;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
@@ -211,7 +211,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::SelfLearningMemory;
+    /// use do_memory_core::SelfLearningMemory;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();
@@ -231,7 +231,7 @@ impl SelfLearningMemory {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::SelfLearningMemory;
+    /// use do_memory_core::SelfLearningMemory;
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let memory = SelfLearningMemory::new();

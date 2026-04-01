@@ -60,7 +60,7 @@ export TURSO_AUTH_TOKEN=""
 
 # Run benchmarks
 cargo bench --bench turso_vector_performance \
-  --features memory-storage-turso/turso_multi_dimension
+  --features do-memory-storage-turso/turso_multi_dimension
 ```
 
 ### Step 4: Verify Success
@@ -120,7 +120,7 @@ export TURSO_AUTH_TOKEN="<auth-token>"
 
 ```bash
 cargo bench --bench turso_vector_performance \
-  --features memory-storage-turso/turso_multi_dimension
+  --features do-memory-storage-turso/turso_multi_dimension
 ```
 
 ### Step 5: Verify Success

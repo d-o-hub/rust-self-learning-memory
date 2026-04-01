@@ -376,13 +376,13 @@ assert!(result.is_err());
 
 ```rust
 // Add tags via CLI
-memory-cli tag add <episode-id> bug-fix critical
+do-memory-cli tag add <episode-id> bug-fix critical
 
 // Search by tags
-memory-cli tag search --tags bug-fix,critical --all
+do-memory-cli tag search --tags bug-fix,critical --all
 
 // List episode tags
-memory-cli tag list <episode-id>
+do-memory-cli tag list <episode-id>
 ```
 
 ### MCP Client Integration
@@ -441,7 +441,7 @@ The episode tagging tools include comprehensive test coverage:
 
 Run tests:
 ```bash
-cargo test --package memory-mcp --lib episode_tags
+cargo test --package do-memory-mcp --lib episode_tags
 ```
 
 ---
@@ -476,6 +476,6 @@ Potential improvements for future versions:
 
 ## See Also
 
-- [Episode Management API](../memory-core/EPISODE_MANAGEMENT.md)
-- [Memory Core Documentation](../memory-core/README.md)
+- [Episode Management API](../do-memory-core/EPISODE_MANAGEMENT.md)
+- [Memory Core Documentation](../do-memory-core/README.md)
 - [MCP Protocol Specification](./README.md)

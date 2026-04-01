@@ -3,10 +3,10 @@
 ## Files Created/Modified
 
 ### Created:
-- `memory-core/src/embeddings/config/provider_config.rs` (374 lines)
+- `do-memory-core/src/embeddings/config/provider_config.rs` (374 lines)
 
 ### Modified:
-- `memory-core/src/embeddings/config/mod.rs` - Added exports for provider_config module and submodules (openai, mistral)
+- `do-memory-core/src/embeddings/config/mod.rs` - Added exports for provider_config module and submodules (openai, mistral)
 
 ## Implementation Details
 

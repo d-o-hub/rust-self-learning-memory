@@ -1,8 +1,8 @@
 //! Integration tests for LRU cache with TTL expiration
 
 use chrono::Utc;
-use memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
-use memory_storage_redb::{CacheConfig, RedbStorage};
+use do_memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
+use do_memory_storage_redb::{CacheConfig, RedbStorage};
 use std::collections::HashMap;
 use tempfile::tempdir;
 use tokio::time::{Duration, sleep};

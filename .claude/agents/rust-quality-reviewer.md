@@ -45,7 +45,7 @@ find . -name "lib.rs" -o -name "mod.rs" | xargs head -20
 - Good module hierarchy
 
 ⚠️ **Issues**:
-- memory-core/src/memory.rs: 623 lines (target: <500)
+- do-memory-core/src/memory.rs: 623 lines (target: <500)
   - **Recommendation**: Split into submodules (memory/core.rs, memory/lifecycle.rs)
   - **Priority**: Medium
   - **Effort**: 3-4 hours
@@ -55,7 +55,7 @@ find . -name "lib.rs" -o -name "mod.rs" | xargs head -20
 
 **Action Items**:
 - [ ] Refactor memory.rs into submodules
-- [ ] Review naming consistency in test-utils crate
+- [ ] Review naming consistency in do-memory-test-utils crate
 ```
 
 ### 2. Error Handling Review
@@ -119,7 +119,7 @@ pub fn get_episode(&self, id: Uuid) -> Episode {
 
 ⚠️ **Issues**:
 - 3 unwrap() calls in production code:
-  1. memory-core/src/sync.rs:145 - `config.unwrap()`
+  1. do-memory-core/src/sync.rs:145 - `config.unwrap()`
      - **Risk**: Panic if config is None
      - **Fix**: Use `.ok_or(Error::MissingConfig)?`
      - **Priority**: High
@@ -204,7 +204,7 @@ pub async fn store_episode(&self, episode: &Episode) -> Result<()> {
 
 ⚠️ **Issues**:
 - Blocking call in async context:
-  - memory-core/src/sync.rs:89 - `std::fs::read(path)`
+  - do-memory-core/src/sync.rs:89 - `std::fs::read(path)`
     - **Fix**: Use `tokio::fs::read(path).await`
     - **Impact**: Blocks Tokio runtime thread pool
     - **Priority**: High
@@ -279,7 +279,7 @@ pub fn get_description(&self) -> Cow<'_, str> {
 
 ⚠️ **Issues**:
 - Unnecessary clones in 4 locations:
-  1. memory-core/src/extraction.rs:234 - `episode.context.clone()`
+  1. do-memory-core/src/extraction.rs:234 - `episode.context.clone()`
      - **Context**: Used only for read access
      - **Fix**: Pass &episode.context instead
      - **Impact**: Reduces allocations
@@ -321,7 +321,7 @@ echo "=== Benchmarks ==="
 ls -la benches/
 
 # Find test utilities
-rg "pub fn.*test|mock|fixture" test-utils/src/ --glob "*.rs"
+rg "pub fn.*test|mock|fixture" do-memory-test-utils/src/ --glob "*.rs"
 ```
 
 **Quality Metrics**:
@@ -336,9 +336,9 @@ rg "pub fn.*test|mock|fixture" test-utils/src/ --glob "*.rs"
 ⚠️ **Issues**:
 - Test coverage: 78% (target: >90%)
   - **Low coverage in**:
-    - memory-core/src/extraction.rs: 62%
-    - memory-core/src/sync.rs: 45%
-    - memory-mcp/src/sandbox.rs: 71%
+    - do-memory-core/src/extraction.rs: 62%
+    - do-memory-core/src/sync.rs: 45%
+    - do-memory-mcp/src/sandbox.rs: 71%
   - **Recommendation**: Add tests for edge cases
 
 - Missing integration tests for:
@@ -394,11 +394,11 @@ rg "/// # Example|```rust" --glob "src/*.rs" | wc -l
 
 ⚠️ **Issues**:
 - Missing examples in 3 functions:
-  1. memory-core/src/extraction.rs:extract_patterns()
-  2. memory-mcp/src/server.rs:list_tools()
+  1. do-memory-core/src/extraction.rs:extract_patterns()
+  2. do-memory-mcp/src/server.rs:list_tools()
 
 - Module-level docs incomplete:
-  - memory-core/src/reward.rs missing module docs
+  - do-memory-core/src/reward.rs missing module docs
 
 **Action Items**:
 - [ ] Add examples to extract_patterns()
@@ -491,7 +491,7 @@ rg "validate|sanitize|check.*len|max.*size" --glob "*.rs"
 
 ⚠️ **Issues**:
 - Resource limits defined but not enforced:
-  - memory-mcp/src/sandbox.rs:123
+  - do-memory-mcp/src/sandbox.rs:123
     - **Config**: max_memory_mb = 128
     - **Enforcement**: Not implemented
     - **Risk**: DoS via memory exhaustion

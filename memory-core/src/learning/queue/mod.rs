@@ -8,8 +8,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use memory_core::learning::queue::{PatternExtractionQueue, QueueConfig};
-//! use memory_core::memory::SelfLearningMemory;
+//! use do_memory_core::learning::queue::{PatternExtractionQueue, QueueConfig};
+//! use do_memory_core::memory::SelfLearningMemory;
 //! use std::sync::Arc;
 //!
 //! #[tokio::main]

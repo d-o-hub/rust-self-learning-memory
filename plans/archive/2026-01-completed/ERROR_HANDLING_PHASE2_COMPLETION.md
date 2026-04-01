@@ -24,49 +24,49 @@ Successfully completed **Phase 2** of error handling improvements by:
 
 ### Files Modified in Phase 2 (8 files)
 
-#### 1. memory-core/src/embeddings/circuit_breaker.rs
+#### 1. do-memory-core/src/embeddings/circuit_breaker.rs
 - **Fixed**: 6 Mutex lock unwraps
 - **Pattern**: All lock operations now use `.expect()` with context
 - **Message**: "CircuitBreaker: state lock poisoned - this indicates a panic in circuit breaker code"
 - **Impact**: Better debugging for lock poisoning scenarios
 
-#### 2. memory-cli/src/commands/embedding.rs
+#### 2. do-memory-cli/src/commands/embedding.rs
 - **Fixed**: 2 unwraps on `.min()` and `.max()`
 - **Context**: Guaranteed non-empty by loop with iterations > 0
 - **Message**: "durations is non-empty: guaranteed by loop with iterations > 0"
 - **Impact**: Prevents panic on empty collections
 
-#### 3. memory-core/src/memory/retrieval/context.rs
+#### 3. do-memory-core/src/memory/retrieval/context.rs
 - **Fixed**: 1 Option unwrap
 - **Context**: None case handled by early return
 - **Message**: "scored_episodes is Some: None case handled by early return above"
 - **Impact**: Clear control flow documentation
 
-#### 4. memory-cli/src/config/validator.rs
+#### 4. do-memory-cli/src/config/validator.rs
 - **Fixed**: 1 Option unwrap
 - **Context**: is_some() checked in if condition
 - **Message**: "redb_path is Some: checked by is_some() in if condition"
 - **Impact**: Safe access after validation
 
-#### 5. memory-cli/src/config/wizard/database.rs
+#### 5. do-memory-cli/src/config/wizard/database.rs
 - **Fixed**: 1 Option unwrap
 - **Context**: Value set on previous line
 - **Message**: "turso_url is Some: just set on line 50"
 - **Impact**: Clear data flow
 
-#### 6. memory-cli/src/commands/storage/commands.rs
+#### 6. do-memory-cli/src/commands/storage/commands.rs
 - **Fixed**: 2 ProgressStyle template unwraps
 - **Context**: Template string is constant
 - **Message**: "ProgressStyle template is valid: uses standard format"
 - **Impact**: Low risk but proper error context
 
-#### 7. memory-mcp/src/patterns/predictive/kdtree.rs
+#### 7. do-memory-mcp/src/patterns/predictive/kdtree.rs
 - **Fixed**: 2 Vec access unwraps (first/last)
 - **Context**: len > 1 checked before access
 - **Message**: "values is non-empty: checked by len > 1"
 - **Impact**: Prevents panic on empty vectors
 
-#### 8. memory-mcp/src/mcp/tools/quality_metrics/tool.rs
+#### 8. do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs
 - **Fixed**: 1 HashMap get_mut unwrap
 - **Context**: All buckets pre-initialized
 - **Message**: "bucket exists: all buckets initialized in distribution HashMap"
@@ -90,18 +90,18 @@ Successfully completed **Phase 2** of error handling improvements by:
 ### Files Modified Summary (10 total)
 
 **Phase 1:**
-1. memory-core/src/retrieval/cache/lru.rs (1 unwrap)
-2. memory-cli/src/config/loader.rs (26 unwraps)
+1. do-memory-core/src/retrieval/cache/lru.rs (1 unwrap)
+2. do-memory-cli/src/config/loader.rs (26 unwraps)
 
 **Phase 2:**
-3. memory-core/src/embeddings/circuit_breaker.rs (6 unwraps)
-4. memory-cli/src/commands/embedding.rs (2 unwraps)
-5. memory-core/src/memory/retrieval/context.rs (1 unwrap)
-6. memory-cli/src/config/validator.rs (1 unwrap)
-7. memory-cli/src/config/wizard/database.rs (1 unwrap)
-8. memory-cli/src/commands/storage/commands.rs (2 unwraps)
-9. memory-mcp/src/patterns/predictive/kdtree.rs (2 unwraps)
-10. memory-mcp/src/mcp/tools/quality_metrics/tool.rs (1 unwrap)
+3. do-memory-core/src/embeddings/circuit_breaker.rs (6 unwraps)
+4. do-memory-cli/src/commands/embedding.rs (2 unwraps)
+5. do-memory-core/src/memory/retrieval/context.rs (1 unwrap)
+6. do-memory-cli/src/config/validator.rs (1 unwrap)
+7. do-memory-cli/src/config/wizard/database.rs (1 unwrap)
+8. do-memory-cli/src/commands/storage/commands.rs (2 unwraps)
+9. do-memory-mcp/src/patterns/predictive/kdtree.rs (2 unwraps)
+10. do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs (1 unwrap)
 
 ---
 

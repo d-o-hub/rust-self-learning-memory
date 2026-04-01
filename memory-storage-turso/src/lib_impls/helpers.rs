@@ -2,8 +2,8 @@
 //!
 //! This module contains helper methods for TursoStorage.
 
+use do_memory_core::{Error, Result};
 use libsql::Connection;
-use memory_core::{Error, Result};
 use std::time::Instant;
 use tracing::{debug, error, warn};
 
@@ -93,7 +93,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```rust,no_run
-    /// # use memory_storage_turso::TursoStorage;
+    /// # use do_memory_storage_turso::TursoStorage;
     /// # async fn example(storage: &TursoStorage) -> anyhow::Result<()> {
     /// let (conn, conn_id) = storage.get_connection_with_id().await?;
     /// // Use conn and conn_id with prepare_cached
@@ -220,7 +220,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::{TursoStorage, CacheConfig};
+    /// # use do_memory_storage_turso::{TursoStorage, CacheConfig};
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;
     /// let cached = storage.with_cache_default();
@@ -244,7 +244,7 @@ impl TursoStorage {
     /// # Example
     ///
     /// ```no_run
-    /// # use memory_storage_turso::{TursoStorage, CacheConfig};
+    /// # use do_memory_storage_turso::{TursoStorage, CacheConfig};
     /// # use std::time::Duration;
     /// # async fn example() -> anyhow::Result<()> {
     /// let storage = TursoStorage::new("file:test.db", "").await?;

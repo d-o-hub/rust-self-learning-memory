@@ -7,13 +7,13 @@ Use the MCP Inspector to validate implementation against best practices: https:/
 ### Step 1: Build and Prepare
 
 ```bash
-cargo build --release --bin memory-mcp-server
+cargo build --release --bin do-memory-mcp-server
 ```
 
 ### Step 2: Launch Inspector
 
 ```bash
-npx -y @modelcontextprotocol/inspector ./target/release/memory-mcp-server
+npx -y @modelcontextprotocol/inspector ./target/release/do-memory-mcp-server
 ```
 
 ### Step 3: Validate Tools

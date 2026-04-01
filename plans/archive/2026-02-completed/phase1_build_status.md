@@ -2,7 +2,7 @@
 
 **Generated**: 2026-02-11
 **Branch**: pr-272
-**Commit**: d2691de - fix(memory-mcp): relax BOCPD CI threshold and fix sandbox escaping
+**Commit**: d2691de - fix(do-memory-mcp): relax BOCPD CI threshold and fix sandbox escaping
 **Author**: Build Status Agent
 
 ---
@@ -30,12 +30,12 @@ All workspace crates build successfully with no compilation errors.
 ### Build Details
 
 ```
-   Compiling memory-core v0.1.14
-   Compiling memory-storage-redb v0.1.14
-   Compiling test-utils v0.1.14
-   Compiling memory-storage-turso v0.1.14
-   Compiling memory-cli v0.1.14
-   Compiling memory-mcp v0.1.14
+   Compiling do-memory-core v0.1.14
+   Compiling do-memory-storage-redb v0.1.14
+   Compiling do-memory-test-utils v0.1.14
+   Compiling do-memory-storage-turso v0.1.14
+   Compiling do-memory-cli v0.1.14
+   Compiling do-memory-mcp v0.1.14
    Compiling memory-benches v0.1.14
    Compiling memory-examples v0.1.14
    Finished `dev` profile [unoptimized + debuginfo] target(s) in 36.30s
@@ -45,12 +45,12 @@ All workspace crates build successfully with no compilation errors.
 
 | Crate | Version | Status | Notes |
 |-------|---------|--------|-------|
-| memory-core | v0.1.14 | ✅ Built | Core memory operations |
-| memory-storage-redb | v0.1.14 | ✅ Built | Cache layer (postcard) |
-| memory-storage-turso | v0.1.14 | ✅ Built | Primary storage (libSQL) |
-| memory-mcp | v0.1.14 | ✅ Built | MCP server with sandbox |
-| memory-cli | v0.1.14 | ✅ Built | Full-featured CLI (9 commands) |
-| test-utils | v0.1.14 | ✅ Built | Shared test utilities |
+| do-memory-core | v0.1.14 | ✅ Built | Core memory operations |
+| do-memory-storage-redb | v0.1.14 | ✅ Built | Cache layer (postcard) |
+| do-memory-storage-turso | v0.1.14 | ✅ Built | Primary storage (libSQL) |
+| do-memory-mcp | v0.1.14 | ✅ Built | MCP server with sandbox |
+| do-memory-cli | v0.1.14 | ✅ Built | Full-featured CLI (9 commands) |
+| do-memory-test-utils | v0.1.14 | ✅ Built | Shared test utilities |
 | memory-benches | v0.1.14 | ✅ Built | Benchmark suite |
 | memory-examples | v0.1.14 | ✅ Built | Usage examples |
 
@@ -73,22 +73,22 @@ Overall test pass rate: **99.86%**
 
 | Crate | Passed | Failed | Ignored | Pass Rate |
 |-------|--------|--------|---------|-----------|
-| memory-core | ~450 | 1 | 0 | 99.78% |
-| memory-cli | 98 | 0 | 0 | 100% |
-| memory-storage-redb | ~50 | 0 | 0 | 100% |
-| memory-storage-turso | ~50 | 0 | 0 | 100% |
-| memory-mcp | ~69 | 0 | 0 | 100% |
+| do-memory-core | ~450 | 1 | 0 | 99.78% |
+| do-memory-cli | 98 | 0 | 0 | 100% |
+| do-memory-storage-redb | ~50 | 0 | 0 | 100% |
+| do-memory-storage-turso | ~50 | 0 | 0 | 100% |
+| do-memory-mcp | ~69 | 0 | 0 | 100% |
 | **TOTAL** | **717** | **1** | **0** | **99.86%** |
 
 ### Failed Test Analysis
 
 #### Test: `embeddings::local::tests::test_real_embedding_generation`
 
-**Location**: `memory-core/src/embeddings/local.rs:375`
+**Location**: `do-memory-core/src/embeddings/local.rs:375`
 
 **Error**:
 ```
-thread 'embeddings::local::tests::test_real_embedding_generation' panicked at memory-core/src/embeddings/local.rs:375:9:
+thread 'embeddings::local::tests::test_real_embedding_generation' panicked at do-memory-core/src/embeddings/local.rs:375:9:
 AI/ML similarity (0.8612946) should be higher than ML/cooking (0.8715687)
 ```
 
@@ -140,12 +140,12 @@ The following test categories all pass:
 ### Summary: ✅ ZERO WARNINGS
 
 ```
-    Checking memory-core v0.1.14
-    Checking memory-storage-redb v0.1.14
-    Checking test-utils v0.1.14
-    Checking memory-storage-turso v0.1.14
-    Checking memory-cli v0.1.14
-    Checking memory-mcp v0.1.14
+    Checking do-memory-core v0.1.14
+    Checking do-memory-storage-redb v0.1.14
+    Checking do-memory-test-utils v0.1.14
+    Checking do-memory-storage-turso v0.1.14
+    Checking do-memory-cli v0.1.14
+    Checking do-memory-mcp v0.1.14
     Checking memory-examples v0.1.14
     Checking memory-benches v0.1.14
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 54.50s
@@ -214,7 +214,7 @@ No critical issues require immediate attention. PR #272 is ready for:
 
 #### 1. Fix Pre-existing Test Failure
 **Priority**: LOW  
-**File**: `memory-core/src/embeddings/local.rs:375`
+**File**: `do-memory-core/src/embeddings/local.rs:375`
 
 ```rust
 // Current (failing):

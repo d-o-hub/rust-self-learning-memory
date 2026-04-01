@@ -28,7 +28,7 @@ The embedding configuration system has been successfully refactored from a singl
 
 #### 1. Provider-Specific Configurations
 
-**OpenAI Configuration** (`memory-core/src/embeddings/config/openai/`)
+**OpenAI Configuration** (`do-memory-core/src/embeddings/config/openai/`)
 - ✅ `OpenAIModel` enum (Ada002, TextEmbedding3Small, TextEmbedding3Large)
 - ✅ `EncodingFormat` enum (Float, Base64)
 - ✅ `OpenAIConfig` struct with builder pattern
@@ -37,7 +37,7 @@ The embedding configuration system has been successfully refactored from a singl
 - ✅ Complete validation logic
 - ✅ 6 comprehensive unit tests
 
-**Mistral Configuration** (`memory-core/src/embeddings/config/mistral/`)
+**Mistral Configuration** (`do-memory-core/src/embeddings/config/mistral/`)
 - ✅ `MistralModel` enum (MistralEmbed, CodestralEmbed)
 - ✅ `OutputDtype` enum (Float, Int8, Uint8, Binary, Ubinary)
 - ✅ `MistralConfig` struct with builder pattern
@@ -50,7 +50,7 @@ The embedding configuration system has been successfully refactored from a singl
 
 #### 2. Unified Provider Configuration
 
-**ProviderConfig Enum** (`memory-core/src/embeddings/config/provider_config.rs`)
+**ProviderConfig Enum** (`do-memory-core/src/embeddings/config/provider_config.rs`)
 - ✅ Wraps all provider configs (Local, OpenAI, Mistral, AzureOpenAI, Custom)
 - ✅ Type-safe enum with serde serialization
 - ✅ Unified interface methods:
@@ -66,7 +66,7 @@ The embedding configuration system has been successfully refactored from a singl
 
 #### 3. Provider Implementations
 
-**OpenAI Provider** (`memory-core/src/embeddings/openai/client.rs`)
+**OpenAI Provider** (`do-memory-core/src/embeddings/openai/client.rs`)
 - ✅ Updated to use `OpenAIConfig`
 - ✅ Supports custom dimensions parameter
 - ✅ Supports encoding format parameter
@@ -74,7 +74,7 @@ The embedding configuration system has been successfully refactored from a singl
 - ✅ Updated to use new request types
 - ✅ Full `EmbeddingProvider` trait implementation
 
-**Mistral Provider** (`memory-core/src/embeddings/mistral/`)
+**Mistral Provider** (`do-memory-core/src/embeddings/mistral/`)
 - ✅ NEW: `MistralEmbeddingProvider` implementation
 - ✅ Supports both mistral-embed (text) and codestral-embed (code)
 - ✅ Handles all output dtypes (Float, Int8, Uint8, Binary, Ubinary)
@@ -86,7 +86,7 @@ The embedding configuration system has been successfully refactored from a singl
 
 #### 4. Top-Level Integration
 
-**Embedding Module** (`memory-core/src/embeddings/`)
+**Embedding Module** (`do-memory-core/src/embeddings/`)
 - ✅ Updated to export new config types
 - ✅ Updated `SemanticService` to use `ProviderConfig`
 - ✅ Updated `EmbeddingService` to accept new config
@@ -94,7 +94,7 @@ The embedding configuration system has been successfully refactored from a singl
 - ✅ Removed all `ModelConfig` references
 - ✅ Updated all utility functions
 
-**Examples** (`memory-core/examples/`)
+**Examples** (`do-memory-core/examples/`)
 - ✅ Created `embedding_config_refactor.rs` with comprehensive examples
 - ✅ Updated `embeddings_end_to_end.rs`
 - ✅ Updated `embedding_optimization_demo.rs`
@@ -118,7 +118,7 @@ The embedding configuration system has been successfully refactored from a singl
 ### New Files Created (17)
 
 ```
-memory-core/src/embeddings/config/
+do-memory-core/src/embeddings/config/
 ├── openai/
 │   ├── mod.rs                    (10 lines)
 │   ├── config.rs                 (260 lines)
@@ -129,22 +129,22 @@ memory-core/src/embeddings/config/
 │   └── types.rs                 (129 lines)
 └── provider_config.rs             (374 lines)
 
-memory-core/src/embeddings/mistral/
+do-memory-core/src/embeddings/mistral/
 ├── mod.rs                        (10 lines)
 ├── client.rs                     (340 lines)
 └── types.rs                      (6 lines)
 
-memory-core/src/embeddings/config/legacy/
+do-memory-core/src/embeddings/config/legacy/
 └── model_config.rs               (241 lines) - Backup
 
-memory-core/examples/
+do-memory-core/examples/
 └── embedding_config_refactor.rs  (New comprehensive examples)
 ```
 
 ### Files Modified (13)
 
 ```
-memory-core/src/embeddings/
+do-memory-core/src/embeddings/
 ├── mod.rs                        - Updated exports
 ├── config/mod.rs                  - Updated exports
 ├── config/embedding_config.rs     - Use ProviderConfig
@@ -158,17 +158,17 @@ memory-core/src/embeddings/
 ├── real_model/model.rs          - Updated imports
 └── tests.rs                    - Use ProviderConfig
 
-memory-core/src/memory/tests/
+do-memory-core/src/memory/tests/
 └── semantic_tests.rs            - Updated imports
 
-memory-core/tests/
+do-memory-core/tests/
 └── embedding_integration_test.rs  - Updated imports
 ```
 
 ### Files Deleted (1)
 
 ```
-memory-core/src/embeddings/config/model_config.rs - Removed deprecated ModelConfig
+do-memory-core/src/embeddings/config/model_config.rs - Removed deprecated ModelConfig
 ```
 
 ---
@@ -177,7 +177,7 @@ memory-core/src/embeddings/config/model_config.rs - Removed deprecated ModelConf
 
 ### 1. Mistral Config Bug (1 line change)
 
-**Location**: `memory-core/src/embeddings/config/mistral/config.rs:184`
+**Location**: `do-memory-core/src/embeddings/config/mistral/config.rs:184`
 
 **Current Code** (WRONG):
 ```rust
@@ -209,7 +209,7 @@ pub fn with_output_dimension(mut self, dimension: usize) -> Self {
 
 ### 2. Memory-MCP Integration (9 locations)
 
-**Location**: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+**Location**: `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
 
 **Issues**:
 - Line 9: Import of non-existent `ModelConfig`
@@ -272,7 +272,7 @@ config.provider_config.effective_dimension()
 
 ### 3. Example Files (3 locations)
 
-**Location**: `memory-core/examples/embedding_optimization_demo.rs`
+**Location**: `do-memory-core/examples/embedding_optimization_demo.rs`
 
 **Issue**: Still uses `ModelConfig::openai_3_small()` constructor
 
@@ -425,11 +425,11 @@ let config: EmbeddingConfig = serde_json::from_str(config_json)?;
 ### Immediate (Critical)
 
 1. **Fix Mistral config assertion bug** - 1 line change
-   - File: `memory-core/src/embeddings/config/mistral/config.rs:184`
+   - File: `do-memory-core/src/embeddings/config/mistral/config.rs:184`
    - Change `!self.model.supports_output_dimension()` to `self.model.supports_output_dimension()`
 
-2. **Update memory-mcp server** - 9 location updates
-   - File: `memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
+2. **Update do-memory-mcp server** - 9 location updates
+   - File: `do-memory-mcp/src/mcp/tools/embeddings/tool/execute.rs`
    - Replace ModelConfig imports with ProviderConfig
    - Update all constructor calls
    - Update struct initialization
@@ -438,7 +438,7 @@ let config: EmbeddingConfig = serde_json::from_str(config_json)?;
 ### Short-term (High Priority)
 
 3. **Update example files** - 3 location updates
-   - File: `memory-core/examples/embedding_optimization_demo.rs`
+   - File: `do-memory-core/examples/embedding_optimization_demo.rs`
    - Replace ModelConfig:: with ProviderConfig::
 
 4. **Investigate serialization test** - Test debugging
@@ -524,7 +524,7 @@ Code Coverage:            >90%
 
 ### Partially Met Criteria
 
-- ⚠️ All dependent crates updated (memory-mcp needs updates)
+- ⚠️ All dependent crates updated (do-memory-mcp needs updates)
 - ⚠️ All tests pass (1 assertion bug, 1 serialization issue)
 
 ### Not Yet Met Criteria
@@ -544,7 +544,7 @@ The embedding configuration refactor is **90% complete** and production-ready fo
 4. **Extensibility**: Easy to add new providers via `ProviderConfig` enum
 5. **Developer Experience**: Fluent builder patterns and comprehensive examples
 
-The remaining 10% consists of straightforward API migration work in dependent crates (memory-mcp) and minor bug fixes. The core refactor is sound, tested, and ready for production use.
+The remaining 10% consists of straightforward API migration work in dependent crates (do-memory-mcp) and minor bug fixes. The core refactor is sound, tested, and ready for production use.
 
 **Recommendation**: Proceed with fixing the identified issues to achieve 100% completion. The architecture is correct and the remaining work is mechanical API updates.
 

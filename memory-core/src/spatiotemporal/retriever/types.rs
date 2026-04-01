@@ -22,8 +22,8 @@ use uuid::Uuid;
 /// # Examples
 ///
 /// ```
-/// use memory_core::spatiotemporal::retriever::RetrievalQuery;
-/// use memory_core::types::TaskType;
+/// use do_memory_core::spatiotemporal::retriever::RetrievalQuery;
+/// use do_memory_core::types::TaskType;
 /// use std::collections::HashMap;
 /// use uuid::Uuid;
 ///
@@ -70,7 +70,7 @@ pub struct RetrievalQuery {
 /// # Examples
 ///
 /// ```
-/// use memory_core::spatiotemporal::retriever::HierarchicalScore;
+/// use do_memory_core::spatiotemporal::retriever::HierarchicalScore;
 /// use uuid::Uuid;
 ///
 /// let scored = HierarchicalScore {

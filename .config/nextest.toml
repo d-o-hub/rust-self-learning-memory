@@ -21,11 +21,11 @@ status-level = "skip"
 
 # CLI integration tests that spawn cargo run need longer timeouts
 [[profile.default.overrides]]
-filter = "package(memory-cli) and test(update)"
+filter = "package(do-memory-cli) and test(update)"
 slow-timeout = { period = "180s", terminate-after = 2 }
 
 [[profile.ci.overrides]]
-filter = "package(memory-cli) and test(update)"
+filter = "package(do-memory-cli) and test(update)"
 slow-timeout = { period = "180s", terminate-after = 2 }
 
 [[profile.ci.overrides]]

@@ -15,7 +15,7 @@ I analyzed the codebase for Phase 2 optimizations and discovered that **ALL majo
 
 ### 1. **Keep-Alive Connection Pool** ✅ IMPLEMENTED
 
-**Location**: `memory-storage-turso/src/pool/keepalive.rs`
+**Location**: `do-memory-storage-turso/src/pool/keepalive.rs`
 **Status**: Fully implemented with 652 lines of production code
 
 **Features Found**:
@@ -49,7 +49,7 @@ pub struct KeepAliveConfig {
 
 ### 2. **Adaptive Connection Pool** ✅ IMPLEMENTED
 
-**Location**: `memory-storage-turso/src/pool/adaptive.rs` + `sizing.rs`
+**Location**: `do-memory-storage-turso/src/pool/adaptive.rs` + `sizing.rs`
 **Status**: Fully implemented with dynamic scaling
 
 **Features Found**:
@@ -87,8 +87,8 @@ pub struct AdaptivePoolConfig {
 ### 3. **Compression** ✅ IMPLEMENTED
 
 **Locations**: 
-- `memory-storage-turso/src/compression.rs`
-- `memory-storage-turso/src/transport/compression.rs`
+- `do-memory-storage-turso/src/compression.rs`
+- `do-memory-storage-turso/src/transport/compression.rs`
 
 **Status**: Dual compression system implemented
 
@@ -106,7 +106,7 @@ pub struct AdaptivePoolConfig {
 
 ### 4. **Prepared Statement Caching** ✅ ALREADY DONE (Phase 1)
 
-**Location**: `memory-storage-turso/src/prepared/cache.rs`
+**Location**: `do-memory-storage-turso/src/prepared/cache.rs`
 **Status**: Implemented in Phase 1
 
 ---

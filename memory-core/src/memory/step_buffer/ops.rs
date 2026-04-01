@@ -22,8 +22,8 @@ impl StepBuffer {
     /// # Examples
     ///
     /// ```
-    /// use memory_core::memory::step_buffer::StepBuffer;
-    /// use memory_core::{BatchConfig, ExecutionStep};
+    /// use do_memory_core::memory::step_buffer::StepBuffer;
+    /// use do_memory_core::{BatchConfig, ExecutionStep};
     /// use uuid::Uuid;
     ///
     /// # fn example() -> anyhow::Result<()> {

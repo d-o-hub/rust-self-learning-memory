@@ -20,7 +20,7 @@ pub use ground_truth::{
 };
 pub use helpers::{create_episodes_with_patterns, create_test_context};
 
-use memory_core::{
+use do_memory_core::{
     patterns::{EffectivenessTracker, PatternMetrics, PatternValidator, ValidationConfig},
     Pattern, PatternExtractor,
 };

@@ -75,7 +75,7 @@ impl AgentMonitor {
     /// # Example
     ///
     /// ```no_run
-    /// use memory_core::monitoring::AgentMonitor;
+    /// use do_memory_core::monitoring::AgentMonitor;
     /// use std::time::Instant;
     ///
     /// # async fn example() -> anyhow::Result<()> {

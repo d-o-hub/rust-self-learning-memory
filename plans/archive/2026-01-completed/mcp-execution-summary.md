@@ -1,7 +1,7 @@
-# Execution Summary: Debug "memory-mcp Failed to get tools" Error
+# Execution Summary: Debug "do-memory-mcp Failed to get tools" Error
 
 ## Executive Summary
-Successfully identified and fixed the root cause of the "Failed to get tools" error in the memory-mcp server. The issue was a JSON field naming mismatch between the Rust struct definition and the MCP protocol specification. The fix involves adding a serde `rename` attribute to correctly serialize the `inputSchema` field in camelCase format.
+Successfully identified and fixed the root cause of the "Failed to get tools" error in the do-memory-mcp server. The issue was a JSON field naming mismatch between the Rust struct definition and the MCP protocol specification. The fix involves adding a serde `rename` attribute to correctly serialize the `inputSchema` field in camelCase format.
 
 ## Execution Overview
 
@@ -54,12 +54,12 @@ Successfully identified and fixed the root cause of the "Failed to get tools" er
 ## Phase 2: Code Analysis (COMPLETE ✅)
 
 ### Files Analyzed
-1. **memory-mcp/src/protocol.rs** - MCP protocol handlers and types
-2. **memory-mcp/src/server/mod.rs** - Server implementation and tool creation
-3. **memory-mcp/src/bin/server/core.rs** - Tool listing handler
-4. **memory-mcp/src/bin/server/jsonrpc.rs** - JSON-RPC request routing
-5. **memory-mcp/src/types.rs** - Tool and type definitions
-6. **memory-mcp/src/server/tools/core.rs** - Tool execution methods
+1. **do-memory-mcp/src/protocol.rs** - MCP protocol handlers and types
+2. **do-memory-mcp/src/server/mod.rs** - Server implementation and tool creation
+3. **do-memory-mcp/src/bin/server/core.rs** - Tool listing handler
+4. **do-memory-mcp/src/bin/server/jsonrpc.rs** - JSON-RPC request routing
+5. **do-memory-mcp/src/types.rs** - Tool and type definitions
+6. **do-memory-mcp/src/server/tools/core.rs** - Tool execution methods
 
 ### Key Findings
 1. **Tools Created**: 11 tools defined in `create_default_tools()`
@@ -78,7 +78,7 @@ Successfully identified and fixed the root cause of the "Failed to get tools" er
 ### Root Cause Identified
 **Primary Issue**: JSON field naming mismatch
 
-**File**: `/workspaces/feat-phase3/memory-mcp/src/protocol.rs`
+**File**: `/workspaces/feat-phase3/do-memory-mcp/src/protocol.rs`
 **Lines**: 59-63
 
 **The Problem**:
@@ -174,7 +174,7 @@ let mcp_tools: Vec<McpTool> = tools
 
 ### Build Status
 ```
-cargo build --release --package memory-mcp
+cargo build --release --package do-memory-mcp
 ```
 **Result**: Timeout (>120 seconds)
 **Impact**: Cannot verify compilation and run tests yet

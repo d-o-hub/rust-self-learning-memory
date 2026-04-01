@@ -1,13 +1,13 @@
 //! Integration tests for embedding MCP tools
 #![allow(clippy::expect_used)]
 
-use memory_core::SelfLearningMemory;
-use memory_mcp::mcp::tools::embeddings::{
+use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, EmbeddingTools, QuerySemanticMemoryInput, configure_embeddings_tool,
     query_semantic_memory_tool, test_embeddings_tool,
 };
-use memory_mcp::server::MemoryMCPServer;
-use memory_mcp::types::SandboxConfig;
+use do_memory_mcp::server::MemoryMCPServer;
+use do_memory_mcp::types::SandboxConfig;
 use std::sync::Arc;
 
 /// Disable WASM sandbox for all tests to prevent rquickjs GC crashes

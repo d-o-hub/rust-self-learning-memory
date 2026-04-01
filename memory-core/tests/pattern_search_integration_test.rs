@@ -1,6 +1,6 @@
 //! Integration tests for semantic pattern search
 
-use memory_core::{
+use do_memory_core::{
     ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
 
@@ -137,7 +137,7 @@ async fn test_pattern_search_with_filters() {
     };
 
     // Search with strict config
-    let config = memory_core::memory::SearchConfig::strict();
+    let config = do_memory_core::memory::SearchConfig::strict();
 
     let results = memory
         .search_patterns_with_config("ETL pipeline", context, config, 10)

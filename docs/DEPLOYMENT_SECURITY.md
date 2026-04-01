@@ -69,12 +69,12 @@ This guide provides comprehensive security hardening procedures for deploying th
 
 - [ ] **Binary Stripping** (optional)
   ```bash
-  strip target/release/memory-mcp-server
+  strip target/release/do-memory-mcp-server
   ```
 
 - [ ] **Checksum Generation**
   ```bash
-  sha256sum target/release/memory-mcp-server > memory-mcp-server.sha256
+  sha256sum target/release/do-memory-mcp-server > do-memory-mcp-server.sha256
   ```
 
 ### Deployment Configuration
@@ -89,8 +89,8 @@ This guide provides comprehensive security hardening procedures for deploying th
 
 - [ ] **Secure File Permissions**
   ```bash
-  chmod 600 /etc/memory-mcp/.env
-  chown memory-mcp:memory-mcp /etc/memory-mcp/.env
+  chmod 600 /etc/do-memory-mcp/.env
+  chown do-memory-mcp:do-memory-mcp /etc/do-memory-mcp/.env
   ```
 
 - [ ] **Required Environment Variables Set**
@@ -103,38 +103,38 @@ This guide provides comprehensive security hardening procedures for deploying th
   export MCP_RATE_LIMIT_ENABLED=true
   export AUDIT_LOG_ENABLED=true
   export AUDIT_LOG_DESTINATION=file
-  export AUDIT_LOG_FILE_PATH=/var/log/memory-mcp/audit.log
+  export AUDIT_LOG_FILE_PATH=/var/log/do-memory-mcp/audit.log
   ```
 
 #### System Hardening
 
 - [ ] **Dedicated Service User**
   ```bash
-  sudo useradd --system --no-create-home --shell /bin/false memory-mcp
+  sudo useradd --system --no-create-home --shell /bin/false do-memory-mcp
   ```
 
 - [ ] **Limited File System Access**
   ```bash
   # Create restricted directories
-  sudo mkdir -p /var/lib/memory-mcp
-  sudo mkdir -p /var/log/memory-mcp
-  sudo chown -R memory-mcp:memory-mcp /var/lib/memory-mcp /var/log/memory-mcp
-  sudo chmod 750 /var/lib/memory-mcp
-  sudo chmod 755 /var/log/memory-mcp
+  sudo mkdir -p /var/lib/do-memory-mcp
+  sudo mkdir -p /var/log/do-memory-mcp
+  sudo chown -R do-memory-mcp:do-memory-mcp /var/lib/do-memory-mcp /var/log/do-memory-mcp
+  sudo chmod 750 /var/lib/do-memory-mcp
+  sudo chmod 755 /var/log/do-memory-mcp
   ```
 
 - [ ] **Systemd Security Directives**
   ```ini
   [Service]
-  User=memory-mcp
-  Group=memory-mcp
+  User=do-memory-mcp
+  Group=do-memory-mcp
   
   # Security hardening
   NoNewPrivileges=true
   PrivateTmp=true
   ProtectSystem=strict
   ProtectHome=true
-  ReadWritePaths=/var/lib/memory-mcp /var/log/memory-mcp
+  ReadWritePaths=/var/lib/do-memory-mcp /var/log/do-memory-mcp
   ProtectKernelTunables=true
   ProtectKernelModules=true
   ProtectControlGroups=true
@@ -155,7 +155,7 @@ This guide provides comprehensive security hardening procedures for deploying th
 **Best for**: Development, single-server deployments
 
 ```bash
-# /etc/memory-mcp/.env
+# /etc/do-memory-mcp/.env
 TURSO_DATABASE_URL=libsql://prod-db.turso.io
 TURSO_AUTH_TOKEN=your-token-here
 MCP_RATE_LIMIT_ENABLED=true
@@ -164,13 +164,13 @@ MCP_RATE_LIMIT_ENABLED=true
 **Security**:
 ```bash
 # Restrict access
-sudo chmod 600 /etc/memory-mcp/.env
-sudo chown root:root /etc/memory-mcp/.env
+sudo chmod 600 /etc/do-memory-mcp/.env
+sudo chown root:root /etc/do-memory-mcp/.env
 
 # Load in systemd
-# /etc/systemd/system/memory-mcp.service
+# /etc/systemd/system/do-memory-mcp.service
 [Service]
-EnvironmentFile=/etc/memory-mcp/.env
+EnvironmentFile=/etc/do-memory-mcp/.env
 ```
 
 #### Option 2: HashiCorp Vault (Recommended)
@@ -197,10 +197,10 @@ auto_auth {
 }
 
 template {
-  destination = "/etc/memory-mcp/.env"
+  destination = "/etc/do-memory-mcp/.env"
   contents = <<EOT
-TURSO_DATABASE_URL={{ with secret "secret/data/memory-mcp" }}{{ .Data.data.database_url }}{{ end }}
-TURSO_AUTH_TOKEN={{ with secret "secret/data/memory-mcp" }}{{ .Data.data.auth_token }}{{ end }}
+TURSO_DATABASE_URL={{ with secret "secret/data/do-memory-mcp" }}{{ .Data.data.database_url }}{{ end }}
+TURSO_AUTH_TOKEN={{ with secret "secret/data/do-memory-mcp" }}{{ .Data.data.auth_token }}{{ end }}
 EOT
 }
 ```
@@ -214,7 +214,7 @@ EOT
 apiVersion: v1
 kind: Secret
 metadata:
-  name: memory-mcp-secrets
+  name: do-memory-mcp-secrets
 type: Opaque
 stringData:
   TURSO_DATABASE_URL: "libsql://prod-db.turso.io"
@@ -223,16 +223,16 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: memory-mcp
+  name: do-memory-mcp
 spec:
   template:
     spec:
       containers:
-      - name: memory-mcp
-        image: memory-mcp:v0.1.13
+      - name: do-memory-mcp
+        image: do-memory-mcp:v0.1.13
         envFrom:
         - secretRef:
-            name: memory-mcp-secrets
+            name: do-memory-mcp-secrets
 ```
 
 #### Option 4: Cloud Provider Secret Managers
@@ -241,19 +241,19 @@ spec:
 ```bash
 # Retrieve secret
 aws secretsmanager get-secret-value \
-  --secret-id memory-mcp/production \
+  --secret-id do-memory-mcp/production \
   --query SecretString \
-  --output text | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' > /etc/memory-mcp/.env
+  --output text | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' > /etc/do-memory-mcp/.env
 ```
 
 **Google Secret Manager**:
 ```bash
-gcloud secrets versions access latest --secret=memory-mcp-prod > /etc/memory-mcp/.env
+gcloud secrets versions access latest --secret=do-memory-mcp-prod > /etc/do-memory-mcp/.env
 ```
 
 **Azure Key Vault**:
 ```bash
-az keyvault secret show --name memory-mcp-prod --vault-name my-vault --query value -o tsv > /etc/memory-mcp/.env
+az keyvault secret show --name do-memory-mcp-prod --vault-name my-vault --query value -o tsv > /etc/do-memory-mcp/.env
 ```
 
 ### Secret Rotation
@@ -266,8 +266,8 @@ az keyvault secret show --name memory-mcp-prod --vault-name my-vault --query val
 
 set -euo pipefail
 
-SERVICE_NAME="memory-mcp"
-LOG_FILE="/var/log/memory-mcp/secret-rotation.log"
+SERVICE_NAME="do-memory-mcp"
+LOG_FILE="/var/log/do-memory-mcp/secret-rotation.log"
 
 log() {
     echo "$(date -Iseconds) - $1" | tee -a "$LOG_FILE"
@@ -279,7 +279,7 @@ NEW_TOKEN=$(turso db tokens create prod-memory-db --expiration 90d)
 
 # 2. Update secret store (example with Vault)
 log "Updating Vault secret..."
-vault kv put secret/memory-mcp auth_token="$NEW_TOKEN"
+vault kv put secret/do-memory-mcp auth_token="$NEW_TOKEN"
 
 # 3. Signal service to reload (graceful rotation)
 log "Reloading service..."
@@ -335,8 +335,8 @@ export TURSO_DATABASE_URL="libsql://your-db.turso.io"
 use memory_storage_turso::TursoConfig;
 
 let config = TursoConfig {
-    tls_cert_path: Some("/etc/ssl/certs/memory-mcp.crt".to_string()),
-    tls_key_path: Some("/etc/ssl/private/memory-mcp.key".to_string()),
+    tls_cert_path: Some("/etc/ssl/certs/do-memory-mcp.crt".to_string()),
+    tls_key_path: Some("/etc/ssl/private/do-memory-mcp.key".to_string()),
     ..Default::default()
 };
 ```
@@ -430,7 +430,7 @@ iptables -A INPUT -j DROP
 
 ```json
 {
-  "GroupName": "memory-mcp-sg",
+  "GroupName": "do-memory-mcp-sg",
   "Description": "Security group for Memory MCP servers",
   "VpcId": "vpc-xxxxxxxx",
   "IngressRules": [
@@ -492,17 +492,17 @@ maxretry = 5
 enabled = true
 port = 22
 
-[memory-mcp]
+[do-memory-mcp]
 enabled = true
 port = 3000
-filter = memory-mcp
-logpath = /var/log/memory-mcp/audit.log
+filter = do-memory-mcp
+logpath = /var/log/do-memory-mcp/audit.log
 maxretry = 10
 bantime = 3600
 EOF
 
 # Create fail2ban filter
-sudo tee /etc/fail2ban/filter.d/memory-mcp.conf > /dev/null <<EOF
+sudo tee /etc/fail2ban/filter.d/do-memory-mcp.conf > /dev/null <<EOF
 [Definition]
 failregex = ^.*"client_id":"<HOST>".*"operation":"authentication".*"result":"failure".*$
 ignoreregex = ^.*"result":"success".*$
@@ -534,22 +534,22 @@ sudo chmod +x /etc/cron.daily/aide-check
 
 ```bash
 # Create dedicated log partition
-sudo mkdir -p /var/log/memory-mcp
+sudo mkdir -p /var/log/do-memory-mcp
 
 # Set restrictive permissions
-sudo chmod 755 /var/log/memory-mcp
-sudo chown root:root /var/log/memory-mcp
+sudo chmod 755 /var/log/do-memory-mcp
+sudo chown root:root /var/log/do-memory-mcp
 
 # Enable audit log rotation
-sudo tee /etc/logrotate.d/memory-mcp > /dev/null <<EOF
-/var/log/memory-mcp/*.log {
+sudo tee /etc/logrotate.d/do-memory-mcp > /dev/null <<EOF
+/var/log/do-memory-mcp/*.log {
     daily
     rotate 30
     compress
     delaycompress
     missingok
     notifempty
-    create 0600 memory-mcp memory-mcp
+    create 0600 do-memory-mcp do-memory-mcp
     postrotate
         /bin/kill -HUP \$(cat /var/run/syslog-ng.pid 2> /dev/null) 2> /dev/null || true
     endscript
@@ -557,9 +557,9 @@ sudo tee /etc/logrotate.d/memory-mcp > /dev/null <<EOF
 EOF
 
 # Ship logs to remote SIEM
-sudo tee /etc/rsyslog.d/99-memory-mcp.conf > /dev/null <<EOF
+sudo tee /etc/rsyslog.d/99-do-memory-mcp.conf > /dev/null <<EOF
 # Forward audit logs to SIEM
-:programname, isequal, "memory-mcp" @@siem.example.com:514
+:programname, isequal, "do-memory-mcp" @@siem.example.com:514
 EOF
 
 sudo systemctl restart rsyslog
@@ -588,7 +588,7 @@ RUN cargo build --release --workspace
 FROM gcr.io/distroless/cc-debian12
 
 # Copy binary
-COPY --from=builder /usr/src/app/target/release/memory-mcp-server /usr/local/bin/
+COPY --from=builder /usr/src/app/target/release/do-memory-mcp-server /usr/local/bin/
 
 # Use non-root user
 USER 1000:1000
@@ -598,9 +598,9 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/usr/local/bin/memory-mcp-server", "health-check"] || exit 1
+  CMD ["/usr/local/bin/do-memory-mcp-server", "health-check"] || exit 1
 
-ENTRYPOINT ["/usr/local/bin/memory-mcp-server"]
+ENTRYPOINT ["/usr/local/bin/do-memory-mcp-server"]
 ```
 
 ### Container Runtime Security
@@ -610,7 +610,7 @@ ENTRYPOINT ["/usr/local/bin/memory-mcp-server"]
 ```bash
 # Run with security options
 docker run -d \
-  --name memory-mcp \
+  --name do-memory-mcp \
   --read-only \
   --security-opt no-new-privileges:true \
   --security-opt seccomp=default.json \
@@ -624,7 +624,7 @@ docker run -d \
   -p 3000:3000 \
   -e TURSO_DATABASE_URL \
   -e TURSO_AUTH_TOKEN \
-  memory-mcp:v0.1.13
+  do-memory-mcp:v0.1.13
 ```
 
 #### Kubernetes Security
@@ -634,7 +634,7 @@ docker run -d \
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: memory-mcp
+  name: do-memory-mcp
 spec:
   template:
     spec:
@@ -646,8 +646,8 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-      - name: memory-mcp
-        image: memory-mcp:v0.1.13
+      - name: do-memory-mcp
+        image: do-memory-mcp:v0.1.13
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -666,7 +666,7 @@ spec:
         - name: tmp
           mountPath: /tmp
         - name: cache
-          mountPath: /var/lib/memory-mcp
+          mountPath: /var/lib/do-memory-mcp
       volumes:
       - name: tmp
         emptyDir:
@@ -678,7 +678,7 @@ spec:
 apiVersion: policy/v1
 kind: PodSecurityPolicy
 metadata:
-  name: memory-mcp-psp
+  name: do-memory-mcp-psp
 spec:
   privileged: false
   allowPrivilegeEscalation: false
@@ -740,16 +740,16 @@ PRAGMA journal_mode = WAL;
 
 ```bash
 # Secure cache directory
-sudo mkdir -p /var/lib/memory-mcp
-sudo chmod 700 /var/lib/memory-mcp
-sudo chown memory-mcp:memory-mcp /var/lib/memory-mcp
+sudo mkdir -p /var/lib/do-memory-mcp
+sudo chmod 700 /var/lib/do-memory-mcp
+sudo chown do-memory-mcp:do-memory-mcp /var/lib/do-memory-mcp
 
 # Encrypt cache at rest (if needed)
 # Using LUKS for volume encryption
 sudo cryptsetup luksFormat /dev/sdb1
 sudo cryptsetup open /dev/sdb1 memory-cache
 sudo mkfs.ext4 /dev/mapper/memory-cache
-sudo mount /dev/mapper/memory-cache /var/lib/memory-mcp
+sudo mount /dev/mapper/memory-cache /var/lib/do-memory-mcp
 ```
 
 ---
@@ -858,7 +858,7 @@ fi
 
 # 3. Check file permissions
 echo "[3/10] Checking file permissions..."
-if [ "$(stat -c %a /etc/memory-mcp/.env 2>/dev/null)" != "600" ]; then
+if [ "$(stat -c %a /etc/do-memory-mcp/.env 2>/dev/null)" != "600" ]; then
     echo "  FAIL: .env file permissions too permissive"
     FAILED=$((FAILED + 1))
 else
@@ -894,7 +894,7 @@ fi
 
 # 7. Check service user
 echo "[7/10] Checking service user..."
-if ! id memory-mcp >/devdev/null 2>&1; then
+if ! id do-memory-mcp >/devdev/null 2>&1; then
     echo "  WARN: Dedicated service user not found"
 else
     echo "  PASS: Service user exists"
@@ -910,7 +910,7 @@ fi
 
 # 9. Check log rotation
 echo "[9/10] Checking log rotation..."
-if [ ! -f /etc/logrotate.d/memory-mcp ]; then
+if [ ! -f /etc/logrotate.d/do-memory-mcp ]; then
     echo "  WARN: Log rotation not configured"
 else
     echo "  PASS: Log rotation configured"

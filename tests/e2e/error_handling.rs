@@ -11,10 +11,10 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use memory_core::SelfLearningMemory;
-use memory_core::episode::ExecutionStep;
-use memory_core::types::{TaskContext, TaskOutcome, TaskType};
-use memory_storage_redb::RedbStorage;
+use do_memory_core::SelfLearningMemory;
+use do_memory_core::episode::ExecutionStep;
+use do_memory_core::types::{TaskContext, TaskOutcome, TaskType};
+use do_memory_storage_redb::RedbStorage;
 use serial_test::serial;
 use std::sync::Arc;
 use tempfile::tempdir;
@@ -38,7 +38,7 @@ async fn setup_test_memory() -> (Arc<SelfLearningMemory>, tempfile::TempDir) {
         .expect("Failed to create cache storage");
 
     // Use zero quality threshold for testing to avoid rejecting simple test episodes
-    let config: memory_core::MemoryConfig = memory_core::MemoryConfig {
+    let config: do_memory_core::MemoryConfig = do_memory_core::MemoryConfig {
         quality_threshold: 0.0,
         ..Default::default()
     };
@@ -86,9 +86,12 @@ async fn test_invalid_uuid_handling() {
     ];
 
     for uuid_str in invalid_uuids {
-        // Try to parse UUID
+        // Try to parse UUID - invalid test data, not sensitive
         let parse_result = Uuid::parse_str(uuid_str);
-        assert!(parse_result.is_err(), "UUID {} should be invalid", uuid_str);
+        assert!(
+            parse_result.is_err(),
+            "Invalid UUID format should be rejected"
+        );
     }
 
     println!("✓ Invalid UUID handling test passed");

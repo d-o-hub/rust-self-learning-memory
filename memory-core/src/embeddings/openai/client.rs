@@ -26,8 +26,8 @@ use std::time::Instant;
 ///
 /// # Example
 /// ```no_run
-/// use memory_core::embeddings::openai::{OpenAIEmbeddingProvider, OpenAIConfig};
-/// use memory_core::embeddings::config::openai::OpenAIModel;
+/// use do_memory_core::embeddings::openai::{OpenAIEmbeddingProvider, OpenAIConfig};
+/// use do_memory_core::embeddings::config::openai::OpenAIModel;
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {

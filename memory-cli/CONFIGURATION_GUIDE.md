@@ -7,7 +7,7 @@ This guide covers all configuration options for the Memory CLI, including progre
 ### Interactive Wizard (Recommended for First-Time Setup)
 
 ```bash
-memory-cli config wizard
+do-memory-cli config wizard
 ```
 
 The wizard will guide you through:
@@ -44,12 +44,12 @@ Manual configuration via file:
 The CLI searches for configuration files in this order:
 
 1. **Explicit path**: `--config /path/to/config.toml`
-2. `memory-cli.toml`
-3. `memory-cli.json`
-4. `memory-cli.yaml`
-5. `.memory-cli.toml`
-6. `.memory-cli.json`
-7. `.memory-cli.yaml`
+2. `do-memory-cli.toml`
+3. `do-memory-cli.json`
+4. `do-memory-cli.yaml`
+5. `.do-memory-cli.toml`
+6. `.do-memory-cli.json`
+7. `.do-memory-cli.yaml`
 
 
 ## Progressive Disclosure Configuration
@@ -70,7 +70,7 @@ Memory CLI uses progressive disclosure to reveal configuration options based on 
 turso_url = "libsql://your-db.turso.io"
 turso_token = "your-auth-token"
 # OR
-redb_path = "~/.local/share/memory-cli/memory.redb"
+redb_path = "~/.local/share/do-memory-cli/memory.redb"
 
 # Level 2: Performance (shown after first use)
 [storage]
@@ -218,7 +218,7 @@ batch_size = 100
 ### Development Configuration
 
 ```toml
-# memory-cli.toml - Development setup
+# do-memory-cli.toml - Development setup
 [database]
 turso_url = "libsql://dev-db.turso.io"
 turso_token = "dev-token-123"
@@ -237,7 +237,7 @@ batch_size = 50
 ### Production Configuration
 
 ```toml
-# memory-cli.toml - Production setup
+# do-memory-cli.toml - Production setup
 [database]
 turso_url = "libsql://prod-db.turso.io"
 turso_token = "prod-token-456"
@@ -256,7 +256,7 @@ batch_size = 200
 ### Testing Configuration
 
 ```toml
-# memory-cli.toml - Testing setup
+# do-memory-cli.toml - Testing setup
 [database]
 # Use in-memory redb for testing
 redb_path = ":memory:"
@@ -275,7 +275,7 @@ batch_size = 10
 ### CI/CD Configuration
 
 ```toml
-# .memory-cli.toml - CI/CD setup
+# .do-memory-cli.toml - CI/CD setup
 [database]
 turso_url = "libsql://ci-db.turso.io"
 turso_token = "ci-token-789"
@@ -346,7 +346,7 @@ export MEMORY_TURSO_URL="libsql://override-db.turso.io"
 export MEMORY_TURSO_TOKEN="override-token"
 
 # Run CLI with overrides
-memory-cli storage health
+do-memory-cli storage health
 ```
 
 ### Complete Environment Variable Reference
@@ -363,10 +363,10 @@ The CLI validates configuration on startup. Use the `config` command to check yo
 
 ```bash
 # Validate configuration
-memory-cli config
+do-memory-cli config
 
 # Validate specific config file
-memory-cli --config custom.toml config
+do-memory-cli --config custom.toml config
 ```
 
 ### Validation Rules
@@ -389,21 +389,21 @@ memory-cli --config custom.toml config
 
 ```bash
 # Secure configuration file permissions
-chmod 600 memory-cli.toml
+chmod 600 do-memory-cli.toml
 
 # Secure directory permissions
-chmod 700 ~/.config/memory-cli/
+chmod 700 ~/.config/do-memory-cli/
 ```
 
 ### Example Secure Setup
 
 ```bash
 # Create secure config directory
-mkdir -p ~/.config/memory-cli
-cd ~/.config/memory-cli
+mkdir -p ~/.config/do-memory-cli
+cd ~/.config/do-memory-cli
 
 # Create configuration file
-cat > memory-cli.toml << EOF
+cat > do-memory-cli.toml << EOF
 [database]
 turso_url = "libsql://secure-db.turso.io"
 # Token will be provided via environment variable
@@ -420,13 +420,13 @@ batch_size = 100
 EOF
 
 # Set secure permissions
-chmod 600 memory-cli.toml
+chmod 600 do-memory-cli.toml
 
 # Set environment variable
 export MEMORY_TURSO_TOKEN="your-secure-token"
 
 # Test configuration
-memory-cli config
+do-memory-cli config
 ```
 
 ## Troubleshooting Configuration
@@ -436,16 +436,16 @@ memory-cli config
 1. **"Configuration file not found"**
    ```bash
    # Check if file exists
-   ls -la memory-cli.toml
+   ls -la do-memory-cli.toml
 
    # Try explicit path
-   memory-cli --config ./memory-cli.toml config
+   do-memory-cli --config ./do-memory-cli.toml config
    ```
 
 2. **"Invalid configuration format"**
    ```bash
    # Validate TOML syntax
-   python3 -c "import tomllib; tomllib.load(open('memory-cli.toml', 'rb'))"
+   python3 -c "import tomllib; tomllib.load(open('do-memory-cli.toml', 'rb'))"
 
    # Check for common mistakes:
    # - Missing quotes around strings
@@ -456,7 +456,7 @@ memory-cli config
 3. **"Database connection failed"**
    ```bash
    # Check URL format
-   grep turso_url memory-cli.toml
+   grep turso_url do-memory-cli.toml
 
    # Verify token
    echo $MEMORY_TURSO_TOKEN | head -c 10  # Should show start of token
@@ -468,10 +468,10 @@ memory-cli config
 4. **"Permission denied"**
    ```bash
    # Check file permissions
-   ls -la memory-cli.toml
+   ls -la do-memory-cli.toml
 
    # Fix permissions
-   chmod 600 memory-cli.toml
+   chmod 600 do-memory-cli.toml
    ```
 
 ### Debug Configuration
@@ -479,7 +479,7 @@ memory-cli config
 Enable verbose logging to see configuration loading:
 
 ```bash
-memory-cli --verbose config
+do-memory-cli --verbose config
 ```
 
 This will show:
@@ -496,14 +496,14 @@ Create separate configuration files for different environments:
 
 ```bash
 # Development
-cp memory-cli.toml memory-cli.dev.toml
+cp do-memory-cli.toml do-memory-cli.dev.toml
 
 # Production
-cp memory-cli.toml memory-cli.prod.toml
+cp do-memory-cli.toml do-memory-cli.prod.toml
 
 # Use with aliases
-alias memory-cli-dev='memory-cli --config memory-cli.dev.toml'
-alias memory-cli-prod='memory-cli --config memory-cli.prod.toml'
+alias do-memory-cli-dev='do-memory-cli --config do-memory-cli.dev.toml'
+alias do-memory-cli-prod='do-memory-cli --config do-memory-cli.prod.toml'
 ```
 
 ### Configuration Templates
@@ -512,7 +512,7 @@ Use a base configuration with environment-specific overrides:
 
 ```bash
 # Base configuration
-cat > memory-cli.base.toml << EOF
+cat > do-memory-cli.base.toml << EOF
 [storage]
 max_episodes_cache = 1000
 cache_ttl_seconds = 3600
@@ -525,8 +525,8 @@ batch_size = 100
 EOF
 
 # Environment-specific overrides
-cat > memory-cli.dev.toml << EOF
-import = "memory-cli.base.toml"
+cat > do-memory-cli.dev.toml << EOF
+import = "do-memory-cli.base.toml"
 
 [database]
 turso_url = "libsql://dev-db.turso.io"
@@ -544,14 +544,14 @@ EOF
 #!/bin/bash
 # Backup current configuration
 
-BACKUP_DIR="$HOME/.memory-cli-backups"
+BACKUP_DIR="$HOME/.do-memory-cli-backups"
 mkdir -p "$BACKUP_DIR"
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/memory-cli_$TIMESTAMP.toml"
+BACKUP_FILE="$BACKUP_DIR/do-memory-cli_$TIMESTAMP.toml"
 
-if [ -f "memory-cli.toml" ]; then
-    cp memory-cli.toml "$BACKUP_FILE"
+if [ -f "do-memory-cli.toml" ]; then
+    cp do-memory-cli.toml "$BACKUP_FILE"
     echo "Configuration backed up to: $BACKUP_FILE"
 else
     echo "No configuration file found to backup"
@@ -568,31 +568,31 @@ echo "=== Memory CLI Configuration Validation ==="
 echo
 
 # Check if config exists
-if [ -f "memory-cli.toml" ]; then
-    echo "✓ Configuration file found: memory-cli.toml"
+if [ -f "do-memory-cli.toml" ]; then
+    echo "✓ Configuration file found: do-memory-cli.toml"
 else
     echo "✗ No configuration file found"
-    echo "  Create one with: memory-cli --help"
+    echo "  Create one with: do-memory-cli --help"
     exit 1
 fi
 
 # Validate with CLI
 echo
 echo "Validating configuration..."
-if memory-cli config > /dev/null 2>&1; then
+if do-memory-cli config > /dev/null 2>&1; then
     echo "✓ Configuration is valid"
 else
     echo "✗ Configuration validation failed"
-    memory-cli config
+    do-memory-cli config
     exit 1
 fi
 
 # Show configuration summary
 echo
 echo "Configuration summary:"
-echo "- Database: $(grep -c 'turso_url\|redb_path' memory-cli.toml) storage backend(s) configured"
-echo "- Cache: $(grep 'max_episodes_cache' memory-cli.toml | cut -d'=' -f2 | tr -d ' ') episodes max"
-echo "- CLI: $(grep 'default_format' memory-cli.toml | cut -d'=' -f2 | tr -d ' \"') output format"
+echo "- Database: $(grep -c 'turso_url\|redb_path' do-memory-cli.toml) storage backend(s) configured"
+echo "- Cache: $(grep 'max_episodes_cache' do-memory-cli.toml | cut -d'=' -f2 | tr -d ' ') episodes max"
+echo "- CLI: $(grep 'default_format' do-memory-cli.toml | cut -d'=' -f2 | tr -d ' \"') output format"
 
 echo
 echo "=== Validation Complete ==="

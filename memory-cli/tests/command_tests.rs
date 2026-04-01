@@ -1,4 +1,4 @@
-use memory_cli::test_utils::CliHarness;
+use do_memory_cli::test_utils::CliHarness;
 use predicates::prelude::*;
 
 #[test]

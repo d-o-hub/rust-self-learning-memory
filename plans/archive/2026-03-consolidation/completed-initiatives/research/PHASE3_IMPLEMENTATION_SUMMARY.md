@@ -154,8 +154,8 @@ Where:
 #### Task 5.1: Update retrieve_relevant_context Method
 **Status**: ✅ COMPLETE
 **Modified Files**: 
-- `memory-core/src/memory/retrieval.rs` (+70 lines)
-- `memory-core/src/memory/mod.rs` (+10 lines)
+- `do-memory-core/src/memory/retrieval.rs` (+70 lines)
+- `do-memory-core/src/memory/mod.rs` (+10 lines)
 
 **Changes Implemented**:
 1. Added Phase 3 module imports

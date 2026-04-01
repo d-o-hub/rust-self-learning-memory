@@ -5,18 +5,18 @@
 
 use crate::server::MemoryMCPServer;
 use anyhow::{Result, anyhow};
-use memory_core::{TaskContext, TaskType};
+use do_memory_core::{TaskContext, TaskType};
 use serde_json::{Value, json};
 use tracing::debug;
 use tracing::info;
 
 /// Parse complexity string to enum
-fn parse_complexity(s: &str) -> memory_core::ComplexityLevel {
+fn parse_complexity(s: &str) -> do_memory_core::ComplexityLevel {
     match s {
-        "simple" => memory_core::ComplexityLevel::Simple,
-        "moderate" => memory_core::ComplexityLevel::Moderate,
-        "complex" => memory_core::ComplexityLevel::Complex,
-        _ => memory_core::ComplexityLevel::Moderate,
+        "simple" => do_memory_core::ComplexityLevel::Simple,
+        "moderate" => do_memory_core::ComplexityLevel::Moderate,
+        "complex" => do_memory_core::ComplexityLevel::Complex,
+        _ => do_memory_core::ComplexityLevel::Moderate,
     }
 }
 
@@ -100,7 +100,7 @@ impl MemoryMCPServer {
             .get("complexity")
             .and_then(|v| v.as_str())
             .map(parse_complexity)
-            .unwrap_or(memory_core::ComplexityLevel::Moderate);
+            .unwrap_or(do_memory_core::ComplexityLevel::Moderate);
 
         // Create task context
         let context = TaskContext {
@@ -159,19 +159,19 @@ mod tests {
     fn test_parse_complexity() {
         assert_eq!(
             parse_complexity("simple"),
-            memory_core::ComplexityLevel::Simple
+            do_memory_core::ComplexityLevel::Simple
         );
         assert_eq!(
             parse_complexity("moderate"),
-            memory_core::ComplexityLevel::Moderate
+            do_memory_core::ComplexityLevel::Moderate
         );
         assert_eq!(
             parse_complexity("complex"),
-            memory_core::ComplexityLevel::Complex
+            do_memory_core::ComplexityLevel::Complex
         );
         assert_eq!(
             parse_complexity("unknown"),
-            memory_core::ComplexityLevel::Moderate
+            do_memory_core::ComplexityLevel::Moderate
         );
     }
 }

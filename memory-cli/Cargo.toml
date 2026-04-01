@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Command-line interface for do-memory-core episodic learning system"
 
 [dependencies]
 # Workspace dependencies

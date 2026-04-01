@@ -7,7 +7,10 @@
 
 pub mod circuit_breaker;
 
-use crate::episode::{Direction, EpisodeRelationship, PatternId, RelationshipType};
+use crate::episode::{
+    CleanupResult, Direction, EpisodeRelationship, EpisodeRetentionPolicy, PatternId,
+    RelationshipType,
+};
 use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
@@ -367,5 +370,48 @@ pub trait StorageBackend: Send + Sync {
     /// Compute global recommendation statistics.
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         Ok(RecommendationStats::default())
+    }
+
+    // ========== Episode GC/TTL (WG-075) ==========
+
+    /// Clean up expired episodes based on retention policy
+    ///
+    /// Implements garbage collection for episodes that exceed age limits,
+    /// have low reward scores, or are unreferenced by patterns/heuristics.
+    ///
+    /// # Arguments
+    ///
+    /// * `policy` - Retention policy specifying cleanup criteria
+    ///
+    /// # Returns
+    ///
+    /// `CleanupResult` with count of deleted episodes and any errors
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn cleanup_episodes(&self, policy: &EpisodeRetentionPolicy) -> Result<CleanupResult> {
+        let _ = policy;
+        Ok(CleanupResult::new())
+    }
+
+    /// Get count of episodes that would be cleaned up (dry run)
+    ///
+    /// Useful for monitoring and pre-cleanup analysis.
+    ///
+    /// # Arguments
+    ///
+    /// * `policy` - Retention policy specifying cleanup criteria
+    ///
+    /// # Returns
+    ///
+    /// Number of episodes eligible for cleanup
+    ///
+    /// # Errors
+    ///
+    /// Returns error if storage operation fails
+    async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
+        let _ = policy;
+        Ok(0)
     }
 }

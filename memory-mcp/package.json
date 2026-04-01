@@ -1,6 +1,6 @@
 {
-  "name": "memory-mcp-server",
-  "version": "0.1.12",
+  "name": "do-memory-mcp-server",
+  "version": "0.1.25",
   "description": "Model Context Protocol server with secure code execution sandbox for AI agents",
   "main": "index.js",
   "scripts": {

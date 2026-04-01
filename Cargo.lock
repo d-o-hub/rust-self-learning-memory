@@ -1852,7 +1852,7 @@ checksum = "eb3b3318a6ce94bae6f71c71dfbb5c91059ea2afa3c2ac86d8fb9b1f6ea5de83"
 
 [[package]]
 name = "do-memory-benches"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1873,7 +1873,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-cli"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1908,7 +1908,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-core"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1946,7 +1946,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-examples"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "do-memory-core",
@@ -1961,7 +1961,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-mcp"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1993,7 +1993,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-redb"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2014,7 +2014,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-storage-turso"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2042,7 +2042,7 @@ dependencies = [
 
 [[package]]
 name = "do-memory-test-utils"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2076,7 +2076,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "e2e-tests"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "assert_cmd",

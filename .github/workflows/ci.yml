@@ -264,9 +264,12 @@ jobs:
   semver-check:
     name: Semver Check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30  # Increased from 15 - workspace rustdoc builds are slow
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Required for --baseline-branch
       - name: Setup isolated target dir
         run: |
           chmod +x scripts/setup-target-dir.sh
@@ -275,9 +278,26 @@ jobs:
       - uses: Swatinem/rust-cache@v2.9.1
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      - name: Cache semver baseline
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/semver-checks
+            target/semver-checks
+          key: semver-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-${{ github.base_ref || 'main' }}
+          restore-keys: |
+            semver-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}-
+            semver-${{ runner.os }}-
       - name: Install cargo-semver-checks
         run: cargo install --locked cargo-semver-checks
         shell: bash
       - name: Check semver compatibility
-        run: cargo semver-checks check-release --workspace
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # Use baseline caching for PRs - compare against main branch
+            cargo semver-checks check-release --workspace --baseline-branch main
+          else
+            # Full check for main/develop branch pushes
+            cargo semver-checks check-release --workspace
+          fi
         continue-on-error: true  # Informational only, not blocking

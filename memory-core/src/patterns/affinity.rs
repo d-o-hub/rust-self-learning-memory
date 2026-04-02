@@ -10,7 +10,7 @@
 //! - **Episode Assignment Guard**: Two-dimensional gate combining success_rate
 //!   and affinity_clarity to control pattern mutation.
 //!
-//! Reference: https://zhaoc5.github.io/DyMoE/ (Section 3.1-3.2)
+//! Reference: <https://zhaoc5.github.io/DyMoE/> (Section 3.1-3.2)
 
 use crate::episode::Episode;
 use crate::pattern::Pattern;

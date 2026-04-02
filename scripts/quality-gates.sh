@@ -208,6 +208,28 @@ run_docs_integrity_check() {
   fi
 }
 
+# Blocking: Doctest and documentation validation (catches bare URLs, missing re-exports)
+run_doctest_gate() {
+  echo -e "${BLUE}Running doctest and documentation validation...${NC}"
+
+  if [ ! -x "./scripts/check-doctests.sh" ]; then
+    echo -e "  ${RED}✗${NC} ./scripts/check-doctests.sh not found or not executable"
+    return 1
+  fi
+
+  if ./scripts/check-doctests.sh; then
+    echo -e "  ${GREEN}✓${NC} Doctest and documentation checks passed"
+    return 0
+  else
+    echo -e "  ${RED}✗${NC} Doctest or documentation check failed"
+    echo "      Common issues:"
+    echo "      - Bare URLs in doc comments (wrap in <...>)"
+    echo "      - Missing type re-exports from lib.rs"
+    echo "      - Broken intra-doc links"
+    return 1
+  fi
+}
+
 # Blocking: enforce source file size limit (AGENTS.md invariant)
 run_source_file_size_gate() {
   echo -e "${BLUE}Running source file size gate (<=500 LOC, source files only)...${NC}"
@@ -291,6 +313,23 @@ if [ "${QUALITY_GATE_SKIP_DOCS:-false}" != "true" ]; then
   run_docs_integrity_check || true
 else
   echo -e "${YELLOW}Skipping docs integrity checks (${NC}QUALITY_GATE_SKIP_DOCS=true${YELLOW}).${NC}"
+fi
+
+# Blocking doctest gate (catches bare URLs, missing re-exports)
+if [ "${QUALITY_GATE_SKIP_DOCTEST:-false}" != "true" ]; then
+  if ! run_doctest_gate; then
+    echo ""
+    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+    echo -e "${RED}│          ✗ Quality Gates FAILED                               │${NC}"
+    echo -e "${RED}────────────────────────────────────────────────────────────────────────${NC}"
+    echo ""
+    echo "Doctest or documentation validation failed."
+    echo "Run './scripts/check-doctests.sh' directly for details."
+    echo "Set QUALITY_GATE_SKIP_DOCTEST=true to skip (not recommended)."
+    exit 1
+  fi
+else
+  echo -e "${YELLOW}Skipping doctest gate (${NC}QUALITY_GATE_SKIP_DOCTEST=true${YELLOW}).${NC}"
 fi
 
 # Blocking source file-size compliance gate

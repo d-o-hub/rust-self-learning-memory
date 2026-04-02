@@ -282,8 +282,8 @@ pub use security::audit::{
 };
 pub use storage::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT, StorageBackend, apply_query_limit};
 pub use types::{
-    ComplexityLevel, ConcurrencyConfig, Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
-    Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, ConcurrencyConfig, DualRewardScore, Evidence, ExecutionResult, MemoryConfig,
+    OutcomeStats, Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
 };
 
 // Re-export attribution types (ADR-044 Feature 2)

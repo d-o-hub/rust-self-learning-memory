@@ -42,6 +42,12 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Clippy**: Zero warnings (`-D warnings`). Fix, don't suppress
 - **Files**: ≤500 LOC per source file
 - **Tests**: ≥90% coverage. `#[tokio::test]` for async. AAA pattern
+- **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
+
+## Documentation Rules
+- **Bare URLs**: Wrap all URLs in angle brackets: `<https://example.com>`
+- **Re-exports**: Add new public types to `lib.rs` re-exports for doctest imports
+- **Check**: Run `cargo doc --no-deps --document-private-items` before commit
 
 ## Common Pitfalls
 Based on 34 sessions (234 msgs, 97 commits):
@@ -92,6 +98,7 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 - [ ] `./scripts/build-rust.sh check`
 - [ ] `cargo nextest run --all`
 - [ ] `cargo test --doc`
+- [ ] `cargo doc --no-deps --document-private-items` (catches bare URLs)
 - [ ] `./scripts/quality-gates.sh` (coverage must be `>=90%`, unless threshold explicitly raised)
 - [ ] `git status` - verify all changes staged
 

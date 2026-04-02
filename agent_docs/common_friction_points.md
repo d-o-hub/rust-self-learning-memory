@@ -277,6 +277,43 @@ run: cargo audit --ignore RUSTSEC-2026-0049
 run: cargo audit
 ```
 
+### 9. Rustdoc Bare URL Warnings (v0.1.28)
+
+**Problem**: URLs in doc comments must be wrapped in angle brackets. CI runs with `RUSTDOCFLAGS="-D warnings"` which makes this a blocking error.
+
+**Prevention**:
+- Always wrap URLs in angle brackets: `<https://example.com>` not `https://example.com`
+- Run `cargo doc --no-deps --document-private-items` locally before committing
+- The `./scripts/check-doctests.sh` script catches this with `RUSTDOCFLAGS="-D warnings"`
+
+**Example**:
+```rust
+// WRONG - triggers rustdoc::bare_urls error
+//! Reference: https://zhaoc5.github.io/DyMoE/ (Section 3.1-3.2)
+
+// CORRECT - clickable hyperlink
+//! Reference: <https://zhaoc5.github.io/DyMoE/> (Section 3.1-3.2)
+```
+
+### 10. Missing Type Re-exports (v0.1.28)
+
+**Problem**: New types defined in submodules (e.g., `types/structs.rs`) must be re-exported from `lib.rs` for doctests to work. Doctest imports like `use do_memory_core::DualRewardScore;` fail if the type isn't exported.
+
+**Prevention**:
+- After adding a new public type in a submodule, immediately add it to `lib.rs` re-exports
+- Check the re-export block in `lib.rs` for similar types
+- Run `cargo test --doc -p <crate>` after adding new types
+
+**Example**:
+```rust
+// In memory-core/src/lib.rs, after adding DualRewardScore to types/structs.rs:
+pub use types::{
+    ComplexityLevel, ConcurrencyConfig, DualRewardScore, // <-- add here
+    Evidence, ExecutionResult, MemoryConfig, OutcomeStats,
+    Reflection, RewardScore, StorageConfig, TaskContext, TaskOutcome, TaskType,
+};
+```
+
 ## Cross-References
 
 - [AGENTS.md](../AGENTS.md) - Primary coding guidelines

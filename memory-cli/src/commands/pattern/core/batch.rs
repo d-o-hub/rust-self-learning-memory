@@ -269,11 +269,7 @@ async fn execute_batch_update(
 
     if let Some(rate) = success_rate {
         for pattern in &mut updated_patterns {
-            if let Pattern::DecisionPoint {
-                ref mut outcome_stats,
-                ..
-            } = pattern
-            {
+            if let Pattern::DecisionPoint { outcome_stats, .. } = pattern {
                 let total = outcome_stats.total_count;
                 outcome_stats.success_count = (rate * total as f32) as usize;
                 outcome_stats.failure_count = total - outcome_stats.success_count;

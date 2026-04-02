@@ -3,8 +3,6 @@
 use super::types::TaskOutcome;
 use crate::config::Config;
 #[cfg(feature = "turso")]
-use crate::errors::{EnhancedError, helpers};
-#[cfg(feature = "turso")]
 use crate::output::Output;
 use crate::output::OutputFormat;
 use do_memory_core::SelfLearningMemory;

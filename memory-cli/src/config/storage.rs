@@ -289,9 +289,11 @@ async fn determine_storage_combination(
             // Only redb configured - try to set up local SQLite as durable storage
             #[cfg(feature = "turso")]
             {
-                match try_setup_local_sqlite_for_redis(redb, memory_config_clone).await {
+                match try_setup_local_sqlite_for_redis(redb.clone(), memory_config_clone.clone())
+                    .await
+                {
                     Ok((storage_type, memory)) => (storage_type, StorageType::Redb, memory),
-                    Err(_) => create_redb_only_memory(memory_config, redb),
+                    Err(_) => create_redb_only_memory(memory_config_clone, redb),
                 }
             }
             #[cfg(not(feature = "turso"))]

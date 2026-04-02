@@ -248,5 +248,108 @@ pub struct Evidence {
     pub sample_size: usize,
 }
 
+/// Dual reward scoring for DyMoE-inspired pattern management.
+///
+/// Separates reward into two orthogonal signals:
+/// - **Stability score**: How well this episode aligns with existing high-success patterns
+/// - **Novelty score**: How novel/distinctive this episode is relative to existing clusters
+///
+/// Inspired by LLaVA-DyMoE (CVPR 2026) - uses complementary signals
+/// (ℒexc exclusivity and ℒspe specialization) for smarter cross-domain discovery.
+///
+/// # Examples
+///
+/// ```
+/// use do_memory_core::DualRewardScore;
+///
+/// // Episode that strongly matches existing patterns
+/// let stable = DualRewardScore {
+///     stability_score: 0.9,
+///     novelty_score: 0.1,
+///     effectiveness_score: 0.85,
+/// };
+/// assert!(stable.should_merge());
+///
+/// // Episode that's genuinely new
+/// let novel = DualRewardScore {
+///     stability_score: 0.2,
+///     novelty_score: 0.8,
+///     effectiveness_score: 0.75,
+/// };
+/// assert!(novel.should_spawn_new_cluster(0.3));
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct DualRewardScore {
+    /// How well this episode aligns with existing high-success patterns (ℒexc analog).
+    /// High = familiar territory, should merge into existing cluster.
+    /// Range: 0.0 to 1.0
+    pub stability_score: f32,
+    /// How novel/distinctive this episode is relative to all existing clusters (ℒspe analog).
+    /// High = genuinely new, should spawn new cluster.
+    /// Range: 0.0 to 1.0
+    pub novelty_score: f32,
+    /// Legacy composite effectiveness score for backward compatibility.
+    /// Range: 0.0 to 2.0 typically
+    pub effectiveness_score: f32,
+}
+
+impl DualRewardScore {
+    /// Default threshold for spawning new clusters.
+    pub const DEFAULT_SPAWN_THRESHOLD: f32 = 0.6;
+    /// Default threshold for merging into existing clusters.
+    pub const DEFAULT_MERGE_THRESHOLD: f32 = 0.85;
+    /// Default overlap threshold for spawn decisions.
+    pub const DEFAULT_OVERLAP_THRESHOLD: f32 = 0.3;
+
+    /// Create a new dual reward score from episode embedding and pattern centroids.
+    ///
+    /// # Arguments
+    /// * `max_cluster_similarity` - Maximum cosine similarity to any existing pattern centroid
+    /// * `effectiveness_score` - Existing effectiveness score for the episode
+    #[must_use]
+    pub fn from_similarity(max_cluster_similarity: f32, effectiveness_score: f32) -> Self {
+        Self {
+            stability_score: max_cluster_similarity.clamp(0.0, 1.0),
+            novelty_score: (1.0 - max_cluster_similarity).clamp(0.0, 1.0),
+            effectiveness_score,
+        }
+    }
+
+    /// Check if this episode should spawn a new cluster.
+    ///
+    /// Episode should spawn new cluster if:
+    /// - Novelty score is high (> 0.6 by default)
+    /// - Stability score is low (< overlap_threshold, meaning not overlapping with existing)
+    #[must_use]
+    pub fn should_spawn_new_cluster(&self, overlap_threshold: f32) -> bool {
+        self.novelty_score > Self::DEFAULT_SPAWN_THRESHOLD
+            && self.stability_score < overlap_threshold
+    }
+
+    /// Check if this episode should merge into existing cluster.
+    ///
+    /// Episode should merge if stability score is very high (> 0.85 by default).
+    #[must_use]
+    pub fn should_merge(&self) -> bool {
+        self.stability_score > Self::DEFAULT_MERGE_THRESHOLD
+    }
+
+    /// Check if this episode is in the "uncertain" zone.
+    ///
+    /// Not clearly stable nor clearly novel - may need human review.
+    #[must_use]
+    pub fn is_uncertain(&self) -> bool {
+        !self.should_merge() && !self.should_spawn_new_cluster(Self::DEFAULT_OVERLAP_THRESHOLD)
+    }
+
+    /// Get the stability-novelty balance ratio.
+    ///
+    /// Returns value from -1.0 (pure novelty) to +1.0 (pure stability).
+    #[must_use]
+    pub fn balance_ratio(&self) -> f32 {
+        self.stability_score - self.novelty_score
+    }
+}
+
 // Re-export ComplexityLevel for use in this module
 pub use super::enums::ComplexityLevel;

@@ -33,6 +33,38 @@
 - **Binary Names**: `do-memory-mcp-server`, `do-memory-cli`
 - **GitHub Release**: v0.1.26 with multi-platform binaries
 
+### Open Items (2026-04-02 Analysis)
+
+#### Open Issues
+| # | Title | Impact |
+|---|-------|--------|
+| #419 | DyMoE-inspired routing-drift protection, affinity gating & dual reward scoring | P1 Feature — significant pattern extraction improvement |
+| #401 | Dispatch discoverability request | P3 Trivial — external spam, close or ignore |
+
+#### Open PR
+| # | Title | Status |
+|---|-------|--------|
+| #406 | AI spam detector workflows | Mergeable — closes #401 |
+
+#### Security: Dependabot Alerts (Open)
+| # | Dependency | Severity | Notes |
+|---|-----------|----------|-------|
+| 12 | rustls-webpki | Medium | CRL matching logic bug; fix available in 0.103.10 (transitive via libsql) |
+| 2 | lru | Low | IterMut Stacked Borrows violation; transitive |
+| 1 | libsql-sqlite3-parser | Low | Crash on invalid UTF-8; upstream libsql |
+
+#### Security: Code Scanning (Open)
+| # | Path | Rule | Tool |
+|---|------|------|------|
+| 60 | memory-cli/src/commands/feedback/core.rs | Cleartext logging of sensitive information | CodeQL |
+
+#### Cargo Audit Warnings (Unmaintained — Transitive)
+| Crate | Advisory | Source Chain |
+|-------|----------|-------------|
+| bincode 1.3.3 | RUSTSEC-2025-0141 | libsql → bincode; argmin → rv → bincode |
+| instant 0.1.13 | RUSTSEC-2024-0384 | argmin → rv → changepoint → augurs-changepoint |
+| paste 1.0.15 | RUSTSEC-2024-0436 | tokenizers, simba, rv, argmin |
+
 ### Post-v0.1.22 Audit Findings (2026-03-24)
 
 - **ADR-044 durability** — Recommendation attribution (WG-051) and checkpoint/handoff metadata durability (WG-052) now persist through Turso + redb-backed round-trips, including restart-safe resume metadata.

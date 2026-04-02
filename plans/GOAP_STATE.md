@@ -1,821 +1,111 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-01 (v0.1.26 released)
-- **Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.26.md` (current sprint)
+- **Last Updated**: 2026-04-02 (v0.1.28 sprint executing)
+- **Version**: `0.1.26` (released 2026-04-01, published to crates.io)
+- **Branch**: `fix/v0.1.28-security-codeql-plans`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-048 (v0.1.24 stability), ADR-049 (v0.1.25 analysis)
-- **Branch**: `main`
-- **Version**: `0.1.26` (released 2026-04-01, published to crates.io)
-
-## Current Focus: v0.1.27 Sprint (In Progress)
-
-| Task | WG | Status | Details |
-|------|----|--------|---------|
-| Bayesian ranking | WG-073 | ⏳ In Progress | Wilson score from attribution data |
-| Diversity retrieval | WG-077 | ✅ Complete | MMR reranking (already implemented in diversity/maximizer.rs) |
-| Episode GC/TTL | WG-075 | ⏳ In Progress | Retention policy |
-| MCP Server Card | WG-078 | ✅ Complete | `.well-known/mcp.json` |
-| spawn_blocking audit | WG-079 | ⏳ In Progress | CPU-heavy async paths |
-| GitHub Pages | WG-084 | ✅ Complete | mdBook + cargo doc |
-| llms.txt | WG-085 | ✅ Complete | LLM context file |
-
-### v0.1.26 Release (Complete)
-
-| Task | WG | Status | Details |
-|------|----|--------|---------|
-| Crate renaming | — | ✅ Complete | `memory-*` → `do-memory-*` namespace |
-| Version bump | — | ✅ Complete | `0.1.25` → `0.1.26` |
-| crates.io publish | — | ✅ Complete | All 4 crates published |
-| Binary names | — | ✅ Complete | `do-memory-mcp-server`, `do-memory-cli` |
-| GitHub Release | — | ✅ Complete | Tag v0.1.26 with multi-platform binaries |
-
-### v0.1.25 Release (Superseded by v0.1.26)
-
-v0.1.25 was skipped in favor of direct v0.1.26 release with crate renaming.
-
-### v0.1.24 Release (Complete)
-
-| Task | WG | Status | Details |
-|------|----|--------|---------|
-| Version bump | WG-080 | ✅ Complete | `0.1.23` → `0.1.24` |
-| CHANGELOG backfill | WG-081 | ✅ Complete | 5 versions (v0.1.20–v0.1.24) |
-| ROADMAP sync | WG-082 | ✅ Complete | Released Version → v0.1.24 |
-| Tag + Release | WG-083 | ✅ Complete | Tag v0.1.24 pushed, GitHub Release created |
-| YAML fixes | — | ✅ Complete | ai-slop-*.yml colon spacing fixed |
-
-### Gaps Not Blocking v0.1.24
-
-| Gap | Details | Target |
-|-----|---------|--------|
-| GitHub Pages broken | Was active until Feb 2026 (10+ deploys), now 404. No `pages.yml` workflow, no `book/`. Match chaotic_semantic_memory: mdBook + cargo doc + deploy-pages | v0.1.25 |
-| No `llms.txt` | No LLM context file at repo root | v0.1.25 |
-| No version sync CI | Docs reference stale versions (v0.1.22) without CI enforcement | v0.1.25 |
-| Cargo publish blocked | `do-memory-core` taken on crates.io. **Decision: use `do-memory-*` namespace** (all 4 names verified available on crates.io + npm 2026-03-31) | v0.1.25 |
-| Issue #401 | External Dispatch discoverability request — close or trivial fix | v0.1.24 optional |
 
 ---
 
-## Phase Status (v0.1.24 Stability Sprint — Complete)
+## Current Focus: v0.1.28 Sprint (Executing)
 
-| Phase | Status (2026-03-31) | Notes |
-|-------|---------------------|-------|
-| 1. ANALYZE | ✅ Complete | Audit identified test failures + dependency drift |
-| 2. DECOMPOSE | ✅ Complete | WGs 059-067 defined |
-| 3. STRATEGIZE | ✅ Complete | ADR-048 + execution plan v0.1.24 |
-| 4. EXECUTE | ✅ Complete | PR #404, #402, #403 merged |
-| 5. SYNTHESIZE | ✅ Complete | Plans/docs synced |
-| 6. RELEASE | ⏳ Pending | Version bump + changelog + tag remaining |
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| Merge PR #406 (ai-slop) | WG-091 | ⏳ Auto-merge armed (rebase) | All CI ✅, closes #401 |
+| Fix CodeQL alert #60 | WG-093 | ✅ Complete | Removed cleartext IDs from dry-run logging |
+| Resolve Dependabot alerts | WG-092 | ✅ Tracked | All 3 transitive, in audit.toml/deny.toml |
+| DyMoE routing-drift protection | WG-089 | 🔵 Planned | Pattern affinity classifier + assignment guard |
+| Dual reward scoring | WG-090 | 🔵 Planned | Stability + novelty signals |
+| Close issue #401 | — | ⏳ Pending | Auto-closed when PR #406 merges |
 
-### v0.1.23 Remediation Sprint Progress (2026-03-24, post-WG-058)
+## v0.1.27 Sprint (Complete ✅)
 
-| WG | Status | Notes |
-|----|--------|-------|
-| WG-051 | ✅ Complete | Turso/redb recommendation tables, storage trait impls, and `tests/attribution_integration_test.rs` persistence validation (`cargo nextest run --test attribution_integration`) |
-| WG-052 | ✅ Complete | Turso `checkpoints` persistence added across CRUD/query/batch + `resume_from_handoff` now persists metadata via storage update path; validated with `cargo nextest run --test checkpoint_integration` and targeted Turso durability tests |
-| WG-053 | ✅ Complete | Decision taken: keep batch tool-level names intentionally deferred; parity tests + docs/plans aligned |
-| WG-054 | ✅ Complete | Truth-source docs refresh applied against MCP parity test + `do-memory-cli --help` command contract |
-| WG-055 | ✅ Complete | CI test surface expanded from `--lib` slices to workspace scope; benchmark workflow now discovers/runs full bench list from `benches/Cargo.toml` |
-| WG-056 | ✅ Complete | Coverage gate enforcement hardened in `scripts/check-coverage.sh` and `tests/quality_gates.rs` (default threshold 90, parsing tests added) |
-| WG-057 | ✅ Complete | `scripts/clean-artifacts.sh` now supports help/flags, coverage cleanup, optional `--node-modules`, and `CARGO_TARGET_DIR`-aware target cleanup |
-| WG-058 | ✅ Complete | AGENTS/agent_docs/skills aligned to script-first workflow, coverage >=90 guidance, and current linker/disk reality |
+| Task | WG | Status |
+|------|----|--------|
+| Bayesian ranking | WG-073 | ✅ Wilson score from attribution data |
+| Diversity retrieval | WG-077 | ✅ MMR reranking |
+| Episode GC/TTL | WG-075 | ✅ Retention policy |
+| MCP Server Card | WG-078 | ✅ `.well-known/mcp.json` |
+| spawn_blocking audit | WG-079 | ✅ CPU-heavy async paths |
+| GitHub Pages | WG-084 | ✅ mdBook + cargo doc |
+| llms.txt | WG-085 | ✅ LLM context file |
 
-Previous phase summaries for v0.1.22 remain below for historical reference.
+## v0.1.26 Release (Complete ✅)
+
+| Task | Status |
+|------|--------|
+| Crate renaming (`memory-*` → `do-memory-*`) | ✅ |
+| Version bump `0.1.25` → `0.1.26` | ✅ |
+| crates.io publish (all 4 crates) | ✅ |
+| Binary names (`do-memory-mcp-server`, `do-memory-cli`) | ✅ |
+| GitHub Release (tag v0.1.26, multi-platform) | ✅ |
 
 ---
 
-## v0.1.17 Sprint 3 Status (2026-03-09)
-
-### Opportunities Implementation
-
-| ID | Opportunity | Priority | Status | Target |
-|----|-------------|----------|--------|--------|
-| O1 | MCP tool contract parity checker | P0 | ✅ Complete | v0.1.17 |
-| O3 | Docs integrity ownership report | P1 | ✅ Complete | v0.1.17 |
-| O5 | Runtime feature wiring verification suite | P0 | ✅ Complete | v0.1.17 |
-
-### Completed Implementation Details
-
-**O1 - MCP Tool Contract Parity:**
-- Removed batch tool definitions (batch_query_episodes, batch_pattern_analysis, batch_compare_episodes) since handlers are not implemented
-- Added `do-memory-mcp/tests/tool_contract_parity.rs` test file to verify all listed tools have dispatchable handlers
-
-**O3 - Documentation Integrity:**
-- Fixed 86 broken markdown links (204 → 118 remaining) in initial pass
-- Fixed 29 additional broken links via ACT-018 (118 → 89 remaining)
-- Total fixed: 115 broken links
-- Updated ROADMAP_ACTIVE.md, PROJECT_STATUS_UNIFIED.md, README.md
-- Fixed cross-references in ARCHITECTURE/ files
-- Remaining broken links are in archived files (acceptable)
-
-**O5 - Runtime Feature Wiring Verification:**
-- Added `runtime_wiring_adaptive_cache.rs` (8 tests)
-  - Documents AdaptiveCache is not wired into default RedbStorage path
-  - Architectural finding: AdaptiveCache stores values, LRUCache metadata only
-- Added `runtime_wiring_transport_compression.rs` (11 tests)
-  - Documents compression IS used at data layer (embedding level)
-  - CompressedTransport is standalone utility, not wired into TursoStorage
-
-### Confirmed Implemented Features (2026-03-09 Rebaseline)
-
-1. **ADR-024 is fully implemented and tested**
-   - Lazy tool stubs, single-tool schema fetch, and batch schema fetch all present
-   - Tests in `do-memory-mcp/tests/adr024_lazy_loading_tests.rs`
-
-2. **Embedding support in MCP is comprehensive**
-   - `configure_embeddings`, `test_embeddings`, `generate_embedding`
-   - `search_by_embedding`, `embedding_provider_status`
-
-3. **File-size compliance for production code achieved**
-   - 0 non-test production source files exceed 500 LOC
-   - Remaining oversize files are test-heavy modules
-
-4. **Adaptive cache and transport-compression subsystems exist**
-   - Treated as integration work, not greenfield implementation
-
-### Confirmed Gaps (2026-03-09)
-
-| Gap | Severity | Status |
-|-----|----------|--------|
-| ~~Batch-specific MCP tools disabled at runtime~~ | P0 | ✅ Fixed by O1 and WG-009 |
-| ~~121 ignored tests (70 in Turso)~~ | P1 | ✅ Documented via ADR-027 amendment |
-| ~~Adaptive cache not default runtime path~~ | P1 | ✅ Documented by O5 |
-| ~~Transport compression not wired to Turso~~ | P1 | ✅ Documented by O5 |
-| ~~204 pre-existing broken markdown links~~ | P1 | ✅ Reduced to 89 by O3 and ACT-018 |
-
-## v0.1.18 Sprint Status (2026-03-11)
-
-### Goals Implementation
-
-| ID | Goal | Priority | Status | Details |
-|----|------|----------|--------|---------|
-| WG-008 | Triage 121 ignored tests | P0 | ✅ Complete | ADR-027 amended: 71 Turso tests blocked by upstream libsql bug |
-| WG-009 | Resolve batch MCP tool state | P0 | ✅ Complete | PR #357 merged |
-| WG-010 | Error handling reduction | P1 | ✅ Complete | Production code already follows best practices |
-| WG-011 | Dependency deduplication | P1 | ✅ Complete | Removed unused libsql dep; architectural limits reached |
-
-### WG-008 Implementation Details
-
-- ADR-027 amended to document 71 Turso tests blocked by upstream libsql memory corruption bug
-- Original target (≤30 ignored tests) not achievable due to upstream bug
-- Revised target: Document legitimate skips with clear reasons
-- Remaining ignored tests are either integration tests requiring real backends or blocked by upstream bug
-
-### WG-009 Implementation Details
-
-- Removed dead batch tool parameter schemas from `tool_params.rs` (137 lines)
-- Cleaned up commented batch handlers from `handlers.rs`
-- Updated NOTE comment in `tool_definitions_extended.rs`
-- All do-memory-mcp tests pass (555 tests)
-- PR #357 merged 2026-03-11
-
-### WG-010 Implementation Details
-
-- Analysis revealed production code already follows error handling best practices
-- All 165 `unwrap()` calls are in test code or doctests
-- Production code uses `?` operator and proper Result propagation
-- No changes needed to production code
-- PR #359 merged 2026-03-11
-
-### WG-011 Implementation Details
-
-- Removed unused `libsql` dependency from `do-memory-test-utils/Cargo.toml`
-- Duplicate dependency count (134) is due to transitive dependencies from wasmtime/libsql
-- Target (<100) not achievable without removing features
-- Architectural decision: accept current duplicate count as inherent to feature set
-- PR #359 merged 2026-03-11
-
-### Post-Sprint Commits (2026-03-11)
-
-| Commit | Description |
-|--------|-------------|
-| `70661e7` | chore(deps): remove unused libsql dependency from do-memory-test-utils |
-| `13ca540` | docs: fix 29 broken markdown links in active documentation |
-
-### ACT-018 Completion Details
-
-- Fixed 29 additional broken markdown links (118 → 89)
-- Focused on active documentation files (not archived)
-- Commit `13ca540` merged 2026-03-11
-
-## v0.1.20 Sprint Status (2026-03-14)
-
-### PR #363: ADR-041 Build and CLI Dispatch Errors
-
-| Check | Status | Duration |
-|-------|--------|----------|
-| Quick PR Check (Format + Clippy) | ✅ pass | 9m25s |
-| Tests | ✅ pass | 9m17s |
-| MCP Build | ✅ pass | 10m55s |
-| Multi-Platform Test (ubuntu-latest) | ✅ pass | 10m16s |
-| Multi-Platform Test (macos-latest) | ✅ pass | 11m17s |
-| Quality Gates | ✅ pass | 20m40s |
-| Semver Check | ✅ pass | 8m2s |
-| Code Coverage Analysis | ✅ pass | 22m53s |
-| Security Checks | ✅ pass | - |
-
-### Actions Completed (ADR-041)
-
-| ID | Action | Status | Commit |
-|----|--------|--------|--------|
-| ACT-020 | Fix do-memory-storage-redb compilation errors | ✅ Complete | `50eb29a` |
-| ACT-021 | Fix stale `#[ignore]` reasons | ✅ Complete | `bf7abab` |
-| ACT-022 | Refactor nightly exclusion filter | ✅ Complete | `c70db69` |
-| ACT-023 | Un-ignore pattern CLI e2e test | ✅ Complete | `bf7abab` |
-| ACT-025 | Add ignored-test ceiling check | ✅ Complete | `e66f4e0` |
-
-### Key Fixes
-
-1. **do-memory-cli dispatch errors**:
-   - Fixed duplicate imports in `mod.rs`
-   - Fixed `PatternCommands` import path
-   - Fixed `EpisodeCommands::List` match fields
-   - Added missing `Filter`, `Complete`, `Delete` match arms
-
-2. **do-memory-storage-redb re-exports**:
-   - Added `CacheConfig`, `CacheMetrics`, `LRUCache` to public re-exports
-   - Added `storage_ops` module for `clear_all` and other operations
-   - Removed duplicate impl block from `lib.rs`
-
-3. **Test health improvements**:
-   - Reduced ignored tests from 129 to 128 (un-ignored pattern CLI test)
-   - Replaced placeholder `issues/XXX` URLs with ADR-027 reference
-   - Added `scripts/check-ignored-tests.sh` ceiling guard
-   - Refactored nightly workflow to use crate-level exclusion filters
-
-## G2/G9 Implementation Complete (2026-03-09)
-
-### Merged PRs
-
-| PR | Title | Status |
-|----|-------|--------|
-| #352 | refactor: implement G2/G9 tasks - remove dead code and split oversized files | ✅ MERGED |
-| #353 | docs: update plans with G2/G9 implementation progress | ✅ MERGED |
-| #354 | docs: finalize G2/G9 implementation status | ✅ MERGED |
-
-### Completed Tasks
-
-| Task | Status | Details |
-|------|--------|---------|
-| **G9: Dead Code Removal** | ✅ Complete | Removed ~1200+ lines of dead code |
-| **G9: File Size Compliance** | ✅ Complete | Split protocol.rs and tools.rs |
-| **G9: Bug Fixes** | ✅ Complete | Fixed compressor.rs header buffer size |
-| **G2: Test Improvements** | ✅ Complete | Improved test comments in turso storage |
-| **Documentation Updates** | ✅ Complete | Updated plans/ folder with progress |
-
-## Phase C Rollout Status
-
-- Docs integrity check integrated into `scripts/quality-gates.sh` as non-blocking.
-- References added in `AGENTS.md` and `agent_docs/README.md`.
-- Release wrapper linked to workflow guidance in `AGENTS.md`.
-
-## Dependabot PRs Status (2026-03-11)
-
-All Dependabot PRs resolved. No pending dependency update PRs.
-
-### PR #360 CI Status (2026-03-11)
-
-**Branch**: `docs/goap-state-update`
-**PR Title**: docs: update GOAP_STATE.md with v0.1.18 sprint completion
-**Status**: ✅ All CI Checks Passed
-**Merge State**: CLEAN
-
-#### CI Check Summary
-
-| Workflow | Status |
-|----------|--------|
-| Quick Check (Format + Clippy) | ✅ SUCCESS |
-| Semver Check | ✅ SUCCESS |
-| Tests | ✅ SUCCESS |
-| MCP Build | ✅ SUCCESS |
-| Multi-Platform Test (ubuntu-latest) | ✅ SUCCESS |
-| Multi-Platform Test (macos-latest) | ✅ SUCCESS |
-| Quality Gates | ✅ SUCCESS |
-| Code Coverage Analysis | ✅ SUCCESS |
-| Run Benchmarks | ✅ SUCCESS |
-| Check for Performance Regression | ✅ SUCCESS |
-| CodeQL (actions, python, rust) | ✅ SUCCESS |
-| File Structure Validation | ✅ SUCCESS |
-| YAML Syntax Validation | ✅ SUCCESS |
-| GitHub Actions Workflow Validation | ✅ SUCCESS |
-| Secret Scanning | ✅ SUCCESS |
-| Supply Chain Audit | ✅ SUCCESS |
-| Cargo Deny | ✅ SUCCESS |
-| codecov/patch | ✅ SUCCESS |
-
-## Learning Delta (GOAP)
-
-- Empty required-check rollup is now tracked as a first-class blocker condition for PR readiness.
-- Remediation sequence rule added: do not append plans-only commits until required CI checks are attached to the remediation head.
-- Snapshot tests require baseline files to be committed alongside test code.
-- Nightly tests with `--run-ignored all` need exclusion filters for known CI-flaky tests.
-
-## v0.1.19 Sprint Status (2026-03-12)
-
-### GOAP Multi-Agent Execution
-
-**Strategy**: Hybrid (Parallel + Sequential phases)
-**Agents**: 4 specialized teammates (test-runner, feature-implementer x2, do-memory-cli)
-
-### Completed Tasks
-
-| ID | Task | Agent | Status |
-|----|------|-------|--------|
-| #1 | Fix codecov/patch CI failure | test-validator | ✅ Complete |
-| #2 | Implement CLI pattern discovery commands | cli-developer | ✅ Complete |
-| #4 | Wire Adaptive TTL to Turso storage | cache-implementer | ✅ Complete |
-| #5 | Add MCP Elicitation protocol support | mcp-developer | ✅ Complete |
-| #6 | Add MCP Completion protocol support | mcp-developer | ✅ Complete |
-| #8 | Add MCP Rate Limiting | mcp-developer | ✅ Complete |
-| #9 | Wire AdaptiveCache as default redb path | cache-implementer | ✅ Complete |
-
-### Implementation Details
-
-**AdaptiveCache Wiring:**
-- Created `do-memory-storage-redb/src/cache/adapter.rs` - AdaptiveCacheAdapter implementing Cache trait
-- Created `do-memory-storage-redb/src/cache/traits.rs` - Common Cache trait interface
-- Updated `do-memory-storage-redb/src/cache/lru.rs` - LRUCache now implements Cache trait
-- Updated `do-memory-storage-redb/src/cache/mod.rs` - Module exports
-- Tests: 3 new unit tests in adapter.rs
-
-**Adaptive TTL to Turso:**
-- Updated `do-memory-storage-turso/src/lib_impls/helpers.rs` - TTL helper functions
-- Updated constructors and storage implementations
-- Tests: Updated runtime_wiring_adaptive_cache.rs
-
-**CLI Pattern Discovery:**
-- Updated `do-memory-cli/src/commands/pattern/core/analyze.rs` - Pattern analysis implementation
-- Updated `do-memory-cli/src/commands/pattern/core/types.rs` - Pattern types
-- Updated `do-memory-cli/src/commands/mod.rs` - Command routing
-- Updated snapshot tests
-
-**MCP Protocol Enhancements:**
-- MCP Completion/Elicitation/Rate Limiting placeholders documented
-- Infrastructure ready for future MCP spec compliance
-
-### CI Status
-
-All CI checks passing except codecov/patch (expected to resolve after commit).
-
-## v0.1.19 Gap Analysis (2026-03-13)
-
-### ADR-040 Comprehensive Audit
-
-**Source**: Full GH Actions audit + codebase scan on 2026-03-13.
-**ADR**: `plans/adr/ADR-040-Gap-Analysis-And-GOAP-Sprint-v0.1.19.md`
-
-### CI Failures Identified
-
-| Workflow | Status | Root Cause |
-|----------|--------|------------|
-| Nightly Full Tests | ❌ FAILURE | Turso integration tests panic — missing env vars, exclusion filter incomplete |
-| Changelog | ❌ FAILURE | `git-cliff` install via `taiki-e/install-action@v2` fails; notify-failure missing checkout |
-| ci-old.yml | ⚠️ GHOST | Deleted file still tracked by GitHub API |
-
-### Missing Implementation Inventory (Corrected 2026-03-13)
-
-**Major Correction**: Deep code analysis revealed 6 of 7 features previously listed as "unimplemented" are **fully implemented** with stale TODO comments in `types.rs`:
-
-| Feature | Actual Status | Evidence |
-|---------|---------------|----------|
-| MCP OAuth | ✅ Implemented | `oauth.rs` — full JWT validation behind `#[cfg(feature = "oauth")]` |
-| MCP Completion | ✅ Implemented | `mcp/completion.rs` — 203 LOC with domain completions |
-| MCP Elicitation | ✅ Implemented | `mcp/elicitation.rs` — 250 LOC, request/data/cancel cycle |
-| MCP Rate Limiting | ✅ Implemented | `server/mod.rs:83` — `RateLimiter` wired into handlers |
-| MCP Embedding Config | ✅ Implemented | `jsonrpc.rs:28-128` — loaded from env, JSON-RPC handler |
-| MCP Tasks | ✅ Implemented | `mcp/tasks.rs` — 350 LOC, 5 handlers (undocumented) |
-| Pattern CLI | ✅ Implemented | `commands/pattern/` — 7 subcommands wired |
-| WASM sandbox | ❌ Disabled | Javy/Wasmtime compilation issues |
-
-**Remaining gaps:**
-
-| Category | Count | Details |
-|----------|-------|---------|
-| CI fixes (P0) | 4 | G1.1-G1.4: ✅ All complete |
-| CI maintenance (P1) | 2 | G2.1-G2.2: ✅ rust-cache upgraded; mutation timeout informational |
-| Genuine missing features | 1 | G3.6: WASM sandbox disabled |
-| Stale TODO/dead_code cleanup (P1) | 4 | G3.8-G3.11: misleading TODOs, duplicate modules, 79 dead_code attrs |
-| Integration gaps (P2) | 2 | G4.1-G4.2: Transport compression, batch CLI workaround |
-| Test health (P1) | 3 | G5.1-G5.3: 119 ignored tests, dead_code attrs, stale ignore reasons |
-
-### GOAP Execution Plan
-
-**Strategy**: 3-phase hybrid (CI fixes → Dead code cleanup → Documentation)
-
-| Phase | Tasks | Priority | Status |
-|-------|-------|----------|--------|
-| Phase 1: CI Stabilization | G1.1, G1.2, G1.3, G1.4, G2.1 | P0-P1 | ✅ Complete |
-| Phase 2: Dead Code Cleanup | G3.8-G3.11, G5.3 | P1 | ✅ Complete |
-| Phase 3: Integration & Docs | G4.2, G6.3, G3.6 docs, G4.1 docs | P2 | ✅ Complete |
-
-### Phase 1 Completion Details (2026-03-13)
-
-**G1.1 - Nightly Test Exclusion Filter:**
-- Changed from `test(test_name)` to `binary(binary_name)` filters for integration tests
-- Excluded: `compression_integration_test`, `keepalive_pool_integration_test`, `phase1_optimization_test`
-- These tests require TURSO_DATABASE_URL not available in CI
-
-**G1.2 - Changelog git-cliff Install:**
-- Simplified to `cargo install git-cliff --locked`
-- Removed taiki-e/install-action which had version matching issues
-
-**G1.3 - Changelog notify-failure:**
-- Already had checkout step in current workflow
-
-**G1.4 - ci-old.yml Ghost Workflow:**
-- Already disabled_manually via GitHub API
-
-**G2.1 - rust-cache Upgrade:**
-- Upgraded from v2.8.2 to v2.9.1 across all 10 workflow references
-- Files: benchmarks.yml, ci.yml, coverage.yml, nightly-tests.yml, quick-check.yml, security.yml
-
-**G3.4/G3.5 - Feature Wiring Verification:**
-- Rate limiter: Already fully wired in jsonrpc.rs handle_request()
-  - Uses RateLimiter.check_rate_limit() for every request
-  - Returns 429 error when rate limited
-- Embedding config: Already wired via load_embedding_config() and handle_embedding_config()
-- Removed dead_code attributes from EmbeddingEnvConfig and RateLimitEnvConfig
-- Kept #[allow(dead_code)] for intentionally unused api_key_env field
-
-### Phase 2 Completion Details (2026-03-13)
-
-**G3.8 - Remove Stale TODO Comments:**
-- Removed misleading TODOs from types.rs (lines 22, 81, 138)
-- Updated comments to correctly state features ARE implemented
-- Features confirmed: OAuth (oauth.rs), Completion (mcp/completion.rs), Elicitation (mcp/elicitation.rs)
-
-**G3.9 - Remove Duplicate embedding.rs:**
-- Deleted `do-memory-mcp/src/bin/server_impl/embedding.rs` (124 lines of dead code)
-- Live implementation is in jsonrpc.rs:28-128
-- Updated mod.rs to remove module declaration and re-exports
-
-**G3.10 - Document MonitoringStorage:**
-- Added documentation explaining the wrapper's purpose
-- Retained for future dual-backend caching support
-- Currently SimpleMonitoringStorage is used directly
-
-**G5.3 - Fix Stale #[ignore] Reason:**
-- Updated test comment in tests/e2e/cli_workflows.rs:554
-- Pattern commands ARE implemented (analyze, search, recommend, list, view, effectiveness, decay)
-- Updated ignore reason to reflect actual status
-
-### Phase 3 Completion Details (2026-03-13)
-
-**G4.2 - Document Batch CLI Architecture:**
-- Replaced TODO with architecture note in commands/mod.rs:356
-- Documented why batch operations need direct storage access
-- Noted future refactoring option (BatchOperations trait)
-
-**G6.3 - Update ADR-039:**
-- Corrected "Not Built" table with implementation status
-- 5 features marked as IMPLEMENTED (Pattern CLI, Completion, Elicitation, Rate Limiting, Tasks)
-- Added evidence links to implementation files
-
-**G3.6 - WASM Sandbox Documentation:**
-- Already documented in ADR-040 (root cause analysis + fix options)
-- Recommendation: Option A (fix probe for WASM-only mode)
-
-**G4.1 - Transport Compression Documentation:**
-- Added integration plan to ADR-040
-- Documented implementation path and dependencies
-- Deferred to future sprint (low priority)
-
-### Deferred Items
-
-| Gap | Reason |
-|-----|--------|
-| ~~OAuth/Completion/Elicitation implementation~~ | ✅ Already implemented (stale TODOs corrected) |
-| WASM sandbox fix (G3.6) | Javy/Wasmtime compilation issue; low user impact |
-| Transport compression wiring (G4.1) | Config flag exists, low priority |
-| Reduce ignored tests ≤30 (G5.1) | Upstream libsql bug (ADR-027) |
-
-## v0.1.20 Test Health Remediation (2026-03-14)
-
-### ADR-041 Execution Status
-
-**Strategy**: Sequential (Phase 1 → Phase 2+3 parallel → Phase 4 → Phase 5)
-**ADR**: `plans/adr/ADR-041-Test-Health-Remediation-v0.1.20.md`
-
-### Completed Tasks
-
-| ID | Task | Status | Commit |
-|----|------|--------|--------|
-| WG-022 | Fix do-memory-storage-redb build errors | ✅ Complete | (concurrent fix) |
-| WG-023 | Fix stale `#[ignore]` reasons + placeholder URLs | ✅ Complete | `bf7abab` |
-| WG-024 | Refactor nightly exclusion filter | ✅ Complete | `c70db69` |
-| WG-025 | Un-ignore pattern CLI e2e test | ✅ Complete | `bf7abab` |
-| WG-026 | Add ignored-test ceiling CI guard | ✅ Complete | `e66f4e0` |
-
-### Current Metrics
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Build compiles | ❌ 4 errors | ✅ clean |
-| Clippy | ❌ warnings | ✅ clean |
-| Ignored tests | 119 | 118 |
-| Stale ignore reasons | ≥ 2 | 0 |
-| Placeholder `issues/XXX` | 5 | 0 |
-| Nightly per-name exclusions | 18 | 0 (category-based) |
-| Ceiling guard script | ❌ missing | ✅ ceiling=125 |
-
-### Remaining (WG-025 Partial)
-
-| Task | Priority | Status |
-|------|----------|--------|
-| Fix 4 flaky sandbox timing tests | P2 | ⏳ Pending |
-| Fix 2 WASM binary data tests | P2 | ⏳ Pending |
-| Nightly trend tracking artifact | P3 | ⏳ Pending |
-| libsql upstream version monitor | P3 | ⏳ Pending |
-
-## v0.1.20 Sprint Status (ADR-042: Code Coverage Improvement)
-
-### ADR-042 Phase 1 Implementation
-
-**Branch**: `fix/adr041-build-and-cli-errors`
-**ADR**: `plans/adr/ADR-042-Code-Coverage-Improvement.md`
-**Date**: 2026-03-14
-
-### Completed Actions
-
-| ID | Action | Status | Commit |
-|----|--------|--------|--------|
-| ACT-026 | Episode lifecycle and reward calculation tests | ✅ Complete | `f462730` |
-| ACT-027 | Cache and persistence coverage tests | ✅ Complete | `223de91` |
-| ACT-028 | Transport and pool coverage tests | ✅ Complete | `5fe0073` |
-| ACT-030 | Serialization property tests | ✅ Complete | `c1fff87` |
-| ACT-036 | Update codecov config | ✅ Complete | `be75d0a` |
-
-### Test Summary
-
-| Crate | New Tests | Focus Areas |
-|-------|-----------|-------------|
-| do-memory-core | 12 property tests | Serialization round-trips, reward bounds, episode lifecycle |
-| do-memory-storage-redb | 15+ tests | Adaptive cache, persistence manager |
-| do-memory-storage-turso | 50+ tests | Transport compression, metrics export, pool statistics |
-
-### CI Status
-
-- All 2567 tests pass
-- Clippy clean
-- Format clean
-- CI checks running on PR #363
-
-### Learnings (2026-03-14)
-
-1. **proptest! macro syntax**: Tests with no parameters should use regular `#[test]` instead of `proptest!` macro
-2. **Clippy approx_constant**: Avoid using approximations of mathematical constants (PI, E) in tests - use arbitrary values like `1.23456` instead
-3. **Cast precision loss**: Property tests often need `#![allow(clippy::cast_precision_loss)]` due to proptest strategies
-4. **CompressionStatistics fields**: `total_compression_time_us` was renamed to `compression_time_us` - check actual struct definition when writing tests
-5. **Test race conditions with env vars**: Tests that check environment variables (`MCP_USE_WASM`) can have race conditions in parallel test execution. The `is_wasm_sandbox_available()` check during tool registration can differ from the check during test assertion
-6. **Snapshot updates**: Version changes require snapshot updates via `cargo insta test --accept`
-
-## v0.1.19 Release Status (2026-03-14)
-
-### Release Workflow
-
-**Tag**: v0.1.19
-**Release URL**: https://github.com/d-o-hub/rust-self-learning-memory/releases/tag/v0.1.19
-**Status**: ✅ Published
-
-### Artifacts
-
-| Platform | Architecture | Status |
-|----------|--------------|--------|
-| Linux | x86_64, aarch64 | ✅ Published |
-| macOS | x86_64, aarch64 | ✅ Published |
-| Windows | x86_64 | ✅ Published |
-
-### Coverage Fix
-
-**Issue**: `test_server_creation` test failed in CI coverage workflow due to race condition with `MCP_USE_WASM` environment variable.
-
-**Root Cause**: `is_wasm_sandbox_available()` defaults to `true`, but test sets `MCP_USE_WASM=false` via `set_once()`. In parallel test execution, the environment variable timing can vary between tool registration and test assertion.
-
-**Fix**: Removed conditional assertion for `execute_agent_code` tool. Test now asserts only core tools that are always available.
-
-**Commit**: `6716b31`
-
-### PR #364
-
-**Branch**: release/v0.1.19
-**Status**: Pending review (branch protection requires approval)
-**Release**: Already published via tag trigger
-
-## v0.1.20 Sprint Status (2026-03-15)
-
-### GOAP Multi-Agent Execution
-
-**Strategy**: Hybrid (Parallel + Sequential)
-**Agents**: 4 specialized teammates (clippy-fixer, docs-updater, test-fixer, dead-code-cleaner)
-
-### Completed Tasks
-
-| ID | Task | Agent | Status | Commit |
-|----|------|-------|--------|--------|
-| #1 | Fix clippy regression | team-lead | ✅ Complete | `7184785` |
-| Security | Fix gitleaks findings | team-lead | ✅ Complete | `5e20557` |
-
-### PR #365
-
-**Branch**: release/v0.1.20
-**PR URL**: https://github.com/d-o-hub/rust-self-learning-memory/pull/365
-**Status**: ✅ All 25 CI Checks Passed
-**Merge State**: MERGEABLE
-
-### Fixes Applied
-
-1. **Clippy Fix**:
-   - Added `#![allow(clippy::unwrap_used)]` to `do-memory-storage-redb/tests/persistence_coverage_tests.rs`
-   - Added `#![allow(clippy::expect_used)]` to `do-memory-mcp/tests/adr024_lazy_loading_tests.rs`
-   - Root cause: Integration tests are separate crate roots and don't inherit `.clippy.toml` settings
-
-2. **Security Fix**:
-   - Added fingerprints to `.gitleaksignore` for documentation example files
-   - Files: `plans/skills-cli-invocation-best-practices.md`, `agentic-payments.md`
-
-### Remaining CI Issues on main
-
-| Issue | Status | Notes |
-|-------|--------|-------|
-| Nightly Full Tests | ❌ Failure | Disk space issue (96% used) - infrastructure, not code |
-| Security/Gitleaks | ✅ Fixed | Fingerprints added |
-
-## v0.1.21 Sprint Status (2026-03-15)
-
-### Publishing Infrastructure (ADR-045)
-
-**Branch**: release/v0.1.21
-**ADR**: `plans/adr/ADR-045-Publishing-Best-Practices-2026.md`
-
-### Goals
-
-| ID | Goal | Priority | Status |
-|----|------|----------|--------|
-| WG-031 | Cargo.toml metadata completion | P1 | ✅ Already complete |
-| WG-032 | Supply chain security setup | P0 | ✅ Complete |
-| WG-033 | Publishing automation | P0 | ✅ Complete |
-| WG-034 | Documentation updates | P1 | ✅ Complete |
-| WG-035 | Pre-existing issue fixes | P2 | ⏳ Pending |
-
-### Actions Completed
-
-| ID | Action | Status |
-|----|--------|--------|
-| ACT-038 | Add Cargo.toml metadata to do-memory-core | ✅ Already complete |
-| ACT-039 | Add Cargo.toml metadata to storage crates | ✅ Already complete |
-| ACT-040 | Add Cargo.toml metadata to do-memory-mcp | ✅ Already complete |
-| ACT-041 | Create verify-crate-metadata.sh | ✅ Complete |
-| ACT-042 | Configure cargo-deny | ✅ Already exists |
-| ACT-043 | Add supply-chain.yml workflow | ✅ Complete |
-| ACT-044 | Create release.toml | ✅ Updated |
-| ACT-045 | Add publish-crates.yml workflow | ✅ Complete |
-
-### Files Created/Updated
-
-- `.github/workflows/supply-chain.yml` - Supply chain security workflow
-- `.github/workflows/publish-crates.yml` - Publishing automation workflow
-- `scripts/verify-crate-metadata.sh` - Metadata verification script
-- `release.toml` - Updated with crate-specific publish settings
-
-## v0.1.21 Configuration Improvements (2026-03-15)
-
-### Claude Code Configuration Improvements (ADR-046)
-
-**Branch**: docs/v0.1.21-release-updates
-**ADR**: `plans/adr/ADR-046-Claude-Code-Configuration-Improvements.md`
-
-### Session Analysis Summary
-
-**Source**: 34 Claude Code sessions (234 messages, 97 commits)
+## Key Metrics
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| wrong_approach instances | 8 | <2 |
-| buggy_code instances | 6 | 0 |
-| excessive_changes instances | 5 | 0 |
-| Bash:Grep tool ratio | 17:1 | 2:1 |
-| Tool errors | 67 | <15 |
+| Workspace version | 0.1.26 | — |
+| Total tests | ~2,849 | — |
+| Ignored tests | 341 annotations / 82 files | ceiling ≤125 |
+| `allow(dead_code)` (prod) | 37 | ≤40 |
+| Clippy | Clean | 0 warnings |
+| Doctests | 0 failures | 0 |
+| Cargo audit | 3 unmaintained warnings | transitive |
+| Dependabot alerts | 3 open | all transitive, tracked |
+| CodeQL alerts | 1 open | fix in PR |
 
-### Goals
+---
 
-| ID | Goal | Priority | Status |
-|----|------|----------|--------|
-| WG-036 | Add AGENTS.md friction sections | P0 | ✅ Complete |
-| WG-037 | Create common_friction_points.md | P1 | ✅ Complete |
-| WG-038 | Consolidate hooks configuration | P2 | ✅ Complete |
-| WG-039 | Update GOAP_STATE.md | P1 | ✅ Complete |
+## Active Issues / Blockers
 
-### Actions Completed
+| Issue | Status | Notes |
+|-------|--------|-------|
+| CLI_TURSO_SEGFAULT | Known | libsql upstream memory corruption; 71 Turso tests `#[ignore]` (ADR-027) |
+| Dependabot alerts (3) | Tracked | All transitive deps, documented in `audit.toml` / `deny.toml` |
+| CodeQL alert #60 | Fix in PR | Cleartext session/episode IDs in dry-run logging; fix on branch |
+| Issue #401 | Pending | Auto-closes when PR #406 merges |
 
-| ID | Action | Status |
-|----|--------|--------|
-| ACT-046 | Add Common Pitfalls section to AGENTS.md | ✅ Complete |
-| ACT-047 | Add Tool Selection Enforcement section | ✅ Complete |
-| ACT-048 | Add Atomic Change Rules section | ✅ Complete |
-| ACT-049 | Create agent_docs/common_friction_points.md | ✅ Complete |
-| ACT-050 | Create ADR-046 | ✅ Complete |
-| ACT-051 | Merge hooks.json into settings.json | ✅ Complete |
-| ACT-052 | Add quick compile check hook | ✅ Complete |
+---
 
-### Verified Patterns (for do-memory-cli)
+## Self-Learnings (Consolidated)
 
-| Pattern ID | Category | Description |
-|------------|----------|-------------|
-| GH-001 | GitHub Actions | wait-on-check-action requires v2.0.0+ |
-| BUILD-001 | Build | --all-features triggers libclang via wasmtime |
-| TEST-001 | Testing | Network-dependent tests need #[serial] |
-| CLIPPY-001 | Linting | Integration tests need crate-level allows |
+Patterns extracted from v0.1.17–v0.1.27 sprint history (34 sessions, 234 msgs, 97 commits):
 
-### Key Learnings
+### API / Dependency Changes
+- **redb 3.x**: `begin_read()` is on the `ReadableDatabase` trait — import accordingly
+- **rand 0.10**: `thread_rng()` → `rand::rng()`, `gen()` → `random()`, `gen_range()` → `random_range()`
 
-1. **Tool Selection**: Bash:Grep ratio of 17:1 indicates over-reliance on shell commands
-2. **Wrong Approach Pattern**: 8 instances - agents proceed without reading existing patterns
-3. **Atomic Commits**: 5 excessive_changes instances - need scope enforcement
-4. **Hook Consolidation**: Two hook config files create maintenance burden
-5. **Memory-CLI Cache Directory**: `~/.local/share/do-memory-cli/cache/` must exist before episode operations. Episode create/log-step/complete all work correctly after ensuring directory exists. Pattern extraction works after episode completion.
+### Development Workflow
+- **Turso local dev**: Use `turso dev` — no auth token needed
+- **Doctest quality**: New features must have tested doctests before merge
+- **File size invariant**: Templates extraction prevents LOC growth (≤500 LOC per file)
+- **Integration tests**: Feature implementation without integration tests leaves gaps
+- **Documentation sync**: ROADMAP / CURRENT must stay in sync with releases
+- **Plan document drift**: Always verify metrics by running actual commands, not trusting stale docs
 
-## v0.1.22 Sprint Status — COMPLETE ✅
+### CI / GitHub
+- **PR supersession**: Track supersession chains (e.g., #388 → #389 → #391) to avoid referencing stale PRs
+- **codecov/patch**: Not a required CI check — configure thresholds in `codecov.yml`, don't block merges
+- **Jules PRs**: Reconcile external agent PRs before planning more work — they may implement "pending" items
 
-### ADR-044: High-Impact Features (Shipped & Polished)
+### Quality Gates
+- **Ignored test ceiling**: Monitor the 125 ceiling metric; actual count can creep close
+- **Tool selection**: Target Bash:Grep ratio of 2:1 (historical 17:1 indicates over-reliance on shell)
+- **Atomic commits**: One change per commit — 5 excessive_changes instances in early sprints
+- **Wrong approach**: Read 3+ source files before implementing — 8 instances of proceeding without patterns
 
-**Branch**: `main` (PR #391 merged)
-**PR**: [#391](https://github.com/d-o-hub/rust-self-learning-memory/pull/391) ✅ Merged
-**Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
-**ADR**: [ADR-047](adr/ADR-047-v0.1.22-Quality-Feature-Polish.md)
-**Execution Plan**: `plans/GOAP_EXECUTION_PLAN_v0.1.22.md`
-**Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
+---
 
-### Features Implemented
+## Cross-References
 
-| ID | Feature | Core | MCP | CLI | Tests | Doctests | Snapshots |
-|----|---------|------|-----|-----|-------|---------|-----------|
-| F1 | Actionable Playbooks | ✅ | ✅ | ✅ | 26 | ✅ Fixed | ✅ |
-| F2 | Recommendation Attribution | ✅ | ✅ | ✅ | 8 | ✅ Fixed | ✅ |
-| F3 | Episode Checkpoints/Handoff | ✅ | ✅ | ✅ | 6 | ✅ | ✅ |
-| F4 | Recommendation Feedback | ✅ | ✅ | ✅ | 3 | ✅ | ✅ |
-
-### Critical Issues — ALL RESOLVED
-
-| Issue | Root Cause | Fix |
-|-------|-----------|-----|
-| ~~2 failing doctests~~ | Attribution: moved value; Playbook: sync fn `.await`ed | ✅ Fixed (ACT-053, ACT-054) |
-| ~~1 test timeout~~ | `quality_gate_no_clippy_warnings` runs full clippy (>120s) | ✅ Fixed (ACT-055) |
-| ~~3 files >500 LOC~~ | `generator.rs` (631), `memory_handlers.rs` (608), `management.rs` (504) | ✅ Fixed (ACT-056–058) |
-
-### Quality Metrics (2026-03-20 FINAL VERIFIED)
-
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Tests passing | 2,841/2,841 | — | ✅ All passing |
-| Ignored tests | 124 | ≤125 ceiling | ✅ |
-| `#[allow(dead_code)]` (prod) | 31 | ≤40 | ✅ Target met |
-| Snapshot tests | 80 | ≥80 | ✅ Target met |
-| Property test files | 16 | ≥13 | ✅ Exceeds target |
-| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
-| Files >500 LOC | 0 | 0 | ✅ |
-| Failing doctests | 0 | 0 | ✅ |
-| Timed-out tests | 0 | 0 | ✅ |
-
-### Sprint Goals (v0.1.22) — ALL COMPLETE ✅
-
-| ID | Goal | Priority | Status | Issue |
-|----|------|----------|--------|-------|
-| WG-040 | Fix failing doctests | P0 | ✅ Complete | #374 — CLOSED |
-| WG-041 | Fix test timeout | P0 | ✅ Complete | #375 — CLOSED |
-| WG-042 | Split >500 LOC files | P0 | ✅ Complete | #376 — CLOSED |
-| WG-043 | Reduce dead_code annotations (70 → 31) | P1 | ✅ Complete | #377 — CLOSED |
-| WG-044 | Fix broken markdown links | P1 | ✅ Complete | #378 — CLOSED |
-| WG-045 | Add snapshot tests | P1 | ✅ Complete | #379 — CLOSED |
-| WG-046 | Add property tests | P1 | ✅ Complete | #380 — CLOSED |
-| WG-047 | MCP tool contract parity | P2 | ✅ Complete | #381 — CLOSED |
-| WG-048 | Integration tests for new features | P2 | ✅ Complete | #382 — CLOSED |
-| WG-049 | Changelog automation (git-cliff) | P2 | ✅ Complete | #383 — CLOSED |
-| WG-050 | New feature documentation | P2 | ✅ Complete | #384 — CLOSED |
-| WG-051 | Nightly trend tracking | P3 | ✅ Complete | #385 — CLOSED |
-| WG-052 | libsql version monitor | P3 | ✅ Complete | #386 — CLOSED |
-| WG-053 | Structured tech-debt registry | P3 | ✅ Complete | #387 — CLOSED |
-
-### Issue Verification Details (2026-03-20 — FINAL)
-
-**All Items Verified Complete:**
-- **WG-040–042 (P0)**: Doctests fixed, timeout resolved, files split
-- **WG-043–046 (P1)**: Dead code reduced to 31, links fixed (0 active), 80 snapshots, 16 property test files
-- **WG-047–050 (P2)**: MCP parity, integration tests, changelog, documentation complete
-- **WG-051–053 (P3)**: Nightly tracking, libsql monitor, tech-debt registry complete
-
-### PR #391 — Merged ✅
-
-All v0.1.22 sprint work merged to main via PR #391.
-
-### Key Learnings (v0.1.22)
-
-1. **Turso Local Dev**: Use `turso dev` for local development - no auth token required
-2. **Doctest Quality**: New features must have tested doctests before merge
-3. **File Size Invariant**: generator.rs grew to 631 LOC — template extraction needed
-4. **Integration Tests**: Feature implementation without integration tests leaves gaps
-5. **Documentation Sync**: ROADMAP_ACTIVE.md and CURRENT.md must stay in sync with release versions
-6. **Plan Document Drift**: Multiple plan files had stale/inconsistent metrics — always verify by running actual commands
-7. **PR Supersession Chain**: PR #388 → #389 → #391 — track supersessions in GOAP_STATE.md to avoid referencing stale PRs
-8. **codecov/patch**: Not a required CI check — do not block merges; configure thresholds in `codecov.yml`
-9. **Jules PRs**: External agent PRs (like #391) may implement items tracked as "pending" in plans — reconcile before planning more work
-10. **Ignored test count**: Ceiling of 125 was set but actual count (124) nearly reached it — monitor this metric
+| Document | Location |
+|----------|----------|
+| Archived Execution Plans | `plans/archive/2026-03-consolidation/` |
+| Active Roadmap | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
+| Latest Validation | `plans/STATUS/VALIDATION_LATEST.md` |
+| Latest Gap Analysis | `plans/STATUS/GAP_ANALYSIS_LATEST.md` |
+| ADR Index | `plans/adr/` |

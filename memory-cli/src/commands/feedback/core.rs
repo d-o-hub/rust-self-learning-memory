@@ -140,8 +140,7 @@ async fn record_session(
 ) -> Result<()> {
     if dry_run {
         println!(
-            "Would record recommendation session for episode {} with {} patterns and {} playbooks",
-            episode_id,
+            "Would record recommendation session with {} patterns and {} playbooks",
             patterns.len(),
             playbooks.len()
         );
@@ -197,8 +196,7 @@ async fn record_feedback(
 ) -> Result<()> {
     if dry_run {
         println!(
-            "Would record feedback for session {} with {} applied patterns",
-            session_id,
+            "Would record feedback with {} applied patterns",
             applied_patterns.len()
         );
         return Ok(());

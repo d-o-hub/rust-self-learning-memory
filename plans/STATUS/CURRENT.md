@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-01 (v0.1.26 released)
-**Released Version**: v0.1.26
+**Last Updated**: 2026-04-02 (v0.1.28 sprint complete)
+**Released Version**: v0.1.26 (crates.io), v0.1.28 features merged to main
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -18,13 +18,19 @@
 | Skipped/ignored tests | 115 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
-| Production src files >500 LOC | 0 | 0 | ✅ |
+| Production src files >500 LOC | 4 | 0 | ⚠️ Needs split (retention.rs, affinity.rs, ranking.rs, handlers.rs) |
 | `#[allow(dead_code)]` (production) | 31 | ≤40 | ✅ Target met |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
 | Broken markdown links | 0 active | ≤80 | ✅ |
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
+
+## v0.1.28 Release Highlights
+
+- **DyMoE Routing-Drift Protection**: Affinity gating and dual reward scoring
+- **CodeQL Fixed**: Cleartext logging alert resolved (WG-093)
+- **Dependabot Analyzed**: All 3 alerts are transitive dependencies (accepted risk)
 
 ## v0.1.26 Release Highlights
 
@@ -33,45 +39,36 @@
 - **Binary Names**: `do-memory-mcp-server`, `do-memory-cli`
 - **GitHub Release**: v0.1.26 with multi-platform binaries
 
-### Open Items (2026-04-02 Analysis)
+---
 
-#### Open Issues
-| # | Title | Impact |
-|---|-------|--------|
-| #419 | DyMoE-inspired routing-drift protection, affinity gating & dual reward scoring | P1 Feature — significant pattern extraction improvement |
-| #401 | Dispatch discoverability request | P3 Trivial — external spam, close or ignore |
+## Open Items (2026-04-02 Validation)
 
-#### Open PR
+### Open Issues
 | # | Title | Status |
 |---|-------|--------|
-| #406 | AI spam detector workflows | Mergeable — closes #401 |
+| — | No open issues | ✅ All closed |
 
-#### Security: Dependabot Alerts (Open)
+### Open PRs
+| # | Title | Status |
+|---|-------|--------|
+| #423 | fix(core): rustdoc issues + quality gates integration | ✅ CI passing |
+
+### Security: Dependabot Alerts (Accepted Risk — Transitive)
 | # | Dependency | Severity | Notes |
 |---|-----------|----------|-------|
-| 12 | rustls-webpki | Medium | CRL matching logic bug; fix available in 0.103.10 (transitive via libsql) |
+| 12 | rustls-webpki | Medium | CRL matching logic bug; transitive via libsql |
 | 2 | lru | Low | IterMut Stacked Borrows violation; transitive |
-| 1 | libsql-sqlite3-parser | Low | Crash on invalid UTF-8; upstream libsql |
+| 1 | libsql-sqlite3-parser | Low | Crash on invalid UTF-8; transitive via libsql |
 
-#### Security: Code Scanning (Open)
-| # | Path | Rule | Tool |
-|---|------|------|------|
-| 60 | memory-cli/src/commands/feedback/core.rs | Cleartext logging of sensitive information | CodeQL |
+### Security: Code Scanning
+| Status | Notes |
+|--------|-------|
+| ✅ No open alerts | CodeQL cleartext logging alert #60 resolved (WG-093) |
 
-#### Cargo Audit Warnings (Unmaintained — Transitive)
-| Crate | Advisory | Source Chain |
-|-------|----------|-------------|
-| bincode 1.3.3 | RUSTSEC-2025-0141 | libsql → bincode; argmin → rv → bincode |
-| instant 0.1.13 | RUSTSEC-2024-0384 | argmin → rv → changepoint → augurs-changepoint |
-| paste 1.0.15 | RUSTSEC-2024-0436 | tokenizers, simba, rv, argmin |
-
-### Post-v0.1.22 Audit Findings (2026-03-24)
-
-- **ADR-044 durability** — Recommendation attribution (WG-051) and checkpoint/handoff metadata durability (WG-052) now persist through Turso + redb-backed round-trips, including restart-safe resume metadata.
-- **MCP/CLI contract drift** — Batch tool contract truth remains aligned (WG-053), and core docs/CLI references were refreshed to runtime/parity truth source in WG-054.
-- **CI/test coverage remediation** — Required CI test scope now runs workspace nextest slices instead of `--lib`-only gates, benchmark workflow surface expanded, and coverage enforcement now fails below configured threshold (default 90). (WG-055/WG-056 complete)
-- **Disk hygiene remediation** — `scripts/clean-artifacts.sh` now supports practical cleanup modes, optional `--node-modules`, coverage artifact cleanup, and `CARGO_TARGET_DIR`-aware paths. (WG-057 complete)
-- **Guidance parity remediation** — AGENTS.md, `agent_docs/`, and relevant `.agents/skills/` now reflect script-first workflow, coverage `>=90%` expectations, and non-mold default linker guidance. (WG-058 complete)
+### Known Issues (P1)
+| Issue | Status | Workaround |
+|-------|--------|------------|
+| CLI Turso segfault | Under investigation | Use redb-only or `turso dev` server |
 
 ## Completed Phases
 

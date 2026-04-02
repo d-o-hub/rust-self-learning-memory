@@ -74,9 +74,10 @@ semver-check:
 
 ## Status
 
-- [ ] Implement fix in `.github/workflows/ci.yml`
-- [ ] Test on new PR
-- [ ] Document in memory if successful
+- [x] Implement fix in `.github/workflows/ci.yml`
+- [x] Test on new PR (#416)
+- [x] Document in memory if successful
+- [x] PR merged successfully on 2026-04-01
 
 ## References
 

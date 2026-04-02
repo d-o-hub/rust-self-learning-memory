@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-01 (v0.1.26 released)
+**Last Updated**: 2026-04-02 (v0.1.27 sprint complete)
 **Released Version**: v0.1.26
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -11,11 +11,13 @@
 
 v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crates published to crates.io. GitHub Release v0.1.26 created with multi-platform binaries.
 
+v0.1.27 feature sprint complete on `main` branch. Features will be included in next release.
+
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Current Sprint — v0.1.27 Feature Sprint (In Progress)
+## Current Sprint — v0.1.27 Feature Sprint (Complete ✅)
 
 ### P1: Feature Enhancements
 
@@ -38,6 +40,12 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 |------|-------------|--------|
 | WG-084 | Restore GitHub Pages with mdBook | ✅ Complete |
 | WG-085 | Add llms.txt for LLM context | ✅ Complete |
+
+### P3: CI Optimization
+
+| Task | Description | Status |
+|------|-------------|--------|
+| Semver timeout fix | Increase timeout + add baseline caching | ✅ Complete (PR #416) |
 
 ---
 
@@ -159,6 +167,7 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.27 | 2026-04 | Wilson score ranking, Episode GC/TTL, spawn_blocking audit, MCP Server Card, GitHub Pages, llms.txt, semver timeout fix |
 | v0.1.24 | 2026-03 | Test stability (DBSCAN budget, quality gate timeout), dependency updates |
 | v0.1.22 | 2026-03 | ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) |
 | v0.1.21 | 2026-03 | Publishing infrastructure (ADR-045), supply chain security |

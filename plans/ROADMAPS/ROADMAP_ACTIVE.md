@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-02 (v0.1.28 sprint in progress)
+**Last Updated**: 2026-04-02 (v0.1.28 sprint COMPLETE ✅)
 **Released Version**: v0.1.26
-**Branch**: `feature/dymoe-routing-drift` (PR #421)
+**Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---
@@ -11,33 +11,33 @@
 
 v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crates published to crates.io. GitHub Release v0.1.26 created with multi-platform binaries.
 
-v0.1.27 feature sprint complete on `main` branch. Features will be included in next release.
+v0.1.27 + v0.1.28 features merged to `main` branch. Ready for v0.1.28 release.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Next Sprint — v0.1.28 (In Progress)
+## Completed Sprint — v0.1.28 ✅
 
 ### P1: Feature Enhancements
 
 | Task | Description | Status | WG | Source |
 |------|-------------|--------|----|--------|
-| WG-089 | DyMoE routing-drift protection + affinity gating | 🟡 PR #421 | 89 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
-| WG-090 | Dual reward scoring (stability + novelty signals) | 🟡 PR #421 | 90 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
+| WG-089 | DyMoE routing-drift protection + affinity gating | ✅ Complete | 89 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
+| WG-090 | Dual reward scoring (stability + novelty signals) | ✅ Complete | 90 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
 
 ### P1: Security
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-092 | Resolve open Dependabot alerts (rustls-webpki, lru, libsql-sqlite3-parser) | ✅ Analyzed (transitive) | 92 |
-| WG-093 | Fix CodeQL cleartext logging alert in feedback CLI | ✅ Fixed (PR #420) | 93 |
+| WG-092 | Resolve open Dependabot alerts | ✅ Analyzed (transitive) | 92 |
+| WG-093 | Fix CodeQL cleartext logging alert in feedback CLI | ✅ Fixed | 93 |
 
 ### P2: CI/Infra
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-091 | Merge AI spam detector PR #406 | 🟡 CI passed, awaiting review | 91 |
+| WG-091 | Merge AI spam detector PR #406 | ✅ Merged | 91 |
 
 ---
 

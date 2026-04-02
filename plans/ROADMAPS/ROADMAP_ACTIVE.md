@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-02 (v0.1.28 sprint planned)
+**Last Updated**: 2026-04-02 (v0.1.28 sprint in progress)
 **Released Version**: v0.1.26
-**Branch**: `main` (all PRs merged)
+**Branch**: `feature/dymoe-routing-drift` (PR #421)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---
@@ -17,27 +17,27 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Next Sprint — v0.1.28 (Planned)
+## Next Sprint — v0.1.28 (In Progress)
 
 ### P1: Feature Enhancements
 
 | Task | Description | Status | WG | Source |
 |------|-------------|--------|----|--------|
-| WG-089 | DyMoE routing-drift protection + affinity gating | 🔵 Planned | 89 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
-| WG-090 | Dual reward scoring (stability + novelty signals) | 🔵 Planned | 90 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
+| WG-089 | DyMoE routing-drift protection + affinity gating | 🟡 PR #421 | 89 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
+| WG-090 | Dual reward scoring (stability + novelty signals) | 🟡 PR #421 | 90 | [#419](https://github.com/d-o-hub/rust-self-learning-memory/issues/419) |
 
 ### P1: Security
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-092 | Resolve open Dependabot alerts (rustls-webpki, lru, libsql-sqlite3-parser) | 🔵 Planned | 92 |
-| WG-093 | Fix CodeQL cleartext logging alert in feedback CLI | 🔵 Planned | 93 |
+| WG-092 | Resolve open Dependabot alerts (rustls-webpki, lru, libsql-sqlite3-parser) | ✅ Analyzed (transitive) | 92 |
+| WG-093 | Fix CodeQL cleartext logging alert in feedback CLI | ✅ Fixed (PR #420) | 93 |
 
 ### P2: CI/Infra
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-091 | Merge AI spam detector PR #406 | 🔵 Planned | 91 |
+| WG-091 | Merge AI spam detector PR #406 | 🟡 CI passed, awaiting review | 91 |
 
 ---
 

@@ -5,6 +5,7 @@
 //!
 //! ## Components
 //!
+//! - `affinity`: DyMoE routing-drift protection with pattern affinity classification
 //! - `changepoint`: Changepoint detection for pattern metric monitoring
 //! - `clustering`: Pattern clustering and deduplication
 //! - `dbscan`: DBSCAN-based anomaly detection for episodes
@@ -13,6 +14,7 @@
 //! - `optimized_validator`: Enhanced pattern validation
 //! - `validation`: Pattern accuracy metrics (precision, recall, F1)
 
+pub mod affinity;
 pub mod changepoint;
 pub mod clustering;
 pub mod dbscan;
@@ -20,6 +22,11 @@ pub mod effectiveness;
 pub mod extractors;
 pub mod optimized_validator;
 pub mod validation;
+
+pub use affinity::{
+    DEFAULT_AFFINITY_THRESHOLD, DEFAULT_MIN_SUCCESS_RATE, EpisodeAssignmentGuard,
+    PatternAffinityClassifier, RejectionReason, RelativeAffinity,
+};
 
 pub use changepoint::{
     ChangeDirection, ChangeType, Changepoint, ChangepointConfig, ChangepointDetector,

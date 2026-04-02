@@ -1,3 +1,4 @@
+---
 name: 🧠 AI Slop Self-Learning
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -5,7 +6,7 @@ name: 🧠 AI Slop Self-Learning
 #   • labels an issue with 'ai-slop'       → learn the spam pattern
 #   • labels an issue with 'false-positive' → protect this account/pattern
 # ─────────────────────────────────────────────────────────────────────────────
-on:
+"on":
   issues:
     types: [labeled]
 

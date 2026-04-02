@@ -238,25 +238,30 @@ mod tests {
     }
 
     /// Test that tag operations persist across storage
+    /// Note: This test requires TURSO_DB_URL and TURSO_AUTH_TOKEN environment variables
+    /// and is ignored by default. Run with `cargo test -- --ignored` to execute.
     #[tokio::test]
     #[cfg(feature = "turso")]
+    #[ignore = "requires external Turso database configuration"]
     async fn test_update_persists_to_storage() {
-        use do_memory_storage_turso::TursoClient;
+        use do_memory_core::MemoryConfig;
+        use do_memory_storage_redb::RedbStorage;
+        use do_memory_storage_turso::TursoStorage;
         use std::sync::Arc;
+        use tempfile::NamedTempFile;
 
-        // This test requires actual Turso setup, so we'll skip if not configured
-        let db_url = std::env::var("TURSO_DB_URL").ok();
-        let auth_token = std::env::var("TURSO_AUTH_TOKEN").ok();
+        // This test requires actual Turso setup
+        let db_url = std::env::var("TURSO_DB_URL").expect("TURSO_DB_URL must be set");
+        let auth_token = std::env::var("TURSO_AUTH_TOKEN").expect("TURSO_AUTH_TOKEN must be set");
 
-        if db_url.is_none() || auth_token.is_none() {
-            println!(
-                "Skipping storage persistence test - TURSO_DB_URL and TURSO_AUTH_TOKEN not set"
-            );
-            return;
-        }
-
-        let turso = TursoClient::new(db_url.unwrap(), auth_token.unwrap()).unwrap();
-        let memory = do_memory_core::SelfLearningMemory::with_storage(Arc::new(turso), None, None);
+        let turso = TursoStorage::new(&db_url, &auth_token).await.unwrap();
+        let temp_file = NamedTempFile::new().unwrap();
+        let redb = RedbStorage::new(temp_file.path()).await.unwrap();
+        let memory = do_memory_core::SelfLearningMemory::with_storage(
+            MemoryConfig::default(),
+            Arc::new(turso),
+            Arc::new(redb),
+        );
 
         // Create episode
         let episode_id = memory

@@ -4,6 +4,18 @@
 //! prevents injection attacks, and sanitizes user data.
 
 use std::fs;
+use std::path::PathBuf;
+use std::sync::OnceLock;
+
+fn cli_bin() -> &'static PathBuf {
+    static PATH: OnceLock<PathBuf> = OnceLock::new();
+    PATH.get_or_init(|| {
+        #[allow(deprecated)]
+        let path = assert_cmd::cargo::cargo_bin("do-memory-cli");
+        assert!(path.exists(), "CLI binary not found at {path:?}");
+        path
+    })
+}
 
 #[cfg(test)]
 mod security_tests {
@@ -73,9 +85,7 @@ batch_size = 10
 
             fs::write(&safe_config, config_content).unwrap();
 
-            #[allow(deprecated)]
-            let mut cmd =
-                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+            let mut cmd = Command::new(cli_bin());
             cmd.arg("--config").arg(&safe_config);
             cmd.args(["episode", "create", "test task"]);
 
@@ -142,9 +152,7 @@ default_format = "human; echo 'injected'"
             let config_path = temp_dir.path().join("malicious.toml");
             fs::write(&config_path, config_content).unwrap();
 
-            #[allow(deprecated)]
-            let mut cmd =
-                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+            let mut cmd = Command::new(cli_bin());
             cmd.arg("--config").arg(&config_path);
             cmd.arg("config");
 
@@ -298,9 +306,7 @@ batch_size = 10
         let config_path = temp_dir.path().join("sensitive.toml");
         fs::write(&config_path, &sensitive_config).unwrap();
 
-        #[allow(deprecated)]
-        let mut cmd =
-            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd = Command::new(cli_bin());
         cmd.arg("--config").arg(&config_path);
         cmd.args(["episode", "list"]);
 
@@ -622,9 +628,7 @@ batch_size = 10
                 .join(format!("malicious_{}.toml", attack_type));
             fs::write(&config_path, config_content).unwrap();
 
-            #[allow(deprecated)]
-            let mut cmd =
-                Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+            let mut cmd = Command::new(cli_bin());
             cmd.arg("--config").arg(&config_path);
             cmd.args(["episode", "list"]);
 

@@ -6,7 +6,19 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
+use std::path::PathBuf;
+use std::sync::OnceLock;
 use tempfile::TempDir;
+
+fn cli_bin() -> &'static PathBuf {
+    static PATH: OnceLock<PathBuf> = OnceLock::new();
+    PATH.get_or_init(|| {
+        #[allow(deprecated)]
+        let path = assert_cmd::cargo::cargo_bin("do-memory-cli");
+        assert!(path.exists(), "CLI binary not found at {path:?}");
+        path
+    })
+}
 
 mod common;
 
@@ -85,9 +97,7 @@ batch_size = 10
 
         fs::write(&invalid_config_path, &invalid_config).unwrap();
 
-        #[allow(deprecated)]
-        let mut cmd =
-            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd = Command::new(cli_bin());
         cmd.arg("--config").arg(&invalid_config_path);
         cmd.args(["config", "validate"]); // Validate config to trigger validation
 
@@ -229,9 +239,7 @@ batch_size = 50
 
         fs::write(&config_path, &custom_config).unwrap();
 
-        #[allow(deprecated)]
-        let mut cmd =
-            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd = Command::new(cli_bin());
         cmd.arg("--config").arg(&config_path);
         cmd.args(["config", "show"]);
 
@@ -276,9 +284,7 @@ batch_size = 25
         let original_dir = std::env::current_dir().unwrap();
         std::env::set_current_dir(&temp_dir).unwrap();
 
-        #[allow(deprecated)]
-        let mut cmd =
-            Command::cargo_bin("do-memory-cli").expect("Failed to find memory-cli binary");
+        let mut cmd = Command::new(cli_bin());
         cmd.args(["config", "show"]);
 
         cmd.assert().success();

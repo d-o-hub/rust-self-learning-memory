@@ -11,7 +11,24 @@
 
 use assert_cmd::Command;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use tempfile::TempDir;
+
+/// Cached CLI binary path. `Command::cargo_bin` triggers a cargo build check
+/// on each call via escargot; resolving the path once and reusing it saves
+/// ~130s per test that would otherwise recompile.
+fn cli_binary_path() -> &'static PathBuf {
+    static PATH: OnceLock<PathBuf> = OnceLock::new();
+    PATH.get_or_init(|| {
+        #[allow(deprecated)]
+        let path = assert_cmd::cargo::cargo_bin("do-memory-cli");
+        assert!(
+            path.exists(),
+            "CLI binary not found at {path:?}. Run `cargo build` first."
+        );
+        path
+    })
+}
 
 /// CLI test harness for executing commands programmatically
 pub struct CliHarness {
@@ -77,10 +94,7 @@ batch_size = 10
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
     {
-        // Use assert_cmd's cargo_bin to find the binary correctly
-        #[allow(deprecated)]
-        let mut cmd =
-            Command::cargo_bin("do-memory-cli").expect("Failed to find do-memory-cli binary");
+        let mut cmd = Command::new(cli_binary_path());
         cmd.arg("--config").arg(&self.config_path);
         cmd.args(args);
         cmd

@@ -21,8 +21,13 @@ impl SelfLearningMemory {
         };
         let mut episode = (*episode_arc).clone();
 
-        // Extract patterns
-        let extracted_patterns = self.pattern_extractor.extract(&episode);
+        // Extract patterns in spawn_blocking (CPU-heavy)
+        let extractor = self.pattern_extractor.clone();
+        let episode_for_extract = episode.clone();
+        let extracted_patterns =
+            tokio::task::spawn_blocking(move || extractor.extract(&episode_for_extract))
+                .await
+                .map_err(|e| Error::InvalidState(format!("Pattern extraction task failed: {e}")))?;
 
         debug!(
             pattern_count = extracted_patterns.len(),

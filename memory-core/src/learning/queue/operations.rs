@@ -254,8 +254,12 @@ impl PatternExtractionQueue {
             )));
         }
 
-        // Extract patterns
-        let patterns = extractor.extract(&episode);
+        // Extract patterns in spawn_blocking (CPU-heavy)
+        let extractor_clone = extractor.clone();
+        let episode_clone = episode.clone();
+        let patterns = tokio::task::spawn_blocking(move || extractor_clone.extract(&episode_clone))
+            .await
+            .map_err(|e| Error::InvalidState(format!("Pattern extraction task failed: {e}")))?;
         let pattern_count = patterns.len();
 
         if pattern_count > 0 {

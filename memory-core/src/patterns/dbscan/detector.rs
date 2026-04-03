@@ -49,7 +49,6 @@ impl DBSCANAnomalyDetector {
     /// # Errors
     ///
     /// Returns error if feature extraction fails
-    #[allow(clippy::unused_async)]
     pub async fn detect_anomalies(
         &self,
         episodes: &[Episode],
@@ -63,38 +62,51 @@ impl DBSCANAnomalyDetector {
             });
         }
 
-        // Extract feature vectors
-        let features = self.extract_features(episodes);
+        // Clone data for the blocking task
+        let detector = self.clone();
+        let episodes_owned = episodes.to_vec();
 
-        // Determine epsilon (adaptive if configured)
-        let eps = if self.config.adaptive_eps {
-            self.config.calculate_adaptive_eps(&features)
-        } else {
-            self.config.eps
-        };
+        // Run CPU-heavy DBSCAN clustering in spawn_blocking
+        let result = tokio::task::spawn_blocking(move || {
+            // Extract feature vectors
+            let features = detector.extract_features(&episodes_owned);
 
-        // Create config with the computed epsilon
-        let mut config = self.config.clone();
-        config.eps = eps;
+            // Determine epsilon (adaptive if configured)
+            let eps = if detector.config.adaptive_eps {
+                detector.config.calculate_adaptive_eps(&features)
+            } else {
+                detector.config.eps
+            };
 
-        // Apply DBSCAN
-        let (cluster_labels, _visited, iterations) = algorithms::dbscan(&config, &features);
+            // Create config with the computed epsilon
+            let mut config = detector.config.clone();
+            config.eps = eps;
 
-        // Build clusters
-        let clusters = algorithms::build_clusters(&config, episodes, &cluster_labels, &features);
+            // Apply DBSCAN
+            let (cluster_labels, _visited, iterations) = algorithms::dbscan(&config, &features);
 
-        // Identify anomalies
-        let anomalies = self.identify_anomalies(episodes, &cluster_labels, &features, &clusters);
+            // Build clusters
+            let clusters =
+                algorithms::build_clusters(&config, &episodes_owned, &cluster_labels, &features);
 
-        // Calculate statistics
-        let stats = algorithms::calculate_stats(episodes.len(), &anomalies, &clusters);
+            // Identify anomalies
+            let anomalies =
+                detector.identify_anomalies(&episodes_owned, &cluster_labels, &features, &clusters);
 
-        Ok(DBSCANClusterResult {
-            clusters,
-            anomalies,
-            iterations,
-            stats,
+            // Calculate statistics
+            let stats = algorithms::calculate_stats(episodes_owned.len(), &anomalies, &clusters);
+
+            DBSCANClusterResult {
+                clusters,
+                anomalies,
+                iterations,
+                stats,
+            }
         })
+        .await
+        .map_err(|e| anyhow::anyhow!("DBSCAN task failed: {e}"))?;
+
+        Ok(result)
     }
 
     /// Extract feature vectors from episodes

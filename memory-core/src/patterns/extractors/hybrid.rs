@@ -114,7 +114,11 @@ impl HybridPatternExtractor {
 
         // Deduplicate and cluster if enabled
         let final_patterns = if self.enable_clustering {
-            let clustered = cluster_similar_patterns(all_patterns);
+            // Run CPU-heavy clustering in spawn_blocking
+            let clustered =
+                tokio::task::spawn_blocking(move || cluster_similar_patterns(all_patterns))
+                    .await
+                    .map_err(|e| anyhow::anyhow!("Clustering task failed: {e}"))?;
             debug!(
                 clustered_patterns = clustered.len(),
                 "Clustered similar patterns"

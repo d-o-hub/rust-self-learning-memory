@@ -14,7 +14,7 @@ documentation = "https://docs.rs/do-memory-storage-redb"
 
 [dependencies]
 # Core dependencies
-do-memory-core = { path = "../memory-core", version = "0.1.26" }
+do-memory-core = { path = "../memory-core", version = "0.1.29" }
 
 # Async runtime
 tokio = { workspace = true }

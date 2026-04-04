@@ -7,8 +7,8 @@ license.workspace = true
 repository.workspace = true
 homepage = "https://github.com/d-o-hub/rust-self-learning-memory"
 readme = "README.md"
-description = "Model Context Protocol (MCP) server with secure code execution sandbox for AI agents"
-keywords = ["mcp", "sandbox", "code-execution", "ai", "security"]
+description = "Model Context Protocol (MCP) server for AI agents"
+keywords = ["mcp", "ai", "memory"]
 categories = ["development-tools", "web-programming"]
 documentation = "https://docs.rs/do-memory-mcp"
 
@@ -27,27 +27,16 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 # Local dependencies
-do-memory-core = { path = "../memory-core", version = "0.1.26" }
-do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.26" }
-do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.26" }
+do-memory-core = { path = "../memory-core", version = "0.1.29" }
+do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.29" }
+do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.29" }
 
 # MCP-specific dependencies
 parking_lot = "0.12.5"
 url = "2.5.8"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
-# WASM JavaScript execution dependencies
-# These are optional and gated behind feature flags for faster builds
-rquickjs = { version = "0.11.0", features = ["parallel", "loader", "futures"], optional = true }  # DEPRECATED: gated behind feature `wasm-rquickjs`
-wasmtime = { workspace = true, features = ["async", "cranelift", "wat", "cache"], optional = true }
-wasmtime-wasi = { workspace = true, optional = true }  # Align with wasmtime version
-
-# Javy JavaScript to WASM compilation dependencies (optional)
-javy = { version = "7.0.0", optional = true }
-javy-codegen = { version = "4.0.0", optional = true }
-# javy-plugin-api = { version = "3.1.0", optional = true }  # Keep optional to avoid conflicts
-
-# Additional dependencies for unified sandbox
+# Additional dependencies
 chrono = { workspace = true }
 rand = { workspace = true }
 
@@ -57,15 +46,6 @@ base64 = "0.22.1"
 libc = "0.2"
 
 [features]
-# WASM backends are now optional - users must explicitly choose one
-# Default includes wasmtime-backend as it's recommended for most use cases
-default = ["wasmtime-backend"]
-# WASMtime backend (recommended for most use cases)
-wasmtime-backend = ["dep:wasmtime", "dep:wasmtime-wasi"]
-# Deprecated: QuickJS WASM backend
-wasm-rquickjs = ["dep:rquickjs"]
-# Javy JavaScript backend (requires additional setup)
-javy-backend = ["dep:javy", "dep:javy-codegen"]
 # Optional OAuth authorization support
 oauth = []
 # Optional embeddings configuration support
@@ -80,7 +60,6 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
-wat = "1.245"  # WAT parsing for tests
 insta = { version = "1.47", features = ["json", "yaml"] }
 proptest = "1.11"
 

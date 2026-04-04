@@ -5,7 +5,6 @@
 
 pub mod advanced;
 pub mod batch;
-pub mod code;
 pub mod core;
 pub mod embeddings;
 pub mod episode_complete;

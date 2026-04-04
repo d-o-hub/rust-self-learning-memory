@@ -53,40 +53,6 @@ pub fn create_default_tools() -> Vec<Tool> {
         }),
     )];
 
-    // Check if WASM sandbox is available before adding execute_agent_code tool
-    if crate::server::sandbox::is_wasm_sandbox_available() {
-        tools.push(Tool::new(
-            "execute_agent_code".to_string(),
-            "Execute TypeScript/JavaScript code in a secure sandbox environment".to_string(),
-            json!({
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "string",
-                        "description": "TypeScript/JavaScript code to execute"
-                    },
-                    "context": {
-                        "type": "object",
-                        "properties": {
-                            "task": {
-                                "type": "string",
-                                "description": "Task description"
-                            },
-                            "input": {
-                                "type": "object",
-                                "description": "Input data as JSON"
-                            }
-                        },
-                        "required": ["task", "input"]
-                    }
-                },
-                "required": ["code", "context"]
-            }),
-        ));
-    } else {
-        tracing::warn!("WASM sandbox not available - execute_agent_code tool disabled");
-    }
-
     tools.push(Tool::new(
         "analyze_patterns".to_string(),
         "Analyze patterns from past episodes to identify successful strategies".to_string(),

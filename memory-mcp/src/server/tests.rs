@@ -1,26 +1,12 @@
 //! Tests for the MemoryMCPServer
 
 use crate::server::MemoryMCPServer;
-use crate::server::sandbox;
-use crate::types::{ExecutionContext, SandboxConfig};
+use crate::types::SandboxConfig;
 use do_memory_core::SelfLearningMemory;
 use serde_json::json;
 use std::sync::Arc;
 
-// Set once for all tests in this module
-#[allow(unsafe_code)]
-fn set_once() {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    ONCE.call_once(|| {
-        // SAFETY: test-only env var manipulation
-        unsafe {
-            std::env::set_var("MCP_USE_WASM", "false");
-        }
-    });
-}
-
 async fn create_test_server() -> MemoryMCPServer {
-    set_once();
     let memory = Arc::new(SelfLearningMemory::new());
     MemoryMCPServer::new(SandboxConfig::default(), memory)
         .await
@@ -46,10 +32,6 @@ async fn test_server_creation() {
         tools.iter().any(|t| t.name == "health_check"),
         "health_check tool should exist"
     );
-
-    // execute_agent_code tool availability depends on WASM sandbox configuration
-    // which can vary between test runs due to environment variable timing
-    // We don't assert its presence to avoid flaky tests
 }
 
 #[tokio::test]
@@ -65,76 +47,26 @@ async fn test_get_tool() {
 }
 
 #[tokio::test]
-async fn test_execute_code() {
-    if std::env::var("RUN_WASM_TESTS").is_err() || !sandbox::is_wasm_sandbox_available() {
-        tracing::info!(
-            "Skipping execute_agent_code test (set RUN_WASM_TESTS=1 and ensure WASM is available)"
-        );
-        return;
-    }
-
-    let server = create_test_server().await;
-
-    let code = "return 1 + 1;";
-    let context = ExecutionContext::new("test".to_string(), json!({}));
-
-    let result = server.execute_agent_code(code.to_string(), context).await;
-    assert!(result.is_ok());
-
-    // Check stats were updated
-    let stats = server.get_stats().await;
-    assert_eq!(stats.total_executions, 1);
-}
-
-#[tokio::test]
 async fn test_tool_usage_tracking() {
     let server = create_test_server().await;
 
-    // Execute code multiple times
+    // Execute query_memory multiple times
     for _ in 0..3 {
-        let code = "return 1;";
-        let context = ExecutionContext::new("test".to_string(), json!({}));
-        let _ = server.execute_agent_code(code.to_string(), context).await;
+        let _ = server
+            .query_memory(
+                "test".to_string(),
+                "test".to_string(),
+                None,
+                10,
+                "relevance".to_string(),
+                None,
+            )
+            .await;
     }
 
     // Check usage was tracked
     let usage = server.get_tool_usage().await;
-    assert_eq!(usage.get("execute_agent_code"), Some(&3));
-}
-
-#[tokio::test]
-async fn test_progressive_tool_disclosure() {
-    if std::env::var("RUN_WASM_TESTS").is_err() || !sandbox::is_wasm_sandbox_available() {
-        tracing::info!(
-            "Skipping progressive tool disclosure test (set RUN_WASM_TESTS=1 and ensure WASM is available)"
-        );
-        return;
-    }
-
-    let server = create_test_server().await;
-
-    // Use execute_agent_code multiple times
-    for _ in 0..5 {
-        let code = "return 1;";
-        let context = ExecutionContext::new("test".to_string(), json!({}));
-        let _ = server.execute_agent_code(code.to_string(), context).await;
-    }
-
-    // Use query_memory once
-    let _ = server
-        .query_memory(
-            "test".to_string(),
-            "test".to_string(),
-            None,
-            10,
-            "relevance".to_string(),
-            None,
-        )
-        .await;
-
-    // List tools - execute_agent_code should be first (most used)
-    let tools = server.list_tools().await;
-    assert_eq!(tools[0].name, "execute_agent_code");
+    assert_eq!(usage.get("query_memory"), Some(&3));
 }
 
 #[tokio::test]
@@ -268,19 +200,4 @@ async fn test_analyze_patterns() {
     let json = result.unwrap();
     assert!(json.get("patterns").is_some());
     assert!(json.get("statistics").is_some());
-}
-
-#[tokio::test]
-async fn test_execution_stats() {
-    let server = create_test_server().await;
-
-    // Execute some code
-    let code = "return 42;";
-    let context = ExecutionContext::new("test".to_string(), json!({}));
-    let _ = server.execute_agent_code(code.to_string(), context).await;
-
-    let stats = server.get_stats().await;
-    assert_eq!(stats.total_executions, 1);
-    // avg_execution_time_ms can be 0.0 for very fast sub-millisecond executions
-    assert!(stats.avg_execution_time_ms >= 0.0);
 }

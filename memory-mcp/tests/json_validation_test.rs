@@ -1,23 +1,9 @@
 use do_memory_core::SelfLearningMemory;
-use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
-use serde_json::json;
+use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
 use std::sync::Arc;
-
-/// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
-#[allow(unsafe_code)]
-fn disable_wasm_for_tests() {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    ONCE.call_once(|| {
-        // SAFETY: test-only env var manipulation
-        unsafe {
-            std::env::set_var("MCP_USE_WASM", "false");
-        }
-    });
-}
 
 #[tokio::test]
 async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
-    disable_wasm_for_tests();
     println!("🧪 Testing MCP Tools JSON Response Validation\n");
 
     // Create MCP server
@@ -33,18 +19,7 @@ async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => test_results.push(("query_memory", "FAIL", format!("Error: {}", e))),
     }
 
-    // Test 2: execute_agent_code tool
-    println!("⚙️ Testing execute_agent_code tool...");
-    match test_execute_agent_code(&server).await {
-        Ok(_) => test_results.push((
-            "execute_agent_code",
-            "PASS",
-            "Valid JSON response".to_string(),
-        )),
-        Err(e) => test_results.push(("execute_agent_code", "FAIL", format!("Error: {}", e))),
-    }
-
-    // Test 3: analyze_patterns tool
+    // Test 2: analyze_patterns tool
     println!("📊 Testing analyze_patterns tool...");
     match test_analyze_patterns(&server).await {
         Ok(_) => test_results.push((
@@ -55,7 +30,7 @@ async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => test_results.push(("analyze_patterns", "FAIL", format!("Error: {}", e))),
     }
 
-    // Test 4: list_tools
+    // Test 3: list_tools
     println!("📋 Testing list_tools...");
     match test_list_tools(&server).await {
         Ok(_) => test_results.push(("list_tools", "PASS", "Valid JSON response".to_string())),
@@ -126,21 +101,6 @@ async fn test_query_memory(server: &MemoryMCPServer) -> Result<(), Box<dyn std::
     if result.get("insights").is_none() {
         return Err("Missing 'insights' field".into());
     }
-
-    Ok(())
-}
-
-async fn test_execute_agent_code(
-    server: &MemoryMCPServer,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let code = "return { success: true, value: 42 };";
-    let context = ExecutionContext::new("test execution".to_string(), json!({ "test": "data" }));
-
-    let result = server.execute_agent_code(code.to_string(), context).await?;
-
-    // Validate JSON serialization
-    let serialized = serde_json::to_string(&result)?;
-    let _: serde_json::Value = serde_json::from_str(&serialized)?;
 
     Ok(())
 }

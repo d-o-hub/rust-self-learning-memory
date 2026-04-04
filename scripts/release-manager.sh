@@ -82,6 +82,11 @@ run_cmd() {
 }
 
 do_validate() {
+  echo "═══ Phase 0: Version state verification ═══"
+  # Always execute version check (not dry-run) — it's read-only
+  ./scripts/verify-release-state.sh --check-tag --check-unreleased
+  echo ""
+  echo "═══ Phase 1: Code quality ═══"
   run_cmd "./scripts/check-docs-integrity.sh"
   run_cmd "./scripts/code-quality.sh fmt"
   run_cmd "./scripts/code-quality.sh clippy"

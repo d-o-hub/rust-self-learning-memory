@@ -4,6 +4,79 @@
 
 - Nothing yet
 
+## [0.1.29] - 2026-04-04
+
+### Changed
+
+- **ADR-052 Comprehensive Analysis** - WASM removal decision, Turso vector search implementation
+  - Remove WASM sandbox (1,899 LOC, 127 references)
+  - Remove wasmtime, rquickjs dependencies
+  - Implement native `vector_top_k()` DiskANN search
+  - Add embedding format migration (JSON → F32_BLOB)
+
+### Removed
+
+- WASM sandbox implementation (deprecated since v0.1.17, never enabled)
+- wasmtime, wasmtime-wasi, rquickjs workspace dependencies
+
+## [0.1.28] - 2026-04-03
+
+### Added
+
+- **DyMoE routing-drift protection** (WG-089) - Affinity gating and routing stability
+- **Dual reward scoring** (WG-090) - Stability + novelty signals for episode evaluation
+
+### Fixed
+
+- **Security remediation**
+  - Resolve Dependabot alerts (transitive dependencies analyzed)
+  - Fix CodeQL cleartext logging alert in feedback CLI (WG-093)
+
+### Changed
+
+- **AI spam detector workflows** (WG-091) - Merged PR #406
+- **Module refactoring** - Split retention, affinity, ranking, handlers modules
+- **spawn_blocking audit** - All 34 usages verified correct
+
+## [0.1.27] - 2026-04-01
+
+### Added
+
+- **Bayesian ranking with Wilson score** (WG-073) - Confidence interval ranking for attribution data
+- **Episode GC/TTL** (WG-075) - Retention policy with configurable cleanup criteria
+- **MCP Server Card** (WG-078) - `.well-known/mcp.json` for MCP discovery
+- **GitHub Pages** (WG-084) - mdBook + cargo doc workflow
+- **llms.txt** (WG-085) - LLM context file for AI assistants
+
+### Fixed
+
+- **spawn_blocking audit** (WG-079) - Complete verification of async patterns
+- **Semver check timeout** - Increase timeout + add baseline caching
+
+### Changed
+
+- **MMR diversity retrieval** (WG-077) - Already implemented, documented
+
+## [0.1.26] - 2026-04-01
+
+### Fixed
+
+- **Inter-crate dependency version specs** (PR #411) - Required for crates.io publishing
+- **Binary name consistency** (PR #413) - Updated scripts/tests to `do-memory-mcp-server` and `do-memory-cli`
+
+### Changed
+
+- **Crate renaming** (v0.1.24-25 continued) - `memory-*` → `do-memory-*` namespace on crates.io
+- All 4 crates published to crates.io successfully
+
+## [0.1.25] - 2026-04-01
+
+### Changed
+
+- **Crate renaming** (PR #407) - `memory-*` → `do-memory-*` for crates.io namespace
+- Added codecov.yml to main branch (PR #408)
+- Added CLI description for crates.io (PR #409)
+
 ## [0.1.24] - 2026-03-31
 
 ### Fixed

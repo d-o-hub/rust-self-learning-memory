@@ -1,7 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-02 (v0.1.28 sprint COMPLETE ✅)
-**Released Version**: v0.1.26
+**Last Updated**: 2026-04-04 (v0.1.29 sprint PROPOSED)
+**Released Version**: v0.1.26 (crates.io + GitHub Release)
+**Unreleased on main**: v0.1.27 + v0.1.28 features (23 commits since v0.1.26 tag)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -9,11 +10,47 @@
 
 ## Current State
 
-v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crates published to crates.io. GitHub Release v0.1.26 created with multi-platform binaries.
+v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crates published to crates.io.
 
-v0.1.27 + v0.1.28 features merged to `main` branch. Ready for v0.1.28 release.
+⚠️ **Version gap**: v0.1.27 and v0.1.28 were sprint labels but **no tags or releases were created**. `Cargo.toml` version remains `0.1.26`. Next release should be v0.1.29.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
+
+---
+
+## Upcoming Sprint — v0.1.29 (PROPOSED)
+
+**ADR**: [ADR-052](../adr/ADR-052-Comprehensive-Analysis-v0.1.29.md)
+**Method**: GOAP orchestration + Analysis Swarm
+
+### Phase 0: Version & Hygiene (1d)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-094 | Bump workspace version to 0.1.29, update CHANGELOG | ⏳ Pending | 94 |
+| WG-095 | Archive stale GOAP plans, trim GOALS/ACTIONS | ⏳ Pending | 95 |
+
+### Phase 1: WASM Removal — Swarm Decision (1-2d)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-096 | Remove WASM sandbox (1,899 LOC, 127 refs, 11 files) | ⏳ Pending | 96 |
+| WG-097 | Remove wasmtime + rquickjs from workspace deps | ⏳ Pending | 97 |
+
+### Phase 2: Turso Native Vector Search (2-3d)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-098 | Replace brute-force with `vector_top_k()` DiskANN queries | ⏳ Pending | 98 |
+| WG-099 | Add embedding migration (JSON text → F32_BLOB binary) | ⏳ Pending | 99 |
+| WG-100 | Integration tests for native vector search | ⏳ Pending | 100 |
+
+### Phase 3: Quality (1d)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-101 | Split remaining >500 LOC files (4 files) | ⏳ Pending | 101 |
+| WG-102 | Dead code audit (31 → target ≤25 `#[allow(dead_code)]`) | ⏳ Pending | 102 |
 
 ---
 

@@ -13,7 +13,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.26"
+version = "0.1.29"
 edition = "2024"
 authors = ["Self-Learning Memory Contributors"]
 license = "MIT"
@@ -58,11 +58,6 @@ predicates = "3.1"
 # Benchmarking
 criterion = "0.8"
 
-# WASM and JavaScript execution
-rquickjs = "0.11.0"
-wasmtime = "43.0.0"
-wasmtime-wasi = "43.0.0"
-
 # Additional utilities
 parking_lot = "0.12.5"
 url = "2.5.8"
@@ -83,7 +78,7 @@ toml = "1.1"
 
 # Note: Some duplicates are from transitive dependencies we cannot easily control:
 # - argmin 0.8.1 and argmin-math 0.3.0 come from augurs-changepoint -> changepoint -> rv
-# - hashbrown versions come from wasmtime, libsql, and other external dependencies
+# - hashbrown versions come from libsql and other external dependencies
 # - itertools versions come from criterion, prost, rv, and augurs
 # - getrandom versions come from rand 0.8/0.9/0.10 ecosystem split
 # - nalgebra/ndarray versions come from changepoint/argmin-math ecosystem

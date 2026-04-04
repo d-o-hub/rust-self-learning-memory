@@ -4,7 +4,7 @@
 //! and the MCP (Model Context Protocol) server. It shows how to:
 //!
 //! 1. Create and manage episodes in the memory system
-//! 2. Use the MCP server to query memory and execute code
+//! 2. Use the MCP server to query memory and analyze patterns
 //! 3. Verify database entries and memory integration
 //! 4. Test pattern extraction and analysis
 //!
@@ -19,7 +19,7 @@
 use do_memory_core::{
     ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
-use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
+use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::time::{Duration, sleep};
@@ -165,53 +165,8 @@ async fn main() -> anyhow::Result<()> {
         memory_result["patterns"].as_array().unwrap().len()
     );
 
-    // Test code execution
-    println!("   4.2 Testing code execution...");
-    let code = r#"
-        const auth = {
-            generateToken: (userId) => `jwt_${userId}_${Date.now()}`,
-            validatePassword: (password) => password.length >= 8,
-            hashPassword: (password) => `hashed_${password}`
-        };
-
-        const user = { id: 123, password: "securePass123" };
-        return {
-            token: auth.generateToken(user.id),
-            isValidPassword: auth.validatePassword(user.password),
-            hashed: auth.hashPassword(user.password)
-        };
-    "#;
-
-    let context = ExecutionContext::new(
-        "Test authentication utilities".to_string(),
-        json!({ "userId": 123, "password": "testPassword" }),
-    );
-
-    let exec_result = mcp_server
-        .execute_agent_code(code.to_string(), context)
-        .await?;
-    match exec_result {
-        do_memory_mcp::ExecutionResult::Success { output, .. } => {
-            println!("       ✅ Code execution successful");
-            println!(
-                "       📄 Output: {}",
-                output.chars().take(100).collect::<String>()
-            );
-        }
-        do_memory_mcp::ExecutionResult::Error { message, .. } => {
-            println!("       ❌ Code execution failed: {}", message);
-        }
-        do_memory_mcp::ExecutionResult::SecurityViolation { reason, .. } => {
-            println!("       ❌ Security violation: {}", reason);
-        }
-        do_memory_mcp::ExecutionResult::Timeout { elapsed_ms, .. } => {
-            println!("       ❌ Code execution timed out after {}ms", elapsed_ms);
-        }
-    }
-    println!();
-
     // Test pattern analysis
-    println!("   4.3 Testing pattern analysis...");
+    println!("   4.2 Testing pattern analysis...");
     let pattern_result = mcp_server
         .analyze_patterns("code_generation".to_string(), 0.7, 10, None)
         .await
@@ -283,7 +238,6 @@ async fn main() -> anyhow::Result<()> {
     println!("   5.3 Verifying tool usage tracking...");
     let usage = mcp_server.get_tool_usage().await;
     assert!(usage.contains_key("query_memory"));
-    assert!(usage.contains_key("execute_agent_code"));
     assert!(usage.contains_key("analyze_patterns"));
     println!(
         "       ✅ Tool usage tracking verified ({} tools tracked)",
@@ -306,9 +260,8 @@ async fn main() -> anyhow::Result<()> {
     println!("🎉 Memory MCP Integration Sample Completed Successfully!");
     println!("======================================================");
     println!("✅ Episode lifecycle: Create → Log steps → Complete → Extract patterns");
-    println!("✅ MCP server: Query memory → Execute code → Analyze patterns");
+    println!("✅ MCP server: Query memory → Analyze patterns");
     println!("✅ Database verification: Episodes, patterns, and statistics stored correctly");
-    println!("✅ Security: Code execution sandbox working properly");
     println!("✅ Integration: Memory system and MCP server fully integrated");
 
     Ok(())

@@ -12,18 +12,6 @@ use do_memory_mcp::MemoryMCPServer;
 use do_memory_mcp::types::SandboxConfig;
 use std::sync::Arc;
 
-/// Disable WASM sandbox for all tests to prevent rquickjs GC crashes
-#[allow(unsafe_code)]
-fn disable_wasm_for_tests() {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    ONCE.call_once(|| {
-        // SAFETY: test-only env var manipulation
-        unsafe {
-            std::env::set_var("MCP_USE_WASM", "false");
-        }
-    });
-}
-
 /// Get the list of dispatchable tool names from the handlers.rs match statement.
 ///
 /// This is a static list that must be kept in sync with the actual dispatch
@@ -34,7 +22,6 @@ fn get_dispatchable_tool_names() -> Vec<&'static str> {
     vec![
         // Core tools
         "query_memory",
-        "execute_agent_code", // Conditional - only if WASM is available
         "analyze_patterns",
         "health_check",
         "get_metrics",
@@ -91,8 +78,6 @@ fn get_dispatchable_tool_names() -> Vec<&'static str> {
 /// dispatch table.
 #[tokio::test]
 async fn test_all_advertised_tools_are_dispatchable() {
-    disable_wasm_for_tests();
-
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
@@ -147,8 +132,6 @@ async fn test_all_advertised_tools_are_dispatchable() {
 /// dispatchable tools is in sync with the server's advertised tools.
 #[tokio::test]
 async fn test_dispatch_table_covers_advertised_tools() {
-    disable_wasm_for_tests();
-
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
@@ -173,8 +156,7 @@ async fn test_dispatch_table_covers_advertised_tools() {
         .collect();
 
     if !not_advertised.is_empty() {
-        // This is not necessarily an error - some tools may be conditionally
-        // advertised (like execute_agent_code when WASM is available)
+        // This is not necessarily an error - some tools may be conditionally advertised
         println!("\nInfo: Some dispatchable tools are not currently advertised:");
         for name in &not_advertised {
             println!("  - {}", name);
@@ -191,8 +173,6 @@ async fn test_dispatch_table_covers_advertised_tools() {
 /// `tools/list` until handlers exist and are wired into dispatch.
 #[tokio::test]
 async fn test_unimplemented_batch_tools_not_advertised() {
-    disable_wasm_for_tests();
-
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
@@ -248,8 +228,6 @@ async fn test_unimplemented_batch_tools_not_advertised() {
 /// these names are currently unsupported and absent from the tool registry.
 #[tokio::test]
 async fn test_deferred_batch_tools_cannot_be_resolved() {
-    disable_wasm_for_tests();
-
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {
@@ -281,8 +259,6 @@ async fn test_deferred_batch_tools_cannot_be_resolved() {
 /// This test verifies consistency between the core tools and the full tool list.
 #[tokio::test]
 async fn test_core_tools_always_available() {
-    disable_wasm_for_tests();
-
     let server = MemoryMCPServer::new(
         SandboxConfig::default(),
         Arc::new(SelfLearningMemory::with_config(MemoryConfig {

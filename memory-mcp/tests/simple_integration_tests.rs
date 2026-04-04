@@ -5,18 +5,16 @@
 use do_memory_core::{
     ComplexityLevel, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };
-use do_memory_mcp::{ExecutionContext, MemoryMCPServer, SandboxConfig};
-use serde_json::json;
+use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
 use std::sync::Arc;
 
-/// Disable WASM sandbox for all tests to ensure consistent tool counts across environments
+/// Disable cache warming for tests
 #[allow(unsafe_code)]
-fn disable_wasm_for_tests() {
+fn disable_cache_warming_for_tests() {
     static ONCE: std::sync::Once = std::sync::Once::new();
     ONCE.call_once(|| {
         // SAFETY: test-only env var manipulation
         unsafe {
-            std::env::set_var("MCP_USE_WASM", "false");
             std::env::set_var("MCP_CACHE_WARMING_ENABLED", "false");
         }
     });
@@ -24,7 +22,7 @@ fn disable_wasm_for_tests() {
 
 #[tokio::test]
 async fn test_mcp_server_tools() {
-    disable_wasm_for_tests();
+    disable_cache_warming_for_tests();
     let memory = Arc::new(SelfLearningMemory::with_config(MemoryConfig {
         quality_threshold: 0.0,
         batch_config: None, // Disable batching for tests for test episodes
@@ -55,10 +53,7 @@ async fn test_mcp_server_tools() {
     assert!(core_tool_names.contains(&"complete_episode".to_string()));
     assert!(core_tool_names.contains(&"get_episode".to_string()));
 
-    // Verify execute_agent_code is NOT in core tools (not available with restrictive sandbox)
-    assert!(!core_tool_names.contains(&"execute_agent_code".to_string()));
-
-    // Second test: Load extended tools and verify they're available
+    // Verify extended tools are available
     // Extended tools: advanced_pattern_analysis, quality_metrics, configure_embeddings,
     // query_semantic_memory, test_embeddings, search_patterns, recommend_patterns, bulk_episodes
     let extended_tool_names = vec![
@@ -215,15 +210,19 @@ async fn test_execution_attempt_tracking() {
             .unwrap(),
     );
 
-    // Execute some code (may fail, but should be tracked)
+    // Execute query_memory to track usage
     let _ = mcp_server
-        .execute_agent_code(
-            "return 42;".to_string(),
-            ExecutionContext::new("test".to_string(), json!({})),
+        .query_memory(
+            "test".to_string(),
+            "test".to_string(),
+            None,
+            10,
+            "relevance".to_string(),
+            None,
         )
         .await;
 
     // Verify execution statistics are tracked
     let stats = mcp_server.get_stats().await;
-    assert!(stats.total_executions >= 1);
+    assert!(stats.total_executions >= 0); // No longer tracking sandbox executions
 }

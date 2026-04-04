@@ -4,7 +4,6 @@
 //! and related operations.
 
 use super::{Content, MemoryMCPServer, Value, get_client_id, json_value_len};
-use do_memory_mcp::ExecutionContext;
 use do_memory_mcp::mcp::tools::embeddings::{
     ConfigureEmbeddingsInput, EmbeddingProviderStatusInput, GenerateEmbeddingInput,
     QuerySemanticMemoryInput, SearchByEmbeddingInput,
@@ -64,78 +63,31 @@ pub async fn handle_query_memory(
 }
 
 /// Handle execute_agent_code tool
+///
+/// Note: WASM sandbox has been removed in v0.1.29. This tool is deprecated.
 pub async fn handle_execute_code(
     server: &mut MemoryMCPServer,
     arguments: Option<Value>,
 ) -> anyhow::Result<Vec<Content>> {
     let args: Value = arguments.unwrap_or(json!({}));
     let client_id = get_client_id(&args);
-    let code = args
-        .get("code")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'code' parameter"))?
-        .to_string();
 
-    let context_obj = args
-        .get("context")
-        .ok_or_else(|| anyhow::anyhow!("Missing 'context' parameter"))?;
-
-    let task = context_obj
-        .get("task")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'task' in context"))?
-        .to_string();
-
-    let input = context_obj.get("input").cloned().unwrap_or(json!({}));
-
-    let context = ExecutionContext::new(task, input);
-
-    // Check if WASM sandbox is available by attempting a simple test
-    // If it fails, return a proper error instead of crashing
-    match server
-        .execute_agent_code(
-            "console.log('test');".to_string(),
-            ExecutionContext::new("test".to_string(), json!({})),
+    // Audit log the execution attempt
+    server
+        .audit_logger()
+        .log_code_execution(
+            &client_id,
+            "deprecated",
+            0,
+            false,
+            Some("WASM sandbox removed"),
         )
-        .await
-    {
-        Ok(_) => {
-            // WASM sandbox is working, proceed with actual execution
-            let start_time = std::time::Instant::now();
-            let result = server.execute_agent_code(code, context).await;
-            let execution_time_ms = start_time.elapsed().as_millis() as u64;
+        .await;
 
-            // Audit log the execution
-            let success = result.is_ok();
-            let error = result.as_ref().err().map(|e| e.to_string());
-            server
-                .audit_logger()
-                .log_code_execution(
-                    &client_id,
-                    "wasmtime",
-                    execution_time_ms,
-                    success,
-                    error.as_deref(),
-                )
-                .await;
-
-            let content = vec![Content::Text {
-                text: serde_json::to_string_pretty(&result?)?,
-            }];
-            Ok(content)
-        }
-        Err(e) => {
-            // WASM sandbox is not available, return proper error
-            server
-                .audit_logger()
-                .log_code_execution(&client_id, "wasmtime", 0, false, Some("WASM unavailable"))
-                .await;
-            Err(anyhow::anyhow!(
-                "Code execution is currently unavailable due to WASM sandbox compilation issues. Error: {}",
-                e
-            ))
-        }
-    }
+    Err(anyhow::anyhow!(
+        "Code execution is no longer available. The WASM sandbox was removed in v0.1.29. \
+         See ADR-052 for details."
+    ))
 }
 
 /// Handle analyze_patterns tool

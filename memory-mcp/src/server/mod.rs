@@ -1,14 +1,13 @@
 //! MCP server for memory integration
 //!
 //! This module provides the MCP (Model Context Protocol) server that integrates
-//! the self-learning memory system with code execution capabilities.
+//! the self-learning memory system with memory queries and pattern analysis.
 //!
 //! ## Features
 //!
-//! - Tool definitions for memory queries and code execution
+//! - Tool definitions for memory queries and pattern analysis
 //! - Progressive tool disclosure based on usage patterns
 //! - Integration with SelfLearningMemory system
-//! - Secure code execution via sandbox
 //! - Execution statistics and monitoring
 //!
 //! ## Example
@@ -36,7 +35,6 @@
 pub mod audit;
 pub mod cache_warming;
 pub mod rate_limiter;
-pub mod sandbox;
 #[cfg(test)]
 mod tests;
 pub mod tool_definitions;
@@ -49,7 +47,6 @@ use crate::server::audit::{AuditConfig, AuditLogger};
 use crate::server::rate_limiter::{ClientId, OperationType, RateLimiter};
 use crate::server::tools::registry::ToolRegistry;
 use crate::types::{ExecutionStats, SandboxConfig};
-use crate::unified_sandbox::UnifiedSandbox;
 use anyhow::Result;
 use do_memory_core::SelfLearningMemory;
 use parking_lot::RwLock;
@@ -60,8 +57,6 @@ use tracing::info;
 
 /// MCP server for memory integration
 pub struct MemoryMCPServer {
-    /// Code execution sandbox
-    sandbox: Arc<UnifiedSandbox>,
     /// Tool registry for lazy-loading tools
     tool_registry: Arc<ToolRegistry>,
     /// Execution statistics
@@ -88,16 +83,13 @@ impl MemoryMCPServer {
     ///
     /// # Arguments
     ///
-    /// * `config` - Sandbox configuration for code execution
+    /// * `config` - Sandbox configuration (kept for API compatibility)
     /// * `memory` - Self-learning memory system
     ///
     /// # Returns
     ///
     /// Returns a new `MemoryMCPServer` instance
-    pub async fn new(config: SandboxConfig, memory: Arc<SelfLearningMemory>) -> Result<Self> {
-        let sandbox_backend = sandbox::determine_sandbox_backend();
-        let sandbox = Arc::new(UnifiedSandbox::new(config.clone(), sandbox_backend).await?);
-
+    pub async fn new(_config: SandboxConfig, memory: Arc<SelfLearningMemory>) -> Result<Self> {
         // Use tool registry for lazy loading
         let tool_registry = Arc::new(tools::registry::create_default_registry());
 
@@ -112,7 +104,6 @@ impl MemoryMCPServer {
         let total_count = tool_registry.total_tool_count();
 
         let server = Self {
-            sandbox,
             tool_registry,
             stats: Arc::new(RwLock::new(ExecutionStats::default())),
             tool_usage: Arc::new(RwLock::new(HashMap::new())),

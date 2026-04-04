@@ -11,8 +11,8 @@ publish = false
 do-memory-core = { path = "../memory-core" }
 do-memory-storage-turso = { path = "../memory-storage-turso" }
 do-memory-storage-redb = { path = "../memory-storage-redb" }
-# memory-mcp: Enable wasmtime-backend for MCP tests
-do-memory-mcp = { path = "../memory-mcp", features = ["wasmtime-backend"] }
+# memory-mcp: MCP server for tests
+do-memory-mcp = { path = "../memory-mcp" }
 libsql = { workspace = true }
 
 # Optional: Enable for embedding-specific tests only

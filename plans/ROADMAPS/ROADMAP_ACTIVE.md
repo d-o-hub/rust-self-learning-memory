@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-04 (v0.1.29 sprint PROPOSED)
+**Last Updated**: 2026-04-04 (v0.1.29 sprint COMPLETE)
 **Released Version**: v0.1.26 (crates.io + GitHub Release)
-**Unreleased on main**: v0.1.27 + v0.1.28 features (23 commits since v0.1.26 tag)
+**Unreleased on main**: v0.1.27 + v0.1.28 + v0.1.29 features (32 commits since v0.1.26 tag)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -12,45 +12,45 @@
 
 v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crates published to crates.io.
 
-⚠️ **Version gap**: v0.1.27 and v0.1.28 were sprint labels but **no tags or releases were created**. `Cargo.toml` version remains `0.1.26`. Next release should be v0.1.29.
+⚠️ **Version gap**: v0.1.27, v0.1.28, and v0.1.29 were sprint labels but **no tags or releases were created**. `Cargo.toml` version is now `0.1.29`. Next release should be v0.1.30.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Upcoming Sprint — v0.1.29 (PROPOSED)
+## Completed Sprint — v0.1.29 ✅
 
 **ADR**: [ADR-052](../adr/ADR-052-Comprehensive-Analysis-v0.1.29.md)
-**Method**: GOAP orchestration + Analysis Swarm
+**PR**: [#425](https://github.com/d-o-hub/rust-self-learning-memory/pull/425)
 
-### Phase 0: Version & Hygiene (1d)
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-094 | Bump workspace version to 0.1.29, update CHANGELOG | ⏳ Pending | 94 |
-| WG-095 | Archive stale GOAP plans, trim GOALS/ACTIONS | ⏳ Pending | 95 |
-
-### Phase 1: WASM Removal — Swarm Decision (1-2d)
+### Phase 0: Version & Hygiene
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-096 | Remove WASM sandbox (1,899 LOC, 127 refs, 11 files) | ⏳ Pending | 96 |
-| WG-097 | Remove wasmtime + rquickjs from workspace deps | ⏳ Pending | 97 |
+| WG-094 | Bump workspace version to 0.1.29, update CHANGELOG | ✅ Complete | 94 |
+| WG-095 | Archive stale GOAP plans, trim GOALS/ACTIONS | ✅ Complete | 95 |
 
-### Phase 2: Turso Native Vector Search (2-3d)
-
-| Task | Description | Status | WG |
-|------|-------------|--------|----|
-| WG-098 | Replace brute-force with `vector_top_k()` DiskANN queries | ⏳ Pending | 98 |
-| WG-099 | Add embedding migration (JSON text → F32_BLOB binary) | ⏳ Pending | 99 |
-| WG-100 | Integration tests for native vector search | ⏳ Pending | 100 |
-
-### Phase 3: Quality (1d)
+### Phase 1: WASM Removal — Swarm Decision
 
 | Task | Description | Status | WG |
 |------|-------------|--------|----|
-| WG-101 | Split remaining >500 LOC files (4 files) | ⏳ Pending | 101 |
-| WG-102 | Dead code audit (31 → target ≤25 `#[allow(dead_code)]`) | ⏳ Pending | 102 |
+| WG-096 | Remove WASM sandbox (1,899 LOC, 127 refs, 11 files) | ✅ Complete | 96 |
+| WG-097 | Remove wasmtime + rquickjs from workspace deps | ✅ Complete | 97 |
+
+### Phase 2: Turso Native Vector Search
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-098 | Replace brute-force with `vector_top_k()` DiskANN queries | ✅ Complete | 98 |
+| WG-099 | Add embedding migration (JSON text → F32_BLOB binary) | ✅ Complete | 99 |
+| WG-100 | Integration tests for native vector search | ✅ Complete | 100 |
+
+### Phase 3: Quality
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-101 | Split remaining >500 LOC files (6 files split) | ✅ Complete | 101 |
+| WG-102 | Dead code audit (31 → target ≤25 `#[allow(dead_code)]`) | ✅ Complete | 102 |
 
 ---
 
@@ -228,6 +228,7 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.29 | 2026-04 | WASM sandbox removal (-6,982 LOC), Turso native vector search (vector_top_k/DiskANN), file splitting (6 files), release workflow improvements |
 | v0.1.27 | 2026-04 | Wilson score ranking, Episode GC/TTL, spawn_blocking audit, MCP Server Card, GitHub Pages, llms.txt, semver timeout fix |
 | v0.1.24 | 2026-03 | Test stability (DBSCAN budget, quality gate timeout), dependency updates |
 | v0.1.22 | 2026-03 | ADR-044 High-Impact Features (Playbooks, Attribution, Checkpoints, Feedback) |

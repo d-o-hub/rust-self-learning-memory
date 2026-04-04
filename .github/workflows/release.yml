@@ -47,7 +47,33 @@ permissions:
 
 jobs:
   # Run 'dist plan' (or host) to determine what tasks we need to do
+  # Verify Cargo.toml version matches the pushed tag before building
+  preflight:
+    runs-on: "ubuntu-22.04"
+    if: ${{ !github.event.pull_request }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          CARGO_VERSION=$(grep -E '^version\s*=' Cargo.toml | head -1 | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+          EXPECTED_TAG="v${CARGO_VERSION}"
+          echo "Tag: $TAG"
+          echo "Cargo.toml version: $CARGO_VERSION"
+          echo "Expected tag: $EXPECTED_TAG"
+          if [[ "$TAG" != "$EXPECTED_TAG" ]]; then
+            echo "::error::Tag $TAG does not match Cargo.toml version $CARGO_VERSION (expected $EXPECTED_TAG)"
+            echo "Fix: bump Cargo.toml version to match tag, or use 'cargo release' to bump+tag atomically."
+            exit 1
+          fi
+          echo "✅ Tag matches Cargo.toml version"
+
   plan:
+    needs:
+      - preflight
     runs-on: "ubuntu-22.04"
     outputs:
       val: ${{ steps.plan.outputs.manifest }}

@@ -4,10 +4,7 @@ use serde_json::json;
 use tokio::time::{Duration, timeout};
 
 use super::*;
-use crate::types::{ExecutionContext, ExecutionResult, SecurityViolationType};
-
-#[cfg(not(feature = "wasm-rquickjs"))]
-use crate::types::ErrorType;
+use crate::types::{ErrorType, ExecutionContext, ExecutionResult, SecurityViolationType};
 
 /// Create a test execution context
 fn create_test_context() -> ExecutionContext {
@@ -27,7 +24,6 @@ fn set_once() {
 }
 
 #[tokio::test]
-#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_simple_execution() {
     set_once();
     // Skip in CI where Node.js sandbox may be unavailable or flaky
@@ -49,7 +45,6 @@ async fn test_simple_execution() {
 }
 
 #[tokio::test]
-#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_console_output() {
     set_once();
     if std::env::var("CI").is_ok() {
@@ -231,7 +226,6 @@ async fn test_eval_blocking() {
 }
 
 #[tokio::test]
-#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_syntax_error() {
     set_once();
     if std::env::var("CI").is_ok() {
@@ -255,7 +249,6 @@ async fn test_syntax_error() {
 }
 
 #[tokio::test]
-#[cfg(not(feature = "wasm-rquickjs"))]
 async fn test_runtime_error() {
     set_once();
     if std::env::var("CI").is_ok() {

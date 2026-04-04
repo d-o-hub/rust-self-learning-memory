@@ -7,6 +7,26 @@ use do_memory_core::StorageBackend;
 use std::sync::Arc;
 use tempfile::TempDir;
 
+/// Helper function to create a 384-dimensional test embedding
+/// Required because the embeddings table uses F32_BLOB(384) fixed dimension
+fn create_test_embedding_384() -> Vec<f32> {
+    // Create a 384-dimensional embedding with normalized values
+    let mut embedding = Vec::with_capacity(384);
+    for i in 0..384 {
+        embedding.push(0.01_f32 * (i as f32 % 100.0 + 1.0));
+    }
+    embedding
+}
+
+/// Helper function to create a 384-dimensional embedding with specific seed value
+fn create_test_embedding_384_with_seed(seed: f32) -> Vec<f32> {
+    let mut embedding = Vec::with_capacity(384);
+    for i in 0..384 {
+        embedding.push(seed + 0.001_f32 * (i as f32));
+    }
+    embedding
+}
+
 async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
     let dir = TempDir::new().unwrap();
     let db_path = dir.path().join("test.db");
@@ -69,7 +89,7 @@ async fn test_store_and_get_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
     let id = "test_embedding_1";
-    let embedding = vec![0.1_f32, 0.2, 0.3, 0.4];
+    let embedding = create_test_embedding_384(); // Use 384-dim embedding for F32_BLOB(384) column
 
     // Store embedding
     storage
@@ -96,7 +116,7 @@ async fn test_delete_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
     let id = "test_embedding_delete";
-    let embedding = vec![0.1_f32, 0.2, 0.3];
+    let embedding = create_test_embedding_384(); // Use 384-dim embedding
 
     // Store embedding
     storage
@@ -129,10 +149,20 @@ async fn test_delete_nonexistent_embedding() {
 async fn test_store_embeddings_batch() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
+    // Use 384-dimensional embeddings for F32_BLOB(384) column
     let embeddings = vec![
-        ("batch_1".to_string(), vec![0.1_f32, 0.2, 0.3]),
-        ("batch_2".to_string(), vec![0.4_f32, 0.5, 0.6]),
-        ("batch_3".to_string(), vec![0.7_f32, 0.8, 0.9]),
+        (
+            "batch_1".to_string(),
+            create_test_embedding_384_with_seed(0.1),
+        ),
+        (
+            "batch_2".to_string(),
+            create_test_embedding_384_with_seed(0.2),
+        ),
+        (
+            "batch_3".to_string(),
+            create_test_embedding_384_with_seed(0.3),
+        ),
     ];
 
     // Store embeddings in batch
@@ -153,10 +183,20 @@ async fn test_store_embeddings_batch() {
 async fn test_get_embeddings_batch() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
+    // Use 384-dimensional embeddings for F32_BLOB(384) column
     let embeddings = vec![
-        ("get_batch_1".to_string(), vec![0.1_f32, 0.2]),
-        ("get_batch_2".to_string(), vec![0.3_f32, 0.4]),
-        ("get_batch_3".to_string(), vec![0.5_f32, 0.6]),
+        (
+            "get_batch_1".to_string(),
+            create_test_embedding_384_with_seed(0.1),
+        ),
+        (
+            "get_batch_2".to_string(),
+            create_test_embedding_384_with_seed(0.2),
+        ),
+        (
+            "get_batch_3".to_string(),
+            create_test_embedding_384_with_seed(0.3),
+        ),
     ];
 
     // Store embeddings
@@ -190,7 +230,10 @@ async fn test_get_embeddings_batch() {
     assert!(results[3].is_none()); // Nonexistent embedding
 }
 
+/// Test different embedding dimensions (requires turso_multi_dimension feature)
+/// Without this feature, only 384-dimension embeddings are supported via F32_BLOB(384)
 #[tokio::test]
+#[cfg(feature = "turso_multi_dimension")]
 async fn test_different_embedding_dimensions() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -234,8 +277,8 @@ async fn test_update_existing_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
     let id = "update_test";
-    let embedding_v1 = vec![0.1_f32, 0.2, 0.3];
-    let embedding_v2 = vec![0.9_f32, 0.8, 0.7];
+    let embedding_v1 = create_test_embedding_384_with_seed(0.1); // Use 384-dim embeddings
+    let embedding_v2 = create_test_embedding_384_with_seed(0.9);
 
     // Store initial embedding
     storage
@@ -389,8 +432,8 @@ mod compression_tests {
     async fn test_embedding_compression() {
         let (storage, _dir) = create_test_storage().await.unwrap();
 
-        // Create a large embedding (1536 dimensions is common for embeddings)
-        let embedding: Vec<f32> = (0..1536).map(|i| (i as f32 / 1536.0).sin()).collect();
+        // Create a 384-dimensional embedding (required for F32_BLOB(384) column)
+        let embedding: Vec<f32> = (0..384).map(|i| (i as f32 / 384.0).sin()).collect();
 
         // Store embedding
         storage
@@ -406,7 +449,7 @@ mod compression_tests {
         assert!(retrieved.is_some());
 
         let retrieved_embedding = retrieved.unwrap();
-        assert_eq!(retrieved_embedding.len(), 1536);
+        assert_eq!(retrieved_embedding.len(), 384); // Match 384-dim input
 
         // Verify values match (with some tolerance for float precision)
         for (original, retrieved) in embedding.iter().zip(retrieved_embedding.iter()) {

@@ -210,6 +210,11 @@ impl TursoStorage {
         let embedding_data: String =
             serde_json::to_string(embedding).map_err(do_memory_core::Error::Serialization)?;
 
+        // Always create JSON for vector32() - it must receive a JSON array "[...]"
+        // This is separate from embedding_data which may be compressed
+        let embedding_json_for_vector: String =
+            serde_json::to_string(embedding).map_err(do_memory_core::Error::Serialization)?;
+
         // Store embedding with native vector column for DiskANN search
         // Uses vector32() to convert JSON array to F32_BLOB format
         // Note: embedding_vector column enables vector_top_k() search
@@ -233,8 +238,8 @@ impl TursoStorage {
             embedding_id,
             item_id.to_string(),
             item_type.to_string(),
-            embedding_data.clone(),
-            embedding_data, // JSON array passed to vector32() for native vector storage
+            embedding_data,            // May be compressed or JSON
+            embedding_json_for_vector, // Always JSON array for vector32()
             embedding.len() as i64,
             "default"
         ])

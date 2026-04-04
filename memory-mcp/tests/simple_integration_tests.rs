@@ -224,5 +224,6 @@ async fn test_execution_attempt_tracking() {
 
     // Verify execution statistics are tracked
     let stats = mcp_server.get_stats().await;
-    assert!(stats.total_executions >= 0); // No longer tracking sandbox executions
+    // Stats are tracked (total_executions is u64, always >= 0)
+    let _ = stats.total_executions;
 }

@@ -1,25 +1,38 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-02 (v0.1.28 sprint — progress update)
-- **Version**: `0.1.26` (released 2026-04-01, published to crates.io)
-- **Branch**: `main`
+- **Last Updated**: 2026-04-04 (v0.1.29 sprint — executing)
+- **Version**: `0.1.29` (workspace, unreleased)
+- **Branch**: `feature/v0.1.29-sprint`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-048 (v0.1.24 stability), ADR-049 (v0.1.25 analysis)
+- **Primary ADRs**: ADR-052 (v0.1.29 comprehensive analysis)
 
 ---
 
-## Current Focus: v0.1.28 Sprint (Executing)
+## Current Focus: v0.1.29 Sprint (Executing)
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
-| Merge PR #406 (ai-slop) | WG-091 | ⏳ Auto-merge armed (rebase) | CI re-running after branch update |
-| Fix CodeQL alert #60 | WG-093 | ✅ Merged (PR #420) | CodeQL now reports `fixed` |
-| Plans consolidation | ACT-096 | ✅ Merged (PR #420) | 87% noise reduction (5,000→650 lines) |
-| Resolve Dependabot alerts | WG-092 | ✅ Tracked | All 3 transitive, in audit.toml/deny.toml |
-| DyMoE routing-drift protection | WG-089 | 🔵 Impact analysis complete | See below |
-| Dual reward scoring | WG-090 | 🔵 Impact analysis complete | See below |
-| Close issue #401 | — | ⏳ Pending | Auto-closed when PR #406 merges |
+| Version bump to 0.1.29 | WG-094 | ✅ Complete | Workspace + inter-crate deps updated |
+| Archive stale GOAP plans | WG-095 | ✅ Complete | Already archived in v0.1.28 sprint |
+| Remove WASM sandbox | WG-096 | ⏳ In progress | 1,899 LOC, 11 files to remove |
+| Remove wasmtime/rquickjs deps | WG-097 | ⏳ Blocked by WG-096 | Cargo.toml cleanup |
+| Implement vector_top_k search | WG-098 | ⏳ Pending | Native DiskANN queries |
+| Embedding format migration | WG-099 | ⏳ Blocked by WG-098 | JSON → F32_BLOB |
+| Integration tests | WG-100 | ⏳ Blocked by WG-098/099 | Vector search tests |
+| Split >500 LOC files | WG-101 | ⏳ Blocked by WG-096 | LOC counts change after WASM removal |
+| Dead code audit | WG-102 | ⏳ Blocked by WG-096 | WASM removal affects count |
+
+## v0.1.28 Sprint (Complete ✅)
+
+| Task | WG | Status |
+|------|----|--------|
+| DyMoE routing-drift protection | WG-089 | ✅ Affinity gating |
+| Dual reward scoring | WG-090 | ✅ Stability + novelty signals |
+| Merge AI spam detector PR #406 | WG-091 | ✅ Merged |
+| Dependabot alerts | WG-092 | ✅ Tracked (transitive) |
+| CodeQL cleartext logging | WG-093 | ✅ Fixed |
+| Plans consolidation | ACT-096 | ✅ 87% noise reduction |
 
 ## v0.1.27 Sprint (Complete ✅)
 
@@ -49,15 +62,15 @@
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.26 | — |
-| Total tests | ~2,849 | — |
-| Ignored tests | 341 annotations / 82 files | ceiling ≤125 |
-| `allow(dead_code)` (prod) | 37 | ≤40 |
+| Workspace version | 0.1.29 | — |
+| Total tests | ~2,875 | — |
+| Ignored tests | 125 annotations | ceiling ≤125 |
+| `allow(dead_code)` (prod) | 31 | ≤40 (target ≤25) |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
 | Cargo audit | 3 unmaintained warnings | transitive |
 | Dependabot alerts | 3 open | all transitive, tracked |
-| CodeQL alerts | 0 open | ✅ fixed (PR #420) |
+| CodeQL alerts | 0 open | ✅ fixed |
 
 ---
 

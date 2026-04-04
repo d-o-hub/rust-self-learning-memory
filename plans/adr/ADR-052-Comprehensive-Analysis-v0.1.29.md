@@ -27,12 +27,35 @@ A GOAP-orchestrated analysis on 2026-04-04 covered the entire codebase, all ADRs
 
 **Finding:** v0.1.27 and v0.1.28 are "virtual sprints" — features were merged to `main` but **no git tags were created** and **no releases were published**. The workspace version in `Cargo.toml` was never bumped past `0.1.26`.
 
+### Root Cause Analysis
+
+| Gap | Description | Fix |
+|-----|-------------|-----|
+| **No CI-enforced release gate** | `release-guard` is an agent skill, not a CI check. Humans/agents can bypass it. | Added `preflight` job to `release.yml` that blocks if tag ≠ Cargo.toml version |
+| **Releases are tag-driven + manual** | `release.yml` only triggers on tag push. If nobody tags, nothing happens. | Added `release-drift.yml` — weekly + on-push alert when unreleased feat/fix accumulate |
+| **`release-manager.sh` validate is dry-run** | `validate` runs all checks in dry-run by default — validates nothing. | Version check (`verify-release-state.sh`) now always executes (read-only) |
+| **Doc version sync is incomplete** | `check-docs-integrity.sh` checks README/AGENTS.md but not ROADMAP or STATUS | Created `verify-release-state.sh` checking Cargo.toml, all workspace members, ROADMAP, STATUS, CHANGELOG, git tag |
+| **CHANGELOG has split-brain** | `release.toml` pre-release-hook + `changelog.yml` both write CHANGELOG | Recommend: keep pre-release-hook, make `changelog.yml` verify-only |
+| **No merge-time release signal** | `feat:` commits merge without any release pressure | `release-drift.yml` auto-creates GitHub issue when >5 feat/fix unreleased |
+| **`publish-crates.yml` parallel matrix** | Crates publish in parallel — can partially succeed | Recommend: sequential publish in dependency order (future WG) |
+
+### Files Created/Modified
+
+| File | Change |
+|------|--------|
+| `scripts/verify-release-state.sh` | **NEW** — validates version consistency across all artifacts |
+| `scripts/release-manager.sh` | **MODIFIED** — validate now runs verify-release-state.sh first |
+| `.github/workflows/release.yml` | **MODIFIED** — added `preflight` job (tag ↔ Cargo.toml) |
+| `.github/workflows/release-drift.yml` | **NEW** — weekly + on-push unreleased change detection |
+
 ### Recommendation
 
 The next release should be **v0.1.29** (acknowledging v0.1.27 + v0.1.28 as completed sprint labels). Before tagging:
 1. Bump `Cargo.toml` workspace version to `0.1.29`
-2. Update CHANGELOG.md with v0.1.27 + v0.1.28 + v0.1.29 entries
-3. Tag and release
+2. Update ROADMAP_ACTIVE.md and STATUS/CURRENT.md versions
+3. Update CHANGELOG.md with v0.1.27 + v0.1.28 + v0.1.29 entries
+4. Run `./scripts/verify-release-state.sh --check-tag --check-unreleased`
+5. Tag and release via `./scripts/release-manager.sh full --execute`
 
 ---
 

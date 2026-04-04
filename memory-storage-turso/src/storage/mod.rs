@@ -210,8 +210,12 @@ impl TursoStorage {
         let embedding_data: String =
             serde_json::to_string(embedding).map_err(do_memory_core::Error::Serialization)?;
 
+        // Store embedding with native vector column for DiskANN search
+        // Uses vector32() to convert JSON array to F32_BLOB format
+        // Note: embedding_vector column enables vector_top_k() search
         const SQL: &str = r#"
-            INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, embedding_vector, dimension, model)
+            VALUES (?, ?, ?, ?, vector32(?), ?, ?)
         "#;
 
         let embedding_id = self.generate_embedding_id(item_id, item_type);
@@ -229,7 +233,8 @@ impl TursoStorage {
             embedding_id,
             item_id.to_string(),
             item_type.to_string(),
-            embedding_data,
+            embedding_data.clone(),
+            embedding_data, // JSON array passed to vector32() for native vector storage
             embedding.len() as i64,
             "default"
         ])
@@ -397,7 +402,8 @@ impl TursoStorage {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         const SQL: &str = r#"
-            INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO embeddings (embedding_id, item_id, item_type, embedding_data, embedding_vector, dimension, model)
+            VALUES (?, ?, ?, ?, vector32(?), ?, ?)
         "#;
 
         for (item_id, embedding) in embeddings {
@@ -419,7 +425,8 @@ impl TursoStorage {
                 embedding_id,
                 item_id,
                 "embedding",
-                embedding_json,
+                embedding_json.clone(),
+                embedding_json, // JSON array passed to vector32() for native vector storage
                 embedding.len() as i64,
                 "default"
             ])
@@ -458,6 +465,59 @@ impl TursoStorage {
         let mut hasher = DefaultHasher::new();
         format!("{}:{}", item_id, item_type).hash(&mut hasher);
         format!("{:x}", hasher.finish())
+    }
+
+    /// Migrate existing embeddings to populate embedding_vector column
+    ///
+    /// This migration populates the `embedding_vector` F32_BLOB column for
+    /// embeddings that were stored before native vector support was added.
+    /// The vector column enables DiskANN-accelerated vector_top_k search.
+    ///
+    /// Returns the number of embeddings migrated.
+    pub async fn migrate_embeddings_to_vector_format(&self) -> Result<usize> {
+        info!("Starting embedding vector migration...");
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        // Update all embeddings where embedding_vector is NULL
+        // Uses vector32() to convert JSON embedding_data to F32_BLOB format
+        let sql = r#"
+            UPDATE embeddings
+            SET embedding_vector = vector32(embedding_data)
+            WHERE embedding_vector IS NULL AND embedding_data IS NOT NULL
+        "#;
+
+        let result = conn.execute(sql, ()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to migrate embeddings: {}", e))
+        })?;
+
+        info!("Migrated {} embeddings to vector format", result);
+        Ok(result as usize)
+    }
+
+    /// Check if embedding vector column is populated for vector_top_k search
+    ///
+    /// Returns true if at least one embedding has the vector column populated.
+    pub async fn has_vector_embeddings(&self) -> Result<bool> {
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+        let sql = "SELECT COUNT(*) FROM embeddings WHERE embedding_vector IS NOT NULL LIMIT 1";
+
+        let mut rows = conn.query(sql, ()).await.map_err(|e| {
+            do_memory_core::Error::Storage(format!("Failed to check vector embeddings: {}", e))
+        })?;
+
+        if let Some(row) = rows
+            .next()
+            .await
+            .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?
+        {
+            let count: i64 = row
+                .get(0)
+                .map_err(|e| do_memory_core::Error::Storage(e.to_string()))?;
+            return Ok(count > 0);
+        }
+
+        Ok(false)
     }
 
     // ========== Backend-compatible embedding methods ==========

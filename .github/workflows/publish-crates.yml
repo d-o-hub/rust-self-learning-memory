@@ -18,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write  # Required for OIDC trusted publishing
 
 jobs:
   # Publish do-memory-core first - other crates depend on it
@@ -55,10 +54,9 @@ jobs:
 
       - name: Publish to crates.io
         if: ${{ github.event_name == 'release' || !inputs.dry-run }}
-        uses: rust-lang/crates-io-auth-action@v1
-        with:
-          crate: do-memory-core
-          dry-run: false
+        run: cargo publish --package do-memory-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   # Publish storage crates after core is published
   publish-storage:
@@ -104,10 +102,9 @@ jobs:
 
       - name: Publish to crates.io
         if: ${{ github.event_name == 'release' || !inputs.dry-run }}
-        uses: rust-lang/crates-io-auth-action@v1
-        with:
-          crate: ${{ matrix.crate }}
-          dry-run: false
+        run: cargo publish --package ${{ matrix.crate }}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   # Publish MCP crate after storage crates
   publish-mcp:
@@ -147,7 +144,6 @@ jobs:
 
       - name: Publish to crates.io
         if: ${{ github.event_name == 'release' || !inputs.dry-run }}
-        uses: rust-lang/crates-io-auth-action@v1
-        with:
-          crate: do-memory-mcp
-          dry-run: false
+        run: cargo publish --package do-memory-mcp
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

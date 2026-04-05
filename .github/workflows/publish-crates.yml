@@ -24,7 +24,7 @@ jobs:
   publish:
     name: Publish ${{ matrix.crate }}
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'release' || inputs.dry-run == 'true' }}
+    if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -57,11 +57,11 @@ jobs:
           jq -e ".packages[] | select(.name == \"${{ matrix.crate }}\") | .description" > /dev/null
 
       - name: Dry Run Publish
-        if: ${{ inputs.dry-run == 'true' }}
+        if: ${{ inputs.dry-run == 'true' || inputs.dry-run == '' }}
         run: cargo publish --package ${{ matrix.crate }} --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' && inputs.dry-run != 'true' }}
+        if: ${{ github.event_name == 'release' || inputs.dry-run == 'false' }}
         uses: rust-lang/crates-io-auth-action@v1
         with:
           crate: ${{ matrix.crate }}

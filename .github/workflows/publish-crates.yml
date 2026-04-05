@@ -50,11 +50,11 @@ jobs:
           jq -e ".packages[] | select(.name == \"do-memory-core\") | .description" > /dev/null
 
       - name: Dry Run Publish
-        if: ${{ fromJSON(inputs.dry-run) == true }}
+        if: ${{ inputs.dry-run }}
         run: cargo publish --package do-memory-core --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || fromJSON(inputs.dry-run) == false }}
+        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
         uses: rust-lang/crates-io-auth-action@v1
         with:
           crate: do-memory-core
@@ -99,11 +99,11 @@ jobs:
           jq -e ".packages[] | select(.name == \"${{ matrix.crate }}\") | .description" > /dev/null
 
       - name: Dry Run Publish
-        if: ${{ fromJSON(inputs.dry-run) == true }}
+        if: ${{ inputs.dry-run }}
         run: cargo publish --package ${{ matrix.crate }} --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || fromJSON(inputs.dry-run) == false }}
+        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
         uses: rust-lang/crates-io-auth-action@v1
         with:
           crate: ${{ matrix.crate }}
@@ -142,11 +142,11 @@ jobs:
           jq -e ".packages[] | select(.name == \"do-memory-mcp\") | .description" > /dev/null
 
       - name: Dry Run Publish
-        if: ${{ fromJSON(inputs.dry-run) == true }}
+        if: ${{ inputs.dry-run }}
         run: cargo publish --package do-memory-mcp --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || fromJSON(inputs.dry-run) == false }}
+        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
         uses: rust-lang/crates-io-auth-action@v1
         with:
           crate: do-memory-mcp

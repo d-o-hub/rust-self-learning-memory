@@ -32,12 +32,12 @@ jobs:
     steps:
       # ── 0. Checkout ────────────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # ── 1. Heuristic scoring (pure JS, no external calls) ──────────────────
       - name: Stage 1 — Heuristic scoring
         id: heuristic
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -182,7 +182,7 @@ jobs:
       # ── 2. AUTO-CLOSE: score >= 5 ─────────────────────────────────────────
       - name: Stage 1 — Auto-close high-confidence spam
         if: steps.heuristic.outputs.verdict == 'spam_high'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -222,7 +222,7 @@ jobs:
       - name: Stage 2 — openrouter/free classification
         id: ai
         if: steps.heuristic.outputs.verdict == 'spam_medium'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -304,7 +304,7 @@ jobs:
           steps.heuristic.outputs.verdict == 'spam_medium' &&
           steps.ai.outputs.verdict == 'SPAM' &&
           fromJSON(steps.ai.outputs.confidence) >= 70
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -346,7 +346,7 @@ jobs:
         if: |
           steps.heuristic.outputs.verdict == 'spam_medium' &&
           (steps.ai.outputs.verdict != 'SPAM' || fromJSON(steps.ai.outputs.confidence) < 70)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

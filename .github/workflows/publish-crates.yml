@@ -48,12 +48,24 @@ jobs:
           cargo metadata --format-version 1 --no-deps | \
           jq -e ".packages[] | select(.name == \"do-memory-core\") | .description" > /dev/null
 
+      - name: Check if version exists
+        id: check-version
+        run: |
+          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-core") | .version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if curl -s "https://crates.io/api/v1/crates/do-memory-core/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::do-memory-core@$VERSION already exists on crates.io, skipping"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Dry Run Publish
-        if: ${{ inputs.dry-run }}
+        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-core --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-core
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -90,12 +102,24 @@ jobs:
           cargo metadata --format-version 1 --no-deps | \
           jq -e ".packages[] | select(.name == \"do-memory-storage-redb\") | .description" > /dev/null
 
+      - name: Check if version exists
+        id: check-version
+        run: |
+          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-redb") | .version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if curl -s "https://crates.io/api/v1/crates/do-memory-storage-redb/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::do-memory-storage-redb@$VERSION already exists on crates.io, skipping"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Dry Run Publish
-        if: ${{ inputs.dry-run }}
+        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-storage-redb --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-storage-redb
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -132,12 +156,24 @@ jobs:
           cargo metadata --format-version 1 --no-deps | \
           jq -e ".packages[] | select(.name == \"do-memory-storage-turso\") | .description" > /dev/null
 
+      - name: Check if version exists
+        id: check-version
+        run: |
+          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-turso") | .version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if curl -s "https://crates.io/api/v1/crates/do-memory-storage-turso/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::do-memory-storage-turso@$VERSION already exists on crates.io, skipping"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Dry Run Publish
-        if: ${{ inputs.dry-run }}
+        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-storage-turso --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-storage-turso
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -174,12 +210,24 @@ jobs:
           cargo metadata --format-version 1 --no-deps | \
           jq -e ".packages[] | select(.name == \"do-memory-mcp\") | .description" > /dev/null
 
+      - name: Check if version exists
+        id: check-version
+        run: |
+          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-mcp") | .version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if curl -s "https://crates.io/api/v1/crates/do-memory-mcp/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "::notice::do-memory-mcp@$VERSION already exists on crates.io, skipping"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Dry Run Publish
-        if: ${{ inputs.dry-run }}
+        if: ${{ inputs.dry-run && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-mcp --dry-run
 
       - name: Publish to crates.io
-        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry-run) && steps.check-version.outputs.exists != 'true' }}
         run: cargo publish --package do-memory-mcp
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

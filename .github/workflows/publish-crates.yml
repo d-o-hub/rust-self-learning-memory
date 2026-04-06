@@ -58,18 +58,12 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  # Publish storage crates after core is published
-  publish-storage:
-    name: Publish ${{ matrix.crate }}
+  # Publish do-memory-storage-redb after core (no internal dependencies)
+  publish-redb:
+    name: Publish do-memory-storage-redb
     runs-on: ubuntu-latest
     needs: [publish-core]
-    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso' || inputs.crate == 'do-memory-storage-redb') }}
-    strategy:
-      fail-fast: false
-      matrix:
-        crate:
-          - do-memory-storage-turso
-          - do-memory-storage-redb
+    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-redb') }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -88,29 +82,71 @@ jobs:
         run: sleep 30
 
       - name: Semver Check
-        run: cargo semver-checks --package ${{ matrix.crate }}
+        run: cargo semver-checks --package do-memory-storage-redb
         continue-on-error: true  # Pre-1.0 may have breaking changes
 
       - name: Verify metadata
         run: |
           cargo metadata --format-version 1 --no-deps | \
-          jq -e ".packages[] | select(.name == \"${{ matrix.crate }}\") | .description" > /dev/null
+          jq -e ".packages[] | select(.name == \"do-memory-storage-redb\") | .description" > /dev/null
 
       - name: Dry Run Publish
         if: ${{ inputs.dry-run }}
-        run: cargo publish --package ${{ matrix.crate }} --dry-run
+        run: cargo publish --package do-memory-storage-redb --dry-run
 
       - name: Publish to crates.io
         if: ${{ github.event_name == 'release' || !inputs.dry-run }}
-        run: cargo publish --package ${{ matrix.crate }}
+        run: cargo publish --package do-memory-storage-redb
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  # Publish MCP crate after storage crates
+  # Publish do-memory-storage-turso after redb (depends on redb)
+  publish-turso:
+    name: Publish do-memory-storage-turso
+    runs-on: ubuntu-latest
+    needs: [publish-redb]
+    if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-storage-turso') }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-semver-checks
+        run: cargo install --locked cargo-semver-checks
+
+      - name: Wait for crates.io propagation
+        run: sleep 30
+
+      - name: Semver Check
+        run: cargo semver-checks --package do-memory-storage-turso
+        continue-on-error: true  # Pre-1.0 may have breaking changes
+
+      - name: Verify metadata
+        run: |
+          cargo metadata --format-version 1 --no-deps | \
+          jq -e ".packages[] | select(.name == \"do-memory-storage-turso\") | .description" > /dev/null
+
+      - name: Dry Run Publish
+        if: ${{ inputs.dry-run }}
+        run: cargo publish --package do-memory-storage-turso --dry-run
+
+      - name: Publish to crates.io
+        if: ${{ github.event_name == 'release' || !inputs.dry-run }}
+        run: cargo publish --package do-memory-storage-turso
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # Publish MCP crate after all storage crates
   publish-mcp:
     name: Publish do-memory-mcp
     runs-on: ubuntu-latest
-    needs: [publish-storage]
+    needs: [publish-redb, publish-turso]
     if: ${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && (inputs.crate == '' || inputs.crate == 'do-memory-mcp') }}
     steps:
       - uses: actions/checkout@v6

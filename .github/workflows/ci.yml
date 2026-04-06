@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@v1.6.0
+        uses: lewagon/wait-on-check-action@v1.6.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'
@@ -279,7 +279,7 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
       - name: Cache semver baseline
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/semver-checks

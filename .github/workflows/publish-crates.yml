@@ -54,7 +54,7 @@ jobs:
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-core") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Local version: $VERSION"
-          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-core/versions" | jq -r '.versions[0].num // empty')
+          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-core/versions" | jq -r '.versions[0].num // empty')
           echo "Crates.io latest: $EXISTING"
           if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -117,7 +117,7 @@ jobs:
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-redb") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Local version: $VERSION"
-          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-storage-redb/versions" | jq -r '.versions[0].num // empty')
+          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-storage-redb/versions" | jq -r '.versions[0].num // empty')
           echo "Crates.io latest: $EXISTING"
           if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -178,7 +178,7 @@ jobs:
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-turso") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Local version: $VERSION"
-          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-storage-turso/versions" | jq -r '.versions[0].num // empty')
+          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-storage-turso/versions" | jq -r '.versions[0].num // empty')
           echo "Crates.io latest: $EXISTING"
           if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -239,7 +239,7 @@ jobs:
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-mcp") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Local version: $VERSION"
-          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-mcp/versions" | jq -r '.versions[0].num // empty')
+          EXISTING=$(curl -s -H "User-Agent: rust-self-learning-memory-ci" "https://crates.io/api/v1/crates/do-memory-mcp/versions" | jq -r '.versions[0].num // empty')
           echo "Crates.io latest: $EXISTING"
           if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT

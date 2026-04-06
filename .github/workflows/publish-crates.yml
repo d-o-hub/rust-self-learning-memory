@@ -53,7 +53,8 @@ jobs:
         run: |
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-core") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          if curl -s "https://crates.io/api/v1/crates/do-memory-core/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-core/versions" | jq -r '.versions[0].num // empty')
+          if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "::notice::do-memory-core@$VERSION already exists on crates.io, skipping"
           else
@@ -107,7 +108,8 @@ jobs:
         run: |
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-redb") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          if curl -s "https://crates.io/api/v1/crates/do-memory-storage-redb/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-storage-redb/versions" | jq -r '.versions[0].num // empty')
+          if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "::notice::do-memory-storage-redb@$VERSION already exists on crates.io, skipping"
           else
@@ -161,7 +163,8 @@ jobs:
         run: |
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-storage-turso") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          if curl -s "https://crates.io/api/v1/crates/do-memory-storage-turso/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-storage-turso/versions" | jq -r '.versions[0].num // empty')
+          if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "::notice::do-memory-storage-turso@$VERSION already exists on crates.io, skipping"
           else
@@ -215,7 +218,8 @@ jobs:
         run: |
           VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "do-memory-mcp") | .version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          if curl -s "https://crates.io/api/v1/crates/do-memory-mcp/versions" | jq -e ".versions[] | select(.num == \"$VERSION\")" > /dev/null; then
+          EXISTING=$(curl -s "https://crates.io/api/v1/crates/do-memory-mcp/versions" | jq -r '.versions[0].num // empty')
+          if [ "$EXISTING" = "$VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "::notice::do-memory-mcp@$VERSION already exists on crates.io, skipping"
           else

@@ -104,14 +104,9 @@ impl QueryCache {
                 return None;
             }
 
-            // Cache hit - convert Arc<[Episode]> to Vec<Arc<Episode>>
-            // Dereference each Episode to get &Episode, then clone into Arc<Episode>
+            // Cache hit - clone the Arc pointers from the slice
             metrics.hits += 1;
-            let episodes: Vec<Arc<Episode>> = result
-                .episodes
-                .iter()
-                .map(|ep| Arc::new(ep.clone()))
-                .collect();
+            let episodes: Vec<Arc<Episode>> = result.episodes.to_vec();
             Some(episodes)
         } else {
             // Cache miss
@@ -124,9 +119,9 @@ impl QueryCache {
     /// Store a query result in the cache
     pub fn put(&self, key: CacheKey, episodes: Vec<Arc<Episode>>) {
         let key_hash = key.compute_hash();
-        // Convert Vec<Arc<Episode>> to Arc<[Episode]> by cloning each Episode
-        let episodes_slice: Arc<[Episode]> =
-            episodes.iter().map(|ep| ep.as_ref().clone()).collect();
+        // Convert Vec<Arc<Episode>> to Arc<[Arc<Episode>]>
+        // This is zero-copy for the episodes themselves
+        let episodes_slice: Arc<[Arc<Episode>]> = episodes.into();
         let cached_result = CachedResult {
             episodes: episodes_slice,
             cached_at: Instant::now(),

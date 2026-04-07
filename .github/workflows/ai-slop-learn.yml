@@ -23,13 +23,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # ── Extract n-gram phrases + update patterns file ─────────────────────
       - name: Learn from labeled issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           LABEL: ${{ github.event.label.name }}
           ISSUE_TITLE: ${{ github.event.issue.title }}

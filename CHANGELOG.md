@@ -14,6 +14,10 @@
 - **O(n) top-k selection** (WG-104) - Efficient partial sorting via `select_nth_unstable_by`
   - `memory-core/src/search/top_k.rs`: `select_top_k()` and `select_top_k_with_index()` utilities
   - O(n) partitioning + O(k log k) sort vs O(n log n) full sort
+- **Retrieval evaluation metrics** - MTEB/BEIR methodology for retrieval-first evaluation
+  - `memory-core/src/search/metrics.rs`: Recall@k, Precision@k, NDCG@k, MRR, MAP, Hit Rate@k
+  - Reciprocal Rank Fusion (RRF) for hybrid retrieval combination
+  - Benchmarks: ~14-17µs for Recall@k, ~2ms for full 100-query evaluation
 - **memory-context skill** (WG-106) - Episode retrieval skill using do-memory-cli
   - `.agents/skills/memory-context/SKILL.md`: Semantic context retrieval patterns
 - **learn skill** (WG-107) - Dual-write post-task learning pattern

@@ -13,10 +13,10 @@ use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
 use crate::semantic::EpisodeSummary;
 use crate::storage::StorageBackend;
-use crate::types::MemoryConfig;
+use crate::types::{MemoryConfig, MemoryEvent};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{RwLock, Semaphore};
+use tokio::sync::{RwLock, Semaphore, broadcast};
 use uuid::Uuid;
 
 use super::step_buffer::StepBuffer;
@@ -141,9 +141,41 @@ pub struct SelfLearningMemory {
     // ADR-044 Feature 2 - Recommendation Attribution
     /// Tracker for recommendation sessions and feedback
     pub(super) recommendation_tracker: RecommendationTracker,
+
+    // Event Broadcasting (WG-103)
+    /// Event broadcast channel sender for lifecycle notifications
+    pub(super) event_sender: broadcast::Sender<MemoryEvent>,
 }
 
 impl SelfLearningMemory {
+    /// Subscribe to memory lifecycle events.
+    ///
+    /// Returns a broadcast receiver that gets notified when episodes are
+    /// created, completed, or garbage collected.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use do_memory_core::memory::SelfLearningMemory;
+    ///
+    /// let memory = SelfLearningMemory::new();
+    /// let mut receiver = memory.subscribe();
+    ///
+    /// // In an async task, receive events
+    /// // while let Ok(event) = receiver.recv().await {
+    /// //     println!("Got event: {:?}", event);
+    /// // }
+    /// ```
+    pub fn subscribe(&self) -> broadcast::Receiver<MemoryEvent> {
+        self.event_sender.subscribe()
+    }
+
+    /// Emit a memory event to all subscribers.
+    #[allow(dead_code)]
+    pub(super) fn emit_event(&self, event: MemoryEvent) {
+        // Ignore send errors (happens when no receivers)
+        let _ = self.event_sender.send(event);
+    }
     /// Get a reference to the in-memory patterns fallback storage.
     #[must_use]
     pub fn patterns_fallback(&self) -> &Arc<RwLock<HashMap<PatternId, Pattern>>> {

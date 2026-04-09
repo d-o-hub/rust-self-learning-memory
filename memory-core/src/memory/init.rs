@@ -11,11 +11,11 @@ use crate::pre_storage::{QualityAssessor, QualityConfig, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::security::audit::AuditLogger;
-use crate::types::MemoryConfig;
+use crate::types::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryConfig};
 use std::collections::HashMap;
 #[allow(unused_imports)]
 use std::sync::Arc;
-use tokio::sync::{RwLock, Semaphore};
+use tokio::sync::{RwLock, Semaphore, broadcast};
 
 /// Create a memory system with custom configuration (in-memory only)
 #[must_use]
@@ -92,6 +92,9 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     // Phase 3 (DBSCAN) - Initialize anomaly detector
     let dbscan_detector = crate::patterns::DBSCANAnomalyDetector::new();
 
+    // Initialize event broadcast channel
+    let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -124,6 +127,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         playbook_generator: super::playbook::PlaybookGenerator::new(),
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
+        event_sender,
     }
 }
 
@@ -219,6 +223,9 @@ pub fn with_storage(
     // Security - Initialize audit logger
     let audit_logger = AuditLogger::new(config.audit_config.clone());
 
+    // Initialize event broadcast channel
+    let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -251,6 +258,7 @@ pub fn with_storage(
         playbook_generator: super::playbook::PlaybookGenerator::new(),
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
+        event_sender,
     }
 }
 

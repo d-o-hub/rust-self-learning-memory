@@ -1,53 +1,48 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-04-09 (v0.1.30 planning)
+- **Last Updated**: 2026-04-09 (v0.1.30 COMPLETE)
 - **Source ADR**: ADR-037, ADR-052
 - **Status**: Active
 
-## v0.1.30 Sprint Goals (Planning)
+## v0.1.30 Sprint Goals (Complete ✅)
 
 ### Cross-Repo Impact Analysis Source
 
-Impact analysis of `d-o-hub/github-template-ai-agents` (agent harness template) and `d-o-hub/chaotic_semantic_memory` (HDC memory crate) identified unadopted runtime patterns and skill gaps. Neither is a Cargo dependency — adoption is selective per ADR-037.
+Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_semantic_memory` identified unadopted runtime patterns and skill gaps. All P1/P2 goals achieved.
 
-### P1: Runtime Patterns
+### P1: Runtime Patterns (All Complete)
 
-1. **WG-103**: `MemoryEvent` broadcast channel
+1. **WG-103**: `MemoryEvent` broadcast channel ✅
    - Priority: P1
    - Owner: feature-implement
-   - Target: Add `tokio::broadcast`-based event channel for episode lifecycle (create, complete, GC) enabling reactive pipelines
-   - Source: CSM `MemoryEvent` pattern
-   - Status: 🔵 Planned
+   - Target: Add `tokio::broadcast`-based event channel for episode lifecycle
+   - Result: `types/event.rs` + `subscribe()` method on SelfLearningMemory
 
-2. **WG-104**: `select_nth_unstable_by` for top-k retrieval
+2. **WG-104**: `select_nth_unstable_by` for top-k retrieval ✅
    - Priority: P1
    - Owner: feature-implement
-   - Target: Replace O(n log n) sort with O(n) partial sort in retrieval hot paths
-   - Source: CSM retrieval optimization
-   - Status: 🔵 Planned
+   - Target: Replace O(n log n) sort with O(n) partial sort
+   - Result: `search/top_k.rs` module with `select_top_k()` utilities
 
-3. **WG-105**: Idempotent cargo publish
+3. **WG-105**: Idempotent cargo publish ✅
    - Priority: P1
    - Owner: ci-fix
-   - Target: Add crates.io version check before `cargo publish` — skip if version exists
-   - Source: CSM `publish-crates.yml` pattern
-   - Status: 🔵 Planned
+   - Target: Add crates.io version check before `cargo publish`
+   - Result: Already exists in `publish-crates.yml` (version check step)
 
-### P2: Agent Harness Skills
+### P2: Agent Harness Skills (All Complete)
 
-4. **WG-106**: Add `memory-context` skill
+4. **WG-106**: Add `memory-context` skill ✅
    - Priority: P2
    - Owner: skill-creator
-   - Target: Skill wrapping `csm` CLI for hybrid BM25+HDC retrieval over `lessons.jsonl`
-   - Source: `github-template-ai-agents` `memory-context` skill
-   - Status: 🔵 Planned
+   - Target: Skill for episode retrieval via do-memory-cli
+   - Result: `.agents/skills/memory-context/SKILL.md`
 
-5. **WG-107**: Add `learn` skill (dual-write learning)
+5. **WG-107**: Add `learn` skill (dual-write learning) ✅
    - Priority: P2
    - Owner: skill-creator
-   - Target: Post-task learning: distill to nearest `AGENTS.md` + verbose to `LESSONS.md`
-   - Source: `github-template-ai-agents` `learn` skill
-   - Status: 🔵 Planned
+   - Target: Post-task learning pattern
+   - Result: `.agents/skills/learn/SKILL.md`
 
 ### P3: Future Backlog
 
@@ -75,6 +70,7 @@ Impact analysis of `d-o-hub/github-template-ai-agents` (agent harness template) 
 
 | Sprint | WGs | Status | Key Deliverables |
 |--------|-----|--------|------------------|
+| v0.1.30 | WG-103-107 | ✅ All Complete | MemoryEvent broadcast, top-k optimization, memory-context skill, learn skill |
 | v0.1.29 | WG-094-102 | ✅ All Complete | WASM removal (-6,982 LOC), Turso native vector search, file splitting, dead code audit |
 | v0.1.28 | WG-089-093 | ✅ All Complete | DyMoE routing-drift, dual reward scoring, AI spam detector, CodeQL fix |
 | v0.1.27 | WG-073,075,077-079,084-085 | ✅ All Complete | Bayesian ranking, Episode GC, MMR diversity, MCP Server Card, spawn_blocking audit, GH Pages, llms.txt |

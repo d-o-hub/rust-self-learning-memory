@@ -1,34 +1,34 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-09 (v0.1.30 sprint — planning)
+- **Last Updated**: 2026-04-09 (v0.1.30 sprint — COMPLETE)
 - **Version**: `0.1.29` (workspace, unreleased)
-- **Branch**: `main`
+- **Branch**: `feature/v0.1.30-plan-update`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
 - **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption)
 
 ---
 
-## Current Focus: v0.1.30 Sprint (Planning)
+## v0.1.30 Sprint (Complete ✅)
 
 ### Cross-Repo Impact Analysis (2026-04-09)
 
-Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_semantic_memory` identified unadopted patterns and integration opportunities. Neither repo is a Cargo dependency — influence is workflow/pattern-level only (per ADR-037).
+Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_semantic_memory` identified unadopted patterns and integration opportunities. All P1/P2 items adopted.
 
 ### P1: Runtime Patterns from `chaotic_semantic_memory`
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
-| `MemoryEvent` broadcast channel | WG-103 | 🔵 Planned | Reactive pipeline for episode lifecycle events (tokio::broadcast) |
-| `select_nth_unstable_by` for top-k | WG-104 | 🔵 Planned | O(n) partial sort replacing O(n log n) in retrieval hot paths |
-| Idempotent cargo publish | WG-105 | 🔵 Planned | curl crates.io API, skip if version exists (pattern from CSM) |
+| `MemoryEvent` broadcast channel | WG-103 | ✅ Complete | `tokio::broadcast` channel + subscribe() method + emit_event() helper |
+| `select_nth_unstable_by` for top-k | WG-104 | ✅ Complete | `search::top_k` module with O(n) partial sort utilities |
+| Idempotent cargo publish | WG-105 | ✅ Already exists | Version check step in `publish-crates.yml` |
 
 ### P2: Agent Harness Patterns from `github-template-ai-agents`
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
-| Add `memory-context` skill (CSM CLI integration) | WG-106 | 🔵 Planned | Hybrid BM25+HDC retrieval over lessons via `csm query` |
-| Add `learn` skill (dual-write learning) | WG-107 | 🔵 Planned | Distill discoveries → `AGENTS.md` + verbose → `LESSONS.md` |
+| Add `memory-context` skill | WG-106 | ✅ Complete | `.agents/skills/memory-context/SKILL.md` using do-memory-cli |
+| Add `learn` skill (dual-write learning) | WG-107 | ✅ Complete | `.agents/skills/learn/SKILL.md` with dual-write pattern |
 
 ### P3: Future Backlog from CSM
 

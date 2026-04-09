@@ -98,6 +98,18 @@ name = "prepared_cache_benchmark"
 path = "prepared_cache_benchmark.rs"
 harness = false
 
+# WG-103: MemoryEvent broadcast channel benchmarks
+[[bench]]
+name = "memory_event_benchmark"
+path = "memory_event_benchmark.rs"
+harness = false
+
+# WG-104: Top-K selection benchmarks (O(n) vs O(n log n))
+[[bench]]
+name = "top_k_benchmark"
+path = "top_k_benchmark.rs"
+harness = false
+
 # NOTE: adaptive_ttl_benchmark was deleted as it used APIs that don't exist.
 
 # NOTE: These benchmarks use APIs that don't exist in the current codebase.

@@ -4,6 +4,30 @@
 
 - Nothing yet
 
+## [0.1.30] - 2026-04-09
+
+### Added
+
+- **MemoryEvent broadcast channel** (WG-103) - `tokio::sync::broadcast` for lifecycle notifications
+  - `memory-core/src/types/event.rs`: MemoryEvent enum with EpisodeCreated, EpisodeCompleted, EpisodeGarbageCollected, PatternExtracted variants
+  - `subscribe()` method on SelfLearningMemory for external listeners
+- **O(n) top-k selection** (WG-104) - Efficient partial sorting via `select_nth_unstable_by`
+  - `memory-core/src/search/top_k.rs`: `select_top_k()` and `select_top_k_with_index()` utilities
+  - O(n) partitioning + O(k log k) sort vs O(n log n) full sort
+- **memory-context skill** (WG-106) - Episode retrieval skill using do-memory-cli
+  - `.agents/skills/memory-context/SKILL.md`: Semantic context retrieval patterns
+- **learn skill** (WG-107) - Dual-write post-task learning pattern
+  - `.agents/skills/learn/SKILL.md`: Captures non-obvious learnings to AGENTS.md and LESSONS.md
+
+### Changed
+
+- **redb 3.1.3 → 4.0.0** - Critical data loss bug fix (accessor outliving Table)
+- **Cross-repo pattern adoption** - Patterns from github-template-ai-agents and chaotic_semantic_memory
+
+### Fixed
+
+- **Yanked fastrand 2.4.0** - Updated to 2.4.1 in Cargo.lock
+
 ## [0.1.29] - 2026-04-04
 
 ### Changed

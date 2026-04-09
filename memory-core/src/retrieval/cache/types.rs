@@ -88,7 +88,7 @@ impl CacheKey {
 #[derive(Debug, Clone)]
 pub struct CachedResult {
     /// Cached episodes (Arc for zero-copy retrieval)
-    pub episodes: Arc<[Episode]>,
+    pub episodes: Arc<[Arc<Episode>]>,
     /// Time when this entry was cached
     pub cached_at: Instant,
     /// Time-to-live for this entry

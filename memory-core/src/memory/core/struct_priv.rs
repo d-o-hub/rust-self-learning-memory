@@ -6,10 +6,10 @@ use crate::embeddings::{EmbeddingConfig, SemanticService};
 use crate::episode::{Episode, EpisodeRelationship};
 use crate::pattern::PatternId;
 use crate::storage::StorageBackend;
-use crate::types::{MemoryConfig, TaskContext};
+use crate::types::{MemoryConfig, MemoryEvent, TaskContext, DEFAULT_EVENT_CHANNEL_CAPACITY};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{RwLock, Semaphore};
+use tokio::sync::{broadcast, RwLock, Semaphore};
 
 use super::super::step_buffer::StepBuffer;
 use crate::learning::queue::{PatternExtractionQueue, QueueConfig};
@@ -83,4 +83,6 @@ pub struct SelfLearningMemory {
     dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
     /// Audit logger for security compliance and incident investigation
     pub(super) audit_logger: crate::security::audit::AuditLogger,
+    /// Event broadcast channel sender for lifecycle notifications
+    pub(super) event_sender: broadcast::Sender<MemoryEvent>,
 }

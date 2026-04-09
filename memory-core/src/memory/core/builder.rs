@@ -12,8 +12,9 @@ use crate::pre_storage::{QualityAssessor, SalientExtractor};
 use crate::reflection::ReflectionGenerator;
 use crate::reward::RewardCalculator;
 use crate::storage::StorageBackend;
-use crate::types::MemoryConfig;
+use crate::types::{MemoryConfig, DEFAULT_EVENT_CHANNEL_CAPACITY};
 use std::sync::Arc;
+use tokio::sync::broadcast;
 
 impl Default for SelfLearningMemory {
     fn default() -> Self {
@@ -40,6 +41,7 @@ impl SelfLearningMemory {
         let agent_monitor = AgentMonitor::new();
         let dbscan_detector =
             crate::patterns::DBSCANAnomalyDetector::new(crate::patterns::DBSCANConfig::default());
+        let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
         Self {
             config,
@@ -70,6 +72,7 @@ impl SelfLearningMemory {
                 crate::retrieval::CacheConfig::default(),
             )),
             dbscan_detector,
+            event_sender,
         }
     }
 

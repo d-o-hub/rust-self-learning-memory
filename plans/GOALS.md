@@ -1,42 +1,73 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-04-02 (v0.1.27 current)
-- **Source ADR**: ADR-037
+- **Last Updated**: 2026-04-09 (v0.1.30 planning)
+- **Source ADR**: ADR-037, ADR-052
 - **Status**: Active
 
-## v0.1.28 Sprint Goals (Planned)
+## v0.1.30 Sprint Goals (Planning)
 
-1. **WG-089**: DyMoE-inspired pattern routing-drift protection
+### Cross-Repo Impact Analysis Source
+
+Impact analysis of `d-o-hub/github-template-ai-agents` (agent harness template) and `d-o-hub/chaotic_semantic_memory` (HDC memory crate) identified unadopted runtime patterns and skill gaps. Neither is a Cargo dependency — adoption is selective per ADR-037.
+
+### P1: Runtime Patterns
+
+1. **WG-103**: `MemoryEvent` broadcast channel
    - Priority: P1
    - Owner: feature-implement
-   - Target: Add PatternAffinityClassifier + EpisodeAssignmentGuard to prevent ambiguous episodes from corrupting established patterns
-   - Source: Issue #419
+   - Target: Add `tokio::broadcast`-based event channel for episode lifecycle (create, complete, GC) enabling reactive pipelines
+   - Source: CSM `MemoryEvent` pattern
    - Status: 🔵 Planned
 
-2. **WG-090**: Dual reward scoring (stability + novelty)
-   - Priority: P2
+2. **WG-104**: `select_nth_unstable_by` for top-k retrieval
+   - Priority: P1
    - Owner: feature-implement
-   - Target: Split reward scoring into stability_score + novelty_score for smarter cluster management
-   - Source: Issue #419
+   - Target: Replace O(n log n) sort with O(n) partial sort in retrieval hot paths
+   - Source: CSM retrieval optimization
    - Status: 🔵 Planned
 
-3. **WG-091**: Merge AI spam detector PR #406
+3. **WG-105**: Idempotent cargo publish
+   - Priority: P1
+   - Owner: ci-fix
+   - Target: Add crates.io version check before `cargo publish` — skip if version exists
+   - Source: CSM `publish-crates.yml` pattern
+   - Status: 🔵 Planned
+
+### P2: Agent Harness Skills
+
+4. **WG-106**: Add `memory-context` skill
    - Priority: P2
-   - Owner: ci-engineer
-   - Target: Merge ai-slop-detector workflows, close issue #401
+   - Owner: skill-creator
+   - Target: Skill wrapping `csm` CLI for hybrid BM25+HDC retrieval over `lessons.jsonl`
+   - Source: `github-template-ai-agents` `memory-context` skill
    - Status: 🔵 Planned
 
-4. **WG-092**: Resolve open Dependabot security alerts
-   - Priority: P1
-   - Owner: deps
-   - Target: Address rustls-webpki (medium), lru (low), libsql-sqlite3-parser (low) alerts
+5. **WG-107**: Add `learn` skill (dual-write learning)
+   - Priority: P2
+   - Owner: skill-creator
+   - Target: Post-task learning: distill to nearest `AGENTS.md` + verbose to `LESSONS.md`
+   - Source: `github-template-ai-agents` `learn` skill
    - Status: 🔵 Planned
 
-5. **WG-093**: Fix CodeQL cleartext logging alert #60
-   - Priority: P1
-   - Owner: code-quality
-   - Target: Resolve cleartext logging in memory-cli/src/commands/feedback/core.rs
-   - Status: 🔵 Planned
+### P3: Future Backlog
+
+6. **WG-108**: Version-retained persistence
+   - Priority: P3
+   - Owner: feature-implement
+   - Target: Track concept drift across episode versions
+   - Status: 🔵 Backlog
+
+7. **WG-109**: `BundleAccumulator` sliding window
+   - Priority: P3
+   - Owner: feature-implement
+   - Target: Recency-weighted context for pattern retrieval
+   - Status: 🔵 Backlog
+
+8. **WG-110**: SIMD-accelerated similarity
+   - Priority: P3
+   - Owner: feature-implement
+   - Target: SIMD cosine similarity — defer until benchmarks justify
+   - Status: 🔵 Backlog
 
 ---
 
@@ -44,6 +75,8 @@
 
 | Sprint | WGs | Status | Key Deliverables |
 |--------|-----|--------|------------------|
+| v0.1.29 | WG-094-102 | ✅ All Complete | WASM removal (-6,982 LOC), Turso native vector search, file splitting, dead code audit |
+| v0.1.28 | WG-089-093 | ✅ All Complete | DyMoE routing-drift, dual reward scoring, AI spam detector, CodeQL fix |
 | v0.1.27 | WG-073,075,077-079,084-085 | ✅ All Complete | Bayesian ranking, Episode GC, MMR diversity, MCP Server Card, spawn_blocking audit, GH Pages, llms.txt |
 | v0.1.26 | WG-086-088 | ✅ All Complete | Crate renaming do-memory-*, crates.io publish, GitHub Release |
 | v0.1.24 | WG-059-067,080-083 | ✅ All Complete | Test stability, dependency updates, CHANGELOG backfill, tag+release |

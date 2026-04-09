@@ -1,27 +1,56 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-04 (v0.1.29 sprint — executing)
+- **Last Updated**: 2026-04-09 (v0.1.30 sprint — planning)
 - **Version**: `0.1.29` (workspace, unreleased)
-- **Branch**: `feature/v0.1.29-sprint`
+- **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29 comprehensive analysis)
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption)
 
 ---
 
-## Current Focus: v0.1.29 Sprint (Executing)
+## Current Focus: v0.1.30 Sprint (Planning)
+
+### Cross-Repo Impact Analysis (2026-04-09)
+
+Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_semantic_memory` identified unadopted patterns and integration opportunities. Neither repo is a Cargo dependency — influence is workflow/pattern-level only (per ADR-037).
+
+### P1: Runtime Patterns from `chaotic_semantic_memory`
+
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| `MemoryEvent` broadcast channel | WG-103 | 🔵 Planned | Reactive pipeline for episode lifecycle events (tokio::broadcast) |
+| `select_nth_unstable_by` for top-k | WG-104 | 🔵 Planned | O(n) partial sort replacing O(n log n) in retrieval hot paths |
+| Idempotent cargo publish | WG-105 | 🔵 Planned | curl crates.io API, skip if version exists (pattern from CSM) |
+
+### P2: Agent Harness Patterns from `github-template-ai-agents`
+
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| Add `memory-context` skill (CSM CLI integration) | WG-106 | 🔵 Planned | Hybrid BM25+HDC retrieval over lessons via `csm query` |
+| Add `learn` skill (dual-write learning) | WG-107 | 🔵 Planned | Distill discoveries → `AGENTS.md` + verbose → `LESSONS.md` |
+
+### P3: Future Backlog from CSM
+
+| Task | WG | Status | Details |
+|------|----|--------|---------|
+| Version-retained persistence | WG-108 | 🔵 Backlog | Track concept drift across episode versions |
+| `BundleAccumulator` sliding window | WG-109 | 🔵 Backlog | Recency-weighted context for pattern retrieval |
+| SIMD-accelerated similarity | WG-110 | 🔵 Backlog | Marginal perf gain — defer until benchmarks justify |
+
+## v0.1.29 Sprint (Complete ✅)
 
 | Task | WG | Status | Details |
 |------|----|--------|---------|
 | Version bump to 0.1.29 | WG-094 | ✅ Complete | Workspace + inter-crate deps updated |
 | Archive stale GOAP plans | WG-095 | ✅ Complete | Already archived in v0.1.28 sprint |
-| Remove WASM sandbox | WG-096 | ⏳ In progress | 1,899 LOC, 11 files to remove |
-| Remove wasmtime/rquickjs deps | WG-097 | ⏳ Blocked by WG-096 | Cargo.toml cleanup |
-| Implement vector_top_k search | WG-098 | ⏳ Pending | Native DiskANN queries |
-| Embedding format migration | WG-099 | ⏳ Blocked by WG-098 | JSON → F32_BLOB |
-| Integration tests | WG-100 | ⏳ Blocked by WG-098/099 | Vector search tests |
-| Split >500 LOC files | WG-101 | ⏳ Blocked by WG-096 | LOC counts change after WASM removal |
-| Dead code audit | WG-102 | ⏳ Blocked by WG-096 | WASM removal affects count |
+| Remove WASM sandbox | WG-096 | ✅ Complete | -6,982 LOC, 11 files removed |
+| Remove wasmtime/rquickjs deps | WG-097 | ✅ Complete | Cargo.toml cleanup |
+| Implement vector_top_k search | WG-098 | ✅ Complete | Native DiskANN queries |
+| Embedding format migration | WG-099 | ✅ Complete | JSON → F32_BLOB |
+| Integration tests | WG-100 | ✅ Complete | Vector search tests |
+| Split >500 LOC files | WG-101 | ✅ Complete | 6 files split |
+| Dead code audit | WG-102 | ✅ Complete | 31 → target ≤25 |
 
 ## v0.1.28 Sprint (Complete ✅)
 

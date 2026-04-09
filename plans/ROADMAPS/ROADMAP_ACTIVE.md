@@ -1,6 +1,6 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-04 (v0.1.29 sprint COMPLETE)
+**Last Updated**: 2026-04-09 (v0.1.30 sprint PLANNING)
 **Released Version**: v0.1.26 (crates.io + GitHub Release)
 **Unreleased on main**: v0.1.27 + v0.1.28 + v0.1.29 features (32 commits since v0.1.26 tag)
 **Branch**: `main` (all PRs merged)
@@ -15,6 +15,36 @@ v0.1.26 released with crate renaming (`memory-*` → `do-memory-*`). All 4 crate
 ⚠️ **Version gap**: v0.1.27, v0.1.28, and v0.1.29 were sprint labels but **no tags or releases were created**. `Cargo.toml` version is now `0.1.29`. Next release should be v0.1.30.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
+
+---
+
+## Upcoming Sprint — v0.1.30 (Planning)
+
+**Source**: Cross-repo impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_semantic_memory` (2026-04-09)
+**ADR**: ADR-037 (Selective Workflow Automation Adoption)
+
+### P1: Runtime Pattern Adoption from CSM
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-103 | `MemoryEvent` broadcast channel for episode lifecycle | 🔵 Planned | 103 |
+| WG-104 | `select_nth_unstable_by` O(n) top-k in retrieval hot paths | 🔵 Planned | 104 |
+| WG-105 | Idempotent cargo publish (crates.io version check) | 🔵 Planned | 105 |
+
+### P2: Agent Harness Skill Adoption from Template
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-106 | `memory-context` skill — CSM CLI for HDC retrieval over lessons | 🔵 Planned | 106 |
+| WG-107 | `learn` skill — dual-write post-task learning pattern | 🔵 Planned | 107 |
+
+### P3: Backlog (Future Sprints)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|----|
+| WG-108 | Version-retained persistence (concept drift tracking) | 🔵 Backlog | 108 |
+| WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | 🔵 Backlog | 109 |
+| WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
 
 ---
 

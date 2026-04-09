@@ -6,6 +6,7 @@
 pub mod fuzzy;
 pub mod ranking;
 pub mod regex;
+pub mod top_k;
 pub mod types;
 
 #[cfg(feature = "hybrid_search")]
@@ -20,6 +21,7 @@ pub use ranking::{
 pub use regex::{
     regex_matches, regex_search, regex_search_case_insensitive, validate_regex_pattern,
 };
+pub use top_k::{select_top_k, select_top_k_with_index};
 pub use types::{FieldMatch, SearchField, SearchMode, SearchResult};
 
 #[cfg(feature = "hybrid_search")]

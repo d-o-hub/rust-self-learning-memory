@@ -9,6 +9,7 @@
 pub mod config;
 pub mod constants;
 pub mod enums;
+pub mod event;
 pub mod structs;
 
 pub use config::{ConcurrencyConfig, MemoryConfig, StorageConfig};
@@ -16,6 +17,7 @@ pub use constants::{
     MAX_ARTIFACT_SIZE, MAX_DESCRIPTION_LEN, MAX_EPISODE_SIZE, MAX_OBSERVATION_LEN, MAX_STEP_COUNT,
 };
 pub use enums::{ComplexityLevel, ExecutionResult, TaskOutcome, TaskType};
+pub use event::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryEvent, unix_now_secs};
 pub use structs::{DualRewardScore, Evidence, OutcomeStats, Reflection, RewardScore, TaskContext};
 
 pub use crate::memory::step_buffer::BatchConfig;

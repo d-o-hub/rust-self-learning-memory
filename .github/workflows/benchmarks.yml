@@ -371,7 +371,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write  # Required for commenting on PRs
-      issues: write         # Required for actions/github-script@v8 PR comments
+      issues: write         # Required for actions/github-script@v9 PR comments
     timeout-minutes: 30
 
     steps:
@@ -398,7 +398,7 @@ jobs:
 
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
               const fs = require('fs');

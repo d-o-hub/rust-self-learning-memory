@@ -29,7 +29,7 @@ jobs:
 
       # ── Extract n-gram phrases + update patterns file ─────────────────────
       - name: Learn from labeled issue
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           LABEL: ${{ github.event.label.name }}
           ISSUE_TITLE: ${{ github.event.issue.title }}

@@ -13,7 +13,7 @@ Phase 0: ADR Discovery [MANDATORY]
 Quality Gate: Relevant ADRs identified and reviewed
 
 Phase 1: Retrieve Context [Skills]
-├─ Skill(command="context-retrieval")
+├─ Skill(command="memory-context")
 │  Query: "similar feature implementations"
 └─ Skill(command="episode-start")
    → Start tracking this coordination
@@ -33,7 +33,7 @@ Quality Gate: Architecture approved, ADR-compliant
 Phase 4: Pre-Implementation Validation [Parallel Skills]
 ├─ Skill(command="architecture-validation")
 ├─ Skill(command="plan-gap-analysis")
-└─ Skill(command="rust-code-quality")
+└─ Skill(command="code-quality")
 Quality Gate: Design validated
 
 Phase 5: Implementation [Parallel Agents]
@@ -49,14 +49,14 @@ Phase 6: Testing [Skills + Agents]
 Quality Gate: All tests passing
 
 Phase 7: Quality Validation [Parallel Skills + Agents]
-├─ Skill(command="rust-code-quality")
+├─ Skill(command="code-quality")
 ├─ Skill(command="architecture-validation")
 ├─ Skill(command="plan-gap-analysis")
 └─ Task(subagent_type="code-reviewer")
 Quality Gate: Quality standards met
 
 Phase 8: Build & CI [Skills]
-├─ Skill(command="build-compile")
+├─ Skill(command="build-rust")
 └─ Skill(command="github-workflows")
 Quality Gate: Ready for merge
 

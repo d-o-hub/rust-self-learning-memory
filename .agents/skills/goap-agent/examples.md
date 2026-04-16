@@ -33,7 +33,7 @@ Task: Implement authentication system
 Task: Implement authentication system
 
 Phase 0: Retrieve Context
-└─ Skill(command="context-retrieval")
+└─ Skill(command="memory-context")
    Query: "authentication implementation"
    → Found: 3 past auth implementations
    → Pattern: Parallel (model + middleware + endpoints)
@@ -89,7 +89,7 @@ Task: Add real-time notifications
 
 ### Phase 1: Research (Parallel)
 - web-search-researcher → Best practices
-- context-retrieval → Similar implementations
+- memory-context → Similar implementations
 - Explore → Current architecture
 Quality Gate: Requirements clear
 
@@ -109,7 +109,7 @@ Quality Gate: All services implemented
 Quality Gate: All tests pass
 
 ### Phase 5: Validation
-- rust-code-quality → Code review
+- code-quality → Code review
 - code-reviewer → Final check
 Quality Gate: Ready for merge
 ```

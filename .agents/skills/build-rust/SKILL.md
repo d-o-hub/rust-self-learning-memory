@@ -1,13 +1,13 @@
 ---
 name: build-rust
-description: Optimized Rust build operations with timing, profiling, and workspace support
+description: Build Rust code with proper error handling, optimization, and workspace support for development, testing, and production
 ---
 
 # Rust Build Operations
 
-Efficiently build Rust workspaces with the build-rust CLI.
+Efficiently build Rust workspaces with the build-rust CLI, with proper error handling and optimization.
 
-## Usage
+## CLI Usage
 
 ```bash
 # Development (fast, debug symbols)
@@ -29,19 +29,19 @@ Efficiently build Rust workspaces with the build-rust CLI.
 ./scripts/build-rust.sh release do-memory-core
 ```
 
-## Modes
+## Build Modes
 
-| Mode | Purpose | Flags |
-|------|---------|--------|
-| `dev` | Development build | `--workspace` |
-| `release` | Production optimized | `--release --workspace` |
-| `profile` | Performance timing | `--release --timings` |
-| `check` | Fast type-check | `--workspace` |
-| `clean` | Clean artifacts | `--clean` |
+| Mode | Use Case | Performance | Flags |
+|------|----------|-------------|-------|
+| `dev` | Development iteration | Fast | `--workspace` |
+| `release` | Production deployment | Optimized | `--release --workspace` |
+| `profile` | Performance analysis | Medium | `--release --timings` |
+| `check` | Fast validation | Fastest | `--workspace` (type-check only) |
+| `clean` | Artifact cleanup | N/A | `--clean` |
 
 ## Disk Space Optimization (ADR-032)
 
-The dev profile is optimized to reduce target/ size (~5.2 GB → ~2 GB):
+Dev profile is optimized to reduce target/ size (~5.2 GB to ~2 GB):
 
 ```toml
 # .cargo/config.toml
@@ -59,42 +59,84 @@ inherits = "dev"
 debug = true                  # Full debug when needed: --profile debugging
 ```
 
-`mold` is **not** part of the default project guidance anymore. Current `.cargo/config.toml` keeps CI-compatible linker flags.
-
-**Cleanup (preferred)**:
-
+**Cleanup**:
 ```bash
 ./scripts/clean-artifacts.sh quick
 ./scripts/clean-artifacts.sh standard
 ./scripts/clean-artifacts.sh full
-./scripts/clean-artifacts.sh standard --node-modules
 ```
 
 **Artifact offloading** with `CARGO_TARGET_DIR`:
-
 ```bash
 CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/build-rust.sh dev
-CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/clean-artifacts.sh standard
 ```
 
-## Common Issues
+## Error Handling
 
-**Timeouts**
-- Use `dev` mode for faster iteration
-- Reduce parallel jobs: `CARGO_BUILD_JOBS=4 ./scripts/build-rust.sh release`
+**Timeout Errors**
+- Reduce concurrency: `CARGO_BUILD_JOBS=4 cargo build`
+- Use `check` mode for faster feedback
 
-**Memory errors**
-- Build with fewer jobs: `cargo build -j 4`
-- Use `check` instead of full build
+**Memory Errors**
+- Sequential build: `cargo build -j 1`
+- Monitor: `/usr/bin/time -v cargo build`
+- Use `check` mode (no codegen)
 
-**Dependency conflicts**
+**Dependency Conflicts**
 - Update: `cargo update`
 - Check tree: `cargo tree -e features`
 - Check duplicates: `cargo tree -d | grep -cE "^[a-z]"`
 
-**Platform-specific**
+**Platform-Specific**
 - Install targets: `rustup target add <triple>`
-- Conditional compilation: `#[cfg(target_os = "linux")]`
+- Conditional: `#[cfg(target_os = "linux")]`
+
+## Common Workflows
+
+**Full CI Pipeline**
+```bash
+./scripts/code-quality.sh fmt
+./scripts/code-quality.sh clippy --workspace
+cargo build --release --workspace
+cargo nextest run --all
+cargo test --doc
+```
+
+**Quick Development Cycle**
+```bash
+cargo check -p do-memory-core
+cargo test -p do-memory-core --lib
+```
+
+**Production Release**
+```bash
+cargo build --release --workspace
+strip target/release/do-memory-mcp
+./target/release/do-memory-mcp --version
+```
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Incremental cache corruption | `cargo clean && cargo build` |
+| Stale lock file | `rm Cargo.lock && cargo generate-lockfile` |
+| Rust version mismatch | `rustup update stable && rustup default stable` |
+| Cross-compilation failures | `rustup target add x86_64-unknown-linux-musl` |
+
+## Verification Checklist
+
+- [ ] Build completes without errors
+- [ ] No clippy warnings (`cargo clippy -- -D warnings`)
+- [ ] Tests compile (`cargo test --no-run`)
+- [ ] Binary size acceptable (< 10MB stripped)
+- [ ] Startup time < 100ms
+
+## Related Skills
+
+- **code-quality**: Lint and format checks before builds
+- **test-runner**: Execute tests after successful compilation
+- **debug-troubleshoot**: Diagnose runtime issues post-build
 
 ## References
 

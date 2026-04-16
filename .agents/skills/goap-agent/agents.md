@@ -62,7 +62,7 @@ Score based on: Goal achievement, efficiency, quality, adaptability
 
 ### Retrieving Past Context
 ```
-Use: Skill(command="context-retrieval")
+Use: Skill(command="memory-context")
 Query: Similar coordination tasks, past decisions
 ```
 

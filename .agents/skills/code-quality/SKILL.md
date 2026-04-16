@@ -1,20 +1,20 @@
 ---
 name: code-quality
-description: Maintain high code quality through formatting, linting, and static analysis. Use code-quality skill and scripts for rustfmt, clippy, or cargo audit.
+description: Maintain high code quality through formatting, linting, static analysis, and clean code principles. Use for rustfmt, clippy, cargo audit, code reviews, refactoring, and quality gates.
 ---
 
 # Code Quality
 
-Use the code-quality scripts for all operations.
+Unified skill for Rust code quality and clean code development. Use scripts as primary interface.
 
-## Usage
+## Quick Commands
 
 ```bash
-# Format check (fast)
+# Format check
 ./scripts/code-quality.sh fmt
 
 # Lint with clippy
-./scripts/code-quality.sh clippy
+./scripts/code-quality.sh clippy --workspace
 
 # Security audit
 ./scripts/code-quality.sh audit
@@ -22,75 +22,117 @@ Use the code-quality scripts for all operations.
 # Run all quality gates
 ./scripts/code-quality.sh check
 
-# Auto-fix common issues
-./scripts/code-quality.sh clippy --fix
+# Full quality gates (coverage threshold 90%)
+./scripts/quality-gates.sh
 ```
 
 ## Quality Gates
 
-| Check | Command |
-|-------|---------|
-| Format | `./scripts/code-quality.sh fmt` |
-| Lint | `./scripts/code-quality.sh clippy --workspace` |
-| Audit | `cargo audit` |
-| Full | `./scripts/quality-gates.sh` |
-| Coverage | `cargo llvm-cov --html --output-dir coverage` |
-| Docs | `cargo doc --no-deps` |
+| Check | Command | Target |
+|-------|---------|--------|
+| Format | `./scripts/code-quality.sh fmt` | 100% compliant |
+| Lint | `./scripts/code-quality.sh clippy --workspace` | Zero warnings |
+| Audit | `cargo audit` | No known vulnerabilities |
+| Coverage | `cargo llvm-cov --html` | >=90% |
+| Docs | `cargo doc --no-deps` | All public APIs |
 
 ## Rust Quality Dimensions
 
-| Dimension | Focus | Check |
-|-----------|-------|-------|
-| Structure | Files <500 LOC, module hierarchy | `find . -name "*.rs" -exec wc -l {} +` |
-| Error Handling | Custom Error, Result<T>, no unwrap | `rg "unwrap()" --glob "*.rs" --glob "!*/tests/*"` |
-| Async Patterns | async fn, spawn_blocking, no blocking | `rg "async fn\|spawn_blocking" --glob "*.rs"` |
-| Testing | >=90% coverage, integration tests | `./scripts/quality-gates.sh` |
-| Documentation | Public APIs 100% documented | `cargo doc --no-deps` |
+| Dimension | Focus | Target |
+|-----------|-------|--------|
+| Structure | Files <500 LOC, clear modules | <500 LOC per file |
+| Error Handling | Custom Error, Result<T>, no unwrap | `?` operator, thiserror |
+| Async Patterns | spawn_blocking for CPU work | No blocking in async |
+| Testing | >=90% coverage, AAA pattern | cargo nextest + doctests |
+| Documentation | Public APIs documented | cargo doc passes |
+| Security | Parameterized SQL, env vars | No hardcoded secrets |
 
-## Rust-Specific Anti-Patterns
+## Clean Code Principles
 
-- **Excessive Clone**: Use borrowing or Arc
-- **Unnecessary Unwrap**: Use `?` operator
-- **Deep Nesting**: Extract methods to flatten
-- **Large Functions**: Split into smaller functions (< 50 LOC)
-- **Deadlocks**: Release locks before `.await`
+### SOLID
+- **Single Responsibility**: One reason to change per module
+- **Open-Closed**: Extend via traits, not modification
+- **Liskov Substitution**: Subtypes substitutable for base types
+- **Interface Segregation**: Small, focused interfaces
+- **Dependency Inversion**: Depend on abstractions, inject deps
+
+### DRY/KISS/YAGNI
+- **DRY**: Extract common code, single source of truth
+- **KISS**: Simple solutions, avoid over-engineering
+- **YAGNI**: Build what's needed now, defer complexity
+
+## Anti-Patterns
+
+### Rust-Specific
+- Excessive clone -> Use borrowing or Arc
+- Unnecessary unwrap -> Use `?` operator
+- Deep nesting -> Extract methods
+- Large functions -> Split (<50 LOC)
+- Deadlocks -> Release locks before `.await`
+
+### General Code Smells
+- Long methods -> Break into smaller
+- Duplicate code -> Extract reusable functions
+- God class -> Reduce responsibilities
+- Feature envy -> Move methods to appropriate classes
 
 ## Best Practices Checklist
 
-- [ ] Files <500 LOC
-- [ ] Clear module hierarchy
-- [ ] Custom Error enum with Result<T>
-- [ ] No unwrap() in production code
-- [ ] async fn for IO operations
-- [ ] spawn_blocking for CPU work
-- [ ] >=90% test coverage
-- [ ] Public APIs documented
-- [ ] SOLID principles applied
-- [ ] No code duplication (DRY)
+### DO
+- Files <500 LOC, clear module hierarchy
+- Custom Error enum with Result<T>
+- No unwrap() in production (tests only)
+- async fn for IO, spawn_blocking for CPU
+- >=90% test coverage
+- Public APIs documented
+- SOLID principles applied
+- No code duplication (DRY)
 
-## Dependency Monitoring (ADR-036)
+### DON'T
+- Violate SOLID principles
+- Duplicate code "for now"
+- Functions >50 lines without justification
+- Skip static analysis warnings
+- Over-engineer simple problems
+- Create tight coupling
 
-Track duplicate dependency count as a quality metric:
+## Code Review Output Format
+
+```markdown
+# Code Quality Report
+
+## Summary
+- Score: X/100
+- Critical Issues: N
+- Warnings: M
+
+## By Dimension
+- Structure: [Status]
+- Error Handling: [Status]
+- Async Patterns: [Status]
+- Testing: [Status]
+- Documentation: [Status]
+
+## Critical Issues
+1. [Issue] - File:line - Fix: [Recommendation]
+
+## Action Items
+- [ ] High: Fix critical issues
+- [ ] Medium: Address warnings
+```
+
+## Dependency Monitoring
 
 ```bash
-# Count duplicate dependency roots (target: < 100)
+# Count duplicate dependencies (target: <100)
 cargo tree -d | grep -cE "^[a-z]"
 
 # Find unused dependencies
-cargo install --locked cargo-machete cargo-shear
-cargo machete
-cargo shear
-
-# Find unused features
-cargo install --locked cargo-unused-features
-cargo unused-features analyze
+cargo machete && cargo shear
 ```
 
 ## References
 
-- [ADR-036: Dependency Deduplication](../../../plans/adr/ADR-036-Dependency-Deduplication.md)
-- [ADR-032: Disk Space Optimization](../../../plans/adr/ADR-032-Disk-Space-Optimization.md)
-
-Consolidated from these former skills (preserved in `_consolidated/`):
-- `rust-code-quality` — Rust-specific quality dimensions, analysis commands, report format
-- `clean-code-developer` — SOLID principles, refactoring techniques, anti-patterns
+- Detailed dimensions: `quality-dimensions.md` (in this directory)
+- ADR-036: Dependency Deduplication
+- ADR-032: Disk Space Optimization

@@ -17,14 +17,16 @@ ignore = [
     # Tracking: https://github.com/rustls/webpki/releases/tag/v/0.103.10
     # Mitigation: CRL matching flaw is low impact; CRL validation not relied upon in our usage
     "RUSTSEC-2026-0049",
-    # RUSTSEC-2026-0098: Name constraints for URI names incorrectly accepted
-    # RUSTSEC-2026-0099: Name constraints for certificates asserting wildcard names incorrectly accepted
+    # RUSTSEC-2026-0099: rustls-webpki name constraints for wildcard names incorrectly accepted
     # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
-    # Fix: rustls-webpki >=0.103.12 (semver-incompatible with rustls 0.22's ^0.102.8 constraint)
-    # Upstream: Waiting for rustls 0.22 update or hyper-rustls migration
-    # Mitigation: Name constraints are low risk as they require misissuance by a CA to exploit
-    "RUSTSEC-2026-0098",
+    # Fix: rustls-webpki >=0.103.12 OR >=0.104.0-alpha.6 (semver-incompatible)
+    # Date: 2026-04-14
+    # Mitigation: Transitive dependency, awaiting libsql upstream update
     "RUSTSEC-2026-0099",
+    # RUSTSEC-2026-0098: rustls-webpki name constraints for URI names incorrectly accepted
+    # Same dependency chain and fix as RUSTSEC-2026-0099
+    # Date: 2026-04-14
+    "RUSTSEC-2026-0098",
     # RUSTSEC-2026-0097: rand is unsound with a custom logger using rand::rng()
     # Dependency chain: multiple (tokio, libsql, etc) -> rand 0.8/0.9
     # Fix: rand >=0.8.6 (semver-compatible with 0.8.x) or >=0.9.x

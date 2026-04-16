@@ -448,7 +448,7 @@ gh repo view owner/repo --json | jq '{.stargazersCount, .forksCount, .openIssues
 ### With Skills
 - **episode-start**: Gather comprehensive context through deep research
 - **debug-troubleshoot**: Research error patterns and solution approaches
-- **build-compile**: Investigate build tool configurations and optimization techniques
+- **build-rust**: Investigate build tool configurations and optimization techniques
 
 ## Summary
 

@@ -24,7 +24,7 @@ Coordinate multiple specialized Skills and Task Agents through strategic executi
 ## CRITICAL: Skills vs Task Agents
 
 **Skills** (via `Skill` tool): Instruction sets that guide Claude
-- Examples: rust-code-quality, architecture-validation, plan-gap-analysis
+- Examples: code-quality, architecture-validation, plan-gap-analysis
 
 **Agents** (via `Task` tool): Autonomous sub-processes that execute
 - Examples: code-reviewer, test-runner, debugger, loop-agent

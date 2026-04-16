@@ -4,17 +4,16 @@
 
 | Skill | Purpose |
 |-------|---------|
-| **rust-code-quality** | Comprehensive Rust code review |
+| **code-quality** | Rust code review, formatting, linting, clean code principles |
 | **architecture-validation** | Validate vs architecture plans |
 | **plan-gap-analysis** | Implementation gap analysis |
-| **code-quality** | Formatting, linting maintenance |
 | **quality-unit-testing** | High-quality test writing |
 
 ## Build & Testing Skills
 
 | Skill | Purpose |
 |-------|---------|
-| **build-compile** | Build management, compilation |
+| **build-rust** | Build management, compilation |
 | **test-fix** | Systematic test debugging |
 | **test-runner** | Test execution, management |
 
@@ -31,7 +30,7 @@
 | Skill | Purpose |
 |-------|---------|
 | **web-search-researcher** | Web research for modern info |
-| **context-retrieval** | Episodic memory retrieval |
+| **memory-context** | Episodic memory retrieval & compaction |
 
 ## Memory System Skills
 
@@ -65,7 +64,7 @@
 
 ### Phase 1: Research & Analysis (Parallel)
 - `web-search-researcher` - Best practices research
-- `context-retrieval` - Past implementations
+- `memory-context` - Past implementations & compaction
 - `codebase-consolidation` - Architecture understanding
 
 ### Phase 2: Decision-Making (Sequential)
@@ -73,7 +72,7 @@
 - `analysis-swarm` - Architectural decisions
 
 ### Phase 3: Pre-Implementation (Parallel)
-- `rust-code-quality` - Rust best practices
+- `code-quality` - Rust best practices
 - `architecture-validation` - Design validation
 - `plan-gap-analysis` - Requirements coverage
 
@@ -86,10 +85,10 @@
 - `quality-unit-testing` - Test quality
 
 ### Phase 6: Build & CI/CD
-- `build-compile` - Build verification
+- `build-rust` - Build verification
 - `github-workflows` - CI validation
 
 ### Phase 7: Quality Assurance (Parallel)
-- `rust-code-quality` - Final review
+- `code-quality` - Final review
 - `architecture-validation` - Final validation
 - `code-reviewer` - Quality check

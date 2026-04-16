@@ -19,7 +19,7 @@ Skills are instruction sets that guide Claude's behavior within the current conv
 - Results needed immediately in context
 
 ### Examples
-- `rust-code-quality` - Guide formatting and linting
+- `code-quality` - Guide formatting, linting, and Rust best practices
 - `architecture-validation` - Validate against plans
 - `plan-gap-analysis` - Analyze implementation gaps
 

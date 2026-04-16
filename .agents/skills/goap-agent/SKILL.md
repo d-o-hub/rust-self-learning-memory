@@ -31,8 +31,8 @@ Goal-Oriented Action Planning for complex multi-step tasks with intelligent plan
 **Agents** (via `Task` tool): Autonomous sub-processes that execute tasks
 
 Example:
-- WRONG: `Task(subagent_type="rust-code-quality", ...)` → ERROR!
-- CORRECT: `Skill(command="rust-code-quality")` → SUCCESS
+- WRONG: `Task(subagent_type="code-quality", ...)` → ERROR!
+- CORRECT: `Skill(command="code-quality")` → SUCCESS
 
 See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents.md)** for agent capabilities.
 

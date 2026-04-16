@@ -139,7 +139,7 @@ phases:
     strategy: sequential
     depends_on: [validate]
     agents:
-      - type: build-compile
+      - type: build-rust
         task: build all targets
   - name: test
     strategy: parallel

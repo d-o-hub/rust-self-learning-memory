@@ -1,87 +1,132 @@
 ---
 name: memory-context
-description: Retrieve semantically relevant past learnings and analysis outputs using the do-memory-cli for hybrid retrieval over project knowledge
-version: "1.0"
+description: Retrieve relevant context from memory and preserve essential state. Use for episode retrieval, semantic search, or context compaction when window fills.
+version: "2.0"
 template_version: "0.2"
 category: KnowledgeManagement
 ---
 
 # Memory Context
 
-Retrieve semantically relevant past learnings, analysis outputs, and project knowledge using the `do-memory-cli`.
+Unified skill for retrieving episodic context and preserving essential session state.
 
-## Prerequisites
+## CLI Operations
+
+### Prerequisites
 
 ```bash
-# Build CLI with turso feature for remote storage, or use redb-only (default)
+# Build CLI (redb-only default, or --features turso for remote)
 cargo build -p do-memory-cli --release
 ```
 
-## When to Use
-
-- At session start to recall previous work
-- When facing a problem that might have been solved before
-- To retrieve specific findings from `agent_docs/` or `plans/`
-
-## Environment Setup
+### Environment Setup
 
 ```bash
-# Local development (redb, no server needed)
+# Local development (redb, no server)
 export LOCAL_DATABASE_URL="file:./data/memory.db"
 
-# Turso dev server (if using turso storage)
+# Turso dev server
 turso dev --db-file ./data/memory.db --port 8080
 export TURSO_URL="http://127.0.0.1:8080"
 export TURSO_TOKEN=""
 ```
 
-## Querying Episodes
+### Episode Queries
 
 ```bash
 # List recent episodes
 cargo run -p do-memory-cli -- episode list --limit 10
 
-# Search episodes by task description
+# Search by description
 cargo run -p do-memory-cli -- episode search "git worktree" --limit 5
 
 # Get episode details
 cargo run -p do-memory-cli -- episode get <episode-id>
 
-# Analyze patterns
-cargo run -p do-memory-cli -- pattern analyze --top-k 10
+# JSON output for parsing
+cargo run -p do-memory-cli -- episode search "error" --format json --limit 5
 ```
 
-## Output Formats
+## Retrieval Methods
 
-The CLI supports table output (default) and JSON for machine parsing:
+### Semantic Search (Programmatic)
 
-```bash
-# JSON output for agent consumption
-cargo run -p do-memory-cli -- episode list --format json --limit 5
+When embeddings available, use semantic search for best relevance:
+
+```rust
+let context = memory
+    .retrieve_relevant_context("implement async batch updates", task_context, 5)
+    .await?;
 ```
 
-## Token Budget
+### Keyword Search (Fallback)
 
-Use a hard post-query cap from environment:
+Fast, deterministic SQL-based retrieval:
 
-```bash
-cargo run -p do-memory-cli -- episode search "error handling" --limit 5 |
-awk -v max_tokens="$MAX_CONTEXT_TOKENS" '
-{
-    for (i = 1; i <= NF; i++) {
-        if (token_count < max_tokens) {
-            printf "%s%s", $i, (token_count + 1 < max_tokens ? " " : "\n")
-            token_count++
-        } else {
-            exit
-        }
-    }
-}
-'
+```sql
+SELECT * FROM episodes
+WHERE task_type = ? AND tags LIKE ?
+ORDER BY timestamp DESC LIMIT ?;
 ```
 
-## Reference Files
+### Filtering Strategies
 
-- `agent_docs/LESSONS.md` - Project-wide lessons log
-- `agent_docs/database_schema.md` - Database structure
+```rust
+// By domain
+TaskContext { domain: "storage".to_string(), .. }
+
+// By task type
+task_type_filter: Some("implementation")
+
+// By recency (last 30 days)
+since: Some(now - Duration::days(30))
+
+// By success only
+verdict: Some(Verdict::Success)
+```
+
+## Context Compaction
+
+When context window fills, preserve essential state.
+
+### Always Preserve
+
+| Item | Why |
+|------|-----|
+| Test names + output (pass/fail) | Regression detection |
+| Build status (success/error + msg) | Know if in broken state |
+| Files modified (path + why) | Track changes, rollback |
+| Open TODOs with state | Prevent losing WIP |
+| Env vars set this session | Re-establish environment |
+| Decisions made (WHY) | Contextual future decisions |
+
+### DO NOT Compress
+
+- Exact file paths
+- Error messages (verbatim)
+- Test names
+- Numeric results
+
+### Compaction Format
+
+```
+Tests: 2 fail (test_embed, test_turso_insert)
+Build: error - "missing trait impl Write for &str"
+Files: do-memory-core/src/embed.rs (added async embed)
+TODOs: [in_progress] refactor embed.rs - 60%
+Env: TURSO_DATABASE_URL=libsql://...
+Decision: switched to async embed for hot path
+```
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Low recall | Check embeddings, expand tags, increase limit |
+| Slow retrieval | Check cache, verify indexes, reduce result set |
+| Poor relevance | Use semantic search, improve query, filter by domain |
+
+## References
+
+- `agent_docs/LESSONS.md` - Project-wide lessons
 - `do-memory-cli/CLI_USER_GUIDE.md` - Full CLI documentation

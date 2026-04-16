@@ -39,7 +39,7 @@
 | Memory | `memory-[operation]` | `memory-retrieval` |
 | Testing | `[type]-testing` | `rust-async-testing`, `episodic-memory-testing` |
 | Quality | `quality-[area]` | `quality-unit-testing` |
-| Build | `build-[target]` | `build-compile` |
+| Build | `build-[target]` | `build-rust` |
 | Debug | `debug-[area]` | `debug-troubleshoot` |
 | Code | `code-[action]` | `code-quality`, `code-review` |
 

@@ -19,6 +19,18 @@ ignore = [
     # Mitigation: CRL matching flaw is low impact; CRL validation not relied upon in our usage
     "RUSTSEC-2026-0049",
 
+    # RUSTSEC-2026-0099: rustls-webpki name constraints for wildcard names incorrectly accepted
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.12 OR >=0.104.0-alpha.6 (semver-incompatible)
+    # Date: 2026-04-14
+    # Mitigation: Transitive dependency, awaiting libsql upstream update
+    "RUSTSEC-2026-0099",
+
+    # RUSTSEC-2026-0098: rustls-webpki name constraints for URI names incorrectly accepted
+    # Same dependency chain and fix as RUSTSEC-2026-0099
+    # Date: 2026-04-14
+    "RUSTSEC-2026-0098",
+
     # RUSTSEC-2026-0002: lru has unsound IterMut implementation
     # Dependency chain: augurs-changepoint 0.10.2 -> changepoint 0.14.2 -> rv 0.16.5 -> lru 0.9.0
     # Solution: Awaiting augurs updates to use latest changepoint/rv versions

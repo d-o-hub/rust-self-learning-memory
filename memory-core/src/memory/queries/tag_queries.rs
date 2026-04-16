@@ -58,7 +58,7 @@ pub async fn list_episodes_by_tags(
         .collect();
 
     // Sort by creation time (newest first)
-    matching.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+    matching.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
     // Apply limit
     if let Some(limit) = limit {

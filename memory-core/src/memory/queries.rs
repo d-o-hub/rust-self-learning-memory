@@ -165,7 +165,7 @@ pub async fn list_episodes(
     }
 
     // Sort by start time (newest first) for consistent ordering
-    all_episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+    all_episodes.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
     // Apply pagination
     let offset = offset.unwrap_or(0);
@@ -233,7 +233,7 @@ pub async fn list_episodes_filtered(
     let mut filtered = filter.apply(all_episodes);
 
     // Sort by start time (newest first) for consistent ordering
-    filtered.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+    filtered.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
     // Apply pagination
     let offset = offset.unwrap_or(0);

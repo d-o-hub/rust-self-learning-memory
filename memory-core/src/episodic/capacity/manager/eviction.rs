@@ -59,7 +59,7 @@ fn evict_lru(episodes: &[Episode], count: usize) -> Vec<Uuid> {
         .collect();
 
     // Sort by time (oldest first)
-    episodes_with_time.sort_by(|a, b| a.1.cmp(&b.1));
+    episodes_with_time.sort_by_key(|a| a.1);
 
     // Take the oldest N episodes
     episodes_with_time

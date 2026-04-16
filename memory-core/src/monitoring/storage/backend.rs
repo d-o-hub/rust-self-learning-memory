@@ -248,7 +248,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
         }
 
         // Sort by timestamp (newest first) and limit
-        episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+        episodes.sort_by_key(|b| std::cmp::Reverse(b.start_time));
         episodes.truncate(limit);
 
         let mut records = Vec::new();

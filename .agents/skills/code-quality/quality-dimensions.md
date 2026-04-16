@@ -470,7 +470,7 @@ pub async fn store_episode(&self, episode: &Episode) -> Result<()> {
     self.conn.execute(&query, ()).await?;
 
     // Hardcoded secret!
-    let token = "sk_turso_abc123";
+    let token = "YOUR_TOKEN_HERE";
     Ok(())
 }
 ```

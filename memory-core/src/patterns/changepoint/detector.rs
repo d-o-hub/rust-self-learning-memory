@@ -409,7 +409,7 @@ impl ChangepointDetector {
             return changepoints;
         }
 
-        changepoints.sort_by(|a, b| a.index.cmp(&b.index));
+        changepoints.sort_by_key(|a| a.index);
 
         let mut filtered = Vec::with_capacity(changepoints.len());
         let mut last_cp_index = 0usize;

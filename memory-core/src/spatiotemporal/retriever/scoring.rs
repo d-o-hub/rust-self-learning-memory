@@ -65,7 +65,7 @@ impl super::HierarchicalRetriever {
 
         // Sort by recency (newest first)
         let mut sorted: Vec<_> = candidates.to_vec();
-        sorted.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+        sorted.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
         // For now, take top-k most recent episodes
         // Future: implement proper temporal clustering (weekly/monthly buckets)

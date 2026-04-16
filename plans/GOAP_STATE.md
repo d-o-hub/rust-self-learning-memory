@@ -1,13 +1,68 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-09 (v0.1.30 sprint — COMPLETE)
-- **Version**: `0.1.29` (workspace, unreleased)
-- **Branch**: `feature/v0.1.30-plan-update`
+- **Last Updated**: 2026-04-16 (v0.1.31 sprint — PLANNING)
+- **Version**: `0.1.30` (workspace, unreleased)
+- **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption)
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (v0.1.31 pending)
 
 ---
+
+## v0.1.31 Sprint (Planning 🔵)
+
+### GOAP Analysis (2026-04-16)
+
+**Primary Goal**: Release v0.1.30, consolidate 49 skills → ~35, reduce tech debt, integrate research-inspired features.
+
+**Constraints**:
+- Time: Normal
+- Resources: All agents available
+- Dependencies: v0.1.30 release must precede version bump
+
+**Complexity Level**: Complex (4+ agents, mixed execution)
+
+**Strategy**: Hybrid (Phase 0 sequential → Phase 1-2 parallel → Phase 3 sequential)
+
+### Phase 0: Release & Hygiene (Sequential)
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Release v0.1.30 | WG-111 | 🔵 Planned | release-guard + commit |
+| Bump to 0.1.31 | WG-112 | 🔵 Planned | feature-implement |
+| Clippy suppression audit | WG-113 | 🔵 Planned | refactorer |
+
+### Phase 1: Skills Consolidation (Parallel)
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Merge build skills | WG-114 | 🔵 Planned | skill-creator |
+| Merge research skills | WG-115 | 🔵 Planned | skill-creator |
+| Merge code-quality skills | WG-116 | 🔵 Planned | skill-creator |
+| Merge context skills | WG-117 | 🔵 Planned | skill-creator |
+| Merge test-pattern skills | WG-118 | 🔵 Planned | skill-creator |
+| Compact oversized skills | WG-119 | 🔵 Planned | skill-creator |
+
+### Phase 2: Code Quality (Parallel with Phase 1)
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Split >500 LOC files | WG-120 | 🔵 Planned | refactorer |
+| Reduce dead_code annotations | WG-121 | 🔵 Planned | refactorer |
+| Update stale documentation | WG-122 | 🔵 Planned | agents-update |
+
+### Phase 3: Research-Inspired Features (Sequential)
+
+| Task | WG | Status | Owner | Paper |
+|------|----|--------|-------|-------|
+| Temporal graph edges (episode store) | WG-123 | 🔵 Planned | feature-implement | REMem (ICLR 2026) |
+| Procedural memory type | WG-124 | 🔵 Planned | feature-implement | ParamAgent (2026) |
+| Routing-Free MoE evaluation | WG-125 | 🔵 Planned | code-reviewer | arXiv:2604.00801 |
+
+### Quality Gates
+- **Gate 1** (after Phase 0): v0.1.30 tag exists, Cargo.toml at 0.1.31
+- **Gate 2** (after Phase 1-2): Skills ≤35, all tests pass, clippy clean
+- **Gate 3** (after Phase 3): New features tested, coverage ≥90%
 
 ## v0.1.30 Sprint (Complete ✅)
 
@@ -91,12 +146,16 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.29 | — |
-| Total tests | ~2,875 | — |
-| Ignored tests | 125 annotations | ceiling ≤125 |
-| `allow(dead_code)` (prod) | 31 | ≤40 (target ≤25) |
+| Workspace version | 0.1.30 | — |
+| Total tests | 2,856 | — |
+| Ignored tests | 123 skipped | ceiling ≤125 |
+| `allow(dead_code)` (prod) | 35 | ≤25 |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
+| Skills count | 49 | ≤35 (after consolidation) |
+| Skills LOC | 6,764 | ≤4,000 |
+| Clippy suppressions (lib.rs) | 64 | ≤20 |
+| Files >500 LOC | 4 | 0 |
 | Cargo audit | 3 unmaintained warnings | transitive |
 | Dependabot alerts | 3 open | all transitive, tracked |
 | CodeQL alerts | 0 open | ✅ fixed |

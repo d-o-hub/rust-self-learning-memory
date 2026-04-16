@@ -1,8 +1,119 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-04-09 (v0.1.30 COMPLETE)
-- **Source ADR**: ADR-037, ADR-052
+- **Last Updated**: 2026-04-16 (v0.1.31 PLANNING)
+- **Source ADR**: ADR-037, ADR-052, ADR-053 (pending)
 - **Status**: Active
+
+---
+
+## v0.1.31 Sprint Goals (Planning 🔵)
+
+### Source: Comprehensive Analysis (2026-04-16)
+
+Codebase analysis + academic paper review identified: skill bloat (49 skills, 6,764 LOC), clippy suppression debt (64 lints), version release gap (v0.1.26→v0.1.30), and research-inspired feature opportunities.
+
+### Phase 0: Release & Hygiene
+
+1. **WG-111**: Release v0.1.30
+   - Priority: P0
+   - Owner: release-guard, commit
+   - Target: Tag v0.1.30, publish to crates.io, create GitHub Release
+   - Dependencies: None
+
+2. **WG-112**: Version bump to 0.1.31
+   - Priority: P0
+   - Owner: feature-implement
+   - Target: Bump workspace version, update CHANGELOG
+   - Dependencies: WG-111
+
+3. **WG-113**: Clippy suppression audit
+   - Priority: P1
+   - Owner: refactorer
+   - Target: Reduce `lib.rs` `#[allow(clippy::*)]` from 64 → ≤20
+   - Dependencies: None
+
+### Phase 1: Skills Consolidation
+
+4. **WG-114**: Merge build skills (`build-compile` + `build-rust`)
+   - Priority: P1
+   - Owner: skill-creator
+   - Target: Single `build-rust` skill
+
+5. **WG-115**: Merge research skills (`perplexity-researcher-*` + `web-search-researcher`)
+   - Priority: P1
+   - Owner: skill-creator
+   - Target: Single `web-researcher` skill with tier toggle
+
+6. **WG-116**: Merge code-quality skills (`code-quality` + `rust-code-quality` + `clean-code-developer`)
+   - Priority: P1
+   - Owner: skill-creator
+   - Target: Single `code-quality` skill
+
+7. **WG-117**: Merge context skills (`context-retrieval` + `context-compaction` + `memory-context`)
+   - Priority: P1
+   - Owner: skill-creator
+   - Target: Single `memory-context` skill
+
+8. **WG-118**: Merge test-pattern skills (`quality-unit-testing` + `episodic-memory-testing` + `rust-async-testing`)
+   - Priority: P1
+   - Owner: skill-creator
+   - Target: Single `test-patterns` skill
+
+9. **WG-119**: Compact oversized skills
+   - Priority: P2
+   - Owner: skill-creator
+   - Target: `git-worktree-manager` 549→≤150, `yaml-validator` 486→≤100, `general` 403→≤100
+
+### Phase 2: Code Quality
+
+10. **WG-120**: Split >500 LOC files
+    - Priority: P1
+    - Owner: refactorer
+    - Target: Split retention.rs, affinity.rs, ranking.rs, handlers.rs
+
+11. **WG-121**: Reduce dead_code annotations
+    - Priority: P2
+    - Owner: refactorer
+    - Target: 35 → ≤25 `#[allow(dead_code)]`
+
+12. **WG-122**: Update stale documentation
+    - Priority: P2
+    - Owner: agents-update
+    - Target: STATUS/CURRENT.md, AGENTS.md stale metrics, skill descriptions referencing "2025"
+
+### Phase 3: Research-Inspired Features
+
+13. **WG-123**: Temporal graph edges in episode store
+    - Priority: P2
+    - Owner: feature-implement
+    - Target: Add graph relationships between episodes/patterns with temporal weights
+    - Paper: REMem (ICLR 2026, arXiv:2602.13530) — hybrid memory graph, +13.4% reasoning
+
+14. **WG-124**: Procedural memory type
+    - Priority: P2
+    - Owner: feature-implement
+    - Target: New memory type for learned heuristics-as-skills (episodic + semantic + procedural)
+    - Paper: ParamAgent (2026) — three-tier memory architecture
+
+15. **WG-125**: Routing-Free MoE evaluation
+    - Priority: P3
+    - Owner: code-reviewer
+    - Target: Evaluate replacing DyMoE centralized routing with self-activating experts
+    - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
+
+### Backlog (Future)
+
+16. **WG-126**: Cross-agent memory collaboration (MemCollab)
+    - Priority: P3
+    - Owner: feature-implement
+    - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
+
+17. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
+    - Priority: P3
+    - Owner: feature-implement
+    - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
+
+---
 
 ## v0.1.30 Sprint Goals (Complete ✅)
 

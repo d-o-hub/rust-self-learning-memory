@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-02 (v0.1.28 sprint complete)
-**Released Version**: v0.1.26 (crates.io), v0.1.28 features merged to main
+**Last Updated**: 2026-04-16 (v0.1.30 sprint complete)
+**Released Version**: v0.1.26 (crates.io), v0.1.30 features merged to main
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -13,18 +13,28 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.26 | — | ✅ Published to crates.io |
-| Total test functions | 2,849/2,849 | — | ✅ All passing |
-| Skipped/ignored tests | 115 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
+| Workspace version | 0.1.30 | — | ✅ Published to crates.io |
+| Total test functions | 2,856/2,856 | — | ✅ All passing |
+| Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 4 | 0 | ⚠️ Needs split (retention.rs, affinity.rs, ranking.rs, handlers.rs) |
-| `#[allow(dead_code)]` (production) | 31 | ≤40 | ✅ Target met |
+| `#[allow(dead_code)]` (production) | 35 | ≤40 | ✅ Target met |
+| Skills count | 49 | ≤35 | ⚠️ Needs pruning |
+| Skills LOC | 6,764 | ≤4,000 | ⚠️ Needs pruning |
+| Clippy suppressions (lib.rs) | 64 | ≤20 | ⚠️ Needs cleanup |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
 | Broken markdown links | 0 active | ≤80 | ✅ |
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
+
+## v0.1.30 Sprint Highlights
+
+- **MemoryEvent Broadcast**: `tokio::broadcast` channel for episode lifecycle events
+- **Top-k Optimization**: O(n) `select_nth_unstable_by` for retrieval hot paths
+- **Zero-copy Retrieval Caching**: Bolt optimization for episodic memory
+- **Agent Skills**: Added `memory-context` and `learn` skills
 
 ## v0.1.28 Release Highlights
 
@@ -41,7 +51,7 @@
 
 ---
 
-## Open Items (2026-04-02 Validation)
+## Open Items (2026-04-16 Validation)
 
 ### Open Issues
 | # | Title | Status |
@@ -51,7 +61,7 @@
 ### Open PRs
 | # | Title | Status |
 |---|-------|--------|
-| #423 | fix(core): rustdoc issues + quality gates integration | ✅ CI passing |
+| — | No open PRs | ✅ All merged |
 
 ### Security: Dependabot Alerts (Accepted Risk — Transitive)
 | # | Dependency | Severity | Notes |
@@ -115,8 +125,8 @@ All research/implementation phases are complete:
 
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
-| Ignored tests | 124 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (production) | 31 | ≤40 | ✅ Target met |
+| Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
+| `#[allow(dead_code)]` (production) | 35 | ≤40 | ✅ Target met |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |

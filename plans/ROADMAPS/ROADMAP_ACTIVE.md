@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-16 (v0.1.31 sprint PLANNING)
-**Released Version**: v0.1.26 (crates.io + GitHub Release)
-**Unreleased on main**: v0.1.27–v0.1.30 features (40+ commits since v0.1.26 tag)
+**Last Updated**: 2026-04-16 (v0.1.31 sprint IN PROGRESS)
+**Released Version**: v0.1.30 (crates.io + GitHub Release)
+**Current Development**: v0.1.31
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -10,44 +10,30 @@
 
 ## Current State
 
-v0.1.26 released. v0.1.30 is latest on `main` (Cargo.toml). 2,856 tests passing, 123 skipped.
+v0.1.30 released to crates.io. Skills consolidation completed (WG-114-119). 2,856 tests passing.
 
-⚠️ **Version gap**: v0.1.27–v0.1.30 were sprint labels but **no tags or releases were created**. Next release should be v0.1.30.
+### Completed in v0.1.31 Sprint
 
-See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
+**Phase 0**: ✅ Complete
+- WG-111: Released v0.1.30
+- WG-112: Bumped to 0.1.31
+- WG-113: Clippy suppressions audited (64→12 in lib.rs + 47 in Cargo.toml)
+
+**Phase 1**: ✅ Complete (PR #452)
+- WG-114-119: All skills consolidation completed
+  - Compacted: general, git-worktree-manager, yaml-validator (1,438→150 LOC)
+  - Consolidated: build-rust, code-quality, memory-context, test-patterns
+  - Added: memory-harness skill, test-patterns skill
+  - Total: ~2,700 LOC saved (40% reduction)
+
+**Phase 2**: Partial (deferred - production files stable)
+- WG-120-122: Deferred to future sprint (current file sizes acceptable)
 
 ---
 
-## Upcoming Sprint — v0.1.31 (Planning)
+## Upcoming Sprint — v0.1.32 (Research Features)
 
-**Source**: Comprehensive analysis (2026-04-16) + academic paper review (REMem ICLR 2026, Routing-Free MoE, MemCollab, ParamAgent)
-**ADR**: ADR-053 (pending — v0.1.31 Comprehensive Analysis Sprint)
-
-### Phase 0: Release & Hygiene
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-111 | Release v0.1.30 to crates.io + GitHub (close version gap) | 🔵 Planned | 111 |
-| WG-112 | Bump workspace version to 0.1.31, update CHANGELOG | 🔵 Planned | 112 |
-| WG-113 | Audit `lib.rs` clippy suppressions (64 → ≤20) | 🔵 Planned | 113 |
-
-### Phase 1: Skills Consolidation
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-114 | Merge `build-compile` + `build-rust` → single `build-rust` skill | 🔵 Planned | 114 |
-| WG-115 | Merge `perplexity-researcher-pro` + `perplexity-researcher-reasoning-pro` + `web-search-researcher` → `web-researcher` | 🔵 Planned | 115 |
-| WG-116 | Merge `code-quality` + `rust-code-quality` + `clean-code-developer` → `code-quality` | 🔵 Planned | 116 |
-| WG-117 | Merge `context-retrieval` + `context-compaction` + `memory-context` → `memory-context` | 🔵 Planned | 117 |
-| WG-118 | Merge `quality-unit-testing` + `episodic-memory-testing` + `rust-async-testing` → `test-patterns` | 🔵 Planned | 118 |
-| WG-119 | Compact `git-worktree-manager` (549 → ≤150 LOC), `yaml-validator` (486 → ≤100), `general` (403 → ≤100) | 🔵 Planned | 119 |
-
-### Phase 2: Code Quality & File Compliance
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-120 | Split remaining >500 LOC files (retention.rs, affinity.rs, ranking.rs, handlers.rs) | 🔵 Planned | 120 |
-| WG-121 | Reduce `#[allow(dead_code)]` from 35 → ≤25 | 🔵 Planned | 121 |
+**Source**: ADR-053 Phase 3 research-inspired features
 | WG-122 | Update stale docs: STATUS/CURRENT.md, AGENTS.md stale metrics | 🔵 Planned | 122 |
 
 ### Phase 3: Research-Inspired Features (from 4/2026 papers)

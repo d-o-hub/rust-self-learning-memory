@@ -87,9 +87,8 @@ jobs:
           sudo apt-get install -y mold
 
       - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
+        run: cargo install --locked cargo-nextest
+        shell: bash
 
       - uses: Swatinem/rust-cache@v2.9.1
         with:
@@ -111,7 +110,7 @@ jobs:
         run: |
           mkdir -p "$CARGO_TARGET_DIR/nextest/nightly"
           cargo nextest run --profile ci --lib --all --test-threads=4 \
-            --message-format json > "$CARGO_TARGET_DIR/nextest/nightly/report.json"
+            --message-format libtest-json > "$CARGO_TARGET_DIR/nextest/nightly/report.json"
           cargo nextest run --profile ci --tests --all --test-threads=4 \
             -E 'not binary(compliance)'
 
@@ -278,9 +277,8 @@ jobs:
           save-if: false  # Don't save cache on slow tests to save space
 
       - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
+        run: cargo install --locked cargo-nextest
+        shell: bash
 
       - name: Check disk space before slow tests
         run: |

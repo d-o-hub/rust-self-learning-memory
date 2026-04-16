@@ -17,6 +17,14 @@ ignore = [
     # Tracking: https://github.com/rustls/webpki/releases/tag/v/0.103.10
     # Mitigation: CRL matching flaw is low impact; CRL validation not relied upon in our usage
     "RUSTSEC-2026-0049",
+    # RUSTSEC-2026-0098: Name constraints for URI names incorrectly accepted
+    # RUSTSEC-2026-0099: Name constraints for certificates asserting wildcard names incorrectly accepted
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.12 (semver-incompatible with rustls 0.22's ^0.102.8 constraint)
+    # Upstream: Waiting for rustls 0.22 update or hyper-rustls migration
+    # Mitigation: Name constraints are low risk as they require misissuance by a CA to exploit
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
 ]
 
 [licenses]

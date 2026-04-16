@@ -43,6 +43,10 @@ ignore = [
     # Dependency chain: tokenizers 0.22.2 -> paste 1.0.15
     # Mitigation: Awaiting tokenizers updates
     "RUSTSEC-2024-0436",
+    # RUSTSEC-2025-0134: rustls-pemfile 2.2.0 is unmaintained
+    "RUSTSEC-2025-0134",
+    # RUSTSEC-2026-0002: lru has unsound IterMut implementation
+    "RUSTSEC-2026-0002",
 ]
 
 [licenses]

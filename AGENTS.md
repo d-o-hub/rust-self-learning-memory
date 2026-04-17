@@ -20,8 +20,19 @@ Always use Skill + CLI first for high-frequency ops:
 | Format/Lint | `code-quality` | `./scripts/code-quality.sh` |
 | Tests | `test-runner` | `cargo nextest run --all` + `cargo test --doc` |
 | Debug | `debug-troubleshoot` | - |
+| Record session | `memory-harness` | `.agents/skills/memory-harness/replay-trace.sh` |
 
 Before task tool: skill? → script? → Skill+CLI? → task tool?
+
+## Memory Harness (Real-Life Benchmarks)
+Record real agent sessions as traces, replay as benchmarks, measure learning effectiveness.
+- **Record**: Capture tool-call sequences during normal work → `.memory-traces/*.json`
+- **Replay**: `bash .agents/skills/memory-harness/replay-trace.sh <trace.json>`
+- **Evaluate**: `bash .agents/skills/memory-harness/evaluate-learning.sh`
+- **Export**: `bash .agents/skills/memory-harness/export-fixtures.sh`
+- **Deploy anywhere**: Copy `.agents/skills/memory-harness/` + `cargo install do-memory-cli`
+
+Traces are portable JSON. Commit traces, gitignore `.results.json`.
 
 ## Change Workflow
 1. Identify owner crate + module
@@ -50,7 +61,6 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Check**: Run `cargo doc --no-deps --document-private-items` before commit
 
 ## Common Pitfalls
-Based on 34 sessions (234 msgs, 97 commits):
 
 | Pitfall | Prevention |
 |---------|------------|

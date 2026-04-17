@@ -1,6 +1,6 @@
 ---
 name: test-patterns
-description: Unified testing patterns for Rust: unit testing quality, episodic memory operations, and async/tokio code. Use when writing tests, reviewing test code, or diagnosing test failures.
+description: Unified testing patterns for Rust unit testing quality, episodic memory operations, and async/tokio code. Use when writing tests, reviewing test code, or diagnosing test failures.
 ---
 
 # Test Patterns for Rust Self-Learning Memory

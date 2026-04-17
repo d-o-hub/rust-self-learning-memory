@@ -106,4 +106,6 @@ mcp-config-*.json
 .claude/**/.local/
 .blackboxcli/settings.json
 *.proptest-regressions
-.memory-traces/
+
+# Memory harness — commit trace files, ignore replay results
+.memory-traces/*.results.json

@@ -101,11 +101,7 @@ impl ProviderMetrics {
         let successful_requests = self.successful_requests.load(Ordering::Relaxed);
         let total_latency_ms = self.total_latency_ms.load(Ordering::Relaxed);
 
-        let average_latency_ms = if successful_requests > 0 {
-            total_latency_ms / successful_requests
-        } else {
-            0
-        };
+        let average_latency_ms = total_latency_ms.checked_div(successful_requests).unwrap_or(0);
 
         MetricsSnapshot {
             total_requests,

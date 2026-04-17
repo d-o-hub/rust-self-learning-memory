@@ -260,17 +260,7 @@ impl EnhancedPatternApplicator {
 
         // Bonus for exact domain-specific tools
         let domain_bonus = match context.domain.as_str() {
-            "api_development" => {
-                if tool
-                    .capabilities
-                    .iter()
-                    .any(|c| c.contains("rust") || c.contains("compiler"))
-                {
-                    0.2
-                } else {
-                    0.0
-                }
-            }
+            "api_development" if tool.capabilities.iter().any(|c| c.contains("rust") || c.contains("compiler")) => 0.2,
             _ => 0.0,
         };
 

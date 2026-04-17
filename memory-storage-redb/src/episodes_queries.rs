@@ -167,3 +167,42 @@ impl RedbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::{Episode, TaskContext, TaskType};
+    use tempfile::tempdir;
+
+    async fn create_test_storage() -> Result<RedbStorage> {
+        let dir = tempdir().unwrap();
+        let db_path = dir.path().join("test.redb");
+        RedbStorage::new(&db_path).await
+    }
+
+    #[tokio::test]
+    async fn test_query_episodes_by_metadata_sorting() {
+        let storage = create_test_storage().await.unwrap();
+        let now = chrono::Utc::now();
+        for i in 0..5 {
+            let mut episode = Episode::new(
+                format!("task-{}", i),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            );
+            episode.start_time = now + chrono::Duration::minutes(i as i64);
+            episode
+                .metadata
+                .insert("category".to_string(), "test".to_string());
+            storage.store_episode(&episode).await.unwrap();
+        }
+        let results = storage
+            .query_episodes_by_metadata("category", "test", None)
+            .await
+            .unwrap();
+        assert_eq!(results.len(), 5);
+        for i in 0..4 {
+            assert!(results[i].start_time >= results[i + 1].start_time);
+        }
+    }
+}

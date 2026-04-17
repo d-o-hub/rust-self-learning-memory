@@ -117,10 +117,10 @@ pub async fn search_episodes(
             // Default ordering from search - no additional sort needed
         }
         SearchSortOrder::Newest => {
-            episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+            episodes.sort_by_key(|b| std::cmp::Reverse(b.start_time));
         }
         SearchSortOrder::Oldest => {
-            episodes.sort_by(|a, b| a.start_time.cmp(&b.start_time));
+            episodes.sort_by_key(|a| a.start_time);
         }
         SearchSortOrder::Duration => {
             episodes.sort_by(|a, b| {

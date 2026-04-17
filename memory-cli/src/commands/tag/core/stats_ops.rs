@@ -138,7 +138,7 @@ pub(super) async fn show_tag_stats(
     };
 
     let mut sorted_by_count: Vec<_> = stats_map.iter().collect();
-    sorted_by_count.sort_by(|a, b| b.1.0.cmp(&a.1.0));
+    sorted_by_count.sort_by_key(|b| std::cmp::Reverse(b.1.0));
     let most_used_tag = sorted_by_count.first().map(|(t, _)| (*t).clone());
     let least_used_tag = sorted_by_count.last().map(|(t, _)| (*t).clone());
 

@@ -253,7 +253,7 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
 
         let mut records = Vec::new();
         for episode in episodes {
-            if let Some(_metrics_data) = episode.metadata.get("metrics_data") {
+            if let Some(_monitoring_type) = episode.metadata.get("monitoring_type") {
                 // For execution records, we need to reconstruct from metadata since they're stored differently
                 let agent_name = episode
                     .metadata
@@ -343,3 +343,5 @@ impl MonitoringStorageBackend for SimpleMonitoringStorage {
         Ok(None)
     }
 }
+#[cfg(test)]
+mod monitoring_storage_tests;

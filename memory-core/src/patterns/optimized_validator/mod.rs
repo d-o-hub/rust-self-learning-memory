@@ -142,3 +142,25 @@ mod tests {
         assert_eq!(score1, score2);
     }
 }
+
+#[cfg(test)]
+mod additional_tests {
+    use super::*;
+    use crate::types::{ComplexityLevel, TaskContext};
+
+    #[test]
+    fn test_tool_compatibility_domain_bonus() {
+        let applicator = EnhancedPatternApplicator::new();
+        let tool =
+            Tool::new("rust_compiler".to_string()).with_capabilities(vec!["rust".to_string()]);
+        let context = TaskContext {
+            domain: "api_development".to_string(),
+            language: Some("rust".to_string()),
+            framework: None,
+            complexity: ComplexityLevel::Moderate,
+            tags: vec![],
+        };
+        let score = applicator.assess_tool_compatibility(&tool, &context);
+        assert!(score > 0.5);
+    }
+}

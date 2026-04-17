@@ -248,7 +248,8 @@ impl TaskTypeIndex {
             self.temporal_clusters.push(new_cluster);
 
             // Keep clusters sorted by start time (most recent first)
-            self.temporal_clusters.sort_by_key(|b| std::cmp::Reverse(b.start_time));
+            self.temporal_clusters
+                .sort_by_key(|b| std::cmp::Reverse(b.start_time));
         }
     }
 

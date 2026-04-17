@@ -66,7 +66,7 @@ impl RedbStorage {
             }
 
             // Sort by start_time descending (most recent first)
-            episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+            episodes.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
             // Apply limit after sorting (in case we collected more than limit during filtering)
             episodes.truncate(effective_limit);
@@ -149,7 +149,7 @@ impl RedbStorage {
             }
 
             // Sort by start_time descending (most recent first)
-            episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+            episodes.sort_by_key(|b| std::cmp::Reverse(b.start_time));
 
             // Apply limit after sorting
             episodes.truncate(effective_limit);

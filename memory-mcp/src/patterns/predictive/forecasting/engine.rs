@@ -164,7 +164,7 @@ impl ForecastingEngine {
             .into_iter()
             .filter(|(_, s)| *s >= max_strength - tolerance)
             .collect();
-        candidates.sort_by(|a, b| a.0.cmp(&b.0));
+        candidates.sort_by_key(|a| a.0);
 
         let (best_period, best_strength) = if let Some((p, s)) = candidates
             .iter()

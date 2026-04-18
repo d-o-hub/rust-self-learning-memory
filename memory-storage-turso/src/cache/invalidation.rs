@@ -86,12 +86,12 @@ impl InvalidationManager {
 
         if rules.len() >= self.config.max_rules {
             warn!("Max rules reached, removing lowest priority rule");
-            rules.sort_by(|a, b| a.priority.cmp(&b.priority));
+            rules.sort_by_key(|a| a.priority);
             rules.remove(0);
         }
 
         rules.push(rule);
-        rules.sort_by(|a, b| b.priority.cmp(&a.priority)); // Higher priority first
+        rules.sort_by_key(|b| std::cmp::Reverse(b.priority)); // Higher priority first
 
         debug!("Added invalidation rule, total rules: {}", rules.len());
     }

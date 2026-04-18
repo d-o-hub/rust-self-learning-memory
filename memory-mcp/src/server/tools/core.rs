@@ -157,10 +157,10 @@ impl crate::server::MemoryMCPServer {
         // Apply sorting
         match sort.as_str() {
             "newest" => {
-                episodes.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+                episodes.sort_by_key(|b| std::cmp::Reverse(b.start_time));
             }
             "oldest" => {
-                episodes.sort_by(|a, b| a.start_time.cmp(&b.start_time));
+                episodes.sort_by_key(|a| a.start_time);
             }
             "duration" => {
                 episodes.sort_by(|a, b| {
@@ -313,7 +313,7 @@ impl crate::server::MemoryMCPServer {
         }
 
         let mut most_common_tools: Vec<_> = tool_counts.into_iter().collect();
-        most_common_tools.sort_by(|a, b| b.1.cmp(&a.1));
+        most_common_tools.sort_by_key(|b| std::cmp::Reverse(b.1));
         let most_common_tools: Vec<String> = most_common_tools
             .into_iter()
             .take(5)

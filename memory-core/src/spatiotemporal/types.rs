@@ -249,7 +249,7 @@ impl TaskTypeIndex {
 
             // Keep clusters sorted by start time (most recent first)
             self.temporal_clusters
-                .sort_by(|a, b| b.start_time.cmp(&a.start_time));
+                .sort_by_key(|b| std::cmp::Reverse(b.start_time));
         }
     }
 
@@ -308,5 +308,33 @@ impl TaskTypeIndex {
     /// Clean up empty clusters.
     pub fn cleanup_empty_clusters(&mut self) {
         self.temporal_clusters.retain(|cluster| !cluster.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{TaskContext, TaskType};
+    use chrono::Utc;
+
+    #[test]
+    fn test_task_type_index_sorting() {
+        let mut index = TaskTypeIndex::new(TaskType::CodeGeneration);
+        let now = Utc::now();
+        for i in 0..5 {
+            let mut episode = Episode::new(
+                format!("task-{}", i),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            );
+            episode.start_time = now - chrono::Duration::days(i64::from(i) * 30);
+            index.insert_episode(&episode);
+        }
+        assert!(index.temporal_clusters.len() > 1);
+        for i in 0..index.temporal_clusters.len() - 1 {
+            assert!(
+                index.temporal_clusters[i].start_time >= index.temporal_clusters[i + 1].start_time
+            );
+        }
     }
 }

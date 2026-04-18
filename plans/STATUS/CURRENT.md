@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-16 (v0.1.30 sprint complete)
-**Released Version**: v0.1.26 (crates.io), v0.1.30 features merged to main
+**Last Updated**: 2026-04-18 (v0.1.31 sprint in progress)
+**Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 development
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -13,16 +13,16 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.30 | — | ✅ Published to crates.io |
+| Workspace version | 0.1.31 | — | ✅ |
 | Total test functions | 2,856/2,856 | — | ✅ All passing |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
-| Production src files >500 LOC | 4 | 0 | ⚠️ Needs split (retention.rs, affinity.rs, ranking.rs, handlers.rs) |
-| `#[allow(dead_code)]` (production) | 35 | ≤40 | ✅ Target met |
-| Skills count | 49 | ≤35 | ⚠️ Needs pruning |
+| Production src files >500 LOC | 0 | 0 | ✅ Met |
+| `#[allow(dead_code)]` (production) | 41 | ≤25 | ⚠️ Over target |
+| Skills count | 51 | ≤35 | ⚠️ Needs pruning |
 | Skills LOC | 6,764 | ≤4,000 | ⚠️ Needs pruning |
-| Clippy suppressions (lib.rs) | 64 | ≤20 | ⚠️ Needs cleanup |
+| Clippy suppressions (lib.rs) | 61 | ≤20 | ⚠️ Needs cleanup |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
 | Broken markdown links | 0 active | ≤80 | ✅ |
@@ -61,7 +61,14 @@
 ### Open PRs
 | # | Title | Status |
 |---|-------|--------|
-| — | No open PRs | ✅ All merged |
+| 453 | chore: bump version to 0.1.31 | 🔴 Superseded — close (main already at 0.1.31) |
+| 450 | perf: parking_lot::RwLock for QueryCache | 🔵 Defer to v0.1.32 — performance optimization |
+| 445 | ci(deps): bump actions/github-script 8→9 | 🔵 Dependabot — fix CI and merge |
+
+### Recently Merged PRs
+| # | Title | Status |
+|---|-------|--------|
+| 454 | fix(persistence): SQL injection in metadata query | ✅ Merged 2026-04-18 (P0 security fix) |
 
 ### Security: Dependabot Alerts (Accepted Risk — Transitive)
 | # | Dependency | Severity | Notes |
@@ -109,7 +116,7 @@ All research/implementation phases are complete:
 - **Durable checkpoint/handoff storage**: Turso episode checkpoint serialization + restart-safe handoff resume metadata persistence (WG-052 validated via `tests/checkpoint_integration_test.rs`)
 - **Checkpoints**: Mid-task state snapshotting and agent handoff packs
 - **Storage**: Turso/libSQL (persistent) + redb (cache) dual-layer
-- **Security**: Wasmtime sandbox, path traversal protection, parameterized SQL
+- **Security**: Path traversal protection, parameterized SQL (WASM removed in v0.1.29)
 - **CI/CD**: 6 workflows all passing, cargo-nextest, mutation testing
 - **Performance**: Exceeds all targets (17–2307×)
 
@@ -131,11 +138,11 @@ All research/implementation phases are complete:
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
 
-## Disabled Features
+## Removed Features
 
-| Feature | Location | Reason |
-|---------|----------|--------|
-| `execute_agent_code` MCP tool | `handlers.rs:72-91` | WASM sandbox compilation issues |
+| Feature | Version Removed | Reason |
+|---------|-----------------|--------|
+| WASM sandbox (wasmtime) | v0.1.29 (WG-096) | Maintenance burden, security concerns, 1,899 LOC removed |
 
 ## Infrastructure (Completed via PR #391)
 

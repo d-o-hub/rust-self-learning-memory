@@ -6,7 +6,6 @@
 use super::super::policy::EvictionPolicy;
 use super::scoring::calculate_relevance_score;
 use crate::episode::Episode;
-use std::cmp::Ordering;
 use uuid::Uuid;
 
 /// Determine which episodes to evict if needed.
@@ -82,7 +81,7 @@ fn evict_relevance_weighted(episodes: &[Episode], count: usize) -> Vec<Uuid> {
         .collect();
 
     // Sort by relevance score (lowest first)
-    episodes_with_scores.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal));
+    episodes_with_scores.sort_by(|a, b| a.1.total_cmp(&b.1));
 
     // Take the lowest-scoring N episodes
     episodes_with_scores

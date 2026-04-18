@@ -294,4 +294,45 @@ mod cache_tests {
         assert_eq!(cache.effective_size(), 0); // Logical size
         assert!(cache.get(&key_web).is_none()); // Verify it's actually invalid
     }
+
+    #[test]
+    fn test_cache_update() {
+        let cache = QueryCache::new();
+        let key = CacheKey::new("test".to_string());
+        let episodes1 = vec![create_test_episode("ep1")];
+        let episodes2 = vec![create_test_episode("ep2")];
+
+        cache.put(key.clone(), episodes1);
+        assert_eq!(cache.get(&key).unwrap().len(), 1);
+
+        // Update existing entry
+        cache.put(key.clone(), episodes2);
+        assert_eq!(cache.get(&key).unwrap().len(), 1);
+
+        let metrics = cache.metrics();
+        assert_eq!(metrics.evictions, 0); // Update should not count as eviction
+    }
+
+    #[test]
+    fn test_cache_is_empty_and_clear_metrics() {
+        let cache = QueryCache::new();
+        assert!(cache.is_empty());
+        assert_eq!(cache.size(), 0);
+
+        let key = CacheKey::new("test".to_string());
+        cache.put(key.clone(), vec![create_test_episode("ep1")]);
+        assert!(!cache.is_empty());
+
+        cache.clear_metrics();
+        let metrics = cache.metrics();
+        assert_eq!(metrics.hits, 0);
+        assert_eq!(metrics.misses, 0);
+    }
+
+    #[test]
+    fn test_cache_default() {
+        let cache = QueryCache::default();
+        assert!(cache.is_empty());
+        assert_eq!(cache.size(), 0);
+    }
 }

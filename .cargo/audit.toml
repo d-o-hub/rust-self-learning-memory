@@ -36,4 +36,26 @@ ignore = [
     # Solution: Awaiting augurs updates to use latest changepoint/rv versions
     # Mitigation: IterMut unsoundness only affects specific edge cases, not used in our code paths
     "RUSTSEC-2026-0002",
+
+    # RUSTSEC-2026-0097: rand is unsound with a custom logger using rand::rng()
+    # Dependency chain: multiple (tokio, libsql, etc) -> rand 0.8/0.9
+    # Fix: rand >=0.8.6 (semver-compatible with 0.8.x) or >=0.9.x
+    # Upstream: Waiting for transitive dependency updates
+    # Mitigation: Unsoundness only affects custom loggers using rand::rng()
+    "RUSTSEC-2026-0097",
+
+    # RUSTSEC-2025-0141: bincode is unmaintained
+    # Dependency chain: libsql 0.9.30 -> bincode 1.3.3
+    # Mitigation: Awaiting libsql update, bincode usage in libsql is for internal state
+    "RUSTSEC-2025-0141",
+
+    # RUSTSEC-2024-0384: instant is unmaintained
+    # Dependency chain: augurs-changepoint 0.10.2 -> ... -> instant 0.1.13
+    # Mitigation: Awaiting augurs updates
+    "RUSTSEC-2024-0384",
+
+    # RUSTSEC-2024-0436: paste is unmaintained
+    # Dependency chain: tokenizers 0.22.2 -> paste 1.0.15
+    # Mitigation: Awaiting tokenizers updates
+    "RUSTSEC-2024-0436",
 ]

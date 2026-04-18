@@ -385,6 +385,22 @@ fn create_redb_only_memory_system(
 
 /// Try to set up fallback storage when no explicit configuration
 #[cfg(feature = "turso")]
+#[cfg(feature = "redb")]
+async fn create_fallback_with_redb(
+    turso_storage: do_memory_storage_turso::TursoStorage,
+    memory_config: MemoryConfig,
+) -> Result<(StorageType, StorageType, SelfLearningMemory)> {
+    let temp_redb =
+        do_memory_storage_redb::RedbStorage::new(std::path::Path::new(":memory:")).await?;
+    let memory = SelfLearningMemory::with_storage(
+        memory_config,
+        Arc::new(turso_storage),
+        Arc::new(temp_redb),
+    );
+    Ok((StorageType::LocalSqlite, StorageType::Memory, memory))
+}
+
+#[cfg(feature = "turso")]
 async fn try_setup_fallback_storage(
     memory_config: MemoryConfig,
 ) -> Result<(StorageType, StorageType, SelfLearningMemory)> {
@@ -407,18 +423,7 @@ async fn try_setup_fallback_storage(
                         eprintln!("Using local SQLite database: {}", db_path);
 
                         #[cfg(feature = "redb")]
-                        {
-                            let temp_redb = do_memory_storage_redb::RedbStorage::new(
-                                std::path::Path::new(":memory:"),
-                            )
-                            .await?;
-                            let memory = SelfLearningMemory::with_storage(
-                                memory_config,
-                                Arc::new(turso_storage),
-                                Arc::new(temp_redb),
-                            );
-                            Ok((StorageType::LocalSqlite, StorageType::Memory, memory))
-                        }
+                        return create_fallback_with_redb(turso_storage, memory_config).await;
                         #[cfg(not(feature = "redb"))]
                         {
                             let memory = SelfLearningMemory::with_storage(

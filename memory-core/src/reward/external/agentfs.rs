@@ -95,6 +95,7 @@ impl AgentFsProvider {
     }
 
     /// Sanitize parameters for privacy
+    #[allow(dead_code)]
     fn sanitize_parameters(&self, params: &serde_json::Value) -> serde_json::Value {
         if !self.config.sanitize_parameters {
             return params.clone();
@@ -119,7 +120,7 @@ impl AgentFsProvider {
 
 #[async_trait]
 impl ExternalSignalProvider for AgentFsProvider {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "agentfs"
     }
 
@@ -137,7 +138,7 @@ impl ExternalSignalProvider for AgentFsProvider {
         // Fetch toolcall stats from AgentFS
         // Note: This is a placeholder for actual AgentFS SDK integration
         // The actual implementation would use agentfs_sdk::ToolCalls
-        let tool_signals = self.fetch_tool_stats(episode).await?;
+        let tool_signals = self.fetch_tool_stats(episode);
 
         // Calculate confidence based on sample sizes
         let total_samples: usize = tool_signals.iter().map(|t| t.sample_count).sum();
@@ -213,7 +214,7 @@ impl AgentFsProvider {
     /// Fetch tool statistics for an episode
     ///
     /// This method correlates episode steps with AgentFS toolcall history.
-    async fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Result<Vec<ToolSignal>> {
+    fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Vec<ToolSignal> {
         let mut signals = Vec::new();
 
         // For each tool used in the episode, query AgentFS stats
@@ -246,7 +247,7 @@ impl AgentFsProvider {
             signals.push(signal);
         }
 
-        Ok(signals)
+        signals
     }
 }
 

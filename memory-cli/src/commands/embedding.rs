@@ -378,18 +378,18 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
             }
         }
         "mistral" => {
-            #[cfg(feature = "openai")]
+            #[cfg(feature = "mistral")]
             {
-                use do_memory_core::embeddings::OpenAIEmbeddingProvider;
+                use do_memory_core::embeddings::MistralEmbeddingProvider;
                 let api_key = get_api_key(config)?;
                 let model_config = MistralConfig::mistral_embed();
-                let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
+                let provider = MistralEmbeddingProvider::new(api_key, model_config)?;
                 Ok(Box::new(provider))
             }
-            #[cfg(not(feature = "openai"))]
+            #[cfg(not(feature = "mistral"))]
             {
                 Err(anyhow::anyhow!(
-                    "Mistral embeddings not available. Compile with --features openai"
+                    "Mistral embeddings not available. Compile with --features mistral"
                 ))
             }
         }
@@ -405,12 +405,15 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
                 let api_version =
                     env::var("AZURE_API_VERSION").unwrap_or_else(|_| "2023-05-15".to_string());
 
-                let model_config = AzureOpenAIConfig::new(
-                    &deployment,
-                    &resource,
-                    &api_version,
-                    config.embeddings.dimension,
-                );
+                let model_config = OpenAIConfig::text_embedding_3_small()
+                    .with_base_url(format!(
+                        "<https://{}.openai.azure.com/openai/deployments/{}>",
+                        resource, deployment
+                    ))
+                    .with_dimensions(config.embeddings.dimension);
+                // The API version needs to be appended to the URL as a query param in OpenAIEmbeddingProvider
+                // but currently OpenAIConfig::embeddings_url just appends /embeddings.
+                // This is a known limitation in the current CLI implementation.
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
                 Ok(Box::new(provider))
             }
@@ -432,11 +435,9 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("base_url required for custom provider"))?;
 
-                let model_config = CustomConfig::new(
-                    &config.embeddings.model,
-                    config.embeddings.dimension,
-                    base_url,
-                );
+                let model_config = OpenAIConfig::text_embedding_3_small()
+                    .with_base_url(base_url.clone())
+                    .with_dimensions(config.embeddings.dimension);
                 let provider = OpenAIEmbeddingProvider::new(api_key, model_config)?;
                 Ok(Box::new(provider))
             }

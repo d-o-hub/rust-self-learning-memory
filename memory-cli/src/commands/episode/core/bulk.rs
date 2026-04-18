@@ -3,8 +3,6 @@
 //! This module provides commands for bulk episode retrieval by IDs.
 
 use crate::config::Config;
-#[cfg(feature = "turso")]
-use crate::output::Output;
 use crate::output::OutputFormat;
 use do_memory_core::SelfLearningMemory;
 use uuid::Uuid;
@@ -27,6 +25,87 @@ use uuid::Uuid;
 /// # JSON output
 /// memory-cli episode bulk abc123...,def456... --format json
 /// ```
+#[cfg(feature = "turso")]
+#[derive(Debug, serde::Serialize)]
+struct BulkEpisodeResult {
+    requested_count: usize,
+    found_count: usize,
+    missing_count: usize,
+    episodes: Vec<EpisodeSummary>,
+}
+
+#[cfg(feature = "turso")]
+impl crate::output::Output for BulkEpisodeResult {
+    fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
+        use colored::*;
+
+        writeln!(
+            writer,
+            "{}",
+            "Bulk Episode Retrieval Results".bold().underline()
+        )?;
+        writeln!(writer, "Requested: {}", self.requested_count)?;
+        writeln!(writer, "Found: {}", self.found_count.to_string().green())?;
+
+        if self.missing_count > 0 {
+            writeln!(
+                writer,
+                "Missing: {}",
+                self.missing_count.to_string().yellow()
+            )?;
+        }
+
+        writeln!(writer)?;
+
+        for (idx, episode) in self.episodes.iter().enumerate() {
+            writeln!(
+                writer,
+                "{}",
+                format!("Episode {} of {}", idx + 1, self.found_count).bold()
+            )?;
+            writeln!(writer, "  ID: {}", episode.episode_id.dimmed())?;
+            writeln!(writer, "  Task: {}", episode.task_description)?;
+            writeln!(writer, "  Type: {}", episode.task_type)?;
+            let status_colored = if episode.completed_at.is_some() {
+                episode.status.green()
+            } else {
+                episode.status.yellow()
+            };
+            writeln!(writer, "  Status: {}", status_colored)?;
+            writeln!(writer, "  Created: {}", episode.created_at)?;
+
+            if let Some(completed) = &episode.completed_at {
+                writeln!(writer, "  Completed: {}", completed)?;
+            }
+
+            if let Some(duration) = episode.duration_ms {
+                writeln!(writer, "  Duration: {}ms", duration)?;
+            }
+
+            writeln!(writer, "  Steps: {}", episode.steps_count)?;
+            writeln!(writer, "  Patterns: {}", episode.patterns_count)?;
+            writeln!(writer, "  Heuristics: {}", episode.heuristics_count)?;
+            writeln!(writer)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, serde::Serialize)]
+struct EpisodeSummary {
+    episode_id: String,
+    task_description: String,
+    task_type: String,
+    status: String,
+    created_at: String,
+    completed_at: Option<String>,
+    duration_ms: Option<i64>,
+    steps_count: usize,
+    patterns_count: usize,
+    heuristics_count: usize,
+}
+
 pub async fn bulk_get_episodes(
     episode_ids: String,
     memory: &SelfLearningMemory,
@@ -83,20 +162,6 @@ pub async fn bulk_get_episodes(
         ));
     }
 
-    #[derive(Debug, serde::Serialize)]
-    struct EpisodeSummary {
-        episode_id: String,
-        task_description: String,
-        task_type: String,
-        status: String,
-        created_at: String,
-        completed_at: Option<String>,
-        duration_ms: Option<i64>,
-        steps_count: usize,
-        patterns_count: usize,
-        heuristics_count: usize,
-    }
-
     let episode_summaries: Vec<EpisodeSummary> = episodes
         .iter()
         .map(|ep| EpisodeSummary {
@@ -123,74 +188,6 @@ pub async fn bulk_get_episodes(
 
     #[cfg(feature = "turso")]
     {
-        #[derive(Debug, serde::Serialize)]
-        struct BulkEpisodeResult {
-            requested_count: usize,
-            found_count: usize,
-            missing_count: usize,
-            episodes: Vec<EpisodeSummary>,
-        }
-
-        impl Output for BulkEpisodeResult {
-            fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
-                use colored::*;
-
-                writeln!(
-                    writer,
-                    "{}",
-                    "Bulk Episode Retrieval Results".bold().underline()
-                )?;
-                writeln!(writer, "Requested: {}", self.requested_count)?;
-                writeln!(writer, "Found: {}", self.found_count.to_string().green())?;
-
-                if self.missing_count > 0 {
-                    writeln!(
-                        writer,
-                        "Missing: {}",
-                        self.missing_count.to_string().yellow()
-                    )?;
-                }
-
-                writeln!(writer)?;
-
-                for (idx, episode) in self.episodes.iter().enumerate() {
-                    writeln!(
-                        writer,
-                        "{}",
-                        format!("Episode {} of {}", idx + 1, self.found_count).bold()
-                    )?;
-                    writeln!(writer, "  ID: {}", episode.episode_id.dimmed())?;
-                    writeln!(writer, "  Task: {}", episode.task_description)?;
-                    writeln!(writer, "  Type: {}", episode.task_type)?;
-                    writeln!(
-                        writer,
-                        "  Status: {}",
-                        if episode.completed_at.is_some() {
-                            episode.status.green()
-                        } else {
-                            episode.status.yellow()
-                        }
-                    )?;
-                    writeln!(writer, "  Created: {}", episode.created_at)?;
-
-                    if let Some(ref completed) = episode.completed_at {
-                        writeln!(writer, "  Completed: {}", completed)?;
-                    }
-
-                    if let Some(duration) = episode.duration_ms {
-                        writeln!(writer, "  Duration: {}ms", duration)?;
-                    }
-
-                    writeln!(writer, "  Steps: {}", episode.steps_count)?;
-                    writeln!(writer, "  Patterns: {}", episode.patterns_count)?;
-                    writeln!(writer, "  Heuristics: {}", episode.heuristics_count)?;
-                    writeln!(writer)?;
-                }
-
-                Ok(())
-            }
-        }
-
         let result = BulkEpisodeResult {
             requested_count,
             found_count,

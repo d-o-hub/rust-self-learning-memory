@@ -10,13 +10,18 @@ use crate::retrieval::cache::types::{
     CacheKey, CacheMetrics, CachedResult, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES,
 };
 use lru::LruCache;
+use parking_lot::RwLock;
 use std::collections::{HashMap, HashSet};
 use std::num::NonZeroUsize;
 use std::sync::Arc;
-use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
 /// Query cache with LRU eviction and TTL
+///
+/// Optimization: Uses `parking_lot::RwLock` instead of `std::sync::RwLock` to reduce
+/// lock overhead (faster uncontended acquisition) and memory footprint (24 bytes vs 56 bytes).
+/// `parking_lot` locks also provide better performance under high contention and do not
+/// suffer from lock poisoning, simplifying the implementation by removing `.expect()` calls.
 pub struct QueryCache {
     /// LRU cache storage
     cache: Arc<RwLock<LruCache<u64, CachedResult>>>,
@@ -71,26 +76,17 @@ impl QueryCache {
 
         // Fast path: Check if this entry is marked for lazy invalidation
         {
-            let invalidated = self.invalidated_hashes.read().expect(
-                "QueryCache: invalidated_hashes lock poisoned - this indicates a panic in invalidation tracking",
-            );
+            let invalidated = self.invalidated_hashes.read();
             if invalidated.contains(&key_hash) {
                 // Entry is invalidated - count as miss and return None
-                let mut metrics = self.metrics.write().expect(
-                    "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-                );
+                let mut metrics = self.metrics.write();
                 metrics.misses += 1;
                 return None;
             }
         }
 
-        let mut cache = self
-            .cache
-            .write()
-            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
-        let mut metrics = self.metrics.write().expect(
-            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-        );
+        let mut cache = self.cache.write();
+        let mut metrics = self.metrics.write();
 
         // Check if entry exists and is not expired
         if let Some(result) = cache.get(&key_hash) {
@@ -128,10 +124,7 @@ impl QueryCache {
             ttl: self.default_ttl,
         };
 
-        let mut cache = self
-            .cache
-            .write()
-            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
+        let mut cache = self.cache.write();
 
         // Check if this is an update to an existing entry
         let was_present = cache.contains(&key_hash);
@@ -144,9 +137,7 @@ impl QueryCache {
 
         // Update domain index if domain is specified
         if let Some(ref domain) = key.domain {
-            let mut domain_index = self.domain_index.write().expect(
-                "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
-            );
+            let mut domain_index = self.domain_index.write();
             // Arc<str> clone is cheap (just ref count increment)
             domain_index
                 .entry(Arc::clone(domain))
@@ -155,9 +146,7 @@ impl QueryCache {
         }
 
         // Update metrics
-        let mut metrics = self.metrics.write().expect(
-            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-        );
+        let mut metrics = self.metrics.write();
         metrics.size = cache.len();
 
         // If this was an update (not a new entry), don't count as eviction
@@ -173,29 +162,20 @@ impl QueryCache {
 
     /// Invalidate all cached entries (use for cross-domain changes)
     pub fn invalidate_all(&self) {
-        let mut cache = self
-            .cache
-            .write()
-            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code");
+        let mut cache = self.cache.write();
         let count = cache.len();
         cache.clear();
 
         // Clear domain index
-        let mut domain_index = self.domain_index.write().expect(
-            "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
-        );
+        let mut domain_index = self.domain_index.write();
         domain_index.clear();
 
         // Clear invalidation set
-        let mut invalidated = self.invalidated_hashes.write().expect(
-            "QueryCache: invalidated_hashes lock poisoned - this indicates a panic in invalidation tracking",
-        );
+        let mut invalidated = self.invalidated_hashes.write();
         invalidated.clear();
 
         // Update metrics
-        let mut metrics = self.metrics.write().expect(
-            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-        );
+        let mut metrics = self.metrics.write();
         metrics.size = 0;
         metrics.invalidations += count as u64;
     }
@@ -211,9 +191,7 @@ impl QueryCache {
     pub fn invalidate_domain(&self, domain: &str) {
         // First, check if domain exists and get hashes (read lock)
         let hashes_to_invalidate = {
-            let domain_index = self.domain_index.read().expect(
-                "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
-            );
+            let domain_index = self.domain_index.read();
             domain_index.get(domain).cloned()
         }; // Read lock released here
 
@@ -222,9 +200,7 @@ impl QueryCache {
 
             // Mark entries for lazy invalidation
             {
-                let mut invalidated = self.invalidated_hashes.write().expect(
-                    "QueryCache: invalidated_hashes lock poisoned - this indicates a panic in invalidation tracking",
-                );
+                let mut invalidated = self.invalidated_hashes.write();
                 for hash in &hashes {
                     invalidated.insert(*hash);
                 }
@@ -232,17 +208,13 @@ impl QueryCache {
 
             // Remove from domain index (now safe to acquire write lock)
             {
-                let mut domain_index = self.domain_index.write().expect(
-                    "QueryCache: domain_index lock poisoned - this indicates a panic in domain tracking",
-                );
+                let mut domain_index = self.domain_index.write();
                 domain_index.remove(domain);
             } // Write lock on domain_index released here
 
             // Update metrics
             {
-                let mut metrics = self.metrics.write().expect(
-                    "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-                );
+                let mut metrics = self.metrics.write();
                 metrics.invalidations += count as u64;
             } // Write lock on metrics released here
         }
@@ -252,17 +224,13 @@ impl QueryCache {
     /// Get current cache metrics
     #[must_use]
     pub fn metrics(&self) -> CacheMetrics {
-        let metrics = self.metrics.read().expect(
-            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-        );
+        let metrics = self.metrics.read();
         metrics.clone()
     }
 
     /// Clear all metrics
     pub fn clear_metrics(&self) {
-        let mut metrics = self.metrics.write().expect(
-            "QueryCache: metrics lock poisoned - this indicates a panic in metrics tracking",
-        );
+        let mut metrics = self.metrics.write();
         *metrics = CacheMetrics {
             capacity: self.max_entries,
             ..Default::default()
@@ -276,10 +244,7 @@ impl QueryCache {
     /// filtered out when accessed via `get()`.
     #[must_use]
     pub fn size(&self) -> usize {
-        self.cache
-            .read()
-            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
-            .len()
+        self.cache.read().len()
     }
 
     /// Get effective cache size (excluding invalidated entries)
@@ -288,26 +253,15 @@ impl QueryCache {
     /// are marked for lazy invalidation.
     #[must_use]
     pub fn effective_size(&self) -> usize {
-        let cache_size = self
-            .cache
-            .read()
-            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
-            .len();
-        let invalidated_size = self
-            .invalidated_hashes
-            .read()
-            .expect("QueryCache: invalidated_hashes lock poisoned - this indicates a panic in invalidation tracking")
-            .len();
+        let cache_size = self.cache.read().len();
+        let invalidated_size = self.invalidated_hashes.read().len();
         cache_size.saturating_sub(invalidated_size)
     }
 
     /// Check if cache is empty
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.cache
-            .read()
-            .expect("QueryCache: cache lock poisoned - this indicates a panic in cache code")
-            .is_empty()
+        self.cache.read().is_empty()
     }
 }
 

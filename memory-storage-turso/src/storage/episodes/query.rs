@@ -166,9 +166,8 @@ impl TursoStorage {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Use json_extract for efficient JSON metadata querying
-        // This is more efficient than LIKE pattern matching as it can use indexes
-        let sql = format!(
-            r#"
+        // We use parameterized queries to prevent SQL injection (Severity: High)
+        let sql = r#"
             SELECT episode_id, task_type, task_description, context,
                    start_time, end_time, steps, outcome, reward,
                    reflection, patterns, heuristics,
@@ -176,17 +175,20 @@ impl TursoStorage {
                    metadata, domain, language,
                    archived_at
             FROM episodes
-            WHERE json_extract(metadata, '$.{}') = '{}'
+            WHERE json_extract(metadata, ?) = ?
             ORDER BY start_time DESC
-            LIMIT {}
-        "#,
-            key, value, effective_limit
-        );
+            LIMIT ?
+        "#;
+
+        let json_path = format!("$.{}", key);
 
         let mut rows = conn
-            .query(&sql, ())
+            .query(
+                sql,
+                libsql::params![json_path, value, effective_limit as i64],
+            )
             .await
-            .map_err(|e| Error::Storage(format!("Failed to query episodes: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to query episodes by metadata: {}", e)))?;
 
         let mut episodes = Vec::new();
         while let Some(row) = rows

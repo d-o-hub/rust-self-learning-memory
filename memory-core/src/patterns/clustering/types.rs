@@ -130,7 +130,7 @@ impl EpisodeCluster {
             .collect();
 
         // Sort by occurrence count (higher count first)
-        common_patterns.sort_by(|a, b| b.1.cmp(&a.1));
+        common_patterns.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         // Return just the pattern IDs
         common_patterns.into_iter().map(|(id, _)| id).collect()

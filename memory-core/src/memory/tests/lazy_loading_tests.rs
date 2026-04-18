@@ -76,7 +76,7 @@ pub async fn test_get_all_episodes_lazy_loading() {
 
     // Test that episodes are sorted by start_time (newest first)
     let mut episodes_by_time = all_episodes_list.clone();
-    episodes_by_time.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+    episodes_by_time.sort_by_key(|b| std::cmp::Reverse(b.start_time));
     assert_eq!(
         all_episodes_list, episodes_by_time,
         "Episodes should be sorted by start_time (newest first)"

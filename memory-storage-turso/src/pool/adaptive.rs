@@ -187,10 +187,8 @@ impl AdaptiveConnectionPool {
 
                 let total_time = self.metrics.wait_time_total_us.load(Ordering::Relaxed);
                 let count = self.metrics.wait_count.load(Ordering::Relaxed);
-                if count > 0 {
-                    self.metrics
-                        .avg_wait_time_us
-                        .store(total_time / count, Ordering::Relaxed);
+                if let Some(avg) = total_time.checked_div(count) {
+                    self.metrics.avg_wait_time_us.store(avg, Ordering::Relaxed);
                 }
 
                 let active = self

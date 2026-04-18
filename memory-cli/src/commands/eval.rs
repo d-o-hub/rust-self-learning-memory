@@ -304,7 +304,7 @@ pub async fn calibration(
     }
 
     // Sort by episode count (most data first)
-    calibrations.sort_by(|a, b| b.episode_count.cmp(&a.episode_count));
+    calibrations.sort_by_key(|b| std::cmp::Reverse(b.episode_count));
 
     let reliable_count = calibrations.iter().filter(|c| c.is_reliable).count();
 

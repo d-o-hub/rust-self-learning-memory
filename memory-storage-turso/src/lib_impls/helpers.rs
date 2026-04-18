@@ -10,9 +10,6 @@ use tracing::{debug, error, warn};
 use super::storage::TursoStorage;
 use crate::prepared::ConnectionId;
 
-#[cfg(feature = "adaptive-ttl")]
-use crate::cache::{AdaptiveTTLCache, TTLConfig};
-
 // These are extension methods for TursoStorage
 // They are attached via the impl block below
 impl TursoStorage {
@@ -146,20 +143,10 @@ impl TursoStorage {
     /// PRAGMA statements may return rows, so we need to consume them before continuing.
     pub async fn execute_pragmas(&self, conn: &Connection) -> Result<()> {
         // Enable WAL mode for better concurrent access
-        // WAL mode allows concurrent reads while writing, reducing "database locked" errors
-        if let Ok(mut rows) = conn.query("PRAGMA journal_mode=WAL", ()).await {
-            // Consume all rows to avoid "Execute returned rows" error
-            while rows.next().await.is_ok_and(|r| r.is_some()) {
-                // Consume each row
-            }
-        }
+        let _ = conn.execute("PRAGMA journal_mode=WAL", ()).await;
 
-        // Increase busy timeout to allow more time for lock acquisition
-        if let Ok(mut rows) = conn.query("PRAGMA busy_timeout=30000", ()).await {
-            while rows.next().await.is_ok_and(|r| r.is_some()) {
-                // Consume each row
-            }
-        }
+        // Increase busy timeout
+        let _ = conn.execute("PRAGMA busy_timeout=30000", ()).await;
 
         Ok(())
     }

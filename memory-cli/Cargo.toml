@@ -58,6 +58,7 @@ turso = ["do-memory-storage-turso", "do-memory-storage-turso/keepalive-pool", "d
 redb = ["do-memory-storage-redb"]
 # Embedding provider features (pass through to memory-core)
 openai = ["do-memory-core/openai"]
+mistral = ["do-memory-core/mistral"]
 local-embeddings = ["do-memory-core/local-embeddings"]
 embeddings-full = ["do-memory-core/embeddings-full"]
 # Full feature set

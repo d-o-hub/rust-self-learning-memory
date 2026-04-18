@@ -182,7 +182,6 @@ async fn execute_batch_get(
     let ids: Vec<PatternId> = ids_str
         .split(',')
         .filter_map(|s| s.trim().parse::<Uuid>().ok())
-        .map(|id| id)
         .collect();
 
     if ids.is_empty() {
@@ -221,15 +220,13 @@ async fn execute_batch_get(
         }
         OutputFormat::Csv => {
             println!("pattern_id,pattern_type,success_rate");
-            for pattern_opt in &patterns {
-                if let Some(pattern) = pattern_opt {
-                    println!(
-                        "{},{:?},{:.2}",
-                        pattern.id(),
-                        pattern,
-                        pattern.success_rate()
-                    );
-                }
+            for pattern in patterns.iter().flatten() {
+                println!(
+                    "{},{:?},{:.2}",
+                    pattern.id(),
+                    pattern,
+                    pattern.success_rate()
+                );
             }
         }
     }
@@ -246,7 +243,6 @@ async fn execute_batch_update(
     let ids: Vec<PatternId> = ids_str
         .split(',')
         .filter_map(|s| s.trim().parse::<Uuid>().ok())
-        .map(|id| id)
         .collect();
 
     if ids.is_empty() {
@@ -309,7 +305,6 @@ async fn execute_batch_delete(
     let ids: Vec<PatternId> = ids_str
         .split(',')
         .filter_map(|s| s.trim().parse::<Uuid>().ok())
-        .map(|id| id)
         .collect();
 
     if ids.is_empty() {

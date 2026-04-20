@@ -1,68 +1,87 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-16 (v0.1.31 sprint — PLANNING)
-- **Version**: `0.1.30` (workspace, unreleased)
+- **Last Updated**: 2026-04-20 (v0.1.31 sprint refresh)
+- **Version**: `0.1.30` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (v0.1.31 pending)
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted)
 
 ---
 
 ## v0.1.31 Sprint (Planning 🔵)
 
-### GOAP Analysis (2026-04-16)
+### GOAP Analysis (2026-04-20)
 
-**Primary Goal**: Release v0.1.30, consolidate 49 skills → ~35, reduce tech debt, integrate research-inspired features.
+**Primary Goal**: Reduce CPU usage and prompt/token usage while keeping release/package truth sources accurate ahead of the `0.1.31` version bump.
 
 **Constraints**:
 - Time: Normal
 - Resources: All agents available
-- Dependencies: v0.1.30 release must precede version bump
+- Dependencies: Release/package truth must stay aligned before the `0.1.31` bump
 
 **Complexity Level**: Complex (4+ agents, mixed execution)
 
-**Strategy**: Hybrid (Phase 0 sequential → Phase 1-2 parallel → Phase 3 sequential)
+**Strategy**: Hybrid (Phase 0 sequential → CPU/token work parallelized → research follow-up deferred)
 
-### Phase 0: Release & Hygiene (Sequential)
+### GOAP Skill Stack
+
+- **Planning/coordination**: `goap-agent`, `agent-coordination`, `task-decomposition`
+- **CPU work**: `performance`, `feature-implement`, `debug-troubleshoot`
+- **Token/docs work**: `agents-update`, `memory-context`, `learn`
+- **Validation**: `code-quality`, `test-runner`, `architecture-validation`
+
+### Execution Pattern
+
+- **Analyze**: verify release/package truth, cache hot paths, token-heavy context assembly
+- **Decompose**: split work into release/package, CPU efficiency, token efficiency, and deferred research upgrades
+- **Coordinate**: run CPU and token tasks in parallel after truth-source alignment
+- **Validate**: require benchmarks or measurable budget reductions before version bump
+
+### Phase 0: Release & Package Truth (Sequential)
 
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
-| Release v0.1.30 | WG-111 | 🔵 Planned | release-guard + commit |
+| Verify v0.1.30 release/package parity | WG-111 | ✅ Complete | github-release-best-practices |
 | Bump to 0.1.31 | WG-112 | 🔵 Planned | feature-implement |
-| Clippy suppression audit | WG-113 | 🔵 Planned | refactorer |
+| Refresh stale truth sources | WG-113 | ✅ Complete | agents-update |
 
-### Phase 1: Skills Consolidation (Parallel)
-
-| Task | WG | Status | Owner |
-|------|----|--------|-------|
-| Merge build skills | WG-114 | 🔵 Planned | skill-creator |
-| Merge research skills | WG-115 | 🔵 Planned | skill-creator |
-| Merge code-quality skills | WG-116 | 🔵 Planned | skill-creator |
-| Merge context skills | WG-117 | 🔵 Planned | skill-creator |
-| Merge test-pattern skills | WG-118 | 🔵 Planned | skill-creator |
-| Compact oversized skills | WG-119 | 🔵 Planned | skill-creator |
-
-### Phase 2: Code Quality (Parallel with Phase 1)
+### Phase 1: CPU Efficiency (Parallel)
 
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
-| Split >500 LOC files | WG-120 | 🔵 Planned | refactorer |
-| Reduce dead_code annotations | WG-121 | 🔵 Planned | refactorer |
-| Update stale documentation | WG-122 | 🔵 Planned | agents-update |
+| Reduce QueryCache contention | WG-114 | 🔵 Planned | performance |
+| Replace placeholder cached retrieval | WG-115 | 🔵 Planned | feature-implement |
+| Tune compression/cache CPU budget | WG-116 | 🔵 Planned | performance |
 
-### Phase 3: Research-Inspired Features (Sequential)
+### Phase 2: Token Efficiency (Parallel with Phase 1)
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Implement BundleAccumulator window | WG-117 | 🔵 Planned | feature-implement |
+| Add hierarchical/gist reranking | WG-118 | 🔵 Planned | feature-implement |
+| Compact high-frequency skills/docs | WG-119 | 🔵 Planned | agents-update |
+
+### Phase 3: Research-Inspired Retrieval Upgrades (Deferred)
 
 | Task | WG | Status | Owner | Paper |
 |------|----|--------|-------|-------|
-| Temporal graph edges (episode store) | WG-123 | 🔵 Planned | feature-implement | REMem (ICLR 2026) |
-| Procedural memory type | WG-124 | 🔵 Planned | feature-implement | ParamAgent (2026) |
-| Routing-Free MoE evaluation | WG-125 | 🔵 Planned | code-reviewer | arXiv:2604.00801 |
+| Reconstructive retrieval windows | WG-120 | 🔵 Planned | feature-implement | E-mem |
+| Execution-signature retrieval | WG-121 | 🔵 Planned | feature-implement | APEX-EM |
+| Scope-before-search shard routing | WG-122 | 🔵 Planned | feature-implement | ShardMemo |
 
 ### Quality Gates
-- **Gate 1** (after Phase 0): v0.1.30 tag exists, Cargo.toml at 0.1.31
-- **Gate 2** (after Phase 1-2): Skills ≤35, all tests pass, clippy clean
-- **Gate 3** (after Phase 3): New features tested, coverage ≥90%
+- **Gate 1** (after Phase 0): release/package/version truth sources all agree
+- **Gate 2** (after Phase 1-2): CPU hot paths benchmarked, token budget reduced, all tests pass
+- **Gate 3** (after Phase 3): retrieval upgrades validated without coverage regressions
+
+### Recommended Skill Invocation Order
+
+1. `goap-agent`
+2. `agent-coordination`
+3. `performance` or `feature-implement` depending on work item
+4. `agents-update` for high-frequency doc/skill compaction
+5. `code-quality` and `test-runner` before closing a work group
 
 ## v0.1.30 Sprint (Complete ✅)
 
@@ -147,15 +166,17 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | Metric | Value | Target |
 |--------|-------|--------|
 | Workspace version | 0.1.30 | — |
+| Latest GitHub release | v0.1.30 | verified 2026-04-20 |
+| Publishable workspace crates | 6 | all at 0.1.30 |
 | Total tests | 2,856 | — |
 | Ignored tests | 123 skipped | ceiling ≤125 |
 | `allow(dead_code)` (prod) | 35 | ≤25 |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
-| Skills count | 49 | ≤35 (after consolidation) |
-| Skills LOC | 6,764 | ≤4,000 |
+| Skills count | 40 | re-audit before compactness work |
+| Skills LOC | re-audit | minimize high-frequency prompt load |
 | Clippy suppressions (lib.rs) | 64 | ≤20 |
-| Files >500 LOC | 4 | 0 |
+| Files >500 LOC | 0 | 0 |
 | Cargo audit | 3 unmaintained warnings | transitive |
 | Dependabot alerts | 3 open | all transitive, tracked |
 | CodeQL alerts | 0 open | ✅ fixed |

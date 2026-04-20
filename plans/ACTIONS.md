@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-04-16 (v0.1.31 sprint planning)
+- **Last Updated**: 2026-04-20 (v0.1.31 reprioritized)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -30,96 +30,116 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
 - Import `RngExt` for user-level RNG methods
 - Keep `rand` and `rand_chacha` versions aligned
 
-## Active Actions (v0.1.31 Sprint — Planning)
+## Active Actions (v0.1.31 Sprint — CPU + Token Efficiency)
 
-### Phase 0: Release & Hygiene (Sequential)
+### GOAP Skills in Use
 
-- **ACT-102**: Release v0.1.30 to crates.io + GitHub Release
+- **Coordinator**: `goap-agent`
+- **Parallelization/worker orchestration**: `agent-coordination`
+- **CPU implementation/measurement**: `performance`, `feature-implement`, `debug-troubleshoot`
+- **Token/documentation optimization**: `agents-update`, `memory-context`, `learn`
+- **Validation**: `code-quality`, `test-runner`, `architecture-validation`
+
+### Phase 0: Release & Package Truth (Sequential)
+
+- **ACT-102**: Verify `v0.1.30` release/package parity
    - Goal: WG-111
-   - Action: Run release-guard checks, tag v0.1.30, `cargo publish`, create GitHub Release with multi-platform binaries
+   - Skills: `goap-agent`, `github-release-best-practices`, `agents-update`
+   - Action: Confirm latest GitHub release is `v0.1.30` and publishable workspace crates remain at `0.1.30`
    - Dependencies: None
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
-- **ACT-103**: Bump workspace version to 0.1.31
+- **ACT-103**: Bump workspace version to `0.1.31`
    - Goal: WG-112
-   - Action: Update `Cargo.toml` workspace version, regenerate `Cargo.lock`, update CHANGELOG via git-cliff
+   - Skills: `goap-agent`, `feature-implement`, `code-quality`, `test-runner`
+   - Action: Update `Cargo.toml` workspace version, publishable crate versions, regenerate `Cargo.lock`, update CHANGELOG via git-cliff
    - Dependencies: ACT-102
    - Status: 🔵 Planned
 
-- **ACT-104**: Audit clippy suppressions in `memory-core/src/lib.rs`
+- **ACT-104**: Refresh stale release/version truth sources in `plans/`
    - Goal: WG-113
-   - Action: Remove blanket `clippy::restriction`, keep only justified suppressions, move remaining to `.clippy.toml` where possible
+   - Skills: `goap-agent`, `agents-update`
+   - Action: Align `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` with verified release/package state
    - Dependencies: None
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
-### Phase 1: Skills Consolidation (Parallel)
+### Phase 1: CPU Efficiency (Parallel)
 
-- **ACT-105**: Merge `build-compile` into `build-rust`
+- **ACT-105**: Benchmark QueryCache contention
    - Goal: WG-114
-   - Action: Combine content, delete `build-compile/`, update skill-rules.json
+   - Skills: `goap-agent`, `performance`, `test-runner`
+   - Action: Measure hot-path contention and validate `parking_lot::RwLock` impact for retrieval/cache paths
    - Status: 🔵 Planned
 
-- **ACT-106**: Merge `perplexity-researcher-pro` + `perplexity-researcher-reasoning-pro` + `web-search-researcher` → `web-researcher`
+- **ACT-106**: Replace placeholder cached retrieval code
    - Goal: WG-115
-   - Action: Create unified skill with mode parameter (quick/deep/reasoning), delete old skills
+   - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
+   - Action: Implement storage-backed `query_episodes_cached()` and `query_patterns_cached()` in Turso cache integration
    - Status: 🔵 Planned
 
-- **ACT-107**: Merge `code-quality` + `rust-code-quality` + `clean-code-developer` → `code-quality`
+- **ACT-107**: Measure compression/cache CPU tradeoffs
    - Goal: WG-116
-   - Action: Consolidate into single code-quality skill with Rust-specific section
+   - Skills: `goap-agent`, `performance`, `code-quality`
+   - Action: Benchmark compression thresholds and zero-copy cache reuse to avoid spending CPU where token savings are negligible
    - Status: 🔵 Planned
 
-- **ACT-108**: Merge `context-retrieval` + `context-compaction` + `memory-context` → `memory-context`
+- **ACT-108**: Implement bounded context assembly
    - Goal: WG-117
-   - Action: Combine retrieval + compaction + CLI into unified memory-context skill
+   - Skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
+   - Action: Build `BundleAccumulator` sliding window to cap retrieval context size by recency and salience
    - Status: 🔵 Planned
 
-- **ACT-109**: Merge `quality-unit-testing` + `episodic-memory-testing` + `rust-async-testing` → `test-patterns`
+- **ACT-109**: Add hierarchical/gist reranking
    - Goal: WG-118
-   - Action: Create unified test-patterns skill with domain-specific sections
+   - Skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
+   - Action: Add a second-stage reranker so fewer context items are sent to downstream prompts
    - Status: 🔵 Planned
 
-- **ACT-110**: Compact oversized skills
+- **ACT-110**: Compact high-frequency skills/docs
    - Goal: WG-119
-   - Action: `git-worktree-manager` 549→≤150 LOC, `yaml-validator` 486→≤100, `general` 403→≤100
+   - Skills: `goap-agent`, `agents-update`, `learn`
+   - Action: Shorten the largest frequently loaded skills/docs first to reduce baseline prompt tokens per session
    - Status: 🔵 Planned
 
-### Phase 2: Code Quality (Parallel with Phase 1)
+### Phase 2: Research-Inspired Retrieval Upgrades (Parallel with Phase 1)
 
-- **ACT-111**: Split >500 LOC production files
+- **ACT-111**: Add reconstructive retrieval windows
    - Goal: WG-120
-   - Action: Split retention.rs, affinity.rs, ranking.rs, handlers.rs into sub-modules
+   - Skills: `goap-agent`, `feature-implement`, `memory-context`
+   - Action: Expand top hits into bounded local context windows inspired by E-mem
    - Status: 🔵 Planned
 
-- **ACT-112**: Reduce `#[allow(dead_code)]` annotations
+- **ACT-112**: Add execution-signature retrieval
    - Goal: WG-121
-   - Action: Audit 35 dead_code annotations, remove unused code or promote to public API
+   - Skills: `goap-agent`, `feature-implement`, `performance`
+   - Action: Rank traces by tools, error classes, and step structure alongside embeddings
    - Status: 🔵 Planned
 
-- **ACT-113**: Update stale documentation
+- **ACT-113**: Add scope-before-search shard routing
    - Goal: WG-122
-   - Action: Refresh STATUS/CURRENT.md metrics, remove frozen session counts from AGENTS.md, update skill descriptions referencing "2025"
+   - Skills: `goap-agent`, `feature-implement`, `performance`
+   - Action: Route queries through cheap scope filters before vector search to reduce candidate-set CPU and token waste
    - Status: 🔵 Planned
 
-### Phase 3: Research-Inspired Features (Sequential)
+### Phase 3: Backlog (Deferred until CPU/token wins are landed)
 
 - **ACT-114**: Add temporal graph edges to episode store
    - Goal: WG-123
    - Action: Add Turso schema for episode→episode and episode→pattern edges with temporal weights; implement graph traversal queries
    - Paper: REMem (ICLR 2026, arXiv:2602.13530)
-   - Status: 🔵 Planned
+   - Status: 🔵 Backlog
 
 - **ACT-115**: Add procedural memory type
    - Goal: WG-124
    - Action: New `ProceduralMemory` type in memory-core; storage traits in turso/redb; extends existing episodic+semantic with learned skill patterns
    - Paper: ParamAgent (2026) three-tier memory
-   - Status: 🔵 Planned
+   - Status: 🔵 Backlog
 
 - **ACT-116**: Evaluate Routing-Free MoE for DyMoE
    - Goal: WG-125
    - Action: Read arXiv:2604.00801 + reference implementation; write evaluation ADR comparing to current DyMoE routing-drift protection
    - Paper: arXiv:2604.00801
-   - Status: 🔵 Planned
+   - Status: 🔵 Backlog
 
 ## Completed Actions (v0.1.30 Sprint)
 

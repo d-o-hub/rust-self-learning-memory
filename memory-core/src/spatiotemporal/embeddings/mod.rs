@@ -363,6 +363,11 @@ impl ContextAwareEmbeddings {
         task_type: TaskType,
         contrastive_pairs: &[ContrastivePair],
     ) -> Result<()> {
+        // Training hyperparameters (declared at start of scope)
+        const LEARNING_RATE: f32 = 0.01;
+        const EPOCHS: usize = 100;
+        const MARGIN: f32 = 0.5; // Triplet loss margin
+
         if contrastive_pairs.is_empty() {
             anyhow::bail!("Cannot train adapter with empty training set");
         }
@@ -372,11 +377,6 @@ impl ContextAwareEmbeddings {
 
         // Initialize with identity matrix
         let mut adapter = TaskAdapter::new_identity(task_type, dim);
-
-        // Training hyperparameters
-        const LEARNING_RATE: f32 = 0.01;
-        const EPOCHS: usize = 100;
-        const MARGIN: f32 = 0.5; // Triplet loss margin
 
         // Embed all episodes once to avoid redundant computation
         let mut embedded_pairs = Vec::new();

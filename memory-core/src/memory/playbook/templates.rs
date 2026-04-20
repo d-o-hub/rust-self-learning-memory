@@ -80,20 +80,19 @@ pub(super) fn synthesize_applicability(
             Pattern::DecisionPoint {
                 condition, action, ..
             } => {
-                when_to_apply.push(format!("When condition '{}' is true", condition));
+                when_to_apply.push(format!("When condition '{condition}' is true"));
                 when_not_to_apply.push(format!(
-                    "When condition '{}' is false - skip {}",
-                    condition, action
+                    "When condition '{condition}' is false - skip {action}"
                 ));
             }
             Pattern::ErrorRecovery { error_type, .. } => {
-                when_to_apply.push(format!("When encountering {} errors", error_type));
+                when_to_apply.push(format!("When encountering {error_type} errors"));
             }
             Pattern::ContextPattern {
                 context_features, ..
             } => {
                 let features = context_features.join(", ");
-                when_to_apply.push(format!("When context includes: {}", features));
+                when_to_apply.push(format!("When context includes: {features}"));
                 if !context.tags.is_empty() {
                     when_not_to_apply.push("When task has different context tags".to_string());
                 }
@@ -124,7 +123,7 @@ pub(super) fn synthesize_pitfalls(
         for improvement in &reflection.improvements {
             pitfalls.push(
                 PlaybookPitfall::new(
-                    format!("Potential issue: {}", improvement),
+                    format!("Potential issue: {improvement}"),
                     "Identified from past execution",
                 )
                 .with_mitigation("Review and apply this improvement"),
@@ -134,7 +133,7 @@ pub(super) fn synthesize_pitfalls(
         // Failed steps become warnings
         for failed_step in &reflection.failed_steps {
             pitfalls.push(PlaybookPitfall::new(
-                format!("Step may fail: {}", failed_step),
+                format!("Step may fail: {failed_step}"),
                 "Based on historical failures",
             ));
         }

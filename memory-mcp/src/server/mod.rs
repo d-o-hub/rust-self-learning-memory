@@ -56,6 +56,7 @@ use std::sync::Arc;
 use tracing::info;
 
 /// MCP server for memory integration
+#[allow(dead_code)] // Server struct instantiated via new(), compiler sees fields as unused
 pub struct MemoryMCPServer {
     /// Tool registry for lazy-loading tools
     tool_registry: Arc<ToolRegistry>,
@@ -70,7 +71,6 @@ pub struct MemoryMCPServer {
     /// Monitoring endpoints
     monitoring_endpoints: Arc<MonitoringEndpoints>,
     /// Query result cache
-    #[allow(dead_code)]
     cache: Arc<QueryCache>,
     /// Audit logger for security events
     audit_logger: Arc<AuditLogger>,

@@ -95,7 +95,7 @@ impl AgentFsProvider {
     }
 
     /// Sanitize parameters for privacy
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Privacy utility for future external reward API
     fn sanitize_parameters(&self, params: &serde_json::Value) -> serde_json::Value {
         if !self.config.sanitize_parameters {
             return params.clone();

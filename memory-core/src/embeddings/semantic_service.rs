@@ -308,11 +308,13 @@ impl SemanticService {
 
     /// Convert episode to searchable text representation
     fn episode_to_text(&self, episode: &Episode) -> String {
+        use std::collections::HashSet;
+        use std::fmt::Write;
+
         // Build text directly using format! to avoid intermediate Vec clones
         let mut text = episode.task_description.clone();
 
         // Context information
-        use std::fmt::Write;
         let _ = write!(text, ". domain: {}", episode.context.domain);
         if let Some(lang) = &episode.context.language {
             let _ = write!(text, ". language: {lang}");
@@ -327,7 +329,6 @@ impl SemanticService {
         // Execution summary
         if !episode.steps.is_empty() {
             // Collect unique tools while preserving order
-            use std::collections::HashSet;
             let mut seen_tools = HashSet::new();
             let mut tools = Vec::new();
             for step in &episode.steps {

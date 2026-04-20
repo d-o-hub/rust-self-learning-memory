@@ -3,6 +3,7 @@
 use super::*;
 use crate::episode::ExecutionStep;
 use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskType};
+use uuid::Uuid;
 
 fn create_test_episode(complexity: ComplexityLevel) -> Episode {
     let context = TaskContext {
@@ -281,7 +282,6 @@ fn test_learning_bonus_with_patterns() {
     }
 
     // Add pattern IDs to simulate pattern discovery
-    use uuid::Uuid;
     episode.patterns.push(Uuid::new_v4());
     episode.patterns.push(Uuid::new_v4());
 
@@ -403,7 +403,6 @@ fn test_combined_quality_and_learning_bonuses() {
         .insert("clippy_warnings".to_string(), "0".to_string());
 
     // Add patterns
-    use uuid::Uuid;
     episode.patterns.push(Uuid::new_v4());
 
     episode.complete(TaskOutcome::Success {
@@ -1106,7 +1105,6 @@ fn test_learning_bonus_max_patterns_capped() {
     let mut episode = create_test_episode(ComplexityLevel::Complex);
 
     // Add many patterns (should be capped at 0.3 bonus)
-    use uuid::Uuid;
     for _ in 0..10 {
         episode.patterns.push(Uuid::new_v4());
     }
@@ -1293,7 +1291,6 @@ fn test_learning_bonus_capped_at_maximum() {
     let mut episode = create_test_episode(ComplexityLevel::Complex);
 
     // Add many patterns (capped at 0.3)
-    use uuid::Uuid;
     for _ in 0..5 {
         episode.patterns.push(Uuid::new_v4());
     }

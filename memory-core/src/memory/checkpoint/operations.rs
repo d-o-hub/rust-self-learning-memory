@@ -228,13 +228,13 @@ fn extract_lessons(
     }
 
     for decision in &features.critical_decisions {
-        salient_facts.push(format!("Decision: {}", decision));
+        salient_facts.push(format!("Decision: {decision}"));
     }
     for insight in &features.key_insights {
-        salient_facts.push(format!("Insight: {}", insight));
+        salient_facts.push(format!("Insight: {insight}"));
     }
     for recovery in &features.error_recovery_patterns {
-        salient_facts.push(format!("Recovery: {}", recovery));
+        salient_facts.push(format!("Recovery: {recovery}"));
     }
 
     (what_worked, what_failed, salient_facts)
@@ -270,7 +270,7 @@ async fn generate_suggested_next_steps(
             crate::pattern::Pattern::DecisionPoint {
                 condition, action, ..
             } => {
-                suggestions.push(format!("Consider: {} (then {})", condition, action));
+                suggestions.push(format!("Consider: {condition} (then {action})"));
             }
             _ => {}
         }

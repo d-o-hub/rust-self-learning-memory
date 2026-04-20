@@ -10,18 +10,18 @@ use crate::pattern::Pattern;
 // Helper functions to reduce nesting in synthesize_steps
 
 pub(super) fn create_tool_step(order: usize, tool: &str) -> PlaybookStep {
-    PlaybookStep::new(order, format!("Use {} tool", tool))
+    PlaybookStep::new(order, format!("Use {tool} tool"))
         .with_tool_hint(tool.to_string())
         .with_expected_result(format!("Execute {} operation", tool.replace('_', " ")))
 }
 
 pub(super) fn create_decision_step(order: usize, condition: &str, action: &str) -> PlaybookStep {
-    PlaybookStep::new(order, format!("Evaluate: {}", condition))
-        .with_expected_result(format!("Then: {}", action))
+    PlaybookStep::new(order, format!("Evaluate: {condition}"))
+        .with_expected_result(format!("Then: {action}"))
 }
 
 pub(super) fn create_error_step(order: usize, error_type: &str) -> PlaybookStep {
-    PlaybookStep::new(order, format!("Handle {} error", error_type)).with_tool_hint("error_handler")
+    PlaybookStep::new(order, format!("Handle {error_type} error")).with_tool_hint("error_handler")
 }
 
 pub(super) fn create_context_step(order: usize, recommended_approach: &str) -> PlaybookStep {

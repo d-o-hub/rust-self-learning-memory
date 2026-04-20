@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Wait for Quick Check with timeout protection
-        uses: lewagon/wait-on-check-action@v1.6.1
+        uses: lewagon/wait-on-check-action@v1.7.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           check-name: 'Quick PR Check (Format + Clippy)'

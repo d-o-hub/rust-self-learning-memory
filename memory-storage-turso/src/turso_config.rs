@@ -136,7 +136,7 @@ impl TursoStorage {
     }
 
     #[cfg(not(feature = "hybrid_search"))]
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Feature-gated stub: empty implementation when hybrid_search disabled
     async fn initialize_fts5_schema(&self, _conn: &libsql::Connection) -> Result<()> {
         Ok(())
     }
@@ -185,7 +185,7 @@ impl TursoStorage {
     }
 
     #[cfg(not(feature = "turso_multi_dimension"))]
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Feature-gated stub: empty implementation when turso_multi_dimension disabled
     async fn initialize_vector_tables(&self, _conn: &libsql::Connection) -> Result<()> {
         Ok(())
     }

@@ -56,7 +56,7 @@ When to use:
 - Some tasks parallel, some sequential
 
 Example:
-- Phase 1: Parallel research (web-search-researcher + codebase-analyzer)
+- Phase 1: Parallel research (web-doc-resolver + codebase-analyzer)
 - Phase 2: Sequential implementation (feature-implementer)
 - Phase 3: Parallel validation (code-reviewer + test-runner)
 ```

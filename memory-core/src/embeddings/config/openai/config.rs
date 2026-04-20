@@ -31,8 +31,7 @@ impl OpenAIModel {
     #[must_use]
     pub fn default_dimension(self) -> usize {
         match self {
-            Self::Ada002 => 1536,
-            Self::TextEmbedding3Small => 1536,
+            Self::Ada002 | Self::TextEmbedding3Small => 1536,
             Self::TextEmbedding3Large => 3072,
         }
     }
@@ -47,8 +46,7 @@ impl OpenAIModel {
     #[must_use]
     pub fn max_dimension(self) -> usize {
         match self {
-            Self::Ada002 => 1536,
-            Self::TextEmbedding3Small => 1536,
+            Self::Ada002 | Self::TextEmbedding3Small => 1536,
             Self::TextEmbedding3Large => 3072,
         }
     }

@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-18 (v0.1.31 sprint in progress)
-**Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 development
+**Last Updated**: 2026-04-20 (release/package verification + v0.1.31 reprioritization)
+**Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 planning
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -13,15 +13,17 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.31 | — | ✅ |
+| Workspace version | 0.1.30 | — | ✅ |
+| Latest GitHub release | v0.1.30 | — | ✅ Published 2026-04-16 |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.30` |
 | Total test functions | 2,856/2,856 | — | ✅ All passing |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
 | `#[allow(dead_code)]` (production) | 41 | ≤25 | ⚠️ Over target |
-| Skills count | 51 | ≤35 | ⚠️ Needs pruning |
-| Skills LOC | 6,764 | ≤4,000 | ⚠️ Needs pruning |
+| Skills count | 40 | ≤35 | ⚠️ Needs pruning |
+| Skills LOC | Re-audit | ≤4,000 | ⚠️ Need fresh measurement |
 | Clippy suppressions (lib.rs) | 61 | ≤20 | ⚠️ Needs cleanup |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
@@ -35,6 +37,12 @@
 - **Top-k Optimization**: O(n) `select_nth_unstable_by` for retrieval hot paths
 - **Zero-copy Retrieval Caching**: Bolt optimization for episodic memory
 - **Agent Skills**: Added `memory-context` and `learn` skills
+
+## v0.1.31 Planning Focus
+
+- **CPU efficiency**: QueryCache contention, cached retrieval wiring, compression/cache thresholds
+- **Token efficiency**: bounded context windows, hierarchical/gist reranking, compact high-frequency skills/docs
+- **Release/package hygiene**: keep GitHub release, package versions, and planning docs aligned before the `0.1.31` bump
 
 ## v0.1.28 Release Highlights
 
@@ -51,7 +59,7 @@
 
 ---
 
-## Open Items (2026-04-16 Validation)
+## Open Items (2026-04-20 Validation)
 
 ### Open Issues
 | # | Title | Status |
@@ -61,8 +69,8 @@
 ### Open PRs
 | # | Title | Status |
 |---|-------|--------|
-| 453 | chore: bump version to 0.1.31 | 🔴 Superseded — close (main already at 0.1.31) |
-| 450 | perf: parking_lot::RwLock for QueryCache | 🔵 Defer to v0.1.32 — performance optimization |
+| 453 | chore: bump version to 0.1.31 | 🔵 Re-evaluate after CPU/token sprint lands (workspace still at `0.1.30`) |
+| 450 | perf: parking_lot::RwLock for QueryCache | 🔵 Candidate input for WG-114 CPU-efficiency sprint |
 | 445 | ci(deps): bump actions/github-script 8→9 | 🔵 Dependabot — fix CI and merge |
 
 ### Recently Merged PRs

@@ -20,9 +20,9 @@ use crate::embeddings::real_model::download::download_model;
 /// Real embedding model using ONNX runtime
 #[cfg(feature = "local-embeddings")]
 pub struct RealEmbeddingModel {
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Stored for model identification and debugging
     name: String,
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Stored for dimension validation and compatibility checks
     dimension: usize,
     #[allow(dead_code)] // Used in async spawn_blocking, compiler doesn't see cross-async usage
     tokenizer: Option<Tokenizer>,
@@ -207,13 +207,11 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
-    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
-    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }

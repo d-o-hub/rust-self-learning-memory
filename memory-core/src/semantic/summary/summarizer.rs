@@ -57,7 +57,7 @@ use chrono::Utc;
 #[derive(Debug, Clone)]
 pub struct SemanticSummarizer {
     /// Minimum words in summary (informational, not enforced to avoid artificial padding)
-    #[allow(dead_code)]
+    #[allow(dead_code)] // informational config, not enforced in current implementation
     min_summary_length: usize,
     /// Maximum words in summary
     max_summary_length: usize,

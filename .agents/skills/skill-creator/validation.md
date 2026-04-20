@@ -4,27 +4,27 @@
 
 ```bash
 # Check skill directory exists
-test -d .claude/skills/skill-name && echo "✓ Directory exists"
+test -d .agents/skills/skill-name && echo "✓ Directory exists"
 
 # Check SKILL.md exists
-test -f .claude/skills/skill-name/SKILL.md && echo "✓ SKILL.md exists"
+test -f .agents/skills/skill-name/SKILL.md && echo "✓ SKILL.md exists"
 ```
 
 ## YAML Frontmatter Validation
 
 ```bash
 # Check name field exists
-grep "^name:" .claude/skills/skill-name/SKILL.md && echo "✓ Name field found"
+grep "^name:" .agents/skills/skill-name/SKILL.md && echo "✓ Name field found"
 
 # Check description field exists
-grep "^description:" .claude/skills/skill-name/SKILL.md && echo "✓ Description field found"
+grep "^description:" .agents/skills/skill-name/SKILL.md && echo "✓ Description field found"
 ```
 
 ## Name Format Validation
 
 ```bash
 # Extract and validate name
-SKILL_NAME=$(grep "^name:" .claude/skills/skill-name/SKILL.md | cut -d' ' -f2)
+SKILL_NAME=$(grep "^name:" .agents/skills/skill-name/SKILL.md | cut -d' ' -f2)
 
 if [[ "$SKILL_NAME" =~ ^[a-z0-9-]+$ ]]; then
     echo "✓ Name format correct: $SKILL_NAME"
@@ -38,7 +38,7 @@ fi
 
 ```bash
 # Check description length
-DESC_LENGTH=$(grep "^description:" .claude/skills/skill-name/SKILL.md | cut -d' ' -f2- | wc -c)
+DESC_LENGTH=$(grep "^description:" .agents/skills/skill-name/SKILL.md | cut -d' ' -f2- | wc -c)
 
 if [ "$DESC_LENGTH" -lt 1024 ]; then
     echo "✓ Description length OK ($DESC_LENGTH chars)"
@@ -47,7 +47,7 @@ else
 fi
 
 # Check description has action verb
-DESCRIPTION=$(grep "^description:" .claude/skills/skill-name/SKILL.md | cut -d' ' -f2-)
+DESCRIPTION=$(grep "^description:" .agents/skills/skill-name/SKILL.md | cut -d' ' -f2-)
 
 if echo "$DESCRIPTION" | grep -qE "^(Debug|Implement|Test|Build|Run|Create|Manage|Optimize|Analyze|Deploy|Fix|Review|Validate)"; then
     echo "✓ Description starts with action verb"
@@ -62,7 +62,7 @@ fi
 #!/bin/bash
 # validate-skill.sh
 
-SKILL_DIR=".claude/skills/$1"
+SKILL_DIR=".agents/skills/$1"
 
 if [ -z "$1" ]; then
     echo "Usage: ./validate-skill.sh skill-name"
@@ -121,7 +121,7 @@ echo "Validation complete"
 
 echo "Validating new skills..."
 
-for skill_dir in .claude/skills/*/; do
+for skill_dir in .agents/skills/*/; do
     skill_name=$(basename "$skill_dir")
     ./scripts/validate-skill.sh "$skill_name" || exit 1
 done
@@ -133,11 +133,11 @@ echo "✓ All skills validated"
 
 ```bash
 # Check for broken links
-grep -rE "\[.*\]\(.*\)" .claude/skills/ | while read -r line; do
+grep -rE "\[.*\]\(.*\)" .agents/skills/ | while read -r line; do
     link=$(echo "$line" | sed -n 's/.*\[\([^]]*\)\](\([^)]*\)).*/\1 \2/p')
     echo "Link: $link"
 done
 
 # Check heading hierarchy (H1 -> H2 -> H3, no skips)
-awk '/^#+ / {level = length($1); print level": "$0}' .claude/skills/*/SKILL.md
+awk '/^#+ / {level = length($1); print level": "$0}' .agents/skills/*/SKILL.md
 ```

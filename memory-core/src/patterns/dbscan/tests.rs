@@ -9,7 +9,7 @@ use crate::types::{ComplexityLevel, ExecutionResult, TaskContext, TaskOutcome, T
 use crate::{DBSCANAnomalyDetector, DBSCANConfig, FeatureWeights};
 use chrono::{Duration, Utc};
 
-#[allow(dead_code)]
+#[allow(dead_code)] // Test helper used in multiple test functions
 fn create_test_episode(
     domain: &str,
     step_count: usize,

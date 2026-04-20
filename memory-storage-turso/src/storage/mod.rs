@@ -28,9 +28,13 @@ pub mod tag_operations;
 
 pub use batch::episode_batch::BatchConfig;
 pub use episodes::EpisodeQuery;
+pub use episodes::raw_query::EPISODE_SELECT_COLUMNS;
+pub use episodes::raw_query::RawEpisodeQuery;
+pub use patterns::PATTERN_SELECT_COLUMNS;
 #[allow(unused)]
 pub use patterns::PatternMetadata;
 pub use patterns::PatternQuery;
+pub use patterns::RawPatternQuery;
 pub use tag_operations::TagStats;
 
 impl TursoStorage {

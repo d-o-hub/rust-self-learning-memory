@@ -15,13 +15,14 @@ Quality Gate: Relevant ADRs identified and reviewed
 Phase 1: Retrieve Context [Skills]
 ├─ Skill(command="memory-context")
 │  Query: "similar feature implementations"
-└─ Skill(command="episode-start")
+└─ Skill(command="memory-harness")
+   Mode: record
    → Start tracking this coordination
 
 Phase 2: Research [Parallel Skills + Agents]
-├─ Skill(command="web-search-researcher")
+├─ Skill(command="web-doc-resolver")
 ├─ Skill(command="codebase-consolidation")
-└─ Task(subagent_type="Explore")
+└─ Task(subagent_type="explore")
 Quality Gate: Architecture and requirements clear
 
 Phase 3: Decision [Skill + ADR Check]
@@ -45,7 +46,7 @@ Quality Gate: All modules implemented
 Phase 6: Testing [Skills + Agents]
 ├─ Task(subagent_type="test-runner")
 ├─ Skill(command="test-fix")
-└─ Skill(command="quality-unit-testing")
+└─ Skill(command="test-patterns")
 Quality Gate: All tests passing
 
 Phase 7: Quality Validation [Parallel Skills + Agents]
@@ -66,7 +67,8 @@ Phase 9: Update Plans & ADRs [Documentation]
 └─ Document: Lessons learned and patterns discovered
 
 Phase 10: Learning [Skills]
-└─ Skill(command="episode-complete")
+└─ Skill(command="memory-harness")
+   Mode: record (completion)
    Score: High
    Patterns: Document successful strategies
 ```

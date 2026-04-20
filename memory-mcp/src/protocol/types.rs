@@ -10,7 +10,6 @@ pub const SUPPORTED_VERSIONS: &[&str] = &["2025-11-25", "2024-11-05"];
 
 /// OAuth 2.1 Configuration
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct OAuthConfig {
     /// Whether authorization is enabled
     pub enabled: bool,

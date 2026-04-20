@@ -441,7 +441,7 @@ pub async fn test_episode_diverse_tool_usage() {
     ];
 
     for (i, tool) in tools.iter().enumerate() {
-        let mut step = ExecutionStep::new(i + 1, tool.to_string(), format!("Use {tool}"));
+        let mut step = ExecutionStep::new(i + 1, (*tool).to_string(), format!("Use {tool}"));
         step.result = Some(ExecutionResult::Success {
             output: format!("{tool} done"),
         });

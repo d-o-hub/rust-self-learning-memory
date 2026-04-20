@@ -303,7 +303,7 @@ async fn main() -> anyhow::Result<()> {
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
 | [YAML Validation](docs/YAML_VALIDATION.md) | Configuration validation strategy |
-| [Testing Guide](TESTING.md) | Testing infrastructure and strategies |
+| [Testing Guide](agent_docs/running_tests.md) | Testing infrastructure and strategies |
 | [Contributing](CONTRIBUTING.md) | Development workflow |
 | [Security](SECURITY.md) | Security policies and practices |
 | [Deployment](DEPLOYMENT.md) | Deployment strategies |
@@ -320,6 +320,7 @@ async fn main() -> anyhow::Result<()> {
 | [Service Architecture](agent_docs/service_architecture.md) | System design and components |
 | [Database Schema](agent_docs/database_schema.md) | Data structures and relationships |
 | [Communication Patterns](agent_docs/service_communication_patterns.md) | Inter-service communication |
+| [Agent Docs Index](agent_docs/README.md) | Workflow docs and high-impact reference files |
 
 ### Crate Documentation
 

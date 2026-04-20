@@ -1026,14 +1026,14 @@ turso db shell prod-memory-db --execute "SELECT version FROM schema_version;"
 - [README.md](README.md) - Project overview and quick start
 - [SECURITY.md](SECURITY.md) - Security guidelines and threat model
 - [AGENTS.md](AGENTS.md) - Agent responsibilities and operational guidance
-- [TESTING.md](TESTING.md) - Testing infrastructure and best practices
+- [agent_docs/running_tests.md](agent_docs/running_tests.md) - Testing infrastructure and best practices
 
 ## Support
 
 For deployment issues or questions:
 
 1. Check this guide's [Troubleshooting](#troubleshooting) section
-2. Review [AGENTS.md](AGENTS.md) troubleshooting checklist
+2. Review [agent_docs/building_the_project.md](agent_docs/building_the_project.md) and [agent_docs/running_tests.md](agent_docs/running_tests.md)
 3. Search GitHub Issues: https://github.com/d-o-hub/rust-self-learning-memory/issues
 4. Open a new issue with deployment details
 

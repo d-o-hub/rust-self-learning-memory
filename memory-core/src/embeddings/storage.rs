@@ -84,9 +84,11 @@ impl InMemoryEmbeddingStorage {
         let mut patterns = self.patterns.write().await;
         let pattern_id = match &pattern {
             Pattern::ToolSequence { id, .. } => *id,
-            Pattern::DecisionPoint { .. } => uuid::Uuid::new_v4(), // Generate new ID
-            Pattern::ErrorRecovery { .. } => uuid::Uuid::new_v4(), // Generate new ID
-            Pattern::ContextPattern { .. } => uuid::Uuid::new_v4(), // Generate new ID
+            Pattern::DecisionPoint { .. }
+            | Pattern::ErrorRecovery { .. }
+            | Pattern::ContextPattern { .. } => {
+                uuid::Uuid::new_v4() // Generate new ID for non-ToolSequence patterns
+            }
         };
         patterns.insert(pattern_id, pattern);
     }

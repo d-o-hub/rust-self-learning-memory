@@ -19,7 +19,7 @@ Activate after completing a non-trivial task to capture insights that would othe
 
 - Hidden relationships between files or scripts not obvious from code.
 - Execution paths that differ from what the code appears to do.
-- Non-obvious config, env vars, or flags (see `agent_docs/ENVIRONMENT_VARIABLES.md`).
+- Non-obvious config, env vars, or flags (see root `AGENTS.md` and `agent_docs/building_the_project.md`).
 - Debugging breakthroughs where error messages were misleading.
 - Files that must change together (e.g., `AGENTS.md` + `agent_docs/AVAILABLE_SKILLS.md` when adding skills).
 - Build/test commands not documented in README.
@@ -44,6 +44,8 @@ Every new non-obvious insight must be recorded in two places:
 1. **Verbose Log**: Add a full `LESSON-NNN` entry to `agent_docs/LESSONS.md` with Issue/Root Cause/Solution.
 2. **Distilled Note**: Add a 1–3 line note to the nearest `AGENTS.md` (this is what `learn` automates).
 
+If `agent_docs/LESSONS.md` does not exist yet, create it before relying on the dual-write workflow.
+
 ### Format
 
 - 1–3 lines per insight in `AGENTS.md`.
@@ -54,3 +56,4 @@ Every new non-obvious insight must be recorded in two places:
 
 - `agent_docs/LESSONS.md` - Project-wide lessons log.
 - `AGENTS.md` - Root agent guidance and constraints.
+- `agent_docs/README.md` - Index of workflow-impacting reference files.

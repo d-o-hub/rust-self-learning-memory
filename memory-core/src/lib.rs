@@ -1,32 +1,46 @@
 // Justified clippy suppressions for this crate (WG-113 audit)
-// Cast-related: necessary for embedding/similarity calculations
+//
+// CAST-RELATED (necessary for embedding/similarity calculations):
+// - cast_precision_loss: f32/f64 conversions in similarity math
+// - cast_possible_truncation: usize to u32 for storage IDs
+// - cast_sign_loss: positive integers cast to unsigned
+// - cast_possible_wrap: negative to unsigned with validation
+//
+// DOCUMENTATION (would require extensive rework across all functions):
+// - missing_errors_doc: Documenting every Result error variant
+// - missing_panics_doc: Documenting every potential panic
+// - doc_markdown: Backticks around field names in docs is pedantic
+//
+// API DESIGN CHOICES (intentional decisions):
+// - unused_self: Methods that may use self in future extensions
+// - implicit_hasher: Accepting HashMap/HashSet without generic bound
+// - needless_pass_by_value: Ownership semantics for builder pattern
+//
+// PEDANTIC LINTS (widespread, provide minimal value):
+// - must_use_candidate: Constructors commonly return Self; not worth marking all
+// - redundant_closure_for_method_calls: Style preference; closures are clear
+// - ref_option: API design choice for consistency with existing patterns
+// - match_same_arms: Merging arms reduces readability for maintenance
+// - map_unwrap_or: map_or is less readable than the explicit pattern
+// - float_cmp: Intentional exact comparisons for known values (e.g., 1.0, 0.5)
+// - assigning_clones: clone_from is not always more efficient
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_sign_loss)]
 #![allow(clippy::cast_possible_wrap)]
-// Documentation: would require extensive rework across all functions
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
-// API design choices
+#![allow(clippy::doc_markdown)]
 #![allow(clippy::unused_self)]
 #![allow(clippy::implicit_hasher)]
 #![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::match_same_arms)]
-#![allow(clippy::redundant_closure_for_method_calls)]
-#![allow(clippy::items_after_statements)]
 #![allow(clippy::must_use_candidate)]
-#![allow(clippy::doc_markdown)]
-// Nursery/pedantic lints that are reasonable
-#![allow(clippy::missing_docs_in_private_items)]
-#![allow(clippy::uninlined_format_args)]
-#![allow(clippy::default_constructed_unit_structs)]
-#![allow(clippy::use_self)]
-#![allow(clippy::borrowed_box)]
-#![allow(clippy::float_cmp)]
+#![allow(clippy::redundant_closure_for_method_calls)]
 #![allow(clippy::ref_option)]
-#![allow(clippy::assigning_clones)]
+#![allow(clippy::match_same_arms)]
 #![allow(clippy::map_unwrap_or)]
-#![allow(clippy::inefficient_to_string)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::assigning_clones)]
 
 //! # Memory Core
 //!
@@ -185,6 +199,7 @@
 //!
 
 pub mod constants;
+pub mod context;
 pub mod embeddings;
 pub mod episode;
 pub mod episodic;
@@ -254,4 +269,9 @@ pub use types::{
 // Re-export attribution types (ADR-044 Feature 2)
 pub use memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats, RecommendationTracker,
+};
+
+// Re-export context bundle types (WG-117)
+pub use context::{
+    AddResult, BundleAccumulator, BundleConfig, BundleStats, ContextItem, ContextItemType,
 };

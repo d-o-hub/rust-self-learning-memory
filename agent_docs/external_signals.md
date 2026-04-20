@@ -440,7 +440,7 @@ To add external signals to existing system:
 
 ## See Also
 
-- [ADR-050: AgentFS Integration](../../plans/adr/ADR-050-AgentFS-Integration.md)
-- [ADR-051: External Signal Provider](../../plans/adr/ADR-051-External-Signal-Provider.md)
-- [Skill: external-signal-provider](../../.agents/skills/external-signal-provider/SKILL.md)
+- [ADR-050: AgentFS Integration](../plans/adr/ADR-050-AgentFS-Integration.md)
+- [ADR-051: External Signal Provider](../plans/adr/ADR-051-External-Signal-Provider.md)
+- [Skill: external-signal-provider](../.agents/skills/external-signal-provider/SKILL.md)
 - [AgentFS SDK Documentation](https://docs.rs/agentfs-sdk/0.6.4)

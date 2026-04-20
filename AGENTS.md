@@ -7,10 +7,8 @@
 - **Quality Gates**: `./scripts/quality-gates.sh`
 - **Disk Cleanup**: `./scripts/clean-artifacts.sh [quick|standard|full] [--node-modules]`
 
-## Project Overview
 Memory system: Rust/Tokio + Turso + redb + embeddings (OpenAI/Cohere/Ollama/local)
-
-**Crates**: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches
+Crates: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches
 
 ## Skill + CLI Pattern (CRITICAL)
 Always use Skill + CLI first for high-frequency ops:
@@ -45,28 +43,23 @@ Before task tool: skill? → script? → Skill+CLI? → task tool?
 - **Docs**: URLs wrapped in `<...>`. New types re-exported from `lib.rs`
 
 ## Documentation Rules
-- **Bare URLs**: Wrap all URLs in angle brackets: `<https://example.com>`
-- **Re-exports**: Add new public types to `lib.rs` re-exports for doctest imports
-- **Check**: Run `cargo doc --no-deps --document-private-items` before commit
+- Wrap URLs in angle brackets, re-export new public types from `lib.rs`, and run `cargo doc --no-deps --document-private-items` before commit
 
 ## Common Pitfalls
-Based on 34 sessions (234 msgs, 97 commits):
 
-| Pitfall | Prevention |
-|---------|------------|
-| wrong_approach | Read patterns first |
-| buggy_code | Run tests after change |
-| excessive_changes | Atomic commits |
-| tool_errors | Use correct tool |
+- Read patterns first; roadmap and status docs can lag real repo state.
+- Verify release/package reality with `gh release view` and `cargo metadata` before editing version plans.
+- Update `ROADMAP_ACTIVE.md`, `GOALS.md`, `ACTIONS.md`, `GOAP_STATE.md`, and `STATUS/CURRENT.md` together when sprint priorities change.
+- For CPU/token work, use `goap-agent` first, then `agent-coordination`, then the implementation/validation skills.
 
 Before implementing: Read 3+ source files, check ADRs
 
 ## Planning & Decisions
 - **Use `goap-agent` skill** for complex tasks - decomposes into atomic goals
+- **Use `agent-coordination`** when CPU/token or release/doc work can run in parallel
 - **Check `plans/adr/`** for Architecture Decision Records before changes
 - **Update `plans/ROADMAPS/ROADMAP_ACTIVE.md`** with progress
-
-See `plans/` folder for ADRs and roadmap.
+- **Keep `agent_docs/LESSONS.md` + `AGENTS.md` aligned** when recording non-obvious workflow learnings
 
 ## Tool Selection Enforcement
 
@@ -105,18 +98,14 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 ## Git Workflow
 - **Branch Protection**: Direct pushes to `main` BLOCKED. Always work on a branch.
 - See `agent_docs/git_workflow.md` for details.
-
-## Feature Flags
-`openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`
+Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`
 
 ## Security
 - Use env vars (never hardcode)
 - Parameterized SQL
 
-## Environment Variables
-`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`
-
-**Local Development**: Set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUTH_TOKEN` empty when using `turso dev`.
+Environment variables: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`
+Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUTH_TOKEN` empty when using `turso dev`.
 
 ## Performance Targets
 - Episode Creation: < 50ms | Step Logging: < 20ms
@@ -138,7 +127,9 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 | Friction points | `agent_docs/common_friction_points.md` |
 | Disk hygiene | `agent_docs/disk_hygiene.md` |
 | Token efficiency | `agent_docs/token_efficiency.md` |
+| Lessons log | `agent_docs/LESSONS.md` |
 | Planning | `plans/ROADMAPS/ROADMAP_ACTIVE.md` |
+| GOAP state | `plans/GOAP_STATE.md` |
 | ADRs | `plans/adr/` |
 
 ## Disk Space

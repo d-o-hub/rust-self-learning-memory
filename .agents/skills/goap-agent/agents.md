@@ -41,23 +41,14 @@
 
 ## Integration with Self-Learning Memory
 
-### Starting a GOAP Episode
+### Recording a GOAP Episode (memory-harness)
 ```
-Use: Skill(command="episode-start")
+Use: Skill(command="memory-harness")
+Mode: record
 Context: {language: "coordination", domain: "goap", tags: ["multi-agent"]}
 Description: "GOAP coordination for [task]"
-```
-
-### Logging GOAP Steps
-```
-Use: Skill(command="episode-log-steps")
-Log: Decomposition decisions, agent assignments, strategy selection
-```
-
-### Completing a GOAP Episode
-```
-Use: Skill(command="episode-complete")
-Score based on: Goal achievement, efficiency, quality, adaptability
+Steps logged automatically during execution
+Completion captured on finish
 ```
 
 ### Retrieving Past Context

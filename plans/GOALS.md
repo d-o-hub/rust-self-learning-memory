@@ -1,107 +1,126 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-04-16 (v0.1.31 PLANNING)
-- **Source ADR**: ADR-037, ADR-052, ADR-053 (pending)
+- **Last Updated**: 2026-04-20 (v0.1.31 reprioritized)
+- **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
 ---
 
 ## v0.1.31 Sprint Goals (Planning 🔵)
 
-### Source: Comprehensive Analysis (2026-04-16)
+### Source: Release/package verification + efficiency analysis (2026-04-20)
 
-Codebase analysis + academic paper review identified: skill bloat (49 skills, 6,764 LOC), clippy suppression debt (64 lints), version release gap (v0.1.26→v0.1.30), and research-inspired feature opportunities.
+`v0.1.30` is already released, and publishable workspace crates remain at `0.1.30`. The refreshed sprint goal is to lower CPU cost and prompt/token cost before the next version bump.
 
-### Phase 0: Release & Hygiene
+### GOAP Execution Model
 
-1. **WG-111**: Release v0.1.30
+- **Coordinator skills**: `goap-agent`, `agent-coordination`, `task-decomposition`
+- **Implementation skills**: `feature-implement`, `performance`, `agents-update`
+- **Validation skills**: `code-quality`, `test-runner`, `architecture-validation`
+- **Learning/retention skills**: `memory-context`, `learn`
+
+### Phase 0: Release & Package Truth
+
+1. **WG-111**: Verify `v0.1.30` release and package parity
    - Priority: P0
-   - Owner: release-guard, commit
-   - Target: Tag v0.1.30, publish to crates.io, create GitHub Release
+   - Owner: github-release-best-practices
+   - GOAP skills: `goap-agent`, `github-release-best-practices`, `agents-update`
+   - Target: Confirm latest GitHub release + publishable crate versions are all `0.1.30`
    - Dependencies: None
 
-2. **WG-112**: Version bump to 0.1.31
+2. **WG-112**: Version bump to `0.1.31`
    - Priority: P0
    - Owner: feature-implement
-   - Target: Bump workspace version, update CHANGELOG
+   - GOAP skills: `goap-agent`, `feature-implement`, `code-quality`, `test-runner`
+   - Target: Bump workspace + publishable crates, update CHANGELOG after efficiency work lands
    - Dependencies: WG-111
 
-3. **WG-113**: Clippy suppression audit
-   - Priority: P1
-   - Owner: refactorer
-   - Target: Reduce `lib.rs` `#[allow(clippy::*)]` from 64 → ≤20
+3. **WG-113**: Refresh stale status/roadmap/GOAP truth sources
+   - Priority: P0
+   - Owner: agents-update
+   - GOAP skills: `goap-agent`, `agents-update`
+   - Target: Align release/version/package statements across `plans/`
    - Dependencies: None
 
-### Phase 1: Skills Consolidation
+### Phase 1: CPU Efficiency
 
-4. **WG-114**: Merge build skills (`build-compile` + `build-rust`)
+4. **WG-114**: Reduce QueryCache contention
    - Priority: P1
-   - Owner: skill-creator
-   - Target: Single `build-rust` skill
+   - Owner: performance
+   - GOAP skills: `goap-agent`, `performance`, `test-runner`
+   - Target: Validate `parking_lot::RwLock` and benchmark lock contention on hot retrieval paths
 
-5. **WG-115**: Merge research skills (`perplexity-researcher-*` + `web-search-researcher`)
+5. **WG-115**: Wire real cached retrieval into Turso integration
    - Priority: P1
-   - Owner: skill-creator
-   - Target: Single `web-researcher` skill with tier toggle
+   - Owner: feature-implement
+   - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
+   - Target: Replace placeholder cached episode/pattern queries with storage-backed implementations
 
-6. **WG-116**: Merge code-quality skills (`code-quality` + `rust-code-quality` + `clean-code-developer`)
+6. **WG-116**: Tune compression/cache CPU budget
    - Priority: P1
-   - Owner: skill-creator
-   - Target: Single `code-quality` skill
+   - Owner: performance
+   - GOAP skills: `goap-agent`, `performance`, `code-quality`
+   - Target: Measure compression thresholds and zero-copy cache tradeoffs to avoid wasted CPU cycles
 
-7. **WG-117**: Merge context skills (`context-retrieval` + `context-compaction` + `memory-context`)
+### Phase 2: Token Efficiency
+
+7. **WG-117**: Implement `BundleAccumulator` sliding window
    - Priority: P1
-   - Owner: skill-creator
-   - Target: Single `memory-context` skill
+   - Owner: feature-implement
+   - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
+   - Target: Bound retrieved context by recency-weighted window instead of flat accumulation
 
-8. **WG-118**: Merge test-pattern skills (`quality-unit-testing` + `episodic-memory-testing` + `rust-async-testing`)
+8. **WG-118**: Add hierarchical/gist reranking
    - Priority: P1
-   - Owner: skill-creator
-   - Target: Single `test-patterns` skill
+   - Owner: feature-implement
+   - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
+   - Target: Return fewer, denser context items to reduce prompt tokens without hurting retrieval quality
 
-9. **WG-119**: Compact oversized skills
-   - Priority: P2
-   - Owner: skill-creator
-   - Target: `git-worktree-manager` 549→≤150, `yaml-validator` 486→≤100, `general` 403→≤100
+9. **WG-119**: Compact high-frequency skills/docs
+     - Priority: P2
+     - Owner: agents-update
+     - GOAP skills: `goap-agent`, `agents-update`, `learn`
+     - Target: Reduce prompt token load from large high-frequency agent docs and skills
 
-### Phase 2: Code Quality
+### Phase 3: Research-Inspired Retrieval Upgrades
 
-10. **WG-120**: Split >500 LOC files
-    - Priority: P1
-    - Owner: refactorer
-    - Target: Split retention.rs, affinity.rs, ranking.rs, handlers.rs
+10. **WG-120**: Add reconstructive retrieval windows
+     - Priority: P2
+     - Owner: feature-implement
+     - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`
+     - Target: Expand top-k hits into bounded local windows to preserve useful context with fewer irrelevant tokens
+    - Paper: E-mem (arXiv:2601.21714)
 
-11. **WG-121**: Reduce dead_code annotations
-    - Priority: P2
-    - Owner: refactorer
-    - Target: 35 → ≤25 `#[allow(dead_code)]`
+11. **WG-121**: Add execution-signature retrieval
+     - Priority: P2
+     - Owner: feature-implement
+     - GOAP skills: `goap-agent`, `feature-implement`, `performance`
+     - Target: Rank traces by tools/errors/step-shape in addition to embeddings to reduce noisy retrieval
+    - Paper: APEX-EM (arXiv:2603.29093)
 
-12. **WG-122**: Update stale documentation
-    - Priority: P2
-    - Owner: agents-update
-    - Target: STATUS/CURRENT.md, AGENTS.md stale metrics, skill descriptions referencing "2025"
+12. **WG-122**: Add scope-before-search shard routing
+     - Priority: P2
+     - Owner: feature-implement
+     - GOAP skills: `goap-agent`, `feature-implement`, `performance`
+     - Target: Reduce candidate set size before vector search to lower CPU and token waste
+    - Paper: ShardMemo (arXiv:2601.21545)
 
-### Phase 3: Research-Inspired Features
+### Backlog (Future)
 
 13. **WG-123**: Temporal graph edges in episode store
-    - Priority: P2
+    - Priority: P3
     - Owner: feature-implement
-    - Target: Add graph relationships between episodes/patterns with temporal weights
-    - Paper: REMem (ICLR 2026, arXiv:2602.13530) — hybrid memory graph, +13.4% reasoning
+    - Paper: REMem (ICLR 2026, arXiv:2602.13530)
 
 14. **WG-124**: Procedural memory type
-    - Priority: P2
+    - Priority: P3
     - Owner: feature-implement
-    - Target: New memory type for learned heuristics-as-skills (episodic + semantic + procedural)
     - Paper: ParamAgent (2026) — three-tier memory architecture
 
 15. **WG-125**: Routing-Free MoE evaluation
     - Priority: P3
     - Owner: code-reviewer
-    - Target: Evaluate replacing DyMoE centralized routing with self-activating experts
     - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
-
-### Backlog (Future)
 
 16. **WG-126**: Cross-agent memory collaboration (MemCollab)
     - Priority: P3

@@ -168,29 +168,89 @@ impl CachedQueryStorage {
     }
 
     /// Query episodes with caching
+    ///
+    /// Executes a raw SQL query against the episodes table with caching.
+    /// The SQL must return columns in the order expected by `row_to_episode`.
+    /// Use `EPISODE_SELECT_COLUMNS` constant for correct column ordering.
+    ///
+    /// # Arguments
+    ///
+    /// * `sql` - SQL query string
+    /// * `params` - Query parameters (as strings)
+    ///
+    /// # Security
+    ///
+    /// Use parameterized queries (`?` placeholders) to prevent SQL injection.
+    /// Do not concatenate user input into the SQL string.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use do_memory_storage_turso::cache::CachedQueryStorage;
+    /// use do_memory_storage_turso::storage::EPISODE_SELECT_COLUMNS;
+    /// # async fn example(cached: &CachedQueryStorage) -> anyhow::Result<()> {
+    /// let sql = format!("SELECT {} FROM episodes WHERE domain = ?", EPISODE_SELECT_COLUMNS);
+    /// let episodes = cached.query_episodes_cached(&sql, &[&"test-domain"]).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn query_episodes_cached(
         &self,
         sql: &str,
         params: &[&dyn ToString],
     ) -> Result<Vec<Episode>> {
+        // Build libsql params from the ToString params
+        let params_vec: Vec<String> = params.iter().map(|p| p.to_string()).collect();
+
         self.query_cached(sql, params, || async {
-            // This would call the actual storage method
-            // For now, return empty vec as placeholder
-            Ok(Vec::new())
+            self.storage
+                .query_episodes_raw_with_params(sql, libsql::params_from_iter(params_vec))
+                .await
+                .map_err(|e| anyhow::anyhow!(e.to_string()))
         })
         .await
     }
 
     /// Query patterns with caching
+    ///
+    /// Executes a raw SQL query against the patterns table with caching.
+    /// The SQL must return columns in the order expected by `row_to_pattern`.
+    /// Use `PATTERN_SELECT_COLUMNS` constant for correct column ordering.
+    ///
+    /// # Arguments
+    ///
+    /// * `sql` - SQL query string
+    /// * `params` - Query parameters (as strings)
+    ///
+    /// # Security
+    ///
+    /// Use parameterized queries (`?` placeholders) to prevent SQL injection.
+    /// Do not concatenate user input into the SQL string.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use do_memory_storage_turso::cache::CachedQueryStorage;
+    /// use do_memory_storage_turso::storage::PATTERN_SELECT_COLUMNS;
+    /// # async fn example(cached: &CachedQueryStorage) -> anyhow::Result<()> {
+    /// let sql = format!("SELECT {} FROM patterns WHERE context_domain = ?", PATTERN_SELECT_COLUMNS);
+    /// let patterns = cached.query_patterns_cached(&sql, &[&"test-domain"]).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn query_patterns_cached(
         &self,
         sql: &str,
         params: &[&dyn ToString],
     ) -> Result<Vec<Pattern>> {
+        // Build libsql params from the ToString params
+        let params_vec: Vec<String> = params.iter().map(|p| p.to_string()).collect();
+
         self.query_cached(sql, params, || async {
-            // This would call the actual storage method
-            // For now, return empty vec as placeholder
-            Ok(Vec::new())
+            self.storage
+                .query_patterns_raw_with_params(sql, libsql::params_from_iter(params_vec))
+                .await
+                .map_err(|e| anyhow::anyhow!(e.to_string()))
         })
         .await
     }

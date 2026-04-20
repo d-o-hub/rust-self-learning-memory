@@ -34,7 +34,7 @@ cargo release patch  # or minor/major
 ### Manual Release Process
 ```bash
 # 1. Create release branch from main
-git checkout main && git pull origin main
+git checkout main
 git checkout -b release/v0.1.X
 
 # 2. BUMP VERSION FIRST in Cargo.toml
@@ -84,7 +84,7 @@ git diff --stat # Review what changed
 |-------|-------|----------|
 | "push declined due to repository rule violations" | Direct push to main | Create branch, PR, merge |
 | `.snap.new` files not cleaned up | insta test run without acceptance | `cargo insta test --accept` then commit |
-| Local main ahead of origin | Commits made on main locally | `git reset --hard origin/main` after creating branch |
+| Local main ahead of origin | Commits made on main locally | create a branch from current state, then reconcile with the user before any destructive cleanup |
 | Uncommitted changes | Forgot to check status | Always run `git status` before/after changes |
 | cargo-dist: "nothing to Release" | Tag version != Cargo.toml version | Bump version BEFORE pushing tag |
 

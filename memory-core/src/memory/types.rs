@@ -89,7 +89,7 @@ pub struct SelfLearningMemory {
     /// Step buffers for batching I/O operations
     pub(super) step_buffers: Arc<RwLock<HashMap<Uuid, StepBuffer>>>,
     /// Semaphore to limit concurrent cache operations and prevent async runtime blocking
-    #[allow(dead_code)]
+    #[allow(dead_code)] // API reserve: for rate limiting in future cache operations
     pub(super) cache_semaphore: Arc<Semaphore>,
 
     // Phase 2 (GENESIS) - Capacity management
@@ -109,7 +109,7 @@ pub struct SelfLearningMemory {
     /// Diversity maximizer using MMR for result set optimization
     pub(super) diversity_maximizer: Option<crate::spatiotemporal::DiversityMaximizer>,
     /// Context-aware embeddings for task-specific similarity (future)
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Future feature: context-aware embedding integration (Phase 3)
     pub(super) context_aware_embeddings: Option<crate::spatiotemporal::ContextAwareEmbeddings>,
 
     // Semantic Search Integration
@@ -124,7 +124,7 @@ pub struct SelfLearningMemory {
 
     // Phase 3 (DBSCAN) - Anomaly Detection
     /// DBSCAN anomaly detector for identifying unusual episodes
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Stored for anomaly detection integration (Phase 3)
     pub(super) dbscan_detector: crate::patterns::DBSCANAnomalyDetector,
 
     // Security - Audit logging
@@ -133,7 +133,7 @@ pub struct SelfLearningMemory {
 
     // ADR-044 Feature 1 - Playbook Generation
     /// Playbook generator for synthesizing actionable playbooks
-    #[allow(dead_code)]
+    #[allow(dead_code)] // ADR-044: playbook generation feature (Phase 3)
     pub(super) playbook_generator: PlaybookGenerator,
     /// Cache for episode summaries (ADR-044: persist semantic summary)
     pub(super) summaries_fallback: Arc<RwLock<HashMap<Uuid, EpisodeSummary>>>,
@@ -171,7 +171,7 @@ impl SelfLearningMemory {
     }
 
     /// Emit a memory event to all subscribers.
-    #[allow(dead_code)]
+    #[allow(dead_code)] // WG-103: event emission not wired to lifecycle methods yet
     pub(super) fn emit_event(&self, event: MemoryEvent) {
         // Ignore send errors (happens when no receivers)
         let _ = self.event_sender.send(event);

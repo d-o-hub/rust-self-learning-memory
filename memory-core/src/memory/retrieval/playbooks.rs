@@ -224,7 +224,7 @@ impl SelfLearningMemory {
                     context
                         .language
                         .as_ref()
-                        .map(|l| format!(" (language: {})", l))
+                        .map(|l| format!(" (language: {l})"))
                         .unwrap_or_default(),
                     success_rate * 100.0,
                     occurrence_count,

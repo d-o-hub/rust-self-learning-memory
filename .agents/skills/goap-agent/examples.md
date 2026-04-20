@@ -39,16 +39,18 @@ Phase 0: Retrieve Context
    → Pattern: Parallel (model + middleware + endpoints)
    → Lesson: Sequential integration after parallel build
 
-Phase 1: Start Episode
-└─ Skill(command="episode-start")
+Phase 1: Record Episode (memory-harness)
+└─ Skill(command="memory-harness")
+   Mode: record
    Context: {domain: "goap", tags: ["auth", "parallel"]}
 
 Phase 2-N: Execute with logging
-└─ Skill(command="episode-log-steps")
-   Log: Decomposition, assignment, quality gates
+└─ Skill(command="memory-harness")
+   Mode: record (steps logged automatically)
 
 Phase Final: Complete Episode
-└─ Skill(command="episode-complete")
+└─ Skill(command="memory-harness")
+   Mode: record (completion captured)
    Score: High (reused successful pattern)
    Pattern: Confirmed parallel → sequential strategy
 ```
@@ -88,9 +90,9 @@ Task: Add real-time notifications
 - Quality Gates: 3
 
 ### Phase 1: Research (Parallel)
-- web-search-researcher → Best practices
+- web-doc-resolver → Best practices
 - memory-context → Similar implementations
-- Explore → Current architecture
+- explore → Current architecture
 Quality Gate: Requirements clear
 
 ### Phase 2: Decision
@@ -165,7 +167,7 @@ Quality Gate: Zero warnings, all tests pass
 Quality Gate: Documentation current
 
 ### Phase 6: Learning
-- Skill(command="episode-complete")
+- Skill(command="memory-harness") - Complete recording
 - Score: High (followed ADR, all gates passed)
 - Pattern: ADR-driven sequential execution works for CI fixes
 ```

@@ -17,7 +17,7 @@
 - `episode-management`
 - `test-debugging`
 - `api-integration`
-- `rust-async-testing`
+- `test-patterns`
 - `github-workflows-advanced`
 
 ## Invalid Examples
@@ -37,8 +37,8 @@
 | Storage | `storage-[operation]` | `storage-sync` |
 | Pattern | `pattern-[operation]` | `pattern-extraction` |
 | Memory | `memory-[operation]` | `memory-retrieval` |
-| Testing | `[type]-testing` | `rust-async-testing`, `episodic-memory-testing` |
-| Quality | `quality-[area]` | `quality-unit-testing` |
+| Testing | `test-[area]` | `test-runner`, `test-fix`, `test-patterns` |
+| Quality | `code-[area]` | `code-quality`, `codebase-analyzer` |
 | Build | `build-[target]` | `build-rust` |
 | Debug | `debug-[area]` | `debug-troubleshoot` |
 | Code | `code-[action]` | `code-quality`, `code-review` |

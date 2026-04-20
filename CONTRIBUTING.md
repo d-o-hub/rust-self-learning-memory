@@ -70,7 +70,7 @@ See [Code Conventions](agent_docs/code_conventions.md) for detailed guidance:
 
 ## Testing Requirements
 
-See [Testing Guide](TESTING.md) for comprehensive testing information:
+See [Running Tests](agent_docs/running_tests.md) for comprehensive testing information:
 - **Unit Tests**: Within each module (`#[cfg(test)]`)
 - **Integration Tests**: Located in `tests/` directory
 - **Coverage**: >90% line coverage, >85% branch coverage
@@ -117,7 +117,7 @@ Fixes #123
 - Conversations must be resolved
 - Code must pass quality gates:
   - ✅ All tests passing (target: >99%)
-  - ✅ Coverage >90% (current: 92.5%)
+  - ✅ Coverage >90%
   - ✅ Zero clippy warnings
   - ✅ Code formatted with `cargo fmt`
   - ✅ Security audit passes
@@ -177,8 +177,8 @@ Breaking changes must:
 ### Testing
 - **Unit Tests**: All major functions tested
 - **Integration Tests**: End-to-end workflows tested
-- **Coverage**: >90% line coverage (current: 92.5%)
-- **Pass Rate**: >99% (current: 99.3%)
+- **Coverage**: >90% line coverage
+- **Pass Rate**: >99%
 - **Edge Cases**: Error paths and boundaries tested
 
 ### Security
@@ -207,7 +207,5 @@ Breaking changes must:
 - [Building the Project](agent_docs/building_the_project.md) - Build commands
 - [Running Tests](agent_docs/running_tests.md) - Testing strategies
 - [Code Conventions](agent_docs/code_conventions.md) - Rust idioms
-- [Testing Guide](TESTING.md) - Comprehensive testing guide
 - [Security](SECURITY.md) - Security policies and practices
 - [Release Engineering](plans/adr/ADR-034-Release-Engineering-Modernization.md) - Release workflow and automation
-

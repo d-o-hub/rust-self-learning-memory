@@ -219,6 +219,7 @@ impl EmbeddingProvider for LocalEmbeddingProvider {
 
 /// Trait for local embedding models
 #[async_trait]
+#[allow(dead_code)] // Trait methods used by implementations, not called directly in this crate
 pub trait LocalEmbeddingModel: Send + Sync {
     /// Generate embedding for single text
     async fn embed(&self, text: &str) -> Result<Vec<f32>>;
@@ -227,11 +228,9 @@ pub trait LocalEmbeddingModel: Send + Sync {
     async fn embed_batch(&self, texts: &[String]) -> Result<Vec<Vec<f32>>>;
 
     /// Get model name
-    #[allow(dead_code)]
     fn name(&self) -> &str;
 
     /// Get embedding dimension
-    #[allow(dead_code)]
     fn dimension(&self) -> usize;
 }
 

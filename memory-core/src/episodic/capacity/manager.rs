@@ -206,20 +206,6 @@ impl Default for CapacityManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{ComplexityLevel, TaskContext, TaskType};
-
-    #[allow(dead_code)]
-    fn create_test_episode(task_desc: &str) -> Episode {
-        let context = TaskContext {
-            language: Some("rust".to_string()),
-            framework: None,
-            complexity: ComplexityLevel::Moderate,
-            domain: "testing".to_string(),
-            tags: vec![],
-        };
-
-        Episode::new(task_desc.to_string(), context, TaskType::Testing)
-    }
 
     #[test]
     fn test_capacity_manager_creation() {

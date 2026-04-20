@@ -75,7 +75,7 @@ impl TokenBucket {
     }
 
     /// Check if this bucket is stale (not accessed for a while)
-    #[allow(dead_code)]
+    #[allow(dead_code)] // Utility for bucket cleanup in rate limiter
     fn is_stale(&self, timeout: Duration) -> bool {
         Instant::now().duration_since(self.last_accessed) > timeout
     }

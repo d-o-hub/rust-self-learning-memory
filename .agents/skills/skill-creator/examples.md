@@ -4,10 +4,10 @@
 
 ```bash
 # 1. Create directory
-mkdir -p .claude/skills/production-deploy
+mkdir -p .agents/skills/production-deploy
 
 # 2. Create SKILL.md
-cat > .claude/skills/production-deploy/SKILL.md << 'EOF'
+cat > .agents/skills/production-deploy/SKILL.md << 'EOF'
 ---
 name: production-deploy
 description: Deploy Rust applications to production safely with pre-deployment checks, rollback procedures, and monitoring. Use when deploying to production environments.
@@ -77,9 +77,9 @@ EOF
 ## Example 2: Property Testing Skill
 
 ```bash
-mkdir -p .claude/skills/property-testing
+mkdir -p .agents/skills/property-testing
 
-cat > .claude/skills/property-testing/SKILL.md << 'EOF'
+cat > .agents/skills/property-testing/SKILL.md << 'EOF'
 ---
 name: property-testing
 description: Write property-based tests using QuickCheck or proptest for Rust code. Use when you need to test properties that should hold for many inputs rather than specific examples.
@@ -157,9 +157,9 @@ EOF
 ## Example 3: Minimal Skill
 
 ```bash
-mkdir -p .claude/skills/quick-reference
+mkdir -p .agents/skills/quick-reference
 
-cat > .claude/skills/quick-reference/SKILL.md << 'EOF'
+cat > .agents/skills/quick-reference/SKILL.md << 'EOF'
 ---
 name: quick-reference
 description: Quick reference for common commands and patterns. Use when you need a fast lookup for syntax or command examples.

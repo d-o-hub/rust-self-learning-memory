@@ -7,7 +7,7 @@
 | **code-quality** | Rust code review, formatting, linting, clean code principles |
 | **architecture-validation** | Validate vs architecture plans |
 | **plan-gap-analysis** | Implementation gap analysis |
-| **quality-unit-testing** | High-quality test writing |
+| **test-runner** | Test execution, management (absorbs test-optimization) |
 
 ## Build & Testing Skills
 
@@ -29,16 +29,14 @@
 
 | Skill | Purpose |
 |-------|---------|
-| **web-search-researcher** | Web research for modern info |
+| **web-doc-resolver** | Resolve web/docs sources into compact markdown |
 | **memory-context** | Episodic memory retrieval & compaction |
 
 ## Memory System Skills
 
 | Skill | Purpose |
 |-------|---------|
-| **episode-start** | Start learning episodes |
-| **episode-log-steps** | Log execution steps |
-| **episode-complete** | Complete and score episodes |
+| **memory-harness** | Record, replay, benchmark agent sessions (absorbs episode lifecycle) |
 | **do-memory-mcp** | MCP server operations |
 | **do-memory-cli-ops** | CLI operations |
 | **storage-sync** | Turso/redb synchronization |
@@ -63,7 +61,7 @@
 ## Phase-Specific Recommendations
 
 ### Phase 1: Research & Analysis (Parallel)
-- `web-search-researcher` - Best practices research
+- `web-doc-resolver` - Best practices and documentation research
 - `memory-context` - Past implementations & compaction
 - `codebase-consolidation` - Architecture understanding
 
@@ -77,12 +75,12 @@
 - `plan-gap-analysis` - Requirements coverage
 
 ### Phase 4: Implementation (Parallel/Sequential)
-- `feature-implementer` - Build features
-- `refactorer` - Improve code
+- `feature-implement` - Implementation workflow and quality gates
+- `code-quality` - Keep implementation aligned with project standards
 
 ### Phase 5: Testing & Debugging
 - `test-fix` - Test debugging
-- `quality-unit-testing` - Test quality
+- `test-patterns` - Test quality and async/memory testing patterns
 
 ### Phase 6: Build & CI/CD
 - `build-rust` - Build verification
@@ -91,4 +89,4 @@
 ### Phase 7: Quality Assurance (Parallel)
 - `code-quality` - Final review
 - `architecture-validation` - Final validation
-- `code-reviewer` - Quality check
+- `test-runner` - Final execution validation

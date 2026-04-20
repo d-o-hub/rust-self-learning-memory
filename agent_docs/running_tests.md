@@ -40,11 +40,11 @@ cargo test --all -- --test-threads=1
 cargo test --lib --all-features --workspace
 
 # Specific crate unit tests
-cd do-memory-core && cargo test --lib
-cd do-memory-storage-turso && cargo test --lib
-cd do-memory-storage-redb && cargo test --lib
-cd do-memory-mcp && cargo test --lib
-cd do-memory-cli && cargo test --lib
+cargo test -p do-memory-core --lib
+cargo test -p do-memory-storage-turso --lib
+cargo test -p do-memory-storage-redb --lib
+cargo test -p do-memory-mcp --lib
+cargo test -p do-memory-cli --lib
 ```
 
 ### Integration Tests
@@ -90,7 +90,7 @@ cargo llvm-cov --html --output-dir coverage
 cargo llvm-cov --html --lcov --json --output-dir coverage
 
 # Coverage for specific crate
-cd do-memory-core && cargo llvm-cov --html --output-dir coverage
+cargo llvm-cov -p do-memory-core --html --output-dir coverage
 
 # Coverage with all features
 cargo llvm-cov --all-features --workspace --html --output-dir coverage
@@ -133,18 +133,18 @@ QUALITY_GATE_SKIP_OPTIONAL=true ./scripts/quality-gates.sh
 ### Benchmarks
 ```bash
 # Run all benchmarks
-cd benches && cargo bench
+cargo bench -p do-memory-benches
 
 # Specific benchmark
-cd benches && cargo bench --bench episode_lifecycle
-cd benches && cargo bench --bench phase3_retrieval_accuracy
-cd benches && cargo bench --bench spatiotemporal_benchmark
+cargo bench -p do-memory-benches --bench episode_lifecycle
+cargo bench -p do-memory-benches --bench phase3_retrieval_accuracy
+cargo bench -p do-memory-benches --bench spatiotemporal_benchmark
 
 # Benchmark with criterion output
-cd benches && cargo bench -- --output-format html
+cargo bench -p do-memory-benches -- --output-format html
 
 # Save benchmark results
-cd benches && cargo bench -- --save-baseline main
+cargo bench -p do-memory-benches -- --save-baseline main
 ```
 
 ### Performance Targets (Actual vs Target)
@@ -257,16 +257,16 @@ cargo llvm-cov --html --output-dir coverage
 open coverage/html/index.html
 
 # Review specific module
-cd do-memory-core && cargo llvm-cov --open -- src/memory/mod.rs
+cargo llvm-cov -p do-memory-core --open -- src/memory/mod.rs
 ```
 
 ### Performance Regressions
 ```bash
 # Compare with baseline
-cd benches && cargo bench -- --baseline main
+cargo bench -p do-memory-benches -- --baseline main
 
 # Save new baseline
-cd benches && cargo bench -- --save-baseline main
+cargo bench -p do-memory-benches -- --save-baseline main
 ```
 
 ## Best Practices
@@ -299,8 +299,8 @@ cargo nextest run --all && cargo test --doc && cargo llvm-cov --html --output-di
 RUST_LOG=debug cargo test test_name -- --nocapture
 
 # Specific crate tests
-cd do-memory-core && cargo test --lib
+cargo test -p do-memory-core --lib
 
 # Benchmarks
-cd benches && cargo bench
+cargo bench -p do-memory-benches
 ```

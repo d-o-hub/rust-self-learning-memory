@@ -124,6 +124,9 @@ pub mod types;
 #[cfg(test)]
 mod tests;
 
+#[cfg(test)]
+mod tests_edge;
+
 // Re-export public types
 pub use accumulator::BundleAccumulator;
 pub use scoring::{

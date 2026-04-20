@@ -46,7 +46,7 @@ cargo build --all --features "openai,local-embeddings"
 cargo build --all --all-features
 
 # Build specific crate with features
-cd do-memory-core && cargo build --features openai
+cargo build -p do-memory-core --features openai
 ```
 
 ### Release Build
@@ -67,11 +67,11 @@ cargo build --release --features "openai"
 ./scripts/build-rust.sh dev
 
 # Build specific crate
-cd do-memory-core && cargo build
-cd do-memory-storage-turso && cargo build
-cd do-memory-storage-redb && cargo build
-cd do-memory-mcp && cargo build
-cd do-memory-cli && cargo build
+cargo build -p do-memory-core
+cargo build -p do-memory-storage-turso
+cargo build -p do-memory-storage-redb
+cargo build -p do-memory-mcp
+cargo build -p do-memory-cli
 ```
 
 ## Development Setup
@@ -90,8 +90,7 @@ cp .env.example .env
 # Setup local database
 ./scripts/setup-local-db.sh
 
-# Install git hooks (required)
-git config core.hooksPath .githooks
+# Optional: make local hook scripts executable
 chmod +x .githooks/*
 ```
 
@@ -118,12 +117,10 @@ No cloud account or auth token required for local development. See [LOCAL_DATABA
 ### Docker Setup (Optional)
 ```bash
 # Build do-memory-cli Docker image
-cd do-memory-cli
-docker build -t do-memory-cli .
+docker build -t do-memory-cli "memory-cli/docker"
 
 # Run with docker-compose
-cd do-memory-cli/docker
-docker-compose up -d
+docker compose -f "memory-cli/docker/docker-compose.yml" up -d
 ```
 
 ## Testing
@@ -158,8 +155,8 @@ cargo test --doc
    - Run `./scripts/code-quality.sh clippy --workspace` to see warnings
    - Apply fixes: `./scripts/code-quality.sh clippy --fix`
    - For intentional violations, add `#[allow(...)]` with justification
-   - See [CLAUDE.md](../CLAUDE.md) for recent changes and best practices
-4. **Test failures**: Check [TESTING.md](../TESTING.md) for debugging
+   - See [AGENTS.md](../AGENTS.md) and [code_conventions.md](code_conventions.md) for current workflow guidance
+4. **Test failures**: Check [running_tests.md](running_tests.md) for debugging
 5. **Build errors**: Ensure Rust toolchain is up to date: `rustup update`
 
 ### Performance Issues

@@ -240,7 +240,7 @@ cargo deny --version
 - [SECURITY.md](./.github/SECURITY.md) - GitHub Security Policy 
 - [AGENTS.md](./AGENTS.md) - Project overview and guidelines
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
-- [CLAUDE.md](./CLAUDE.md) - Claude Code workflow
+- [agent_docs/README.md](./agent_docs/README.md) - Agent workflow and reference docs
 - [deny.toml](./deny.toml) - cargo-deny configuration
 - [.cargo/config.toml](./.cargo/config.toml) - Cargo configuration
 

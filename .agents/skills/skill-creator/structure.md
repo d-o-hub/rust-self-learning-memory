@@ -3,7 +3,7 @@
 ## Directory Format
 
 ```
-.claude/skills/
+.agents/skills/
 └── skill-name/
     ├── SKILL.md           # Required - main entry point
     ├── additional-file.md # Optional - extended content

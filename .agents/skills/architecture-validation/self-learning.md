@@ -61,8 +61,8 @@ Validate → Identify Issues → Analyze Root Cause → Update Documentation →
 - plans/03-execute.md: If implementation patterns changed
 
 **Option B: Update Agent/Skill**
-- .claude/agents/architecture-validator.md: Update validation logic
-- .claude/skills/architecture-validation/: Update patterns
+- `.agents/skills/architecture-validation/`: Update validation patterns and reference docs
+- `plans/GOAP_STATE.md`: Update active validation workflow when architecture checks change
 
 ### Phase 4: Verification
 ```bash

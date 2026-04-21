@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-20 (release/package verification + v0.1.31 reprioritization)
+**Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration plan)
 **Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 planning
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -21,9 +21,11 @@
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (production) | 41 | ≤25 | ⚠️ Over target |
-| Skills count | 40 | ≤35 | ⚠️ Needs pruning |
-| Skills LOC | Re-audit | ≤4,000 | ⚠️ Need fresh measurement |
+| `#[allow(dead_code)]` (production) | 0 | ≤25 | ✅ All in test/bench files (36 total) |
+| CSM integration | Not started | BM25+HDC+ConceptGraph cascade | 🔵 Planned |
+| Stale analysis docs | 2 files stale | 0 stale | ⚠️ CODEBASE_ANALYSIS (Mar 9), GAP_ANALYSIS (Mar 24) |
+| Skills count | 36 | ≤35 | ⚠️ +1 above target (performance skill added) |
+| Skills LOC | TBD | ≤4,000 | 🔵 Need measurement |
 | Clippy suppressions (lib.rs) | 61 | ≤20 | ⚠️ Needs cleanup |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
@@ -40,8 +42,10 @@
 
 ## v0.1.31 Planning Focus
 
+- **CSM integration**: Cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API) to eliminate 50-70% of embedding API calls
 - **CPU efficiency**: QueryCache contention, cached retrieval wiring, compression/cache thresholds
 - **Token efficiency**: bounded context windows, hierarchical/gist reranking, compact high-frequency skills/docs
+- **Housekeeping**: Create missing `performance` skill, prune skills 40→≤35, fix metric contradictions, refresh stale analysis docs
 - **Release/package hygiene**: keep GitHub release, package versions, and planning docs aligned before the `0.1.31` bump
 
 ## v0.1.28 Release Highlights
@@ -66,12 +70,12 @@
 |---|-------|--------|
 | — | No open issues | ✅ All closed |
 
-### Open PRs
+### Open PRs (All Resolved)
 | # | Title | Status |
 |---|-------|--------|
-| 453 | chore: bump version to 0.1.31 | 🔵 Re-evaluate after CPU/token sprint lands (workspace still at `0.1.30`) |
-| 450 | perf: parking_lot::RwLock for QueryCache | 🔵 Candidate input for WG-114 CPU-efficiency sprint |
-| 445 | ci(deps): bump actions/github-script 8→9 | 🔵 Dependabot — fix CI and merge |
+| 453 | chore: bump version to 0.1.31 | ❌ CLOSED (not merged, deferred) |
+| 450 | perf: parking_lot::RwLock for QueryCache | ✅ MERGED 2026-04-18 |
+| 445 | ci(deps): bump actions/github-script 8→9 | ✅ MERGED 2026-04-18 |
 
 ### Recently Merged PRs
 | # | Title | Status |
@@ -128,6 +132,16 @@ All research/implementation phases are complete:
 - **CI/CD**: 6 workflows all passing, cargo-nextest, mutation testing
 - **Performance**: Exceeds all targets (17–2307×)
 
+## Planned: CSM Cascading Retrieval (v0.1.31)
+
+| Tier | Method | Source | API Calls | Status |
+|------|--------|--------|-----------|--------|
+| 1 | BM25 keyword index | `chaotic_semantic_memory` | 0 | 🔵 WG-128 |
+| 2 | HDC 10,240-bit encoding | `chaotic_semantic_memory` | 0 | 🔵 WG-129 |
+| 3 | ConceptGraph expansion | `chaotic_semantic_memory` | 0 | 🔵 WG-130 |
+| 4 | API embedding (fallback) | OpenAI/Cohere/Ollama | 1 | Existing |
+| Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | 🔵 WG-131 |
+
 ## Critical Issues for v0.1.22 Tag — ALL RESOLVED
 
 | Issue | Priority | Status |
@@ -141,7 +155,7 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (production) | 35 | ≤40 | ✅ Target met |
+| `#[allow(dead_code)]` (production) | 41 | ≤25 | ⚠️ Over target — comprehensive analysis (2026-04-21) found 41 via direct scan |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |
@@ -173,3 +187,5 @@ All research/implementation phases are complete:
 - **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
 - **Active roadmap**: [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 - **ADRs**: [ADR Directory](../adr/)
+- **Comprehensive analysis**: [COMPREHENSIVE_ANALYSIS_2026-04-21.md](COMPREHENSIVE_ANALYSIS_2026-04-21.md)
+- **CSM repo**: <https://github.com/d-o-hub/chaotic_semantic_memory>

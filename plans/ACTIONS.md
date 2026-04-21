@@ -1,6 +1,6 @@
 # GOAP Actions Backlog
 
-- **Last Updated**: 2026-04-20 (v0.1.31 reprioritized)
+- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
 - **Archived Plans**: `plans/archive/2026-03-consolidation/`
 
 ## Completed Actions Summary
@@ -39,6 +39,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
 - **CPU implementation/measurement**: `performance`, `feature-implement`, `debug-troubleshoot`
 - **Token/documentation optimization**: `agents-update`, `memory-context`, `learn`
 - **Validation**: `code-quality`, `test-runner`, `architecture-validation`
+- **CSM integration**: `feature-implement`, `performance`, `test-runner`
 
 ### Phase 0: Release & Package Truth (Sequential)
 
@@ -101,6 +102,37 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Action: Shorten the largest frequently loaded skills/docs first to reduce baseline prompt tokens per session
    - Status: 🔵 Planned
 
+### Phase 1.5: CSM Integration (Parallel with Phase 1)
+
+- **ACT-117**: Add BM25 keyword index from CSM
+   - Goal: WG-128
+   - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
+   - Action: Add `chaotic_semantic_memory` as optional dep behind `csm` feature flag; implement BM25 inverted index as first retrieval tier for episode queries; benchmark keyword-match latency
+   - Paper: arXiv:2602.23368 ("Keyword search is all you need")
+   - Dependencies: None
+   - Status: 🔵 Planned
+
+- **ACT-118**: Wire HDC text encoder as local embedding fallback
+   - Goal: WG-129
+   - Skills: `goap-agent`, `feature-implement`, `test-runner`
+   - Action: Replace placeholder in `memory-core/src/embeddings/local.rs` with CSM's `TextEncoder` HDC pipeline; 10,240-bit binary vectors via FNV-1a + PRNG seeding
+   - Dependencies: ACT-117
+   - Status: 🔵 Planned
+
+- **ACT-119**: Add ConceptGraph ontology expansion
+   - Goal: WG-130
+   - Skills: `goap-agent`, `feature-implement`, `memory-context`
+   - Action: Integrate CSM's `CanonicalConcept` + `ConceptGraph` label index for domain-term synonym expansion without LLM calls; create initial ontology JSON for coding-agent domain terms
+   - Dependencies: ACT-118
+   - Status: 🔵 Planned
+
+- **ACT-120**: Implement cascading retrieval pipeline
+   - Goal: WG-131
+   - Skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
+   - Action: Build `CascadeRetriever` with tiers: BM25 → HDC → ConceptGraph → API embedding; track `api_calls` metric per query; add integration tests proving zero-API-call paths for exact matches
+   - Dependencies: ACT-117, ACT-118, ACT-119
+   - Status: 🔵 Planned
+
 ### Phase 2: Research-Inspired Retrieval Upgrades (Parallel with Phase 1)
 
 - **ACT-111**: Add reconstructive retrieval windows
@@ -121,7 +153,37 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Action: Route queries through cheap scope filters before vector search to reduce candidate-set CPU and token waste
    - Status: 🔵 Planned
 
-### Phase 3: Backlog (Deferred until CPU/token wins are landed)
+### Phase 3: Housekeeping (Parallel)
+
+- **ACT-121**: Create `performance` skill
+   - Goal: WG-136
+   - Skills: `goap-agent`, `skill-creator`
+   - Action: Create `.agents/skills/performance/SKILL.md` with benchmarking workflow, criterion patterns, profiling guidance; referenced 6× in GOALS.md but skill does not exist
+   - Dependencies: None
+   - Status: 🔵 Planned
+
+- **ACT-122**: Prune skills 40 → ≤35
+   - Goal: WG-137
+   - Skills: `goap-agent`, `agents-update`
+   - Action: Merge `parallel-execution` → `agent-coordination`, `task-decomposition` → `goap-agent`, `codebase-locator` → `codebase-analyzer`, `codebase-consolidation` → `codebase-analyzer`; remove `yaml-validator`; update any skill references in AGENTS.md
+   - Dependencies: None
+   - Status: 🔵 Planned
+
+- **ACT-123**: Fix STATUS/CURRENT.md contradictions
+   - Goal: WG-138
+   - Skills: `goap-agent`, `agents-update`
+   - Action: Reconcile dead_code count (35 vs 41), verify all metrics against actual codebase via `rg '#\[allow(dead_code)\]'`, update single source of truth
+   - Dependencies: None
+   - Status: 🔵 Planned
+
+- **ACT-124**: Refresh CODEBASE_ANALYSIS_LATEST.md
+   - Goal: WG-139
+   - Skills: `goap-agent`, `agents-update`
+   - Action: Rerun full codebase metrics scan (LOC, tests, dead_code, ignored tests, snapshot count, property tests, error handling baseline) against v0.1.30; replace stale 2026-03-09 data
+   - Dependencies: ACT-123
+   - Status: 🔵 Planned
+
+### Phase 4: Research Backlog (Deferred until CPU/token wins are landed)
 
 - **ACT-114**: Add temporal graph edges to episode store
    - Goal: WG-123
@@ -139,6 +201,30 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Goal: WG-125
    - Action: Read arXiv:2604.00801 + reference implementation; write evaluation ADR comparing to current DyMoE routing-drift protection
    - Paper: arXiv:2604.00801
+   - Status: 🔵 Backlog
+
+- **ACT-125**: Evaluate LottaLoRA-inspired local classifier
+   - Goal: WG-132
+   - Action: Read arXiv:2604.08749; prototype frozen-random-backbone + LoRA for episode-type classification (CPU-only, no API)
+   - Paper: LottaLoRA (arXiv:2604.08749, Apr 2026)
+   - Status: 🔵 Backlog
+
+- **ACT-126**: Align memory architecture with agentic memory taxonomy
+   - Goal: WG-133
+   - Action: Map current episodic/semantic/pattern types to arXiv:2602.19320's 4-structure taxonomy; update architecture docs
+   - Paper: Anatomy of Agentic Memory (arXiv:2602.19320)
+   - Status: 🔵 Backlog
+
+- **ACT-127**: Evaluate DAG-based state management
+   - Goal: WG-134
+   - Action: Adapt arXiv:2602.22398 DAG-based conversation state approach for episode context assembly; target 20-86% token reduction
+   - Paper: arXiv:2602.22398
+   - Status: 🔵 Backlog
+
+- **ACT-128**: Evaluate federated HDC for multi-agent memory
+   - Goal: WG-135
+   - Action: Evaluate HDC prototype exchange (arXiv:2603.20037) as bandwidth-efficient alternative for WG-126 MemCollab
+   - Paper: arXiv:2603.20037
    - Status: 🔵 Backlog
 
 ## Completed Actions (v0.1.30 Sprint)

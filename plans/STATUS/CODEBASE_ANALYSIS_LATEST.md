@@ -1,3 +1,74 @@
+# GOAP Codebase Analysis — v0.1.30 Refresh
+
+**Status**: Refreshed against v0.1.30 workspace
+**Date**: 2026-04-21
+**Branch**: `main`
+**Previous Analysis**: 2026-03-09 (archived below)
+
+---
+
+## v0.1.30 Summary Metrics
+
+| Metric | Current (2026-04-21) | Previous (2026-03-09) | Change |
+|--------|----------------------|-----------------------|--------|
+| Workspace version | `0.1.30` | `0.1.16` | +14 versions |
+| Rust edition | `2024` | `2024` | Stable |
+| Workspace members | 9 | 9 | Stable |
+| Production source files | **736** | 867 | -131 (WASM removed) |
+| Production LOC | **155,183** | 207,679 | -52,496 (WASM removed) |
+| Total tests | **2,902** | ~2,800 | +102 |
+| Test functions | **2,131** | — | New metric |
+| Ignored tests | **123** | 121 | +2 |
+| Snapshot files | **80** | 65 | +15 |
+| Property-test files | **16** | 7 | +9 |
+| `#[allow(dead_code)]` (prod) | **0** | ~70 | ✅ Eliminated |
+| Files >500 LOC (prod) | **0** | 45 | ✅ Fixed |
+| Clippy warnings | **0** | — | ✅ Clean |
+| Docs broken links | **0 active** | 204 | ✅ Fixed |
+
+---
+
+## Quality Gate Status (v0.1.30)
+
+| Gate | Threshold | Current | Status |
+|------|-----------|---------|--------|
+| Build | 0 errors | 0 | ✅ |
+| Clippy | 0 warnings | 0 | ✅ |
+| Format | 100% | 100% | ✅ |
+| Tests | All pass | 2902/2902 | ✅ |
+| Coverage | ≥90% | 60.97% | ⚠️ Pre-existing |
+| Security | 0 vulns | 0 | ✅ |
+| Dead code | ≤25 | 0 (prod) | ✅ |
+
+---
+
+## v0.1.31 Sprint Focus
+
+Per ROADMAP_ACTIVE.md (2026-04-21):
+- **CSM Integration**: BM25+HDC+ConceptGraph cascade (WG-128-131)
+- **CPU Efficiency**: QueryCache contention, cached retrieval (WG-114-116)
+- **Token Efficiency**: BundleAccumulator, gist reranking (WG-117-119)
+- **Housekeeping**: Performance skill ✅, metrics refresh ✅
+
+---
+
+## Major Changes Since v0.1.16
+
+1. **WASM Sandbox Removed** (v0.1.29): -6,982 LOC, 11 files
+2. **Turso Native Vector Search**: DiskANN queries
+3. **File Size Compliance**: All production files ≤500 LOC
+4. **Dead Code Eliminated**: 0 in production
+5. **Skills System**: 36 skills (target ≤35)
+6. **Tests Increased**: +102 tests
+
+---
+
+## Archived: Previous Analysis (2026-03-09)
+
+Below preserved for reference:
+
+---
+
 # GOAP Codebase Analysis — 2026-03-09
 
 **Status**: Revalidated against current workspace code

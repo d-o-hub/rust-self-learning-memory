@@ -1,6 +1,6 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-20 (v0.1.31 sprint refresh)
+- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
 - **Version**: `0.1.30` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
@@ -13,7 +13,7 @@
 
 ### GOAP Analysis (2026-04-20)
 
-**Primary Goal**: Reduce CPU usage and prompt/token usage while keeping release/package truth sources accurate ahead of the `0.1.31` version bump.
+**Primary Goal**: Reduce CPU usage and prompt/token usage via CPU-local retrieval tiers (CSM integration), cascading query pipeline, and skills consolidation — while keeping release/package truth sources accurate ahead of the `0.1.31` version bump.
 
 **Constraints**:
 - Time: Normal
@@ -28,6 +28,7 @@
 
 - **Planning/coordination**: `goap-agent`, `agent-coordination`, `task-decomposition`
 - **CPU work**: `performance`, `feature-implement`, `debug-troubleshoot`
+- **CSM integration**: `feature-implement`, `performance`, `test-runner`
 - **Token/docs work**: `agents-update`, `memory-context`, `learn`
 - **Validation**: `code-quality`, `test-runner`, `architecture-validation`
 
@@ -54,6 +55,15 @@
 | Replace placeholder cached retrieval | WG-115 | 🔵 Planned | feature-implement |
 | Tune compression/cache CPU budget | WG-116 | 🔵 Planned | performance |
 
+### Phase 1.5: CSM Integration (Parallel with Phase 1)
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| BM25 keyword index from CSM | WG-128 | 🔵 Planned | feature-implement |
+| HDC local embedding fallback | WG-129 | 🔵 Planned | feature-implement |
+| ConceptGraph ontology expansion | WG-130 | 🔵 Planned | feature-implement |
+| Cascading retrieval pipeline | WG-131 | 🔵 Planned | feature-implement |
+
 ### Phase 2: Token Efficiency (Parallel with Phase 1)
 
 | Task | WG | Status | Owner |
@@ -69,9 +79,23 @@
 | Reconstructive retrieval windows | WG-120 | 🔵 Planned | feature-implement | E-mem |
 | Execution-signature retrieval | WG-121 | 🔵 Planned | feature-implement | APEX-EM |
 | Scope-before-search shard routing | WG-122 | 🔵 Planned | feature-implement | ShardMemo |
+| LottaLoRA local classifier | WG-132 | 🔵 Planned | feature-implement | LottaLoRA |
+| Agentic memory taxonomy alignment | WG-133 | 🔵 Planned | agents-update | Anatomy of Agentic Memory |
+| DAG-based state management | WG-134 | 🔵 Planned | feature-implement | arXiv:2602.22398 |
+| Federated HDC multi-agent memory | WG-135 | 🔵 Planned | feature-implement | arXiv:2603.20037 |
+
+### Phase 4: Housekeeping (Parallel)
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Create `performance` skill | WG-136 | 🔵 Planned | skill-creator |
+| Prune skills 40 → ≤35 | WG-137 | 🔵 Planned | agents-update |
+| Fix CURRENT.md contradictions | WG-138 | 🔵 Planned | agents-update |
+| Refresh CODEBASE_ANALYSIS_LATEST.md | WG-139 | 🔵 Planned | agents-update |
 
 ### Quality Gates
 - **Gate 1** (after Phase 0): release/package/version truth sources all agree
+- **Gate 1.5** (after Phase 1.5): BM25+HDC retrieval tested, cascading pipeline passes integration tests, API call count reduced
 - **Gate 2** (after Phase 1-2): CPU hot paths benchmarked, token budget reduced, all tests pass
 - **Gate 3** (after Phase 3): retrieval upgrades validated without coverage regressions
 
@@ -170,16 +194,17 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | Publishable workspace crates | 6 | all at 0.1.30 |
 | Total tests | 2,856 | — |
 | Ignored tests | 123 skipped | ceiling ≤125 |
-| `allow(dead_code)` (prod) | 35 | ≤25 |
+| `allow(dead_code)` (prod) | 0 | ≤25 | ✅ All in test/bench files (36 total) |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
-| Skills count | 40 | re-audit before compactness work |
+| Skills count | 35 | ✅ target ≤35 met |
 | Skills LOC | re-audit | minimize high-frequency prompt load |
 | Clippy suppressions (lib.rs) | 64 | ≤20 |
 | Files >500 LOC | 0 | 0 |
 | Cargo audit | 3 unmaintained warnings | transitive |
 | Dependabot alerts | 3 open | all transitive, tracked |
 | CodeQL alerts | 0 open | ✅ fixed |
+| CSM integration | Not started | BM25+HDC+ConceptGraph cascade |
 
 ---
 

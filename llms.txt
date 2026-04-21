@@ -6,7 +6,7 @@ A Rust-based self-learning memory system with episodic memory, pattern extractio
 
 **Repository**: https://github.com/d-o-hub/rust-self-learning-memory
 **Language**: Rust (Edition 2024)
-**Current Version**: 0.1.26
+**Current Version**: 0.1.30
 
 ## Architecture
 

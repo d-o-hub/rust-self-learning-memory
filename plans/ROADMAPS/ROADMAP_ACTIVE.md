@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-20 (v0.1.31 sprint refresh)
+**Last Updated**: 2026-04-21 (comprehensive analysis + CSM cascade integration)
 **Released Version**: v0.1.30 (crates.io + GitHub Release)
-**Unreleased on main**: v0.1.31 planning focused on CPU and token efficiency
+**Unreleased on main**: v0.1.31 planning focused on CPU-local retrieval (CSM), token efficiency, and skills consolidation
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -13,6 +13,8 @@
 `v0.1.30` was released on 2026-04-16. Workspace and publishable crate versions remain `0.1.30` while `v0.1.31` planning is redirected toward lower CPU usage, lower prompt/token usage, and release/package truth-source cleanup.
 
 Verified publishable workspace packages at `0.1.30`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
+
+The 2026-04-21 comprehensive analysis added a CSM integration phase (BM25+HDC+ConceptGraph cascading retrieval) targeting 50-70% API call elimination, plus 6 new research papers and housekeeping WGs.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
@@ -38,6 +40,15 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | WG-114 | Reduce QueryCache contention and lock overhead (`parking_lot::RwLock` + benchmarks) | 🔵 Planned | 114 |
 | WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | 🔵 Planned | 115 |
 | WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | 🔵 Planned | 116 |
+
+### Phase 1.5: CSM Integration (CPU-Local Retrieval)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|-----|
+| WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | 🔵 Planned | 128 |
+| WG-129 | Wire HDC text encoder as CPU-local embedding fallback (replaces `embeddings/local.rs` placeholder) | 🔵 Planned | 129 |
+| WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | 🔵 Planned | 130 |
+| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | 🔵 Planned | 131 |
 
 ### Phase 2: Token Efficiency
 
@@ -67,6 +78,14 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
 | WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | 🔵 Backlog | 126 |
 | WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | 🔵 Backlog | 127 |
+| WG-132 | LottaLoRA-inspired local episode classifier (arXiv:2604.08749) | 🔵 Backlog | 132 |
+| WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | 🔵 Backlog | 133 |
+| WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | 🔵 Backlog | 134 |
+| WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
+| WG-136 | Create `performance` skill (referenced but missing) | 🔵 Planned | 136 |
+| WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | 🔵 Planned | 137 |
+| WG-138 | Fix STATUS/CURRENT.md metric contradictions (dead_code 35 vs 41) | 🔵 Planned | 138 |
+| WG-139 | Refresh CODEBASE_ANALYSIS_LATEST.md (stale since 2026-03-09) | 🔵 Planned | 139 |
 
 ---
 
@@ -302,7 +321,7 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| v0.1.30 | 2026-04 | MemoryEvent broadcast, top-k optimization, memory-context skill, learn skill, zero-copy retrieval caching |
+| v0.1.30 | 2026-04 | MemoryEvent broadcast, top-k optimization, memory-context skill, learn skill, zero-copy retrieval caching, CSM pattern adoption (WG-103/104) |
 | v0.1.29 | 2026-04 | WASM sandbox removal (-6,982 LOC), Turso native vector search (vector_top_k/DiskANN), file splitting (6 files), release workflow improvements |
 | v0.1.27 | 2026-04 | Wilson score ranking, Episode GC/TTL, spawn_blocking audit, MCP Server Card, GitHub Pages, llms.txt, semver timeout fix |
 | v0.1.24 | 2026-03 | Test stability (DBSCAN budget, quality gate timeout), dependency updates |

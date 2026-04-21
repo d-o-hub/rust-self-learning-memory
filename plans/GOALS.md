@@ -1,6 +1,6 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-04-20 (v0.1.31 reprioritized)
+- **Last Updated**: 2026-04-21 (comprehensive analysis refresh)
 - **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
@@ -62,21 +62,52 @@
    - GOAP skills: `goap-agent`, `performance`, `code-quality`
    - Target: Measure compression thresholds and zero-copy cache tradeoffs to avoid wasted CPU cycles
 
+### Phase 1.5: CSM Integration (CPU-Local Retrieval)
+
+7. **WG-128**: Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier
+   - Priority: P0
+   - Owner: feature-implement
+   - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
+   - Target: Eliminate embedding API calls for exact/keyword matches (50-70% query savings)
+   - Paper: arXiv:2602.23368 ("Keyword search is all you need")
+   - Dependencies: None
+
+8. **WG-129**: Wire HDC text encoder as local embedding fallback
+   - Priority: P1
+   - Owner: feature-implement
+   - GOAP skills: `goap-agent`, `feature-implement`, `test-runner`
+   - Target: CPU-only embedding when API unavailable; replaces placeholder in `embeddings/local.rs`
+   - Dependencies: WG-128
+
+9. **WG-130**: Add ConceptGraph ontology expansion for synonym retrieval
+   - Priority: P1
+   - Owner: feature-implement
+   - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`
+   - Target: Domain-term synonym expansion without LLM calls via curated graph
+   - Dependencies: WG-129
+
+10. **WG-131**: Implement cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API)
+    - Priority: P1
+    - Owner: feature-implement
+    - GOAP skills: `goap-agent`, `feature-implement`, `performance`, `test-runner`
+    - Target: Route queries through cheapest tier first; API calls as fallback only
+    - Dependencies: WG-128, WG-129, WG-130
+
 ### Phase 2: Token Efficiency
 
-7. **WG-117**: Implement `BundleAccumulator` sliding window
+11. **WG-117**: Implement `BundleAccumulator` sliding window
    - Priority: P1
    - Owner: feature-implement
    - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
    - Target: Bound retrieved context by recency-weighted window instead of flat accumulation
 
-8. **WG-118**: Add hierarchical/gist reranking
+12. **WG-118**: Add hierarchical/gist reranking
    - Priority: P1
    - Owner: feature-implement
    - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`, `test-runner`
    - Target: Return fewer, denser context items to reduce prompt tokens without hurting retrieval quality
 
-9. **WG-119**: Compact high-frequency skills/docs
+13. **WG-119**: Compact high-frequency skills/docs
      - Priority: P2
      - Owner: agents-update
      - GOAP skills: `goap-agent`, `agents-update`, `learn`
@@ -84,21 +115,21 @@
 
 ### Phase 3: Research-Inspired Retrieval Upgrades
 
-10. **WG-120**: Add reconstructive retrieval windows
+14. **WG-120**: Add reconstructive retrieval windows
      - Priority: P2
      - Owner: feature-implement
      - GOAP skills: `goap-agent`, `feature-implement`, `memory-context`
      - Target: Expand top-k hits into bounded local windows to preserve useful context with fewer irrelevant tokens
     - Paper: E-mem (arXiv:2601.21714)
 
-11. **WG-121**: Add execution-signature retrieval
+15. **WG-121**: Add execution-signature retrieval
      - Priority: P2
      - Owner: feature-implement
      - GOAP skills: `goap-agent`, `feature-implement`, `performance`
      - Target: Rank traces by tools/errors/step-shape in addition to embeddings to reduce noisy retrieval
     - Paper: APEX-EM (arXiv:2603.29093)
 
-12. **WG-122**: Add scope-before-search shard routing
+16. **WG-122**: Add scope-before-search shard routing
      - Priority: P2
      - Owner: feature-implement
      - GOAP skills: `goap-agent`, `feature-implement`, `performance`
@@ -107,30 +138,70 @@
 
 ### Backlog (Future)
 
-13. **WG-123**: Temporal graph edges in episode store
+17. **WG-123**: Temporal graph edges in episode store
     - Priority: P3
     - Owner: feature-implement
     - Paper: REMem (ICLR 2026, arXiv:2602.13530)
 
-14. **WG-124**: Procedural memory type
+18. **WG-124**: Procedural memory type
     - Priority: P3
     - Owner: feature-implement
     - Paper: ParamAgent (2026) — three-tier memory architecture
 
-15. **WG-125**: Routing-Free MoE evaluation
+19. **WG-125**: Routing-Free MoE evaluation
     - Priority: P3
     - Owner: code-reviewer
     - Paper: arXiv:2604.00801 (Apr 2026) — eliminates routing drift, better scalability
 
-16. **WG-126**: Cross-agent memory collaboration (MemCollab)
+20. **WG-126**: Cross-agent memory collaboration (MemCollab)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2603.23234 — contrastive trajectory distillation for agent-agnostic memory
 
-17. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
+21. **WG-127**: Semantic gist extraction + CogniRank (CogitoRAG)
     - Priority: P3
     - Owner: feature-implement
     - Paper: arXiv:2602.15895 — gist-based retrieval outperforms flat RAG
+
+22. **WG-132**: Evaluate LottaLoRA-inspired local classifier for episode types
+    - Priority: P3
+    - Owner: feature-implement
+    - Paper: arXiv:2604.08749 (Apr 2026) — random scaffolds + LoRA adapters, reservoir computing + HDC
+
+23. **WG-133**: Align memory architecture with Anatomy of Agentic Memory taxonomy
+    - Priority: P3
+    - Owner: agents-update
+    - Paper: arXiv:2602.19320 — structured taxonomy of 4 memory structures for LLM agents
+
+24. **WG-134**: Evaluate DAG-based state management for episode context (86% token reduction)
+    - Priority: P2
+    - Owner: feature-implement
+    - Paper: arXiv:2602.22398 — DAG-based conversation state, reference impl for Claude Code
+
+25. **WG-135**: Evaluate federated HDC for multi-agent memory sharing
+    - Priority: P3
+    - Owner: feature-implement
+    - Paper: arXiv:2603.20037 — HDC prototype exchange instead of full embedding sync
+
+26. **WG-136**: Create `performance` skill (referenced but missing)
+    - Priority: P1
+    - Owner: skill-creator
+    - Target: Unblock WG-114/116 owners; standardize benchmarking workflow
+
+27. **WG-137**: Prune skills from 40 → ≤35
+    - Priority: P1
+    - Owner: agents-update
+    - Target: Merge parallel-execution→agent-coordination, task-decomposition→goap-agent, codebase-locator→codebase-analyzer, codebase-consolidation→codebase-analyzer, remove yaml-validator
+
+28. **WG-138**: Fix STATUS/CURRENT.md contradictions (dead_code 35 vs 41)
+    - Priority: P0
+    - Owner: agents-update
+    - Target: Single source of truth for quality metrics
+
+29. **WG-139**: Refresh CODEBASE_ANALYSIS_LATEST.md (stale since 2026-03-09)
+    - Priority: P1
+    - Owner: agents-update
+    - Target: Rerun all metrics against current v0.1.30 codebase
 
 ---
 

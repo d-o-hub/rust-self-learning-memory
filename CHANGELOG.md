@@ -4,6 +4,28 @@
 
 - Nothing yet
 
+## [0.1.31] - 2026-04-22
+
+### Added
+
+- **CSM cascading retrieval integration** (WG-128/129/130/131) - CPU-local retrieval tiers
+  - Added `chaotic_semantic_memory = "0.3.2"` as optional crate dependency with `csm` feature
+  - BM25 keyword index (Tier 1), HDC hyperdimensional vectors (Tier 2), ConceptGraph ontology (Tier 3)
+  - `CascadeRetriever` placeholder for 4-tier pipeline: BM25 → HDC → ConceptGraph → API fallback
+  - Target: 50-70% embedding API call elimination
+- **Hierarchical/gist reranking** (WG-118) - Dense context retrieval
+  - `GistExtractor`: Extracts 1-3 key points from episode descriptions
+  - `HierarchicalReranker`: MMR-style diversity reranking for information density
+  - `memory-core/src/retrieval/gist.rs`: Full implementation with 20 tests
+- **AgentFS SDK stub documentation** - Clear indication that SDK is not integrated
+  - `SdkUnavailable` error variant for enabled provider calls
+  - `Degraded` health check status with unavailability metadata
+
+### Changed
+
+- **Skills consolidation** (WG-137) - Reduced from 36→31 skills
+- **Planning docs refresh** (WG-138/139) - Fixed CURRENT.md contradictions, updated CODEBASE_ANALYSIS_LATEST.md
+
 ## [0.1.30] - 2026-04-09
 
 ### Added

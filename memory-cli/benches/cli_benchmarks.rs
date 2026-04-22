@@ -4,7 +4,7 @@
 //! to ensure they meet performance requirements.
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use do_memory_cli::do_memory_test_utils::*;
+use do_memory_cli::test_utils::CliHarness;
 use std::hint::black_box;
 use std::time::Duration;
 

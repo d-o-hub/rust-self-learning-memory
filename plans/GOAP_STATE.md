@@ -71,7 +71,7 @@
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
 | Implement BundleAccumulator window | WG-117 | 🔵 Planned | feature-implement |
-| Add hierarchical/gist reranking | WG-118 | 🔵 Planned | feature-implement |
+| Add hierarchical/gist reranking | WG-118 | ✅ Complete | feature-implement |
 | Compact high-frequency skills/docs | WG-119 | 🔵 Planned | agents-update |
 
 ### Phase 3: Research-Inspired Retrieval Upgrades (Deferred)

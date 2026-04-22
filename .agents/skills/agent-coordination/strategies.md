@@ -28,7 +28,7 @@ When to use:
 - Resource constraints prevent parallelism
 
 Example:
-- codebase-locator -> codebase-analyzer -> feature-implementer
+- codebase-analyzer -> feature-implementer
 ```
 
 ### 3. Swarm Execution

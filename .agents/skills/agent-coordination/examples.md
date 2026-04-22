@@ -133,7 +133,7 @@ phases:
     agents:
       - type: code-quality
         task: fmt + clippy
-      - type: yaml-validator
+      - type: codebase-analyzer
         task: workflow validation
   - name: build
     strategy: sequential

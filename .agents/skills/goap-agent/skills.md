@@ -7,7 +7,7 @@
 | **code-quality** | Rust code review, formatting, linting, clean code principles |
 | **architecture-validation** | Validate vs architecture plans |
 | **plan-gap-analysis** | Implementation gap analysis |
-| **test-runner** | Test execution, management (absorbs test-optimization) |
+| **test-runner** | Test execution, management |
 
 ## Build & Testing Skills
 
@@ -22,7 +22,7 @@
 | Skill | Purpose |
 |-------|---------|
 | **analysis-swarm** | Multi-perspective code analysis |
-| **codebase-consolidation** | Analyze, consolidate codebases |
+| **codebase-analyzer** | Analyze, locate files, consolidate codebases (merged: codebase-locator, codebase-consolidation) |
 | **debug-troubleshoot** | Systematic async debugging |
 
 ## Research Skills
@@ -36,18 +36,17 @@
 
 | Skill | Purpose |
 |-------|---------|
-| **memory-harness** | Record, replay, benchmark agent sessions (absorbs episode lifecycle) |
-| **do-memory-mcp** | MCP server operations |
-| **do-memory-cli-ops** | CLI operations |
+| **memory-harness** | Record, replay, benchmark agent sessions |
+| **memory-mcp** | MCP server operations |
+| **memory-cli-ops** | CLI operations |
 | **storage-sync** | Turso/redb synchronization |
 
 ## Workflow & Coordination Skills
 
 | Skill | Purpose |
 |-------|---------|
-| **task-decomposition** | Break down complex tasks |
-| **agent-coordination** | Coordinate Skills/Agents |
-| **parallel-execution** | Execute tasks simultaneously |
+| **agent-coordination** | Coordinate Skills/Agents (merged: parallel-execution) |
+| **goap-agent** | Task decomposition + multi-agent planning (merged: task-decomposition) |
 | **loop-agent** | Iterative refinement |
 | **github-workflows** | CI/CD optimization |
 
@@ -63,10 +62,10 @@
 ### Phase 1: Research & Analysis (Parallel)
 - `web-doc-resolver` - Best practices and documentation research
 - `memory-context` - Past implementations & compaction
-- `codebase-consolidation` - Architecture understanding
+- `codebase-analyzer` - Architecture understanding
 
 ### Phase 2: Decision-Making (Sequential)
-- `task-decomposition` - Break down goals
+- `goap-agent` - Break down goals (DECOMPOSE phase)
 - `analysis-swarm` - Architectural decisions
 
 ### Phase 3: Pre-Implementation (Parallel)

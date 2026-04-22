@@ -26,7 +26,7 @@
 
 ### GOAP Skill Stack
 
-- **Planning/coordination**: `goap-agent`, `agent-coordination`, `task-decomposition`
+- **Planning/coordination**: `goap-agent`, `agent-coordination`
 - **CPU work**: `performance`, `feature-implement`, `debug-troubleshoot`
 - **CSM integration**: `feature-implement`, `performance`, `test-runner`
 - **Token/docs work**: `agents-update`, `memory-context`, `learn`
@@ -88,10 +88,10 @@
 
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
-| Create `performance` skill | WG-136 | 🔵 Planned | skill-creator |
-| Prune skills 40 → ≤35 | WG-137 | 🔵 Planned | agents-update |
-| Fix CURRENT.md contradictions | WG-138 | 🔵 Planned | agents-update |
-| Refresh CODEBASE_ANALYSIS_LATEST.md | WG-139 | 🔵 Planned | agents-update |
+| Create `performance` skill | WG-136 | ✅ Complete | skill-creator |
+| Prune skills 40 → ≤35 | WG-137 | ✅ Complete | agents-update |
+| Fix CURRENT.md contradictions | WG-138 | ✅ Complete | agents-update |
+| Refresh CODEBASE_ANALYSIS_LATEST.md | WG-139 | ✅ Complete | agents-update |
 
 ### Quality Gates
 - **Gate 1** (after Phase 0): release/package/version truth sources all agree
@@ -197,7 +197,7 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 | `allow(dead_code)` (prod) | 0 | ≤25 | ✅ All in test/bench files (36 total) |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
-| Skills count | 35 | ✅ target ≤35 met |
+| Skills count | 31 | ✅ target ≤35 met |
 | Skills LOC | re-audit | minimize high-frequency prompt load |
 | Clippy suppressions (lib.rs) | 64 | ≤20 |
 | Files >500 LOC | 0 | 0 |

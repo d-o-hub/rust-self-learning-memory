@@ -82,10 +82,10 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | WG-133 | Align memory types with Anatomy of Agentic Memory taxonomy (arXiv:2602.19320) | 🔵 Backlog | 133 |
 | WG-134 | DAG-based state management for episode context — 86% token reduction (arXiv:2602.22398) | 🔵 Backlog | 134 |
 | WG-135 | Federated HDC for multi-agent memory sharing (arXiv:2603.20037) | 🔵 Backlog | 135 |
-| WG-136 | Create `performance` skill (referenced but missing) | 🔵 Planned | 136 |
-| WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | 🔵 Planned | 137 |
-| WG-138 | Fix STATUS/CURRENT.md metric contradictions (dead_code 35 vs 41) | 🔵 Planned | 138 |
-| WG-139 | Refresh CODEBASE_ANALYSIS_LATEST.md (stale since 2026-03-09) | 🔵 Planned | 139 |
+| WG-136 | Create `performance` skill (referenced but missing) | ✅ Complete | 136 |
+| WG-137 | Prune skills from 40 → ≤35 (merge/remove 5 overlapping skills) | ✅ Complete | 137 |
+| WG-138 | Fix STATUS/CURRENT.md metric contradictions (dead_code 35 vs 41) | ✅ Complete | 138 |
+| WG-139 | Refresh CODEBASE_ANALYSIS_LATEST.md (stale since 2026-03-09) | ✅ Complete | 139 |
 
 ---
 

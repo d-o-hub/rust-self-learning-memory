@@ -73,7 +73,7 @@
 
 ## Phase 2: Task Decomposition
 
-Use the **task-decomposition** skill to break down goals.
+Use the **goap-agent** skill DECOMPOSE phase to break down goals.
 
 ### Key Principles
 - **Atomic**: Each task is indivisible and clear

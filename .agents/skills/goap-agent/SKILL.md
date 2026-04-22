@@ -41,6 +41,8 @@ See **[skills.md](skills.md)** for complete skills list and **[agents.md](agents
 1. **ANALYZE** → Understand goals, constraints, resources
    - **Check ADRs**: Read relevant ADRs from `plans/adr/` before planning
 2. **DECOMPOSE** → Break into atomic tasks with dependencies
+   - **Task Decomposition**: Create goal hierarchy with success criteria (see patterns.md)
+   - **Dependency Types**: Sequential (A→B), Parallel (A─┐B─┐), Converging (A─┐B─┼─>D)
 3. **STRATEGIZE** → Choose execution pattern
 4. **COORDINATE** → Assign to specialized agents
 5. **EXECUTE** → Run with monitoring and quality gates

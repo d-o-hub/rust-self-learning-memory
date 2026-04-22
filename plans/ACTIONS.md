@@ -167,7 +167,7 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
    - Skills: `goap-agent`, `agents-update`
    - Action: Merge `parallel-execution` → `agent-coordination`, `task-decomposition` → `goap-agent`, `codebase-locator` → `codebase-analyzer`, `codebase-consolidation` → `codebase-analyzer`; remove `yaml-validator`; update any skill references in AGENTS.md
    - Dependencies: None
-   - Status: 🔵 Planned
+   - Status: ✅ Complete
 
 - **ACT-123**: Fix STATUS/CURRENT.md contradictions
    - Goal: WG-138

@@ -1,3 +1,8 @@
+---
+name: performance
+description: Benchmarking and performance optimization for Rust. Use when profiling CPU/memory bottlenecks, running Criterion benchmarks, validating performance improvements, or detecting regressions in CI.
+---
+
 # Performance Skill
 
 Benchmarking and performance optimization for the Rust self-learning memory system.

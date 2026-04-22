@@ -21,7 +21,7 @@ Phase 1: Retrieve Context [Skills]
 
 Phase 2: Research [Parallel Skills + Agents]
 ├─ Skill(command="web-doc-resolver")
-├─ Skill(command="codebase-consolidation")
+├─ Skill(command="codebase-analyzer")
 └─ Task(subagent_type="explore")
 Quality Gate: Architecture and requirements clear
 

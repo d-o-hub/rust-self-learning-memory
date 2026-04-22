@@ -14,7 +14,7 @@
 
 ### GOAP Execution Model
 
-- **Coordinator skills**: `goap-agent`, `agent-coordination`, `task-decomposition`
+- **Coordinator skills**: `goap-agent`, `agent-coordination`
 - **Implementation skills**: `feature-implement`, `performance`, `agents-update`
 - **Validation skills**: `code-quality`, `test-runner`, `architecture-validation`
 - **Learning/retention skills**: `memory-context`, `learn`

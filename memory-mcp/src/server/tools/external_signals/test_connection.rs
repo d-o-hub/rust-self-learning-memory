@@ -2,6 +2,8 @@
 //!
 //! This module provides the tool for testing connectivity to the
 //! AgentFS external signal provider.
+//!
+//! **NOTE**: SDK is not currently integrated - returns stub test results.
 
 use crate::server::MemoryMCPServer;
 use anyhow::Result;
@@ -17,7 +19,7 @@ impl MemoryMCPServer {
     ///
     /// # Returns
     ///
-    /// Returns connection test results with success/failure details
+    /// Returns connection test results indicating SDK unavailability
     pub async fn execute_test_agentfs_connection(
         &self,
         input: crate::mcp::tools::external_signals::TestAgentFsConnectionInput,
@@ -30,32 +32,26 @@ impl MemoryMCPServer {
         );
 
         let start_time = std::time::Instant::now();
-
-        // In a full implementation, this would:
-        // 1. Attempt to connect to the AgentFS database
-        // 2. Query basic metadata or perform a health check
-        // 3. Verify read permissions on toolcall tables
-        // 4. Return detailed connection results
-
-        // For now, return a mock successful test
         let test_duration_ms = start_time.elapsed().as_millis() as u64;
 
+        // SDK is not integrated - return informative stub result
+        // This indicates that the test "passes" in terms of API structure
+        // but clearly shows no real connection is possible
         let result = crate::mcp::tools::external_signals::TestAgentFsConnectionOutput {
-            success: true,
+            success: false, // Not actually successful - SDK unavailable
             provider: "agentfs".to_string(),
             db_path: input
                 .db_path
-                .unwrap_or_else(|| "/path/to/agent.db".to_string()),
+                .unwrap_or_else(|| "/path/to/agentfs.db".to_string()),
             connection_time_ms: test_duration_ms,
-            readable: true,
-            writable: false, // AgentFS is typically read-only for external signals
-            toolcall_count: Some(0), // Would query actual count
-            version: Some("1.0.0".to_string()),
-            message: "AgentFS connection test completed successfully".to_string(),
-            error: None,
+            readable: false, // Cannot read without SDK
+            writable: false,
+            toolcall_count: None, // No data available
+            version: None, // SDK not integrated
+            message: "AgentFS SDK not integrated - stub implementation cannot connect to real database".to_string(),
+            error: Some("SDK unavailable: agentfs-sdk dependency not added to project. Add dependency and enable 'agentfs' feature for real connection testing.".to_string()),
         };
 
-        // Convert result to JSON
         Ok(json!(result))
     }
 }
@@ -76,5 +72,30 @@ mod tests {
             async { Ok(json!({})) }
         }
         let _ = method_signature; // Use the function to avoid unused warnings
+    }
+
+    #[test]
+    fn test_stub_result_indicates_sdk_unavailable() {
+        // Verify stub result properly indicates SDK unavailability
+        let result = crate::mcp::tools::external_signals::TestAgentFsConnectionOutput {
+            success: false,
+            provider: "agentfs".to_string(),
+            db_path: "/tmp/test.db".to_string(),
+            connection_time_ms: 0,
+            readable: false,
+            writable: false,
+            toolcall_count: None,
+            version: None,
+            message: "SDK not integrated".to_string(),
+            error: Some("SDK unavailable".to_string()),
+        };
+
+        assert!(!result.success, "Stub should report unsuccessful test");
+        assert!(result.error.is_some(), "Should have error message");
+        assert!(!result.readable, "Should report not readable");
+        assert!(
+            result.toolcall_count.is_none(),
+            "Should have no toolcall count"
+        );
     }
 }

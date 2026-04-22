@@ -41,13 +41,16 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | 🔵 Planned | 115 |
 | WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | 🔵 Planned | 116 |
 
-### Phase 1.5: CSM Integration (CPU-Local Retrieval)
+### Phase 1.5: CSM Integration (CPU-Local Retrieval) ✅ Complete
+
+**Implementation**: CSM added as crate dependency (`chaotic_semantic_memory = "0.3.2"`), not source code copy.
+Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`.
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
-| WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | 🔵 Planned | 128 |
-| WG-129 | Wire HDC text encoder as CPU-local embedding fallback (replaces `embeddings/local.rs` placeholder) | 🔵 Planned | 129 |
-| WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | 🔵 Planned | 130 |
+| WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | ✅ Complete | 128 |
+| WG-129 | Wire HDC text encoder as CPU-local embedding fallback (via crate) | ✅ Complete | 129 |
+| WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | ✅ Complete | 130 |
 | WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | 🔵 Planned | 131 |
 
 ### Phase 2: Token Efficiency

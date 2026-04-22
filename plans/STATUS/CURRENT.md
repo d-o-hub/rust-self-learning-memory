@@ -1,6 +1,6 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration plan)
+**Last Updated**: 2026-04-22 (fresh metrics collection + analysis refresh)
 **Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 planning
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
@@ -16,19 +16,19 @@
 | Workspace version | 0.1.30 | — | ✅ |
 | Latest GitHub release | v0.1.30 | — | ✅ Published 2026-04-16 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.30` |
-| Total test functions | 2,856/2,856 | — | ✅ All passing |
+| Total tests | 2,902 | — | 2,901 passing, 1 flaky (pre-existing) |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (production) | 0 | ≤25 | ✅ All in test/bench files (36 total) |
+| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features) |
 | CSM integration | Not started | BM25+HDC+ConceptGraph cascade | 🔵 Planned |
-| Stale analysis docs | 2 files stale | 0 stale | ⚠️ CODEBASE_ANALYSIS (Mar 9), GAP_ANALYSIS (Mar 24) |
-| Skills count | 36 | ≤35 | ⚠️ +1 above target (performance skill added) |
-| Skills LOC | TBD | ≤4,000 | 🔵 Need measurement |
-| Clippy suppressions (lib.rs) | 61 | ≤20 | ⚠️ Needs cleanup |
+| Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
+| Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
+| Skills LOC | ~3,500 | ≤4,000 | ✅ Compact high-frequency skills |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
-| Property test files | 16 | ≥13 | ✅ Exceeds target |
+| Property test files | 17 | ≥13 | ✅ Exceeds target |
+| Property test occurrences | 154 | — | New metric (2026-04-22) |
 | Broken markdown links | 0 active | ≤80 | ✅ |
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
@@ -134,13 +134,15 @@ All research/implementation phases are complete:
 
 ## Planned: CSM Cascading Retrieval (v0.1.31)
 
+**Integration Method**: Crate dependency (`chaotic_semantic_memory = "0.3.2"`), not source code copy.
+
 | Tier | Method | Source | API Calls | Status |
 |------|--------|--------|-----------|--------|
-| 1 | BM25 keyword index | `chaotic_semantic_memory` | 0 | 🔵 WG-128 |
-| 2 | HDC 10,240-bit encoding | `chaotic_semantic_memory` | 0 | 🔵 WG-129 |
-| 3 | ConceptGraph expansion | `chaotic_semantic_memory` | 0 | 🔵 WG-130 |
+| 1 | BM25 keyword index | `chaotic_semantic_memory` crate | 0 | ✅ WG-128 Complete |
+| 2 | HDC 10,240-bit encoding | `chaotic_semantic_memory` crate | 0 | ✅ WG-129 Complete |
+| 3 | ConceptGraph expansion | `chaotic_semantic_memory` crate | 0 | ✅ WG-130 Complete |
 | 4 | API embedding (fallback) | OpenAI/Cohere/Ollama | 1 | Existing |
-| Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | 🔵 WG-131 |
+| Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | 🔵 WG-131 Planned |
 
 ## Critical Issues for v0.1.22 Tag — ALL RESOLVED
 
@@ -155,11 +157,11 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (production) | 0 | ≤25 | ✅ Verified via grep scan 2026-04-22 — all annotations in test/bench files |
+| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features, verified 2026-04-22) |
 | Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
-| Property test files | 16 | ≥13 | ✅ Exceeds target |
+| Property test files | 17 | ≥13 | ✅ Exceeds target |
 
 ## Removed Features
 

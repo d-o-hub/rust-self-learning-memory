@@ -1,30 +1,31 @@
 # GOAP Codebase Analysis — v0.1.30 Refresh
 
 **Status**: Refreshed against v0.1.30 workspace
-**Date**: 2026-04-21
+**Date**: 2026-04-22
 **Branch**: `main`
 **Previous Analysis**: 2026-03-09 (archived below)
 
 ---
 
-## v0.1.30 Summary Metrics
+## v0.1.30 Summary Metrics (Fresh Collection 2026-04-22)
 
-| Metric | Current (2026-04-21) | Previous (2026-03-09) | Change |
+| Metric | Current (2026-04-22) | Previous (2026-03-09) | Change |
 |--------|----------------------|-----------------------|--------|
 | Workspace version | `0.1.30` | `0.1.16` | +14 versions |
 | Rust edition | `2024` | `2024` | Stable |
 | Workspace members | 9 | 9 | Stable |
-| Production source files | **736** | 867 | -131 (WASM removed) |
-| Production LOC | **155,183** | 207,679 | -52,496 (WASM removed) |
 | Total tests | **2,902** | ~2,800 | +102 |
-| Test functions | **2,131** | — | New metric |
-| Ignored tests | **123** | 121 | +2 |
+| Tests passing | **2,901** | — | 1 flaky (pre-existing) |
+| Tests skipped/ignored | **123** | 121 | +2 |
 | Snapshot files | **80** | 65 | +15 |
-| Property-test files | **16** | 7 | +9 |
-| `#[allow(dead_code)]` (prod) | **0** | ~70 | ✅ Eliminated |
-| Files >500 LOC (prod) | **0** | 45 | ✅ Fixed |
-| Clippy warnings | **0** | — | ✅ Clean |
-| Docs broken links | **0 active** | 204 | ✅ Fixed |
+| Property-test files | **17** | 7 | +10 |
+| Property test occurrences | **154** | — | New metric |
+| `#[allow(dead_code)]` (prod src) | **27** | ~70 | Reduced (29 total, 2 in test helpers) |
+| `#[ignore]` (prod src) | **0** | — | All in test files |
+| Skills count | **31** | — | Target ≤35 met |
+| Files >500 LOC (prod) | **0** | 45 | Fixed |
+| Clippy warnings | **0** | — | Clean |
+| Docs broken links | **0 active** | 204 | Fixed |
 
 ---
 
@@ -35,10 +36,11 @@
 | Build | 0 errors | 0 | ✅ |
 | Clippy | 0 warnings | 0 | ✅ |
 | Format | 100% | 100% | ✅ |
-| Tests | All pass | 2902/2902 | ✅ |
+| Tests | All pass | 2901/2902 | ⚠️ 1 flaky (pre-existing) |
 | Coverage | ≥90% | 60.97% | ⚠️ Pre-existing |
 | Security | 0 vulns | 0 | ✅ |
-| Dead code | ≤25 | 0 (prod) | ✅ |
+| Dead code | ≤25 | 27 | ⚠️ Slightly over target |
+| Skills | ≤35 | 31 | ✅ |
 
 ---
 

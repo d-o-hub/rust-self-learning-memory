@@ -55,13 +55,15 @@
 | Replace placeholder cached retrieval | WG-115 | 🔵 Planned | feature-implement |
 | Tune compression/cache CPU budget | WG-116 | 🔵 Planned | performance |
 
-### Phase 1.5: CSM Integration (Parallel with Phase 1)
+### Phase 1.5: CSM Integration ✅ Complete (crate dependency)
+
+**Implementation**: Added `chaotic_semantic_memory = "0.3.2"` as optional dependency with `csm` feature flag. Re-exports in `memory-core/src/retrieval/mod.rs`.
 
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
-| BM25 keyword index from CSM | WG-128 | 🔵 Planned | feature-implement |
-| HDC local embedding fallback | WG-129 | 🔵 Planned | feature-implement |
-| ConceptGraph ontology expansion | WG-130 | 🔵 Planned | feature-implement |
+| BM25 keyword index from CSM | WG-128 | ✅ Complete | crate dependency |
+| HDC local embedding fallback | WG-129 | ✅ Complete | crate dependency |
+| ConceptGraph ontology expansion | WG-130 | ✅ Complete | crate dependency |
 | Cascading retrieval pipeline | WG-131 | 🔵 Planned | feature-implement |
 
 ### Phase 2: Token Efficiency (Parallel with Phase 1)

@@ -612,7 +612,7 @@ This release was prepared with the following specialized agents:
 
 ### Documentation
 - Added `do-memory-core/EPISODE_TAGGING_GUIDE.md` - comprehensive usage guide
-- Added `do-memory-mcp/EPISODE_TAGS_TOOLS.md` - MCP tool documentation
+- Added `do-do-memory-mcp/EPISODE_TAGS_TOOLS.md` - MCP tool documentation
 - Updated `do-memory-cli/CLI_USER_GUIDE.md` - CLI command documentation
 - Added `examples/episode_tagging_demo.rs` - working example
 - Added `benches/tag_operations.rs` - performance benchmarks
@@ -666,8 +666,8 @@ This release was prepared with the following specialized agents:
   - Fixed do-memory-cli/src/config/validator.rs - Option unwrapping after validation
   - Fixed do-memory-cli/src/config/wizard/database.rs - Database config option handling
   - Fixed do-memory-cli/src/commands/storage/commands.rs - ProgressStyle template safety
-  - Fixed do-memory-mcp/src/patterns/predictive/kdtree.rs - Vector access bounds checking
-  - Fixed do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs - HashMap access safety
+  - Fixed do-do-memory-mcp/src/patterns/predictive/kdtree.rs - Vector access bounds checking
+  - Fixed do-do-memory-mcp/src/mcp/tools/quality_metrics/tool.rs - HashMap access safety
 
 - **MCP Protocol Compliance**: Proper JSON-RPC response formatting
   - Fixed `server_info` → `serverInfo` in initialize response
@@ -1395,14 +1395,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Monitoring System (In Progress - v0.2.0)
 - **Agent Performance Monitoring**: Track agent execution metrics (success rate, duration, task-level aggregation)
   - `do-memory-core/src/monitoring/` - Core monitoring infrastructure (894 LOC)
-  - `do-memory-mcp/src/monitoring/` - MCP monitoring endpoints and metrics (800 LOC)
+  - `do-do-memory-mcp/src/monitoring/` - MCP monitoring endpoints and metrics (800 LOC)
   - Integrated into `SelfLearningMemory` with methods for recording and retrieving agent metrics
   - Health check endpoints and system metrics tracking
   - **Status**: ⚠️ Incomplete - storage layer has placeholder TODOs, requires clippy fixes
 
 #### MCP Server Enhancements (In Progress - v0.2.0)
 - **Cache System**: Query result caching with TTL-based expiration
-  - `do-memory-mcp/src/cache.rs` (458 LOC) - LRU-style cache for expensive operations
+  - `do-do-memory-mcp/src/cache.rs` (458 LOC) - LRU-style cache for expensive operations
   - Configurable via environment variables (cache size, TTL)
   - **Status**: ⚠️ Implemented but not integrated into tool handlers
 - **Enhanced Server**: Expanded from 3 to 5 MCP tools
@@ -1455,8 +1455,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Fix: Remove `.expect()` calls on non-Result methods
 
 2. **File Size Violations** (AGENTS.md compliance):
-   - `do-memory-mcp/src/server.rs`: 1051 LOC (511 over 500 limit)
-   - `do-memory-mcp/src/bin/server.rs`: 579 LOC (79 over limit)
+   - `do-do-memory-mcp/src/server.rs`: 1051 LOC (511 over 500 limit)
+   - `do-do-memory-mcp/src/bin/server.rs`: 579 LOC (79 over limit)
    - `benches/episode_lifecycle.rs`: 567 LOC (67 over limit)
    - Fix: Split into smaller modules
 

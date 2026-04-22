@@ -38,7 +38,7 @@
 |-------|---------|
 | **memory-harness** | Record, replay, benchmark agent sessions |
 | **memory-mcp** | MCP server operations |
-| **memory-cli-ops** | CLI operations |
+| **do-memory-cli-ops** | CLI operations |
 | **storage-sync** | Turso/redb synchronization |
 
 ## Workflow & Coordination Skills

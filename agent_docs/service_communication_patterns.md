@@ -136,7 +136,7 @@ async fn store_patterns_batch(&self, patterns: &[Pattern]) -> Result<()>;
 MCP server uses Wasmtime sandbox for untrusted code:
 
 ```rust
-// See do-memory-mcp/src/wasmtime_sandbox.rs
+// See do-do-memory-mcp/src/wasmtime_sandbox.rs
 pub struct WasmtimeSandbox {
     engine: Engine,
     module: Module,

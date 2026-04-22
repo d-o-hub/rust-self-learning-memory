@@ -68,4 +68,7 @@ pub enum ExternalSignalError {
 
     #[error("provider unhealthy: {0}")]
     Unhealthy(String),
+
+    #[error("SDK not available for provider '{0}' - stub implementation returns no real data")]
+    SdkUnavailable(String),
 }

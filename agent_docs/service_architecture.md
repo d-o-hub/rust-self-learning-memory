@@ -104,7 +104,7 @@ The memory management system provides persistent memory across agent interaction
 
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
-### 4. MCP Server (`do-memory-mcp/)
+### 4. MCP Server (`do-do-memory-mcp/)
 **Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
 
 **Architecture**:

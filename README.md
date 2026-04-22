@@ -327,7 +327,7 @@ async fn main() -> anyhow::Result<()> {
 | Crate | Description |
 |-------|-------------|
 | [do-memory-core](do-memory-core/README.md) | Core episodic learning system |
-| [do-memory-mcp](do-memory-mcp/README.md) | MCP server with secure sandbox |
+| [do-memory-mcp](do-do-memory-mcp/README.md) | MCP server with secure sandbox |
 | [do-memory-cli](do-memory-cli/README.md) | Command-line interface |
 | [do-memory-storage-turso](do-memory-storage-turso/README.md) | Turso/libSQL storage backend |
 | [do-memory-storage-redb](do-memory-storage-redb/README.md) | redb cache backend |
@@ -415,7 +415,7 @@ EMBEDDING_BATCH_SIZE=32
 
 # Sandbox settings
 MCP_USE_WASM=true
-JAVY_PLUGIN=./do-memory-mcp/javy-plugin.wasm
+JAVY_PLUGIN=./do-do-memory-mcp/javy-plugin.wasm
 ```
 
 ### TOML Configuration

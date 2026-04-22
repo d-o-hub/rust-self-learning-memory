@@ -36,6 +36,7 @@ fn create_test_episode(id: u32, domain: &str) -> Episode {
         salient_features: None,
         metadata: HashMap::new(),
         tags: Vec::new(),
+        checkpoints: Vec::new(),
     }
 }
 

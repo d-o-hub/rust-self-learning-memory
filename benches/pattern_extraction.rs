@@ -3,16 +3,16 @@
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use do_memory_benches::TokioExecutor;
+use do_memory_benches::benchmark_helpers::{
+    create_benchmark_context, generate_episode_description, generate_execution_steps,
+    setup_temp_memory,
+};
 use do_memory_core::{
     episode::ExecutionStep,
     extraction::PatternExtractor,
     memory::SelfLearningMemory,
     types::{TaskOutcome, TaskType},
-};
-use memory_benches::TokioExecutor;
-use memory_benches::benchmark_helpers::{
-    create_benchmark_context, generate_episode_description, generate_execution_steps,
-    setup_temp_memory,
 };
 use regex::Regex;
 use std::hint::black_box;

@@ -22,7 +22,7 @@
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
 | `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features) |
-| CSM integration | Not started | BM25+HDC+ConceptGraph cascade | 🔵 Planned |
+| CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
 | Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
 | Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
 | Skills LOC | ~3,500 | ≤4,000 | ✅ Compact high-frequency skills |

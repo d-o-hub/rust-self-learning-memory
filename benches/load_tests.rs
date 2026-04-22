@@ -12,11 +12,11 @@
 #![allow(deprecated)]
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use futures::future::join_all;
-use memory_benches::benchmark_helpers::{
+use do_memory_benches::benchmark_helpers::{
     create_benchmark_context, generate_episode_description, generate_execution_steps,
     setup_temp_memory,
 };
-use memory_benches::TokioExecutor;
+use do_memory_benches::TokioExecutor;
 use do_memory_core::types::{TaskOutcome, TaskType};
 use std::sync::Arc;
 use std::time::{Duration, Instant};

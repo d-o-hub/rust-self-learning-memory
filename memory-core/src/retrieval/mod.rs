@@ -6,9 +6,11 @@
 //! - ConceptGraph ontology expansion (via CSM crate, synonym matching)
 //! - HDC hyperdimensional vectors (via CSM crate)
 //! - Cascading retrieval pipeline (WG-131)
+//! - Hierarchical/gist reranking for dense context (WG-118)
 
 pub mod cache;
 pub mod cascade;
+pub mod gist;
 
 // Re-export CSM types when csm feature is enabled
 #[cfg(feature = "csm")]
@@ -24,3 +26,4 @@ pub use chaotic_semantic_memory::retrieval::{
 
 pub use cache::{CacheKey, CacheMetrics, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES, QueryCache};
 pub use cascade::{CascadeConfig, CascadeResult, CascadeRetriever};
+pub use gist::{EpisodeGist, GistExtractor, GistScoredItem, HierarchicalReranker, RerankConfig};

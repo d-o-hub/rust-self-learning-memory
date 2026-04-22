@@ -1,5 +1,5 @@
 ---
-name: do-memory-mcp
+name: memory-mcp
 description: Use and troubleshoot the Memory MCP server for episodic memory retrieval and pattern analysis. Use when working with MCP server tools, validating the MCP implementation, or debugging MCP server issues.
 ---
 

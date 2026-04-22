@@ -1,5 +1,5 @@
 ---
-name: do-memory-cli-ops
+name: memory-cli-ops
 description: Execute and troubleshoot do-memory-cli commands for episode management, pattern analysis, and storage operations. Use this skill when running CLI commands, debugging CLI issues, explaining command usage, or guiding users through CLI workflows.
 ---
 

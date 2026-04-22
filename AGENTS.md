@@ -98,7 +98,22 @@ Target Bash:Grep ratio of 2:1 (current: 17:1)
 ## Git Workflow
 - **Branch Protection**: Direct pushes to `main` BLOCKED. Always work on a branch.
 - See `agent_docs/git_workflow.md` for details.
-Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`
+Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`, `full`, `csm`
+
+## CSM Integration
+
+Enable CPU-local cascading retrieval with the `csm` feature:
+```bash
+cargo build --features csm
+```
+
+**Available types when enabled:**
+- `Bm25Index` - First-tier keyword search (no API calls)
+- `HVec10240` - 10,240-bit HDC vectors for similarity
+- `ConceptGraph` - Ontology expansion for synonym matching
+- `CascadeRetriever` - Tier escalation orchestration
+
+**Docs**: `agent_docs/csm_integration.md` for full cascade pipeline (WG-128 through WG-131).
 
 ## Security
 - Use env vars (never hardcode)

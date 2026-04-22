@@ -26,6 +26,14 @@
 - **Skills consolidation** (WG-137) - Reduced from 36→31 skills
 - **Planning docs refresh** (WG-138/139) - Fixed CURRENT.md contradictions, updated CODEBASE_ANALYSIS_LATEST.md
 
+### Fixed
+
+- **Gist module LOC compliance** - Split `gist.rs` (997 LOC) into 6 files under 500 LOC limit
+  - `mod.rs` (75 LOC), `config.rs` (97 LOC), `types.rs` (52 LOC)
+  - `extractor.rs` (271 LOC), `reranker.rs` (311 LOC), `tests.rs` (222 LOC)
+- **Benchmark crate name imports** - Fixed `memory_benches` → `do_memory_benches` imports
+- **Episode struct fields** - Added missing `checkpoints` field to benchmark Episode initialization
+
 ## [0.1.30] - 2026-04-09
 
 ### Added

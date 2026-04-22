@@ -34,8 +34,8 @@ compression-gzip = ["flate2"]
 
 [dependencies]
 # Core dependencies
-do-memory-core = { path = "../memory-core", version = "0.1.30", features = ["hybrid_search"] }
-do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.30" }
+do-memory-core = { path = "../memory-core", version = "0.1.31", features = ["hybrid_search"] }
+do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.31" }
 
 # Async runtime
 tokio = { workspace = true }

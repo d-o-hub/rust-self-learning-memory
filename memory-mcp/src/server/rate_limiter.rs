@@ -333,6 +333,7 @@ mod tests {
             write_requests_per_second: 5,
             write_burst_size: 3,
             cleanup_interval: Duration::from_secs(60),
+            stale_threshold: Duration::from_secs(300),
             client_id_header: "X-Client-ID".to_string(),
         };
         let limiter = RateLimiter::new(config);

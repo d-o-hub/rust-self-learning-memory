@@ -25,7 +25,7 @@ Execute workflow agents iteratively for refinement and progressive improvement u
 ## NOT Appropriate For
 
 - Single-pass tasks (use specialized agent)
-- Purely parallel work (use parallel-execution)
+- Purely parallel work (use agent-coordination)
 - Simple linear workflows (use sequential)
 - One-time analysis
 

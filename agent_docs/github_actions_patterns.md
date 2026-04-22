@@ -38,4 +38,3 @@ while IFS= read -r f; do ... done < <(find dir -name "*.json")
 ## Pre-Flight Validation
 1. Check action versions: `gh api repos/<owner>/<action>/releases/latest --jq .tag_name`
 2. Validate syntax: `actionlint .github/workflows/*.yml`
-3. Use `yaml-validator` skill

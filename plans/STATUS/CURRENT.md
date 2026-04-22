@@ -155,7 +155,8 @@ All research/implementation phases are complete:
 | Item | Current | Target | Notes |
 |------|---------|--------|-------|
 | Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (production) | 41 | ≤25 | ⚠️ Over target — comprehensive analysis (2026-04-21) found 41 via direct scan |
+| `#[allow(dead_code)]` (production) | 0 | ≤25 | ✅ Verified via grep scan 2026-04-22 — all annotations in test/bench files |
+| Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
 | Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 16 | ≥13 | ✅ Exceeds target |

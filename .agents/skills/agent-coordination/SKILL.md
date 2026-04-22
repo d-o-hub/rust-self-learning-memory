@@ -29,4 +29,12 @@ Coordinate multiple specialized Skills and Task Agents through strategic executi
 **Agents** (via `Task` tool): Autonomous sub-processes that execute
 - Examples: code-reviewer, test-runner, debugger, loop-agent
 
-See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agents.md)** for when to use each.
+**Parallel Execution**: Use single message with multiple Task calls for maximum throughput:
+```markdown
+[Task tool] → Agent A
+[Task tool] → Agent B
+[Task tool] → Agent C
+All start simultaneously.
+```
+
+See **[Strategies](./strategies.md)** for coordination patterns and **[Skills vs Agents](./skills-agants.md)** for when to use each.

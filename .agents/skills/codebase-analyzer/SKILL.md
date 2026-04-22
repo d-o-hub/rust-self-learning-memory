@@ -1,74 +1,74 @@
 ---
 name: codebase-analyzer
-description: Analyze implementation details, trace data flow, and explain technical workings with precise file:line references. Use when you need to understand HOW code works.
+description: Analyze implementation details, trace data flow, explain technical workings, locate files, and consolidate codebases. Use when you need to understand HOW code works, find file locations, or assess technical debt.
 ---
 
 # Codebase Analyzer
 
-Analyze implementation details, trace data flow, and explain technical workings.
+Analyze implementation details, trace data flow, explain technical workings, and locate files.
+
+## Quick Reference
+
+- **[analysis-dimensions.md](analysis-dimensions.md)** - 8 analysis dimensions with detailed criteria
+- **[consolidation-patterns.md](consolidation-patterns.md)** - Common refactoring patterns with examples
+- **[report-templates.md](report-templates.md)** - Output format templates
 
 ## When to Use
 
 - Understanding how a specific feature works
+- Finding where functionality is implemented
 - Tracing data flow from entry to exit
-- Documenting API contracts
-- Understanding business logic
-- Reading multiple files to understand a single feature
+- Assessing technical debt and refactoring opportunities
+- Documenting API contracts and architecture
+- Code review preparation
 
-## Analysis Strategy
+## Analysis Modes
+
+| Mode | Purpose | Output |
+|------|---------|--------|
+| **Locator** | Find file locations | File paths with descriptions |
+| **Analyzer** | Trace implementation | Data flow with file:line refs |
+| **Consolidator** | Assess debt/refactor | Debt report + recommendations |
+
+## Locator Strategy
+
+### Search Patterns
+
+| Pattern | Purpose |
+|---------|---------|
+| `*service*`, `*handler*` | Business logic |
+| `*test*`, `*spec*` | Test files |
+| `*.config.*` | Configuration |
+| Rust: `src/`, `crates/` | Source files |
+
+### Output Format
+
+```markdown
+## File Locations for [Feature]
+
+### Implementation Files
+- `src/services/feature.rs` - Main service logic
+
+### Test Files
+- `src/services/__tests__/feature.test.rs`
+
+### Configuration
+- `config/feature.json`
+```
+
+## Analyzer Strategy
 
 ### Step 1: Read Entry Points
 - Start with main files mentioned
 - Look for exports, public methods
-- Identify component "surface area"
 
 ### Step 2: Follow Code Path
 - Trace function calls step by step
-- Read each file in the flow
 - Note data transformations
-- Identify external dependencies
 
 ### Step 3: Document Key Logic
-- Describe validation, transformation, error handling
+- Describe validation, error handling
 - Explain complex algorithms
-- Note configuration or feature flags
-
-## Output Format
-
-```markdown
-## Analysis: [Feature Name]
-
-### Overview
-[2-3 sentence summary]
-
-### Entry Points
-- `file:line` - Description
-
-### Core Implementation
-
-#### 1. Component (`file:line-start-end`)
-- What it does
-- Key transformations
-
-#### 2. Next Component (`file:line`)
-- How data flows in
-- How data flows out
-
-### Data Flow
-1. `entry:line` - Initial request
-2. `handler:line` - Processing
-3. `storage:line` - Persistence
-
-### Key Patterns
-- **Pattern Name**: Location and purpose
-
-### Configuration
-- Setting: `config/file:line`
-
-### Error Handling
-- Validation errors: `file:line` (returns 4xx)
-- Processing errors: `file:line` (triggers retry)
-```
 
 ## Guidelines
 
@@ -77,17 +77,16 @@ Analyze implementation details, trace data flow, and explain technical workings.
 ✓ Include file:line references
 ✓ Read files thoroughly before explaining
 ✓ Trace actual code paths
-✓ Focus on "how" not "what" or "why"
-✓ Be precise about function names
+✓ Group files logically by purpose
+✓ Use multiple search patterns
 
 ### Don't
 
 ✗ Guess about implementation
 ✗ Skip error handling
-✗ Make architectural recommendations
-✗ Analyze code quality or suggest improvements
-✗ Identify bugs or potential problems
+✗ Make architectural recommendations without context
+✗ Analyze without clear goals
 
 ## Remember
 
-You are a **documentarian**, not a critic. Explain HOW the code works with precise references.
+You are a **documentarian**. Map and explain, don't redesign.

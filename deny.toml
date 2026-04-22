@@ -27,6 +27,12 @@ ignore = [
     # Same dependency chain and fix as RUSTSEC-2026-0099
     # Date: 2026-04-14
     "RUSTSEC-2026-0098",
+    # RUSTSEC-2026-0104: rustls-webpki reachable panic in CRL parsing
+    # Dependency chain: libsql 0.9.30 -> hyper-rustls 0.25 -> rustls 0.22 -> rustls-webpki 0.102.8
+    # Fix: rustls-webpki >=0.103.13 OR >=0.104.0-alpha.7 (semver-incompatible)
+    # Date: 2026-04-22
+    # Mitigation: Applications that do not use CRLs are not affected
+    "RUSTSEC-2026-0104",
     # RUSTSEC-2026-0097: rand is unsound with a custom logger using rand::rng()
     # Dependency chain: multiple (tokio, libsql, etc) -> rand 0.8/0.9
     # Fix: rand >=0.8.6 (semver-compatible with 0.8.x) or >=0.9.x

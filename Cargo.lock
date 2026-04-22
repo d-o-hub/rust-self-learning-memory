@@ -606,6 +606,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "chaotic_semantic_memory"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6ba244261393fc864b92975488ae82799f7d370d33a12758c3c9f1529e17979"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "bincode",
+ "clap",
+ "clap_complete",
+ "colored 2.2.0",
+ "getrandom 0.2.17",
+ "glob",
+ "js-sys",
+ "libsql 0.4.0",
+ "rand 0.8.5",
+ "rayon",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -739,6 +767,16 @@ name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
+
+[[package]]
+name = "colored"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
+dependencies = [
+ "lazy_static",
+ "windows-sys 0.59.0",
+]
 
 [[package]]
 name = "colored"
@@ -1171,7 +1209,7 @@ dependencies = [
  "chrono",
  "clap",
  "clap_complete",
- "colored",
+ "colored 3.1.1",
  "criterion",
  "dialoguer",
  "dirs",
@@ -1205,6 +1243,7 @@ dependencies = [
  "async-trait",
  "augurs-changepoint",
  "changepoint 0.15.0",
+ "chaotic_semantic_memory",
  "chrono",
  "criterion",
  "do-memory-core",
@@ -1212,7 +1251,7 @@ dependencies = [
  "do-memory-storage-turso",
  "futures",
  "insta",
- "libsql",
+ "libsql 0.9.30",
  "lru 0.16.3",
  "ndarray 0.17.2",
  "ort",
@@ -1243,7 +1282,7 @@ dependencies = [
  "do-memory-core",
  "do-memory-storage-redb",
  "do-memory-storage-turso",
- "libsql",
+ "libsql 0.9.30",
  "serde_json",
  "tempfile",
  "tokio",
@@ -1310,7 +1349,7 @@ dependencies = [
  "do-memory-test-utils",
  "flate2",
  "futures",
- "libsql",
+ "libsql 0.9.30",
  "lz4_flex",
  "parking_lot",
  "postcard",
@@ -1366,7 +1405,7 @@ dependencies = [
  "do-memory-storage-turso",
  "futures",
  "governor",
- "libsql",
+ "libsql 0.9.30",
  "predicates",
  "regex",
  "serde_json",
@@ -2541,6 +2580,44 @@ dependencies = [
 
 [[package]]
 name = "libsql"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "007e45366a683bc61d5a6e4c05a4b91100c96ec04198d1d4529eb5a89b3c589f"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "base64 0.21.7",
+ "bincode",
+ "bitflags 2.11.0",
+ "bytes",
+ "fallible-iterator 0.3.0",
+ "futures",
+ "http 0.2.12",
+ "hyper 0.14.32",
+ "hyper-rustls 0.25.0",
+ "libsql-hrana 0.2.0",
+ "libsql-sqlite3-parser 0.12.0",
+ "libsql-sys 0.6.0",
+ "libsql_replication 0.4.0",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tonic",
+ "tonic-web",
+ "tower 0.4.13",
+ "tower-http 0.4.4",
+ "tracing",
+ "uuid",
+ "zerocopy 0.7.35",
+]
+
+[[package]]
+name = "libsql"
 version = "0.9.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30fe980ac5693ed1f3db490559fb578885e913a018df64af8a1a46e1959a78df"
@@ -2559,10 +2636,10 @@ dependencies = [
  "http 0.2.12",
  "hyper 0.14.32",
  "hyper-rustls 0.25.0",
- "libsql-hrana",
- "libsql-sqlite3-parser",
- "libsql-sys",
- "libsql_replication",
+ "libsql-hrana 0.9.30",
+ "libsql-sqlite3-parser 0.13.0",
+ "libsql-sys 0.9.30",
+ "libsql_replication 0.9.30",
  "parking_lot",
  "serde",
  "serde_json",
@@ -2581,6 +2658,16 @@ dependencies = [
 
 [[package]]
 name = "libsql-ffi"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "503716a5a09a73719e011957c363a69348b52818bd7679e4ee463099f23ffa89"
+dependencies = [
+ "bindgen",
+ "cc",
+]
+
+[[package]]
+name = "libsql-ffi"
 version = "0.9.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0be1da6f123ceb2cd23f469883415cab9ee963286a85d61e22afb8b12e15e681"
@@ -2589,6 +2676,18 @@ dependencies = [
  "cc",
  "cmake",
  "glob",
+]
+
+[[package]]
+name = "libsql-hrana"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aeaf5d19e365465e1c23d687a28c805d7462531b3f619f0ba49d3cf369890a3e"
+dependencies = [
+ "base64 0.21.7",
+ "bytes",
+ "prost",
+ "serde",
 ]
 
 [[package]]
@@ -2613,8 +2712,41 @@ dependencies = [
  "fallible-iterator 0.2.0",
  "fallible-streaming-iterator",
  "hashlink",
- "libsql-ffi",
+ "libsql-ffi 0.9.30",
  "smallvec",
+]
+
+[[package]]
+name = "libsql-rusqlite"
+version = "0.31.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11e74daae7edb0a3ab7d1568c6d0be43bb255f00b2b3b6d1b90ae7007a76c6f9"
+dependencies = [
+ "bitflags 2.11.0",
+ "fallible-iterator 0.2.0",
+ "fallible-streaming-iterator",
+ "hashlink",
+ "libsql-ffi 0.3.0",
+ "smallvec",
+]
+
+[[package]]
+name = "libsql-sqlite3-parser"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "735c12460491141cf29496f258b30130f5830c7923eb373fc4d1c710c2d6d62c"
+dependencies = [
+ "bitflags 2.11.0",
+ "cc",
+ "fallible-iterator 0.3.0",
+ "indexmap 2.13.1",
+ "log",
+ "memchr",
+ "phf",
+ "phf_codegen",
+ "phf_shared",
+ "smallvec",
+ "uncased",
 ]
 
 [[package]]
@@ -2637,15 +2769,55 @@ dependencies = [
 
 [[package]]
 name = "libsql-sys"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "782109ea979be605ca908c2024cba05a11b32428198a2adb5ccb05b378169903"
+dependencies = [
+ "bytes",
+ "libsql-ffi 0.3.0",
+ "libsql-rusqlite 0.31.0",
+ "once_cell",
+ "tracing",
+ "zerocopy 0.7.35",
+]
+
+[[package]]
+name = "libsql-sys"
 version = "0.9.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90725458cc4461bc82f8f7983e80b002ea4f64b5184e1462f252d0dd74b122f5"
 dependencies = [
  "bytes",
- "libsql-ffi",
- "libsql-rusqlite",
+ "libsql-ffi 0.9.30",
+ "libsql-rusqlite 0.9.30",
  "once_cell",
  "tracing",
+ "zerocopy 0.7.35",
+]
+
+[[package]]
+name = "libsql_replication"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fa2f887b42d9d966e4358d398dcba87bb229bc1f62f1229f983ce663fe264d7"
+dependencies = [
+ "aes",
+ "async-stream",
+ "async-trait",
+ "bytes",
+ "cbc",
+ "libsql-rusqlite 0.31.0",
+ "libsql-sys 0.6.0",
+ "parking_lot",
+ "prost",
+ "serde",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tonic",
+ "tracing",
+ "uuid",
  "zerocopy 0.7.35",
 ]
 
@@ -2660,8 +2832,8 @@ dependencies = [
  "async-trait",
  "bytes",
  "cbc",
- "libsql-rusqlite",
- "libsql-sys",
+ "libsql-rusqlite 0.9.30",
+ "libsql-sys 0.9.30",
  "parking_lot",
  "prost",
  "serde",
@@ -5055,12 +5227,17 @@ dependencies = [
  "percent-encoding",
  "pin-project",
  "prost",
+ "rustls-native-certs 0.7.3",
+ "rustls-pemfile",
+ "rustls-pki-types",
  "tokio",
+ "tokio-rustls 0.25.0",
  "tokio-stream",
  "tower 0.4.13",
  "tower-layer",
  "tower-service",
  "tracing",
+ "webpki-roots 0.26.11",
 ]
 
 [[package]]

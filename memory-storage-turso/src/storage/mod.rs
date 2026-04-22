@@ -26,6 +26,10 @@ pub mod recommendations;
 pub mod search;
 pub mod tag_operations;
 
+// Multi-dimensional embedding storage (feature-gated)
+#[cfg(feature = "turso_multi_dimension")]
+mod embeddings_multi;
+
 pub use batch::episode_batch::BatchConfig;
 pub use episodes::EpisodeQuery;
 pub use episodes::raw_query::EPISODE_SELECT_COLUMNS;
@@ -37,6 +41,10 @@ pub use patterns::PatternQuery;
 pub use patterns::RawPatternQuery;
 pub use tag_operations::TagStats;
 
+// Re-export dimension stats when multi-dimension feature is enabled
+#[cfg(feature = "turso_multi_dimension")]
+pub use embeddings_multi::DimensionStats;
+
 impl TursoStorage {
     // ========== Internal Embedding Methods ==========
 
@@ -44,7 +52,33 @@ impl TursoStorage {
     ///
     /// When compression is enabled, embeddings are compressed using the configured
     /// algorithm (LZ4, Zstd, or Gzip) to reduce network bandwidth.
+    ///
+    /// When turso_multi_dimension feature is enabled, routes to dimension-specific tables.
     pub async fn _store_embedding_internal(
+        &self,
+        item_id: &str,
+        item_type: &str,
+        embedding: &[f32],
+    ) -> Result<()> {
+        // Route to dimension-aware storage when multi-dimension feature is enabled
+        #[cfg(feature = "turso_multi_dimension")]
+        {
+            return self
+                .store_embedding_dimension_aware(item_id, item_type, embedding)
+                .await;
+        }
+
+        // Standard single-table storage when multi-dimension is disabled
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            self._store_embedding_single_table(item_id, item_type, embedding)
+                .await
+        }
+    }
+
+    /// Store embedding in single embeddings table (non-multi-dimension mode)
+    #[cfg(not(feature = "turso_multi_dimension"))]
+    async fn _store_embedding_single_table(
         &self,
         item_id: &str,
         item_type: &str,

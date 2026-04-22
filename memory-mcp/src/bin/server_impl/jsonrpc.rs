@@ -63,6 +63,7 @@ pub fn load_rate_limit_config() -> RateLimitConfig {
         write_requests_per_second: env_config.write_rps,
         write_burst_size: env_config.write_burst,
         cleanup_interval: std::time::Duration::from_secs(env_config.cleanup_interval_secs),
+        stale_threshold: std::time::Duration::from_secs(300),
         client_id_header: env_config.client_id_header,
     }
 }

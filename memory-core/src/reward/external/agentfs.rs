@@ -1,7 +1,23 @@
 //! AgentFS external signal provider implementation
 //!
-//! This module integrates the AgentFS SDK (agentfs-sdk) to fetch
-//! toolcall audit trails as external reward signals.
+//! This module provides a stub implementation for AgentFS SDK integration.
+//! The actual `agentfs-sdk` crate exists on crates.io (v0.6.4) but is not
+//! currently integrated as a dependency in this project.
+//!
+//! ## Current Status
+//!
+//! - **SDK Integrated**: No (stub implementation)
+//! - **Functional**: Returns empty signals when enabled (no real data)
+//! - **Error Handling**: Returns `SdkUnavailable` error if enabled without SDK
+//!
+//! ## Future Integration
+//!
+//! To enable full AgentFS integration:
+//! 1. Add `agentfs-sdk = { version = "0.6.4", optional = true }` to Cargo.toml
+//! 2. Update feature flag: `agentfs = ["dep:agentfs-sdk"]`
+//! 3. Replace stub code with actual SDK calls
+//!
+//! See ADR-050 for full integration plan.
 
 use async_trait::async_trait;
 use chrono::Utc;
@@ -125,77 +141,51 @@ impl ExternalSignalProvider for AgentFsProvider {
     }
 
     async fn get_signals(&self, episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
+        // Disabled provider returns empty signals (graceful degradation)
         if !self.config.enabled {
             return Ok(ExternalSignalSet::empty("agentfs"));
         }
 
-        if self.config.db_path.is_empty() {
-            return Err(ExternalSignalError::ConfigMissing(
-                "AgentFS database path not configured".to_string(),
-            ));
-        }
+        // SDK not integrated - return error if enabled
+        // This prevents misleading placeholder data from being used
+        return Err(ExternalSignalError::SdkUnavailable(
+            "agentfs-sdk not integrated - enable feature and add SDK dependency to use".to_string(),
+        ));
 
-        // Fetch toolcall stats from AgentFS
-        // Note: This is a placeholder for actual AgentFS SDK integration
-        // The actual implementation would use agentfs_sdk::ToolCalls
-        let tool_signals = self.fetch_tool_stats(episode);
-
-        // Calculate confidence based on sample sizes
-        let total_samples: usize = tool_signals.iter().map(|t| t.sample_count).sum();
-
-        let confidence = if total_samples == 0 {
-            0.0
-        } else {
-            (total_samples as f32 / 100.0).min(1.0) // Cap at 1.0 for 100+ samples
-        };
-
-        // Calculate episode quality from tool success rates
-        let episode_quality = if tool_signals.is_empty() {
-            None
-        } else {
-            let avg_success: f32 = tool_signals.iter().map(|t| t.success_rate).sum::<f32>()
-                / tool_signals.len() as f32;
-            Some(avg_success)
-        };
-
-        Ok(ExternalSignalSet {
-            provider: "agentfs".to_string(),
-            tool_signals,
-            episode_quality,
-            timestamp: Utc::now(),
-            confidence,
-        })
+        // The following code would be used when SDK is integrated:
+        // if self.config.db_path.is_empty() {
+        //     return Err(ExternalSignalError::ConfigMissing(
+        //         "AgentFS database path not configured".to_string(),
+        //     ));
+        // }
+        // let tool_signals = self.fetch_tool_stats(episode);
+        // ... calculate confidence and quality ...
     }
 
     async fn health_check(&self) -> ProviderHealth {
+        // Disabled provider is healthy (graceful degradation)
         if !self.config.enabled {
-            return ProviderHealth::Healthy; // Disabled is OK
+            return ProviderHealth::Healthy;
         }
 
-        if self.config.db_path.is_empty() {
-            return ProviderHealth::Unhealthy("Database path not configured".to_string());
-        }
+        // SDK not integrated - report degraded status with clear message
+        // This is "Degraded" not "Unhealthy" because the system still works
+        // without external signals; it just lacks ground truth validation
+        return ProviderHealth::Degraded(
+            "SDK not integrated - stub implementation, no real signal data available".to_string(),
+        );
 
-        // Check if database file exists
-        match tokio::fs::metadata(&self.config.db_path).await {
-            Ok(metadata) => {
-                if metadata.is_file() {
-                    ProviderHealth::Healthy
-                } else {
-                    ProviderHealth::Unhealthy(format!(
-                        "Path is not a file: {}",
-                        self.config.db_path
-                    ))
-                }
-            }
-            Err(e) => ProviderHealth::Unhealthy(format!("Cannot access database: {}", e)),
-        }
+        // The following code would be used when SDK is integrated:
+        // if self.config.db_path.is_empty() {
+        //     return ProviderHealth::Unhealthy("Database path not configured".to_string());
+        // }
+        // match tokio::fs::metadata(&self.config.db_path).await { ... }
     }
 
     fn validate_config(&self) -> Result<()> {
-        if self.config.db_path.is_empty() {
+        if self.config.db_path.is_empty() && self.config.enabled {
             return Err(ExternalSignalError::ConfigMissing(
-                "AgentFS database path required".to_string(),
+                "AgentFS database path required when enabled".to_string(),
             ));
         }
 
@@ -213,41 +203,18 @@ impl ExternalSignalProvider for AgentFsProvider {
 impl AgentFsProvider {
     /// Fetch tool statistics for an episode
     ///
-    /// This method correlates episode steps with AgentFS toolcall history.
-    fn fetch_tool_stats(&self, episode: &crate::episode::Episode) -> Vec<ToolSignal> {
-        let mut signals = Vec::new();
-
-        // For each tool used in the episode, query AgentFS stats
-        for step in &episode.steps {
-            // In the actual implementation, this would query AgentFS SDK:
-            // let tc = agentfs_sdk::ToolCalls::new(&self.config.db_path).await?;
-            // let stats = tc.stats_for(&step.tool).await?;
-
-            // Placeholder: Create synthetic signal for structure
-            // Real implementation would fetch from AgentFS
-            let signal = ToolSignal {
-                tool_name: step.tool.clone(),
-                success_rate: 0.85, // Placeholder - would come from AgentFS
-                avg_latency_ms: step.latency_ms as f64,
-                sample_count: self.config.min_correlation_samples + 10, // Placeholder
-                metadata: {
-                    let mut map = HashMap::new();
-                    map.insert("source".to_string(), serde_json::json!("agentfs"));
-                    map.insert(
-                        "episode_step".to_string(),
-                        serde_json::json!(step.step_number),
-                    );
-                    if self.config.sanitize_parameters {
-                        map.insert("sanitized".to_string(), serde_json::json!(true));
-                    }
-                    map
-                },
-            };
-
-            signals.push(signal);
-        }
-
-        signals
+    /// **STUB IMPLEMENTATION**: This method is not functional without SDK integration.
+    /// When `agentfs-sdk` is integrated, this would query the AgentFS database
+    /// for toolcall statistics matching the episode's tools.
+    ///
+    /// Returns empty vector (no real data available from stub).
+    #[allow(dead_code)] // Not used until SDK integrated
+    fn fetch_tool_stats(&self, _episode: &crate::episode::Episode) -> Vec<ToolSignal> {
+        // Stub: No real data available without SDK
+        // Real implementation would:
+        // let tc = agentfs_sdk::ToolCalls::new(&self.config.db_path).await?;
+        // let stats = tc.stats_for(&step.tool).await?;
+        Vec::new()
     }
 }
 
@@ -256,18 +223,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_config_from_env() {
-        // This test requires environment variables to be set
-        // In CI, use std::env::set_var for testing
-
-        // For unit testing without env vars, test defaults
+    fn test_config_defaults() {
         let config = AgentFsConfig::default();
-        assert!(!config.enabled);
+        assert!(!config.enabled, "Default config should be disabled");
         assert_eq!(config.external_weight, 0.3);
+        assert!(config.db_path.is_empty(), "Default db_path should be empty");
+        assert!(config.sanitize_parameters);
     }
 
     #[test]
-    fn test_provider_validation() {
+    fn test_provider_creation() {
+        let config = AgentFsConfig {
+            db_path: "/tmp/test.db".to_string(),
+            enabled: false,
+            external_weight: 0.5,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+        assert_eq!(provider.name(), "agentfs");
+        assert_eq!(provider.config().external_weight, 0.5);
+    }
+
+    #[test]
+    fn test_config_validation_valid() {
         let config = AgentFsConfig {
             db_path: "/tmp/test.db".to_string(),
             enabled: true,
@@ -281,23 +261,48 @@ mod tests {
     }
 
     #[test]
-    fn test_provider_validation_invalid_weight() {
+    fn test_config_validation_invalid_weight() {
         let config = AgentFsConfig {
             db_path: "/tmp/test.db".to_string(),
             enabled: true,
-            external_weight: 1.5, // Invalid
+            external_weight: 1.5, // Invalid: > 1.0
             min_correlation_samples: 10,
             sanitize_parameters: true,
         };
 
         let provider = AgentFsProvider::new(config);
-        assert!(provider.validate_config().is_err());
+        let result = provider.validate_config();
+        assert!(result.is_err());
+        assert!(matches!(
+            result.unwrap_err(),
+            ExternalSignalError::InvalidConfig(_)
+        ));
     }
 
-    #[tokio::test]
-    async fn test_disabled_provider_returns_empty() {
+    #[test]
+    fn test_config_validation_missing_path_when_enabled() {
         let config = AgentFsConfig {
-            db_path: "/tmp/test.db".to_string(),
+            db_path: String::new(), // Empty
+            enabled: true,
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+        let result = provider.validate_config();
+        assert!(result.is_err());
+        assert!(matches!(
+            result.unwrap_err(),
+            ExternalSignalError::ConfigMissing(_)
+        ));
+    }
+
+    #[test]
+    fn test_config_validation_disabled_no_path_required() {
+        // Disabled provider doesn require db_path
+        let config = AgentFsConfig {
+            db_path: String::new(), // Empty OK when disabled
             enabled: false,
             external_weight: 0.3,
             min_correlation_samples: 10,
@@ -305,19 +310,102 @@ mod tests {
         };
 
         let provider = AgentFsProvider::new(config);
+        assert!(provider.validate_config().is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_disabled_provider_returns_empty_signals() {
+        let config = AgentFsConfig {
+            db_path: "/tmp/test.db".to_string(),
+            enabled: false, // Disabled
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
         let episode = crate::episode::Episode::new(
-            "test".to_string(),
+            "test-episode".to_string(),
             crate::types::TaskContext::default(),
             crate::types::TaskType::Testing,
         );
 
         let signals = provider.get_signals(&episode).await.unwrap();
-        assert!(signals.tool_signals.is_empty());
+        assert!(
+            signals.tool_signals.is_empty(),
+            "Disabled provider should return empty signals"
+        );
         assert_eq!(signals.confidence, 0.0);
+        assert_eq!(signals.provider, "agentfs");
+    }
+
+    #[tokio::test]
+    async fn test_enabled_provider_returns_sdk_unavailable_error() {
+        let config = AgentFsConfig {
+            db_path: "/tmp/test.db".to_string(),
+            enabled: true, // Enabled but SDK not integrated
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+        let episode = crate::episode::Episode::new(
+            "test-episode".to_string(),
+            crate::types::TaskContext::default(),
+            crate::types::TaskType::Testing,
+        );
+
+        let result = provider.get_signals(&episode).await;
+        assert!(
+            result.is_err(),
+            "Enabled provider without SDK should return error"
+        );
+        let err = result.unwrap_err();
+        assert!(
+            matches!(err, ExternalSignalError::SdkUnavailable(_)),
+            "Error should be SdkUnavailable"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_health_check_disabled_returns_healthy() {
+        let config = AgentFsConfig {
+            db_path: String::new(),
+            enabled: false,
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+        let health = provider.health_check().await;
+        assert!(health.is_healthy(), "Disabled provider should be healthy");
+    }
+
+    #[tokio::test]
+    async fn test_health_check_enabled_returns_degraded() {
+        let config = AgentFsConfig {
+            db_path: "/tmp/test.db".to_string(),
+            enabled: true, // Enabled but SDK not integrated
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+        let health = provider.health_check().await;
+
+        // Degraded (not unhealthy) because system works without external signals
+        assert!(
+            matches!(health, ProviderHealth::Degraded(_)),
+            "Enabled provider without SDK should be degraded"
+        );
+        assert!(health.is_operational(), "Degraded is still operational");
     }
 
     #[test]
-    fn test_sanitize_parameters() {
+    fn test_sanitize_parameters_object() {
         let config = AgentFsConfig {
             db_path: "/tmp/test.db".to_string(),
             enabled: true,
@@ -336,16 +424,64 @@ mod tests {
 
         let sanitized = provider.sanitize_parameters(&params);
 
+        // Check structure preserved
         if let serde_json::Value::Object(map) = sanitized {
             assert!(map.contains_key("query"));
             assert!(map.contains_key("api_key"));
             assert!(map.contains_key("limit"));
             // All values should be redacted
             for (_, value) in map {
-                assert_eq!(value, serde_json::Value::String("[REDACTED]".to_string()));
+                assert_eq!(
+                    value,
+                    serde_json::Value::String("[REDACTED]".to_string()),
+                    "All values should be redacted"
+                );
             }
         } else {
-            panic!("Expected object");
+            panic!("Expected sanitized result to be an object");
         }
+    }
+
+    #[test]
+    fn test_sanitize_parameters_disabled() {
+        let config = AgentFsConfig {
+            db_path: "/tmp/test.db".to_string(),
+            enabled: true,
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: false, // Disabled sanitization
+        };
+
+        let provider = AgentFsProvider::new(config);
+
+        let params = serde_json::json!({
+            "query": "sensitive data"
+        });
+
+        let sanitized = provider.sanitize_parameters(&params);
+
+        // Should return original when sanitization disabled
+        assert_eq!(sanitized, params);
+    }
+
+    #[test]
+    fn test_sanitize_parameters_non_object() {
+        let config = AgentFsConfig {
+            db_path: "/tmp/test.db".to_string(),
+            enabled: true,
+            external_weight: 0.3,
+            min_correlation_samples: 10,
+            sanitize_parameters: true,
+        };
+
+        let provider = AgentFsProvider::new(config);
+
+        // Test non-object value
+        let params = serde_json::json!("string value");
+        let sanitized = provider.sanitize_parameters(&params);
+        assert_eq!(
+            sanitized,
+            serde_json::Value::String("[REDACTED]".to_string())
+        );
     }
 }

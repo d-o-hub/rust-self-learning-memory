@@ -89,6 +89,7 @@ fn test_rate_limiter_per_client_isolation() {
         write_requests_per_second: 5,
         write_burst_size: 2,
         cleanup_interval: Duration::from_secs(60),
+        stale_threshold: Duration::from_secs(300),
         client_id_header: "X-Client-ID".to_string(),
     };
     let limiter = RateLimiter::new(config);
@@ -142,6 +143,7 @@ fn test_rate_limiter_read_write_separation() {
         write_requests_per_second: 2,
         write_burst_size: 2,
         cleanup_interval: Duration::from_secs(60),
+        stale_threshold: Duration::from_secs(300),
         client_id_header: "X-Client-ID".to_string(),
     };
     let limiter = RateLimiter::new(config);
@@ -334,6 +336,7 @@ fn test_burst_allowance() {
         write_requests_per_second: 1,
         write_burst_size: 10,
         cleanup_interval: Duration::from_secs(60),
+        stale_threshold: Duration::from_secs(300),
         client_id_header: "X-Client-ID".to_string(),
     };
     let limiter = RateLimiter::new(config);

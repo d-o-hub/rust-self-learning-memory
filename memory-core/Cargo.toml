@@ -28,6 +28,8 @@ hybrid_search = []
 proptest-arbitrary = ["proptest"]
 # Enable AgentFS SDK integration for external signals
 agentfs = []
+# Enable CSM cascading retrieval (BM25 + HDC + ConceptGraph)
+csm = ["chaotic_semantic_memory"]
 
 [dependencies]
 # Async runtime
@@ -90,6 +92,9 @@ regex = "1.12"
 
 # Property testing (optional, enabled via feature flag)
 proptest = { version = "1.11", optional = true }
+
+# CSM cascading retrieval (optional, BM25 + HDC + ConceptGraph)
+chaotic_semantic_memory = { version = "0.3.2", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

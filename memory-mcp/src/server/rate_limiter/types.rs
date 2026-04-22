@@ -18,6 +18,8 @@ pub struct RateLimitConfig {
     pub write_burst_size: u32,
     /// Interval for cleaning up stale client entries
     pub cleanup_interval: Duration,
+    /// Time after which a bucket is considered stale and should be cleaned up
+    pub stale_threshold: Duration,
     /// Header name to extract client ID from
     pub client_id_header: String,
 }
@@ -31,6 +33,7 @@ impl Default for RateLimitConfig {
             write_requests_per_second: 20,
             write_burst_size: 30,
             cleanup_interval: Duration::from_secs(60),
+            stale_threshold: Duration::from_secs(300), // 5 minutes
             client_id_header: "X-Client-ID".to_string(),
         }
     }
@@ -69,6 +72,11 @@ impl RateLimitConfig {
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(60);
 
+        let stale_threshold_secs = std::env::var("MCP_RATE_LIMIT_STALE_THRESHOLD_SECS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(300);
+
         let client_id_header = std::env::var("MCP_RATE_LIMIT_CLIENT_ID_HEADER")
             .unwrap_or_else(|_| "X-Client-ID".to_string());
 
@@ -79,6 +87,7 @@ impl RateLimitConfig {
             write_requests_per_second,
             write_burst_size,
             cleanup_interval: Duration::from_secs(cleanup_interval_secs),
+            stale_threshold: Duration::from_secs(stale_threshold_secs),
             client_id_header,
         }
     }

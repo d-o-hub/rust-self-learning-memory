@@ -32,18 +32,25 @@ impl MemoryMCPServer {
         // Build provider status list
         let mut providers = vec![];
 
-        // Check AgentFS provider status (example implementation)
+        // Check AgentFS provider status
+        // NOTE: SDK is not currently integrated - stub implementation
         let agentfs_status = crate::mcp::tools::external_signals::ProviderStatus {
             name: "agentfs".to_string(),
-            configured: false, // Would check actual configuration
+            configured: false,
             enabled: false,
             connected: false,
-            last_error: None,
+            last_error: Some(
+                "SDK not integrated - stub implementation, no real signal data available"
+                    .to_string(),
+            ),
             signal_count: 0,
             weight: 0.3,
             metadata: json!({
                 "db_path": null,
                 "sanitize": true,
+                "sdk_integrated": false,
+                "stub_implementation": true,
+                "sdk_version_available": "0.6.4",
             }),
         };
 
@@ -87,5 +94,28 @@ mod tests {
             async { Ok(json!({})) }
         }
         let _ = method_signature; // Use the function to avoid unused warnings
+    }
+
+    #[test]
+    fn test_agentfs_status_has_sdk_unavailable_info() {
+        // Verify status output includes SDK unavailability information
+        let status = crate::mcp::tools::external_signals::ProviderStatus {
+            name: "agentfs".to_string(),
+            configured: false,
+            enabled: false,
+            connected: false,
+            last_error: Some("SDK not integrated".to_string()),
+            signal_count: 0,
+            weight: 0.3,
+            metadata: json!({"sdk_integrated": false}),
+        };
+
+        // Should have error message
+        assert!(status.last_error.is_some());
+        // Should indicate SDK not integrated
+        if let serde_json::Value::Object(map) = status.metadata {
+            assert!(map.contains_key("sdk_integrated"));
+            assert_eq!(map.get("sdk_integrated"), Some(&json!(false)));
+        }
     }
 }

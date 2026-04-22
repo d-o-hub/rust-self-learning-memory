@@ -375,6 +375,7 @@ cargo build --features embeddings-full
 - `openai`: OpenAI API embeddings support (do-memory-core)
 - `mistral`: Mistral AI embeddings support (do-memory-core)
 - `local-embeddings`: CPU-based local embeddings (do-memory-core)
+- `csm`: Chaotic Semantic Memory integration for cascading retrieval (do-memory-core)
 - `embeddings-full`: All embedding providers (do-memory-core)
 - `turso`: Turso cloud storage with keepalive pool (do-memory-cli)
 - `redb`: redb local cache layer (do-memory-cli, default)
@@ -382,6 +383,19 @@ cargo build --features embeddings-full
 - `wasmtime-backend`: Wasmtime WASM sandbox (do-memory-mcp, default)
 - `compression`: Network compression — lz4, zstd, gzip (do-memory-storage-turso)
 - `hybrid_search`: FTS5 hybrid search (do-memory-storage-turso)
+
+### Cascading Retrieval (with `csm` feature)
+
+When the `csm` feature is enabled, semantic search uses a 4-tier cascade to minimize API calls:
+
+| Tier | Method | CPU Cost | API Calls | When Used |
+|------|--------|----------|-----------|-----------|
+| 1 | BM25 exact match | O(n) Rayon scan | 0 | Keyword-heavy queries |
+| 2 | HDC similarity | 10,240-bit SIMD | 0 | Semantic fallback |
+| 3 | ConceptGraph expansion | Graph BFS | 0 | Known-domain synonyms |
+| 4 | API embedding | Network call | 1 | Final fallback |
+
+**Target**: 50-70% API call reduction for typical query workloads. See `agent_docs/csm_integration.md` for details.
 
 ## Configuration
 

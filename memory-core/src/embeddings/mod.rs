@@ -12,6 +12,7 @@
 //!
 //! The embedding system supports multiple providers:
 //! - **Local**: sentence-transformers via candle-transformers (offline)
+//! - **CSM HDC**: Hyperdimensional computing for CPU-only lexical matching (optional)
 //! - **`OpenAI`**: text-embedding-ada-002 and text-embedding-3.x (cloud)
 //! - **Mistral**: mistral-embed and codestral-embed (cloud)
 //! - **Azure `OpenAI`**: Azure-hosted OpenAI embeddings

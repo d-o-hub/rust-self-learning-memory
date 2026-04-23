@@ -301,9 +301,11 @@ mod utils_tests {
 
     #[test]
     fn test_rank_patterns_negative_delta() {
-        let mut effectiveness = PatternEffectiveness::default();
-        effectiveness.avg_reward_delta = -0.1;
-        effectiveness.times_applied = 1;
+        let effectiveness = PatternEffectiveness {
+            avg_reward_delta: -0.1,
+            times_applied: 1,
+            ..Default::default()
+        };
 
         let patterns = vec![Pattern::ToolSequence {
             id: uuid::Uuid::new_v4(),

@@ -282,7 +282,7 @@ fn test_accumulator_batch_add() {
 
     let items: Vec<ContextItem> = (0..5)
         .map(|i| {
-            let ep = create_test_episode_with_id(format!("ep{}", i).as_str(), i);
+            let ep = create_test_episode_with_id(format!("ep{i}").as_str(), i);
             ContextItem::from_episode(ep, 0.5 + i as f32 * 0.1)
         })
         .collect();
@@ -413,7 +413,7 @@ fn test_accumulator_clear() {
 #[test]
 fn test_from_episodes_convenience() {
     let episodes: Vec<Arc<Episode>> = (0..5)
-        .map(|i| create_test_episode_with_id(format!("ep{}", i).as_str(), i))
+        .map(|i| create_test_episode_with_id(format!("ep{i}").as_str(), i))
         .collect();
 
     // Simple salience function (based on reward)
@@ -432,7 +432,7 @@ fn test_from_episodes_convenience() {
 #[test]
 fn test_from_episodes_with_config() {
     let episodes: Vec<Arc<Episode>> = (0..15)
-        .map(|i| create_test_episode_with_id(format!("ep{}", i).as_str(), i))
+        .map(|i| create_test_episode_with_id(format!("ep{i}").as_str(), i))
         .collect();
 
     // Use token-efficient config (max 10)

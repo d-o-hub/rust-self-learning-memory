@@ -238,12 +238,12 @@ mod tests {
         let internal = create_test_reward();
         let external: Vec<ExternalSignalSet> = vec![];
 
-        let merged = merger.merge(&internal, &external);
+        let result = merger.merge(&internal, &external);
 
         // Should use internal values
-        assert_eq!(merged.base, internal.base);
-        assert_eq!(merged.efficiency, internal.efficiency);
-        assert_eq!(merged.confidence, 0.0);
+        assert_eq!(result.base, internal.base);
+        assert_eq!(result.efficiency, internal.efficiency);
+        assert_eq!(result.confidence, 0.0);
     }
 
     #[test]
@@ -265,12 +265,12 @@ mod tests {
             confidence: 0.8,
         };
 
-        let merged = merger.merge(&internal, &[external]);
+        let result = merger.merge(&internal, &[external]);
 
         // Should be a blend of internal and external
-        assert!(merged.base > internal.base); // External success (0.9) > internal (0.8)
-        assert!(merged.base < 0.9);
-        assert_eq!(merged.confidence, 0.8);
+        assert!(result.base > internal.base); // External success (0.9) > internal (0.8)
+        assert!(result.base < 0.9);
+        assert_eq!(result.confidence, 0.8);
     }
 
     #[test]
@@ -293,9 +293,9 @@ mod tests {
             confidence: 0.9,
         };
 
-        let merged = merger.merge(&internal, &[external]);
+        let result = merger.merge(&internal, &[external]);
 
         // Should prefer external (0.5) over internal (0.8)
-        assert_eq!(merged.base, 0.5);
+        assert_eq!(result.base, 0.5);
     }
 }

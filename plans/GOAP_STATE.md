@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-23 (v0.1.31 post-release audit)
-- **Version**: `0.1.31` (workspace, released)
+- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
+- **Version**: `0.1.30` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -44,16 +44,16 @@
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
 | Verify v0.1.30 release/package parity | WG-111 | ✅ Complete | github-release-best-practices |
-| Bump to 0.1.31 | WG-112 | ✅ Complete | feature-implement |
+| Bump to 0.1.31 | WG-112 | 🔵 Planned | feature-implement |
 | Refresh stale truth sources | WG-113 | ✅ Complete | agents-update |
 
 ### Phase 1: CPU Efficiency (Parallel)
 
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
-| Reduce QueryCache contention | WG-114 | ✅ Complete | PR #450 merged (parking_lot::RwLock) |
-| Replace placeholder cached retrieval | WG-115 | 🟡 In Progress | cascade pipeline implementation |
-| Tune compression/cache CPU budget | WG-116 | ✅ Complete | thresholds well-tuned (1KB threshold, Zstd preferred) |
+| Reduce QueryCache contention | WG-114 | 🔵 Planned | performance |
+| Replace placeholder cached retrieval | WG-115 | 🔵 Planned | feature-implement |
+| Tune compression/cache CPU budget | WG-116 | 🔵 Planned | performance |
 
 ### Phase 1.5: CSM Integration ✅ Complete (crate dependency)
 
@@ -64,15 +64,15 @@
 | BM25 keyword index from CSM | WG-128 | ✅ Complete | crate dependency |
 | HDC local embedding fallback | WG-129 | ✅ Complete | crate dependency |
 | ConceptGraph ontology expansion | WG-130 | ✅ Complete | crate dependency |
-| Cascading retrieval pipeline | WG-131 | 🟡 In Progress | cascade.rs placeholder being implemented |
+| Cascading retrieval pipeline | WG-131 | 🔵 Planned | feature-implement |
 
 ### Phase 2: Token Efficiency (Parallel with Phase 1)
 
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
-| Implement BundleAccumulator window | WG-117 | ✅ Complete | feature-implement |
+| Implement BundleAccumulator window | WG-117 | 🔵 Planned | feature-implement |
 | Add hierarchical/gist reranking | WG-118 | ✅ Complete | feature-implement |
-| Compact high-frequency skills/docs | WG-119 | ✅ Complete | skills at 2,660 LOC (under 4,000 target) |
+| Compact high-frequency skills/docs | WG-119 | 🔵 Planned | agents-update |
 
 ### Phase 3: Research-Inspired Retrieval Upgrades (Deferred)
 
@@ -191,22 +191,22 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.31 | — |
-| Latest GitHub release | v0.1.31 | verified 2026-04-22 |
-| Publishable workspace crates | 6 | all at 0.1.31 |
-| Total tests | 2,924 | — |
+| Workspace version | 0.1.30 | — |
+| Latest GitHub release | v0.1.30 | verified 2026-04-20 |
+| Publishable workspace crates | 6 | all at 0.1.30 |
+| Total tests | 2,856 | — |
 | Ignored tests | 123 skipped | ceiling ≤125 |
-| `allow(dead_code)` (prod src) | 30 | ≤25 | ⚠️ slightly over (API reserves/future features) |
+| `allow(dead_code)` (prod) | 0 | ≤25 | ✅ All in test/bench files (36 total) |
 | Clippy | Clean | 0 warnings |
 | Doctests | 0 failures | 0 |
 | Skills count | 31 | ✅ target ≤35 met |
-| Skills LOC | 2,660 | ✅ under 4,000 target |
+| Skills LOC | re-audit | minimize high-frequency prompt load |
 | Clippy suppressions (lib.rs) | 64 | ≤20 |
 | Files >500 LOC | 0 | 0 |
 | Cargo audit | 3 unmaintained warnings | transitive |
 | Dependabot alerts | 3 open | all transitive, tracked |
 | CodeQL alerts | 0 open | ✅ fixed |
-| CSM integration | ✅ Tiers complete, pipeline placeholder | BM25+HDC+ConceptGraph cascade |
+| CSM integration | Not started | BM25+HDC+ConceptGraph cascade |
 
 ---
 

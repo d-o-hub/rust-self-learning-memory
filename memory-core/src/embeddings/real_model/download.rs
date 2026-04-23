@@ -219,6 +219,7 @@ async fn attempt_download(url: &str, path: &std::path::Path) -> anyhow::Result<(
 /// Validate that a downloaded file exists and is readable
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
 pub fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> anyhow::Result<()> {
+    use std::io::Read;
     if !path.exists() {
         return Err(anyhow::anyhow!(
             "Downloaded file not found: {}",
@@ -237,7 +238,6 @@ pub fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> anyho
     }
 
     // Try to read a small portion to verify file is readable
-    use std::io::Read;
     let mut file = std::fs::File::open(path)
         .with_context(|| format!("Failed to open file for validation: {}", path.display()))?;
 

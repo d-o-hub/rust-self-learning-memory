@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-23 (v0.1.31 post-release audit)
-**Released Version**: v0.1.31 (crates.io + GitHub Release)
+**Last Updated**: 2026-04-22 (fresh metrics collection + analysis refresh)
+**Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 planning
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -13,19 +13,19 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.31 | — | ✅ |
-| Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 2,924 | — | ✅ All passing |
+| Workspace version | 0.1.30 | — | ✅ |
+| Latest GitHub release | v0.1.30 | — | ✅ Published 2026-04-16 |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.30` |
+| Total tests | 2,902 | — | 2,901 passing, 1 flaky (pre-existing) |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
 | Production src files >500 LOC | 0 | 0 | ✅ Met |
-| `#[allow(dead_code)]` (prod src) | 30 | ≤25 | ⚠️ Slightly over (API reserves/future features) |
-| CSM integration | ✅ Tiers complete | BM25+HDC+ConceptGraph cascade | WG-128/129/130 via crate, WG-131 pipeline placeholder |
+| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features) |
+| CSM integration | Complete | BM25+HDC+ConceptGraph cascade | ✅ WG-128/129/130/131 via crate dependency |
 | Stale analysis docs | 0 | 0 | ✅ Both refreshed 2026-04-22 |
-| Skills count | 31 | ≤35 | ✅ Target met |
-| Skills LOC | 2,660 | ≤4,000 | ✅ Compact high-frequency skills |
+| Skills count | 31 | ≤35 | ✅ Target met (consolidated in PR #460) |
+| Skills LOC | ~3,500 | ≤4,000 | ✅ Compact high-frequency skills |
 | Snapshot tests | 80 | ≥80 | ✅ Target met |
 | Property test files | 17 | ≥13 | ✅ Exceeds target |
 | Property test occurrences | 154 | — | New metric (2026-04-22) |
@@ -40,19 +40,13 @@
 - **Zero-copy Retrieval Caching**: Bolt optimization for episodic memory
 - **Agent Skills**: Added `memory-context` and `learn` skills
 
-## v0.1.31 Sprint Status (2026-04-23)
+## v0.1.31 Planning Focus
 
-**Completed Tasks**:
-- ✅ WG-114: QueryCache contention (PR #450 merged - parking_lot::RwLock)
-- ✅ WG-116: Cache thresholds well-tuned (1KB compression threshold, Zstd preferred)
-- ✅ WG-117: BundleAccumulator window implemented
-- ✅ WG-118: Hierarchical/gist reranking complete
-- ✅ WG-119: Skills compacted (2,660 LOC, under 4,000 target)
-- ✅ WG-128/129/130: CSM tier integration (BM25, HDC, ConceptGraph via crate)
-
-**In Progress**:
-- 🟡 WG-115/WG-131: Cascade retrieval pipeline (placeholder in cascade.rs)
-- 🟡 Dead_code audit (30 annotations, target ≤25)
+- **CSM integration**: Cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API) to eliminate 50-70% of embedding API calls
+- **CPU efficiency**: QueryCache contention, cached retrieval wiring, compression/cache thresholds
+- **Token efficiency**: bounded context windows, hierarchical/gist reranking, compact high-frequency skills/docs
+- **Housekeeping**: Create missing `performance` skill, prune skills 40→≤35, fix metric contradictions, refresh stale analysis docs
+- **Release/package hygiene**: keep GitHub release, package versions, and planning docs aligned before the `0.1.31` bump
 
 ## v0.1.28 Release Highlights
 

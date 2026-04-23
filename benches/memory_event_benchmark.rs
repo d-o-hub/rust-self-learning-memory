@@ -44,7 +44,7 @@ fn bench_broadcast_single_receiver(c: &mut Criterion) {
 
                 // Receive all events
                 let mut count = 0;
-                while let Ok(_) = rx.try_recv() {
+                while rx.try_recv().is_ok() {
                     count += 1;
                 }
                 black_box(count);
@@ -56,6 +56,7 @@ fn bench_broadcast_single_receiver(c: &mut Criterion) {
 }
 
 /// Benchmark: Single sender, multiple receivers (fan-out)
+#[allow(clippy::excessive_nesting)]
 fn bench_broadcast_fan_out(c: &mut Criterion) {
     let mut group = c.benchmark_group("broadcast_fan_out");
 
@@ -76,7 +77,7 @@ fn bench_broadcast_fan_out(c: &mut Criterion) {
                     // All receivers should get all events
                     for mut rx in receivers {
                         let mut count = 0;
-                        while let Ok(_) = rx.try_recv() {
+                        while rx.try_recv().is_ok() {
                             count += 1;
                         }
                         black_box(count);
@@ -137,7 +138,7 @@ fn bench_lifecycle_simulation(c: &mut Criterion) {
 
                 // Receive events
                 let mut count = 0;
-                while let Ok(_) = rx.try_recv() {
+                while rx.try_recv().is_ok() {
                     count += 1;
                 }
                 black_box(count);
@@ -149,6 +150,7 @@ fn bench_lifecycle_simulation(c: &mut Criterion) {
 }
 
 /// Benchmark: Channel capacity stress test
+#[allow(clippy::excessive_nesting)]
 fn bench_capacity_stress(c: &mut Criterion) {
     let mut group = c.benchmark_group("capacity_stress");
 
@@ -165,7 +167,7 @@ fn bench_capacity_stress(c: &mut Criterion) {
 
                     // Drain
                     let mut count = 0;
-                    while let Ok(_) = rx.try_recv() {
+                    while rx.try_recv().is_ok() {
                         count += 1;
                     }
                     black_box(count);

@@ -323,7 +323,7 @@ mod tests {
         let now = Utc::now();
         for i in 0..5 {
             let mut episode = Episode::new(
-                format!("task-{}", i),
+                format!("task-{i}"),
                 TaskContext::default(),
                 TaskType::CodeGeneration,
             );

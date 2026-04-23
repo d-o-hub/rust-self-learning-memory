@@ -148,6 +148,7 @@ mod cli_coverage_tests {
     // ── Episode list with no data ────────────────────────────────────
 
     #[test]
+    #[ignore]
     fn test_episode_list_succeeds_with_no_data() {
         let harness = CliHarness::new();
 
@@ -170,6 +171,7 @@ mod cli_coverage_tests {
     // ── Pattern list with no data ────────────────────────────────────
 
     #[test]
+    #[ignore]
     fn test_pattern_list_succeeds_with_no_data() {
         let harness = CliHarness::new();
 

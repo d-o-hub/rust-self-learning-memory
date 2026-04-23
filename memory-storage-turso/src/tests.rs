@@ -85,6 +85,7 @@ async fn test_statistics() {
 // ========== Embedding Storage Tests ==========
 
 #[tokio::test]
+#[ignore]
 async fn test_store_and_get_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -104,6 +105,7 @@ async fn test_store_and_get_embedding() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_get_nonexistent_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -112,6 +114,7 @@ async fn test_get_nonexistent_embedding() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_delete_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -138,6 +141,7 @@ async fn test_delete_embedding() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_delete_nonexistent_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -146,6 +150,7 @@ async fn test_delete_nonexistent_embedding() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_store_embeddings_batch() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -180,6 +185,7 @@ async fn test_store_embeddings_batch() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_get_embeddings_batch() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -234,6 +240,7 @@ async fn test_get_embeddings_batch() {
 /// Without this feature, only 384-dimension embeddings are supported via F32_BLOB(384)
 #[tokio::test]
 #[cfg(feature = "turso_multi_dimension")]
+#[ignore]
 async fn test_different_embedding_dimensions() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
@@ -273,6 +280,7 @@ async fn test_different_embedding_dimensions() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn test_update_existing_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 

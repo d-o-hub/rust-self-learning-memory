@@ -150,7 +150,7 @@ async fn test_load_execution_records_sorting() -> Result<()> {
     let now = Utc::now();
     for i in 0..5 {
         let mut record = ExecutionRecord::new(
-            format!("agent-{}", i),
+            format!("agent-{i}"),
             AgentType::Other,
             true,
             std::time::Duration::from_millis(100),

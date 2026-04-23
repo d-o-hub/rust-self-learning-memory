@@ -20,8 +20,6 @@
 //! See ADR-050 for full integration plan.
 
 use async_trait::async_trait;
-use chrono::Utc;
-use std::collections::HashMap;
 
 use super::{
     ExternalSignalError, ExternalSignalProvider, ExternalSignalSet, ProviderHealth, Result,
@@ -140,7 +138,7 @@ impl ExternalSignalProvider for AgentFsProvider {
         "agentfs"
     }
 
-    async fn get_signals(&self, episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
+    async fn get_signals(&self, _episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
         // Disabled provider returns empty signals (graceful degradation)
         if !self.config.enabled {
             return Ok(ExternalSignalSet::empty("agentfs"));
@@ -209,7 +207,7 @@ impl AgentFsProvider {
     ///
     /// Returns empty vector (no real data available from stub).
     #[allow(dead_code)] // Not used until SDK integrated
-    fn fetch_tool_stats(&self, _episode: &crate::episode::Episode) -> Vec<ToolSignal> {
+    fn fetch_tool_stats(&self, __episode: &crate::episode::Episode) -> Vec<ToolSignal> {
         // Stub: No real data available without SDK
         // Real implementation would:
         // let tc = agentfs_sdk::ToolCalls::new(&self.config.db_path).await?;

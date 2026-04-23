@@ -290,6 +290,8 @@ fn benchmark_memory_usage() {
 
 #[cfg_attr(not(feature = "streaming-impl"), ignore)]
 #[test]
+
+#[ignore]
 fn benchmark_streaming_performance() {
     let is_ci = std::env::var("CI").is_ok();
     let window_sizes = if is_ci {

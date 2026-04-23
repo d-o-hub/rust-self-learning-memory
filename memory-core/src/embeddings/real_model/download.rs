@@ -4,6 +4,7 @@
 
 #[cfg(feature = "local-embeddings")]
 use anyhow::Context;
+use std::io::Read;
 
 #[cfg(all(feature = "local-embeddings", feature = "reqwest"))]
 use reqwest::Client;
@@ -237,7 +238,6 @@ pub fn validate_downloaded_file(path: &std::path::Path, filename: &str) -> anyho
     }
 
     // Try to read a small portion to verify file is readable
-    use std::io::Read;
     let mut file = std::fs::File::open(path)
         .with_context(|| format!("Failed to open file for validation: {}", path.display()))?;
 

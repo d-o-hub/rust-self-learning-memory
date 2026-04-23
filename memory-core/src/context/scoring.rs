@@ -119,7 +119,7 @@ mod tests {
         let recent = now - chrono::Duration::days(1);
 
         let score = calculate_recency_score(recent, now, 30.0);
-        assert!(score > 0.9, "Recent item should have high score: {}", score);
+        assert!(score > 0.9, "Recent item should have high score: {score}");
     }
 
     #[test]
@@ -130,8 +130,7 @@ mod tests {
         let score = calculate_recency_score(half_life_old, now, 30.0);
         assert!(
             (score - 0.5).abs() < 0.01,
-            "Item at half_life should have ~0.5 score: {}",
-            score
+            "Item at half_life should have ~0.5 score: {score}"
         );
     }
 
@@ -141,7 +140,7 @@ mod tests {
         let old = now - chrono::Duration::days(90);
 
         let score = calculate_recency_score(old, now, 30.0);
-        assert!(score < 0.2, "Old item should have low score: {}", score);
+        assert!(score < 0.2, "Old item should have low score: {score}");
     }
 
     #[test]
@@ -157,8 +156,7 @@ mod tests {
         // Priority = (1.0*0.5 + 0.8*0.5) / 1.0 = 0.9
         assert!(
             (priority - 0.9).abs() < 0.01,
-            "Expected ~0.9 priority: {}",
-            priority
+            "Expected ~0.9 priority: {priority}"
         );
     }
 
@@ -178,9 +176,7 @@ mod tests {
         let expected = (recency * 0.8 + 0.9 * 0.2) / 1.0;
         assert!(
             (priority - expected).abs() < 0.01,
-            "Expected {}: {}",
-            expected,
-            priority
+            "Expected {expected}: {priority}"
         );
     }
 

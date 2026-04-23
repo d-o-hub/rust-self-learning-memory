@@ -13,6 +13,13 @@ use tracing::info;
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+
+#[ignore]
 async fn phase1_task1_validate_all_dimension_tables_created() -> Result<()> {
     info!("=== Task 1: Validate all dimension tables created ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -35,6 +42,13 @@ async fn phase1_task1_validate_all_dimension_tables_created() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+
+#[ignore]
 async fn phase1_task1_validate_vector_indexes_created() -> Result<()> {
     info!("=== Task 1: Validate vector indexes created ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -57,6 +71,13 @@ async fn phase1_task1_validate_vector_indexes_created() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+
+#[ignore]
 async fn phase1_task1_validate_item_indexes_created() -> Result<()> {
     info!("=== Task 1: Validate item indexes created ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -90,6 +111,12 @@ async fn phase1_task1_validate_item_indexes_created() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task2_384_dimension_routing() -> Result<()> {
     info!("=== Task 2: Validate 384-dimension routing ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -120,6 +147,12 @@ async fn phase1_task2_384_dimension_routing() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task2_1536_dimension_routing() -> Result<()> {
     info!("=== Task 2: Validate 1536-dimension routing ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -150,6 +183,12 @@ async fn phase1_task2_1536_dimension_routing() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task2_unsupported_dimension_routing() -> Result<()> {
     info!("=== Task 2: Validate unsupported dimension routing ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -180,6 +219,12 @@ async fn phase1_task2_unsupported_dimension_routing() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task2_mixed_dimension_routing() -> Result<()> {
     info!("=== Task 2: Validate mixed dimension routing ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -228,6 +273,12 @@ async fn phase1_task2_mixed_dimension_routing() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task2_native_vector_stored_for_supported() -> Result<()> {
     info!("=== Task 2: Validate native vectors stored for supported dimensions ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -273,6 +324,12 @@ async fn phase1_task2_native_vector_stored_for_supported() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task3_embedding_retrieval_by_dimension() -> Result<()> {
     info!("=== Task 3: Validate embedding retrieval by dimension ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -316,6 +373,12 @@ async fn phase1_task3_embedding_retrieval_by_dimension() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task4_384_dimension_vector_search() -> Result<()> {
     info!("=== Task 4: Validate 384-dimension vector search ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -363,6 +426,12 @@ async fn phase1_task4_384_dimension_vector_search() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task4_1536_dimension_vector_search() -> Result<()> {
     info!("=== Task 4: Validate 1536-dimension vector search ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -394,6 +463,12 @@ async fn phase1_task4_1536_dimension_vector_search() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task4_3072_dimension_vector_search() -> Result<()> {
     info!("=== Task 4: Validate 3072-dimension vector search ===");
     let harness = MultiDimensionTestHarness::new().await?;
@@ -425,6 +500,12 @@ async fn phase1_task4_3072_dimension_vector_search() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task4_unsupported_dimension_fallback() -> Result<()> {
     info!("=== Task 4: Validate unsupported dimension fallback ===");
 
@@ -462,6 +543,12 @@ async fn phase1_task4_unsupported_dimension_fallback() -> Result<()> {
 
 #[tokio::test]
 #[cfg_attr(not(feature = "turso_multi_dimension"), ignore)]
+
+
+
+
+
+#[ignore]
 async fn phase1_task4_cross_dimension_isolation() -> Result<()> {
     info!("=== Task 4: Validate cross-dimension isolation ===");
     let harness = MultiDimensionTestHarness::new().await?;

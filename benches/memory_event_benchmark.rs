@@ -1,3 +1,4 @@
+#![allow(clippy::excessive_nesting, clippy::redundant_pattern_matching)]
 //! MemoryEvent Broadcast Channel Benchmarks
 //!
 //! Benchmarks for the tokio::sync::broadcast channel used for lifecycle events.

@@ -2,12 +2,12 @@
 
 use crate::pattern::Pattern;
 use crate::types::TaskContext;
+use chrono::{DateTime, Utc};
+use std::collections::HashSet;
 
 /// Remove duplicate patterns from a list
 #[must_use]
 pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
-    use std::collections::HashSet;
-
     let mut seen = HashSet::new();
     let mut deduplicated = Vec::new();
 
@@ -23,20 +23,34 @@ pub fn deduplicate_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
 }
 
 /// Rank patterns by relevance/quality
+///
+/// Optimization: Uses Schwartzian Transform (decorate-sort-undecorate) to calculate
+/// pattern scores exactly once per item, reducing complexity from O(N log N) to O(N).
+/// Also pre-calculates the query context tag set to avoid redundant HashSet creation.
 #[must_use]
-pub fn rank_patterns(mut patterns: Vec<Pattern>, context: &TaskContext) -> Vec<Pattern> {
-    // Sort patterns by a composite score considering multiple factors
-    patterns.sort_by(|a, b| {
-        let score_a = calculate_pattern_score(a, context);
-        let score_b = calculate_pattern_score(b, context);
+pub fn rank_patterns(patterns: Vec<Pattern>, context: &TaskContext) -> Vec<Pattern> {
+    if patterns.is_empty() {
+        return patterns;
+    }
 
-        // Sort in descending order (higher score first)
-        score_b
-            .partial_cmp(&score_a)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    let query_tags: HashSet<_> = context.tags.iter().collect();
+    let now = Utc::now();
 
-    patterns
+    // Decorate: Calculate scores once
+    let mut decorated: Vec<(f64, Pattern)> = patterns
+        .into_iter()
+        .map(|p| {
+            let score = calculate_pattern_score(&p, context, &query_tags, now);
+            (score, p)
+        })
+        .collect();
+
+    // Sort: Use pre-calculated scores
+    // Sort in descending order (higher score first)
+    decorated.sort_unstable_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Undecorate: Remove scores
+    decorated.into_iter().map(|(_, p)| p).collect()
 }
 
 /// Calculate a relevance score for a pattern given the current context
@@ -47,7 +61,12 @@ pub fn rank_patterns(mut patterns: Vec<Pattern>, context: &TaskContext) -> Vec<P
 /// - Context relevance: 0-100 points
 /// - Pattern type bonuses: 0-50 points
 /// - **Effectiveness tracking: 0-200 points** (NEW)
-fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> f64 {
+fn calculate_pattern_score(
+    pattern: &Pattern,
+    current_context: &TaskContext,
+    query_tags: &HashSet<&String>,
+    now: DateTime<Utc>,
+) -> f64 {
     let mut score = 0.0;
 
     // Base score from success rate (0-100 points)
@@ -59,14 +78,14 @@ fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> 
 
     // Context relevance bonus (0-100 points)
     if let Some(pattern_context) = pattern.context() {
-        score += calculate_context_similarity(pattern_context, current_context) * 100.0;
+        score += calculate_context_similarity(pattern_context, current_context, query_tags) * 100.0;
     }
 
     // Pattern type specific bonuses
     match pattern {
         Pattern::ToolSequence { tools, .. } => {
             // Prefer patterns with diverse tool usage
-            let unique_tools = tools.iter().collect::<std::collections::HashSet<_>>().len();
+            let unique_tools = tools.iter().collect::<HashSet<_>>().len();
             score += (unique_tools as f64 / tools.len() as f64) * 20.0;
         }
         Pattern::ErrorRecovery { .. } => {
@@ -115,8 +134,7 @@ fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> 
     // 4. Recency bonus (0-10 points)
     // Recently used patterns are more likely to be relevant
     if effectiveness.times_applied > 0 {
-        use chrono::Utc;
-        let days_since_use = (Utc::now() - effectiveness.last_used).num_days();
+        let days_since_use = (now - effectiveness.last_used).num_days();
         if days_since_use < 30 {
             score += (30.0 - days_since_use as f64) / 30.0 * 10.0;
         }
@@ -126,7 +144,13 @@ fn calculate_pattern_score(pattern: &Pattern, current_context: &TaskContext) -> 
 }
 
 /// Calculate similarity between two task contexts (0.0 to 1.0)
-fn calculate_context_similarity(a: &TaskContext, b: &TaskContext) -> f64 {
+///
+/// Optimization: query_tags is pre-calculated to avoid O(N) allocations in O(N log N) context.
+fn calculate_context_similarity(
+    a: &TaskContext,
+    b: &TaskContext,
+    query_tags: &HashSet<&String>,
+) -> f64 {
     let mut similarity = 0.0;
     let mut factors = 0.0;
 
@@ -155,11 +179,10 @@ fn calculate_context_similarity(a: &TaskContext, b: &TaskContext) -> f64 {
     factors += 1.0;
 
     // Tag overlap (variable weight based on overlap)
-    if !a.tags.is_empty() || !b.tags.is_empty() {
-        let a_tags: std::collections::HashSet<_> = a.tags.iter().collect();
-        let b_tags: std::collections::HashSet<_> = b.tags.iter().collect();
-        let intersection = a_tags.intersection(&b_tags).count();
-        let union = a_tags.union(&b_tags).count();
+    if !a.tags.is_empty() || !query_tags.is_empty() {
+        let a_tags: HashSet<_> = a.tags.iter().collect();
+        let intersection = a_tags.intersection(query_tags).count();
+        let union = a_tags.union(query_tags).count();
 
         if union > 0 {
             similarity += (intersection as f64 / union as f64) * 0.7;

@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-22 (fresh metrics collection + analysis refresh)
-**Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 planning
+**Last Updated**: 2026-04-22 (v0.1.31 release)
+**Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -13,9 +13,9 @@
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Workspace members | 9 | — | — |
-| Workspace version | 0.1.30 | — | ✅ |
-| Latest GitHub release | v0.1.30 | — | ✅ Published 2026-04-16 |
-| Publishable workspace crates | 6 | — | ✅ All at `0.1.30` |
+| Workspace version | 0.1.31 | — | ✅ |
+| Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
+| Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
 | Total tests | 2,902 | — | 2,901 passing, 1 flaky (pre-existing) |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |

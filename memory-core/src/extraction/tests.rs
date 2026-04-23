@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::{
-    Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType,
+    ComplexityLevel, Episode, ExecutionStep, OutcomeStats, TaskContext, TaskOutcome, TaskType,
     pattern::{Pattern, PatternEffectiveness},
 };
 use chrono::Duration;
@@ -205,5 +205,119 @@ mod utils_tests {
         let context = TaskContext::default();
         let ranked = super::utils::rank_patterns(patterns, &context);
         assert_eq!(ranked.len(), 0);
+    }
+
+    #[test]
+    fn test_rank_patterns_with_tags() {
+        let patterns = vec![
+            Pattern::ToolSequence {
+                id: uuid::Uuid::new_v4(),
+                tools: vec!["tool1".to_string()],
+                context: TaskContext {
+                    tags: vec!["async".to_string(), "performance".to_string()],
+                    ..Default::default()
+                },
+                success_rate: 0.8,
+                avg_latency: Duration::milliseconds(100),
+                occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
+            },
+            Pattern::ToolSequence {
+                id: uuid::Uuid::new_v4(),
+                tools: vec!["tool2".to_string()],
+                context: TaskContext {
+                    tags: vec!["other".to_string()],
+                    ..Default::default()
+                },
+                success_rate: 0.8,
+                avg_latency: Duration::milliseconds(100),
+                occurrence_count: 5,
+                effectiveness: PatternEffectiveness::default(),
+            },
+        ];
+
+        let query_context = TaskContext {
+            tags: vec!["async".to_string()],
+            ..Default::default()
+        };
+
+        let ranked = super::utils::rank_patterns(patterns, &query_context);
+
+        assert_eq!(ranked.len(), 2);
+        // Pattern with matching tags should come first
+        match &ranked[0] {
+            Pattern::ToolSequence { context, .. } => {
+                assert!(context.tags.contains(&"async".to_string()));
+            }
+            _ => panic!("Expected ToolSequence"),
+        }
+    }
+
+    #[test]
+    fn test_rank_patterns_comprehensive() {
+        let context = TaskContext {
+            language: Some("rust".to_string()),
+            framework: Some("tokio".to_string()),
+            complexity: ComplexityLevel::Moderate,
+            domain: "testing".to_string(),
+            tags: vec!["async".to_string()],
+        };
+
+        let patterns = vec![
+            Pattern::DecisionPoint {
+                id: uuid::Uuid::new_v4(),
+                condition: "cond".to_string(),
+                action: "act".to_string(),
+                outcome_stats: OutcomeStats {
+                    total_count: 10,
+                    success_count: 8,
+                    failure_count: 2,
+                    avg_duration_secs: 1.0,
+                },
+                context: context.clone(),
+                effectiveness: PatternEffectiveness::default(),
+            },
+            Pattern::ErrorRecovery {
+                id: uuid::Uuid::new_v4(),
+                error_type: "err".to_string(),
+                recovery_steps: vec!["step".to_string()],
+                success_rate: 0.9,
+                context: context.clone(),
+                effectiveness: PatternEffectiveness::default(),
+            },
+            Pattern::ContextPattern {
+                id: uuid::Uuid::new_v4(),
+                context_features: vec!["feat".to_string()],
+                recommended_approach: "approach".to_string(),
+                evidence: vec![uuid::Uuid::new_v4()],
+                success_rate: 0.7,
+                effectiveness: PatternEffectiveness::default(),
+            },
+        ];
+
+        let ranked = super::utils::rank_patterns(patterns, &context);
+        assert_eq!(ranked.len(), 3);
+    }
+
+    #[test]
+    fn test_rank_patterns_negative_delta() {
+        let effectiveness = PatternEffectiveness {
+            avg_reward_delta: -0.1,
+            times_applied: 1,
+            ..Default::default()
+        };
+
+        let patterns = vec![Pattern::ToolSequence {
+            id: uuid::Uuid::new_v4(),
+            tools: vec!["tool1".to_string()],
+            context: TaskContext::default(),
+            success_rate: 0.8,
+            avg_latency: Duration::milliseconds(100),
+            occurrence_count: 5,
+            effectiveness,
+        }];
+
+        let ranked = super::utils::rank_patterns(patterns, &TaskContext::default());
+        assert_eq!(ranked.len(), 1);
     }
 }

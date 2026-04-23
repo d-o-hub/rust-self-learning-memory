@@ -207,11 +207,13 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
+    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
+    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }
@@ -251,11 +253,13 @@ impl RealEmbeddingModel {
     }
 
     /// Get model name
+    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Get embedding dimension
+    #[allow(dead_code)]
     pub fn dimension(&self) -> usize {
         self.dimension
     }

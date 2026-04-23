@@ -20,8 +20,6 @@
 //! See ADR-050 for full integration plan.
 
 use async_trait::async_trait;
-use chrono::Utc;
-use std::collections::HashMap;
 
 use super::{
     ExternalSignalError, ExternalSignalProvider, ExternalSignalSet, ProviderHealth, Result,
@@ -140,7 +138,7 @@ impl ExternalSignalProvider for AgentFsProvider {
         "agentfs"
     }
 
-    async fn get_signals(&self, episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
+    async fn get_signals(&self, _episode: &crate::episode::Episode) -> Result<ExternalSignalSet> {
         // Disabled provider returns empty signals (graceful degradation)
         if !self.config.enabled {
             return Ok(ExternalSignalSet::empty("agentfs"));

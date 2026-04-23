@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-22 (v0.1.31 release)
-- **Version**: `0.1.31` (workspace, released)
+- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
+- **Version**: `0.1.30` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -9,7 +9,7 @@
 
 ---
 
-## v0.1.31 Sprint (Complete ✅)
+## v0.1.31 Sprint (Planning 🔵)
 
 ### GOAP Analysis (2026-04-20)
 
@@ -191,9 +191,9 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.31 | — |
-| Latest GitHub release | v0.1.31 | verified 2026-04-22 |
-| Publishable workspace crates | 6 | all at 0.1.31 |
+| Workspace version | 0.1.30 | — |
+| Latest GitHub release | v0.1.30 | verified 2026-04-20 |
+| Publishable workspace crates | 6 | all at 0.1.30 |
 | Total tests | 2,856 | — |
 | Ignored tests | 123 skipped | ceiling ≤125 |
 | `allow(dead_code)` (prod) | 0 | ≤25 | ✅ All in test/bench files (36 total) |

@@ -1,7 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-22 (v0.1.31 release)
-**Released Version**: v0.1.31 (crates.io + GitHub Release)
+**Last Updated**: 2026-04-21 (comprehensive analysis + CSM cascade integration)
+**Released Version**: v0.1.30 (crates.io + GitHub Release)
+**Unreleased on main**: v0.1.31 planning focused on CPU-local retrieval (CSM), token efficiency, and skills consolidation
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -9,26 +10,27 @@
 
 ## Current State
 
-`v0.1.31` was released on 2026-04-22. Workspace and publishable crate versions are `0.1.31`.
+`v0.1.30` was released on 2026-04-16. Workspace and publishable crate versions remain `0.1.30` while `v0.1.31` planning is redirected toward lower CPU usage, lower prompt/token usage, and release/package truth-source cleanup.
 
-Verified publishable workspace packages at `0.1.31`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
+Verified publishable workspace packages at `0.1.30`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
+
+The 2026-04-21 comprehensive analysis added a CSM integration phase (BM25+HDC+ConceptGraph cascading retrieval) targeting 50-70% API call elimination, plus 6 new research papers and housekeeping WGs.
 
 See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Completed Sprint — v0.1.31 ✅
+## Upcoming Sprint — v0.1.31 (Planning)
 
 **Source**: Release/package verification (2026-04-20) + comprehensive analysis + 2026 academic paper review
 **ADR**: ADR-053 (Accepted)
-**Release**: v0.1.31 published 2026-04-22
 
-### Phase 0: Release & Package Truth ✅ Complete
+### Phase 0: Release & Package Truth
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
 | WG-111 | Verify `v0.1.30` GitHub release and publishable crate parity | ✅ Complete | 111 |
-| WG-112 | Bump workspace + publishable crates to `0.1.31`, update CHANGELOG | ✅ Complete | 112 |
+| WG-112 | Bump workspace + publishable crates to `0.1.31`, update CHANGELOG | 🔵 Planned | 112 |
 | WG-113 | Refresh stale roadmap/status/GOAP truth sources after release verification | ✅ Complete | 113 |
 
 ### Phase 1: CPU Efficiency

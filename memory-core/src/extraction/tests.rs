@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::{
-    Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType, ComplexityLevel, OutcomeStats,
+    ComplexityLevel, Episode, ExecutionStep, OutcomeStats, TaskContext, TaskOutcome, TaskType,
     pattern::{Pattern, PatternEffectiveness},
 };
 use chrono::Duration;
@@ -305,17 +305,15 @@ mod utils_tests {
         effectiveness.avg_reward_delta = -0.1;
         effectiveness.times_applied = 1;
 
-        let patterns = vec![
-            Pattern::ToolSequence {
-                id: uuid::Uuid::new_v4(),
-                tools: vec!["tool1".to_string()],
-                context: TaskContext::default(),
-                success_rate: 0.8,
-                avg_latency: Duration::milliseconds(100),
-                occurrence_count: 5,
-                effectiveness,
-            },
-        ];
+        let patterns = vec![Pattern::ToolSequence {
+            id: uuid::Uuid::new_v4(),
+            tools: vec!["tool1".to_string()],
+            context: TaskContext::default(),
+            success_rate: 0.8,
+            avg_latency: Duration::milliseconds(100),
+            occurrence_count: 5,
+            effectiveness,
+        }];
 
         let ranked = super::utils::rank_patterns(patterns, &TaskContext::default());
         assert_eq!(ranked.len(), 1);

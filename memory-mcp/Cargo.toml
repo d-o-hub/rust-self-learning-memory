@@ -41,6 +41,7 @@ chrono = { workspace = true }
 rand = { workspace = true }
 
 base64 = "0.22.1"
+jsonwebtoken = "9.3.0"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

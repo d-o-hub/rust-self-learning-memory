@@ -36,7 +36,7 @@ async fn test_context_aware_embeddings_integration() {
             eprintln!("Skipping test - default config is not local");
             return;
         };
-    let base = if let Ok(provider) = LocalEmbeddingProvider::new(local_config).await {
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new_with_fallback(local_config).await {
         Arc::new(provider)
     } else {
         // Skip test if model not available
@@ -108,7 +108,7 @@ async fn test_multiple_task_adapters() {
             eprintln!("Skipping test - default config is not local");
             return;
         };
-    let base = if let Ok(provider) = LocalEmbeddingProvider::new(local_config).await {
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new_with_fallback(local_config).await {
         Arc::new(provider)
     } else {
         eprintln!("Skipping test - embedding model not available");
@@ -166,7 +166,7 @@ async fn test_backward_compatibility_no_adapters() {
             eprintln!("Skipping test - default config is not local");
             return;
         };
-    let base = if let Ok(provider) = LocalEmbeddingProvider::new(local_config).await {
+    let base = if let Ok(provider) = LocalEmbeddingProvider::new_with_fallback(local_config).await {
         Arc::new(provider)
     } else {
         eprintln!("Skipping test - embedding model not available");

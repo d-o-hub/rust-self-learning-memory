@@ -34,7 +34,7 @@ use std::sync::Arc;
 /// use std::sync::Arc;
 ///
 /// # async fn example() -> anyhow::Result<()> {
-/// let base = Arc::new(LocalEmbeddingProvider::new(Default::default()).await?);
+/// let base = Arc::new(LocalEmbeddingProvider::new_with_fallback(Default::default()).await?);
 /// let mut embeddings = ContextAwareEmbeddings::new(base);
 ///
 /// // Get adapted embedding for a coding task
@@ -224,7 +224,7 @@ impl ContextAwareEmbeddings {
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {
-    /// let base = Arc::new(LocalEmbeddingProvider::new(Default::default()).await?);
+    /// let base = Arc::new(LocalEmbeddingProvider::new_with_fallback(Default::default()).await?);
     /// let embeddings = ContextAwareEmbeddings::new(base);
     /// # Ok(())
     /// # }
@@ -265,7 +265,7 @@ impl ContextAwareEmbeddings {
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {
-    /// # let base = Arc::new(LocalEmbeddingProvider::new(Default::default()).await?);
+    /// # let base = Arc::new(LocalEmbeddingProvider::new_with_fallback(Default::default()).await?);
     /// let embeddings = ContextAwareEmbeddings::new(base);
     ///
     /// // Get base embedding (no adapter trained yet)
@@ -347,7 +347,7 @@ impl ContextAwareEmbeddings {
     /// use std::sync::Arc;
     ///
     /// # async fn example() -> anyhow::Result<()> {
-    /// # let base = Arc::new(LocalEmbeddingProvider::new(Default::default()).await?);
+    /// # let base = Arc::new(LocalEmbeddingProvider::new_with_fallback(Default::default()).await?);
     /// let mut embeddings = ContextAwareEmbeddings::new(base);
     ///
     /// // Create training pairs (in practice, from real episode data)

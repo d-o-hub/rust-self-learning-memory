@@ -30,7 +30,7 @@ use tokio::sync::RwLock;
 ///         "sentence-transformers/all-MiniLM-L6-v2",
 ///         384
 ///     );
-///     let provider = LocalEmbeddingProvider::new(config).await?;
+///     let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 ///
 ///     let embedding = provider.embed_text("Hello world").await?;
 ///     println!("Generated embedding with {} dimensions", embedding.len());
@@ -55,18 +55,7 @@ impl LocalEmbeddingProvider {
     /// # Returns
     /// Configured local embedding provider, or error if model fails to load
     pub async fn new(config: LocalConfig) -> Result<Self> {
-        let cache_dir = Self::get_cache_dir()?;
-
-        let provider = Self {
-            config,
-            model: Arc::new(RwLock::new(None)),
-            cache_dir,
-        };
-
-        // Initialize/load the model - returns error if real model fails to load
-        provider.load_model().await?;
-
-        Ok(provider)
+        Self::new_internal(config, false).await
     }
 
     /// Create a new local embedding provider with graceful fallback to mock
@@ -77,6 +66,11 @@ impl LocalEmbeddingProvider {
     /// # Returns
     /// Configured local embedding provider, falling back to mock if real model fails to load
     pub async fn new_with_fallback(config: LocalConfig) -> Result<Self> {
+        Self::new_internal(config, true).await
+    }
+
+    /// Internal constructor to handle optional fallback
+    async fn new_internal(config: LocalConfig, allow_fallback: bool) -> Result<Self> {
         let cache_dir = Self::get_cache_dir()?;
 
         let provider = Self {
@@ -85,19 +79,19 @@ impl LocalEmbeddingProvider {
             cache_dir,
         };
 
-        // Initialize/load the model with fallback
-        provider.load_model_with_fallback().await?;
+        // Initialize/load the model
+        provider.load_model_internal(allow_fallback).await?;
 
         Ok(provider)
     }
 
     /// Load the embedding model (propagates errors)
-    async fn load_model(&self) -> Result<()> {
+    pub async fn load_model(&self) -> Result<()> {
         self.load_model_internal(false).await
     }
 
     /// Load the embedding model with graceful fallback to mock
-    async fn load_model_with_fallback(&self) -> Result<()> {
+    pub async fn load_model_with_fallback(&self) -> Result<()> {
         self.load_model_internal(true).await
     }
 
@@ -387,7 +381,7 @@ mod tests {
 
         let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await?;
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         // Generate embeddings for semantically similar texts
         let embedding1 = provider.embed_text("machine learning algorithms").await?;
@@ -465,7 +459,7 @@ mod tests {
         let config = LocalConfig::new("nonexistent-model", 384);
 
         // Test with non-existent model - should return Err when using new()
-        let result = LocalEmbeddingProvider::new(config).await;
+        let result = LocalEmbeddingProvider::new_with_fallback(config).await;
 
         match result {
             Ok(_) => {

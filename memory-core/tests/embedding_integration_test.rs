@@ -15,6 +15,7 @@
     clippy::doc_markdown
 )]
 
+use anyhow::{Context, Result};
 use do_memory_core::StorageBackend;
 use do_memory_core::embeddings::{
     EmbeddingConfig, EmbeddingProvider, EmbeddingStorageBackend, InMemoryEmbeddingStorage,
@@ -32,19 +33,14 @@ use uuid::Uuid;
 // End-to-End Embedding Workflow Tests (3 tests)
 
 #[tokio::test]
-async fn test_end_to_end_embedding_workflow() {
+async fn test_end_to_end_embedding_workflow() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config)
-        .await
-        .expect("Should create service");
+    let service =
+        SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config).await?;
 
     let text = "Implement REST API endpoints in Rust";
-    let embedding = service
-        .provider
-        .embed_text(text)
-        .await
-        .expect("Should generate embedding");
+    let embedding = service.provider.embed_text(text).await?;
 
     assert!(!embedding.is_empty());
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
@@ -52,25 +48,21 @@ async fn test_end_to_end_embedding_workflow() {
     let episode_id = Uuid::new_v4();
     _storage
         .store_episode_embedding(episode_id, embedding.clone())
-        .await
-        .expect("Should store");
+        .await?;
 
-    let retrieved = _storage
-        .get_episode_embedding(episode_id)
-        .await
-        .expect("Should retrieve");
+    let retrieved = _storage.get_episode_embedding(episode_id).await?;
 
     assert!(retrieved.is_some());
-    assert_eq!(retrieved.unwrap(), embedding);
+    assert_eq!(retrieved?, embedding);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_end_to_end_batch_embeddings() {
+async fn test_end_to_end_batch_embeddings() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config)
-        .await
-        .expect("Should create service");
+    let service =
+        SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config).await?;
 
     let texts = vec![
         "Implement user authentication".to_string(),
@@ -78,21 +70,18 @@ async fn test_end_to_end_batch_embeddings() {
         "Create login flow".to_string(),
     ];
 
-    let embeddings = service
-        .provider
-        .embed_batch(&texts)
-        .await
-        .expect("Should generate batch");
+    let embeddings = service.provider.embed_batch(&texts).await?;
 
     assert_eq!(embeddings.len(), texts.len());
     for embedding in &embeddings {
         assert!(!embedding.is_empty());
         assert_eq!(embedding.len(), service.provider.embedding_dimension());
     }
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_episode_embedding_workflow() {
+async fn test_episode_embedding_workflow() -> Result<()> {
     let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
@@ -122,15 +111,9 @@ async fn test_episode_embedding_workflow() {
         verdict: "API implemented successfully".to_string(),
         artifacts: vec!["api.rs".to_string(), "routes.rs".to_string()],
     };
-    memory
-        .complete_episode(episode_id, outcome)
-        .await
-        .expect("Should complete episode");
+    memory.complete_episode(episode_id, outcome).await?;
 
-    let episode = memory
-        .get_episode(episode_id)
-        .await
-        .expect("Should retrieve");
+    let episode = memory.get_episode(episode_id).await?;
     assert!(episode.is_complete());
 
     let search_context = TaskContext {
@@ -146,73 +129,61 @@ async fn test_episode_embedding_workflow() {
         .await;
 
     assert!(!relevant.is_empty());
+    Ok(())
 }
 
 // Provider Fallback Chain Tests (3 tests)
 
 #[tokio::test]
-async fn test_provider_fallback_chain() {
+async fn test_provider_fallback_chain() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
     assert!(service.provider.is_available().await);
 
-    let embedding = service
-        .provider
-        .embed_text("test")
-        .await
-        .expect("Should embed");
+    let embedding = service.provider.embed_text("test").await?;
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_provider_warmup() {
+async fn test_provider_warmup() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
-    assert!(service.provider.warmup().await.is_ok());
+    service.provider.warmup().await?;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_provider_similarity_calculation() {
+async fn test_provider_similarity_calculation() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
-    let similarity = service
-        .provider
-        .similarity("REST API", "REST API")
-        .await
-        .expect("Should calculate similarity");
+    let similarity = service.provider.similarity("REST API", "REST API").await?;
 
     assert!((similarity - 1.0).abs() < 0.1);
+    Ok(())
 }
 
 // Semantic Search Accuracy Tests (4 tests)
 
 #[tokio::test]
-async fn test_semantic_similarity_identical_queries() {
+async fn test_semantic_similarity_identical_queries() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
     let similarity = service
         .provider
         .similarity("Implement REST API", "Implement REST API")
-        .await
-        .expect("Should calculate similarity");
+        .await?;
 
     assert!((similarity - 1.0).abs() < 0.1);
+    Ok(())
 }
 
 #[tokio::test]
@@ -226,34 +197,28 @@ async fn test_cosine_similarity_function() {
     let vec4 = vec![0.0, 1.0, 0.0];
     let similarity_orth = cosine_similarity(&vec3, &vec4);
     assert!((similarity_orth - 0.5).abs() < 0.001);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_semantic_search_ranking() {
+async fn test_semantic_search_ranking() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config)
-        .await
-        .expect("Should create service");
+    let service =
+        SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config).await?;
 
     let episode = create_test_episode_helper("Implement REST API", "web-api");
     _storage.add_episode(episode.clone()).await;
 
-    let embedding = service
-        .provider
-        .embed_text("Implement REST API")
-        .await
-        .unwrap();
+    let embedding = service.provider.embed_text("Implement REST API").await?;
     _storage
         .store_episode_embedding(episode.episode_id, embedding)
-        .await
-        .expect("Should store");
+        .await?;
 
-    let query_embedding = service.provider.embed_text("Build REST API").await.unwrap();
+    let query_embedding = service.provider.embed_text("Build REST API").await?;
     let results = _storage
         .find_similar_episodes(query_embedding, 10, 0.0)
-        .await
-        .expect("Should find similar");
+        .await?;
 
     assert!(!results.is_empty());
     if results.len() > 1 {
@@ -261,62 +226,60 @@ async fn test_semantic_search_ranking() {
             assert!(results[i - 1].similarity >= results[i].similarity);
         }
     }
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_semantic_similarity_threshold() {
+async fn test_semantic_similarity_threshold() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
-    let query_embedding = service.provider.embed_text("unrelated").await.unwrap();
+    let query_embedding = service.provider.embed_text("unrelated").await?;
     let results = InMemoryEmbeddingStorage::new()
         .find_similar_episodes(query_embedding, 10, 0.9)
-        .await
-        .expect("Should search");
+        .await?;
 
     for result in &results {
         assert!(result.similarity >= 0.9);
     }
+    Ok(())
 }
 
 // Storage Backend Integration Tests (4 tests)
 
 #[tokio::test]
-async fn test_inmemory_storage_embeddings() {
+async fn test_inmemory_storage_embeddings() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let episode_id = Uuid::new_v4();
     let embedding = vec![0.1, 0.2, 0.3, 0.4];
 
     storage
         .store_episode_embedding(episode_id, embedding.clone())
-        .await
-        .expect("Should store");
+        .await?;
 
-    let retrieved = storage.get_episode_embedding(episode_id).await.unwrap();
+    let retrieved = storage.get_episode_embedding(episode_id).await?;
     assert!(retrieved.is_some());
-    assert_eq!(retrieved.unwrap(), embedding);
+    assert_eq!(retrieved?, embedding);
+    Ok(())
 }
 
 #[tokio::test]
 async fn test_redb_storage_embeddings() {
-    let temp_dir = TempDir::new().expect("Should create temp dir");
+    let temp_dir = TempDir::new()?;
     let db_path = temp_dir.path().join("test_embeddings.redb");
 
-    let _redb_storage = RedbStorage::new(&db_path)
-        .await
-        .expect("Should create redb storage");
+    let _redb_storage = RedbStorage::new(&db_path).await?;
 
     // Test basic episode creation
     let test_episode = create_test_episode_helper("Test episode", "test-domain");
     assert_eq!(test_episode.episode_id, test_episode.episode_id);
     assert!(!test_episode.task_description.is_empty());
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_batch_storage_operations() {
+async fn test_batch_storage_operations() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
 
     let embeddings: Vec<(Uuid, Vec<f32>)> = (0..10)
@@ -328,19 +291,18 @@ async fn test_batch_storage_operations() {
         .map(|(id, emb)| _storage.store_episode_embedding(*id, emb.clone()))
         .collect();
 
-    futures::future::try_join_all(store_futures)
-        .await
-        .expect("Should store all");
+    futures::future::try_join_all(store_futures).await?;
 
     for (id, expected) in embeddings {
-        let retrieved = _storage.get_episode_embedding(id).await.unwrap();
+        let retrieved = _storage.get_episode_embedding(id).await?;
         assert!(retrieved.is_some());
-        assert_eq!(retrieved.unwrap(), expected);
+        assert_eq!(retrieved?, expected);
     }
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pattern_storage_and_retrieval() {
+async fn test_pattern_storage_and_retrieval() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let pattern = create_test_pattern();
 
@@ -354,23 +316,21 @@ async fn test_pattern_storage_and_retrieval() {
     let embedding = vec![0.5, 0.6, 0.7, 0.8];
     storage
         .store_pattern_embedding(pattern_id, embedding.clone())
-        .await
-        .expect("Should store pattern embedding");
+        .await?;
 
-    let retrieved = storage.get_pattern_embedding(pattern_id).await.unwrap();
+    let retrieved = storage.get_pattern_embedding(pattern_id).await?;
     assert!(retrieved.is_some());
-    assert_eq!(retrieved.unwrap(), embedding);
+    assert_eq!(retrieved?, embedding);
+    Ok(())
 }
 
 // Concurrent Embedding Operations Tests (2 tests)
 
 #[tokio::test]
-async fn test_concurrent_embedding_generation() {
+async fn test_concurrent_embedding_generation() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
     let texts: Vec<String> = (0..10).map(|i| format!("Text {}", i)).collect();
     let futures: Vec<_> = texts
@@ -378,19 +338,18 @@ async fn test_concurrent_embedding_generation() {
         .map(|t| service.provider.embed_text(t))
         .collect();
 
-    let embeddings = futures::future::try_join_all(futures)
-        .await
-        .expect("Should generate all");
+    let embeddings = futures::future::try_join_all(futures).await?;
 
     assert_eq!(embeddings.len(), 10);
     for embedding in &embeddings {
         assert!(!embedding.is_empty());
         assert_eq!(embedding.len(), service.provider.embedding_dimension());
     }
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_concurrent_storage_access() {
+async fn test_concurrent_storage_access() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
 
     let mut tasks = Vec::new();
@@ -401,92 +360,86 @@ async fn test_concurrent_storage_access() {
             let embedding = vec![i as f32 * 0.1, 0.0, 0.0, 0.0];
             storage_clone
                 .store_episode_embedding(id, embedding.clone())
-                .await
-                .unwrap();
-            storage_clone.get_episode_embedding(id).await.unwrap()
+                .await?;
+            storage_clone.get_episode_embedding(id).await?
         });
         tasks.push(task);
     }
 
-    let results = futures::future::try_join_all(tasks)
-        .await
-        .expect("Should complete all");
+    let results = futures::future::try_join_all(tasks).await?;
 
     assert_eq!(results.len(), 20);
     for result in &results {
         assert!(result.is_some());
     }
+    Ok(())
 }
 
 // Model Download and Caching Tests (2 tests)
 
 #[tokio::test]
-async fn test_model_loading() {
+async fn test_model_loading() -> Result<()> {
     let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
-    let provider = LocalEmbeddingProvider::new(config).await;
-    assert!(provider.is_ok());
+    let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
-    let provider = provider.unwrap();
     assert!(provider.is_loaded().await);
     assert_eq!(provider.embedding_dimension(), 384);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_model_deterministic_embeddings() {
+async fn test_model_deterministic_embeddings() -> Result<()> {
     let config = LocalConfig::new("test-model", 384);
-    let provider = LocalEmbeddingProvider::new(config)
-        .await
-        .expect("Should create provider");
+    let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
     let text = "Test text for deterministic behavior";
-    let embedding1 = provider.embed_text(text).await.unwrap();
-    let embedding2 = provider.embed_text(text).await.unwrap();
+    let embedding1 = provider.embed_text(text).await?;
+    let embedding2 = provider.embed_text(text).await?;
 
     assert_eq!(embedding1, embedding2);
     assert_eq!(embedding1.len(), 384);
+    Ok(())
 }
 
 // Episode Embedding Generation Tests (2 tests)
 
 #[tokio::test]
-async fn test_episode_embedding_with_service() {
+async fn test_episode_embedding_with_service() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config)
-        .await
-        .expect("Should create service");
+    let service =
+        SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config).await?;
 
     let episode = create_test_episode_helper("Implement REST API", "web-api");
     let result = service.embed_episode(&episode).await;
 
-    assert!(result.is_ok());
-    let embedding = result.unwrap();
+    let embedding = result?;
     assert!(!embedding.is_empty());
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_pattern_embedding_with_service() {
+async fn test_pattern_embedding_with_service() -> Result<()> {
     let _storage = Arc::new(InMemoryEmbeddingStorage::new());
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config)
-        .await
-        .expect("Should create service");
+    let service =
+        SemanticService::with_fallback(Box::new(InMemoryEmbeddingStorage::new()), config).await?;
 
     let pattern = create_test_pattern();
     let result = service.embed_pattern(&pattern).await;
 
-    assert!(result.is_ok());
-    let embedding = result.unwrap();
+    let embedding = result?;
     assert!(!embedding.is_empty());
     assert_eq!(embedding.len(), service.provider.embedding_dimension());
+    Ok(())
 }
 
 // SelfLearningMemory Integration Tests (3 tests)
 
 #[tokio::test]
-async fn test_memory_semantic_retrieval() {
+async fn test_memory_semantic_retrieval() -> Result<()> {
     let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
@@ -516,20 +469,18 @@ async fn test_memory_semantic_retrieval() {
         verdict: "API implemented".to_string(),
         artifacts: vec!["api.rs".to_string()],
     };
-    memory
-        .complete_episode(episode_id, outcome)
-        .await
-        .expect("Should complete episode");
+    memory.complete_episode(episode_id, outcome).await?;
 
     let relevant = memory
         .retrieve_relevant_context("Build HTTP endpoints".to_string(), context, 5)
         .await;
 
     assert!(!relevant.is_empty());
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_memory_fallback_to_keyword() {
+async fn test_memory_fallback_to_keyword() -> Result<()> {
     let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
@@ -547,10 +498,11 @@ async fn test_memory_fallback_to_keyword() {
         .await;
 
     assert!(relevant.is_empty());
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_memory_with_multiple_episodes() {
+async fn test_memory_with_multiple_episodes() -> Result<()> {
     let mut config = do_memory_core::MemoryConfig::default();
     config.quality_threshold = 0.2;
     let memory = SelfLearningMemory::with_config(config);
@@ -577,10 +529,7 @@ async fn test_memory_with_multiple_episodes() {
             verdict: format!("Completed {}", i),
             artifacts: vec!["file.rs".to_string()],
         };
-        memory
-            .complete_episode(episode_id, outcome)
-            .await
-            .expect("Should complete episode");
+        memory.complete_episode(episode_id, outcome).await?;
     }
 
     let query_context = TaskContext {
@@ -596,20 +545,19 @@ async fn test_memory_with_multiple_episodes() {
         .await;
 
     assert!(!relevant.is_empty());
+    Ok(())
 }
 
 // Performance Benchmarks Tests (2 tests)
 
 #[tokio::test]
-async fn benchmark_single_embedding_generation() {
+async fn benchmark_single_embedding_generation() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
     let start = std::time::Instant::now();
-    let _embedding = service.provider.embed_text("Test text").await.unwrap();
+    let _embedding = service.provider.embed_text("Test text").await?;
     let duration = start.elapsed();
 
     assert!(
@@ -617,51 +565,51 @@ async fn benchmark_single_embedding_generation() {
         "Took {}ms",
         duration.as_millis()
     );
+    Ok(())
 }
 
 #[tokio::test]
-async fn benchmark_batch_embedding_generation() {
+async fn benchmark_batch_embedding_generation() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
     let texts: Vec<String> = (0..100).map(|i| format!("Text {}", i)).collect();
 
     let start = std::time::Instant::now();
-    let _embeddings = service.provider.embed_batch(&texts).await.unwrap();
+    let _embeddings = service.provider.embed_batch(&texts).await?;
     let duration = start.elapsed();
 
     let avg = duration.as_millis() as f64 / 100.0;
     assert!(avg < 100.0, "Average: {}ms", avg);
+    Ok(())
 }
 
 // Error Handling Tests (2 tests)
 
 #[tokio::test]
-async fn test_empty_text_embedding() {
+async fn test_empty_text_embedding() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let config = EmbeddingConfig::default();
-    let service = SemanticService::with_fallback(Box::new(storage), config)
-        .await
-        .expect("Should create service");
+    let service = SemanticService::with_fallback(Box::new(storage), config).await?;
 
     let result = service.provider.embed_text("").await;
     match result {
         Ok(embedding) => assert!(!embedding.is_empty()),
         Err(_) => {}
     }
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_storage_with_nonexistent_id() {
+async fn test_storage_with_nonexistent_id() -> Result<()> {
     let storage = InMemoryEmbeddingStorage::new();
     let fake_id = Uuid::new_v4();
 
     let result = storage.get_episode_embedding(fake_id).await;
-    assert!(result.is_ok());
-    assert!(result.unwrap().is_none());
+
+    assert!(result?.is_none());
+    Ok(())
 }
 
 // Helper Functions
@@ -690,7 +638,6 @@ fn create_test_episode_helper(description: &str, domain: &str) -> do_memory_core
 
     episode
 }
-
 fn create_test_pattern() -> Pattern {
     let context = TaskContext {
         language: Some("rust".to_string()),

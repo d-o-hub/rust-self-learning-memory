@@ -232,12 +232,14 @@ impl TursoStorage {
 
         sql.push_str(" ORDER BY success_rate DESC");
 
+        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(|p| p.into()).collect();
         if let Some(limit) = query.limit {
-            sql.push_str(&format!(" LIMIT {}", limit));
+            sql.push_str(" LIMIT ?");
+            params.push((limit as i64).into());
         }
 
         let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params_vec))
+            .query(&sql, libsql::params_from_iter(params))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
 

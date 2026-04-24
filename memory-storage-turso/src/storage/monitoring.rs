@@ -307,3 +307,47 @@ impl TursoStorage {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::TursoStorage;
+    use tempfile::TempDir;
+    use std::time::Duration;
+    use chrono::Utc;
+
+    async fn setup_test_storage() -> (TursoStorage, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+        let storage = TursoStorage::from_database(db).unwrap();
+        storage.initialize_schema().await.unwrap();
+        (storage, dir)
+    }
+
+    #[tokio::test]
+    async fn test_load_execution_records_limit() {
+        let (storage, _dir) = setup_test_storage().await;
+
+        for i in 0..5 {
+            let record = ExecutionRecord {
+                agent_name: "test-agent".to_string(),
+                agent_type: AgentType::AnalysisSwarm,
+                success: true,
+                duration: Duration::from_millis(100),
+                started_at: Utc::now(),
+                task_description: Some(format!("task-{}", i)),
+                error_message: None,
+            };
+            storage.store_execution_record(&record).await.unwrap();
+        }
+
+        // Test limit
+        let records = storage.load_execution_records(None, 2).await.unwrap();
+        assert_eq!(records.len(), 2);
+
+        // Test default limit via apply_query_limit (although load_execution_records takes usize, it internally uses apply_query_limit)
+        let records = storage.load_execution_records(None, 10000).await.unwrap();
+        assert_eq!(records.len(), 5); // Should be capped by actual count, but the limit passed to SQL was 1000 (MAX_QUERY_LIMIT)
+    }
+}

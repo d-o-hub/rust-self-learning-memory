@@ -153,6 +153,62 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_small_payload_no_compression() {
+        let data = b"hello";
+        let compressed = CompressedPayload::compress(data, 1024).unwrap();
+
+        assert_eq!(compressed.algorithm, CompressionAlgorithm::None);
+        assert_eq!(compressed.original_size, 5);
+        assert_eq!(compressed.compressed_size, 5);
+        assert_eq!(compressed.compression_ratio, 1.0);
+    }
+
+    #[test]
+    fn test_roundtrip_lz4() {
+        #[cfg(feature = "compression-lz4")]
+        {
+            let data = b"hello world".repeat(100);
+            let compressed = CompressedPayload::compress_lz4(&data).unwrap();
+
+            assert_eq!(compressed.algorithm, CompressionAlgorithm::Lz4);
+            assert!(compressed.compression_ratio < 1.0);
+
+            let decompressed = compressed.decompress().unwrap();
+            assert_eq!(data, decompressed);
+        }
+    }
+
+    #[test]
+    fn test_roundtrip_zstd() {
+        #[cfg(feature = "compression-zstd")]
+        {
+            let data = b"hello world".repeat(100);
+            let compressed = CompressedPayload::compress_zstd(&data).unwrap();
+
+            assert_eq!(compressed.algorithm, CompressionAlgorithm::Zstd);
+            assert!(compressed.compression_ratio < 1.0);
+
+            let decompressed = compressed.decompress().unwrap();
+            assert_eq!(data, decompressed);
+        }
+    }
+
+    #[test]
+    fn test_roundtrip_gzip() {
+        #[cfg(feature = "compression-gzip")]
+        {
+            let data = b"hello world".repeat(100);
+            let compressed = CompressedPayload::compress_gzip(&data).unwrap();
+
+            assert_eq!(compressed.algorithm, CompressionAlgorithm::Gzip);
+            assert!(compressed.compression_ratio < 1.0);
+
+            let decompressed = compressed.decompress().unwrap();
+            assert_eq!(data, decompressed);
+        }
+    }
+
+    #[test]
     fn test_compress_json() {
         #[cfg(any(feature = "compression-lz4", feature = "compression-zstd"))]
         {

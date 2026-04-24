@@ -259,3 +259,55 @@ impl TursoStorage {
         Ok(patterns)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::TursoStorage;
+    use do_memory_core::{Pattern, TaskContext, PatternId};
+    use do_memory_core::PatternEffectiveness;
+    use tempfile::TempDir;
+    use chrono::Duration;
+
+    async fn setup_test_storage() -> (TursoStorage, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+        let storage = TursoStorage::from_database(db).unwrap();
+        storage.initialize_schema().await.unwrap();
+        (storage, dir)
+    }
+
+    #[tokio::test]
+    async fn test_query_patterns_limit() {
+        let (storage, _dir) = setup_test_storage().await;
+
+        for i in 0..5 {
+            let pattern = Pattern::ToolSequence {
+                id: PatternId::new_v4(),
+                tools: vec![format!("tool-{}", i)],
+                context: TaskContext::default(),
+                success_rate: 0.9,
+                avg_latency: Duration::milliseconds(100),
+                occurrence_count: 1,
+                effectiveness: PatternEffectiveness::default(),
+            };
+            storage.store_pattern(&pattern).await.unwrap();
+        }
+
+        // Test limit
+        let query = super::super::PatternQuery {
+            limit: Some(2),
+            ..Default::default()
+        };
+        let patterns = storage.query_patterns(&query).await.unwrap();
+        assert_eq!(patterns.len(), 2);
+
+        // Test apply_query_limit default/bound
+        let query = super::super::PatternQuery {
+            limit: Some(10000),
+            ..Default::default()
+        };
+        let patterns = storage.query_patterns(&query).await.unwrap();
+        assert_eq!(patterns.len(), 5);
+    }
+}

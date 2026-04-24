@@ -192,3 +192,58 @@ async fn test_tag_statistics() {
     assert_eq!(stats.get("tag1").unwrap().usage_count, 2);
     assert_eq!(stats.get("tag2").unwrap().usage_count, 1);
 }
+
+#[tokio::test]
+async fn test_max_tags_limit() {
+    let conn = setup_test_db().await;
+    let episode_id = Uuid::new_v4();
+
+    conn.execute(
+        "INSERT INTO episodes (episode_id) VALUES (?)",
+        [episode_id.to_string()],
+    )
+    .await
+    .unwrap();
+
+    // Create 110 tags
+    let mut tags = Vec::new();
+    for i in 0..110 {
+        tags.push(format!("tag-{}", i));
+    }
+
+    // save_episode_tags doesn't have the bound, it's for finding
+    save_episode_tags(&conn, &episode_id, &tags).await.unwrap();
+
+    // find_episodes_by_tags_or with 110 tags should only use first 100
+    let results = find_episodes_by_tags_or(&conn, &tags, None).await.unwrap();
+    assert_eq!(results.len(), 1);
+
+    // find_episodes_by_tags_and with 110 tags should only use first 100
+    let results = find_episodes_by_tags_and(&conn, &tags, None).await.unwrap();
+    assert_eq!(results.len(), 1);
+}
+
+#[tokio::test]
+async fn test_query_limit_clamping() {
+    let conn = setup_test_db().await;
+
+    // Create 5 episodes
+    for _i in 0..5 {
+        let ep = Uuid::new_v4();
+        conn.execute(
+            "INSERT INTO episodes (episode_id) VALUES (?)",
+            [ep.to_string()],
+        )
+        .await
+        .unwrap();
+        save_episode_tags(&conn, &ep, &["common".to_string()]).await.unwrap();
+    }
+
+    // find_episodes_by_tags_or with limit 2
+    let results = find_episodes_by_tags_or(&conn, &["common".to_string()], Some(2)).await.unwrap();
+    assert_eq!(results.len(), 2);
+
+    // find_episodes_by_tags_and with limit 2
+    let results = find_episodes_by_tags_and(&conn, &["common".to_string()], Some(2)).await.unwrap();
+    assert_eq!(results.len(), 2);
+}

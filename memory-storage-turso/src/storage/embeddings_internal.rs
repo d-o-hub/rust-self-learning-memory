@@ -459,3 +459,61 @@ impl TursoStorage {
         self._get_embeddings_batch_internal(ids).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::TursoStorage;
+    use tempfile::TempDir;
+
+    async fn setup_test_storage() -> (TursoStorage, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+        let storage = TursoStorage::from_database(db).unwrap();
+        storage.initialize_schema().await.unwrap();
+        (storage, dir)
+    }
+
+    #[tokio::test]
+    async fn test_embedding_migration() {
+        let (storage, _dir) = setup_test_storage().await;
+        let (conn, _conn_id) = storage.get_connection_with_id().await.unwrap();
+
+        // Insert an embedding without vector column (manually)
+        // Must use 384 dimensions to match schema F32_BLOB(384)
+        let embedding_id = "test-id";
+        let item_id = "item-1";
+        let item_type = "type-1";
+        let mut emb_vec = vec![0.0f32; 384];
+        emb_vec[0] = 1.0;
+        let embedding_data = serde_json::to_string(&emb_vec).unwrap();
+
+        conn.execute(
+            "INSERT INTO embeddings (embedding_id, item_id, item_type, embedding_data, dimension, model) VALUES (?, ?, ?, ?, ?, ?)",
+            libsql::params![embedding_id, item_id, item_type, embedding_data, 384i64, "test-model"]
+        ).await.unwrap();
+
+        // Verify it has no vector
+        let has_vec = storage.has_vector_embeddings().await.unwrap();
+        assert!(!has_vec);
+
+        // Run migration
+        let count = storage.migrate_embeddings_to_vector_format().await.unwrap();
+        assert_eq!(count, 1);
+
+        // Verify it now has vector
+        let has_vec = storage.has_vector_embeddings().await.unwrap();
+        assert!(has_vec);
+    }
+
+    #[tokio::test]
+    async fn test_generate_embedding_id() {
+        let (storage, _dir) = setup_test_storage().await;
+        let id1 = storage.generate_embedding_id("item1", "type1");
+        let id2 = storage.generate_embedding_id("item1", "type1");
+        let id3 = storage.generate_embedding_id("item2", "type1");
+
+        assert_eq!(id1, id2);
+        assert_ne!(id1, id3);
+    }
+}

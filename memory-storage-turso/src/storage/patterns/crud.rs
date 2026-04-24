@@ -263,10 +263,10 @@ impl TursoStorage {
 #[cfg(test)]
 mod tests {
     use crate::TursoStorage;
-    use do_memory_core::{Pattern, TaskContext, PatternId};
-    use do_memory_core::PatternEffectiveness;
-    use tempfile::TempDir;
     use chrono::Duration;
+    use do_memory_core::PatternEffectiveness;
+    use do_memory_core::{Pattern, PatternId, TaskContext};
+    use tempfile::TempDir;
 
     async fn setup_test_storage() -> (TursoStorage, TempDir) {
         let dir = TempDir::new().unwrap();

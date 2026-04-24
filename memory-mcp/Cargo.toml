@@ -42,7 +42,7 @@ rand = { workspace = true }
 
 base64 = "0.22.1"
 
-[target.'cfg(unix)'.dependencies]
+[target."cfg(unix)".dependencies]
 libc = "0.2"
 
 [features]

@@ -60,8 +60,9 @@ pub async fn initialize_redb_only_storage() -> anyhow::Result<Arc<SelfLearningMe
 
     // Create data directory if it doesn't exist
     if let Some(parent) = cache_path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| Error::Storage(format!("Failed to create data directory: {}", e)))?;
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to create data directory: {}", e))?;
     }
 
     let cache_config = CacheConfig {
@@ -120,6 +121,13 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
     let cache_path_str =
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let cache_path = Path::new(&cache_path_str);
+
+    // Create data directory if it doesn't exist
+    if let Some(parent) = cache_path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to create storage directory: {}", e))?;
+    }
 
     let cache_config = CacheConfig {
         max_size: std::env::var("REDB_MAX_CACHE_SIZE")
@@ -183,6 +191,13 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let cache_path = Path::new(&cache_path_str);
 
+    // Create data directory if it doesn't exist
+    if let Some(parent) = cache_path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to create storage directory: {}", e))?;
+    }
+
     let cache_config = CacheConfig {
         max_size: std::env::var("REDB_MAX_CACHE_SIZE")
             .unwrap_or_else(|_| "1000".to_string())
@@ -205,4 +220,104 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
 
     info!("Successfully initialized Turso local + redb cache storage");
     Ok(Arc::new(memory))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+    use tempfile::TempDir;
+
+    #[tokio::test]
+    #[serial]
+    async fn test_initialize_redb_only_storage() {
+        let temp_dir = TempDir::new().unwrap();
+        let cache_path = temp_dir.path().join("cache.redb");
+        let original_cache_path = std::env::var("REDB_CACHE_PATH").ok();
+        std::env::set_var("REDB_CACHE_PATH", cache_path.to_str().unwrap());
+
+        let result = initialize_redb_only_storage().await;
+
+        // Restore environment
+        if let Some(val) = original_cache_path {
+            std::env::set_var("REDB_CACHE_PATH", val);
+        } else {
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+
+        assert!(result.is_ok());
+        assert!(cache_path.exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_initialize_turso_local() {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("memory.db");
+        let cache_path = temp_dir.path().join("cache.redb");
+
+        let original_db_url = std::env::var("TURSO_DATABASE_URL").ok();
+        let original_cache_path = std::env::var("REDB_CACHE_PATH").ok();
+
+        std::env::set_var(
+            "TURSO_DATABASE_URL",
+            format!("file:{}", db_path.to_str().unwrap()),
+        );
+        std::env::set_var("REDB_CACHE_PATH", cache_path.to_str().unwrap());
+
+        let result = initialize_turso_local().await;
+
+        // Restore environment
+        if let Some(val) = original_db_url {
+            std::env::set_var("TURSO_DATABASE_URL", val);
+        } else {
+            std::env::remove_var("TURSO_DATABASE_URL");
+        }
+        if let Some(val) = original_cache_path {
+            std::env::set_var("REDB_CACHE_PATH", val);
+        } else {
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+
+        assert!(result.is_ok());
+        assert!(cache_path.exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_initialize_dual_storage() {
+        let temp_dir = TempDir::new().unwrap();
+        let cache_path = temp_dir.path().join("cache.redb");
+
+        let original_db_url = std::env::var("TURSO_DATABASE_URL").ok();
+        let original_db_token = std::env::var("TURSO_AUTH_TOKEN").ok();
+        let original_cache_path = std::env::var("REDB_CACHE_PATH").ok();
+
+        // We use a mock URL for Turso cloud in this test to trigger the dual storage path
+        std::env::set_var("TURSO_DATABASE_URL", "http://localhost:8080");
+        std::env::set_var("TURSO_AUTH_TOKEN", "mock-token");
+        std::env::set_var("REDB_CACHE_PATH", cache_path.to_str().unwrap());
+
+        // This will likely fail to connect to the mock URL, but we want to check if it tries to create the directory
+        let _ = initialize_dual_storage().await;
+
+        // Restore environment
+        if let Some(val) = original_db_url {
+            std::env::set_var("TURSO_DATABASE_URL", val);
+        } else {
+            std::env::remove_var("TURSO_DATABASE_URL");
+        }
+        if let Some(val) = original_db_token {
+            std::env::set_var("TURSO_AUTH_TOKEN", val);
+        } else {
+            std::env::remove_var("TURSO_AUTH_TOKEN");
+        }
+        if let Some(val) = original_cache_path {
+            std::env::set_var("REDB_CACHE_PATH", val);
+        } else {
+            std::env::remove_var("REDB_CACHE_PATH");
+        }
+
+        assert!(cache_path.exists());
+    }
 }

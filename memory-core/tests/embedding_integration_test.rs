@@ -12,7 +12,9 @@
     clippy::single_match,
     clippy::default_trait_access,
     unused_imports,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    clippy::unwrap_used,
+    clippy::expect_used
 )]
 
 use anyhow::{Context, Result};
@@ -53,7 +55,7 @@ async fn test_end_to_end_embedding_workflow() -> Result<()> {
     let retrieved = _storage.get_episode_embedding(episode_id).await?;
 
     assert!(retrieved.is_some());
-    assert_eq!(retrieved?, embedding);
+    assert_eq!(retrieved.context("Missing embedding")?, embedding);
     Ok(())
 }
 
@@ -187,16 +189,16 @@ async fn test_semantic_similarity_identical_queries() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_cosine_similarity_function() {
+async fn test_cosine_similarity_function() -> Result<()> {
     let vec1 = vec![1.0, 2.0, 3.0, 4.0];
     let vec2 = vec![1.0, 2.0, 3.0, 4.0];
     let similarity = cosine_similarity(&vec1, &vec2);
-    assert_eq!(similarity, 1.0);
+    assert!((similarity - 1.0).abs() < 1e-6);
 
     let vec3 = vec![1.0, 0.0, 0.0];
     let vec4 = vec![0.0, 1.0, 0.0];
     let similarity_orth = cosine_similarity(&vec3, &vec4);
-    assert!((similarity_orth - 0.5).abs() < 0.001);
+    assert!((similarity_orth - 0.5).abs() < 1e-6);
     Ok(())
 }
 
@@ -260,12 +262,12 @@ async fn test_inmemory_storage_embeddings() -> Result<()> {
 
     let retrieved = storage.get_episode_embedding(episode_id).await?;
     assert!(retrieved.is_some());
-    assert_eq!(retrieved?, embedding);
+    assert_eq!(retrieved.context("Missing embedding")?, embedding);
     Ok(())
 }
 
 #[tokio::test]
-async fn test_redb_storage_embeddings() {
+async fn test_redb_storage_embeddings() -> Result<()> {
     let temp_dir = TempDir::new()?;
     let db_path = temp_dir.path().join("test_embeddings.redb");
 
@@ -296,7 +298,7 @@ async fn test_batch_storage_operations() -> Result<()> {
     for (id, expected) in embeddings {
         let retrieved = _storage.get_episode_embedding(id).await?;
         assert!(retrieved.is_some());
-        assert_eq!(retrieved?, expected);
+        assert_eq!(retrieved.context("Missing embedding")?, expected);
     }
     Ok(())
 }
@@ -320,7 +322,7 @@ async fn test_pattern_storage_and_retrieval() -> Result<()> {
 
     let retrieved = storage.get_pattern_embedding(pattern_id).await?;
     assert!(retrieved.is_some());
-    assert_eq!(retrieved?, embedding);
+    assert_eq!(retrieved.context("Missing embedding")?, embedding);
     Ok(())
 }
 
@@ -360,17 +362,23 @@ async fn test_concurrent_storage_access() -> Result<()> {
             let embedding = vec![i as f32 * 0.1, 0.0, 0.0, 0.0];
             storage_clone
                 .store_episode_embedding(id, embedding.clone())
-                .await?;
-            storage_clone.get_episode_embedding(id).await?
+                .await
+                .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+            storage_clone
+                .get_episode_embedding(id)
+                .await
+                .map_err(|e| anyhow::anyhow!(e.to_string()))
         });
         tasks.push(task);
     }
 
-    let results = futures::future::try_join_all(tasks).await?;
+    let results = futures::future::join_all(tasks).await;
 
     assert_eq!(results.len(), 20);
-    for result in &results {
-        assert!(result.is_some());
+    for result in results {
+        let inner_result = result.context("Task join failed")?;
+        let retrieved = inner_result.context("Task execution failed")?;
+        assert!(retrieved.is_some());
     }
     Ok(())
 }

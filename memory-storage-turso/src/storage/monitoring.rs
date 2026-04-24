@@ -2,7 +2,7 @@
 
 use crate::TursoStorage;
 use do_memory_core::{
-    Error, Result,
+    Error, Result, apply_query_limit,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
 };
 use libsql::Row;
@@ -154,6 +154,8 @@ impl TursoStorage {
         agent_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<ExecutionRecord>> {
+        // Apply limit with defaults and bounds
+        let limit = apply_query_limit(Some(limit));
         debug!(
             "Loading execution records: agent={:?}, limit={}",
             agent_name, limit

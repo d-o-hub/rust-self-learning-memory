@@ -57,6 +57,7 @@ streaming-impl = []
 
 [dev-dependencies]
 tempfile = { workspace = true }
+serial_test = { workspace = true }
 tokio = { workspace = true, features = ["test-util"] }
 tracing-subscriber = { workspace = true }
 do-memory-storage-redb = { path = "../memory-storage-redb" }

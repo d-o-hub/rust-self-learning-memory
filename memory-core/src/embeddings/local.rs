@@ -356,9 +356,7 @@ mod tests {
         let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         // Identical texts should have high similarity
-        let similarity = provider
-            .similarity("Hello world", "Hello world")
-            .await?;
+        let similarity = provider.similarity("Hello world", "Hello world").await?;
         assert!((similarity - 1.0).abs() < 0.001);
 
         // Different texts should have lower similarity
@@ -392,15 +390,11 @@ mod tests {
         let provider = LocalEmbeddingProvider::new(config).await?;
 
         // Generate embeddings for semantically similar texts
-        let embedding1 = provider
-            .embed_text("machine learning algorithms")
-            .await?;
+        let embedding1 = provider.embed_text("machine learning algorithms").await?;
         let embedding2 = provider
             .embed_text("artificial intelligence models")
             .await?;
-        let embedding3 = provider
-            .embed_text("cooking recipes for pasta")
-            .await?;
+        let embedding3 = provider.embed_text("cooking recipes for pasta").await?;
 
         assert_eq!(embedding1.len(), 384);
         assert_eq!(embedding2.len(), 384);
@@ -481,8 +475,8 @@ mod tests {
                 // Should provide meaningful error message
                 assert!(
                     e.to_string().contains("model")
-                    || e.to_string().contains("load")
-                    || e.to_string().contains("feature")
+                        || e.to_string().contains("load")
+                        || e.to_string().contains("feature")
                 );
             }
         }

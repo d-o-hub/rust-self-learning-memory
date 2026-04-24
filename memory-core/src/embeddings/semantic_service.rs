@@ -62,10 +62,10 @@ impl SemanticService {
         Ok(Self::new(provider, storage, config))
     }
 
-    /// Create a semantic service with default local provider
+    /// Create a semantic service with default local provider (with fallback)
     pub async fn default(storage: Box<dyn EmbeddingStorageBackend>) -> Result<Self> {
         let config = EmbeddingConfig::default();
-        Self::with_local_provider(storage, config).await
+        Self::with_fallback(storage, config).await
     }
 
     /// Create a semantic service with automatic provider fallback

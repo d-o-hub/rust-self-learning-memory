@@ -53,7 +53,7 @@ impl LocalEmbeddingProvider {
     /// * `config` - Model configuration specifying which model to use
     ///
     /// # Returns
-    /// Configured local embedding provider
+    /// Configured local embedding provider, or error if model fails to load
     pub async fn new(config: LocalConfig) -> Result<Self> {
         let cache_dir = Self::get_cache_dir()?;
 
@@ -63,33 +63,69 @@ impl LocalEmbeddingProvider {
             cache_dir,
         };
 
-        // Initialize/load the model
+        // Initialize/load the model - returns error if real model fails to load
         provider.load_model().await?;
 
         Ok(provider)
     }
 
-    /// Load the embedding model
+    /// Create a new local embedding provider with graceful fallback to mock
+    ///
+    /// # Arguments
+    /// * `config` - Model configuration specifying which model to use
+    ///
+    /// # Returns
+    /// Configured local embedding provider, falling back to mock if real model fails to load
+    pub async fn new_with_fallback(config: LocalConfig) -> Result<Self> {
+        let cache_dir = Self::get_cache_dir()?;
+
+        let provider = Self {
+            config,
+            model: Arc::new(RwLock::new(None)),
+            cache_dir,
+        };
+
+        // Initialize/load the model with fallback
+        provider.load_model_with_fallback().await?;
+
+        Ok(provider)
+    }
+
+    /// Load the embedding model (propagates errors)
     async fn load_model(&self) -> Result<()> {
-        tracing::info!("Loading local embedding model: {}", self.config.model_name);
+        self.load_model_internal(false).await
+    }
+
+    /// Load the embedding model with graceful fallback to mock
+    async fn load_model_with_fallback(&self) -> Result<()> {
+        self.load_model_internal(true).await
+    }
+
+    /// Internal model loading logic with optional fallback
+    async fn load_model_internal(&self, allow_fallback: bool) -> Result<()> {
+        tracing::info!(
+            "Loading local embedding model (fallback={}): {}",
+            allow_fallback,
+            self.config.model_name
+        );
 
         #[cfg(feature = "local-embeddings")]
         {
-            // Try to load real ONNX model, fallback to mock if fails
             match self.try_load_real_model().await {
                 Ok(real_model) => {
-                    let fallback_model = Box::new(RealEmbeddingModelWithFallback::new(
+                    let model = Box::new(RealEmbeddingModelWithFallback::new(
                         self.config.model_name.clone(),
                         self.config.embedding_dimension,
                         Some(real_model),
                     ));
 
                     let mut model_guard = self.model.write().await;
-                    *model_guard = Some(fallback_model);
+                    *model_guard = Some(model);
 
                     tracing::info!("Local embedding model loaded with real ONNX backend");
+                    Ok(())
                 }
-                Err(e) => {
+                Err(e) if allow_fallback => {
                     tracing::warn!("Failed to load real embedding model: {}", e);
                     tracing::warn!(
                         "Falling back to mock embeddings - semantic search will not work correctly"
@@ -105,31 +141,39 @@ impl LocalEmbeddingProvider {
                     *model_guard = Some(mock_fallback);
 
                     tracing::info!("Local embedding model loaded with mock fallback");
+                    Ok(())
                 }
+                Err(e) => Err(e),
             }
         }
 
         #[cfg(not(feature = "local-embeddings"))]
         {
-            tracing::warn!(
-                "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly"
-            );
-            tracing::warn!(
-                "To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available"
-            );
+            if allow_fallback {
+                tracing::warn!(
+                    "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly"
+                );
+                tracing::warn!(
+                    "To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available"
+                );
 
-            let mock_fallback = Box::new(super::mock_model::MockLocalModel::new(
-                self.config.model_name.clone(),
-                self.config.embedding_dimension,
-            ));
+                let mock_fallback = Box::new(super::mock_model::MockLocalModel::new(
+                    self.config.model_name.clone(),
+                    self.config.embedding_dimension,
+                ));
 
-            let mut model_guard = self.model.write().await;
-            *model_guard = Some(mock_fallback);
+                let mut model_guard = self.model.write().await;
+                *model_guard = Some(mock_fallback);
 
-            tracing::info!("Local embedding model loaded with mock implementation");
+                tracing::info!("Local embedding model loaded with mock implementation");
+                Ok(())
+            } else {
+                anyhow::bail!(
+                    "Local embeddings feature not enabled. \
+                    To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available."
+                )
+            }
         }
-
-        Ok(())
     }
 
     /// Try to load real ONNX model
@@ -255,38 +299,40 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_local_provider_creation() {
+    async fn test_local_provider_creation() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
         assert!(provider.is_loaded().await);
         assert_eq!(provider.embedding_dimension(), 384);
         assert_eq!(provider.model_name(), "test-model");
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_embed_text() {
+    async fn test_embed_text() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
-        let embedding = provider.embed_text("Hello world").await.unwrap();
+        let embedding = provider.embed_text("Hello world").await?;
         assert_eq!(embedding.len(), 384);
 
         // Test deterministic behavior
-        let embedding2 = provider.embed_text("Hello world").await.unwrap();
+        let embedding2 = provider.embed_text("Hello world").await?;
         assert_eq!(embedding, embedding2);
 
         // Different text should produce different embedding
-        let embedding3 = provider.embed_text("Different text").await.unwrap();
+        let embedding3 = provider.embed_text("Different text").await?;
         assert_ne!(embedding, embedding3);
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_embed_batch() {
+    async fn test_embed_batch() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         let texts = vec![
             "First text".to_string(),
@@ -294,70 +340,67 @@ mod tests {
             "Third text".to_string(),
         ];
 
-        let embeddings = provider.embed_batch(&texts).await.unwrap();
+        let embeddings = provider.embed_batch(&texts).await?;
         assert_eq!(embeddings.len(), 3);
 
         for embedding in embeddings {
             assert_eq!(embedding.len(), 384);
         }
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_similarity_calculation() {
+    async fn test_similarity_calculation() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         // Identical texts should have high similarity
         let similarity = provider
             .similarity("Hello world", "Hello world")
-            .await
-            .unwrap();
+            .await?;
         assert!((similarity - 1.0).abs() < 0.001);
 
         // Different texts should have lower similarity
         let similarity = provider
             .similarity("Hello world", "Goodbye universe")
-            .await
-            .unwrap();
+            .await?;
         assert!(similarity < 1.0);
+        Ok(())
     }
 
     #[tokio::test]
     #[ignore = "Requires local-embeddings feature with ONNX models - blocked by ort crate Send trait issue"]
     #[cfg(feature = "local-embeddings")]
-    async fn test_real_embedding_generation() {
+    async fn test_real_embedding_generation() -> Result<()> {
         // This test only runs when local-embeddings feature is enabled
         // and real ONNX models are available
 
         // Create a temporary directory for model cache
-        let temp_dir = tempfile::TempDir::new().unwrap();
+        let temp_dir = tempfile::TempDir::new()?;
         let cache_path = temp_dir.path().join("models");
 
         // Try to load a real model if available
         // In CI, this might not have actual model files
         if cache_path.exists() || std::env::var("CI").is_ok() {
             tracing::info!("Skipping real embedding test - no model files available");
-            return;
+            return Ok(());
         }
 
         let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new(config).await?;
 
         // Generate embeddings for semantically similar texts
         let embedding1 = provider
             .embed_text("machine learning algorithms")
-            .await
-            .unwrap();
+            .await?;
         let embedding2 = provider
             .embed_text("artificial intelligence models")
-            .await
-            .unwrap();
+            .await?;
         let embedding3 = provider
             .embed_text("cooking recipes for pasta")
-            .await
-            .unwrap();
+            .await?;
 
         assert_eq!(embedding1.len(), 384);
         assert_eq!(embedding2.len(), 384);
@@ -366,12 +409,10 @@ mod tests {
         // Calculate similarities
         let similarity_ai_ml = provider
             .similarity("machine learning", "artificial intelligence")
-            .await
-            .unwrap();
+            .await?;
         let similarity_cooking = provider
             .similarity("machine learning", "cooking recipes")
-            .await
-            .unwrap();
+            .await?;
 
         // Semantically similar texts should have higher similarity
         assert!(
@@ -382,15 +423,16 @@ mod tests {
         // Both should be positive (cosine similarity range)
         assert!(similarity_ai_ml > 0.0);
         assert!(similarity_cooking > 0.0);
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_embedding_vector_properties() {
+    async fn test_embedding_vector_properties() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
-        let embedding = provider.embed_text("test text").await.unwrap();
+        let embedding = provider.embed_text("test text").await?;
 
         // Check that embedding is properly normalized (unit vector)
         let norm: f32 = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
@@ -403,13 +445,14 @@ mod tests {
                 "Embedding values should be in [-1, 1]"
             );
         }
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_model_metadata() {
+    async fn test_model_metadata() -> Result<()> {
         let config = LocalConfig::new("sentence-transformers/test-model", 768);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         let metadata = provider.metadata();
         assert_eq!(metadata["model"], "sentence-transformers/test-model");
@@ -420,38 +463,41 @@ mod tests {
         assert_eq!(model_info["name"], "sentence-transformers/test-model");
         assert_eq!(model_info["dimension"], 768);
         assert_eq!(model_info["type"], "local");
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_error_handling() {
+    async fn test_error_handling() -> Result<()> {
         let config = LocalConfig::new("nonexistent-model", 384);
 
-        // Test with non-existent model - should fall back to mock or fail gracefully
+        // Test with non-existent model - should return Err when using new()
         let result = LocalEmbeddingProvider::new(config).await;
 
         match result {
-            Ok(provider) => {
-                // If successful, it should be a mock implementation
-                assert!(provider.is_loaded().await);
-                let embedding = provider.embed_text("test").await.unwrap();
-                assert_eq!(embedding.len(), 384);
+            Ok(_) => {
+                anyhow::bail!("Should have failed to load non-existent model");
             }
             Err(e) => {
                 // Should provide meaningful error message
-                assert!(e.to_string().contains("model") || e.to_string().contains("load"));
+                assert!(
+                    e.to_string().contains("model")
+                    || e.to_string().contains("load")
+                    || e.to_string().contains("feature")
+                );
             }
         }
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_warmup_functionality() {
+    async fn test_warmup_functionality() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         // Warmup should succeed
-        let result = provider.warmup().await;
-        assert!(result.is_ok(), "Warmup should succeed");
+        provider.warmup().await?;
+        Ok(())
     }
 
     #[test]
@@ -478,18 +524,19 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_production_warning_behavior() {
+    async fn test_production_warning_behavior() -> Result<()> {
         let config = LocalConfig::new("test-model", 384);
 
         // This should emit a warning if not in test mode
-        let provider = LocalEmbeddingProvider::new(config).await.unwrap();
+        let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
 
         // Verify the provider works but may be using mock embeddings
-        let embedding1 = provider.embed_text("test").await.unwrap();
-        let embedding2 = provider.embed_text("test").await.unwrap();
+        let embedding1 = provider.embed_text("test").await?;
+        let embedding2 = provider.embed_text("test").await?;
 
         // In test mode, embeddings should be deterministic (same)
         assert_eq!(embedding1, embedding2);
         assert_eq!(embedding1.len(), 384);
+        Ok(())
     }
 }

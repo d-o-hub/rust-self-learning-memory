@@ -142,7 +142,8 @@ impl CompressedPayload {
     pub fn compress_gzip(data: &[u8]) -> Result<Self> {
         #[cfg(feature = "compression-gzip")]
         {
-            use flate2::{Compression, bufread::GzEncoder};
+            use flate2::Compression;
+            use flate2::bufread::GzEncoder;
             use std::io::Read;
 
             let compression = Compression::default();
@@ -258,3 +259,7 @@ impl CompressedPayload {
         (1.0 - self.compression_ratio) * 100.0
     }
 }
+
+#[cfg(test)]
+#[path = "payload_tests.rs"]
+mod tests;

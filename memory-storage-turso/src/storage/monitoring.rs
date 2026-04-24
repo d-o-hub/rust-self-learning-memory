@@ -2,7 +2,7 @@
 
 use crate::TursoStorage;
 use do_memory_core::{
-    Error, Result,
+    Error, Result, apply_query_limit,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
 };
 use libsql::Row;
@@ -154,6 +154,8 @@ impl TursoStorage {
         agent_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<ExecutionRecord>> {
+        // Apply limit with defaults and bounds
+        let limit = apply_query_limit(Some(limit));
         debug!(
             "Loading execution records: agent={:?}, limit={}",
             agent_name, limit
@@ -168,15 +170,18 @@ impl TursoStorage {
         "#,
         );
 
-        let mut params = Vec::new();
+        let mut params_vec = Vec::new();
 
         if let Some(name) = agent_name {
             sql.push_str(" WHERE agent_name = ?");
-            params.push(name.to_string());
+            params_vec.push(name.to_string());
         }
 
         sql.push_str(" ORDER BY started_at DESC");
-        sql.push_str(&format!(" LIMIT {}", limit));
+        sql.push_str(" LIMIT ?");
+
+        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(|p| p.into()).collect();
+        params.push((limit as i64).into());
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params))
@@ -300,5 +305,49 @@ impl TursoStorage {
             avg_completion_time: std::time::Duration::from_millis(avg_completion_time_ms as u64),
             agent_success_rates: std::collections::HashMap::new(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::TursoStorage;
+    use chrono::Utc;
+    use std::time::Duration;
+    use tempfile::TempDir;
+
+    async fn setup_test_storage() -> (TursoStorage, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
+        let storage = TursoStorage::from_database(db).unwrap();
+        storage.initialize_schema().await.unwrap();
+        (storage, dir)
+    }
+
+    #[tokio::test]
+    async fn test_load_execution_records_limit() {
+        let (storage, _dir) = setup_test_storage().await;
+
+        for i in 0..5 {
+            let record = ExecutionRecord {
+                agent_name: "test-agent".to_string(),
+                agent_type: AgentType::AnalysisSwarm,
+                success: true,
+                duration: Duration::from_millis(100),
+                started_at: Utc::now(),
+                task_description: Some(format!("task-{}", i)),
+                error_message: None,
+            };
+            storage.store_execution_record(&record).await.unwrap();
+        }
+
+        // Test limit
+        let records = storage.load_execution_records(None, 2).await.unwrap();
+        assert_eq!(records.len(), 2);
+
+        // Test default limit via apply_query_limit (although load_execution_records takes usize, it internally uses apply_query_limit)
+        let records = storage.load_execution_records(None, 10000).await.unwrap();
+        assert_eq!(records.len(), 5); // Should be capped by actual count, but the limit passed to SQL was 1000 (MAX_QUERY_LIMIT)
     }
 }

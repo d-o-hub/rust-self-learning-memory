@@ -1,7 +1,9 @@
 //! Pattern CRUD operations for Turso storage
 
 use crate::TursoStorage;
-use do_memory_core::{Error, Heuristic, Pattern as CorePattern, Result, TaskContext};
+use do_memory_core::{
+    Error, Heuristic, Pattern as CorePattern, Result, TaskContext, apply_query_limit,
+};
 use tracing::{debug, info};
 
 /// Internal structure for pattern_data JSON field (matches storage schema)
@@ -232,11 +234,12 @@ impl TursoStorage {
 
         sql.push_str(" ORDER BY success_rate DESC");
 
+        // Apply limit with defaults and bounds
+        let limit = apply_query_limit(query.limit);
+        sql.push_str(" LIMIT ?");
+
         let mut params: Vec<libsql::Value> = params_vec.into_iter().map(|p| p.into()).collect();
-        if let Some(limit) = query.limit {
-            sql.push_str(" LIMIT ?");
-            params.push((limit as i64).into());
-        }
+        params.push((limit as i64).into());
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params))

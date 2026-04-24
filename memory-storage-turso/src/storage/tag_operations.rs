@@ -124,6 +124,13 @@ pub async fn delete_episode_tags(
 
     let episode_id_str = episode_id.to_string();
 
+    // Apply bound to tags
+    let tags = if tags.len() > MAX_TAGS_PER_QUERY {
+        &tags[..MAX_TAGS_PER_QUERY]
+    } else {
+        tags
+    };
+
     // Build placeholders for IN clause
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let query = format!(

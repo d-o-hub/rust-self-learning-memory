@@ -236,14 +236,20 @@ async fn test_query_limit_clamping() {
         )
         .await
         .unwrap();
-        save_episode_tags(&conn, &ep, &["common".to_string()]).await.unwrap();
+        save_episode_tags(&conn, &ep, &["common".to_string()])
+            .await
+            .unwrap();
     }
 
     // find_episodes_by_tags_or with limit 2
-    let results = find_episodes_by_tags_or(&conn, &["common".to_string()], Some(2)).await.unwrap();
+    let results = find_episodes_by_tags_or(&conn, &["common".to_string()], Some(2))
+        .await
+        .unwrap();
     assert_eq!(results.len(), 2);
 
     // find_episodes_by_tags_and with limit 2
-    let results = find_episodes_by_tags_and(&conn, &["common".to_string()], Some(2)).await.unwrap();
+    let results = find_episodes_by_tags_and(&conn, &["common".to_string()], Some(2))
+        .await
+        .unwrap();
     assert_eq!(results.len(), 2);
 }

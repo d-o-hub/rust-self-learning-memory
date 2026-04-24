@@ -168,15 +168,18 @@ impl TursoStorage {
         "#,
         );
 
-        let mut params = Vec::new();
+        let mut params_vec = Vec::new();
 
         if let Some(name) = agent_name {
             sql.push_str(" WHERE agent_name = ?");
-            params.push(name.to_string());
+            params_vec.push(name.to_string());
         }
 
         sql.push_str(" ORDER BY started_at DESC");
-        sql.push_str(&format!(" LIMIT {}", limit));
+        sql.push_str(" LIMIT ?");
+
+        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(|p| p.into()).collect();
+        params.push((limit as i64).into());
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params))

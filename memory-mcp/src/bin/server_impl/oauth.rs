@@ -97,7 +97,8 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
         DecodingKey::from_secret(secret.as_bytes())
     } else {
         warn!(
-            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. Tokens cannot be securely verified."
+            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. \
+             Tokens cannot be securely verified."
         );
         // Insecure fallback - for now we still allow it but it should be mandatory in production
         // To allow decoding without verification if no secret is provided:

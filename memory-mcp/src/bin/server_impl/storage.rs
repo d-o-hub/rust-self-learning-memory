@@ -6,8 +6,6 @@
 //! - redb-only (fallback)
 //! - In-memory (last resort)
 
-#![allow(unused_imports)]
-
 use anyhow::Context;
 use do_memory_core::{MemoryConfig, SelfLearningMemory};
 use do_memory_storage_redb::{CacheConfig, RedbStorage};

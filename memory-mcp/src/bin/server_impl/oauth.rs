@@ -96,9 +96,7 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     let decoding_key = if let Some(secret) = &config.token_secret {
         DecodingKey::from_secret(secret.as_bytes())
     } else {
-        warn!(
-            "⚠️ SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. Tokens cannot be securely verified."
-        );
+        warn!("SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. Tokens cannot be securely verified.");
         // Insecure fallback - for now we still allow it but it should be mandatory in production
         // To allow decoding without verification if no secret is provided:
         validation.insecure_disable_signature_validation();

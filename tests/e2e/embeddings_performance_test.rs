@@ -29,16 +29,21 @@ struct PerformanceMetrics {
     throughput: f64, // operations per second
 }
 
+use anyhow::Context;
+
 impl PerformanceMetrics {
-    fn new(operation: String, durations: Vec<Duration>) -> Self {
+    fn new(operation: String, durations: Vec<Duration>) -> anyhow::Result<Self> {
         let count = durations.len();
+        if count == 0 {
+            anyhow::bail!("No durations provided");
+        }
         let total_duration: Duration = durations.iter().sum();
         let avg_duration = total_duration / count as u32;
-        let min_duration = *durations.iter().min()?;
-        let max_duration = *durations.iter().max()?;
+        let min_duration = *durations.iter().min().context("Empty durations")?;
+        let max_duration = *durations.iter().max().context("Empty durations")?;
         let throughput = count as f64 / total_duration.as_secs_f64();
 
-        Self {
+        Ok(Self {
             operation,
             count,
             total_duration,
@@ -46,7 +51,7 @@ impl PerformanceMetrics {
             min_duration,
             max_duration,
             throughput,
-        }
+        })
     }
 
     fn print(&self) {
@@ -61,7 +66,6 @@ impl PerformanceMetrics {
         println!("  Throughput: {:.2} ops/sec", self.throughput);
         println!("{}", "=".repeat(60));
     }
-    Ok(())
 }
 
 // ============================================================================
@@ -89,7 +93,7 @@ async fn test_performance_single_embedding_latency() -> anyhow::Result<()> {
         durations.push(start.elapsed());
     }
 
-    let metrics = PerformanceMetrics::new("Single Embedding Generation".to_string(), durations);
+    let metrics = PerformanceMetrics::new("Single Embedding Generation".to_string(), durations)?;
     metrics.print();
 
     // Performance assertions
@@ -196,7 +200,7 @@ async fn test_performance_search_latency() -> anyhow::Result<()> {
         durations.push(start.elapsed());
     }
 
-    let metrics = PerformanceMetrics::new(format!("Search ({} episodes)", num_episodes), durations);
+    let metrics = PerformanceMetrics::new(format!("Search ({} episodes)", num_episodes), durations)?;
     metrics.print();
 
     // Search should be fast even with 1000 episodes

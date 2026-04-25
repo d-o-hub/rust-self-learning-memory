@@ -462,11 +462,7 @@ use memory_core::embeddings::{LocalEmbeddingProvider, EmbeddingProvider};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create local embedding provider
-    let provider = LocalEmbeddingProvider::new(LocalConfig::new("./models/gte-small", 384))?;
-    let mut provider = provider;
-
-    // Load model
-    provider.load_model().await?;
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("./models/gte-small", 384)).await?;
 
     // Generate embedding
     let embedding = provider.embed("Implement REST API").await?;
@@ -1271,11 +1267,7 @@ use tokio;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create local embedding provider
-    let provider = LocalEmbeddingProvider::new(LocalConfig::new("./models/gte-small", 384))?;
-    let mut provider = provider;
-
-    // Load model (lazy load)
-    provider.load_model().await?;
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("./models/gte-small", 384)).await?;
 
     // Generate embeddings
     let texts = vec![

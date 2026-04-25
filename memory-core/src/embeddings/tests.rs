@@ -1,9 +1,9 @@
 //! Tests for the semantic embeddings module.
 
-use anyhow::Result;
 use super::*;
 use crate::embeddings::storage::MockEmbeddingStorage;
 use crate::{Episode, Pattern, TaskContext};
+use anyhow::Result;
 
 fn create_test_episode() -> Episode {
     let context = TaskContext {

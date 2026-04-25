@@ -19,10 +19,7 @@ use std::time::{Duration, Instant};
 async fn create_local_provider() -> anyhow::Result<LocalEmbeddingProvider> {
     let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
-    LocalEmbeddingProvider::new_with_fallback(config)
-        .await
-        .?
-    Ok(())
+    LocalEmbeddingProvider::new_with_fallback(config).await
 }
 
 // ============================================================================
@@ -214,8 +211,8 @@ async fn test_local_deterministic_embeddings() -> anyhow::Result<()> {
 #[tokio::test]
 async fn test_local_model_caching() -> anyhow::Result<()> {
     // Test that model is cached and reused
-    let provider1 = create_local_provider().await;
-    let provider2 = create_local_provider().await;
+    let provider1 = create_local_provider().await?;
+    let provider2 = create_local_provider().await?;
 
     // Both should use the same model
     assert_eq!(
@@ -355,8 +352,8 @@ async fn test_local_performance_benchmarks() -> anyhow::Result<()> {
     }
 
     let avg = durations.iter().sum::<Duration>().as_millis() as f64 / iterations as f64;
-    let min = durations.iter().min()?;
-    let max = durations.iter().max()?;
+    let min = durations.iter().min().context("Empty durations")?;
+    let max = durations.iter().max().context("Empty durations")?;
 
     println!(
         "Local provider single embedding performance ({} iterations):",

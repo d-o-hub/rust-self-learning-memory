@@ -134,7 +134,9 @@ impl LocalEmbeddingProvider {
 
         #[cfg(not(feature = "local-embeddings"))]
         {
-            anyhow::bail!("Local embeddings feature not enabled. To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available.")
+            anyhow::bail!(
+                "Local embeddings feature not enabled. To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available."
+            )
         }
     }
 
@@ -148,17 +150,19 @@ impl LocalEmbeddingProvider {
         );
 
         #[cfg(feature = "local-embeddings")]
-        let mock_fallback: Box<dyn LocalEmbeddingModel> = Box::new(RealEmbeddingModelWithFallback::new(
-            self.config.model_name.clone(),
-            self.config.embedding_dimension,
-            None,
-        ));
+        let mock_fallback: Box<dyn LocalEmbeddingModel> =
+            Box::new(RealEmbeddingModelWithFallback::new(
+                self.config.model_name.clone(),
+                self.config.embedding_dimension,
+                None,
+            ));
 
         #[cfg(not(feature = "local-embeddings"))]
-        let mock_fallback: Box<dyn LocalEmbeddingModel> = Box::new(super::mock_model::MockLocalModel::new(
-            self.config.model_name.clone(),
-            self.config.embedding_dimension,
-        ));
+        let mock_fallback: Box<dyn LocalEmbeddingModel> =
+            Box::new(super::mock_model::MockLocalModel::new(
+                self.config.model_name.clone(),
+                self.config.embedding_dimension,
+            ));
 
         let mut model_guard = self.model.write().await;
         *model_guard = Some(mock_fallback);

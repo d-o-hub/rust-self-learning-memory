@@ -5,7 +5,6 @@
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=Rust&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Rust Version](https://img.shields.io/badge/Rust-stable%20(2024%20edition)-yellow)
-![Last Updated](https://img.shields.io/badge/last%20updated-March%202026-blue)
 ![Quick Check](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/quick-check.yml/badge.svg)
 ![Security](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/security.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/d-o-hub/rust-self-learning-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/d-o-hub/rust-self-learning-memory)

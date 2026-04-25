@@ -121,6 +121,7 @@ impl LocalEmbeddingProvider {
     }
 
     /// Attempt to load the appropriate model implementation based on features
+    #[allow(clippy::unused_async)]
     async fn try_load_model(&self) -> Result<Box<dyn LocalEmbeddingModel>> {
         #[cfg(feature = "local-embeddings")]
         {

@@ -26,7 +26,7 @@
 //! # async fn example() -> anyhow::Result<()> {
 //! // Local embedding provider (offline)
 //! let config = LocalConfig::default();
-//! let provider = LocalEmbeddingProvider::new_with_fallback(config).await?;
+//! let provider = LocalEmbeddingProvider::new(config).await?;
 //!
 //! // Generate embedding for text
 //! let embedding = provider.embed_text("implement REST API").await?;

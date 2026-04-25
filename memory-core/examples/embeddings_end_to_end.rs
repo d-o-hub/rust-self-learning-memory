@@ -270,7 +270,7 @@ async fn main() -> anyhow::Result<()> {
 async fn initialize_provider() -> anyhow::Result<Box<dyn EmbeddingProvider>> {
     #[cfg(feature = "local-embeddings")]
     {
-        match LocalEmbeddingProvider::new_with_fallback(LocalConfig::default()).await {
+        match LocalEmbeddingProvider::new(LocalConfig::default()).await {
             Ok(provider) => {
                 println!("  Using Local Embedding Provider (CPU-based)");
                 return Ok(Box::new(provider));

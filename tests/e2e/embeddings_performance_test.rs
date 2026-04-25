@@ -29,21 +29,16 @@ struct PerformanceMetrics {
     throughput: f64, // operations per second
 }
 
-use anyhow::Context;
-
 impl PerformanceMetrics {
-    fn new(operation: String, durations: Vec<Duration>) -> anyhow::Result<Self> {
+    fn new(operation: String, durations: Vec<Duration>) -> Self {
         let count = durations.len();
-        if count == 0 {
-            anyhow::bail!("No durations provided");
-        }
         let total_duration: Duration = durations.iter().sum();
         let avg_duration = total_duration / count as u32;
-        let min_duration = *durations.iter().min().context("Empty durations")?;
-        let max_duration = *durations.iter().max().context("Empty durations")?;
+        let min_duration = *durations.iter().min().unwrap();
+        let max_duration = *durations.iter().max().unwrap();
         let throughput = count as f64 / total_duration.as_secs_f64();
 
-        Ok(Self {
+        Self {
             operation,
             count,
             total_duration,
@@ -51,7 +46,7 @@ impl PerformanceMetrics {
             min_duration,
             max_duration,
             throughput,
-        })
+        }
     }
 
     fn print(&self) {
@@ -73,14 +68,14 @@ impl PerformanceMetrics {
 // ============================================================================
 
 #[tokio::test]
-async fn test_performance_single_embedding_latency() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_single_embedding_latency() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Warmup
     for _ in 0..5 {
-        let _ = provider.embed_text("warmup text").await?;
+        let _ = provider.embed_text("warmup text").await.unwrap();
     }
 
     let iterations = 100;
@@ -89,11 +84,11 @@ async fn test_performance_single_embedding_latency() -> anyhow::Result<()> {
     for i in 0..iterations {
         let text = format!("Performance test text number {}", i);
         let start = Instant::now();
-        let _ = provider.embed_text(&text).await?;
+        let _ = provider.embed_text(&text).await.unwrap();
         durations.push(start.elapsed());
     }
 
-    let metrics = PerformanceMetrics::new("Single Embedding Generation".to_string(), durations)?;
+    let metrics = PerformanceMetrics::new("Single Embedding Generation".to_string(), durations);
     metrics.print();
 
     // Performance assertions
@@ -112,14 +107,13 @@ async fn test_performance_single_embedding_latency() -> anyhow::Result<()> {
         "Throughput should be > 10 ops/sec, got {:.2}",
         metrics.throughput
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_batch_embedding_latency() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_batch_embedding_latency() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     let batch_sizes = vec![1, 10, 50, 100, 200];
 
@@ -138,7 +132,7 @@ async fn test_performance_batch_embedding_latency() -> anyhow::Result<()> {
             .collect();
 
         let start = Instant::now();
-        let embeddings = provider.embed_batch(&texts).await?;
+        let embeddings = provider.embed_batch(&texts).await.unwrap();
         let duration = start.elapsed();
 
         assert_eq!(embeddings.len(), batch_size);
@@ -159,15 +153,14 @@ async fn test_performance_batch_embedding_latency() -> anyhow::Result<()> {
 
         prev_avg = Some(avg);
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_search_latency() -> anyhow::Result<()> {
+async fn test_performance_search_latency() {
     let storage = Arc::new(InMemoryEmbeddingStorage::new());
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Create a dataset of 1000 episodes
     let num_episodes = 1000;
@@ -176,17 +169,17 @@ async fn test_performance_search_latency() -> anyhow::Result<()> {
     for i in 0..num_episodes {
         let episode_id = uuid::Uuid::new_v4();
         let text = format!("Episode {} about various topics like authentication, API development, database design, testing, and deployment", i);
-        let embedding = provider.embed_text(&text).await?;
+        let embedding = provider.embed_text(&text).await.unwrap();
 
         storage
             .store_episode_embedding(episode_id, embedding)
             .await
-            ?;
+            .unwrap();
     }
 
     // Benchmark search performance
     let query = "authentication and API security";
-    let query_embedding = provider.embed_text(query).await?;
+    let query_embedding = provider.embed_text(query).await.unwrap();
 
     let iterations = 100;
     let mut durations = vec![];
@@ -196,11 +189,11 @@ async fn test_performance_search_latency() -> anyhow::Result<()> {
         let _ = storage
             .find_similar_episodes(query_embedding.clone(), 10, 0.5)
             .await
-            ?;
+            .unwrap();
         durations.push(start.elapsed());
     }
 
-    let metrics = PerformanceMetrics::new(format!("Search ({} episodes)", num_episodes), durations)?;
+    let metrics = PerformanceMetrics::new(format!("Search ({} episodes)", num_episodes), durations);
     metrics.print();
 
     // Search should be fast even with 1000 episodes
@@ -209,14 +202,13 @@ async fn test_performance_search_latency() -> anyhow::Result<()> {
         "Average search should be < 50ms, got {:?}",
         metrics.avg_duration
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_large_dataset_scaling() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_large_dataset_scaling() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     let dataset_sizes = vec![100, 500, 1000, 2000, 5000];
 
@@ -235,23 +227,23 @@ async fn test_performance_large_dataset_scaling() -> anyhow::Result<()> {
         for i in 0..size {
             let episode_id = uuid::Uuid::new_v4();
             let text = format!("Episode {} with various technical content", i);
-            let embedding = provider.embed_text(&text).await?;
+            let embedding = provider.embed_text(&text).await.unwrap();
             storage
                 .store_episode_embedding(episode_id, embedding)
                 .await
-                ?;
+                .unwrap();
         }
         let build_time = build_start.elapsed();
 
         // Search
         let query = "technical content about APIs and databases";
-        let query_embedding = provider.embed_text(query).await?;
+        let query_embedding = provider.embed_text(query).await.unwrap();
 
         let search_start = Instant::now();
         let _ = storage
             .find_similar_episodes(query_embedding, 10, 0.5)
             .await
-            ?;
+            .unwrap();
         let search_time = search_start.elapsed();
 
         // Estimate memory (384 floats * 4 bytes per float)
@@ -270,16 +262,15 @@ async fn test_performance_large_dataset_scaling() -> anyhow::Result<()> {
             search_time
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
 #[allow(clippy::excessive_nesting)]
-async fn test_performance_concurrent_embeddings() -> anyhow::Result<()> {
+async fn test_performance_concurrent_embeddings() {
     let provider = Arc::new(
-        LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+        LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
             .await
-            ?,
+            .unwrap(),
     );
 
     let concurrent_tasks = vec![1, 5, 10, 20];
@@ -307,7 +298,7 @@ async fn test_performance_concurrent_embeddings() -> anyhow::Result<()> {
                     let mut local_durations = vec![];
                     for text in chunk {
                         let t_start = Instant::now();
-                        let _ = provider.embed_text(&text).await?;
+                        let _ = provider.embed_text(&text).await.unwrap();
                         local_durations.push(t_start.elapsed());
                     }
                     local_durations
@@ -318,7 +309,7 @@ async fn test_performance_concurrent_embeddings() -> anyhow::Result<()> {
         let results: Vec<_> = futures::future::join_all(handles)
             .await
             .into_iter()
-            .flat_map(|r| r?)
+            .flat_map(|r| r.unwrap())
             .collect();
 
         let total_time = start.elapsed();
@@ -339,17 +330,16 @@ async fn test_performance_concurrent_embeddings() -> anyhow::Result<()> {
         // Concurrent should be faster
         assert!(efficiency > 0.5, "Efficiency should be > 50%");
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_similarity_calculation() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_similarity_calculation() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
-    let embedding1 = provider.embed_text("text one").await?;
-    let embedding2 = provider.embed_text("text two").await?;
+    let embedding1 = provider.embed_text("text one").await.unwrap();
+    let embedding2 = provider.embed_text("text two").await.unwrap();
 
     let iterations = 10_000;
 
@@ -370,15 +360,14 @@ async fn test_performance_similarity_calculation() -> anyhow::Result<()> {
 
     // Similarity calculation should be very fast
     assert!(avg < 100.0, "Average should be < 100μs, got {:.2}μs", avg);
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_memory_efficiency() -> anyhow::Result<()> {
+async fn test_performance_memory_efficiency() {
     let storage = Arc::new(InMemoryEmbeddingStorage::new());
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     println!("\nMemory Efficiency Test:");
 
@@ -390,11 +379,11 @@ async fn test_performance_memory_efficiency() -> anyhow::Result<()> {
         for i in 0..size {
             let episode_id = uuid::Uuid::new_v4();
             let text = format!("Episode {} for memory testing", i);
-            let embedding = provider.embed_text(&text).await?;
+            let embedding = provider.embed_text(&text).await.unwrap();
             storage
                 .store_episode_embedding(episode_id, embedding)
                 .await
-                ?;
+                .unwrap();
         }
 
         let duration = start.elapsed();
@@ -423,14 +412,13 @@ async fn test_performance_memory_efficiency() -> anyhow::Result<()> {
             size
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_provider_comparison() -> anyhow::Result<()> {
-    let local_provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_provider_comparison() {
+    let local_provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .unwrap();
 
     let text = "Implement authentication system with JWT tokens";
     let iterations = 50;
@@ -446,13 +434,13 @@ async fn test_performance_provider_comparison() -> anyhow::Result<()> {
     let mut local_durations = vec![];
     for _ in 0..iterations {
         let start = Instant::now();
-        let _ = local_provider.embed_text(text).await?;
+        let _ = local_provider.embed_text(text).await.unwrap();
         local_durations.push(start.elapsed());
     }
 
     let local_avg = local_durations.iter().sum::<Duration>() / iterations as u32;
-    let local_min = *local_durations.iter().min()?;
-    let local_max = *local_durations.iter().max()?;
+    let local_min = *local_durations.iter().min().unwrap();
+    let local_max = *local_durations.iter().max().unwrap();
 
     println!(
         "{:<15} {:<15?} {:<15?} {:<15?}",
@@ -465,14 +453,13 @@ async fn test_performance_provider_comparison() -> anyhow::Result<()> {
         "{:<15} {:<15} {:<15} {:<15}",
         "OpenAI", "(requires API key)", "-", "-"
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_cache_effectiveness() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_cache_effectiveness() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     let texts = vec![
         "authentication",
@@ -488,7 +475,7 @@ async fn test_performance_cache_effectiveness() -> anyhow::Result<()> {
     let mut cold_durations = vec![];
     for text in &texts {
         let start = Instant::now();
-        let _ = provider.embed_text(text).await?;
+        let _ = provider.embed_text(text).await.unwrap();
         cold_durations.push(start.elapsed());
     }
 
@@ -496,7 +483,7 @@ async fn test_performance_cache_effectiveness() -> anyhow::Result<()> {
     let mut warm_durations = vec![];
     for text in &texts {
         let start = Instant::now();
-        let _ = provider.embed_text(text).await?;
+        let _ = provider.embed_text(text).await.unwrap();
         warm_durations.push(start.elapsed());
     }
 
@@ -517,14 +504,13 @@ async fn test_performance_cache_effectiveness() -> anyhow::Result<()> {
 
         println!("{:<20} {:<15} {:<15} {:<10}", text, cold, warm, speedup);
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_text_length_impact() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_performance_text_length_impact() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Create owned strings to avoid temporary value issues
     let medium_text = "Medium length text with some details. ".repeat(3);
@@ -555,7 +541,7 @@ async fn test_performance_text_length_impact() -> anyhow::Result<()> {
         let mut durations = vec![];
         for _ in 0..iterations {
             let start = Instant::now();
-            let _ = provider.embed_text(text).await?;
+            let _ = provider.embed_text(text).await.unwrap();
             durations.push(start.elapsed());
         }
 
@@ -569,15 +555,14 @@ async fn test_performance_text_length_impact() -> anyhow::Result<()> {
             per_char
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_performance_realistic_workload() -> anyhow::Result<()> {
+async fn test_performance_realistic_workload() {
     let storage = Arc::new(InMemoryEmbeddingStorage::new());
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     println!("\nRealistic Workload Simulation:");
 
@@ -594,20 +579,22 @@ async fn test_performance_realistic_workload() -> anyhow::Result<()> {
             // Add new episode
             let episode_id = uuid::Uuid::new_v4();
             let text = format!("Episode {} about various technical topics", i);
-            let embedding = provider.embed_text(&text).await?;
+            let embedding = provider.embed_text(&text).await.unwrap();
             storage
                 .store_episode_embedding(episode_id, embedding)
                 .await
-                ?;
+                .unwrap();
             add_count += 1;
         } else {
             // Search
-            let query_embedding = provider.embed_text("technical topics and implementations").await?;
+            let query = "technical topics and implementations";
+            let query_embedding = provider.embed_text(query).await.unwrap();
             let _ = storage
                 .find_similar_episodes(query_embedding, 5, 0.5)
                 .await
-                ?;
+                .unwrap();
             search_count += 1;
+        }
     }
 
     let duration = start.elapsed();
@@ -628,7 +615,6 @@ async fn test_performance_realistic_workload() -> anyhow::Result<()> {
         duration < Duration::from_secs(30),
         "Workload should complete in < 30s"
     );
-    Ok(())
 }
 
 // ============================================================================

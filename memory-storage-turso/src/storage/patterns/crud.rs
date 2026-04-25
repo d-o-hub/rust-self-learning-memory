@@ -233,7 +233,8 @@ impl TursoStorage {
         sql.push_str(" ORDER BY success_rate DESC");
 
         if let Some(limit) = query.limit {
-            sql.push_str(&format!(" LIMIT {}", limit));
+            sql.push_str(" LIMIT ?");
+            params_vec.push((limit as i64).to_string());
         }
 
         let mut rows = conn

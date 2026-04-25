@@ -351,7 +351,7 @@ async fn create_provider_from_config(config: &Config) -> Result<Box<dyn Embeddin
             {
                 use do_memory_core::embeddings::LocalEmbeddingProvider;
                 let model_config = LocalConfig::default();
-                let provider = LocalEmbeddingProvider::new_with_fallback(model_config).await?;
+                let provider = LocalEmbeddingProvider::new(model_config).await?;
                 Ok(Box::new(provider))
             }
             #[cfg(not(feature = "local-embeddings"))]

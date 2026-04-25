@@ -16,10 +16,12 @@ use do_memory_core::embeddings::{
 use std::time::{Duration, Instant};
 
 /// Create local provider for testing
-async fn create_local_provider() -> anyhow::Result<LocalEmbeddingProvider> {
+async fn create_local_provider() -> LocalEmbeddingProvider {
     let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
 
-    LocalEmbeddingProvider::new_with_fallback(config).await
+    LocalEmbeddingProvider::new(config)
+        .await
+        .expect("Failed to create local provider")
 }
 
 // ============================================================================
@@ -27,8 +29,8 @@ async fn create_local_provider() -> anyhow::Result<LocalEmbeddingProvider> {
 // ============================================================================
 
 #[tokio::test]
-async fn test_local_provider_initialization() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_provider_initialization() {
+    let provider = create_local_provider().await;
 
     // Verify provider is loaded
     assert!(provider.is_loaded().await, "Provider should be loaded");
@@ -49,19 +51,18 @@ async fn test_local_provider_initialization() -> anyhow::Result<()> {
     // Verify warmup succeeds
     let warmup_result = provider.warmup().await;
     assert!(warmup_result.is_ok(), "Warmup should succeed");
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_single_embedding_generation() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_single_embedding_generation() {
+    let provider = create_local_provider().await;
     let text = "Implement user authentication with JWT tokens in Rust";
 
     let start = Instant::now();
     let embedding = provider
         .embed_text(text)
         .await
-        ?;
+        .expect("Should generate embedding");
     let duration = start.elapsed();
 
     // Verify embedding
@@ -83,12 +84,11 @@ async fn test_local_single_embedding_generation() -> anyhow::Result<()> {
         "Local embedding should be fast, got {:?}",
         duration
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_batch_embedding_generation() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_batch_embedding_generation() {
+    let provider = create_local_provider().await;
 
     let texts = vec![
         "Implement REST API endpoints in Rust using Axum framework",
@@ -107,7 +107,7 @@ async fn test_local_batch_embedding_generation() -> anyhow::Result<()> {
     let embeddings = provider
         .embed_batch(&texts)
         .await
-        ?;
+        .expect("Should generate batch embeddings");
     let duration = start.elapsed();
 
     // Verify all embeddings generated
@@ -141,12 +141,11 @@ async fn test_local_batch_embedding_generation() -> anyhow::Result<()> {
         "Local batch embedding generation: {:?} total, {:.2}ms avg",
         duration, avg_time
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_semantic_similarity() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_semantic_similarity() {
+    let provider = create_local_provider().await;
 
     // Test semantic similarity
     let test_cases = vec![
@@ -165,7 +164,7 @@ async fn test_local_semantic_similarity() -> anyhow::Result<()> {
         let similarity = provider
             .similarity(text1, text2)
             .await
-            ?;
+            .expect("Should calculate similarity");
 
         println!(
             "Similarity between '{}' and '{}': {:.3}",
@@ -183,36 +182,34 @@ async fn test_local_semantic_similarity() -> anyhow::Result<()> {
 
         assert!(similarity >= 0.0 && similarity <= 1.0);
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_deterministic_embeddings() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_deterministic_embeddings() {
+    let provider = create_local_provider().await;
     let text = "Test text for deterministic behavior";
 
     let embedding1 = provider
         .embed_text(text)
         .await
-        ?;
+        .expect("Should generate first embedding");
     let embedding2 = provider
         .embed_text(text)
         .await
-        ?;
+        .expect("Should generate second embedding");
 
     // Local embeddings should be deterministic
     assert_eq!(
         embedding1, embedding2,
         "Same text should produce identical embeddings"
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_model_caching() -> anyhow::Result<()> {
+async fn test_local_model_caching() {
     // Test that model is cached and reused
-    let provider1 = create_local_provider().await?;
-    let provider2 = create_local_provider().await?;
+    let provider1 = create_local_provider().await;
+    let provider2 = create_local_provider().await;
 
     // Both should use the same model
     assert_eq!(
@@ -224,23 +221,22 @@ async fn test_local_model_caching() -> anyhow::Result<()> {
     let text = "Test caching";
 
     let start1 = Instant::now();
-    let _ = provider1.embed_text(text).await?;
+    let _ = provider1.embed_text(text).await.unwrap();
     let time1 = start1.elapsed();
 
     let start2 = Instant::now();
-    let _ = provider2.embed_text(text).await?;
+    let _ = provider2.embed_text(text).await.unwrap();
     let time2 = start2.elapsed();
 
     println!("First call: {:?}, Second call: {:?}", time1, time2);
 
     // Second call might be faster due to caching
     // (but this is a weak assertion due to system variance)
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_empty_text_handling() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_empty_text_handling() {
+    let provider = create_local_provider().await;
 
     // Test with empty string
     let result = provider.embed_text("");
@@ -259,12 +255,11 @@ async fn test_local_empty_text_handling() -> anyhow::Result<()> {
             );
         }
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_multilingual_support() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_multilingual_support() {
+    let provider = create_local_provider().await;
 
     // Test multilingual support
     let texts = vec![
@@ -294,16 +289,15 @@ async fn test_local_multilingual_support() -> anyhow::Result<()> {
     let sim_en_fr = provider
         .similarity("authentication", "authentification")
         .await
-        ?;
+        .expect("Should calculate similarity");
 
     println!("Cross-language similarity (EN-FR): {:.3}", sim_en_fr);
     // Note: Local models may have lower cross-lingual similarity than API models
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_special_characters_handling() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_special_characters_handling() {
+    let provider = create_local_provider().await;
 
     // Test with various special characters
     let special_texts = vec![
@@ -326,7 +320,6 @@ async fn test_local_special_characters_handling() -> anyhow::Result<()> {
             text.chars().take(30).collect::<String>()
         );
     }
-    Ok(())
 }
 
 // ============================================================================
@@ -334,11 +327,11 @@ async fn test_local_special_characters_handling() -> anyhow::Result<()> {
 // ============================================================================
 
 #[tokio::test]
-async fn test_local_performance_benchmarks() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_performance_benchmarks() {
+    let provider = create_local_provider().await;
 
     // Warmup
-    let _ = provider.embed_text("warmup").await?;
+    let _ = provider.embed_text("warmup").await.unwrap();
 
     // Benchmark single embeddings
     let iterations = 50;
@@ -347,13 +340,13 @@ async fn test_local_performance_benchmarks() -> anyhow::Result<()> {
     for i in 0..iterations {
         let text = format!("Benchmark text number {}", i);
         let start = Instant::now();
-        let _ = provider.embed_text(&text).await?;
+        let _ = provider.embed_text(&text).await.unwrap();
         durations.push(start.elapsed());
     }
 
     let avg = durations.iter().sum::<Duration>().as_millis() as f64 / iterations as f64;
-    let min = durations.iter().min().context("Empty durations")?;
-    let max = durations.iter().max().context("Empty durations")?;
+    let min = durations.iter().min().unwrap();
+    let max = durations.iter().max().unwrap();
 
     println!(
         "Local provider single embedding performance ({} iterations):",
@@ -366,12 +359,11 @@ async fn test_local_performance_benchmarks() -> anyhow::Result<()> {
     // Local provider should be consistently fast
     assert!(avg < 100.0, "Average should be < 100ms, was {:.2}ms", avg);
     assert!(max < Duration::from_millis(500), "Max should be < 500ms");
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_batch_performance() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_batch_performance() {
+    let provider = create_local_provider().await;
 
     let batch_sizes = vec![1, 10, 50, 100];
 
@@ -381,7 +373,7 @@ async fn test_local_batch_performance() -> anyhow::Result<()> {
             .collect();
 
         let start = Instant::now();
-        let embeddings = provider.embed_batch(&texts).await?;
+        let embeddings = provider.embed_batch(&texts).await.unwrap();
         let duration = start.elapsed();
 
         assert_eq!(embeddings.len(), batch_size);
@@ -394,12 +386,11 @@ async fn test_local_batch_performance() -> anyhow::Result<()> {
             batch_size, duration, avg_time, throughput
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_concurrent_embeddings() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_concurrent_embeddings() {
+    let provider = create_local_provider().await;
 
     let texts: Vec<String> = (0..20).map(|i| format!("Concurrent text {}", i)).collect();
 
@@ -411,7 +402,7 @@ async fn test_local_concurrent_embeddings() -> anyhow::Result<()> {
         .map(|text| {
             let provider_clone = provider.clone();
             let text = text.clone();
-            tokio::spawn(async move { provider_clone.embed_text(&text).await? })
+            tokio::spawn(async move { provider_clone.embed_text(&text).await.unwrap() })
         })
         .collect();
 
@@ -419,7 +410,7 @@ async fn test_local_concurrent_embeddings() -> anyhow::Result<()> {
     let results: Vec<_> = futures::future::join_all(handles)
         .await
         .into_iter()
-        .map(|r| r?)
+        .map(|r| r.unwrap())
         .collect();
 
     let duration = start.elapsed();
@@ -440,7 +431,6 @@ async fn test_local_concurrent_embeddings() -> anyhow::Result<()> {
         "Concurrent embeddings (20 parallel): {:?} total, {:.2}ms avg",
         duration, avg_time
     );
-    Ok(())
 }
 
 // ============================================================================
@@ -448,12 +438,12 @@ async fn test_local_concurrent_embeddings() -> anyhow::Result<()> {
 // ============================================================================
 
 #[tokio::test]
-async fn test_local_semantic_search_workflow() -> anyhow::Result<()> {
+async fn test_local_semantic_search_workflow() {
     let storage = Box::new(InMemoryEmbeddingStorage::new());
     let config = EmbeddingConfig::default();
     let service = SemanticService::with_fallback(storage, config)
         .await
-        ?;
+        .expect("Should create semantic service");
 
     // Create sample episodes
     let episodes = vec![
@@ -473,13 +463,13 @@ async fn test_local_semantic_search_workflow() -> anyhow::Result<()> {
             .provider
             .embed_text(text)
             .await
-            ?;
+            .expect("Should generate embedding");
 
         service
             .storage
             .store_episode_embedding(episode_id, embedding)
             .await
-            ?;
+            .expect("Should store embedding");
     }
 
     // Test semantic search
@@ -488,13 +478,13 @@ async fn test_local_semantic_search_workflow() -> anyhow::Result<()> {
         .provider
         .embed_text(query)
         .await
-        ?;
+        .expect("Should generate query embedding");
 
     let results = service
         .storage
         .find_similar_episodes(query_embedding, 5, 0.0)
         .await
-        ?;
+        .expect("Should find similar episodes");
 
     assert!(!results.is_empty(), "Should find similar episodes");
 
@@ -511,7 +501,6 @@ async fn test_local_semantic_search_workflow() -> anyhow::Result<()> {
     for (i, result) in results.iter().enumerate() {
         println!("  {}. similarity: {:.3}", i + 1, result.similarity);
     }
-    Ok(())
 }
 
 // ============================================================================
@@ -519,8 +508,8 @@ async fn test_local_semantic_search_workflow() -> anyhow::Result<()> {
 // ============================================================================
 
 #[tokio::test]
-async fn test_local_embedding_quality() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_embedding_quality() {
+    let provider = create_local_provider().await;
 
     // Test that semantically similar texts have high similarity
     let similar_pairs = vec![
@@ -534,7 +523,7 @@ async fn test_local_embedding_quality() -> anyhow::Result<()> {
         let similarity = provider
             .similarity(text1, text2)
             .await
-            ?;
+            .expect("Should calculate similarity");
 
         println!(
             "Similarity between '{}' and '{}': {:.3}",
@@ -560,7 +549,7 @@ async fn test_local_embedding_quality() -> anyhow::Result<()> {
         let similarity = provider
             .similarity(text1, text2)
             .await
-            ?;
+            .expect("Should calculate similarity");
 
         println!(
             "Dissimilarity between '{}' and '{}': {:.3}",
@@ -574,23 +563,21 @@ async fn test_local_embedding_quality() -> anyhow::Result<()> {
             similarity
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_fallback_behavior() -> anyhow::Result<()> {
+async fn test_local_fallback_behavior() {
     // Test that local provider works when APIs are unavailable
-    let provider = create_local_provider().await?;
+    let provider = create_local_provider().await;
 
     // Should work without any API keys or network
     assert!(provider.is_available().await);
 
     let text = "Test without network";
-    let embedding = provider.embed_text(text).await?;
+    let embedding = provider.embed_text(text).await.unwrap();
 
     assert_eq!(embedding.len(), 384);
     println!("Local provider works offline: ✓");
-    Ok(())
 }
 
 // ============================================================================
@@ -598,8 +585,8 @@ async fn test_local_fallback_behavior() -> anyhow::Result<()> {
 // ============================================================================
 
 #[tokio::test]
-async fn test_local_memory_efficiency() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_memory_efficiency() {
+    let provider = create_local_provider().await;
 
     // Generate many embeddings to test memory usage
     let num_embeddings = 1000;
@@ -608,7 +595,7 @@ async fn test_local_memory_efficiency() -> anyhow::Result<()> {
         .collect();
 
     let start = Instant::now();
-    let embeddings = provider.embed_batch(&texts).await?;
+    let embeddings = provider.embed_batch(&texts).await.unwrap();
     let duration = start.elapsed();
 
     assert_eq!(embeddings.len(), num_embeddings);
@@ -628,12 +615,11 @@ async fn test_local_memory_efficiency() -> anyhow::Result<()> {
 
     // Should be reasonably fast even for 1000 embeddings
     assert!(duration < Duration::from_secs(30));
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_local_large_text_handling() -> anyhow::Result<()> {
-    let provider = create_local_provider().await?;
+async fn test_local_large_text_handling() {
+    let provider = create_local_provider().await;
 
     // Test with increasingly large texts
     let sizes = vec![100, 500, 1000, 5000];
@@ -641,7 +627,7 @@ async fn test_local_large_text_handling() -> anyhow::Result<()> {
     for size in sizes {
         let text = "word ".repeat(size);
         let start = Instant::now();
-        let embedding = provider.embed_text(&text).await?;
+        let embedding = provider.embed_text(&text).await.unwrap();
         let duration = start.elapsed();
 
         assert_eq!(embedding.len(), 384);
@@ -650,5 +636,4 @@ async fn test_local_large_text_handling() -> anyhow::Result<()> {
         // Should still complete in reasonable time
         assert!(duration < Duration::from_secs(5));
     }
-    Ok(())
 }

@@ -25,9 +25,3 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Issue: The repo's best near-term CPU/token wins were easy to miss because they are split across plans and code placeholders.
 - Root Cause: Performance opportunities span both implementation gaps and prompt-assembly workflow docs.
 - Solution: Prioritize cached retrieval wiring, QueryCache contention, bounded context assembly, hierarchical reranking, and compact high-frequency skill/docs before larger research features.
-
-## LESSON-005: Strict vs. Graceful Initialization for Provider Escalation
-
-- Issue: `SemanticService` failed to fall back to OpenAI when local embedding models were missing.
-- Root Cause: `LocalEmbeddingProvider::new()` masked loading failures by internally falling back to mock models, returning `Ok(provider)` instead of an error.
-- Solution: Implement a dual-initialization strategy. Use strict `new()` to propagate loading errors (enabling external escalation logic) and `new_with_fallback()` for cases where internal graceful degradation is preferred (e.g., tests or general reliability).

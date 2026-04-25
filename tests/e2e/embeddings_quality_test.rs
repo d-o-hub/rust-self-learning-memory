@@ -120,7 +120,6 @@ impl QualityTestDataset {
             ],
         }
     }
-    Ok(())
 }
 
 // ============================================================================
@@ -128,11 +127,11 @@ impl QualityTestDataset {
 // ============================================================================
 
 #[tokio::test]
-async fn test_quality_search_accuracy_known_queries() -> anyhow::Result<()> {
+async fn test_quality_search_accuracy_known_queries() {
     let dataset = QualityTestDataset::new();
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Generate embeddings for all episodes
     let mut embeddings = HashMap::new();
@@ -208,14 +207,13 @@ async fn test_quality_search_accuracy_known_queries() -> anyhow::Result<()> {
         "Accuracy should be >= 40%, got {:.1}%",
         accuracy * 100.0
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_similarity_threshold_tuning() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_similarity_threshold_tuning() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Test pairs with known similarity levels
     let test_pairs = vec![
@@ -269,14 +267,13 @@ async fn test_quality_similarity_threshold_tuning() -> anyhow::Result<()> {
         println!("  Total filtered: {}/{}", filtered_count, test_pairs.len());
         println!();
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_ranking_quality() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_ranking_quality() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     let query = "user authentication system";
     let candidates = vec![
@@ -297,7 +294,7 @@ async fn test_quality_ranking_quality() -> anyhow::Result<()> {
     // Calculate all similarities
     let mut embeddings = Vec::new();
     for text in &candidates {
-        let embedding = provider.embed_text(text).await?;
+        let embedding = provider.embed_text(text).await.unwrap();
         embeddings.push(embedding);
     }
 
@@ -340,15 +337,14 @@ async fn test_quality_ranking_quality() -> anyhow::Result<()> {
         top_3_auth_related >= 1,
         "At least one auth result should be in top 3"
     );
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_domain_specific_search() -> anyhow::Result<()> {
+async fn test_quality_domain_specific_search() {
     let storage = InMemoryEmbeddingStorage::new();
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Create episodes from different domains
     let domain_episodes = vec![
@@ -405,14 +401,13 @@ async fn test_quality_domain_specific_search() -> anyhow::Result<()> {
     for (i, result) in results.iter().take(5).enumerate() {
         println!("  {}. similarity: {:.3}", i + 1, result.similarity);
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_multilingual_support() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_multilingual_support() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Multilingual test cases
     let multilingual_queries = vec![
@@ -468,14 +463,13 @@ async fn test_quality_multilingual_support() -> anyhow::Result<()> {
         // For mock/test embeddings, we just verify it runs
         assert!(avg_sim >= 0.0 && avg_sim <= 1.0);
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_fuzzy_matching() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_fuzzy_matching() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Test fuzzy matching with typos, abbreviations, etc.
     let fuzzy_tests = vec![
@@ -512,14 +506,13 @@ async fn test_quality_fuzzy_matching() -> anyhow::Result<()> {
             "Similarity should be reasonable"
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_context_aware_search() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_context_aware_search() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Test that context affects search results
     let base_query = "API";
@@ -553,14 +546,13 @@ async fn test_quality_context_aware_search() -> anyhow::Result<()> {
         // Contextualized query should be more specific
         // (For mock embeddings, this may not hold, but test should run)
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_natural_language_queries() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_natural_language_queries() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Test various natural language query styles
     let nl_queries = vec![
@@ -604,14 +596,13 @@ async fn test_quality_natural_language_queries() -> anyhow::Result<()> {
             "All variations should have some similarity"
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_temporal_and_versioning_consistency() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_temporal_and_versioning_consistency() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Test that embeddings are deterministic over time
     let texts = vec![
@@ -625,13 +616,13 @@ async fn test_quality_temporal_and_versioning_consistency() -> anyhow::Result<()
 
     // Generate "version 1" embeddings
     for text in &texts {
-        let emb = provider.embed_text(text).await?;
+        let emb = provider.embed_text(text).await.unwrap();
         embeddings_v1.push((text, emb));
     }
 
     // Generate "version 2" embeddings (should be identical)
     for text in &texts {
-        let emb = provider.embed_text(text).await?;
+        let emb = provider.embed_text(text).await.unwrap();
         embeddings_v2.push((text, emb));
     }
 
@@ -649,14 +640,13 @@ async fn test_quality_temporal_and_versioning_consistency() -> anyhow::Result<()
             similarity
         );
     }
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_quality_long_form_text_search() -> anyhow::Result<()> {
-    let provider = LocalEmbeddingProvider::new_with_fallback(LocalConfig::new("test-model", 384))
+async fn test_quality_long_form_text_search() {
+    let provider = LocalEmbeddingProvider::new(LocalConfig::new("test-model", 384))
         .await
-        ?;
+        .expect("Should create provider");
 
     // Test with longer descriptions
     let long_texts = vec![
@@ -676,16 +666,15 @@ async fn test_quality_long_form_text_search() -> anyhow::Result<()> {
     println!("Long-Form Text Search:");
 
     for (i, long_text) in long_texts.iter().enumerate() {
-        let long_emb = provider.embed_text(long_text).await?;
+        let long_emb = provider.embed_text(long_text).await.unwrap();
 
         println!("\nLong text {} ({} chars)", i + 1, long_text.len());
 
         for query in &short_queries {
-            let query_emb = provider.embed_text(query).await?;
+            let query_emb = provider.embed_text(query).await.unwrap();
             let similarity = cosine_similarity(&query_emb, &long_emb);
 
             println!("  Query '{}' -> {:.3}", query, similarity);
         }
     }
-    Ok(())
 }

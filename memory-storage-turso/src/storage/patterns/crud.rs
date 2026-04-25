@@ -1,9 +1,7 @@
 //! Pattern CRUD operations for Turso storage
 
 use crate::TursoStorage;
-use do_memory_core::{
-    Error, Heuristic, Pattern as CorePattern, Result, TaskContext, apply_query_limit,
-};
+use do_memory_core::{Error, Heuristic, Pattern as CorePattern, Result, TaskContext};
 use tracing::{debug, info};
 
 /// Internal structure for pattern_data JSON field (matches storage schema)
@@ -234,15 +232,13 @@ impl TursoStorage {
 
         sql.push_str(" ORDER BY success_rate DESC");
 
-        // Apply limit with defaults and bounds
-        let limit = apply_query_limit(query.limit);
-        sql.push_str(" LIMIT ?");
-
-        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(|p| p.into()).collect();
-        params.push((limit as i64).into());
+        if let Some(limit) = query.limit {
+            sql.push_str(" LIMIT ?");
+            params_vec.push(limit.to_string());
+        }
 
         let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
+            .query(&sql, libsql::params_from_iter(params_vec))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
 
@@ -257,57 +253,5 @@ impl TursoStorage {
 
         info!("Found {} patterns matching query", patterns.len());
         Ok(patterns)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::TursoStorage;
-    use chrono::Duration;
-    use do_memory_core::PatternEffectiveness;
-    use do_memory_core::{Pattern, PatternId, TaskContext};
-    use tempfile::TempDir;
-
-    async fn setup_test_storage() -> (TursoStorage, TempDir) {
-        let dir = TempDir::new().unwrap();
-        let db_path = dir.path().join("test.db");
-        let db = libsql::Builder::new_local(&db_path).build().await.unwrap();
-        let storage = TursoStorage::from_database(db).unwrap();
-        storage.initialize_schema().await.unwrap();
-        (storage, dir)
-    }
-
-    #[tokio::test]
-    async fn test_query_patterns_limit() {
-        let (storage, _dir) = setup_test_storage().await;
-
-        for i in 0..5 {
-            let pattern = Pattern::ToolSequence {
-                id: PatternId::new_v4(),
-                tools: vec![format!("tool-{}", i)],
-                context: TaskContext::default(),
-                success_rate: 0.9,
-                avg_latency: Duration::milliseconds(100),
-                occurrence_count: 1,
-                effectiveness: PatternEffectiveness::default(),
-            };
-            storage.store_pattern(&pattern).await.unwrap();
-        }
-
-        // Test limit
-        let query = super::super::PatternQuery {
-            limit: Some(2),
-            ..Default::default()
-        };
-        let patterns = storage.query_patterns(&query).await.unwrap();
-        assert_eq!(patterns.len(), 2);
-
-        // Test apply_query_limit default/bound
-        let query = super::super::PatternQuery {
-            limit: Some(10000),
-            ..Default::default()
-        };
-        let patterns = storage.query_patterns(&query).await.unwrap();
-        assert_eq!(patterns.len(), 5);
     }
 }

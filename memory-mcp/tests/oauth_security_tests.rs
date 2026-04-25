@@ -1,7 +1,7 @@
 #![cfg(feature = "oauth")]
 
 use do_memory_mcp::protocol::OAuthConfig;
-use jsonwebtoken::{EncodingKey, Header, encode};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use server_impl::oauth::validate_bearer_token;
 use server_impl::types::AuthorizationResult;

@@ -103,71 +103,68 @@ impl LocalEmbeddingProvider {
             self.config.model_name
         );
 
+        let result = self.try_load_model().await;
+
+        match result {
+            Ok(model) => {
+                let mut model_guard = self.model.write().await;
+                *model_guard = Some(model);
+                tracing::info!("Local embedding model loaded successfully");
+                Ok(())
+            }
+            Err(e) if allow_fallback => {
+                tracing::warn!("Failed to load local embedding model: {}", e);
+                self.apply_mock_fallback().await
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Attempt to load the appropriate model implementation based on features
+    async fn try_load_model(&self) -> Result<Box<dyn LocalEmbeddingModel>> {
         #[cfg(feature = "local-embeddings")]
         {
-            match self.try_load_real_model().await {
-                Ok(real_model) => {
-                    let model = Box::new(RealEmbeddingModelWithFallback::new(
-                        self.config.model_name.clone(),
-                        self.config.embedding_dimension,
-                        Some(real_model),
-                    ));
-
-                    let mut model_guard = self.model.write().await;
-                    *model_guard = Some(model);
-
-                    tracing::info!("Local embedding model loaded with real ONNX backend");
-                    Ok(())
-                }
-                Err(e) if allow_fallback => {
-                    tracing::warn!("Failed to load real embedding model: {}", e);
-                    tracing::warn!(
-                        "Falling back to mock embeddings - semantic search will not work correctly"
-                    );
-
-                    let mock_fallback = Box::new(RealEmbeddingModelWithFallback::new(
-                        self.config.model_name.clone(),
-                        self.config.embedding_dimension,
-                        None,
-                    ));
-
-                    let mut model_guard = self.model.write().await;
-                    *model_guard = Some(mock_fallback);
-
-                    tracing::info!("Local embedding model loaded with mock fallback");
-                    Ok(())
-                }
-                Err(e) => Err(e),
-            }
+            let real_model = self.try_load_real_model().await?;
+            Ok(Box::new(RealEmbeddingModelWithFallback::new(
+                self.config.model_name.clone(),
+                self.config.embedding_dimension,
+                Some(real_model),
+            )))
         }
 
         #[cfg(not(feature = "local-embeddings"))]
         {
-            if allow_fallback {
-                tracing::warn!(
-                    "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly"
-                );
-                tracing::warn!(
-                    "To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available"
-                );
-
-                let mock_fallback = Box::new(super::mock_model::MockLocalModel::new(
-                    self.config.model_name.clone(),
-                    self.config.embedding_dimension,
-                ));
-
-                let mut model_guard = self.model.write().await;
-                *model_guard = Some(mock_fallback);
-
-                tracing::info!("Local embedding model loaded with mock implementation");
-                Ok(())
-            } else {
-                anyhow::bail!(
-                    "Local embeddings feature not enabled. \
-                    To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available."
-                )
-            }
+            anyhow::bail!("Local embeddings feature not enabled. To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available.")
         }
+    }
+
+    /// Apply a mock fallback model when real loading fails and fallback is allowed
+    async fn apply_mock_fallback(&self) -> Result<()> {
+        tracing::warn!(
+            "PRODUCTION WARNING: Using mock embeddings - semantic search will not work correctly"
+        );
+        tracing::warn!(
+            "To enable real embeddings, add 'local-embeddings' feature and ensure ONNX models are available"
+        );
+
+        #[cfg(feature = "local-embeddings")]
+        let mock_fallback: Box<dyn LocalEmbeddingModel> = Box::new(RealEmbeddingModelWithFallback::new(
+            self.config.model_name.clone(),
+            self.config.embedding_dimension,
+            None,
+        ));
+
+        #[cfg(not(feature = "local-embeddings"))]
+        let mock_fallback: Box<dyn LocalEmbeddingModel> = Box::new(super::mock_model::MockLocalModel::new(
+            self.config.model_name.clone(),
+            self.config.embedding_dimension,
+        ));
+
+        let mut model_guard = self.model.write().await;
+        *model_guard = Some(mock_fallback);
+
+        tracing::info!("Local embedding model loaded with mock implementation");
+        Ok(())
     }
 
     /// Try to load real ONNX model
@@ -459,7 +456,7 @@ mod tests {
         let config = LocalConfig::new("nonexistent-model", 384);
 
         // Test with non-existent model - should return Err when using new()
-        let result = LocalEmbeddingProvider::new_with_fallback(config).await;
+        let result = LocalEmbeddingProvider::new(config).await;
 
         match result {
             Ok(_) => {

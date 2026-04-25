@@ -153,3 +153,6 @@ Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUT
 - For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)
 - Use `./scripts/clean-artifacts.sh standard` for routine cleanup
 - Use `./scripts/clean-artifacts.sh standard --node-modules` only when JS dependencies are not needed locally
+
+## Initialization Strategy (NEW)
+- **Local Embedding Provider**: Use `new()` for strict loading (propagates errors, triggers escalation in `SemanticService`). Use `new_with_fallback()` for internal mock degradation (preferred in E2E/perf tests).

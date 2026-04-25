@@ -27,7 +27,6 @@ struct PerformanceMetrics {
     min_duration: Duration,
     max_duration: Duration,
     throughput: f64, // operations per second
-    Ok(())
 }
 
 impl PerformanceMetrics {
@@ -599,14 +598,12 @@ async fn test_performance_realistic_workload() -> anyhow::Result<()> {
             add_count += 1;
         } else {
             // Search
-            let query = "technical topics and implementations";
-            let query_embedding = provider.embed_text(query).await?;
+            let query_embedding = provider.embed_text("technical topics and implementations").await?;
             let _ = storage
                 .find_similar_episodes(query_embedding, 5, 0.5)
                 .await
                 ?;
             search_count += 1;
-        }
     }
 
     let duration = start.elapsed();
@@ -657,11 +654,9 @@ fn get_memory_usage() -> (f64, f64) {
     }
 
     (rss, total)
-    Ok(())
 }
 
 #[cfg(not(unix))]
 fn get_memory_usage() -> (f64, f64) {
     (0.0, 0.0) // Not implemented for non-Unix
-    Ok(())
 }

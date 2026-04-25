@@ -168,7 +168,7 @@ let embedding = semantic_service.provider.embed_text("Hello").await?;
 ```rust
 use memory_core::embeddings::LocalEmbeddingProvider;
 
-let provider = LocalEmbeddingProvider::new().await?;
+let provider = LocalEmbeddingProvider::new(LocalConfig::default()).await?;
 // First time: Shows download progress
 // Subsequent: Loads instantly from cache
 ```
@@ -480,7 +480,7 @@ let mut config = ModelConfig::openai_3_small();
 config.optimization.timeout_seconds = Some(120);
 
 // Or use local provider for offline
-let provider = LocalEmbeddingProvider::new().await?;
+let provider = LocalEmbeddingProvider::new(LocalConfig::default()).await?;
 ```
 
 **Problem**: Rate limit errors (429)

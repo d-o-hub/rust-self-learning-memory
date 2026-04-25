@@ -19,7 +19,6 @@ use std::collections::HashMap;
 struct QualityTestDataset {
     episodes: Vec<(uuid::Uuid, String, String)>, // (id, text, domain)
     queries: Vec<(String, Vec<usize>)>,          // (query, expected_top_n_indices)
-    Ok(())
 }
 
 impl QualityTestDataset {

@@ -1,7 +1,9 @@
 //! Pattern CRUD operations for Turso storage
 
 use crate::TursoStorage;
-use do_memory_core::{Error, Heuristic, Pattern as CorePattern, Result, TaskContext};
+use do_memory_core::{
+    Error, Heuristic, Pattern as CorePattern, Result, TaskContext, apply_query_limit,
+};
 use tracing::{debug, info};
 
 /// Internal structure for pattern_data JSON field (matches storage schema)
@@ -215,29 +217,32 @@ impl TursoStorage {
 
         let mut params_vec = Vec::new();
 
+        let mut params: Vec<libsql::Value> = Vec::new();
+
         if let Some(ref domain) = query.domain {
             sql.push_str(" AND context_domain = ?");
-            params_vec.push(domain.clone());
+            params.push(domain.clone().into());
         }
 
         if let Some(ref language) = query.language {
             sql.push_str(" AND context_language = ?");
-            params_vec.push(language.clone());
+            params.push(language.clone().into());
         }
 
         if let Some(min_rate) = query.min_success_rate {
             sql.push_str(" AND success_rate >= ?");
-            params_vec.push(min_rate.to_string());
+            params.push(min_rate.into());
         }
 
         sql.push_str(" ORDER BY success_rate DESC");
 
-        if let Some(limit) = query.limit {
-            sql.push_str(&format!(" LIMIT {}", limit));
-        }
+        // Apply limit with defaults and bounds
+        let effective_limit = apply_query_limit(query.limit);
+        sql.push_str(" LIMIT ?");
+        params.push((effective_limit as i64).into());
 
         let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params_vec))
+            .query(&sql, libsql::params_from_iter(params))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
 

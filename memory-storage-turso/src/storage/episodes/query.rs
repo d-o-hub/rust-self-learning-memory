@@ -57,7 +57,8 @@ impl TursoStorage {
 
         // Apply limit with defaults and bounds
         let limit = apply_query_limit(query.limit);
-        sql.push_str(&format!(" LIMIT {}", limit));
+        sql.push_str(" LIMIT ?");
+        params_vec.push((limit as i64).into());
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params_vec))

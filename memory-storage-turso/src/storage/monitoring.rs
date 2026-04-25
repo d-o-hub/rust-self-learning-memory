@@ -2,7 +2,7 @@
 
 use crate::TursoStorage;
 use do_memory_core::{
-    Error, Result,
+    Error, Result, apply_query_limit,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
 };
 use libsql::Row;
@@ -168,15 +168,19 @@ impl TursoStorage {
         "#,
         );
 
-        let mut params = Vec::new();
+        let mut params: Vec<libsql::Value> = Vec::new();
 
         if let Some(name) = agent_name {
             sql.push_str(" WHERE agent_name = ?");
-            params.push(name.to_string());
+            params.push(name.to_string().into());
         }
 
         sql.push_str(" ORDER BY started_at DESC");
-        sql.push_str(&format!(" LIMIT {}", limit));
+
+        // Apply limit with defaults and bounds
+        let effective_limit = apply_query_limit(Some(limit));
+        sql.push_str(" LIMIT ?");
+        params.push((effective_limit as i64).into());
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params))

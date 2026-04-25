@@ -1318,7 +1318,6 @@ dependencies = [
  "rand 0.10.1",
  "serde",
  "serde_json",
- "serial_test",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",

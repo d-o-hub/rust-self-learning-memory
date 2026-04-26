@@ -10,15 +10,19 @@
 //! OAuth configuration regardless of feature flags. When the `oauth` feature
 //! is not enabled, the server will log that OAuth is disabled and continue.
 
+// Import types needed for OAuth functionality
+#[cfg(feature = "oauth")]
+use super::types::AuthorizationResult;
+
+// Import OAuthConfig from the library's protocol module
 use do_memory_mcp::protocol::OAuthConfig;
 
 #[cfg(feature = "oauth")]
-use {
-    super::types::AuthorizationResult,
-    jsonwebtoken::{decode, DecodingKey, Validation},
-    serde::{Deserialize, Serialize},
-    tracing::{debug, warn},
-};
+use jsonwebtoken::{DecodingKey, Validation, decode};
+#[cfg(feature = "oauth")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "oauth")]
+use tracing::{debug, warn};
 
 /// Load OAuth configuration from environment variables
 ///
@@ -95,10 +99,7 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     let decoding_key = if let Some(secret) = &config.token_secret {
         DecodingKey::from_secret(secret.as_bytes())
     } else {
-        warn!(
-            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. \
-             Tokens cannot be securely verified."
-        );
+        warn!("⚠️ SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. Tokens cannot be securely verified.");
         // Insecure fallback - for now we still allow it but it should be mandatory in production
         // To allow decoding without verification if no secret is provided:
         validation.insecure_disable_signature_validation();
@@ -116,6 +117,26 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
             AuthorizationResult::InvalidToken(err_msg)
         }
     }
+}
+
+/// Base64url decode (RFC 4648)
+///
+/// Decodes base64url-encoded data. Base64url is a URL-safe variant of base64
+/// that uses `-` and `_` instead of `+` and `/`, and omits padding.
+#[cfg(feature = "oauth")]
+pub fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
+    // For simplicity, we'll do basic base64 decoding
+    // In production, use a proper base64url crate
+    let filtered: String = input.chars().filter(|c| !c.is_whitespace()).collect();
+
+    // Pad if necessary
+    let padded = match filtered.len() % 4 {
+        2 => filtered + "==",
+        3 => filtered + "=",
+        _ => filtered,
+    };
+
+    base64::Engine::decode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &padded)
 }
 
 /// Check if token has required scopes

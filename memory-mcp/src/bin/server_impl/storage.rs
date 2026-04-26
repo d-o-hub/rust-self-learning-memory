@@ -123,7 +123,8 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
 
     // Create data directory if it doesn't exist
     if let Some(parent) = cache_path.parent() {
-        std::fs::create_dir_all(parent)
+        tokio::fs::create_dir_all(parent)
+            .await
             .map_err(|e| Error::Storage(format!("Failed to create cache directory: {}", e)))?;
     }
 

@@ -215,6 +215,8 @@ impl TursoStorage {
         "#,
         );
 
+        let mut params_vec = Vec::new();
+
         let mut params: Vec<libsql::Value> = Vec::new();
 
         if let Some(ref domain) = query.domain {

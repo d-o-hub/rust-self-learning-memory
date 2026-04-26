@@ -13,13 +13,12 @@
 use do_memory_mcp::protocol::OAuthConfig;
 
 #[cfg(feature = "oauth")]
-use super::types::AuthorizationResult;
-#[cfg(feature = "oauth")]
-use jsonwebtoken::{DecodingKey, Validation, decode};
-#[cfg(feature = "oauth")]
-use serde::{Deserialize, Serialize};
-#[cfg(feature = "oauth")]
-use tracing::{debug, warn};
+use {
+    super::types::AuthorizationResult,
+    jsonwebtoken::{decode, DecodingKey, Validation},
+    serde::{Deserialize, Serialize},
+    tracing::{debug, warn},
+};
 
 /// Load OAuth configuration from environment variables
 ///

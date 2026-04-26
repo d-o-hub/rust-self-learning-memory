@@ -4,9 +4,13 @@
 //! tag-based queries, and tag statistics.
 
 use crate::{Error, Result};
+use do_memory_core::apply_query_limit;
 use libsql::Connection;
 use std::collections::HashMap;
 use uuid::Uuid;
+
+/// Maximum number of tags allowed in a single query to prevent performance issues
+const MAX_TAGS_PER_QUERY: usize = 100;
 
 /// Tag statistics
 #[derive(Debug, Clone)]
@@ -150,18 +154,24 @@ pub async fn find_episodes_by_tags_or(
         return Ok(Vec::new());
     }
 
+    // Safety: limit the number of tags to prevent extremely large queries
+    let tags = if tags.len() > MAX_TAGS_PER_QUERY {
+        &tags[..MAX_TAGS_PER_QUERY]
+    } else {
+        tags
+    };
+
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-    let limit_clause = limit.map(|_| " LIMIT ?").unwrap_or_default();
+    let effective_limit = apply_query_limit(limit);
 
     let query = format!(
-        "SELECT DISTINCT episode_id FROM episode_tags WHERE tag IN ({}) ORDER BY created_at DESC{}",
-        placeholders, limit_clause
+        "SELECT DISTINCT episode_id FROM episode_tags WHERE tag IN ({}) ORDER BY created_at DESC LIMIT ?",
+        placeholders
     );
 
+    // Build params: tags + limit
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
-    if let Some(l) = limit {
-        params.push((l as i64).into());
-    }
+    params.push((effective_limit as i64).into());
 
     let stmt = conn
         .prepare(&query)
@@ -200,9 +210,16 @@ pub async fn find_episodes_by_tags_and(
         return Ok(Vec::new());
     }
 
+    // Safety: limit the number of tags
+    let tags = if tags.len() > MAX_TAGS_PER_QUERY {
+        &tags[..MAX_TAGS_PER_QUERY]
+    } else {
+        tags
+    };
+
     let tag_count = tags.len();
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-    let limit_clause = limit.map(|_| " LIMIT ?").unwrap_or_default();
+    let effective_limit = apply_query_limit(limit);
 
     // Query: Find episodes that have all specified tags
     let query = format!(
@@ -213,16 +230,14 @@ pub async fn find_episodes_by_tags_and(
         GROUP BY episode_id
         HAVING COUNT(DISTINCT tag) = ?
         ORDER BY MAX(created_at) DESC
-        {}
+        LIMIT ?
         "#,
-        placeholders, limit_clause
+        placeholders
     );
 
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
     params.push((tag_count as i64).into());
-    if let Some(l) = limit {
-        params.push((l as i64).into());
-    }
+    params.push((effective_limit as i64).into());
 
     let stmt = conn
         .prepare(&query)

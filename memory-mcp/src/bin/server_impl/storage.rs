@@ -121,6 +121,12 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let cache_path = Path::new(&cache_path_str);
 
+    // Create data directory if it doesn't exist
+    if let Some(parent) = cache_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {}", e)))?;
+    }
+
     let cache_config = CacheConfig {
         max_size: std::env::var("REDB_MAX_CACHE_SIZE")
             .unwrap_or_else(|_| "1000".to_string())
@@ -182,6 +188,12 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     let cache_path_str =
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let cache_path = Path::new(&cache_path_str);
+
+    // Create data directory if it doesn't exist
+    if let Some(parent) = cache_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {}", e)))?;
+    }
 
     let cache_config = CacheConfig {
         max_size: std::env::var("REDB_MAX_CACHE_SIZE")

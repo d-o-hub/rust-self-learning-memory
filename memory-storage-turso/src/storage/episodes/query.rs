@@ -32,21 +32,21 @@ impl TursoStorage {
         "#,
         );
 
-        let mut params_vec = Vec::new();
+        let mut params_vec: Vec<libsql::Value> = Vec::new();
 
         if let Some(ref task_type) = query.task_type {
             sql.push_str(" AND task_type = ?");
-            params_vec.push(task_type.to_string());
+            params_vec.push(task_type.to_string().into());
         }
 
         if let Some(ref domain) = query.domain {
             sql.push_str(" AND domain = ?");
-            params_vec.push(domain.clone());
+            params_vec.push(domain.clone().into());
         }
 
         if let Some(ref language) = query.language {
             sql.push_str(" AND language = ?");
-            params_vec.push(language.clone());
+            params_vec.push(language.clone().into());
         }
 
         if query.completed_only {
@@ -57,7 +57,8 @@ impl TursoStorage {
 
         // Apply limit with defaults and bounds
         let limit = apply_query_limit(query.limit);
-        sql.push_str(" LIMIT ?"); params_vec.push((limit as i64).into());
+        sql.push_str(" LIMIT ?");
+        params_vec.push((limit as i64).into());
 
         let mut rows = conn
             .query(&sql, libsql::params_from_iter(params_vec))

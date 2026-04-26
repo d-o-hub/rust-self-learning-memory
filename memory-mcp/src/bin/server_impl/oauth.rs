@@ -13,13 +13,12 @@
 use do_memory_mcp::protocol::OAuthConfig;
 
 #[cfg(feature = "oauth")]
-use super::types::AuthorizationResult;
-#[cfg(feature = "oauth")]
-use jsonwebtoken::{DecodingKey, Validation, decode};
-#[cfg(feature = "oauth")]
-use serde::{Deserialize, Serialize};
-#[cfg(feature = "oauth")]
-use tracing::{debug, warn};
+use {
+    super::types::AuthorizationResult,
+    jsonwebtoken::{decode, DecodingKey, Validation},
+    serde::{Deserialize, Serialize},
+    tracing::{debug, warn},
+};
 
 /// Load OAuth configuration from environment variables
 ///
@@ -97,7 +96,8 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
         DecodingKey::from_secret(secret.as_bytes())
     } else {
         warn!(
-            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. Tokens cannot be securely verified."
+            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. \
+             Tokens cannot be securely verified."
         );
         // Insecure fallback - for now we still allow it but it should be mandatory in production
         // To allow decoding without verification if no secret is provided:

@@ -5,10 +5,10 @@ use crate::compression::CompressionAlgorithm;
 fn test_config_default() {
     let config = TransportCompressionConfig::default();
     assert_eq!(config.compression_threshold, 1024);
-    assert_eq!(config.auto_algorithm_selection, true);
+    assert!(config.auto_algorithm_selection);
     assert_eq!(config.preferred_algorithm, CompressionAlgorithm::Zstd);
     assert_eq!(config.max_compressed_size, 10 * 1024 * 1024);
-    assert_eq!(config.enable_metrics, true);
+    assert!(config.enable_metrics);
     assert_eq!(config.warning_ratio_threshold, 0.9);
     assert_eq!(config.min_acceptable_ratio, 0.5);
 }

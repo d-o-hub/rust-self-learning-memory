@@ -94,7 +94,7 @@ regex = "1.12"
 proptest = { version = "1.11", optional = true }
 
 # CSM cascading retrieval (optional, BM25 + HDC + ConceptGraph)
-chaotic_semantic_memory = { version = "0.3.2", optional = true }
+chaotic_semantic_memory = { version = "0.3.4", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

@@ -2,7 +2,7 @@
 //!
 //! This module provides OAuth 2.1 authorization support including:
 //! - Configuration loading from environment
-//! - Bearer token validation (simplified JWT parsing)
+//! - Bearer token validation (JWT signature verification)
 //! - Scope checking
 //! - WWW-Authenticate header generation
 //!
@@ -10,15 +10,15 @@
 //! OAuth configuration regardless of feature flags. When the `oauth` feature
 //! is not enabled, the server will log that OAuth is disabled and continue.
 
-// Import types needed for OAuth functionality
-#[cfg(feature = "oauth")]
-use super::types::AuthorizationResult;
-
-// Import OAuthConfig from the library's protocol module
 use do_memory_mcp::protocol::OAuthConfig;
 
 #[cfg(feature = "oauth")]
-use tracing::debug;
+use {
+    super::types::AuthorizationResult,
+    jsonwebtoken::{decode, DecodingKey, Validation},
+    serde::{Deserialize, Serialize},
+    tracing::{debug, warn},
+};
 
 /// Load OAuth configuration from environment variables
 ///
@@ -32,6 +32,7 @@ use tracing::debug;
 /// - `MCP_OAUTH_ISSUER`: Expected issuer claim
 /// - `MCP_OAUTH_SCOPES`: Comma-separated list of supported scopes
 /// - `MCP_OAUTH_JWKS_URI`: JWKS URI for token validation
+/// - `MCP_OAUTH_TOKEN_SECRET`: Secret key for HMAC token validation
 pub fn load_oauth_config() -> OAuthConfig {
     let enabled = std::env::var("MCP_OAUTH_ENABLED")
         .unwrap_or_else(|_| "false".to_string())
@@ -48,115 +49,73 @@ pub fn load_oauth_config() -> OAuthConfig {
             .filter(|s| !s.is_empty())
             .collect(),
         jwks_uri: std::env::var("MCP_OAUTH_JWKS_URI").ok(),
+        token_secret: std::env::var("MCP_OAUTH_TOKEN_SECRET").ok(),
     }
 }
 
-/// ⚠️ SECURITY WARNING: This is simplified JWT validation for stdio mode only.
-/// It does NOT verify signatures. For production HTTP mode, use a proper JWT library.
+/// JWT Claims structure
+#[cfg(feature = "oauth")]
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    iss: Option<String>,
+    aud: Option<String>,
+    exp: Option<u64>,
+    sub: String,
+    scope: Option<String>,
+}
+
+/// Validate Bearer token (JWT signature verification)
 ///
-/// Validate Bearer token (simplified JWT parsing)
-///
-/// This performs basic JWT validation including:
-/// - Format validation (3 parts separated by dots)
-/// - Base64url decoding of payload
-/// - JSON parsing of claims
+/// This performs secure JWT validation including:
+/// - Signature verification (using configured secret)
+/// - Format validation
 /// - Issuer validation (if configured)
 /// - Audience validation (if configured)
-/// - Expiration check (if present)
+/// - Expiration check
 /// - Subject claim presence
 ///
-/// Note: This is a simplified implementation. Production systems should use
-/// a proper JWT library with signature verification against JWKS.
+/// Note: When `MCP_OAUTH_TOKEN_SECRET` is not provided, signature verification
+/// is effectively bypassed if the library allows it, which is INSECURE for production.
+/// A warning is logged in this case.
 #[cfg(feature = "oauth")]
 pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResult {
-    // Split JWT into parts
-    let parts: Vec<&str> = token.split('.').collect();
-    if parts.len() != 3 {
-        return AuthorizationResult::InvalidToken("Invalid token format".to_string());
-    }
+    let mut validation = Validation::default();
 
-    // Decode payload (base64url)
-    let payload = match base64url_decode(parts[1]) {
-        Ok(p) => p,
-        Err(e) => {
-            return AuthorizationResult::InvalidToken(format!("Invalid token payload: {}", e));
-        }
-    };
-
-    // Parse JSON payload - convert bytes to string first
-    let payload_str = match String::from_utf8(payload) {
-        Ok(s) => s,
-        Err(e) => {
-            return AuthorizationResult::InvalidToken(format!("Invalid token encoding: {}", e));
-        }
-    };
-
-    let claims: serde_json::Value = match serde_json::from_str(&payload_str) {
-        Ok(c) => c,
-        Err(e) => return AuthorizationResult::InvalidToken(format!("Invalid token JSON: {}", e)),
-    };
-
-    // Validate issuer if configured
+    // Configure expected issuer if present
     if let Some(expected_iss) = &config.issuer {
-        let token_iss = claims.get("iss").and_then(|v| v.as_str()).unwrap_or("");
-        if !token_iss.is_empty() && token_iss != expected_iss {
-            return AuthorizationResult::InvalidToken(format!(
-                "Invalid token issuer: expected {}, got {}",
-                expected_iss, token_iss
-            ));
-        }
+        validation.set_issuer(&[expected_iss]);
     }
 
-    // Validate audience if configured
+    // Configure expected audience if present
     if let Some(expected_aud) = &config.audience {
-        let token_aud = claims.get("aud").and_then(|v| v.as_str()).unwrap_or("");
-        if !token_aud.is_empty() && token_aud != expected_aud {
-            return AuthorizationResult::InvalidToken(format!(
-                "Invalid token audience: expected {}, got {}",
-                expected_aud, token_aud
-            ));
-        }
+        validation.set_audience(&[expected_aud]);
     }
 
-    // Check expiration if present
-    if let Some(exp) = claims.get("exp").and_then(|v| v.as_u64()) {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-        if exp < now {
-            return AuthorizationResult::InvalidToken("Token expired".to_string());
-        }
-    }
-
-    // Validate required subject claim
-    let sub = claims.get("sub").and_then(|v| v.as_str()).unwrap_or("");
-    if sub.is_empty() {
-        return AuthorizationResult::InvalidToken("Token missing subject claim".to_string());
-    }
-
-    debug!("Token validated for subject: {}", sub);
-    AuthorizationResult::Authorized
-}
-
-/// Base64url decode (RFC 4648)
-///
-/// Decodes base64url-encoded data. Base64url is a URL-safe variant of base64
-/// that uses `-` and `_` instead of `+` and `/`, and omits padding.
-#[cfg(feature = "oauth")]
-pub fn base64url_decode(input: &str) -> Result<Vec<u8>, base64::DecodeError> {
-    // For simplicity, we'll do basic base64 decoding
-    // In production, use a proper base64url crate
-    let filtered: String = input.chars().filter(|c| !c.is_whitespace()).collect();
-
-    // Pad if necessary
-    let padded = match filtered.len() % 4 {
-        2 => filtered + "==",
-        3 => filtered + "=",
-        _ => filtered,
+    // Signature verification
+    let decoding_key = if let Some(secret) = &config.token_secret {
+        DecodingKey::from_secret(secret.as_bytes())
+    } else {
+        warn!(
+            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. \
+             Tokens cannot be securely verified."
+        );
+        // Insecure fallback - for now we still allow it but it should be mandatory in production
+        // To allow decoding without verification if no secret is provided:
+        validation.insecure_disable_signature_validation();
+        DecodingKey::from_secret(&[]) // Dummy key
     };
 
-    base64::Engine::decode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &padded)
+    match decode::<Claims>(token, &decoding_key, &validation) {
+        Ok(token_data) => {
+            debug!("Token validated for subject: {}", token_data.claims.sub);
+            AuthorizationResult::Authorized
+        }
+        Err(e) => {
+            let err_msg = format!("JWT validation failed: {}", e);
+            warn!("{}", err_msg);
+            AuthorizationResult::InvalidToken(err_msg)
+        }
+    }
 }
 
 /// Check if token has required scopes

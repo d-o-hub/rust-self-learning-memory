@@ -17,6 +17,7 @@ name = "do-memory-mcp-server"
 path = "src/bin/memory-mcp-server.rs"
 
 [dependencies]
+jsonwebtoken = { version = "9.3", optional = true }
 # Workspace dependencies
 tokio = { workspace = true }
 anyhow = { workspace = true }
@@ -47,7 +48,7 @@ libc = "0.2"
 
 [features]
 # Optional OAuth authorization support
-oauth = []
+oauth = ["jsonwebtoken"]
 # Optional embeddings configuration support
 embeddings = []
 # Enable streaming implementation tests (performance benchmarks)

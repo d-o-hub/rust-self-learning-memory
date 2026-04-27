@@ -8,6 +8,9 @@ use libsql::Connection;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+/// Maximum number of tags allowed in a single query
+pub const MAX_TAGS_PER_QUERY: usize = 100;
+
 /// Tag statistics
 #[derive(Debug, Clone)]
 pub struct TagStats {
@@ -150,6 +153,13 @@ pub async fn find_episodes_by_tags_or(
         return Ok(Vec::new());
     }
 
+    if tags.len() > MAX_TAGS_PER_QUERY {
+        return Err(Error::Storage(format!(
+            "Too many tags in query (max: {})",
+            MAX_TAGS_PER_QUERY
+        )));
+    }
+
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let limit_clause = limit.map(|l| format!(" LIMIT {}", l)).unwrap_or_default();
 
@@ -195,6 +205,13 @@ pub async fn find_episodes_by_tags_and(
 ) -> Result<Vec<Uuid>> {
     if tags.is_empty() {
         return Ok(Vec::new());
+    }
+
+    if tags.len() > MAX_TAGS_PER_QUERY {
+        return Err(Error::Storage(format!(
+            "Too many tags in query (max: {})",
+            MAX_TAGS_PER_QUERY
+        )));
     }
 
     let tag_count = tags.len();
@@ -320,3 +337,6 @@ pub async fn get_tag_statistics(conn: &Connection) -> Result<HashMap<String, Tag
 #[cfg(test)]
 #[path = "tag_operations_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+mod tag_security_tests;

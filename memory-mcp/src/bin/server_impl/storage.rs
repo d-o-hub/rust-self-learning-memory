@@ -167,6 +167,13 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
                 .await
                 .map_err(|e| anyhow::anyhow!("Failed to create database directory: {}", e))?;
         }
+    } else if let Some(parent) = Path::new(&turso_url).parent() {
+        // Handle paths that don't have file: prefix but are still local paths
+        if parent.as_os_str() != "" {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to create database directory: {}", e))?;
+        }
     }
 
     // For local files, no token is needed

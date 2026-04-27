@@ -21,6 +21,8 @@ pub struct OAuthConfig {
     pub scopes: Vec<String>,
     /// JWKS URI for token validation
     pub jwks_uri: Option<String>,
+    /// Secret for HMAC token validation (HS256/HS384/HS512)
+    pub token_secret: Option<String>,
 }
 
 impl Default for OAuthConfig {
@@ -31,6 +33,7 @@ impl Default for OAuthConfig {
             issuer: None,
             scopes: vec!["mcp:read".to_string(), "mcp:write".to_string()],
             jwks_uri: None,
+            token_secret: None,
         }
     }
 }

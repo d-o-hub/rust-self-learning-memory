@@ -60,8 +60,9 @@ pub async fn initialize_redb_only_storage() -> anyhow::Result<Arc<SelfLearningMe
 
     // Create data directory if it doesn't exist
     if let Some(parent) = cache_path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| Error::Storage(format!("Failed to create data directory: {}", e)))?;
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to create data directory: {}", e))?;
     }
 
     let cache_config = CacheConfig {
@@ -121,6 +122,13 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let cache_path = Path::new(&cache_path_str);
 
+    // Create data directory if it doesn't exist
+    if let Some(parent) = cache_path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to create cache directory: {}", e))?;
+    }
+
     let cache_config = CacheConfig {
         max_size: std::env::var("REDB_MAX_CACHE_SIZE")
             .unwrap_or_else(|_| "1000".to_string())
@@ -152,6 +160,16 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     let turso_url =
         std::env::var("TURSO_DATABASE_URL").unwrap_or_else(|_| "file:./data/memory.db".to_string());
 
+    if turso_url.starts_with("file:") {
+        let path_str = turso_url.trim_start_matches("file:");
+        let path = Path::new(path_str);
+        if let Some(parent) = path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to create database directory: {}", e))?;
+        }
+    }
+
     // For local files, no token is needed
     let turso_token = if turso_url.starts_with("file:") {
         "".to_string()
@@ -182,6 +200,13 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     let cache_path_str =
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let cache_path = Path::new(&cache_path_str);
+
+    // Create data directory if it doesn't exist
+    if let Some(parent) = cache_path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to create cache directory: {}", e))?;
+    }
 
     let cache_config = CacheConfig {
         max_size: std::env::var("REDB_MAX_CACHE_SIZE")

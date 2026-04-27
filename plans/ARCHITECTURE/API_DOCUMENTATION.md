@@ -430,46 +430,35 @@ Offline embeddings using local models.
 
 ```rust
 pub struct LocalEmbeddingProvider {
-    model_path: PathBuf,
-    model: Option<Model>, // Loaded on-demand
-    tokenizer: Option<Tokenizer>,
-    dimension: usize,
+    config: LocalConfig,
+    model: Arc<RwLock<Option<Box<dyn LocalEmbeddingModel>>>>,
+    cache_dir: PathBuf,
 }
 
 impl LocalEmbeddingProvider {
-    pub fn new(model_path: PathBuf) -> Result<Self, EmbeddingError> {
-        // Initialize without loading model (lazy load)
-        Ok(Self {
-            model_path,
-            model: None,
-            tokenizer: None,
-            dimension: 384, // gte-small-en-v1.5 default
-        })
-    }
+    /// Create a new local embedding provider (returns Result)
+    pub async fn new(config: LocalConfig) -> Result<Self, EmbeddingError>;
 
-    pub async fn load_model(&mut self) -> Result<(), EmbeddingError> {
-        // Load model and tokenizer from model_path
-        // ...
-        Ok(())
-    }
+    /// Create with graceful fallback to mock model
+    pub async fn new_with_fallback(config: LocalConfig) -> Result<Self, EmbeddingError>;
+
+    /// Load the model (lazy loaded by default during initialization)
+    pub async fn load_model(&self) -> Result<(), EmbeddingError>;
 }
 ```
 
 **Usage Example**:
 ```rust
-use memory_core::embeddings::{LocalEmbeddingProvider, EmbeddingProvider};
+use memory_core::embeddings::{LocalEmbeddingProvider, EmbeddingProvider, LocalConfig};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create local embedding provider
-    let provider = LocalEmbeddingProvider::new("./models/gte-small".into())?;
-    let mut provider = provider;
-
-    // Load model
-    provider.load_model().await?;
+    // Create local embedding provider (returns Result)
+    let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
+    let provider = LocalEmbeddingProvider::new(config).await?;
 
     // Generate embedding
-    let embedding = provider.embed("Implement REST API").await?;
+    let embedding = provider.embed_text("Implement REST API").await?;
 
     println!("Embedding dimension: {}", embedding.len()); // 384
 
@@ -574,12 +563,12 @@ impl TursoStorage {
 
     /// Get connection from pool
     pub async fn get_connection(&self) -> Result<Connection, StorageError> {
-        self.pool.acquire().await
+        self.pool.acquire().await?
     }
 
     /// Close all connections
     pub async fn close(&self) -> Result<(), StorageError> {
-        self.pool.close().await
+        self.pool.close().await?
     }
 }
 
@@ -696,7 +685,7 @@ impl RedbStorage {
 
     /// Clear cache
     pub async fn clear_cache(&self) -> Result<(), StorageError> {
-        self.cache.clear().await
+        self.cache.clear().await?
     }
 }
 
@@ -745,13 +734,13 @@ impl LRUCache {
     }
 
     pub async fn get(&self, key: &CacheKey) -> Option<Vec<u8>> {
-        let data = self.data.read().await;
+        let data = self.data.read().await?;
         // Check if entry exists and not expired
         // ...
     }
 
     pub async fn put(&self, key: CacheKey, value: Vec<u8>) {
-        let mut data = self.data.write().await;
+        let mut data = self.data.write().await?;
         // Evict if over capacity
         // Insert new entry
         // ...
@@ -1011,7 +1000,7 @@ impl UnifiedSandbox {
         context: String,
     ) -> Result<ExecutionResult, SandboxError> {
         match &self.backend {
-            SandboxBackend::Wasm(wasm) => wasm.execute(code, context).await,
+            SandboxBackend::Wasm(wasm) => wasm.execute(code, context).await?,
         }
     }
 }
@@ -1270,12 +1259,9 @@ use tokio;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create local embedding provider
-    let provider = LocalEmbeddingProvider::new("./models/gte-small".into())?;
-    let mut provider = provider;
-
-    // Load model (lazy load)
-    provider.load_model().await?;
+    // Create local embedding provider (returns Result)
+    let config = LocalConfig::new("sentence-transformers/all-MiniLM-L6-v2", 384);
+    let provider = LocalEmbeddingProvider::new(config).await?;
 
     // Generate embeddings
     let texts = vec![

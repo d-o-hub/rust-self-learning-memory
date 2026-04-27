@@ -176,10 +176,14 @@ impl TursoStorage {
         }
 
         sql.push_str(" ORDER BY started_at DESC");
-        sql.push_str(&format!(" LIMIT {}", limit));
+        sql.push_str(" LIMIT ?");
+
+        let mut params_values: Vec<libsql::Value> =
+            params.into_iter().map(libsql::Value::from).collect();
+        params_values.push((limit as i64).into());
 
         let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params))
+            .query(&sql, libsql::params_from_iter(params_values))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query execution records: {}", e)))?;
 

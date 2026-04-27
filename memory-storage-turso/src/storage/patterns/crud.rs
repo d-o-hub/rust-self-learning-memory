@@ -234,11 +234,15 @@ impl TursoStorage {
 
         if let Some(limit) = query.limit {
             sql.push_str(" LIMIT ?");
-            params_vec.push((limit as i64).to_string());
+        }
+
+        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(libsql::Value::from).collect();
+        if let Some(limit) = query.limit {
+            params.push((limit as i64).into());
         }
 
         let mut rows = conn
-            .query(&sql, libsql::params_from_iter(params_vec))
+            .query(&sql, libsql::params_from_iter(params))
             .await
             .map_err(|e| Error::Storage(format!("Failed to query patterns: {}", e)))?;
 

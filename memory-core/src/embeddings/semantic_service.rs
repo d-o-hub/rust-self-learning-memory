@@ -58,14 +58,16 @@ impl SemanticService {
             ProviderConfig::Local(cfg) => cfg.clone(),
             _ => super::config::LocalConfig::default(),
         };
-        let provider = Box::new(LocalEmbeddingProvider::new(local_config).await?);
+        // Use new_with_fallback to maintain existing behavior where this provider
+        // always succeeds by falling back to a mock model if necessary.
+        let provider = Box::new(LocalEmbeddingProvider::new_with_fallback(local_config).await?);
         Ok(Self::new(provider, storage, config))
     }
 
     /// Create a semantic service with default local provider
     pub async fn default(storage: Box<dyn EmbeddingStorageBackend>) -> Result<Self> {
         let config = EmbeddingConfig::default();
-        Self::with_local_provider(storage, config).await
+        Self::with_fallback(storage, config).await
     }
 
     /// Create a semantic service with automatic provider fallback

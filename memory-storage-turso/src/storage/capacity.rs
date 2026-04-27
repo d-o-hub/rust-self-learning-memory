@@ -69,16 +69,13 @@ impl TursoStorage {
 
         // Get episodes to evict (oldest first, using LRU)
         // Order by start_time first, then by episode_id for deterministic tie-breaking
-        let evict_sql = format!(
-            r#"
+        let evict_sql = r#"
             SELECT episode_id FROM episodes
             ORDER BY start_time ASC, episode_id ASC
-            LIMIT {}
-        "#,
-            to_remove
-        );
+            LIMIT ?
+        "#;
 
-        let mut evict_rows = conn.query(&evict_sql, ()).await.map_err(|e| {
+        let mut evict_rows = conn.query(evict_sql, libsql::params![to_remove as i64]).await.map_err(|e| {
             do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
         })?;
 

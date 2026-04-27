@@ -151,14 +151,17 @@ pub async fn find_episodes_by_tags_or(
     }
 
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-    let limit_clause = limit.map(|l| format!(" LIMIT {}", l)).unwrap_or_default();
-
-    let query = format!(
-        "SELECT DISTINCT episode_id FROM episode_tags WHERE tag IN ({}) ORDER BY created_at DESC{}",
-        placeholders, limit_clause
+    let mut query = format!(
+        "SELECT DISTINCT episode_id FROM episode_tags WHERE tag IN ({}) ORDER BY created_at DESC",
+        placeholders
     );
 
-    let params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
+    let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
+
+    if let Some(l) = limit {
+        query.push_str(" LIMIT ?");
+        params.push((l as i64).into());
+    }
 
     let stmt = conn
         .prepare(&query)
@@ -199,10 +202,9 @@ pub async fn find_episodes_by_tags_and(
 
     let tag_count = tags.len();
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-    let limit_clause = limit.map(|l| format!(" LIMIT {}", l)).unwrap_or_default();
 
     // Query: Find episodes that have all specified tags
-    let query = format!(
+    let mut query = format!(
         r#"
         SELECT episode_id
         FROM episode_tags
@@ -210,13 +212,18 @@ pub async fn find_episodes_by_tags_and(
         GROUP BY episode_id
         HAVING COUNT(DISTINCT tag) = ?
         ORDER BY MAX(created_at) DESC
-        {}
         "#,
-        placeholders, limit_clause
+        placeholders
     );
 
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
+
     params.push((tag_count as i64).into());
+
+    if let Some(l) = limit {
+        query.push_str(" LIMIT ?");
+        params.push((l as i64).into());
+    }
 
     let stmt = conn
         .prepare(&query)

@@ -3,6 +3,7 @@
 use super::*;
 use crate::embeddings::storage::MockEmbeddingStorage;
 use crate::{Episode, Pattern, TaskContext};
+use anyhow::Result;
 
 fn create_test_episode() -> Episode {
     let context = TaskContext {
@@ -36,7 +37,7 @@ fn create_test_pattern() -> Pattern {
 }
 
 #[tokio::test]
-async fn test_embed_episode() {
+async fn test_embed_episode() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
@@ -47,15 +48,14 @@ async fn test_embed_episode() {
     );
 
     let episode = create_test_episode();
-    let embedding = service.embed_episode(&episode).await;
+    let embedding = service.embed_episode(&episode).await?;
 
-    assert!(embedding.is_ok());
-    let embedding = embedding.unwrap();
     assert_eq!(embedding.len(), DEFAULT_EMBEDDING_DIM);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_embed_pattern() {
+async fn test_embed_pattern() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
@@ -66,15 +66,14 @@ async fn test_embed_pattern() {
     );
 
     let pattern = create_test_pattern();
-    let embedding = service.embed_pattern(&pattern).await;
+    let embedding = service.embed_pattern(&pattern).await?;
 
-    assert!(embedding.is_ok());
-    let embedding = embedding.unwrap();
     assert_eq!(embedding.len(), DEFAULT_EMBEDDING_DIM);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_find_similar_episodes() {
+async fn test_find_similar_episodes() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
@@ -93,15 +92,14 @@ async fn test_find_similar_episodes() {
     };
     let results = service
         .find_similar_episodes("test query", &context, 5)
-        .await;
+        .await?;
 
-    assert!(results.is_ok());
-    let results = results.unwrap();
     assert!(results.len() <= 5);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_find_similar_patterns() {
+async fn test_find_similar_patterns() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
@@ -118,15 +116,14 @@ async fn test_find_similar_patterns() {
         domain: "test".to_string(),
         tags: vec!["test".to_string()],
     };
-    let results = service.find_similar_patterns(&context, 5).await;
+    let results = service.find_similar_patterns(&context, 5).await?;
 
-    assert!(results.is_ok());
-    let results = results.unwrap();
     assert!(results.len() <= 5);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_text_similarity() {
+async fn test_text_similarity() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
@@ -136,29 +133,29 @@ async fn test_text_similarity() {
         config,
     );
 
-    let similarity = service.text_similarity("test1", "test2").await;
+    let similarity = service.text_similarity("test1", "test2").await?;
 
-    assert!(similarity.is_ok());
-    let similarity = similarity.unwrap();
     assert!((0.0..=1.0).contains(&similarity));
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_with_fallback_provider() {
+async fn test_with_fallback_provider() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig {
         provider: ProviderConfig::openai_3_small(),
         ..Default::default()
     };
 
-    let result = SemanticService::with_fallback(storage, config).await;
+    let result = SemanticService::with_fallback(storage, config).await?;
 
     // Should fall back to Local if OpenAI is not configured
-    assert!(result.is_ok());
+    assert!(result.provider.is_available().await);
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_config_preservation() {
+async fn test_config_preservation() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig {
         similarity_threshold: 0.75,
@@ -179,6 +176,7 @@ async fn test_config_preservation() {
     );
     assert_eq!(service.config().batch_size, config.batch_size);
     assert_eq!(service.config().cache_embeddings, config.cache_embeddings);
+    Ok(())
 }
 
 // NOTE: This test has been removed as it tests for the old fallback behavior
@@ -190,7 +188,7 @@ async fn test_config_preservation() {
 
 /*
 #[tokio::test]
-async fn test_with_fallback_config_preservation() {
+async fn test_with_fallback_config_preservation() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
 
     let config = EmbeddingConfig {
@@ -201,33 +199,30 @@ async fn test_with_fallback_config_preservation() {
         timeout_seconds: 60,
     };
 
-    let result = SemanticService::with_fallback(storage, config.clone()).await;
-    assert!(result.is_ok());
-
-    let service = result.unwrap();
+    let result = SemanticService::with_fallback(storage, config.clone()).await?;
 
     assert_eq!(
-        service.config.provider.effective_dimension(),
+        result.config.provider.effective_dimension(),
         config.provider.effective_dimension()
     );
-    assert_eq!(service.config.model_name(), config.provider.model_name());
+    assert_eq!(result.config.model_name(), config.provider.model_name());
     assert_eq!(
-        service.config.similarity_threshold,
+        result.config.similarity_threshold,
         config.similarity_threshold
     );
-    assert_eq!(service.config.batch_size, config.batch_size);
-    assert_eq!(service.config.cache_embeddings, config.cache_embeddings);
-    assert_eq!(service.config.timeout_seconds, config.timeout_seconds);
+    assert_eq!(result.config.batch_size, config.batch_size);
+    assert_eq!(result.config.cache_embeddings, config.cache_embeddings);
+    assert_eq!(result.config.timeout_seconds, config.timeout_seconds);
+    Ok(())
 }
 */
 
 #[tokio::test]
-async fn test_with_fallback_default_storage_works() {
+async fn test_with_fallback_default_storage_works() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
     let config = EmbeddingConfig::default();
 
-    let result = SemanticService::with_fallback(storage, config).await;
-    assert!(result.is_ok());
+    let _result = SemanticService::with_fallback(storage, config).await?;
 
     let custom_config = EmbeddingConfig {
         similarity_threshold: 0.5,
@@ -236,21 +231,20 @@ async fn test_with_fallback_default_storage_works() {
     };
 
     let storage2 = Box::new(MockEmbeddingStorage);
-    let result2 = SemanticService::with_fallback(storage2, custom_config).await;
-    assert!(result2.is_ok());
+    let _result2 = SemanticService::with_fallback(storage2, custom_config).await?;
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_default_creates_valid_service() {
+async fn test_default_creates_valid_service() -> Result<()> {
     let storage = Box::new(MockEmbeddingStorage);
 
-    let result = SemanticService::default(storage).await;
-    if let Ok(service) = result {
-        match &service.config().provider {
-            ProviderConfig::Local(config) => {
-                assert_eq!(config.model_name, "sentence-transformers/all-MiniLM-L6-v2");
-            }
-            _ => panic!("Expected Local provider in default config"),
+    let service = SemanticService::default(storage).await?;
+    match &service.config().provider {
+        ProviderConfig::Local(config) => {
+            assert_eq!(config.model_name, "sentence-transformers/all-MiniLM-L6-v2");
         }
+        _ => panic!("Expected Local provider in default config"),
     }
+    Ok(())
 }

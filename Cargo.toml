@@ -21,7 +21,7 @@ repository = "https://github.com/d-o-hub/rust-self-learning-memory"
 
 [workspace.dependencies]
 # Async runtime
-tokio = { version = "1.51", features = ["full"] }
+tokio = { version = "1.52", features = ["full"] }
 async-trait = "0.1.89"
 
 # Error handling
@@ -37,7 +37,7 @@ postcard = { version = "1.1.3", default-features = false, features = ["alloc"] }
 
 # Database
 libsql = "0.9.30"
-redb = "4.0"
+redb = "4.1"
 
 # UUID and time
 uuid = { version = "1.23", features = ["v4", "serde"] }
@@ -63,7 +63,7 @@ parking_lot = "0.12.5"
 url = "2.5.8"
 rand = { version = "0.10", features = ["thread_rng"] }
 rand_chacha = "0.10"
-clap = { version = "4.6.0", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
 
 # Async utilities
 futures = "0.3.32"

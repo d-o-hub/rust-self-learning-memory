@@ -15,7 +15,7 @@ use do_memory_mcp::protocol::OAuthConfig;
 #[cfg(feature = "oauth")]
 use {
     super::types::AuthorizationResult,
-    jsonwebtoken::{decode, DecodingKey, Validation},
+    jsonwebtoken::{DecodingKey, Validation, decode},
     serde::{Deserialize, Serialize},
     tracing::{debug, warn},
 };

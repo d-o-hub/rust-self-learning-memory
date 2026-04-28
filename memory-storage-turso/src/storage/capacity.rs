@@ -73,7 +73,7 @@ impl TursoStorage {
             "SELECT episode_id FROM episodes ORDER BY start_time ASC, episode_id ASC LIMIT ?";
 
         let mut evict_rows = conn
-            .query(&evict_sql, libsql::params![to_remove as i64])
+            .query(evict_sql, libsql::params![to_remove as i64])
             .await
             .map_err(|e| {
                 do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))

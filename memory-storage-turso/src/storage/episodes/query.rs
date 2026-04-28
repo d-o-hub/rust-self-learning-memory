@@ -5,6 +5,7 @@
 use super::EpisodeQuery;
 use crate::TursoStorage;
 use do_memory_core::{Episode, Error, Result, apply_query_limit as core_apply_limit};
+use libsql;
 use tracing::{debug, info};
 
 /// Apply query limit with defaults and bounds checking.
@@ -59,7 +60,8 @@ impl TursoStorage {
         let limit = apply_query_limit(query.limit);
         sql.push_str(" LIMIT ?");
 
-        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(libsql::Value::from).collect();
+        let mut params: Vec<libsql::Value> =
+            params_vec.into_iter().map(libsql::Value::from).collect();
         params.push((limit as i64).into());
 
         let mut rows = conn

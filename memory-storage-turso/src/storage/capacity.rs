@@ -2,6 +2,7 @@
 
 use crate::{Result, TursoStorage};
 use do_memory_core::Episode;
+use libsql;
 use std::collections::HashMap;
 use tracing::{debug, info, warn};
 
@@ -75,9 +76,12 @@ impl TursoStorage {
             LIMIT ?
         "#;
 
-        let mut evict_rows = conn.query(evict_sql, libsql::params![to_remove as i64]).await.map_err(|e| {
-            do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
-        })?;
+        let mut evict_rows = conn
+            .query(evict_sql, libsql::params![to_remove as i64])
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to query episodes to evict: {}", e))
+            })?;
 
         let mut evicted = Vec::new();
         while let Some(row) = evict_rows

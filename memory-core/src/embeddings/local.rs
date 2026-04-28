@@ -179,7 +179,7 @@ impl LocalEmbeddingProvider {
     }
 
     /// Get the cache directory for models
-    async fn get_cache_dir() -> Result<std::path::PathBuf> {
+    fn get_cache_dir() -> Result<std::path::PathBuf> {
         let home = std::env::var("HOME")
             .or_else(|_| std::env::var("USERPROFILE"))
             .context("Could not determine home directory")?;
@@ -189,9 +189,7 @@ impl LocalEmbeddingProvider {
             .join("memory-core")
             .join("embeddings");
 
-        tokio::fs::create_dir_all(&cache_dir)
-            .await
-            .context("Failed to create cache directory")?;
+        std::fs::create_dir_all(&cache_dir).context("Failed to create cache directory")?;
 
         Ok(cache_dir)
     }

@@ -4,7 +4,7 @@
 //! tag-based queries, and tag statistics.
 
 use crate::{Error, Result};
-use libsql::Connection;
+use libsql::{self, Connection};
 use std::collections::HashMap;
 use uuid::Uuid;
 

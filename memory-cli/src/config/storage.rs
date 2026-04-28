@@ -146,7 +146,7 @@ async fn try_local_sqlite_fallback(
         if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
             let db_path = extract_db_path(&local_db_url);
 
-            ensure_directory_exists(db_path).await?;
+            ensure_directory_exists(db_path)?;
 
             match do_memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await
             {
@@ -183,10 +183,9 @@ fn extract_db_path(url: &str) -> &str {
 }
 
 /// Ensure parent directory exists
-async fn ensure_directory_exists(path: &str) -> Result<()> {
+fn ensure_directory_exists(path: &str) -> Result<()> {
     if let Some(parent) = std::path::Path::new(path).parent() {
-        tokio::fs::create_dir_all(parent)
-            .await
+        std::fs::create_dir_all(parent)
             .context(format!("Failed to create directory: {}", parent.display()))?;
     }
     Ok(())
@@ -338,7 +337,7 @@ async fn try_setup_local_sqlite_for_redis(
     if let Ok(local_db_url) = std::env::var("LOCAL_DATABASE_URL") {
         if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
             let db_path = extract_db_path(&local_db_url);
-            ensure_directory_exists(db_path).await?;
+            ensure_directory_exists(db_path)?;
 
             match do_memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await
             {
@@ -408,7 +407,7 @@ async fn try_setup_fallback_storage(
     if let Ok(local_db_url) = std::env::var("LOCAL_DATABASE_URL") {
         if local_db_url.starts_with("sqlite:") || local_db_url.starts_with("file:") {
             let db_path = extract_db_path(&local_db_url);
-            ensure_directory_exists(db_path).await?;
+            ensure_directory_exists(db_path)?;
 
             match do_memory_storage_turso::TursoStorage::new(&format!("file:{}", db_path), "").await
             {

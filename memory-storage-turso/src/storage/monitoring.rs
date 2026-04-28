@@ -5,7 +5,7 @@ use do_memory_core::{
     Error, Result,
     monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics},
 };
-use libsql::Row;
+use libsql::{self, Row};
 use tracing::{debug, info};
 
 impl TursoStorage {

@@ -2,6 +2,7 @@
 
 use crate::TursoStorage;
 use do_memory_core::{Error, Heuristic, Pattern as CorePattern, Result, TaskContext};
+use libsql;
 use tracing::{debug, info};
 
 /// Internal structure for pattern_data JSON field (matches storage schema)
@@ -236,7 +237,8 @@ impl TursoStorage {
             sql.push_str(" LIMIT ?");
         }
 
-        let mut params: Vec<libsql::Value> = params_vec.into_iter().map(libsql::Value::from).collect();
+        let mut params: Vec<libsql::Value> =
+            params_vec.into_iter().map(libsql::Value::from).collect();
         if let Some(limit) = query.limit {
             params.push((limit as i64).into());
         }

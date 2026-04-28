@@ -16,22 +16,17 @@ name: Performance Benchmarks
       - main
     # Only run benchmarks when perf-critical code changes
     # This reduces CI time from ~50+ min to ~15 min for non-performance PRs
+    # Note: GitHub Actions doesn't support paths + paths-ignore combo, so we
+    # list all perf-critical paths here. Tests/** are excluded via pattern.
     paths:
-      - 'memory-core/src/**'
-      - 'memory-storage-turso/src/**'
-      - 'memory-storage-redb/src/**'
-      - 'memory-mcp/src/**'
+      - 'memory-core/src/**/*.rs'
+      - 'memory-storage-turso/src/**/*.rs'
+      - 'memory-storage-redb/src/**/*.rs'
+      - 'memory-mcp/src/**/*.rs'
       - 'benches/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/benchmarks.yml'
-    paths-ignore:
-      - 'docs/**'
-      - 'plans/**'
-      - '**/*.md'
-      - '.agents/**'
-      - 'agent_docs/**'
-      - '**/tests/**'
   schedule:
     # Run weekly on Monday at 00:00 UTC
     - cron: '0 0 * * 1'

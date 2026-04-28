@@ -127,6 +127,34 @@ Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUT
 - Episode Creation: < 50ms | Step Logging: < 20ms
 - Episode Completion: < 500ms | Memory Retrieval: < 100ms
 
+## CI Optimization (2026-04-28)
+
+PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark triggering.
+
+| Job | Time | Trigger |
+|-----|------|---------|
+| Quick Check | ~7 min | All PRs |
+| Tests | ~12 min | All PRs |
+| MCP Build | ~10 min | All PRs |
+| Multi-Platform | ~12-15 min | All PRs |
+| Run Benchmarks | ~54 min | **Only perf-critical paths** |
+
+**Perf-critical paths** (trigger benchmarks):
+- `memory-core/src/**`
+- `memory-storage-turso/src/**`
+- `memory-storage-redb/src/**`
+- `memory-mcp/src/**`
+- `benches/**`
+- `Cargo.toml`, `Cargo.lock`
+
+**Skip benchmarks manually**: Add `skip-benchmarks` label to PR
+
+**Manual trigger**: Use `workflow_dispatch` in Actions UI
+
+**Main branch**: Benchmarks always run with regression detection
+
+See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
+
 ## Cross-References
 | Topic | Document |
 |-------|----------|

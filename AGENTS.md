@@ -118,13 +118,42 @@ cargo build --features csm
 ## Security
 - Use env vars (never hardcode)
 - Parameterized SQL
+- **OAuth/JWT**: Always use `jsonwebtoken` with signature verification. Mandatory `MCP_OAUTH_TOKEN_SECRET` for production HMAC verification.
 
-Environment variables: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`
+Environment variables: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `OPENAI_API_KEY`, `RUST_LOG`, `MCP_OAUTH_TOKEN_SECRET`
 Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUTH_TOKEN` empty when using `turso dev`.
 
 ## Performance Targets
 - Episode Creation: < 50ms | Step Logging: < 20ms
 - Episode Completion: < 500ms | Memory Retrieval: < 100ms
+
+## CI Optimization (2026-04-28)
+
+PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark triggering.
+
+| Job | Time | Trigger |
+|-----|------|---------|
+| Quick Check | ~7 min | All PRs |
+| Tests | ~12 min | All PRs |
+| MCP Build | ~10 min | All PRs |
+| Multi-Platform | ~12-15 min | All PRs |
+| Run Benchmarks | ~54 min | **Only perf-critical paths** |
+
+**Perf-critical paths** (trigger benchmarks):
+- `memory-core/src/**`
+- `memory-storage-turso/src/**`
+- `memory-storage-redb/src/**`
+- `memory-mcp/src/**`
+- `benches/**`
+- `Cargo.toml`, `Cargo.lock`
+
+**Skip benchmarks manually**: Add `skip-benchmarks` label to PR
+
+**Manual trigger**: Use `workflow_dispatch` in Actions UI
+
+**Main branch**: Benchmarks always run with regression detection
+
+See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 
 ## Cross-References
 | Topic | Document |
@@ -153,3 +182,24 @@ Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUT
 - For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)
 - Use `./scripts/clean-artifacts.sh standard` for routine cleanup
 - Use `./scripts/clean-artifacts.sh standard --node-modules` only when JS dependencies are not needed locally
+
+## CI Optimization (2026-04-28)
+
+PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark triggering.
+
+**Perf-critical paths** (trigger benchmarks):
+- `memory-core/src/**/*.rs`
+- `memory-storage-turso/src/**/*.rs`
+- `memory-storage-redb/src/**/*.rs`
+- `memory-mcp/src/**/*.rs`
+- `benches/**`
+- `Cargo.toml`, `Cargo.lock`
+- `.github/workflows/benchmarks.yml`
+
+**Skip benchmarks manually**: Add `skip-benchmarks` label to PR.
+
+**Key insight**: GitHub Actions doesn't support `paths` + `paths-ignore` at same trigger level - use `paths` only.
+
+**Related skills**:
+- `.claude/skills/github-workflows/SKILL.md` - Workflow patterns and troubleshooting
+- `.claude/skills/ci-fix/SKILL.md` - CI failure diagnosis

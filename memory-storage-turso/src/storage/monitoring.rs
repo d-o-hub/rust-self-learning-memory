@@ -306,3 +306,45 @@ impl TursoStorage {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_core::monitoring::types::{AgentType, ExecutionRecord};
+    use tempfile::TempDir;
+
+    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path)
+            .build()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
+        let storage = TursoStorage::from_database(db)?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    }
+
+    #[tokio::test]
+    async fn test_load_execution_records_with_limit() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Store multiple execution records
+        for i in 0..5 {
+            let record = ExecutionRecord {
+                agent_name: format!("agent_{}", i),
+                agent_type: AgentType::FeatureImplementer,
+                success: true,
+                duration: std::time::Duration::from_millis(100),
+                started_at: chrono::Utc::now(),
+                task_description: Some(format!("Task {}", i)),
+                error_message: None,
+            };
+            storage.store_execution_record(&record).await.unwrap();
+        }
+
+        // Load with limit
+        let records = storage.load_execution_records(None, 3).await.unwrap();
+        assert!(records.len() <= 3);
+    }
+}

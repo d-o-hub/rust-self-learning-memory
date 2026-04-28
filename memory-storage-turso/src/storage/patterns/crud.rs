@@ -257,3 +257,35 @@ impl TursoStorage {
         Ok(patterns)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::PatternQuery;
+    use tempfile::TempDir;
+
+    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path)
+            .build()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
+        let storage = TursoStorage::from_database(db)?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    }
+
+    #[tokio::test]
+    async fn test_query_patterns_with_limit() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Query patterns with limit parameter
+        let query = PatternQuery {
+            limit: Some(10),
+            ..Default::default()
+        };
+        let patterns = storage.query_patterns(&query).await.unwrap();
+        assert!(patterns.len() <= 10);
+    }
+}

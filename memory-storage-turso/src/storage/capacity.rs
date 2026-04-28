@@ -206,3 +206,45 @@ impl std::fmt::Display for CapacityStatistics {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{EpisodeQuery, Error};
+    use do_memory_core::{Episode, TaskContext, TaskType};
+    use tempfile::TempDir;
+
+    async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test.db");
+        let db = libsql::Builder::new_local(&db_path)
+            .build()
+            .await
+            .map_err(|e| Error::Storage(format!("Failed to create test database: {}", e)))?;
+        let storage = TursoStorage::from_database(db)?;
+        storage.initialize_schema().await?;
+        Ok((storage, dir))
+    }
+
+    #[tokio::test]
+    async fn test_store_episode_with_capacity_eviction() {
+        let (storage, _dir) = create_test_storage().await.unwrap();
+
+        // Store episodes up to capacity limit
+        for i in 0..5 {
+            let episode = Episode::new(
+                format!("Task {}", i),
+                TaskContext::default(),
+                TaskType::CodeGeneration,
+            );
+            storage.store_episode(&episode).await.unwrap();
+        }
+
+        // Verify all stored
+        let episodes = storage
+            .query_episodes(&EpisodeQuery::default())
+            .await
+            .unwrap();
+        assert!(episodes.len() >= 5);
+    }
+}

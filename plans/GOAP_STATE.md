@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
-- **Version**: `0.1.30` (workspace, released)
+- **Last Updated**: 2026-04-28 (JWT security + CI optimization merged)
+- **Version**: `0.1.30` (workspace, released) + security patches
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -94,6 +94,16 @@
 | Prune skills 40 → ≤35 | WG-137 | ✅ Complete | agents-update |
 | Fix CURRENT.md contradictions | WG-138 | ✅ Complete | agents-update |
 | Refresh CODEBASE_ANALYSIS_LATEST.md | WG-139 | ✅ Complete | agents-update |
+
+### Phase 5: Security & CI Optimization (2026-04-28) ✅ Complete
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| JWT signature verification | WG-140 | ✅ Complete | PR #480 merged |
+| CI paths-based benchmark triggering | WG-141 | ✅ Complete | PR #491 merged |
+| CI documentation/lessons | WG-142 | ✅ Complete | PR #492 merged |
+| Dependabot: jsonwebtoken 10.3.0 | WG-143 | ✅ Complete | PR #493 merged |
+| Dependabot: openssl 0.10.78 | WG-144 | ✅ Complete | PR #494 merged |
 
 ### Quality Gates
 - **Gate 1** (after Phase 0): release/package/version truth sources all agree

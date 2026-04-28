@@ -8,27 +8,25 @@ mod tests {
     use crate::embeddings::provider::EmbeddingProvider;
 
     #[test]
-    fn test_mistral_provider_creation() {
+    fn test_mistral_provider_creation() -> anyhow::Result<()> {
         let config = MistralConfig::mistral_embed();
-        let result = MistralEmbeddingProvider::new("test_key".to_string(), config);
-        assert!(result.is_ok());
+        let provider = MistralEmbeddingProvider::new("test_key".to_string(), config)?;
 
-        let provider = result.unwrap();
         assert_eq!(provider.model_name(), "mistral-embed");
         assert_eq!(provider.embedding_dimension(), 1024);
+        Ok(())
     }
 
     #[test]
-    fn test_codestral_provider_creation() {
+    fn test_codestral_provider_creation() -> anyhow::Result<()> {
         let config = MistralConfig::codestral_embed()
             .with_output_dimension(512)
             .with_output_dtype(OutputDtype::Int8);
-        let result = MistralEmbeddingProvider::new("test_key".to_string(), config);
-        assert!(result.is_ok());
+        let provider = MistralEmbeddingProvider::new("test_key".to_string(), config)?;
 
-        let provider = result.unwrap();
         assert_eq!(provider.model_name(), "codestral-embed");
         assert_eq!(provider.embedding_dimension(), 512);
+        Ok(())
     }
 
     #[test]
@@ -57,11 +55,11 @@ mod tests {
     }
 
     #[test]
-    fn test_provider_metadata() {
+    fn test_provider_metadata() -> anyhow::Result<()> {
         let config = MistralConfig::codestral_embed()
             .with_output_dimension(512)
             .with_output_dtype(OutputDtype::Int8);
-        let provider = MistralEmbeddingProvider::new("test_key".to_string(), config).unwrap();
+        let provider = MistralEmbeddingProvider::new("test_key".to_string(), config)?;
 
         let metadata = provider.metadata();
         assert_eq!(metadata["model"], "codestral-embed");
@@ -69,6 +67,7 @@ mod tests {
         assert_eq!(metadata["type"], "mistral");
         assert_eq!(metadata["provider"], "Mistral AI");
         assert_eq!(metadata["output_dtype"], "int8");
+        Ok(())
     }
 
     #[test]

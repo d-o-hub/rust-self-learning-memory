@@ -1,7 +1,9 @@
 //! Pattern CRUD operations for Turso storage
 
 use crate::TursoStorage;
-use do_memory_core::{Error, Heuristic, Pattern as CorePattern, Result, TaskContext, apply_query_limit};
+use do_memory_core::{
+    Error, Heuristic, Pattern as CorePattern, Result, TaskContext, apply_query_limit,
+};
 use tracing::{debug, info};
 
 /// Internal structure for pattern_data JSON field (matches storage schema)

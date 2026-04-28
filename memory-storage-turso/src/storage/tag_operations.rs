@@ -162,7 +162,7 @@ pub async fn find_episodes_by_tags_or(
     };
 
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-    let limit = apply_query_limit(limit);
+    let effective_limit = apply_query_limit(limit);
 
     let query = format!(
         "SELECT DISTINCT episode_id FROM episode_tags WHERE tag IN ({}) ORDER BY created_at DESC LIMIT ?",
@@ -170,7 +170,7 @@ pub async fn find_episodes_by_tags_or(
     );
 
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
-    params.push((limit as i64).into());
+    params.push((effective_limit as i64).into());
 
     let stmt = conn
         .prepare(&query)
@@ -218,7 +218,7 @@ pub async fn find_episodes_by_tags_and(
 
     let tag_count = tags.len();
     let placeholders = tags.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-    let limit = apply_query_limit(limit);
+    let effective_limit = apply_query_limit(limit);
 
     // Query: Find episodes that have all specified tags
     let query = format!(
@@ -236,7 +236,7 @@ pub async fn find_episodes_by_tags_and(
 
     let mut params: Vec<libsql::Value> = tags.iter().map(|t| t.clone().into()).collect();
     params.push((tag_count as i64).into());
-    params.push((limit as i64).into());
+    params.push((effective_limit as i64).into());
 
     let stmt = conn
         .prepare(&query)

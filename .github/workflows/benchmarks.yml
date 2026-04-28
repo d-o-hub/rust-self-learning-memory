@@ -14,12 +14,19 @@ name: Performance Benchmarks
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - 'docs/**'
-      - 'plans/**'
-      - '**/*.md'
-      - '.agents/**'
-      - 'agent_docs/**'
+    # Only run benchmarks when perf-critical code changes
+    # This reduces CI time from ~50+ min to ~15 min for non-performance PRs
+    # Note: GitHub Actions doesn't support paths + paths-ignore combo, so we
+    # list all perf-critical paths here. Tests/** are excluded via pattern.
+    paths:
+      - 'memory-core/src/**/*.rs'
+      - 'memory-storage-turso/src/**/*.rs'
+      - 'memory-storage-redb/src/**/*.rs'
+      - 'memory-mcp/src/**/*.rs'
+      - 'benches/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/benchmarks.yml'
   schedule:
     # Run weekly on Monday at 00:00 UTC
     - cron: '0 0 * * 1'
@@ -58,12 +65,13 @@ jobs:
     runs-on: ubuntu-latest
     # Only depend on check-quick-check for PRs, skip dependency for other triggers
     needs: [check-quick-check]
-    # Run if not Dependabot, and either not a PR or quick-check passed/skipped
+    # Run if not Dependabot, no skip-benchmarks label, and either not a PR or quick-check passed/skipped
     # Use always() to evaluate condition even when dependency was skipped (push events)
     if: >-
       ${{
         always() &&
         github.actor != 'dependabot[bot]' &&
+        !contains(github.event.pull_request.labels.*.name, 'skip-benchmarks') &&
         (
           github.event_name != 'pull_request' ||
           needs.check-quick-check.result == 'success'

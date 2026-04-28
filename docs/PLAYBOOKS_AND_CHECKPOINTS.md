@@ -33,7 +33,7 @@ do-memory-cli playbook recommend "Implement a JWT authentication flow" --domain 
 
 ## 2. Episode Checkpoints and Handoff
 
-Checkpoints allow you to save the state of a long-running task. This is essential for:
+Checkpoints allow you to save the state of a long-running task. This is required for:
 - **Resuming Tasks**: If an agent hits a token limit or needs to restart.
 - **Agent Handoff**: Passing a complex task from one specialized agent to another.
 - **Branching**: Trying different approaches from the same starting point.

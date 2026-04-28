@@ -23,7 +23,10 @@ The memory management system provides persistent memory across agent interaction
 
 ## Workspace Members
 
-### 1. Memory Core (`do-memory-core/`)
+## Hybrid Storage Model
+The system employs a hybrid storage architecture: `do-memory-storage-turso` provides persistent, durable, and distributed storage via libSQL, while `do-memory-storage-redb` acts as a high-performance, embedded, local cache layer to dramatically reduce read latency and API calls.
+
+### 1. Memory Core (`memory-core/`)
 **Purpose**: Core memory operations and embeddings (~44,250 LOC)
 
 **Module Breakdown** (by size):
@@ -67,7 +70,7 @@ The memory management system provides persistent memory across agent interaction
 - `src/episode.rs` - Episode lifecycle
 - `src/storage/` - Storage abstraction layer
 
-### 2. Turso Storage (`do-memory-storage-turso/`)
+### 2. Turso Storage (`memory-storage-turso/`)
 **Purpose**: Primary persistent database storage (libSQL)
 
 **Features**:
@@ -87,7 +90,7 @@ The memory management system provides persistent memory across agent interaction
 - Configurable via environment variables
 - Automatic connection reuse
 
-### 3. Redb Cache (`do-memory-storage-redb/`)
+### 3. Redb Cache (`memory-storage-redb/`)
 **Purpose**: High-performance cache layer
 
 **Features**:
@@ -104,7 +107,7 @@ The memory management system provides persistent memory across agent interaction
 
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
-### 4. MCP Server (`do-do-memory-mcp/)
+### 4. MCP Server (`do-memory-mcp/)
 **Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
 
 **Architecture**:
@@ -140,7 +143,7 @@ The memory management system provides persistent memory across agent interaction
 - Error handling and recovery
 - Security boundaries enforcement
 
-### 5. CLI Interface (`do-memory-cli/`)
+### 5. CLI Interface (`memory-cli/`)
 **Purpose**: Command-line interface for memory operations (~13,690 LOC)
 
 **Commands** (9 main commands + 9 aliases):
@@ -251,7 +254,7 @@ TURSO_POOL_SIZE=10
 
 ### Configuration Files
 - `do-memory-cli.toml` - CLI configuration
-- `do-memory-cli/config/` - User-specific settings
+- `memory-cli/config/` - User-specific settings
 - `.env` - Environment variables (NOT in git)
 - `rust-toolchain.toml` - Rust version
 

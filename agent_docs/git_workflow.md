@@ -42,7 +42,7 @@ git checkout -b release/v0.1.X
 
 # 3. Update snapshot tests if needed
 cargo insta test --accept
-git add do-memory-cli/tests/snapshots/
+git add memory-cli/tests/snapshots/
 
 # 4. Verify version matches intended tag
 grep '^version =' Cargo.toml  # Must show 0.1.X for tag v0.1.X
@@ -93,5 +93,5 @@ git diff --stat # Review what changed
 When version changes, snapshot tests need updates:
 ```bash
 cargo insta test --accept
-git add do-memory-cli/tests/snapshots/
+git add memory-cli/tests/snapshots/
 ```

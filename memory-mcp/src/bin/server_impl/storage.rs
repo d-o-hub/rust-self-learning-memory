@@ -7,7 +7,7 @@
 //! - In-memory (last resort)
 
 use anyhow::Context;
-use do_memory_core::{Error, MemoryConfig, SelfLearningMemory};
+use do_memory_core::{MemoryConfig, SelfLearningMemory};
 use do_memory_storage_redb::{CacheConfig, RedbStorage};
 use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::path::Path;

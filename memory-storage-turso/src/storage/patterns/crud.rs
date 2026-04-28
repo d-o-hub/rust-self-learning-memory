@@ -233,7 +233,7 @@ impl TursoStorage {
 
         sql.push_str(" ORDER BY success_rate DESC");
 
-        if let Some(limit) = query.limit {
+        if query.limit.is_some() {
             sql.push_str(" LIMIT ?");
         }
 

@@ -146,6 +146,50 @@ jobs:
   run: RUST_BACKTRACE=full cargo test --all -- --nocapture
 ```
 
+### Issue 9: Workflow Runs on All PRs (Unnecessary CI Time)
+
+**Problem**: Expensive workflows (benchmarks, heavy tests) run on every PR, even docs-only changes.
+
+**Solution**: Use `paths` filter to trigger only on relevant files.
+
+```yaml
+"on":
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory-core/src/**/*.rs'
+      - 'memory-storage-turso/src/**/*.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/benchmarks.yml'
+```
+
+**IMPORTANT**: GitHub Actions doesn't support `paths` + `paths-ignore` at the same trigger level. Use only `paths` with explicit patterns.
+
+**Pattern for perf-critical workflows**: Include storage, core, benches paths. Exclude docs, plans, agent_docs via omission (not paths-ignore).
+
+### Issue 10: Workflow YAML Syntax Errors
+
+**Problem**: Workflow validation fails with "paths + paths-ignore at same trigger level not supported".
+
+**Solution**: Remove `paths-ignore` and use only `paths` with explicit patterns.
+
+```yaml
+# WRONG: causes validation error
+"on":
+  pull_request:
+    paths-ignore: ['docs/**', '**/*.md']
+    paths: ['src/**/*.rs']  # ERROR: not supported together
+
+# CORRECT: use paths only
+"on":
+  pull_request:
+    paths:
+      - 'src/**/*.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+```
+
 ## Debugging Workflows
 
 ### Enable Debug Logging

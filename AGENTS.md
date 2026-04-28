@@ -154,3 +154,24 @@ Local dev: set `TURSO_DATABASE_URL="http://127.0.0.1:8080"` and leave `TURSO_AUT
 - For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)
 - Use `./scripts/clean-artifacts.sh standard` for routine cleanup
 - Use `./scripts/clean-artifacts.sh standard --node-modules` only when JS dependencies are not needed locally
+
+## CI Optimization (2026-04-28)
+
+PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark triggering.
+
+**Perf-critical paths** (trigger benchmarks):
+- `memory-core/src/**/*.rs`
+- `memory-storage-turso/src/**/*.rs`
+- `memory-storage-redb/src/**/*.rs`
+- `memory-mcp/src/**/*.rs`
+- `benches/**`
+- `Cargo.toml`, `Cargo.lock`
+- `.github/workflows/benchmarks.yml`
+
+**Skip benchmarks manually**: Add `skip-benchmarks` label to PR.
+
+**Key insight**: GitHub Actions doesn't support `paths` + `paths-ignore` at same trigger level - use `paths` only.
+
+**Related skills**:
+- `.claude/skills/github-workflows/SKILL.md` - Workflow patterns and troubleshooting
+- `.claude/skills/ci-fix/SKILL.md` - CI failure diagnosis

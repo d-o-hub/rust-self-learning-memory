@@ -31,3 +31,10 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Issue: The MCP server used simplified JWT parsing that skipped signature verification, allowing token forgery.
 - Root Cause: Development-only validation logic was left in place without enforcing secure production defaults.
 - Solution: Use robust libraries like `jsonwebtoken` for verification. Enforce mandatory secret configuration for production modes and include security tests for signature and claim (iss, aud, exp, sub) validation.
+
+## LESSON-006: CI Optimization - paths-based benchmark triggering
+
+- Issue: Benchmark workflow runs ~54 min on every PR, even docs-only changes.
+- Root Cause: No path filtering on benchmark workflow triggers.
+- Solution: Add `paths` filter for perf-critical code only (storage, core, benches). GitHub Actions doesn't support `paths` + `paths-ignore` at same trigger level - use `paths` alone.
+- Key insight: Use `.claude/skills/github-workflows` and `.claude/skills/ci-fix` skills for CI issues.

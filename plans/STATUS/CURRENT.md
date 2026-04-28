@@ -1,7 +1,7 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-04-22 (fresh metrics collection + analysis refresh)
-**Released Version**: v0.1.30 (crates.io + GitHub Release), v0.1.31 planning
+**Last Updated**: 2026-04-28 (JWT security fix + CI optimization merged)
+**Released Version**: v0.1.30 (crates.io + GitHub Release) + security patches
 **Branch**: `main` (clean)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
@@ -80,6 +80,11 @@
 ### Recently Merged PRs
 | # | Title | Status |
 |---|-------|--------|
+| 480 | 🔒 JWT signature verification | ✅ Merged 2026-04-28 (P0 security fix) |
+| 491 | ⚡ CI optimization - paths-based benchmarks | ✅ Merged 2026-04-28 (perf) |
+| 492 | docs(ci): CI optimization lessons | ✅ Merged 2026-04-28 (docs) |
+| 493 | jsonwebtoken 9.3.1 → 10.3.0 | ✅ Merged 2026-04-28 (deps) |
+| 494 | openssl 0.10.76 → 0.10.78 | ✅ Merged 2026-04-28 (deps) |
 | 454 | fix(persistence): SQL injection in metadata query | ✅ Merged 2026-04-18 (P0 security fix) |
 
 ### Security: Dependabot Alerts (Accepted Risk — Transitive)

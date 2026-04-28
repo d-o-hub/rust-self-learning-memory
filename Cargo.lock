@@ -219,9 +219,9 @@ dependencies = [
 
 [[package]]
 name = "assert_cmd"
-version = "2.2.0"
+version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a686bbee5efb88a82df0621b236e74d925f470e5445d3220a5648b892ec99c9"
+checksum = "39bae1d3fa576f7c6519514180a72559268dd7d1fe104070956cb687bc6673bd"
 dependencies = [
  "anstyle",
  "bstr",
@@ -607,9 +607,9 @@ dependencies = [
 
 [[package]]
 name = "chaotic_semantic_memory"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6ba244261393fc864b92975488ae82799f7d370d33a12758c3c9f1529e17979"
+checksum = "06510ea342bbcbb35a686ee51b16bd4fd573fcb54718c8adf61203d68330d3d6"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -617,11 +617,13 @@ dependencies = [
  "clap",
  "clap_complete",
  "colored 2.2.0",
- "getrandom 0.2.17",
+ "console_error_panic_hook",
+ "getrandom 0.4.2",
  "glob",
  "js-sys",
- "libsql 0.4.0",
- "rand 0.8.5",
+ "libsql",
+ "rand 0.10.1",
+ "rand_chacha 0.10.0",
  "rayon",
  "serde",
  "serde_json",
@@ -697,9 +699,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.6.0"
+version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b193af5b67834b676abd72466a96c1024e6a6ad978a1f484bd90b85c94041351"
+checksum = "1ddb117e43bbf7dacf0a4190fef4d345b9bad68dfc649cb349e7d17d28428e51"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -719,18 +721,18 @@ dependencies = [
 
 [[package]]
 name = "clap_complete"
-version = "4.6.1"
+version = "4.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "406e68b4de5c59cfb8f750a7cbd4d31ae153788b8352167c1e5f4fc26e8c91e9"
+checksum = "660c0520455b1013b9bcb0393d5f643d7e4454fb69c915b8d6d2aa0e9a45acc3"
 dependencies = [
  "clap",
 ]
 
 [[package]]
 name = "clap_derive"
-version = "4.6.0"
+version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1110bd8a634a1ab8cb04345d8d878267d57c3cf1b38d91b71af6686408bbca6a"
+checksum = "f2ce8604710f6733aa641a2b3731eaa1e8b3d9973d5e3565da11800813f997a9"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -822,6 +824,16 @@ dependencies = [
  "libc",
  "unicode-width",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -1251,8 +1263,8 @@ dependencies = [
  "do-memory-storage-turso",
  "futures",
  "insta",
- "libsql 0.9.30",
- "lru 0.16.3",
+ "libsql",
+ "lru 0.17.0",
  "ndarray 0.17.2",
  "ort",
  "parking_lot",
@@ -1282,7 +1294,7 @@ dependencies = [
  "do-memory-core",
  "do-memory-storage-redb",
  "do-memory-storage-turso",
- "libsql 0.9.30",
+ "libsql",
  "serde_json",
  "tempfile",
  "tokio",
@@ -1350,7 +1362,7 @@ dependencies = [
  "do-memory-test-utils",
  "flate2",
  "futures",
- "libsql 0.9.30",
+ "libsql",
  "lz4_flex",
  "parking_lot",
  "postcard",
@@ -1406,7 +1418,7 @@ dependencies = [
  "do-memory-storage-turso",
  "futures",
  "governor",
- "libsql 0.9.30",
+ "libsql",
  "predicates",
  "regex",
  "serde_json",
@@ -1719,11 +1731,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de51e6874e94e7bf76d726fc5d13ba782deca734ff60d5bb2fb2607c7406555"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "r-efi 6.0.0",
  "rand_core 0.10.0",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -1951,6 +1965,17 @@ name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
+dependencies = [
+ "allocator-api2",
+ "equivalent",
+ "foldhash 0.2.0",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f467dd6dccf739c208452f8014c75c18bb8301b050ad1cfb27153803edb0f51"
 dependencies = [
  "allocator-api2",
  "equivalent",
@@ -2550,9 +2575,9 @@ checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 
 [[package]]
 name = "libc"
-version = "0.2.184"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48f5d2a454e16a5ea0f4ced81bd44e4cfc7bd3a507b61887c99fd3538b28e4af"
+checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libloading"
@@ -2581,44 +2606,6 @@ dependencies = [
 
 [[package]]
 name = "libsql"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "007e45366a683bc61d5a6e4c05a4b91100c96ec04198d1d4529eb5a89b3c589f"
-dependencies = [
- "anyhow",
- "async-stream",
- "async-trait",
- "base64 0.21.7",
- "bincode",
- "bitflags 2.11.0",
- "bytes",
- "fallible-iterator 0.3.0",
- "futures",
- "http 0.2.12",
- "hyper 0.14.32",
- "hyper-rustls 0.25.0",
- "libsql-hrana 0.2.0",
- "libsql-sqlite3-parser 0.12.0",
- "libsql-sys 0.6.0",
- "libsql_replication 0.4.0",
- "parking_lot",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tonic",
- "tonic-web",
- "tower 0.4.13",
- "tower-http 0.4.4",
- "tracing",
- "uuid",
- "zerocopy 0.7.35",
-]
-
-[[package]]
-name = "libsql"
 version = "0.9.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30fe980ac5693ed1f3db490559fb578885e913a018df64af8a1a46e1959a78df"
@@ -2637,10 +2624,10 @@ dependencies = [
  "http 0.2.12",
  "hyper 0.14.32",
  "hyper-rustls 0.25.0",
- "libsql-hrana 0.9.30",
- "libsql-sqlite3-parser 0.13.0",
- "libsql-sys 0.9.30",
- "libsql_replication 0.9.30",
+ "libsql-hrana",
+ "libsql-sqlite3-parser",
+ "libsql-sys",
+ "libsql_replication",
  "parking_lot",
  "serde",
  "serde_json",
@@ -2659,16 +2646,6 @@ dependencies = [
 
 [[package]]
 name = "libsql-ffi"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "503716a5a09a73719e011957c363a69348b52818bd7679e4ee463099f23ffa89"
-dependencies = [
- "bindgen",
- "cc",
-]
-
-[[package]]
-name = "libsql-ffi"
 version = "0.9.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0be1da6f123ceb2cd23f469883415cab9ee963286a85d61e22afb8b12e15e681"
@@ -2677,18 +2654,6 @@ dependencies = [
  "cc",
  "cmake",
  "glob",
-]
-
-[[package]]
-name = "libsql-hrana"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aeaf5d19e365465e1c23d687a28c805d7462531b3f619f0ba49d3cf369890a3e"
-dependencies = [
- "base64 0.21.7",
- "bytes",
- "prost",
- "serde",
 ]
 
 [[package]]
@@ -2713,41 +2678,8 @@ dependencies = [
  "fallible-iterator 0.2.0",
  "fallible-streaming-iterator",
  "hashlink",
- "libsql-ffi 0.9.30",
+ "libsql-ffi",
  "smallvec",
-]
-
-[[package]]
-name = "libsql-rusqlite"
-version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11e74daae7edb0a3ab7d1568c6d0be43bb255f00b2b3b6d1b90ae7007a76c6f9"
-dependencies = [
- "bitflags 2.11.0",
- "fallible-iterator 0.2.0",
- "fallible-streaming-iterator",
- "hashlink",
- "libsql-ffi 0.3.0",
- "smallvec",
-]
-
-[[package]]
-name = "libsql-sqlite3-parser"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "735c12460491141cf29496f258b30130f5830c7923eb373fc4d1c710c2d6d62c"
-dependencies = [
- "bitflags 2.11.0",
- "cc",
- "fallible-iterator 0.3.0",
- "indexmap 2.13.1",
- "log",
- "memchr",
- "phf",
- "phf_codegen",
- "phf_shared",
- "smallvec",
- "uncased",
 ]
 
 [[package]]
@@ -2770,55 +2702,15 @@ dependencies = [
 
 [[package]]
 name = "libsql-sys"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "782109ea979be605ca908c2024cba05a11b32428198a2adb5ccb05b378169903"
-dependencies = [
- "bytes",
- "libsql-ffi 0.3.0",
- "libsql-rusqlite 0.31.0",
- "once_cell",
- "tracing",
- "zerocopy 0.7.35",
-]
-
-[[package]]
-name = "libsql-sys"
 version = "0.9.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90725458cc4461bc82f8f7983e80b002ea4f64b5184e1462f252d0dd74b122f5"
 dependencies = [
  "bytes",
- "libsql-ffi 0.9.30",
- "libsql-rusqlite 0.9.30",
+ "libsql-ffi",
+ "libsql-rusqlite",
  "once_cell",
  "tracing",
- "zerocopy 0.7.35",
-]
-
-[[package]]
-name = "libsql_replication"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fa2f887b42d9d966e4358d398dcba87bb229bc1f62f1229f983ce663fe264d7"
-dependencies = [
- "aes",
- "async-stream",
- "async-trait",
- "bytes",
- "cbc",
- "libsql-rusqlite 0.31.0",
- "libsql-sys 0.6.0",
- "parking_lot",
- "prost",
- "serde",
- "thiserror 1.0.69",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tonic",
- "tracing",
- "uuid",
  "zerocopy 0.7.35",
 ]
 
@@ -2833,8 +2725,8 @@ dependencies = [
  "async-trait",
  "bytes",
  "cbc",
- "libsql-rusqlite 0.9.30",
- "libsql-sys 0.9.30",
+ "libsql-rusqlite",
+ "libsql-sys",
  "parking_lot",
  "prost",
  "serde",
@@ -2892,11 +2784,20 @@ dependencies = [
 
 [[package]]
 name = "lru"
-version = "0.16.3"
+version = "0.16.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1dc47f592c06f33f8e3aea9591776ec7c9f9e4124778ff8a3c3b87159f7e593"
+checksum = "7f66e8d5d03f609abc3a39e6f08e4164ebf1447a732906d39eb9b99b7919ef39"
 dependencies = [
  "hashbrown 0.16.1",
+]
+
+[[package]]
+name = "lru"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e0b564323a0fb6d54b864f625ae139de9612e27edb944dda37c109f05aac531"
+dependencies = [
+ "hashbrown 0.17.0",
 ]
 
 [[package]]
@@ -4051,9 +3952,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "4.0.0"
+version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67f7f231ea7b1172b7ac00ccf96b1250f0fb5a16d5585836aa4ebc997df7cbde"
+checksum = "8e925444704b5f17d32bf42f5b6e2df050bceebc3dcd6e71cc73dafe8092e839"
 dependencies = [
  "libc",
 ]
@@ -4109,9 +4010,9 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "reqwest"
-version = "0.13.2"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab3f43e3283ab1488b624b44b0e988d0acea0b3214e694730a055cb6b2efa801"
+checksum = "62e0021ea2c22aed41653bc7e1419abb2c97e038ff2c33d0e1309e49a97deec0"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -4381,7 +4282,7 @@ dependencies = [
  "argmin-math 0.5.1",
  "doc-comment",
  "itertools 0.14.0",
- "lru 0.16.3",
+ "lru 0.16.4",
  "nalgebra 0.34.2",
  "num",
  "num-traits",
@@ -5089,9 +4990,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.51.1"
+version = "1.52.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f66bf9585cda4b724d3e78ab34b73fb2bbaba9011b9bfdf69dc836382ea13b8c"
+checksum = "b67dee974fe86fd92cc45b7a95fdd2f99a36a6d7b0d431a231178d3d670bbcc6"
 dependencies = [
  "bytes",
  "libc",
@@ -5228,17 +5129,12 @@ dependencies = [
  "percent-encoding",
  "pin-project",
  "prost",
- "rustls-native-certs 0.7.3",
- "rustls-pemfile",
- "rustls-pki-types",
  "tokio",
- "tokio-rustls 0.25.0",
  "tokio-stream",
  "tower 0.4.13",
  "tower-layer",
  "tower-service",
  "tracing",
- "webpki-roots 0.26.11",
 ]
 
 [[package]]
@@ -5567,9 +5463,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.23.0"
+version = "1.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ac8b6f42ead25368cf5b098aeb3dc8a1a2c05a3eee8a9a1a68c640edbfc79d9"
+checksum = "ddd74a9687298c6858e9b88ec8935ec45d22e8fd5e6394fa1bd4e99a87789c76"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",

@@ -222,7 +222,7 @@ Running performance tests...
 - Performance regression detected in key operations
 - Run benchmarks: `cargo bench`
 - Profile with: `cargo flamegraph` (requires cargo-flamegraph)
-- Review recent changes for inefficiencies
+- Review recent modifications for inefficiencies
 
 ## CI Integration
 

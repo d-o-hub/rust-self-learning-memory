@@ -145,8 +145,8 @@ async fn test_redb_only() -> Result<()> {
     println!("  Total patterns: {}", total_patterns);
 
     // Verify files were created and have data
-    let storage_size = tokio::fs::metadata(storage_path).await?.len();
-    let cache_size = tokio::fs::metadata(cache_path).await?.len();
+    let storage_size = std::fs::metadata(storage_path)?.len();
+    let cache_size = std::fs::metadata(cache_path)?.len();
 
     println!("📁 File sizes:");
     println!("  Storage file: {} bytes", storage_size);

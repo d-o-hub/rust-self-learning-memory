@@ -53,7 +53,7 @@ pub async fn query_memory(
 Primary trait for memory operations:
 
 ```rust
-// See do-memory-core/src/memory/mod.rs
+// See memory-core/src/memory/mod.rs
 #[async_trait]
 pub trait MemoryStore: Send + Sync {
     async fn create_episode(&self, task: &str) -> Result<EpisodeId>;
@@ -90,7 +90,7 @@ let episode: Episode = postcard::from_bytes(&bytes)?;
 Used for storage resilience:
 
 ```rust
-// See do-memory-storage-turso/src/circuit_breaker.rs
+// See memory-storage-turso/src/circuit_breaker.rs
 pub struct CircuitBreaker {
     failure_threshold: u32,
     reset_timeout: Duration,
@@ -136,7 +136,7 @@ async fn store_patterns_batch(&self, patterns: &[Pattern]) -> Result<()>;
 MCP server uses Wasmtime sandbox for untrusted code:
 
 ```rust
-// See do-do-memory-mcp/src/wasmtime_sandbox.rs
+// See do-memory-mcp/src/wasmtime_sandbox.rs
 pub struct WasmtimeSandbox {
     engine: Engine,
     module: Module,

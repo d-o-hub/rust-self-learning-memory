@@ -26,7 +26,7 @@ Example preservation:
 ```
 Tests: 2 fail (test_embed_vector, test_turso_insert)
 Build: error - "missing trait impl Write for &str"
-Files: do-memory-core/src/embed.rs (added async embed)
+Files: memory-core/src/embed.rs (added async embed)
 Env: TURSO_DATABASE_URL=libsql://...
 ```
 

@@ -10,7 +10,7 @@
 
 This document is intentionally aligned to the MCP contract parity test:
 
-- `do-memory-mcp/tests/tool_contract_parity.rs`
+- `memory-mcp/tests/tool_contract_parity.rs`
 
 If this document and runtime behavior diverge, treat the parity test + `tools/list` runtime output as authoritative.
 
@@ -164,12 +164,12 @@ Status: **Deferred / absent from active MCP tool contract** until handlers are i
 
 - This file is a contract index, not a full schema dump.
 - For exact argument schemas, use runtime `tools/list` from the server build you are running.
-- When updating tool names, update this file and `do-memory-mcp/tests/tool_contract_parity.rs` in the same change.
+- When updating tool names, update this file and `memory-mcp/tests/tool_contract_parity.rs` in the same change.
 
 ---
 
 ## See Also
 
 - [Playbooks and Checkpoints](./PLAYBOOKS_AND_CHECKPOINTS.md)
-- [do-memory-mcp README](../do-memory-mcp/README.md)
+- [do-memory-mcp README](../memory-mcp/README.md)
 - [Current project status](../plans/STATUS/CURRENT.md)

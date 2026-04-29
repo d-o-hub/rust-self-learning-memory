@@ -169,7 +169,7 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-**Documentation:** See `do-memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
+**Documentation:** See `memory-core/PATTERN_SEARCH_FEATURE.md` for complete API reference and examples.
 
 ### Prerequisites
 - Rust stable (2024 edition)
@@ -202,7 +202,7 @@ cargo test --doc
 ./scripts/setup-local-db.sh
 
 # Or manual setup
-cp do-memory-cli/.env.example .env
+cp memory-cli/.env.example .env
 mkdir -p ./data ./backups
 ```
 
@@ -298,7 +298,7 @@ async fn main() -> anyhow::Result<()> {
 |----------|-------------|
 | [Configuration Wizard](docs/CONFIG_WIZARD.md) | Interactive setup guide |
 | [API Reference](docs/API_REFERENCE.md) | Current MCP tool contract index |
-| [Configuration Guide](do-memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
+| [Configuration Guide](memory-cli/CONFIGURATION_GUIDE.md) | Complete configuration options |
 | [Database Setup](docs/LOCAL_DATABASE_SETUP.md) | Local database configuration |
 | [Quality Gates](docs/QUALITY_GATES.md) | Automated quality standards |
 | [YAML Validation](docs/YAML_VALIDATION.md) | Configuration validation strategy |
@@ -325,11 +325,11 @@ async fn main() -> anyhow::Result<()> {
 
 | Crate | Description |
 |-------|-------------|
-| [do-memory-core](do-memory-core/README.md) | Core episodic learning system |
-| [do-memory-mcp](do-do-memory-mcp/README.md) | MCP server with secure sandbox |
-| [do-memory-cli](do-memory-cli/README.md) | Command-line interface |
-| [do-memory-storage-turso](do-memory-storage-turso/README.md) | Turso/libSQL storage backend |
-| [do-memory-storage-redb](do-memory-storage-redb/README.md) | redb cache backend |
+| [do-memory-core](memory-core/README.md) | Core episodic learning system |
+| [do-memory-mcp](memory-mcp/README.md) | MCP server with secure sandbox |
+| [do-memory-cli](memory-cli/README.md) | Command-line interface |
+| [do-memory-storage-turso](memory-storage-turso/README.md) | Turso/libSQL storage backend |
+| [do-memory-storage-redb](memory-storage-redb/README.md) | redb cache backend |
 
 ## Quality Gates
 
@@ -428,7 +428,7 @@ EMBEDDING_BATCH_SIZE=32
 
 # Sandbox settings
 MCP_USE_WASM=true
-JAVY_PLUGIN=./do-do-memory-mcp/javy-plugin.wasm
+JAVY_PLUGIN=./memory-mcp/javy-plugin.wasm
 ```
 
 ### TOML Configuration
@@ -523,7 +523,7 @@ Typical performance numbers are from internal benchmarks on a warm cache; result
 
 ## Benchmarks
 
-Run `cargo bench` for workspace benchmarks. CLI benchmarks live in `do-memory-cli/benches/cli_benchmarks.rs`; quality gate expectations and regression checks are documented in `docs/QUALITY_GATES.md`.
+Run `cargo bench` for workspace benchmarks. CLI benchmarks live in `memory-cli/benches/cli_benchmarks.rs`; quality gate expectations and regression checks are documented in `docs/QUALITY_GATES.md`.
 
 ## Contributing
 

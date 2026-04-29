@@ -8,6 +8,7 @@
 *.libsql-*
 !*.turso
 !*.redb
+!*.json
 
 # Memory system files
 !memory*.db

@@ -69,10 +69,10 @@ fn test_extract_critical_decisions() {
         "executor".to_string(),
         "Execute with chosen strategy".to_string(),
     );
-    step2.parameters = serde_json::json!({
+    step2.set_parameters(serde_json::json!({
         "strategy": "async",
         "approach": "tokio"
-    });
+    }));
     step2.result = Some(ExecutionResult::Success {
         output: "Executed".to_string(),
     });
@@ -284,7 +284,7 @@ fn test_extract_comprehensive_features() {
         "planner".to_string(),
         "Choose implementation strategy".to_string(),
     );
-    step1.parameters = serde_json::json!({"strategy": "async"});
+    step1.set_parameters(serde_json::json!({"strategy": "async"}));
     step1.result = Some(ExecutionResult::Success {
         output: "Strategy chosen".to_string(),
     });

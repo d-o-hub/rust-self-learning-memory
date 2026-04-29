@@ -40,7 +40,7 @@ async fn create_test_episode(
             timestamp: chrono::Utc::now(),
             tool: format!("tool-{}", i % 3),
             action: format!("action-{i}"),
-            parameters: serde_json::json!({}),
+            parameters_json: "{}".to_string(),
             result: Some(ExecutionResult::Success {
                 output: format!("output-{i}"),
             }),

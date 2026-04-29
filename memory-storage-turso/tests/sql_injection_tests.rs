@@ -196,9 +196,9 @@ async fn test_sql_injection_in_execution_steps() {
         "'; DROP TABLE episodes; --".to_string(),
         "Malicious action".to_string(),
     );
-    step.parameters = serde_json::json!({
+    step.set_parameters(serde_json::json!({
         "sql_injection": "' OR '1'='1"
-    });
+    }));
     episode.add_step(step);
 
     storage.store_episode(&episode).await.unwrap();

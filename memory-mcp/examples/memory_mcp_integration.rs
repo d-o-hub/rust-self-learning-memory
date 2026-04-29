@@ -79,14 +79,14 @@ async fn main() -> anyhow::Result<()> {
 
     for (i, mut step) in steps.into_iter().enumerate() {
         // Set additional step properties
-        step.parameters = json!({
+        step.set_parameters(json!({
             "command": match i {
                 0 => "cargo new auth-api --bin",
                 1 => "implement user and token structs",
                 2 => "cargo add jsonwebtoken bcrypt",
                 _ => "unknown"
             }
-        });
+        }));
         step.result = Some(do_memory_core::ExecutionResult::Success {
             output: match i {
                 0 => "Created binary (application) `auth-api` package".to_string(),

@@ -65,9 +65,9 @@ fn create_large_valid_episode(target_size_bytes: usize) -> Episode {
         step.tokens_used = Some(1000);
 
         // Add parameters with minimal data (avoid serde_json::Value issues with bincode)
-        step.parameters = json!({
+        step.set_parameters(json!({
             "step": i,
-        });
+        }));
 
         episode.add_step(step);
     }
@@ -96,9 +96,9 @@ fn create_oversized_episode() -> Episode {
         );
 
         // Create very large parameters (within individual limits but collectively large)
-        step.parameters = json!({
+        step.set_parameters(json!({
             "step": i,
-        });
+        }));
 
         step.result = Some(ExecutionResult::Success {
             output: "x".repeat(10_000), // Max observation length

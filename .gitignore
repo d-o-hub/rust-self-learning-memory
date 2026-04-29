@@ -107,3 +107,4 @@ mcp-config-*.json
 .blackboxcli/settings.json
 *.proptest-regressions
 .memory-traces/
+audit-report.json

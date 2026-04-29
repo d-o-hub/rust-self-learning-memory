@@ -116,7 +116,7 @@ async fn main() -> anyhow::Result<()> {
             timestamp: Utc::now(),
             tool: "analyze".to_string(),
             action: "Analyzing requirements".to_string(),
-            parameters: serde_json::json!({}),
+            parameters_json: "{}".to_string(),
             result: Some(ExecutionResult::Success {
                 output: "Requirements analyzed".to_string(),
             }),
@@ -131,7 +131,7 @@ async fn main() -> anyhow::Result<()> {
             timestamp: Utc::now(),
             tool: "implement".to_string(),
             action: "Implementing solution".to_string(),
-            parameters: serde_json::json!({}),
+            parameters_json: "{}".to_string(),
             result: Some(ExecutionResult::Success {
                 output: "Implementation complete".to_string(),
             }),
@@ -146,7 +146,7 @@ async fn main() -> anyhow::Result<()> {
             timestamp: Utc::now(),
             tool: "test".to_string(),
             action: "Testing solution".to_string(),
-            parameters: serde_json::json!({}),
+            parameters_json: "{}".to_string(),
             result: Some(ExecutionResult::Success {
                 output: "All tests passed".to_string(),
             }),

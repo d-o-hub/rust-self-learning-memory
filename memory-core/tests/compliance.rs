@@ -130,7 +130,7 @@ async fn should_log_execution_steps_with_ordering_and_metadata() {
     let recorded_step = &episode.steps[5];
     assert_eq!(recorded_step.latency_ms, 150);
     assert_eq!(recorded_step.tokens_used, Some(1200));
-    assert_eq!(recorded_step.parameters["model"], "claude-3");
+    assert_eq!(recorded_step.parameters()["model"], "claude-3");
     assert_eq!(
         recorded_step.metadata.get("custom_key"),
         Some(&"custom_value".to_string())

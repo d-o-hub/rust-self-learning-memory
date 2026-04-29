@@ -25,9 +25,9 @@ const CLIPPY_EXCLUDE: &[&str] = &["e2e-tests", "memory-benches"];
 // Configuration & Thresholds
 // ============================================================================
 
-/// Minimum test coverage percentage (default: 90.0)
+/// Minimum test coverage percentage (default: 70.0 - ADR-042 Phase 1 target)
 fn coverage_threshold() -> f64 {
-    parse_env_percentage("QUALITY_GATE_COVERAGE_THRESHOLD", 90.0)
+    parse_env_percentage("QUALITY_GATE_COVERAGE_THRESHOLD", 70.0)
 }
 
 /// Minimum pattern accuracy percentage (default: 70.0)
@@ -128,12 +128,13 @@ mod unit_tests {
 
     #[test]
     #[serial]
-    fn coverage_threshold_defaults_to_ninety_when_unset() {
+    fn coverage_threshold_defaults_to_seventy_when_unset() {
         // SAFETY: test-only env var manipulation
         unsafe {
             std::env::remove_var("QUALITY_GATE_COVERAGE_THRESHOLD");
         }
-        assert_eq!(coverage_threshold(), 90.0);
+        // ADR-042 Phase 1 target is 70%, not 90%
+        assert_eq!(coverage_threshold(), 70.0);
     }
 
     #[test]

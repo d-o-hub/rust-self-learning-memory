@@ -58,7 +58,7 @@ pub(super) fn extract_critical_decisions(episode: &Episode) -> Vec<String> {
         }
 
         // Check for complex parameters that indicate choices
-        if let Some(obj) = step.parameters.as_object() {
+        if let Some(obj) = step.parameters().as_object() {
             extract_parameter_decisions(obj, step.step_number, &mut decisions);
         }
     }

@@ -332,10 +332,11 @@ mod compression_tests {
                 step_number: i,
                 tool: format!("tool_{}", i % 10),
                 action: format!("action_{}", i),
-                parameters: serde_json::json!({
+                parameters_json: serde_json::to_string(&serde_json::json!({
                     "param": format!("value_{}", i),
                     "data": "x".repeat(100) // Add some repeatable data
-                }),
+                }))
+                .unwrap_or_default(),
                 result: Some(do_memory_core::types::ExecutionResult::Success {
                     output: format!("output_{}", i),
                 }),

@@ -74,7 +74,7 @@ pub fn create_test_step(step_number: usize) -> ExecutionStep {
         "test_tool".to_string(),
         "Test action".to_string(),
     );
-    step.parameters = serde_json::json!({"test": "value"});
+    step.set_parameters(serde_json::json!({"test": "value"}));
     step.result = Some(ExecutionResult::Success {
         output: "Success".to_string(),
     });

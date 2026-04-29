@@ -49,6 +49,12 @@ pub type PatternId = Uuid;
 /// A single execution step within an episode.
 ///
 /// Represents one discrete action or operation performed during task execution.
+///
+/// # Postcard Compatibility
+///
+/// The `parameters_json` field stores JSON as a String to ensure postcard
+/// deserialization works correctly. Postcard cannot deserialize `serde_json::Value`
+/// directly. Use `parameters()` and `set_parameters()` for JSON value access.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ExecutionStep {
     /// Step number in sequence (1-indexed)
@@ -59,8 +65,9 @@ pub struct ExecutionStep {
     pub tool: String,
     /// Description of action taken
     pub action: String,
-    /// Input parameters (as JSON)
-    pub parameters: serde_json::Value,
+    /// Input parameters as JSON string (postcard-compatible)
+    /// Use `parameters()` to get as serde_json::Value
+    pub parameters_json: String,
     /// Result of execution
     pub result: Option<ExecutionResult>,
     /// Execution time in milliseconds
@@ -80,12 +87,34 @@ impl ExecutionStep {
             timestamp: Utc::now(),
             tool,
             action,
-            parameters: serde_json::json!({}),
+            parameters_json: "{}".to_string(),
             result: None,
             latency_ms: 0,
             tokens_used: None,
             metadata: HashMap::new(),
         }
+    }
+
+    /// Get parameters as serde_json::Value.
+    ///
+    /// Returns `Value::Null` if JSON parsing fails.
+    #[must_use]
+    pub fn parameters(&self) -> serde_json::Value {
+        serde_json::from_str(&self.parameters_json).unwrap_or(serde_json::Value::Null)
+    }
+
+    /// Set parameters from serde_json::Value.
+    ///
+    /// Converts to JSON string. If serialization fails, sets to empty object.
+    pub fn set_parameters(&mut self, value: serde_json::Value) {
+        self.parameters_json = serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string());
+    }
+
+    /// Create step with parameters value (builder pattern).
+    #[must_use]
+    pub fn with_parameters(mut self, params: serde_json::Value) -> Self {
+        self.set_parameters(params);
+        self
     }
 
     /// Check if this step was successful.

@@ -621,7 +621,7 @@ async fn should_maintain_data_structure_compatibility() {
     let _ = step.timestamp;
     let _ = step.tool;
     let _ = step.action;
-    let _ = step.parameters;
+    let _ = step.parameters();
     let _ = step.result;
     let _ = step.latency_ms;
     let _ = step.tokens_used;

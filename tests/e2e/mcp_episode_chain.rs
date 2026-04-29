@@ -380,11 +380,11 @@ async fn test_mcp_episode_chain_with_parameters() {
 
     // Add steps with parameters
     let mut step1 = ExecutionStep::new(1, "code-editor".to_string(), "Edit code".to_string());
-    step1.parameters = step1_params;
+    step1.set_parameters(step1_params);
     memory.log_step(episode_id, step1).await;
 
     let mut step2 = ExecutionStep::new(2, "test-runner".to_string(), "Run tests".to_string());
-    step2.parameters = step2_params;
+    step2.set_parameters(step2_params);
     memory.log_step(episode_id, step2).await;
 
     memory

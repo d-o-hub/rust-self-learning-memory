@@ -334,7 +334,8 @@ async fn should_handle_deeply_nested_json_structures() {
     // Then: The nested JSON should be preserved
     let episode = memory.get_episode(id).await.unwrap();
     assert_eq!(
-        episode.steps[0].parameters, nested,
+        episode.steps[0].parameters(),
+        nested,
         "Should preserve deeply nested JSON"
     );
 

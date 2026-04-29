@@ -166,7 +166,8 @@ impl StepBuilder {
             timestamp: chrono::Utc::now(),
             tool: self.tool,
             action: self.action,
-            parameters: self.parameters,
+            parameters_json: serde_json::to_string(&self.parameters)
+                .unwrap_or_else(|_| "{}".to_string()),
             result: self.result,
             latency_ms: self.latency_ms,
             tokens_used: self.tokens_used,

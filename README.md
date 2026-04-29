@@ -428,7 +428,7 @@ EMBEDDING_BATCH_SIZE=32
 
 # Sandbox settings
 MCP_USE_WASM=true
-JAVY_PLUGIN=./do-memory-mcp/javy-plugin.wasm
+JAVY_PLUGIN=./memory-mcp/javy-plugin.wasm
 ```
 
 ### TOML Configuration

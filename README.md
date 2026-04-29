@@ -540,7 +540,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ### Code Standards
 
 - Follow [Rust idioms](agent_docs/code_conventions.md)
-- Maintain 90%+ test coverage
+- Test coverage targets per ADR-042 phases (70% → 75% → 80%)
 - Run `cargo fmt` and `cargo clippy` before committing
 - Document public APIs
 - Write descriptive commit messages
@@ -549,7 +549,10 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 - All tests must pass
 - No clippy warnings
-- 90%+ test coverage
+- Test coverage targets per ADR-042:
+  - Phase 1: 70% (current focus - actual: 61.22%)
+  - Phase 2: 75%
+  - Phase 3: 80% (codecov.yml project target)
 - Security audit must pass
 - Performance benchmarks must not degrade >10%
 

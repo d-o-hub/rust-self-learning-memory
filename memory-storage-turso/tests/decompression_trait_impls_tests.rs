@@ -15,6 +15,8 @@
 #![cfg(feature = "compression")]
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
+#![allow(unused)]
+#![allow(dead_code)]
 
 use async_trait::async_trait;
 use do_memory_storage_turso::StorageStatistics;
@@ -40,6 +42,7 @@ struct EncodingMockTransport {
 }
 
 impl EncodingMockTransport {
+    #[allow(dead_code)]
     fn new(encoding: Option<&str>, response_data: Vec<u8>) -> Self {
         Self {
             encoding: encoding.map(|s| s.to_string()),
@@ -48,10 +51,12 @@ impl EncodingMockTransport {
         }
     }
 
+    #[allow(dead_code)]
     fn get_send_count(&self) -> u64 {
         self.send_count.load(std::sync::atomic::Ordering::SeqCst)
     }
 
+    #[allow(dead_code)]
     fn send_count_handle(&self) -> std::sync::Arc<std::sync::atomic::AtomicU64> {
         self.send_count.clone()
     }
@@ -108,6 +113,7 @@ impl EchoMockTransport {
         }
     }
 
+    #[allow(dead_code)]
     fn with_encoding(encoding: &str) -> Self {
         Self {
             response_encoding: Some(encoding.to_string()),
@@ -115,6 +121,7 @@ impl EchoMockTransport {
         }
     }
 
+    #[allow(dead_code)]
     fn send_count_handle(&self) -> std::sync::Arc<std::sync::atomic::AtomicU64> {
         self.send_count.clone()
     }
@@ -184,7 +191,7 @@ mod zstd_decompression_tests {
     #[tokio::test]
     async fn test_zstd_decompress_pre_compressed_response() {
         // Compress data using zstd
-        let original_data: Vec<u8> = b"hello world".repeat(500).to_vec();
+        let original_data: Vec<u8> = b"hello world".repeat(500);
         let compressed = zstd::stream::encode_all(&original_data[..], 3).unwrap();
 
         // Create mock that returns pre-compressed zstd data with encoding header
@@ -193,7 +200,7 @@ mod zstd_decompression_tests {
         let transport = CompressedTransport::new(Box::new(mock), config);
 
         // Send triggers decompression of the response
-        let response = transport.send(&b"request".to_vec()).await.unwrap();
+        let response = transport.send(b"request".as_ref()).await.unwrap();
 
         assert!(response.is_success());
         assert_eq!(
@@ -212,7 +219,7 @@ mod zstd_decompression_tests {
         let transport = CompressedTransport::new(Box::new(mock), config);
 
         // Should fail to decompress invalid zstd data
-        let result = transport.send(&b"request".to_vec()).await;
+        let result = transport.send(b"request".as_ref()).await;
 
         assert!(result.is_err(), "Should error on invalid zstd data");
         let err_msg = result.unwrap_err().to_string();
@@ -233,7 +240,7 @@ mod zstd_decompression_tests {
         let config = TransportCompressionConfig::default();
         let transport = CompressedTransport::new(Box::new(mock), config);
 
-        transport.send(&b"request".to_vec()).await.unwrap();
+        transport.send(b"request".as_ref()).await.unwrap();
 
         let stats = transport.stats();
         // Decompression should be recorded
@@ -315,7 +322,7 @@ mod gzip_decompression_tests {
     #[tokio::test]
     async fn test_gzip_decompress_pre_compressed_response() {
         // Compress data using gzip
-        let original_data: Vec<u8> = b"hello world".repeat(500).to_vec();
+        let original_data: Vec<u8> = b"hello world".repeat(500);
         let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
         encoder.write_all(&original_data).unwrap();
         let compressed = encoder.finish().unwrap();
@@ -325,7 +332,7 @@ mod gzip_decompression_tests {
         let config = TransportCompressionConfig::default();
         let transport = CompressedTransport::new(Box::new(mock), config);
 
-        let response = transport.send(&b"request".to_vec()).await.unwrap();
+        let response = transport.send(b"request".as_ref()).await.unwrap();
 
         assert!(response.is_success());
         assert_eq!(
@@ -343,7 +350,7 @@ mod gzip_decompression_tests {
         let config = TransportCompressionConfig::default();
         let transport = CompressedTransport::new(Box::new(mock), config);
 
-        let result = transport.send(&b"request".to_vec()).await;
+        let result = transport.send(b"request".as_ref()).await;
 
         assert!(result.is_err(), "Should error on invalid gzip data");
         let err_msg = result.unwrap_err().to_string();
@@ -358,7 +365,7 @@ mod gzip_decompression_tests {
     #[tokio::test]
     async fn test_gzip_decompression_partial_stream() {
         // Create valid gzip then truncate it
-        let original_data: Vec<u8> = b"hello world".repeat(500).to_vec();
+        let original_data: Vec<u8> = b"hello world".repeat(500);
         let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
         encoder.write_all(&original_data).unwrap();
         let compressed = encoder.finish().unwrap();
@@ -368,7 +375,7 @@ mod gzip_decompression_tests {
         let config = TransportCompressionConfig::default();
         let transport = CompressedTransport::new(Box::new(mock), config);
 
-        let result = transport.send(&b"request".to_vec()).await;
+        let result = transport.send(b"request".as_ref()).await;
 
         assert!(result.is_err(), "Should error on truncated gzip stream");
     }
@@ -383,7 +390,7 @@ mod gzip_decompression_tests {
         ];
 
         for level in levels {
-            let original_data: Vec<u8> = b"test data for compression".repeat(200).to_vec();
+            let original_data: Vec<u8> = b"test data for compression".repeat(200);
             let mut encoder = GzEncoder::new(Vec::new(), level);
             encoder.write_all(&original_data).unwrap();
             let compressed = encoder.finish().unwrap();
@@ -392,7 +399,7 @@ mod gzip_decompression_tests {
             let config = TransportCompressionConfig::default();
             let transport = CompressedTransport::new(Box::new(mock), config);
 
-            let response = transport.send(&b"request".to_vec()).await.unwrap();
+            let response = transport.send(b"request".as_ref()).await.unwrap();
             assert_eq!(response.body, original_data);
         }
     }
@@ -401,14 +408,14 @@ mod gzip_decompression_tests {
     #[tokio::test]
     async fn test_gzip_empty_stream() {
         // Empty gzip stream (valid but empty)
-        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        let encoder = GzEncoder::new(Vec::new(), Compression::default());
         let compressed = encoder.finish().unwrap();
 
         let mock = EncodingMockTransport::new(Some("gzip"), compressed);
         let config = TransportCompressionConfig::default();
         let transport = CompressedTransport::new(Box::new(mock), config);
 
-        let response = transport.send(&b"request".to_vec()).await.unwrap();
+        let response = transport.send(b"request".as_ref()).await.unwrap();
         assert!(response.is_success());
         assert_eq!(response.body, Vec::<u8>::new());
     }
@@ -497,7 +504,7 @@ async fn test_unknown_encoding_passed_through() {
     let config = TransportCompressionConfig::default();
     let transport = CompressedTransport::new(Box::new(mock), config);
 
-    let response = transport.send(&b"request".to_vec()).await.unwrap();
+    let response = transport.send(b"request".as_ref()).await.unwrap();
 
     // Unknown encoding should be returned as-is (no decompression)
     assert!(response.is_success());
@@ -515,7 +522,7 @@ async fn test_no_encoding_header_passed_through() {
     let config = TransportCompressionConfig::default();
     let transport = CompressedTransport::new(Box::new(mock), config);
 
-    let response = transport.send(&b"request".to_vec()).await.unwrap();
+    let response = transport.send(b"request".as_ref()).await.unwrap();
 
     assert!(response.is_success());
     assert_eq!(response.body, data);
@@ -923,7 +930,7 @@ fn test_metadata_compression_support() {
 /// Test stats reset functionality.
 #[tokio::test]
 async fn test_stats_reset() {
-    let mock = EncodingMockTransport::new(None, vec![]);
+    let mock = EchoMockTransport::new();
     let config = TransportCompressionConfig::default();
     let transport = CompressedTransport::new(Box::new(mock), config);
 
@@ -945,7 +952,7 @@ async fn test_stats_reset() {
 /// Test overall compression ratio calculation.
 #[tokio::test]
 async fn test_overall_compression_ratio() {
-    let mock = EncodingMockTransport::new(None, vec![]);
+    let mock = EchoMockTransport::new();
     let config = TransportCompressionConfig::default();
     let transport = CompressedTransport::new(Box::new(mock), config);
 
@@ -961,7 +968,7 @@ async fn test_overall_compression_ratio() {
 /// Test bandwidth savings percentage.
 #[tokio::test]
 async fn test_bandwidth_savings_percentage() {
-    let mock = EncodingMockTransport::new(None, vec![]);
+    let mock = EchoMockTransport::new();
     let config = TransportCompressionConfig::default();
     let transport = CompressedTransport::new(Box::new(mock), config);
 

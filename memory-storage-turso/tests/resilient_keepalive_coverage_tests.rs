@@ -255,6 +255,7 @@ mod resilient_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_resilient_embedding_operations() {
         let (storage, _dir) = create_resilient_storage().await;
 
@@ -284,6 +285,7 @@ mod resilient_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_resilient_embedding_batch_operations() {
         let (storage, _dir) = create_resilient_storage().await;
 
@@ -582,6 +584,7 @@ mod keepalive_connection_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_keepalive_connection_into_connection() {
         let (pool, _dir) = create_test_pool().await;
         let pooled = pool.get().await.unwrap();

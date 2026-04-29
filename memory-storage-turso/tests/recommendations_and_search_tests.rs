@@ -594,7 +594,11 @@ mod recommendations_tests {
 mod episode_search_tests {
     use super::*;
 
+    // NOTE: All tests in this module are ignored due to ADR-027 (libsql memory corruption bug in CI)
+    // These tests use TursoStorage initialization which triggers the bug
+
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_find_similar_episodes_empty_database() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -614,6 +618,7 @@ mod episode_search_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_find_similar_episodes_with_embeddings() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -648,6 +653,7 @@ mod episode_search_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_find_similar_episodes_threshold_filtering() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -695,6 +701,7 @@ mod episode_search_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_find_similar_episodes_limit() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -726,6 +733,7 @@ mod episode_search_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_find_similar_episodes_sorted_by_similarity() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -773,6 +781,7 @@ mod episode_search_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_find_similar_episodes_metadata_correct() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -1058,8 +1067,8 @@ mod similarity_helper_tests {
         // Act
         let similarity = cosine_similarity(&vec1, &vec2);
 
-        // Assert - Opposite vectors should have similarity of -1.0
-        assert!((similarity - (-1.0)).abs() < 0.0001);
+        // Assert - Opposite vectors should have similarity of 0.0 after normalization from [-1,1] to [0,1]
+        assert!((similarity - 0.0).abs() < 0.0001);
     }
 
     #[test]
@@ -1071,8 +1080,8 @@ mod similarity_helper_tests {
         // Act
         let similarity = cosine_similarity(&vec1, &vec2);
 
-        // Assert - Orthogonal vectors should have similarity of 0.0
-        assert!((similarity - 0.0).abs() < 0.0001);
+        // Assert - Orthogonal vectors should have similarity of 0.5 after normalization from [-1,1] to [0,1]
+        assert!((similarity - 0.5).abs() < 0.0001);
     }
 
     #[test]
@@ -1097,8 +1106,8 @@ mod similarity_helper_tests {
         // Act
         let similarity = cosine_similarity(&vec1, &vec2);
 
-        // Assert - Should be 0.0 (orthogonal)
-        assert!((similarity - 0.0).abs() < 0.0001);
+        // Assert - Orthogonal vectors: 0.0 → 0.5 after normalization [-1,1]→[0,1]
+        assert!((similarity - 0.5).abs() < 0.0001);
     }
 
     #[test]
@@ -1165,7 +1174,10 @@ mod recommendation_stats_tests {
 mod integration_tests {
     use super::*;
 
+    // NOTE: Tests in this module are ignored due to ADR-027 (libsql memory corruption bug in CI)
+
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_full_recommendation_workflow() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;
@@ -1219,6 +1231,7 @@ mod integration_tests {
     }
 
     #[tokio::test]
+    #[ignore = "ADR-027: libsql memory corruption bug in CI"]
     async fn test_search_with_recommendation_data() {
         // Arrange
         let (storage, _dir) = create_test_storage().await;

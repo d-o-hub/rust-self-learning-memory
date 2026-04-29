@@ -326,7 +326,7 @@ async fn main() -> anyhow::Result<()> {
 | Crate | Description |
 |-------|-------------|
 | [do-memory-core](memory-core/README.md) | Core episodic learning system |
-| [do-memory-mcp](../memory-mcp/README.md) | MCP server with secure sandbox |
+| [do-memory-mcp](memory-mcp/README.md) | MCP server with secure sandbox |
 | [do-memory-cli](memory-cli/README.md) | Command-line interface |
 | [do-memory-storage-turso](memory-storage-turso/README.md) | Turso/libSQL storage backend |
 | [do-memory-storage-redb](memory-storage-redb/README.md) | redb cache backend |

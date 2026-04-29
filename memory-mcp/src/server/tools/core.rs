@@ -132,7 +132,7 @@ impl crate::server::MemoryMCPServer {
                         return true;
                     }
                     if step
-                        .parameters
+                        .parameters()
                         .to_string()
                         .to_lowercase()
                         .contains(&query_lc)

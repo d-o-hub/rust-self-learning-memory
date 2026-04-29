@@ -38,3 +38,14 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Root Cause: No path filtering on benchmark workflow triggers.
 - Solution: Add `paths` filter for perf-critical code only (storage, core, benches). GitHub Actions doesn't support `paths` + `paths-ignore` at same trigger level - use `paths` alone.
 - Key insight: Use `.claude/skills/github-workflows` and `.claude/skills/ci-fix` skills for CI issues.
+
+## LESSON-007: cosine_similarity normalization range [-1,1]→[0,1]
+
+- Issue: Coverage test assertions expected raw cosine values (-1 to 1), but implementation normalizes to 0-1 range.
+- Root Cause: `cosine_similarity` in `similarity.rs` normalizes: `(similarity + 1.0) / 2.0` to keep all values positive.
+- Solution: Test assertions must account for normalization:
+  - Identical vectors: 1.0 → 1.0 (unchanged)
+  - Opposite vectors: -1.0 → 0.0
+  - Orthogonal vectors: 0.0 → 0.5
+  - Low similarity (orthogonal): 0.0 → 0.5
+- Location: `memory-storage-turso/src/retrieval/similarity.rs` lines 52-54

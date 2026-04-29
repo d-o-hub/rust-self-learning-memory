@@ -32,11 +32,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     
     // Add details about the problem
-    problem_step.parameters = serde_json::json!({
+    problem_step.set_parameters(serde_json::json!({
         "environment": "OpenCode CLI vs Claude Code",
         "issue": "memory-mcp server configuration works in Claude Code but fails in OpenCode CLI",
         "status": "investigation_started"
-    });
+    }));
     
     problem_step.result = Some(ExecutionResult::Success {
         output: "Problem statement logged successfully. Starting investigation into MCP server configuration differences between environments.".to_string(),

@@ -5,14 +5,17 @@
 ### Create Episode
 
 ```bash
-do-memory-cli episode create --task "task description" [--context context.json]
+do-memory-cli episode create --task "task description" [--domain DOMAIN] [--context FILE]
 # Alias
-do-memory-cli ep create -t "task description" [-c context.json]
+do-memory-cli ep create -t "task description" [--domain DOMAIN] [-c FILE]
 ```
 
 **Options**:
 - `-t, --task <TASK>`: Task description (required)
+- `--domain <DOMAIN>`: Domain for episode (e.g., 'web-api', 'testing')
 - `-c, --context <FILE>`: Context file in JSON (optional)
+
+**Note**: There is NO `--type` argument. Task type is inferred automatically.
 
 ### List Episodes
 
@@ -46,16 +49,20 @@ do-memory-cli ep complete <EPISODE_ID> <OUTCOME>
 ### Log Execution Step
 
 ```bash
-do-memory-cli episode log-step <EPISODE_ID> [OPTIONS]
-do-memory-cli ep log-step <EPISODE_ID> [OPTIONS]
+do-memory-cli episode log-step --tool <TOOL> --action <ACTION> EPISODE_ID [--success]
+do-memory-cli ep log-step --tool <TOOL> --action <ACTION> EPISODE_ID [--success]
 ```
 
 **Options**:
-- `-t, --tool <TOOL>`: Tool name (required)
-- `-a, --action <ACTION>`: Action description (required)
+- `--tool <TOOL>`: Tool name (required)
+- `--action <ACTION>`: Action description (required)
+- `EPISODE_ID`: Episode UUID (required, positional at END)
 - `--success`: Whether step was successful
 - `--latency-ms <MS>`: Step latency
-- `-o, --observation <TEXT>`: Step observation
+- `--tokens <N>`: Token count
+- `--observation <TEXT>`: Step observation
+
+**IMPORTANT**: Episode ID is positional at the END, not a flag argument.
 
 ## Pattern Commands
 

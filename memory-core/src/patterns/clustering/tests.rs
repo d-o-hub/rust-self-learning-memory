@@ -168,7 +168,7 @@ mod tests {
                 latency_ms: 100,
                 tokens_used: None,
                 metadata: std::collections::HashMap::new(),
-                parameters: serde_json::Value::Null,
+                parameters_json: "null".to_string(),
             });
         }
 

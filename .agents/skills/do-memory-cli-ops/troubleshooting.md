@@ -2,6 +2,20 @@
 
 ## Common Issues
 
+### Invalid Arguments (Exit code 2)
+
+**Common mistakes**:
+- `--type` for episode create → NO `--type` argument exists. Task type is inferred.
+- `--format json` for episode list → No format option for list/view commands
+- `-v` for verbose → No global verbose flag exists
+
+**Solution**: Use `--help` to verify correct arguments:
+```bash
+do-memory-cli episode create --help
+do-memory-cli episode log-step --help
+do-memory-cli pattern list --help
+```
+
 ### Command Not Found
 
 ```bash
@@ -62,6 +76,32 @@ rm -rf data/cache.redb
 
 # Rebuild cache
 do-memory-cli storage sync
+```
+
+### Steps Not Persisting (Episode shows "Steps: 0")
+
+**Root Cause**: CLI uses step batching (50 steps or 5s interval). Each CLI command is a separate process, so buffered steps are lost between invocations.
+
+**Solutions**:
+1. Complete the episode immediately after logging steps (completion flushes buffered steps)
+2. Or use MCP server for long-running workflows (steps persist across commands)
+3. Or log ≥50 steps in one session to trigger batch flush
+
+**Note**: Pattern extraction requires steps. Episodes with 0 steps will not extract patterns.
+
+### Patterns Not Found (Pattern list shows 0)
+
+**Root Cause**: Pattern extraction requires execution steps. If episode has 0 steps, no patterns are extracted.
+
+**Verification**:
+```bash
+# Check episode steps
+do-memory-cli episode view <EPISODE_ID>
+# Should show Steps: N (not 0)
+
+# Check storage stats
+do-memory-cli storage stats
+# Patterns: Total should be > 0
 ```
 
 ## Debug Mode

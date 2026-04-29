@@ -228,7 +228,7 @@ fn create_memory_config(config: &Config) -> MemoryConfig {
         enable_embeddings: config.embeddings.enabled, // Use config value
         pattern_extraction_threshold: 0.1,
         quality_threshold: 0.0, // Allow CLI workflows to complete minimal episodes
-        batch_config: Some(do_memory_core::BatchConfig::default()),
+        batch_config: None,     // Disable batching for CLI - each command is a separate process
         concurrency: do_memory_core::ConcurrencyConfig::default(),
         // Phase 2 (GENESIS) - Capacity management
         max_episodes: None, // No capacity limit by default

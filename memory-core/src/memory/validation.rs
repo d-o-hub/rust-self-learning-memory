@@ -118,9 +118,17 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
         }
     }
 
+    // Validate parameters JSON format
+    if serde_json::from_str::<serde_json::Value>(&step.parameters_json).is_err() {
+        return Err(Error::InvalidInput(
+            "Malformed JSON in step parameters".to_string(),
+        ));
+    }
+
     // Validate artifact sizes in parameters
+
     // Check if parameters contain large data that could be artifacts
-    if let Some(params_obj) = step.parameters.as_object() {
+    if let Some(params_obj) = step.parameters().as_object() {
         for (key, value) in params_obj {
             // Check for common artifact-like field names
             if key.contains("artifact")
@@ -145,12 +153,11 @@ pub fn validate_execution_step(episode: &Episode, step: &ExecutionStep) -> Resul
     }
 
     // Validate serialized parameters size
-    let params_json = serde_json::to_string(&step.parameters)
-        .map_err(|e| Error::InvalidInput(format!("Failed to serialize step parameters: {e}")))?;
-    if params_json.len() > MAX_ARTIFACT_SIZE {
+    // parameters_json is already the serialized string
+    if step.parameters_json.len() > MAX_ARTIFACT_SIZE {
         return Err(Error::InvalidInput(format!(
             "Step parameters size {} exceeds maximum {} bytes ({}MB)",
-            params_json.len(),
+            step.parameters_json.len(),
             MAX_ARTIFACT_SIZE,
             MAX_ARTIFACT_SIZE / 1_000_000
         )));
@@ -335,9 +342,25 @@ mod tests {
         );
 
         let mut step = ExecutionStep::new(1, "tool".to_string(), "action".to_string());
-        step.parameters = serde_json::json!({
+        step.set_parameters(serde_json::json!({
             "artifact_data": "x".repeat(MAX_ARTIFACT_SIZE + 1),
-        });
+        }));
+
+        let result = validate_execution_step(&episode, &step);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), Error::InvalidInput(_)));
+    }
+
+    #[test]
+    fn test_validate_execution_step_malformed_json() {
+        let episode = Episode::new(
+            "Test task".to_string(),
+            TaskContext::default(),
+            TaskType::Testing,
+        );
+
+        let mut step = ExecutionStep::new(1, "tool".to_string(), "action".to_string());
+        step.parameters_json = "invalid json".to_string();
 
         let result = validate_execution_step(&episode, &step);
         assert!(result.is_err());
@@ -357,9 +380,9 @@ mod tests {
         let large_array: Vec<String> = (0..10_000)
             .map(|i| format!("item_{i}_with_some_padding_text"))
             .collect();
-        step.parameters = serde_json::json!({
+        step.set_parameters(serde_json::json!({
             "large_data": large_array,
-        });
+        }));
 
         let result = validate_execution_step(&episode, &step);
         // This might pass or fail depending on exact serialization size

@@ -32,10 +32,10 @@ fn create_high_quality_episode_data() -> (String, TaskContext, TaskType, Vec<Exe
         "planner".to_string(),
         "Choose async implementation strategy".to_string(),
     );
-    execution_step1.parameters = serde_json::json!({
+    execution_step1.set_parameters(serde_json::json!({
         "strategy": "tokio-async",
         "approach": "layered-architecture"
-    });
+    }));
     execution_step1.result = Some(ExecutionResult::Success {
         output: "Strategy selected: async with layered architecture".to_string(),
     });

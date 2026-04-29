@@ -61,7 +61,7 @@ impl MemoryMCPServer {
 
         // Add optional parameters
         if let Some(params) = args.get("parameters") {
-            step.parameters = params.clone();
+            step.set_parameters(params.clone());
         }
 
         // Add optional result

@@ -17,12 +17,14 @@ echo -e "${BLUE}║           Quality Gates - Local Runner                      
 echo -e "${BLUE}╚═══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Configuration
-COVERAGE_THRESHOLD=${QUALITY_GATE_COVERAGE_THRESHOLD:-90}
+# Configuration - Thresholds aligned with ADR-042 phased targets
+COVERAGE_THRESHOLD=${QUALITY_GATE_COVERAGE_THRESHOLD:-70}  # ADR-042 Phase 1 target (actual: 61.22%)
 PATTERN_THRESHOLD=${QUALITY_GATE_PATTERN_ACCURACY_THRESHOLD:-70}
 COMPLEXITY_THRESHOLD=${QUALITY_GATE_COMPLEXITY_THRESHOLD:-10}
 SECURITY_THRESHOLD=${QUALITY_GATE_SECURITY_THRESHOLD:-0}
-SKIP_OPTIONAL=${QUALITY_GATE_SKIP_OPTIONAL:-false}
+# Default to skipping optional gates (requires cargo-llvm-cov, cargo-audit)
+# Matches Rust code default in tests/quality_gates.rs:58-65
+SKIP_OPTIONAL=${QUALITY_GATE_SKIP_OPTIONAL:-true}
 
 echo -e "${BLUE}Configuration:${NC}"
 echo "  Coverage Threshold: ${COVERAGE_THRESHOLD}%"

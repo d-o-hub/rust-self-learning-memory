@@ -8,6 +8,12 @@
 //! **Current State**: AdaptiveCache is NOW WIRED into RedbStorage via AdaptiveCacheAdapter.
 //!
 //! **Architecture**:
+
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
 //! - `LRUCache` is a metadata-only cache that tracks access patterns
 //! - `AdaptiveCache<V>` is a value-storing cache that would duplicate data
 //! - `AdaptiveCacheAdapter` wraps `AdaptiveCache<()>` for metadata-only caching with adaptive TTL

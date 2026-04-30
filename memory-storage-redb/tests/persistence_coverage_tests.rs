@@ -9,6 +9,9 @@
 // Integration tests are separate crate roots and don't inherit .clippy.toml settings
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::expect_used)]
 
 use do_memory_storage_redb::{
     AdaptiveCacheAdapter, AdaptiveCacheConfig, Cache, CacheMetrics, CachePersistence,

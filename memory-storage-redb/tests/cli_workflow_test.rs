@@ -1,5 +1,11 @@
 //! Test CLI-like behavior where each operation is a separate storage instance
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+
 use chrono::TimeZone;
 use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskType};
 use do_memory_storage_redb::RedbStorage;

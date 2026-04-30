@@ -1,3 +1,5 @@
+//! Test local database example - verifies storage backends work correctly.
+
 use do_memory_core::{
     ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };

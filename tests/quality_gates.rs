@@ -10,6 +10,9 @@
 //!
 //! All thresholds are configurable via environment variables for flexibility.
 
+// Allow unsafe for env var manipulation in tests
+#![allow(unsafe_code)]
+
 use std::env;
 use std::process::Command;
 

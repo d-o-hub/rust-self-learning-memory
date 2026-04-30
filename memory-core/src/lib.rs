@@ -24,6 +24,9 @@
 // - map_unwrap_or: map_or is less readable than the explicit pattern
 // - float_cmp: Intentional exact comparisons for known values (e.g., 1.0, 0.5)
 // - assigning_clones: clone_from is not always more efficient
+// - missing_docs: Documentation for all public items would require extensive rework
+// - cognitive_complexity: Complex functions exist; refactoring tracked as tech debt
+#![allow(clippy::cognitive_complexity)]
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_sign_loss)]
@@ -41,6 +44,7 @@
 #![allow(clippy::map_unwrap_or)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::assigning_clones)]
+#![allow(missing_docs)]
 
 //! # Memory Core
 //!

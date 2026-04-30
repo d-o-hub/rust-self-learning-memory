@@ -1,3 +1,5 @@
+//! Debug configuration example - prints environment variables and config state.
+
 use std::env;
 
 fn main() {

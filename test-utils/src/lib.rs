@@ -1,3 +1,14 @@
+// Clippy suppressions for test utilities
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cognitive_complexity)]
+#![allow(clippy::panic)]
+#![allow(clippy::wildcard_imports)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(missing_docs)]
+
 //! # Test Utilities
 //!
 //! Shared test utilities for the self-learning memory system.

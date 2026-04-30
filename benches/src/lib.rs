@@ -1,3 +1,13 @@
+// Clippy suppressions for benchmark suite
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::must_use_candidate)]
+#![allow(missing_docs)]
+#![allow(unknown_lints)]
+
 //! Benchmark suite for the self-learning memory system
 
 pub mod benchmark_helpers;

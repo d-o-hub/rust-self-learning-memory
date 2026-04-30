@@ -168,8 +168,9 @@ impl SelfLearningMemory {
     /// ).await;
     ///
     /// // Log each step as it happens
-    /// let mut step1 = ExecutionStep::new(1, "file_reader".to_string(), "Read config.toml".to_string());
-    /// step1.parameters = serde_json::json!({ "path": "config.toml" });
+    /// let step1 = ExecutionStep::new(1, "file_reader".to_string(), "Read config.toml".to_string())
+    ///     .with_parameters(serde_json::json!({ "path": "config.toml" }));
+    /// let mut step1 = step1;
     /// step1.result = Some(ExecutionResult::Success {
     ///     output: "File read: 1024 bytes".to_string(),
     /// });

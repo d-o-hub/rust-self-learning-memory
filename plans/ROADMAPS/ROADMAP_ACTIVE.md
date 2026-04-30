@@ -37,8 +37,8 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
 | WG-114 | Reduce QueryCache contention and lock overhead (`parking_lot::RwLock` + benchmarks) | ✅ Complete | 114 |
-| WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | 🔵 Planned | 115 |
-| WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | 🔵 Planned | 116 |
+| WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | ✅ Complete | 115 |
+| WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | ✅ Complete | 116 |
 
 ### Phase 1.5: CSM Integration (CPU-Local Retrieval) ✅ Complete
 

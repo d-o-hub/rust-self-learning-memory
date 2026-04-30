@@ -4,7 +4,10 @@
 //! in the libsql/turso native library that causes `malloc_consolidate(): unaligned fastbin chunk detected`
 //! in CI environments. See ADR-027 for details.
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::doc_markdown)]
 #![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
 
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_turso::{EpisodeQuery, TursoStorage};

@@ -2,6 +2,7 @@
 
 // Integration tests are separate crate roots and don't inherit .clippy.toml settings
 #![allow(clippy::float_cmp)]
+#![allow(clippy::unreadable_literal)]
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
 

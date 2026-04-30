@@ -12,6 +12,9 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::items_after_statements)]
 
 use do_memory_core::{
     ComplexityLevel, Episode, Evidence, ExecutionResult, ExecutionStep, Heuristic, Pattern,

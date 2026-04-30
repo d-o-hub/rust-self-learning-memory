@@ -173,7 +173,7 @@ async fn test_batch_operations() {
 
     assert_eq!(retrieved.len(), 10, "Should retrieve all batched episodes");
     assert!(
-        retrieved.iter().all(|e| e.is_some()),
+        retrieved.iter().all(std::option::Option::is_some),
         "All episodes should exist"
     );
 }

@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::must_use_candidate)]
+#![allow(clippy::uninlined_format_args)]
 #![allow(missing_docs)]
 #![allow(unknown_lints)]
 

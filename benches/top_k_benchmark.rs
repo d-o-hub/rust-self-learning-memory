@@ -1,3 +1,8 @@
+// Benchmarks have relaxed clippy rules
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+
 //! Top-K Selection Performance Benchmarks
 //!
 //! Compares O(n) select_nth_unstable_by vs O(n log n) full sort.

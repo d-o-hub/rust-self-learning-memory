@@ -1,3 +1,8 @@
+// Benchmarks have relaxed clippy rules
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+
 //! MemoryEvent Broadcast Channel Benchmarks
 //!
 //! Benchmarks for the tokio::sync::broadcast channel used for lifecycle events.

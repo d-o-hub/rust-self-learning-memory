@@ -7,6 +7,9 @@
 #![allow(clippy::panic)]
 #![allow(clippy::wildcard_imports)]
 #![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
 #![allow(missing_docs)]
 
 //! # Test Utilities

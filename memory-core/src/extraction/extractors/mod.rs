@@ -1,5 +1,8 @@
 //! Pattern extraction functions
 
+// expect used with preceding invariant check - pattern is intentional
+#![allow(clippy::expect_used)]
+
 use crate::episode::{Episode, PatternId};
 use crate::extraction::extractor::PatternExtractor;
 use crate::pattern::Pattern;

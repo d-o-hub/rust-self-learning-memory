@@ -5,6 +5,9 @@
 //!
 //! This module was split from retrieval/cache.rs to meet 500 LOC compliance.
 
+// expect used with preceding invariant check - pattern is intentional
+#![allow(clippy::expect_used)]
+
 use crate::episode::Episode;
 use crate::retrieval::cache::types::{
     CacheKey, CacheMetrics, CachedResult, DEFAULT_CACHE_TTL, DEFAULT_MAX_ENTRIES,

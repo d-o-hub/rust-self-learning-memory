@@ -1,5 +1,10 @@
 //! Common utilities for memory system benchmarks
 
+// Benchmark helpers use expect/unwrap intentionally for simplicity
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+
 use do_memory_core::{
     memory::SelfLearningMemory,
     types::{ComplexityLevel, MemoryConfig, TaskContext},

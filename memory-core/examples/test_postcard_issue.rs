@@ -1,5 +1,10 @@
 //! Test to verify postcard serialization/deserialization issue with ExecutionStep
 
+// Examples have relaxed clippy rules for demonstration patterns
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+
 use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskType};
 
 fn main() {

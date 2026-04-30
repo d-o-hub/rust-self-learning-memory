@@ -1,5 +1,8 @@
 //! Context-based episode retrieval implementation
 
+// expect used with preceding invariant check - pattern is intentional
+#![allow(clippy::expect_used)]
+
 use crate::MAX_QUERY_LIMIT;
 use crate::episode::Episode;
 use crate::spatiotemporal::RetrievalQuery;

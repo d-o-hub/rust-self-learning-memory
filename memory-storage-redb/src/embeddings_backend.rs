@@ -1,5 +1,8 @@
 //! EmbeddingStorageBackend trait implementation for redb cache
 
+// Format args inlining not required for error message clarity
+#![allow(clippy::uninlined_format_args)]
+
 use crate::{EMBEDDINGS_TABLE, EPISODES_TABLE, PATTERNS_TABLE, RedbStorage};
 use async_trait::async_trait;
 use do_memory_core::embeddings::{

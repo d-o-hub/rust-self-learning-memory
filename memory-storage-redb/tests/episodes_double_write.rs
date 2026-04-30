@@ -9,6 +9,11 @@
 //! other postcard-compatible fields (`task_description`, tags, metadata) to verify
 //! double-write behavior.
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_redb::RedbStorage;
 use tempfile::TempDir;

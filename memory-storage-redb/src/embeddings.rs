@@ -1,5 +1,8 @@
 //! Embedding storage operations for redb cache
 
+// Format args inlining not required for error message clarity
+#![allow(clippy::uninlined_format_args)]
+
 use crate::{EMBEDDINGS_TABLE, RedbStorage};
 use do_memory_core::{Error, Result};
 use redb::ReadableDatabase;

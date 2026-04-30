@@ -14,6 +14,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
 //! - `LRUCache` is a metadata-only cache that tracks access patterns
 //! - `AdaptiveCache<V>` is a value-storing cache that would duplicate data
 //! - `AdaptiveCacheAdapter` wraps `AdaptiveCache<()>` for metadata-only caching with adaptive TTL

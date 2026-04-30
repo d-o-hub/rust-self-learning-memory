@@ -17,6 +17,8 @@
 #![allow(clippy::unused_async)]
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::useless_vec)]
+// Format args: inlining not required for error message clarity
+#![allow(clippy::uninlined_format_args)]
 #![allow(unknown_lints)]
 #![allow(clippy::unnecessary_wraps)]
 #![allow(clippy::return_self_not_must_use)]

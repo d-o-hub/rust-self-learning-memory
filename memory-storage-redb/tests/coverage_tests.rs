@@ -10,6 +10,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
 
 use do_memory_storage_redb::{AdaptiveCache, AdaptiveCacheConfig};
 use std::time::Duration;

@@ -12,6 +12,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
 
 use chrono::Utc;
 use do_memory_core::episodic::{CapacityManager, EvictionPolicy};

@@ -12,7 +12,10 @@
 //! | NDCG@k | DCG@k / IDCG@k | Graded relevance (0-3 scale) |
 //! | MRR | 1/N Σ (1 / rank_first_relevant) | Question answering |
 //! | MAP | 1/Q Σ (precision at each relevant item) | Ranked retrieval |
-//!
+
+// Float comparison and unwrap used intentionally for metrics calculations
+#![allow(clippy::unwrap_used)]
+
 //! # Example
 //!
 //! ```

@@ -58,7 +58,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 |------|-------------|--------|-----|
 | WG-117 | Implement `BundleAccumulator` sliding window for bounded context assembly | ✅ Complete | 117 |
 | WG-118 | Add hierarchical/gist reranking to return fewer, denser context items | ✅ Complete | 118 |
-| WG-119 | Compact high-frequency skills/docs to reduce prompt token load | 🔵 Planned | 119 |
+| WG-119 | Compact high-frequency skills/docs to reduce prompt token load | ✅ Complete | 119 |
 
 ### Phase 3: Research-Inspired Retrieval Upgrades
 

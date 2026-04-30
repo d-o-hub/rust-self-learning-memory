@@ -6,10 +6,10 @@ The memory management system provides persistent memory across agent interaction
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Client App    │    │  do-memory-mcp   │    │  Storage Layer  │
+│   Client App    │    │   Memory MCP     │    │  Storage Layer  │
 │                 │◄──►│     Server       │◄──►│                 │
 │ - Claude Code   │    │                  │    │ - Turso (SQL)   │
-│ - OpenCode      │    │ - do-memory-core │    │ - redb Cache    │
+│ - OpenCode      │    │ - Memory Core    │    │ - redb Cache    │
 │ - Other MCP     │    │ - Episode Mgmt   │    │ - Postcard Ser  │
 │   Clients       │    │ - Pattern Extract│    │                 │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
@@ -26,7 +26,7 @@ The memory management system provides persistent memory across agent interaction
 ## Hybrid Storage Model
 The system employs a hybrid storage architecture: `do-memory-storage-turso` provides persistent, durable, and distributed storage via libSQL, while `do-memory-storage-redb` acts as a high-performance, embedded, local cache layer to dramatically reduce read latency and API calls.
 
-### 1. do-memory-core (`memory-core/`)
+### 1. Memory Core (`memory-core/`)
 **Purpose**: Core memory operations and embeddings (~44,250 LOC)
 
 **Module Breakdown** (by size):

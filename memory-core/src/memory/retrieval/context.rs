@@ -326,14 +326,18 @@ impl SelfLearningMemory {
             // 1. Filter and decorate (calculate scores)
             let mut decorated: Vec<(f32, Arc<Episode>)> = completed_episodes
                 .iter()
-                .filter(|e| self.is_relevant_episode(e, &context, &query_tags, &query_words_gt3))
-                .map(|e| {
+                .map(|e| (e.task_description.to_lowercase(), e))
+                .filter(|(desc_lower, e)| {
+                    self.is_relevant_episode(e, &context, &query_tags, &query_words_gt3, desc_lower)
+                })
+                .map(|(desc_lower, e)| {
                     let score = self.calculate_relevance_score(
                         e,
                         &context,
                         &query_tags,
                         &query_words,
                         &query_words_gt3,
+                        &desc_lower,
                     );
                     (score, Arc::clone(e))
                 })

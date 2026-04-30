@@ -31,6 +31,8 @@
 
 #![cfg(feature = "compression")]
 #![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::doc_markdown)]
 
 use async_trait::async_trait;
 use do_memory_storage_turso::{

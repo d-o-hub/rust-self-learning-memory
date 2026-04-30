@@ -191,7 +191,7 @@ async fn test_dual_storage() -> Result<()> {
 
     // Use local Turso development database
     let turso_url = "http://127.0.0.1:8080".to_string();
-    let turso_token = "".to_string(); // No auth required for local development
+    let turso_token = String::new(); // No auth required for local development
 
     println!("Connecting to local Turso database at: {}", turso_url);
 

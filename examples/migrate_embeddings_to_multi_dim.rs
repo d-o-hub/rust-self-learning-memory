@@ -7,8 +7,15 @@
 //!   cargo run --example migrate_embeddings_to_multi_dim --features turso_multi_dimension
 //!
 //! Environment variables:
-//!   TURSO_DB_URL - Database URL (default: file:memory.db)
-//!   TURSO_AUTH_TOKEN - Auth token (default: empty)
+//!   `TURSO_DB_URL` - Database URL (default: `file:memory.db`)
+//!   `TURSO_AUTH_TOKEN` - Auth token (default: empty)
+
+// Examples have relaxed clippy rules for demonstration patterns
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
 
 use anyhow::Result;
 use libsql::{Builder, params};

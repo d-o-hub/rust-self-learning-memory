@@ -71,11 +71,23 @@ impl SelfLearningMemory {
             "Retrieving relevant heuristics"
         );
 
+        // Pre-calculate lowercased values for optimization
+        let domain_lower = context.domain.to_lowercase();
+        let language_lower = context.language.as_ref().map(|l| l.to_lowercase());
+        let framework_lower = context.framework.as_ref().map(|f| f.to_lowercase());
+        let tags_lower: Vec<String> = context.tags.iter().map(|t| t.to_lowercase()).collect();
+
         // Calculate weighted score for each heuristic
         let mut scored_heuristics: Vec<_> = heuristics
             .values()
             .map(|h| {
-                let relevance = self.calculate_heuristic_relevance(h, context);
+                let relevance = self.calculate_heuristic_relevance(
+                    h,
+                    &domain_lower,
+                    language_lower.as_deref(),
+                    framework_lower.as_deref(),
+                    &tags_lower,
+                );
                 let weighted_score = h.confidence * relevance;
                 (h.clone(), weighted_score)
             })
@@ -83,8 +95,9 @@ impl SelfLearningMemory {
             .collect();
 
         // Sort by weighted score (descending)
+        // Optimization: Use sort_unstable_by for search results
         scored_heuristics
-            .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+            .sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // Limit results
         let result: Vec<_> = scored_heuristics

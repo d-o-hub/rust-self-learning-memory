@@ -311,22 +311,43 @@ impl SelfLearningMemory {
 
         // If hierarchical retrieval failed or is disabled, use legacy method
         if scored_episodes.is_none() {
-            // Use Arc::clone (cheap ref count inc) instead of Episode clone
-            let mut relevant: Vec<Arc<Episode>> = completed_episodes
+            // v0.1.32: Pre-calculate query data for optimized legacy retrieval
+            let desc_lower = task_description.to_lowercase();
+            let query_words: Vec<&str> = desc_lower.split_whitespace().collect();
+            let query_words_gt3: Vec<&str> = query_words
                 .iter()
-                .filter(|e| self.is_relevant_episode(e, &context, &task_description))
-                .cloned()
+                .filter(|w| w.len() > 3)
+                .copied()
+                .collect();
+            let query_tags: std::collections::HashSet<&String> = context.tags.iter().collect();
+
+            // Optimization: Use Schwartzian Transform (decorate-sort-undecorate)
+            // to ensure each candidate is scored exactly once.
+            // 1. Filter and decorate (calculate scores)
+            let mut decorated: Vec<(f32, Arc<Episode>)> = completed_episodes
+                .iter()
+                .filter(|e| self.is_relevant_episode(e, &context, &query_tags, &query_words_gt3))
+                .map(|e| {
+                    let score = self.calculate_relevance_score(
+                        e,
+                        &context,
+                        &query_tags,
+                        &query_words,
+                        &query_words_gt3,
+                    );
+                    (score, Arc::clone(e))
+                })
                 .collect();
 
-            relevant.sort_by(|a, b| {
-                let a_score = self.calculate_relevance_score(a, &context, &task_description);
-                let b_score = self.calculate_relevance_score(b, &context, &task_description);
-                b_score
-                    .partial_cmp(&a_score)
-                    .unwrap_or(std::cmp::Ordering::Equal)
+            // 2. Sort by score DESC
+            // Optimization: Use sort_unstable_by as stability isn't required for search results.
+            decorated.sort_unstable_by(|a, b| {
+                b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal)
             });
 
-            relevant.truncate(limit);
+            // 3. Undecorate and truncate
+            let relevant: Vec<Arc<Episode>> =
+                decorated.into_iter().take(limit).map(|(_, e)| e).collect();
 
             // Already have Vec<Arc<Episode>>, no conversion needed
             info!(

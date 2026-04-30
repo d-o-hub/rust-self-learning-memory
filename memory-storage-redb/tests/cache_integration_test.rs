@@ -1,5 +1,10 @@
 //! Integration tests for LRU cache with TTL expiration
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::float_cmp)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+
 use chrono::Utc;
 use do_memory_core::{ComplexityLevel, Episode, TaskContext, TaskType};
 use do_memory_storage_redb::{CacheConfig, RedbStorage};

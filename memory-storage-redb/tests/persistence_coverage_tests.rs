@@ -11,7 +11,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
-#![allow(clippy::expect_used)]
+#![allow(clippy::unreadable_literal)]
 
 use do_memory_storage_redb::{
     AdaptiveCacheAdapter, AdaptiveCacheConfig, Cache, CacheMetrics, CachePersistence,

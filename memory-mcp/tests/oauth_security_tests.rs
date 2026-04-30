@@ -3,13 +3,12 @@
 use do_memory_mcp::protocol::OAuthConfig;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
-use server_impl::oauth::validate_bearer_token;
-use server_impl::types::AuthorizationResult;
+use server_impl::{AuthorizationResult, validate_bearer_token};
 
 #[path = "../src/bin/server_impl/mod.rs"]
 mod server_impl;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct Claims {
     iss: Option<String>,
     aud: Option<String>,
@@ -142,9 +141,9 @@ fn test_validate_bearer_token_insecure_fallback() {
 
     let result = validate_bearer_token(&token, &config);
 
-    // Should be accepted because secret is missing (legacy behavior preserved but now warned)
+    // Should be rejected because secret is missing (now secure by default)
     assert!(
-        matches!(result, AuthorizationResult::Authorized),
-        "Should accept any token if no secret is configured (legacy behavior)"
+        matches!(result, AuthorizationResult::InvalidToken(msg) if msg.contains("OAUTH_TOKEN_SECRET is missing")),
+        "Should reject any token if no secret is configured"
     );
 }

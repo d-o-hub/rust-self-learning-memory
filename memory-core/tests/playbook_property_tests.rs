@@ -1,3 +1,5 @@
+//! Property tests for playbook serialization roundtrips
+
 use do_memory_core::memory::playbook::{
     PlaybookPitfall, PlaybookStep, PlaybookSynthesisSource, RecommendedPlaybook,
 };

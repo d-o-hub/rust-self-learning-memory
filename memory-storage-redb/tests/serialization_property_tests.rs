@@ -8,6 +8,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_possible_truncation)]
 
 use do_memory_core::*;
 use do_memory_storage_redb::{CacheSnapshot, IncrementalUpdate, PersistedCacheEntry};

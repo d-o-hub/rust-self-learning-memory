@@ -15,6 +15,7 @@ impl SelfLearningMemory {
         context: &TaskContext,
         query_tags: &HashSet<&String>,
         query_words_gt3: &[&str],
+        episode_desc_lower: &str,
     ) -> bool {
         // Match on domain
         if episode.context.domain == context.domain {
@@ -38,7 +39,6 @@ impl SelfLearningMemory {
 
         // Simple text matching on description (very basic)
         // Optimization: Use pre-calculated words and avoid intermediate Vec allocation
-        let episode_desc_lower = episode.task_description.to_lowercase();
         query_words_gt3
             .iter()
             .any(|&w| episode_desc_lower.contains(w))
@@ -52,6 +52,7 @@ impl SelfLearningMemory {
         query_tags: &HashSet<&String>,
         query_words: &[&str],
         query_words_gt3: &[&str],
+        episode_desc_lower: &str,
     ) -> f32 {
         let episode_ref: &Episode = episode.as_ref();
         let mut score = 0.0;
@@ -97,7 +98,6 @@ impl SelfLearningMemory {
         // Description similarity (30% weight)
         // Optimization: Use pre-calculated words and avoid intermediate Vec allocation
         if !query_words.is_empty() {
-            let episode_desc_lower = episode_ref.task_description.to_lowercase();
             let common_words_count = query_words_gt3
                 .iter()
                 .filter(|&&w| episode_desc_lower.contains(w))
@@ -163,5 +163,177 @@ impl SelfLearningMemory {
         }
 
         score
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::episode::Episode;
+    use crate::types::{ComplexityLevel, TaskContext, TaskType};
+    use std::collections::HashSet;
+    use uuid::Uuid;
+
+    fn create_test_episode(domain: &str, lang: Option<&str>, tags: Vec<&str>) -> Arc<Episode> {
+        Arc::new(Episode {
+            episode_id: Uuid::new_v4(),
+            task_type: TaskType::CodeGeneration,
+            task_description: "Implement a rust web api with axum".to_string(),
+            context: TaskContext {
+                domain: domain.to_string(),
+                language: lang.map(|s| s.to_string()),
+                framework: Some("axum".to_string()),
+                complexity: ComplexityLevel::Moderate,
+                tags: tags.into_iter().map(|s| s.to_string()).collect(),
+            },
+            start_time: chrono::Utc::now(),
+            end_time: Some(chrono::Utc::now()),
+            steps: vec![],
+            outcome: None,
+            reward: None,
+            reflection: None,
+            patterns: vec![],
+            heuristics: vec![],
+            applied_patterns: vec![],
+            salient_features: None,
+            metadata: std::collections::HashMap::new(),
+            tags: Vec::new(),
+            checkpoints: Vec::new(),
+        })
+    }
+
+    #[test]
+    fn test_is_relevant_episode() {
+        let memory = SelfLearningMemory::new();
+        let episode = create_test_episode("web-api", Some("rust"), vec!["rest", "auth"]);
+        let context = TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            ..Default::default()
+        };
+
+        let query_tags_vec = vec!["rest".to_string()];
+        let query_tags: HashSet<&String> = query_tags_vec.iter().collect();
+        let query_words_gt3 = vec!["axum", "rust"];
+        let desc_lower = episode.task_description.to_lowercase();
+
+        // Domain match
+        assert!(memory.is_relevant_episode(
+            &episode,
+            &context,
+            &query_tags,
+            &query_words_gt3,
+            &desc_lower
+        ));
+
+        // Mismatch everything
+        let context_mismatch = TaskContext {
+            domain: "data".to_string(),
+            language: Some("python".to_string()),
+            ..Default::default()
+        };
+        let empty_tags = HashSet::new();
+        let mismatch_words = vec!["data", "science"];
+        assert!(!memory.is_relevant_episode(
+            &episode,
+            &context_mismatch,
+            &empty_tags,
+            &mismatch_words,
+            &desc_lower
+        ));
+
+        // Tag match
+        let context_tag_only = TaskContext {
+            domain: "other".to_string(),
+            ..Default::default()
+        };
+        assert!(memory.is_relevant_episode(
+            &episode,
+            &context_tag_only,
+            &query_tags,
+            &mismatch_words,
+            &desc_lower
+        ));
+
+        // Word match
+        assert!(memory.is_relevant_episode(
+            &episode,
+            &context_tag_only,
+            &empty_tags,
+            &query_words_gt3,
+            &desc_lower
+        ));
+    }
+
+    #[test]
+    fn test_calculate_relevance_score() {
+        let memory = SelfLearningMemory::new();
+        let episode = create_test_episode("web-api", Some("rust"), vec!["rest"]);
+        let context = TaskContext {
+            domain: "web-api".to_string(),
+            language: Some("rust".to_string()),
+            ..Default::default()
+        };
+
+        let query_tags_vec = vec!["rest".to_string()];
+        let query_tags: HashSet<&String> = query_tags_vec.iter().collect();
+        let query_words = vec!["rust", "web", "api"];
+        let query_words_gt3 = vec!["rust"];
+        let desc_lower = episode.task_description.to_lowercase();
+
+        let score = memory.calculate_relevance_score(
+            &episode,
+            &context,
+            &query_tags,
+            &query_words,
+            &query_words_gt3,
+            &desc_lower,
+        );
+
+        assert!(score > 0.0);
+        // Domain match (0.4) + Lang match (0.3) + Tag match (0.1) = 0.8 context score
+        // capped at 0.4.
+        // Description similarity: 1 common word / 3 total words = 0.33 * 0.3 = 0.1
+        // Total score ~ 0.5
+        assert!(score >= 0.49 && score <= 0.51);
+    }
+
+    #[test]
+    fn test_calculate_heuristic_relevance() {
+        let memory = SelfLearningMemory::new();
+        let heuristic = crate::pattern::Heuristic {
+            heuristic_id: Uuid::new_v4(),
+            condition: "In rust web-api using axum".to_string(),
+            action: "Use middleware".to_string(),
+            confidence: 0.8,
+            evidence: crate::Evidence {
+                episode_ids: vec![],
+                success_rate: 0.9,
+                sample_size: 1,
+            },
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        };
+
+        let domain_lower = "web-api";
+        let lang_lower = Some("rust");
+        let framework_lower = Some("axum");
+        let tags_lower = vec!["auth".to_string()];
+
+        let score = memory.calculate_heuristic_relevance(
+            &heuristic,
+            domain_lower,
+            lang_lower,
+            framework_lower,
+            &tags_lower,
+        );
+
+        // Domain (1.0) + Lang (0.8) + Framework (0.5) = 2.3
+        assert_eq!(score, 2.3);
+
+        // Mismatch
+        let score_mismatch =
+            memory.calculate_heuristic_relevance(&heuristic, "data", Some("python"), None, &vec![]);
+        assert_eq!(score_mismatch, 0.1); // Baseline
     }
 }

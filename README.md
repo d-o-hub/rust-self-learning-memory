@@ -46,14 +46,6 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 - **Local SQLite**: Local file-based database (fallback)
 - Automatic caching with TTL-based invalidation
 
-### 📖 Episode Checkpoints & Handoff
-- Step-by-step actionable playbooks generated from past episodes via pattern synthesis.
-- Available through MCP (`recommend_playbook`) and CLI (`playbook recommend`).
-
-### 🌊 CSM Cascading Retrieval
-- Optional 4-tier retrieval fallback (Exact match → SIMD HDC similarity → ConceptGraph expansion → API embeddings).
-- Targets 50-70% API call reduction via CPU-local processing before remote fallback.
-
 ### 🎯 Pattern Recognition & Semantic Search
 - Four pattern types: ToolSequence, DecisionPoint, ErrorRecovery, ContextPattern
 - Semantic pattern search with natural language queries
@@ -469,7 +461,7 @@ batch_size = 100
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     do-memory-cli                           │
+│                      Memory CLI                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │   Episode   │  │  Pattern    │  │   Storage   │          │
 │  │ Management  │  │  Analysis   │  │ Operations  │          │
@@ -477,7 +469,7 @@ batch_size = 100
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     do-memory-mcp                           │
+│                     Memory MCP Server                       │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │  MCP Tools  │  │  WASM       │  │  Advanced   │          │
 │  │  Interface  │  │  Sandbox    │  │  Analysis   │          │
@@ -485,7 +477,7 @@ batch_size = 100
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     do-memory-core                          │
+│                     Memory Core                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │   Episode   │  │   Pattern   │  │   Reward    │          │
 │  │ Management  │  │ Extraction  │  │   Scoring   │          │
@@ -495,8 +487,8 @@ batch_size = 100
          ┌─────────────────────┼─────────────────────┐
          │                     │                     │
 ┌───────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
-│do-memory-stor..│  │do-memory-stor.. │  │  In-Memory      │
-│     -turso     │  │     -redb       │  │                 │
+│ Turso Storage  │  │  Redb Cache     │  │  In-Memory      │
+│                │  │                 │  │                 │
 │ libSQL/Remote  │  │   Fast Access   │  │  Temporary      │
 └────────────────┘  └─────────────────┘  └─────────────────┘
 ```

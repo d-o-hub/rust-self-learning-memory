@@ -222,10 +222,10 @@ pub struct CascadeRetriever {
 chaotic_semantic_memory = { version = "0.3", optional = true }
 ```
 
-### do-memory-core Cargo.toml
+### memory-core Cargo.toml
 
 ```toml
-# do-memory-core/Cargo.toml
+# memory-core/Cargo.toml
 [features]
 default = ["redb"]
 csm = ["dep:chaotic_semantic_memory"]

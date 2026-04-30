@@ -2,6 +2,7 @@
 
 use crate::episode::Episode;
 use crate::types::TaskContext;
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use super::super::SelfLearningMemory;
@@ -12,7 +13,8 @@ impl SelfLearningMemory {
         &self,
         episode: &Arc<Episode>,
         context: &TaskContext,
-        task_description: &str,
+        query_tags: &HashSet<&String>,
+        query_words_gt3: &[&str],
     ) -> bool {
         // Match on domain
         if episode.context.domain == context.domain {
@@ -29,29 +31,17 @@ impl SelfLearningMemory {
             return true;
         }
 
-        // Match on tags
-        let common_tags: Vec<_> = episode
-            .context
-            .tags
-            .iter()
-            .filter(|t| context.tags.contains(t))
-            .collect();
-
-        if !common_tags.is_empty() {
+        // Match on tags using pre-calculated HashSet for O(1) lookup
+        if episode.context.tags.iter().any(|t| query_tags.contains(t)) {
             return true;
         }
 
         // Simple text matching on description (very basic)
-        let desc_lower = task_description.to_lowercase();
+        // Optimization: Use pre-calculated words and avoid intermediate Vec allocation
         let episode_desc_lower = episode.task_description.to_lowercase();
-
-        let common_words: Vec<_> = desc_lower
-            .split_whitespace()
-            .filter(|w| w.len() > 3) // Ignore short words
-            .filter(|w| episode_desc_lower.contains(w))
-            .collect();
-
-        !common_words.is_empty()
+        query_words_gt3
+            .iter()
+            .any(|&w| episode_desc_lower.contains(w))
     }
 
     /// Calculate relevance score for an episode
@@ -59,7 +49,9 @@ impl SelfLearningMemory {
         &self,
         episode: &Arc<Episode>,
         context: &TaskContext,
-        task_description: &str,
+        query_tags: &HashSet<&String>,
+        query_words: &[&str],
+        query_words_gt3: &[&str],
     ) -> f32 {
         let episode_ref: &Episode = episode.as_ref();
         let mut score = 0.0;
@@ -88,32 +80,30 @@ impl SelfLearningMemory {
             context_score += 0.2;
         }
 
-        let common_tags: Vec<_> = episode_ref
+        // Optimization: Use pre-calculated HashSet and avoid intermediate Vec allocation
+        let common_tags_count = episode_ref
             .context
             .tags
             .iter()
-            .filter(|t| context.tags.contains(t))
-            .collect();
+            .filter(|t| query_tags.contains(t))
+            .count();
 
-        if !common_tags.is_empty() {
-            context_score += 0.1 * common_tags.len() as f32;
+        if common_tags_count > 0 {
+            context_score += 0.1 * common_tags_count as f32;
         }
 
         score += context_score.min(0.4);
 
         // Description similarity (30% weight)
-        let desc_lower = task_description.to_lowercase();
-        let episode_desc_lower = episode_ref.task_description.to_lowercase();
+        // Optimization: Use pre-calculated words and avoid intermediate Vec allocation
+        if !query_words.is_empty() {
+            let episode_desc_lower = episode_ref.task_description.to_lowercase();
+            let common_words_count = query_words_gt3
+                .iter()
+                .filter(|&&w| episode_desc_lower.contains(w))
+                .count();
 
-        let desc_words: Vec<_> = desc_lower.split_whitespace().collect();
-        let common_words: Vec<_> = desc_words
-            .iter()
-            .filter(|w| w.len() > 3)
-            .filter(|w| episode_desc_lower.contains(**w))
-            .collect();
-
-        if !desc_words.is_empty() {
-            let similarity = common_words.len() as f32 / desc_words.len() as f32;
+            let similarity = common_words_count as f32 / query_words.len() as f32;
             score += similarity * 0.3;
         }
 
@@ -130,7 +120,10 @@ impl SelfLearningMemory {
     pub(super) fn calculate_heuristic_relevance(
         &self,
         heuristic: &crate::pattern::Heuristic,
-        context: &TaskContext,
+        domain_lower: &str,
+        language_lower: Option<&str>,
+        framework_lower: Option<&str>,
+        tags_lower: &[String],
     ) -> f32 {
         let mut score = 0.0;
 
@@ -139,27 +132,27 @@ impl SelfLearningMemory {
         let condition_lower = heuristic.condition.to_lowercase();
 
         // Check domain match (look for domain in condition string)
-        if condition_lower.contains(&context.domain.to_lowercase()) {
+        if condition_lower.contains(domain_lower) {
             score += 1.0;
         }
 
         // Check language match
-        if let Some(lang) = &context.language {
-            if condition_lower.contains(&lang.to_lowercase()) {
+        if let Some(lang) = language_lower {
+            if condition_lower.contains(lang) {
                 score += 0.8;
             }
         }
 
         // Check framework match
-        if let Some(framework) = &context.framework {
-            if condition_lower.contains(&framework.to_lowercase()) {
+        if let Some(framework) = framework_lower {
+            if condition_lower.contains(framework) {
                 score += 0.5;
             }
         }
 
         // Check tag overlap
-        for tag in &context.tags {
-            if condition_lower.contains(&tag.to_lowercase()) {
+        for tag in tags_lower {
+            if condition_lower.contains(tag) {
                 score += 0.3;
             }
         }

@@ -212,9 +212,9 @@ mod tests {
             ..Default::default()
         };
 
-        let query_tags_vec = vec!["rest".to_string()];
+        let query_tags_vec = ["rest".to_string()];
         let query_tags: HashSet<&String> = query_tags_vec.iter().collect();
-        let query_words_gt3 = vec!["axum", "rust"];
+        let query_words_gt3 = ["axum", "rust"];
         let desc_lower = episode.task_description.to_lowercase();
 
         // Domain match
@@ -275,10 +275,10 @@ mod tests {
             ..Default::default()
         };
 
-        let query_tags_vec = vec!["rest".to_string()];
+        let query_tags_vec = ["rest".to_string()];
         let query_tags: HashSet<&String> = query_tags_vec.iter().collect();
-        let query_words = vec!["rust", "web", "api"];
-        let query_words_gt3 = vec!["rust"];
+        let query_words = ["rust", "web", "api"];
+        let query_words_gt3 = ["rust"];
         let desc_lower = episode.task_description.to_lowercase();
 
         let score = memory.calculate_relevance_score(
@@ -295,7 +295,7 @@ mod tests {
         // capped at 0.4.
         // Description similarity: 1 common word / 3 total words = 0.33 * 0.3 = 0.1
         // Total score ~ 0.5
-        assert!(score >= 0.49 && score <= 0.51);
+        assert!((0.49..=0.51).contains(&score));
     }
 
     #[test]
@@ -333,7 +333,7 @@ mod tests {
 
         // Mismatch
         let score_mismatch =
-            memory.calculate_heuristic_relevance(&heuristic, "data", Some("python"), None, &vec![]);
+            memory.calculate_heuristic_relevance(&heuristic, "data", Some("python"), None, &[]);
         assert_eq!(score_mismatch, 0.1); // Baseline
     }
 }

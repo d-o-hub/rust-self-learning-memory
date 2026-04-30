@@ -30,8 +30,6 @@
 //! - No value duplication: Uses unit type `()` as stored value
 //! - Single source of truth: redb remains the data store
 
-#![allow(clippy::expect_used)]
-
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_redb::{
     AdaptiveCache, AdaptiveCacheAdapter, AdaptiveCacheConfig, Cache, CacheConfig, CacheMetrics,

@@ -18,7 +18,7 @@
 - **Smart Reflection**: Generate actionable insights and improvement recommendations from completed episodes
 - **Semantic Embeddings**: Optional multi-provider semantic search (OpenAI, Cohere, Ollama, local)
 - **Spatiotemporal Indexing**: Location and time-aware memory retrieval with k-d tree optimization
-- **Dual Storage**: Seamless integration with Turso/libSQL (durable) and redb (cache) backends
+- **Dual Storage**: Integration with Turso/libSQL (durable) and redb (cache) backends
 - **Async Pattern Learning**: Queue-based pattern extraction with worker pool and backpressure handling
 - **Monitoring**: Comprehensive metrics and performance tracking
 
@@ -63,6 +63,7 @@ do-memory-core = { version = "0.1", features = ["embeddings-full"] }
 - Pattern similarity matching for relevant experience retrieval
 - Reward-based pattern learning and improvement
 - Frequency and success rate tracking
+- Utilizes the Schwartzian Transform to pre-calculate expensive keys and reduce pattern ranking complexity from O(N log N) to O(N) scoring calls.
 
 ### Semantic Search (Optional)
 - Multi-provider embeddings: OpenAI, Mistral, local CPU-based

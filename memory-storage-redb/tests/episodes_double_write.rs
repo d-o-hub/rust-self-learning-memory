@@ -3,10 +3,10 @@
 //! This test simulates the scenario where both storage backends (Turso and redb)
 //! write the same episode to the same redb database, verifying that data is not lost.
 //!
-//! NOTE: Episodes with ExecutionSteps cannot be stored in redb due to a postcard
+//! NOTE: Episodes with `ExecutionSteps` cannot be stored in redb due to a postcard
 //! serialization limitation. The `ExecutionStep.parameters` field uses `serde_json::Value`
 //! which postcard cannot serialize (returns `WontImplement` error). This test modifies
-//! other postcard-compatible fields (task_description, tags, metadata) to verify
+//! other postcard-compatible fields (`task_description`, tags, metadata) to verify
 //! double-write behavior.
 
 use do_memory_core::{Episode, TaskContext, TaskType};
@@ -29,12 +29,12 @@ async fn create_test_storage() -> anyhow::Result<(RedbStorage, TempDir)> {
 /// 1. Create an episode with initial data
 /// 2. Store it (first write)
 /// 3. Retrieve and verify it exists
-/// 4. Clone the episode, modify task_description and add tags
+/// 4. Clone the episode, modify `task_description` and add tags
 /// 5. Store again (second write - simulates double-write from both backends)
 /// 6. Retrieve and verify the episode still exists with the modified data
 ///
-/// NOTE: Steps are not added due to postcard serialization limitation with serde_json::Value.
-/// See capacity_enforcement_test.rs for the same workaround pattern.
+/// NOTE: Steps are not added due to postcard serialization limitation with `serde_json::Value`.
+/// See `capacity_enforcement_test.rs` for the same workaround pattern.
 #[tokio::test]
 async fn test_episode_double_write_preserves_data() {
     // Arrange: Create storage and an episode

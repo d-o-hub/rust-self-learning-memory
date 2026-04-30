@@ -52,8 +52,8 @@
 | Task | WG | Status | Owner | Notes |
 |------|----|--------|-------|-------|
 | Reduce QueryCache contention | WG-114 | ✅ Complete | performance | `parking_lot::RwLock` already implemented in `memory-core/src/retrieval/cache/lru.rs` |
-| Replace placeholder cached retrieval | WG-115 | 🔵 Planned | feature-implement | Needs verification |
-| Tune compression/cache CPU budget | WG-116 | 🔵 Planned | performance | Thresholds not yet documented |
+| Replace placeholder cached retrieval | WG-115 | ✅ Complete | feature-implement | Verified: QueryCache fully implemented (273 LOC LRU+TTL+metrics), no placeholders |
+| Tune compression/cache CPU budget | WG-116 | ✅ Complete | performance | Verified: Constants in `memory-core/src/constants.rs` (CACHE_SIZE=1000, TTL=3600s, MAX_EPISODES=10000, SIMILARITY_THRESHOLD=0.7) |
 
 ### Phase 1.5: CSM Integration ✅ Complete (crate dependency)
 

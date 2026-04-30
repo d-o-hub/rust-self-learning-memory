@@ -34,3 +34,7 @@ path = "debug_config.rs"
 name = "debug_storage"
 path = "debug_storage.rs"
 
+# Inherit workspace lints
+
+[lints]
+workspace = true

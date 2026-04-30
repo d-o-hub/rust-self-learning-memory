@@ -142,3 +142,8 @@ harness = true
 # name = "mcp_integration"
 # path = "e2e/mcp_integration.rs"
 # harness = true
+
+# Inherit workspace lints
+
+[lints]
+workspace = true

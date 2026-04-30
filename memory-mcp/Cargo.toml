@@ -105,16 +105,9 @@ path = "tests/jsonrpc_fuzz_tests.rs"
 name = "mcp_tool_coverage_tests"
 path = "tests/mcp_tool_coverage_tests.rs"
 
-[lints.rust]
 # Security-critical for sandbox operations
-unsafe_code = "deny"
 
-[lints.clippy]
-# Protocol and serialization safety - critical for MCP security
-correctness = { level = "deny" }
-suspicious = { level = "deny" }
-unwrap_used = { level = "deny" }
-expect_used = { level = "deny" }
-# JSON/serialization safety
-missing_errors_doc = { level = "warn" }
-missing_safety_doc = { level = "warn" }
+# Inherit workspace lints
+
+[lints]
+workspace = true

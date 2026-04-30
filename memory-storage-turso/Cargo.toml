@@ -80,15 +80,9 @@ futures = "0.3.32"
 do-memory-test-utils = { path = "../test-utils", features = ["turso"] }
 proptest = "1.11"
 
-[lints.rust]
 # Allow unsafe only for specific use cases
-unsafe_code = "warn"
 
-[lints.clippy]
-# External I/O requires stricter security and correctness
-suspicious = { level = "deny" }
-correctness = { level = "deny" }
-style = { level = "warn" }
-# SQL injection prevention
-unwrap_used = { level = "deny" }
-expect_used = { level = "deny" }
+# Inherit workspace lints
+
+[lints]
+workspace = true

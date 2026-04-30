@@ -133,3 +133,8 @@ harness = false
 [features]
 default = []
 full-soak = []
+
+# Inherit workspace lints
+
+[lints]
+workspace = true

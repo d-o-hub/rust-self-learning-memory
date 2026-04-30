@@ -13,10 +13,10 @@ mod core;
 mod handlers;
 mod jsonrpc;
 mod mcp;
-mod oauth; // Always available (load_oauth_config is unconditionally compiled)
+pub(crate) mod oauth; // Always available (load_oauth_config is unconditionally compiled)
 mod storage;
 mod tools;
-mod types;
+pub(crate) mod types;
 
 // Re-export JSON-RPC types from memory_mcp for convenient access
 #[allow(unused)]

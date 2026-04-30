@@ -92,3 +92,8 @@ path = "src/lib.rs"
 [[bin]]
 name = "do-memory-cli"
 path = "src/main.rs"
+
+# Inherit workspace lints
+
+[lints]
+workspace = true

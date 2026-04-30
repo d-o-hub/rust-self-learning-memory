@@ -15,7 +15,7 @@ use do_memory_mcp::protocol::OAuthConfig;
 #[cfg(feature = "oauth")]
 use {
     super::types::AuthorizationResult,
-    jsonwebtoken::{DecodingKey, Validation, decode},
+    jsonwebtoken::{DecodingKey, Validation, dangerous::insecure_decode, decode},
     serde::{Deserialize, Serialize},
     tracing::{debug, warn},
 };
@@ -55,7 +55,7 @@ pub fn load_oauth_config() -> OAuthConfig {
 
 /// JWT Claims structure
 #[cfg(feature = "oauth")]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Claims {
     iss: Option<String>,
     aud: Option<String>,
@@ -100,17 +100,17 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
         );
     };
 
-    match decode::<Claims>(token, &decoding_key, &validation) {
-        Ok(token_data) => {
-            debug!("Token validated for subject: {}", token_data.claims.sub);
-            AuthorizationResult::Authorized
+        match decode::<Claims>(token, &decoding_key, &validation) {
+            Ok(token_data) => {
+                debug!("Token validated for subject: {}", token_data.claims.sub);
+                AuthorizationResult::Authorized
+            }
+            Err(e) => {
+                let err_msg = format!("JWT validation failed: {}", e);
+                warn!("{}", err_msg);
+                AuthorizationResult::InvalidToken(err_msg)
+            }
         }
-        Err(e) => {
-            let err_msg = format!("JWT validation failed: {}", e);
-            warn!("{}", err_msg);
-            AuthorizationResult::InvalidToken(err_msg)
-        }
-    }
 }
 
 /// Check if token has required scopes

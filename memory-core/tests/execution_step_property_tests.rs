@@ -6,6 +6,7 @@
 //! Covers WG-046 from ADR-047 (v0.1.22 Quality Polish)
 
 #![allow(clippy::cast_precision_loss)]
+#![allow(clippy::panic)]
 
 use do_memory_core::{ExecutionResult, ExecutionStep};
 use proptest::prelude::*;

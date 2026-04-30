@@ -5,6 +5,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::panic)]
 
 use chrono::TimeZone;
 use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskType};

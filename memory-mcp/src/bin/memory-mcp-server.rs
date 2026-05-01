@@ -39,11 +39,6 @@ async fn main() -> anyhow::Result<()> {
         if let Some(ref issuer) = oauth_config.issuer {
             info!("Expected token issuer: {}", issuer);
         }
-// Fail fast: Require MCP_OAUTH_TOKEN_SECRET in production when OAuth is enabled
-        #[cfg(feature = "oauth")]
-        if let Err(e) = server_impl::validate_oauth_startup(&oauth_config) {
-            panic!("{}", e);
-        }
     }
 
     server_impl::run_jsonrpc_server(mcp_server, oauth_config).await

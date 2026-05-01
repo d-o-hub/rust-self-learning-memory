@@ -46,7 +46,6 @@ pub use oauth::load_oauth_config;
 #[allow(unused)]
 pub use oauth::{
     check_scopes, create_www_authenticate_header, extract_bearer_token, validate_bearer_token,
-    validate_oauth_startup,
 };
 #[allow(unused)]
 pub use storage::*;

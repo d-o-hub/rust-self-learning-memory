@@ -113,23 +113,6 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     }
 }
 
-/// Validate OAuth configuration at startup
-///
-/// Performs fail-fast validation for production OAuth requirements.
-/// Returns an error if OAuth is enabled but required configuration is missing.
-#[cfg(feature = "oauth")]
-pub fn validate_oauth_startup(config: &OAuthConfig) -> Result<(), String> {
-    if config.enabled && config.token_secret.is_none() {
-        return Err(
-            "SECURITY ERROR: MCP_OAUTH_ENABLED=true but MCP_OAUTH_TOKEN_SECRET is not set. \
-             JWT signature verification requires a secret key. Set MCP_OAUTH_TOKEN_SECRET \
-             before starting the server."
-                .to_string(),
-        );
-    }
-    Ok(())
-}
-
 /// Check if token has required scopes
 ///
 /// Validates that the token contains all required scopes for the requested operation.
@@ -225,7 +208,7 @@ mod tests {
         match result {
             AuthorizationResult::InvalidToken(msg) => {
                 assert!(msg.contains("OAUTH_TOKEN_SECRET is missing"));
-            },
+            }
             _ => panic!("Expected InvalidToken error, got {:?}", result),
         }
     }

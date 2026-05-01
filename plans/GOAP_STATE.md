@@ -64,7 +64,7 @@
 | BM25 keyword index from CSM | WG-128 | ✅ Complete | crate dependency |
 | HDC local embedding fallback | WG-129 | ✅ Complete | crate dependency |
 | ConceptGraph ontology expansion | WG-130 | ✅ Complete | crate dependency |
-| Cascading retrieval pipeline | WG-131 | 🔵 Planned (placeholder) | feature-implement | Per ADR-053, acceptable until storage integration |
+| Cascading retrieval pipeline | WG-131 | ✅ Complete | feature-implement | 732 LOC, 20+ tests, full 4-tier cascade implementation |
 
 ### Phase 2: Token Efficiency (Parallel with Phase 1)
 
@@ -74,13 +74,13 @@
 | Add hierarchical/gist reranking | WG-118 | ✅ Complete | feature-implement | |
 | Compact high-frequency skills/docs | WG-119 | ✅ Complete | agents-update | 4 skills compacted: web-doc-resolver (187→84), test-patterns (161→86), build-rust (143→84), code-quality (137→74) |
 
-### Phase 3: Research-Inspired Retrieval Upgrades (Deferred)
+### Phase 3: Research-Inspired Retrieval Upgrades (P2 Priority)
 
 | Task | WG | Status | Owner | Paper |
 |------|----|--------|-------|-------|
-| Reconstructive retrieval windows | WG-120 | 🔵 Planned | feature-implement | E-mem |
-| Execution-signature retrieval | WG-121 | 🔵 Planned | feature-implement | APEX-EM |
-| Scope-before-search shard routing | WG-122 | 🔵 Planned | feature-implement | ShardMemo |
+| Reconstructive retrieval windows | WG-120 | ✅ Complete | feature-implement | E-mem (arXiv:2601.21714) - 462 LOC, 30+ tests |
+| Execution-signature retrieval | WG-121 | ✅ Complete | feature-implement | APEX-EM (arXiv:2603.29093) - 593 LOC, 30+ tests |
+| Scope-before-search shard routing | WG-122 | ✅ Complete | feature-implement | ShardMemo (arXiv:2601.21545) - 635 LOC, 27 tests |
 | LottaLoRA local classifier | WG-132 | 🔵 Planned | feature-implement | LottaLoRA |
 | Agentic memory taxonomy alignment | WG-133 | 🔵 Planned | agents-update | Anatomy of Agentic Memory |
 | DAG-based state management | WG-134 | 🔵 Planned | feature-implement | arXiv:2602.22398 |

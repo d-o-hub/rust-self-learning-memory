@@ -100,17 +100,17 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
         );
     };
 
-        match decode::<Claims>(token, &decoding_key, &validation) {
-            Ok(token_data) => {
-                debug!("Token validated for subject: {}", token_data.claims.sub);
-                AuthorizationResult::Authorized
-            }
-            Err(e) => {
-                let err_msg = format!("JWT validation failed: {}", e);
-                warn!("{}", err_msg);
-                AuthorizationResult::InvalidToken(err_msg)
-            }
+    match decode::<Claims>(token, &decoding_key, &validation) {
+        Ok(token_data) => {
+            debug!("Token validated for subject: {}", token_data.claims.sub);
+            AuthorizationResult::Authorized
         }
+        Err(e) => {
+            let err_msg = format!("JWT validation failed: {}", e);
+            warn!("{}", err_msg);
+            AuthorizationResult::InvalidToken(err_msg)
+        }
+    }
 }
 
 /// Check if token has required scopes

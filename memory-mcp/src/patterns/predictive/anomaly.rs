@@ -6,8 +6,9 @@ use tracing::{debug, info, instrument, warn};
 use super::dbscan::{AdaptiveDBSCAN, ClusterLabel, DBSCANConfig};
 use super::forecasting::types::PredictiveConfig;
 
-#[allow(dead_code)]
 pub struct AnomalyDetector {
+    /// Configuration stored for future threshold customization methods
+    #[allow(dead_code)]
     config: PredictiveConfig,
     dbscan: AdaptiveDBSCAN,
 }

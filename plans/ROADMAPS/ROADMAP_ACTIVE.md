@@ -50,7 +50,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | ✅ Complete | 128 |
 | WG-129 | Wire HDC text encoder as CPU-local embedding fallback (via crate) | ✅ Complete | 129 |
 | WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | ✅ Complete | 130 |
-| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | 🔵 Planned (placeholder) | 131 |
+| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | ✅ Complete (732 LOC, 20+ tests) | 131 |
 
 ### Phase 2: Token Efficiency
 
@@ -64,9 +64,9 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
-| WG-120 | Add reconstructive retrieval windows around top-k hits (E-mem-inspired) | 🔵 Planned | 120 |
-| WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | 🔵 Planned | 121 |
-| WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | 🔵 Planned | 122 |
+| WG-120 | Add reconstructive retrieval windows around top-k hits (E-mem-inspired) | ✅ Complete | 120 |
+| WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | ✅ Complete | 121 |
+| WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | ✅ Complete | 122 |
 
 ### P3: Backlog (Future Sprints)
 

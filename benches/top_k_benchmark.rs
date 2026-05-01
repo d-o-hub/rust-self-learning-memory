@@ -5,6 +5,18 @@
 //!
 //! Run with: `cargo bench --bench top_k_benchmark`
 
+// Benchmarks have relaxed clippy rules
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::stable_sort_primitive)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::let_with_type_underscore)]
+
 use criterion::{Criterion, criterion_group, criterion_main};
 use rand::RngExt;
 use rand::rng;

@@ -7,6 +7,9 @@
 //!
 //! All tests follow the Given-When-Then pattern for clarity.
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::panic)]
+
 mod common;
 
 use common::{ContextBuilder, StepBuilder, setup_test_memory};

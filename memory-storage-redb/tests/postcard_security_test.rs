@@ -7,6 +7,16 @@
 //! Note: After migration to postcard, these tests verify that size constraints
 //! are still enforced, even though postcard is inherently safer than bincode.
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::items_after_statements)]
+#![allow(clippy::uninlined_format_args)]
+
 use do_memory_core::{
     ComplexityLevel, Episode, Evidence, ExecutionResult, ExecutionStep, Heuristic, Pattern,
     TaskContext, TaskType,

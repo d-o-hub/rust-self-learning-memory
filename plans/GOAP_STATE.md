@@ -1,7 +1,7 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-21 (comprehensive analysis + CSM integration)
-- **Version**: `0.1.30` (workspace, released)
+- **Last Updated**: 2026-04-30 (v0.1.31 release verified, metrics sync)
+- **Version**: `0.1.31` (workspace, released)
 - **Branch**: `main`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
@@ -9,7 +9,7 @@
 
 ---
 
-## v0.1.31 Sprint (Planning 🔵)
+## v0.1.31 Sprint (Released ✅)
 
 ### GOAP Analysis (2026-04-20)
 
@@ -44,16 +44,16 @@
 | Task | WG | Status | Owner |
 |------|----|--------|-------|
 | Verify v0.1.30 release/package parity | WG-111 | ✅ Complete | github-release-best-practices |
-| Bump to 0.1.31 | WG-112 | 🔵 Planned | feature-implement |
+| Bump to 0.1.31 | WG-112 | ✅ Complete | feature-implement |
 | Refresh stale truth sources | WG-113 | ✅ Complete | agents-update |
 
 ### Phase 1: CPU Efficiency (Parallel)
 
-| Task | WG | Status | Owner |
-|------|----|--------|-------|
-| Reduce QueryCache contention | WG-114 | 🔵 Planned | performance |
-| Replace placeholder cached retrieval | WG-115 | 🔵 Planned | feature-implement |
-| Tune compression/cache CPU budget | WG-116 | 🔵 Planned | performance |
+| Task | WG | Status | Owner | Notes |
+|------|----|--------|-------|-------|
+| Reduce QueryCache contention | WG-114 | ✅ Complete | performance | `parking_lot::RwLock` already implemented in `memory-core/src/retrieval/cache/lru.rs` |
+| Replace placeholder cached retrieval | WG-115 | ✅ Complete | feature-implement | Verified: QueryCache fully implemented (273 LOC LRU+TTL+metrics), no placeholders |
+| Tune compression/cache CPU budget | WG-116 | ✅ Complete | performance | Verified: Constants in `memory-core/src/constants.rs` (CACHE_SIZE=1000, TTL=3600s, MAX_EPISODES=10000, SIMILARITY_THRESHOLD=0.7) |
 
 ### Phase 1.5: CSM Integration ✅ Complete (crate dependency)
 
@@ -64,15 +64,15 @@
 | BM25 keyword index from CSM | WG-128 | ✅ Complete | crate dependency |
 | HDC local embedding fallback | WG-129 | ✅ Complete | crate dependency |
 | ConceptGraph ontology expansion | WG-130 | ✅ Complete | crate dependency |
-| Cascading retrieval pipeline | WG-131 | 🔵 Planned | feature-implement |
+| Cascading retrieval pipeline | WG-131 | 🔵 Planned (placeholder) | feature-implement | Per ADR-053, acceptable until storage integration |
 
 ### Phase 2: Token Efficiency (Parallel with Phase 1)
 
-| Task | WG | Status | Owner |
-|------|----|--------|-------|
-| Implement BundleAccumulator window | WG-117 | 🔵 Planned | feature-implement |
-| Add hierarchical/gist reranking | WG-118 | ✅ Complete | feature-implement |
-| Compact high-frequency skills/docs | WG-119 | 🔵 Planned | agents-update |
+| Task | WG | Status | Owner | Notes |
+|------|----|--------|-------|-------|
+| Implement BundleAccumulator window | WG-117 | ✅ Complete | feature-implement | Fully implemented in `memory-core/src/context/accumulator.rs` with 20+ tests |
+| Add hierarchical/gist reranking | WG-118 | ✅ Complete | feature-implement | |
+| Compact high-frequency skills/docs | WG-119 | ✅ Complete | agents-update | 4 skills compacted: web-doc-resolver (187→84), test-patterns (161→86), build-rust (143→84), code-quality (137→74) |
 
 ### Phase 3: Research-Inspired Retrieval Upgrades (Deferred)
 
@@ -191,9 +191,9 @@ Impact analysis of `d-o-hub/github-template-ai-agents` and `d-o-hub/chaotic_sema
 
 | Metric | Value | Target |
 |--------|-------|--------|
-| Workspace version | 0.1.30 | — |
-| Latest GitHub release | v0.1.30 | verified 2026-04-20 |
-| Publishable workspace crates | 6 | all at 0.1.30 |
+| Workspace version | 0.1.31 | — |
+| Latest GitHub release | v0.1.31 | verified 2026-04-30 |
+| Publishable workspace crates | 6 | all at 0.1.31 |
 | Total tests | 2,856 | — |
 | Ignored tests | 123 skipped | ceiling ≤125 |
 | `allow(dead_code)` (prod) | 0 | ≤25 | ✅ All in test/bench files (36 total) |

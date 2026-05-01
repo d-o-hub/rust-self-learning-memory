@@ -1,5 +1,7 @@
 //! Helper functions for relationship graph operations
 
+use std::fmt::Write;
+
 use colored::Colorize;
 use do_memory_core::episode::RelationshipType;
 use uuid::Uuid;
@@ -80,11 +82,13 @@ pub(super) fn render_ascii_tree(
         visited: &mut std::collections::HashSet<Uuid>,
     ) {
         if visited.contains(&node_id) {
-            output.push_str(&format!(
-                "{}[{}] (cycle)\n",
+            writeln!(
+                output,
+                "{}[{}] (cycle)",
                 prefix,
                 node_id.to_string().dimmed()
-            ));
+            )
+            .unwrap();
             return;
         }
         visited.insert(node_id);
@@ -102,7 +106,7 @@ pub(super) fn render_ascii_tree(
         };
 
         let branch = if is_last { "└── " } else { "├── " };
-        output.push_str(&format!("{}{}{}\n", prefix, branch, label));
+        writeln!(output, "{}{}{}", prefix, branch, label).unwrap();
 
         // Find outgoing relationships
         let outgoing: Vec<_> = graph
@@ -120,12 +124,14 @@ pub(super) fn render_ascii_tree(
         for (i, edge) in outgoing.iter().enumerate() {
             let child_is_last = i == outgoing.len() - 1;
             let rel_label = format!("{:?}", edge.relationship_type).cyan();
-            output.push_str(&format!(
+            writeln!(
+                output,
                 "{}{}── {} → ",
                 child_prefix,
                 if child_is_last { "└" } else { "├" },
                 rel_label
-            ));
+            )
+            .unwrap();
             render_node(
                 graph,
                 edge.to_episode_id,
@@ -195,260 +201,4 @@ fn has_cycle_util(
 
     rec_stack.remove(&node_id);
     false
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::commands::episode::relationships::{
-        AddRelationshipResult, FindRelatedResult, ListRelationshipsResult, RelatedEpisodeItem,
-        RelationshipListItem, RemoveRelationshipResult, TopologicalSortResult,
-        ValidateCyclesResult,
-    };
-    use crate::commands::episode::{DirectionArg, RelationshipTypeArg};
-    use crate::output::Output;
-    use do_memory_core::episode::Direction;
-
-    #[test]
-    fn test_relationship_type_arg_conversion() {
-        assert_eq!(
-            RelationshipTypeArg::ParentChild.to_core_type(),
-            RelationshipType::ParentChild
-        );
-        assert_eq!(
-            RelationshipTypeArg::DependsOn.to_core_type(),
-            RelationshipType::DependsOn
-        );
-        assert_eq!(
-            RelationshipTypeArg::Follows.to_core_type(),
-            RelationshipType::Follows
-        );
-        assert_eq!(
-            RelationshipTypeArg::RelatedTo.to_core_type(),
-            RelationshipType::RelatedTo
-        );
-        assert_eq!(
-            RelationshipTypeArg::Blocks.to_core_type(),
-            RelationshipType::Blocks
-        );
-        assert_eq!(
-            RelationshipTypeArg::Duplicates.to_core_type(),
-            RelationshipType::Duplicates
-        );
-        assert_eq!(
-            RelationshipTypeArg::References.to_core_type(),
-            RelationshipType::References
-        );
-    }
-
-    #[test]
-    fn test_direction_arg_conversion() {
-        assert_eq!(
-            DirectionArg::Outgoing.to_core_direction(),
-            Direction::Outgoing
-        );
-        assert_eq!(
-            DirectionArg::Incoming.to_core_direction(),
-            Direction::Incoming
-        );
-        assert_eq!(DirectionArg::Both.to_core_direction(), Direction::Both);
-    }
-
-    #[test]
-    fn test_add_relationship_result_output() {
-        let result = AddRelationshipResult {
-            relationship_id: "abc-123".to_string(),
-            from_episode_id: "def-456".to_string(),
-            to_episode_id: "ghi-789".to_string(),
-            relationship_type: "DependsOn".to_string(),
-            success: true,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("Relationship Created"));
-        assert!(output.contains("abc-123"));
-        assert!(output.contains("def-456"));
-        assert!(output.contains("ghi-789"));
-        assert!(output.contains("DependsOn"));
-    }
-
-    #[test]
-    fn test_remove_relationship_result_output() {
-        let result = RemoveRelationshipResult {
-            relationship_id: "abc-123".to_string(),
-            success: true,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("✓"));
-        assert!(output.contains("abc-123"));
-    }
-
-    #[test]
-    fn test_list_relationships_result_output() {
-        let result = ListRelationshipsResult {
-            relationships: vec![RelationshipListItem {
-                id: "rel-1".to_string(),
-                relationship_type: "DependsOn".to_string(),
-                from: "ep-1".to_string(),
-                to: "ep-2".to_string(),
-                priority: Some(8),
-                reason: Some("Test reason".to_string()),
-            }],
-            total_count: 1,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("1 relationship(s)"));
-        assert!(output.contains("rel-1"));
-        assert!(output.contains("ep-1"));
-        assert!(output.contains("ep-2"));
-    }
-
-    #[test]
-    fn test_list_relationships_empty_output() {
-        let result = ListRelationshipsResult {
-            relationships: vec![],
-            total_count: 0,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("No relationships found"));
-    }
-
-    #[test]
-    fn test_find_related_result_output() {
-        let result = FindRelatedResult {
-            episodes: vec![RelatedEpisodeItem {
-                episode_id: "ep-2".to_string(),
-                task_description: "Related task".to_string(),
-                relationship_type: "DependsOn".to_string(),
-                direction: "outgoing".to_string(),
-            }],
-            total_count: 1,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("1 related episode(s)"));
-        assert!(output.contains("ep-2"));
-        assert!(output.contains("Related task"));
-    }
-
-    #[test]
-    fn test_validate_cycles_result_no_cycle() {
-        let result = ValidateCyclesResult {
-            episode_id: "ep-1".to_string(),
-            has_cycle: false,
-            cycle_path: None,
-            message: "No cycles detected".to_string(),
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("✓"));
-        assert!(output.contains("No cycles detected"));
-    }
-
-    #[test]
-    fn test_validate_cycles_result_with_cycle() {
-        let result = ValidateCyclesResult {
-            episode_id: "ep-1".to_string(),
-            has_cycle: true,
-            cycle_path: Some(vec![
-                "ep-1".to_string(),
-                "ep-2".to_string(),
-                "ep-1".to_string(),
-            ]),
-            message: "Cycle detected".to_string(),
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("✗"));
-        assert!(output.contains("Cycle detected"));
-    }
-
-    #[test]
-    fn test_topological_sort_result() {
-        let result = TopologicalSortResult {
-            ordered_episodes: vec!["ep-1".to_string(), "ep-2".to_string(), "ep-3".to_string()],
-            has_cycle: false,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("Topological Order"));
-        assert!(output.contains("1. ep-1"));
-        assert!(output.contains("2. ep-2"));
-        assert!(output.contains("3. ep-3"));
-    }
-
-    #[test]
-    fn test_topological_sort_result_with_cycle() {
-        let result = TopologicalSortResult {
-            ordered_episodes: vec![],
-            has_cycle: true,
-        };
-
-        let mut buffer = Vec::new();
-        result.write_human(&mut buffer).unwrap();
-        let output = String::from_utf8(buffer).unwrap();
-
-        assert!(output.contains("✗"));
-        assert!(output.contains("cycle detected"));
-    }
-
-    #[test]
-    fn test_topological_sort_kahn() {
-        let id1 = Uuid::new_v4();
-        let id2 = Uuid::new_v4();
-        let id3 = Uuid::new_v4();
-
-        let nodes = vec![id1, id2, id3];
-        let edges = vec![(id1, id2), (id2, id3)];
-
-        let sorted = topological_sort_kahn(&nodes, &edges);
-
-        assert_eq!(sorted.len(), 3);
-        assert_eq!(sorted[0], id1);
-        assert_eq!(sorted[1], id2);
-        assert_eq!(sorted[2], id3);
-    }
-
-    #[test]
-    fn test_topological_sort_kahn_with_cycle() {
-        let id1 = Uuid::new_v4();
-        let id2 = Uuid::new_v4();
-        let id3 = Uuid::new_v4();
-
-        let nodes = vec![id1, id2, id3];
-        // Create cycle: 1 -> 2 -> 3 -> 1
-        let edges = vec![(id1, id2), (id2, id3), (id3, id1)];
-
-        let sorted = topological_sort_kahn(&nodes, &edges);
-
-        // Should not include all nodes due to cycle
-        assert!(sorted.len() < 3);
-    }
 }

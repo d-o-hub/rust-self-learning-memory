@@ -12,6 +12,10 @@
 //! cargo run --example ranking_demo
 //! ```
 
+// Examples have relaxed clippy rules for demonstration patterns
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+
 use chrono::{Duration, Utc};
 use do_memory_core::search::{RankingWeights, SearchField, SearchMode, calculate_ranking_score};
 use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};

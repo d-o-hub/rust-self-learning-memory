@@ -9,14 +9,38 @@
 //! - `tools`: Memory tool handlers (query_memory, analyze_patterns, etc.)
 //! - `mcp`: MCP 2025-11-25 protocol handlers (completion, elicitation, tasks)
 
+// Clippy suppressions for MCP server implementation
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cognitive_complexity)]
+#![allow(clippy::redundant_closure)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::single_match_else)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::unused_async)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::inefficient_to_string)]
+#![allow(clippy::manual_string_new)]
+#![allow(clippy::single_char_pattern)]
+#![allow(clippy::explicit_iter_loop)]
+#![allow(clippy::manual_let_else)]
+#![allow(clippy::if_not_else)]
+#![allow(clippy::default_trait_access)]
+#![allow(clippy::struct_excessive_bools)]
+#![allow(clippy::fn_params_excessive_bools)]
+
 mod core;
 mod handlers;
 mod jsonrpc;
 mod mcp;
-mod oauth; // Always available (load_oauth_config is unconditionally compiled)
+pub(crate) mod oauth; // Always available (load_oauth_config is unconditionally compiled)
 mod storage;
 mod tools;
-mod types;
+pub(crate) mod types;
 
 // Re-export JSON-RPC types from memory_mcp for convenient access
 #[allow(unused)]

@@ -1,4 +1,5 @@
 //! Tag command tests
+#![allow(clippy::unreadable_literal)]
 
 use super::types::{
     TagAddResult, TagListResult, TagRemoveResult, TagRenameResult, TagSearchEpisode,
@@ -121,8 +122,8 @@ fn test_tag_search_result_output() {
             task_description: "Test task 1".to_string(),
             task_type: "CodeGeneration".to_string(),
             tags: vec!["bug".to_string(), "critical".to_string()],
-            start_time: 1234567890,
-            end_time: Some(1234567900),
+            start_time: 1_234_567_890,
+            end_time: Some(1_234_567_900),
             outcome: Some("Success".to_string()),
         },
         TagSearchEpisode {
@@ -130,7 +131,7 @@ fn test_tag_search_result_output() {
             task_description: "Test task 2".to_string(),
             task_type: "Refactoring".to_string(),
             tags: vec!["bug".to_string()],
-            start_time: 1234567891,
+            start_time: 1_234_567_891,
             end_time: None,
             outcome: None,
         },

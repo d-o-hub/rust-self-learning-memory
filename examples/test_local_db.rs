@@ -1,3 +1,8 @@
+//! Test local database example - verifies storage backends work correctly.
+
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+
 use do_memory_core::{
     ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,
 };

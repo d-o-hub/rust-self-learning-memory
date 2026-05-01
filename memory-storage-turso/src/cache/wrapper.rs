@@ -1,5 +1,8 @@
 //! Cached wrapper for TursoStorage
 
+// Format args inlining not required for error message clarity
+#![allow(clippy::uninlined_format_args)]
+
 use super::config::{CacheConfig, CacheStats};
 use crate::TursoStorage;
 use async_trait::async_trait;

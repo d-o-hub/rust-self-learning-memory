@@ -3,6 +3,8 @@
 //! This module provides comprehensive testing for the advanced pattern analysis MCP tool,
 //! covering unit tests, integration tests, performance tests, and security tests.
 
+#![allow(clippy::cast_lossless)]
+
 use do_memory_core::SelfLearningMemory;
 use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
     AdvancedPatternAnalysisInput, AdvancedPatternAnalysisTool, AnalysisConfig, AnalysisType,

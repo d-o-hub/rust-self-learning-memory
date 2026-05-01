@@ -1,8 +1,7 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-04-21 (comprehensive analysis + CSM cascade integration)
-**Released Version**: v0.1.30 (crates.io + GitHub Release)
-**Unreleased on main**: v0.1.31 planning focused on CPU-local retrieval (CSM), token efficiency, and skills consolidation
+**Last Updated**: 2026-04-30 (v0.1.31 release verified)
+**Released Version**: v0.1.31 (crates.io + GitHub Release)
 **Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
@@ -10,9 +9,9 @@
 
 ## Current State
 
-`v0.1.30` was released on 2026-04-16. Workspace and publishable crate versions remain `0.1.30` while `v0.1.31` planning is redirected toward lower CPU usage, lower prompt/token usage, and release/package truth-source cleanup.
+`v0.1.31` was released on 2026-04-30. Workspace and publishable crate versions are `0.1.31`.
 
-Verified publishable workspace packages at `0.1.30`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
+Verified publishable workspace packages at `0.1.31`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
 
 The 2026-04-21 comprehensive analysis added a CSM integration phase (BM25+HDC+ConceptGraph cascading retrieval) targeting 50-70% API call elimination, plus 6 new research papers and housekeeping WGs.
 
@@ -20,9 +19,9 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Upcoming Sprint — v0.1.31 (Planning)
+## Current Sprint — v0.1.31 (Released ✅)
 
-**Source**: Release/package verification (2026-04-20) + comprehensive analysis + 2026 academic paper review
+**Source**: Release/package verification (2026-04-30)
 **ADR**: ADR-053 (Accepted)
 
 ### Phase 0: Release & Package Truth
@@ -30,16 +29,16 @@ See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
 | WG-111 | Verify `v0.1.30` GitHub release and publishable crate parity | ✅ Complete | 111 |
-| WG-112 | Bump workspace + publishable crates to `0.1.31`, update CHANGELOG | 🔵 Planned | 112 |
+| WG-112 | Bump workspace + publishable crates to `0.1.31`, update CHANGELOG | ✅ Complete | 112 |
 | WG-113 | Refresh stale roadmap/status/GOAP truth sources after release verification | ✅ Complete | 113 |
 
 ### Phase 1: CPU Efficiency
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
-| WG-114 | Reduce QueryCache contention and lock overhead (`parking_lot::RwLock` + benchmarks) | 🔵 Planned | 114 |
-| WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | 🔵 Planned | 115 |
-| WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | 🔵 Planned | 116 |
+| WG-114 | Reduce QueryCache contention and lock overhead (`parking_lot::RwLock` + benchmarks) | ✅ Complete | 114 |
+| WG-115 | Replace placeholder Turso cached query paths with real storage-backed retrieval | ✅ Complete | 115 |
+| WG-116 | Tune compression and zero-copy cache thresholds to avoid wasted CPU | ✅ Complete | 116 |
 
 ### Phase 1.5: CSM Integration (CPU-Local Retrieval) ✅ Complete
 
@@ -51,15 +50,15 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-128 | Add BM25 keyword index from `chaotic_semantic_memory` as first retrieval tier | ✅ Complete | 128 |
 | WG-129 | Wire HDC text encoder as CPU-local embedding fallback (via crate) | ✅ Complete | 129 |
 | WG-130 | Add ConceptGraph ontology expansion for synonym retrieval without LLM | ✅ Complete | 130 |
-| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | 🔵 Planned | 131 |
+| WG-131 | Implement cascading retrieval pipeline: BM25 → HDC → ConceptGraph → API | 🔵 Planned (placeholder) | 131 |
 
 ### Phase 2: Token Efficiency
 
 | Task | Description | Status | WG |
 |------|-------------|--------|-----|
-| WG-117 | Implement `BundleAccumulator` sliding window for bounded context assembly | 🔵 Planned | 117 |
+| WG-117 | Implement `BundleAccumulator` sliding window for bounded context assembly | ✅ Complete | 117 |
 | WG-118 | Add hierarchical/gist reranking to return fewer, denser context items | ✅ Complete | 118 |
-| WG-119 | Compact high-frequency skills/docs to reduce prompt token load | 🔵 Planned | 119 |
+| WG-119 | Compact high-frequency skills/docs to reduce prompt token load | ✅ Complete | 119 |
 
 ### Phase 3: Research-Inspired Retrieval Upgrades
 
@@ -324,6 +323,7 @@ The 2026-03-24 audit reopened several items. The new sprint focuses on truth-sou
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| v0.1.31 | 2026-04 | CSM integration (BM25+HDC+ConceptGraph via crate dependency), BundleAccumulator, hierarchical reranking, skills consolidation (31 skills, ≤35 target met), release verification |
 | v0.1.30 | 2026-04 | MemoryEvent broadcast, top-k optimization, memory-context skill, learn skill, zero-copy retrieval caching, CSM pattern adoption (WG-103/104) |
 | v0.1.29 | 2026-04 | WASM sandbox removal (-6,982 LOC), Turso native vector search (vector_top_k/DiskANN), file splitting (6 files), release workflow improvements |
 | v0.1.27 | 2026-04 | Wilson score ranking, Episode GC/TTL, spawn_blocking audit, MCP Server Card, GitHub Pages, llms.txt, semver timeout fix |

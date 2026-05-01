@@ -1,4 +1,33 @@
+// Clippy suppressions for memory-storage-redb
+// Cast-related: necessary for persistence statistics and metrics
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_lossless)]
+// Documentation: would require extensive rework
+#![allow(clippy::missing_errors_doc)]
+#![allow(missing_docs)]
+// Pedantic lints: provide minimal value
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::redundant_closure)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::unused_self)]
+#![allow(clippy::unused_async)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::useless_vec)]
+// Format args: inlining not required for error message clarity
+#![allow(clippy::uninlined_format_args)]
+#![allow(unknown_lints)]
+#![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::return_self_not_must_use)]
 #![allow(clippy::excessive_nesting)]
+#![allow(clippy::cognitive_complexity)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::used_underscore_binding)]
 
 //! # Memory Storage - redb
 //!

@@ -4,6 +4,8 @@
 //! timeouts in `.config/nextest.toml` and use `#[serial]` to avoid resource
 //! contention when running in parallel.
 
+#![allow(clippy::expect_used)]
+
 use serial_test::serial;
 use std::process::Command;
 

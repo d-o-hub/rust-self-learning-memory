@@ -3,6 +3,9 @@
 //! These tests verify that data is correctly saved and loaded from Turso and redb
 //! storage backends, not just the in-memory fallback.
 
+#![allow(clippy::explicit_iter_loop)]
+#![allow(missing_docs)]
+
 use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
@@ -475,7 +478,7 @@ mod persistent_storage_tests {
 
         // Verify each episode has correct data (order may vary due to storage)
         let mut found_episodes = std::collections::HashSet::new();
-        for episode in episodes.iter() {
+        for episode in episodes {
             let title = episode["task_description"].as_str().unwrap();
             assert!(title.starts_with("Bulk Test Episode"));
             assert_eq!(episode["steps"].as_array().unwrap().len(), 2);

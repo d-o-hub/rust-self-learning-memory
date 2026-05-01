@@ -1,8 +1,14 @@
 //! Tests for vector search functionality
 
+#![allow(clippy::items_after_statements)]
+#![allow(missing_docs)]
+
+use do_memory_core::Episode;
 use do_memory_core::embeddings::EmbeddingStorageBackend;
+use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 use do_memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
+use uuid::Uuid;
 
 async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
     let dir = TempDir::new()?;
@@ -20,8 +26,6 @@ async fn create_test_storage() -> anyhow::Result<(TursoStorage, TempDir)> {
 #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_store_and_retrieve_embedding() {
     let (storage, _dir) = create_test_storage().await.unwrap();
-
-    use uuid::Uuid;
 
     let episode_id = Uuid::new_v4();
     let embedding = vec![0.1_f32; 384]; // 384-dimensional embedding
@@ -45,9 +49,6 @@ async fn test_vector_search() {
     let (storage, _dir) = create_test_storage().await.unwrap();
 
     // Store some episodes with embeddings
-    use do_memory_core::Episode;
-    use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
-
     let context = TaskContext {
         language: Some("rust".to_string()),
         framework: None,
@@ -109,9 +110,6 @@ async fn test_vector_search() {
 #[ignore = "Memory corruption bug in libsql native library - malloc_consolidate() unaligned fastbin chunk in CI"]
 async fn test_vector_search_threshold() {
     let (storage, _dir) = create_test_storage().await.unwrap();
-
-    use do_memory_core::Episode;
-    use do_memory_core::types::{ComplexityLevel, TaskContext, TaskType};
 
     let context = TaskContext {
         language: Some("rust".to_string()),

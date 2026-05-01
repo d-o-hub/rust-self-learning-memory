@@ -3,6 +3,11 @@
 //! These tests verify that tool definitions, responses, and error formats
 //! remain consistent across changes. Part of ADR-033 Phase 6.
 
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::doc_markdown)]
+#![allow(missing_docs)]
+
 use do_memory_mcp::mcp::tools::checkpoint::{
     CheckpointEpisodeInput, CheckpointEpisodeOutput, GetHandoffPackInput, GetHandoffPackOutput,
 };
@@ -57,7 +62,7 @@ fn test_execution_result_success() {
     let result = ExecutionResult::Success {
         output: r#"{"sum": 42, "message": "Hello from sandbox"}"#.to_string(),
         stdout: "Processing...\nDone!".to_string(),
-        stderr: "".to_string(),
+        stderr: String::new(),
         execution_time_ms: 150,
     };
 
@@ -70,7 +75,7 @@ fn test_execution_result_error() {
     let result = ExecutionResult::Error {
         message: "ReferenceError: undefined_variable is not defined".to_string(),
         error_type: ErrorType::Runtime,
-        stdout: "".to_string(),
+        stdout: String::new(),
         stderr: "Error at line 5: undefined_variable".to_string(),
     };
 

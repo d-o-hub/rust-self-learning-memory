@@ -3,6 +3,11 @@
 //! Tests quality assessment and salient feature extraction integration
 //! into the `SelfLearningMemory` workflow.
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::panic)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+
 use do_memory_core::ExecutionStep;
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::types::{

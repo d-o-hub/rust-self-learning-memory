@@ -6,6 +6,11 @@
 //! 3. Query result caching
 //! 4. Performance metrics tracking
 
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+
 use do_memory_core::{ComplexityLevel, Episode, StorageBackend, TaskContext, TaskType};
 use do_memory_storage_turso::{AdvancedQueryCache, CacheConfig, QueryKey, TursoStorage};
 // Note: PerformanceMetrics temporarily disabled due to existing metrics module issues
@@ -173,7 +178,7 @@ async fn test_batch_operations() {
 
     assert_eq!(retrieved.len(), 10, "Should retrieve all batched episodes");
     assert!(
-        retrieved.iter().all(|e| e.is_some()),
+        retrieved.iter().all(std::option::Option::is_some),
         "All episodes should exist"
     );
 }

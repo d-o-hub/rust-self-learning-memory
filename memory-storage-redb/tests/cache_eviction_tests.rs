@@ -9,6 +9,7 @@
 // Integration tests are separate crate roots and don't inherit .clippy.toml settings
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
+#![allow(clippy::doc_markdown)]
 
 use do_memory_storage_redb::{CacheConfig, LRUCache};
 use std::time::Duration;

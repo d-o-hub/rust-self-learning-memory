@@ -5,6 +5,14 @@
 //!
 //! Run with: `cargo bench --bench memory_event_benchmark`
 
+// Benchmarks have relaxed clippy rules
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::let_with_type_underscore)]
+
 use criterion::{Criterion, criterion_group, criterion_main};
 use do_memory_core::types::{DEFAULT_EVENT_CHANNEL_CAPACITY, MemoryEvent};
 use std::hint::black_box;

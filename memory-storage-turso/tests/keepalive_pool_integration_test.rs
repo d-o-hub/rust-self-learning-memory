@@ -3,6 +3,9 @@
 //! Tests verify the 89% reduction in connection overhead (45ms → 5ms)
 
 #![allow(clippy::expect_used)]
+#![allow(clippy::panic)]
+#![allow(clippy::items_after_statements)]
+#![allow(missing_docs)]
 
 use do_memory_storage_turso::{TursoConfig, TursoStorage};
 

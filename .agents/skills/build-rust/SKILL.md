@@ -5,114 +5,65 @@ description: Build Rust code with proper error handling, optimization, and works
 
 # Rust Build Operations
 
-Efficiently build Rust workspaces with the build-rust CLI, with proper error handling and optimization.
+Build Rust workspaces efficiently with the build-rust CLI.
 
 ## CLI Usage
 
 ```bash
-# Development (fast, debug symbols)
-./scripts/build-rust.sh dev
-
-# Release (optimized, stripped)
-./scripts/build-rust.sh release
-
-# Profile with timing information
-./scripts/build-rust.sh profile
-
-# Fast type-check only
-./scripts/build-rust.sh check
-
-# Clean build artifacts
-./scripts/build-rust.sh clean
-
-# Build specific crate
-./scripts/build-rust.sh release do-memory-core
+./scripts/build-rust.sh dev        # Development (fast, debug symbols)
+./scripts/build-rust.sh release   # Production (optimized, stripped)
+./scripts/build-rust.sh profile   # Performance analysis (--timings)
+./scripts/build-rust.sh check     # Fast type-check only
+./scripts/build-rust.sh clean     # Artifact cleanup
+./scripts/build-rust.sh release do-memory-core  # Build specific crate
 ```
 
 ## Build Modes
 
-| Mode | Use Case | Performance | Flags |
-|------|----------|-------------|-------|
-| `dev` | Development iteration | Fast | `--workspace` |
-| `release` | Production deployment | Optimized | `--release --workspace` |
-| `profile` | Performance analysis | Medium | `--release --timings` |
-| `check` | Fast validation | Fastest | `--workspace` (type-check only) |
-| `clean` | Artifact cleanup | N/A | `--clean` |
+| Mode | Use Case | Flags |
+|------|----------|-------|
+| `dev` | Development iteration | `--workspace` |
+| `release` | Production deployment | `--release --workspace` |
+| `profile` | Performance analysis | `--release --timings` |
+| `check` | Fast validation | `--workspace` (type-check only) |
 
 ## Disk Space Optimization (ADR-032)
 
-Dev profile is optimized to reduce target/ size (~5.2 GB to ~2 GB):
+Dev profile reduces target/ size (~5.2 GB to ~2 GB):
 
 ```toml
-# .cargo/config.toml
 [profile.dev]
-debug = "line-tables-only"    # ~60% smaller debug artifacts
-
+debug = "line-tables-only"    # ~60% smaller
 [profile.dev.package."*"]
-debug = false                 # No debug info for dependencies
-
+debug = false                 # No debug for deps
 [profile.dev.build-override]
-opt-level = 3                 # Faster proc-macro execution
-
-[profile.debugging]
-inherits = "dev"
-debug = true                  # Full debug when needed: --profile debugging
+opt-level = 3                 # Faster proc-macros
 ```
 
-**Cleanup**:
-```bash
-./scripts/clean-artifacts.sh quick
-./scripts/clean-artifacts.sh standard
-./scripts/clean-artifacts.sh full
-```
-
-**Artifact offloading** with `CARGO_TARGET_DIR`:
-```bash
-CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/build-rust.sh dev
-```
+Cleanup: `./scripts/clean-artifacts.sh quick|standard|full`
+Offload: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target ./scripts/build-rust.sh dev`
 
 ## Error Handling
 
-**Timeout Errors**
-- Reduce concurrency: `CARGO_BUILD_JOBS=4 cargo build`
-- Use `check` mode for faster feedback
-
-**Memory Errors**
-- Sequential build: `cargo build -j 1`
-- Monitor: `/usr/bin/time -v cargo build`
-- Use `check` mode (no codegen)
-
-**Dependency Conflicts**
-- Update: `cargo update`
-- Check tree: `cargo tree -e features`
-- Check duplicates: `cargo tree -d | grep -cE "^[a-z]"`
-
-**Platform-Specific**
-- Install targets: `rustup target add <triple>`
-- Conditional: `#[cfg(target_os = "linux")]`
+| Issue | Fix |
+|-------|-----|
+| Timeout | `CARGO_BUILD_JOBS=4 cargo build` or use `check` |
+| Memory | `cargo build -j 1` or monitor with `/usr/bin/time -v` |
+| Dep conflicts | `cargo update` then `cargo tree -d | grep -cE "^[a-z]"` |
+| Cross-compilation | `rustup target add x86_64-unknown-linux-musl` |
 
 ## Common Workflows
 
-**Full CI Pipeline**
 ```bash
-./scripts/code-quality.sh fmt
-./scripts/code-quality.sh clippy --workspace
-cargo build --release --workspace
-cargo nextest run --all
-cargo test --doc
-```
+# Full CI Pipeline
+./scripts/code-quality.sh fmt && ./scripts/code-quality.sh clippy --workspace
+cargo build --release --workspace && cargo nextest run --all && cargo test --doc
 
-**Quick Development Cycle**
-```bash
-cargo check -p do-memory-core
-cargo test -p do-memory-core --lib
-```
+# Quick Development
+cargo check -p do-memory-core && cargo test -p do-memory-core --lib
 
-**Production Release**
-```bash
-cargo build --release --workspace
-strip target/release/do-memory-mcp
-./target/release/do-memory-mcp --version
+# Production Release
+cargo build --release --workspace && strip target/release/do-memory-mcp
 ```
 
 ## Troubleshooting
@@ -122,23 +73,12 @@ strip target/release/do-memory-mcp
 | Incremental cache corruption | `cargo clean && cargo build` |
 | Stale lock file | `rm Cargo.lock && cargo generate-lockfile` |
 | Rust version mismatch | `rustup update stable && rustup default stable` |
-| Cross-compilation failures | `rustup target add x86_64-unknown-linux-musl` |
 
 ## Verification Checklist
 
-- [ ] Build completes without errors
-- [ ] No clippy warnings (`cargo clippy -- -D warnings`)
-- [ ] Tests compile (`cargo test --no-run`)
-- [ ] Binary size acceptable (< 10MB stripped)
-- [ ] Startup time < 100ms
-
-## Related Skills
-
-- **code-quality**: Lint and format checks before builds
-- **test-runner**: Execute tests after successful compilation
-- **debug-troubleshoot**: Diagnose runtime issues post-build
+- [ ] Build completes, no clippy warnings (`cargo clippy -- -D warnings`)
+- [ ] Tests compile, binary < 10MB stripped, startup < 100ms
 
 ## References
 
-- [ADR-032: Disk Space Optimization](../../../plans/adr/ADR-032-Disk-Space-Optimization.md)
-- [ADR-036: Dependency Deduplication](../../../plans/adr/ADR-036-Dependency-Deduplication.md)
+ADR-032 (Disk Space), ADR-036 (Dependency Deduplication)

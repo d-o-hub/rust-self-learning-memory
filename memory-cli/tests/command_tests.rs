@@ -1,3 +1,7 @@
+//! CLI command tests for pattern, monitor, and other commands
+
+#![allow(missing_docs)]
+
 use do_memory_cli::test_utils::CliHarness;
 use predicates::prelude::*;
 

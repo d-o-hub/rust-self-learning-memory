@@ -17,7 +17,7 @@ The memory management system provides persistent memory across agent interaction
 
 ## Current Status
 
-- **9 workspace members**: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches, tests, examples
+- **7 workspace members**: do-memory-core, do-memory-storage-turso, do-memory-storage-redb, do-memory-mcp, do-memory-cli, do-memory-test-utils, benches
 - **Test coverage**: exceeds 90% target
 - **File size compliance**: 100% (≤500 LOC per file)
 
@@ -107,7 +107,7 @@ The system employs a hybrid storage architecture: `do-memory-storage-turso` prov
 
 **Serialization**: Uses Postcard (NOT bincode) for safety and performance
 
-### 4. MCP Server (`do-memory-mcp/)
+### 4. MCP Server (do-memory-mcp/)
 **Purpose**: Model Context Protocol server with secure code execution (~19,444 LOC)
 
 **Architecture**:

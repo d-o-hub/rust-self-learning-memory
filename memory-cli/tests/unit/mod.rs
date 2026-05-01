@@ -9,4 +9,5 @@ pub mod config_wizard_tests;
 pub mod input_validation;
 pub mod output_formatting;
 pub mod performance_tests;
+pub mod relationship_output_tests;
 pub mod test_utils;

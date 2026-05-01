@@ -156,7 +156,7 @@ pub enum RelationshipTypeArg {
 }
 
 impl RelationshipTypeArg {
-    /// Convert to core RelationshipType
+    /// Convert to core `RelationshipType`
     pub fn to_core_type(self) -> RelationshipType {
         match self {
             Self::ParentChild => RelationshipType::ParentChild,
@@ -310,19 +310,17 @@ impl Output for ListRelationshipsResult {
         for rel in &self.relationships {
             let priority_str = rel
                 .priority
-                .map(|p| p.to_string())
-                .unwrap_or_else(|| "-".to_string());
-            let reason_str = rel
-                .reason
-                .as_ref()
-                .map(|r| {
+                .map_or_else(|| "-".to_string(), |p| p.to_string());
+            let reason_str = rel.reason.as_ref().map_or_else(
+                || "-".to_string(),
+                |r| {
                     if r.len() > 30 {
                         format!("{}...", &r[..27])
                     } else {
                         r.clone()
                     }
-                })
-                .unwrap_or_else(|| "-".to_string());
+                },
+            );
 
             writeln!(
                 writer,

@@ -7,6 +7,8 @@
 //! in CI environments. See ADR-027 for details.
 
 #![allow(clippy::expect_used)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::items_after_statements)]
 
 use anyhow::Result;
 use do_memory_core::{Episode, StorageBackend};

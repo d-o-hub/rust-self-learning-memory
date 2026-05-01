@@ -3,6 +3,10 @@
 //! These tests simulate realistic application workflows using the Memory MCP server
 //! and verify that all database entries are created and stored correctly.
 
+#![allow(clippy::to_string_in_format_args)]
+#![allow(clippy::explicit_iter_loop)]
+#![allow(missing_docs)]
+
 use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,
@@ -102,7 +106,7 @@ mod mcp_integration_tests {
         ];
 
         for (i, (tool, action)) in steps.iter().enumerate() {
-            let step = ExecutionStep::new(i + 1, tool.to_string(), action.to_string());
+            let step = ExecutionStep::new(i + 1, (*tool).to_string(), (*action).to_string());
             memory.log_step(episode_id, step).await;
             println!("✅ Step {}: {} - {}", i + 1, tool, action);
         }
@@ -213,7 +217,7 @@ mod mcp_integration_tests {
 
         let usage = mcp_server.get_tool_usage().await;
         println!("📈 Tool Usage Statistics:");
-        for (tool, count) in usage.iter() {
+        for (tool, count) in &usage {
             println!("   {}: {} calls", tool, count);
         }
 

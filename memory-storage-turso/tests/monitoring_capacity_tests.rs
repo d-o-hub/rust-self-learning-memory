@@ -1,12 +1,16 @@
 //! Comprehensive tests for monitoring.rs and capacity.rs modules
 //!
-//! NOTE: All tests that create TursoStorage are ignored due to a memory corruption bug
+//! NOTE: All tests that create `TursoStorage` are ignored due to a memory corruption bug
 //! in the libsql/turso native library that causes `malloc_consolidate(): unaligned fastbin chunk detected`
 //! in CI environments. See ADR-027 for details.
 //!
 //! Coverage targets:
 //! - monitoring.rs: 50% (~214 lines from 427 LOC)
 //! - capacity.rs: 50% (~109 lines from 217 LOC)
+
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+#![allow(missing_docs)]
 
 use do_memory_core::monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics};
 use do_memory_core::{Episode, TaskContext, TaskOutcome, TaskType};
@@ -55,7 +59,7 @@ fn create_test_agent_metrics(agent_name: &str, agent_type: AgentType) -> AgentMe
         agent_type,
         total_executions: 10,
         successful_executions: 8,
-        total_duration: Duration::from_millis(1000),
+        total_duration: Duration::from_secs(1),
         avg_duration: Duration::from_millis(100),
         min_duration: Duration::from_millis(50),
         max_duration: Duration::from_millis(200),
@@ -344,7 +348,7 @@ mod monitoring_tests {
             agent_type: AgentType::TestRunner,
             total_executions: 20,
             successful_executions: 18,
-            total_duration: Duration::from_millis(2000),
+            total_duration: Duration::from_secs(2),
             avg_duration: Duration::from_millis(100),
             min_duration: Duration::from_millis(30),
             max_duration: Duration::from_millis(300),
@@ -994,7 +998,7 @@ mod agent_metrics_tests {
             agent_type: AgentType::Other,
             total_executions: 10,
             successful_executions: 8,
-            total_duration: Duration::from_millis(1000),
+            total_duration: Duration::from_secs(1),
             avg_duration: Duration::from_millis(100),
             min_duration: Duration::from_millis(50),
             max_duration: Duration::from_millis(200),

@@ -5,6 +5,18 @@
 //!
 //! Run with: `cargo bench --bench retrieval_quality_benchmark`
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::explicit_iter_loop)]
+#![allow(clippy::let_with_type_underscore)]
+#![allow(clippy::stable_sort_primitive)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_precision_loss)]
 use criterion::{Criterion, criterion_group, criterion_main};
 use do_memory_core::search::metrics::{
     hit_rate_at_k, map, mrr, ndcg_at_k, precision_at_k, recall_at_k, reciprocal_rank_fusion,

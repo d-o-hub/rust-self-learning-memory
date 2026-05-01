@@ -1,3 +1,12 @@
+//! Property tests for attribution serialization roundtrips
+//!
+//! Integration tests are separate crate roots and don't inherit .clippy.toml settings
+
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(missing_docs)]
+
 use chrono::{TimeZone, Utc};
 use do_memory_core::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,

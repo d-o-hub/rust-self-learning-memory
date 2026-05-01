@@ -12,6 +12,9 @@
 // Integration tests are separate crate roots and don't inherit .clippy.toml settings
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::similar_names)]
 
 use do_memory_core::{MemoryConfig, SelfLearningMemory};
 use do_memory_mcp::{

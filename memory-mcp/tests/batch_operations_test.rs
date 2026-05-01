@@ -7,6 +7,8 @@
 //! - Sequential and fail-fast modes
 //! - Performance characteristics
 
+#![allow(clippy::redundant_closure_for_method_calls)]
+
 use do_memory_mcp::{BatchExecutor, BatchMode, BatchOperation, BatchRequest};
 use serde_json::json;
 use std::time::Duration;

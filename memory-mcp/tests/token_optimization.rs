@@ -4,6 +4,11 @@
 //! 1. Dynamic tool loading (only core tools in initial list_tools response)
 //! 2. Field projection (only requested fields in query responses)
 
+// Test file with many numeric literals and casts for token calculations
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::doc_markdown)]
+
 use do_memory_mcp::server::tools::field_projection::FieldSelector;
 use do_memory_mcp::server::tools::registry::create_default_registry;
 use serde_json::json;

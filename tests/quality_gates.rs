@@ -10,6 +10,13 @@
 //!
 //! All thresholds are configurable via environment variables for flexibility.
 
+// Allow unsafe for env var manipulation in tests
+#![allow(unsafe_code)]
+#![allow(clippy::panic, clippy::float_cmp, clippy::manual_assert)]
+#![allow(clippy::manual_let_else)]
+#![allow(clippy::single_match_else)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+
 use std::env;
 use std::process::Command;
 
@@ -153,11 +160,11 @@ mod unit_tests {
 
     #[test]
     fn parse_coverage_prefers_total_line_percentage() {
-        let stdout = r#"
+        let stdout = r"
 Filename Regions Missed Regions Cover Functions Missed Functions Executed
 memory-core/src/lib.rs 100 0 100.00% 20 0 100.00%
 TOTAL 250 20 92.00% 50 2 96.00%
-"#;
+";
         let stderr = "Some unrelated status: retry 50% complete";
 
         let coverage = parse_coverage_percentage(stdout, stderr);

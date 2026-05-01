@@ -4,6 +4,12 @@
 //! All malicious input should be safely stored as literal text without executing
 //! malicious SQL commands.
 
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::panic)]
+#![allow(missing_docs)]
+
 use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 use do_memory_storage_turso::TursoStorage;
 use tempfile::TempDir;

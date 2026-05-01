@@ -1,3 +1,5 @@
+//! Debug storage example - analyzes storage state and prints diagnostics.
+
 #![allow(unused_imports, dead_code)]
 
 #[tokio::main]

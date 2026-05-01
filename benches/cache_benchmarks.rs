@@ -7,6 +7,12 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::default_trait_access)]
 use criterion::{Criterion, criterion_group, criterion_main};
 use do_memory_core::{Episode, Evidence, Heuristic, Pattern, TaskContext, TaskType};
 use do_memory_storage_turso::{CacheConfig, CachedTursoStorage, TursoConfig, TursoStorage};

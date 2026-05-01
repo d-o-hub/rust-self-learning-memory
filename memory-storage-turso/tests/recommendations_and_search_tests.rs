@@ -7,6 +7,8 @@
 
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::cast_precision_loss)]
 #![allow(unused_imports)]
 
 use chrono::Utc;

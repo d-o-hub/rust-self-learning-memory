@@ -5,6 +5,12 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::no_effect_underscore_binding)]
+#![allow(clippy::explicit_iter_loop)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_benches::TokioExecutor;
 use do_memory_benches::benchmark_helpers::{

@@ -102,7 +102,7 @@ Feature flags: `openai`, `local-embeddings`, `turso`, `redb`, `embeddings-full`,
 
 ## CSM Integration
 
-Enable CPU-local cascading retrieval with the `csm` feature:
+Enable CPU-local cascading retrieval with the `csm` feature flag:
 ```bash
 cargo build --features csm
 ```

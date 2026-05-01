@@ -1,7 +1,7 @@
 //! CLI Episode Lifecycle Workflow Tests (Day 1)
 //!
 //! Comprehensive E2E tests covering:
-//! - Episode creation → add steps → complete episode → query results
+//! - Episode creation -> add steps -> complete episode -> query results
 //! - All 7 tag commands in workflow
 //! - All 7 relationship commands in workflow
 //! - Error recovery paths
@@ -9,6 +9,10 @@
 //! Target: 8+ test scenarios
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::inefficient_to_string)]
 
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::episode::{Direction, ExecutionStep, RelationshipMetadata, RelationshipType};

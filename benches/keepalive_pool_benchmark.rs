@@ -6,6 +6,11 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::explicit_iter_loop)]
+#![allow(clippy::cast_sign_loss)]
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use tokio::runtime::Runtime;

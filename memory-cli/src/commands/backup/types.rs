@@ -49,7 +49,7 @@ pub enum BackupCommands {
     },
 }
 
-#[derive(Debug, Clone, clap::ValueEnum)]
+#[derive(Debug, Clone, PartialEq, Eq, clap::ValueEnum)]
 pub enum BackupFormat {
     Json,
     Jsonl,
@@ -107,6 +107,7 @@ pub struct VerifyResult {
 
 // Output implementations
 impl Output for BackupResult {
+    #[allow(clippy::cast_precision_loss)]
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 
@@ -135,6 +136,7 @@ impl Output for BackupResult {
 }
 
 impl Output for BackupList {
+    #[allow(clippy::cast_precision_loss)]
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 
@@ -224,5 +226,184 @@ impl Output for VerifyResult {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::output::Output;
+    use clap::ValueEnum;
+
+    #[test]
+    fn test_backup_result_output() {
+        let result = BackupResult {
+            backup_id: "test-backup-123".to_string(),
+            path: "/tmp/backup.json".to_string(),
+            format: "Json".to_string(),
+            compressed: false,
+            episodes_count: 10,
+            patterns_count: 5,
+            size_bytes: 1024,
+            duration_ms: 500,
+            timestamp: "2024-01-01T00:00:00Z".to_string(),
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("Backup Created"));
+        assert!(output.contains("test-backup-123"));
+        assert!(output.contains("/tmp/backup.json"));
+        assert!(output.contains("Episodes: 10"));
+    }
+
+    #[test]
+    fn test_backup_result_compressed() {
+        let result = BackupResult {
+            backup_id: "test-backup-456".to_string(),
+            path: "/tmp/backup.json.gz".to_string(),
+            format: "Json".to_string(),
+            compressed: true,
+            episodes_count: 0,
+            patterns_count: 0,
+            size_bytes: 512,
+            duration_ms: 100,
+            timestamp: "2024-01-01T00:00:00Z".to_string(),
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("Compressed: Yes"));
+    }
+
+    #[test]
+    fn test_backup_list_empty() {
+        let list = BackupList {
+            backups: vec![],
+            total_size_bytes: 0,
+        };
+
+        let mut buffer = Vec::new();
+        list.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("No backups found"));
+    }
+
+    #[test]
+    fn test_backup_list_with_backups() {
+        let list = BackupList {
+            backups: vec![BackupInfo {
+                id: "backup-1".to_string(),
+                timestamp: "2024-01-01".to_string(),
+                format: "json".to_string(),
+                compressed: false,
+                episodes_count: 10,
+                patterns_count: 2,
+                size_bytes: 1024,
+                path: "/tmp/backup-1.json".to_string(),
+            }],
+            total_size_bytes: 1024,
+        };
+
+        let mut buffer = Vec::new();
+        list.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("backup-1"));
+        assert!(output.contains("Total Size"));
+    }
+
+    #[test]
+    fn test_restore_result_success() {
+        let result = RestoreResult {
+            backup_id: "backup-restore-123".to_string(),
+            episodes_restored: 10,
+            patterns_restored: 5,
+            duration_ms: 200,
+            errors: vec![],
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("Restore Complete"));
+        assert!(output.contains("backup-restore-123"));
+        assert!(output.contains("Episodes Restored: 10"));
+    }
+
+    #[test]
+    fn test_restore_result_with_errors() {
+        let result = RestoreResult {
+            backup_id: "backup-restore-456".to_string(),
+            episodes_restored: 5,
+            patterns_restored: 0,
+            duration_ms: 100,
+            errors: vec![
+                "Failed to restore episode ep-1 to Turso".to_string(),
+                "Failed to parse episode: invalid JSON".to_string(),
+            ],
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("Errors (2)"));
+        assert!(output.contains("Failed to restore episode"));
+        assert!(output.contains("Failed to parse episode"));
+    }
+
+    #[test]
+    fn test_verify_result_valid() {
+        let result = VerifyResult {
+            backup_id: "verify-123".to_string(),
+            is_valid: true,
+            issues: vec![],
+            episodes_count: 10,
+            patterns_count: 5,
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("VALID"));
+        assert!(output.contains("verify-123"));
+    }
+
+    #[test]
+    fn test_verify_result_invalid() {
+        let result = VerifyResult {
+            backup_id: "verify-456".to_string(),
+            is_valid: false,
+            issues: vec![
+                "Backup file is empty".to_string(),
+                "Invalid JSON format".to_string(),
+            ],
+            episodes_count: 0,
+            patterns_count: 0,
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("INVALID"));
+        assert!(output.contains("Issues Found (2)"));
+        assert!(output.contains("Backup file is empty"));
+    }
+
+    #[test]
+    fn test_backup_format_value_enum() {
+        // Test that BackupFormat implements ValueEnum
+        let variants = BackupFormat::value_variants();
+        // Just check that we have 3 variants
+        assert_eq!(variants.len(), 3);
     }
 }

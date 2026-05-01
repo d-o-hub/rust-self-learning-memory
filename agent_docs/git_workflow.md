@@ -6,6 +6,7 @@
 2. **Workflow**: make change → test → quality check → verify → commit
 3. **Format**: `feat(module): description`, `fix(module): description`
 4. Never batch incomplete work
+5. **Commit Frequency**: Commit after each atomic change. If session >2 hours or >3 files modified without commit, pause and commit.
 
 ### Commit Message Format
 

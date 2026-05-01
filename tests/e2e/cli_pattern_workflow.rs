@@ -1,7 +1,7 @@
 //! CLI Pattern Discovery Workflow Tests (Day 1)
 //!
 //! Comprehensive E2E tests covering:
-//! - Create episodes → complete → extract patterns → query patterns
+//! - Create episodes -> complete -> extract patterns -> query patterns
 //! - Pattern search and recommendation
 //! - Pattern filtering by domain
 //! - Pattern export
@@ -9,6 +9,8 @@
 //! Target: 6+ test scenarios
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::inefficient_to_string)]
+#![allow(clippy::if_not_else)]
 
 use do_memory_core::MemoryConfig;
 use do_memory_core::SelfLearningMemory;

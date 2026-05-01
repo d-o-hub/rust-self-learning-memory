@@ -2,6 +2,11 @@
 //!
 //! Tests security aspects of the advanced pattern analysis tool.
 
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::useless_conversion)]
+#![allow(missing_docs)]
+#![allow(clippy::single_match_else)]
+
 use do_memory_core::SelfLearningMemory;
 use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
     AdvancedPatternAnalysisInput, AdvancedPatternAnalysisTool, AnalysisConfig, AnalysisType,
@@ -68,7 +73,7 @@ async fn test_resource_limits() {
 
     // Test with maximum allowed data points
     let mut large_data = HashMap::new();
-    let max_series: Vec<f64> = (0..10_000).map(|x| x as f64).collect();
+    let max_series: Vec<f64> = (0..10_000).map(f64::from).collect();
     large_data.insert("max_size".to_string(), max_series);
 
     let input = AdvancedPatternAnalysisInput {
@@ -212,7 +217,7 @@ async fn test_timeout_protection() {
 
     // Create a very large dataset that might be slow
     let mut data = HashMap::new();
-    let large_series: Vec<f64> = (0..1000).map(|x| x as f64).collect();
+    let large_series: Vec<f64> = (0..1000).map(f64::from).collect();
 
     for i in 0..20 {
         data.insert(format!("var_{}", i), large_series.clone());

@@ -1,6 +1,8 @@
 //!
 //! Tests for semantic retrieval integration with hierarchical retrieval
 
+#![allow(clippy::unwrap_used)]
+
 use std::time::Instant;
 
 use do_memory_core::{

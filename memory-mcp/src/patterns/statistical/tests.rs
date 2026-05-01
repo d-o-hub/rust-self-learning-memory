@@ -2,6 +2,9 @@
 //!
 //! Test suite for the statistical analysis engine.
 
+#![allow(clippy::drop_non_drop)]
+#![allow(missing_docs)]
+
 use anyhow::Result;
 use std::collections::HashMap;
 
@@ -228,8 +231,6 @@ fn test_hazard_rate_adaptation() {
     for i in 0..15 {
         bocpd.update_state(10.0 + (i as f64 * 0.01)).unwrap();
     }
-
-    let _initial_hazard = bocpd.state.hazard_rate;
 
     // Add data with high variance - hazard rate should adapt based on variance
     for i in 0..15 {

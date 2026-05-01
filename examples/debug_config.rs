@@ -1,3 +1,8 @@
+//! Debug configuration example - prints environment variables and config state.
+
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+
 use std::env;
 
 fn main() {
@@ -18,14 +23,14 @@ fn main() {
     // Test smart defaults (simulated)
     println!("\nSmart defaults simulation:");
     let current_dir = env::current_dir().unwrap();
-    println!("Current directory: {:?}", current_dir);
+    println!("Current directory: {}", current_dir.display());
 
     // redb detection
     if let Ok(redb_path) = env::var("REDB_PATH") {
         println!("REDB_PATH from env: {}", redb_path);
     } else {
         let default_redb = current_dir.join("data").join("cache").join("memory.redb");
-        println!("Default redb path: {:?}", default_redb);
+        println!("Default redb path: {}", default_redb.display());
     }
 
     // Check if files exist

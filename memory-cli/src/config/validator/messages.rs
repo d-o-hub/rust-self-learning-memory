@@ -151,7 +151,7 @@ pub fn validate_config_path(path: &Path) -> Result<(), ValidationError> {
 
     // Check file extension
     match path.extension().and_then(|s| s.to_str()) {
-        Some("toml") | Some("json") | Some("yaml") | Some("yml") => Ok(()),
+        Some("toml" | "json" | "yaml" | "yml") => Ok(()),
         Some(ext) => Err(ValidationError {
             field: "config_path".to_string(),
             message: format!("Unsupported configuration file format: .{}", ext),
@@ -271,6 +271,78 @@ mod messages_tests {
         let path = Path::new("/nonexistent/path.toml");
         let result = validate_config_path(path);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_config_path_unsupported_extension() {
+        // Create a temp file with unsupported extension
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let txt_path = temp_dir.path().join("config.txt");
+        std::fs::write(&txt_path, "test content").unwrap();
+
+        let result = validate_config_path(&txt_path);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("Unsupported"));
+        assert!(err.suggestion.is_some());
+    }
+
+    #[test]
+    fn test_validate_config_path_no_extension() {
+        // Create a temp file with no extension
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let no_ext_path = temp_dir.path().join("config");
+        std::fs::write(&no_ext_path, "test content").unwrap();
+
+        let result = validate_config_path(&no_ext_path);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.message.contains("no extension"));
+        assert!(err.suggestion.is_some());
+    }
+
+    #[test]
+    fn test_validate_config_path_valid_toml() {
+        // Create a valid temp TOML file
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let toml_path = temp_dir.path().join("config.toml");
+        std::fs::write(&toml_path, "[test]\nkey = \"value\"").unwrap();
+
+        let result = validate_config_path(&toml_path);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_config_path_valid_json() {
+        // Create a valid temp JSON file
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let json_path = temp_dir.path().join("config.json");
+        std::fs::write(&json_path, "{\"test\": \"value\"}").unwrap();
+
+        let result = validate_config_path(&json_path);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_config_path_valid_yaml() {
+        // Create a valid temp YAML file
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let yaml_path = temp_dir.path().join("config.yaml");
+        std::fs::write(&yaml_path, "test: value").unwrap();
+
+        let result = validate_config_path(&yaml_path);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_config_path_valid_yml() {
+        // Create a valid temp YML file
+        let temp_dir = tempfile::TempDir::new().unwrap();
+        let yml_path = temp_dir.path().join("config.yml");
+        std::fs::write(&yml_path, "test: value").unwrap();
+
+        let result = validate_config_path(&yml_path);
+        assert!(result.is_ok());
     }
 
     #[test]

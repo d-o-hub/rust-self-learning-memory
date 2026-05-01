@@ -10,6 +10,8 @@
 //! - Path traversal attacks
 //! - Environment variable access
 
+#![allow(clippy::needless_raw_string_hashes)]
+
 use do_memory_mcp::{
     CodeSandbox, ExecutionContext, ExecutionResult, SandboxConfig, SecurityViolationType,
 };

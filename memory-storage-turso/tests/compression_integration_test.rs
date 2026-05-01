@@ -7,6 +7,11 @@
 //! in CI environments. See ADR-027 for details.
 
 #![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::panic)]
 
 use do_memory_core::{Episode, ExecutionStep, TaskContext, TaskOutcome, TaskType};
 #[cfg(feature = "compression")]

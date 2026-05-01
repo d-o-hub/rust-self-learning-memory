@@ -98,17 +98,18 @@ impl ConfigWizard {
             }
 
             if Confirm::with_theme(&self.theme)
-                .with_prompt("⚠️  Configuration has errors. Do you want to continue anyway? (Not recommended)")
+                .with_prompt(
+                    "Configuration has errors. Do you want to continue anyway? (Not recommended)",
+                )
                 .default(false)
                 .interact()?
             {
-                println!("⚠️  Continuing with invalid configuration - this may cause runtime errors!");
+                println!("Continuing with invalid configuration - this may cause runtime errors!");
                 return Ok(());
-            } else {
-                return Err(anyhow::anyhow!(
-                    "Configuration validation failed. Please restart the wizard and fix the errors."
-                ));
             }
+            return Err(anyhow::anyhow!(
+                "Configuration validation failed. Please restart the wizard and fix the errors."
+            ));
         }
 
         if !validation_result.warnings.is_empty() {

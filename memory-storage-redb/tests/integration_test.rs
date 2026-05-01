@@ -1,5 +1,12 @@
 //! Integration tests for redb storage
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
+
 use do_memory_core::{Episode, StorageBackend, TaskContext, TaskType};
 use do_memory_storage_redb::{RedbQuery, RedbStorage};
 use tempfile::TempDir;

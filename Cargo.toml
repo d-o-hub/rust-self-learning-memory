@@ -94,6 +94,38 @@ toml = "1.1"
 [workspace.metadata.coverage]
 exclude-from-coverage = ["tests", "benches"]
 
+# Workspace-wide lint configuration for stricter quality gates
+[workspace.lints.rust]
+# Note: unsafe_code set to warn (not deny/forbid) to allow test env var manipulation
+# and other legitimate unsafe patterns. Can tighten in future.
+unsafe_code = "warn"
+missing_docs = "warn"
+rust_2024_compatibility = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "allow", priority = -1 }
+
+# Async/Tokio-specific lints (critical for async safety)
+await_holding_lock = "deny"
+await_holding_refcell_ref = "deny"
+
+# Memory and allocation efficiency
+box_collection = "warn"
+large_types_passed_by_value = "warn"
+inefficient_to_string = "warn"
+
+# Security-focused lints
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+
+# Code quality lints
+cognitive_complexity = "warn"
+too_many_arguments = "warn"
+type_complexity = "allow"  # Complex types are common in this codebase
+
 # The profile that 'dist' will build with
 [profile.dist]
 inherits = "release"

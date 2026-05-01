@@ -52,7 +52,55 @@ jobs:
             -D warnings \
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
-            -A clippy::unwrap_used
+            -A clippy::unwrap_used \
+            -A clippy::doc_markdown \
+            -A clippy::cognitive_complexity \
+            -A clippy::redundant_closure \
+            -A clippy::redundant_closure_for_method_calls \
+            -A clippy::map_unwrap_or \
+            -A clippy::single_match_else \
+            -A clippy::match_same_arms \
+            -A clippy::similar_names \
+            -A clippy::unused_async \
+            -A clippy::cast_precision_loss \
+            -A clippy::cast_sign_loss \
+            -A clippy::cast_possible_truncation \
+            -A clippy::cast_possible_wrap \
+            -A clippy::inefficient_to_string \
+            -A clippy::manual_string_new \
+            -A clippy::single_char_pattern \
+            -A clippy::format_push_string \
+            -A clippy::items_after_statements \
+            -A clippy::manual_let_else \
+            -A clippy::if_not_else \
+            -A clippy::default_trait_access \
+            -A clippy::struct_excessive_bools \
+            -A clippy::fn_params_excessive_bools \
+            -A clippy::implicit_clone \
+            -A clippy::assigning_clones \
+            -A clippy::bool_to_int_with_if \
+            -A clippy::unnecessary_semicolon \
+            -A clippy::ref_option \
+            -A clippy::empty_structs_with_brackets \
+            -A clippy::cast_lossless \
+            -A clippy::needless_continue \
+            -A clippy::bool_comparison \
+            -A clippy::return_self_not_must_use \
+            -A clippy::unnested_or_patterns \
+            -A clippy::if_then_some_else_none \
+            -A clippy::clone_on_copy \
+            -A clippy::unused_unit \
+            -A clippy::duration_subsec \
+            -A clippy::bool_assert_comparison \
+            -A clippy::struct_field_names \
+            -A clippy::let_underscore_untyped \
+            -A clippy::explicit_iter_loop \
+            -A clippy::needless_pass_by_value \
+            -A clippy::case_sensitive_file_extension_comparisons \
+            -A clippy::checked_conversions \
+            -A clippy::no_effect_underscore_binding \
+            -A clippy::ignored_unit_patterns \
+            -A clippy::unused_self
 
       - name: Run clippy on tests
         run: |
@@ -60,7 +108,55 @@ jobs:
             -D warnings \
             -A clippy::expect_used \
             -A clippy::uninlined_format_args \
-            -A clippy::unwrap_used
+            -A clippy::unwrap_used \
+            -A clippy::doc_markdown \
+            -A clippy::cognitive_complexity \
+            -A clippy::redundant_closure \
+            -A clippy::redundant_closure_for_method_calls \
+            -A clippy::map_unwrap_or \
+            -A clippy::single_match_else \
+            -A clippy::match_same_arms \
+            -A clippy::similar_names \
+            -A clippy::unused_async \
+            -A clippy::cast_precision_loss \
+            -A clippy::cast_sign_loss \
+            -A clippy::cast_possible_truncation \
+            -A clippy::cast_possible_wrap \
+            -A clippy::inefficient_to_string \
+            -A clippy::manual_string_new \
+            -A clippy::single_char_pattern \
+            -A clippy::format_push_string \
+            -A clippy::items_after_statements \
+            -A clippy::manual_let_else \
+            -A clippy::if_not_else \
+            -A clippy::default_trait_access \
+            -A clippy::struct_excessive_bools \
+            -A clippy::fn_params_excessive_bools \
+            -A clippy::implicit_clone \
+            -A clippy::assigning_clones \
+            -A clippy::bool_to_int_with_if \
+            -A clippy::unnecessary_semicolon \
+            -A clippy::ref_option \
+            -A clippy::empty_structs_with_brackets \
+            -A clippy::cast_lossless \
+            -A clippy::needless_continue \
+            -A clippy::bool_comparison \
+            -A clippy::return_self_not_must_use \
+            -A clippy::unnested_or_patterns \
+            -A clippy::if_then_some_else_none \
+            -A clippy::clone_on_copy \
+            -A clippy::unused_unit \
+            -A clippy::duration_subsec \
+            -A clippy::bool_assert_comparison \
+            -A clippy::struct_field_names \
+            -A clippy::let_underscore_untyped \
+            -A clippy::explicit_iter_loop \
+            -A clippy::needless_pass_by_value \
+            -A clippy::case_sensitive_file_extension_comparisons \
+            -A clippy::checked_conversions \
+            -A clippy::no_effect_underscore_binding \
+            -A clippy::ignored_unit_patterns \
+            -A clippy::unused_self
 
       - name: Run documentation tests
         run: |

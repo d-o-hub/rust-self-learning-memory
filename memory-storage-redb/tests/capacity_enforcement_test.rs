@@ -7,6 +7,13 @@
 //! - Transaction atomicity (evict-then-insert)
 //! - Metadata tracking of episode count
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
+
 use chrono::Utc;
 use do_memory_core::episodic::{CapacityManager, EvictionPolicy};
 use do_memory_core::pre_storage::SalientFeatures;

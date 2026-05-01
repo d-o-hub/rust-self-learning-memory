@@ -1,3 +1,5 @@
+#![allow(clippy::ignore_without_reason)]
+
 use crate::patterns::predictive::{
     dbscan::{AdaptiveDBSCAN, DBSCANConfig},
     kdtree::{KDTree, Point},

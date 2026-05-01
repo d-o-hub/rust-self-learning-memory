@@ -108,3 +108,4 @@ mcp-config-*.json
 *.proptest-regressions
 .memory-traces/
 audit-report.json
+insights-report/

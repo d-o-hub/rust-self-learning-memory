@@ -1,6 +1,49 @@
 use super::{ConfigPreset, ConfigWizard, Result, StorageConfig};
 use dialoguer::Input;
 
+/// Validation error messages for storage configuration
+pub mod validation {
+    pub const CACHE_SIZE_ZERO: &str = "Cache size must be greater than 0";
+    pub const CACHE_SIZE_TOO_LARGE: &str = "Cache size too large (max: 100_000)";
+    pub const TTL_ZERO: &str = "TTL must be greater than 0";
+    pub const TTL_TOO_LONG: &str = "TTL too long (max: 86400 seconds / 24 hours)";
+    pub const POOL_SIZE_ZERO: &str = "Pool size must be greater than 0";
+    pub const POOL_SIZE_TOO_LARGE: &str = "Pool size too large (max: 200)";
+
+    /// Validate cache size (max_episodes_cache)
+    pub fn validate_cache_size(input: usize) -> std::result::Result<(), &'static str> {
+        if input == 0 {
+            return Err(CACHE_SIZE_ZERO);
+        }
+        if input > 100_000 {
+            return Err(CACHE_SIZE_TOO_LARGE);
+        }
+        Ok(())
+    }
+
+    /// Validate cache TTL (cache_ttl_seconds)
+    pub fn validate_cache_ttl(input: u64) -> std::result::Result<(), &'static str> {
+        if input == 0 {
+            return Err(TTL_ZERO);
+        }
+        if input > 86400 {
+            return Err(TTL_TOO_LONG);
+        }
+        Ok(())
+    }
+
+    /// Validate pool size
+    pub fn validate_pool_size(input: usize) -> std::result::Result<(), &'static str> {
+        if input == 0 {
+            return Err(POOL_SIZE_ZERO);
+        }
+        if input > 200 {
+            return Err(POOL_SIZE_TOO_LARGE);
+        }
+        Ok(())
+    }
+}
+
 impl ConfigWizard {
     /// Configure storage settings
     pub fn configure_storage(&self, preset: &ConfigPreset) -> Result<StorageConfig> {
@@ -22,13 +65,7 @@ impl ConfigWizard {
             ))
             .default(config.max_episodes_cache)
             .validate_with(|input: &usize| -> Result<(), &str> {
-                if *input == 0 {
-                    return Err("Cache size must be greater than 0");
-                }
-                if *input > 100000 {
-                    return Err("Cache size too large (max: 100000)");
-                }
-                Ok(())
+                validation::validate_cache_size(*input)
             })
             .interact_text()?;
 
@@ -45,13 +82,7 @@ impl ConfigWizard {
             ))
             .default(config.cache_ttl_seconds)
             .validate_with(|input: &u64| -> Result<(), &str> {
-                if *input == 0 {
-                    return Err("TTL must be greater than 0");
-                }
-                if *input > 86400 {
-                    return Err("TTL too long (max: 86400 seconds / 24 hours)");
-                }
-                Ok(())
+                validation::validate_cache_ttl(*input)
             })
             .interact_text()?;
 
@@ -68,13 +99,7 @@ impl ConfigWizard {
             ))
             .default(config.pool_size)
             .validate_with(|input: &usize| -> Result<(), &str> {
-                if *input == 0 {
-                    return Err("Pool size must be greater than 0");
-                }
-                if *input > 200 {
-                    return Err("Pool size too large (max: 200)");
-                }
-                Ok(())
+                validation::validate_pool_size(*input)
             })
             .interact_text()?;
 
@@ -116,5 +141,73 @@ impl ConfigWizard {
         config.pool_size = pool_size;
 
         Ok(config)
+    }
+}
+
+#[cfg(test)]
+mod storage_validation_tests {
+    use super::validation::*;
+
+    #[test]
+    fn test_validate_cache_size_valid() {
+        assert!(validate_cache_size(100).is_ok());
+        assert!(validate_cache_size(1000).is_ok());
+        assert!(validate_cache_size(100_000).is_ok());
+    }
+
+    #[test]
+    fn test_validate_cache_size_zero() {
+        let result = validate_cache_size(0);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), CACHE_SIZE_ZERO);
+    }
+
+    #[test]
+    fn test_validate_cache_size_too_large() {
+        let result = validate_cache_size(100_001);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), CACHE_SIZE_TOO_LARGE);
+    }
+
+    #[test]
+    fn test_validate_cache_ttl_valid() {
+        assert!(validate_cache_ttl(300).is_ok());
+        assert!(validate_cache_ttl(1800).is_ok());
+        assert!(validate_cache_ttl(86400).is_ok());
+    }
+
+    #[test]
+    fn test_validate_cache_ttl_zero() {
+        let result = validate_cache_ttl(0);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), TTL_ZERO);
+    }
+
+    #[test]
+    fn test_validate_cache_ttl_too_long() {
+        let result = validate_cache_ttl(86401);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), TTL_TOO_LONG);
+    }
+
+    #[test]
+    fn test_validate_pool_size_valid() {
+        assert!(validate_pool_size(5).is_ok());
+        assert!(validate_pool_size(10).is_ok());
+        assert!(validate_pool_size(200).is_ok());
+    }
+
+    #[test]
+    fn test_validate_pool_size_zero() {
+        let result = validate_pool_size(0);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), POOL_SIZE_ZERO);
+    }
+
+    #[test]
+    fn test_validate_pool_size_too_large() {
+        let result = validate_pool_size(201);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), POOL_SIZE_TOO_LARGE);
     }
 }

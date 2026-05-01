@@ -1,13 +1,17 @@
 //! MCP Episode Management Chain Tests (Day 2-3)
 //!
 //! Comprehensive E2E tests covering:
-//! - start_episode → log_step → complete_episode → retrieve_relevant_context
+//! - start_episode -> log_step -> complete_episode -> retrieve_relevant_context
 //! - Error handling in chain
 //! - Transaction rollback simulation
 //!
 //! Target: 5+ test scenarios
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
 
 use do_memory_core::types::{MemoryConfig, TaskContext};
 use do_memory_core::{ExecutionResult, ExecutionStep, SelfLearningMemory, TaskOutcome, TaskType};

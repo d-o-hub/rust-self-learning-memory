@@ -1,3 +1,10 @@
+//! Notification Tests
+//!
+//! Tests for MCP notification handling.
+
+#![allow(missing_docs)]
+#![allow(clippy::unused_async)]
+
 use serde_json::json;
 
 use do_memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};

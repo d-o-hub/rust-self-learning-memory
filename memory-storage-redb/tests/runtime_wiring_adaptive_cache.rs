@@ -8,6 +8,13 @@
 //! **Current State**: AdaptiveCache is NOW WIRED into RedbStorage via AdaptiveCacheAdapter.
 //!
 //! **Architecture**:
+
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
 //! - `LRUCache` is a metadata-only cache that tracks access patterns
 //! - `AdaptiveCache<V>` is a value-storing cache that would duplicate data
 //! - `AdaptiveCacheAdapter` wraps `AdaptiveCache<()>` for metadata-only caching with adaptive TTL
@@ -23,8 +30,6 @@
 //! - Cold item detection: Rarely accessed items get shorter TTL
 //! - No value duplication: Uses unit type `()` as stored value
 //! - Single source of truth: redb remains the data store
-
-#![allow(clippy::expect_used)]
 
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_redb::{

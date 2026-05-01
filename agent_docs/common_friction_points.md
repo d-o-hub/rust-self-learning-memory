@@ -75,7 +75,7 @@ Based on analysis of 34 sessions (234 messages, 97 commits):
 
 ## Tool Usage Patterns
 
-> For tool selection guidance (Grep vs Bash), see [AGENTS.md](../AGENTS.md#tool-selection-enforcement).
+> For tool selection guidance (Bash:Grep ratio 2:1), see [AGENTS.md](../AGENTS.md#tool-selection-enforcement).
 
 ### Tool Error Prevention
 

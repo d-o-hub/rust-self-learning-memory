@@ -7,6 +7,10 @@
 
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::panic)]
+#![allow(clippy::unreadable_literal)]
 
 // ============================================================================
 // Transport Tests (requires compression feature)

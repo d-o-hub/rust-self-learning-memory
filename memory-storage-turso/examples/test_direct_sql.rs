@@ -1,5 +1,9 @@
 //! Direct test of CREATE_EMBEDDINGS_TABLE SQL
 
+#![allow(clippy::needless_raw_string_hashes)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db = libsql::Builder::new_local(":memory:").build().await?;

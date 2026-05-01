@@ -14,6 +14,8 @@
 //!
 //! All tests follow the Given-When-Then pattern for clarity.
 
+#![allow(clippy::unwrap_used)]
+
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::{
     ComplexityLevel, ExecutionResult, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome,

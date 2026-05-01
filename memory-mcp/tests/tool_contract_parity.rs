@@ -1,11 +1,14 @@
 //! MCP Tool Contract Parity Tests
 //!
 //! This test module verifies that every tool advertised by the MCP server
-//! (via list_tools) has a corresponding handler that can dispatch to it.
+//! (via `list_tools`) has a corresponding handler that can dispatch to it.
 //!
 //! This catches the issue where tools are defined in the schema but
 //! their handlers are commented out or missing, which creates a broken
 //! contract with clients.
+
+#![allow(missing_docs)]
+#![allow(clippy::doc_markdown)]
 
 use do_memory_core::{MemoryConfig, SelfLearningMemory};
 use do_memory_mcp::MemoryMCPServer;

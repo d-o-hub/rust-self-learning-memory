@@ -13,7 +13,7 @@
 
 ## Target Ratios
 - Read:Edit = 2:1 (understand before modifying)
-- Grep:Bash = 1:2 (search before shell)
+- Bash:Grep = 2:1 (prefer Grep for file/content searches, Bash for file ops/scripts; see [AGENTS.md](../AGENTS.md#tool-selection-enforcement))
 - Script:Raw = 3:1 (prefer scripts over raw commands)
 
 ## Anti-Patterns (waste tokens)

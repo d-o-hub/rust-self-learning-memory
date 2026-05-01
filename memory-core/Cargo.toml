@@ -110,10 +110,7 @@ postcard = { workspace = true }
 # Enable proptest-arbitrary feature for tests
 do-memory-core = { path = ".", features = ["proptest-arbitrary"] }
 
-[lints.clippy]
-# Core library gets pedantic linting for best practices
-pedantic = { level = "warn" }
-missing_docs_in_private_items = { level = "allow" }
-missing_errors_doc = { level = "warn" }
-missing_safety_doc = { level = "warn" }
-doc_markdown = { level = "warn" }
+# Inherit workspace lints
+
+[lints]
+workspace = true

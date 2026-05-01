@@ -1,3 +1,17 @@
+// Clippy suppressions for test utilities
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cognitive_complexity)]
+#![allow(clippy::panic)]
+#![allow(clippy::wildcard_imports)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(missing_docs)]
+
 //! # Test Utilities
 //!
 //! Shared test utilities for the self-learning memory system.
@@ -186,6 +200,6 @@ mod tests {
     #[test]
     fn test_create_test_pattern() {
         let pattern = create_test_pattern("tool_sequence", 0.9);
-        assert_eq!(pattern.success_rate(), 0.9);
+        assert!((pattern.success_rate() - 0.9).abs() < 0.001);
     }
 }

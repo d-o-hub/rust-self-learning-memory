@@ -1,3 +1,12 @@
+//! Property tests for checkpoint serialization roundtrips
+
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(missing_docs)]
+
 use do_memory_core::memory::checkpoint::{CheckpointMeta, HandoffPack};
 // HandoffSummary is not public in checkpoint mod, but it's okay, we can test CheckpointMeta and HandoffPack
 use chrono::{TimeZone, Utc};

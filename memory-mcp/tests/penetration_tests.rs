@@ -13,6 +13,19 @@
 //! 7. Timing-based Attacks
 //! 8. Memory Corruption Attempts
 
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::panic)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::needless_raw_string_hashes)]
+#![allow(clippy::single_match_else)]
+#![allow(clippy::match_wildcard_for_single_variants)]
+#![allow(clippy::float_cmp)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::inefficient_to_string)]
+#![allow(clippy::match_same_arms)]
+
 use do_memory_mcp::{
     CodeSandbox, ExecutionContext, ExecutionResult, NetworkRestrictions, ResourceLimits,
     SandboxConfig, SecurityViolationType,

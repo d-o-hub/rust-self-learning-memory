@@ -1,3 +1,9 @@
+//! Checkpoint Integration Tests
+//!
+//! Tests for checkpoint/handoff flow and persistence.
+
+#![allow(missing_docs)]
+
 use std::sync::Arc;
 
 use do_memory_core::memory::SelfLearningMemory;

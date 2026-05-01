@@ -2,7 +2,12 @@
 //!
 //! Demonstrates the 89% reduction in connection overhead using the keep-alive pool.
 //!
-//! Run with: cargo run --example keepalive_pool_demo --features keepalive-pool
+//! Run with: cargo run --example `keepalive_pool_demo` --features keepalive-pool
+
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_lossless)]
 
 use do_memory_storage_turso::{TursoConfig, TursoStorage};
 use std::time::Instant;

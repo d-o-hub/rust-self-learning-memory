@@ -3,6 +3,8 @@
 //! These tests verify end-to-end functionality of CLI commands
 //! using test harnesses and mock storage backends.
 
+#![allow(clippy::uninlined_format_args)]
+
 use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;

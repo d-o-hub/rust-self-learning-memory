@@ -1,5 +1,8 @@
 //! Circuit breaker pattern for embedding providers
 
+// Mutex lock poisoning is unrecoverable - expect is appropriate here
+#![allow(clippy::expect_used)]
+
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 

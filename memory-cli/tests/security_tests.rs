@@ -3,6 +3,14 @@
 //! These tests verify that the CLI properly handles malicious input,
 //! prevents injection attacks, and sanitizes user data.
 
+// Integration tests are separate crate roots and don't inherit .clippy.toml settings
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::manual_let_else)]
+#![allow(clippy::single_match_else)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unreadable_literal)]
+
 use std::fs;
 
 #[cfg(test)]

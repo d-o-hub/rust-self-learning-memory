@@ -9,6 +9,13 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::explicit_iter_loop)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_benches::TokioExecutor;
 use do_memory_benches::benchmark_helpers::{

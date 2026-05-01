@@ -10,6 +10,12 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::explicit_iter_loop)]
+#![allow(clippy::cast_sign_loss)]
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use do_memory_core::retrieval::{CacheKey, QueryCache};
 use do_memory_core::{Episode, ExecutionResult, ExecutionStep, TaskContext, TaskType};

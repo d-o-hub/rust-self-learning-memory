@@ -27,3 +27,8 @@ tracing = { workspace = true }
 default = []
 turso = ["dep:do-memory-storage-turso", "dep:rand", "dep:rand_chacha"]
 full = ["turso"]
+
+# Inherit workspace lints
+
+[lints]
+workspace = true

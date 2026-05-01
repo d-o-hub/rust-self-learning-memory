@@ -1,5 +1,8 @@
 //! Integration tests for quality metrics MCP tool
 
+#![allow(clippy::float_cmp)]
+#![allow(missing_docs)]
+
 use do_memory_core::types::{ComplexityLevel, ExecutionResult, Reflection};
 use do_memory_core::{
     Episode, ExecutionStep, SelfLearningMemory, TaskContext, TaskOutcome, TaskType,

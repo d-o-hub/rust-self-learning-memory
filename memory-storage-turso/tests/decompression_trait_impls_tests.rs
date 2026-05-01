@@ -1,13 +1,13 @@
-//! Coverage tests for decompression module and trait_impls module (ACT-029)
+//! Coverage tests for decompression module and `trait_impls` module (ACT-029)
 //!
 //! Focus areas:
-//! - transport/decompression.rs - Decompression round-trips and error handling
-//! - trait_impls/mod.rs - StorageStatistics struct usage
+//! - `transport/decompression.rs` - Decompression round-trips and error handling
+//! - `trait_impls/mod.rs` - `StorageStatistics` struct usage
 //!
 //! These tests improve coverage from ~18-21% to target 50%+.
 //!
 //! Note: LZ4 decompression tests are omitted because LZ4 requires knowing the
-//! original size from stats (cumulative total_original_bytes), which cannot
+//! original size from stats (cumulative `total_original_bytes`), which cannot
 //! be set externally for pre-compressed data. LZ4 round-trips work correctly
 //! when zstd is not available, but decompressing externally compressed LZ4
 //! data is not supported.
@@ -15,8 +15,15 @@
 #![cfg(feature = "compression")]
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::single_char_pattern)]
 #![allow(unused)]
 #![allow(dead_code)]
+#![allow(missing_docs)]
 
 use async_trait::async_trait;
 use do_memory_storage_turso::StorageStatistics;

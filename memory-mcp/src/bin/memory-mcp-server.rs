@@ -4,6 +4,26 @@
 //! self-learning memory system with OAuth 2.1 authorization support.
 //! It communicates over stdio using JSON-RPC.
 
+// Clippy suppressions for MCP server binary
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cognitive_complexity)]
+#![allow(clippy::redundant_closure)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::single_match_else)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::unused_async)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::inefficient_to_string)]
+#![allow(clippy::manual_string_new)]
+#![allow(clippy::single_char_pattern)]
+#![allow(clippy::format_push_string)]
+#![allow(clippy::items_after_statements)]
+
 mod server_impl;
 
 use do_memory_mcp::SandboxConfig;

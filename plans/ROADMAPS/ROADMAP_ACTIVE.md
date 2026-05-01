@@ -76,7 +76,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-124 | Procedural memory type: learned heuristics-as-skills (ParamAgent-inspired) | 🔵 Backlog | 124 |
 | WG-125 | Evaluate Routing-Free MoE for DyMoE replacement (arXiv:2604.00801) | 🔵 Backlog | 125 |
 | WG-108 | Version-retained persistence (concept drift tracking) | 🔵 Backlog | 108 |
-| WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | 🔵 Backlog | 109 |
+| WG-109 | `BundleAccumulator` sliding window (recency-weighted context) | ✅ Complete (WG-117) | 109 |
 | WG-110 | SIMD-accelerated similarity (defer until benchmarks justify) | 🔵 Backlog | 110 |
 | WG-126 | Cross-agent memory collaboration via contrastive trajectory distillation (MemCollab, arXiv:2603.23234) | 🔵 Backlog | 126 |
 | WG-127 | Semantic gist extraction + CogniRank reranking (CogitoRAG, arXiv:2602.15895) | 🔵 Backlog | 127 |

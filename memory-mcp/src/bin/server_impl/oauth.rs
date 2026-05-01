@@ -75,8 +75,7 @@ struct Claims {
 /// - Subject claim presence
 ///
 /// Note: When `MCP_OAUTH_TOKEN_SECRET` is not provided, signature verification
-/// is effectively bypassed if the library allows it, which is INSECURE for production.
-/// A warning is logged in this case.
+/// fails and an error is returned. This ensures tokens are always verified.
 #[cfg(feature = "oauth")]
 pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> AuthorizationResult {
     let mut validation = Validation::default();
@@ -95,14 +94,10 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     let decoding_key = if let Some(secret) = &config.token_secret {
         DecodingKey::from_secret(secret.as_bytes())
     } else {
-        warn!(
-            "SECURITY WARNING: No OAUTH_TOKEN_SECRET configured. \
-             Tokens cannot be securely verified."
+        warn!("SECURITY ERROR: No OAUTH_TOKEN_SECRET configured. Rejecting token.");
+        return AuthorizationResult::InvalidToken(
+            "Server misconfiguration: OAUTH_TOKEN_SECRET is missing".to_string(),
         );
-        // Insecure fallback - for now we still allow it but it should be mandatory in production
-        // To allow decoding without verification if no secret is provided:
-        validation.insecure_disable_signature_validation();
-        DecodingKey::from_secret(&[]) // Dummy key
     };
 
     match decode::<Claims>(token, &decoding_key, &validation) {
@@ -194,4 +189,27 @@ pub fn create_www_authenticate_header(
     }
 
     format!("Bearer {}", parts.join(", "))
+}
+
+#[cfg(all(test, feature = "oauth"))]
+mod tests {
+    use super::super::types::AuthorizationResult;
+    use do_memory_mcp::protocol::OAuthConfig;
+
+    #[test]
+    fn test_validate_bearer_token_missing_secret() {
+        let config = OAuthConfig {
+            enabled: true,
+            token_secret: None,
+            ..OAuthConfig::default()
+        };
+
+        let result = super::validate_bearer_token("some.token.here", &config);
+        match result {
+            AuthorizationResult::InvalidToken(msg) => {
+                assert!(msg.contains("OAUTH_TOKEN_SECRET is missing"));
+            }
+            _ => panic!("Expected InvalidToken error, got {:?}", result),
+        }
+    }
 }

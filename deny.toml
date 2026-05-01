@@ -55,6 +55,11 @@ ignore = [
     "RUSTSEC-2025-0134",
     # RUSTSEC-2026-0002: lru has unsound IterMut implementation
     "RUSTSEC-2026-0002",
+    # RUSTSEC-2023-0071: rsa vulnerability (Marvin Attack)
+    # Dependency chain: jsonwebtoken 10.3.0 -> rsa 0.9.10
+    # Mitigation: do-memory-mcp uses HMAC (HS256) exclusively, not RSA.
+    # rsa is a transitive dependency of jsonwebtoken we don't directly use.
+    "RUSTSEC-2023-0071",
 ]
 
 [licenses]

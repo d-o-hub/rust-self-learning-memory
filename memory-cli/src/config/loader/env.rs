@@ -268,4 +268,164 @@ mod env_tests {
         let result = load_config_from_defaults();
         assert!(result.is_none());
     }
+
+    #[test]
+    fn test_env_config_info_summary_empty() {
+        // Store original values
+        let original_values: std::collections::HashMap<String, Option<String>> = [
+            "MEMORY_CLI_CONFIG".to_string(),
+            "TURSO_URL".to_string(),
+            "TURSO_TOKEN".to_string(),
+            "REDB_PATH".to_string(),
+            "CI".to_string(),
+            "DEVELOPMENT".to_string(),
+            "DEV".to_string(),
+        ]
+        .iter()
+        .map(|name| {
+            let value = std::env::var(name).ok();
+            (name.clone(), value)
+        })
+        .collect();
+
+        // Remove all env vars
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            for name in [
+                "MEMORY_CLI_CONFIG",
+                "TURSO_URL",
+                "TURSO_TOKEN",
+                "REDB_PATH",
+                "CI",
+                "DEVELOPMENT",
+                "DEV",
+            ] {
+                std::env::remove_var(name);
+            }
+        }
+
+        let info = get_env_config_info();
+        let summary = info.summary();
+
+        assert!(
+            summary.contains("No environment configuration detected"),
+            "Summary: {}",
+            summary
+        );
+
+        // Restore original environment
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            for (name, value) in original_values {
+                if let Some(v) = value {
+                    std::env::set_var(name, v);
+                } else {
+                    std::env::remove_var(name);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_detect_format_from_path_supported() {
+        use std::path::PathBuf;
+
+        let toml_path = PathBuf::from("config.toml");
+        let format = detect_format_from_path(&toml_path);
+        assert!(format.is_ok());
+        assert_eq!(format.unwrap(), ConfigFormat::Toml);
+
+        let json_path = PathBuf::from("config.json");
+        let format = detect_format_from_path(&json_path);
+        assert!(format.is_ok());
+        assert_eq!(format.unwrap(), ConfigFormat::Json);
+
+        let yaml_path = PathBuf::from("config.yaml");
+        let format = detect_format_from_path(&yaml_path);
+        assert!(format.is_ok());
+        assert_eq!(format.unwrap(), ConfigFormat::Yaml);
+
+        let yml_path = PathBuf::from("config.yml");
+        let format = detect_format_from_path(&yml_path);
+        assert!(format.is_ok());
+        assert_eq!(format.unwrap(), ConfigFormat::Yaml);
+    }
+
+    #[test]
+    fn test_detect_format_from_path_unsupported() {
+        use std::path::PathBuf;
+
+        let txt_path = PathBuf::from("config.txt");
+        let format = detect_format_from_path(&txt_path);
+        assert!(format.is_err());
+        assert!(format.unwrap_err().to_string().contains("Unsupported"));
+
+        let no_ext_path = PathBuf::from("config");
+        let format = detect_format_from_path(&no_ext_path);
+        assert!(format.is_err());
+        assert!(format.unwrap_err().to_string().contains("Unsupported"));
+    }
+
+    #[test]
+    fn test_env_config_info_all_flags() {
+        // Store original values
+        let original_values: std::collections::HashMap<String, Option<String>> = [
+            "MEMORY_CLI_CONFIG".to_string(),
+            "TURSO_URL".to_string(),
+            "TURSO_TOKEN".to_string(),
+            "REDB_PATH".to_string(),
+            "CI".to_string(),
+            "DEVELOPMENT".to_string(),
+            "DEV".to_string(),
+        ]
+        .iter()
+        .map(|name| {
+            let value = std::env::var(name).ok();
+            (name.clone(), value)
+        })
+        .collect();
+
+        // Set all env vars
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            std::env::set_var("MEMORY_CLI_CONFIG", "/path/config.toml");
+            std::env::set_var("TURSO_URL", "libsql://db");
+            std::env::set_var("TURSO_TOKEN", "secret");
+            std::env::set_var("REDB_PATH", "/path/db.redb");
+            std::env::set_var("CI", "true");
+            std::env::set_var("DEVELOPMENT", "true");
+        }
+
+        let info = get_env_config_info();
+
+        assert_eq!(
+            info.memory_cli_config,
+            Some("/path/config.toml".to_string())
+        );
+        assert!(info.turso_url);
+        assert!(info.turso_token);
+        assert!(info.redb_path);
+        assert!(info.ci);
+        assert!(info.development);
+
+        let summary = info.summary();
+        assert!(summary.contains("MEMORY_CLI_CONFIG=/path/config.toml"));
+        assert!(summary.contains("TURSO_URL=set"));
+        assert!(summary.contains("TURSO_TOKEN=set"));
+        assert!(summary.contains("REDB_PATH=set"));
+        assert!(summary.contains("CI=true"));
+        assert!(summary.contains("DEV=true"));
+
+        // Restore original environment
+        // SAFETY: test-only env var manipulation
+        unsafe {
+            for (name, value) in original_values {
+                if let Some(v) = value {
+                    std::env::set_var(name, v);
+                } else {
+                    std::env::remove_var(name);
+                }
+            }
+        }
+    }
 }

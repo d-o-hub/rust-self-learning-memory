@@ -297,6 +297,22 @@ mod tests {
     }
 
     #[test]
+    fn test_remove_relationship_result_output_failure() {
+        let result = RemoveRelationshipResult {
+            relationship_id: "abc-123".to_string(),
+            success: false,
+        };
+
+        let mut buffer = Vec::new();
+        result.write_human(&mut buffer).unwrap();
+        let output = String::from_utf8(buffer).unwrap();
+
+        assert!(output.contains("✗"));
+        assert!(output.contains("Failed to remove"));
+        assert!(output.contains("abc-123"));
+    }
+
+    #[test]
     fn test_list_relationships_result_output() {
         let result = ListRelationshipsResult {
             relationships: vec![RelationshipListItem {
@@ -456,5 +472,235 @@ mod tests {
 
         // Should not include all nodes due to cycle
         assert!(sorted.len() < 3);
+    }
+
+    #[test]
+    fn test_topological_sort_kahn_with_unknown_from_node() {
+        // Arrange: edges referencing nodes not in the node list
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let unknown_id = Uuid::new_v4(); // Not in nodes list
+
+        let nodes = vec![id1, id2];
+        // Edge from unknown node to id1
+        let edges = vec![(unknown_id, id1), (id1, id2)];
+
+        // Act: Should skip the unknown edge and still sort correctly
+        let sorted = topological_sort_kahn(&nodes, &edges);
+
+        // Assert: id1 should come before id2, unknown_id is skipped
+        assert_eq!(sorted.len(), 2);
+        assert_eq!(sorted[0], id1);
+        assert_eq!(sorted[1], id2);
+    }
+
+    #[test]
+    fn test_topological_sort_kahn_with_unknown_to_node() {
+        // Arrange: edges referencing nodes not in the node list
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let unknown_id = Uuid::new_v4(); // Not in nodes list
+
+        let nodes = vec![id1, id2];
+        // Edge from id1 to unknown node
+        let edges = vec![(id1, unknown_id)];
+
+        // Act: Should skip the unknown edge
+        let sorted = topological_sort_kahn(&nodes, &edges);
+
+        // Assert: Both nodes should appear (no dependency to unknown)
+        assert_eq!(sorted.len(), 2);
+        // Order depends on which has in-degree 0 first
+        assert!(sorted.contains(&id1));
+        assert!(sorted.contains(&id2));
+    }
+
+    #[test]
+    fn test_topological_sort_kahn_empty_nodes() {
+        // Arrange: empty nodes list
+        let nodes: Vec<Uuid> = vec![];
+        let edges: Vec<(Uuid, Uuid)> = vec![];
+
+        // Act
+        let sorted = topological_sort_kahn(&nodes, &edges);
+
+        // Assert: empty result
+        assert!(sorted.is_empty());
+    }
+
+    #[test]
+    fn test_topological_sort_kahn_single_node() {
+        // Arrange: single node with no edges
+        let id1 = Uuid::new_v4();
+        let nodes = vec![id1];
+        let edges: Vec<(Uuid, Uuid)> = vec![];
+
+        // Act
+        let sorted = topological_sort_kahn(&nodes, &edges);
+
+        // Assert: single node in result
+        assert_eq!(sorted.len(), 1);
+        assert_eq!(sorted[0], id1);
+    }
+
+    #[test]
+    fn test_detect_cycle_in_graph_no_cycle() {
+        use do_memory_core::memory::relationship_query::RelationshipGraph;
+
+        // Arrange: graph with no cycle
+        let id1 = Uuid::new_v4();
+        let graph = RelationshipGraph {
+            root: id1,
+            nodes: std::collections::HashMap::new(),
+            edges: vec![],
+        };
+
+        // Act
+        let has_cycle = detect_cycle_in_graph(&graph, None);
+
+        // Assert: no cycle detected
+        assert!(!has_cycle);
+    }
+
+    #[test]
+    fn test_detect_cycle_in_graph_with_cycle() {
+        use do_memory_core::episode::EpisodeRelationship;
+        use do_memory_core::episode::RelationshipMetadata;
+        use do_memory_core::memory::relationship_query::RelationshipGraph;
+
+        // Arrange: graph with a cycle
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let id3 = Uuid::new_v4();
+
+        let graph = RelationshipGraph {
+            root: id1,
+            nodes: std::collections::HashMap::new(),
+            edges: vec![
+                EpisodeRelationship::new(
+                    id1,
+                    id2,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+                EpisodeRelationship::new(
+                    id2,
+                    id3,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+                EpisodeRelationship::new(
+                    id3,
+                    id1,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+            ],
+        };
+
+        // Act
+        let has_cycle = detect_cycle_in_graph(&graph, None);
+
+        // Assert: cycle detected
+        assert!(has_cycle);
+    }
+
+    #[test]
+    fn test_detect_cycle_in_graph_with_type_filter() {
+        use do_memory_core::episode::EpisodeRelationship;
+        use do_memory_core::episode::RelationshipMetadata;
+        use do_memory_core::memory::relationship_query::RelationshipGraph;
+
+        // Arrange: graph with edges of different types
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let id3 = Uuid::new_v4();
+
+        let graph = RelationshipGraph {
+            root: id1,
+            nodes: std::collections::HashMap::new(),
+            edges: vec![
+                EpisodeRelationship::new(
+                    id1,
+                    id2,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+                EpisodeRelationship::new(
+                    id2,
+                    id3,
+                    RelationshipType::References,
+                    RelationshipMetadata::new(),
+                ),
+                EpisodeRelationship::new(
+                    id3,
+                    id1,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+            ],
+        };
+
+        // Act: filter by DependsOn type
+        let has_cycle = detect_cycle_in_graph(&graph, Some(RelationshipType::DependsOn));
+
+        // Assert: cycle exists only through DependsOn edges (id1 -> id2, but id2->id3 is References)
+        // So no complete DependsOn cycle
+        assert!(!has_cycle);
+    }
+
+    #[test]
+    fn test_render_ascii_tree_empty_graph() {
+        use do_memory_core::memory::relationship_query::RelationshipGraph;
+
+        // Arrange: empty graph
+        let id1 = Uuid::new_v4();
+        let graph = RelationshipGraph {
+            root: id1,
+            nodes: std::collections::HashMap::new(),
+            edges: vec![],
+        };
+
+        // Act
+        let output = render_ascii_tree(&graph, id1);
+
+        // Assert: should produce output for root node
+        assert!(output.contains(&id1.to_string()));
+    }
+
+    #[test]
+    fn test_render_ascii_tree_with_cycle() {
+        use do_memory_core::episode::EpisodeRelationship;
+        use do_memory_core::episode::RelationshipMetadata;
+        use do_memory_core::memory::relationship_query::RelationshipGraph;
+
+        // Arrange: graph with a cycle to test the cycle detection in render
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+
+        let graph = RelationshipGraph {
+            root: id1,
+            nodes: std::collections::HashMap::new(),
+            edges: vec![
+                EpisodeRelationship::new(
+                    id1,
+                    id2,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+                EpisodeRelationship::new(
+                    id2,
+                    id1,
+                    RelationshipType::DependsOn,
+                    RelationshipMetadata::new(),
+                ),
+            ],
+        };
+
+        // Act
+        let output = render_ascii_tree(&graph, id1);
+
+        // Assert: should show cycle marker
+        assert!(output.contains("cycle"));
     }
 }

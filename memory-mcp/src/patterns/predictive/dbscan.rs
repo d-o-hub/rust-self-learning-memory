@@ -180,8 +180,9 @@ impl StreamingClusters {
 
 /// Adaptive DBSCAN anomaly detector
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct AdaptiveDBSCAN {
+    /// Configuration stored for future density threshold customization
+    #[allow(dead_code)]
     config: DBSCANConfig,
     streaming_clusters: StreamingClusters,
 }

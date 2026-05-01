@@ -94,9 +94,9 @@ pub fn validate_bearer_token(token: &str, config: &OAuthConfig) -> Authorization
     let decoding_key = if let Some(secret) = &config.token_secret {
         DecodingKey::from_secret(secret.as_bytes())
     } else {
-        warn!("SECURITY ERROR: No MCP_OAUTH_TOKEN_SECRET configured. Rejecting token.");
+        warn!("SECURITY ERROR: No OAUTH_TOKEN_SECRET configured. Rejecting token.");
         return AuthorizationResult::InvalidToken(
-            "Server misconfiguration: MCP_OAUTH_TOKEN_SECRET is missing".to_string(),
+            "Server misconfiguration: OAUTH_TOKEN_SECRET is missing".to_string(),
         );
     };
 
@@ -189,4 +189,27 @@ pub fn create_www_authenticate_header(
     }
 
     format!("Bearer {}", parts.join(", "))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use do_memory_mcp::protocol::OAuthConfig;
+
+    #[test]
+    fn test_validate_bearer_token_missing_secret() {
+        let config = OAuthConfig {
+            enabled: true,
+            token_secret: None,
+            ..OAuthConfig::default()
+        };
+
+        let result = validate_bearer_token("some.token.here", &config);
+        match result {
+            AuthorizationResult::InvalidToken(msg) => {
+                assert!(msg.contains("OAUTH_TOKEN_SECRET is missing"));
+            },
+            _ => panic!("Expected InvalidToken error, got {:?}", result),
+        }
+    }
 }

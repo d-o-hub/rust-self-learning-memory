@@ -39,14 +39,6 @@ async fn main() -> anyhow::Result<()> {
         if let Some(ref issuer) = oauth_config.issuer {
             info!("Expected token issuer: {}", issuer);
         }
-        // Fail fast: Require MCP_OAUTH_TOKEN_SECRET in production when OAuth is enabled
-        if oauth_config.token_secret.is_none() {
-            panic!(
-                "SECURITY ERROR: MCP_OAUTH_ENABLED=true but MCP_OAUTH_TOKEN_SECRET is not set. \
-                 JWT signature verification requires a secret key. Set MCP_OAUTH_TOKEN_SECRET \
-                 before starting the server."
-            );
-        }
     }
 
     server_impl::run_jsonrpc_server(mcp_server, oauth_config).await

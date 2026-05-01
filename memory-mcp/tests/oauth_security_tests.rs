@@ -3,7 +3,7 @@
 use do_memory_mcp::protocol::OAuthConfig;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
-use server_impl::{AuthorizationResult, validate_bearer_token};
+use server_impl::{AuthorizationResult, validate_bearer_token, validate_oauth_startup};
 
 #[path = "../src/bin/server_impl/mod.rs"]
 mod server_impl;
@@ -145,5 +145,53 @@ fn test_validate_bearer_token_insecure_fallback() {
     assert!(
         matches!(result, AuthorizationResult::InvalidToken(msg) if msg.contains("OAUTH_TOKEN_SECRET is missing")),
         "Should reject any token if no secret is configured"
+    );
+}
+
+#[test]
+fn test_validate_oauth_startup_success() {
+    // OAuth enabled with secret configured - should pass
+    let config = OAuthConfig {
+        enabled: true,
+        token_secret: Some("secret-key".to_string()),
+        ..OAuthConfig::default()
+    };
+    let result = validate_oauth_startup(&config);
+    assert!(result.is_ok(), "Should pass when OAuth enabled with secret");
+}
+
+#[test]
+fn test_validate_oauth_startup_disabled() {
+    // OAuth disabled - should pass even without secret
+    let config = OAuthConfig {
+        enabled: false,
+        token_secret: None,
+        ..OAuthConfig::default()
+    };
+    let result = validate_oauth_startup(&config);
+    assert!(result.is_ok(), "Should pass when OAuth is disabled");
+}
+
+#[test]
+fn test_validate_oauth_startup_missing_secret() {
+    // OAuth enabled but secret missing - should fail
+    let config = OAuthConfig {
+        enabled: true,
+        token_secret: None,
+        ..OAuthConfig::default()
+    };
+    let result = validate_oauth_startup(&config);
+    assert!(
+        result.is_err(),
+        "Should fail when OAuth enabled without secret"
+    );
+    let error = result.unwrap_err();
+    assert!(
+        error.contains("MCP_OAUTH_ENABLED=true"),
+        "Error should mention MCP_OAUTH_ENABLED"
+    );
+    assert!(
+        error.contains("MCP_OAUTH_TOKEN_SECRET"),
+        "Error should mention MCP_OAUTH_TOKEN_SECRET"
     );
 }

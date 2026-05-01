@@ -6,6 +6,11 @@
 //! 3. Query result caching
 //! 4. Performance metrics tracking
 
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+
 use do_memory_core::{ComplexityLevel, Episode, StorageBackend, TaskContext, TaskType};
 use do_memory_storage_turso::{AdvancedQueryCache, CacheConfig, QueryKey, TursoStorage};
 // Note: PerformanceMetrics temporarily disabled due to existing metrics module issues

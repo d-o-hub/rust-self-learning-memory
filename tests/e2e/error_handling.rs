@@ -10,6 +10,7 @@
 //! Target: 6+ test scenarios
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::manual_string_new)]
 
 use do_memory_core::SelfLearningMemory;
 use do_memory_core::episode::ExecutionStep;

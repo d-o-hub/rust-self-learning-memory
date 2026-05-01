@@ -1,3 +1,7 @@
+//! Protocol version negotiation tests
+
+#![allow(missing_docs)]
+
 use serde_json::json;
 
 use do_memory_mcp::jsonrpc::JsonRpcRequest;

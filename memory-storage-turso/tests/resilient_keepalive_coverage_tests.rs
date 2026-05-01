@@ -8,6 +8,14 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
 #![allow(unused_imports)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::items_after_statements)]
+#![allow(clippy::no_effect_underscore_binding)]
+#![allow(clippy::duration_subsec)]
+#![allow(clippy::unchecked_time_subtraction)]
+#![allow(clippy::default_trait_access)]
+#![allow(missing_docs)]
 
 // ============================================================================
 // Resilient Storage Tests

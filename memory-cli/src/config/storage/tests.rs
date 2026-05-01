@@ -1,3 +1,5 @@
+#![allow(unsafe_code)]
+
 use super::*;
 use do_memory_core::{TaskContext, TaskType};
 use serial_test::serial;

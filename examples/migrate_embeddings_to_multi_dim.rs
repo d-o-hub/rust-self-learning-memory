@@ -12,10 +12,11 @@
 
 // Examples have relaxed clippy rules for demonstration patterns
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
 #![allow(clippy::redundant_closure_for_method_calls)]
 #![allow(clippy::cast_possible_wrap)]
-#![allow(clippy::unwrap_used)]
-#![allow(clippy::expect_used)]
 
 use anyhow::Result;
 use libsql::{Builder, params};

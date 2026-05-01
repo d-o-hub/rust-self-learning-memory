@@ -13,6 +13,7 @@
 //! cargo run --example embedding_config_refactor --features openai
 //! ```
 
+#![allow(clippy::unwrap_used)]
 #![allow(
     clippy::uninlined_format_args,
     clippy::doc_markdown,

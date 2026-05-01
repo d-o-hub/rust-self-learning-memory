@@ -9,6 +9,12 @@
 //! These tests use the CLI binary directly via std::process::Command
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::if_not_else)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(missing_docs)]
+#![allow(unknown_lints)]
 
 use anyhow::Result;
 use serial_test::serial;

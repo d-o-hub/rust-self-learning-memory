@@ -309,7 +309,7 @@ mod tests {
         let success = ExecutionResult::Success {
             output: "result".to_string(),
             stdout: "out".to_string(),
-            stderr: "".to_string(),
+            stderr: String::new(),
             execution_time_ms: 100,
         };
 
@@ -321,7 +321,7 @@ mod tests {
         let error = ExecutionResult::Error {
             message: "error".to_string(),
             error_type: ErrorType::Runtime,
-            stdout: "".to_string(),
+            stdout: String::new(),
             stderr: "err".to_string(),
         };
 

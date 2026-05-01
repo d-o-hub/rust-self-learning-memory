@@ -3,6 +3,8 @@
 //! This module handles loading configuration from environment variables
 //! and default file locations.
 
+#![allow(unsafe_code)]
+
 use std::path::{Path, PathBuf};
 
 use super::ConfigFormat;
@@ -18,12 +20,11 @@ pub fn load_config_from_env() -> Option<(PathBuf, ConfigFormat)> {
             );
             let format = detect_format_from_path(path).ok()?;
             return Some((path.to_path_buf(), format));
-        } else {
-            tracing::warn!(
-                "MEMORY_CLI_CONFIG points to non-existent file: {}",
-                config_path
-            );
         }
+        tracing::warn!(
+            "MEMORY_CLI_CONFIG points to non-existent file: {}",
+            config_path
+        );
     }
     None
 }

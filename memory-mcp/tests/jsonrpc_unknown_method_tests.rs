@@ -1,3 +1,8 @@
+//! JSON-RPC unknown method tests
+
+#![allow(clippy::unused_async)]
+#![allow(missing_docs)]
+
 use do_memory_mcp::jsonrpc::{JsonRpcRequest, JsonRpcResponse};
 
 #[tokio::test]

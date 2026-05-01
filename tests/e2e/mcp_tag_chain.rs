@@ -1,13 +1,19 @@
 //! MCP Tag Management Chain Tests (Day 2-3)
 //!
 //! Comprehensive E2E tests covering:
-//! - add_episode_tags → get_episode_tags → list_episodes_by_tags → remove_episode_tags
+//! - add_episode_tags -> get_episode_tags -> list_episodes_by_tags -> remove_episode_tags
 //! - Tag normalization
 //! - Case-insensitive search
 //!
 //! Target: 6+ test scenarios
 
 #![allow(clippy::unwrap_used, clippy::expect_used, dead_code)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::panic)]
+#![allow(clippy::manual_string_new)]
 
 use do_memory_core::types::MemoryConfig;
 use do_memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};

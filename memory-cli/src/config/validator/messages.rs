@@ -151,7 +151,7 @@ pub fn validate_config_path(path: &Path) -> Result<(), ValidationError> {
 
     // Check file extension
     match path.extension().and_then(|s| s.to_str()) {
-        Some("toml") | Some("json") | Some("yaml") | Some("yml") => Ok(()),
+        Some("toml" | "json" | "yaml" | "yml") => Ok(()),
         Some(ext) => Err(ValidationError {
             field: "config_path".to_string(),
             message: format!("Unsupported configuration file format: .{}", ext),

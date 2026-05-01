@@ -1,4 +1,11 @@
+//! `OAuth` security tests for MCP server authentication
+//!
+//! Tests validate JWT token handling, issuer validation, and security boundaries.
+
 #![cfg(feature = "oauth")]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::doc_markdown)]
+#![allow(missing_docs)]
 
 use do_memory_mcp::protocol::OAuthConfig;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};

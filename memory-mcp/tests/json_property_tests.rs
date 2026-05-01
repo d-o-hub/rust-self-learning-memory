@@ -3,6 +3,13 @@
 //! These tests verify that MCP types survive JSON roundtrip serialization
 //! without data loss, which is critical for the JSON-RPC protocol.
 
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
+#![allow(missing_docs)]
+
 use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
 use do_memory_mcp::types::{
     ErrorType, ExecutionContext, ExecutionResult, ExecutionStats, SecurityViolationType, Tool,
@@ -398,7 +405,7 @@ proptest! {
         let error = JsonRpcError {
             code,
             message: message.clone(),
-            data: Some(json!({"timestamp": 1234567890})),
+            data: Some(json!({"timestamp": 1_234_567_890})),
         };
 
         let json = serde_json::to_string(&error).expect("serialize to JSON");

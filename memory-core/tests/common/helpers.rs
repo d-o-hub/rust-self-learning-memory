@@ -1,6 +1,7 @@
 //! Helper functions for common test operations
 
 #![allow(dead_code)]
+#![allow(clippy::unwrap_used)]
 
 use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,

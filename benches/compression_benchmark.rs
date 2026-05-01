@@ -7,6 +7,13 @@
 #![allow(unexpected_cfgs)]
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::no_effect_underscore_binding)]
+#![allow(clippy::explicit_iter_loop)]
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_turso::{TursoConfig, TursoStorage};

@@ -8,6 +8,8 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::manual_let_else)]
 #![allow(clippy::single_match_else)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unreadable_literal)]
 
 use std::fs;
 

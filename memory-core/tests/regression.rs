@@ -8,6 +8,8 @@
 //! - API and data structure backward compatibility
 //! - Bug regression prevention (duplicate patterns, idempotency, edge cases)
 
+#![allow(clippy::unwrap_used)]
+
 mod common;
 
 use common::{create_test_step, setup_test_memory, test_context};

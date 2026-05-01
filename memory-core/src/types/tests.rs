@@ -1,5 +1,7 @@
 //! Tests for memory-core types.
 
+#![allow(unsafe_code)]
+
 use super::*;
 use serial_test::serial;
 

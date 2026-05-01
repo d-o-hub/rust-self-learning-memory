@@ -8,7 +8,15 @@
 //! - Compression statistics are tracked
 
 #![cfg(feature = "compression")]
+#![allow(clippy::needless_raw_string_hashes)]
+#![allow(clippy::panic)]
+#![allow(clippy::uninlined_format_args)]
 #![allow(clippy::expect_used)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::if_then_some_else_none)]
+#![allow(clippy::single_match_else)]
+#![allow(clippy::manual_assert)]
+#![allow(missing_docs)]
 
 use do_memory_core::embeddings::EmbeddingStorageBackend;
 use do_memory_storage_turso::TursoStorage;

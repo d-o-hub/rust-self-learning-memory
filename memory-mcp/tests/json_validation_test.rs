@@ -1,3 +1,11 @@
+//! JSON Validation Tests for MCP Tools
+
+#![allow(clippy::float_cmp)]
+#![allow(missing_docs)]
+#![allow(clippy::panic)]
+#![allow(clippy::ignored_unit_patterns)]
+#![allow(unknown_lints)]
+
 use do_memory_core::SelfLearningMemory;
 use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
 use std::sync::Arc;

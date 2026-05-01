@@ -24,7 +24,9 @@ async fn benchmark_statistical_analysis() {
 
         // Generate synthetic data
         for i in 0..5 {
-            let series: Vec<f64> = (0..size).map(|x| (x as f64) + (i as f64) * 0.1).collect();
+            let series: Vec<f64> = (0..size)
+                .map(|x| f64::from(x) + f64::from(i) * 0.1)
+                .collect();
             data.insert(format!("var_{}", i), series);
         }
 

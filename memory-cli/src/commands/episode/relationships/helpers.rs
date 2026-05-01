@@ -1,5 +1,7 @@
 //! Helper functions for relationship graph operations
 
+use std::fmt::Write;
+
 use colored::Colorize;
 use do_memory_core::episode::RelationshipType;
 use uuid::Uuid;
@@ -80,11 +82,13 @@ pub(super) fn render_ascii_tree(
         visited: &mut std::collections::HashSet<Uuid>,
     ) {
         if visited.contains(&node_id) {
-            output.push_str(&format!(
-                "{}[{}] (cycle)\n",
+            writeln!(
+                output,
+                "{}[{}] (cycle)",
                 prefix,
                 node_id.to_string().dimmed()
-            ));
+            )
+            .unwrap();
             return;
         }
         visited.insert(node_id);
@@ -102,7 +106,7 @@ pub(super) fn render_ascii_tree(
         };
 
         let branch = if is_last { "└── " } else { "├── " };
-        output.push_str(&format!("{}{}{}\n", prefix, branch, label));
+        writeln!(output, "{}{}{}", prefix, branch, label).unwrap();
 
         // Find outgoing relationships
         let outgoing: Vec<_> = graph
@@ -120,12 +124,14 @@ pub(super) fn render_ascii_tree(
         for (i, edge) in outgoing.iter().enumerate() {
             let child_is_last = i == outgoing.len() - 1;
             let rel_label = format!("{:?}", edge.relationship_type).cyan();
-            output.push_str(&format!(
+            writeln!(
+                output,
                 "{}{}── {} → ",
                 child_prefix,
                 if child_is_last { "└" } else { "├" },
                 rel_label
-            ));
+            )
+            .unwrap();
             render_node(
                 graph,
                 edge.to_episode_id,

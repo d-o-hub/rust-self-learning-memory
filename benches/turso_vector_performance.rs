@@ -8,6 +8,16 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::explicit_iter_loop)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::cast_sign_loss)]
 use anyhow::Result;
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use do_memory_core::{

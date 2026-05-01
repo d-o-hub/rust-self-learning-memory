@@ -4,6 +4,8 @@
 //! the memory-cli application, providing a clean separation of concerns
 //! from loading, validation, and storage initialization logic.
 
+#![allow(unsafe_code)]
+
 // Submodules
 mod defaults;
 mod defaults_impl;

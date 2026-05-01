@@ -8,6 +8,7 @@
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
 
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_turso::{EpisodeQuery, TursoStorage};

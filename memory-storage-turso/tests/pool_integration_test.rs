@@ -1,4 +1,10 @@
 //! Integration tests for connection pool performance and functionality
+//!
+//! Tests connection pool behavior including concurrent operations, health checks,
+//! utilization tracking, and graceful shutdown.
+
+#![allow(clippy::float_cmp)]
+#![allow(missing_docs)]
 
 use do_memory_storage_turso::{ConnectionPool, PoolConfig};
 use std::sync::Arc;
@@ -126,14 +132,14 @@ async fn test_pool_utilization_tracking() -> Result<(), Box<dyn std::error::Erro
     assert_eq!(pool.utilization().await, 0.0);
 
     // Get connections and check utilization increases
-    let _conn1 = pool.get().await?;
+    let conn1 = pool.get().await?;
     assert!(pool.utilization().await > 0.0);
 
-    let _conn2 = pool.get().await?;
+    let conn2 = pool.get().await?;
     assert!(pool.utilization().await > 0.1);
 
-    drop(_conn1);
-    drop(_conn2);
+    drop(conn1);
+    drop(conn2);
 
     // Wait for drops to complete
     tokio::time::sleep(Duration::from_millis(50)).await;

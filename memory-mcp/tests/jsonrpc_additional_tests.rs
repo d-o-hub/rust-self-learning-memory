@@ -1,3 +1,7 @@
+//! Additional JSON-RPC tests
+
+#![allow(missing_docs)]
+
 use do_memory_mcp::jsonrpc::{JsonRpcResponse, read_next_message, write_response_with_length};
 use serde_json::json;
 use std::io::Cursor;

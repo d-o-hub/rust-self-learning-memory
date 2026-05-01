@@ -28,8 +28,8 @@
 #![allow(clippy::redundant_closure)]
 #![allow(clippy::redundant_closure_for_method_calls)]
 #![allow(clippy::match_same_arms)]
-// Format args: inlining not required for error message clarity
 #![allow(clippy::uninlined_format_args)]
+// Format args: inlining not required for error message clarity
 #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::unused_self)]
 #![allow(clippy::unused_async)]

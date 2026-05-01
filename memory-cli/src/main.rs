@@ -8,6 +8,7 @@
 #![allow(clippy::needless_borrow)]
 #![allow(clippy::manual_clamp)]
 #![allow(clippy::derivable_impls)]
+#![allow(missing_docs)]
 
 use clap::{CommandFactory, Parser, Subcommand};
 use std::path::PathBuf;

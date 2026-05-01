@@ -3,6 +3,8 @@
 //! These benchmarks measure the performance of critical CLI paths
 //! to ensure they meet performance requirements.
 
+#![allow(clippy::uninlined_format_args)]
+
 use criterion::{Criterion, criterion_group, criterion_main};
 use do_memory_cli::test_utils::CliHarness;
 use std::hint::black_box;

@@ -13,6 +13,11 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::cast_precision_loss)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_core::{
     ComplexityLevel, ExecutionStep, MemoryConfig, TaskContext, TaskOutcome, TaskType,

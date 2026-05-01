@@ -2,8 +2,10 @@
 //!
 //! Note: The current implementation clears the prepared statement cache
 //! immediately after each operation for memory management. This test verifies
-//! that the prepare_cached mechanism works correctly, even though the cache
+//! that the `prepare_cached` mechanism works correctly, even though the cache
 //! is cleared after each use.
+
+#![allow(clippy::doc_markdown)]
 
 use do_memory_core::{Episode, TaskContext, TaskType};
 use do_memory_storage_turso::TursoStorage;

@@ -3,6 +3,8 @@
 //! This test validates that the MCP server always produces valid JSON-RPC responses
 //! that can be parsed by clients, addressing issue #143.
 
+#![allow(missing_docs)]
+
 use do_memory_mcp::jsonrpc::{JsonRpcError, JsonRpcResponse};
 
 #[test]
@@ -105,7 +107,7 @@ fn test_complex_result_serialization() {
             {
                 "id": "ep1",
                 "content": "Test content",
-                "timestamp": 1234567890
+                "timestamp": 1_234_567_890
             }
         ],
         "patterns": {

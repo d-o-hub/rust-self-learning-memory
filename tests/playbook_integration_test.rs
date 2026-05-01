@@ -1,3 +1,7 @@
+//! Playbook Integration Tests
+
+#![allow(missing_docs)]
+
 use do_memory_core::ExecutionStep;
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::pattern::{Pattern, PatternEffectiveness};

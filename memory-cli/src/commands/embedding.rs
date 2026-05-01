@@ -125,6 +125,7 @@ pub async fn test_embeddings(config: &Config) -> Result<()> {
 }
 
 /// Show current embedding configuration
+#[allow(clippy::unnecessary_wraps)]
 pub fn show_config(config: &Config) -> Result<()> {
     println!("⚙️  Embedding Configuration");
     println!("{}", "=".repeat(60));
@@ -167,14 +168,14 @@ pub fn show_config(config: &Config) -> Result<()> {
     println!("  timeout_seconds: {}", config.embeddings.timeout_seconds);
     println!();
 
-    if !config.embeddings.enabled {
+    if config.embeddings.enabled {
+        println!("To test your configuration:");
+        println!("  Run: memory-cli embedding test");
+        println!();
+    } else {
         println!("To enable embeddings:");
         println!("  1. Edit your config file and set: [embeddings] enabled = true");
         println!("  2. Or run: memory-cli embedding enable");
-        println!();
-    } else {
-        println!("To test your configuration:");
-        println!("  Run: memory-cli embedding test");
         println!();
     }
 
@@ -182,6 +183,7 @@ pub fn show_config(config: &Config) -> Result<()> {
 }
 
 /// List available embedding providers
+#[allow(clippy::unnecessary_wraps)]
 pub fn list_providers() -> Result<()> {
     println!("📚 Available Embedding Providers");
     println!("{}", "=".repeat(60));
@@ -240,6 +242,7 @@ pub fn list_providers() -> Result<()> {
 }
 
 /// Enable embeddings in the current session
+#[allow(clippy::unnecessary_wraps)]
 pub fn enable_embeddings() -> Result<()> {
     println!("✅ Embeddings Enabled");
     println!();
@@ -255,6 +258,7 @@ pub fn enable_embeddings() -> Result<()> {
 }
 
 /// Disable embeddings in the current session
+#[allow(clippy::unnecessary_wraps)]
 pub fn disable_embeddings() -> Result<()> {
     println!("⚠️  Embeddings Disabled");
     println!();
@@ -289,7 +293,7 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
     println!("📊 Single Embedding Benchmark");
     let test_text =
         "Implement REST API authentication with JWT tokens and role-based access control";
-    let iterations = 10;
+    let iterations: u32 = 10;
 
     let mut durations = Vec::new();
     for _ in 0..iterations {
@@ -298,7 +302,7 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
         durations.push(start.elapsed());
     }
 
-    let avg = durations.iter().sum::<std::time::Duration>() / iterations as u32;
+    let avg = durations.iter().sum::<std::time::Duration>() / iterations;
 
     // Sort durations to get min/max without expect
     // durations is guaranteed non-empty by loop with iterations > 0

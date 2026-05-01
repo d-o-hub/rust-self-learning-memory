@@ -200,6 +200,6 @@ mod tests {
     #[test]
     fn test_create_test_pattern() {
         let pattern = create_test_pattern("tool_sequence", 0.9);
-        assert_eq!(pattern.success_rate(), 0.9);
+        assert!((pattern.success_rate() - 0.9).abs() < 0.001);
     }
 }

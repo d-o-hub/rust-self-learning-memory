@@ -107,6 +107,7 @@ pub struct VerifyResult {
 
 // Output implementations
 impl Output for BackupResult {
+    #[allow(clippy::cast_precision_loss)]
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 
@@ -135,6 +136,7 @@ impl Output for BackupResult {
 }
 
 impl Output for BackupList {
+    #[allow(clippy::cast_precision_loss)]
     fn write_human<W: std::io::Write>(&self, mut writer: W) -> anyhow::Result<()> {
         use colored::*;
 

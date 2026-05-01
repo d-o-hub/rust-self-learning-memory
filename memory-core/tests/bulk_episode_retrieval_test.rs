@@ -3,6 +3,9 @@
 //! Tests the new `get_episode()` and `get_episodes_by_ids()` methods
 //! to ensure they work correctly with multiple storage backends.
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::panic)]
+
 use do_memory_core::{ComplexityLevel, ExecutionStep, SelfLearningMemory, TaskContext, TaskType};
 use uuid::Uuid;
 

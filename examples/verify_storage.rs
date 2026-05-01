@@ -3,6 +3,8 @@
 //! This program verifies that the memory-core system correctly stores and retrieves
 //! data from both Turso and redb storage backends.
 
+#![allow(clippy::uninlined_format_args)]
+
 use anyhow::Result;
 use do_memory_core::{
     MemoryConfig,

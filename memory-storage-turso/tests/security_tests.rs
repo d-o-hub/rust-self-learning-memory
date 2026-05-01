@@ -3,6 +3,9 @@
 //! Tests TLS/HTTPS enforcement and certificate validation to ensure
 //! only secure protocols are used for database connections.
 
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::ignore_without_reason)]
+
 use do_memory_storage_turso::TursoStorage;
 
 #[tokio::test]

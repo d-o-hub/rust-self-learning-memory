@@ -13,6 +13,7 @@
 #![allow(clippy::expect_used)]
 #![allow(clippy::unnecessary_literal_unwrap)]
 #![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::panic)]
 
 use do_memory_core::episode::RelationshipType;
 use do_memory_core::error::{CacheError, Error, RelationshipError, Result};

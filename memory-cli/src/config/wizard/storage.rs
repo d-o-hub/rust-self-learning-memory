@@ -25,8 +25,8 @@ impl ConfigWizard {
                 if *input == 0 {
                     return Err("Cache size must be greater than 0");
                 }
-                if *input > 100000 {
-                    return Err("Cache size too large (max: 100000)");
+                if *input > 100_000 {
+                    return Err("Cache size too large (max: 100_000)");
                 }
                 Ok(())
             })

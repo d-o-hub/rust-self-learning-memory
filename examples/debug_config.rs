@@ -1,5 +1,8 @@
 //! Debug configuration example - prints environment variables and config state.
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+
 use std::env;
 
 fn main() {

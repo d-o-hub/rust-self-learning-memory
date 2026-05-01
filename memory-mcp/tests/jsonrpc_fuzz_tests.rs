@@ -5,6 +5,8 @@
 
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::cast_precision_loss)]
 
 use std::io::Cursor;
 

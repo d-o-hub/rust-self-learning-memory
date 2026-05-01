@@ -1,3 +1,11 @@
+//! Attribution Integration Tests
+//!
+//! Tests for recommendation attribution flow and persistence.
+
+#![allow(missing_docs)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::float_cmp)]
+
 use chrono::Utc;
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::memory::attribution::{RecommendationFeedback, RecommendationSession};

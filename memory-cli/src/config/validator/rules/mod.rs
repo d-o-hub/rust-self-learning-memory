@@ -82,7 +82,7 @@ pub fn validate_storage_config_full(config: &StorageConfig) -> ValidationResult 
     let mut warnings = Vec::new();
 
     // Warnings from original logic
-    if config.max_episodes_cache > 100000 {
+    if config.max_episodes_cache > 100_000 {
         warnings.push(ValidationWarning {
             field: "storage.max_episodes_cache".to_string(),
             message: format!("Large cache size: {} episodes", config.max_episodes_cache),

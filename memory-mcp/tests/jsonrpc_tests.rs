@@ -1,3 +1,7 @@
+//! JSON-RPC message reading tests
+
+#![allow(missing_docs)]
+
 use std::io::Cursor;
 
 use do_memory_mcp::jsonrpc::read_next_message;

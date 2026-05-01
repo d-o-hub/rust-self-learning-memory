@@ -177,7 +177,7 @@ pub async fn find_related(
 
     // Build filter
     let filter = RelationshipFilter {
-        relationship_type: relationship_type.map(|t| t.to_core_type()),
+        relationship_type: relationship_type.map(RelationshipTypeArg::to_core_type),
         direction: None,
         limit: Some(limit),
         min_priority: None,
@@ -270,6 +270,7 @@ pub async fn dependency_graph(
 }
 
 /// Render graph as ASCII tree
+#[allow(clippy::items_after_statements)]
 fn render_ascii_tree(
     graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
     root_id: Uuid,
@@ -277,6 +278,7 @@ fn render_ascii_tree(
     let mut output = String::new();
     let mut visited = std::collections::HashSet::new();
 
+    #[allow(clippy::format_push_string)]
     fn render_node(
         graph: &do_memory_core::memory::relationship_query::RelationshipGraph,
         node_id: Uuid,

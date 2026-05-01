@@ -44,6 +44,11 @@
 #![allow(clippy::map_unwrap_or)]
 #![allow(clippy::float_cmp)]
 #![allow(clippy::assigning_clones)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::panic)]
 #![allow(missing_docs)]
 
 //! # Memory Core

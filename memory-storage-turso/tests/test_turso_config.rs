@@ -1,3 +1,9 @@
+//! `TursoStorage` configuration security tests
+
+#![allow(clippy::uninlined_format_args)]
+#![allow(missing_docs)]
+#![allow(clippy::doc_markdown)]
+
 use do_memory_storage_turso::TursoStorage;
 use tempfile::TempDir;
 

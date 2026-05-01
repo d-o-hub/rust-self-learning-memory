@@ -1,4 +1,10 @@
+//! Test embedding storage and retrieval
+
 #![allow(clippy::expect_used)]
+#![allow(clippy::needless_raw_string_hashes)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(missing_docs)]
 
 use tempfile::TempDir;
 

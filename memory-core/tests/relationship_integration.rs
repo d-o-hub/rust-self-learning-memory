@@ -7,6 +7,8 @@
 //! - Building relationship graphs
 //! - Cascade deletion
 
+#![allow(clippy::expect_used)]
+
 use do_memory_core::episode::{RelationshipMetadata, RelationshipType};
 use do_memory_core::memory::SelfLearningMemory;
 use do_memory_core::{TaskContext, TaskOutcome, TaskType};

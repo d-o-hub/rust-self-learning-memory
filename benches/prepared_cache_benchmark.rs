@@ -5,6 +5,11 @@
 
 #![allow(clippy::excessive_nesting)]
 #![allow(deprecated)]
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::explicit_iter_loop)]
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use do_memory_storage_turso::prepared::PreparedStatementCache;
 use std::hint::black_box;

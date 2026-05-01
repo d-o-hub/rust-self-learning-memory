@@ -3,6 +3,10 @@
 //! Shows the difference between sync and async pattern extraction
 //! and how to use the queue system.
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::cast_precision_loss)]
+
 use do_memory_core::{
     ExecutionResult, ExecutionStep, QueueConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,

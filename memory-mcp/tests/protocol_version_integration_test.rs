@@ -1,3 +1,9 @@
+//! Protocol version integration tests
+//!
+//! Test protocol version negotiation and compatibility
+
+#![allow(missing_docs)]
+
 #[tokio::test]
 async fn test_initialize_protocol_version_negotiation() {
     use do_memory_mcp::jsonrpc::JsonRpcRequest;

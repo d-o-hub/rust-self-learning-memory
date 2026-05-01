@@ -9,6 +9,10 @@
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::expect_used)]
 #![allow(clippy::uninlined_format_args)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::explicit_iter_loop)]
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use do_memory_core::episode::Episode;
 use do_memory_core::retrieval::{CacheKey, QueryCache};

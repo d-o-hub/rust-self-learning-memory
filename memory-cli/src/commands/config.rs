@@ -278,7 +278,9 @@ pub async fn validate_config(
         match turso.get_episode(uuid::Uuid::new_v4()).await {
             Ok(_) => {
                 turso_connected = true;
-                latency_ms = Some(start.elapsed().as_millis() as u64);
+                #[allow(clippy::cast_possible_truncation)]
+                let latency = start.elapsed().as_millis() as u64;
+                latency_ms = Some(latency);
             }
             Err(e) => {
                 connectivity_errors.push(format!("Turso connection failed: {}", e));
@@ -370,7 +372,9 @@ pub async fn check_config(
         match turso.get_episode(uuid::Uuid::new_v4()).await {
             Ok(_) => {
                 turso_connected = true;
-                latency_ms = Some(start.elapsed().as_millis() as u64);
+                #[allow(clippy::cast_possible_truncation)]
+                let latency = start.elapsed().as_millis() as u64;
+                latency_ms = Some(latency);
             }
             Err(e) => {
                 connectivity_errors.push(format!("Turso connection failed: {}", e));

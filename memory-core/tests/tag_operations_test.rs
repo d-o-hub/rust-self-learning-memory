@@ -1,5 +1,7 @@
 //! Integration tests for episode tagging operations
 
+#![allow(clippy::expect_used)]
+
 use do_memory_core::{
     ExecutionResult, ExecutionStep, MemoryConfig, SelfLearningMemory, TaskContext, TaskOutcome,
     TaskType,

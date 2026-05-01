@@ -1,13 +1,15 @@
 //! MCP Relationship Chain Tests (Day 2-3)
 //!
 //! Comprehensive E2E tests covering:
-//! - add_episode_relationship → get_episode_relationships → find_related_episodes → remove_episode_relationship
+//! - add_episode_relationship -> get_episode_relationships -> find_related_episodes -> remove_episode_relationship
 //! - Bidirectional navigation
 //! - Cascade delete
 //!
 //! Target: 6+ test scenarios
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::default_trait_access)]
 
 use do_memory_core::episode::{Direction, RelationshipMetadata, RelationshipType};
 use do_memory_core::{SelfLearningMemory, TaskContext, TaskOutcome, TaskType};

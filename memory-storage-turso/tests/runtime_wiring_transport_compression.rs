@@ -7,6 +7,12 @@
 //!
 //! **Current State**: Compression is implemented and USED at the data layer, but
 //! CompressedTransport wrapper is NOT wired into TursoStorage.
+
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
 //!
 //! **Architectural Finding**:
 //! - `CompressedTransport` wraps a `Transport` trait object
@@ -32,7 +38,6 @@
 #![cfg(feature = "compression")]
 #![allow(clippy::expect_used)]
 #![allow(clippy::unwrap_used)]
-#![allow(clippy::doc_markdown)]
 
 use async_trait::async_trait;
 use do_memory_storage_turso::{

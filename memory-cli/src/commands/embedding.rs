@@ -96,7 +96,10 @@ pub async fn test_embeddings(config: &Config) -> Result<()> {
     println!("✅ Batch embeddings generated successfully");
     println!("   Count: {}", batch_results.len());
     println!("   Time: {:?}", duration);
-    println!("   Avg per text: {:?}", duration / batch_texts.len() as u32);
+    // Batch size is always small, cast to u32 is safe
+    #[allow(clippy::cast_possible_truncation)]
+    let batch_count = batch_texts.len() as u32;
+    println!("   Avg per text: {:?}", duration / batch_count);
     println!();
 
     // Test similarity calculation
@@ -334,11 +337,14 @@ pub async fn benchmark_embeddings(config: &Config) -> Result<()> {
         let _results = provider.embed_batch(&texts).await?;
         let duration = start.elapsed();
 
+        // Batch sizes are small, cast to u32 is safe
+        #[allow(clippy::cast_possible_truncation)]
+        let size = batch_size as u32;
         println!(
             "  Batch size {}: {:?} ({:?} per item)",
             batch_size,
             duration,
-            duration / batch_size as u32
+            duration / size
         );
     }
     println!();

@@ -143,7 +143,7 @@ fn test_validate_bearer_token_insecure_fallback() {
 
     // Should be rejected because secret is missing (now secure by default)
     assert!(
-        matches!(result, AuthorizationResult::InvalidToken(msg) if msg.contains("OAUTH_TOKEN_SECRET is missing")),
+        matches!(result, AuthorizationResult::InvalidToken(msg) if msg.contains("MCP_OAUTH_TOKEN_SECRET is missing")),
         "Should reject any token if no secret is configured"
     );
 }

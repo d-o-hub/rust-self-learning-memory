@@ -96,32 +96,25 @@ impl TursoStorage {
         drop(evict_rows);
         drop(conn);
 
-        // Delete evicted episodes
-        const DELETE_SQL: &str = "DELETE FROM episodes WHERE episode_id = ?";
+        // Delete associated embeddings first in batch
+        let _ = self._delete_embeddings_batch_internal(&evicted).await;
 
-        for episode_id in &evicted {
-            // Delete associated embeddings first
-            let _ = self._delete_embedding_internal(episode_id).await;
+        // Delete evicted episodes in batch
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
 
-            // Then delete the episode
-            let (conn, _conn_id) = self.get_connection_with_id().await?;
+        // Build placeholders for IN clause
+        let placeholders = evicted.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!("DELETE FROM episodes WHERE episode_id IN ({})", placeholders);
 
-            // Use prepared statement cache
-            let stmt = self
-                .prepared_cache
-                .get_or_prepare(&conn, DELETE_SQL)
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
-                })?;
+        // Build params
+        let params: Vec<libsql::Value> = evicted.iter().map(|id| id.clone().into()).collect();
 
-            stmt.execute(libsql::params![episode_id.clone()])
-                .await
-                .map_err(|e| {
-                    do_memory_core::Error::Storage(format!("Failed to delete episode: {}", e))
-                })?;
-            drop(conn);
-        }
+        conn.execute(&sql, libsql::params_from_iter(params))
+            .await
+            .map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to delete episodes batch: {}", e))
+            })?;
+        drop(conn);
 
         info!(
             "Evicted {} episodes to enforce capacity limit of {}",

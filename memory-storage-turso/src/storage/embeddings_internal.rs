@@ -228,21 +228,61 @@ impl TursoStorage {
     /// Delete an embedding
     pub async fn _delete_embedding_internal(&self, item_id: &str) -> Result<bool> {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
-        const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
-        let stmt = self
-            .prepared_cache
-            .get_or_prepare(&conn, SQL)
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+
+        #[cfg(feature = "turso_multi_dimension")]
+        {
+            return self.delete_embedding_dimension_aware(item_id).await;
+        }
+
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            const SQL: &str = "DELETE FROM embeddings WHERE item_id = ?";
+            let stmt = self
+                .prepared_cache
+                .get_or_prepare(&conn, SQL)
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to prepare statement: {}", e))
+                })?;
+            let rows_affected = stmt
+                .execute(libsql::params![item_id.to_string()])
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
+                })?;
+            Ok(rows_affected > 0)
+        }
+    }
+
+    /// Delete embeddings in batch
+    pub async fn _delete_embeddings_batch_internal(&self, item_ids: &[String]) -> Result<usize> {
+        if item_ids.is_empty() {
+            return Ok(0);
+        }
+
+        #[cfg(feature = "turso_multi_dimension")]
+        {
+            return self.delete_embeddings_batch_dimension_aware(item_ids).await;
+        }
+
+        #[cfg(not(feature = "turso_multi_dimension"))]
+        {
+            let (conn, _conn_id) = self.get_connection_with_id().await?;
+
+            // Build placeholders for IN clause
+            let placeholders = item_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+            let sql = format!("DELETE FROM embeddings WHERE item_id IN ({})", placeholders);
+
+            // Build params
+            let params: Vec<libsql::Value> =
+                item_ids.iter().map(|id| id.clone().into()).collect();
+
+            let rows_affected = conn.execute(&sql, libsql::params_from_iter(params)).await.map_err(|e| {
+                do_memory_core::Error::Storage(format!("Failed to delete embeddings batch: {}", e))
             })?;
-        let rows_affected = stmt
-            .execute(libsql::params![item_id.to_string()])
-            .await
-            .map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to delete embedding: {}", e))
-            })?;
-        Ok(rows_affected > 0)
+
+            Ok(rows_affected as usize)
+        }
     }
 
     /// Store embeddings in batch

@@ -313,6 +313,62 @@ async fn test_empty_embeddings_batch() {
     assert!(results.is_empty());
 }
 
+#[tokio::test]
+async fn test_capacity_eviction_batch() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    // Store 10 episodes
+    let mut episode_ids = Vec::new();
+    for i in 0..10 {
+        let mut episode = do_memory_core::Episode::new(
+            format!("task_{}", i),
+            do_memory_core::TaskContext::default(),
+            do_memory_core::TaskType::Testing,
+        );
+        // Explicitly set start_time to ensure deterministic LRU order
+        episode.start_time = chrono::Utc::now() - chrono::Duration::seconds(100 - i as i64);
+        episode_ids.push(episode.episode_id);
+        storage.store_episode(&episode).await.unwrap();
+
+        // Add mock embeddings
+        let embedding = create_test_embedding_384();
+        storage
+            ._store_embedding_internal(&episode.episode_id.to_string(), "episode", &embedding)
+            .await
+            .unwrap();
+    }
+
+    // Verify 10 episodes exist
+    let stats = storage.get_statistics().await.unwrap();
+    assert_eq!(stats.episode_count, 10);
+
+    // Enforce capacity of 4 (evicts 6)
+    storage.enforce_capacity(4).await.unwrap();
+
+    // Verify 4 episodes remain
+    let stats = storage.get_statistics().await.unwrap();
+    assert_eq!(stats.episode_count, 4);
+
+    // Verify oldest 6 are gone
+    for i in 0..6 {
+        let retrieved = storage.get_episode(episode_ids[i]).await.unwrap();
+        assert!(retrieved.is_none(), "Episode {} should be evicted", i);
+
+        // Verify embeddings are also gone
+        let embedding = storage
+            ._get_embedding_internal(&episode_ids[i].to_string(), "episode")
+            .await
+            .unwrap();
+        assert!(embedding.is_none(), "Embedding {} should be evicted", i);
+    }
+
+    // Verify newest 4 remain
+    for i in 6..10 {
+        let retrieved = storage.get_episode(episode_ids[i]).await.unwrap();
+        assert!(retrieved.is_some(), "Episode {} should remain", i);
+    }
+}
+
 // ========== Compression Integration Tests ==========
 
 #[cfg(feature = "compression")]

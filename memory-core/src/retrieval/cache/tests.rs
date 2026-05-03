@@ -387,7 +387,8 @@ mod cache_tests {
                 barrier.wait();
                 for i in 0..iterations {
                     let domain = format!("domain-{}-{}", t, i % 5);
-                    let key = CacheKey::new(format!("query-{}-{}", t, i)).with_domain(Some(domain.clone()));
+                    let key = CacheKey::new(format!("query-{}-{}", t, i))
+                        .with_domain(Some(domain.clone()));
                     cache.put(key, vec![create_test_episode("ep")]);
 
                     if i % 3 == 0 {
@@ -396,7 +397,12 @@ mod cache_tests {
 
                     let size = cache.size();
                     let effective = cache.effective_size();
-                    assert!(effective <= size, "Effective size {} cannot exceed physical size {}", effective, size);
+                    assert!(
+                        effective <= size,
+                        "Effective size {} cannot exceed physical size {}",
+                        effective,
+                        size
+                    );
                 }
             }));
         }

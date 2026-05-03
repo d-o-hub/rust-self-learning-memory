@@ -255,7 +255,10 @@ impl TursoStorage {
     }
 
     /// Delete embeddings in batch
-    pub(crate) async fn _delete_embeddings_batch_internal(&self, item_ids: &[String]) -> Result<usize> {
+    pub(crate) async fn _delete_embeddings_batch_internal(
+        &self,
+        item_ids: &[String],
+    ) -> Result<usize> {
         if item_ids.is_empty() {
             return Ok(0);
         }

@@ -415,7 +415,10 @@ async fn test_delete_embeddings_batch_multiple() {
 
     // Verify they exist
     for id in &ids {
-        let retrieved = storage._get_embedding_internal(id, "episode").await.unwrap();
+        let retrieved = storage
+            ._get_embedding_internal(id, "episode")
+            .await
+            .unwrap();
         assert!(retrieved.is_some());
     }
 
@@ -428,7 +431,10 @@ async fn test_delete_embeddings_batch_multiple() {
 
     // Verify they are gone
     for id in &ids {
-        let retrieved = storage._get_embedding_internal(id, "episode").await.unwrap();
+        let retrieved = storage
+            ._get_embedding_internal(id, "episode")
+            .await
+            .unwrap();
         assert!(retrieved.is_none());
     }
 }
@@ -459,7 +465,10 @@ async fn test_delete_embedding_internal_single() {
     let deleted = storage._delete_embedding_internal(id).await.unwrap();
     assert!(deleted);
 
-    let retrieved = storage._get_embedding_internal(id, "episode").await.unwrap();
+    let retrieved = storage
+        ._get_embedding_internal(id, "episode")
+        .await
+        .unwrap();
     assert!(retrieved.is_none());
 }
 

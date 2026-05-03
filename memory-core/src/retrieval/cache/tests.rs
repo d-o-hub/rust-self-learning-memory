@@ -385,25 +385,7 @@ mod cache_tests {
             let barrier = Arc::clone(&barrier);
             handles.push(std::thread::spawn(move || {
                 barrier.wait();
-                for i in 0..iterations {
-                    let domain = format!("domain-{}-{}", t, i % 5);
-                    let key = CacheKey::new(format!("query-{}-{}", t, i))
-                        .with_domain(Some(domain.clone()));
-                    cache.put(key, vec![create_test_episode("ep")]);
-
-                    if i % 3 == 0 {
-                        cache.invalidate_domain(&domain);
-                    }
-
-                    let size = cache.size();
-                    let effective = cache.effective_size();
-                    assert!(
-                        effective <= size,
-                        "Effective size {} cannot exceed physical size {}",
-                        effective,
-                        size
-                    );
-                }
+                perform_cache_operations(&cache, t, iterations);
             }));
         }
 
@@ -415,5 +397,27 @@ mod cache_tests {
         let size = cache.size();
         let effective = cache.effective_size();
         assert!(effective <= size);
+    }
+
+    fn perform_cache_operations(cache: &QueryCache, thread_id: usize, iterations: usize) {
+        for i in 0..iterations {
+            let domain = format!("domain-{}-{}", thread_id, i % 5);
+            let key = CacheKey::new(format!("query-{}-{}", thread_id, i))
+                .with_domain(Some(domain.clone()));
+            cache.put(key, vec![create_test_episode("ep")]);
+
+            if i % 3 == 0 {
+                cache.invalidate_domain(&domain);
+            }
+
+            let size = cache.size();
+            let effective = cache.effective_size();
+            assert!(
+                effective <= size,
+                "Effective size {} cannot exceed physical size {}",
+                effective,
+                size
+            );
+        }
     }
 }

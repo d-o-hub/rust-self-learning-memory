@@ -73,3 +73,33 @@ impl Default for TimeSeriesExtractor {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_meets_threshold_cases() {
+        let extractor = TimeSeriesExtractor::default();
+        let cases: &[(&[f64], usize, bool)] = &[
+            (&[], 0, false),              // empty, zero threshold
+            (&[], 3, false),              // empty, nonzero threshold
+            (&[1.0], 0, true),            // non-empty, zero threshold
+            (&[1.0], 1, true),            // exact match
+            (&[1.0], 2, false),           // below threshold
+            (&[1.0, 2.0, 3.0], 3, true),  // exact N
+            (&[1.0, 2.0, 3.0], 4, false), // N-1
+            (&[1.0, 2.0, 3.0], 2, true),  // N+1 (more than needed)
+        ];
+
+        for (values, min_points, expected) in cases {
+            assert_eq!(
+                extractor.meets_threshold(values, *min_points),
+                *expected,
+                "values.len()={}, min_points={}",
+                values.len(),
+                min_points
+            );
+        }
+    }
+}

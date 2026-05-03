@@ -104,7 +104,10 @@ impl TursoStorage {
 
         // Build placeholders for IN clause
         let placeholders = evicted.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-        let sql = format!("DELETE FROM episodes WHERE episode_id IN ({})", placeholders);
+        let sql = format!(
+            "DELETE FROM episodes WHERE episode_id IN ({})",
+            placeholders
+        );
 
         // Build params
         let params: Vec<libsql::Value> = evicted.iter().map(|id| id.clone().into()).collect();

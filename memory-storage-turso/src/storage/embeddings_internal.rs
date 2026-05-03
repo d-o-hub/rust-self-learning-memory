@@ -274,12 +274,17 @@ impl TursoStorage {
             let sql = format!("DELETE FROM embeddings WHERE item_id IN ({})", placeholders);
 
             // Build params
-            let params: Vec<libsql::Value> =
-                item_ids.iter().map(|id| id.clone().into()).collect();
+            let params: Vec<libsql::Value> = item_ids.iter().map(|id| id.clone().into()).collect();
 
-            let rows_affected = conn.execute(&sql, libsql::params_from_iter(params)).await.map_err(|e| {
-                do_memory_core::Error::Storage(format!("Failed to delete embeddings batch: {}", e))
-            })?;
+            let rows_affected = conn
+                .execute(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| {
+                    do_memory_core::Error::Storage(format!(
+                        "Failed to delete embeddings batch: {}",
+                        e
+                    ))
+                })?;
 
             Ok(rows_affected as usize)
         }

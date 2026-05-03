@@ -350,21 +350,21 @@ async fn test_capacity_eviction_batch() {
     assert_eq!(stats.episode_count, 4);
 
     // Verify oldest 6 are gone
-    for i in 0..6 {
-        let retrieved = storage.get_episode(episode_ids[i]).await.unwrap();
+    for (i, &episode_id) in episode_ids.iter().enumerate().take(6) {
+        let retrieved = storage.get_episode(episode_id).await.unwrap();
         assert!(retrieved.is_none(), "Episode {} should be evicted", i);
 
         // Verify embeddings are also gone
         let embedding = storage
-            ._get_embedding_internal(&episode_ids[i].to_string(), "episode")
+            ._get_embedding_internal(&episode_id.to_string(), "episode")
             .await
             .unwrap();
         assert!(embedding.is_none(), "Embedding {} should be evicted", i);
     }
 
     // Verify newest 4 remain
-    for i in 6..10 {
-        let retrieved = storage.get_episode(episode_ids[i]).await.unwrap();
+    for (i, &episode_id) in episode_ids.iter().enumerate().skip(6) {
+        let retrieved = storage.get_episode(episode_id).await.unwrap();
         assert!(retrieved.is_some(), "Episode {} should remain", i);
     }
 }

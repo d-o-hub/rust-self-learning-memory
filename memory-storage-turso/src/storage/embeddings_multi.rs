@@ -170,7 +170,7 @@ impl TursoStorage {
     /// Delete an embedding from dimension-specific tables
     ///
     /// Deletes from all dimension tables (in case dimension changed).
-    pub async fn delete_embedding_dimension_aware(&self, item_id: &str) -> Result<bool> {
+    pub(crate) async fn delete_embedding_dimension_aware(&self, item_id: &str) -> Result<bool> {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         let mut deleted = false;
@@ -205,7 +205,7 @@ impl TursoStorage {
     }
 
     /// Delete embeddings in batch from dimension-specific tables
-    pub async fn delete_embeddings_batch_dimension_aware(
+    pub(crate) async fn delete_embeddings_batch_dimension_aware(
         &self,
         item_ids: &[String],
     ) -> Result<usize> {

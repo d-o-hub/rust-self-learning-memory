@@ -33,7 +33,7 @@ impl TursoStorage {
     ///
     /// Uses the configured eviction policy to determine which episodes to remove
     /// when the capacity is exceeded.
-    async fn enforce_capacity(&self, max_episodes: usize) -> Result<()> {
+    pub async fn enforce_capacity(&self, max_episodes: usize) -> Result<()> {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         // Count current episodes

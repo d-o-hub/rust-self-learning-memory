@@ -369,6 +369,135 @@ async fn test_capacity_eviction_batch() {
     }
 }
 
+#[tokio::test]
+async fn test_enforce_capacity_no_eviction() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    // Store 5 episodes
+    for i in 0..5 {
+        let episode = do_memory_core::Episode::new(
+            format!("task_{}", i),
+            do_memory_core::TaskContext::default(),
+            do_memory_core::TaskType::Testing,
+        );
+        storage.store_episode(&episode).await.unwrap();
+    }
+
+    // Verify 5 episodes exist
+    let stats = storage.get_statistics().await.unwrap();
+    assert_eq!(stats.episode_count, 5);
+
+    // Enforce capacity of 10 (no eviction should occur)
+    storage.enforce_capacity(10).await.unwrap();
+
+    // Verify still 5 episodes exist
+    let stats = storage.get_statistics().await.unwrap();
+    assert_eq!(stats.episode_count, 5);
+}
+
+#[tokio::test]
+async fn test_delete_embeddings_batch_multiple() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    let ids = vec![
+        "batch_delete_1".to_string(),
+        "batch_delete_2".to_string(),
+        "batch_delete_3".to_string(),
+    ];
+
+    for id in &ids {
+        let embedding = create_test_embedding_384();
+        storage
+            ._store_embedding_internal(id, "episode", &embedding)
+            .await
+            .unwrap();
+    }
+
+    // Verify they exist
+    for id in &ids {
+        let retrieved = storage._get_embedding_internal(id, "episode").await.unwrap();
+        assert!(retrieved.is_some());
+    }
+
+    // Delete in batch
+    let count = storage
+        ._delete_embeddings_batch_internal(&ids)
+        .await
+        .unwrap();
+    assert_eq!(count, 3);
+
+    // Verify they are gone
+    for id in &ids {
+        let retrieved = storage._get_embedding_internal(id, "episode").await.unwrap();
+        assert!(retrieved.is_none());
+    }
+}
+
+#[tokio::test]
+async fn test_delete_embeddings_batch_empty() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    let count = storage
+        ._delete_embeddings_batch_internal(&[])
+        .await
+        .unwrap();
+    assert_eq!(count, 0);
+}
+
+#[tokio::test]
+async fn test_delete_embedding_internal_single() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    let id = "single_delete";
+    let embedding = create_test_embedding_384();
+
+    storage
+        ._store_embedding_internal(id, "episode", &embedding)
+        .await
+        .unwrap();
+
+    let deleted = storage._delete_embedding_internal(id).await.unwrap();
+    assert!(deleted);
+
+    let retrieved = storage._get_embedding_internal(id, "episode").await.unwrap();
+    assert!(retrieved.is_none());
+}
+
+#[tokio::test]
+#[cfg(feature = "turso_multi_dimension")]
+async fn test_delete_embeddings_batch_dimension_aware() {
+    let (storage, _dir) = create_test_storage().await.unwrap();
+
+    // Use different dimensions
+    let items = vec![
+        ("item_384".to_string(), create_test_embedding_384()),
+        ("item_1024".to_string(), vec![0.1f32; 1024]),
+        ("item_1536".to_string(), vec![0.2f32; 1536]),
+    ];
+
+    let ids: Vec<String> = items.iter().map(|(id, _)| id.clone()).collect();
+
+    for (id, embedding) in &items {
+        storage
+            ._store_embedding_internal(id, "episode", embedding)
+            .await
+            .unwrap();
+    }
+
+    // Delete in batch
+    let count = storage
+        ._delete_embeddings_batch_internal(&ids)
+        .await
+        .unwrap();
+    assert_eq!(count, 3);
+
+    // Verify all dimensions are cleaned up
+    for id in &ids {
+        let retrieved = storage.get_embedding(id).await.unwrap();
+        assert!(retrieved.is_none());
+    }
+}
+
 // ========== Compression Integration Tests ==========
 
 #[cfg(feature = "compression")]

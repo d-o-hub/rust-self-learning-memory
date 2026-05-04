@@ -335,4 +335,89 @@ mod cache_tests {
         assert!(cache.is_empty());
         assert_eq!(cache.size(), 0);
     }
+
+    #[test]
+    fn test_effective_size_edge_cases() {
+        let cache = QueryCache::with_capacity_and_ttl(2, DEFAULT_CACHE_TTL);
+        let key1 = CacheKey::new("query1".to_string()).with_domain(Some("domain1".to_string()));
+        let key2 = CacheKey::new("query2".to_string()).with_domain(Some("domain2".to_string()));
+        let key3 = CacheKey::new("query3".to_string()).with_domain(Some("domain3".to_string()));
+
+        // Populate cache to capacity
+        cache.put(key1.clone(), vec![create_test_episode("ep1")]);
+        cache.put(key2.clone(), vec![create_test_episode("ep2")]);
+
+        assert_eq!(cache.size(), 2);
+        assert_eq!(cache.effective_size(), 2);
+
+        // Invalidate one item lazily
+        cache.invalidate_domain("domain1");
+        assert_eq!(cache.size(), 2);
+        assert_eq!(cache.effective_size(), 1);
+
+        // Add a new item, which should evict the LRU item (key1)
+        cache.put(key3.clone(), vec![create_test_episode("ep3")]);
+
+        // Now cache should contain key2 and key3 (both valid)
+        assert_eq!(cache.size(), 2);
+
+        // If the implementation is correct, effective_size should be 2.
+        // If it's the bugged saturating_sub(invalidated.len()), it will be 2 - 1 = 1.
+        assert_eq!(
+            cache.effective_size(),
+            2,
+            "Effective size should be 2 because both current entries are valid"
+        );
+    }
+
+    #[test]
+    fn test_effective_size_concurrency() {
+        use std::sync::Barrier;
+
+        let cache = Arc::new(QueryCache::with_capacity_and_ttl(20, DEFAULT_CACHE_TTL));
+        let num_threads = 4;
+        let iterations = 50;
+        let barrier = Arc::new(Barrier::new(num_threads));
+        let mut handles = vec![];
+
+        for t in 0..num_threads {
+            let cache = Arc::clone(&cache);
+            let barrier = Arc::clone(&barrier);
+            handles.push(std::thread::spawn(move || {
+                barrier.wait();
+                perform_cache_operations(&cache, t, iterations);
+            }));
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        // Final state check
+        let size = cache.size();
+        let effective = cache.effective_size();
+        assert!(effective <= size);
+    }
+
+    fn perform_cache_operations(cache: &QueryCache, thread_id: usize, iterations: usize) {
+        for i in 0..iterations {
+            let domain = format!("domain-{}-{}", thread_id, i % 5);
+            let key = CacheKey::new(format!("query-{}-{}", thread_id, i))
+                .with_domain(Some(domain.clone()));
+            cache.put(key, vec![create_test_episode("ep")]);
+
+            if i % 3 == 0 {
+                cache.invalidate_domain(&domain);
+            }
+
+            let size = cache.size();
+            let effective = cache.effective_size();
+            assert!(
+                effective <= size,
+                "Effective size {} cannot exceed physical size {}",
+                effective,
+                size
+            );
+        }
+    }
 }

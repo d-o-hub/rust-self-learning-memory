@@ -262,7 +262,7 @@ impl QueryCache {
         // Count how many invalidated hashes are actually present in the cache
         let mut actual_invalidated_count = 0;
         for hash in invalidated.iter() {
-            if cache.contains(hash) {
+            if cache.peek(hash).is_some() {
                 actual_invalidated_count += 1;
             }
         }

@@ -242,8 +242,7 @@ async fn test_invalid_json_handling() {
         let parse_result: Result<serde_json::Value, _> = serde_json::from_str(json_str);
         assert!(
             parse_result.is_err(),
-            "Invalid JSON should fail to parse: {}",
-            json_str
+            "Invalid JSON should fail to parse: {json_str}",
         );
     }
 
@@ -283,7 +282,7 @@ async fn test_empty_whitespace_handling() {
         .get_episode_tags(episode_id)
         .await
         .unwrap_or_default();
-    println!("  Tags after adding empty/whitespace: {:?}", tags);
+    println!("  Tags after adding empty/whitespace: {tags:?}");
 
     println!("✓ Empty and whitespace string handling test passed");
 }
@@ -308,7 +307,7 @@ async fn test_concurrent_operations() {
             };
             let id = mem
                 .start_episode(
-                    format!("Concurrent episode {}", i),
+                    format!("Concurrent episode {i}"),
                     context,
                     TaskType::CodeGeneration,
                 )

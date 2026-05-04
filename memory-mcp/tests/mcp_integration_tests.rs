@@ -218,7 +218,7 @@ mod mcp_integration_tests {
         let usage = mcp_server.get_tool_usage().await;
         println!("📈 Tool Usage Statistics:");
         for (tool, count) in &usage {
-            println!("   {}: {} calls", tool, count);
+            println!("   {tool}: {count} calls");
         }
 
         // Test 4: Execution Statistics

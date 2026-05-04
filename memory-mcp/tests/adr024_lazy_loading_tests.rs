@@ -203,14 +203,13 @@ mod tools_list_lazy_parameter {
 
         let reduction = ((full_size - lazy_size) as f64 / full_size as f64) * 100.0;
 
-        println!("Full schema size: {} bytes", full_size);
-        println!("Lazy stubs size: {} bytes", lazy_size);
-        println!("Token reduction: {:.1}%", reduction);
+        println!("Full schema size: {full_size} bytes");
+        println!("Lazy stubs size: {lazy_size} bytes");
+        println!("Token reduction: {reduction:.1}%");
 
         assert!(
             reduction > 50.0,
-            "Lazy mode should provide significant token reduction (got {:.1}%)",
-            reduction
+            "Lazy mode should provide significant token reduction (got {reduction:.1}%)"
         );
         assert!(lazy_size < full_size, "Lazy response should be smaller");
     }
@@ -749,10 +748,10 @@ mod lazy_describe_integration {
         let lazy_plus_describe = lazy_size + describe_size;
 
         println!("=== Token Savings Analysis ===");
-        println!("Full list: {} bytes", full_size);
-        println!("Lazy list: {} bytes", lazy_size);
-        println!("Describe one tool: {} bytes", describe_size);
-        println!("Lazy + describe one: {} bytes", lazy_plus_describe);
+        println!("Full list: {full_size} bytes");
+        println!("Lazy list: {lazy_size} bytes");
+        println!("Describe one tool: {describe_size} bytes");
+        println!("Lazy + describe one: {lazy_plus_describe} bytes");
         println!(
             "Savings vs full: {:.1}%",
             ((full_size - lazy_plus_describe) as f64 / full_size as f64) * 100.0

@@ -65,7 +65,7 @@ fn test_cli_embedding_list_providers() {
     assert!(stdout.contains("OpenAI"));
     assert!(stdout.contains("Mistral"));
 
-    println!("List providers output:\n{}", stdout);
+    println!("List providers output:\n{stdout:?}");
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn test_cli_embedding_config_disabled() {
         stdout.contains("Status:") || stdout.contains("disabled") || stdout.contains("Disabled")
     );
 
-    println!("Config (disabled) output:\n{}", stdout);
+    println!("Config (disabled) output:\n{stdout:?}");
 }
 
 #[test]
@@ -107,7 +107,7 @@ fn test_cli_embedding_config_enabled() {
     // Should show configuration details
     assert!(stdout.contains("local") || stdout.contains("Local"));
 
-    println!("Config (enabled) output:\n{}", stdout);
+    println!("Config (enabled) output:\n{stdout:?}");
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn test_cli_embedding_test_command() {
     // Should show test results or message about disabled embeddings
     assert!(stdout.contains("Embedding") || stdout.contains("disabled"));
 
-    println!("Test command output:\n{}", stdout);
+    println!("Test command output:\n{stdout:?}");
 }
 
 #[test]
@@ -167,7 +167,7 @@ fn test_cli_embedding_help() {
     assert!(stdout.contains("config") || stdout.contains("Config"));
     assert!(stdout.contains("list-providers") || stdout.contains("ListProviders"));
 
-    println!("Help output:\n{}", stdout);
+    println!("Help output:\n{stdout:?}");
 }
 
 #[test]
@@ -180,7 +180,7 @@ fn test_cli_embedding_subcommand_help() {
 
         let output = cmd
             .output()
-            .unwrap_or_else(|_| panic!("{} help should succeed", subcmd));
+            .unwrap_or_else(|_| panic!("{subcmd} help should succeed"));
         assert!(output.status.success(), "{} help should succeed", subcmd);
     }
 }
@@ -222,7 +222,7 @@ fn test_cli_episode_query_with_embeddings() {
     // Should succeed (even if no results)
     assert!(output.status.success(), "Query command should succeed");
 
-    println!("Episode query output:\n{}", stdout);
+    println!("Episode query output:\n{stdout:?}");
 }
 
 #[test]
@@ -430,7 +430,7 @@ fn test_cli_embedding_list_providers_detailed() {
         stdout.contains("dimension") || stdout.contains("model") || stdout.contains("Provider")
     );
 
-    println!("Detailed providers list:\n{}", stdout);
+    println!("Detailed providers list:\n{stdout:?}");
 }
 
 // ============================================================================

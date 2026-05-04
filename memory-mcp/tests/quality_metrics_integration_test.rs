@@ -19,7 +19,7 @@ fn create_test_episodes() -> Vec<Episode> {
     // High quality episodes (10 steps, diverse tools, good reflection)
     for i in 0..5 {
         let mut episode = Episode::new(
-            format!("High quality task {}", i),
+            format!("High quality task {i}"),
             TaskContext {
                 domain: "testing".to_string(),
                 language: Some("rust".to_string()),
@@ -32,7 +32,7 @@ fn create_test_episodes() -> Vec<Episode> {
 
         for j in 0..10 {
             let mut step =
-                ExecutionStep::new(j + 1, format!("tool_{}", j % 5), format!("action_{}", j));
+                ExecutionStep::new(j + 1, format!("tool_{}", j % 5), format!("action_{j}"));
             step.result = Some(ExecutionResult::Success {
                 output: "Success".to_string(),
             });
@@ -57,7 +57,7 @@ fn create_test_episodes() -> Vec<Episode> {
     // Medium quality episodes (5 steps, moderate complexity)
     for i in 0..3 {
         let mut episode = Episode::new(
-            format!("Medium quality task {}", i),
+            format!("Medium quality task {i}"),
             TaskContext {
                 domain: "testing".to_string(),
                 language: Some("rust".to_string()),
@@ -87,7 +87,7 @@ fn create_test_episodes() -> Vec<Episode> {
     // Low quality episodes (1-2 steps, simple)
     for i in 0..2 {
         let mut episode = Episode::new(
-            format!("Low quality task {}", i),
+            format!("Low quality task {i}"),
             TaskContext {
                 domain: "testing".to_string(),
                 language: Some("rust".to_string()),
@@ -189,8 +189,7 @@ async fn test_quality_metrics_time_ranges() {
         let result = tool.execute(input).await;
         assert!(
             result.is_ok(),
-            "Quality metrics should work with time_range={}",
-            time_range
+            "Quality metrics should work with time_range={time_range}"
         );
 
         let metrics = result.unwrap();

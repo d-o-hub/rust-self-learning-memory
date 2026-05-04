@@ -22,7 +22,7 @@ async fn test_many_tags_single_episode() {
         .await;
 
     // Add 50 tags
-    let tags: Vec<String> = (0..50).map(|i| format!("tag-{}", i)).collect();
+    let tags: Vec<String> = (0..50).map(|i| format!("tag-{i}")).collect();
 
     let result = tools
         .add_tags(AddEpisodeTagsInput {
@@ -75,7 +75,7 @@ async fn test_search_many_episodes() {
     for i in 0..20 {
         let episode_id = memory
             .start_episode(
-                format!("Episode {}", i),
+                format!("Episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
@@ -232,7 +232,7 @@ async fn test_search_with_limit() {
     for i in 0..10 {
         let episode_id = memory
             .start_episode(
-                format!("Episode {}", i),
+                format!("Episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )

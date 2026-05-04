@@ -238,7 +238,7 @@ mod tests {
     }
 
     /// Test that tag operations persist across storage
-    /// Note: This test requires TURSO_DB_URL and TURSO_AUTH_TOKEN environment variables
+    /// Note: This test requires `TURSO_DB_URL` and `TURSO_AUTH_TOKEN` environment variables
     /// and is ignored by default. Run with `cargo test -- --ignored` to execute.
     #[tokio::test]
     #[cfg(feature = "turso")]
@@ -251,8 +251,9 @@ mod tests {
         use tempfile::NamedTempFile;
 
         // This test requires actual Turso setup
-        let db_url = std::env::var("TURSO_DB_URL").expect("TURSO_DB_URL must be set");
-        let auth_token = std::env::var("TURSO_AUTH_TOKEN").expect("TURSO_AUTH_TOKEN must be set");
+        let db_url = std::env::var("`TURSO_DB_URL`").expect("`TURSO_DB_URL` must be set");
+        let auth_token =
+            std::env::var("`TURSO_AUTH_TOKEN`").expect("`TURSO_AUTH_TOKEN` must be set");
 
         let turso = TursoStorage::new(&db_url, &auth_token).await.unwrap();
         let temp_file = NamedTempFile::new().unwrap();

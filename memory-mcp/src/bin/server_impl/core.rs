@@ -43,8 +43,7 @@ pub async fn handle_protected_resource_metadata(
         resource: resource_uri,
         scopes_supported: oauth_config.scopes.clone(),
         resource_metadata: Some(format!(
-            "{}/.well-known/oauth-protected-resource",
-            resource_uri_clone
+            "{resource_uri_clone}/.well-known/oauth-protected-resource"
         )),
     };
 

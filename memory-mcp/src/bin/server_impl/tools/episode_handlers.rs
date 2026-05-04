@@ -1,3 +1,11 @@
+#[derive(serde::Serialize)]
+struct BulkEpisodeResult {
+    requested_count: usize,
+    found_count: usize,
+    missing_count: usize,
+    episodes: Vec<serde_json::Value>,
+}
+
 use super::{Content, MemoryMCPServer, Value, get_client_id};
 use serde_json::json;
 
@@ -19,7 +27,7 @@ pub async fn handle_bulk_episodes(
             .split(',')
             .map(|id| {
                 let id = id.trim();
-                Uuid::parse_str(id).map_err(|_| anyhow::anyhow!("Invalid UUID: {}", id))
+                Uuid::parse_str(id).map_err(|_| anyhow::anyhow!("Invalid UUID: {id}"))
             })
             .collect::<anyhow::Result<Vec<_>>>()?,
         Value::Array(arr) => arr
@@ -28,7 +36,7 @@ pub async fn handle_bulk_episodes(
                 let id = v
                     .as_str()
                     .ok_or_else(|| anyhow::anyhow!("Expected string in episode_ids array"))?;
-                Uuid::parse_str(id).map_err(|_| anyhow::anyhow!("Invalid UUID: {}", id))
+                Uuid::parse_str(id).map_err(|_| anyhow::anyhow!("Invalid UUID: {id}"))
             })
             .collect::<anyhow::Result<Vec<_>>>()?,
         _ => {
@@ -51,16 +59,8 @@ pub async fn handle_bulk_episodes(
     for ep in result?.iter() {
         episodes_json.push(
             serde_json::to_value(ep)
-                .map_err(|e| anyhow::anyhow!("Failed to serialize episode: {}", e))?,
+                .map_err(|e| anyhow::anyhow!("Failed to serialize episode: {e}"))?,
         );
-    }
-
-    #[derive(serde::Serialize)]
-    struct BulkEpisodeResult {
-        requested_count: usize,
-        found_count: usize,
-        missing_count: usize,
-        episodes: Vec<serde_json::Value>,
     }
 
     let bulk_result = BulkEpisodeResult {

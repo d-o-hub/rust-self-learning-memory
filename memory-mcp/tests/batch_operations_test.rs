@@ -333,7 +333,7 @@ async fn test_batch_max_parallel_limit() {
     // Create 10 operations
     let operations: Vec<_> = (0..10)
         .map(|i| BatchOperation {
-            id: format!("op{}", i),
+            id: format!("op{i}"),
             tool: "test_tool".to_string(),
             arguments: json!({"value": i, "delay_ms": 100}),
             depends_on: vec![],

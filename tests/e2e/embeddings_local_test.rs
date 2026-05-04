@@ -274,7 +274,7 @@ async fn test_local_multilingual_support() {
         let embedding = provider
             .embed_text(text)
             .await
-            .expect(&format!("Should embed {} text", lang));
+            .expect(&format!("Should embed {lang} text"));
 
         assert_eq!(
             embedding.len(),
@@ -282,7 +282,7 @@ async fn test_local_multilingual_support() {
             "{} text should have correct dimension",
             lang
         );
-        println!("{} text embedded successfully", lang);
+        println!("{lang:?} text embedded successfully");
     }
 
     // Cross-language similarity
@@ -312,7 +312,7 @@ async fn test_local_special_characters_handling() {
         let embedding = provider
             .embed_text(text)
             .await
-            .expect(&format!("Should handle: {}", text));
+            .expect(&format!("Should handle: {text}"));
 
         assert_eq!(embedding.len(), 384);
         println!(
@@ -338,7 +338,7 @@ async fn test_local_performance_benchmarks() {
     let mut durations = vec![];
 
     for i in 0..iterations {
-        let text = format!("Benchmark text number {}", i);
+        let text = format!("Benchmark text number {i}");
         let start = Instant::now();
         let _ = provider.embed_text(&text).await.unwrap();
         durations.push(start.elapsed());
@@ -369,7 +369,7 @@ async fn test_local_batch_performance() {
 
     for batch_size in batch_sizes {
         let texts: Vec<String> = (0..batch_size)
-            .map(|i| format!("Text {} for batch testing", i))
+            .map(|i| format!("Text {i} for batch testing"))
             .collect();
 
         let start = Instant::now();
@@ -392,7 +392,7 @@ async fn test_local_batch_performance() {
 async fn test_local_concurrent_embeddings() {
     let provider = create_local_provider().await;
 
-    let texts: Vec<String> = (0..20).map(|i| format!("Concurrent text {}", i)).collect();
+    let texts: Vec<String> = (0..20).map(|i| format!("Concurrent text {i}")).collect();
 
     let start = Instant::now();
 
@@ -591,7 +591,7 @@ async fn test_local_memory_efficiency() {
     // Generate many embeddings to test memory usage
     let num_embeddings = 1000;
     let texts: Vec<String> = (0..num_embeddings)
-        .map(|i| format!("Text number {} for memory testing", i))
+        .map(|i| format!("Text number {i} for memory testing"))
         .collect();
 
     let start = Instant::now();
@@ -605,7 +605,7 @@ async fn test_local_memory_efficiency() {
     let total_mb = total_bytes as f64 / (1024.0 * 1024.0);
 
     println!("Memory efficiency test:");
-    println!("  Embeddings: {}", num_embeddings);
+    println!("  Embeddings: {num_embeddings:?}");
     println!("  Total size: {:.2} MB", total_mb);
     println!("  Time: {:?}", duration);
     println!(

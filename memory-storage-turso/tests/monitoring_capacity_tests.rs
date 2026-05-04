@@ -43,7 +43,7 @@ fn create_test_execution_record(
         agent_type,
         success,
         Duration::from_millis(100),
-        Some(format!("Test task for {}", agent_name)),
+        Some(format!("Test task for {agent_name}")),
         if success {
             None
         } else {
@@ -155,12 +155,11 @@ mod monitoring_tests {
         // Act & Assert
         for agent_type in agent_types {
             let record =
-                create_test_execution_record(&format!("agent_{}", agent_type), agent_type, true);
+                create_test_execution_record(&format!("agent_{agent_type}"), agent_type, true);
             let result = storage.store_execution_record(&record).await;
             assert!(
                 result.is_ok(),
-                "Should store record for agent type {:?}",
-                agent_type
+                "Should store record for agent type {agent_type:?}"
             );
         }
 
@@ -235,7 +234,7 @@ mod monitoring_tests {
         let (storage, _dir) = create_test_storage().await?;
         for i in 0..20 {
             let record =
-                create_test_execution_record(&format!("agent_{}", i), AgentType::Other, true);
+                create_test_execution_record(&format!("agent_{i}"), AgentType::Other, true);
             storage.store_execution_record(&record).await?;
         }
 
@@ -321,12 +320,11 @@ mod monitoring_tests {
 
         // Act & Assert
         for agent_type in agent_types {
-            let metrics = create_test_agent_metrics(&format!("metrics_{}", agent_type), agent_type);
+            let metrics = create_test_agent_metrics(&format!("metrics_{agent_type}"), agent_type);
             let result = storage.store_agent_metrics(&metrics).await;
             assert!(
                 result.is_ok(),
-                "Should store metrics for agent type {:?}",
-                agent_type
+                "Should store metrics for agent type {agent_type:?}"
             );
         }
 
@@ -583,7 +581,7 @@ mod capacity_tests {
         // Arrange
         let (storage, _dir) = create_test_storage().await?;
         for i in 0..5 {
-            let episode = create_test_episode(&format!("task_{}", i));
+            let episode = create_test_episode(&format!("task_{i}"));
             storage.store_episode(&episode).await?;
         }
 
@@ -639,7 +637,7 @@ mod capacity_tests {
 
         // Act - Store 3 episodes (under capacity)
         for i in 0..3 {
-            let episode = create_test_episode(&format!("under_limit_{}", i));
+            let episode = create_test_episode(&format!("under_limit_{i}"));
             storage
                 .store_episode_with_capacity(&episode, max_episodes)
                 .await?;
@@ -661,7 +659,7 @@ mod capacity_tests {
 
         // Act - Store exactly 3 episodes
         for i in 0..3 {
-            let episode = create_test_episode(&format!("at_limit_{}", i));
+            let episode = create_test_episode(&format!("at_limit_{i}"));
             storage
                 .store_episode_with_capacity(&episode, max_episodes)
                 .await?;
@@ -686,7 +684,7 @@ mod capacity_tests {
 
         // Act - Store 5 episodes (exceeds capacity by 2)
         for i in 0..5 {
-            let episode = create_test_episode(&format!("exceeds_{}", i));
+            let episode = create_test_episode(&format!("exceeds_{i}"));
             storage
                 .store_episode_with_capacity(&episode, max_episodes)
                 .await?;
@@ -711,7 +709,7 @@ mod capacity_tests {
 
         // Act - Store 10 episodes with large limit
         for i in 0..10 {
-            let episode = create_test_episode(&format!("large_limit_{}", i));
+            let episode = create_test_episode(&format!("large_limit_{i}"));
             storage
                 .store_episode_with_capacity(&episode, max_episodes)
                 .await?;
@@ -736,7 +734,7 @@ mod capacity_tests {
 
         // Act - Store multiple episodes with limit of 1
         for i in 0..5 {
-            let episode = create_test_episode(&format!("single_limit_{}", i));
+            let episode = create_test_episode(&format!("single_limit_{i}"));
             storage
                 .store_episode_with_capacity(&episode, max_episodes)
                 .await?;
@@ -842,7 +840,7 @@ mod capacity_tests {
 
         // Store episodes exceeding capacity
         for i in 0..5 {
-            let episode = create_test_episode(&format!("eviction_episode_{}", i));
+            let episode = create_test_episode(&format!("eviction_episode_{i}"));
             storage
                 .store_episode_with_capacity(&episode, max_episodes)
                 .await?;

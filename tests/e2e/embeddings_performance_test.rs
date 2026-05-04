@@ -82,7 +82,7 @@ async fn test_performance_single_embedding_latency() {
     let mut durations = vec![];
 
     for i in 0..iterations {
-        let text = format!("Performance test text number {}", i);
+        let text = format!("Performance test text number {i}");
         let start = Instant::now();
         let _ = provider.embed_text(&text).await.unwrap();
         durations.push(start.elapsed());
@@ -128,7 +128,7 @@ async fn test_performance_batch_embedding_latency() {
 
     for batch_size in batch_sizes {
         let texts: Vec<String> = (0..batch_size)
-            .map(|i| format!("Batch test text {}", i))
+            .map(|i| format!("Batch test text {i}"))
             .collect();
 
         let start = Instant::now();
@@ -164,11 +164,11 @@ async fn test_performance_search_latency() {
 
     // Create a dataset of 1000 episodes
     let num_episodes = 1000;
-    println!("Creating dataset with {} episodes...", num_episodes);
+    println!("Creating dataset with {num_episodes:?} episodes...");
 
     for i in 0..num_episodes {
         let episode_id = uuid::Uuid::new_v4();
-        let text = format!("Episode {} about various topics like authentication, API development, database design, testing, and deployment", i);
+        let text = format!("Episode {i} about various topics like authentication, API development, database design, testing, and deployment");
         let embedding = provider.embed_text(&text).await.unwrap();
 
         storage
@@ -193,7 +193,7 @@ async fn test_performance_search_latency() {
         durations.push(start.elapsed());
     }
 
-    let metrics = PerformanceMetrics::new(format!("Search ({} episodes)", num_episodes), durations);
+    let metrics = PerformanceMetrics::new(format!("Search ({num_episodes} episodes)"), durations);
     metrics.print();
 
     // Search should be fast even with 1000 episodes
@@ -226,7 +226,7 @@ async fn test_performance_large_dataset_scaling() {
         let build_start = Instant::now();
         for i in 0..size {
             let episode_id = uuid::Uuid::new_v4();
-            let text = format!("Episode {} with various technical content", i);
+            let text = format!("Episode {i} with various technical content");
             let embedding = provider.embed_text(&text).await.unwrap();
             storage
                 .store_episode_embedding(episode_id, embedding)
@@ -284,7 +284,7 @@ async fn test_performance_concurrent_embeddings() {
 
     for num_tasks in concurrent_tasks {
         let texts: Vec<String> = (0..(num_tasks * 10))
-            .map(|i| format!("Concurrent test text {}", i))
+            .map(|i| format!("Concurrent test text {i}"))
             .collect();
 
         let start = Instant::now();
@@ -353,7 +353,7 @@ async fn test_performance_similarity_calculation() {
     let throughput = iterations as f64 / duration.as_secs_f64();
 
     println!("\nCosine Similarity Performance:");
-    println!("  Iterations: {}", iterations);
+    println!("  Iterations: {iterations:?}");
     println!("  Total time: {:?}", duration);
     println!("  Average: {:.2}μs", avg);
     println!("  Throughput: {:.0} ops/sec", throughput);
@@ -378,7 +378,7 @@ async fn test_performance_memory_efficiency() {
 
         for i in 0..size {
             let episode_id = uuid::Uuid::new_v4();
-            let text = format!("Episode {} for memory testing", i);
+            let text = format!("Episode {i} for memory testing");
             let embedding = provider.embed_text(&text).await.unwrap();
             storage
                 .store_episode_embedding(episode_id, embedding)
@@ -578,7 +578,7 @@ async fn test_performance_realistic_workload() {
         if i % 10 < 7 {
             // Add new episode
             let episode_id = uuid::Uuid::new_v4();
-            let text = format!("Episode {} about various technical topics", i);
+            let text = format!("Episode {i} about various technical topics");
             let embedding = provider.embed_text(&text).await.unwrap();
             storage
                 .store_episode_embedding(episode_id, embedding)
@@ -600,9 +600,9 @@ async fn test_performance_realistic_workload() {
     let duration = start.elapsed();
     let throughput = total_operations as f64 / duration.as_secs_f64();
 
-    println!("  Total operations: {}", total_operations);
-    println!("  Add operations: {}", add_count);
-    println!("  Search operations: {}", search_count);
+    println!("  Total operations: {total_operations:?}");
+    println!("  Add operations: {add_count:?}");
+    println!("  Search operations: {search_count:?}");
     println!("  Total time: {:?}", duration);
     println!("  Throughput: {:.2} ops/sec", throughput);
     println!(

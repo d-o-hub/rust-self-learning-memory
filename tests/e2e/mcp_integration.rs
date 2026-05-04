@@ -236,7 +236,7 @@ async fn test_mcp_tool_create_episode() {
         .expect("episode_id should be string");
     assert!(!episode_id.is_empty(), "episode_id should not be empty");
 
-    println!("  ✓ Created episode: {}", episode_id);
+    println!("  ✓ Created episode: {episode_id:?}");
     println!("✅ create_episode tool test passed!");
 }
 
@@ -285,7 +285,7 @@ async fn test_mcp_tool_add_episode_step() {
         "Result should indicate success"
     );
 
-    println!("  ✓ Added step to episode {}", episode_id);
+    println!("  ✓ Added step to episode {episode_id:?}");
     println!("✅ add_episode_step tool test passed!");
 }
 
@@ -333,7 +333,7 @@ async fn test_mcp_tool_complete_episode() {
         "Result should indicate success"
     );
 
-    println!("  ✓ Completed episode {}", episode_id);
+    println!("  ✓ Completed episode {episode_id:?}");
     println!("✅ complete_episode tool test passed!");
 }
 
@@ -583,7 +583,7 @@ async fn test_mcp_tool_batch_operations_are_deferred() {
     let mut episode_ids = Vec::new();
     for i in 0..3 {
         let create_params = serde_json::json!({
-            "task_description": format!("Batch test episode {}", i),
+            "task_description": format!("Batch test episode {i}"),
             "domain": "batch-test",
             "task_type": "code_generation"
         });
@@ -687,15 +687,15 @@ async fn test_mcp_complete_workflow() {
         .expect("Failed to create episode");
 
     let episode_id = create_result["episode_id"].as_str().unwrap();
-    println!("  ✓ Created episode: {}", episode_id);
+    println!("  ✓ Created episode: {episode_id:?}");
 
     // Step 2: Add steps
     for i in 1..=3 {
         let step_params = serde_json::json!({
             "episode_id": episode_id,
             "step_number": i,
-            "tool_name": format!("tool-{}", i),
-            "action": format!("Action {}", i)
+            "tool_name": format!("tool-{i}"),
+            "action": format!("Action {i}")
         });
 
         server
@@ -839,7 +839,7 @@ async fn test_mcp_tool_pattern_analysis() {
     // Create episodes with similar patterns
     for i in 0..5 {
         let create_params = serde_json::json!({
-            "task_description": format!("Pattern test episode {}", i),
+            "task_description": format!("Pattern test episode {i}"),
             "domain": "pattern-mcp-test",
             "task_type": "code_generation"
         });
@@ -856,8 +856,8 @@ async fn test_mcp_tool_pattern_analysis() {
             let step_params = serde_json::json!({
                 "episode_id": episode_id,
                 "step_number": step,
-                "tool_name": format!("pattern-tool-{}", step),
-                "action": format!("Pattern action {}", step)
+                "tool_name": format!("pattern-tool-{step}"),
+                "action": format!("Pattern action {step}")
             });
 
             server

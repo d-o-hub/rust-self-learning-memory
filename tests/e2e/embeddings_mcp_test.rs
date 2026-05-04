@@ -132,7 +132,7 @@ async fn test_mcp_configure_embeddings_openai() {
         }
     } else {
         let error = result.unwrap_err();
-        println!("Expected error (no API key): {}", error);
+        println!("Expected error (no API key): {error:?}");
         assert!(error.to_string().contains("API key") || error.to_string().contains("not set"));
     }
 }
@@ -238,7 +238,7 @@ async fn test_mcp_query_semantic_memory_basic() {
 
     assert!(results_found >= 0, "results_found should be non-negative");
 
-    println!("Query found {} results", results_found);
+    println!("Query found {results_found:?} results");
 }
 
 async fn test_mcp_query_semantic_memory_with_filters() {
@@ -365,7 +365,7 @@ async fn test_mcp_tool_chaining_create_and_query() {
 
     // Add steps
     for i in 1..=5 {
-        let step = ExecutionStep::new(i, format!("tool_{}", i), format!("Action {}", i));
+        let step = ExecutionStep::new(i, format!("tool_{i}"), format!("Action {i}"));
         server.memory().log_step(episode_id, step).await;
     }
 
@@ -670,7 +670,7 @@ async fn test_mcp_episode_to_embedding_workflow() {
 
     // Add steps
     for i in 1..=3 {
-        let step = ExecutionStep::new(i, format!("tool_{}", i), format!("Migration step {}", i));
+        let step = ExecutionStep::new(i, format!("tool_{i}"), format!("Migration step {i}"));
         server.memory().log_step(episode_id, step).await;
     }
 
@@ -754,7 +754,7 @@ fn run_test<F>(name: &str, test: F, passed: &mut i32, _failed: &mut i32)
 where
     F: Future<Output = ()>,
 {
-    print!("Running {} ... ", name);
+    print!("Running {name} ... ");
     let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     rt.block_on(async {
         test.await;
@@ -882,7 +882,7 @@ fn main() {
     );
 
     println!("\n========================================");
-    println!("Results: {} passed, {} failed", passed, failed);
+    println!("Results: {passed} passed, {failed} failed");
     println!("========================================\n");
 
     if failed > 0 {

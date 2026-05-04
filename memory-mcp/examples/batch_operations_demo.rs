@@ -98,7 +98,7 @@ async fn demo_parallel_operations() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
     let duration = start.elapsed();
 
     println!(
@@ -162,7 +162,7 @@ async fn demo_dependency_chain() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
 
     println!("✓ Pipeline executed successfully");
     println!("  Total time: {}ms", response.total_duration_ms);
@@ -209,7 +209,11 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     };
 
     let executor_fn = |_tool: String, args: serde_json::Value| async move {
-        if args.get("fail").and_then(|v| v.as_bool()).unwrap_or(false) {
+        if args
+            .get("fail")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false)
+        {
             Err((-32000, "Simulated failure".to_string()))
         } else {
             Ok(json!({"status": "success", "data": args}))
@@ -219,7 +223,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
 
     println!("✓ Batch completed with partial results");
     println!(
@@ -236,8 +240,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
             let error = result
                 .error
                 .as_ref()
-                .map(|e| e.message.clone())
-                .unwrap_or_else(|| "Unknown error".to_string());
+                .map_or_else(|| "Unknown error".to_string(), |e| e.message.clone());
             println!("  {} → Failed: {}", result.id, error);
         }
     }
@@ -316,7 +319,7 @@ async fn demo_complex_workflow() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
     let duration = start.elapsed();
 
     println!("✓ Complex workflow completed");
@@ -326,7 +329,9 @@ async fn demo_complex_workflow() -> anyhow::Result<()> {
         20 + 80 + 80 + 40 + 60 // Sum of all operations
     );
     println!("  Operations: {}", response.results.len());
-    println!("  Speedup: ~{:.1}x", 280.0 / duration.as_millis() as f64);
+    #[allow(clippy::cast_precision_loss)]
+    let speedup = 280.0 / (duration.as_millis() as f64);
+    println!("  Speedup: ~{speedup:.1}x");
 
     // Show execution timeline
     println!("\n  Execution Timeline:");

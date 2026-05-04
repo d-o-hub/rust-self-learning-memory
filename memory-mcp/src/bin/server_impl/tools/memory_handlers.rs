@@ -152,8 +152,7 @@ pub async fn handle_advanced_pattern_analysis(
         }
         _ => {
             return Err(anyhow::anyhow!(
-                "Invalid analysis_type: {}",
-                analysis_type_str
+                "Invalid analysis_type: {analysis_type_str}"
             ));
         }
     };
@@ -260,7 +259,7 @@ pub async fn handle_configure_embeddings(
         .audit_logger()
         .log_embedding_config(
             &client_id,
-            &format!("{:?}", provider),
+            &format!("{provider:?}"),
             model.as_deref(),
             success,
         )

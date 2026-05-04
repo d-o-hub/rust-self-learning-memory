@@ -24,7 +24,7 @@ async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 Testing query_memory tool...");
     match test_query_memory(&server).await {
         Ok(_) => test_results.push(("query_memory", "PASS", "Valid JSON response".to_string())),
-        Err(e) => test_results.push(("query_memory", "FAIL", format!("Error: {}", e))),
+        Err(e) => test_results.push(("query_memory", "FAIL", format!("Error: {e}"))),
     }
 
     // Test 2: analyze_patterns tool
@@ -35,14 +35,14 @@ async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
             "PASS",
             "Valid JSON response".to_string(),
         )),
-        Err(e) => test_results.push(("analyze_patterns", "FAIL", format!("Error: {}", e))),
+        Err(e) => test_results.push(("analyze_patterns", "FAIL", format!("Error: {e}"))),
     }
 
     // Test 3: list_tools
     println!("📋 Testing list_tools...");
     match test_list_tools(&server).await {
         Ok(_) => test_results.push(("list_tools", "PASS", "Valid JSON response".to_string())),
-        Err(e) => test_results.push(("list_tools", "FAIL", format!("Error: {}", e))),
+        Err(e) => test_results.push(("list_tools", "FAIL", format!("Error: {e}"))),
     }
 
     // Report results
@@ -59,15 +59,15 @@ async fn test_json_validation() -> Result<(), Box<dyn std::error::Error>> {
         .count();
     let total = test_results.len();
 
-    println!("Total Tests: {}", total);
-    println!("✅ Passed: {}", passed);
-    println!("❌ Failed: {}", failed);
+    println!("Total Tests: {total}");
+    println!("✅ Passed: {passed}");
+    println!("❌ Failed: {failed}");
 
     if failed > 0 {
         println!("\n❌ Failed Tests:");
         for (test, status, details) in &test_results {
             if *status == "FAIL" {
-                println!("  - {}: {}", test, details);
+                println!("  - {test}: {details}");
             }
         }
     }
@@ -166,7 +166,7 @@ fn validate_json_structure(
 
     // Check it's an object
     if !value.is_object() {
-        return Err(format!("{}: Expected JSON object, got {}", test_name, value).into());
+        return Err(format!("{test_name}: Expected JSON object, got {value}").into());
     }
 
     Ok(())

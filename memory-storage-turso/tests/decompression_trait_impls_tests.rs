@@ -232,8 +232,7 @@ mod zstd_decompression_tests {
         let err_msg = result.unwrap_err().to_string();
         assert!(
             err_msg.contains("Decompression") || err_msg.contains("Task join"),
-            "Error message should mention decompression or task: {}",
-            err_msg
+            "Error message should mention decompression or task: {err_msg}"
         );
     }
 
@@ -286,8 +285,7 @@ mod zstd_decompression_tests {
             let response = transport.send(&data).await.unwrap();
             assert_eq!(
                 response.body, data,
-                "Size {} should round-trip correctly",
-                size
+                "Size {size} should round-trip correctly"
             );
         }
     }
@@ -308,8 +306,7 @@ mod zstd_decompression_tests {
         let ratio = transport.overall_compression_ratio();
         assert!(
             ratio < 0.1,
-            "Highly compressible data should have ratio < 0.1, got {}",
-            ratio
+            "Highly compressible data should have ratio < 0.1, got {ratio}"
         );
     }
 }
@@ -363,8 +360,7 @@ mod gzip_decompression_tests {
         let err_msg = result.unwrap_err().to_string();
         assert!(
             err_msg.contains("Decompression") || err_msg.contains("Task join"),
-            "Error should mention decompression: {}",
-            err_msg
+            "Error should mention decompression: {err_msg}"
         );
     }
 
@@ -550,7 +546,7 @@ async fn test_multiple_compression_roundtrips() {
     for i in 0..10 {
         let data: Vec<u8> = (0..(1000 + i * 100)).map(|j| (j % 256) as u8).collect();
         let response = transport.send(&data).await.unwrap();
-        assert_eq!(response.body, data, "Round-trip {} should preserve data", i);
+        assert_eq!(response.body, data, "Round-trip {i} should preserve data");
     }
 
     assert_eq!(send_count.load(std::sync::atomic::Ordering::SeqCst), 10);
@@ -735,7 +731,7 @@ fn test_storage_statistics_debug() {
         heuristic_count: 8,
     };
 
-    let debug_str = format!("{:?}", stats);
+    let debug_str = format!("{stats:?}");
 
     assert!(debug_str.contains("episode_count"));
     assert!(debug_str.contains("42"));

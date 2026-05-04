@@ -66,7 +66,7 @@ async fn test_pool_performance_concurrent_operations() -> Result<(), Box<dyn std
 
     let stats = pool.statistics().await;
 
-    println!("100 concurrent operations completed in: {:?}", elapsed);
+    println!("100 concurrent operations completed in: {elapsed:?}");
     println!("Total checkouts: {}", stats.total_checkouts);
     println!("Total created connections: {}", stats.total_created);
     println!("Avg wait time: {}ms", stats.avg_wait_time_ms);
@@ -111,7 +111,7 @@ async fn test_pool_with_turso_storage() -> Result<(), Box<dyn std::error::Error>
             .ok_or_else(|| anyhow::anyhow!("Failed to get connection"))?
             .query("SELECT 1", ())
             .await;
-        assert!(result.is_ok(), "Query {} failed", i);
+        assert!(result.is_ok(), "Query {i} failed");
     }
 
     let stats = pool.statistics().await;

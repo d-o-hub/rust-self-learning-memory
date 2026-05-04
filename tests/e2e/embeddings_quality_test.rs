@@ -188,13 +188,13 @@ async fn test_quality_search_accuracy_known_queries() {
         total_correct += correct_count;
         total_queries += 1;
 
-        println!("Query: '{}'", query);
+        println!("Query: '{query:?}'");
         println!("  Expected indices: {:?}", expected_indices);
         println!("  Top 3 results:");
         for (i, (_, text, domain, similarity)) in similarities.iter().take(3).enumerate() {
             println!("    {}. [{:.3}] {} ({})", i + 1, similarity, text, domain);
         }
-        println!("  Correct: {}/3", correct_count);
+        println!("  Correct: {correct_count:?}/3");
         println!();
     }
 
@@ -310,7 +310,7 @@ async fn test_quality_ranking_quality() {
     // Sort by similarity
     ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-    println!("Ranking for query: '{}'", query);
+    println!("Ranking for query: '{query:?}'");
     for (i, (text, similarity)) in ranked.iter().enumerate() {
         println!("  {}. [{:.3}] {}", i + 1, similarity, text);
     }
@@ -332,7 +332,7 @@ async fn test_quality_ranking_quality() {
         })
         .count();
 
-    println!("Top 3 auth-related results: {}/3", top_3_auth_related);
+    println!("Top 3 auth-related results: {top_3_auth_related:?}/3");
     assert!(
         top_3_auth_related >= 1,
         "At least one auth result should be in top 3"
@@ -388,7 +388,7 @@ async fn test_quality_domain_specific_search() {
         .await
         .expect("Should find results");
 
-    println!("Domain-specific search for: '{}'", query);
+    println!("Domain-specific search for: '{query:?}'");
     println!("Total results: {}", results.len());
 
     // Count results by domain
@@ -432,7 +432,7 @@ async fn test_quality_multilingual_support() {
     println!("Multilingual Similarity Analysis:");
 
     for (concept, translations) in multilingual_queries {
-        println!("\nConcept: {}", concept);
+        println!("\nConcept: {concept:?}");
 
         // Calculate pairwise similarities
         let mut similarities = vec![];
@@ -536,7 +536,7 @@ async fn test_quality_context_aware_search() {
             .await
             .expect("Should calculate similarity");
 
-        println!("Context: {}", context);
+        println!("Context: {context:?}");
         println!("  Base query '{}': {:.3}", base_query, base_sim);
         println!(
             "  Contextualized '{}': {:.3}",
@@ -566,7 +566,7 @@ async fn test_quality_natural_language_queries() {
     let target = "Implement JWT authentication system";
 
     println!("Natural Language Query Variations:");
-    println!("Target: '{}'", target);
+    println!("Target: '{target:?}'");
     println!();
 
     let mut similarities = vec![];

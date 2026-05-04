@@ -213,7 +213,7 @@ pub async fn handle_call_tool(
         Err(e) => {
             error!("Tool execution failed: {}", e);
             let error_content = vec![Content::Text {
-                text: format!("Tool execution failed: {}", e),
+                text: format!("Tool execution failed: {e}"),
             }];
             let call_result = CallToolResult::error(error_content);
             match serde_json::to_value(call_result) {

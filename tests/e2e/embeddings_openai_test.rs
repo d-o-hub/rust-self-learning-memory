@@ -349,7 +349,7 @@ async fn test_openai_multilingual_support() {
         let embedding = provider
             .embed_text(text)
             .await
-            .expect(&format!("Should embed {} text", lang));
+            .expect(&format!("Should embed {lang} text"));
 
         assert_eq!(
             embedding.len(),
@@ -357,7 +357,7 @@ async fn test_openai_multilingual_support() {
             "{} text should have correct dimension",
             lang
         );
-        println!("{} text embedded successfully", lang);
+        println!("{lang:?} text embedded successfully");
     }
 
     // Similar translations should have high similarity
@@ -414,7 +414,7 @@ async fn test_openai_performance_benchmarks() {
     println!("  Max: {:?}", max_single);
 
     // Benchmark batch embeddings
-    let batch_texts: Vec<String> = (0..50).map(|i| format!("Text number {}", i)).collect();
+    let batch_texts: Vec<String> = (0..50).map(|i| format!("Text number {i}")).collect();
 
     let start = Instant::now();
     let _ = provider.embed_batch(&batch_texts).await.unwrap();

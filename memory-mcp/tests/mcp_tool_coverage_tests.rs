@@ -58,8 +58,7 @@ async fn test_mcp_tool_coverage_list_tools_returns_core_tools() {
     for name in &expected_core {
         assert!(
             names.contains(name),
-            "Core tool '{}' should be in list_tools()",
-            name
+            "Core tool '{name}' should be in list_tools()"
         );
     }
 }

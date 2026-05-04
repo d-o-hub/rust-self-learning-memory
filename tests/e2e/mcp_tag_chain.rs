@@ -151,7 +151,7 @@ async fn test_mcp_tag_normalization() {
 
     // Should have only 2 unique tags (security + authentication)
     // Note: Actual behavior depends on implementation
-    println!("Tags after normalization: {:?}", tags);
+    println!("Tags after normalization: {tags:?}");
 
     // Verify duplicates are removed
     let unique_tags: std::collections::HashSet<_> = tags.iter().collect();
@@ -264,7 +264,7 @@ async fn test_mcp_tag_statistics() {
         let ep_id = create_completed_episode(&memory, ep_desc, "tag-stats-test").await;
 
         // Each episode has unique tag + shared tag
-        let tags = vec![format!("unique-{}", i), "shared".to_string()];
+        let tags = vec![format!("unique-{i}"), "shared".to_string()];
 
         memory.add_episode_tags(ep_id, tags).await.unwrap();
     }
@@ -281,10 +281,10 @@ async fn test_mcp_tag_statistics() {
 
     // Unique tags should have count 1 each
     for i in 0..3 {
-        let tag = format!("unique-{}", i);
+        let tag = format!("unique-{i}");
         let stat = tag_stats
             .get(&tag)
-            .unwrap_or_else(|| panic!("tag {} should exist", tag));
+            .unwrap_or_else(|| panic!("tag {tag} should exist"));
         assert_eq!(stat.usage_count, 1);
     }
 
@@ -358,7 +358,7 @@ async fn test_mcp_tag_empty_handling() {
 
     // Verify actual tags
     let tags = memory.get_episode_tags(episode_id).await.unwrap();
-    println!("Tags after adding empty/whitespace: {:?}", tags);
+    println!("Tags after adding empty/whitespace: {tags:?}");
 
     // Remove non-existent tags (should be no-op)
     memory
@@ -379,7 +379,7 @@ async fn test_mcp_tag_large_number() {
     let episode_id = create_completed_episode(&memory, "Many tags test", "tag-many-test").await;
 
     // Add many tags
-    let many_tags: Vec<String> = (0..50).map(|i| format!("tag-{}", i)).collect();
+    let many_tags: Vec<String> = (0..50).map(|i| format!("tag-{i}")).collect();
 
     memory
         .add_episode_tags(episode_id, many_tags.clone())
@@ -528,7 +528,7 @@ fn run_test<F>(name: &str, test: F, passed: &mut i32, _failed: &mut i32)
 where
     F: Future<Output = ()>,
 {
-    print!("Running {} ... ", name);
+    print!("Running {name} ... ");
     let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     rt.block_on(async {
         test.await;
@@ -608,7 +608,7 @@ fn main() {
     );
 
     println!("\n========================================");
-    println!("Results: {} passed, {} failed", passed, failed);
+    println!("Results: {passed} passed, {failed} failed");
     println!("========================================\n");
 
     if failed > 0 {

@@ -163,14 +163,14 @@ pub async fn handle_explain_pattern(
         .ok_or_else(|| anyhow::anyhow!("Missing 'pattern_id' parameter"))?;
 
     let pattern_id = uuid::Uuid::parse_str(pattern_id_str)
-        .map_err(|e| anyhow::anyhow!("Invalid pattern_id: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Invalid pattern_id: {e}"))?;
 
     // Get pattern explanation from memory
     let explanation = server
         .memory()
         .explain_pattern(pattern_id)
         .await
-        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {}", pattern_id))?;
+        .ok_or_else(|| anyhow::anyhow!("Pattern not found: {pattern_id}"))?;
 
     let result = serde_json::json!({
         "pattern_id": pattern_id_str,

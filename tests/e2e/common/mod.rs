@@ -82,10 +82,10 @@ cli:
 fn find_binary(name: &str) -> Result<PathBuf> {
     // Try multiple locations
     let candidates = [
-        PathBuf::from(format!("target/debug/{}", name)),
-        PathBuf::from(format!("target/release/{}", name)),
-        PathBuf::from(format!("../target/debug/{}", name)),
-        PathBuf::from(format!("../target/release/{}", name)),
+        PathBuf::from(format!("target/debug/{name}")),
+        PathBuf::from(format!("target/release/{name}")),
+        PathBuf::from(format!("../target/debug/{name}")),
+        PathBuf::from(format!("../target/release/{name}")),
     ];
 
     for candidate in &candidates {
@@ -285,7 +285,7 @@ where
 pub fn generate_test_episodes(count: usize) -> Vec<TestEpisodeData> {
     (0..count)
         .map(|i| TestEpisodeData {
-            description: format!("Test episode {}", i),
+            description: format!("Test episode {i}"),
             domain: format!("domain-{}", i % 3),
             task_type: match i % 4 {
                 0 => TaskType::CodeGeneration,

@@ -146,9 +146,18 @@ impl ExternalSignalProvider for AgentFsProvider {
 
         // SDK not integrated - return error if enabled
         // This prevents misleading placeholder data from being used
-        Err(ExternalSignalError::SdkUnavailable(
+        return Err(ExternalSignalError::SdkUnavailable(
             "agentfs-sdk not integrated - enable feature and add SDK dependency to use".to_string(),
-        ))
+        ));
+
+        // The following code would be used when SDK is integrated:
+        // if self.config.db_path.is_empty() {
+        //     return Err(ExternalSignalError::ConfigMissing(
+        //         "AgentFS database path not configured".to_string(),
+        //     ));
+        // }
+        // let tool_signals = self.fetch_tool_stats(episode);
+        // ... calculate confidence and quality ...
     }
 
     async fn health_check(&self) -> ProviderHealth {
@@ -160,9 +169,15 @@ impl ExternalSignalProvider for AgentFsProvider {
         // SDK not integrated - report degraded status with clear message
         // This is "Degraded" not "Unhealthy" because the system still works
         // without external signals; it just lacks ground truth validation
-        ProviderHealth::Degraded(
+        return ProviderHealth::Degraded(
             "SDK not integrated - stub implementation, no real signal data available".to_string(),
-        )
+        );
+
+        // The following code would be used when SDK is integrated:
+        // if self.config.db_path.is_empty() {
+        //     return ProviderHealth::Unhealthy("Database path not configured".to_string());
+        // }
+        // match tokio::fs::metadata(&self.config.db_path).await { ... }
     }
 
     fn validate_config(&self) -> Result<()> {
@@ -194,6 +209,9 @@ impl AgentFsProvider {
     #[allow(dead_code)] // Not used until SDK integrated
     fn fetch_tool_stats(&self, _episode: &crate::episode::Episode) -> Vec<ToolSignal> {
         // Stub: No real data available without SDK
+        // Real implementation would:
+        // let tc = agentfs_sdk::ToolCalls::new(&self.config.db_path).await?;
+        // let stats = tc.stats_for(&step.tool).await?;
         Vec::new()
     }
 }

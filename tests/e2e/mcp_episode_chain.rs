@@ -81,11 +81,7 @@ async fn test_mcp_complete_episode_chain() {
 
     // Step 2: log_step (multiple steps)
     for i in 1..=4 {
-        let step = ExecutionStep::new(
-            i,
-            format!("mcp-tool-{}", i),
-            format!("Execute MCP tool {}", i),
-        );
+        let step = ExecutionStep::new(i, format!("mcp-tool-{i}"), format!("Execute MCP tool {i}"));
         memory.log_step(episode_id, step).await;
     }
 
@@ -305,11 +301,11 @@ async fn test_mcp_episode_chain_with_latencies() {
     for (i, latency) in latencies.iter().enumerate() {
         let mut step = ExecutionStep::new(
             i + 1,
-            format!("latency-tool-{}", i),
-            format!("Step with {}ms latency", latency),
+            format!("latency-tool-{i}"),
+            format!("Step with {latency}ms latency"),
         );
         step.result = Some(ExecutionResult::Success {
-            output: format!("Completed in {}ms", latency),
+            output: format!("Completed in {latency}ms"),
         });
         step.latency_ms = *latency;
         memory.log_step(episode_id, step).await;
@@ -342,8 +338,7 @@ async fn test_mcp_episode_chain_with_latencies() {
     assert!((avg_latency - 182.0).abs() < 0.1);
 
     println!(
-        "✓ MCP episode chain with latencies test passed - total: {}ms, avg: {:.2}ms",
-        total_latency, avg_latency
+        "✓ MCP episode chain with latencies test passed - total: {total_latency}ms, avg: {avg_latency:.2}ms"
     );
 }
 
@@ -473,7 +468,7 @@ async fn test_mcp_episode_chain_concurrency() {
             tags: vec![],
         };
         let id = memory
-            .start_episode(format!("Concurrent task {}", i), context, task_type)
+            .start_episode(format!("Concurrent task {i}"), context, task_type)
             .await;
         episode_ids.push(id);
     }
@@ -483,8 +478,8 @@ async fn test_mcp_episode_chain_concurrency() {
         for step_num in 1..3 {
             let step = ExecutionStep::new(
                 step_num,
-                format!("tool-{}", step_num),
-                format!("Step {}", step_num),
+                format!("tool-{step_num}"),
+                format!("Step {step_num}"),
             );
             memory.log_step(episode_id, step).await;
         }
@@ -572,7 +567,7 @@ async fn test_mcp_episode_chain_with_token_usage() {
     // Check if tokens were tracked
     let total_tokens: usize = episode.steps.iter().filter_map(|s| s.tokens_used).sum();
     assert_eq!(total_tokens, 225);
-    println!("Total tokens used: {}", total_tokens);
+    println!("Total tokens used: {total_tokens:?}");
 
     println!("✓ MCP episode chain with token usage test passed");
 }
@@ -603,7 +598,7 @@ async fn test_mcp_episode_chain_filtered_query() {
             tags: vec![],
         };
         let id = memory
-            .start_episode(format!("Task in {}", domain), context, task_type)
+            .start_episode(format!("Task in {domain}"), context, task_type)
             .await;
         episode_ids.push(id);
 
@@ -669,7 +664,7 @@ async fn test_mcp_episode_chain_bulk_operations() {
             tags: vec![],
         };
         let id = memory
-            .start_episode(format!("Bulk test {}", i), context, TaskType::Testing)
+            .start_episode(format!("Bulk test {i}"), context, TaskType::Testing)
             .await;
         episode_ids.push(id);
     }
@@ -714,7 +709,7 @@ fn run_test<F>(name: &str, test: F, passed: &mut i32, _failed: &mut i32)
 where
     F: Future<Output = ()>,
 {
-    print!("Running {} ... ", name);
+    print!("Running {name} ... ");
     let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     rt.block_on(async {
         test.await;
@@ -794,7 +789,7 @@ fn main() {
     );
 
     println!("\n========================================");
-    println!("Results: {} passed, {} failed", passed, failed);
+    println!("Results: {passed} passed, {failed} failed");
     println!("========================================\n");
 
     if failed > 0 {

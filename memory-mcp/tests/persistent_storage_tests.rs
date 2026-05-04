@@ -65,7 +65,7 @@ mod persistent_storage_tests {
             )
             .await;
 
-        println!("✅ Episode created: {}", episode_id);
+        println!("✅ Episode created: {episode_id}");
 
         // Log steps
         let step = ExecutionStep::new(
@@ -140,7 +140,7 @@ mod persistent_storage_tests {
         for i in 1..=3 {
             let episode_id = memory
                 .start_episode(
-                    format!("Pattern Test Episode {}", i),
+                    format!("Pattern Test Episode {i}"),
                     TaskContext {
                         domain: "patterns".to_string(),
                         language: Some("rust".to_string()),
@@ -164,7 +164,7 @@ mod persistent_storage_tests {
             memory.log_step(episode_id, step2).await;
 
             let outcome = TaskOutcome::Success {
-                verdict: format!("Pattern episode {} completed", i),
+                verdict: format!("Pattern episode {i} completed"),
                 artifacts: vec![format!("feature_{}.rs", i)],
             };
             memory.complete_episode(episode_id, outcome).await.unwrap();
@@ -341,8 +341,8 @@ mod persistent_storage_tests {
         for i in 1..=3 {
             let step = ExecutionStep::new(
                 i,
-                format!("sync_tool_{}", i),
-                format!("Synchronization step {}", i),
+                format!("sync_tool_{i}"),
+                format!("Synchronization step {i}"),
             );
             memory.log_step(episode_id, step).await;
         }
@@ -412,7 +412,7 @@ mod persistent_storage_tests {
         for i in 1..=episode_count {
             let episode_id = memory
                 .start_episode(
-                    format!("Bulk Test Episode {}", i),
+                    format!("Bulk Test Episode {i}"),
                     TaskContext {
                         domain: "bulk".to_string(),
                         language: Some("rust".to_string()),
@@ -428,8 +428,8 @@ mod persistent_storage_tests {
             for j in 1..=2 {
                 let step = ExecutionStep::new(
                     j,
-                    format!("bulk_tool_{}", j),
-                    format!("Bulk operation {} for episode {}", j, i),
+                    format!("bulk_tool_{j}"),
+                    format!("Bulk operation {j} for episode {i}"),
                 );
                 memory.log_step(episode_id, step).await;
             }
@@ -438,7 +438,7 @@ mod persistent_storage_tests {
                 .complete_episode(
                     episode_id,
                     TaskOutcome::Success {
-                        verdict: format!("Bulk episode {} completed", i),
+                        verdict: format!("Bulk episode {i} completed"),
                         artifacts: vec![format!("bulk_{}.log", i)],
                     },
                 )
@@ -448,7 +448,7 @@ mod persistent_storage_tests {
             episode_ids.push(episode_id);
         }
 
-        println!("✅ Created {} episodes with bulk data", episode_count);
+        println!("✅ Created {episode_count} episodes with bulk data");
 
         // Verify all episodes persist
         let mcp_server = Arc::new(
@@ -473,7 +473,7 @@ mod persistent_storage_tests {
         assert_eq!(episodes.len(), episode_count);
 
         println!("✅ Bulk persistence verified:");
-        println!("   Episodes created: {}", episode_count);
+        println!("   Episodes created: {episode_count}");
         println!("   Episodes retrieved: {}", episodes.len());
 
         // Verify each episode has correct data (order may vary due to storage)
@@ -492,11 +492,10 @@ mod persistent_storage_tests {
 
         // Verify we found all expected episodes
         for i in 1..=episode_count {
-            let expected_title = format!("Bulk Test Episode {}", i);
+            let expected_title = format!("Bulk Test Episode {i}");
             assert!(
                 found_episodes.contains(&expected_title),
-                "Missing episode: {}",
-                expected_title
+                "Missing episode: {expected_title}"
             );
         }
 

@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn test_meets_threshold_cases() {
-        let extractor = TimeSeriesExtractor::default();
+        let extractor = TimeSeriesExtractor;
         let cases: &[(&[f64], usize, bool)] = &[
             (&[], 0, false),              // empty, zero threshold
             (&[], 3, false),              // empty, nonzero threshold

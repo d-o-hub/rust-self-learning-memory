@@ -622,9 +622,9 @@ dependencies = [
 
 [[package]]
 name = "chaotic_semantic_memory"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06510ea342bbcbb35a686ee51b16bd4fd573fcb54718c8adf61203d68330d3d6"
+checksum = "8ff59e8a14baf8ea0c7f31a3616abba24db35daad1c5792ddd170a118b4bd54b"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

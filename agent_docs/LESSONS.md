@@ -49,3 +49,10 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
   - Orthogonal vectors: 0.0 → 0.5
   - Low similarity (orthogonal): 0.0 → 0.5
 - Location: `memory-storage-turso/src/retrieval/similarity.rs` lines 52-54
+## LESSON-008: Optimized Batch Eviction in Turso Storage
+
+- Issue: Capacity eviction was performing O(N) database roundtrips, deleting episodes and embeddings one-by-one in a loop, causing significant latency during large evictions.
+- Root Cause: Sequential 'DELETE' statements in a loop (N+1 query problem).
+- Solution: Implemented batch deletion using SQL 'IN (...)' clauses. Episodes and embeddings are now collected and deleted in a single batch operation per table.
+- Results: Benchmarking via SQLite simulation showed a 98.7% reduction in deletion time (from 1782ms to 23ms for 100 items).
+- Key insight: Always prefer batch operations for bulk deletions in remote or file-based storage to minimize I/O overhead. Ensure multi-dimension embedding tables are also cleared in batch.

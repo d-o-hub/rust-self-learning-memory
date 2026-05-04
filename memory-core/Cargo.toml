@@ -68,7 +68,7 @@ reqwest = { version = "0.13", features = ["json"], optional = true }
 ort = { version = "2.0.0-rc.12", optional = true }
 
 # Tokenizers for local embeddings (optional)
-tokenizers = { version = "0.22.2", optional = true }
+tokenizers = { version = "0.23.1", optional = true }
 
 # ndarray for tensor operations (required by ort)
 # Using 0.17.x to match ort 2.0.0-rc.11's ndarray dependency

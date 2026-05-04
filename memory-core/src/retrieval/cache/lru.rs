@@ -256,18 +256,9 @@ impl QueryCache {
     /// are marked for lazy invalidation.
     #[must_use]
     pub fn effective_size(&self) -> usize {
-        let cache = self.cache.read();
-        let invalidated = self.invalidated_hashes.read();
-
-        // Count how many invalidated hashes are actually present in the cache
-        let mut actual_invalidated_count = 0;
-        for hash in invalidated.iter() {
-            if cache.peek(hash).is_some() {
-                actual_invalidated_count += 1;
-            }
-        }
-
-        cache.len().saturating_sub(actual_invalidated_count)
+        let cache_size = self.cache.read().len();
+        let invalidated_size = self.invalidated_hashes.read().len();
+        cache_size.saturating_sub(invalidated_size)
     }
 
     /// Check if cache is empty

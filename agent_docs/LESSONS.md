@@ -56,3 +56,10 @@ Compact log for non-obvious workflow learnings. Pair each entry here with a shor
 - Solution: Implemented batch deletion using SQL 'IN (...)' clauses. Episodes and embeddings are now collected and deleted in a single batch operation per table.
 - Results: Benchmarking via SQLite simulation showed a 98.7% reduction in deletion time (from 1782ms to 23ms for 100 items).
 - Key insight: Always prefer batch operations for bulk deletions in remote or file-based storage to minimize I/O overhead. Ensure multi-dimension embedding tables are also cleared in batch.
+
+## LESSON-009: Accurate Logical Cache Size with Lazy Invalidation
+
+- Issue: `effective_size()` in the query cache was potentially returning inaccurate values after physical LRU evictions.
+- Root Cause: Simply subtracting the count of all invalidated hashes from the total cache size didn't account for entries that might have already been physically evicted by the LRU policy.
+- Solution: Changed the calculation to only count invalidated hashes that are still physically present in the cache (using `peek()`).
+- Key insight: When combining LRU eviction with lazy invalidation, logical size calculations must intersect the two sets to remain accurate.

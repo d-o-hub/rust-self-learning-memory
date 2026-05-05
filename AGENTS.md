@@ -207,3 +207,7 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 ## MCP Server Interaction Patterns
 - The MCP server implements lazy loading of tools (ADR-024) to optimize initialization.
 - The server exposes advanced tools including `checkpoint_episode` and `recommend_playbook` for complex task handoff and state preservation.
+
+## Storage Optimization (Batch Eviction)
+- Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.
+- Multi-dimensional embeddings must be cleared via 'delete_embeddings_batch_dimension_aware' to ensure all sharded tables are purged.

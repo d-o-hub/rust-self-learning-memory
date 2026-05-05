@@ -373,6 +373,7 @@ mod env_tests {
     }
 
     #[test]
+    #[serial]
     fn test_env_config_info_all_flags() {
         // Store original values
         let original_values: std::collections::HashMap<String, Option<String>> = [

@@ -2,6 +2,7 @@
 
 use crate::{Result, TursoStorage};
 use do_memory_core::Episode;
+use libsql;
 use std::collections::HashMap;
 use tracing::{debug, info, warn};
 

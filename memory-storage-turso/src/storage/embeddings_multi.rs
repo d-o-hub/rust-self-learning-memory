@@ -5,6 +5,7 @@
 
 use crate::{Result, TursoStorage};
 use do_memory_core::Error;
+use libsql;
 use tracing::{debug, info};
 
 /// Statistics for a dimension-specific embedding table
@@ -170,7 +171,7 @@ impl TursoStorage {
     /// Delete an embedding from dimension-specific tables
     ///
     /// Deletes from all dimension tables (in case dimension changed).
-    pub async fn delete_embedding_dimension_aware(&self, item_id: &str) -> Result<bool> {
+    pub(crate) async fn delete_embedding_dimension_aware(&self, item_id: &str) -> Result<bool> {
         let (conn, _conn_id) = self.get_connection_with_id().await?;
 
         let mut deleted = false;
@@ -202,6 +203,54 @@ impl TursoStorage {
         }
 
         Ok(deleted)
+    }
+
+    /// Delete embeddings in batch from dimension-specific tables
+    pub(crate) async fn delete_embeddings_batch_dimension_aware(
+        &self,
+        item_ids: &[String],
+    ) -> Result<usize> {
+        if item_ids.is_empty() {
+            return Ok(0);
+        }
+
+        let (conn, _conn_id) = self.get_connection_with_id().await?;
+        let mut total_deleted = 0;
+
+        for table_name in [
+            "embeddings_384",
+            "embeddings_1024",
+            "embeddings_1536",
+            "embeddings_3072",
+            "embeddings_other",
+        ] {
+            // Build placeholders for IN clause
+            let placeholders = vec!["?"; item_ids.len()].join(",");
+            let sql = format!(
+                "DELETE FROM {} WHERE item_id IN ({})",
+                table_name, placeholders
+            );
+
+            // Build params
+            let params: Vec<libsql::Value> = item_ids.iter().cloned().map(Into::into).collect();
+
+            let rows_affected = conn
+                .execute(&sql, libsql::params_from_iter(params))
+                .await
+                .map_err(|e| {
+                    Error::Storage(format!(
+                        "Failed to delete embeddings batch from {}: {}",
+                        table_name, e
+                    ))
+                })?;
+
+            if rows_affected > 0 {
+                total_deleted += rows_affected as usize;
+                info!("Deleted {} embeddings from {}", rows_affected, table_name);
+            }
+        }
+
+        Ok(total_deleted)
     }
 
     /// Get statistics for all dimension tables

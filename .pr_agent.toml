@@ -1,0 +1,23 @@
+# Qodo AI Code Review — Free for Open Source Projects
+# Docs: https://docs.qodo.ai/code-review/get-started/configuration-overview/configuration-file
+# App:  https://github.com/marketplace/qodo-merge-pro-for-open-source
+
+[github_app]
+pr_commands = [
+  "/agentic_describe",
+  "/agentic_review"
+]
+
+[review_agent]
+# Where to post review comments: "inline", "ticket", or "both"
+comments_location_policy = "both"
+
+# Severity threshold for inline comments:
+# 3 = action_required (critical blockers only)
+# 2 = remediation_recommended (recommended fixes + blockers)
+# 1 = informational (all findings including style)
+inline_comments_severity_threshold = 2
+
+# Optional: add project-specific Rust/memory guidelines
+issues_user_guidelines = ""
+compliance_user_guidelines = ""

@@ -3,9 +3,9 @@
 //! Events are emitted when significant lifecycle operations occur in the memory system,
 //! allowing external subscribers to react to changes without coupling to internal state.
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use async_trait::async_trait;
 
 /// Events emitted by the memory system for lifecycle notifications.
 ///
@@ -120,8 +120,9 @@ impl MemoryEvent {
             Self::TaskStarted { task_id, .. }
             | Self::TaskCompleted { task_id, .. }
             | Self::RewardScored { task_id, .. } => task_id.to_string(),
-            Self::ReflectionUpdated { episode_id, .. }
-            | Self::EpisodeStored { episode_id, .. } => episode_id.to_string(),
+            Self::ReflectionUpdated { episode_id, .. } | Self::EpisodeStored { episode_id, .. } => {
+                episode_id.to_string()
+            }
             Self::SkillEvolved { skill_name, .. } => skill_name.clone(),
         }
     }

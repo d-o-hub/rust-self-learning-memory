@@ -88,6 +88,7 @@ impl TursoStorage {
             )),
             #[cfg(feature = "adaptive-ttl")]
             episode_cache: None,
+            event_emitter: None,
         })
     }
 
@@ -205,6 +206,7 @@ impl TursoStorage {
             )),
             #[cfg(feature = "adaptive-ttl")]
             episode_cache: None,
+            event_emitter: None,
         };
 
         // Return the storage - caller can wrap with CachedTursoStorage if needed

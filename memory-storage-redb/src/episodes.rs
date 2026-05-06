@@ -55,11 +55,13 @@ impl RedbStorage {
 
         // Emit standardized event if emitter configured
         if let Some(emitter) = &self.event_emitter {
-            emitter.emit(do_memory_core::types::event::MemoryEvent::EpisodeStored {
-                episode_id: episode.episode_id,
-                backend: "redb".to_string(),
-                timestamp: do_memory_core::types::event::unix_now_secs(),
-            }).await;
+            emitter
+                .emit(do_memory_core::types::event::MemoryEvent::EpisodeStored {
+                    episode_id: episode.episode_id,
+                    backend: "redb".to_string(),
+                    timestamp: do_memory_core::types::event::unix_now_secs(),
+                })
+                .await;
         }
 
         info!("Successfully cached episode: {}", episode.episode_id);

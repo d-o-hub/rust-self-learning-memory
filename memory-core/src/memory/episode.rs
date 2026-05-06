@@ -110,24 +110,26 @@ impl SelfLearningMemory {
             &task_description,
             &task_type.to_string(),
         );
-        self.audit_logger.log(audit_entry);
-
         // Emit standardized event
-        self.event_emitter.emit(crate::types::event::MemoryEvent::TaskStarted {
-            task_id: episode_id,
-            agent_id: "system".to_string(), // Default agent ID, can be refined later
-            metadata: serde_json::json!({
-                "task": task_description,
-                "task_type": task_type.to_string(),
-                "domain": episode.context.domain
-            }),
-            timestamp: crate::types::event::unix_now_secs(),
-        }).await;
+        self.event_emitter
+            .emit(crate::types::event::MemoryEvent::TaskStarted {
+                task_id: episode_id,
+                agent_id: "system".to_string(), // Default agent ID, can be refined later
+                metadata: serde_json::json!({
+                    "task": task_description,
+                    "task_type": task_type.to_string(),
+                    "domain": episode.context.domain
+                }),
+                timestamp: crate::types::event::unix_now_secs(),
+            })
+            .await;
 
         // Always store in fallback for in-memory access
         // Store as Arc to avoid cloning when sharing
         let mut episodes = self.episodes_fallback.write().await;
         episodes.insert(episode_id, Arc::new(episode));
+
+        self.audit_logger.log(audit_entry);
 
         episode_id
     }

@@ -157,6 +157,17 @@ impl TursoStorage {
             cache.remove(&episode.episode_id.to_string()).await;
         }
 
+        // Emit standardized event if emitter configured
+        if let Some(emitter) = &self.event_emitter {
+            emitter
+                .emit(do_memory_core::types::event::MemoryEvent::EpisodeStored {
+                    episode_id: episode.episode_id,
+                    backend: "turso".to_string(),
+                    timestamp: do_memory_core::types::event::unix_now_secs(),
+                })
+                .await;
+        }
+
         info!("Successfully stored episode: {}", episode.episode_id);
         Ok(())
     }

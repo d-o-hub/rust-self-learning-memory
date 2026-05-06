@@ -57,12 +57,14 @@ impl SelfLearningMemory {
 
         // Emit skill evolved event if patterns were extracted
         if !extracted_patterns.is_empty() {
-            self.event_emitter.emit(crate::types::event::MemoryEvent::SkillEvolved {
-                skill_name: format!("{}:patterns", episode.context.domain),
-                from_version: 0, // Versioning to be implemented
-                to_version: 1,
-                timestamp: crate::types::event::unix_now_secs(),
-            }).await;
+            self.event_emitter
+                .emit(crate::types::event::MemoryEvent::SkillEvolved {
+                    skill_name: format!("{}:patterns", episode.context.domain),
+                    from_version: 0, // Versioning to be implemented
+                    to_version: 1,
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
         }
 
         // Extract heuristics
@@ -188,12 +190,14 @@ impl SelfLearningMemory {
 
         // Emit skill evolved event if patterns were extracted
         if !extracted_patterns.is_empty() {
-            self.event_emitter.emit(crate::types::event::MemoryEvent::SkillEvolved {
-                skill_name: format!("{}:patterns:async", episode.context.domain),
-                from_version: 0,
-                to_version: 1,
-                timestamp: crate::types::event::unix_now_secs(),
-            }).await;
+            self.event_emitter
+                .emit(crate::types::event::MemoryEvent::SkillEvolved {
+                    skill_name: format!("{}:patterns:async", episode.context.domain),
+                    from_version: 0,
+                    to_version: 1,
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
         }
 
         // Update episode with pattern IDs in storage backends

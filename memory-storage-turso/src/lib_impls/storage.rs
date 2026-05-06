@@ -40,3 +40,14 @@ pub struct TursoStorage {
     /// Optional event emitter for standardized lifecycle events
     pub(crate) event_emitter: Option<Arc<dyn do_memory_core::types::event::EventEmitter>>,
 }
+
+impl TursoStorage {
+    /// Set an event emitter for standardized lifecycle events
+    pub fn with_event_emitter(
+        mut self,
+        emitter: Arc<dyn do_memory_core::types::event::EventEmitter>,
+    ) -> Self {
+        self.event_emitter = Some(emitter);
+        self
+    }
+}

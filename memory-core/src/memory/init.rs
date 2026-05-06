@@ -96,7 +96,8 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
     // Initialize standardized event emitter
-    let event_emitter: Arc<dyn crate::types::event::EventEmitter> = Arc::new(crate::types::event::NullEmitter);
+    let event_emitter: Arc<dyn crate::types::event::EventEmitter> =
+        Arc::new(crate::types::event::NullEmitter);
 
     super::SelfLearningMemory {
         config: config.clone(),
@@ -231,7 +232,8 @@ pub fn with_storage(
     let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
     // Initialize standardized event emitter
-    let event_emitter: Arc<dyn crate::types::event::EventEmitter> = Arc::new(crate::types::event::NullEmitter);
+    let event_emitter: Arc<dyn crate::types::event::EventEmitter> =
+        Arc::new(crate::types::event::NullEmitter);
 
     super::SelfLearningMemory {
         config: config.clone(),

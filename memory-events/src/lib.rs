@@ -3,10 +3,10 @@
 //! This crate provides the mapping between internal memory system events
 //! and the CNCF CloudEvents v1.0.2 specification.
 
+use chrono::Utc;
 use cloudevents::{Event, EventBuilder, EventBuilderV10};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::Utc;
 
 /// Standardized memory event types for CloudEvents mapping.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,10 +42,7 @@ pub enum MemoryEvent {
         to_version: u32,
     },
     /// An episode has been successfully stored in a backend.
-    EpisodeStored {
-        episode_id: Uuid,
-        backend: String,
-    },
+    EpisodeStored { episode_id: Uuid, backend: String },
 }
 
 /// Maps a internal `MemoryEvent` to a `cloudevents::Event`.
@@ -60,7 +57,11 @@ pub enum MemoryEvent {
 /// A constructed and validated `cloudevents::Event`
 pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
     let (ce_type, data) = match event {
-        MemoryEvent::TaskStarted { task_id, agent_id, metadata } => (
+        MemoryEvent::TaskStarted {
+            task_id,
+            agent_id,
+            metadata,
+        } => (
             "dev.d-o-hub.memory.task.started",
             serde_json::json!({
                 "task_id": task_id,
@@ -68,7 +69,11 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
                 "metadata": metadata
             }),
         ),
-        MemoryEvent::TaskCompleted { task_id, duration_ms, success } => (
+        MemoryEvent::TaskCompleted {
+            task_id,
+            duration_ms,
+            success,
+        } => (
             "dev.d-o-hub.memory.task.completed",
             serde_json::json!({
                 "task_id": task_id,
@@ -76,7 +81,11 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
                 "success": success
             }),
         ),
-        MemoryEvent::RewardScored { task_id, score, reason } => (
+        MemoryEvent::RewardScored {
+            task_id,
+            score,
+            reason,
+        } => (
             "dev.d-o-hub.memory.reward.scored",
             serde_json::json!({
                 "task_id": task_id,
@@ -84,14 +93,21 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
                 "reason": reason
             }),
         ),
-        MemoryEvent::ReflectionUpdated { episode_id, reflection_type } => (
+        MemoryEvent::ReflectionUpdated {
+            episode_id,
+            reflection_type,
+        } => (
             "dev.d-o-hub.memory.reflection.updated",
             serde_json::json!({
                 "episode_id": episode_id,
                 "reflection_type": reflection_type
             }),
         ),
-        MemoryEvent::SkillEvolved { skill_name, from_version, to_version } => (
+        MemoryEvent::SkillEvolved {
+            skill_name,
+            from_version,
+            to_version,
+        } => (
             "dev.d-o-hub.memory.skill.evolved",
             serde_json::json!({
                 "skill_name": skill_name,
@@ -99,7 +115,10 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
                 "to_version": to_version
             }),
         ),
-        MemoryEvent::EpisodeStored { episode_id, backend } => (
+        MemoryEvent::EpisodeStored {
+            episode_id,
+            backend,
+        } => (
             "dev.d-o-hub.memory.episode.stored",
             serde_json::json!({
                 "episode_id": episode_id,

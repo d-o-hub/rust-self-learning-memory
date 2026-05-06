@@ -379,6 +379,7 @@ impl SelfLearningMemory {
             "Invalidated query cache after episode completion"
         );
 
+        // ============================================================================
         // Re-insert the updated episode into the in-memory cache
         // We do this BEFORE pattern extraction so sync extraction can find it
         // ============================================================================
@@ -388,7 +389,6 @@ impl SelfLearningMemory {
             episodes.insert(episode_id, Arc::new(episode.clone()));
         }
 
-        // ============================================================================
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {
             // Async path: enqueue for background processing

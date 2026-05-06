@@ -127,7 +127,11 @@ impl MemoryMCPServer {
         });
 
         // Optionally include CloudEvent if requested
-        if args.get("include_cloud_event").and_then(|v| v.as_bool()).unwrap_or(false) {
+        if args
+            .get("include_cloud_event")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false)
+        {
             #[cfg(feature = "cloudevents")]
             {
                 use do_memory_events::{MemoryEvent as CEEvent, to_cloud_event};

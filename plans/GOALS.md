@@ -203,6 +203,13 @@
     - Owner: agents-update
     - Target: Rerun all metrics against current v0.1.30 codebase
 
+30. **WG-149**: Implement CloudEvents EventEmitter
+    - Priority: P1
+    - Owner: feature-implement
+    - GOAP skills: `goap-agent`, `feature-implement`, `architecture-validation`, `test-runner`
+    - Target: Standardized event emission for external interoperability via CloudEvents 1.0
+    - Dependencies: None
+
 ---
 
 ## v0.1.30 Sprint Goals (Complete ✅)

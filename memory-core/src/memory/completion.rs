@@ -162,6 +162,14 @@ impl SelfLearningMemory {
         let reward = self.reward_calculator.calculate(&episode);
         episode.reward = Some(reward.clone());
 
+        // Emit reward scored event
+        self.event_emitter.emit(crate::types::event::MemoryEvent::RewardScored {
+            task_id: episode_id,
+            score: reward.total as f64,
+            reason: "Episode completion analysis".to_string(),
+            timestamp: crate::types::event::unix_now_secs(),
+        }).await;
+
         info!(
             episode_id = %episode_id,
             reward_total = reward.total,
@@ -173,6 +181,13 @@ impl SelfLearningMemory {
         // Generate reflection
         let reflection = self.reflection_generator.generate(&episode);
         episode.reflection = Some(reflection.clone());
+
+        // Emit reflection updated event
+        self.event_emitter.emit(crate::types::event::MemoryEvent::ReflectionUpdated {
+            episode_id,
+            reflection_type: "standard".to_string(),
+            timestamp: crate::types::event::unix_now_secs(),
+        }).await;
 
         debug!(
             successes = reflection.successes.len(),
@@ -361,14 +376,6 @@ impl SelfLearningMemory {
         );
 
         // ============================================================================
-        // Re-insert the updated episode into the in-memory cache
-        // ============================================================================
-
-        {
-            let mut episodes = self.episodes_fallback.write().await;
-            episodes.insert(episode_id, Arc::new(episode));
-        }
-
         // Extract patterns - async if queue enabled, sync otherwise
         if let Some(queue) = &self.pattern_queue {
             // Async path: enqueue for background processing
@@ -396,6 +403,25 @@ impl SelfLearningMemory {
         let success = matches!(outcome, TaskOutcome::Success { .. });
         let audit_entry = episode_completed(&context, episode_id, &outcome_str, success);
         self.audit_logger.log(audit_entry);
+
+        // Emit task completed event
+        self.event_emitter.emit(crate::types::event::MemoryEvent::TaskCompleted {
+            task_id: episode_id,
+            duration_ms: episode.end_time
+                .and_then(|end| episode.start_time.signed_duration_since(end).to_std().ok())
+                .map(|d| d.as_millis() as u64)
+                .unwrap_or(0),
+            success: matches!(outcome, TaskOutcome::Success { .. }),
+            timestamp: crate::types::event::unix_now_secs(),
+        }).await;
+
+        // Re-insert the updated episode into the in-memory cache
+        // ============================================================================
+
+        {
+            let mut episodes = self.episodes_fallback.write().await;
+            episodes.insert(episode_id, Arc::new(episode));
+        }
 
         Ok(())
     }

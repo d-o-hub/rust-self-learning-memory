@@ -30,6 +30,8 @@ proptest-arbitrary = ["proptest"]
 agentfs = []
 # Enable CSM cascading retrieval (BM25 + HDC + ConceptGraph)
 csm = ["chaotic_semantic_memory"]
+# Enable CloudEvents standardized event emission
+cloudevents = ["cloudevents-sdk", "do-memory-events"]
 
 [dependencies]
 # Async runtime
@@ -95,6 +97,10 @@ proptest = { version = "1.11", optional = true }
 
 # CSM cascading retrieval (optional, BM25 + HDC + ConceptGraph)
 chaotic_semantic_memory = { version = "0.3.5", optional = true }
+
+# CloudEvents support
+cloudevents-sdk = { version = "0.7", optional = true }
+do-memory-events = { path = "../memory-events", version = "0.1.31", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

@@ -4,6 +4,8 @@
 //! allowing external subscribers to react to changes without coupling to internal state.
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use async_trait::async_trait;
 
 /// Events emitted by the memory system for lifecycle notifications.
 ///
@@ -47,6 +49,46 @@ pub enum MemoryEvent {
         /// Unix timestamp in seconds
         timestamp: u64,
     },
+    /// Standardized task started event (CloudEvents compatible).
+    TaskStarted {
+        task_id: Uuid,
+        agent_id: String,
+        metadata: serde_json::Value,
+        timestamp: u64,
+    },
+    /// Standardized task completed event (CloudEvents compatible).
+    TaskCompleted {
+        task_id: Uuid,
+        duration_ms: u64,
+        success: bool,
+        timestamp: u64,
+    },
+    /// Standardized reward scored event (CloudEvents compatible).
+    RewardScored {
+        task_id: Uuid,
+        score: f64,
+        reason: String,
+        timestamp: u64,
+    },
+    /// Standardized reflection updated event (CloudEvents compatible).
+    ReflectionUpdated {
+        episode_id: Uuid,
+        reflection_type: String,
+        timestamp: u64,
+    },
+    /// Standardized skill evolved event (CloudEvents compatible).
+    SkillEvolved {
+        skill_name: String,
+        from_version: u32,
+        to_version: u32,
+        timestamp: u64,
+    },
+    /// Standardized episode stored event (CloudEvents compatible).
+    EpisodeStored {
+        episode_id: Uuid,
+        backend: String,
+        timestamp: u64,
+    },
 }
 
 impl MemoryEvent {
@@ -57,19 +99,51 @@ impl MemoryEvent {
             Self::EpisodeCreated { timestamp, .. }
             | Self::EpisodeCompleted { timestamp, .. }
             | Self::EpisodeGarbageCollected { timestamp, .. }
-            | Self::PatternExtracted { timestamp, .. } => *timestamp,
+            | Self::PatternExtracted { timestamp, .. }
+            | Self::TaskStarted { timestamp, .. }
+            | Self::TaskCompleted { timestamp, .. }
+            | Self::RewardScored { timestamp, .. }
+            | Self::ReflectionUpdated { timestamp, .. }
+            | Self::SkillEvolved { timestamp, .. }
+            | Self::EpisodeStored { timestamp, .. } => *timestamp,
         }
     }
 
     /// Get the entity ID associated with the event.
     #[must_use]
-    pub fn entity_id(&self) -> &str {
+    pub fn entity_id(&self) -> String {
         match self {
             Self::EpisodeCreated { id, .. }
             | Self::EpisodeCompleted { id, .. }
-            | Self::EpisodeGarbageCollected { id, .. } => id,
-            Self::PatternExtracted { id, .. } => id,
+            | Self::EpisodeGarbageCollected { id, .. }
+            | Self::PatternExtracted { id, .. } => id.clone(),
+            Self::TaskStarted { task_id, .. }
+            | Self::TaskCompleted { task_id, .. }
+            | Self::RewardScored { task_id, .. } => task_id.to_string(),
+            Self::ReflectionUpdated { episode_id, .. }
+            | Self::EpisodeStored { episode_id, .. } => episode_id.to_string(),
+            Self::SkillEvolved { skill_name, .. } => skill_name.clone(),
         }
+    }
+}
+
+/// Trait for emitting memory events.
+///
+/// Pluggable interface for event emission, allowing standardized formats
+/// like CloudEvents to be used for interoperability.
+#[async_trait]
+pub trait EventEmitter: Send + Sync {
+    /// Emit a memory event.
+    async fn emit(&self, event: MemoryEvent);
+}
+
+/// A zero-cost default event emitter that does nothing.
+pub struct NullEmitter;
+
+#[async_trait]
+impl EventEmitter for NullEmitter {
+    async fn emit(&self, _event: MemoryEvent) {
+        // No-op
     }
 }
 

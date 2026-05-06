@@ -37,4 +37,6 @@ pub struct TursoStorage {
     /// Adaptive TTL cache for episode query results (when adaptive-ttl feature is enabled)
     #[cfg(feature = "adaptive-ttl")]
     pub(crate) episode_cache: Option<AdaptiveTTLCache<String, Episode>>,
+    /// Optional event emitter for standardized lifecycle events
+    pub(crate) event_emitter: Option<Arc<dyn do_memory_core::types::event::EventEmitter>>,
 }

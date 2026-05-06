@@ -1,0 +1,19 @@
+[package]
+name = "do-memory-events"
+version = "0.1.31"
+edition = "2024"
+authors = ["Self-Learning Memory Contributors"]
+license = "MIT"
+repository = "https://github.com/d-o-hub/rust-self-learning-memory"
+description = "CloudEvents implementation for standardized agent lifecycle event emission"
+
+[dependencies]
+cloudevents-sdk = { version = "0.7", features = ["http-binding"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

@@ -95,6 +95,9 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
     // Initialize event broadcast channel
     let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
+    // Initialize standardized event emitter
+    let event_emitter: Arc<dyn crate::types::event::EventEmitter> = Arc::new(crate::types::event::NullEmitter);
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -128,6 +131,7 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
+        event_emitter,
     }
 }
 
@@ -226,6 +230,9 @@ pub fn with_storage(
     // Initialize event broadcast channel
     let (event_sender, _) = broadcast::channel(DEFAULT_EVENT_CHANNEL_CAPACITY);
 
+    // Initialize standardized event emitter
+    let event_emitter: Arc<dyn crate::types::event::EventEmitter> = Arc::new(crate::types::event::NullEmitter);
+
     super::SelfLearningMemory {
         config: config.clone(),
         quality_assessor,
@@ -259,6 +266,7 @@ pub fn with_storage(
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
+        event_emitter,
     }
 }
 

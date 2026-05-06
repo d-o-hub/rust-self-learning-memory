@@ -209,9 +209,7 @@ impl AgentFsProvider {
     #[allow(dead_code)] // Not used until SDK integrated
     fn fetch_tool_stats(&self, _episode: &crate::episode::Episode) -> Vec<ToolSignal> {
         // Stub: No real data available without SDK
-        // Real implementation would:
-        // let tc = agentfs_sdk::ToolCalls::new(&self.config.db_path).await?;
-        // let stats = tc.stats_for(&step.tool).await?;
+        // TODO: Implement when agentfs-sdk is integrated
         Vec::new()
     }
 }

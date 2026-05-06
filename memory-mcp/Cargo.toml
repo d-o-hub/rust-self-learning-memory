@@ -30,6 +30,7 @@ uuid = { workspace = true }
 do-memory-core = { path = "../memory-core", version = "0.1.31" }
 do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.31" }
 do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.31" }
+do-memory-events = { path = "../memory-events", version = "0.1.31", optional = true }
 
 # MCP-specific dependencies
 parking_lot = "0.12.5"
@@ -55,6 +56,8 @@ embeddings = []
 # See ADR-027: Strategy for Ignored Tests
 # Use: cargo test --features streaming-impl
 streaming-impl = []
+# Enable CloudEvents support
+cloudevents = ["do-memory-core/cloudevents", "do-memory-events"]
 
 [dev-dependencies]
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }

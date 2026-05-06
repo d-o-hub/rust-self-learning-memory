@@ -117,7 +117,8 @@ impl MemoryMCPServer {
             .start_episode(task_description.clone(), context, task_type)
             .await;
 
-        let mut response = json!({
+        #[allow(unused_mut)]
+        let mut response_obj = json!({
             "success": true,
             "episode_id": episode_id.to_string(),
             "task_description": task_description,
@@ -144,9 +145,11 @@ impl MemoryMCPServer {
                     }),
                 };
                 let ce = to_cloud_event(&event, "memory-mcp");
-                response["cloud_event"] = serde_json::to_value(ce)?;
+                response_obj["cloud_event"] = serde_json::to_value(ce)?;
             }
         }
+
+        let response = response_obj;
 
         info!(
             episode_id = %episode_id,

@@ -211,3 +211,19 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 ## Storage Optimization (Batch Eviction)
 - Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.
 - Multi-dimensional embeddings must be cleared via 'delete_embeddings_batch_dimension_aware' to ensure all sharded tables are purged.
+
+## Event Emission (CloudEvents)
+The system emits standardized agent lifecycle events following the CNCF CloudEvents v1.0.2 specification.
+
+### Event Catalog
+| Event Type | Source Crate | Trigger |
+|------------|--------------|---------|
+| `dev.d-o-hub.memory.task.started` | `do-memory-core` | `ExecutionTracker::start()` |
+| `dev.d-o-hub.memory.task.completed` | `do-memory-core` | `ExecutionTracker::finish()` |
+| `dev.d-o-hub.memory.reward.scored` | `do-memory-core` | Reward function evaluation |
+| `dev.d-o-hub.memory.reflection.updated` | `do-memory-core` | Reflection cycle trigger |
+| `dev.d-o-hub.memory.skill.evolved` | `do-memory-core` | Pattern promotion |
+| `dev.d-o-hub.memory.episode.stored` | `do-memory-storage-*` | Successful episode write |
+
+### Emitter Configuration
+Event emission is controlled via the `cloudevents` feature flag. By default, the system uses a `NullEmitter` (no-op). To enable emission, provide an implementation of the `EventEmitter` trait to `SelfLearningMemory`.

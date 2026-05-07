@@ -14,8 +14,8 @@
 
 - **Episodic Memory**: Complete episode lifecycle with detailed step logging and reward scoring
 - **Pattern Recognition**: Automatic extraction of ToolSequences, DecisionPoints, ErrorRecovery, and ContextPatterns
-- **Intelligent Reward Scoring**: Sophisticated multi-factor scoring with efficiency, complexity, and quality bonuses
-- **Smart Reflection**: Generate actionable insights and improvement recommendations from completed episodes
+- **Multi-factor Reward Scoring**: Reward scoring with efficiency, complexity, and quality bonuses
+- **Reflection Generation**: Generate actionable insights and improvement recommendations from completed episodes
 - **Semantic Embeddings**: Optional multi-provider semantic search (OpenAI, Cohere, Ollama, local)
 - **Spatiotemporal Indexing**: Location and time-aware memory retrieval with k-d tree optimization
 - **Dual Storage**: Seamless integration with Turso/libSQL (durable) and redb (cache) backends
@@ -63,6 +63,7 @@ do-memory-core = { version = "0.1", features = ["embeddings-full"] }
 - Pattern similarity matching for relevant experience retrieval
 - Reward-based pattern learning and improvement
 - Frequency and success rate tracking
+- Optimized pattern ranking using O(N) scoring calls and Schwartzian Transform (decorate-sort-undecorate) for efficient evaluation
 
 ### Semantic Search (Optional)
 - Multi-provider embeddings: OpenAI, Mistral, local CPU-based

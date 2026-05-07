@@ -35,14 +35,25 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 ## Features
 
 ### 🧠 Episodic Memory
-- Complete episode lifecycle (start → execute → score → learn → retrieve)
+- Episode lifecycle management (start → execute → score → learn → retrieve)
 - Detailed execution step logging with tool usage tracking
-- Intelligent reward scoring with efficiency and quality bonuses
+- Reward scoring with efficiency and quality bonuses based on multiple factors
 - Automatic reflection generation for learning
+
+
+### Episode Checkpoints & Handoff
+- Supports saving task state via checkpoints to allow pausing or task handoffs between agents.
+- Checkpoints capture progress, findings, pending actions, and required context.
+
+
+### CSM Cascading Retrieval
+- Integrates Chaotic Semantic Memory (CSM) to reduce embedding API calls.
+- Implements a cascading retrieval pipeline using 100% CPU-local, zero-API methods.
+- Tiers include BM25 exact match, HDC similarity, and ConceptGraph expansion before falling back to API embeddings.
 
 ### 📚 Multiple Storage Backends
 - **Turso Cloud**: Remote libSQL database (default)
-- **redb Cache**: Fast embedded key-value storage
+- **redb Cache**: Embedded key-value storage
 - **Local SQLite**: Local file-based database (fallback)
 - Automatic caching with TTL-based invalidation
 
@@ -486,11 +497,11 @@ batch_size = 100
                                │
          ┌─────────────────────┼─────────────────────┐
          │                     │                     │
-┌───────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
-│ Turso Storage  │  │  Redb Cache     │  │  In-Memory      │
-│                │  │                 │  │                 │
-│ libSQL/Remote  │  │   Fast Access   │  │  Temporary      │
-└────────────────┘  └─────────────────┘  └─────────────────┘
+┌───────▼───────────────┐ ┌────────▼──────────────┐ ┌────────▼────────┐
+│do-memory-storage-turso│ │do-memory-storage-redb │ │  In-Memory      │
+│                       │ │                       │ │                 │
+│   libSQL/Remote       │ │   Cache Backend       │ │  Temporary      │
+└───────────────────────┘ └───────────────────────┘ └─────────────────┘
 ```
 
 ## MCP Server Tools

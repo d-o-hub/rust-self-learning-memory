@@ -6,8 +6,9 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use cloudevents::{Event, EventBuilder, EventBuilderV10};
-pub use do_memory_core::types::event::MemoryEvent;
+
 use do_memory_core::types::event::EventEmitter;
+pub use do_memory_core::types::event::MemoryEvent;
 use uuid::Uuid;
 
 /// Maps a internal `MemoryEvent` to a `cloudevents::Event`.
@@ -37,7 +38,7 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
             }),
         ),
         MemoryEvent::EpisodeGarbageCollected { id, reason, .. } => (
-            "dev.d-o-hub.memory.episode.collected",
+            "dev.d-o-hub.memory.episode.garbage_collected",
             serde_json::json!({
                 "id": id,
                 "reason": reason

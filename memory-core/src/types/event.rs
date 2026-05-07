@@ -159,6 +159,11 @@ impl MemoryEvent {
 pub trait EventEmitter: Send + Sync {
     /// Emit a memory event.
     async fn emit(&self, event: MemoryEvent);
+
+    /// Check if the emitter is enabled.
+    fn is_enabled(&self) -> bool {
+        true
+    }
 }
 
 /// A zero-cost default event emitter that does nothing.
@@ -168,6 +173,10 @@ pub struct NullEmitter;
 impl EventEmitter for NullEmitter {
     async fn emit(&self, _event: MemoryEvent) {
         // No-op
+    }
+
+    fn is_enabled(&self) -> bool {
+        false
     }
 }
 

@@ -8,7 +8,7 @@ use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use crate::monitoring::AgentMetrics;
-use std::sync::Arc;
+
 use std::time::Duration;
 use tracing::warn;
 
@@ -91,13 +91,6 @@ impl SelfLearningMemory {
         super::monitoring::clear_cache(&self.query_cache);
     }
 
-    /// Set a custom event emitter for standardized event notifications.
-    ///
-    /// This allows plugging in different event formats like CloudEvents
-    /// for external interoperability.
-    pub fn with_event_emitter(&mut self, emitter: Arc<dyn crate::types::event::EventEmitter>) {
-        self.event_emitter = emitter;
-    }
 }
 
 impl SelfLearningMemory {

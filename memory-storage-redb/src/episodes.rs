@@ -54,7 +54,8 @@ impl RedbStorage {
             .await;
 
         // Emit standardized event if emitter configured
-        if let Some(emitter) = &self.event_emitter {
+        let emitter = self.event_emitter.read().clone();
+        if let Some(emitter) = emitter {
             emitter
                 .emit(do_memory_core::types::event::MemoryEvent::EpisodeStored {
                     episode_id: episode.episode_id,

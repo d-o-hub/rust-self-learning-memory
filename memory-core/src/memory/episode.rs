@@ -111,18 +111,20 @@ impl SelfLearningMemory {
             &task_type.to_string(),
         );
         // Emit standardized event
-        self.event_emitter
-            .emit(crate::types::event::MemoryEvent::TaskStarted {
-                task_id: episode_id,
-                agent_id: "system".to_string(), // Default agent ID, can be refined later
-                metadata: serde_json::json!({
-                    "task": task_description,
-                    "task_type": task_type.to_string(),
-                    "domain": episode.context.domain
-                }),
-                timestamp: crate::types::event::unix_now_secs(),
-            })
-            .await;
+        if self.event_emitter.is_enabled() {
+            self.event_emitter
+                .emit(crate::types::event::MemoryEvent::TaskStarted {
+                    task_id: episode_id,
+                    agent_id: "system".to_string(), // Default agent ID, can be refined later
+                    metadata: serde_json::json!({
+                        "task": task_description,
+                        "task_type": task_type.to_string(),
+                        "domain": episode.context.domain
+                    }),
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
+        }
 
         // Always store in fallback for in-memory access
         // Store as Arc to avoid cloning when sharing

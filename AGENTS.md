@@ -177,6 +177,7 @@ See `plans/GOAP_CI_OPTIMIZATION_2026-04-28.md` for full plan.
 | ADRs | `plans/adr/` |
 
 ## Disk Space
+- **No Temporary Files in Root**: Never create temporary files, logs, or trial outputs in the repository root. Use `plans/` for design-related notes or `target/` for build/test artifacts.
 - Dev profile: `debug = "line-tables-only"`, deps `debug = false`
 - Default artifact path: `target/` (or `$CARGO_TARGET_DIR` when set)
 - For external disk/offload, set `CARGO_TARGET_DIR` (for example: `CARGO_TARGET_DIR=/mnt/fastssd/rslm-target`)
@@ -206,7 +207,9 @@ PR CI time reduced from ~50+ min to ~15-18 min via paths-based benchmark trigger
 
 ## MCP Server Interaction Patterns
 - The MCP server implements lazy loading of tools (ADR-024) to optimize initialization.
-- The server exposes advanced tools including `checkpoint_episode` and `recommend_playbook` for complex task handoff and state preservation.
+- The server exposes advanced tools for complex task handoff and state preservation:
+  - `checkpoint_episode`: Create a checkpoint for an in-progress episode. Use this when switching agents, pausing long-running tasks, or before risky operations.
+  - `recommend_playbook`: Get an actionable playbook with step-by-step guidance for a task.
 
 ## Storage Optimization (Batch Eviction)
 - Capacity eviction in Turso uses batch 'DELETE' with 'IN (...)' clauses for episodes and embeddings to avoid N+1 query overhead.

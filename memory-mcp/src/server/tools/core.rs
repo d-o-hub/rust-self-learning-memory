@@ -80,6 +80,9 @@ impl crate::server::MemoryMCPServer {
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("query_memory").await;
 
+        // Cap limit to prevent resource exhaustion
+        let limit = limit.min(do_memory_core::MAX_QUERY_LIMIT);
+
         // Start monitoring request
         let request_id = format!(
             "query_memory_{}",
@@ -254,6 +257,9 @@ impl crate::server::MemoryMCPServer {
         fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("analyze_patterns").await;
+
+        // Cap limit to prevent resource exhaustion
+        let limit = limit.min(do_memory_core::MAX_QUERY_LIMIT);
 
         debug!(
             "Analyzing patterns: task_type='{}', min_success_rate={}, limit={}",

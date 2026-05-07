@@ -96,6 +96,8 @@ pub fn search_episodes_by_tags_params() -> Value {
             },
             "limit": {
                 "type": "integer",
+                "minimum": 1,
+                "maximum": 1000,
                 "description": "Maximum number of results. Default: 100"
             }
         },
@@ -204,6 +206,7 @@ pub fn find_related_episodes_params() -> Value {
             "limit": {
                 "type": "integer",
                 "minimum": 1,
+                "maximum": 1000,
                 "default": 10,
                 "description": "Maximum number of results"
             },

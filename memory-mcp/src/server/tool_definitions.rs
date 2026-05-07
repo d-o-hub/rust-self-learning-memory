@@ -40,6 +40,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "default": 10,
+                    "minimum": 1,
+                    "maximum": 1000,
                     "description": "Maximum number of episodes to retrieve"
                 },
                 "sort": {
@@ -71,6 +73,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "default": 20,
+                    "minimum": 1,
+                    "maximum": 1000,
                     "description": "Maximum number of patterns to return"
                 }
             },
@@ -139,7 +143,9 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "description": "Maximum number of results (default: 5)",
-                    "default": 5
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 1000
                 },
                 "min_relevance": {
                     "type": "number",
@@ -180,7 +186,9 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "description": "Maximum number of recommendations (default: 3)",
-                    "default": 3
+                    "default": 3,
+                    "minimum": 1,
+                    "maximum": 1000
                 }
             },
             "required": ["task_description", "domain"]

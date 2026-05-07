@@ -259,6 +259,7 @@ impl EpisodeRelationshipTools {
             filter = filter.with_type(rel_type);
         }
         if let Some(limit) = input.limit {
+            let limit = limit.min(do_memory_core::MAX_QUERY_LIMIT);
             filter = filter.with_limit(limit);
         }
 

@@ -81,6 +81,9 @@ pub async fn execute(
     memory: &SelfLearningMemory,
     input: SearchPatternsInput,
 ) -> anyhow::Result<Value> {
+    // Cap limit to prevent resource exhaustion
+    let limit = input.limit.min(do_memory_core::MAX_QUERY_LIMIT);
+
     // Build context
     let context = TaskContext {
         domain: input.domain.clone(),
@@ -99,7 +102,7 @@ pub async fn execute(
 
     // Execute search
     let results = memory
-        .search_patterns_with_config(&input.query, context, config, input.limit)
+        .search_patterns_with_config(&input.query, context, config, limit)
         .await?;
 
     // Convert results
@@ -215,6 +218,9 @@ pub async fn execute_recommend(
     memory: &SelfLearningMemory,
     input: RecommendPatternsInput,
 ) -> anyhow::Result<Value> {
+    // Cap limit to prevent resource exhaustion
+    let limit = input.limit.min(do_memory_core::MAX_QUERY_LIMIT);
+
     // Build context
     let context = TaskContext {
         domain: input.domain.clone(),
@@ -226,7 +232,7 @@ pub async fn execute_recommend(
 
     // Execute recommendation
     let results = memory
-        .recommend_patterns_for_task(&input.task_description, context, input.limit)
+        .recommend_patterns_for_task(&input.task_description, context, limit)
         .await?;
 
     // Convert results

@@ -73,10 +73,13 @@ impl EmbeddingTools {
     ) -> Result<SearchByEmbeddingOutput> {
         let start_time = std::time::Instant::now();
 
+        // Cap limit to prevent resource exhaustion
+        let limit = input.limit.min(do_memory_core::MAX_QUERY_LIMIT);
+
         info!(
             "Searching by embedding (dimension: {}, limit: {}, threshold: {})",
             input.embedding.len(),
-            input.limit,
+            limit,
             input.similarity_threshold
         );
 
@@ -104,7 +107,7 @@ impl EmbeddingTools {
             let similar_episodes = semantic_service
                 .find_episodes_by_embedding(
                     input.embedding.clone(),
-                    input.limit,
+                    limit,
                     input.similarity_threshold,
                 )
                 .await

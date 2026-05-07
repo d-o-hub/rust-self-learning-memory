@@ -3,47 +3,12 @@
 //! This crate provides the mapping between internal memory system events
 //! and the CNCF CloudEvents v1.0.2 specification.
 
+use async_trait::async_trait;
 use chrono::Utc;
 use cloudevents::{Event, EventBuilder, EventBuilderV10};
-use serde::{Deserialize, Serialize};
+pub use do_memory_core::types::event::MemoryEvent;
+use do_memory_core::types::event::EventEmitter;
 use uuid::Uuid;
-
-/// Standardized memory event types for CloudEvents mapping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "data")]
-pub enum MemoryEvent {
-    /// A task has started execution.
-    TaskStarted {
-        task_id: Uuid,
-        agent_id: String,
-        metadata: serde_json::Value,
-    },
-    /// A task has completed execution.
-    TaskCompleted {
-        task_id: Uuid,
-        duration_ms: u64,
-        success: bool,
-    },
-    /// a reward score has been calculated for a task.
-    RewardScored {
-        task_id: Uuid,
-        score: f64,
-        reason: String,
-    },
-    /// A reflection has been updated for an episode.
-    ReflectionUpdated {
-        episode_id: Uuid,
-        reflection_type: String,
-    },
-    /// A skill has evolved or a new pattern has been promoted.
-    SkillEvolved {
-        skill_name: String,
-        from_version: u32,
-        to_version: u32,
-    },
-    /// An episode has been successfully stored in a backend.
-    EpisodeStored { episode_id: Uuid, backend: String },
-}
 
 /// Maps a internal `MemoryEvent` to a `cloudevents::Event`.
 ///
@@ -57,10 +22,43 @@ pub enum MemoryEvent {
 /// A constructed and validated `cloudevents::Event`
 pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
     let (ce_type, data) = match event {
+        MemoryEvent::EpisodeCreated { id, task, .. } => (
+            "dev.d-o-hub.memory.episode.created",
+            serde_json::json!({
+                "id": id,
+                "task": task
+            }),
+        ),
+        MemoryEvent::EpisodeCompleted { id, reward, .. } => (
+            "dev.d-o-hub.memory.episode.completed",
+            serde_json::json!({
+                "id": id,
+                "reward": reward
+            }),
+        ),
+        MemoryEvent::EpisodeGarbageCollected { id, reason, .. } => (
+            "dev.d-o-hub.memory.episode.collected",
+            serde_json::json!({
+                "id": id,
+                "reason": reason
+            }),
+        ),
+        MemoryEvent::PatternExtracted {
+            id,
+            source_episodes,
+            ..
+        } => (
+            "dev.d-o-hub.memory.pattern.extracted",
+            serde_json::json!({
+                "id": id,
+                "source_episodes": source_episodes
+            }),
+        ),
         MemoryEvent::TaskStarted {
             task_id,
             agent_id,
             metadata,
+            ..
         } => (
             "dev.d-o-hub.memory.task.started",
             serde_json::json!({
@@ -73,6 +71,7 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
             task_id,
             duration_ms,
             success,
+            ..
         } => (
             "dev.d-o-hub.memory.task.completed",
             serde_json::json!({
@@ -85,6 +84,7 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
             task_id,
             score,
             reason,
+            ..
         } => (
             "dev.d-o-hub.memory.reward.scored",
             serde_json::json!({
@@ -96,6 +96,7 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
         MemoryEvent::ReflectionUpdated {
             episode_id,
             reflection_type,
+            ..
         } => (
             "dev.d-o-hub.memory.reflection.updated",
             serde_json::json!({
@@ -107,6 +108,7 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
             skill_name,
             from_version,
             to_version,
+            ..
         } => (
             "dev.d-o-hub.memory.skill.evolved",
             serde_json::json!({
@@ -118,6 +120,7 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
         MemoryEvent::EpisodeStored {
             episode_id,
             backend,
+            ..
         } => (
             "dev.d-o-hub.memory.episode.stored",
             serde_json::json!({
@@ -135,6 +138,77 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Event {
         .data("application/json", data)
         .build()
         .expect("valid CloudEvent")
+}
+
+/// An event emitter that converts internal events to CloudEvents
+/// and passes them to a nested emitter or callback.
+pub struct CloudEventEmitter<F>
+where
+    F: Fn(Event) + Send + Sync,
+{
+    source: String,
+    handler: F,
+}
+
+impl<F> CloudEventEmitter<F>
+where
+    F: Fn(Event) + Send + Sync,
+{
+    /// Create a new CloudEventEmitter with a source and handler function.
+    pub fn new(source: impl Into<String>, handler: F) -> Self {
+        Self {
+            source: source.into(),
+            handler,
+        }
+    }
+}
+
+#[async_trait]
+impl<F> EventEmitter for CloudEventEmitter<F>
+where
+    F: Fn(Event) + Send + Sync,
+{
+    async fn emit(&self, event: MemoryEvent) {
+        let ce = to_cloud_event(&event, &self.source);
+        (self.handler)(ce);
+    }
+}
+
+/// An event emitter that sends CloudEvents to an HTTP endpoint.
+#[cfg(feature = "events-http")]
+pub struct HttpEventEmitter {
+    source: String,
+    client: reqwest::Client,
+    url: String,
+}
+
+#[cfg(feature = "events-http")]
+impl HttpEventEmitter {
+    /// Create a new HttpEventEmitter with a source and target URL.
+    pub fn new(source: impl Into<String>, url: impl Into<String>) -> Self {
+        Self {
+            source: source.into(),
+            client: reqwest::Client::new(),
+            url: url.into(),
+        }
+    }
+}
+
+#[cfg(feature = "events-http")]
+#[async_trait]
+impl EventEmitter for HttpEventEmitter {
+    async fn emit(&self, event: MemoryEvent) {
+        let ce = to_cloud_event(&event, &self.source);
+
+        // Best-effort emission
+        let _ = self
+            .client
+            .post(&self.url)
+            .header("Content-Type", "application/cloudevents+json")
+            .json(&ce)
+            .send()
+            .await;
+    }
 }
 
 #[cfg(test)]
@@ -157,6 +231,7 @@ mod tests {
             task_id,
             agent_id: "test-agent".to_string(),
             metadata: serde_json::json!({ "foo": "bar" }),
+            timestamp: 12345,
         };
 
         let ce = to_cloud_event(&event, "memory-core");
@@ -175,6 +250,7 @@ mod tests {
             task_id,
             score: 0.95,
             reason: "efficient execution".to_string(),
+            timestamp: 12345,
         };
 
         let ce = to_cloud_event(&event, "memory-core");

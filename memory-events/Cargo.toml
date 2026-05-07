@@ -8,12 +8,19 @@ repository = "https://github.com/d-o-hub/rust-self-learning-memory"
 description = "CloudEvents implementation for standardized agent lifecycle event emission"
 
 [dependencies]
+do-memory-core = { path = "../memory-core", version = "0.1.31" }
 cloudevents-sdk = { version = "0.7", features = ["http-binding"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 anyhow = { workspace = true }
+async-trait = { workspace = true }
+reqwest = { version = "0.13", features = ["json"], optional = true }
+
+[features]
+default = []
+events-http = ["reqwest"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }

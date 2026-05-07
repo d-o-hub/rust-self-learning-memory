@@ -35,25 +35,14 @@ The Rust Self-Learning Memory System provides persistent memory across agent int
 ## Features
 
 ### 🧠 Episodic Memory
-- Episode lifecycle management (start → execute → score → learn → retrieve)
+- Complete episode lifecycle (start → execute → score → learn → retrieve)
 - Detailed execution step logging with tool usage tracking
-- Reward scoring with efficiency and quality bonuses based on multiple factors
+- Intelligent reward scoring with efficiency and quality bonuses
 - Automatic reflection generation for learning
-
-
-### Episode Checkpoints & Handoff
-- Supports saving task state via checkpoints to allow pausing or task handoffs between agents.
-- Checkpoints capture progress, findings, pending actions, and required context.
-
-
-### CSM Cascading Retrieval
-- Integrates Chaotic Semantic Memory (CSM) to reduce embedding API calls.
-- Implements a cascading retrieval pipeline using 100% CPU-local, zero-API methods.
-- Tiers include BM25 exact match, HDC similarity, and ConceptGraph expansion before falling back to API embeddings.
 
 ### 📚 Multiple Storage Backends
 - **Turso Cloud**: Remote libSQL database (default)
-- **redb Cache**: Embedded key-value storage
+- **redb Cache**: Fast embedded key-value storage
 - **Local SQLite**: Local file-based database (fallback)
 - Automatic caching with TTL-based invalidation
 
@@ -393,11 +382,11 @@ cargo build --features embeddings-full
 - `wasmtime-backend`: Wasmtime WASM sandbox (do-memory-mcp, default)
 - `compression`: Network compression — lz4, zstd, gzip (do-memory-storage-turso)
 - `hybrid_search`: FTS5 hybrid search (do-memory-storage-turso)
-- `cloudevents`: Standardized CloudEvents v1.0.2 emission (do-memory-core)
+- `cloudevents`: Standardized CloudEvents v1.0.2 emission (do-memory-mcp)
 
 ### Observability (CloudEvents)
 
-The system supports real-time observability via the CNCF CloudEvents v1.0.2 specification. When the `cloudevents` feature is enabled, standardized events are emitted at key lifecycle boundaries:
+The system supports real-time observability via the CNCF CloudEvents v1.0.2 specification. When an emitter is configured, standardized events are emitted at key lifecycle boundaries:
 
 - **Task Lifecycle**: `task.started`, `task.completed`
 - **Reward Loop**: `reward.scored`, `reflection.updated`
@@ -509,11 +498,11 @@ batch_size = 100
                                │
          ┌─────────────────────┼─────────────────────┐
          │                     │                     │
-┌───────▼───────────────┐ ┌────────▼──────────────┐ ┌────────▼────────┐
-│do-memory-storage-turso│ │do-memory-storage-redb │ │  In-Memory      │
-│                       │ │                       │ │                 │
-│   libSQL/Remote       │ │   Cache Backend       │ │  Temporary      │
-└───────────────────────┘ └───────────────────────┘ └─────────────────┘
+┌───────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
+│ Turso Storage  │  │  Redb Cache     │  │  In-Memory      │
+│                │  │                 │  │                 │
+│ libSQL/Remote  │  │   Fast Access   │  │  Temporary      │
+└────────────────┘  └─────────────────┘  └─────────────────┘
 ```
 
 ## MCP Server Tools

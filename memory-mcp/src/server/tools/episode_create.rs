@@ -143,6 +143,7 @@ impl MemoryMCPServer {
                         "task": task_description,
                         "domain": domain
                     }),
+                    timestamp: do_memory_core::types::event::unix_now_secs(),
                 };
                 let ce = to_cloud_event(&event, "memory-mcp");
                 response_obj["cloud_event"] = serde_json::to_value(ce)?;

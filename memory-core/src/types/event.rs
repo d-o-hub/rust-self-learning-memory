@@ -12,6 +12,7 @@ use uuid::Uuid;
 /// Uses `tokio::sync::broadcast` channel for efficient fan-out to multiple subscribers.
 /// Subscribers can use `memory.subscribe()` to receive events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "data")]
 pub enum MemoryEvent {
     /// A new episode was created.
     EpisodeCreated {
@@ -51,42 +52,64 @@ pub enum MemoryEvent {
     },
     /// Standardized task started event (CloudEvents compatible).
     TaskStarted {
+        /// Unique task identifier
         task_id: Uuid,
+        /// Identifier of the agent performing the task
         agent_id: String,
+        /// Flexible metadata associated with the task
         metadata: serde_json::Value,
+        /// Unix timestamp in seconds
         timestamp: u64,
     },
     /// Standardized task completed event (CloudEvents compatible).
     TaskCompleted {
+        /// Unique task identifier
         task_id: Uuid,
+        /// Execution duration in milliseconds
         duration_ms: u64,
+        /// Whether the task was successful
         success: bool,
+        /// Unix timestamp in seconds
         timestamp: u64,
     },
     /// Standardized reward scored event (CloudEvents compatible).
     RewardScored {
+        /// Unique task identifier
         task_id: Uuid,
+        /// The assigned reward score
         score: f64,
+        /// Qualitative reason for the score
         reason: String,
+        /// Unix timestamp in seconds
         timestamp: u64,
     },
     /// Standardized reflection updated event (CloudEvents compatible).
     ReflectionUpdated {
+        /// Target episode identifier
         episode_id: Uuid,
+        /// Type of reflection generated (e.g., "improvement", "insight")
         reflection_type: String,
+        /// Unix timestamp in seconds
         timestamp: u64,
     },
     /// Standardized skill evolved event (CloudEvents compatible).
     SkillEvolved {
+        /// Name of the skill or pattern promoted
         skill_name: String,
+        /// Previous version/confidence
         from_version: u32,
+        /// New version/confidence
         to_version: u32,
+        /// Unix timestamp in seconds
         timestamp: u64,
     },
     /// Standardized episode stored event (CloudEvents compatible).
     EpisodeStored {
+        /// Target episode identifier
         episode_id: Uuid,
+        /// Storage backend used (e.g., "turso", "redb")
         backend: String,
+        /// Unix timestamp in seconds
         timestamp: u64,
     },
 }

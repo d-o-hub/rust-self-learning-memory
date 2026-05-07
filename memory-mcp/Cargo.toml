@@ -57,7 +57,7 @@ embeddings = []
 # Use: cargo test --features streaming-impl
 streaming-impl = []
 # Enable CloudEvents support
-cloudevents = ["do-memory-core/cloudevents", "do-memory-events"]
+cloudevents = ["do-memory-events"]
 
 [dev-dependencies]
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }

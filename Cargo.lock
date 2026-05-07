@@ -1380,10 +1380,8 @@ dependencies = [
  "changepoint 0.15.0",
  "chaotic_semantic_memory",
  "chrono",
- "cloudevents-sdk",
  "criterion",
  "do-memory-core",
- "do-memory-events",
  "do-memory-storage-redb",
  "do-memory-storage-turso",
  "futures",
@@ -1416,8 +1414,11 @@ name = "do-memory-events"
 version = "0.1.31"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "cloudevents-sdk",
+ "do-memory-core",
+ "reqwest",
  "serde",
  "serde_json",
  "tokio",

@@ -9,104 +9,15 @@ pr_commands = [
 ]
 
 [review_agent]
+# Where to post review comments: "inline", "ticket", or "both"
 comments_location_policy = "both"
+
+# Severity threshold for inline comments:
+# 3 = action_required (critical blockers only)
+# 2 = remediation_recommended (recommended fixes + blockers)
+# 1 = informational (all findings including style)
 inline_comments_severity_threshold = 2
 
-issues_user_guidelines = """
-This is a Rust workspace (edition 2024) implementing a self-learning semantic memory system.
-It is organized into the following crates:
-  - memory-core:           Core traits, types (MemoryEntry, Episode), and business logic
-  - memory-storage-turso:  Async libSQL/Turso storage backend
-  - memory-storage-redb:   Embedded redb key-value storage backend
-  - memory-mcp:            MCP (Model Context Protocol) server exposing memory tools
-  - memory-cli:            CLI binary (clap, derive)
-  - test-utils:            Shared test helpers (do-memory-test-utils crate)
-  - benches:               Criterion benchmarks
-  - tests:                 Integration tests
-
-Key review priorities for this project:
-
-1. MEMORY SAFETY & ASYNC CORRECTNESS
-   - Flag any `unsafe` blocks — they must be justified with a comment explaining why safe.
-   - Deny `await_holding_lock` and `await_holding_refcell_ref`: never hold a lock or RefCell borrow across an await point.
-   - Prefer `Arc<RwLock<T>>` (parking_lot) over `Mutex<T>` for read-heavy memory state.
-   - Watch for accidental clones of large Vec<MemoryEntry> or embedding vectors — prefer references or Arc.
-
-2. ERROR HANDLING
-   - All fallible functions must return `anyhow::Result<T>` (application layer) or `thiserror`-derived errors (library layer).
-   - `.unwrap()` and `.expect()` are forbidden in non-test code — flag as action_required.
-   - `.panic!()` calls outside tests are action_required.
-   - Error variants must be descriptive; avoid `anyhow::anyhow!("error")` without context.
-
-3. SERIALIZATION
-   - Use `postcard` (with `alloc` feature, no default features) for binary serialization — NOT bincode.
-   - `serde_json` is acceptable only for human-readable formats (MCP protocol, CLI output).
-   - Ensure all new types used in storage implement `serde::Serialize + serde::Deserialize`.
-
-4. DATABASE & SQL SAFETY
-   - ALL SQL queries must use parameterized statements — never string interpolation.
-   - Turso backend: use `libsql` prepared statements. Redb backend: use typed tables.
-   - Concurrent writes to redb must use proper transactions to avoid cache corruption.
-   - Storage backends must implement retry logic for transient connection errors.
-
-5. PERFORMANCE REGRESSIONS
-   - Flag any change to hot paths in memory-core (insert, search, evict) that may regress >10%.
-   - LRU cache (`lru` crate) is used for query caching — changes to cache key construction need review.
-   - Avoid allocating inside tight loops; prefer pre-allocated buffers.
-   - Embedding vectors are large — flag unnecessary copies or Vec reallocations in similarity search.
-
-6. CODE STRUCTURE & FILE SIZE
-   - No file should exceed 500 lines of code. Flag violations.
-   - Each module should have a single clear responsibility.
-   - Public API changes require updated doc comments with `# Examples` sections.
-
-7. TESTING REQUIREMENTS
-   - New public functions must have at least one unit test in a `#[cfg(test)]` block.
-   - Storage backends need integration tests using `tempfile::TempDir`.
-   - Use `do-memory-test-utils` helpers (from the `test-utils` crate) for fixture construction.
-   - Property-based tests using `proptest` are encouraged for serialization and search logic.
-   - Snapshot tests use `insta` with JSON format — run `cargo insta review` after changes.
-
-8. CLIPPY & FORMATTING
-   - Zero clippy warnings policy: `clippy::all = deny`. Flag any new lint suppressions with `#[allow(...)]`.
-   - `clippy::pedantic` is warn-level — new `#[allow(clippy::...)]` annotations need justification.
-   - All code must be formatted with `cargo fmt` (rustfmt.toml settings apply).
-
-9. DEPENDENCY MANAGEMENT
-   - New dependencies must come from crates.io with compatible licenses (MIT/Apache-2.0).
-   - Security advisories are tracked in `.cargo/audit.toml` and `deny.toml` — never use `--ignore` flags inline in CI.
-   - Flag any new `unsafe` transitive dependencies.
-
-10. COMMIT & PR CONVENTIONS
-    - Commit messages must follow Conventional Commits: feat/fix/docs/test/refactor/perf/ci.
-    - Module scope is recommended: feat(core):, fix(storage):, perf(mcp):
-    - Breaking changes must update CHANGELOG.md and include migration instructions.
-"""
-
-compliance_user_guidelines = """
-Security compliance requirements for rust-self-learning-memory:
-
-1. SECRETS & CREDENTIALS
-   - No API keys, tokens, passwords, or database URLs may be hardcoded. Use environment variables only.
-   - JWT verification must use asymmetric keys (RS256/ES256). Flag any symmetric secret usage.
-   - OAuth flows must validate `state` parameters to prevent CSRF.
-   - Check `.gitleaksignore` before flagging known test fixtures as violations.
-
-2. INPUT VALIDATION
-   - All user-supplied strings entering storage queries must be sanitized at the API boundary.
-   - Memory entry content length must be bounded before persistence.
-   - UUID inputs must be parsed via `uuid::Uuid::parse_str()` — not trusted as-is.
-
-3. DEPENDENCY SECURITY
-   - Flag any newly introduced dependency with known CVEs listed in the NVD or RustSec advisory DB.
-   - RUSTSEC-2023-0089 (heapless/atomic-polyfill): postcard is configured with `default-features = false` to avoid this — ensure this is preserved.
-   - Transitive duplicates (argmin, hashbrown, nalgebra) are tracked and must not be silently upgraded.
-
-4. ASYNC SECURITY
-   - No blocking I/O (`std::fs`, `std::net` sync calls) inside async functions — use `tokio::fs` / `tokio::net`.
-   - Task spawns must not leak across request boundaries in the MCP server.
-
-5. LOGGING
-   - Never log raw memory entry content at INFO or higher — use DEBUG/TRACE with truncation.
-   - Trace spans must not capture sensitive fields (e.g., user IDs, content embeddings).
-"""
+# Optional: add project-specific Rust/memory guidelines
+issues_user_guidelines = ""
+compliance_user_guidelines = ""

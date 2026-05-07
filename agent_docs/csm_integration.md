@@ -118,7 +118,7 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 **Goal**: Add BM25 keyword index from CSM as first retrieval tier
 
-**Implementation Location**: `memory-core/src/search/bm25.rs`
+**Implementation Location**: `memory-core/src/search/bm25.rs` (new)
 
 **Key Files from CSM**:
 - `retrieval/bm25.rs` - Full Okapi BM25 with TF-IDF scoring
@@ -165,7 +165,7 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 **Goal**: Add ConceptGraph ontology expansion for synonym retrieval without LLM
 
-**Implementation Location**: `memory-core/src/search/concept_graph.rs`
+**Implementation Location**: `memory-core/src/search/concept_graph.rs` (new)
 
 **Key Files from CSM**:
 - `semantic_bridge.rs` - Concept graph traversal
@@ -182,7 +182,7 @@ More efficient than O(n log n) full sort when k << n. Used in retrieval hot path
 
 **Goal**: Implement cascading retrieval pipeline with tier escalation
 
-**Implementation Location**: `memory-core/src/search/cascade.rs`
+**Implementation Location**: `memory-core/src/search/cascade.rs` (new)
 
 **Proposed API**:
 

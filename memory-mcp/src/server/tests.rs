@@ -201,3 +201,39 @@ async fn test_analyze_patterns() {
     assert!(json.get("patterns").is_some());
     assert!(json.get("statistics").is_some());
 }
+
+#[tokio::test]
+async fn test_query_memory_limit_clamping() {
+    let server = create_test_server().await;
+
+    // Test with limit exceeding MAX_QUERY_LIMIT
+    let result = server
+        .query_memory(
+            "test".to_string(),
+            "test".to_string(),
+            None,
+            crate::server::constants::MAX_QUERY_LIMIT + 100,
+            "relevance".to_string(),
+            None,
+        )
+        .await;
+
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_analyze_patterns_parameter_clamping() {
+    let server = create_test_server().await;
+
+    // Test with limit exceeding MAX_QUERY_LIMIT
+    let result = server
+        .analyze_patterns(
+            "code_generation".to_string(),
+            1.5, // Exceeds MAX_SUCCESS_RATE
+            crate::server::constants::MAX_QUERY_LIMIT + 100,
+            None,
+        )
+        .await;
+
+    assert!(result.is_ok());
+}

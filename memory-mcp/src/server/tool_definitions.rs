@@ -3,6 +3,9 @@
 //! This module contains the `create_default_tools()` function that defines
 //! the core MCP tools for the memory system (querying, patterns, monitoring, embeddings).
 
+use crate::server::constants::{
+    MAX_QUERY_LIMIT, MAX_SUCCESS_RATE, MIN_QUERY_LIMIT, MIN_SUCCESS_RATE,
+};
 use crate::types::Tool;
 use serde_json::json;
 
@@ -40,8 +43,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "default": 10,
-                    "minimum": 1,
-                    "maximum": 1000,
+                    "minimum": MIN_QUERY_LIMIT,
+                    "maximum": MAX_QUERY_LIMIT,
                     "description": "Maximum number of episodes to retrieve"
                 },
                 "sort": {
@@ -68,13 +71,15 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "min_success_rate": {
                     "type": "number",
                     "default": 0.7,
+                    "minimum": MIN_SUCCESS_RATE,
+                    "maximum": MAX_SUCCESS_RATE,
                     "description": "Minimum success rate for patterns (0.0-1.0)"
                 },
                 "limit": {
                     "type": "integer",
                     "default": 20,
-                    "minimum": 1,
-                    "maximum": 1000,
+                    "minimum": MIN_QUERY_LIMIT,
+                    "maximum": MAX_QUERY_LIMIT,
                     "description": "Maximum number of patterns to return"
                 }
             },
@@ -143,9 +148,7 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "description": "Maximum number of results (default: 5)",
-                    "default": 5,
-                    "minimum": 1,
-                    "maximum": 1000
+                    "default": 5
                 },
                 "min_relevance": {
                     "type": "number",
@@ -186,9 +189,7 @@ pub fn create_default_tools() -> Vec<Tool> {
                 "limit": {
                     "type": "integer",
                     "description": "Maximum number of recommendations (default: 3)",
-                    "default": 3,
-                    "minimum": 1,
-                    "maximum": 1000
+                    "default": 3
                 }
             },
             "required": ["task_description", "domain"]

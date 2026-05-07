@@ -34,6 +34,7 @@
 // Submodules
 pub mod audit;
 pub mod cache_warming;
+pub mod constants;
 pub mod rate_limiter;
 #[cfg(test)]
 mod tests;

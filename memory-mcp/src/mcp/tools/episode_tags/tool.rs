@@ -325,10 +325,7 @@ impl EpisodeTagTools {
         }
 
         let require_all = input.require_all.unwrap_or(false);
-        let limit = input
-            .limit
-            .unwrap_or(100)
-            .min(do_memory_core::MAX_QUERY_LIMIT);
+        let limit = input.limit.unwrap_or(100);
 
         // Build search criteria description
         let search_criteria = if require_all {

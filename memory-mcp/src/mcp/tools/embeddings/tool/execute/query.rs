@@ -39,10 +39,7 @@ impl EmbeddingTools {
                     .unwrap_or_default(),
             };
 
-            let limit = input
-                .limit
-                .unwrap_or(10)
-                .min(do_memory_core::MAX_QUERY_LIMIT);
+            let limit = input.limit.unwrap_or(10);
 
             // Use the semantic service to find similar episodes
             let similar_episodes = match semantic_service
@@ -143,10 +140,7 @@ impl EmbeddingTools {
                 .unwrap_or_default(),
         };
 
-        let limit = input
-            .limit
-            .unwrap_or(10)
-            .min(do_memory_core::MAX_QUERY_LIMIT);
+        let limit = input.limit.unwrap_or(10);
 
         let arc_episodes = self
             .memory

@@ -231,6 +231,7 @@ impl TursoStorage {
 
         #[cfg(feature = "turso_multi_dimension")]
         {
+            let _ = conn;
             return self.delete_embedding_dimension_aware(item_id).await;
         }
 

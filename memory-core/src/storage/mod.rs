@@ -419,5 +419,6 @@ pub trait StorageBackend: Send + Sync {
     /// Set the event emitter for the storage backend.
     fn set_event_emitter(&self, emitter: Arc<dyn crate::types::event::EventEmitter>) {
         let _ = emitter;
+        let _ = emitter;
     }
 }

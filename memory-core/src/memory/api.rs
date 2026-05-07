@@ -8,7 +8,6 @@ use crate::memory::attribution::{
     RecommendationFeedback, RecommendationSession, RecommendationStats,
 };
 use crate::monitoring::AgentMetrics;
-
 use std::time::Duration;
 use tracing::warn;
 
@@ -90,7 +89,6 @@ impl SelfLearningMemory {
     pub fn clear_cache(&self) {
         super::monitoring::clear_cache(&self.query_cache);
     }
-
 }
 
 impl SelfLearningMemory {

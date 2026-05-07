@@ -157,7 +157,10 @@ impl StorageBackend for super::TursoStorage {
         super::TursoStorage::get_recommendation_stats(self).await
     }
 
-    fn set_event_emitter(&self, emitter: std::sync::Arc<dyn do_memory_core::types::event::EventEmitter>) {
+    fn set_event_emitter(
+        &self,
+        emitter: std::sync::Arc<dyn do_memory_core::types::event::EventEmitter>,
+    ) {
         super::TursoStorage::set_event_emitter(self, emitter);
     }
 }

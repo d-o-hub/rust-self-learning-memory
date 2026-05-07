@@ -159,7 +159,10 @@ impl SelfLearningMemory {
     ///
     /// This method will also propagate the emitter to configured storage backends.
     #[must_use]
-    pub fn with_event_emitter(mut self, emitter: Arc<dyn crate::types::event::EventEmitter>) -> Self {
+    pub fn with_event_emitter(
+        mut self,
+        emitter: Arc<dyn crate::types::event::EventEmitter>,
+    ) -> Self {
         self.event_emitter = Arc::clone(&emitter);
 
         // Propagate to Turso storage if available

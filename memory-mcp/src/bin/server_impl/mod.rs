@@ -1,3 +1,4 @@
+#![allow(clippy::wildcard_imports)]
 //! MCP Server module
 //!
 //! This module contains the MCP server implementation organized into logical submodules:

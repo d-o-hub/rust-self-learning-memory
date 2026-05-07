@@ -207,5 +207,5 @@ async fn test_core_clamping() {
     let s = create_test_server().await;
     let l = crate::server::constants::MAX_QUERY_LIMIT + 100;
     assert!(s.query_memory("t".into(), "d".into(), None, l, "r".into(), None).await.is_ok());
-    assert!(s.analyze_patterns("c".into(), 0.7, l, None).await.is_ok());
+    assert!(s.analyze_patterns("c".into(), 1.5, l, None).await.is_ok());
 }

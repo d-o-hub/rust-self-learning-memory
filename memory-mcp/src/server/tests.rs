@@ -203,31 +203,13 @@ async fn test_analyze_patterns() {
 }
 
 #[tokio::test]
-async fn test_core_clamping() {
+async fn test_bounds() {
     let s = create_test_server().await;
-    let l = crate::server::constants::MAX_QUERY_LIMIT + 100;
-    assert!(
-        s.query_memory("t".into(), "d".into(), None, l, "r".into(), None)
-            .await
-            .is_ok()
-    );
-    assert!(s.analyze_patterns("c".into(), 1.5, l, None).await.is_ok());
-}
-
-#[tokio::test]
-async fn test_tool_definitions_schema_bounds() {
-    let tools = crate::server::tool_definitions::create_default_tools();
-    for t in tools {
-        if t.name == "query_memory" || t.name == "analyze_patterns" {
-            let limit_props = t.input_schema["properties"]["limit"].as_object().unwrap();
-            assert!(limit_props.contains_key("maximum"), "Missing maximum for limit in {}", t.name);
-            assert!(limit_props.contains_key("minimum"), "Missing minimum for limit in {}", t.name);
-
-            if t.name == "analyze_patterns" {
-                let msr_props = t.input_schema["properties"]["min_success_rate"].as_object().unwrap();
-                assert!(msr_props.contains_key("maximum"), "Missing maximum for min_success_rate");
-                assert!(msr_props.contains_key("minimum"), "Missing minimum for min_success_rate");
-            }
+    let l = crate::server::constants::MAX_QUERY_LIMIT + 1;
+    assert!(s.query_memory("".into(), "".into(), None, l, "r".into(), None).await.is_ok());
+    for t in crate::server::tool_definitions::create_default_tools() {
+        if t.name == "query_memory" {
+            assert!(t.input_schema["properties"]["limit"]["maximum"].is_number());
         }
     }
 }

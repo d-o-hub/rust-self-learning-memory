@@ -1,4 +1,3 @@
-#![allow(clippy::wildcard_imports)]
 //! Memory tool handlers with audit logging
 //!
 //! This module contains individual tool handler functions for all MCP tools.

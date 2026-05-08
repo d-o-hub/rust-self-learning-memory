@@ -203,7 +203,7 @@ pub async fn handle_call_tool(
                             code: -32603,
                             message: "Internal error".to_string(),
                             data: Some(
-                                json!({"details": format!("Response serialization failed: {}", e)}),
+                                json!({"details": format!("Response serialization failed: {e}")}),
                             ),
                         }),
                     })
@@ -213,7 +213,7 @@ pub async fn handle_call_tool(
         Err(e) => {
             error!("Tool execution failed: {}", e);
             let error_content = vec![Content::Text {
-                text: format!("Tool execution failed: {}", e),
+                text: format!("Tool execution failed: {e}"),
             }];
             let call_result = CallToolResult::error(error_content);
             match serde_json::to_value(call_result) {
@@ -233,7 +233,7 @@ pub async fn handle_call_tool(
                             code: -32603,
                             message: "Internal error".to_string(),
                             data: Some(
-                                json!({"details": format!("Response serialization failed: {}", ser_e)}),
+                                json!({"details": format!("Response serialization failed: {ser_e}")}),
                             ),
                         }),
                     })

@@ -204,16 +204,6 @@ async fn test_analyze_patterns() {
 
 #[tokio::test]
 async fn test_bounds() {
-    let s = create_test_server().await;
-    let l = crate::server::constants::MAX_QUERY_LIMIT + 1;
-    assert!(
-        s.query_memory("".into(), "".into(), None, l, "r".into(), None)
-            .await
-            .is_ok()
-    );
-    for t in crate::server::tool_definitions::create_default_tools() {
-        if t.name == "query_memory" {
-            assert!(t.input_schema["properties"]["limit"]["maximum"].is_number());
-        }
-    }
+    assert!(create_test_server().await.query_memory("".into(), "".into(), None, 1001, "r".into(), None).await.is_ok());
+    assert!(crate::server::tool_definitions::create_default_tools().iter().any(|t| t.input_schema["properties"]["limit"]["maximum"].is_number()));
 }

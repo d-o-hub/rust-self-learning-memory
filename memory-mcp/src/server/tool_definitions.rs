@@ -3,7 +3,7 @@
 //! This module contains the `create_default_tools()` function that defines
 //! the core MCP tools for the memory system (querying, patterns, monitoring, embeddings).
 
-use crate::server::constants::{MAX_QUERY_LIMIT, MAX_SUCCESS_RATE};
+use crate::server::{MAX_QUERY_LIMIT, MAX_SUCCESS_RATE};
 use crate::types::Tool;
 use serde_json::json;
 

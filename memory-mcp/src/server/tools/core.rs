@@ -79,7 +79,7 @@ impl crate::server::MemoryMCPServer {
         fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("query_memory").await;
-        let limit = limit.min(crate::server::constants::MAX_QUERY_LIMIT);
+        let limit = limit.min(crate::server::MAX_QUERY_LIMIT);
 
         // Start monitoring request
         let request_id = format!(
@@ -255,8 +255,8 @@ impl crate::server::MemoryMCPServer {
         fields: Option<Vec<String>>,
     ) -> Result<serde_json::Value> {
         self.track_tool_usage("analyze_patterns").await;
-        let limit = limit.min(crate::server::constants::MAX_QUERY_LIMIT);
-        let min_success_rate = min_success_rate.min(crate::server::constants::MAX_SUCCESS_RATE);
+        let limit = limit.min(crate::server::MAX_QUERY_LIMIT);
+        let min_success_rate = min_success_rate.min(crate::server::MAX_SUCCESS_RATE);
 
         debug!(
             "Analyzing patterns: task_type='{}', min_success_rate={}, limit={}",

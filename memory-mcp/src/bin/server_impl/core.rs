@@ -43,8 +43,7 @@ pub async fn handle_protected_resource_metadata(
         resource: resource_uri,
         scopes_supported: oauth_config.scopes.clone(),
         resource_metadata: Some(format!(
-            "{}/.well-known/oauth-protected-resource",
-            resource_uri_clone
+            "{resource_uri_clone}/.well-known/oauth-protected-resource"
         )),
     };
 
@@ -64,7 +63,7 @@ pub async fn handle_protected_resource_metadata(
                 error: Some(JsonRpcError {
                     code: -32603,
                     message: "Internal error".to_string(),
-                    data: Some(json!({"details": format!("Failed to serialize metadata: {}", e)})),
+                    data: Some(json!({"details": format!("Failed to serialize metadata: {e}")})),
                 }),
             })
         }
@@ -125,7 +124,7 @@ pub async fn handle_list_tools(
                         code: -32603,
                         message: "Internal error".to_string(),
                         data: Some(
-                            json!({"details": format!("Response serialization failed: {}", e)}),
+                            json!({"details": format!("Response serialization failed: {e}")}),
                         ),
                     }),
                 })
@@ -162,7 +161,7 @@ pub async fn handle_list_tools(
                         code: -32603,
                         message: "Internal error".to_string(),
                         data: Some(
-                            json!({"details": format!("Response serialization failed: {}", e)}),
+                            json!({"details": format!("Response serialization failed: {e}")}),
                         ),
                     }),
                 })
@@ -238,7 +237,7 @@ pub async fn handle_describe_tool(
                             code: -32603,
                             message: "Internal error".to_string(),
                             data: Some(
-                                json!({"details": format!("Response serialization failed: {}", e)}),
+                                json!({"details": format!("Response serialization failed: {e}")}),
                             ),
                         }),
                     })
@@ -333,7 +332,7 @@ pub async fn handle_describe_tools(
                 error: Some(JsonRpcError {
                     code: -32603,
                     message: "Internal error".to_string(),
-                    data: Some(json!({"details": format!("Response serialization failed: {}", e)})),
+                    data: Some(json!({"details": format!("Response serialization failed: {e}")})),
                 }),
             })
         }

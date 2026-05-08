@@ -34,8 +34,10 @@
 // Submodules
 pub mod audit;
 pub mod cache_warming;
-pub mod constants;
 pub mod rate_limiter;
+
+pub const MAX_QUERY_LIMIT: usize = 1000;
+pub const MAX_SUCCESS_RATE: f32 = 1.0;
 #[cfg(test)]
 mod tests;
 pub mod tool_definitions;

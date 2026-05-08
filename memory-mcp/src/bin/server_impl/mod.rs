@@ -33,7 +33,6 @@
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::struct_excessive_bools)]
 #![allow(clippy::fn_params_excessive_bools)]
-#![allow(clippy::uninlined_format_args)]
 
 mod core;
 mod handlers;

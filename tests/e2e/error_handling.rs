@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 //! Error Handling Paths Tests (Day 3)
 //!
 //! Comprehensive E2E tests covering:

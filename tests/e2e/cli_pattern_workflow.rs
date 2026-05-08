@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 //! CLI Pattern Discovery Workflow Tests (Day 1)
 //!
 //! Comprehensive E2E tests covering:

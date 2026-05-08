@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 //! MCP Episode Management Chain Tests (Day 2-3)
 //!
 //! Comprehensive E2E tests covering:

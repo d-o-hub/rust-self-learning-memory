@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 //! Edge case and stress tests for episode tagging
 
 use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};

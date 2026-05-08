@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 //! CLI End-to-End Workflow Tests
 //!
 //! Comprehensive E2E tests covering major CLI workflows:

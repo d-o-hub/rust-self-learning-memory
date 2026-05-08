@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 //! # Comprehensive Advanced Pattern Analysis Tests
 //!
 //! This module provides comprehensive testing for the advanced pattern analysis MCP tool,

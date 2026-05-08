@@ -1,3 +1,6 @@
+#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::map_unwrap_or)]
+#![allow(clippy::cast_precision_loss)]
 //! Batch Operations Demo
 //!
 //! This example demonstrates how to use batch operations to execute multiple
@@ -209,7 +212,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     };
 
     let executor_fn = |_tool: String, args: serde_json::Value| async move {
-        if args.get("fail").and_then(|v| v.as_bool()).unwrap_or(false) {
+        if args.get("fail").and_then(serde_json::Value::as_bool).unwrap_or(false) {
             Err((-32000, "Simulated failure".to_string()))
         } else {
             Ok(json!({"status": "success", "data": args}))

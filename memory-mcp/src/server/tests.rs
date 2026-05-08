@@ -206,7 +206,11 @@ async fn test_analyze_patterns() {
 async fn test_bounds() {
     let s = create_test_server().await;
     let l = crate::server::constants::MAX_QUERY_LIMIT + 1;
-    assert!(s.query_memory("".into(), "".into(), None, l, "r".into(), None).await.is_ok());
+    assert!(
+        s.query_memory("".into(), "".into(), None, l, "r".into(), None)
+            .await
+            .is_ok()
+    );
     for t in crate::server::tool_definitions::create_default_tools() {
         if t.name == "query_memory" {
             assert!(t.input_schema["properties"]["limit"]["maximum"].is_number());

@@ -40,7 +40,7 @@ pub fn create_default_tools() -> Vec<Tool> {
                 },
                 "limit": {
                     "type": "integer",
-                    "default": 10, "maximum": MAX_QUERY_LIMIT,
+                    "default": 10, "minimum": 1, "maximum": MAX_QUERY_LIMIT,
                     "description": "Maximum number of episodes to retrieve"
                 },
                 "sort": {
@@ -66,12 +66,12 @@ pub fn create_default_tools() -> Vec<Tool> {
                 },
                 "min_success_rate": {
                     "type": "number",
-                    "default": 0.7, "maximum": MAX_SUCCESS_RATE,
+                    "default": 0.7, "minimum": 0.0, "maximum": MAX_SUCCESS_RATE,
                     "description": "Minimum success rate for patterns (0.0-1.0)"
                 },
                 "limit": {
                     "type": "integer",
-                    "default": 20, "maximum": MAX_QUERY_LIMIT,
+                    "default": 20, "minimum": 1, "maximum": MAX_QUERY_LIMIT,
                     "description": "Maximum number of patterns to return"
                 }
             },

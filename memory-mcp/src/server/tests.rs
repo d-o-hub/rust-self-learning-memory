@@ -213,3 +213,21 @@ async fn test_core_clamping() {
     );
     assert!(s.analyze_patterns("c".into(), 1.5, l, None).await.is_ok());
 }
+
+#[tokio::test]
+async fn test_tool_definitions_schema_bounds() {
+    let tools = crate::server::tool_definitions::create_default_tools();
+    for t in tools {
+        if t.name == "query_memory" || t.name == "analyze_patterns" {
+            let limit_props = t.input_schema["properties"]["limit"].as_object().unwrap();
+            assert!(limit_props.contains_key("maximum"), "Missing maximum for limit in {}", t.name);
+            assert!(limit_props.contains_key("minimum"), "Missing minimum for limit in {}", t.name);
+
+            if t.name == "analyze_patterns" {
+                let msr_props = t.input_schema["properties"]["min_success_rate"].as_object().unwrap();
+                assert!(msr_props.contains_key("maximum"), "Missing maximum for min_success_rate");
+                assert!(msr_props.contains_key("minimum"), "Missing minimum for min_success_rate");
+            }
+        }
+    }
+}

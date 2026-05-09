@@ -24,31 +24,63 @@ pub fn to_cloud_event(event: &MemoryEvent, source: &str) -> Result<Event, String
             "dev.d-o-hub.memory.episode.collected",
             serde_json::json!({ "id": id, "reason": reason }),
         ),
-        MemoryEvent::PatternExtracted { id, source_episodes, .. } => (
+        MemoryEvent::PatternExtracted {
+            id,
+            source_episodes,
+            ..
+        } => (
             "dev.d-o-hub.memory.pattern.extracted",
             serde_json::json!({ "id": id, "source_episodes": source_episodes }),
         ),
-        MemoryEvent::TaskStarted { task_id, agent_id, metadata, .. } => (
+        MemoryEvent::TaskStarted {
+            task_id,
+            agent_id,
+            metadata,
+            ..
+        } => (
             "dev.d-o-hub.memory.task.started",
             serde_json::json!({ "task_id": task_id, "agent_id": agent_id, "metadata": metadata }),
         ),
-        MemoryEvent::TaskCompleted { task_id, duration_ms, success, .. } => (
+        MemoryEvent::TaskCompleted {
+            task_id,
+            duration_ms,
+            success,
+            ..
+        } => (
             "dev.d-o-hub.memory.task.completed",
             serde_json::json!({ "task_id": task_id, "duration_ms": duration_ms, "success": success }),
         ),
-        MemoryEvent::RewardScored { task_id, score, reason, .. } => (
+        MemoryEvent::RewardScored {
+            task_id,
+            score,
+            reason,
+            ..
+        } => (
             "dev.d-o-hub.memory.reward.scored",
             serde_json::json!({ "task_id": task_id, "score": score, "reason": reason }),
         ),
-        MemoryEvent::ReflectionUpdated { episode_id, reflection_type, .. } => (
+        MemoryEvent::ReflectionUpdated {
+            episode_id,
+            reflection_type,
+            ..
+        } => (
             "dev.d-o-hub.memory.reflection.updated",
             serde_json::json!({ "episode_id": episode_id, "reflection_type": reflection_type }),
         ),
-        MemoryEvent::SkillEvolved { skill_name, from_version, to_version, .. } => (
+        MemoryEvent::SkillEvolved {
+            skill_name,
+            from_version,
+            to_version,
+            ..
+        } => (
             "dev.d-o-hub.memory.skill.evolved",
             serde_json::json!({ "skill_name": skill_name, "from_version": from_version, "to_version": to_version }),
         ),
-        MemoryEvent::EpisodeStored { episode_id, backend, .. } => (
+        MemoryEvent::EpisodeStored {
+            episode_id,
+            backend,
+            ..
+        } => (
             "dev.d-o-hub.memory.episode.stored",
             serde_json::json!({ "episode_id": episode_id, "backend": backend }),
         ),
@@ -77,7 +109,10 @@ where
     F: Fn(Event) -> EmitResult + Send + Sync,
 {
     pub fn new(source: impl Into<String>, handler: F) -> Self {
-        Self { source: source.into(), handler }
+        Self {
+            source: source.into(),
+            handler,
+        }
     }
 }
 
@@ -119,11 +154,19 @@ impl HttpEventEmitter {
 impl EventEmitter for HttpEventEmitter {
     async fn emit(&self, event: MemoryEvent) -> EmitResult {
         let ce = to_cloud_event(&event, &self.source)?;
-        match self.client.post(&self.url)
+        match self
+            .client
+            .post(&self.url)
             .header("Content-Type", "application/cloudevents+json")
-            .json(&ce).send().await {
+            .json(&ce)
+            .send()
+            .await
+        {
             Ok(resp) if resp.status().is_success() => Ok(()),
-            Ok(resp) => Err(format!("HTTP emission failed with status: {}", resp.status())),
+            Ok(resp) => Err(format!(
+                "HTTP emission failed with status: {}",
+                resp.status()
+            )),
             Err(e) => Err(format!("HTTP emission failed: {}", e)),
         }
     }

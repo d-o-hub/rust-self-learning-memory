@@ -265,14 +265,10 @@ fn quality_gate_test_coverage() {
     println!("Required: {threshold:.2}%");
 
     if coverage < threshold {
-        panic!(
-            "❌ Coverage gate FAILED: {coverage:.2}% < {threshold:.2}% threshold"
-        );
+        panic!("❌ Coverage gate FAILED: {coverage:.2}% < {threshold:.2}% threshold");
     }
 
-    println!(
-        "✅ Coverage gate PASSED: {coverage:.2}% >= {threshold:.2}%"
-    );
+    println!("✅ Coverage gate PASSED: {coverage:.2}% >= {threshold:.2}%");
 }
 
 /// Parse coverage percentage from cargo llvm-cov output
@@ -482,9 +478,7 @@ fn quality_gate_no_security_vulns() {
     println!("\n=== Quality Gate: Security Vulnerabilities ===");
 
     let threshold = security_vuln_threshold();
-    println!(
-        "Threshold: Max {threshold} critical/high/medium vulnerabilities"
-    );
+    println!("Threshold: Max {threshold} critical/high/medium vulnerabilities");
 
     // Run cargo audit
     println!("Running cargo audit...");
@@ -515,14 +509,10 @@ fn quality_gate_no_security_vulns() {
     println!("Total: {total_vulns}");
 
     if total_vulns > threshold {
-        panic!(
-            "❌ Security gate FAILED: {total_vulns} vulnerabilities > {threshold} threshold"
-        );
+        panic!("❌ Security gate FAILED: {total_vulns} vulnerabilities > {threshold} threshold");
     }
 
-    println!(
-        "✅ Security gate PASSED: {total_vulns} vulnerabilities <= {threshold} threshold"
-    );
+    println!("✅ Security gate PASSED: {total_vulns} vulnerabilities <= {threshold} threshold");
 }
 
 /// Parse vulnerability counts from cargo audit JSON output

@@ -210,7 +210,11 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     };
 
     let executor_fn = |_tool: String, args: serde_json::Value| async move {
-        if args.get("fail").and_then(serde_json::Value::as_bool).unwrap_or(false) {
+        if args
+            .get("fail")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false)
+        {
             Err((-32000, "Simulated failure".to_string()))
         } else {
             Ok(json!({"status": "success", "data": args}))
@@ -236,7 +240,8 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
         } else {
             let error = result
                 .error
-                .as_ref().map_or_else(|| "Unknown error".to_string(), |e| e.message.clone());
+                .as_ref()
+                .map_or_else(|| "Unknown error".to_string(), |e| e.message.clone());
             println!("  {} → Failed: {}", result.id, error);
         }
     }

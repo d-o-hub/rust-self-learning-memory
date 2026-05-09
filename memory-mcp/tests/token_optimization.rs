@@ -358,9 +358,7 @@ fn test_real_world_token_reduction() {
         / estimate_tokens(&typical_response) as f64)
         * 100.0;
 
-    println!(
-        "Scenario 1 - IDs and descriptions only: {reduction1:.1}% reduction"
-    );
+    println!("Scenario 1 - IDs and descriptions only: {reduction1:.1}% reduction");
     assert!(reduction1 > 50.0); // Should achieve >50% reduction
 
     // Scenario 2: Client needs full episode data but no patterns
@@ -377,9 +375,7 @@ fn test_real_world_token_reduction() {
         / estimate_tokens(&typical_response) as f64)
         * 100.0;
 
-    println!(
-        "Scenario 2 - Episodes without patterns: {reduction2:.1}% reduction"
-    );
+    println!("Scenario 2 - Episodes without patterns: {reduction2:.1}% reduction");
     assert!(reduction2 > 20.0); // Should achieve >20% reduction
 
     // Scenario 3: Client only needs success statistics

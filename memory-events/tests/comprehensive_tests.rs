@@ -1,8 +1,6 @@
 use cloudevents::AttributesReader;
-use do_memory_core::types::event::{EventEmitter, MemoryEvent, unix_now_secs};
-use do_memory_events::{CloudEventEmitter, to_cloud_event};
-use std::sync::{Arc, Mutex};
-use uuid::Uuid;
+use do_memory_core::types::event::{MemoryEvent, unix_now_secs};
+use do_memory_events::to_cloud_event;
 
 #[tokio::test]
 async fn test_all_variants_mapping() {

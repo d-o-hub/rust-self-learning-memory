@@ -140,7 +140,7 @@ impl StorageBackend for RedbStorage {
         &self,
         emitter: std::sync::Arc<dyn do_memory_core::types::event::EventEmitter>,
     ) {
-        let mut lock = self.event_emitter.write().unwrap();
+        let mut lock = self.event_emitter.write();
         *lock = Some(emitter);
     }
 }

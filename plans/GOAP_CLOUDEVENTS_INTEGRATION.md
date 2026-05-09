@@ -16,4 +16,5 @@ Standardize agent lifecycle events using CNCF CloudEvents.
 - [x] Wire emitter into `SelfLearningMemory`.
 - [x] Instrumented Turso and redb storage.
 - [x] Resolve clippy warnings in E2E tests.
-- [ ] Document CloudEvents schema in `agent_docs/`.
+- [x] Add comprehensive variant mapping tests.
+- [x] Document CloudEvents schema (ADR-054).

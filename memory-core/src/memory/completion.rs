@@ -185,7 +185,7 @@ impl SelfLearningMemory {
         // Emit RewardScored event (ADR-054)
         let emitter_reward = Arc::clone(&emitter);
         let task_id_reward = episode_id.to_string();
-        let score = reward.total as f64;
+        let score = f64::from(reward.total);
         let reason = format!(
             "Base: {:.2}, Efficiency: {:.2}, Complexity: {:.2}",
             reward.base, reward.efficiency, reward.complexity_bonus

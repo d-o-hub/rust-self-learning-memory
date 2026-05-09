@@ -133,7 +133,7 @@ impl TursoStorage {
             )),
             #[cfg(feature = "adaptive-ttl")]
             episode_cache: None,
-            event_emitter: Arc::new(std::sync::RwLock::new(None)),
+            event_emitter: Arc::new(parking_lot::RwLock::new(None)),
         })
     }
 }

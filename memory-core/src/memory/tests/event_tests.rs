@@ -1,4 +1,3 @@
-use crate::memory::SelfLearningMemory;
 use crate::types::event::{EmitResult, EventEmitter, MemoryEvent};
 use crate::types::{TaskContext, TaskOutcome, TaskType};
 use async_trait::async_trait;
@@ -24,8 +23,10 @@ async fn test_event_emission_lifecycle() {
     });
 
     // Low quality threshold for testing
-    let mut config = crate::types::MemoryConfig::default();
-    config.quality_threshold = 0.0;
+    let config = crate::types::MemoryConfig {
+        quality_threshold: 0.0,
+        ..Default::default()
+    };
     let memory = crate::memory::init::with_config(config)
         .with_event_emitter(Arc::clone(&emitter) as Arc<dyn EventEmitter>);
 

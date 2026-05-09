@@ -39,14 +39,14 @@ pub struct TursoStorage {
     #[cfg(feature = "adaptive-ttl")]
     pub(crate) episode_cache: Option<AdaptiveTTLCache<String, Episode>>,
     /// Pluggable event emitter for standardized lifecycle notifications (ADR-054)
-    pub(crate) event_emitter: Arc<std::sync::RwLock<Option<Arc<dyn EventEmitter>>>>,
+    pub(crate) event_emitter: Arc<parking_lot::RwLock<Option<Arc<dyn EventEmitter>>>>,
 }
 
 impl TursoStorage {
     /// Emit a standardized event if an emitter is configured.
     pub(crate) async fn emit_event(&self, event: do_memory_core::types::event::MemoryEvent) {
         let emitter = {
-            let lock = self.event_emitter.read().unwrap();
+            let lock = self.event_emitter.read();
             lock.as_ref().map(Arc::clone)
         };
 

@@ -30,7 +30,7 @@ async fn create_test_storage() -> (TursoStorage, TempDir) {
         )),
         #[cfg(feature = "adaptive-ttl")]
         episode_cache: None,
-        event_emitter: Arc::new(std::sync::RwLock::new(None)),
+        event_emitter: Arc::new(parking_lot::RwLock::new(None)),
     };
 
     storage

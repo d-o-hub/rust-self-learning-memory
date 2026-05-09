@@ -1,4 +1,3 @@
-#![allow(clippy::uninlined_format_args)]
 //! CLI Pattern Discovery Workflow Tests (Day 1)
 //!
 //! Comprehensive E2E tests covering:
@@ -69,8 +68,11 @@ async fn create_episode_with_steps(
         .await;
 
     for (i, tool_name) in tool_sequence.iter().enumerate() {
-        let mut step =
-            ExecutionStep::new(i + 1, tool_name.to_string(), format!("Execute {tool_name}"));
+        let mut step = ExecutionStep::new(
+            i + 1,
+            tool_name.to_string(),
+            format!("Execute {tool_name}"),
+        );
         step.result = Some(ExecutionResult::Success {
             output: format!("{tool_name} completed"),
         });

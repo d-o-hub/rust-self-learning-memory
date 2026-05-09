@@ -382,18 +382,6 @@ cargo build --features embeddings-full
 - `wasmtime-backend`: Wasmtime WASM sandbox (do-memory-mcp, default)
 - `compression`: Network compression — lz4, zstd, gzip (do-memory-storage-turso)
 - `hybrid_search`: FTS5 hybrid search (do-memory-storage-turso)
-- `cloudevents`: Standardized CloudEvents v1.0.2 emission (do-memory-mcp)
-
-### Observability (CloudEvents)
-
-The system supports real-time observability via the CNCF CloudEvents v1.0.2 specification. When an emitter is configured, standardized events are emitted at key lifecycle boundaries:
-
-- **Task Lifecycle**: `task.started`, `task.completed`
-- **Reward Loop**: `reward.scored`, `reflection.updated`
-- **Evolution**: `skill.evolved`
-- **Persistence**: `episode.stored`
-
-This enables integration with the CNCF ecosystem (Knative, OpenTelemetry, etc.) and real-time monitoring of agent learning progress without coupling to internal Rust types.
 
 ### Cascading Retrieval (with `csm` feature)
 

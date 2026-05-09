@@ -53,20 +53,6 @@ impl RedbStorage {
             .record_access(episode.episode_id, false, Some(byte_size))
             .await;
 
-        // Emit standardized event if emitter configured
-        let emitter = self.event_emitter.read().clone();
-        if let Some(emitter) = emitter {
-            if emitter.is_enabled() {
-                emitter
-                    .emit(do_memory_core::types::event::MemoryEvent::EpisodeStored {
-                        episode_id: episode.episode_id,
-                        backend: "redb".to_string(),
-                        timestamp: do_memory_core::types::event::unix_now_secs(),
-                    })
-                    .await;
-            }
-        }
-
         info!("Successfully cached episode: {}", episode.episode_id);
         Ok(())
     }

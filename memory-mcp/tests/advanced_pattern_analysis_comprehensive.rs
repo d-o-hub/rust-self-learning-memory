@@ -1,4 +1,3 @@
-#![allow(clippy::uninlined_format_args)]
 //! # Comprehensive Advanced Pattern Analysis Tests
 //!
 //! This module provides comprehensive testing for the advanced pattern analysis MCP tool,
@@ -292,7 +291,7 @@ async fn test_performance_large_dataset() {
     let large_series: Vec<f64> = (0..500).map(|i| i as f64).collect();
 
     for i in 0..5 {
-        data.insert(format!("series_{}", i), large_series.clone());
+        data.insert(format!("series_{i}"), large_series.clone());
     }
 
     let input = AdvancedPatternAnalysisInput {

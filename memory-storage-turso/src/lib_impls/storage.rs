@@ -37,23 +37,4 @@ pub struct TursoStorage {
     /// Adaptive TTL cache for episode query results (when adaptive-ttl feature is enabled)
     #[cfg(feature = "adaptive-ttl")]
     pub(crate) episode_cache: Option<AdaptiveTTLCache<String, Episode>>,
-    /// Optional event emitter for standardized lifecycle events
-    pub(crate) event_emitter:
-        Arc<parking_lot::RwLock<Option<Arc<dyn do_memory_core::types::event::EventEmitter>>>>,
-}
-
-impl TursoStorage {
-    /// Set an event emitter for standardized lifecycle events
-    pub fn with_event_emitter(
-        self,
-        emitter: Arc<dyn do_memory_core::types::event::EventEmitter>,
-    ) -> Self {
-        *self.event_emitter.write() = Some(emitter);
-        self
-    }
-
-    /// Set an event emitter for standardized lifecycle events (non-consuming)
-    pub fn set_event_emitter(&self, emitter: Arc<dyn do_memory_core::types::event::EventEmitter>) {
-        *self.event_emitter.write() = Some(emitter);
-    }
 }

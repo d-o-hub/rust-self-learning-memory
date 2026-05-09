@@ -88,7 +88,6 @@ impl TursoStorage {
             )),
             #[cfg(feature = "adaptive-ttl")]
             episode_cache: None,
-            event_emitter: Arc::new(parking_lot::RwLock::new(None)),
         })
     }
 
@@ -206,7 +205,6 @@ impl TursoStorage {
             )),
             #[cfg(feature = "adaptive-ttl")]
             episode_cache: None,
-            event_emitter: Arc::new(parking_lot::RwLock::new(None)),
         };
 
         // Return the storage - caller can wrap with CachedTursoStorage if needed

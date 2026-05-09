@@ -9,7 +9,7 @@ description = "CloudEvents implementation for standardized agent lifecycle event
 
 [dependencies]
 do-memory-core = { path = "../memory-core", version = "0.1.31" }
-cloudevents-sdk = { version = "0.7", features = ["http-binding"] }
+cloudevents-sdk = { version = "0.7", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
@@ -20,7 +20,7 @@ reqwest = { version = "0.12", features = ["json"], optional = true }
 
 [features]
 default = []
-events-http = ["reqwest"]
+events-http = ["reqwest", "cloudevents-sdk/http-binding"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }

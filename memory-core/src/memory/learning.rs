@@ -33,39 +33,27 @@ impl SelfLearningMemory {
         let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
 
-        for pattern in &extracted_patterns {
+        for pattern in extracted_patterns {
             let pattern_id = pattern.id();
             pattern_ids.push(pattern_id);
 
             // Store in backends
             if let Some(cache) = &self.cache_storage {
-                if let Err(e) = cache.store_pattern(pattern).await {
+                if let Err(e) = cache.store_pattern(&pattern).await {
                     warn!("Failed to store pattern in cache: {}", e);
                 }
             }
 
             if let Some(turso) = &self.turso_storage {
-                if let Err(e) = turso.store_pattern(pattern).await {
+                if let Err(e) = turso.store_pattern(&pattern).await {
                     warn!("Failed to store pattern in Turso: {}", e);
                 }
             }
 
-            patterns.insert(pattern_id, pattern.clone());
+            patterns.insert(pattern_id, pattern);
         }
 
         episode.patterns = pattern_ids;
-
-        // Emit skill evolved event if patterns were extracted
-        if !extracted_patterns.is_empty() {
-            self.event_emitter
-                .emit(crate::types::event::MemoryEvent::SkillEvolved {
-                    skill_name: format!("{}:patterns", episode.context.domain),
-                    from_version: 0, // Versioning to be implemented
-                    to_version: 1,
-                    timestamp: crate::types::event::unix_now_secs(),
-                })
-                .await;
-        }
 
         // Extract heuristics
         match self.heuristic_extractor.extract(&episode).await {
@@ -166,39 +154,27 @@ impl SelfLearningMemory {
         let mut patterns = self.patterns_fallback.write().await;
         let mut pattern_ids = Vec::new();
 
-        for pattern in &extracted_patterns {
+        for pattern in extracted_patterns {
             let pattern_id = pattern.id();
             pattern_ids.push(pattern_id);
 
             // Store in backends
             if let Some(cache) = &self.cache_storage {
-                if let Err(e) = cache.store_pattern(pattern).await {
+                if let Err(e) = cache.store_pattern(&pattern).await {
                     warn!("Failed to store pattern in cache: {}", e);
                 }
             }
 
             if let Some(turso) = &self.turso_storage {
-                if let Err(e) = turso.store_pattern(pattern).await {
+                if let Err(e) = turso.store_pattern(&pattern).await {
                     warn!("Failed to store pattern in Turso: {}", e);
                 }
             }
 
-            patterns.insert(pattern_id, pattern.clone());
+            patterns.insert(pattern_id, pattern);
         }
 
         episode.patterns = pattern_ids;
-
-        // Emit skill evolved event if patterns were extracted
-        if !extracted_patterns.is_empty() {
-            self.event_emitter
-                .emit(crate::types::event::MemoryEvent::SkillEvolved {
-                    skill_name: format!("{}:patterns:async", episode.context.domain),
-                    from_version: 0,
-                    to_version: 1,
-                    timestamp: crate::types::event::unix_now_secs(),
-                })
-                .await;
-        }
 
         // Update episode with pattern IDs in storage backends
         if let Some(cache) = &self.cache_storage {

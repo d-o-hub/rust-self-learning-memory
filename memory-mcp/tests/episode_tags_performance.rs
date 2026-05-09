@@ -19,7 +19,7 @@ async fn test_bulk_tag_addition() {
     for i in 0..100 {
         let episode_id = memory
             .start_episode(
-                format!("Bulk episode {}", i),
+                format!("Bulk episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
@@ -35,7 +35,7 @@ async fn test_bulk_tag_addition() {
     }
 
     let duration = start.elapsed();
-    println!("Created and tagged 100 episodes in {:?}", duration);
+    println!("Created and tagged 100 episodes in {duration:?}");
     println!("Average per episode: {:?}", duration / 100);
 
     // Should complete reasonably quickly (< 1 second in debug mode)
@@ -52,7 +52,7 @@ async fn test_large_scale_search() {
     for i in 0..200 {
         let episode_id = memory
             .start_episode(
-                format!("Search test episode {}", i),
+                format!("Search test episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
@@ -87,7 +87,7 @@ async fn test_large_scale_search() {
         .unwrap();
 
     let duration = start.elapsed();
-    println!("Searched 200 episodes in {:?}", duration);
+    println!("Searched 200 episodes in {duration:?}");
     println!("Found {} matching episodes", result.count);
 
     // Should find 20 episodes (0, 10, 20, ..., 190)
@@ -114,7 +114,7 @@ async fn test_maximum_tags_per_episode() {
     let start = Instant::now();
 
     // Add 100 tags (reasonable maximum)
-    let tags: Vec<String> = (0..100).map(|i| format!("tag-{:03}", i)).collect();
+    let tags: Vec<String> = (0..100).map(|i| format!("tag-{i:03}")).collect();
 
     let result = tools
         .add_tags(AddEpisodeTagsInput {
@@ -125,7 +125,7 @@ async fn test_maximum_tags_per_episode() {
         .unwrap();
 
     let duration = start.elapsed();
-    println!("Added 100 tags in {:?}", duration);
+    println!("Added 100 tags in {duration:?}");
 
     assert_eq!(result.tags_added, 100);
     assert!(duration.as_millis() < 100, "Adding many tags too slow");
@@ -141,7 +141,7 @@ async fn test_repeated_searches() {
     for i in 0..50 {
         let episode_id = memory
             .start_episode(
-                format!("Episode {}", i),
+                format!("Episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
@@ -167,7 +167,7 @@ async fn test_repeated_searches() {
     }
 
     let duration = start.elapsed();
-    println!("Performed 100 searches in {:?}", duration);
+    println!("Performed 100 searches in {duration:?}");
     println!("Average per search: {:?}", duration / 100);
 
     // Should handle repeated searches efficiently
@@ -186,7 +186,7 @@ async fn test_realistic_workflow() {
     for i in 0..20 {
         let episode_id = memory
             .start_episode(
-                format!("Workflow episode {}", i),
+                format!("Workflow episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
@@ -226,7 +226,7 @@ async fn test_realistic_workflow() {
     }
 
     let duration = start.elapsed();
-    println!("Completed realistic workflow in {:?}", duration);
+    println!("Completed realistic workflow in {duration:?}");
 
     // Should complete quickly
     assert!(duration.as_secs() < 3, "Realistic workflow too slow");
@@ -243,13 +243,13 @@ async fn test_memory_efficiency() {
     for i in 0..50 {
         let episode_id = memory
             .start_episode(
-                format!("Memory test episode {}", i),
+                format!("Memory test episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
             .await;
 
-        let tags: Vec<String> = (0..20).map(|j| format!("tag-{}-{}", i, j)).collect();
+        let tags: Vec<String> = (0..20).map(|j| format!("tag-{i}-{j}")).collect();
 
         tools
             .add_tags(AddEpisodeTagsInput {
@@ -284,7 +284,7 @@ async fn test_multi_tag_search_performance() {
     for i in 0..100 {
         let episode_id = memory
             .start_episode(
-                format!("Multi-tag episode {}", i),
+                format!("Multi-tag episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )
@@ -293,7 +293,7 @@ async fn test_multi_tag_search_performance() {
         let mut tags = vec![];
         for j in 0..5 {
             if (i + j) % 7 == 0 {
-                tags.push(format!("tag-{}", j));
+                tags.push(format!("tag-{j}"));
             }
         }
 
@@ -365,7 +365,7 @@ async fn test_rapid_operations() {
     }
 
     let duration = start.elapsed();
-    println!("Performed 50 rapid operations in {:?}", duration);
+    println!("Performed 50 rapid operations in {duration:?}");
 
     assert!(duration.as_millis() < 500, "Rapid operations too slow");
 }

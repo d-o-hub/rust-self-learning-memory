@@ -2,11 +2,11 @@
 resolver = "2"
 members = [
     "memory-core",
+    "memory-events",
     "memory-storage-turso",
     "memory-storage-redb",
     "memory-mcp",
     "memory-cli",
-    "memory-events",
     "test-utils",
     "benches",
     "tests",

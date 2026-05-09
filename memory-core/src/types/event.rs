@@ -5,14 +5,15 @@
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
+/// Result of an event emission.
+pub type EmitResult = std::result::Result<(), String>;
 
 /// Events emitted by the memory system for lifecycle notifications.
 ///
 /// Uses `tokio::sync::broadcast` channel for efficient fan-out to multiple subscribers.
 /// Subscribers can use `memory.subscribe()` to receive events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "data")]
 pub enum MemoryEvent {
     /// A new episode was created.
     EpisodeCreated {
@@ -28,7 +29,7 @@ pub enum MemoryEvent {
         /// Episode ID
         id: String,
         /// Final reward score
-        reward: f32,
+        reward: f64,
         /// Unix timestamp in seconds
         timestamp: u64,
     },
@@ -53,7 +54,7 @@ pub enum MemoryEvent {
     /// Standardized task started event (CloudEvents compatible).
     TaskStarted {
         /// Unique task identifier
-        task_id: Uuid,
+        task_id: String,
         /// Identifier of the agent performing the task
         agent_id: String,
         /// Flexible metadata associated with the task
@@ -64,7 +65,7 @@ pub enum MemoryEvent {
     /// Standardized task completed event (CloudEvents compatible).
     TaskCompleted {
         /// Unique task identifier
-        task_id: Uuid,
+        task_id: String,
         /// Execution duration in milliseconds
         duration_ms: u64,
         /// Whether the task was successful
@@ -75,7 +76,7 @@ pub enum MemoryEvent {
     /// Standardized reward scored event (CloudEvents compatible).
     RewardScored {
         /// Unique task identifier
-        task_id: Uuid,
+        task_id: String,
         /// The assigned reward score
         score: f64,
         /// Qualitative reason for the score
@@ -86,7 +87,7 @@ pub enum MemoryEvent {
     /// Standardized reflection updated event (CloudEvents compatible).
     ReflectionUpdated {
         /// Target episode identifier
-        episode_id: Uuid,
+        episode_id: String,
         /// Type of reflection generated (e.g., "improvement", "insight")
         reflection_type: String,
         /// Unix timestamp in seconds
@@ -106,7 +107,7 @@ pub enum MemoryEvent {
     /// Standardized episode stored event (CloudEvents compatible).
     EpisodeStored {
         /// Target episode identifier
-        episode_id: Uuid,
+        episode_id: String,
         /// Storage backend used (e.g., "turso", "redb")
         backend: String,
         /// Unix timestamp in seconds
@@ -134,19 +135,19 @@ impl MemoryEvent {
 
     /// Get the entity ID associated with the event.
     #[must_use]
-    pub fn entity_id(&self) -> String {
+    pub fn entity_id(&self) -> &str {
         match self {
             Self::EpisodeCreated { id, .. }
             | Self::EpisodeCompleted { id, .. }
             | Self::EpisodeGarbageCollected { id, .. }
-            | Self::PatternExtracted { id, .. } => id.clone(),
+            | Self::PatternExtracted { id, .. } => id.as_str(),
             Self::TaskStarted { task_id, .. }
             | Self::TaskCompleted { task_id, .. }
-            | Self::RewardScored { task_id, .. } => task_id.to_string(),
+            | Self::RewardScored { task_id, .. } => task_id.as_str(),
             Self::ReflectionUpdated { episode_id, .. } | Self::EpisodeStored { episode_id, .. } => {
-                episode_id.to_string()
+                episode_id.as_str()
             }
-            Self::SkillEvolved { skill_name, .. } => skill_name.clone(),
+            Self::SkillEvolved { skill_name, .. } => skill_name.as_str(),
         }
     }
 }
@@ -158,7 +159,7 @@ impl MemoryEvent {
 #[async_trait]
 pub trait EventEmitter: Send + Sync {
     /// Emit a memory event.
-    async fn emit(&self, event: MemoryEvent);
+    async fn emit(&self, event: MemoryEvent) -> EmitResult;
 
     /// Check if the emitter is enabled.
     fn is_enabled(&self) -> bool {
@@ -171,8 +172,8 @@ pub struct NullEmitter;
 
 #[async_trait]
 impl EventEmitter for NullEmitter {
-    async fn emit(&self, _event: MemoryEvent) {
-        // No-op
+    async fn emit(&self, _event: MemoryEvent) -> EmitResult {
+        Ok(())
     }
 
     fn is_enabled(&self) -> bool {

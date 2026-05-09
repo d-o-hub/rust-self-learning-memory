@@ -187,9 +187,6 @@ where
 pub struct RedbStorage {
     pub(crate) db: Arc<Database>,
     pub(crate) cache: Box<dyn CacheTrait>,
-    /// Optional event emitter for standardized lifecycle events
-    pub(crate) event_emitter:
-        Arc<parking_lot::RwLock<Option<Arc<dyn do_memory_core::types::event::EventEmitter>>>>,
 }
 
 impl RedbStorage {
@@ -256,7 +253,6 @@ impl RedbStorage {
         let storage = Self {
             db: Arc::new(db),
             cache,
-            event_emitter: Arc::new(parking_lot::RwLock::new(None)),
         };
 
         // Initialize tables
@@ -313,7 +309,6 @@ impl RedbStorage {
         let storage = Self {
             db: Arc::new(db),
             cache,
-            event_emitter: Arc::new(parking_lot::RwLock::new(None)),
         };
 
         // Initialize tables
@@ -321,19 +316,5 @@ impl RedbStorage {
 
         info!("Successfully opened redb database with adaptive cache");
         Ok(storage)
-    }
-
-    /// Set an event emitter for standardized lifecycle events
-    pub fn with_event_emitter(
-        self,
-        emitter: Arc<dyn do_memory_core::types::event::EventEmitter>,
-    ) -> Self {
-        *self.event_emitter.write() = Some(emitter);
-        self
-    }
-
-    /// Set an event emitter for standardized lifecycle events (non-consuming)
-    pub fn set_event_emitter(&self, emitter: Arc<dyn do_memory_core::types::event::EventEmitter>) {
-        *self.event_emitter.write() = Some(emitter);
     }
 }

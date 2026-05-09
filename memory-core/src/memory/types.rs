@@ -145,9 +145,6 @@ pub struct SelfLearningMemory {
     // Event Broadcasting (WG-103)
     /// Event broadcast channel sender for lifecycle notifications
     pub(super) event_sender: broadcast::Sender<MemoryEvent>,
-
-    /// Standardized event emitter for external interoperability
-    pub(super) event_emitter: Arc<dyn crate::types::event::EventEmitter>,
 }
 
 impl SelfLearningMemory {

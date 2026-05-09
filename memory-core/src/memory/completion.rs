@@ -162,18 +162,6 @@ impl SelfLearningMemory {
         let reward = self.reward_calculator.calculate(&episode);
         episode.reward = Some(reward.clone());
 
-        // Emit reward scored event
-        if self.event_emitter.is_enabled() {
-            self.event_emitter
-                .emit(crate::types::event::MemoryEvent::RewardScored {
-                    task_id: episode_id,
-                    score: f64::from(reward.total),
-                    reason: "Episode completion analysis".to_string(),
-                    timestamp: crate::types::event::unix_now_secs(),
-                })
-                .await;
-        }
-
         info!(
             episode_id = %episode_id,
             reward_total = reward.total,
@@ -185,17 +173,6 @@ impl SelfLearningMemory {
         // Generate reflection
         let reflection = self.reflection_generator.generate(&episode);
         episode.reflection = Some(reflection.clone());
-
-        // Emit reflection updated event
-        if self.event_emitter.is_enabled() {
-            self.event_emitter
-                .emit(crate::types::event::MemoryEvent::ReflectionUpdated {
-                    episode_id,
-                    reflection_type: "standard".to_string(),
-                    timestamp: crate::types::event::unix_now_secs(),
-                })
-                .await;
-        }
 
         debug!(
             successes = reflection.successes.len(),
@@ -385,12 +362,11 @@ impl SelfLearningMemory {
 
         // ============================================================================
         // Re-insert the updated episode into the in-memory cache
-        // We do this BEFORE pattern extraction so sync extraction can find it
         // ============================================================================
 
         {
             let mut episodes = self.episodes_fallback.write().await;
-            episodes.insert(episode_id, Arc::new(episode.clone()));
+            episodes.insert(episode_id, Arc::new(episode));
         }
 
         // Extract patterns - async if queue enabled, sync otherwise
@@ -420,22 +396,6 @@ impl SelfLearningMemory {
         let success = matches!(outcome, TaskOutcome::Success { .. });
         let audit_entry = episode_completed(&context, episode_id, &outcome_str, success);
         self.audit_logger.log(audit_entry);
-
-        // Emit task completed event
-        if self.event_emitter.is_enabled() {
-            self.event_emitter
-                .emit(crate::types::event::MemoryEvent::TaskCompleted {
-                    task_id: episode_id,
-                    duration_ms: episode
-                        .end_time
-                        .and_then(|end| end.signed_duration_since(episode.start_time).to_std().ok())
-                        .map(|d| d.as_millis() as u64)
-                        .unwrap_or(0),
-                    success: matches!(outcome, TaskOutcome::Success { .. }),
-                    timestamp: crate::types::event::unix_now_secs(),
-                })
-                .await;
-        }
 
         Ok(())
     }

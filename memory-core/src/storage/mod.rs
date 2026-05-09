@@ -16,7 +16,6 @@ use crate::memory::attribution::{
 };
 use crate::{Episode, Heuristic, Pattern, Result};
 use async_trait::async_trait;
-use std::sync::Arc;
 use uuid::Uuid;
 
 /// Default limit for query operations (when not specified)
@@ -414,11 +413,5 @@ pub trait StorageBackend: Send + Sync {
     async fn count_cleanup_candidates(&self, policy: &EpisodeRetentionPolicy) -> Result<usize> {
         let _ = policy;
         Ok(0)
-    }
-
-    /// Set the event emitter for the storage backend.
-    fn set_event_emitter(&self, emitter: Arc<dyn crate::types::event::EventEmitter>) {
-        let _ = emitter;
-        let _ = emitter;
     }
 }

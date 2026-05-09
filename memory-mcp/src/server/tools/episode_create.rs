@@ -117,41 +117,6 @@ impl MemoryMCPServer {
             .start_episode(task_description.clone(), context, task_type)
             .await;
 
-        #[allow(unused_mut)]
-        let mut response_obj = json!({
-            "success": true,
-            "episode_id": episode_id.to_string(),
-            "task_description": task_description,
-            "domain": domain,
-            "task_type": task_type_str,
-            "message": "Episode created successfully"
-        });
-
-        // Optionally include CloudEvent if requested
-        if args
-            .get("include_cloud_event")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false)
-        {
-            #[cfg(feature = "cloudevents")]
-            {
-                use do_memory_events::{MemoryEvent as CEEvent, to_cloud_event};
-                let event = CEEvent::TaskStarted {
-                    task_id: episode_id,
-                    agent_id: "mcp-client".to_string(),
-                    metadata: json!({
-                        "task": task_description,
-                        "domain": domain
-                    }),
-                    timestamp: do_memory_core::types::event::unix_now_secs(),
-                };
-                let ce = to_cloud_event(&event, "memory-mcp");
-                response_obj["cloud_event"] = serde_json::to_value(ce)?;
-            }
-        }
-
-        let response = response_obj;
-
         info!(
             episode_id = %episode_id,
             task_description = %task_description,
@@ -159,7 +124,14 @@ impl MemoryMCPServer {
             "Created new episode via MCP"
         );
 
-        Ok(response)
+        Ok(json!({
+            "success": true,
+            "episode_id": episode_id.to_string(),
+            "task_description": task_description,
+            "domain": domain,
+            "task_type": task_type_str,
+            "message": "Episode created successfully"
+        }))
     }
 }
 

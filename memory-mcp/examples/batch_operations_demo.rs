@@ -1,7 +1,5 @@
-#![allow(clippy::uninlined_format_args)]
-#![allow(clippy::map_unwrap_or)]
-#![allow(clippy::cast_precision_loss)]
 //! Batch Operations Demo
+#![allow(clippy::cast_precision_loss)]
 //!
 //! This example demonstrates how to use batch operations to execute multiple
 //! MCP tools efficiently with dependency management and parallel execution.
@@ -101,7 +99,7 @@ async fn demo_parallel_operations() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
     let duration = start.elapsed();
 
     println!(
@@ -165,7 +163,7 @@ async fn demo_dependency_chain() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
 
     println!("✓ Pipeline executed successfully");
     println!("  Total time: {}ms", response.total_duration_ms);
@@ -222,7 +220,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
 
     println!("✓ Batch completed with partial results");
     println!(
@@ -238,9 +236,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
         } else {
             let error = result
                 .error
-                .as_ref()
-                .map(|e| e.message.clone())
-                .unwrap_or_else(|| "Unknown error".to_string());
+                .as_ref().map_or_else(|| "Unknown error".to_string(), |e| e.message.clone());
             println!("  {} → Failed: {}", result.id, error);
         }
     }
@@ -319,7 +315,7 @@ async fn demo_complex_workflow() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
     let duration = start.elapsed();
 
     println!("✓ Complex workflow completed");

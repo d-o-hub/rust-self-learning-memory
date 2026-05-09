@@ -154,27 +154,4 @@ impl SelfLearningMemory {
     pub fn quality_threshold(&self) -> f32 {
         self.config.quality_threshold
     }
-
-    /// Update the event emitter for standardized lifecycle notifications.
-    ///
-    /// This method will also propagate the emitter to configured storage backends.
-    #[must_use]
-    pub fn with_event_emitter(
-        mut self,
-        emitter: Arc<dyn crate::types::event::EventEmitter>,
-    ) -> Self {
-        self.event_emitter = Arc::clone(&emitter);
-
-        // Propagate to Turso storage if available
-        if let Some(ref turso) = self.turso_storage {
-            turso.set_event_emitter(Arc::clone(&emitter));
-        }
-
-        // Propagate to cache storage if available
-        if let Some(ref cache) = self.cache_storage {
-            cache.set_event_emitter(Arc::clone(&emitter));
-        }
-
-        self
-    }
 }

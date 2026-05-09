@@ -158,6 +158,15 @@ impl TursoStorage {
         }
 
         info!("Successfully stored episode: {}", episode.episode_id);
+
+        // Emit EpisodeStored event (ADR-054)
+        self.emit_event(do_memory_core::types::event::MemoryEvent::EpisodeStored {
+            episode_id: episode.episode_id.to_string(),
+            backend: "turso".to_string(),
+            timestamp: do_memory_core::types::event::unix_now_secs(),
+        })
+        .await;
+
         Ok(())
     }
 

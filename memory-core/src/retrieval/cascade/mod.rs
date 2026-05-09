@@ -288,7 +288,7 @@ impl CascadeRetriever {
             } else {
                 vec!["none".to_string()]
             },
-            api_calls: 0, // Indicates API call would be needed
+            api_calls: 0, // Indicates API call was avoided (all local tiers used)
         })
     }
 

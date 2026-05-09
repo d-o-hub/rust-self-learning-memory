@@ -54,6 +54,7 @@ async fn create_test_storage() -> Result<(TursoStorage, TempDir)> {
         )),
         #[cfg(feature = "adaptive-ttl")]
         episode_cache: None,
+        event_emitter: Arc::new(std::sync::RwLock::new(None)),
     };
 
     storage.initialize_schema().await?;

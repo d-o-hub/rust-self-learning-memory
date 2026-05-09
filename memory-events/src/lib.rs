@@ -154,11 +154,14 @@ impl HttpEventEmitter {
 impl EventEmitter for HttpEventEmitter {
     async fn emit(&self, event: MemoryEvent) -> EmitResult {
         let ce = to_cloud_event(&event, &self.source)?;
+        let body = serde_json::to_string(&ce)
+            .map_err(|e| format!("Failed to serialize CloudEvent: {}", e))?;
+
         match self
             .client
             .post(&self.url)
             .header("Content-Type", "application/cloudevents+json")
-            .json(&ce)
+            .body(body)
             .send()
             .await
         {

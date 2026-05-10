@@ -154,7 +154,7 @@ pub async fn handle_health_check(request: JsonRpcRequest) -> Option<JsonRpcRespo
     let redb_path =
         std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
     let redb_connected = std::path::Path::new(&redb_path).exists();
-    let redb_details = Some(format!("redb cache at: {}", redb_path));
+    let redb_details = Some(format!("redb cache at: {redb_path}"));
 
     // Get cache stats from MCP server (we'll get this from the server's cache)
     // For now, we'll use default values since the cache is internal to the server
@@ -261,7 +261,7 @@ pub async fn run_jsonrpc_server(
                             if last_input_was_lsp {
                                 write_response_with_length(&mut stdout, &response_str)?;
                             } else {
-                                writeln!(stdout, "{}", response_str)?;
+                                writeln!(stdout, "{response_str}")?;
                                 stdout.flush()?;
                             }
                         }
@@ -282,7 +282,7 @@ pub async fn run_jsonrpc_server(
                         if last_input_was_lsp {
                             write_response_with_length(&mut stdout, &response_str)?;
                         } else {
-                            writeln!(stdout, "{}", response_str)?;
+                            writeln!(stdout, "{response_str}")?;
                             stdout.flush()?;
                         }
                     }

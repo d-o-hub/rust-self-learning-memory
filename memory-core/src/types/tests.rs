@@ -301,19 +301,20 @@ fn test_memory_config_max_episodes_parsing() {
 #[test]
 fn test_dual_reward_score_spawn_new_cluster() {
     let overlap_threshold = DualRewardScore::DEFAULT_OVERLAP_THRESHOLD;
+    let spawn_threshold = DualRewardScore::DEFAULT_SPAWN_THRESHOLD;
 
-    // Case 1: Novelty exactly at threshold (0.6) - should be false (> is used)
+    // Case 1: Novelty exactly at threshold - should be false (> is used)
     let score = DualRewardScore {
         stability_score: 0.1,
-        novelty_score: 0.6,
+        novelty_score: spawn_threshold,
         effectiveness_score: 1.0,
     };
     assert!(!score.should_spawn_new_cluster(overlap_threshold));
 
-    // Case 2: Novelty just above threshold (0.61) and low stability - should be true
+    // Case 2: Novelty just above threshold and low stability - should be true
     let score = DualRewardScore {
         stability_score: 0.1,
-        novelty_score: 0.61,
+        novelty_score: spawn_threshold + 0.01,
         effectiveness_score: 1.0,
     };
     assert!(score.should_spawn_new_cluster(overlap_threshold));
@@ -337,17 +338,19 @@ fn test_dual_reward_score_spawn_new_cluster() {
 
 #[test]
 fn test_dual_reward_score_merge() {
-    // Case 1: Stability exactly at threshold (0.85) - should be false (> is used)
+    let merge_threshold = DualRewardScore::DEFAULT_MERGE_THRESHOLD;
+
+    // Case 1: Stability exactly at threshold - should be false (> is used)
     let score = DualRewardScore {
-        stability_score: 0.85,
+        stability_score: merge_threshold,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
     };
     assert!(!score.should_merge());
 
-    // Case 2: Stability just above threshold (0.86) - should be true
+    // Case 2: Stability just above threshold - should be true
     let score = DualRewardScore {
-        stability_score: 0.86,
+        stability_score: merge_threshold + 0.01,
         novelty_score: 0.1,
         effectiveness_score: 1.0,
     };

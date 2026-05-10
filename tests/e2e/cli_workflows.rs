@@ -132,10 +132,10 @@ fn run_cli(
     // Debug output for test failures
     if !success || !stdout.contains('{') {
         eprintln!("CLI command failed:");
-        eprintln!("  Args: {args:?}");
+        eprintln!("  Args: {:?}", args);
         eprintln!("  Exit code: {:?}", output.status.code());
-        eprintln!("  Stdout: {stdout}");
-        eprintln!("  Stderr: {stderr}");
+        eprintln!("  Stdout: {}", stdout);
+        eprintln!("  Stderr: {}", stderr);
     }
 
     // Filter out log messages and find the JSON response
@@ -184,7 +184,11 @@ fn run_cli(
 
             // Try to parse the combined JSON
             serde_json::from_str::<serde_json::Value>(&combined).map_err(|e| {
-                anyhow::anyhow!("Failed to parse JSON: {e} - attempted to parse: '{combined}'")
+                anyhow::anyhow!(
+                    "Failed to parse JSON: {} - attempted to parse: '{}'",
+                    e,
+                    combined
+                )
             })?
         } else if !success {
             serde_json::json!({"error": "Command failed", "stderr": stderr, "stdout": stripped_stdout})
@@ -235,12 +239,16 @@ async fn test_episode_full_lifecycle() {
     )
     .expect("Failed to run create command");
 
-    assert!(success, "Create episode should succeed: {create_result:?}");
+    assert!(
+        success,
+        "Create episode should succeed: {:?}",
+        create_result
+    );
     let episode_id = create_result
         .get("id")
         .and_then(|v| v.as_str())
         .expect("Should have episode id");
-    println!("  ✓ Created episode: {episode_id}");
+    println!("  ✓ Created episode: {}", episode_id);
 
     // Step 2: List episodes
     let (list_result, success) = run_cli(
@@ -268,7 +276,7 @@ async fn test_episode_full_lifecycle() {
         .and_then(|v| v.as_str())
         .expect("Should have episode id in view result");
     assert_eq!(viewed_id, episode_id, "Viewed episode should match created");
-    println!("  ✓ Viewed episode: {viewed_id}");
+    println!("  ✓ Viewed episode: {}", viewed_id);
 
     // Step 4: Add step (update)
     let (_step_result, success) = run_cli(
@@ -362,7 +370,7 @@ async fn test_relationship_workflow() {
         .expect("Should have child id")
         .to_string();
 
-    println!("  ✓ Created parent: {parent_id} and child: {child_id}");
+    println!("  ✓ Created parent: {} and child: {}", parent_id, child_id);
 
     // Complete both episodes
     for id in [&parent_id, &child_id] {
@@ -400,7 +408,7 @@ async fn test_relationship_workflow() {
         .get("relationship_id")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
-    println!("  ✓ Added relationship: {rel_id:?}");
+    println!("  ✓ Added relationship: {:?}", rel_id);
 
     // Find related episodes
     let (related_result, success) = run_cli(
@@ -572,7 +580,7 @@ async fn test_pattern_discovery() {
                 "episode",
                 "create",
                 "--task",
-                &format!("Pattern test episode {i}"),
+                &format!("Pattern test episode {}", i),
             ],
         )
         .expect("Failed to create episode");
@@ -594,9 +602,9 @@ async fn test_pattern_discovery() {
                     "log-step",
                     &episode_id,
                     "--tool",
-                    &format!("tool-{step_num}"),
+                    &format!("tool-{}", step_num),
                     "--action",
-                    &format!("Action {step_num}"),
+                    &format!("Action {}", step_num),
                     "--success",
                 ],
             )
@@ -650,7 +658,7 @@ async fn test_pattern_discovery() {
         .and_then(|v| v.as_array())
         .map(|v| v.len())
         .unwrap_or(0);
-    println!("  ✓ Found {patterns} patterns");
+    println!("  ✓ Found {} patterns", patterns);
 
     // Get pattern recommendations
     let (_rec_result, success) = run_cli(&cli_path, &config_path, &["pattern", "recommend"])
@@ -687,7 +695,7 @@ async fn test_episode_search_and_filter() {
                 "episode",
                 "create",
                 "--task",
-                &format!("Search test episode {i}"),
+                &format!("Search test episode {}", i),
                 "--domain",
                 domain,
             ],
@@ -763,7 +771,7 @@ async fn test_bulk_operations() {
                 "episode",
                 "create",
                 "--task",
-                &format!("Bulk test episode {i}"),
+                &format!("Bulk test episode {}", i),
             ],
         )
         .expect("Failed to create episode");

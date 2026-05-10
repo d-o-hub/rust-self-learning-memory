@@ -305,6 +305,4 @@ impl DuckDbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
         Ok(res)
     }
-
-    // ========== Vector Search ==========
 }

@@ -25,8 +25,8 @@ show_help() {
   echo "  fix           Auto-fix common issues"
   echo ""
   echo "Options:"
-  echo "  --workspace   Format entire workspace"
-  echo "  --package     Format specific package"
+  echo "  --workspace   Format/Lint entire workspace"
+  echo "  --package <P> Format/Lint specific package"
   echo "  --strict      Clippy: deny warnings"
   echo "  --fix         Auto-fix with cargo clippy"
   echo ""
@@ -48,43 +48,48 @@ show_help() {
 }
 
 # Default operations
-OP="${1:-fmt}"
+OP=""
 WORKSPACE_FLAG=""
-PACKAGE_FLAG=""
+PACKAGE_NAME=""
 STRICT=""
-FIX=""
+FIX_FLAG=""
 
 # Parse arguments
-shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --workspace)
-      WORKSPACE_FLAG="--workspace"
+      WORKSPACE_FLAG="true"
+      shift
       ;;
     --package)
-      PACKAGE_FLAG="--package"
-      shift
-      OP="${2:?fmt}"
+      PACKAGE_NAME="${2:?Package name required}"
+      shift 2
       ;;
     --strict)
       STRICT="-D warnings"
+      shift
       ;;
     --fix)
-      FIX="true"
+      FIX_FLAG="true"
       shift
-      OP="${2:?fmt}"
       ;;
-    fmt|clippy|audit|check)
+    fmt|clippy|audit|check|fix)
       OP="$1"
+      shift
+      ;;
+    help|--help|-h)
+      show_help
+      exit 0
       ;;
     *)
-      echo -e "${RED}Error: Unknown operation: $1${NC}"
+      echo -e "${RED}Error: Unknown argument: $1${NC}"
       show_help
       exit 1
       ;;
   esac
-  shift
 done
+
+OP="${OP:-fmt}"
 
 # Check if in project root
 if [[ ! -f "$PROJECT_ROOT/Cargo.toml" && ! -f "$PROJECT_ROOT/Cargo.lock" ]]; then
@@ -94,20 +99,35 @@ if [[ ! -f "$PROJECT_ROOT/Cargo.toml" && ! -f "$PROJECT_ROOT/Cargo.lock" ]]; the
   exit 1
 fi
 
+# Helper to build cargo flags
+get_cargo_flags() {
+  if [[ -n "$WORKSPACE_FLAG" ]]; then
+    echo "--workspace"
+  elif [[ -n "$PACKAGE_NAME" ]]; then
+    echo "--package $PACKAGE_NAME"
+  else
+    echo ""
+  fi
+}
+
 # Operation implementations
 case "$OP" in
   fmt)
     echo -e "${BLUE}📐 Formatting code...${NC}"
-    if [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      echo -e "${YELLOW}Formatting entire workspace...${NC}"
-      cargo fmt --all
-    elif [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package}"
-      echo -e "${YELLOW}Formatting package: ${pkg#--package=}${NC}"
-      cargo fmt --package "${pkg#--package=}"
-    else
-      echo -e "${YELLOW}Formatting check only...${NC}"
+    FLAGS=$(get_cargo_flags)
+
+    if [[ -z "$FLAGS" ]]; then
+      # Default to all if no specific flag
+      echo -e "${YELLOW}Formatting entire workspace check...${NC}"
       cargo fmt --all -- --check
+    else
+      echo -e "${YELLOW}Formatting with flags: $FLAGS${NC}"
+      # cargo fmt doesn't take --workspace, but --all is usually what's wanted
+      if [[ "$FLAGS" == "--workspace" ]]; then
+         cargo fmt --all -- --check
+      else
+         cargo fmt $FLAGS -- --check
+      fi
     fi
     
     if [[ $? -eq 0 ]]; then
@@ -115,32 +135,46 @@ case "$OP" in
     else
       echo -e "${RED}❌ Formatting check failed${NC}"
       echo -e "${YELLOW}Run 'cargo fmt' to fix${NC}"
+      exit 1
     fi
     ;;
 
   clippy)
     echo -e "${BLUE}🔍 Linting with Clippy...${NC}"
-    # CI parity: Run clippy on both lib and tests with same flags as .github/workflows/quick-check.yml
     CLIPPY_FLAGS="-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
-    
-    if [[ -n "$WORKSPACE_FLAG" ]]; then
-      echo -e "${YELLOW}Linting entire workspace (lib + tests)...${NC}"
-      cargo clippy --workspace --tests -- $CLIPPY_FLAGS
-    elif [[ -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package=}"
-      echo -e "${YELLOW}Linting package: $pkg (lib + tests)...${NC}"
-      cargo clippy --package "$pkg" --tests -- $CLIPPY_FLAGS
-    else
-      echo -e "${YELLOW}Linting current package (lib + tests)...${NC}"
-      cargo clippy --tests -- $CLIPPY_FLAGS
+    if [[ -n "$STRICT" ]]; then
+      CLIPPY_FLAGS="$CLIPPY_FLAGS $STRICT"
     fi
+    
+    CARGO_FLAGS=$(get_cargo_flags)
+    [[ -z "$CARGO_FLAGS" ]] && CARGO_FLAGS="--workspace"
+
+    EXTRA_ARGS=""
+    if [[ -n "$FIX_FLAG" ]]; then
+      EXTRA_ARGS="--fix --allow-dirty --allow-staged"
+    fi
+
+    echo -e "${YELLOW}Linting with flags: $CARGO_FLAGS (lib + tests)...${NC}"
+    cargo clippy $CARGO_FLAGS $EXTRA_ARGS --tests -- $CLIPPY_FLAGS
     
     clippy_result=$?
     if [[ $clippy_result -eq 0 ]]; then
       echo -e "${GREEN}✅ No Clippy warnings${NC}"
     else
-      echo -e "${YELLOW}⚠️  Clippy found ${clippy_result} warnings${NC}"
+      echo -e "${YELLOW}⚠️  Clippy found warnings (exit code: $clippy_result)${NC}"
+      exit $clippy_result
     fi
+    ;;
+
+  fix)
+    echo -e "${BLUE}🔧 Auto-fixing common issues...${NC}"
+    echo -e "${YELLOW}Running cargo fmt...${NC}"
+    cargo fmt --all
+
+    echo -e "${YELLOW}Running cargo clippy --fix...${NC}"
+    cargo clippy --workspace --tests --fix --allow-dirty --allow-staged -- -A clippy::all
+
+    echo -e "${GREEN}✅ Fixes applied${NC}"
     ;;
 
   audit)
@@ -152,61 +186,25 @@ case "$OP" in
       echo -e "${GREEN}✅ No security vulnerabilities${NC}"
     else
       echo -e "${RED}❌ Security vulnerabilities found!${NC}"
-      echo -e "${YELLOW}Review output above for details${NC}"
+      exit $audit_result
     fi
     ;;
 
   check)
     echo -e "${BLUE}🔎 Running quality gates...${NC}"
     
-    # CI parity: Clippy flags matching .github/workflows/quick-check.yml
-    CLIPPY_FLAGS="-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
-    
     # Run formatting check
-    echo -e "${BLUE}  Formatting check...${NC}"
-    cargo fmt --all -- --check
-    fmt_result=$?
+    "$0" fmt --workspace || exit 1
     
-    # Run clippy on lib + tests (CI parity)
-    echo -e "${BLUE}  Clippy check (lib + tests, strict mode)...${NC}"
-    cargo clippy --workspace --tests -- $CLIPPY_FLAGS
-    clippy_result=$?
+    # Run clippy
+    "$0" clippy --workspace || exit 1
     
     # Run audit
-    echo -e "${BLUE}  Security audit...${NC}"
-    cargo audit
-    audit_result=$?
+    "$0" audit || exit 1
     
-    # Summary
     echo ""
     echo "============================================"
-    echo -e "${GREEN}📊 Quality Gates Summary${NC}"
-    echo "============================================"
-    
-    if [[ $fmt_result -eq 0 ]]; then
-      echo -e "  Formatting: ${GREEN}✅ PASS${NC}"
-    else
-      echo -e "  Formatting: ${RED}FAIL${NC}"
-    fi
-    
-    if [[ $clippy_result -eq 0 ]]; then
-      echo -e "  Clippy: ${GREEN}✅ PASS${NC}"
-    else
-      echo -e "  Clippy: ${RED}FAIL (exit code: ${clippy_result})${NC}"
-    fi
-    
-    if [[ $audit_result -eq 0 ]]; then
-      echo -e "  Security: ${GREEN}✅ PASS${NC}"
-    else
-      echo -e "  Security: ${RED}FAIL${NC}"
-    fi
-    
-    echo ""
-    echo "Next steps:"
-    echo "  • Run 'cargo fmt' to fix formatting"
-    echo "  • Run 'cargo clippy --tests --fix' to auto-fix warnings"
-    echo "  • Update dependencies with 'cargo update'"
-    echo ""
+    echo -e "${GREEN}📊 Quality Gates Summary: ALL PASSED${NC}"
     echo "============================================"
     ;;
 

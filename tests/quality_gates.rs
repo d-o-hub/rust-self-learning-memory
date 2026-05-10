@@ -195,7 +195,7 @@ fn quality_gate_test_coverage() {
     }
 
     let threshold = coverage_threshold();
-    println!("Threshold: {threshold}%");
+    println!("Threshold: {}%", threshold);
 
     // Check if cargo-llvm-cov is installed
     let check_install = Command::new("cargo")
@@ -245,7 +245,7 @@ fn quality_gate_test_coverage() {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        eprintln!("Coverage command failed:\n{stderr}");
+        eprintln!("Coverage command failed:\n{}", stderr);
 
         if !skip_optional_gates() {
             panic!("Failed to generate coverage report");
@@ -261,19 +261,25 @@ fn quality_gate_test_coverage() {
     // Format: "TOTAL   123    45   63.41%"
     let coverage = parse_coverage_percentage(&stdout, &stderr);
 
-    println!("Current Coverage: {coverage:.2}%");
-    println!("Required: {threshold:.2}%");
+    println!("Current Coverage: {:.2}%", coverage);
+    println!("Required: {:.2}%", threshold);
 
     if coverage < threshold {
-        panic!("❌ Coverage gate FAILED: {coverage:.2}% < {threshold:.2}% threshold");
+        panic!(
+            "❌ Coverage gate FAILED: {:.2}% < {:.2}% threshold",
+            coverage, threshold
+        );
     }
 
-    println!("✅ Coverage gate PASSED: {coverage:.2}% >= {threshold:.2}%");
+    println!(
+        "✅ Coverage gate PASSED: {:.2}% >= {:.2}%",
+        coverage, threshold
+    );
 }
 
 /// Parse coverage percentage from cargo llvm-cov output
 fn parse_coverage_percentage(stdout: &str, stderr: &str) -> f64 {
-    let combined = format!("{stdout}\n{stderr}");
+    let combined = format!("{}\n{}", stdout, stderr);
 
     // Prefer TOTAL row from llvm-cov summary output.
     for line in combined.lines() {
@@ -284,8 +290,8 @@ fn parse_coverage_percentage(stdout: &str, stderr: &str) -> f64 {
 
     // If we can't parse, return 0.0 to fail the gate
     eprintln!("⚠️  Could not parse coverage percentage from output");
-    eprintln!("stdout: {stdout}");
-    eprintln!("stderr: {stderr}");
+    eprintln!("stdout: {}", stdout);
+    eprintln!("stderr: {}", stderr);
     0.0
 }
 
@@ -315,7 +321,7 @@ fn quality_gate_pattern_accuracy() {
     println!("\n=== Quality Gate: Pattern Accuracy ===");
 
     let threshold = pattern_accuracy_threshold();
-    println!("Threshold: {threshold}%");
+    println!("Threshold: {}%", threshold);
 
     // Run pattern accuracy tests and capture output
     println!("Running pattern accuracy tests...");
@@ -340,7 +346,7 @@ fn quality_gate_pattern_accuracy() {
     let accuracy = parse_pattern_accuracy(&stdout, &stderr);
 
     println!("Current Pattern Accuracy: {:.2}%", accuracy * 100.0);
-    println!("Required: {threshold:.2}%");
+    println!("Required: {:.2}%", threshold);
 
     // Note: Current implementation baseline is 20%, target is 70%
     // We check against the threshold but acknowledge this is aspirational
@@ -405,7 +411,7 @@ fn quality_gate_code_complexity() {
     println!("\n=== Quality Gate: Code Complexity ===");
 
     let threshold = complexity_threshold();
-    println!("Threshold: Average complexity < {threshold}");
+    println!("Threshold: Average complexity < {}", threshold);
 
     // Note: cargo-cyclomatic or similar tools would be needed for full implementation
     // For now, we use a proxy metric: lines of code per function/file
@@ -419,14 +425,14 @@ fn quality_gate_code_complexity() {
     for file in &src_files {
         let loc = count_lines_of_code(file);
         if loc > 500 {
-            violations.push(format!("{file}: {loc} LOC"));
+            violations.push(format!("{}: {} LOC", file, loc));
         }
     }
 
     if !violations.is_empty() {
         println!("⚠️  Files exceeding 500 LOC guideline:");
         for violation in &violations {
-            println!("  - {violation}");
+            println!("  - {}", violation);
         }
     }
 
@@ -478,7 +484,10 @@ fn quality_gate_no_security_vulns() {
     println!("\n=== Quality Gate: Security Vulnerabilities ===");
 
     let threshold = security_vuln_threshold();
-    println!("Threshold: Max {threshold} critical/high/medium vulnerabilities");
+    println!(
+        "Threshold: Max {} critical/high/medium vulnerabilities",
+        threshold
+    );
 
     // Run cargo audit
     println!("Running cargo audit...");
@@ -503,16 +512,22 @@ fn quality_gate_no_security_vulns() {
 
     let total_vulns = critical + high + medium;
 
-    println!("Critical vulnerabilities: {critical}");
-    println!("High vulnerabilities: {high}");
-    println!("Medium vulnerabilities: {medium}");
-    println!("Total: {total_vulns}");
+    println!("Critical vulnerabilities: {}", critical);
+    println!("High vulnerabilities: {}", high);
+    println!("Medium vulnerabilities: {}", medium);
+    println!("Total: {}", total_vulns);
 
     if total_vulns > threshold {
-        panic!("❌ Security gate FAILED: {total_vulns} vulnerabilities > {threshold} threshold");
+        panic!(
+            "❌ Security gate FAILED: {} vulnerabilities > {} threshold",
+            total_vulns, threshold
+        );
     }
 
-    println!("✅ Security gate PASSED: {total_vulns} vulnerabilities <= {threshold} threshold");
+    println!(
+        "✅ Security gate PASSED: {} vulnerabilities <= {} threshold",
+        total_vulns, threshold
+    );
 }
 
 /// Parse vulnerability counts from cargo audit JSON output
@@ -565,7 +580,7 @@ fn quality_gate_no_clippy_warnings() {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
 
-        eprintln!("Clippy output:\n{stdout}\n{stderr}");
+        eprintln!("Clippy output:\n{}\n{}", stdout, stderr);
         panic!("❌ Clippy gate FAILED: Found warnings or errors");
     }
 
@@ -591,7 +606,7 @@ fn quality_gate_formatting() {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
 
-        eprintln!("Formatting issues:\n{stdout}\n{stderr}");
+        eprintln!("Formatting issues:\n{}\n{}", stdout, stderr);
         eprintln!("\nRun 'cargo fmt --all' to fix formatting");
         panic!("❌ Formatting gate FAILED: Code not formatted");
     }
@@ -641,11 +656,11 @@ fn quality_gate_performance_regression() {
         }
         Ok(output) => {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            eprintln!("Performance test failed:\n{stderr}");
+            eprintln!("Performance test failed:\n{}", stderr);
             panic!("❌ Performance gate FAILED: Performance regression detected");
         }
         Err(e) => {
-            println!("⚠️  Could not run performance tests: {e}");
+            println!("⚠️  Could not run performance tests: {}", e);
             if !skip_optional_gates() {
                 panic!("Performance tests required");
             }

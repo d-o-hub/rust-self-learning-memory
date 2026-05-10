@@ -1,8 +1,8 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use do_memory_core::{Result, StorageBackend};
 use std::sync::Arc;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[async_trait]
 impl StorageBackend for crate::DuckDbStorage {

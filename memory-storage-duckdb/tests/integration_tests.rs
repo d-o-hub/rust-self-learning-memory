@@ -1,4 +1,4 @@
-use do_memory_core::{Episode, TaskContext, TaskType, StorageBackend};
+use do_memory_core::{Episode, StorageBackend, TaskContext, TaskType};
 use do_memory_storage_duckdb::DuckDbStorage;
 use tempfile::tempdir;
 use uuid::Uuid;

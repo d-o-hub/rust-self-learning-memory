@@ -149,6 +149,65 @@ pub mod utils {
         }
         Ok(())
     }
+
+    /// Chunk text into smaller pieces for embedding
+    /// Useful for long texts that exceed model token limits
+    #[allow(dead_code)] // Utility function kept for future use
+    pub fn chunk_text(text: &str, max_chars: usize) -> Vec<String> {
+        if text.len() <= max_chars {
+            return vec![text.to_string()];
+        }
+
+        let mut chunks = Vec::new();
+        let words: Vec<&str> = text.split_whitespace().collect();
+        let mut current_chunk = String::new();
+
+        for word in words {
+            if current_chunk.len() + word.len() + 1 > max_chars && !current_chunk.is_empty() {
+                chunks.push(current_chunk.trim().to_string());
+                current_chunk = word.to_string();
+            } else {
+                if !current_chunk.is_empty() {
+                    current_chunk.push(' ');
+                }
+                current_chunk.push_str(word);
+            }
+        }
+
+        if !current_chunk.is_empty() {
+            chunks.push(current_chunk.trim().to_string());
+        }
+
+        chunks
+    }
+
+    /// Average multiple embeddings into a single embedding
+    /// Useful for combining embeddings from chunked text
+    #[allow(dead_code)] // Utility function kept for future use
+    pub fn average_embeddings(embeddings: &[Vec<f32>]) -> Result<Vec<f32>> {
+        if embeddings.is_empty() {
+            anyhow::bail!("Cannot average empty embeddings list");
+        }
+
+        let dimension = embeddings[0].len();
+        let mut result = vec![0.0; dimension];
+
+        for embedding in embeddings {
+            if embedding.len() != dimension {
+                anyhow::bail!("Inconsistent embedding dimensions");
+            }
+            for (i, &value) in embedding.iter().enumerate() {
+                result[i] += value;
+            }
+        }
+
+        let count = embeddings.len() as f32;
+        for value in &mut result {
+            *value /= count;
+        }
+
+        Ok(normalize_vector(result))
+    }
 }
 
 #[cfg(test)]
@@ -170,10 +229,78 @@ mod tests {
     }
 
     #[test]
+    fn test_chunk_text() {
+        let text =
+            "This is a long text that needs to be chunked into smaller pieces for processing";
+        let chunks = utils::chunk_text(text, 25);
+
+        assert!(chunks.len() > 1);
+        for chunk in &chunks {
+            assert!(chunk.len() <= 25);
+        }
+
+        // All chunks should contain parts of the original text
+        let rejoined = chunks.join(" ");
+        let original_words: Vec<&str> = text.split_whitespace().collect();
+        let rejoined_words: Vec<&str> = rejoined.split_whitespace().collect();
+        assert_eq!(original_words, rejoined_words);
+    }
+
+    #[test]
+    fn test_average_embeddings() {
+        let embeddings = vec![
+            vec![1.0, 2.0, 3.0],
+            vec![2.0, 4.0, 6.0],
+            vec![3.0, 6.0, 9.0],
+        ];
+
+        let averaged = utils::average_embeddings(&embeddings)
+            .expect("average_embeddings should succeed with valid embedding vectors");
+
+        // Average before normalization would be [2.0, 4.0, 6.0]
+        // After normalization, it should be a unit vector in that direction
+        let expected_magnitude = (4.0 + 16.0 + 36.0_f32).sqrt(); // sqrt(56) ≈ 7.48
+        let expected = [
+            2.0 / expected_magnitude,
+            4.0 / expected_magnitude,
+            6.0 / expected_magnitude,
+        ];
+
+        for (actual, expected) in averaged.iter().zip(expected.iter()) {
+            assert!((actual - expected).abs() < 0.001);
+        }
+    }
+
+    #[test]
     fn test_validate_dimension() {
         let embedding = vec![1.0, 2.0, 3.0];
 
         assert!(utils::validate_dimension(&embedding, 3).is_ok());
         assert!(utils::validate_dimension(&embedding, 4).is_err());
+    }
+}
+
+#[cfg(test)]
+mod tests_extra {
+    use super::utils::*;
+
+    #[test]
+    fn test_average_embeddings_errors() {
+        // Empty list
+        let result = average_embeddings(&[]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Cannot average empty embeddings list"
+        );
+
+        // Inconsistent dimensions
+        let embeddings = vec![vec![1.0, 2.0], vec![1.0, 2.0, 3.0]];
+        let result = average_embeddings(&embeddings);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Inconsistent embedding dimensions"
+        );
     }
 }

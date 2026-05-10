@@ -68,10 +68,13 @@ async fn create_episode_with_steps(
         .await;
 
     for (i, tool_name) in tool_sequence.iter().enumerate() {
-        let mut step =
-            ExecutionStep::new(i + 1, tool_name.to_string(), format!("Execute {tool_name}"));
+        let mut step = ExecutionStep::new(
+            i + 1,
+            tool_name.to_string(),
+            format!("Execute {}", tool_name),
+        );
         step.result = Some(ExecutionResult::Success {
-            output: format!("{tool_name} completed"),
+            output: format!("{} completed", tool_name),
         });
         memory.log_step(episode_id, step).await;
     }
@@ -109,7 +112,7 @@ async fn test_pattern_discovery_workflow() {
     for i in 0..5 {
         create_episode_with_steps(
             &memory,
-            &format!("Implement REST endpoint {i}"),
+            &format!("Implement REST endpoint {}", i),
             domain,
             TaskType::CodeGeneration,
             &["read-code", "write-code", "test-code"],
@@ -151,7 +154,7 @@ async fn test_pattern_search_and_filtering() {
         for i in 0..3 {
             create_episode_with_steps(
                 &memory,
-                &format!("Task {i} in {domain}"),
+                &format!("Task {} in {}", i, domain),
                 domain,
                 TaskType::CodeGeneration,
                 &["analyze", "implement"],
@@ -196,7 +199,7 @@ async fn test_pattern_recommendation() {
     for i in 0..5 {
         create_episode_with_steps(
             &memory,
-            &format!("Task {i}"),
+            &format!("Task {}", i),
             "recommendation-test",
             TaskType::CodeGeneration,
             &["read-code", "write-code", "test-code"],
@@ -244,7 +247,7 @@ async fn test_pattern_effectiveness_analysis() {
     for i in 0..8 {
         create_episode_with_steps(
             &memory,
-            &format!("Pattern A success {i}"),
+            &format!("Pattern A success {}", i),
             "effectiveness-test",
             TaskType::CodeGeneration,
             &["tool-a", "tool-b"],
@@ -256,7 +259,7 @@ async fn test_pattern_effectiveness_analysis() {
     for i in 0..5 {
         create_episode_with_steps(
             &memory,
-            &format!("Pattern B success {i}"),
+            &format!("Pattern B success {}", i),
             "effectiveness-test",
             TaskType::CodeGeneration,
             &["tool-c", "tool-d"],
@@ -306,7 +309,7 @@ async fn test_pattern_decay_and_maintenance() {
     for i in 0..5 {
         create_episode_with_steps(
             &memory,
-            &format!("Old pattern {i}"),
+            &format!("Old pattern {}", i),
             "decay-test",
             TaskType::CodeGeneration,
             &["old-tool-a", "old-tool-b"],
@@ -321,7 +324,7 @@ async fn test_pattern_decay_and_maintenance() {
     for i in 0..5 {
         create_episode_with_steps(
             &memory,
-            &format!("New pattern {i}"),
+            &format!("New pattern {}", i),
             "decay-test",
             TaskType::CodeGeneration,
             &["new-tool-a", "new-tool-b"],
@@ -357,7 +360,7 @@ async fn test_pattern_comparison_and_similarity() {
     for i in 0..3 {
         create_episode_with_steps(
             &memory,
-            &format!("Similar 1-{i}"),
+            &format!("Similar 1-{}", i),
             "similarity-test",
             TaskType::CodeGeneration,
             &["tool-a", "tool-b", "tool-c"],
@@ -369,7 +372,7 @@ async fn test_pattern_comparison_and_similarity() {
     for i in 0..3 {
         create_episode_with_steps(
             &memory,
-            &format!("Similar 2-{i}"),
+            &format!("Similar 2-{}", i),
             "similarity-test",
             TaskType::CodeGeneration,
             &["tool-a", "tool-b"],

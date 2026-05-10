@@ -16,6 +16,13 @@ impl DuckDbStorage {
             let data_json = serde_json::to_string(&pattern)
                 .map_err(|e| Error::Storage(format!("Serialization error: {e}")))?;
 
+            let pattern_type = match pattern {
+                do_memory_core::Pattern::ToolSequence { .. } => "tool_sequence",
+                do_memory_core::Pattern::DecisionPoint { .. } => "decision_point",
+                do_memory_core::Pattern::ErrorRecovery { .. } => "error_recovery",
+                do_memory_core::Pattern::ContextPattern { .. } => "context_pattern",
+            };
+
             conn.execute(
                 "INSERT INTO patterns (
                     pattern_id, pattern_type, pattern_data, success_rate,
@@ -23,7 +30,7 @@ impl DuckDbStorage {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 params![
                     pattern.id().to_string(),
-                    "placeholder",
+                    pattern_type,
                     data_json,
                     pattern.success_rate(),
                     pattern

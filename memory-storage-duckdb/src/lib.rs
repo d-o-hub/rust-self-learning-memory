@@ -79,6 +79,7 @@ impl DuckDbStorage {
             conn.execute(schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE, [])?;
             conn.execute(schema::CREATE_EMBEDDINGS_TABLE, [])?;
             conn.execute(schema::CREATE_EPISODE_RELATIONSHIPS_TABLE, [])?;
+            conn.execute(schema::CREATE_EXECUTION_RECORDS_SEQUENCE, [])?;
             conn.execute(schema::CREATE_EXECUTION_RECORDS_TABLE, [])?;
             conn.execute(schema::CREATE_AGENT_METRICS_TABLE, [])?;
             conn.execute(schema::CREATE_TASK_METRICS_TABLE, [])?;

@@ -27,7 +27,7 @@ fn test_query_key_normalization() {
 #[test]
 fn test_table_dependency_detection() {
     let sql = "SELECT e.*, s.* FROM episodes e JOIN steps s ON e.episode_id = s.episode_id";
-    let deps = TableDependency::from_query(&sql.to_lowercase());
+    let deps = TableDependency::from_query(sql);
 
     assert!(deps.contains(&TableDependency::Episodes));
     assert!(deps.contains(&TableDependency::Steps));

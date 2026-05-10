@@ -135,4 +135,12 @@ impl StorageBackend for RedbStorage {
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         RedbStorage::get_recommendation_stats(self).await
     }
+
+    fn set_event_emitter(
+        &self,
+        emitter: std::sync::Arc<dyn do_memory_core::types::event::EventEmitter>,
+    ) {
+        let mut lock = self.event_emitter.write();
+        *lock = Some(emitter);
+    }
 }

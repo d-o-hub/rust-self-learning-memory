@@ -1,7 +1,6 @@
 use do_memory_core::{Episode, StorageBackend, TaskContext, TaskType};
 use do_memory_storage_duckdb::DuckDbStorage;
 use tempfile::tempdir;
-use uuid::Uuid;
 
 #[tokio::test]
 async fn test_duckdb_storage_basic_ops() -> anyhow::Result<()> {
@@ -17,16 +16,22 @@ async fn test_duckdb_storage_basic_ops() -> anyhow::Result<()> {
     let episode_id = episode.episode_id;
 
     // Store
+    println!("Storing episode...");
     storage.store_episode(&episode).await?;
 
     // Get
-    // Note: get_episode_internal is not fully implemented in the placeholder,
-    // but we can check if it returns without error
+    println!("Retrieving episode...");
     let retrieved = storage.get_episode(episode_id).await?;
-    // assert!(retrieved.is_some()); // Enable when fully implemented
+    assert!(retrieved.is_some(), "Episode should be retrieved");
+    let retrieved = retrieved.unwrap();
+    assert_eq!(retrieved.episode_id, episode_id);
+    assert_eq!(retrieved.task_description, "Test task");
 
     // Delete
+    println!("Deleting episode...");
     storage.delete_episode(episode_id).await?;
+    let retrieved = storage.get_episode(episode_id).await?;
+    assert!(retrieved.is_none(), "Episode should be deleted");
 
     Ok(())
 }

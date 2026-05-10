@@ -68,7 +68,7 @@ impl DuckDbStorage {
                     episode.task_description,
                     context_json,
                     episode.start_time.to_rfc3339(),
-                    episode.end_time.map(|t| t.to_rfc3339()),
+                    episode.end_time.as_ref().map(|t| t.to_rfc3339()),
                     steps_json,
                     outcome_json,
                     reward_json,
@@ -94,14 +94,18 @@ impl DuckDbStorage {
         id: Uuid,
     ) -> Result<Option<do_memory_core::Episode>> {
         let conn_arc = Arc::clone(&self.conn);
-        tokio::task::spawn_blocking(move || {
+        let res = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut stmt = conn
                 .prepare(
                     "SELECT
-                episode_id, task_type, task_description, context, start_time, end_time,
-                steps, outcome, reward, reflection, patterns, heuristics, checkpoints,
-                metadata
+                episode_id, task_type, task_description, CAST(context AS VARCHAR),
+                strftime(CAST(start_time AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
+                strftime(CAST(end_time AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
+                CAST(steps AS VARCHAR), CAST(outcome AS VARCHAR), CAST(reward AS VARCHAR),
+                CAST(reflection AS VARCHAR), CAST(patterns AS VARCHAR), CAST(heuristics AS VARCHAR),
+                CAST(checkpoints AS VARCHAR),
+                CAST(metadata AS VARCHAR)
                 FROM episodes WHERE episode_id = ?",
                 )
                 .map_err(|e| Error::Storage(e.to_string()))?;
@@ -111,60 +115,78 @@ impl DuckDbStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
-                let episode_id_str: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-                let task_type_str: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
-                let context_json: String = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
-                let start_time_str: String = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
+                let episode_id_str: String = row.get(0).map_err(|e| Error::Storage(format!("col 0: {}", e)))?;
+                let task_type_str: String = row.get(1).map_err(|e| Error::Storage(format!("col 1: {}", e)))?;
+                let task_desc: String = row.get(2).map_err(|e| Error::Storage(format!("col 2: {}", e)))?;
+                let context_json: String = row.get(3).map_err(|e| Error::Storage(format!("col 3: {}", e)))?;
+                let start_time_str: String = row.get(4).map_err(|e| Error::Storage(format!("col 4: {}", e)))?;
                 let end_time_str: Option<String> =
-                    row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
-                let steps_json: String = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
-                let outcome_json: String = row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
-                let reward_json: String = row.get(8).map_err(|e| Error::Storage(e.to_string()))?;
-                let reflection_json: String = row.get(9).map_err(|e| Error::Storage(e.to_string()))?;
-                let patterns_json: String = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
+                    row.get(5).map_err(|e| Error::Storage(format!("col 5: {}", e)))?;
+                let steps_json: String = row.get(6).map_err(|e| Error::Storage(format!("col 6: {}", e)))?;
+                let outcome_json: Option<String> = row.get(7).map_err(|e| Error::Storage(format!("col 7: {}", e)))?;
+                let reward_json: Option<String> = row.get(8).map_err(|e| Error::Storage(format!("col 8: {}", e)))?;
+                let reflection_json: Option<String> = row.get(9).map_err(|e| Error::Storage(format!("col 9: {}", e)))?;
+                let patterns_json: String = row.get(10).map_err(|e| Error::Storage(format!("col 10: {}", e)))?;
                 let heuristics_json: String =
-                    row.get(11).map_err(|e| Error::Storage(e.to_string()))?;
+                    row.get(11).map_err(|e| Error::Storage(format!("col 11: {}", e)))?;
                 let checkpoints_json: String =
-                    row.get(12).map_err(|e| Error::Storage(e.to_string()))?;
-                let metadata_json: String = row.get(13).map_err(|e| Error::Storage(e.to_string()))?;
+                    row.get(12).map_err(|e| Error::Storage(format!("col 12: {}", e)))?;
+                let metadata_json: String = row.get(13).map_err(|e| Error::Storage(format!("col 13: {}", e)))?;
 
                 let episode = do_memory_core::Episode {
                     episode_id: Uuid::parse_str(&episode_id_str)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("episode_id parse: {}", e)))?,
                     task_type: task_type_str
                         .parse()
-                        .map_err(|e| Error::Storage(format!("Invalid task type: {}", e)))?,
-                    task_description: row.get(2).map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("task_type parse: {}", e)))?,
+                    task_description: task_desc,
                     context: serde_json::from_str(&context_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("context parse: {} | json='{}'", e, context_json)))?,
                     start_time: DateTime::parse_from_rfc3339(&start_time_str)
-                        .map_err(|e| Error::Storage(e.to_string()))?
+                        .or_else(|_| DateTime::parse_from_str(&start_time_str, "%Y-%m-%dT%H:%M:%S.%fZ"))
+                        .map_err(|e| Error::Storage(format!("start_time parse: {} | val='{}'", e, start_time_str)))?
                         .with_timezone(&Utc),
                     end_time: end_time_str
                         .map(|s| {
                             DateTime::parse_from_rfc3339(&s)
+                                .or_else(|_| DateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%S.%fZ"))
                                 .map(|t| t.with_timezone(&Utc))
-                                .map_err(|e| Error::Storage(e.to_string()))
+                                .map_err(|e| Error::Storage(format!("end_time parse: {} | val='{}'", e, s)))
                         })
                         .transpose()?,
                     steps: serde_json::from_str(&steps_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
-                    outcome: serde_json::from_str(&outcome_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
-                    reward: serde_json::from_str(&reward_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
-                    reflection: serde_json::from_str(&reflection_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("steps parse: {} | json='{}'", e, steps_json)))?,
+                    outcome: outcome_json.and_then(|s| {
+                        if s == "null" || s.is_empty() {
+                            None
+                        } else {
+                            serde_json::from_str(&s).ok()
+                        }
+                    }),
+                    reward: reward_json.and_then(|s| {
+                        if s == "null" || s.is_empty() {
+                            None
+                        } else {
+                            serde_json::from_str(&s).ok()
+                        }
+                    }),
+                    reflection: reflection_json.and_then(|s| {
+                        if s == "null" || s.is_empty() {
+                            None
+                        } else {
+                            serde_json::from_str(&s).ok()
+                        }
+                    }),
                     patterns: serde_json::from_str(&patterns_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("patterns parse: {} | json='{}'", e, patterns_json)))?,
                     heuristics: serde_json::from_str(&heuristics_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("heuristics parse: {} | json='{}'", e, heuristics_json)))?,
                     applied_patterns: Vec::new(),
                     salient_features: None,
                     checkpoints: serde_json::from_str(&checkpoints_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("checkpoints parse: {} | json='{}'", e, checkpoints_json)))?,
                     metadata: serde_json::from_str(&metadata_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("metadata parse: {} | json='{}'", e, metadata_json)))?,
                     tags: Vec::new(),
                 };
                 Ok::<Option<do_memory_core::Episode>, Error>(Some(episode))
@@ -173,7 +195,8 @@ impl DuckDbStorage {
             }
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        Ok(res)
     }
 
     pub(crate) async fn delete_episode_internal(&self, id: Uuid) -> Result<()> {
@@ -231,13 +254,12 @@ impl DuckDbStorage {
 
     pub(crate) async fn get_pattern_internal(
         &self,
-        id: Uuid,
-    ) -> Result<Option<do_memory_core::Pattern>> {
+        id: Uuid) -> Result<Option<do_memory_core::Pattern>> {
         let conn_arc = Arc::clone(&self.conn);
-        tokio::task::spawn_blocking(move || {
+        let res = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut stmt = conn
-                .prepare("SELECT pattern_data FROM patterns WHERE pattern_id = ?")
+                .prepare("SELECT CAST(pattern_data AS VARCHAR) FROM patterns WHERE pattern_id = ?")
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let mut rows = stmt
@@ -247,14 +269,15 @@ impl DuckDbStorage {
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
                 let data_json: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
                 let pattern = serde_json::from_str(&data_json)
-                    .map_err(|e| Error::Storage(e.to_string()))?;
+                    .map_err(|e| Error::Storage(format!("pattern parse: {} | json='{}'", e, data_json)))?;
                 Ok::<Option<do_memory_core::Pattern>, Error>(Some(pattern))
             } else {
                 Ok::<Option<do_memory_core::Pattern>, Error>(None)
             }
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        Ok(res)
     }
 
     pub(crate) async fn store_heuristic_internal(
@@ -295,10 +318,13 @@ impl DuckDbStorage {
         id: Uuid,
     ) -> Result<Option<do_memory_core::Heuristic>> {
         let conn_arc = Arc::clone(&self.conn);
-        tokio::task::spawn_blocking(move || {
+        let res = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut stmt = conn
-                .prepare("SELECT heuristic_id, condition_text, action_text, confidence, evidence, created_at, updated_at FROM heuristics WHERE heuristic_id = ?")
+                .prepare("SELECT heuristic_id, condition_text, action_text, confidence, CAST(evidence AS VARCHAR),
+                         strftime(CAST(created_at AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
+                         strftime(CAST(updated_at AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ')
+                         FROM heuristics WHERE heuristic_id = ?")
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let mut rows = stmt
@@ -307,6 +333,9 @@ impl DuckDbStorage {
 
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
                 let id_str: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let condition: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                let action: String = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
+                let confidence: f32 = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
                 let evidence_json: String = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
                 let created_at_str: String = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
                 let updated_at_str: String = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
@@ -314,16 +343,18 @@ impl DuckDbStorage {
                 let heuristic = do_memory_core::Heuristic {
                     heuristic_id: Uuid::parse_str(&id_str)
                         .map_err(|e| Error::Storage(e.to_string()))?,
-                    condition: row.get(1).map_err(|e| Error::Storage(e.to_string()))?,
-                    action: row.get(2).map_err(|e| Error::Storage(e.to_string()))?,
-                    confidence: row.get(3).map_err(|e| Error::Storage(e.to_string()))?,
+                    condition,
+                    action,
+                    confidence,
                     evidence: serde_json::from_str(&evidence_json)
-                        .map_err(|e| Error::Storage(e.to_string()))?,
+                        .map_err(|e| Error::Storage(format!("heuristic evidence parse: {} | json='{}'", e, evidence_json)))?,
                     created_at: DateTime::parse_from_rfc3339(&created_at_str)
-                        .map_err(|e| Error::Storage(e.to_string()))?
+                        .or_else(|_| DateTime::parse_from_str(&created_at_str, "%Y-%m-%dT%H:%M:%S.%fZ"))
+                        .map_err(|e| Error::Storage(format!("heuristic created_at parse: {} | val='{}'", e, created_at_str)))?
                         .with_timezone(&Utc),
                     updated_at: DateTime::parse_from_rfc3339(&updated_at_str)
-                        .map_err(|e| Error::Storage(e.to_string()))?
+                        .or_else(|_| DateTime::parse_from_str(&updated_at_str, "%Y-%m-%dT%H:%M:%S.%fZ"))
+                        .map_err(|e| Error::Storage(format!("heuristic updated_at parse: {} | val='{}'", e, updated_at_str)))?
                         .with_timezone(&Utc),
                 };
                 Ok::<Option<do_memory_core::Heuristic>, Error>(Some(heuristic))
@@ -332,7 +363,8 @@ impl DuckDbStorage {
             }
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
+        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        Ok(res)
     }
 
     // ========== Analytical Queries ==========
@@ -357,10 +389,13 @@ impl DuckDbStorage {
 
             let rows = stmt
                 .query_map([], |row| {
+                    let domain: String = row.get(0)?;
+                    let count: i64 = row.get(1)?;
+                    let avg_reward: Option<f64> = row.get(2)?;
                     let val = serde_json::json!({
-                        "domain": row.get::<usize, String>(0)?,
-                        "count": row.get::<usize, i64>(1)?,
-                        "avg_reward": row.get::<usize, Option<f64>>(2)?,
+                        "domain": domain,
+                        "count": count,
+                        "avg_reward": avg_reward,
                     });
                     Ok(val)
                 })
@@ -380,7 +415,7 @@ impl DuckDbStorage {
             let mut stmt = conn
                 .prepare(
                     "SELECT episode_id, task_description,
-                       EXP(-0.1 * date_diff('hour', created_at, now())) AS recency_score
+                       EXP(-0.1 * date_diff('hour', start_time, now())) AS recency_score
                 FROM episodes
                 ORDER BY recency_score DESC
                 LIMIT 10",
@@ -390,10 +425,12 @@ impl DuckDbStorage {
             let rows = stmt
                 .query_map([], |row| {
                     let episode_id_str: String = row.get(0)?;
+                    let task_desc: String = row.get(1)?;
+                    let recency_score: f64 = row.get(2)?;
                     let val = serde_json::json!({
                         "id": episode_id_str,
-                        "description": row.get::<usize, String>(1)?,
-                        "recency_score": row.get::<usize, f64>(2)?,
+                        "description": task_desc,
+                        "recency_score": recency_score,
                     });
                     Ok(val)
                 })
@@ -421,10 +458,13 @@ impl DuckDbStorage {
 
             let rows = stmt
                 .query_map([], |row| {
+                    let pattern_type: String = row.get(0)?;
+                    let frequency: i64 = row.get(1)?;
+                    let rank: i64 = row.get(2)?;
                     let val = serde_json::json!({
-                        "type": row.get::<usize, String>(0)?,
-                        "frequency": row.get::<usize, i64>(1)?,
-                        "rank": row.get::<usize, i64>(2)?,
+                        "type": pattern_type,
+                        "frequency": frequency,
+                        "rank": rank,
                     });
                     Ok(val)
                 })
@@ -454,9 +494,11 @@ impl DuckDbStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
+                let p50: Option<f64> = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let p95: Option<f64> = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
                 Ok(serde_json::json!({
-                    "p50": row.get::<usize, Option<f64>>(0).map_err(|e| Error::Storage(e.to_string()))?,
-                    "p95": row.get::<usize, Option<f64>>(1).map_err(|e| Error::Storage(e.to_string()))?,
+                    "p50": p50,
+                    "p95": p95,
                 }))
             } else {
                 Ok(serde_json::json!({}))
@@ -488,9 +530,11 @@ impl DuckDbStorage {
             let vector_json = serde_json::to_string(&vector).unwrap_or_default();
             let rows = stmt
                 .query_map(params![vector_json, limit as i64], |row| {
+                    let item_id: String = row.get(0)?;
+                    let score: f64 = row.get(1)?;
                     let val = serde_json::json!({
-                        "item_id": row.get::<usize, String>(0)?,
-                        "score": row.get::<usize, f64>(1)?,
+                        "item_id": item_id,
+                        "score": score,
                     });
                     Ok(val)
                 })

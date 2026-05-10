@@ -5,6 +5,7 @@ members = [
     "memory-events",
     "memory-storage-turso",
     "memory-storage-redb",
+    "memory-storage-duckdb",
     "memory-mcp",
     "memory-cli",
     "test-utils",

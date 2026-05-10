@@ -1,0 +1,55 @@
+[package]
+name = "do-memory-storage-duckdb"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage = "https://github.com/d-o-hub/rust-self-learning-memory"
+readme = "README.md"
+description = "DuckDB storage backend for the do-memory-core episodic learning system"
+keywords = ["duckdb", "storage", "database", "analytics", "ai-memory"]
+categories = ["database"]
+documentation = "https://docs.rs/do-memory-storage-duckdb"
+
+[features]
+default = []
+vss = ["duckdb/bundled"]        # Enable vector similarity search extension
+parquet = ["duckdb/bundled"]    # Enable Parquet import/export
+analytics = ["vss", "parquet"]  # Full OLAP feature set
+
+[dependencies]
+# Core dependencies
+do-memory-core = { path = "../memory-core", version = "0.1.31" }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Database
+duckdb = { version = "1.1", features = ["bundled"] }
+
+# UUID and time
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Synchronization
+parking_lot = "0.12.5"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

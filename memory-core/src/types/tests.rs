@@ -297,3 +297,122 @@ fn test_memory_config_max_episodes_parsing() {
         std::env::remove_var("MEMORY_MAX_EPISODES");
     }
 }
+
+#[test]
+fn test_dual_reward_score_spawn_new_cluster() {
+    let overlap_threshold = DualRewardScore::DEFAULT_OVERLAP_THRESHOLD;
+
+    // Case 1: Novelty exactly at threshold (0.6) - should be false (> is used)
+    let score = DualRewardScore {
+        stability_score: 0.1,
+        novelty_score: 0.6,
+        effectiveness_score: 1.0,
+    };
+    assert!(!score.should_spawn_new_cluster(overlap_threshold));
+
+    // Case 2: Novelty just above threshold (0.61) and low stability - should be true
+    let score = DualRewardScore {
+        stability_score: 0.1,
+        novelty_score: 0.61,
+        effectiveness_score: 1.0,
+    };
+    assert!(score.should_spawn_new_cluster(overlap_threshold));
+
+    // Case 3: High novelty but stability exactly at overlap_threshold - should be false (< is used)
+    let score = DualRewardScore {
+        stability_score: overlap_threshold,
+        novelty_score: 0.8,
+        effectiveness_score: 1.0,
+    };
+    assert!(!score.should_spawn_new_cluster(overlap_threshold));
+
+    // Case 4: High novelty and stability just below overlap_threshold - should be true
+    let score = DualRewardScore {
+        stability_score: overlap_threshold - 0.01,
+        novelty_score: 0.8,
+        effectiveness_score: 1.0,
+    };
+    assert!(score.should_spawn_new_cluster(overlap_threshold));
+}
+
+#[test]
+fn test_dual_reward_score_merge() {
+    // Case 1: Stability exactly at threshold (0.85) - should be false (> is used)
+    let score = DualRewardScore {
+        stability_score: 0.85,
+        novelty_score: 0.1,
+        effectiveness_score: 1.0,
+    };
+    assert!(!score.should_merge());
+
+    // Case 2: Stability just above threshold (0.86) - should be true
+    let score = DualRewardScore {
+        stability_score: 0.86,
+        novelty_score: 0.1,
+        effectiveness_score: 1.0,
+    };
+    assert!(score.should_merge());
+}
+
+#[test]
+fn test_dual_reward_score_uncertain() {
+    // Neither merge nor spawn
+    let score = DualRewardScore {
+        stability_score: 0.5,
+        novelty_score: 0.5,
+        effectiveness_score: 1.0,
+    };
+    assert!(score.is_uncertain());
+
+    // Is merge -> not uncertain
+    let score = DualRewardScore {
+        stability_score: 0.9,
+        novelty_score: 0.1,
+        effectiveness_score: 1.0,
+    };
+    assert!(!score.is_uncertain());
+
+    // Is spawn -> not uncertain
+    let score = DualRewardScore {
+        stability_score: 0.1,
+        novelty_score: 0.8,
+        effectiveness_score: 1.0,
+    };
+    assert!(!score.is_uncertain());
+}
+
+#[test]
+fn test_dual_reward_score_balance_ratio() {
+    let score = DualRewardScore {
+        stability_score: 0.7,
+        novelty_score: 0.3,
+        effectiveness_score: 1.0,
+    };
+    assert!((score.balance_ratio() - 0.4).abs() < f32::EPSILON);
+
+    let score = DualRewardScore {
+        stability_score: 0.2,
+        novelty_score: 0.8,
+        effectiveness_score: 1.0,
+    };
+    assert!((score.balance_ratio() - (-0.6)).abs() < f32::EPSILON);
+}
+
+#[test]
+fn test_dual_reward_score_from_similarity() {
+    // Normal case
+    let score = DualRewardScore::from_similarity(0.7, 1.5);
+    assert!((score.stability_score - 0.7).abs() < f32::EPSILON);
+    assert!((score.novelty_score - 0.3).abs() < f32::EPSILON);
+    assert_eq!(score.effectiveness_score, 1.5);
+
+    // Clamping low
+    let score = DualRewardScore::from_similarity(-0.1, 1.0);
+    assert_eq!(score.stability_score, 0.0);
+    assert_eq!(score.novelty_score, 1.0);
+
+    // Clamping high
+    let score = DualRewardScore::from_similarity(1.1, 1.0);
+    assert_eq!(score.stability_score, 1.0);
+    assert_eq!(score.novelty_score, 0.0);
+}

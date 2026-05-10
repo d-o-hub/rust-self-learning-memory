@@ -18,7 +18,7 @@ pub mod trait_impls;
 
 /// `DuckDB` storage backend.
 pub struct DuckDbStorage {
-    /// Shared connection pool (simplified to Arc<Mutex<Connection>> as `DuckDB` is embedded).
+    /// Shared connection pool (simplified to `Arc<Mutex<Connection>>` as `DuckDB` is embedded).
     pub(crate) conn: Arc<Mutex<Connection>>,
     /// Pluggable event emitter for standardized lifecycle notifications
     pub(crate) event_emitter:

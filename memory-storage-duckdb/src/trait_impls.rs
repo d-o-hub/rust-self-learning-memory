@@ -48,7 +48,8 @@ impl StorageBackend for crate::DuckDbStorage {
         value: &str,
         limit: Option<usize>,
     ) -> Result<Vec<do_memory_core::Episode>> {
-        self.query_episodes_by_metadata_internal(key, value, limit).await
+        self.query_episodes_by_metadata_internal(key, value, limit)
+            .await
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
@@ -122,7 +123,8 @@ impl StorageBackend for crate::DuckDbStorage {
         &self,
         episode_id: Uuid,
     ) -> Result<Option<do_memory_core::memory::attribution::RecommendationSession>> {
-        self.get_recommendation_session_for_episode_internal(episode_id).await
+        self.get_recommendation_session_for_episode_internal(episode_id)
+            .await
     }
 
     async fn store_recommendation_feedback(
@@ -180,7 +182,8 @@ impl do_memory_core::monitoring::storage::MonitoringStorageBackend for crate::Du
         agent_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<do_memory_core::monitoring::types::ExecutionRecord>> {
-        self.load_execution_records_internal(agent_name, limit).await
+        self.load_execution_records_internal(agent_name, limit)
+            .await
     }
 
     async fn load_task_metrics(

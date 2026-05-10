@@ -10,7 +10,7 @@ impl DuckDbStorage {
     ///
     /// # Errors
     ///
-    /// Returns an error if the extension cannot be loaded.
+    /// Returns an error if the extension cannot be loaded or the database task fails.
     pub async fn load_vss_extension(&self) -> Result<()> {
         #[cfg(feature = "vss")]
         {
@@ -266,7 +266,9 @@ impl DuckDbStorage {
             applied_patterns: Vec::new(),
             salient_features: None,
             checkpoints: serde_json::from_str(checkpoints_json).map_err(|e| {
-                Error::Storage(format!("checkpoints parse: {e} | json='{checkpoints_json}'"))
+                Error::Storage(format!(
+                    "checkpoints parse: {e} | json='{checkpoints_json}'"
+                ))
             })?,
             metadata: serde_json::from_str(metadata_json).map_err(|e| {
                 Error::Storage(format!("metadata parse: {e} | json='{metadata_json}'"))
@@ -296,11 +298,13 @@ impl DuckDbStorage {
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
 
         // Emit standardized event
-        self.emit_event(do_memory_core::types::event::MemoryEvent::EpisodeGarbageCollected {
-            id: id.to_string(),
-            reason: "manual".to_string(),
-            timestamp: do_memory_core::types::event::unix_now_secs(),
-        })
+        self.emit_event(
+            do_memory_core::types::event::MemoryEvent::EpisodeGarbageCollected {
+                id: id.to_string(),
+                reason: "manual".to_string(),
+                timestamp: do_memory_core::types::event::unix_now_secs(),
+            },
+        )
         .await;
 
         Ok(())
@@ -482,9 +486,13 @@ impl DuckDbStorage {
 
     /// Performs session windowing analysis over episodes.
     ///
+    /// # Arguments
+    ///
+    /// * `interval_hours` - The size of the time bucket in hours.
+    ///
     /// # Errors
     ///
-    /// Returns an error if the query fails.
+    /// Returns an error if the session windowing query fails.
     pub async fn query_session_windowing(
         &self,
         interval_hours: u32,
@@ -496,7 +504,7 @@ impl DuckDbStorage {
                 .prepare(&format!(
                     "SELECT domain,
                        COUNT(*) AS episode_count,
-                       AVG(CAST(reward->>'score' AS DOUBLE)) AS avg_reward
+                       AVG(CAST(reward->>'total' AS DOUBLE)) AS avg_reward
                 FROM episodes
                 GROUP BY domain, time_bucket(INTERVAL '{interval_hours} hours', start_time)"
                 ))
@@ -516,7 +524,8 @@ impl DuckDbStorage {
                 })
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
-            let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> = rows.collect();
+            let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> =
+                rows.collect();
             results.map_err(|e| Error::Storage(e.to_string()))
         })
         .await
@@ -527,7 +536,7 @@ impl DuckDbStorage {
     ///
     /// # Errors
     ///
-    /// Returns an error if the query fails.
+    /// Returns an error if the temporal decay query fails.
     pub async fn query_temporal_decay(&self) -> Result<Vec<serde_json::Value>> {
         let conn_arc = Arc::clone(&self.conn);
         tokio::task::spawn_blocking(move || {
@@ -556,7 +565,8 @@ impl DuckDbStorage {
                 })
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
-            let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> = rows.collect();
+            let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> =
+                rows.collect();
             results.map_err(|e| Error::Storage(e.to_string()))
         })
         .await
@@ -567,7 +577,7 @@ impl DuckDbStorage {
     ///
     /// # Errors
     ///
-    /// Returns an error if the query fails.
+    /// Returns an error if the pattern trending query fails.
     pub async fn query_pattern_trends(&self) -> Result<Vec<serde_json::Value>> {
         let conn_arc = Arc::clone(&self.conn);
         tokio::task::spawn_blocking(move || {
@@ -595,7 +605,8 @@ impl DuckDbStorage {
                 })
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
-            let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> = rows.collect();
+            let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> =
+                rows.collect();
             results.map_err(|e| Error::Storage(e.to_string()))
         })
         .await
@@ -606,15 +617,15 @@ impl DuckDbStorage {
     ///
     /// # Errors
     ///
-    /// Returns an error if the query fails.
+    /// Returns an error if the reward distribution query fails.
     pub async fn query_reward_distribution(&self) -> Result<serde_json::Value> {
         let conn_arc = Arc::clone(&self.conn);
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut stmt = conn
                 .prepare(
-                    "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY CAST(reward->>'score' AS DOUBLE)) AS p50,
-                       percentile_cont(0.95) WITHIN GROUP (ORDER BY CAST(reward->>'score' AS DOUBLE)) AS p95
+                    "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY CAST(reward->>'total' AS DOUBLE)) AS p50,
+                       percentile_cont(0.95) WITHIN GROUP (ORDER BY CAST(reward->>'total' AS DOUBLE)) AS p95
                 FROM episodes"
             )
                 .map_err(|e| Error::Storage(e.to_string()))?;
@@ -1070,7 +1081,11 @@ impl DuckDbStorage {
                 ])
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
-            Ok::<bool, Error>(rows.next().map_err(|e| Error::Storage(e.to_string()))?.is_some())
+            Ok::<bool, Error>(
+                rows.next()
+                    .map_err(|e| Error::Storage(e.to_string()))?
+                    .is_some(),
+            )
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
@@ -1342,8 +1357,10 @@ impl DuckDbStorage {
 
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
                 let agent_name: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-                let agent_type_str: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
-                let total_executions: i64 = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
+                let agent_type_str: String =
+                    row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                let total_executions: i64 =
+                    row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
                 let successful_executions: i64 =
                     row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
                 let total_duration_ms: i64 =
@@ -1353,21 +1370,30 @@ impl DuckDbStorage {
                 let last_execution_str: Option<String> =
                     row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
 
-                let agent_type = do_memory_core::monitoring::types::AgentType::from(agent_type_str.as_str());
+                let agent_type =
+                    do_memory_core::monitoring::types::AgentType::from(agent_type_str.as_str());
 
                 let metrics = do_memory_core::monitoring::types::AgentMetrics {
                     agent_name,
                     agent_type,
                     total_executions: u64::try_from(total_executions).unwrap_or(0),
                     successful_executions: u64::try_from(successful_executions).unwrap_or(0),
-                    total_duration: std::time::Duration::from_millis(u64::try_from(total_duration_ms).unwrap_or(0)),
+                    total_duration: std::time::Duration::from_millis(
+                        u64::try_from(total_duration_ms).unwrap_or(0),
+                    ),
                     avg_duration: if total_executions > 0 {
-                        std::time::Duration::from_millis(u64::try_from(total_duration_ms / total_executions).unwrap_or(0))
+                        std::time::Duration::from_millis(
+                            u64::try_from(total_duration_ms / total_executions).unwrap_or(0),
+                        )
                     } else {
                         std::time::Duration::ZERO
                     },
-                    min_duration: std::time::Duration::from_millis(u64::try_from(min_duration_ms).unwrap_or(0)),
-                    max_duration: std::time::Duration::from_millis(u64::try_from(max_duration_ms).unwrap_or(0)),
+                    min_duration: std::time::Duration::from_millis(
+                        u64::try_from(min_duration_ms).unwrap_or(0),
+                    ),
+                    max_duration: std::time::Duration::from_millis(
+                        u64::try_from(max_duration_ms).unwrap_or(0),
+                    ),
                     last_execution: last_execution_str.and_then(|s| {
                         DateTime::parse_from_rfc3339(&s)
                             .or_else(|_| DateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%S.%fZ"))
@@ -1399,7 +1425,8 @@ impl DuckDbStorage {
             let mut query = "SELECT agent_name, agent_type, success, duration_ms,
                              strftime(CAST(started_at AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
                              task_description, error_message
-                             FROM execution_records".to_string();
+                             FROM execution_records"
+                .to_string();
             if agent_name.is_some() {
                 query.push_str(" WHERE agent_name = ?");
             }
@@ -1419,16 +1446,19 @@ impl DuckDbStorage {
             let mut records = Vec::new();
             while let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
                 let agent_name: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-                let agent_type_str: String = row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
+                let agent_type_str: String =
+                    row.get(1).map_err(|e| Error::Storage(e.to_string()))?;
                 let success: bool = row.get(2).map_err(|e| Error::Storage(e.to_string()))?;
                 let duration_ms: i64 = row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
-                let started_at_str: String = row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
+                let started_at_str: String =
+                    row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
                 let task_description: Option<String> =
                     row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
                 let error_message: Option<String> =
                     row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
 
-                let agent_type = do_memory_core::monitoring::types::AgentType::from(agent_type_str.as_str());
+                let agent_type =
+                    do_memory_core::monitoring::types::AgentType::from(agent_type_str.as_str());
                 let started_at = DateTime::parse_from_rfc3339(&started_at_str)
                     .or_else(|_| DateTime::parse_from_str(&started_at_str, "%Y-%m-%dT%H:%M:%S.%fZ"))
                     .map_err(|e| Error::Storage(e.to_string()))?
@@ -1438,7 +1468,9 @@ impl DuckDbStorage {
                     agent_name,
                     agent_type,
                     success,
-                    duration: std::time::Duration::from_millis(u64::try_from(duration_ms).unwrap_or(0)),
+                    duration: std::time::Duration::from_millis(
+                        u64::try_from(duration_ms).unwrap_or(0),
+                    ),
                     started_at,
                     task_description,
                     error_message,
@@ -1504,9 +1536,14 @@ impl DuckDbStorage {
 
     /// Searches for similar embeddings using VSS.
     ///
+    /// # Arguments
+    ///
+    /// * `vector` - The query embedding vector.
+    /// * `limit` - The maximum number of results to return.
+    ///
     /// # Errors
     ///
-    /// Returns an error if the search fails.
+    /// Returns an error if the search fails or the database query fails.
     pub async fn search_embeddings_vss(
         &self,
         vector: Vec<f32>,
@@ -1526,15 +1563,18 @@ impl DuckDbStorage {
 
             let vector_json = serde_json::to_string(&vector).unwrap_or_default();
             let rows = stmt
-                .query_map(params![vector_json, i64::try_from(limit).unwrap_or(10)], |row| {
-                    let item_id: String = row.get(0)?;
-                    let score: f64 = row.get(1)?;
-                    let val = serde_json::json!({
-                        "item_id": item_id,
-                        "score": score,
-                    });
-                    Ok(val)
-                })
+                .query_map(
+                    params![vector_json, i64::try_from(limit).unwrap_or(10)],
+                    |row| {
+                        let item_id: String = row.get(0)?;
+                        let score: f64 = row.get(1)?;
+                        let val = serde_json::json!({
+                            "item_id": item_id,
+                            "score": score,
+                        });
+                        Ok(val)
+                    },
+                )
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let results: std::result::Result<Vec<serde_json::Value>, duckdb::Error> =

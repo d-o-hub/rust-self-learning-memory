@@ -67,7 +67,6 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-120 | Add reconstructive retrieval windows around top-k hits (E-mem-inspired) | ✅ Complete | 120 |
 | WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | ✅ Complete | 121 |
 | WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | ✅ Complete | 122 |
-| WG-149 | CloudEvents EventEmitter Integration (ADR-054) | 🔵 Planned | 149 |
 
 ### P3: Backlog (Future Sprints)
 

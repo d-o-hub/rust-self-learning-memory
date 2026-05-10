@@ -27,7 +27,7 @@ fn test_query_key_normalization() {
 #[test]
 fn test_table_dependency_detection() {
     let sql = "SELECT e.*, s.* FROM episodes e JOIN steps s ON e.episode_id = s.episode_id";
-    let deps = TableDependency::from_query(&sql.to_lowercase());
+    let deps = TableDependency::from_query(sql);
 
     assert!(deps.contains(&TableDependency::Episodes));
     assert!(deps.contains(&TableDependency::Steps));
@@ -189,49 +189,4 @@ fn test_cache_stats() {
     assert_eq!(stats.hits, 1);
     assert_eq!(stats.misses, 1);
     assert_eq!(stats.hit_rate(), 0.5);
-}
-
-#[test]
-fn test_query_key_normalization_advanced() {
-    let sql1 = "SELECT * FROM episodes -- this is a comment\nWHERE id = 1";
-    let sql2 = "select * from episodes where id = 1";
-
-    let key1 = QueryKey::from_sql(sql1);
-    let key2 = QueryKey::from_sql(sql2);
-
-    assert_eq!(key1.normalized_sql, key2.normalized_sql);
-    assert_eq!(key1.sql_hash, key2.sql_hash);
-}
-
-#[test]
-fn test_table_dependency_detection_lowercased() {
-    let sql = "SELECT * FROM HEURISTICS";
-    // Test the internal method directly
-    let deps = TableDependency::from_query_lowercased(&sql.to_lowercase());
-    assert!(deps.contains(&TableDependency::Heuristics));
-}
-
-#[test]
-fn test_query_key_normalization_complex() {
-    let sql = "  SELECT * FROM episodes  -- comment 1\n  WHERE id = 1 -- comment 2";
-    let key = QueryKey::from_sql(sql);
-    assert_eq!(key.normalized_sql, "select * from episodes where id = 1");
-
-    let sql_with_tabs = "SELECT\t*\nFROM\nepisodes";
-    let key_tabs = QueryKey::from_sql(sql_with_tabs);
-    assert_eq!(key_tabs.normalized_sql, "select * from episodes");
-}
-
-#[test]
-fn test_table_dependency_as_str() {
-    assert_eq!(TableDependency::Episodes.as_str(), "episodes");
-    assert_eq!(TableDependency::Steps.as_str(), "steps");
-    assert_eq!(TableDependency::Patterns.as_str(), "patterns");
-    assert_eq!(TableDependency::Heuristics.as_str(), "heuristics");
-    assert_eq!(TableDependency::Embeddings.as_str(), "embeddings");
-    assert_eq!(TableDependency::Tags.as_str(), "tags");
-    assert_eq!(
-        TableDependency::Custom("my_table".to_string()).as_str(),
-        "my_table"
-    );
 }

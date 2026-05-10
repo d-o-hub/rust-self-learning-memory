@@ -112,7 +112,7 @@ async fn test_all_advertised_tools_are_dispatchable() {
         eprintln!("\n=== TOOL CONTRACT PARITY FAILURE ===");
         eprintln!("The following tools are advertised but have no dispatch handlers:");
         for name in &missing_handlers {
-            eprintln!("  - {}", name);
+            eprintln!("  - {name}");
         }
         eprintln!("\nThis means clients can see these tools in tools/list but");
         eprintln!("will get 'Tool not found' error when calling tools/call.");
@@ -124,8 +124,7 @@ async fn test_all_advertised_tools_are_dispatchable() {
 
     assert!(
         missing_handlers.is_empty(),
-        "Tools advertised but not dispatchable: {:?}",
-        missing_handlers
+        "Tools advertised but not dispatchable: {missing_handlers:?}"
     );
 }
 
@@ -162,7 +161,7 @@ async fn test_dispatch_table_covers_advertised_tools() {
         // This is not necessarily an error - some tools may be conditionally advertised
         println!("\nInfo: Some dispatchable tools are not currently advertised:");
         for name in &not_advertised {
-            println!("  - {}", name);
+            println!("  - {name}");
         }
     }
 
@@ -208,7 +207,7 @@ async fn test_unimplemented_batch_tools_not_advertised() {
         eprintln!("\n=== UNIMPLEMENTED TOOLS INCORRECTLY ADVERTISED ===");
         eprintln!("The following tools are advertised but have no implementation:");
         for name in &incorrectly_advertised {
-            eprintln!("  - {}", name);
+            eprintln!("  - {name}");
         }
         eprintln!("\nThese tools are intentionally deferred in WG-053.");
         eprintln!("\nTo re-enable these tools:");
@@ -220,8 +219,7 @@ async fn test_unimplemented_batch_tools_not_advertised() {
 
     assert!(
         incorrectly_advertised.is_empty(),
-        "Unimplemented tools should not be advertised: {:?}",
-        incorrectly_advertised
+        "Unimplemented tools should not be advertised: {incorrectly_advertised:?}"
     );
 }
 
@@ -291,8 +289,7 @@ async fn test_core_tools_always_available() {
     for tool in &core_tools {
         assert!(
             advertised_names.contains(tool),
-            "Core tool '{}' should always be advertised",
-            tool
+            "Core tool '{tool}' should always be advertised"
         );
     }
 }

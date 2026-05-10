@@ -207,16 +207,14 @@ async fn test_vector_search_across_dimensions() {
 
         assert!(
             !results.is_empty(),
-            "Should find similar episodes for {} dimension",
-            dim
+            "Should find similar episodes for {dim} dimension"
         );
 
         // The most similar should be the episode itself (if threshold allows)
         let found = results.iter().any(|(id, _)| *id == episode.episode_id);
         assert!(
             found,
-            "Should find the episode we just created for {} dimension",
-            dim
+            "Should find the episode we just created for {dim} dimension"
         );
     }
 }

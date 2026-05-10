@@ -76,7 +76,7 @@ async fn complete_episode_with_steps(
     for (i, (tool, action)) in steps.iter().enumerate() {
         let mut step = ExecutionStep::new(i + 1, tool.to_string(), action.to_string());
         step.result = Some(ExecutionResult::Success {
-            output: format!("{} completed", action),
+            output: format!("{action} completed"),
         });
         memory.log_step(episode_id, step).await;
     }
@@ -358,7 +358,7 @@ async fn test_batch_episode_operations() {
     // Create multiple episodes
     let mut episode_ids = Vec::new();
     for i in 0..5 {
-        let id = create_test_episode(&memory, &format!("Batch episode {}", i), "batch-test").await;
+        let id = create_test_episode(&memory, &format!("Batch episode {i}"), "batch-test").await;
         complete_episode_with_steps(&memory, id, &[("tool", "action")]).await;
         episode_ids.push(id);
     }

@@ -106,6 +106,26 @@ impl SelfLearningMemory {
         // Mark episode as complete
         episode.complete(outcome.clone());
 
+        // Emit TaskCompleted event (ADR-054)
+        let emitter = Arc::clone(&self.event_emitter);
+        let task_id = episode_id.to_string();
+        let duration_ms = episode
+            .end_time
+            .map(|end| (end - episode.start_time).num_milliseconds())
+            .unwrap_or(0) as u64;
+        let success = matches!(outcome, TaskOutcome::Success { .. });
+        let emitter_clone = Arc::clone(&emitter);
+        tokio::spawn(async move {
+            let _ = emitter_clone
+                .emit(crate::types::event::MemoryEvent::TaskCompleted {
+                    task_id,
+                    duration_ms,
+                    success,
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
+        });
+
         // Validate total episode size before processing
         super::validation::validate_episode_size(&episode)?;
 
@@ -162,6 +182,25 @@ impl SelfLearningMemory {
         let reward = self.reward_calculator.calculate(&episode);
         episode.reward = Some(reward.clone());
 
+        // Emit RewardScored event (ADR-054)
+        let emitter_reward = Arc::clone(&emitter);
+        let task_id_reward = episode_id.to_string();
+        let score = f64::from(reward.total);
+        let reason = format!(
+            "Base: {:.2}, Efficiency: {:.2}, Complexity: {:.2}",
+            reward.base, reward.efficiency, reward.complexity_bonus
+        );
+        tokio::spawn(async move {
+            let _ = emitter_reward
+                .emit(crate::types::event::MemoryEvent::RewardScored {
+                    task_id: task_id_reward,
+                    score,
+                    reason,
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
+        });
+
         info!(
             episode_id = %episode_id,
             reward_total = reward.total,
@@ -173,6 +212,19 @@ impl SelfLearningMemory {
         // Generate reflection
         let reflection = self.reflection_generator.generate(&episode);
         episode.reflection = Some(reflection.clone());
+
+        // Emit ReflectionUpdated event (ADR-054)
+        let emitter_reflection = Arc::clone(&emitter);
+        let episode_id_reflection = episode_id.to_string();
+        tokio::spawn(async move {
+            let _ = emitter_reflection
+                .emit(crate::types::event::MemoryEvent::ReflectionUpdated {
+                    episode_id: episode_id_reflection,
+                    reflection_type: "improvement".to_string(),
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
+        });
 
         debug!(
             successes = reflection.successes.len(),

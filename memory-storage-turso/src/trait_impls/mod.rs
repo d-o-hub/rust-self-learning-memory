@@ -156,6 +156,14 @@ impl StorageBackend for super::TursoStorage {
     async fn get_recommendation_stats(&self) -> Result<RecommendationStats> {
         super::TursoStorage::get_recommendation_stats(self).await
     }
+
+    fn set_event_emitter(
+        &self,
+        emitter: std::sync::Arc<dyn do_memory_core::types::event::EventEmitter>,
+    ) {
+        let mut lock = self.event_emitter.write();
+        *lock = Some(emitter);
+    }
 }
 
 /// Implement the MonitoringStorageBackend trait for TursoStorage

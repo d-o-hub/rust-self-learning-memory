@@ -114,6 +114,18 @@ impl QueryKey {
 
         let mut chars = sql.chars().peekable();
         while let Some(ch) = chars.next() {
+            if in_comment {
+                if ch == '\n' {
+                    in_comment = false;
+                    // Treat comment end (newline) as whitespace for separation
+                    if !last_was_whitespace {
+                        result.push(' ');
+                        last_was_whitespace = true;
+                    }
+                }
+                continue;
+            }
+
             // Check for comment start "--"
             if ch == '-' && chars.peek() == Some(&'-') {
                 in_comment = true;
@@ -121,22 +133,14 @@ impl QueryKey {
                 continue;
             }
 
-            // Check for comment end
-            if ch == '\n' {
-                in_comment = false;
-                continue;
-            }
-
-            if !in_comment {
-                if ch.is_whitespace() {
-                    if !last_was_whitespace {
-                        result.push(' ');
-                        last_was_whitespace = true;
-                    }
-                } else {
-                    result.push(ch.to_ascii_lowercase());
-                    last_was_whitespace = false;
+            if ch.is_whitespace() {
+                if !last_was_whitespace {
+                    result.push(' ');
+                    last_was_whitespace = true;
                 }
+            } else {
+                result.push(ch.to_ascii_lowercase());
+                last_was_whitespace = false;
             }
         }
 

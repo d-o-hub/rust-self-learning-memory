@@ -1,6 +1,6 @@
-//! # Memory Storage - DuckDB
+//! # Memory Storage - `DuckDB`
 //!
-//! DuckDB storage backend for episodic memory.
+//! `DuckDB` storage backend for episodic memory.
 
 use do_memory_core::{Error, Result};
 use duckdb::Connection;
@@ -9,13 +9,16 @@ use std::path::Path;
 use std::sync::Arc;
 use tracing::info;
 
+/// Schema definitions for `DuckDB`.
 pub mod schema;
+/// Storage implementation for `DuckDB`.
 pub mod storage;
+/// Trait implementations for `DuckDB`.
 pub mod trait_impls;
 
-/// DuckDB storage backend
+/// `DuckDB` storage backend.
 pub struct DuckDbStorage {
-    /// Shared connection pool (simplified to Arc<Mutex<Connection>> as DuckDB is embedded)
+    /// Shared connection pool (simplified to Arc<Mutex<Connection>> as `DuckDB` is embedded).
     pub(crate) conn: Arc<Mutex<Connection>>,
     /// Pluggable event emitter for standardized lifecycle notifications
     pub(crate) event_emitter:
@@ -23,21 +26,25 @@ pub struct DuckDbStorage {
 }
 
 impl DuckDbStorage {
-    /// Create a new DuckDB storage instance
+    /// Create a new `DuckDB` storage instance.
     ///
     /// # Arguments
     ///
-    /// * `path` - Path to the DuckDB database file
+    /// * `path` - Path to the `DuckDB` database file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database cannot be opened or initialized.
     pub async fn new(path: &Path) -> Result<Self> {
         info!("Opening DuckDB database at {}", path.display());
 
         let path_buf = path.to_path_buf();
         let conn = tokio::task::spawn_blocking(move || {
             Connection::open(&path_buf)
-                .map_err(|e| Error::Storage(format!("Failed to open DuckDB: {}", e)))
+                .map_err(|e| Error::Storage(format!("Failed to open DuckDB: {e}")))
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))??;
+        .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
 
         let storage = Self {
             conn: Arc::new(Mutex::new(conn)),
@@ -47,11 +54,18 @@ impl DuckDbStorage {
         // Initialize schema
         storage.initialize_schema().await?;
 
+        // Load extensions
+        storage.load_vss_extension().await?;
+
         info!("Successfully opened DuckDB database and initialized schema");
         Ok(storage)
     }
 
-    /// Initialize the database schema
+    /// Initialize the database schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any schema creation statement fails.
     pub async fn initialize_schema(&self) -> Result<()> {
         let conn_arc = Arc::clone(&self.conn);
         tokio::task::spawn_blocking(move || {
@@ -74,11 +88,11 @@ impl DuckDbStorage {
             Ok(())
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
-        .map_err(|e: duckdb::Error| Error::Storage(format!("Failed to initialize schema: {}", e)))
+        .map_err(|e| Error::Storage(format!("Task join error: {e}")))?
+        .map_err(|e: duckdb::Error| Error::Storage(format!("Failed to initialize schema: {e}")))
     }
 
-    /// Emit a standardized event if an emitter is configured
+    /// Emit a standardized event if an emitter is configured.
     pub(crate) async fn emit_event(&self, event: do_memory_core::types::event::MemoryEvent) {
         let emitter = {
             let lock = self.event_emitter.read();

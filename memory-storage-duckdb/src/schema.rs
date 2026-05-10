@@ -1,7 +1,7 @@
 //! DuckDB schema definitions for episodic memory storage.
 
 /// SQL to create the episodes table.
-pub const CREATE_EPISODES_TABLE: &str = r#"
+pub const CREATE_EPISODES_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS episodes (
     episode_id UUID PRIMARY KEY,
     task_type VARCHAR NOT NULL,
@@ -22,10 +22,10 @@ CREATE TABLE IF NOT EXISTS episodes (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     archived_at TIMESTAMP WITH TIME ZONE
 )
-"#;
+";
 
 /// SQL to create the patterns table.
-pub const CREATE_PATTERNS_TABLE: &str = r#"
+pub const CREATE_PATTERNS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS patterns (
     pattern_id VARCHAR PRIMARY KEY,
     pattern_type VARCHAR NOT NULL,
@@ -38,10 +38,10 @@ CREATE TABLE IF NOT EXISTS patterns (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
 /// SQL to create the heuristics table.
-pub const CREATE_HEURISTICS_TABLE: &str = r#"
+pub const CREATE_HEURISTICS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS heuristics (
     heuristic_id UUID PRIMARY KEY,
     condition_text TEXT NOT NULL,
@@ -51,28 +51,28 @@ CREATE TABLE IF NOT EXISTS heuristics (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
 /// SQL to create recommendation sessions table.
-pub const CREATE_RECOMMENDATION_SESSIONS_TABLE: &str = r#"
+pub const CREATE_RECOMMENDATION_SESSIONS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS recommendation_sessions (
     session_id UUID PRIMARY KEY,
     episode_id UUID NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     payload JSON NOT NULL
 )
-"#;
+";
 
 /// SQL to create recommendation feedback table.
-pub const CREATE_RECOMMENDATION_FEEDBACK_TABLE: &str = r#"
+pub const CREATE_RECOMMENDATION_FEEDBACK_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS recommendation_feedback (
     session_id UUID PRIMARY KEY,
     payload JSON NOT NULL
 )
-"#;
+";
 
 /// SQL to create the embeddings table with native vector support.
-pub const CREATE_EMBEDDINGS_TABLE: &str = r#"
+pub const CREATE_EMBEDDINGS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS embeddings (
     embedding_id VARCHAR PRIMARY KEY,
     item_id VARCHAR NOT NULL,
@@ -83,10 +83,10 @@ CREATE TABLE IF NOT EXISTS embeddings (
     model VARCHAR NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
-/// SQL to create the episode_relationships table.
-pub const CREATE_EPISODE_RELATIONSHIPS_TABLE: &str = r#"
+/// SQL to create the `episode_relationships` table.
+pub const CREATE_EPISODE_RELATIONSHIPS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS episode_relationships (
     relationship_id UUID PRIMARY KEY,
     from_episode_id UUID NOT NULL,
@@ -98,12 +98,13 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
     metadata JSON NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
-/// SQL to create the execution_records table for monitoring.
-pub const CREATE_EXECUTION_RECORDS_TABLE: &str = r#"
+/// SQL to create the `execution_records` table for monitoring.
+pub const CREATE_EXECUTION_RECORDS_TABLE: &str = r"
+CREATE SEQUENCE IF NOT EXISTS seq_execution_records_id;
 CREATE TABLE IF NOT EXISTS execution_records (
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY DEFAULT nextval('seq_execution_records_id'),
     agent_name VARCHAR NOT NULL,
     agent_type VARCHAR NOT NULL,
     success BOOLEAN NOT NULL,
@@ -113,10 +114,10 @@ CREATE TABLE IF NOT EXISTS execution_records (
     error_message TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
-/// SQL to create the agent_metrics table for monitoring.
-pub const CREATE_AGENT_METRICS_TABLE: &str = r#"
+/// SQL to create the `agent_metrics` table for monitoring.
+pub const CREATE_AGENT_METRICS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS agent_metrics (
     agent_name VARCHAR PRIMARY KEY,
     agent_type VARCHAR NOT NULL,
@@ -132,10 +133,10 @@ CREATE TABLE IF NOT EXISTS agent_metrics (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
-/// SQL to create the task_metrics table for monitoring.
-pub const CREATE_TASK_METRICS_TABLE: &str = r#"
+/// SQL to create the `task_metrics` table for monitoring.
+pub const CREATE_TASK_METRICS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS task_metrics (
     task_type VARCHAR PRIMARY KEY,
     total_tasks BIGINT NOT NULL DEFAULT 0,
@@ -145,10 +146,10 @@ CREATE TABLE IF NOT EXISTS task_metrics (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
-/// SQL to create the episode_summaries table.
-pub const CREATE_EPISODE_SUMMARIES_TABLE: &str = r#"
+/// SQL to create the `episode_summaries` table.
+pub const CREATE_EPISODE_SUMMARIES_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS episode_summaries (
     episode_id UUID PRIMARY KEY,
     summary_text TEXT NOT NULL,
@@ -157,14 +158,14 @@ CREATE TABLE IF NOT EXISTS episode_summaries (
     summary_embedding FLOAT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
-"#;
+";
 
-/// SQL to create the episode_tags table.
-pub const CREATE_EPISODE_TAGS_TABLE: &str = r#"
+/// SQL to create the `episode_tags` table.
+pub const CREATE_EPISODE_TAGS_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS episode_tags (
     episode_id UUID NOT NULL,
     tag VARCHAR NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (episode_id, tag)
 )
-"#;
+";

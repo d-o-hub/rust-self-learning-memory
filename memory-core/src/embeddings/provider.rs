@@ -279,3 +279,28 @@ mod tests {
         assert!(utils::validate_dimension(&embedding, 4).is_err());
     }
 }
+
+#[cfg(test)]
+mod tests_extra {
+    use super::utils::*;
+
+    #[test]
+    fn test_average_embeddings_errors() {
+        // Empty list
+        let result = average_embeddings(&[]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Cannot average empty embeddings list"
+        );
+
+        // Inconsistent dimensions
+        let embeddings = vec![vec![1.0, 2.0], vec![1.0, 2.0, 3.0]];
+        let result = average_embeddings(&embeddings);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Inconsistent embedding dimensions"
+        );
+    }
+}

@@ -34,13 +34,8 @@ impl TableDependency {
         }
     }
 
-    /// Detect table dependencies from a query string.
     pub fn from_query(sql: &str) -> Vec<Self> {
-        Self::from_query_lowercased(&sql.to_lowercase())
-    }
-
-    /// Internal helper for dependency detection on already lowercased strings.
-    pub(crate) fn from_query_lowercased(sql_lower: &str) -> Vec<Self> {
+        let sql_lower = sql.to_lowercase();
         let mut tables = Vec::new();
 
         if sql_lower.contains("from episodes") || sql_lower.contains("join episodes") {
@@ -71,8 +66,6 @@ pub struct QueryKey {
     pub sql_hash: u64,
     pub param_hashes: Vec<u64>,
     pub query_type: QueryType,
-    /// Normalized SQL string (used for dependency detection)
-    pub normalized_sql: String,
 }
 
 impl QueryKey {
@@ -91,7 +84,6 @@ impl QueryKey {
             sql_hash,
             param_hashes,
             query_type,
-            normalized_sql: normalized,
         }
     }
 
@@ -99,52 +91,26 @@ impl QueryKey {
         Self::new(sql, &[])
     }
 
-    /// Normalize SQL for consistent hashing and type detection.
-    ///
-    /// Performs:
-    /// 1. Comment removal (line-based starting with --)
-    /// 2. Lowercasing
-    /// 3. Whitespace normalization (collapsing multiple spaces and trimming)
-    ///
-    /// Optimization: Performs all operations in a single pass to minimize allocations.
     fn normalize_sql(sql: &str) -> String {
         let mut result = String::with_capacity(sql.len());
         let mut in_comment = false;
-        let mut last_was_whitespace = true; // Initial true handles leading trim
+        let mut prev_char = ' ';
 
-        let mut chars = sql.chars().peekable();
-        while let Some(ch) = chars.next() {
-            // Check for comment start "--"
-            if ch == '-' && chars.peek() == Some(&'-') {
+        for ch in sql.chars() {
+            if ch == '-' && prev_char == '-' {
                 in_comment = true;
-                chars.next(); // Consume second '-'
-                continue;
             }
-
-            // Check for comment end
             if ch == '\n' {
                 in_comment = false;
-                continue;
             }
 
             if !in_comment {
-                if ch.is_whitespace() {
-                    if !last_was_whitespace {
-                        result.push(' ');
-                        last_was_whitespace = true;
-                    }
-                } else {
-                    result.push(ch.to_ascii_lowercase());
-                    last_was_whitespace = false;
-                }
+                result.push(ch.to_ascii_lowercase());
             }
+            prev_char = ch;
         }
 
-        // Final trim of trailing whitespace
-        if result.ends_with(' ') {
-            result.pop();
-        }
-        result
+        result.split_whitespace().collect::<Vec<_>>().join(" ")
     }
 
     fn hash_string(s: &str) -> u64 {
@@ -166,11 +132,9 @@ pub enum QueryType {
 }
 
 impl QueryType {
-    /// Detect query type from SQL.
-    ///
-    /// Performance: This function expects a lowercased SQL string to avoid
-    /// redundant allocations.
-    fn from_sql(sql_lower: &str) -> Self {
+    fn from_sql(sql: &str) -> Self {
+        let sql_lower = sql.to_lowercase();
+
         if sql_lower.contains("episode") {
             Self::Episode
         } else if sql_lower.contains("pattern") {

@@ -326,7 +326,7 @@ async fn test_search_large_limit() {
     for i in 0..5 {
         let episode_id = memory
             .start_episode(
-                format!("Episode {}", i),
+                format!("Episode {i}"),
                 TaskContext::default(),
                 TaskType::Testing,
             )

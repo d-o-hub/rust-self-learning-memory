@@ -11,6 +11,10 @@ impl DuckDbStorage {
     ) -> Result<()> {
         let conn_arc = Arc::clone(&self.conn);
         let record = record.clone();
+        let duration_ms = i64::try_from(record.duration.as_millis()).map_err(|e| {
+            Error::Storage(format!("Duration overflow for execution record: {e}"))
+        })?;
+
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             conn.execute(
@@ -21,7 +25,7 @@ impl DuckDbStorage {
                     record.agent_name,
                     record.agent_type.to_string(),
                     record.success,
-                    i64::try_from(record.duration.as_millis()).unwrap_or(0),
+                    duration_ms,
                     record.started_at.to_rfc3339(),
                     record.task_description,
                     record.error_message,
@@ -41,6 +45,32 @@ impl DuckDbStorage {
     ) -> Result<()> {
         let conn_arc = Arc::clone(&self.conn);
         let metrics = metrics.clone();
+
+        let total_executions = i64::try_from(metrics.total_executions).map_err(|e| {
+            Error::Storage(format!("total_executions overflow: {e}"))
+        })?;
+        let successful_executions = i64::try_from(metrics.successful_executions).map_err(|e| {
+            Error::Storage(format!("successful_executions overflow: {e}"))
+        })?;
+        let total_duration_ms = i64::try_from(metrics.total_duration.as_millis()).map_err(|e| {
+            Error::Storage(format!("total_duration overflow: {e}"))
+        })?;
+        let avg_duration_ms = i64::try_from(metrics.avg_duration.as_millis()).map_err(|e| {
+            Error::Storage(format!("avg_duration overflow: {e}"))
+        })?;
+        let min_duration_ms = i64::try_from(metrics.min_duration.as_millis()).map_err(|e| {
+            Error::Storage(format!("min_duration overflow: {e}"))
+        })?;
+        let max_duration_ms = i64::try_from(metrics.max_duration.as_millis()).map_err(|e| {
+            Error::Storage(format!("max_duration overflow: {e}"))
+        })?;
+        let current_streak = i32::try_from(metrics.current_streak).map_err(|e| {
+            Error::Storage(format!("current_streak overflow: {e}"))
+        })?;
+        let longest_streak = i32::try_from(metrics.longest_streak).map_err(|e| {
+            Error::Storage(format!("longest_streak overflow: {e}"))
+        })?;
+
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             conn.execute(
@@ -52,15 +82,15 @@ impl DuckDbStorage {
                 params![
                     metrics.agent_name,
                     metrics.agent_type.to_string(),
-                    i64::try_from(metrics.total_executions).unwrap_or(0),
-                    i64::try_from(metrics.successful_executions).unwrap_or(0),
-                    i64::try_from(metrics.total_duration.as_millis()).unwrap_or(0),
-                    i64::try_from(metrics.avg_duration.as_millis()).unwrap_or(0),
-                    i64::try_from(metrics.min_duration.as_millis()).unwrap_or(0),
-                    i64::try_from(metrics.max_duration.as_millis()).unwrap_or(0),
+                    total_executions,
+                    successful_executions,
+                    total_duration_ms,
+                    avg_duration_ms,
+                    min_duration_ms,
+                    max_duration_ms,
                     metrics.last_execution.map(|t| t.to_rfc3339()),
-                    i32::try_from(metrics.current_streak).unwrap_or(0),
-                    i32::try_from(metrics.longest_streak).unwrap_or(0),
+                    current_streak,
+                    longest_streak,
                 ],
             )
             .map_err(|e| Error::Storage(format!("Failed to store agent metrics: {e}")))?;
@@ -77,6 +107,17 @@ impl DuckDbStorage {
     ) -> Result<()> {
         let conn_arc = Arc::clone(&self.conn);
         let metrics = metrics.clone();
+
+        let total_tasks = i64::try_from(metrics.total_tasks).map_err(|e| {
+            Error::Storage(format!("total_tasks overflow: {e}"))
+        })?;
+        let completed_tasks = i64::try_from(metrics.completed_tasks).map_err(|e| {
+            Error::Storage(format!("completed_tasks overflow: {e}"))
+        })?;
+        let avg_completion_time_ms = i64::try_from(metrics.avg_completion_time.as_millis()).map_err(|e| {
+            Error::Storage(format!("avg_completion_time overflow: {e}"))
+        })?;
+
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let success_rates_json = serde_json::to_string(&metrics.agent_success_rates)
@@ -89,9 +130,9 @@ impl DuckDbStorage {
                 ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                 params![
                     metrics.task_type,
-                    i64::try_from(metrics.total_tasks).unwrap_or(0),
-                    i64::try_from(metrics.completed_tasks).unwrap_or(0),
-                    i64::try_from(metrics.avg_completion_time.as_millis()).unwrap_or(0),
+                    total_tasks,
+                    completed_tasks,
+                    avg_completion_time_ms,
                     success_rates_json,
                 ],
             )
@@ -148,23 +189,23 @@ impl DuckDbStorage {
                 let metrics = do_memory_core::monitoring::types::AgentMetrics {
                     agent_name,
                     agent_type,
-                    total_executions: u64::try_from(total_executions).unwrap_or(0),
-                    successful_executions: u64::try_from(successful_executions).unwrap_or(0),
+                    total_executions: u64::try_from(total_executions).map_err(|e| Error::Storage(format!("total_executions conversion: {e}")))?,
+                    successful_executions: u64::try_from(successful_executions).map_err(|e| Error::Storage(format!("successful_executions conversion: {e}")))?,
                     total_duration: std::time::Duration::from_millis(
-                        u64::try_from(total_duration_ms).unwrap_or(0),
+                        u64::try_from(total_duration_ms).map_err(|e| Error::Storage(format!("total_duration conversion: {e}")))?
                     ),
                     avg_duration: if total_executions > 0 {
                         std::time::Duration::from_millis(
-                            u64::try_from(total_duration_ms / total_executions).unwrap_or(0),
+                            u64::try_from(total_duration_ms / total_executions).map_err(|e| Error::Storage(format!("avg_duration conversion: {e}")))?
                         )
                     } else {
                         std::time::Duration::ZERO
                     },
                     min_duration: std::time::Duration::from_millis(
-                        u64::try_from(min_duration_ms).unwrap_or(0),
+                        u64::try_from(min_duration_ms).map_err(|e| Error::Storage(format!("min_duration conversion: {e}")))?
                     ),
                     max_duration: std::time::Duration::from_millis(
-                        u64::try_from(max_duration_ms).unwrap_or(0),
+                        u64::try_from(max_duration_ms).map_err(|e| Error::Storage(format!("max_duration conversion: {e}")))?
                     ),
                     last_execution: last_execution_str
                         .map(|s| {
@@ -174,8 +215,8 @@ impl DuckDbStorage {
                                 .map_err(|e| Error::Storage(format!("last_execution parse: {e}")))
                         })
                         .transpose()?,
-                    current_streak: u32::try_from(current_streak).unwrap_or(0),
-                    longest_streak: u32::try_from(longest_streak).unwrap_or(0),
+                    current_streak: u32::try_from(current_streak).map_err(|e| Error::Storage(format!("current_streak conversion: {e}")))?,
+                    longest_streak: u32::try_from(longest_streak).map_err(|e| Error::Storage(format!("longest_streak conversion: {e}")))?,
                 };
                 Ok::<Option<do_memory_core::monitoring::types::AgentMetrics>, Error>(Some(metrics))
             } else {
@@ -194,6 +235,8 @@ impl DuckDbStorage {
     ) -> Result<Vec<do_memory_core::monitoring::types::ExecutionRecord>> {
         let conn_arc = Arc::clone(&self.conn);
         let agent_name = agent_name.map(std::string::ToString::to_string);
+        let limit_i64 = i64::try_from(limit).unwrap_or(1000);
+
         let res = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut query = "SELECT agent_name, agent_type, success, duration_ms,
@@ -210,10 +253,10 @@ impl DuckDbStorage {
                 .prepare(&query)
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
-            let mut rows = if let Some(name) = agent_name {
-                stmt.query(params![name, i64::try_from(limit).unwrap_or(1000)])
+            let mut rows = if let Some(ref name) = agent_name {
+                stmt.query(params![name, limit_i64])
             } else {
-                stmt.query(params![i64::try_from(limit).unwrap_or(1000)])
+                stmt.query(params![limit_i64])
             }
             .map_err(|e| Error::Storage(e.to_string()))?;
 
@@ -243,7 +286,7 @@ impl DuckDbStorage {
                     agent_type,
                     success,
                     duration: std::time::Duration::from_millis(
-                        u64::try_from(duration_ms).unwrap_or(0),
+                        u64::try_from(duration_ms).map_err(|e| Error::Storage(format!("duration conversion: {e}")))?
                     ),
                     started_at,
                     task_description,
@@ -288,10 +331,10 @@ impl DuckDbStorage {
 
                 let metrics = do_memory_core::monitoring::types::TaskMetrics {
                     task_type,
-                    total_tasks: u64::try_from(total_tasks).unwrap_or(0),
-                    completed_tasks: u64::try_from(completed_tasks).unwrap_or(0),
+                    total_tasks: u64::try_from(total_tasks).map_err(|e| Error::Storage(format!("total_tasks conversion: {e}")))?,
+                    completed_tasks: u64::try_from(completed_tasks).map_err(|e| Error::Storage(format!("completed_tasks conversion: {e}")))?,
                     avg_completion_time: std::time::Duration::from_millis(
-                        u64::try_from(avg_completion_time_ms).unwrap_or(0),
+                        u64::try_from(avg_completion_time_ms).map_err(|e| Error::Storage(format!("avg_completion_time conversion: {e}")))?
                     ),
                     agent_success_rates: serde_json::from_str(&agent_success_rates_json)
                         .map_err(|e| Error::Storage(e.to_string()))?,

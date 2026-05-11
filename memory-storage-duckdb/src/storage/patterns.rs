@@ -1,5 +1,5 @@
 use crate::DuckDbStorage;
-use do_memory_core::types::learning::Pattern;
+use do_memory_core::Pattern;
 use do_memory_core::{Error, Result};
 use duckdb::params;
 use std::sync::Arc;
@@ -13,19 +13,36 @@ impl DuckDbStorage {
             let data_json = serde_json::to_string(&pattern)
                 .map_err(|e| Error::Storage(format!("Failed to serialize pattern: {e}")))?;
 
+            let pattern_type = match &pattern {
+                Pattern::ToolSequence { .. } => "tool_sequence",
+                Pattern::DecisionPoint { .. } => "decision_point",
+                Pattern::ErrorRecovery { .. } => "error_recovery",
+                Pattern::ContextPattern { .. } => "context_pattern",
+            };
+
+            let domain = pattern.context().map(|c| c.domain.as_str());
+            let language = pattern.context().and_then(|c| c.language.as_deref());
+
+            let sample_size = i64::try_from(pattern.sample_size()).map_err(|e| {
+                Error::Storage(format!(
+                    "Failed to convert sample size for pattern {}: {e}",
+                    pattern.id()
+                ))
+            })?;
+
             conn.execute(
                 "INSERT OR REPLACE INTO patterns (
                     pattern_id, pattern_type, pattern_data, success_rate,
                     context_domain, context_language, occurrence_count, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                 params![
-                    pattern.id,
-                    "generic", // Placeholder for now
+                    pattern.id().to_string(),
+                    pattern_type,
                     data_json,
-                    pattern.success_rate,
-                    pattern.metadata.get("domain").and_then(|v| v.as_str()),
-                    pattern.metadata.get("language").and_then(|v| v.as_str()),
-                    1, // Default occurrence count
+                    f64::from(pattern.success_rate()),
+                    domain,
+                    language,
+                    sample_size,
                 ],
             )
             .map_err(|e| Error::Storage(format!("Failed to store pattern: {e}")))?;
@@ -50,7 +67,10 @@ impl DuckDbStorage {
                 let data_json: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
                 let pattern: Pattern = serde_json::from_str(&data_json).map_err(|e| {
                     // Sanitize error: do not include data_json in the error message
-                    Error::Storage(format!("Failed to deserialize pattern: {e}"))
+                    Error::Storage(format!(
+                        "Failed to deserialize pattern (len={}): {e}",
+                        data_json.len()
+                    ))
                 })?;
                 patterns.push(pattern);
             }

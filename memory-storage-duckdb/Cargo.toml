@@ -9,7 +9,7 @@ description = "DuckDB storage backend for the episodic memory system"
 
 [dependencies]
 do-memory-core = { path = "../memory-core", version = "0.1.31" }
-duckdb = { version = "1.1.1", features = ["bundled", "chrono", "uuid", "serde_json"] }
+duckdb = { version = "1.1.1", features = ["chrono", "uuid", "serde_json"] }
 tokio = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }

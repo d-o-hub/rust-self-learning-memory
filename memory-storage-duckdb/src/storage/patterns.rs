@@ -53,6 +53,7 @@ impl DuckDbStorage {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub(crate) async fn load_patterns_internal(&self) -> Result<Vec<Pattern>> {
         let conn_arc = Arc::clone(&self.conn);
         let res = tokio::task::spawn_blocking(move || {
@@ -81,6 +82,33 @@ impl DuckDbStorage {
                 patterns.push(pattern);
             }
             Ok::<Vec<Pattern>, Error>(patterns)
+        })
+        .await
+        .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
+        Ok(res)
+    }
+
+    pub(crate) async fn get_pattern_internal(&self, id: uuid::Uuid) -> Result<Option<Pattern>> {
+        let conn_arc = Arc::clone(&self.conn);
+        let id_str = id.to_string();
+        let res = tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock();
+            let mut stmt = conn
+                .prepare("SELECT CAST(pattern_data AS VARCHAR) FROM patterns WHERE pattern_id = ?")
+                .map_err(|e| Error::Storage(e.to_string()))?;
+
+            let mut rows = stmt
+                .query(params![id_str])
+                .map_err(|e| Error::Storage(e.to_string()))?;
+
+            if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
+                let data_json: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let pattern: Pattern = serde_json::from_str(&data_json)
+                    .map_err(|e| Error::Storage(format!("Failed to deserialize pattern: {e}")))?;
+                Ok::<Option<Pattern>, Error>(Some(pattern))
+            } else {
+                Ok::<Option<Pattern>, Error>(None)
+            }
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;

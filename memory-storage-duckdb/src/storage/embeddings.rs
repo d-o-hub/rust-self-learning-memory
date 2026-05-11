@@ -26,13 +26,13 @@ impl DuckDbStorage {
             conn.execute(
                 "INSERT OR REPLACE INTO embeddings (
                     embedding_id, item_id, item_type, embedding_data, embedding_vector, dimension, model
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                ) VALUES (?, ?, ?, ?, CAST(? AS FLOAT[]), ?, ?)",
                 params![
                     format!("{}:{}", item_type, item_id),
                     item_id,
                     item_type,
                     "{}", // embedding_data placeholder
-                    embedding,
+                    embedding_json,
                     dimension,
                     "default", // model placeholder
                 ],
@@ -45,6 +45,7 @@ impl DuckDbStorage {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub(crate) async fn search_embeddings_internal(
         &self,
         query_embedding: &[f32],
@@ -58,9 +59,12 @@ impl DuckDbStorage {
 
             let res = tokio::task::spawn_blocking(move || {
                 let conn = conn_arc.lock();
+                let query_embedding_json = serde_json::to_string(&query_embedding)
+                    .map_err(|e| Error::Storage(format!("Serialization error: {e}")))?;
+
                 let mut stmt = conn
                     .prepare(
-                        "SELECT item_id, list_cosine_similarity(embedding_vector, ?::FLOAT[]) as score
+                        "SELECT item_id, list_cosine_similarity(embedding_vector, CAST(? AS FLOAT[])) as score
                          FROM embeddings
                          ORDER BY score DESC
                          LIMIT ?",
@@ -68,7 +72,7 @@ impl DuckDbStorage {
                     .map_err(|e| Error::Storage(e.to_string()))?;
 
                 let mut rows = stmt
-                    .query(params![query_embedding, limit])
+                    .query(params![query_embedding_json, limit])
                     .map_err(|e| Error::Storage(e.to_string()))?;
 
                 let mut results = Vec::new();
@@ -92,13 +96,15 @@ impl DuckDbStorage {
         }
     }
 
-    pub(crate) async fn get_embeddings_internal(&self, item_id: &str) -> Result<Option<Vec<f32>>> {
+    pub(crate) async fn get_embedding_internal(&self, item_id: &str) -> Result<Option<Vec<f32>>> {
         let conn_arc = Arc::clone(&self.conn);
         let item_id = item_id.to_string();
         let res = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut stmt = conn
-                .prepare("SELECT embedding_vector FROM embeddings WHERE item_id = ?")
+                .prepare(
+                    "SELECT CAST(embedding_vector AS VARCHAR) FROM embeddings WHERE item_id = ?",
+                )
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let mut rows = stmt
@@ -106,7 +112,9 @@ impl DuckDbStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
-                let embedding: Vec<f32> = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let vector_json: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                let embedding: Vec<f32> = serde_json::from_str(&vector_json)
+                    .map_err(|e| Error::Storage(format!("Failed to deserialize embedding: {e}")))?;
                 Ok::<Option<Vec<f32>>, Error>(Some(embedding))
             } else {
                 Ok::<Option<Vec<f32>>, Error>(None)
@@ -115,5 +123,42 @@ impl DuckDbStorage {
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
         Ok(res)
+    }
+
+    pub(crate) async fn delete_embedding_internal(&self, item_id: &str) -> Result<bool> {
+        let conn_arc = Arc::clone(&self.conn);
+        let item_id = item_id.to_string();
+        let res = tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock();
+            let rows_affected = conn
+                .execute("DELETE FROM embeddings WHERE item_id = ?", params![item_id])
+                .map_err(|e| Error::Storage(e.to_string()))?;
+            Ok::<bool, Error>(rows_affected > 0)
+        })
+        .await
+        .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
+        Ok(res)
+    }
+
+    pub(crate) async fn store_embeddings_batch_internal(
+        &self,
+        embeddings: Vec<(String, Vec<f32>)>,
+    ) -> Result<()> {
+        for (item_id, embedding) in embeddings {
+            self.store_embedding_internal(&item_id, "embedding", &embedding)
+                .await?;
+        }
+        Ok(())
+    }
+
+    pub(crate) async fn get_embeddings_batch_internal(
+        &self,
+        ids: &[String],
+    ) -> Result<Vec<Option<Vec<f32>>>> {
+        let mut results = Vec::with_capacity(ids.len());
+        for id in ids {
+            results.push(self.get_embedding_internal(id).await?);
+        }
+        Ok(results)
     }
 }

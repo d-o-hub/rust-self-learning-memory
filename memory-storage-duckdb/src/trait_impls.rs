@@ -53,7 +53,8 @@ impl StorageBackend for crate::DuckDbStorage {
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        self.store_embedding_internal(id, embedding).await
+        self.store_embedding_internal(id, "embedding", &embedding)
+            .await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {

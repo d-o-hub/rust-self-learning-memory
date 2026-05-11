@@ -148,8 +148,7 @@ mod csm_tests {
         retriever.add_episode("ep-5", "fix memory leak in cache implementation");
 
         // Semantic-like query (similar words but not exact match)
-        let result = retriever
-            .retrieve("user authentication and login security")?;
+        let result = retriever.retrieve("user authentication and login security")?;
 
         // Should find related episodes
         assert!(!result.episode_ids.is_empty());

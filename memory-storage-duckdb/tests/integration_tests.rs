@@ -25,7 +25,9 @@ async fn test_duckdb_monitoring_storage() -> Result<()> {
     };
 
     storage.store_execution_record(&record).await?;
-    let records = storage.load_execution_records(Some("test-agent"), 10).await?;
+    let records = storage
+        .load_execution_records(Some("test-agent"), 10)
+        .await?;
     assert_eq!(records.len(), 1);
     assert_eq!(records[0].agent_name, "test-agent");
 

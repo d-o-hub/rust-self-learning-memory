@@ -75,15 +75,15 @@ impl DuckDbStorage {
                     action,
                     confidence,
                     evidence: serde_json::from_str(&evidence_json).map_err(|e| {
-                        Error::Storage(format!("heuristic evidence parse: {e} | json='{evidence_json}'"))
+                        Error::Storage(format!("heuristic evidence parse: {e}"))
                     })?,
                     created_at: DateTime::parse_from_rfc3339(&created_at_str)
                         .or_else(|_| DateTime::parse_from_str(&created_at_str, "%Y-%m-%dT%H:%M:%S.%fZ"))
-                        .map_err(|e| Error::Storage(format!("heuristic created_at parse: {e} | val='{created_at_str}'")))?
+                        .map_err(|e| Error::Storage(format!("heuristic created_at parse: {e}")))?
                         .with_timezone(&Utc),
                     updated_at: DateTime::parse_from_rfc3339(&updated_at_str)
                         .or_else(|_| DateTime::parse_from_str(&updated_at_str, "%Y-%m-%dT%H:%M:%S.%fZ"))
-                        .map_err(|e| Error::Storage(format!("heuristic updated_at parse: {e} | val='{updated_at_str}'")))?
+                        .map_err(|e| Error::Storage(format!("heuristic updated_at parse: {e}")))?
                         .with_timezone(&Utc),
                 };
                 Ok::<Option<do_memory_core::Heuristic>, Error>(Some(heuristic))

@@ -287,7 +287,7 @@ impl CascadeRetriever {
             } else {
                 vec!["api_fallback_needed".to_string()]
             },
-            api_calls: 0, // Indicates API call was avoided (all local tiers used)
+            api_calls: 1, // Indicates API call is required (local tiers insufficient)
         }
     }
 

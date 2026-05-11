@@ -92,10 +92,7 @@ impl DuckDbStorage {
         }
     }
 
-    pub(crate) async fn get_embeddings_internal(
-        &self,
-        item_id: &str,
-    ) -> Result<Option<Vec<f32>>> {
+    pub(crate) async fn get_embeddings_internal(&self, item_id: &str) -> Result<Option<Vec<f32>>> {
         let conn_arc = Arc::clone(&self.conn);
         let item_id = item_id.to_string();
         let res = tokio::task::spawn_blocking(move || {

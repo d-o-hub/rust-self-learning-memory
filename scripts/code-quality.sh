@@ -2,7 +2,7 @@
 # code-quality.sh - Rust code quality operations
 # Optimized CLI for code-quality agent
 
-set -euo pipefail
+set -uo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -15,20 +15,19 @@ readonly RED='\033[0;31m'
 readonly NC='\033[0m'
 
 show_help() {
-  echo "Usage: $(basename "$0") <operation> [options]"
+  echo "Usage: $(basename "$0") [operation] [options]"
   echo ""
   echo "Operations:"
   echo "  fmt           Format code (fast check)"
   echo "  clippy        Lint with clippy (strict)"
   echo "  audit         Security audit"
   echo "  check          Run all quality gates"
-  echo "  fix           Auto-fix common issues"
   echo ""
   echo "Options:"
-  echo "  --workspace   Format entire workspace"
-  echo "  --package     Format specific package"
+  echo "  --workspace   Format/Lint entire workspace"
+  echo "  --package <P> Format/Lint specific package"
   echo "  --strict      Clippy: deny warnings"
-  echo "  --fix         Auto-fix with cargo clippy"
+  echo "  --fix         Auto-fix (applies to fmt and clippy)"
   echo ""
   echo "Examples:"
   echo "  # Quick format check"
@@ -47,44 +46,46 @@ show_help() {
   echo "  $(basename "$0") clippy --fix"
 }
 
-# Default operations
-OP="${1:-fmt}"
+# Default values
+OP=""
 WORKSPACE_FLAG=""
 PACKAGE_FLAG=""
 STRICT=""
 FIX=""
 
 # Parse arguments
-shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --workspace)
-      WORKSPACE_FLAG="--workspace"
+      WORKSPACE_FLAG="true"
       ;;
     --package)
-      PACKAGE_FLAG="--package"
       shift
-      OP="${2:?fmt}"
+      PACKAGE_FLAG="$1"
       ;;
     --strict)
       STRICT="-D warnings"
       ;;
     --fix)
       FIX="true"
-      shift
-      OP="${2:?fmt}"
       ;;
     fmt|clippy|audit|check)
       OP="$1"
       ;;
+    -h|--help)
+      show_help
+      exit 0
+      ;;
     *)
-      echo -e "${RED}Error: Unknown operation: $1${NC}"
+      echo -e "${RED}Error: Unknown argument: $1${NC}"
       show_help
       exit 1
       ;;
   esac
   shift
 done
+
+OP="${OP:-fmt}"
 
 # Check if in project root
 if [[ ! -f "$PROJECT_ROOT/Cargo.toml" && ! -f "$PROJECT_ROOT/Cargo.lock" ]]; then
@@ -98,49 +99,66 @@ fi
 case "$OP" in
   fmt)
     echo -e "${BLUE}📐 Formatting code...${NC}"
-    if [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      echo -e "${YELLOW}Formatting entire workspace...${NC}"
-      cargo fmt --all
-    elif [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package}"
-      echo -e "${YELLOW}Formatting package: ${pkg#--package=}${NC}"
-      cargo fmt --package "${pkg#--package=}"
+    FMT_ARGS=""
+    if [[ -n "$WORKSPACE_FLAG" ]]; then
+      FMT_ARGS="--all"
+    elif [[ -n "$PACKAGE_FLAG" ]]; then
+      FMT_ARGS="--package $PACKAGE_FLAG"
     else
+      FMT_ARGS="--all" # Default to all if nothing specified
+    fi
+
+    if [[ -z "$FIX" ]]; then
       echo -e "${YELLOW}Formatting check only...${NC}"
-      cargo fmt --all -- --check
+      cargo fmt $FMT_ARGS -- --check
+    else
+      echo -e "${YELLOW}Applying formatting fixes...${NC}"
+      cargo fmt $FMT_ARGS
     fi
     
-    if [[ $? -eq 0 ]]; then
+    fmt_result=$?
+    if [[ $fmt_result -eq 0 ]]; then
       echo -e "${GREEN}✅ Formatting check passed${NC}"
     else
       echo -e "${RED}❌ Formatting check failed${NC}"
-      echo -e "${YELLOW}Run 'cargo fmt' to fix${NC}"
+      if [[ -z "$FIX" ]]; then
+        echo -e "${YELLOW}Run '$(basename "$0") fmt --fix' to fix${NC}"
+      fi
     fi
+    exit $fmt_result
     ;;
 
   clippy)
     echo -e "${BLUE}🔍 Linting with Clippy...${NC}"
     # CI parity: Run clippy on both lib and tests with same flags as .github/workflows/quick-check.yml
     CLIPPY_FLAGS="-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
-    
-    if [[ -n "$WORKSPACE_FLAG" ]]; then
-      echo -e "${YELLOW}Linting entire workspace (lib + tests)...${NC}"
-      cargo clippy --workspace --tests -- $CLIPPY_FLAGS
-    elif [[ -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package=}"
-      echo -e "${YELLOW}Linting package: $pkg (lib + tests)...${NC}"
-      cargo clippy --package "$pkg" --tests -- $CLIPPY_FLAGS
-    else
-      echo -e "${YELLOW}Linting current package (lib + tests)...${NC}"
-      cargo clippy --tests -- $CLIPPY_FLAGS
+    if [[ -n "$STRICT" ]]; then
+       CLIPPY_FLAGS="$CLIPPY_FLAGS $STRICT"
     fi
+    
+    CLIPPY_ARGS=""
+    if [[ -n "$WORKSPACE_FLAG" ]]; then
+      CLIPPY_ARGS="--workspace --tests"
+    elif [[ -n "$PACKAGE_FLAG" ]]; then
+      CLIPPY_ARGS="--package $PACKAGE_FLAG --tests"
+    else
+      CLIPPY_ARGS="--tests"
+    fi
+
+    if [[ -n "$FIX" ]]; then
+      CLIPPY_ARGS="$CLIPPY_ARGS --fix --allow-dirty"
+    fi
+    
+    echo -e "${YELLOW}Running: cargo clippy $CLIPPY_ARGS -- $CLIPPY_FLAGS${NC}"
+    cargo clippy $CLIPPY_ARGS -- $CLIPPY_FLAGS
     
     clippy_result=$?
     if [[ $clippy_result -eq 0 ]]; then
       echo -e "${GREEN}✅ No Clippy warnings${NC}"
     else
-      echo -e "${YELLOW}⚠️  Clippy found ${clippy_result} warnings${NC}"
+      echo -e "${RED}❌ Clippy found warnings/errors (exit code: $clippy_result)${NC}"
     fi
+    exit $clippy_result
     ;;
 
   audit)
@@ -154,6 +172,7 @@ case "$OP" in
       echo -e "${RED}❌ Security vulnerabilities found!${NC}"
       echo -e "${YELLOW}Review output above for details${NC}"
     fi
+    exit $audit_result
     ;;
 
   check)
@@ -203,11 +222,15 @@ case "$OP" in
 
     echo ""
     echo "Next steps:"
-    echo "  • Run 'cargo fmt' to fix formatting"
-    echo "  • Run 'cargo clippy --tests --fix' to auto-fix warnings"
+    echo "  • Run '$(basename "$0") fmt --fix' to fix formatting"
+    echo "  • Run '$(basename "$0") clippy --fix' to auto-fix warnings"
     echo "  • Update dependencies with 'cargo update'"
     echo ""
     echo "============================================"
+    
+    if [[ $fmt_result -ne 0 || $clippy_result -ne 0 || $audit_result -ne 0 ]]; then
+      exit 1
+    fi
     ;;
 
   *)

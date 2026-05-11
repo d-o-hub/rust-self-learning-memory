@@ -31,6 +31,21 @@ fn test_table_dependency_detection() {
 
     assert!(deps.contains(&TableDependency::Episodes));
     assert!(deps.contains(&TableDependency::Steps));
+
+    // Regression for multiline and commented SQL
+    let sql_complex = r"
+        SELECT *
+        FROM
+            episodes -- Get all episodes
+        JOIN
+            /* join with steps */
+            steps ON episodes.episode_id = steps.episode_id
+        WHERE
+            episodes.domain = 'test'
+    ";
+    let deps_complex = TableDependency::from_query(sql_complex);
+    assert!(deps_complex.contains(&TableDependency::Episodes));
+    assert!(deps_complex.contains(&TableDependency::Steps));
 }
 
 #[test]

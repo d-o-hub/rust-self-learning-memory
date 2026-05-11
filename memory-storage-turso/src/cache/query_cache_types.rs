@@ -35,25 +35,25 @@ impl TableDependency {
     }
 
     pub fn from_query(sql: &str) -> Vec<Self> {
-        let sql_lower = sql.to_lowercase();
+        let normalized = format!(" {} ", QueryKey::normalize_sql(sql));
         let mut tables = Vec::new();
 
-        if sql_lower.contains("from episodes") || sql_lower.contains("join episodes") {
+        if normalized.contains(" from episodes ") || normalized.contains(" join episodes ") {
             tables.push(Self::Episodes);
         }
-        if sql_lower.contains("from steps") || sql_lower.contains("join steps") {
+        if normalized.contains(" from steps ") || normalized.contains(" join steps ") {
             tables.push(Self::Steps);
         }
-        if sql_lower.contains("from patterns") || sql_lower.contains("join patterns") {
+        if normalized.contains(" from patterns ") || normalized.contains(" join patterns ") {
             tables.push(Self::Patterns);
         }
-        if sql_lower.contains("from heuristics") || sql_lower.contains("join heuristics") {
+        if normalized.contains(" from heuristics ") || normalized.contains(" join heuristics ") {
             tables.push(Self::Heuristics);
         }
-        if sql_lower.contains("from embeddings") || sql_lower.contains("join embeddings") {
+        if normalized.contains(" from embeddings ") || normalized.contains(" join embeddings ") {
             tables.push(Self::Embeddings);
         }
-        if sql_lower.contains("from tags") || sql_lower.contains("join tags") {
+        if normalized.contains(" from tags ") || normalized.contains(" join tags ") {
             tables.push(Self::Tags);
         }
 
@@ -93,21 +93,39 @@ impl QueryKey {
 
     fn normalize_sql(sql: &str) -> String {
         let mut result = String::with_capacity(sql.len());
-        let mut in_comment = false;
-        let mut prev_char = ' ';
+        let mut in_line_comment = false;
+        let mut in_block_comment = false;
+        let mut chars = sql.chars().peekable();
 
-        for ch in sql.chars() {
-            if ch == '-' && prev_char == '-' {
-                in_comment = true;
-            }
-            if ch == '\n' {
-                in_comment = false;
+        while let Some(ch) = chars.next() {
+            if in_line_comment {
+                if ch == '\n' {
+                    in_line_comment = false;
+                }
+                continue;
             }
 
-            if !in_comment {
-                result.push(ch.to_ascii_lowercase());
+            if in_block_comment {
+                if ch == '*' && chars.peek() == Some(&'/') {
+                    chars.next();
+                    in_block_comment = false;
+                }
+                continue;
             }
-            prev_char = ch;
+
+            if ch == '-' && chars.peek() == Some(&'-') {
+                chars.next();
+                in_line_comment = true;
+                continue;
+            }
+
+            if ch == '/' && chars.peek() == Some(&'*') {
+                chars.next();
+                in_block_comment = true;
+                continue;
+            }
+
+            result.push(ch.to_ascii_lowercase());
         }
 
         result.split_whitespace().collect::<Vec<_>>().join(" ")

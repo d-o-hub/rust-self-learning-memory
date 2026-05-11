@@ -113,34 +113,48 @@ impl DuckDbStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
-                let episode_id_str: String =
-                    row.get(0).map_err(|e| Error::Storage(format!("col 0: {e}")))?;
-                let task_type_str: String =
-                    row.get(1).map_err(|e| Error::Storage(format!("col 1: {e}")))?;
-                let task_desc: String =
-                    row.get(2).map_err(|e| Error::Storage(format!("col 2: {e}")))?;
-                let context_json: String =
-                    row.get(3).map_err(|e| Error::Storage(format!("col 3: {e}")))?;
-                let start_time_str: String =
-                    row.get(4).map_err(|e| Error::Storage(format!("col 4: {e}")))?;
-                let end_time_str: Option<String> =
-                    row.get(5).map_err(|e| Error::Storage(format!("col 5: {e}")))?;
-                let steps_json: String =
-                    row.get(6).map_err(|e| Error::Storage(format!("col 6: {e}")))?;
-                let outcome_json: Option<String> =
-                    row.get(7).map_err(|e| Error::Storage(format!("col 7: {e}")))?;
-                let reward_json: Option<String> =
-                    row.get(8).map_err(|e| Error::Storage(format!("col 8: {e}")))?;
-                let reflection_json: Option<String> =
-                    row.get(9).map_err(|e| Error::Storage(format!("col 9: {e}")))?;
-                let patterns_json: String =
-                    row.get(10).map_err(|e| Error::Storage(format!("col 10: {e}")))?;
-                let heuristics_json: String =
-                    row.get(11).map_err(|e| Error::Storage(format!("col 11: {e}")))?;
-                let checkpoints_json: String =
-                    row.get(12).map_err(|e| Error::Storage(format!("col 12: {e}")))?;
-                let metadata_json: String =
-                    row.get(13).map_err(|e| Error::Storage(format!("col 13: {e}")))?;
+                let episode_id_str: String = row
+                    .get(0)
+                    .map_err(|e| Error::Storage(format!("col 0: {e}")))?;
+                let task_type_str: String = row
+                    .get(1)
+                    .map_err(|e| Error::Storage(format!("col 1: {e}")))?;
+                let task_desc: String = row
+                    .get(2)
+                    .map_err(|e| Error::Storage(format!("col 2: {e}")))?;
+                let context_json: String = row
+                    .get(3)
+                    .map_err(|e| Error::Storage(format!("col 3: {e}")))?;
+                let start_time_str: String = row
+                    .get(4)
+                    .map_err(|e| Error::Storage(format!("col 4: {e}")))?;
+                let end_time_str: Option<String> = row
+                    .get(5)
+                    .map_err(|e| Error::Storage(format!("col 5: {e}")))?;
+                let steps_json: String = row
+                    .get(6)
+                    .map_err(|e| Error::Storage(format!("col 6: {e}")))?;
+                let outcome_json: Option<String> = row
+                    .get(7)
+                    .map_err(|e| Error::Storage(format!("col 7: {e}")))?;
+                let reward_json: Option<String> = row
+                    .get(8)
+                    .map_err(|e| Error::Storage(format!("col 8: {e}")))?;
+                let reflection_json: Option<String> = row
+                    .get(9)
+                    .map_err(|e| Error::Storage(format!("col 9: {e}")))?;
+                let patterns_json: String = row
+                    .get(10)
+                    .map_err(|e| Error::Storage(format!("col 10: {e}")))?;
+                let heuristics_json: String = row
+                    .get(11)
+                    .map_err(|e| Error::Storage(format!("col 11: {e}")))?;
+                let checkpoints_json: String = row
+                    .get(12)
+                    .map_err(|e| Error::Storage(format!("col 12: {e}")))?;
+                let metadata_json: String = row
+                    .get(13)
+                    .map_err(|e| Error::Storage(format!("col 13: {e}")))?;
 
                 let episode = Self::map_row_to_episode(
                     &episode_id_str,
@@ -321,24 +335,27 @@ impl DuckDbStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let rows = stmt
-                .query_map(params![since.to_rfc3339(), i64::try_from(limit).unwrap_or(1000)], |row| {
-                    Ok(Self::map_row_to_episode(
-                        &row.get::<_, String>(0)?,
-                        &row.get::<_, String>(1)?,
-                        row.get(2)?,
-                        &row.get::<_, String>(3)?,
-                        &row.get::<_, String>(4)?,
-                        row.get(5)?,
-                        &row.get::<_, String>(6)?,
-                        row.get(7)?,
-                        row.get(8)?,
-                        row.get(9)?,
-                        &row.get::<_, String>(10)?,
-                        &row.get::<_, String>(11)?,
-                        &row.get::<_, String>(12)?,
-                        &row.get::<_, String>(13)?,
-                    ))
-                })
+                .query_map(
+                    params![since.to_rfc3339(), i64::try_from(limit).unwrap_or(1000)],
+                    |row| {
+                        Ok(Self::map_row_to_episode(
+                            &row.get::<_, String>(0)?,
+                            &row.get::<_, String>(1)?,
+                            row.get(2)?,
+                            &row.get::<_, String>(3)?,
+                            &row.get::<_, String>(4)?,
+                            row.get(5)?,
+                            &row.get::<_, String>(6)?,
+                            row.get(7)?,
+                            row.get(8)?,
+                            row.get(9)?,
+                            &row.get::<_, String>(10)?,
+                            &row.get::<_, String>(11)?,
+                            &row.get::<_, String>(12)?,
+                            &row.get::<_, String>(13)?,
+                        ))
+                    },
+                )
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let mut episodes = Vec::new();
@@ -381,24 +398,27 @@ impl DuckDbStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let rows = stmt
-                .query_map(params![key, value, i64::try_from(limit).unwrap_or(1000)], |row| {
-                    Ok(Self::map_row_to_episode(
-                        &row.get::<_, String>(0)?,
-                        &row.get::<_, String>(1)?,
-                        row.get(2)?,
-                        &row.get::<_, String>(3)?,
-                        &row.get::<_, String>(4)?,
-                        row.get(5)?,
-                        &row.get::<_, String>(6)?,
-                        row.get(7)?,
-                        row.get(8)?,
-                        row.get(9)?,
-                        &row.get::<_, String>(10)?,
-                        &row.get::<_, String>(11)?,
-                        &row.get::<_, String>(12)?,
-                        &row.get::<_, String>(13)?,
-                    ))
-                })
+                .query_map(
+                    params![key, value, i64::try_from(limit).unwrap_or(1000)],
+                    |row| {
+                        Ok(Self::map_row_to_episode(
+                            &row.get::<_, String>(0)?,
+                            &row.get::<_, String>(1)?,
+                            row.get(2)?,
+                            &row.get::<_, String>(3)?,
+                            &row.get::<_, String>(4)?,
+                            row.get(5)?,
+                            &row.get::<_, String>(6)?,
+                            row.get(7)?,
+                            row.get(8)?,
+                            row.get(9)?,
+                            &row.get::<_, String>(10)?,
+                            &row.get::<_, String>(11)?,
+                            &row.get::<_, String>(12)?,
+                            &row.get::<_, String>(13)?,
+                        ))
+                    },
+                )
                 .map_err(|e| Error::Storage(e.to_string()))?;
 
             let mut episodes = Vec::new();

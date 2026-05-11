@@ -1769,6 +1769,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "do-memory-core",
+ "do-memory-storage-duckdb",
  "do-memory-storage-redb",
  "do-memory-storage-turso",
  "insta",

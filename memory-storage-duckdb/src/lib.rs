@@ -71,26 +71,39 @@ impl DuckDbStorage {
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
 
-            // Execute all schema creation statements
-            conn.execute(schema::CREATE_EPISODES_TABLE, [])?;
-            conn.execute(schema::CREATE_PATTERNS_TABLE, [])?;
-            conn.execute(schema::CREATE_HEURISTICS_TABLE, [])?;
-            conn.execute(schema::CREATE_RECOMMENDATION_SESSIONS_TABLE, [])?;
-            conn.execute(schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE, [])?;
-            conn.execute(schema::CREATE_EMBEDDINGS_TABLE, [])?;
-            conn.execute(schema::CREATE_EPISODE_RELATIONSHIPS_TABLE, [])?;
-            conn.execute(schema::CREATE_EXECUTION_RECORDS_SEQUENCE, [])?;
-            conn.execute(schema::CREATE_EXECUTION_RECORDS_TABLE, [])?;
-            conn.execute(schema::CREATE_AGENT_METRICS_TABLE, [])?;
-            conn.execute(schema::CREATE_TASK_METRICS_TABLE, [])?;
-            conn.execute(schema::CREATE_EPISODE_SUMMARIES_TABLE, [])?;
-            conn.execute(schema::CREATE_EPISODE_TAGS_TABLE, [])?;
+            // Execute all schema creation statements individually for reliability
+            conn.execute(schema::CREATE_EPISODES_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Episodes table: {e}")))?;
+            conn.execute(schema::CREATE_PATTERNS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Patterns table: {e}")))?;
+            conn.execute(schema::CREATE_HEURISTICS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Heuristics table: {e}")))?;
+            conn.execute(schema::CREATE_RECOMMENDATION_SESSIONS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Rec sessions table: {e}")))?;
+            conn.execute(schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Rec feedback table: {e}")))?;
+            conn.execute(schema::CREATE_EMBEDDINGS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Embeddings table: {e}")))?;
+            conn.execute(schema::CREATE_EPISODE_RELATIONSHIPS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Relationships table: {e}")))?;
+            conn.execute(schema::CREATE_EXECUTION_RECORDS_SEQUENCE, [])
+                .map_err(|e| Error::Storage(format!("Exec records seq: {e}")))?;
+            conn.execute(schema::CREATE_EXECUTION_RECORDS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Exec records table: {e}")))?;
+            conn.execute(schema::CREATE_AGENT_METRICS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Agent metrics table: {e}")))?;
+            conn.execute(schema::CREATE_TASK_METRICS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Task metrics table: {e}")))?;
+            conn.execute(schema::CREATE_EPISODE_SUMMARIES_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Summaries table: {e}")))?;
+            conn.execute(schema::CREATE_EPISODE_TAGS_TABLE, [])
+                .map_err(|e| Error::Storage(format!("Tags table: {e}")))?;
 
-            Ok(())
+            Ok::<(), Error>(())
         })
         .await
-        .map_err(|e| Error::Storage(format!("Task join error: {e}")))?
-        .map_err(|e: duckdb::Error| Error::Storage(format!("Failed to initialize schema: {e}")))
+        .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
+        Ok(())
     }
 
     /// Emit a standardized event if an emitter is configured.

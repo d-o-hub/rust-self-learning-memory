@@ -1801,7 +1801,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
  "uuid",
@@ -1886,6 +1885,7 @@ checksum = "0fdc796383b176dd5a45353fbb5e64583c0ee4da12cb62c9e510b785324b2488"
 dependencies = [
  "arrow",
  "cast",
+ "chrono",
  "comfy-table",
  "fallible-iterator 0.3.0",
  "fallible-streaming-iterator",
@@ -1893,7 +1893,9 @@ dependencies = [
  "libduckdb-sys",
  "num-integer",
  "rust_decimal",
+ "serde_json",
  "strum",
+ "uuid",
 ]
 
 [[package]]

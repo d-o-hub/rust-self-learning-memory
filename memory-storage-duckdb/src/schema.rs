@@ -100,9 +100,11 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
 )
 ";
 
+/// SQL to create the sequence for `execution_records`.
+pub const CREATE_EXECUTION_RECORDS_SEQUENCE: &str = "CREATE SEQUENCE IF NOT EXISTS seq_execution_records_id";
+
 /// SQL to create the `execution_records` table for monitoring.
 pub const CREATE_EXECUTION_RECORDS_TABLE: &str = r"
-CREATE SEQUENCE IF NOT EXISTS seq_execution_records_id;
 CREATE TABLE IF NOT EXISTS execution_records (
     id INTEGER PRIMARY KEY DEFAULT nextval('seq_execution_records_id'),
     agent_name VARCHAR NOT NULL,

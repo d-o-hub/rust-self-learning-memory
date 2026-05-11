@@ -1,44 +1,31 @@
 use crate::DuckDbStorage;
+use do_memory_core::types::learning::Pattern;
 use do_memory_core::{Error, Result};
 use duckdb::params;
 use std::sync::Arc;
-use uuid::Uuid;
 
 impl DuckDbStorage {
-    pub(crate) async fn store_pattern_internal(
-        &self,
-        pattern: &do_memory_core::Pattern,
-    ) -> Result<()> {
+    pub(crate) async fn store_pattern_internal(&self, pattern: &Pattern) -> Result<()> {
         let conn_arc = Arc::clone(&self.conn);
         let pattern = pattern.clone();
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let data_json = serde_json::to_string(&pattern)
-                .map_err(|e| Error::Storage(format!("Serialization error: {e}")))?;
-
-            let pattern_type = match pattern {
-                do_memory_core::Pattern::ToolSequence { .. } => "tool_sequence",
-                do_memory_core::Pattern::DecisionPoint { .. } => "decision_point",
-                do_memory_core::Pattern::ErrorRecovery { .. } => "error_recovery",
-                do_memory_core::Pattern::ContextPattern { .. } => "context_pattern",
-            };
+                .map_err(|e| Error::Storage(format!("Failed to serialize pattern: {e}")))?;
 
             conn.execute(
-                "INSERT INTO patterns (
+                "INSERT OR REPLACE INTO patterns (
                     pattern_id, pattern_type, pattern_data, success_rate,
-                    context_domain, context_language, occurrence_count
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    context_domain, context_language, occurrence_count, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
                 params![
-                    pattern.id().to_string(),
-                    pattern_type,
+                    pattern.id,
+                    "generic", // Placeholder for now
                     data_json,
-                    pattern.success_rate(),
-                    pattern
-                        .context()
-                        .map(|c| c.domain.clone())
-                        .unwrap_or_default(),
-                    pattern.context().and_then(|c| c.language.clone()),
-                    i64::try_from(pattern.sample_size()).unwrap_or(0),
+                    pattern.success_rate,
+                    pattern.metadata.get("domain").and_then(|v| v.as_str()),
+                    pattern.metadata.get("language").and_then(|v| v.as_str()),
+                    1, // Default occurrence count
                 ],
             )
             .map_err(|e| Error::Storage(format!("Failed to store pattern: {e}")))?;
@@ -49,35 +36,25 @@ impl DuckDbStorage {
         Ok(())
     }
 
-    /// Retrieves a pattern by its ID.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the database query fails.
-    pub(crate) async fn get_pattern_internal(
-        &self,
-        id: Uuid,
-    ) -> Result<Option<do_memory_core::Pattern>> {
+    pub(crate) async fn load_patterns_internal(&self) -> Result<Vec<Pattern>> {
         let conn_arc = Arc::clone(&self.conn);
         let res = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
             let mut stmt = conn
-                .prepare("SELECT CAST(pattern_data AS VARCHAR) FROM patterns WHERE pattern_id = ?")
+                .prepare("SELECT CAST(pattern_data AS VARCHAR) FROM patterns")
                 .map_err(|e| Error::Storage(e.to_string()))?;
+            let mut rows = stmt.query([]).map_err(|e| Error::Storage(e.to_string()))?;
 
-            let mut rows = stmt
-                .query(params![id.to_string()])
-                .map_err(|e| Error::Storage(e.to_string()))?;
-
-            if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
+            let mut patterns = Vec::new();
+            while let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
                 let data_json: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
-                let pattern = serde_json::from_str(&data_json).map_err(|e| {
-                    Error::Storage(format!("pattern parse: {e} | json='{data_json}'"))
+                let pattern: Pattern = serde_json::from_str(&data_json).map_err(|e| {
+                    // Sanitize error: do not include data_json in the error message
+                    Error::Storage(format!("Failed to deserialize pattern: {e}"))
                 })?;
-                Ok::<Option<do_memory_core::Pattern>, Error>(Some(pattern))
-            } else {
-                Ok::<Option<do_memory_core::Pattern>, Error>(None)
+                patterns.push(pattern);
             }
+            Ok::<Vec<Pattern>, Error>(patterns)
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;

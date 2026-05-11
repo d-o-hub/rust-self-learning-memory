@@ -9,6 +9,8 @@
 //! The cascade eliminates 50-70% of embedding API calls by satisfying
 //! queries from CPU-local tiers before falling back to the API.
 
+use anyhow::Result;
+
 /// Configuration for the cascading retrieval pipeline.
 #[derive(Debug, Clone)]
 pub struct CascadeConfig {
@@ -188,22 +190,22 @@ impl CascadeRetriever {
     /// 4. API fallback (requires external embedding call)
     ///
     /// Without `csm`, returns empty results (placeholder behavior).
-    #[must_use]
-    pub fn retrieve(&self, query: &str) -> CascadeResult {
+    pub fn retrieve(&self, query: &str) -> Result<CascadeResult> {
         #[cfg(feature = "csm")]
         {
-            self.retrieve_with_csm(query)
+            Ok(self.retrieve_with_csm(query))
         }
 
         #[cfg(not(feature = "csm"))]
         {
             // Placeholder implementation - returns empty results
-            CascadeResult {
+            let _ = query;
+            Ok(CascadeResult {
                 episode_ids: Vec::new(),
                 scores: Vec::new(),
                 contributing_tiers: Vec::new(),
                 api_calls: 0,
-            }
+            })
         }
     }
 

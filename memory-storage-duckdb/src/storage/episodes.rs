@@ -216,9 +216,9 @@ impl DuckDbStorage {
                     if s == "null" || s.is_empty() {
                         Ok(None)
                     } else {
-                        serde_json::from_str(&s).map(Some).map_err(|e| {
-                            Error::Storage(format!("outcome parse: {e} | json='{s}'"))
-                        })
+                        serde_json::from_str(&s)
+                            .map(Some)
+                            .map_err(|e| Error::Storage(format!("outcome parse: {e} | json='{s}'")))
                     }
                 })
                 .transpose()?
@@ -228,9 +228,9 @@ impl DuckDbStorage {
                     if s == "null" || s.is_empty() {
                         Ok(None)
                     } else {
-                        serde_json::from_str(&s).map(Some).map_err(|e| {
-                            Error::Storage(format!("reward parse: {e} | json='{s}'"))
-                        })
+                        serde_json::from_str(&s)
+                            .map(Some)
+                            .map_err(|e| Error::Storage(format!("reward parse: {e} | json='{s}'")))
                     }
                 })
                 .transpose()?

@@ -9,8 +9,6 @@
 //! The cascade eliminates 50-70% of embedding API calls by satisfying
 //! queries from CPU-local tiers before falling back to the API.
 
-use anyhow::Result;
-
 /// Configuration for the cascading retrieval pipeline.
 #[derive(Debug, Clone)]
 pub struct CascadeConfig {
@@ -190,23 +188,22 @@ impl CascadeRetriever {
     /// 4. API fallback (requires external embedding call)
     ///
     /// Without `csm`, returns empty results (placeholder behavior).
-    pub fn retrieve(&self, query: &str) -> Result<CascadeResult> {
+    #[must_use]
+    pub fn retrieve(&self, query: &str) -> CascadeResult {
         #[cfg(feature = "csm")]
         {
-            Ok(self.retrieve_with_csm(query))
+            self.retrieve_with_csm(query)
         }
 
         #[cfg(not(feature = "csm"))]
         {
             // Placeholder implementation - returns empty results
-            // query is intentionally unused in placeholder mode
-            let _ = query;
-            Ok(CascadeResult {
+            CascadeResult {
                 episode_ids: Vec::new(),
                 scores: Vec::new(),
                 contributing_tiers: Vec::new(),
                 api_calls: 0,
-            })
+            }
         }
     }
 
@@ -274,10 +271,10 @@ impl CascadeRetriever {
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
             merge_results(&bm25_results.results, &hdc_results.results, weights)
-        } else if !hdc_results.is_empty() {
-            hdc_results.results.clone()
-        } else {
+        } else if hdc_results.is_empty() {
             bm25_results.results.clone()
+        } else {
+            hdc_results.results.clone()
         };
 
         CascadeResult {

@@ -67,9 +67,15 @@ impl DuckDbStorage {
                 let data_json: String = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
                 let pattern: Pattern = serde_json::from_str(&data_json).map_err(|e| {
                     // Sanitize error: do not include data_json in the error message
+                    let safe_summary = if data_json.len() > 50 {
+                        format!("{}...", &data_json[..50])
+                    } else {
+                        data_json.clone()
+                    };
                     Error::Storage(format!(
-                        "Failed to deserialize pattern (len={}): {e}",
-                        data_json.len()
+                        "Failed to deserialize pattern (len={}): {e}. Data snippet: {}",
+                        data_json.len(),
+                        safe_summary
                     ))
                 })?;
                 patterns.push(pattern);

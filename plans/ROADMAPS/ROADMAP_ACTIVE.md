@@ -68,6 +68,15 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | ✅ Complete | 121 |
 | WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | ✅ Complete | 122 |
 
+### Phase 4: Storage Expansion & Event Standardization (Active)
+
+| Task | Description | Status | WG |
+|------|-------------|--------|-----|
+| WG-140 | Implement DuckDB storage backend for episodic memory | 🟡 In Progress | 140 |
+| WG-141 | Integrate DuckDB vector similarity search (VSS) | 🟡 In Progress | 141 |
+| WG-142 | Standardize agent lifecycle events via CNCF CloudEvents | ✅ Complete | 142 |
+| WG-143 | Integrate DuckDB into MCP server persistence layers | 🟡 In Progress | 143 |
+
 ### P3: Backlog (Future Sprints)
 
 | Task | Description | Status | WG |

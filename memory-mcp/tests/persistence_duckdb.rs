@@ -2,11 +2,11 @@
 #![allow(clippy::explicit_iter_loop)]
 #![allow(missing_docs)]
 
+mod common;
+
 #[cfg(feature = "duckdb")]
 mod duckdb_tests {
-    mod common;
-
-    use common::setup_duckdb_persistent_memory;
+    use super::common::setup_duckdb_persistent_memory;
     use do_memory_core::{ComplexityLevel, ExecutionStep, TaskContext, TaskOutcome, TaskType};
     use do_memory_mcp::{MemoryMCPServer, SandboxConfig};
     use std::sync::Arc;
@@ -86,7 +86,10 @@ mod duckdb_tests {
         assert_eq!(episodes.len(), 1);
 
         let episode = &episodes[0];
-        assert_eq!(episode["task_description"], "DuckDB Persistent Episode Test");
+        assert_eq!(
+            episode["task_description"],
+            "DuckDB Persistent Episode Test"
+        );
 
         println!("✅ MCP query verified episode in DuckDB storage");
     }

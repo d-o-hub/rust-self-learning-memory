@@ -29,7 +29,8 @@ pub async fn setup_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory
 
 /// Setup a memory system with DuckDB storage backend for persistence testing
 #[cfg(feature = "duckdb")]
-pub async fn setup_duckdb_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory>, TempDir)> {
+pub async fn setup_duckdb_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory>, TempDir)>
+{
     use do_memory_storage_duckdb::DuckDbStorage;
 
     // Create temporary directory for DuckDB file

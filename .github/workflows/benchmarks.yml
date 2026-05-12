@@ -353,7 +353,7 @@ jobs:
           name: benchmark-results-${{ github.sha }}
 
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1.22.0
+        uses: benchmark-action/github-action-benchmark@v1.22.1
         with:
           name: Rust Benchmarks
           tool: 'cargo'

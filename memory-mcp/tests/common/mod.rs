@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tempfile::TempDir;
 
 /// Setup a memory system with redb storage backend for persistence testing
+#[allow(dead_code)]
 pub async fn setup_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory>, TempDir)> {
     // Create temporary directory for redb file
     let temp_dir = TempDir::new()?;
@@ -29,6 +30,7 @@ pub async fn setup_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory
 
 /// Setup a memory system with DuckDB storage backend for persistence testing
 #[cfg(feature = "duckdb")]
+#[allow(dead_code)]
 pub async fn setup_duckdb_persistent_memory() -> anyhow::Result<(Arc<SelfLearningMemory>, TempDir)>
 {
     use do_memory_storage_duckdb::DuckDbStorage;

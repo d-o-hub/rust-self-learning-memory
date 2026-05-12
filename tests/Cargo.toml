@@ -37,7 +37,7 @@ predicates = "3.1"
 
 futures = "0.3"
 governor = "0.10"
-sysinfo = "0.39"
+sysinfo = "0.38"
 chrono.workspace = true
 
 

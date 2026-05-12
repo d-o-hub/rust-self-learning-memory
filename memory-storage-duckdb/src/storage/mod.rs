@@ -9,6 +9,7 @@ mod monitoring;
 mod patterns;
 mod recommendations;
 mod relationships;
+mod summaries;
 
 impl DuckDbStorage {
     /// Load VSS extension if enabled.

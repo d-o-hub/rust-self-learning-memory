@@ -1,2 +1,74 @@
-[env]
-DUCKDB_DOWNLOAD_LIB = "1"
+# Cargo configuration for rust-self-learning-memory
+# Security hardening and custom aliases
+
+[build]
+# Use all available cores for parallel compilation
+jobs = -1
+
+[profile.dev]
+# Fast development builds with smaller artifacts (ADR-032)
+opt-level = 0
+debug = "line-tables-only"
+split-debuginfo = "unpacked"
+
+[profile.dev.package."*"]
+# Keep dependency artifacts small in dev profile.
+debug = false
+
+[profile.dev.build-override]
+# Proc-macros run at build time; optimizing them speeds builds (ADR-032 Phase 4)
+opt-level = 3
+
+[profile.test]
+# Test profile with compact debug info (ADR-032)
+opt-level = 0
+debug = "line-tables-only"
+
+[profile.debugging]
+# Opt-in full debug symbols when deep debugging is required.
+inherits = "dev"
+debug = true
+
+[profile.release]
+# Production release - maximum runtime performance
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+overflow-checks = true
+
+[profile.release-lto]
+# Development release - faster builds with acceptable performance
+# Use: cargo build --profile release-lto
+inherits = "release"
+lto = "thin"
+codegen-units = 4
+
+[target.x86_64-unknown-linux-gnu]
+# Security hardening flags
+# -Wl,-z,relro: Read-only relocations (RELRO)
+# -Wl,-z,now: Bind all symbols at load time (BIND_NOW)
+# Note: mold linker removed for CI compatibility (ADR-032)
+# To enable mold locally, set: RUSTFLAGS="-C link-arg=-fuse-ld=mold"
+rustflags = [
+    "-C", "link-arg=-Wl,-z,relro,-z,now",
+]
+
+# Optional: Enable native CPU optimizations for even better performance
+# Uncomment for target-specific builds:
+# [profile.release]
+# rustflags = ["-C", "target-cpu=native"]
+
+ [alias]
+ # Custom cargo commands for development workflow
+ security-check = "audit && deny check"
+ full-test = "test --all-features --all-targets"
+ coverage = "llvm-cov --all-features --workspace --lcov --output-path lcov.info"
+ quality = "clippy --all-targets --all-features -- -D warnings"
+
+# Security advisory tracking for transitive dependencies
+# These advisories are tracked but not blocking due to upstream constraints
+# See SECURITY.md for detailed mitigation strategies
+[term]
+verbose = false
+color = "auto"

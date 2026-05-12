@@ -18,24 +18,14 @@ use tracing::{info, warn};
 ///
 /// This function tries storage backends in order of preference:
 /// 1. Turso local (default, no configuration needed)
-/// 2. DuckDB (if DUCKDB_PATH is set or if enabled via feature)
-/// 3. Turso cloud + redb (if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set)
-/// 4. redb-only (fallback when Turso is unavailable)
-/// 5. In-memory (last resort)
+/// 2. Turso cloud + redb (if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set)
+/// 3. redb-only (fallback when Turso is unavailable)
+/// 4. In-memory (last resort)
 pub async fn initialize_memory_system() -> anyhow::Result<Arc<SelfLearningMemory>> {
     // Try Turso local first (default behavior)
     if let Ok(memory) = initialize_turso_local().await {
         info!("Memory system initialized with Turso local database (default)");
         return Ok(memory);
-    }
-
-    // Try DuckDB if enabled
-    #[cfg(feature = "duckdb")]
-    {
-        if let Ok(memory) = initialize_duckdb_storage().await {
-            info!("Memory system initialized with DuckDB storage");
-            return Ok(memory);
-        }
     }
 
     // If Turso local fails, try dual storage (Turso cloud + redb)
@@ -229,64 +219,5 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     );
 
     info!("Successfully initialized Turso local + redb cache storage");
-    Ok(Arc::new(memory))
-}
-
-/// Initialize memory system with DuckDB storage
-#[cfg(feature = "duckdb")]
-pub async fn initialize_duckdb_storage() -> anyhow::Result<Arc<SelfLearningMemory>> {
-    use do_memory_storage_duckdb::DuckDbStorage;
-
-    info!("Attempting to initialize DuckDB storage...");
-
-    let duckdb_path_str =
-        std::env::var("DUCKDB_PATH").unwrap_or_else(|_| "./data/memory.duckdb".to_string());
-    let duckdb_path = Path::new(&duckdb_path_str);
-
-    // Create data directory if it doesn't exist
-    if let Some(parent) = duckdb_path.parent() {
-        tokio::fs::create_dir_all(parent)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create data directory: {e}")))?;
-    }
-
-    let duckdb_storage = DuckDbStorage::new(duckdb_path).await?;
-    info!(
-        "Successfully initialized DuckDB storage at {}",
-        duckdb_path.display()
-    );
-
-    // Initialize redb cache storage for performance
-    let cache_path_str =
-        std::env::var("REDB_CACHE_PATH").unwrap_or_else(|_| "./data/cache.redb".to_string());
-    let cache_path = Path::new(&cache_path_str);
-
-    // Create data directory if it doesn't exist
-    if let Some(parent) = cache_path.parent() {
-        tokio::fs::create_dir_all(parent)
-            .await
-            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {e}")))?;
-    }
-
-    let cache_config = CacheConfig {
-        max_size: std::env::var("REDB_MAX_CACHE_SIZE")
-            .unwrap_or_else(|_| "1000".to_string())
-            .parse()
-            .unwrap_or(1000),
-        default_ttl_secs: 1800,     // 30 minutes
-        cleanup_interval_secs: 600, // 10 minutes
-        enable_background_cleanup: true,
-    };
-
-    let redb_storage = RedbStorage::new_with_cache_config(cache_path, cache_config).await?;
-
-    // Create memory system with DuckDB and redb cache
-    let memory_config = MemoryConfig::default();
-    let memory = SelfLearningMemory::with_storage(
-        memory_config,
-        Arc::new(duckdb_storage),
-        Arc::new(redb_storage),
-    );
-
     Ok(Arc::new(memory))
 }

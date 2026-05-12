@@ -1,24 +1,22 @@
 use anyhow::Result;
 use chrono::Utc;
-use do_memory_core::Pattern;
-use do_memory_core::monitoring::storage::MonitoringStorageBackend;
 use do_memory_core::monitoring::types::{AgentMetrics, AgentType, ExecutionRecord, TaskMetrics};
-use do_memory_core::storage::StorageBackend;
+use do_memory_core::storage::{MonitoringStorageBackend, StorageBackend};
+use do_memory_core::types::learning::Pattern;
 use do_memory_storage_duckdb::DuckDbStorage;
 use std::collections::HashMap;
 use std::time::Duration;
-use tempfile::TempDir;
+use tempfile::NamedTempFile;
 
 #[tokio::test]
 async fn test_duckdb_monitoring_storage() -> Result<()> {
-    let temp_dir = TempDir::new()?;
-    let db_path = temp_dir.path().join("test_db.duckdb");
-    let storage = DuckDbStorage::new(&db_path).await?;
+    let db_file = NamedTempFile::new()?;
+    let storage = DuckDbStorage::new(db_file.path()).await?;
 
     // Test execution records
     let record = ExecutionRecord {
         agent_name: "test-agent".to_string(),
-        agent_type: AgentType::GoapAgent,
+        agent_type: AgentType::Orchestrator,
         success: true,
         duration: Duration::from_millis(150),
         started_at: Utc::now(),
@@ -36,7 +34,7 @@ async fn test_duckdb_monitoring_storage() -> Result<()> {
     // Test agent metrics
     let metrics = AgentMetrics {
         agent_name: "test-agent".to_string(),
-        agent_type: AgentType::GoapAgent,
+        agent_type: AgentType::Orchestrator,
         total_executions: 10,
         successful_executions: 8,
         total_duration: Duration::from_secs(2),
@@ -57,7 +55,7 @@ async fn test_duckdb_monitoring_storage() -> Result<()> {
 
     // Test task metrics
     let mut success_rates = HashMap::new();
-    success_rates.insert(AgentType::GoapAgent, 0.85);
+    success_rates.insert("agent-1".to_string(), 0.85);
     let task_metrics = TaskMetrics {
         task_type: "translation".to_string(),
         total_tasks: 5,
@@ -80,30 +78,30 @@ async fn test_duckdb_monitoring_storage() -> Result<()> {
 
 #[tokio::test]
 async fn test_duckdb_analytics() -> Result<()> {
-    let temp_dir = TempDir::new()?;
-    let db_path = temp_dir.path().join("test_db_analytics.duckdb");
-    let storage = DuckDbStorage::new(&db_path).await?;
+    let db_file = NamedTempFile::new()?;
+    let storage = DuckDbStorage::new(db_file.path()).await?;
 
     // Add some test data for analytics
+    // 1. Episodes with rewards
+    // Since DuckDbStorage implements StorageBackend, we can use store_episode
+    // But for a quick test, let's just use execute on the connection if needed,
+    // or better, use the public API.
+
     // 2. Patterns
-    let pattern = Pattern::ToolSequence {
-        id: uuid::Uuid::new_v4(),
-        tools: vec!["test".to_string()],
-        context: do_memory_core::TaskContext {
-            domain: "coding".to_string(),
-            ..Default::default()
-        },
+    let pattern = Pattern {
+        id: "p1".to_string(),
         success_rate: 0.95,
-        avg_latency: chrono::Duration::milliseconds(100),
-        occurrence_count: 1,
-        effectiveness: Default::default(),
+        metadata: serde_json::json!({"domain": "coding"}),
+        ..Default::default()
     };
     storage.store_pattern(&pattern).await?;
 
-    // Test analytics query using existing structured method
-    let results = storage.query_pattern_trends().await?;
+    // Test analytics query
+    let results = storage
+        .run_analytics_query("SELECT COUNT(*) as count FROM patterns")
+        .await?;
     assert_eq!(results.len(), 1);
-    assert_eq!(results[0]["frequency"].as_i64(), Some(1));
+    assert_eq!(results[0]["count"].as_i64(), Some(1));
 
     Ok(())
 }

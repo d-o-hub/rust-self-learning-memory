@@ -30,7 +30,6 @@ uuid = { workspace = true }
 do-memory-core = { path = "../memory-core", version = "0.1.31" }
 do-memory-storage-turso = { path = "../memory-storage-turso", version = "0.1.31" }
 do-memory-storage-redb = { path = "../memory-storage-redb", version = "0.1.31" }
-do-memory-storage-duckdb = { path = "../memory-storage-duckdb", version = "0.1.31", optional = true }
 
 # MCP-specific dependencies
 parking_lot = "0.12.5"
@@ -50,8 +49,6 @@ libc = "0.2"
 [features]
 # Optional OAuth authorization support
 oauth = ["dep:jsonwebtoken"]
-# Optional DuckDB storage support
-duckdb = ["dep:do-memory-storage-duckdb"]
 # Optional embeddings configuration support
 embeddings = []
 # Enable streaming implementation tests (performance benchmarks)
@@ -81,17 +78,8 @@ name = "mcp_integration_tests"
 path = "tests/mcp_integration_tests.rs"
 
 [[test]]
-name = "persistence_basic"
-path = "tests/persistence_basic.rs"
-
-[[test]]
-name = "persistence_advanced"
-path = "tests/persistence_advanced.rs"
-
-[[test]]
-name = "persistence_duckdb"
-path = "tests/persistence_duckdb.rs"
-required-features = ["duckdb"]
+name = "persistent_storage_tests"
+path = "tests/persistent_storage_tests.rs"
 
 [[test]]
 name = "advanced_pattern_analysis_comprehensive"

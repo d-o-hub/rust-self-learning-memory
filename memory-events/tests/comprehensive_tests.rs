@@ -105,7 +105,6 @@ async fn test_all_variants_mapping() {
 #[cfg(feature = "events-http")]
 #[tokio::test]
 async fn test_http_emitter_failure_handling() {
-    use do_memory_core::types::event::EventEmitter;
     use do_memory_events::HttpEventEmitter;
     let emitter = HttpEventEmitter::new("test", "http://invalid-url-that-does-not-exist.local");
     let event = MemoryEvent::EpisodeCreated {

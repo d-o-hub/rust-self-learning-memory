@@ -2,8 +2,6 @@
 //!
 //! `DuckDB` storage backend for episodic memory.
 
-#![allow(clippy::excessive_nesting)]
-
 use do_memory_core::{Error, Result};
 use duckdb::Connection;
 use parking_lot::Mutex;

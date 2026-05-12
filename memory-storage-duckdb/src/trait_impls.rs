@@ -22,7 +22,10 @@ impl StorageBackend for crate::DuckDbStorage {
         self.store_pattern_internal(pattern).await
     }
 
-    async fn get_pattern(&self, id: Uuid) -> Result<Option<do_memory_core::Pattern>> {
+    async fn get_pattern(
+        &self,
+        id: do_memory_core::episode::PatternId,
+    ) -> Result<Option<do_memory_core::Pattern>> {
         self.get_pattern_internal(id).await
     }
 
@@ -53,8 +56,7 @@ impl StorageBackend for crate::DuckDbStorage {
     }
 
     async fn store_embedding(&self, id: &str, embedding: Vec<f32>) -> Result<()> {
-        self.store_embedding_internal(id, "embedding", &embedding)
-            .await
+        self.store_embedding_internal(id, &embedding).await
     }
 
     async fn get_embedding(&self, id: &str) -> Result<Option<Vec<f32>>> {
@@ -140,6 +142,28 @@ impl StorageBackend for crate::DuckDbStorage {
         session_id: Uuid,
     ) -> Result<Option<do_memory_core::memory::attribution::RecommendationFeedback>> {
         self.get_recommendation_feedback_internal(session_id).await
+    }
+
+    async fn get_recommendation_stats(
+        &self,
+    ) -> Result<do_memory_core::memory::attribution::RecommendationStats> {
+        self.get_recommendation_stats_internal().await
+    }
+
+    // ========== Episode GC/TTL ==========
+
+    async fn cleanup_episodes(
+        &self,
+        policy: &do_memory_core::episodic::EpisodeRetentionPolicy,
+    ) -> Result<do_memory_core::episodic::CleanupResult> {
+        self.cleanup_episodes_internal(policy).await
+    }
+
+    async fn count_cleanup_candidates(
+        &self,
+        policy: &do_memory_core::episodic::EpisodeRetentionPolicy,
+    ) -> Result<usize> {
+        self.count_cleanup_candidates_internal(policy).await
     }
 
     fn set_event_emitter(&self, emitter: Arc<dyn do_memory_core::types::event::EventEmitter>) {

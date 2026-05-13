@@ -249,7 +249,8 @@ impl DuckDbStorage {
             )
             .map_err(|e| Error::Storage(format!("Failed to delete episode tags: {e}")))?;
 
-            let rows_changed = tx.execute("DELETE FROM episodes WHERE episode_id = ?", params![id_str])
+            let rows_changed = tx
+                .execute("DELETE FROM episodes WHERE episode_id = ?", params![id_str])
                 .map_err(|e| Error::Storage(format!("Failed to delete episode: {e}")))?;
 
             tx.commit()

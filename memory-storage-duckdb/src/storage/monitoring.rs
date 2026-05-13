@@ -164,8 +164,7 @@ impl DuckDbStorage {
                     row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
                 let total_duration_ms: i64 =
                     row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-                let avg_duration_ms: i64 =
-                    row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
+                let avg_duration_ms: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
                 let min_duration_ms: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
                 let max_duration_ms: i64 = row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
                 let last_execution_str: Option<String> =

@@ -4,17 +4,12 @@ use duckdb::params;
 use std::sync::Arc;
 
 impl DuckDbStorage {
-    pub(crate) async fn store_embedding_internal(
-        &self,
-        id: &str,
-        embedding: &[f32],
-    ) -> Result<()> {
+    pub(crate) async fn store_embedding_internal(&self, id: &str, embedding: &[f32]) -> Result<()> {
         let conn_arc = Arc::clone(&self.conn);
         let id = id.to_string();
         let embedding = embedding.to_vec();
-        let dimension = i32::try_from(embedding.len()).map_err(|e| {
-            Error::Storage(format!("Embedding dimension overflow for {id}: {e}"))
-        })?;
+        let dimension = i32::try_from(embedding.len())
+            .map_err(|e| Error::Storage(format!("Embedding dimension overflow for {id}: {e}")))?;
 
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
@@ -189,7 +184,8 @@ impl DuckDbStorage {
                     .map_err(|e| Error::Storage(e.to_string()))?;
 
                 if let Some(row) = rows.next().map_err(|e| Error::Storage(e.to_string()))? {
-                    let embedding: Vec<f32> = row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
+                    let embedding: Vec<f32> =
+                        row.get(0).map_err(|e| Error::Storage(e.to_string()))?;
                     results.push(Some(embedding));
                 } else {
                     results.push(None);

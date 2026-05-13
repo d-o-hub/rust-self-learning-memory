@@ -15,20 +15,20 @@ readonly RED='\033[0;31m'
 readonly NC='\033[0m'
 
 show_help() {
-  echo "Usage: $(basename "$0") <operation> [options]"
+  echo "Usage: $(basename "$0") [operation] [options]"
   echo ""
   echo "Operations:"
-  echo "  fmt           Format code (fast check)"
-  echo "  clippy        Lint with clippy (strict)"
+  echo "  fmt           Format code (default)"
+  echo "  clippy        Lint with clippy"
   echo "  audit         Security audit"
-  echo "  check          Run all quality gates"
+  echo "  check         Run all quality gates"
   echo "  fix           Auto-fix common issues"
   echo ""
   echo "Options:"
-  echo "  --workspace   Format entire workspace"
-  echo "  --package     Format specific package"
+  echo "  --workspace   Apply to entire workspace"
+  echo "  --package <P> Apply to specific package"
   echo "  --strict      Clippy: deny warnings"
-  echo "  --fix         Auto-fix with cargo clippy"
+  echo "  --fix         Clippy: auto-fix issues"
   echo ""
   echo "Examples:"
   echo "  # Quick format check"
@@ -42,9 +42,6 @@ show_help() {
   echo ""
   echo "  # Run quality gates"
   echo "  $(basename "$0") check"
-  echo ""
-  echo "  # Auto-fix issues"
-  echo "  $(basename "$0") clippy --fix"
 }
 
 # Default operations
@@ -55,36 +52,42 @@ STRICT=""
 FIX=""
 
 # Parse arguments
-shift
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --workspace)
       WORKSPACE_FLAG="--workspace"
       ;;
     --package)
-      PACKAGE_FLAG="--package"
       shift
-      OP="${2:?fmt}"
+      PACKAGE_FLAG="--package $1"
       ;;
     --strict)
       STRICT="-D warnings"
       ;;
     --fix)
       FIX="true"
-      shift
-      OP="${2:?fmt}"
       ;;
-    fmt|clippy|audit|check)
+    fmt|clippy|audit|check|fix)
       OP="$1"
       ;;
     *)
-      echo -e "${RED}Error: Unknown operation: $1${NC}"
-      show_help
-      exit 1
+      # If it's not a known flag or operation, error out
+      # (Unless it's the very first arg which we already assigned to OP)
+      if [[ "$1" != "${OP:-}" ]]; then
+        echo -e "${RED}Error: Unknown argument: $1${NC}"
+        show_help
+        exit 1
+      fi
       ;;
   esac
   shift
 done
+
+# Ensure OP is valid, otherwise default to fmt
+case "$OP" in
+  fmt|clippy|audit|check|fix) ;;
+  *) OP="fmt" ;;
+esac
 
 # Check if in project root
 if [[ ! -f "$PROJECT_ROOT/Cargo.toml" && ! -f "$PROJECT_ROOT/Cargo.lock" ]]; then
@@ -98,61 +101,68 @@ fi
 case "$OP" in
   fmt)
     echo -e "${BLUE}📐 Formatting code...${NC}"
-    if [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
+    if [[ -n "$WORKSPACE_FLAG" ]]; then
       echo -e "${YELLOW}Formatting entire workspace...${NC}"
-      cargo fmt --all
-    elif [[ -n "$WORKSPACE_FLAG" && -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package}"
-      echo -e "${YELLOW}Formatting package: ${pkg#--package=}${NC}"
-      cargo fmt --package "${pkg#--package=}"
+      if cargo fmt --all; then fmt_res=0; else fmt_res=$?; fi
+    elif [[ -n "$PACKAGE_FLAG" ]]; then
+      pkg="${PACKAGE_FLAG#--package }"
+      echo -e "${YELLOW}Formatting package: $pkg${NC}"
+      if cargo fmt --package "$pkg"; then fmt_res=0; else fmt_res=$?; fi
     else
       echo -e "${YELLOW}Formatting check only...${NC}"
-      cargo fmt --all -- --check
+      if cargo fmt --all -- --check; then fmt_res=0; else fmt_res=$?; fi
     fi
     
-    if [[ $? -eq 0 ]]; then
+    if [[ $fmt_res -eq 0 ]]; then
       echo -e "${GREEN}✅ Formatting check passed${NC}"
     else
-      echo -e "${RED}❌ Formatting check failed${NC}"
+      echo -e "${RED}❌ Formatting check failed (exit code: $fmt_res)${NC}"
       echo -e "${YELLOW}Run 'cargo fmt' to fix${NC}"
+      exit $fmt_res
     fi
     ;;
 
   clippy)
     echo -e "${BLUE}🔍 Linting with Clippy...${NC}"
-    # CI parity: Run clippy on both lib and tests with same flags as .github/workflows/quick-check.yml
-    CLIPPY_FLAGS="-D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
-    
-    if [[ -n "$WORKSPACE_FLAG" ]]; then
-      echo -e "${YELLOW}Linting entire workspace (lib + tests)...${NC}"
-      cargo clippy --workspace --tests -- $CLIPPY_FLAGS
-    elif [[ -n "$PACKAGE_FLAG" ]]; then
-      pkg="${PACKAGE_FLAG#--package=}"
-      echo -e "${YELLOW}Linting package: $pkg (lib + tests)...${NC}"
-      cargo clippy --package "$pkg" --tests -- $CLIPPY_FLAGS
-    else
-      echo -e "${YELLOW}Linting current package (lib + tests)...${NC}"
-      cargo clippy --tests -- $CLIPPY_FLAGS
+    CLIPPY_FLAGS="-A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used"
+    if [[ -n "$STRICT" ]]; then
+      CLIPPY_FLAGS="-D warnings $CLIPPY_FLAGS"
     fi
     
-    clippy_result=$?
+    EXTRA_ARGS=""
+    if [[ -n "$FIX" ]]; then
+      EXTRA_ARGS="--fix --allow-dirty --allow-staged"
+    fi
+
+    if [[ -n "$WORKSPACE_FLAG" ]]; then
+      echo -e "${YELLOW}Linting entire workspace (lib + tests)...${NC}"
+      if cargo clippy --workspace --tests $EXTRA_ARGS -- $CLIPPY_FLAGS; then clippy_result=0; else clippy_result=$?; fi
+    elif [[ -n "$PACKAGE_FLAG" ]]; then
+      pkg="${PACKAGE_FLAG#--package }"
+      echo -e "${YELLOW}Linting package: $pkg (lib + tests)...${NC}"
+      if cargo clippy --package "$pkg" --tests $EXTRA_ARGS -- $CLIPPY_FLAGS; then clippy_result=0; else clippy_result=$?; fi
+    else
+      echo -e "${YELLOW}Linting current package (lib + tests)...${NC}"
+      if cargo clippy --tests $EXTRA_ARGS -- $CLIPPY_FLAGS; then clippy_result=0; else clippy_result=$?; fi
+    fi
+    
     if [[ $clippy_result -eq 0 ]]; then
       echo -e "${GREEN}✅ No Clippy warnings${NC}"
     else
-      echo -e "${YELLOW}⚠️  Clippy found ${clippy_result} warnings${NC}"
+      echo -e "${YELLOW}⚠️  Clippy found warnings (exit code: $clippy_result)${NC}"
+      exit $clippy_result
     fi
     ;;
 
   audit)
     echo -e "${BLUE}🔒 Security audit...${NC}"
-    cargo audit
+    if cargo audit; then audit_result=0; else audit_result=$?; fi
     
-    audit_result=$?
     if [[ $audit_result -eq 0 ]]; then
       echo -e "${GREEN}✅ No security vulnerabilities${NC}"
     else
-      echo -e "${RED}❌ Security vulnerabilities found!${NC}"
-      echo -e "${YELLOW}Review output above for details${NC}"
+      echo -e "${RED}❌ Security vulnerabilities found! (exit code: $audit_result)${NC}"
+      exit $audit_result
     fi
     ;;
 
@@ -164,18 +174,15 @@ case "$OP" in
 
     # Run formatting check
     echo -e "${BLUE}  Formatting check...${NC}"
-    cargo fmt --all -- --check
-    fmt_result=$?
+    if cargo fmt --all -- --check; then fmt_result=0; else fmt_result=$?; fi
     
     # Run clippy on lib + tests (CI parity)
     echo -e "${BLUE}  Clippy check (lib + tests, strict mode)...${NC}"
-    cargo clippy --workspace --tests -- $CLIPPY_FLAGS
-    clippy_result=$?
+    if cargo clippy --workspace --tests -- $CLIPPY_FLAGS; then clippy_result=0; else clippy_result=$?; fi
     
     # Run audit
     echo -e "${BLUE}  Security audit...${NC}"
-    cargo audit
-    audit_result=$?
+    if cargo audit; then audit_result=0; else audit_result=$?; fi
     
     # Summary
     echo ""
@@ -186,7 +193,7 @@ case "$OP" in
     if [[ $fmt_result -eq 0 ]]; then
       echo -e "  Formatting: ${GREEN}✅ PASS${NC}"
     else
-      echo -e "  Formatting: ${RED}FAIL${NC}"
+      echo -e "  Formatting: ${RED}FAIL (exit code: $fmt_result)${NC}"
     fi
 
     if [[ $clippy_result -eq 0 ]]; then
@@ -198,7 +205,7 @@ case "$OP" in
     if [[ $audit_result -eq 0 ]]; then
       echo -e "  Security: ${GREEN}✅ PASS${NC}"
     else
-      echo -e "  Security: ${RED}FAIL${NC}"
+      echo -e "  Security: ${RED}FAIL (exit code: $audit_result)${NC}"
     fi
 
     echo ""
@@ -208,6 +215,22 @@ case "$OP" in
     echo "  • Update dependencies with 'cargo update'"
     echo ""
     echo "============================================"
+    
+    # Exit with non-zero if any gate failed
+    if [[ $fmt_result -ne 0 || $clippy_result -ne 0 || $audit_result -ne 0 ]]; then
+      exit 1
+    fi
+    ;;
+
+  fix)
+    echo -e "${BLUE}🛠️  Auto-fixing issues...${NC}"
+    echo -e "${BLUE}  Formatting...${NC}"
+    cargo fmt --all
+    
+    echo -e "${BLUE}  Clippy auto-fix...${NC}"
+    cargo clippy --workspace --tests --fix --allow-dirty --allow-staged -- -D warnings -A clippy::expect_used -A clippy::uninlined_format_args -A clippy::unwrap_used
+    
+    echo -e "${GREEN}✅ Auto-fix complete${NC}"
     ;;
 
   *)

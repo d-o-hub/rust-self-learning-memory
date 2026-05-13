@@ -279,15 +279,17 @@ impl CascadeRetriever {
             hdc_results.results.clone()
         };
 
+        let (contributing_tiers, api_calls) = if best_results.is_empty() {
+            (vec!["none".to_string()], 0)
+        } else {
+            (vec!["api_fallback_needed".to_string()], 1)
+        };
+
         Ok(CascadeResult {
             episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
             scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: if best_results.is_empty() {
-                vec!["none".to_string()]
-            } else {
-                vec!["api_fallback_needed".to_string()]
-            },
-            api_calls: 0, // Indicates API call was avoided (all local tiers used)
+            contributing_tiers,
+            api_calls,
         })
     }
 

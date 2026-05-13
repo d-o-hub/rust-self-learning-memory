@@ -313,10 +313,12 @@ impl DuckDbStorage {
         let conn_arc = Arc::clone(&self.conn);
         let deleted_count = tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
-            let count = conn.execute(
-                "DELETE FROM episodes WHERE CAST(reward->>'total' AS DOUBLE) < 0.1",
-                [],
-            ).map_err(|e| Error::Storage(e.to_string()))?;
+            let count = conn
+                .execute(
+                    "DELETE FROM episodes WHERE CAST(reward->>'total' AS DOUBLE) < 0.1",
+                    [],
+                )
+                .map_err(|e| Error::Storage(e.to_string()))?;
             Ok::<usize, Error>(count)
         })
         .await
@@ -332,17 +334,19 @@ impl DuckDbStorage {
         _policy: &do_memory_core::episodic::EpisodeRetentionPolicy,
     ) -> Result<usize> {
         let conn_arc = Arc::clone(&self.conn);
-        let count = tokio::task::spawn_blocking(move || {
-            let conn = conn_arc.lock();
-            let mut stmt = conn.prepare(
+        let count =
+            tokio::task::spawn_blocking(move || {
+                let conn = conn_arc.lock();
+                let mut stmt = conn.prepare(
                 "SELECT COUNT(*) FROM episodes WHERE CAST(reward->>'total' AS DOUBLE) < 0.1",
             ).map_err(|e| Error::Storage(e.to_string()))?;
-            let count: i64 = stmt.query_row([], |row| row.get(0))
-                .map_err(|e| Error::Storage(e.to_string()))?;
-            Ok::<usize, Error>(count as usize)
-        })
-        .await
-        .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
+                let count: i64 = stmt
+                    .query_row([], |row| row.get(0))
+                    .map_err(|e| Error::Storage(e.to_string()))?;
+                Ok::<usize, Error>(count as usize)
+            })
+            .await
+            .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
         Ok(count)
     }
 

@@ -1,11 +1,58 @@
 # GOAP State Snapshot
 
-- **Last Updated**: 2026-04-30 (v0.1.31 release verified, metrics sync)
+- **Last Updated**: 2026-05-13 (v0.1.31 release verified, v0.1.32 DuckDB integration in progress)
 - **Version**: `0.1.31` (workspace, released)
-- **Branch**: `main`
+- **Branch**: `feat/duckdb-storage-backend-955587557...`
 - **Validation**: `plans/STATUS/VALIDATION_LATEST.md`
 - **Gap Analysis**: `plans/STATUS/GAP_ANALYSIS_LATEST.md`
-- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted)
+- **Primary ADRs**: ADR-052 (v0.1.29), ADR-037 (CSM workflow adoption), ADR-053 (Accepted), ADR-055 (Planned: DuckDB)
+
+---
+
+## v0.1.32 Sprint (In Progress)
+
+### GOAP Analysis (2026-05-13)
+
+**Primary Goal**: Integrate DuckDB as an optional storage backend (`memory-storage-duckdb`) and resolve all CI/review blockers in PR #532.
+
+**Constraints**:
+- Time: Critical (CI failing)
+- Resources: All agents available
+- Dependencies: `memory-core` storage traits
+
+**Complexity Level**: Complex (Multiple CI failures, new storage crate)
+
+**Strategy**: Resolution-focused (Execute `plans/GOAP_PR_532_RESOLUTION.md`)
+
+### GOAP Skill Stack
+
+- **Planning/coordination**: `goap-agent`, `agent-coordination`
+- **Storage implementation**: `feature-implement`, `build-rust`
+- **CI Fixes**: `ci-fix`, `github-workflows`, `test-fix`
+- **Validation**: `code-quality`, `test-runner`, `architecture-validation`
+
+### Phase 1: Infrastructure & Infrastructure-adjacent Fixes
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Fix `scripts/code-quality.sh` | WG-143 | 🚧 In Progress | ci-fix |
+| Update `Cargo.toml` dev profile | WG-144 | 🔵 Planned | feature-implement |
+| Fix MD022 linting | WG-145 | 🔵 Planned | agents-update |
+| Fix CascadeRetriever Tier 4 fallback | WG-146 | 🔵 Planned | feature-implement |
+
+### Phase 2: Storage Backend Refinements
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Refactor DuckDB patterns | WG-147 | 🚧 In Progress | feature-implement |
+| Refactor Turso query cache normalization | WG-148 | 🔵 Planned | feature-implement |
+
+### Phase 3: Test Suite Optimization
+
+| Task | WG | Status | Owner |
+|------|----|--------|-------|
+| Split large persistent storage tests | WG-149 | 🔵 Planned | test-fix |
+| Add Turso cache regression tests | WG-150 | 🔵 Planned | test-runner |
 
 ---
 

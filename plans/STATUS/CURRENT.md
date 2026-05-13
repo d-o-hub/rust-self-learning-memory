@@ -1,8 +1,8 @@
 # Project Status — Self-Learning Memory System
 
-**Last Updated**: 2026-05-01 (metrics sync with v0.1.31 release)
+**Last Updated**: 2026-05-13 (v0.1.31 release verification, v0.1.32 DuckDB integration)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
-**Branch**: `main` (clean)
+**Branch**: `main` (active dev on `feat/duckdb-storage-backend-...`)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 **Edition**: Rust 2024
 
@@ -12,11 +12,11 @@
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Workspace members | 9 | — | — |
+| Workspace members | 10 | — | — |
 | Workspace version | 0.1.31 | — | ✅ |
-| Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-22 |
+| Latest GitHub release | v0.1.31 | — | ✅ Published 2026-04-30 |
 | Publishable workspace crates | 6 | — | ✅ All at `0.1.31` |
-| Total tests | 2,902 | — | 2,901 passing, 1 flaky (pre-existing) |
+| Total tests | 2,902 | — | 2,901 passing, 1 flaky |
 | Skipped/ignored tests | 123 | ≤125 ceiling | ✅ 70 blocked by upstream libsql bug (ADR-027) |
 | Timed-out tests | 0 | 0 | ✅ |
 | Failing doctests | 0 | 0 | ✅ |
@@ -33,54 +33,44 @@
 | Clippy | Clean | Clean | ✅ |
 | Format | Clean | Clean | ✅ |
 
-## v0.1.30 Sprint Highlights
+## v0.1.32 Planning Focus (In Progress 🚧)
 
-- **MemoryEvent Broadcast**: `tokio::broadcast` channel for episode lifecycle events
-- **Top-k Optimization**: O(n) `select_nth_unstable_by` for retrieval hot paths
-- **Zero-copy Retrieval Caching**: Bolt optimization for episodic memory
-- **Agent Skills**: Added `memory-context` and `learn` skills
+- **DuckDB Integration**: Implement `memory-storage-duckdb` for local analytical storage (Issue #530).
+- **PR #532 Resolution**: Fix CI failures (Quick Check, Security, Coverage, File Structure) and address reviewer comments.
+- **Infrastructure Fixes**: Improve `scripts/code-quality.sh` robustness and update dev profiles for disk efficiency.
+- **Test Optimization**: Split large persistent storage tests in MCP suite.
 
-## v0.1.31 Planning Focus
+## v0.1.31 Sprint Highlights
 
-- **CSM integration**: Cascading retrieval pipeline (BM25 → HDC → ConceptGraph → API) to eliminate 50-70% of embedding API calls
-- **CPU efficiency**: QueryCache contention, cached retrieval wiring, compression/cache thresholds
-- **Token efficiency**: bounded context windows, hierarchical/gist reranking, compact high-frequency skills/docs
-- **Housekeeping**: Create missing `performance` skill, prune skills 40→≤35, fix metric contradictions, refresh stale analysis docs
-- **Release/package hygiene**: keep GitHub release, package versions, and planning docs aligned before the `0.1.31` bump
-
-## v0.1.28 Release Highlights
-
-- **DyMoE Routing-Drift Protection**: Affinity gating and dual reward scoring
-- **CodeQL Fixed**: Cleartext logging alert resolved (WG-093)
-- **Dependabot Analyzed**: All 3 alerts are transitive dependencies (accepted risk)
-
-## v0.1.26 Release Highlights
-
-- **Crate Renaming**: All crates renamed from `memory-*` to `do-memory-*` namespace
-- **crates.io Publishing**: All 4 crates published successfully
-- **Binary Names**: `do-memory-mcp-server`, `do-memory-cli`
-- **GitHub Release**: v0.1.26 with multi-platform binaries
+- **CSM Integration**: BM25 + HDC + ConceptGraph cascading retrieval implemented via crate dependency.
+- **CPU Efficiency**: `parking_lot::RwLock` for QueryCache, real cached retrieval implementation.
+- **Token Efficiency**: `BundleAccumulator` sliding window, hierarchical reranking, skill compaction.
+- **Research Upgrades**: Reconstructive windows (E-mem), execution-signature retrieval (APEX-EM), shard routing (ShardMemo).
 
 ---
 
-## Open Items (2026-04-20 Validation)
+## Open Items (2026-05-13 Validation)
 
 ### Open Issues
 | # | Title | Status |
 |---|-------|--------|
-| — | No open issues | ✅ All closed |
+| 530 | feat: Add DuckDB as optional storage backend | 🚧 In Progress |
 
-### Open PRs (All Resolved)
+### Open PRs
 | # | Title | Status |
 |---|-------|--------|
-| 453 | chore: bump version to 0.1.31 | ❌ CLOSED (not merged, deferred) |
-| 450 | perf: parking_lot::RwLock for QueryCache | ✅ MERGED 2026-04-18 |
-| 445 | ci(deps): bump actions/github-script 8→9 | ✅ MERGED 2026-04-18 |
+| 532 | Add DuckDB as optional storage backend | 🚧 Failing CI |
+| 538 | chore(deps): bump the rust-patch-minor | 🔵 Dependabot |
 
-### Recently Merged PRs
+### Recently Merged PRs (v0.1.31)
 | # | Title | Status |
 |---|-------|--------|
-| 454 | fix(persistence): SQL injection in metadata query | ✅ Merged 2026-04-18 (P0 security fix) |
+| 460 | chore: consolidate skills 40 -> 31 | ✅ Merged 2026-04-28 |
+| 458 | feat: APEX-EM execution-signature retrieval | ✅ Merged 2026-04-27 |
+| 457 | feat: ShardMemo scope-before-search routing | ✅ Merged 2026-04-26 |
+| 456 | feat: E-mem reconstructive retrieval windows | ✅ Merged 2026-04-25 |
+| 455 | feat: CascadeRetriever (BM25 -> HDC -> ConceptGraph -> API) | ✅ Merged 2026-04-24 |
+| 450 | perf: parking_lot::RwLock for QueryCache | ✅ Merged 2026-04-18 |
 
 ### Security: Dependabot Alerts (Accepted Risk — Transitive)
 | # | Dependency | Severity | Notes |
@@ -108,15 +98,6 @@ All research/implementation phases are complete:
 - ✅ **Phase 3 (Spatiotemporal)**: Retrieval accuracy (+150%, 4.4× target)
 - ✅ **Phase 4 (Benchmarking)**: All research claims validated
 
-## v0.1.22 Features (ADR-044 — Polished)
-
-| Feature | Core | MCP | CLI | Tests | Doctests | Snapshots |
-|---------|------|-----|-----|-------|---------|-----------|
-| Actionable Playbooks | ✅ | ✅ | ✅ | 26 | ✅ Fixed | ✅ |
-| Recommendation Attribution | ✅ | ✅ | ✅ | 8 | ✅ Fixed | ✅ |
-| Episode Checkpoints/Handoff | ✅ | ✅ | ✅ | 6 | ✅ | ✅ |
-| Recommendation Feedback | ✅ | ✅ | ✅ | 3 | ✅ | ✅ |
-
 ## Key Capabilities
 
 - **Multi-provider embeddings**: 5 providers (OpenAI, Cohere, Ollama, Local, Custom)
@@ -124,71 +105,19 @@ All research/implementation phases are complete:
 - **Episode management**: Full lifecycle with relationships, tagging, patterns
 - **Playbooks**: Template-driven actionable recommendations from patterns
 - **Attribution**: Recommendation session tracking and feedback loops
-- **Durable attribution storage**: Turso/redb persistence for sessions, feedback, and metrics (WG-051 validated via `tests/attribution_integration_test.rs`)
-- **Durable checkpoint/handoff storage**: Turso episode checkpoint serialization + restart-safe handoff resume metadata persistence (WG-052 validated via `tests/checkpoint_integration_test.rs`)
+- **Durable attribution storage**: Turso/redb persistence for sessions, feedback, and metrics
+- **Durable checkpoint/handoff storage**: Turso episode checkpoint serialization + restart-safe handoff resume metadata persistence
 - **Checkpoints**: Mid-task state snapshotting and agent handoff packs
 - **Storage**: Turso/libSQL (persistent) + redb (cache) dual-layer
 - **Security**: Path traversal protection, parameterized SQL (WASM removed in v0.1.29)
 - **CI/CD**: 6 workflows all passing, cargo-nextest, mutation testing
 - **Performance**: Exceeds all targets (17–2307×)
 
-## Planned: CSM Cascading Retrieval (v0.1.31)
-
-**Integration Method**: Crate dependency (`chaotic_semantic_memory = "0.3.2"`), not source code copy.
-
-| Tier | Method | Source | API Calls | Status |
-|------|--------|--------|-----------|--------|
-| 1 | BM25 keyword index | `chaotic_semantic_memory` crate | 0 | ✅ WG-128 Complete |
-| 2 | HDC 10,240-bit encoding | `chaotic_semantic_memory` crate | 0 | ✅ WG-129 Complete |
-| 3 | ConceptGraph expansion | `chaotic_semantic_memory` crate | 0 | ✅ WG-130 Complete |
-| 4 | API embedding (fallback) | OpenAI/Cohere/Ollama | 1 | Existing |
-| Pipeline | Cascade orchestrator | New `CascadeRetriever` | 0-1 | 🔵 WG-131 Planned |
-
-## Critical Issues for v0.1.22 Tag — ALL RESOLVED
-
-| Issue | Priority | Status |
-|-------|----------|--------|
-| ~~2 failing doctests (attribution, playbook)~~ | P0 | ✅ Fixed |
-| ~~1 test timeout (quality_gate_no_clippy_warnings)~~ | P0 | ✅ Fixed |
-| ~~3 files >500 LOC~~ | P0 | ✅ Fixed |
-
-## Quality Debt
-
-| Item | Current | Target | Notes |
-|------|---------|--------|-------|
-| Ignored tests | 123 | ≤125 ceiling | 70 Turso (upstream libsql bug), rest by design |
-| `#[allow(dead_code)]` (prod src) | 27 | ≤25 | ⚠️ Slightly over (API reserves/future features, verified 2026-04-22) |
-| Skills count | 31 | ≤35 | ✅ Target met (5 skills merged/removed) |
-| Broken markdown links | 0 active | ≤80 | ✅ 101 archived-only (acceptable) |
-| Snapshot tests | 80 | ≥80 | ✅ Target met |
-| Property test files | 17 | ≥13 | ✅ Exceeds target |
-
-## Removed Features
-
-| Feature | Version Removed | Reason |
-|---------|-----------------|--------|
-| WASM sandbox (wasmtime) | v0.1.29 (WG-096) | Maintenance burden, security concerns, 1,899 LOC removed |
-
-## Infrastructure (Completed via PR #391)
-
-| Item | Since | Status |
-|------|-------|--------|
-| Changelog automation (git-cliff) | v0.1.17 | ✅ `.github/workflows/changelog.yml` |
-| libsql version monitor (T5.3) | v0.1.20 | ✅ `scripts/check-libsql-version.sh` |
-| Structured tech-debt registry | v0.1.17 | ✅ `docs/TECH_DEBT.md` |
-
-## Infrastructure Backlog
-
-| Item | Since | Priority |
-|------|-------|----------|
-| Nightly trend tracking (T5.2) | v0.1.20 | P3 |
-| CLI workflow parity generator | v0.1.17 | P3 |
+---
 
 ## Cross-References
 
 - **Gap analysis**: [GAP_ANALYSIS_LATEST.md](GAP_ANALYSIS_LATEST.md)
-- **Execution plan**: [GOAP_EXECUTION_PLAN_v0.1.22.md](../GOAP_EXECUTION_PLAN_v0.1.22.md)
 - **Active roadmap**: [ROADMAP_ACTIVE.md](../ROADMAPS/ROADMAP_ACTIVE.md)
 - **ADRs**: [ADR Directory](../adr/)
 - **Comprehensive analysis**: [COMPREHENSIVE_ANALYSIS_2026-04-21.md](COMPREHENSIVE_ANALYSIS_2026-04-21.md)
-- **CSM repo**: <https://github.com/d-o-hub/chaotic_semantic_memory>

@@ -78,8 +78,20 @@ name = "mcp_integration_tests"
 path = "tests/mcp_integration_tests.rs"
 
 [[test]]
-name = "persistent_storage_tests"
-path = "tests/persistent_storage_tests.rs"
+name = "persistence_basic"
+path = "tests/persistence_basic.rs"
+
+[[test]]
+name = "persistence_cross_session"
+path = "tests/persistence_cross_session.rs"
+
+[[test]]
+name = "persistence_sync"
+path = "tests/persistence_sync.rs"
+
+[[test]]
+name = "persistence_bulk"
+path = "tests/persistence_bulk.rs"
 
 [[test]]
 name = "advanced_pattern_analysis_comprehensive"

@@ -73,6 +73,7 @@ futures = "0.3.32"
 # Consolidated duplicate dependencies
 base64 = "0.22.1"
 lru = "0.18.0"
+once_cell = "1.21"
 regex = "1.12"
 
 # Configuration

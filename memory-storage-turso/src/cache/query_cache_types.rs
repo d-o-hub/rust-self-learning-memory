@@ -1,4 +1,6 @@
+use once_cell::sync::Lazy;
 use parking_lot::RwLock;
+use regex::Regex;
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -9,6 +11,17 @@ const DEFAULT_MAX_QUERIES: usize = 1000;
 const DEFAULT_QUERY_TTL: Duration = Duration::from_secs(300);
 const DEFAULT_HOT_THRESHOLD: u64 = 5;
 const DEFAULT_REFRESH_INTERVAL: Duration = Duration::from_secs(30);
+
+static RE_BLOCK_COMMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"/\*[\s\S]*?\*/").unwrap());
+static RE_LINE_COMMENT: Lazy<Regex> = Lazy::new(|| Regex::new(r"--.*").unwrap());
+static RE_EPISODES: Lazy<Regex> = Lazy::new(|| Regex::new(r"\b(from|join)\s+episodes\b").unwrap());
+static RE_STEPS: Lazy<Regex> = Lazy::new(|| Regex::new(r"\b(from|join)\s+steps\b").unwrap());
+static RE_PATTERNS: Lazy<Regex> = Lazy::new(|| Regex::new(r"\b(from|join)\s+patterns\b").unwrap());
+static RE_HEURISTICS: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\b(from|join)\s+heuristics\b").unwrap());
+static RE_EMBEDDINGS: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\b(from|join)\s+embeddings\b").unwrap());
+static RE_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"\b(from|join)\s+tags\b").unwrap());
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TableDependency {
@@ -35,25 +48,25 @@ impl TableDependency {
     }
 
     pub fn from_query(sql: &str) -> Vec<Self> {
-        let sql_lower = sql.to_lowercase();
+        let normalized = QueryKey::normalize_sql(sql);
         let mut tables = Vec::new();
 
-        if sql_lower.contains("from episodes") || sql_lower.contains("join episodes") {
+        if RE_EPISODES.is_match(&normalized) {
             tables.push(Self::Episodes);
         }
-        if sql_lower.contains("from steps") || sql_lower.contains("join steps") {
+        if RE_STEPS.is_match(&normalized) {
             tables.push(Self::Steps);
         }
-        if sql_lower.contains("from patterns") || sql_lower.contains("join patterns") {
+        if RE_PATTERNS.is_match(&normalized) {
             tables.push(Self::Patterns);
         }
-        if sql_lower.contains("from heuristics") || sql_lower.contains("join heuristics") {
+        if RE_HEURISTICS.is_match(&normalized) {
             tables.push(Self::Heuristics);
         }
-        if sql_lower.contains("from embeddings") || sql_lower.contains("join embeddings") {
+        if RE_EMBEDDINGS.is_match(&normalized) {
             tables.push(Self::Embeddings);
         }
-        if sql_lower.contains("from tags") || sql_lower.contains("join tags") {
+        if RE_TAGS.is_match(&normalized) {
             tables.push(Self::Tags);
         }
 
@@ -91,26 +104,14 @@ impl QueryKey {
         Self::new(sql, &[])
     }
 
-    fn normalize_sql(sql: &str) -> String {
-        let mut result = String::with_capacity(sql.len());
-        let mut in_comment = false;
-        let mut prev_char = ' ';
+    pub(crate) fn normalize_sql(sql: &str) -> String {
+        let sql = RE_BLOCK_COMMENT.replace_all(sql, "");
+        let sql = RE_LINE_COMMENT.replace_all(&sql, "");
 
-        for ch in sql.chars() {
-            if ch == '-' && prev_char == '-' {
-                in_comment = true;
-            }
-            if ch == '\n' {
-                in_comment = false;
-            }
-
-            if !in_comment {
-                result.push(ch.to_ascii_lowercase());
-            }
-            prev_char = ch;
-        }
-
-        result.split_whitespace().collect::<Vec<_>>().join(" ")
+        sql.to_ascii_lowercase()
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
     }
 
     fn hash_string(s: &str) -> u64 {

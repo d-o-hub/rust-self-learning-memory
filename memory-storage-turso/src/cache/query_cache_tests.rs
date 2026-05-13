@@ -26,11 +26,29 @@ fn test_query_key_normalization() {
 
 #[test]
 fn test_table_dependency_detection() {
+    // Single line
     let sql = "SELECT e.*, s.* FROM episodes e JOIN steps s ON e.episode_id = s.episode_id";
     let deps = TableDependency::from_query(sql);
-
     assert!(deps.contains(&TableDependency::Episodes));
     assert!(deps.contains(&TableDependency::Steps));
+
+    // Multiline and comments
+    let sql_complex = "
+        /* Complex analysis query */
+        SELECT 
+            e.task_description,
+            s.tool_name
+        FROM 
+            episodes e -- Main table
+        JOIN 
+            steps s ON e.episode_id = s.episode_id /* Join steps */
+        WHERE 
+            e.complexity = 'Simple'
+    ";
+    let deps_complex = TableDependency::from_query(sql_complex);
+    assert!(deps_complex.contains(&TableDependency::Episodes));
+    assert!(deps_complex.contains(&TableDependency::Steps));
+    assert!(!deps_complex.contains(&TableDependency::Patterns));
 }
 
 #[test]

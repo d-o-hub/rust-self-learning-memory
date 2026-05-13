@@ -20,8 +20,6 @@ impl DuckDbStorage {
 
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
-            let embedding_json = serde_json::to_string(&embedding)
-                .map_err(|e| Error::Storage(format!("Serialization error: {e}")))?;
 
             conn.execute(
                 "INSERT OR REPLACE INTO embeddings (
@@ -31,10 +29,10 @@ impl DuckDbStorage {
                     format!("{}:{}", item_type, item_id),
                     item_id,
                     item_type,
-                    "{}", // embedding_data placeholder
+                    "{}",
                     embedding,
                     dimension,
-                    "default", // model placeholder
+                    "default",
                 ],
             )
             .map_err(|e| Error::Storage(format!("Failed to store embedding: {e}")))?;

@@ -16,6 +16,14 @@ impl DuckDbStorage {
         &self,
         interval_hours: u32,
     ) -> Result<Vec<serde_json::Value>> {
+        // Validate interval_hours to prevent SQL injection in formatting
+        if interval_hours == 0 || interval_hours > 8760 {
+            // Max 1 year
+            return Err(Error::Storage(
+                "interval_hours must be between 1 and 8760".to_string(),
+            ));
+        }
+
         let conn_arc = Arc::clone(&self.conn);
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();

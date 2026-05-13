@@ -143,7 +143,7 @@ impl DuckDbStorage {
             let mut stmt = conn
                 .prepare(
                     "SELECT agent_name, agent_type, total_executions, successful_executions,
-                     total_duration_ms, min_duration_ms, max_duration_ms,
+                     total_duration_ms, avg_duration_ms, min_duration_ms, max_duration_ms,
                      strftime(CAST(last_execution AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
                      current_streak, longest_streak
                      FROM agent_metrics WHERE agent_name = ?",
@@ -164,12 +164,14 @@ impl DuckDbStorage {
                     row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
                 let total_duration_ms: i64 =
                     row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-                let min_duration_ms: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
-                let max_duration_ms: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
+                let _avg_duration_ms: i64 =
+                    row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
+                let min_duration_ms: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
+                let max_duration_ms: i64 = row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
                 let last_execution_str: Option<String> =
-                    row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
-                let current_streak: i32 = row.get(8).map_err(|e| Error::Storage(e.to_string()))?;
-                let longest_streak: i32 = row.get(9).map_err(|e| Error::Storage(e.to_string()))?;
+                    row.get(8).map_err(|e| Error::Storage(e.to_string()))?;
+                let current_streak: i32 = row.get(9).map_err(|e| Error::Storage(e.to_string()))?;
+                let longest_streak: i32 = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
 
                 let agent_type =
                     do_memory_core::monitoring::types::AgentType::from(agent_type_str.as_str());

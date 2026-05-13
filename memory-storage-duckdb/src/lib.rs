@@ -71,33 +71,26 @@ impl DuckDbStorage {
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock();
 
-            // Execute all schema creation statements individually for reliability
-            conn.execute(schema::CREATE_EPISODES_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Episodes table: {e}")))?;
-            conn.execute(schema::CREATE_PATTERNS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Patterns table: {e}")))?;
-            conn.execute(schema::CREATE_HEURISTICS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Heuristics table: {e}")))?;
-            conn.execute(schema::CREATE_RECOMMENDATION_SESSIONS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Rec sessions table: {e}")))?;
-            conn.execute(schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Rec feedback table: {e}")))?;
-            conn.execute(schema::CREATE_EMBEDDINGS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Embeddings table: {e}")))?;
-            conn.execute(schema::CREATE_EPISODE_RELATIONSHIPS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Relationships table: {e}")))?;
-            conn.execute(schema::CREATE_EXECUTION_RECORDS_SEQUENCE, [])
-                .map_err(|e| Error::Storage(format!("Exec records seq: {e}")))?;
-            conn.execute(schema::CREATE_EXECUTION_RECORDS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Exec records table: {e}")))?;
-            conn.execute(schema::CREATE_AGENT_METRICS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Agent metrics table: {e}")))?;
-            conn.execute(schema::CREATE_TASK_METRICS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Task metrics table: {e}")))?;
-            conn.execute(schema::CREATE_EPISODE_SUMMARIES_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Summaries table: {e}")))?;
-            conn.execute(schema::CREATE_EPISODE_TAGS_TABLE, [])
-                .map_err(|e| Error::Storage(format!("Tags table: {e}")))?;
+            // Execute all schema creation statements in a batch for reliability
+            let schema_sql = format!(
+                "{}{}{}{}{}{}{}{}{}{}{}{}{}",
+                schema::CREATE_EPISODES_TABLE,
+                schema::CREATE_PATTERNS_TABLE,
+                schema::CREATE_HEURISTICS_TABLE,
+                schema::CREATE_RECOMMENDATION_SESSIONS_TABLE,
+                schema::CREATE_RECOMMENDATION_FEEDBACK_TABLE,
+                schema::CREATE_EMBEDDINGS_TABLE,
+                schema::CREATE_EPISODE_RELATIONSHIPS_TABLE,
+                schema::CREATE_EXECUTION_RECORDS_SEQUENCE,
+                schema::CREATE_EXECUTION_RECORDS_TABLE,
+                schema::CREATE_AGENT_METRICS_TABLE,
+                schema::CREATE_TASK_METRICS_TABLE,
+                schema::CREATE_EPISODE_SUMMARIES_TABLE,
+                schema::CREATE_EPISODE_TAGS_TABLE,
+            );
+
+            conn.execute_batch(&schema_sql)
+                .map_err(|e| Error::Storage(format!("Failed to initialize schema: {e}")))?;
 
             Ok::<(), Error>(())
         })

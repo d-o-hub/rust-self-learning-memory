@@ -26,13 +26,9 @@ Resolve all failing GitHub Actions and address all reviewer comments in PR 532 (
 - [x] **T3.2: Update `memory-storage-turso/src/cache/query_cache_tests.rs`**
 
 ### Phase 4: Validation
-- **T4.1: Run Formatting & Linting**
-  - `./scripts/code-quality.sh fmt`
-  - `./scripts/code-quality.sh clippy --workspace`
-- **T4.2: Execute Tests**
-  - `cargo nextest run --all`
-- **T4.3: Quality Gates**
-  - `./scripts/quality-gates.sh`
+- [x] **T4.1: Run Formatting & Linting**
+- [x] **T4.2: Execute Tests**
+- [x] **T4.3: Quality Gates**
 
 ## Execution Strategy
 - Use parallel agents for Tasks in Phase 1 and Phase 2.

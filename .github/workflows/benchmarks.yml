@@ -59,6 +59,7 @@ jobs:
           running-workflow-name: Quick Check
           # Allow this check to fail without failing the job
           fail-on-no-checks: false
+          allowed-conclusions: success,skipped,cancelled
 
   benchmark:
     name: Run Benchmarks

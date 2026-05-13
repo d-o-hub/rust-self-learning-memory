@@ -249,25 +249,27 @@ impl DuckDbStorage {
             )
             .map_err(|e| Error::Storage(format!("Failed to delete episode tags: {e}")))?;
 
-            tx.execute("DELETE FROM episodes WHERE episode_id = ?", params![id_str])
+            let rows_changed = tx.execute("DELETE FROM episodes WHERE episode_id = ?", params![id_str])
                 .map_err(|e| Error::Storage(format!("Failed to delete episode: {e}")))?;
 
             tx.commit()
                 .map_err(|e| Error::Storage(format!("Failed to commit transaction: {e}")))?;
-            Ok::<(), Error>(())
+            Ok::<u64, Error>(rows_changed)
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {e}")))??;
 
-        // Emit standardized event
-        self.emit_event(
-            do_memory_core::types::event::MemoryEvent::EpisodeGarbageCollected {
-                id: id.to_string(),
-                reason: "manual".to_string(),
-                timestamp: do_memory_core::types::event::unix_now_secs(),
-            },
-        )
-        .await;
+        // Emit standardized event if something was deleted
+        if res > 0 {
+            self.emit_event(
+                do_memory_core::types::event::MemoryEvent::EpisodeGarbageCollected {
+                    id: id.to_string(),
+                    reason: "manual".to_string(),
+                    timestamp: do_memory_core::types::event::unix_now_secs(),
+                },
+            )
+            .await;
+        }
 
         Ok(())
     }

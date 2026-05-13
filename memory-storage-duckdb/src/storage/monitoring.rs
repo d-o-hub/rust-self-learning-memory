@@ -164,7 +164,7 @@ impl DuckDbStorage {
                     row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
                 let total_duration_ms: i64 =
                     row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-                let _avg_duration_ms: i64 =
+                let avg_duration_ms: i64 =
                     row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
                 let min_duration_ms: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
                 let max_duration_ms: i64 = row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
@@ -189,15 +189,10 @@ impl DuckDbStorage {
                             Error::Storage(format!("total_duration conversion: {e}"))
                         })?,
                     ),
-                    avg_duration: if total_executions > 0 {
-                        std::time::Duration::from_millis(
-                            u64::try_from(total_duration_ms / total_executions).map_err(|e| {
-                                Error::Storage(format!("avg_duration conversion: {e}"))
-                            })?,
-                        )
-                    } else {
-                        std::time::Duration::ZERO
-                    },
+                    avg_duration: std::time::Duration::from_millis(
+                        u64::try_from(avg_duration_ms)
+                            .map_err(|e| Error::Storage(format!("avg_duration conversion: {e}")))?,
+                    ),
                     min_duration: std::time::Duration::from_millis(
                         u64::try_from(min_duration_ms)
                             .map_err(|e| Error::Storage(format!("min_duration conversion: {e}")))?,

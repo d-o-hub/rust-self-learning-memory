@@ -15,15 +15,13 @@ CREATE TABLE IF NOT EXISTS episodes (
     reflection JSON,
     patterns JSON NOT NULL,
     heuristics JSON NOT NULL,
-    applied_patterns JSON,
-    salient_features JSON,
     checkpoints JSON NOT NULL,
     metadata JSON NOT NULL,
     domain VARCHAR NOT NULL,
     language VARCHAR,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     archived_at TIMESTAMP WITH TIME ZONE
-);
+)
 ";
 
 /// SQL to create the patterns table.
@@ -39,7 +37,7 @@ CREATE TABLE IF NOT EXISTS patterns (
     occurrence_count INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the heuristics table.
@@ -52,7 +50,7 @@ CREATE TABLE IF NOT EXISTS heuristics (
     evidence JSON NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create recommendation sessions table.
@@ -62,7 +60,7 @@ CREATE TABLE IF NOT EXISTS recommendation_sessions (
     episode_id UUID NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     payload JSON NOT NULL
-);
+)
 ";
 
 /// SQL to create recommendation feedback table.
@@ -70,7 +68,7 @@ pub const CREATE_RECOMMENDATION_FEEDBACK_TABLE: &str = r"
 CREATE TABLE IF NOT EXISTS recommendation_feedback (
     session_id UUID PRIMARY KEY,
     payload JSON NOT NULL
-);
+)
 ";
 
 /// SQL to create the embeddings table with native vector support.
@@ -84,7 +82,7 @@ CREATE TABLE IF NOT EXISTS embeddings (
     dimension INTEGER NOT NULL,
     model VARCHAR NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the `episode_relationships` table.
@@ -99,12 +97,12 @@ CREATE TABLE IF NOT EXISTS episode_relationships (
     priority INTEGER,
     metadata JSON NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the sequence for `execution_records`.
 pub const CREATE_EXECUTION_RECORDS_SEQUENCE: &str =
-    "CREATE SEQUENCE IF NOT EXISTS seq_execution_records_id;";
+    "CREATE SEQUENCE IF NOT EXISTS seq_execution_records_id";
 
 /// SQL to create the `execution_records` table for monitoring.
 pub const CREATE_EXECUTION_RECORDS_TABLE: &str = r"
@@ -118,7 +116,7 @@ CREATE TABLE IF NOT EXISTS execution_records (
     task_description TEXT,
     error_message TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the `agent_metrics` table for monitoring.
@@ -137,7 +135,7 @@ CREATE TABLE IF NOT EXISTS agent_metrics (
     longest_streak INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the `task_metrics` table for monitoring.
@@ -150,7 +148,7 @@ CREATE TABLE IF NOT EXISTS task_metrics (
     agent_success_rates JSON NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the `episode_summaries` table.
@@ -162,7 +160,7 @@ CREATE TABLE IF NOT EXISTS episode_summaries (
     key_steps JSON NOT NULL,
     summary_embedding FLOAT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+)
 ";
 
 /// SQL to create the `episode_tags` table.
@@ -172,5 +170,5 @@ CREATE TABLE IF NOT EXISTS episode_tags (
     tag VARCHAR NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (episode_id, tag)
-);
+)
 ";

@@ -193,7 +193,7 @@ impl CascadeRetriever {
     pub fn retrieve(&self, query: &str) -> Result<CascadeResult> {
         #[cfg(feature = "csm")]
         {
-            Ok(self.retrieve_with_csm(query))
+            self.retrieve_with_csm(query)
         }
 
         #[cfg(not(feature = "csm"))]
@@ -211,7 +211,7 @@ impl CascadeRetriever {
 
     /// Full cascade implementation using CSM components.
     #[cfg(feature = "csm")]
-    fn retrieve_with_csm(&self, query: &str) -> CascadeResult {
+    fn retrieve_with_csm(&self, query: &str) -> Result<CascadeResult> {
         use super::{compute_weights, merge_results};
 
         // Tier 1: BM25 keyword search
@@ -219,12 +219,12 @@ impl CascadeRetriever {
 
         // Check if BM25 produced sufficient results
         if bm25_results.sufficient {
-            return CascadeResult {
+            return Ok(CascadeResult {
                 episode_ids: bm25_results.ids(),
                 scores: bm25_results.scores(),
                 contributing_tiers: vec!["bm25".to_string()],
                 api_calls: 0,
-            };
+            });
         }
 
         // Tier 2: HDC similarity search
@@ -238,20 +238,20 @@ impl CascadeRetriever {
 
             // Check if merged results are sufficient
             if merged.len() >= self.config.min_results {
-                return CascadeResult {
+                return Ok(CascadeResult {
                     episode_ids: merged.iter().map(|(id, _)| id.clone()).collect(),
                     scores: merged.iter().map(|(_, s)| *s).collect(),
                     contributing_tiers: vec!["bm25".to_string(), "hdc".to_string()],
                     api_calls: 0,
-                };
+                });
             }
         } else if hdc_results.sufficient {
-            return CascadeResult {
+            return Ok(CascadeResult {
                 episode_ids: hdc_results.ids(),
                 scores: hdc_results.scores(),
                 contributing_tiers: vec!["hdc".to_string()],
                 api_calls: 0,
-            };
+            });
         }
 
         // Tier 3: ConceptGraph expansion (optional)
@@ -259,12 +259,12 @@ impl CascadeRetriever {
             let concept_results = self.retrieve_concept_graph(query);
 
             if concept_results.sufficient {
-                return CascadeResult {
+                return Ok(CascadeResult {
                     episode_ids: concept_results.ids(),
                     scores: concept_results.scores(),
                     contributing_tiers: vec!["concept_graph".to_string()],
                     api_calls: 0,
-                };
+                });
             }
         }
 
@@ -279,7 +279,7 @@ impl CascadeRetriever {
             hdc_results.results.clone()
         };
 
-        CascadeResult {
+        Ok(CascadeResult {
             episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
             scores: best_results.iter().map(|(_, s)| *s).collect(),
             contributing_tiers: if best_results.is_empty() {
@@ -288,7 +288,7 @@ impl CascadeRetriever {
                 vec!["api_fallback_needed".to_string()]
             },
             api_calls: 0, // Indicates API call was avoided (all local tiers used)
-        }
+        })
     }
 
     /// BM25 keyword search (Tier 1).

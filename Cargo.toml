@@ -141,4 +141,3 @@ debug = "line-tables-only"
 # Optimize dependency builds to improve iterative development
 [profile.dev.package."*"]
 opt-level = 3
-debug = false

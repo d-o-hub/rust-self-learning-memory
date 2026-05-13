@@ -25,8 +25,10 @@ impl DuckDbStorage {
             let conn_arc = Arc::clone(&self.conn);
             tokio::task::spawn_blocking(move || {
                 let conn = conn_arc.lock();
-                // Use execute_batch for multi-statement extension loading
-                conn.execute_batch("INSTALL vss; LOAD vss;")
+                // Split multi-statement SQL for reliability
+                conn.execute("INSTALL vss;", [])
+                    .map_err(|e| Error::Storage(format!("Failed to install VSS extension: {e}")))?;
+                conn.execute("LOAD vss;", [])
                     .map_err(|e| Error::Storage(format!("Failed to load VSS extension: {e}")))?;
                 Ok::<(), Error>(())
             })

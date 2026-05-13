@@ -143,7 +143,7 @@ impl DuckDbStorage {
             let mut stmt = conn
                 .prepare(
                     "SELECT agent_name, agent_type, total_executions, successful_executions,
-                     total_duration_ms, avg_duration_ms, min_duration_ms, max_duration_ms,
+                     total_duration_ms, min_duration_ms, max_duration_ms,
                      strftime(CAST(last_execution AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S.%fZ'),
                      current_streak, longest_streak
                      FROM agent_metrics WHERE agent_name = ?",
@@ -164,13 +164,12 @@ impl DuckDbStorage {
                     row.get(3).map_err(|e| Error::Storage(e.to_string()))?;
                 let total_duration_ms: i64 =
                     row.get(4).map_err(|e| Error::Storage(e.to_string()))?;
-                let avg_duration_ms: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
-                let min_duration_ms: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
-                let max_duration_ms: i64 = row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
+                let min_duration_ms: i64 = row.get(5).map_err(|e| Error::Storage(e.to_string()))?;
+                let max_duration_ms: i64 = row.get(6).map_err(|e| Error::Storage(e.to_string()))?;
                 let last_execution_str: Option<String> =
-                    row.get(8).map_err(|e| Error::Storage(e.to_string()))?;
-                let current_streak: i32 = row.get(9).map_err(|e| Error::Storage(e.to_string()))?;
-                let longest_streak: i32 = row.get(10).map_err(|e| Error::Storage(e.to_string()))?;
+                    row.get(7).map_err(|e| Error::Storage(e.to_string()))?;
+                let current_streak: i32 = row.get(8).map_err(|e| Error::Storage(e.to_string()))?;
+                let longest_streak: i32 = row.get(9).map_err(|e| Error::Storage(e.to_string()))?;
 
                 let agent_type =
                     do_memory_core::monitoring::types::AgentType::from(agent_type_str.as_str());
@@ -188,10 +187,15 @@ impl DuckDbStorage {
                             Error::Storage(format!("total_duration conversion: {e}"))
                         })?,
                     ),
-                    avg_duration: std::time::Duration::from_millis(
-                        u64::try_from(avg_duration_ms)
-                            .map_err(|e| Error::Storage(format!("avg_duration conversion: {e}")))?,
-                    ),
+                    avg_duration: if total_executions > 0 {
+                        std::time::Duration::from_millis(
+                            u64::try_from(total_duration_ms / total_executions).map_err(|e| {
+                                Error::Storage(format!("avg_duration conversion: {e}"))
+                            })?,
+                        )
+                    } else {
+                        std::time::Duration::ZERO
+                    },
                     min_duration: std::time::Duration::from_millis(
                         u64::try_from(min_duration_ms)
                             .map_err(|e| Error::Storage(format!("min_duration conversion: {e}")))?,

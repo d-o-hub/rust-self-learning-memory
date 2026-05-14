@@ -115,9 +115,10 @@ impl EmbeddingStorageBackend for RedbStorage {
                     .get(episode_id_str.as_str())
                     .map_err(|e| Error::Storage(format!("Failed to get episode: {}", e)))?
                 {
-                    let episode: Episode = postcard::from_bytes(episode_bytes.value()).map_err(|e| {
-                        Error::Storage(format!("Failed to deserialize episode: {}", e))
-                    })?;
+                    let episode: Episode =
+                        postcard::from_bytes(episode_bytes.value()).map_err(|e| {
+                            Error::Storage(format!("Failed to deserialize episode: {}", e))
+                        })?;
 
                     results.push(SimilaritySearchResult {
                         item: episode,
@@ -206,9 +207,10 @@ impl EmbeddingStorageBackend for RedbStorage {
                     .get(pattern_id_str.as_str())
                     .map_err(|e| Error::Storage(format!("Failed to get pattern: {}", e)))?
                 {
-                    let pattern: Pattern = postcard::from_bytes(pattern_bytes.value()).map_err(|e| {
-                        Error::Storage(format!("Failed to deserialize pattern: {}", e))
-                    })?;
+                    let pattern: Pattern =
+                        postcard::from_bytes(pattern_bytes.value()).map_err(|e| {
+                            Error::Storage(format!("Failed to deserialize pattern: {}", e))
+                        })?;
 
                     results.push(SimilaritySearchResult {
                         item: pattern,

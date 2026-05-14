@@ -346,7 +346,7 @@ fn test_burst_allowance() {
     // Should allow burst_size requests immediately
     for i in 0..10 {
         let result = limiter.check_rate_limit(&client, OperationType::Read);
-        assert!(result.allowed, "Request {i} should be allowed in burst");
+        assert!(result.allowed, "Request {} should be allowed in burst", i);
     }
 
     // 11th request should be rate limited

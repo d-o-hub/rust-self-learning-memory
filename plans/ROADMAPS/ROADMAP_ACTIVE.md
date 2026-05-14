@@ -1,8 +1,8 @@
 # Active Development Roadmap
 
-**Last Updated**: 2026-05-13 (v0.1.31 released, v0.1.32 DuckDB integration in progress)
+**Last Updated**: 2026-04-30 (v0.1.31 release verified)
 **Released Version**: v0.1.31 (crates.io + GitHub Release)
-**Branch**: `main` (active development on `feat/duckdb-storage-backend-...`)
+**Branch**: `main` (all PRs merged)
 **Epic**: [#373](https://github.com/d-o-hub/rust-self-learning-memory/issues/373) — ALL ISSUES CLOSED
 
 ---
@@ -11,26 +11,15 @@
 
 `v0.1.31` was released on 2026-04-30. Workspace and publishable crate versions are `0.1.31`.
 
-Current focus is on **DuckDB Storage Backend Integration** (Issue #530, PR #532) to provide a high-performance local analytical storage option. CI is currently failing for PR #532, and a resolution plan is in place (`plans/GOAP_PR_532_RESOLUTION.md`).
-
 Verified publishable workspace packages at `0.1.31`: `do-memory-core`, `do-memory-storage-redb`, `do-memory-storage-turso`, `do-memory-mcp`, `do-memory-cli`, `do-memory-examples`.
 
----
+The 2026-04-21 comprehensive analysis added a CSM integration phase (BM25+HDC+ConceptGraph cascading retrieval) targeting 50-70% API call elimination, plus 6 new research papers and housekeeping WGs.
 
-## Current Sprint — v0.1.32 (In Progress)
-
-**Goal**: Implement DuckDB as an optional storage backend and resolve all PR #532 CI/review blockers.
-
-| Task | Description | Status | WG |
-|------|-------------|--------|-----|
-| WG-140 | Implement `memory-storage-duckdb` crate with storage trait parity | 🚧 In Progress | 140 |
-| WG-141 | Resolve PR #532 CI failures (Quick Check, Security, Coverage, etc.) | 🚧 In Progress | 141 |
-| WG-142 | Address CodeRabbit reviewer comments on PR #532 | 🔵 Planned | 142 |
-| WG-143 | Fix `scripts/code-quality.sh` CLI parsing and error handling | 🔵 Planned | 143 |
+See [STATUS/CURRENT.md](../STATUS/CURRENT.md) for detailed metrics.
 
 ---
 
-## Completed Sprint — v0.1.31 ✅
+## Current Sprint — v0.1.31 (Released ✅)
 
 **Source**: Release/package verification (2026-04-30)
 **ADR**: ADR-053 (Accepted)
@@ -78,6 +67,7 @@ Types re-exported under `csm` feature flag in `memory-core/src/retrieval/mod.rs`
 | WG-120 | Add reconstructive retrieval windows around top-k hits (E-mem-inspired) | ✅ Complete | 120 |
 | WG-121 | Add execution-signature retrieval for traces and failures (APEX-EM-inspired) | ✅ Complete | 121 |
 | WG-122 | Add scope-before-search shard routing to cut query cost (ShardMemo-inspired) | ✅ Complete | 122 |
+| WG-149 | CloudEvents EventEmitter Integration (ADR-054) | 🔵 Planned | 149 |
 
 ### P3: Backlog (Future Sprints)
 

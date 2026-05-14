@@ -156,7 +156,9 @@ impl CachedQueryStorage {
         // Serialize and cache the result
         match postcard::to_allocvec(&result) {
             Ok(data) => {
-                let dependencies = TableDependency::from_query(sql);
+                // Use already normalized/lowercased SQL from QueryKey to detect dependencies.
+                // We use the specialized internal method to avoid redundant .to_lowercase().
+                let dependencies = TableDependency::from_query_lowercased(&key.normalized_sql);
                 self.cache.put(key, data, dependencies);
             }
             Err(e) => {

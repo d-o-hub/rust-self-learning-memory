@@ -9,6 +9,7 @@ use do_memory_core::embeddings::{
     EmbeddingStorageBackend, SimilarityMetadata, SimilaritySearchResult, cosine_similarity,
 };
 use do_memory_core::episode::PatternId;
+use do_memory_core::search::select_top_k;
 use do_memory_core::{Episode, Error, Pattern, Result};
 use redb::{ReadableDatabase, ReadableTable};
 use std::sync::Arc;
@@ -123,17 +124,15 @@ impl EmbeddingStorageBackend for RedbStorage {
                 }
             }
 
-            // Sort by similarity (highest first)
-            results.sort_by(|a, b| {
+            // Select top-k by similarity (highest first)
+            // Optimization: O(N + k log k) instead of O(N log N)
+            let top_results = select_top_k(&mut results, limit, |a, b| {
                 b.similarity
                     .partial_cmp(&a.similarity)
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
 
-            // Limit results
-            results.truncate(limit);
-
-            Ok(results)
+            Ok(top_results)
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?
@@ -217,17 +216,15 @@ impl EmbeddingStorageBackend for RedbStorage {
                 }
             }
 
-            // Sort by similarity (highest first)
-            results.sort_by(|a, b| {
+            // Select top-k by similarity (highest first)
+            // Optimization: O(N + k log k) instead of O(N log N)
+            let top_results = select_top_k(&mut results, limit, |a, b| {
                 b.similarity
                     .partial_cmp(&a.similarity)
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
 
-            // Limit results
-            results.truncate(limit);
-
-            Ok(results)
+            Ok(top_results)
         })
         .await
         .map_err(|e| Error::Storage(format!("Task join error: {}", e)))?

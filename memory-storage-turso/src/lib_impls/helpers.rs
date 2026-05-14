@@ -122,7 +122,7 @@ impl TursoStorage {
         let mut rows = conn
             .query(&sql, ())
             .await
-            .map_err(|e| Error::Storage(format!("Failed to count {}: {}", table, e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to count {table}: {e}")))?;
 
         if let Some(row) = rows
             .next()

@@ -8,6 +8,8 @@
 #![allow(clippy::single_match_else)]
 
 use do_memory_core::SelfLearningMemory;
+use do_memory_mcp::MemoryMCPServer;
+use do_memory_mcp::SandboxConfig;
 use do_memory_mcp::mcp::tools::advanced_pattern_analysis::{
     AdvancedPatternAnalysisInput, AdvancedPatternAnalysisTool, AnalysisConfig, AnalysisType,
 };
@@ -63,6 +65,90 @@ async fn test_input_sanitization() {
             assert!(!e.to_string().is_empty());
         }
     }
+}
+
+/// Test input bounds enforcement for query_memory
+#[tokio::test]
+async fn test_query_memory_input_bounds() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+        .await
+        .unwrap();
+
+    // Test with excessive limit - should not crash and should complete
+    let result = server
+        .query_memory(
+            "test".to_string(),
+            "test".to_string(),
+            None,
+            99999, // Exceeds MAX_QUERY_LIMIT
+            "relevance".to_string(),
+            None,
+        )
+        .await;
+
+    assert!(result.is_ok());
+}
+
+/// Test input bounds enforcement for analyze_patterns
+#[tokio::test]
+async fn test_analyze_patterns_input_bounds() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+        .await
+        .unwrap();
+
+    // Test with excessive limit
+    let result = server
+        .analyze_patterns(
+            "code_generation".to_string(),
+            0.7,
+            99999, // Exceeds MAX_QUERY_LIMIT
+            None,
+        )
+        .await;
+
+    assert!(result.is_ok());
+}
+
+/// Test input bounds enforcement for search_patterns
+#[tokio::test]
+async fn test_search_patterns_input_bounds() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+        .await
+        .unwrap();
+
+    let input = do_memory_mcp::mcp::tools::pattern_search::SearchPatternsInput {
+        query: "test".to_string(),
+        domain: "test".to_string(),
+        tags: vec![],
+        limit: 99999, // Exceeds MAX_QUERY_LIMIT
+        min_relevance: 0.3,
+        filter_by_domain: false,
+    };
+
+    let result = server.execute_search_patterns(input).await;
+    assert!(result.is_ok());
+}
+
+/// Test input bounds enforcement for recommend_patterns
+#[tokio::test]
+async fn test_recommend_patterns_input_bounds() {
+    let memory = Arc::new(SelfLearningMemory::new());
+    let server = MemoryMCPServer::new(SandboxConfig::default(), memory)
+        .await
+        .unwrap();
+
+    let input = do_memory_mcp::mcp::tools::pattern_search::RecommendPatternsInput {
+        task_description: "test".to_string(),
+        domain: "test".to_string(),
+        tags: vec![],
+        limit: 99999, // Exceeds MAX_QUERY_LIMIT
+    };
+
+    let result = server.execute_recommend_patterns(input).await;
+    assert!(result.is_ok());
 }
 
 /// Test resource limits
@@ -331,4 +417,46 @@ async fn test_malformed_configuration_resistance() {
             }
         }
     }
+}
+
+/// Test that tool schemas contain input bounds
+#[test]
+fn test_tool_schemas_have_bounds() {
+    let tools = do_memory_mcp::server::tool_definitions::create_default_tools();
+
+    for name in [
+        "query_memory",
+        "analyze_patterns",
+        "search_patterns",
+        "recommend_patterns",
+    ] {
+        let tool = tools
+            .iter()
+            .find(|t| t.name == name)
+            .expect("Tool not found");
+        let schema = &tool.input_schema;
+        let properties = schema.get("properties").expect("No properties");
+        let limit = properties.get("limit").expect("No limit property");
+
+        assert!(
+            limit.get("minimum").is_some(),
+            "Tool {} missing minimum bound",
+            name
+        );
+        assert!(
+            limit.get("maximum").is_some(),
+            "Tool {} missing maximum bound",
+            name
+        );
+    }
+}
+
+/// Test constants
+#[test]
+fn test_security_constants() {
+    use do_memory_mcp::constants::*;
+    assert_eq!(MAX_QUERY_LIMIT, 1000);
+    assert_eq!(MIN_QUERY_LIMIT, 1);
+    assert_eq!(MAX_PLAYBOOK_STEPS, 100);
+    assert_eq!(MIN_PLAYBOOK_STEPS, 1);
 }

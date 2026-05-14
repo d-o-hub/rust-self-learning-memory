@@ -1,4 +1,4 @@
-use super::*;
+use super::{CompatibilityAssessor, ToolCapabilities, PatternContext, RiskFactor, RiskFactorType, RiskLevel};
 
 impl CompatibilityAssessor {
     pub(super) fn identify_risk_factors(

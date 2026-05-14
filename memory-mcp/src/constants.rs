@@ -8,3 +8,6 @@ pub const MIN_QUERY_LIMIT: usize = 1;
 
 /// Maximum number of steps to include in a recommended playbook.
 pub const MAX_PLAYBOOK_STEPS: usize = 100;
+
+/// Minimum number of steps to include in a recommended playbook.
+pub const MIN_PLAYBOOK_STEPS: usize = 1;

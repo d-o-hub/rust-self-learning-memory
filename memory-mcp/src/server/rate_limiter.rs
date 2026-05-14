@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use tracing::{debug, trace, warn};
 
 mod types;
-pub use types::*;
+pub use types::{ClientId, OperationType, RateLimitConfig, RateLimitResult, RateLimiterStats};
 
 /// Token bucket for rate limiting
 #[derive(Debug)]

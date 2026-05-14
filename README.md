@@ -383,7 +383,16 @@ cargo build --features embeddings-full
 - `compression`: Network compression — lz4, zstd, gzip (do-memory-storage-turso)
 - `hybrid_search`: FTS5 hybrid search (do-memory-storage-turso)
 
-### Cascading Retrieval (with `csm` feature)
+## Capabilities
+
+### Episode Checkpoints/Handoff
+
+Checkpoints allow saving the state of a long-running task to `do-memory-storage-turso` and `do-memory-storage-redb`. This is required for resuming tasks, agent handoff, and branching from a common state.
+
+*   **Checkpoints** capture task progress, findings, pending actions, and required context.
+*   **Handoffs** package checkpoints, episode history, and relevant patterns for passing tasks to other agents.
+
+### CSM Cascading Retrieval
 
 When the `csm` feature is enabled, semantic search uses a 4-tier cascade to minimize API calls:
 
@@ -394,7 +403,7 @@ When the `csm` feature is enabled, semantic search uses a 4-tier cascade to mini
 | 3 | ConceptGraph expansion | Graph BFS | 0 | Known-domain synonyms |
 | 4 | API embedding | Network call | 1 | Final fallback |
 
-**Target**: 50-70% API call reduction for typical query workloads. See `agent_docs/csm_integration.md` for details.
+This targets a 50-70% API call reduction for typical query workloads. See [agent_docs/csm_integration.md](agent_docs/csm_integration.md) for details.
 
 ## Configuration
 
@@ -461,7 +470,7 @@ batch_size = 100
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Memory CLI                             │
+│                      do-memory-cli                          │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │   Episode   │  │  Pattern    │  │   Storage   │          │
 │  │ Management  │  │  Analysis   │  │ Operations  │          │
@@ -469,7 +478,7 @@ batch_size = 100
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     Memory MCP Server                       │
+│                     do-memory-mcp                           │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │  MCP Tools  │  │  WASM       │  │  Advanced   │          │
 │  │  Interface  │  │  Sandbox    │  │  Analysis   │          │
@@ -477,7 +486,7 @@ batch_size = 100
 └─────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│                     Memory Core                             │
+│                     do-memory-core                          │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │   Episode   │  │   Pattern   │  │   Reward    │          │
 │  │ Management  │  │ Extraction  │  │   Scoring   │          │
@@ -487,8 +496,8 @@ batch_size = 100
          ┌─────────────────────┼─────────────────────┐
          │                     │                     │
 ┌───────▼────────┐  ┌────────▼────────┐  ┌────────▼────────┐
-│ Turso Storage  │  │  Redb Cache     │  │  In-Memory      │
-│                │  │                 │  │                 │
+│do-memory-storag│  │do-memory-storage│  │  In-Memory      │
+│e-turso         │  │-redb            │  │                 │
 │ libSQL/Remote  │  │   Fast Access   │  │  Temporary      │
 └────────────────┘  └─────────────────┘  └─────────────────┘
 ```

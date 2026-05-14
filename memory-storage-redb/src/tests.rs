@@ -1,7 +1,8 @@
 //! Tests for redb storage backend.
 
 use super::*;
-use do_memory_core::StorageBackend;
+use do_memory_core::embeddings::EmbeddingStorageBackend;
+use do_memory_core::{Episode, StorageBackend, TaskContext, TaskType};
 use tempfile::tempdir;
 
 async fn create_test_storage() -> Result<RedbStorage> {
@@ -249,4 +250,38 @@ async fn test_embedding_size_limit() {
 
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("exceeds maximum"));
+}
+
+#[tokio::test]
+async fn test_find_similar_episodes() {
+    let storage = create_test_storage().await.unwrap();
+
+    // Create and store some episodes with embeddings
+    for i in 0..5 {
+        let context = TaskContext::default();
+        let episode = Episode::new(format!("Task {}", i), context, TaskType::Testing);
+        let episode_id = episode.episode_id;
+
+        storage.store_episode(&episode).await.unwrap();
+
+        // Use index as part of embedding for simple differentiation
+        let embedding = vec![i as f32 * 0.1; 384];
+        storage
+            .store_episode_embedding(episode_id, embedding)
+            .await
+            .unwrap();
+    }
+
+    // Search for similar episodes
+    let query_embedding = vec![0.25; 384]; // Closest to index 2 and 3
+    let results = storage
+        .find_similar_episodes(query_embedding, 3, 0.0)
+        .await
+        .unwrap();
+
+    // Verify results
+    assert_eq!(results.len(), 3);
+    // Results should be sorted by similarity
+    assert!(results[0].similarity >= results[1].similarity);
+    assert!(results[1].similarity >= results[2].similarity);
 }

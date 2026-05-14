@@ -79,6 +79,9 @@ mod storage;
 mod storage_ops;
 mod tables;
 
+#[cfg(test)]
+mod tests;
+
 // Re-export cache types for external use
 pub use crate::cache::{
     AdaptiveCache, AdaptiveCacheAdapter, AdaptiveCacheConfig, AdaptiveCacheMetrics, Cache,

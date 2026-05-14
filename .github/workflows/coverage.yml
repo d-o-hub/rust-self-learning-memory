@@ -277,4 +277,6 @@ jobs:
           fi
 
           git commit -m "chore(ci): update coverage badge [skip ci]"
-          git push
+          git fetch origin
+          git pull --rebase origin main
+          git push origin HEAD:main || (git pull --rebase origin main && git push origin HEAD:main)

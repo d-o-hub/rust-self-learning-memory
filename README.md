@@ -7,7 +7,7 @@
 ![Rust Version](https://img.shields.io/badge/Rust-stable%20(2024%20edition)-yellow)
 ![Quick Check](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/quick-check.yml/badge.svg)
 ![Security](https://github.com/d-o-hub/rust-self-learning-memory/actions/workflows/security.yml/badge.svg)
-[![Coverage](https://codecov.io/gh/d-o-hub/rust-self-learning-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/d-o-hub/rust-self-learning-memory)
+![Coverage](.github/badges/coverage.svg)
 ![Open Issues](https://img.shields.io/github/issues/d-o-hub/rust-self-learning-memory)
 
 A self-learning episodic memory system with semantic pattern search, embeddings, MCP server, and optional sandboxed code execution.

@@ -128,7 +128,6 @@ pub fn with_config(config: MemoryConfig) -> super::SelfLearningMemory {
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
-        event_emitter: Arc::new(crate::types::event::NullEmitter),
     }
 }
 
@@ -260,7 +259,6 @@ pub fn with_storage(
         summaries_fallback: Arc::new(RwLock::new(HashMap::new())),
         recommendation_tracker: super::attribution::RecommendationTracker::new(),
         event_sender,
-        event_emitter: Arc::new(crate::types::event::NullEmitter),
     }
 }
 

@@ -1,49 +1,12 @@
 # GOAP Goals Index
 
-- **Last Updated**: 2026-05-13 (v0.1.32 DuckDB integration in progress)
-- **Source ADR**: ADR-037, ADR-052, ADR-053, ADR-055 (Planned)
+- **Last Updated**: 2026-04-21 (comprehensive analysis refresh)
+- **Source ADR**: ADR-037, ADR-052, ADR-053 (Accepted)
 - **Status**: Active
 
 ---
 
-## v0.1.32 Sprint Goals (In Progress 🚧)
-
-### Source: DuckDB Integration (Issue #530, PR #532)
-
-Provide DuckDB as an optional local storage backend for analytical workloads. Resolve CI failures in PR #532.
-
-### GOAP Execution Model
-
-- **Coordinator skills**: `goap-agent`, `agent-coordination`
-- **CI Resolution skills**: `ci-fix`, `test-fix`, `github-workflows`
-- **Implementation skills**: `feature-implement`, `build-rust`
-- **Validation skills**: `code-quality`, `test-runner`, `architecture-validation`
-
-### Phase 1: Infrastructure & PR Resolution
-
-1. **WG-140**: Implement `memory-storage-duckdb` crate
-   - Priority: P0
-   - Owner: feature-implement
-   - Target: parity with storage traits, basic episode/pattern persistence.
-
-2. **WG-141**: Resolve PR #532 CI failures
-   - Priority: P0
-   - Owner: ci-fix
-   - Target: All GitHub Actions checks pass (Quick Check, Security, Coverage, etc.).
-
-3. **WG-142**: Address CodeRabbit reviewer comments
-   - Priority: P1
-   - Owner: code-reviewer
-   - Target: Resolve all architectural and implementation feedback on PR #532.
-
-4. **WG-143**: Fix `scripts/code-quality.sh`
-   - Priority: P1
-   - Owner: ci-fix
-   - Target: Correct CLI flag handling and error code capture.
-
----
-
-## v0.1.31 Sprint Goals (Complete ✅)
+## v0.1.31 Sprint Goals (Planning 🔵)
 
 ### Source: Release/package verification + efficiency analysis (2026-04-20)
 
@@ -239,6 +202,13 @@ Provide DuckDB as an optional local storage backend for analytical workloads. Re
     - Priority: P1
     - Owner: agents-update
     - Target: Rerun all metrics against current v0.1.30 codebase
+
+30. **WG-149**: Implement CloudEvents EventEmitter
+    - Priority: P1
+    - Owner: feature-implement
+    - GOAP skills: `goap-agent`, `feature-implement`, `architecture-validation`, `test-runner`
+    - Target: Standardized event emission for external interoperability via CloudEvents 1.0
+    - Dependencies: None
 
 ---
 

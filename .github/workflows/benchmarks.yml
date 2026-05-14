@@ -59,7 +59,6 @@ jobs:
           running-workflow-name: Quick Check
           # Allow this check to fail without failing the job
           fail-on-no-checks: false
-          allowed-conclusions: success,skipped,cancelled
 
   benchmark:
     name: Run Benchmarks
@@ -354,7 +353,7 @@ jobs:
           name: benchmark-results-${{ github.sha }}
 
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1.22.0
+        uses: benchmark-action/github-action-benchmark@v1.22.1
         with:
           name: Rust Benchmarks
           tool: 'cargo'

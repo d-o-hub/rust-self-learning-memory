@@ -30,6 +30,56 @@ All actions from v0.1.17 through v0.1.27 sprints are complete. See archived exec
 - Import `RngExt` for user-level RNG methods
 - Keep `rand` and `rand_chacha` versions aligned
 
+## Active Actions (v0.1.32 Sprint — DuckDB Storage Backend)
+
+### GOAP Skills in Use
+
+- **Coordinator**: `goap-agent`
+- **CI Resolution**: `ci-fix`, `test-fix`, `github-workflows`
+- **Storage Implementation**: `feature-implement`, `build-rust`
+- **Validation**: `code-quality`, `test-runner`, `architecture-validation`
+
+### Phase 1: Infrastructure & PR Resolution (Resolution of PR #532)
+
+- **ACT-129**: Fix `scripts/code-quality.sh` parsing and error handling
+   - Goal: WG-143
+   - Action: Correct CLI flag handling and capture exit codes from cargo tools.
+   - Status: 🚧 In Progress
+
+- **ACT-130**: Update `Cargo.toml` dev profile for disk space
+   - Goal: WG-144
+   - Action: Set `debug = "line-tables-only"` to reduce artifact size.
+   - Status: 🔵 Planned
+
+- **ACT-131**: Fix Markdown headings (MD022) in plan files
+   - Goal: WG-145
+   - Action: Add blank lines around headings in CloudEvents and planning MDs.
+   - Status: 🔵 Planned
+
+- **ACT-132**: Set `api_calls: 1` in CascadeRetriever Tier 4
+   - Goal: WG-146
+   - Action: Correct metric tracking in `memory-core/src/retrieval/cascade/mod.rs`.
+   - Status: 🔵 Planned
+
+### Phase 2: Storage Backend Refinements
+
+- **ACT-133**: Refactor DuckDB storage implementation
+   - Goal: WG-147
+   - Action: Sanitize error messages, handle type conversions, improve pattern matching.
+   - Status: 🚧 In Progress
+
+- **ACT-134**: Refactor Turso query cache normalization
+   - Goal: WG-148
+   - Action: Strip comments and whitespace before dependency detection.
+   - Status: 🔵 Planned
+
+### Phase 3: Test Suite Optimization
+
+- **ACT-135**: Split large MCP persistent storage tests
+   - Goal: WG-149
+   - Action: Break `memory-mcp/tests/persistent_storage_tests.rs` into focused files.
+   - Status: 🔵 Planned
+
 ## Active Actions (v0.1.31 Sprint — CPU + Token Efficiency)
 
 ### GOAP Skills in Use

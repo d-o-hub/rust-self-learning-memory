@@ -199,7 +199,6 @@ impl CascadeRetriever {
         #[cfg(not(feature = "csm"))]
         {
             // Placeholder implementation - returns empty results
-            // query is intentionally unused in placeholder mode
             let _ = query;
             Ok(CascadeResult {
                 episode_ids: Vec::new(),
@@ -274,21 +273,23 @@ impl CascadeRetriever {
         let best_results: Vec<(String, f32)> = if self.config.merge_results {
             let weights = compute_weights(query.len());
             merge_results(&bm25_results.results, &hdc_results.results, weights)
-        } else if !hdc_results.is_empty() {
-            hdc_results.results.clone()
-        } else {
+        } else if hdc_results.is_empty() {
             bm25_results.results.clone()
+        } else {
+            hdc_results.results.clone()
+        };
+
+        let (contributing_tiers, api_calls) = if best_results.is_empty() {
+            (vec!["none".to_string()], 0)
+        } else {
+            (vec!["api_fallback_needed".to_string()], 1)
         };
 
         Ok(CascadeResult {
             episode_ids: best_results.iter().map(|(id, _)| id.clone()).collect(),
             scores: best_results.iter().map(|(_, s)| *s).collect(),
-            contributing_tiers: if !best_results.is_empty() {
-                vec!["api_fallback_needed".to_string()]
-            } else {
-                vec!["none".to_string()]
-            },
-            api_calls: 1, // Indicates API call would be needed
+            contributing_tiers,
+            api_calls,
         })
     }
 

@@ -80,7 +80,7 @@ impl SelfLearningMemory {
             );
         }
 
-        let episode = Episode::new(task_description.clone(), context, task_type);
+        let episode = Episode::new(task_description.clone(), context.clone(), task_type);
         let episode_id = episode.episode_id;
 
         info!(
@@ -108,14 +108,35 @@ impl SelfLearningMemory {
         episodes.insert(episode_id, Arc::new(episode));
 
         // Audit log: episode created
-        let context = AuditContext::system();
+        let audit_context = AuditContext::system();
         let audit_entry = episode_created(
-            &context,
+            &audit_context,
             episode_id,
             &task_description,
             &task_type.to_string(),
         );
         self.audit_logger.log(audit_entry);
+
+        // Emit standardized TaskStarted event (ADR-054)
+        let emitter = Arc::clone(&self.event_emitter);
+        let task_id = episode_id.to_string();
+        let task_type_str = task_type.to_string();
+        let context_clone = context.clone();
+        tokio::spawn(async move {
+            let _ = emitter
+                .emit(crate::types::event::MemoryEvent::TaskStarted {
+                    task_id,
+                    agent_id: "unknown".to_string(),
+                    metadata: serde_json::json!({
+                        "task_type": task_type_str,
+                        "language": context_clone.language,
+                        "framework": context_clone.framework,
+                        "domain": context_clone.domain
+                    }),
+                    timestamp: crate::types::event::unix_now_secs(),
+                })
+                .await;
+        });
 
         episode_id
     }

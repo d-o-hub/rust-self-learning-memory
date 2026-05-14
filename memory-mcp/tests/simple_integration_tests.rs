@@ -72,8 +72,7 @@ async fn test_mcp_server_tools() {
         let tool = mcp_server.get_tool(tool_name).await;
         assert!(
             tool.is_some(),
-            "Extended tool '{}' should be available",
-            tool_name
+            "Extended tool '{tool_name}' should be available"
         );
     }
 

@@ -1,0 +1,26 @@
+[package]
+name = "do-memory-events"
+version = "0.1.31"
+edition = "2024"
+authors = ["Self-Learning Memory Contributors"]
+license = "MIT"
+repository = "https://github.com/d-o-hub/rust-self-learning-memory"
+description = "CloudEvents implementation for standardized agent lifecycle event emission"
+
+[dependencies]
+do-memory-core = { path = "../memory-core", version = "0.1.31" }
+cloudevents-sdk = { version = "0.7", default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+reqwest = { version = "0.12", features = ["json"], optional = true }
+
+[features]
+default = []
+events-http = ["reqwest", "cloudevents-sdk/http-binding"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }

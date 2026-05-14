@@ -1,5 +1,5 @@
 //! Demonstration of episode tagging MCP tools
-//! Run with: cargo run --example episode_tags_demo
+//! Run with: cargo run --example `episode_tags_demo`
 
 use do_memory_core::{SelfLearningMemory, TaskContext, TaskType};
 use do_memory_mcp::mcp::tools::episode_tags::{
@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
             TaskType::Debugging,
         )
         .await;
-    println!("   ✅ Episode 1: {} (Debugging)", episode1);
+    println!("   ✅ Episode 1: {episode1} (Debugging)");
 
     let episode2 = memory
         .start_episode(
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
             TaskType::CodeGeneration,
         )
         .await;
-    println!("   ✅ Episode 2: {} (Code Generation)", episode2);
+    println!("   ✅ Episode 2: {episode2} (Code Generation)");
 
     let episode3 = memory
         .start_episode(
@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
             TaskType::Refactoring,
         )
         .await;
-    println!("   ✅ Episode 3: {} (Refactoring)\n", episode3);
+    println!("   ✅ Episode 3: {episode3} (Refactoring)\n");
 
     // Demo 1: Add tags
     println!("🏷️  Demo 1: Adding Tags");

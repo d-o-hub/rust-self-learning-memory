@@ -35,7 +35,7 @@ async fn test_dynamic_loading_reduces_initial_tool_list() {
     let total_tools = registry.total_tool_count();
 
     println!("Core tools: {}", core_tools.len());
-    println!("Total tools available: {}", total_tools);
+    println!("Total tools available: {total_tools}");
 
     // Core tools should be significantly fewer than total tools
     assert!(core_tools.len() < total_tools / 2);
@@ -49,9 +49,9 @@ async fn test_dynamic_loading_reduces_initial_tool_list() {
     let reduction_percentage =
         ((estimated_all_tokens - core_tokens) as f64 / estimated_all_tokens as f64) * 100.0;
 
-    println!("Core tools tokens: {}", core_tokens);
-    println!("Estimated all tools tokens: {}", estimated_all_tokens);
-    println!("Token reduction: {:.1}%", reduction_percentage);
+    println!("Core tools tokens: {core_tokens}");
+    println!("Estimated all tools tokens: {estimated_all_tokens}");
+    println!("Token reduction: {reduction_percentage:.1}%");
 
     // Keep a strong reduction target while allowing normal toolset growth.
     assert!(reduction_percentage > 75.0);
@@ -120,9 +120,9 @@ fn test_field_projection_reduces_response_size() {
     let reduction_percentage =
         ((full_tokens - filtered_tokens) as f64 / full_tokens as f64) * 100.0;
 
-    println!("Full response tokens: {}", full_tokens);
-    println!("Filtered response tokens: {}", filtered_tokens);
-    println!("Token reduction: {:.1}%", reduction_percentage);
+    println!("Full response tokens: {full_tokens}");
+    println!("Filtered response tokens: {filtered_tokens}");
+    println!("Token reduction: {reduction_percentage:.1}%");
 
     // Filtered response should be significantly smaller
     assert!(filtered_tokens < full_tokens);
@@ -358,10 +358,7 @@ fn test_real_world_token_reduction() {
         / estimate_tokens(&typical_response) as f64)
         * 100.0;
 
-    println!(
-        "Scenario 1 - IDs and descriptions only: {:.1}% reduction",
-        reduction1
-    );
+    println!("Scenario 1 - IDs and descriptions only: {reduction1:.1}% reduction");
     assert!(reduction1 > 50.0); // Should achieve >50% reduction
 
     // Scenario 2: Client needs full episode data but no patterns
@@ -378,10 +375,7 @@ fn test_real_world_token_reduction() {
         / estimate_tokens(&typical_response) as f64)
         * 100.0;
 
-    println!(
-        "Scenario 2 - Episodes without patterns: {:.1}% reduction",
-        reduction2
-    );
+    println!("Scenario 2 - Episodes without patterns: {reduction2:.1}% reduction");
     assert!(reduction2 > 20.0); // Should achieve >20% reduction
 
     // Scenario 3: Client only needs success statistics
@@ -396,7 +390,7 @@ fn test_real_world_token_reduction() {
         / estimate_tokens(&typical_response) as f64)
         * 100.0;
 
-    println!("Scenario 3 - Only statistics: {:.1}% reduction", reduction3);
+    println!("Scenario 3 - Only statistics: {reduction3:.1}% reduction");
     assert!(reduction3 > 80.0); // Should achieve >80% reduction
 }
 

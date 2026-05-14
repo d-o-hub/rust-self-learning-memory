@@ -62,7 +62,7 @@ pub async fn initialize_redb_only_storage() -> anyhow::Result<Arc<SelfLearningMe
     if let Some(parent) = cache_path.parent() {
         tokio::fs::create_dir_all(parent)
             .await
-            .map_err(|e| Error::Storage(format!("Failed to create data directory: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to create data directory: {e}")))?;
     }
 
     let cache_config = CacheConfig {
@@ -126,7 +126,7 @@ pub async fn initialize_dual_storage() -> anyhow::Result<Arc<SelfLearningMemory>
     if let Some(parent) = cache_path.parent() {
         tokio::fs::create_dir_all(parent)
             .await
-            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {e}")))?;
     }
 
     let cache_config = CacheConfig {
@@ -195,7 +195,7 @@ pub async fn initialize_turso_local() -> anyhow::Result<Arc<SelfLearningMemory>>
     if let Some(parent) = cache_path.parent() {
         tokio::fs::create_dir_all(parent)
             .await
-            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {}", e)))?;
+            .map_err(|e| Error::Storage(format!("Failed to create cache directory: {e}")))?;
     }
 
     let cache_config = CacheConfig {

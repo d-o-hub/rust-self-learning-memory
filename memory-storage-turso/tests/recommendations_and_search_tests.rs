@@ -432,7 +432,7 @@ mod recommendations_tests {
 
         // Create multiple sessions and feedback
         for i in 0..3 {
-            let episode = create_test_episode(&format!("Task {}", i));
+            let episode = create_test_episode(&format!("Task {i}"));
             storage
                 .store_episode(&episode)
                 .await
@@ -710,7 +710,7 @@ mod episode_search_tests {
 
         // Create 5 episodes with similar embeddings
         for i in 0..5 {
-            let episode = create_test_episode(&format!("Episode {}", i));
+            let episode = create_test_episode(&format!("Episode {i}"));
             storage
                 .store_episode(&episode)
                 .await
@@ -933,7 +933,7 @@ mod pattern_search_tests {
 
         // Create 5 patterns with similar embeddings
         for i in 0..5 {
-            let pattern = create_test_pattern(&format!("Pattern {}", i));
+            let pattern = create_test_pattern(&format!("Pattern {i}"));
             storage
                 .store_pattern(&pattern)
                 .await

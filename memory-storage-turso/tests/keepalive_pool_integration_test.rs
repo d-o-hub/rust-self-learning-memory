@@ -46,7 +46,7 @@ async fn test_keepalive_reduces_connection_overhead() {
         .expect("Keep-alive pool should be enabled");
 
     // Verify keep-alive is working - just check we can get stats
-    println!("Keep-alive stats: {:?}", keepalive_pool);
+    println!("Keep-alive stats: {keepalive_pool:?}");
     assert_eq!(keepalive_pool.active_connections, 0);
 }
 
@@ -83,7 +83,7 @@ async fn test_keepalive_with_health_check() {
         .keepalive_statistics()
         .expect("Should have keep-alive stats");
 
-    println!("Health check passed. Keep-alive stats: {:?}", stats);
+    println!("Health check passed. Keep-alive stats: {stats:?}");
 }
 
 #[tokio::test]
@@ -97,7 +97,7 @@ async fn test_keepalive_statistics_updated() {
         .keepalive_statistics()
         .expect("Should have keep-alive stats");
 
-    println!("Initial stats: {:?}", initial_stats);
+    println!("Initial stats: {initial_stats:?}");
 
     // Verify statistics structure
     assert_eq!(initial_stats.active_connections, 0);

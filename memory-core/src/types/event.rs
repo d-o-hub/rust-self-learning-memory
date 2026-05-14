@@ -3,7 +3,11 @@
 //! Events are emitted when significant lifecycle operations occur in the memory system,
 //! allowing external subscribers to react to changes without coupling to internal state.
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+
+/// Result of an event emission.
+pub type EmitResult = std::result::Result<(), String>;
 
 /// Events emitted by the memory system for lifecycle notifications.
 ///
@@ -25,7 +29,7 @@ pub enum MemoryEvent {
         /// Episode ID
         id: String,
         /// Final reward score
-        reward: f32,
+        reward: f64,
         /// Unix timestamp in seconds
         timestamp: u64,
     },
@@ -47,6 +51,68 @@ pub enum MemoryEvent {
         /// Unix timestamp in seconds
         timestamp: u64,
     },
+    /// Standardized task started event (CloudEvents compatible).
+    TaskStarted {
+        /// Unique task identifier
+        task_id: String,
+        /// Identifier of the agent performing the task
+        agent_id: String,
+        /// Flexible metadata associated with the task
+        metadata: serde_json::Value,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// Standardized task completed event (CloudEvents compatible).
+    TaskCompleted {
+        /// Unique task identifier
+        task_id: String,
+        /// Execution duration in milliseconds
+        duration_ms: u64,
+        /// Whether the task was successful
+        success: bool,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// Standardized reward scored event (CloudEvents compatible).
+    RewardScored {
+        /// Unique task identifier
+        task_id: String,
+        /// The assigned reward score
+        score: f64,
+        /// Qualitative reason for the score
+        reason: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// Standardized reflection updated event (CloudEvents compatible).
+    ReflectionUpdated {
+        /// Target episode identifier
+        episode_id: String,
+        /// Type of reflection generated (e.g., "improvement", "insight")
+        reflection_type: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// Standardized skill evolved event (CloudEvents compatible).
+    SkillEvolved {
+        /// Name of the skill or pattern promoted
+        skill_name: String,
+        /// Previous version/confidence
+        from_version: u32,
+        /// New version/confidence
+        to_version: u32,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
+    /// Standardized episode stored event (CloudEvents compatible).
+    EpisodeStored {
+        /// Target episode identifier
+        episode_id: String,
+        /// Storage backend used (e.g., "turso", "redb")
+        backend: String,
+        /// Unix timestamp in seconds
+        timestamp: u64,
+    },
 }
 
 impl MemoryEvent {
@@ -57,7 +123,13 @@ impl MemoryEvent {
             Self::EpisodeCreated { timestamp, .. }
             | Self::EpisodeCompleted { timestamp, .. }
             | Self::EpisodeGarbageCollected { timestamp, .. }
-            | Self::PatternExtracted { timestamp, .. } => *timestamp,
+            | Self::PatternExtracted { timestamp, .. }
+            | Self::TaskStarted { timestamp, .. }
+            | Self::TaskCompleted { timestamp, .. }
+            | Self::RewardScored { timestamp, .. }
+            | Self::ReflectionUpdated { timestamp, .. }
+            | Self::SkillEvolved { timestamp, .. }
+            | Self::EpisodeStored { timestamp, .. } => *timestamp,
         }
     }
 
@@ -67,9 +139,45 @@ impl MemoryEvent {
         match self {
             Self::EpisodeCreated { id, .. }
             | Self::EpisodeCompleted { id, .. }
-            | Self::EpisodeGarbageCollected { id, .. } => id,
-            Self::PatternExtracted { id, .. } => id,
+            | Self::EpisodeGarbageCollected { id, .. }
+            | Self::PatternExtracted { id, .. } => id.as_str(),
+            Self::TaskStarted { task_id, .. }
+            | Self::TaskCompleted { task_id, .. }
+            | Self::RewardScored { task_id, .. } => task_id.as_str(),
+            Self::ReflectionUpdated { episode_id, .. } | Self::EpisodeStored { episode_id, .. } => {
+                episode_id.as_str()
+            }
+            Self::SkillEvolved { skill_name, .. } => skill_name.as_str(),
         }
+    }
+}
+
+/// Trait for emitting memory events.
+///
+/// Pluggable interface for event emission, allowing standardized formats
+/// like CloudEvents to be used for interoperability.
+#[async_trait]
+pub trait EventEmitter: Send + Sync {
+    /// Emit a memory event.
+    async fn emit(&self, event: MemoryEvent) -> EmitResult;
+
+    /// Check if the emitter is enabled.
+    fn is_enabled(&self) -> bool {
+        true
+    }
+}
+
+/// A zero-cost default event emitter that does nothing.
+pub struct NullEmitter;
+
+#[async_trait]
+impl EventEmitter for NullEmitter {
+    async fn emit(&self, _event: MemoryEvent) -> EmitResult {
+        Ok(())
+    }
+
+    fn is_enabled(&self) -> bool {
+        false
     }
 }
 

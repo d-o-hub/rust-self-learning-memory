@@ -2,7 +2,6 @@
 //!
 //! This module contains the TursoStorage struct definition.
 
-use do_memory_core::types::event::EventEmitter;
 use libsql::Database;
 use std::sync::Arc;
 
@@ -38,20 +37,4 @@ pub struct TursoStorage {
     /// Adaptive TTL cache for episode query results (when adaptive-ttl feature is enabled)
     #[cfg(feature = "adaptive-ttl")]
     pub(crate) episode_cache: Option<AdaptiveTTLCache<String, Episode>>,
-    /// Pluggable event emitter for standardized lifecycle notifications (ADR-054)
-    pub(crate) event_emitter: Arc<parking_lot::RwLock<Option<Arc<dyn EventEmitter>>>>,
-}
-
-impl TursoStorage {
-    /// Emit a standardized event if an emitter is configured.
-    pub(crate) async fn emit_event(&self, event: do_memory_core::types::event::MemoryEvent) {
-        let emitter = {
-            let lock = self.event_emitter.read();
-            lock.as_ref().map(Arc::clone)
-        };
-
-        if let Some(emitter) = emitter {
-            let _ = emitter.emit(event).await;
-        }
-    }
 }

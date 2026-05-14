@@ -17,7 +17,8 @@ async fn test_rejects_insecure_http_protocol() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("Insecure") || err_msg.contains("libsql://"),
-            "Error should mention security: {err_msg}"
+            "Error should mention security: {}",
+            err_msg
         );
     }
 }
@@ -34,7 +35,8 @@ async fn test_rejects_insecure_https_protocol() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("Insecure") || err_msg.contains("libsql://"),
-            "Error should mention security: {err_msg}"
+            "Error should mention security: {}",
+            err_msg
         );
     }
 }
@@ -48,7 +50,8 @@ async fn test_rejects_empty_token_for_remote() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("token") || err_msg.contains("Authentication"),
-            "Error should mention token: {err_msg}"
+            "Error should mention token: {}",
+            err_msg
         );
     }
 }
@@ -62,7 +65,8 @@ async fn test_rejects_whitespace_only_token() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("token") || err_msg.contains("Authentication"),
-            "Error should mention token: {err_msg}"
+            "Error should mention token: {}",
+            err_msg
         );
     }
 }
@@ -76,7 +80,8 @@ async fn test_allows_file_protocol() {
         let err_msg = e.to_string();
         assert!(
             !err_msg.contains("Insecure"),
-            "Should not reject file: protocol for security reasons: {err_msg}"
+            "Should not reject file: protocol for security reasons: {}",
+            err_msg
         );
     }
 }
@@ -90,7 +95,8 @@ async fn test_allows_memory_database() {
         let err_msg = e.to_string();
         assert!(
             !err_msg.contains("Insecure"),
-            "Should not reject :memory: for security reasons: {err_msg}"
+            "Should not reject :memory: for security reasons: {}",
+            err_msg
         );
     }
 }
@@ -104,7 +110,8 @@ async fn test_allows_valid_libsql_with_token() {
         let err_msg = e.to_string();
         assert!(
             !err_msg.contains("Insecure") && !err_msg.contains("Security"),
-            "Should not fail security validation: {err_msg}"
+            "Should not fail security validation: {}",
+            err_msg
         );
     }
 }
@@ -118,7 +125,8 @@ async fn test_rejects_ftp_protocol() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("Insecure") || err_msg.contains("libsql://"),
-            "Error should mention security: {err_msg}"
+            "Error should mention security: {}",
+            err_msg
         );
     }
 }
@@ -132,7 +140,8 @@ async fn test_rejects_ws_protocol() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("Insecure") || err_msg.contains("libsql://"),
-            "Error should mention security: {err_msg}"
+            "Error should mention security: {}",
+            err_msg
         );
     }
 }
@@ -146,7 +155,8 @@ async fn test_rejects_postgres_protocol() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("Insecure") || err_msg.contains("libsql://"),
-            "Error should mention security: {err_msg}"
+            "Error should mention security: {}",
+            err_msg
         );
     }
 }
@@ -160,7 +170,8 @@ async fn test_rejects_mysql_protocol() {
         let err_msg = e.to_string();
         assert!(
             err_msg.contains("Insecure") || err_msg.contains("libsql://"),
-            "Error should mention security: {err_msg}"
+            "Error should mention security: {}",
+            err_msg
         );
     }
 }
@@ -174,7 +185,8 @@ async fn test_security_error_type() {
         // Verify it's a Security error variant
         assert!(
             err.to_string().contains("Security validation failed"),
-            "Error should be Security variant: {err}"
+            "Error should be Security variant: {}",
+            err
         );
     }
 }
@@ -192,7 +204,9 @@ async fn test_file_protocol_variations() {
             let err_msg = e.to_string();
             assert!(
                 !err_msg.contains("Insecure"),
-                "file: protocol '{url}' should not fail security check: {err_msg}"
+                "file: protocol '{}' should not fail security check: {}",
+                url,
+                err_msg
             );
         }
     }

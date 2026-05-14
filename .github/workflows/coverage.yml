@@ -97,9 +97,8 @@ jobs:
           # Remove large unused tools and packages
           android: true
           dotnet: true
-          ghc: true
           haskell: true
-          docker: true
+          docker-images: true
           # Optional: leave these for debugging if needed
           # large-packages: true
           # swap: true

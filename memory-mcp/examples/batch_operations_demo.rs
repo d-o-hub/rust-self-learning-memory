@@ -1,5 +1,4 @@
 //! Batch Operations Demo
-#![allow(clippy::cast_precision_loss)]
 //!
 //! This example demonstrates how to use batch operations to execute multiple
 //! MCP tools efficiently with dependency management and parallel execution.
@@ -99,7 +98,7 @@ async fn demo_parallel_operations() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
     let duration = start.elapsed();
 
     println!(
@@ -163,7 +162,7 @@ async fn demo_dependency_chain() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
 
     println!("✓ Pipeline executed successfully");
     println!("  Total time: {}ms", response.total_duration_ms);
@@ -210,11 +209,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     };
 
     let executor_fn = |_tool: String, args: serde_json::Value| async move {
-        if args
-            .get("fail")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false)
-        {
+        if args.get("fail").and_then(|v| v.as_bool()).unwrap_or(false) {
             Err((-32000, "Simulated failure".to_string()))
         } else {
             Ok(json!({"status": "success", "data": args}))
@@ -224,7 +219,7 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
 
     println!("✓ Batch completed with partial results");
     println!(
@@ -241,7 +236,8 @@ async fn demo_partial_failure() -> anyhow::Result<()> {
             let error = result
                 .error
                 .as_ref()
-                .map_or_else(|| "Unknown error".to_string(), |e| e.message.clone());
+                .map(|e| e.message.clone())
+                .unwrap_or_else(|| "Unknown error".to_string());
             println!("  {} → Failed: {}", result.id, error);
         }
     }
@@ -320,7 +316,7 @@ async fn demo_complex_workflow() -> anyhow::Result<()> {
     let response = executor
         .execute(request, executor_fn)
         .await
-        .map_err(|e| anyhow::anyhow!("Batch failed: {e}"))?;
+        .map_err(|e| anyhow::anyhow!("Batch failed: {}", e))?;
     let duration = start.elapsed();
 
     println!("✓ Complex workflow completed");

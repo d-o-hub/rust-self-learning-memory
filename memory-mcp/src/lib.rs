@@ -123,6 +123,7 @@
 
 pub mod batch;
 pub mod cache;
+pub mod constants;
 pub mod error;
 pub mod jsonrpc;
 pub mod mcp;
@@ -132,7 +133,6 @@ pub mod protocol;
 pub mod sandbox;
 pub mod server;
 pub mod types;
-pub mod constants;
 
 // Re-export commonly used types
 pub use batch::{

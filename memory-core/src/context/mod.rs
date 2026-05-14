@@ -16,6 +16,13 @@
 //! - Prioritizing by combined recency + salience scoring
 //! - Evicting lowest-priority items when capacity exceeded
 //!
+//! ## DAG-Based State Management (WG-134)
+//!
+//! The `dag` submodule provides DAG-based state management achieving ~86% token
+//! reduction by deduplicating shared context between episodes:
+//! - `StateDag`: Manages shared context nodes
+//! - `DagContextAssembler`: Assembles minimal deduplicated context
+//!
 //! ## Architecture
 //!
 //! ```text
@@ -32,6 +39,10 @@
 //!        v
 //!   Bounded Bundle (sorted by priority)
 //!        |
+//!        v
+//!   DagContextAssembler (WG-134)
+//!        |  - Deduplicate shared context
+//!        |  - ~86% token reduction
 //!        v
 //!   Downstream Prompt
 //! ```
@@ -116,8 +127,10 @@
 //! - [`types`]: Core types (`ContextItem`, `BundleConfig`, `BundleStats`)
 //! - [`accumulator`]: `BundleAccumulator` implementation
 //! - [`scoring`]: Priority and recency scoring functions
+//! - [`dag`]: DAG-based state management (WG-134, ~86% token reduction)
 
 pub mod accumulator;
+pub mod dag;
 pub mod scoring;
 pub mod types;
 
@@ -134,3 +147,9 @@ pub use scoring::{
     compare_by_salience,
 };
 pub use types::{AddResult, BundleConfig, BundleStats, ContextItem, ContextItemType};
+
+// Re-export DAG types (WG-134)
+pub use dag::{
+    AssembledContext, DagAssemblyConfig, DagContextAssembler, DagStats, EdgeMetadata, EdgeType,
+    NodeId, StateDag, StateEdge, StateNode, StateNodeType,
+};

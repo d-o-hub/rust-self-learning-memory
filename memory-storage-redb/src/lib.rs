@@ -318,3 +318,6 @@ impl RedbStorage {
         Ok(storage)
     }
 }
+
+#[cfg(test)]
+mod tests;

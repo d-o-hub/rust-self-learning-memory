@@ -336,7 +336,9 @@ impl CascadeRetriever {
         // Optimization: O(N + k log k) instead of O(N log N)
         let top_k = self.config.top_k;
         let similarities = crate::search::select_top_k(&mut similarities, top_k, |a, b| {
-            b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+            b.1.partial_cmp(&a.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
         });
 
         // Determine if results are sufficient

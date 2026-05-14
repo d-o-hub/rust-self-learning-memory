@@ -99,13 +99,25 @@ impl EmbeddingStorageBackend for RedbStorage {
                 if similarity >= threshold {
                     // Extract episode ID from key
                     let episode_id_str = &key[8..]; // Remove "episode_" prefix
-                    matched_ids.push((episode_id_str.to_string(), similarity));
+
+                    // Verify existence to avoid "missing backing row" issue
+                    if episodes_table
+                        .get(episode_id_str)
+                        .map_err(|e| {
+                            Error::Storage(format!("Failed to check episode existence: {}", e))
+                        })?
+                        .is_some()
+                    {
+                        matched_ids.push((episode_id_str.to_string(), similarity));
+                    }
                 }
             }
 
             // Optimization: select top-k matches before full deserialization
             let top_matches = select_top_k(&mut matched_ids, limit, |a, b| {
-                b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+                b.1.partial_cmp(&a.1)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.0.cmp(&b.0))
             });
 
             let mut results = Vec::with_capacity(top_matches.len());
@@ -191,13 +203,25 @@ impl EmbeddingStorageBackend for RedbStorage {
                 if similarity >= threshold {
                     // Extract pattern ID from key
                     let pattern_id_str = &key[8..]; // Remove "pattern_" prefix
-                    matched_ids.push((pattern_id_str.to_string(), similarity));
+
+                    // Verify existence to avoid "missing backing row" issue
+                    if patterns_table
+                        .get(pattern_id_str)
+                        .map_err(|e| {
+                            Error::Storage(format!("Failed to check pattern existence: {}", e))
+                        })?
+                        .is_some()
+                    {
+                        matched_ids.push((pattern_id_str.to_string(), similarity));
+                    }
                 }
             }
 
             // Optimization: select top-k matches before full deserialization
             let top_matches = select_top_k(&mut matched_ids, limit, |a, b| {
-                b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+                b.1.partial_cmp(&a.1)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| a.0.cmp(&b.0))
             });
 
             let mut results = Vec::with_capacity(top_matches.len());

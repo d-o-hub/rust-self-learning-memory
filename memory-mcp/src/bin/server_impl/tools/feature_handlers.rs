@@ -93,7 +93,11 @@ pub async fn handle_recommend_playbook(
         _ => do_memory_core::TaskType::CodeGeneration,
     };
 
-    let max_steps = args.get("max_steps").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
+    let max_steps = args
+        .get("max_steps")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(5)
+        .min(do_memory_mcp::constants::MAX_PLAYBOOK_STEPS as u64) as usize;
 
     let language = args
         .get("language")

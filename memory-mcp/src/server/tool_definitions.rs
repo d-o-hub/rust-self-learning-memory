@@ -3,6 +3,7 @@
 //! This module contains the `create_default_tools()` function that defines
 //! the core MCP tools for the memory system (querying, patterns, monitoring, embeddings).
 
+use crate::constants::{MAX_QUERY_LIMIT, MIN_QUERY_LIMIT};
 use crate::types::Tool;
 use serde_json::json;
 
@@ -39,6 +40,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 },
                 "limit": {
                     "type": "integer",
+                    "minimum": MIN_QUERY_LIMIT,
+                    "maximum": MAX_QUERY_LIMIT,
                     "default": 10,
                     "description": "Maximum number of episodes to retrieve"
                 },
@@ -70,6 +73,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 },
                 "limit": {
                     "type": "integer",
+                    "minimum": MIN_QUERY_LIMIT,
+                    "maximum": MAX_QUERY_LIMIT,
                     "default": 20,
                     "description": "Maximum number of patterns to return"
                 }
@@ -138,6 +143,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 },
                 "limit": {
                     "type": "integer",
+                    "minimum": MIN_QUERY_LIMIT,
+                    "maximum": MAX_QUERY_LIMIT,
                     "description": "Maximum number of results (default: 5)",
                     "default": 5
                 },
@@ -179,6 +186,8 @@ pub fn create_default_tools() -> Vec<Tool> {
                 },
                 "limit": {
                     "type": "integer",
+                    "minimum": MIN_QUERY_LIMIT,
+                    "maximum": MAX_QUERY_LIMIT,
                     "description": "Maximum number of recommendations (default: 3)",
                     "default": 3
                 }

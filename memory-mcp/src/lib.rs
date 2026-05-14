@@ -132,6 +132,7 @@ pub mod protocol;
 pub mod sandbox;
 pub mod server;
 pub mod types;
+pub mod constants;
 
 // Re-export commonly used types
 pub use batch::{

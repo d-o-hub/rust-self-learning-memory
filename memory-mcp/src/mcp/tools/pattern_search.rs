@@ -98,8 +98,9 @@ pub async fn execute(
     };
 
     // Execute search
+    let limit = do_memory_core::apply_query_limit(Some(input.limit));
     let results = memory
-        .search_patterns_with_config(&input.query, context, config, input.limit)
+        .search_patterns_with_config(&input.query, context, config, limit)
         .await?;
 
     // Convert results
@@ -225,8 +226,9 @@ pub async fn execute_recommend(
     };
 
     // Execute recommendation
+    let limit = do_memory_core::apply_query_limit(Some(input.limit));
     let results = memory
-        .recommend_patterns_for_task(&input.task_description, context, input.limit)
+        .recommend_patterns_for_task(&input.task_description, context, limit)
         .await?;
 
     // Convert results
